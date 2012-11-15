@@ -27,7 +27,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
@@ -820,7 +819,6 @@ public class SQLUtils
 		throws SQLException
 	{
 		List<String> columns = new Vector<String>();
-		CallableStatement cstmt = null;
 		ResultSet rs = null;
 		try
 		{
@@ -844,7 +842,6 @@ public class SQLUtils
 		{
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(cstmt);
 		}
 		return columns;
 	}
@@ -1224,34 +1221,41 @@ public class SQLUtils
 	}
 	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException
 	{
-	    PreparedStatement stmt = null;
-	    List<String> columns = new LinkedList<String>();
-	    List<Object> values = new LinkedList<Object>();
-	    for (Entry<String,Object> entry : data.entrySet())
-	    {
-	        columns.add(quoteSymbol(conn, entry.getKey()));
-	        values.add(entry.getValue());
-	    }
-	    List<String> l_qmarks = new LinkedList<String>();
-	    for (int i = 0; i < values.size(); i++)
-	    {
-	        l_qmarks.add("?");
-	    }
-	    String column_string = stringJoin(",", columns);
-	    String qmark_string = stringJoin(",", l_qmarks);
-	    String query = String.format("INSERT INTO %s(%s) VALUES (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string, qmark_string);
-	    stmt = conn.prepareStatement(query);
-	    int i = 1;
-	    for (Object item : values)
-	    {
-	        stmt.setObject(i++, item);
-	    }
-	    stmt.executeUpdate();
-	    query = "select last_insert_id()";
-	    stmt = conn.prepareStatement(query);
-	    ResultSet rs = stmt.executeQuery();
-	    rs.first();
-	    return rs.getInt(1);
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+		    List<String> columns = new LinkedList<String>();
+		    List<Object> values = new LinkedList<Object>();
+		    for (Entry<String,Object> entry : data.entrySet())
+		    {
+		        columns.add(quoteSymbol(conn, entry.getKey()));
+		        values.add(entry.getValue());
+		    }
+		    List<String> l_qmarks = new LinkedList<String>();
+		    for (int i = 0; i < values.size(); i++)
+		    {
+		        l_qmarks.add("?");
+		    }
+		    String column_string = stringJoin(",", columns);
+		    String qmark_string = stringJoin(",", l_qmarks);
+		    String query = String.format("INSERT INTO %s(%s) VALUES (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string, qmark_string);
+		    
+		    stmt = prepareStatement(conn, query, values);
+		    stmt.executeUpdate();
+		    cleanup(stmt);
+		    
+		    query = "select last_insert_id()";
+		    stmt = conn.prepareStatement(query);
+		    rs = stmt.executeQuery();
+		    rs.first();
+		    return rs.getInt(1);
+		}
+		finally
+		{
+			cleanup(rs);
+			cleanup(stmt);
+		}
 	}
 	
 	
@@ -1574,7 +1578,7 @@ public class SQLUtils
 		finally
 		{
 			SQLUtils.cleanup(pstmt);
-			//DebugTimer.stop(query.length() > 0 ? query.toString() : "insertRows(), no query");
+			DebugTimer.stop(query.length() > 0 ? query.toString() : "insertRows(), no query");
 		}
 	}
 
@@ -1718,10 +1722,6 @@ public class SQLUtils
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
 	}
 	public static void cleanup(Statement obj)
-	{
-		if (obj != null) try { obj.close(); } catch (Exception e) { }
-	}
-	public static void cleanup(CallableStatement obj)
 	{
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
 	}

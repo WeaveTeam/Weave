@@ -48,6 +48,25 @@ import weave.utils.ProgressManager;
 {
 	public static void migrate(ConnectionConfig connConfig, DataConfig dataConfig, ProgressManager progress) throws RemoteException
 	{
+		DeprecatedConfig dc = new DeprecatedConfig();
+		dc.connConfig = connConfig;
+		dc.dataConfig = dataConfig;
+		dc.progress = progress;
+		dc.migrate();
+	}
+	
+	private DeprecatedConfig() { }
+	
+	private ConnectionConfig connConfig;
+	private DataConfig dataConfig;
+	private ProgressManager progress;
+	Map<String,String> geomKeyTypeLookup;
+	Map<String,Integer> tableIdLookup;
+	Map<String,DataEntityMetadata> tableMetadataLookup;
+	
+	private void migrate() throws RemoteException
+	{
+		int fetchSize = 1024;
 		int order = 0;
 		String[] columnNames;
 		Connection conn = null;
@@ -74,11 +93,6 @@ import weave.utils.ProgressManager;
 			if (dbInfo.dataConfigTable == null || dbInfo.dataConfigTable.length() == 0)
 				throw new InvalidParameterException("DatabaseConfig: Column metadata table name not specified.");
 			
-			// init temporary lookup tables
-			Map<String,String> geomKeyTypeLookup = new HashMap<String,String>();
-			Map<String,Integer> tableIdLookup = new HashMap<String,Integer>();
-			Map<String,DataEntityMetadata> tableMetadataLookup = new HashMap<String,DataEntityMetadata>();
-			
 			String quotedOldMetadataTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, OLD_METADATA_TABLE);
 			String quotedDataConfigTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.dataConfigTable);
 			String quotedGeometryConfigTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.geometryConfigTable);
@@ -90,10 +104,16 @@ import weave.utils.ProgressManager;
 			
 			int geomTotal = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedGeometryConfigTable));
 			int attrTotal = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedDataConfigTable));
+			
+			// initialize lookup tables
+			geomKeyTypeLookup = new HashMap<String,String>(geomTotal); // we will never have more entries than geomTotal
+			tableIdLookup = new HashMap<String,Integer>(geomTotal); // rough estimate for initial capacity, may be totally inaccurate
+			tableMetadataLookup = new HashMap<String,DataEntityMetadata>(geomTotal);
+			
 			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
 			{
 				resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedOldMetadataTable));
-                resultSet.setFetchSize(1024);
+                resultSet.setFetchSize(fetchSize);
 				while (resultSet.next())
 				{
 					String tableName = resultSet.getString(OLD_METADATA_COLUMN_ID);
@@ -115,7 +135,7 @@ import weave.utils.ProgressManager;
 			// migrate geometry collections
 			
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedGeometryConfigTable));
-            resultSet.setFetchSize(1024);
+            resultSet.setFetchSize(fetchSize);
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			while (resultSet.next())
 			{
@@ -137,7 +157,7 @@ import weave.utils.ProgressManager;
 				
 				// create an entity for the geometry column
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
-				int tableId = getTableId(dataConfig, tableIdLookup, tableMetadataLookup, name);
+				int tableId = getTableId(name);
 				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata);
 				dataConfig.addChild(tableId, columnId, order++);
 				
@@ -150,7 +170,7 @@ import weave.utils.ProgressManager;
 			// migrate columns
 			
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedDataConfigTable));
-            resultSet.setFetchSize(1024);
+            resultSet.setFetchSize(fetchSize);
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			while (resultSet.next())
 			{
@@ -162,13 +182,12 @@ import weave.utils.ProgressManager;
 				if (isEmpty(keyType) && !isEmpty(geom))
 					columnRecord.put(PublicMetadata.KEYTYPE, geomKeyTypeLookup.get(geom));
 				
-				String title = columnRecord.get(PublicMetadata.TITLE);
-				String name = columnRecord.get(PublicMetadata_NAME);
-				String year = columnRecord.get(PublicMetadata_YEAR);
 				// make sure title is set
-				if (isEmpty(title))
+				if (isEmpty(columnRecord.get(PublicMetadata.TITLE)))
 				{
-					title = isEmpty(year) ? name : String.format("%s (%s)", name, year);
+					String name = columnRecord.get(PublicMetadata_NAME);
+					String year = columnRecord.get(PublicMetadata_YEAR);
+					String title = isEmpty(year) ? name : String.format("%s (%s)", name, year);
 					columnRecord.put(PublicMetadata.TITLE, title);
 				}
 				
@@ -181,16 +200,20 @@ import weave.utils.ProgressManager;
 				
                 // create the column entity as a child of the table
                 DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
-                int tableId = getTableId(dataConfig, tableIdLookup, tableMetadataLookup, name);
+                int tableId = getTableId(dataTableName);
 				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata);
 				dataConfig.addChild(tableId, columnId, order++);
 				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
-		    dataConfig.flushInserts();	
+		    dataConfig.flushInserts();
 			/////////////////////////////
 			
 			conn.commit();
+		}
+		catch (OutOfMemoryError e)
+		{
+			e.printStackTrace();
 		}
 		catch (RemoteException e)
 		{
@@ -218,8 +241,11 @@ import weave.utils.ProgressManager;
 		}
 	}
 	
-	private static int getTableId(DataConfig dataConfig, Map<String,Integer> tableIdLookup, Map<String,DataEntityMetadata> tableMetadataLookup, String tableName) throws RemoteException
+	private int getTableId(String tableName) throws RemoteException
 	{
+		// pause progress calculation because we don't want the occasional table initialization to affect the time estimate.
+		progress.pause();
+		
 		// lazily create table entries
 		int tableId;
 		if (tableIdLookup.containsKey(tableName))
@@ -241,6 +267,8 @@ import weave.utils.ProgressManager;
 			tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, metadata);
 			tableIdLookup.put(tableName, tableId);
 		}
+		
+		progress.resume();
 		return tableId;
 	}
 	

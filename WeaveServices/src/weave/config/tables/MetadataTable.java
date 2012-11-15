@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -43,14 +42,14 @@ import weave.utils.SQLUtils;
  */
 public class MetadataTable extends AbstractTable
 {
-    public static final int maxQueue = 1024;
 	public static final String FIELD_ID = "entity_id";
 	public static final String FIELD_PROPERTY = "property";
 	public static final String FIELD_VALUE = "value";
 	
 	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_PROPERTY, FIELD_VALUE));
-
-    private List<Map<String,Object>> insertQueue;
+	
+	public static final int maxQueue = 500;
+    private final List<Map<String,Object>> insertQueue = new Vector<Map<String,Object>>(maxQueue);
 	
 	private ManifestTable manifest = null;
 	
@@ -60,17 +59,30 @@ public class MetadataTable extends AbstractTable
 		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
-        insertQueue = new LinkedList<Map<String,Object>>();
 	}
-    public void flushInserts(Connection conn, boolean force) throws RemoteException, SQLException
+
+	private void insertRecord(Map<String,Object> record) throws RemoteException, SQLException
+	{
+		if (connectionConfig.migrationPending())
+		{
+			insertQueue.add(record);
+			if (insertQueue.size() < maxQueue)
+				return;
+		}
+		flushInserts();
+	}
+	
+    public void flushInserts() throws RemoteException, SQLException
     {
-        if (force || !connectionConfig.migrationPending() || (insertQueue.size() > maxQueue)) 
-        {
-            SQLUtils.insertRows(conn, schemaName, tableName, insertQueue);
-            insertQueue.clear();
-        }
+		if (insertQueue.size() > 0)
+		{
+			Connection conn = connectionConfig.getAdminConnection();
+			SQLUtils.insertRows(conn, schemaName, tableName, insertQueue);
+			insertQueue.clear();
+		}
     }
-	protected void initTable() throws RemoteException
+	
+    protected void initTable() throws RemoteException
 	{
 		if (manifest == null)
 			return;
@@ -129,21 +141,18 @@ public class MetadataTable extends AbstractTable
 	{
 		try 
 		{
-			Connection conn = connectionConfig.getAdminConnection();
-			
-			List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
-			
 			if (!connectionConfig.migrationPending())
 			{
+				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 				for (String property : diff.keySet())
 				{
 					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
 					records.add(record);
 				}
+				Connection conn = connectionConfig.getAdminConnection();
 				SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
 			}
 			
-			records.clear();
 			for (Entry<String,String> entry : diff.entrySet())
 			{
 				String value = entry.getValue();
@@ -154,10 +163,9 @@ public class MetadataTable extends AbstractTable
 						FIELD_PROPERTY, entry.getKey(),
 						FIELD_VALUE, value
 					);
-					insertQueue.add(record);
+					insertRecord(record);
 				}
 			}
-            flushInserts(conn, false);
 		} 
 		catch (SQLException e)
 		{

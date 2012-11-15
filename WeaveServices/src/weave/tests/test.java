@@ -66,11 +66,21 @@ public class test
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception
 	{
-		//String sqlconfig_xml = "/home/pkovac/dload/cfg/sqlconfig.xml";
-		String sqlconfig_xml = "d:/tomcat/webapps/weave-config/sqlconfig.xml";
-		ConnectionConfig connConfig = new ConnectionConfig(new File(sqlconfig_xml));
-		ProgressPrinter pp = new ProgressPrinter(System.out);
-		DataConfig dataConfig = connConfig.initializeNewDataConfig(pp.getProgressManager());
+		for (String fileName : Arrays.asList(
+				"/home/pkovac/dload/cfg/sqlconfig.xml",
+				"d:/tomcat/webapps/weave-config/sqlconfig.xml",
+				"c:/tomcat/webapps/weave-config/sqlconfig.xml"))
+		{
+			File file = new File(fileName);
+			if (file.exists())
+			{
+				ConnectionConfig connConfig = new ConnectionConfig(file);
+				ProgressPrinter pp = new ProgressPrinter(System.out);
+				DataConfig dataConfig = connConfig.initializeNewDataConfig(pp.getProgressManager());
+				
+				break;
+			}
+		}
 		
 //		ConnectionInfo connInfo = new ConnectionInfo();
 //		connInfo.connectString = "hello";

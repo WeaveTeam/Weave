@@ -28,23 +28,25 @@ public class ProgressManager extends Observable
 	private final long ONE_SECOND = 1000000000;
 	
 	private String step_desc;
-	private int current_steps;
-	private int total_steps;
+	private long current_steps;
+	private long total_steps;
 	
 	LinkedList<Long> ticks = new LinkedList<Long>();
 	private long duration_for_estimate = ONE_SECOND * 10;
-	private int current_items;
-	private int total_items;
+	private long current_items;
+	private long total_items;
+	private long paused_time;
+	private long offset_duration = 0;
     
     public ProgressManager()
     {
     }
     
     public String getStepDescription() { return step_desc; }
-    public int getStepNumber() { return current_steps; }
-    public int getStepTotal() { return total_steps; }
-    public int getTickNumber() { return current_items; }
-    public int getTickTotal() { return total_items; }
+    public long getStepNumber() { return current_steps; }
+    public long getStepTotal() { return total_steps; }
+    public long getTickNumber() { return current_items; }
+    public long getTickTotal() { return total_items; }
     public long getStepTimeRemaining()
     {
     	double tick_duration = ticks.peekLast() - ticks.peekFirst();
@@ -66,20 +68,27 @@ public class ProgressManager extends Observable
     	this.total_items = tickTotal;
     	
     	ticks.clear();
-    	ticks.add(System.nanoTime());
-    	
-    	setChanged();
-    	notifyObservers();
+    	tick();
+    }
+    
+    public void pause()
+    {
+    	paused_time = System.nanoTime();
+    }
+    public void resume()
+    {
+    	offset_duration += System.nanoTime() - paused_time;
     }
     
     public void tick()
     {
-    	ticks.add(System.nanoTime());
+    	// add new tick
+    	ticks.add(System.nanoTime() - offset_duration);
     	// drop the ticks that are outside our estimate duration
     	long firstTick;
     	do {
     		firstTick = ticks.pollFirst();
-    	} while (ticks.peekLast() - ticks.peekFirst() > duration_for_estimate);
+    	} while (ticks.size() > 0 && ticks.peekLast() - ticks.peekFirst() > duration_for_estimate);
     	ticks.addFirst(firstTick); // add back the tick we just removed to make the condition true again
     	
     	current_items++;
@@ -128,7 +137,7 @@ public class ProgressManager extends Observable
 			if (p.getTickTotal() > 0)
 			{
 				ticks = String.format(
-					"%s/%s",
+					"%s/%s items",
 					p.getTickNumber(),
 					p.getTickTotal(),
 					p.getStepTimeRemaining()

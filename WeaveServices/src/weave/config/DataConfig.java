@@ -119,10 +119,9 @@ public class DataConfig
     {
         try 
         {
-            Connection conn = connectionConfig.getAdminConnection();
-            private_metadata.flushInserts(conn, true);
-            public_metadata.flushInserts(conn, true);
-            hierarchy.flushInserts(conn, true);
+            private_metadata.flushInserts();
+            public_metadata.flushInserts();
+            hierarchy.flushInserts();
         }
         catch (SQLException e)
         {
