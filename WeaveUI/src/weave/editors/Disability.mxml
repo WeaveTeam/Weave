@@ -240,10 +240,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var computeScript:String = "mySlope <- y2 -y1";
 				//inputValues is a matrix of all of the columns that are to be sent to R
 				
-				var inputValues:Array = new Array();var tempArray:Array = new Array();
-				tempArray = joinColsRArray; 
-				 inputValues = tempArray[0].valueOf(); 
-				// var inputValues:Array = joinColsRArray; use this
+				var inputValues:Array = new Array();
+				var tempArray:Array = new Array();
+				
+				for (var i:int = 0; i<joinColsRArray.length; i++){
+					inputValues.push(joinColsRArray[i][0].valueOf());
+				}
+			
+			/* for(var j:int = 0; j < 	joinColsRArray.length; j++)
+			{
+				for(var i :int = 0; i < joinColsRArray[j].length; i++)
+				{
+					inputValues.push(joinColsRArray[j][1]);
+				}
+				
+			} */
+				
+			    //inputValues = joinColsRArray; //use this
 				var outputNames:Array = ["mySlope"];
 				//default name to be used in R
 				var inputName:Array = ["y1", "y2"];

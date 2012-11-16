@@ -250,63 +250,8 @@ wheel</zoom>
   <KeySet name="alwaysHighlightKeySet"/>
   <LinkableHashMap encoding="dynamic" name="savedSelections"/>
   <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
-  <CSVDataSource name="CSVDataSource">
-    <attributeHierarchy encoding="xml">
-      <hierarchy>
-        <attribute csvColumn="Country" keyType="CSVDataSource" title="Country"/>
-        <attribute csvColumn="%Religious" keyType="CSVDataSource" title="%Religious"/>
-        <attribute csvColumn="%Communist" keyType="CSVDataSource" title="%Communist"/>
-      </hierarchy>
-    </attributeHierarchy>
-    <csvDataString>Country,%Religious,%Communist
-USA,80,10
-China,20,90</csvDataString>
-    <keyColName>Country</keyColName>
-    <keyType>CSVDataSource</keyType>
-    <url/>
-  </CSVDataSource>
-  <LinkableHashMap encoding="dynamic" name="Probed Columns">
-    <ReferencedColumn name="ReferencedColumn">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <attribute csvColumn="Country" title="Country"/>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn2">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <attribute csvColumn="%Communist" title="%Communist"/>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn3">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource2</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <attribute csvColumn="US State FIPS Code" title="US State FIPS Code"/>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
-    <ReferencedColumn name="ReferencedColumn4">
-      <dynamicColumnReference encoding="dynamic">
-        <HierarchyColumnReference>
-          <dataSourceName>CSVDataSource2</dataSourceName>
-          <hierarchyPath encoding="xml">
-            <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" title="Percent Obese (BMI >= 30) (2010)"/>
-          </hierarchyPath>
-        </HierarchyColumnReference>
-      </dynamicColumnReference>
-    </ReferencedColumn>
-  </LinkableHashMap>
+
+  
   <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
   <CSVDataSource name="CSVDataSource2">
     <attributeHierarchy encoding="xml">
@@ -314,61 +259,12 @@ China,20,90</csvDataString>
         <attribute csvColumn="US State FIPS Code" keyType="CSVDataSource2" title="US State FIPS Code"/>
         <attribute csvColumn="State" keyType="CSVDataSource2" title="State"/>
         <attribute csvColumn="Percent Obese (BMI >= 30) (1995)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (1995)"/>
-        <attribute csvColumn="Percent Obese (BMI >= 30) (2000)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2000)"/>
-        <attribute csvColumn="Percent Obese (BMI >= 30) (2005)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2005)"/>
         <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)"/>
       </hierarchy>
     </attributeHierarchy>
-    <csvDataString>US State FIPS Code,State,Percent Obese (BMI &gt;= 30) (1995),Percent Obese (BMI &gt;= 30) (2000),Percent Obese (BMI &gt;= 30) (2005),Percent Obese (BMI &gt;= 30) (2010)
-01,Alabama,18.7,23.9,28.9,33
-02,Alaska,19.8,21,27.4,25.2
-04,Arizona,13.3,19.2,21.1,24.7
-05,Arkansas,17.5,23.3,28,30.9
-06,California,15.1,19.9,22.7,24.7
-08,Colorado,10.1,14.2,17.8,21.4
-09,Connecticut,12.5,17.4,20.1,23
-10,Delaware,17.1,16.6,23.5,28.7
-12,Florida,17.2,18.7,22.8,27.2
-13,Georgia,13.3,21.5,26.5,30.4
-16,Idaho,14.2,18.9,24.5,26.9
-17,Illinois,16.7,21.7,25.1,28.7
-18,Indiana,20.1,21.8,27.2,30.2
-19,Iowa,17.5,21.5,25.4,29.1
-20,Kansas,15.9,20.8,23.9,30.1
-21,Kentucky,16.9,23,28.6,31.8
-22,Louisiana,17.7,23.6,30.8,31.7
-23,Maine,14.1,20,22.7,27.4
-24,Maryland,16.3,20.2,24.4,27.9
-25,Massachusetts,11.7,16.8,20.7,23.6
-26,Michigan,18.2,22.4,26.2,31.7
-27,Minnesota,15.3,17.4,23.7,25.4
-28,Mississippi,19.5,25,30.9,34.5
-29,Missouri,18.9,22.1,26.9,31.4
-30,Montana,13.4,15.9,21.3,23.5
-31,Nebraska,16.3,21.1,26,27.5
-32,Nevada,13.3,17.9,21.2,23.1
-33,New Hampshire,15.1,18.1,23.1,25.5
-34,New Jersey,14.5,18.5,22.1,24.8
-35,New Mexico,13,19.3,21.7,25.6
-36,New York,13.9,17.7,22.2,24.5
-37,North Carolina,16.9,21.8,25.9,28.6
-38,North Dakota,16.4,20.4,25.4,27.9
-39,Ohio,17.5,21.5,24.3,29.7
-40,Oklahoma,13.5,19.7,26.8,31.3
-41,Oregon,15.2,21.5,23.8,27.6
-42,Pennsylvania,16.4,21.2,25.3,29.2
-44,Rhode Island,13.2,17.1,21,26
-45,South Carolina,16.7,22,29.1,32
-46,South Dakota,13.9,19.8,25.5,27.7
-47,Tennessee,18.4,22.9,27.4,31.7
-48,Texas,15.9,23.1,27,31.7
-49,Utah,"",19.1,21.2,23
-50,Vermont,14.6,18.2,20.2,23.9
-51,Virginia,15.7,18.2,25.1,26.4
-53,Washington,13.9,18.8,23.3,26.2
-54,West Virginia,18.3,23.2,30.6,32.9
-55,Wisconsin,16,20,24.4,26.9
-56,Wyoming,14.3,18,24.2,25.7</csvDataString>
+    <csvDataString>US State FIPS Code,State,Percent Obese (BMI &gt;= 30) (1995),Percent Obese (BMI &gt;= 30) (2010)
+28,Mississippi,19.5,34.5
+</csvDataString>
     <keyColName>US State FIPS Code</keyColName>
     <keyType>CSVDataSource2</keyType>
     <url/>
@@ -437,11 +333,11 @@ China,20,90</csvDataString>
               <axisLineDataBounds>
                 <xMax>0</xMax>
                 <xMin>0</xMin>
-                <yMax>34.5</yMax>
-                <yMin>10.1</yMin>
+                <yMax>40</yMax>
+                <yMin>0</yMin>
               </axisLineDataBounds>
-              <axisLineMaxValue>34.5</axisLineMaxValue>
-              <axisLineMinValue>10.1</axisLineMinValue>
+              <axisLineMaxValue>40</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
               <forceTickCount>false</forceTickCount>
               <keySet>
                 <keyFilter encoding="dynamic">
@@ -477,8 +373,8 @@ China,20,90</csvDataString>
               <axisLineDataBounds>
                 <xMax>1</xMax>
                 <xMin>0</xMin>
-                <yMax>10.1</yMax>
-                <yMin>10.1</yMin>
+                <yMax>40</yMax>
+                <yMin>0</yMin>
               </axisLineDataBounds>
               <axisLineMaxValue>1</axisLineMaxValue>
               <axisLineMinValue>0</axisLineMinValue>
