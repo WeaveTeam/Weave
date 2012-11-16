@@ -19,7 +19,6 @@
 package weave.services
 {
 	import flash.external.ExternalInterface;
-	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
@@ -29,11 +28,21 @@ package weave.services
 	
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
-	import weave.services.beans.Entity;
 
 	public class AdminInterface
 	{
 		private static var _thisInstance:AdminInterface = null;
+		public static function get instance():AdminInterface
+		{
+			if (_thisInstance == null)
+				_thisInstance = new AdminInterface();
+			return _thisInstance;
+		}
+		public static function get service():WeaveAdminService
+		{
+			return instance.service;
+		}
+		
 		
 		
 		
@@ -73,48 +82,15 @@ package weave.services
 		
 
 		
-		
-		
-		public static function get instance():AdminInterface
-		{
-			if (_thisInstance == null)
-				_thisInstance = new AdminInterface();
-			return _thisInstance;
-		}
-		public static function get service():WeaveAdminService
-		{
-			return instance.service;
-		}
-		
 		public function AdminInterface()
 		{
-			service.addHook(
-				service.importSQL,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					entityCache.invalidate(int(event.result), true);
-					service.getKeyTypes();
-				}
-			);
+			///////////////////
+			// Initialization
 			service.addHook(
 				service.checkDatabaseConfigExists,
 				function handleCheck(event:ResultEvent, token:Object = null):void
 				{
 					databaseConfigExists = event.result as Boolean;
-				}
-			);
-			service.addHook(
-				service.getConnectionNames,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					connectionNames = event.result as Array || [];
-				}
-			);
-			service.addHook(
-				service.getDatabaseConfigInfo,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					databaseConfigInfo = new DatabaseConfigInfo(event.result);
 				}
 			);
 			service.addHook(
@@ -142,9 +118,11 @@ package weave.services
 						service.getWeaveFileNames(true);
 						service.getConnectionNames();
 						service.getKeyTypes();
+						}
 					}
-				}
 			);
+			//////////////////////////////
+			// Weave client config files
 			service.addHook(
 				service.saveWeaveFile,
 				function(event:ResultEvent, token:Object = null):void
@@ -173,7 +151,16 @@ package weave.services
 						privateWeaveFileNames = event.result as Array || [];
 				}
 			);
+			//////////////////////////////
+			// ConnectionInfo management
 			service.addHook(
+				service.getConnectionNames,
+				function(event:ResultEvent, token:Object = null):void
+				{
+					connectionNames = event.result as Array || [];
+				}
+			);
+ 			service.addHook(
 				service.saveConnectionInfo,
 				function(event:ResultEvent, arguments:Array):void
 				{
@@ -187,6 +174,15 @@ package weave.services
 					getConnectionNames();
 				}
 			);
+			//////////////////////////////////
+			// DatabaseConfigInfo management
+			service.addHook(
+				service.getDatabaseConfigInfo,
+				function(event:ResultEvent, token:Object = null):void
+				{
+					databaseConfigInfo = new DatabaseConfigInfo(event.result);
+				}
+			);
 			service.addHook(
 				service.setDatabaseConfigInfo,
 				function(event:ResultEvent, token:Object=null):void
@@ -194,6 +190,17 @@ package weave.services
 					databaseConfigExists = Boolean(event.result);
 				}
 			);
+			/////////////////////////////////
+			// Key column uniqueness checks
+			service.addHook(
+				service.getDBFData,
+				function(event:ResultEvent, token:Object = null):void
+				{
+					dbfData = event.result as Array || [];
+				}
+			);
+			/////////////////
+			// File uploads
 			service.addHook(
 				service.getUploadedCSVFiles,
 				function(event:ResultEvent, token:Object = null):void
@@ -215,11 +222,14 @@ package weave.services
 					dbfKeyColumns = event.result as Array || [];
 				}
 			);
+			////////////////
+			// Data import
 			service.addHook(
-				service.getDBFData,
+				service.importSQL,
 				function(event:ResultEvent, token:Object = null):void
 				{
-					dbfData = event.result as Array || [];
+					entityCache.invalidate(int(event.result), true);
+					service.getKeyTypes();
 				}
 			);
 			service.addHook(
@@ -246,6 +256,8 @@ package weave.services
 					service.getKeyTypes();
 				}
 			);
+			//////////////////
+			// Miscellaneous
 			service.addHook(
 				service.getKeyTypes,
 				function(event:ResultEvent, token:Object = null):void
