@@ -49,37 +49,13 @@ public class HierarchyTable extends AbstractTable
 	
 	private ManifestTable manifest = null;
     
-	public static final int maxQueue = 500;
-    private final List<Map<String,Object>> insertQueue = new Vector<Map<String,Object>>(maxQueue);
-	
 	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
-		super(connectionConfig, schemaName, tableName);
+		super(connectionConfig, schemaName, tableName, FIELD_PARENT, FIELD_CHILD, FIELD_ORDER);
 		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
 	}
-
-	private void insertRecord(Map<String,Object> record) throws RemoteException, SQLException
-	{
-		if (connectionConfig.migrationPending())
-		{
-			insertQueue.add(record);
-			if (insertQueue.size() < maxQueue)
-				return;
-		}
-		flushInserts();
-	}
-	
-    public void flushInserts() throws RemoteException, SQLException
-    {
-		if (insertQueue.size() > 0)
-		{
-			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.insertRows(conn, schemaName, tableName, insertQueue);
-			insertQueue.clear();
-		}
-    }
 
 	protected void initTable() throws RemoteException
 	{
@@ -94,7 +70,7 @@ public class HierarchyTable extends AbstractTable
 			// primary key is (parent,child) both for indexing and for avoiding duplicate relationships
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
-					Arrays.asList(FIELD_PARENT, FIELD_CHILD, FIELD_ORDER),
+					Arrays.asList(fieldNames),
 					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED", "BIGINT UNSIGNED"),
 					Arrays.asList(FIELD_PARENT, FIELD_CHILD)
 			);
@@ -145,12 +121,7 @@ public class HierarchyTable extends AbstractTable
 				SQLUtils.cleanup(stmt);
 			}
 			
-			Map<String, Object> record = MapUtils.fromPairs(
-				FIELD_PARENT, parent_id,
-				FIELD_CHILD, child_id,
-				FIELD_ORDER, sortOrder
-			);
-            insertRecord(record);
+            insertRecord(parent_id, child_id, sortOrder);
 		}
 		catch (SQLException e)
 		{
@@ -161,6 +132,7 @@ public class HierarchyTable extends AbstractTable
 			SQLUtils.cleanup(stmt);
 		}
 	}
+
 	public Collection<Integer> getParents(int child_id) throws RemoteException
 	{
 		try

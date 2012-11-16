@@ -22,7 +22,6 @@ package weave.servlets;
 import static weave.config.WeaveConfig.getConnectionConfig;
 import static weave.config.WeaveConfig.getDataConfig;
 import static weave.config.WeaveConfig.getDocrootPath;
-import static weave.config.WeaveConfig.getTempPath;
 import static weave.config.WeaveConfig.getUploadPath;
 import static weave.config.WeaveConfig.initWeaveConfig;
 
@@ -78,6 +77,7 @@ import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
 import weave.utils.ProgressManager.ProgressPrinter;
+import weave.utils.BulkSQLLoader;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
@@ -1106,7 +1106,6 @@ public class AdminService
 			int fieldLengths[] = null;
 
 			// Load the CSV file and reformat it
-			String formatted_CSV_path = getTempPath() + "temp.csv";
 			int[] types = null;
 			int i = 0;
 			int j = 0;
@@ -1305,11 +1304,6 @@ public class AdminService
 					}
 				}
 			}
-			// save modified CSV
-			// BufferedWriter out = new BufferedWriter(new
-			// FileWriter(formatted_CSV_path));
-			SQLUtils.generateCSV(conn, rows, new File(formatted_CSV_path));
-
 			// Import the CSV file into SQL.
 			// Drop the table if it exists.
 			if (sqlOverwrite)
@@ -1334,7 +1328,7 @@ public class AdminService
 							"CSV not imported.\nDataTable \"%s\" already exists in the configuration.",
 							configDataTableName));
 			}
-
+			
 			// create a list of the column types
 			List<String> columnTypesList = new Vector<String>();
 			for (i = 0; i < columnNames.length; i++)
@@ -1349,8 +1343,12 @@ public class AdminService
 			// create the table
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList, null);
 
+			
 			// import the data
-			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
+			BulkSQLLoader loader = BulkSQLLoader.newInstance(conn, sqlSchema, sqlTable, columnNames);
+			for (Object[] row : rows)
+				loader.addRow(row);
+			loader.flush();
 
 			return addConfigDataTable(
 					configDataTableName, connectionName,
@@ -1527,8 +1525,7 @@ public class AdminService
 				newMeta.privateMetadata.put(PrivateMetadata.SQLQUERY, queries.get(i));
 				if (filteredValues != null)
 				{
-					String paramsStr = CSVParser.defaultParser.createCSV(
-							new Object[][] { queryParamsList.get(i) }, true);
+					String paramsStr = CSVParser.defaultParser.createCSVRow(queryParamsList.get(i), true);
 					newMeta.privateMetadata.put(PrivateMetadata.SQLPARAMS, paramsStr);
 				}
 				newMeta.publicMetadata.put(PublicMetadata.KEYTYPE, keyType);
@@ -1731,8 +1728,8 @@ public class AdminService
 			geomInfo.privateMetadata.put(PrivateMetadata.CONNECTION, configConnectionName);
 			geomInfo.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
 			geomInfo.privateMetadata.put(PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix);
-			geomInfo.privateMetadata.put(PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSV(new String[][]{fileNameWithoutExtension}, true));
-			geomInfo.privateMetadata.put(PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSV(new String[][]{keyColumns}, true));
+			geomInfo.privateMetadata.put(PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true));
+			geomInfo.privateMetadata.put(PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true));
 	
 			geomInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
 			geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);

@@ -46,7 +46,7 @@ public class ManifestTable extends AbstractTable
 	
 	public ManifestTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
-		super(connectionConfig, schemaName, tableName);
+		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_TYPE);
 	}
 	protected void initTable() throws RemoteException
 	{
@@ -57,7 +57,7 @@ public class ManifestTable extends AbstractTable
 			// primary key is entity_id for indexing and because we don't want duplicate ids
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
-				Arrays.asList(FIELD_ID, FIELD_TYPE),
+				Arrays.asList(fieldNames),
 				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"),
 				null
 			);
@@ -79,6 +79,7 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to add entry to manifest table.", e);
 		}
 	}
+    
 	public void removeEntry(int id) throws RemoteException
 	{
 		try

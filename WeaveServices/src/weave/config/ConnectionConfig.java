@@ -137,8 +137,10 @@ public class ConnectionConfig
 	{
 		_load();
 		
+		// if old version is detected, don't run test query
+		boolean isValid = _oldVersionDetected ? _adminConnection != null : SQLUtils.connectionIsValid(_adminConnection);
 		// use previous connection if still valid
-		if (SQLUtils.connectionIsValid(_adminConnection))
+		if (isValid)
 			return _adminConnection;
 		
 		DatabaseConfigInfo dbInfo = _databaseConfigInfo;

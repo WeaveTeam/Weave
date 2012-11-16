@@ -20,26 +20,35 @@
 package weave.config.tables;
 
 import java.rmi.RemoteException;
+import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import weave.config.ConnectionConfig;
+import weave.utils.BulkSQLLoader;
 import weave.utils.SQLUtils;
 
 
 /**
  * @author Philip Kovac
+ * @author adufilie
  */
 public abstract class AbstractTable
 {
 	protected ConnectionConfig connectionConfig = null;
 	protected String tableName = null;
 	protected String schemaName = null;
-	public AbstractTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
+	protected BulkSQLLoader bulkLoader = null;
+	protected String[] fieldNames = null;
+	
+	public AbstractTable(ConnectionConfig connectionConfig, String schemaName, String tableName, String ... fieldNames) throws RemoteException
 	{
 		this.connectionConfig = connectionConfig;
 		this.tableName = tableName;
 		this.schemaName = schemaName;
+		this.fieldNames = fieldNames;
 		if (!tableExists())
 			initTable();
 	}
@@ -69,4 +78,41 @@ public abstract class AbstractTable
 			throw new RemoteException("Unable to add foreign key constraint", e);
 		}
 	}
+
+	protected void insertRecord(Object ... values) throws RemoteException, SQLException
+	{
+		if (fieldNames.length != values.length)
+		{
+			Exception e = new InvalidParameterException("Number of fields does not match number of values");
+			throw new RemoteException("Unable to insert record", e);
+		}
+		
+		if (connectionConfig.migrationPending())
+		{
+			if (bulkLoader == null)
+			{
+				Connection conn = connectionConfig.getAdminConnection();
+				bulkLoader = BulkSQLLoader.newInstance(conn, schemaName, tableName, fieldNames);
+			}
+			bulkLoader.addRow(values);
+		}
+		else
+		{
+			bulkLoader = null;
+			
+			Connection conn = connectionConfig.getAdminConnection();
+			Map<String,Object> record = new HashMap<String,Object>(fieldNames.length);
+			for (int i = 0; i < fieldNames.length; i++)
+				record.put(fieldNames[i], values[i]);
+			SQLUtils.insertRow(conn, schemaName, tableName, record);
+		}
+	}
+	
+    public void flushInserts() throws RemoteException, SQLException
+    {
+    	if (connectionConfig.migrationPending() && bulkLoader != null)
+    		bulkLoader.flush();
+    	else
+    		bulkLoader = null;
+    }
 }

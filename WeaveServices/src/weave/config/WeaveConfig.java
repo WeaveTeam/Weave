@@ -90,9 +90,4 @@ public class WeaveConfig
 	{
 		return weaveContextParams.getUploadPath();
 	}
-	
-	public static String getTempPath()
-	{
-		return weaveContextParams.getTempPath();
-	}
 }

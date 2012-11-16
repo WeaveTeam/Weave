@@ -316,14 +316,24 @@ public class CSVParser
 	}
 	
 	/**
+	 * This function encodes an Array of objects into a CSV row.
+	 * @param rows An array of row values.  If the row values are not Strings, toString() will be called on each value.
+	 * @return The row encoded as a CSV String.
+	 */
+	public String createCSVRow(Object[] row, boolean quoteEmptyStrings) throws IOException
+	{
+		return createCSV(new Object[][]{ row }, quoteEmptyStrings, false);
+	}
+	
+	/**
 	 * This function converts a table of Strings (or Objects) and encodes them as a single CSV String.
 	 * @param rows An array of rows.  If the row values are not Strings, toString() will be called on each value.
 	 * @return The rows encoded as a CSV String.
 	 */
-	public String createCSV(Object[][] rows, boolean quoteEmptyStrings) throws IOException
+	public String createCSV(Object[][] rows, boolean quoteEmptyStrings, boolean endingLineFeed) throws IOException
 	{
 		StringWriter out = new StringWriter();
-		createCSV(rows, quoteEmptyStrings, out);
+		createCSV(rows, quoteEmptyStrings, out, endingLineFeed);
 		return out.toString();
 	}
 	
@@ -331,9 +341,10 @@ public class CSVParser
 	 * This function converts a table of Strings (or Objects) and encodes them as a single CSV String.
 	 * @param rows An array of rows.  If the row values are not Strings, toString() will be called on each value.
 	 * @param output Where the result will be directed.
+	 * @param endingLineFeed Set to true to end the output with a line feed.
 	 * @throws IOException 
 	 */
-	public void createCSV(Object[][] rows, boolean quoteEmptyStrings, Appendable output) throws IOException
+	public void createCSV(Object[][] rows, boolean quoteEmptyStrings, Appendable output, boolean endingLineFeed) throws IOException
 	{
 		String nullToken = quoteEmptyStrings ? "" : null;
 		for (int iRow = 0; iRow < rows.length; iRow++)
@@ -351,6 +362,8 @@ public class CSVParser
 				output.append(token);
 			}
 		}
+		if (endingLineFeed)
+			output.append(LF);
 	}
 	
 	/**

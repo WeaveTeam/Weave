@@ -48,7 +48,6 @@ public class WeaveContextParams
 	{
 		this.docrootPath = docrootPath;
 		this.configPath = configPath;
-		tempPath = configPath + "/temp/";
 		uploadPath = configPath + "/upload/";
 	}
 	
@@ -71,17 +70,15 @@ public class WeaveContextParams
 		System.out.println("Docroot set to "+docrootPath);
 		
 		configPath = context.getRealPath(context.getInitParameter("configPath")).replace('\\', '/');
-		tempPath = configPath + "/temp/";
 		uploadPath = configPath + "/upload/";
 		rServePath = context.getRealPath(context.getInitParameter("RServePath")).replace('\\', '/');
 		
 		// make sure folders exist
 		new File(configPath).mkdirs();
-		new File(tempPath).mkdirs();
 		new File(uploadPath).mkdirs();
 	}
 	
-	private String docrootPath, tempPath, uploadPath, configPath, rServePath;
+	private String docrootPath, uploadPath, configPath, rServePath;
 
 	/**
 	 * @return The docroot path, ending in "/"
@@ -89,13 +86,6 @@ public class WeaveContextParams
 	public String getDocrootPath()
 	{
 		return docrootPath;
-	}
-	/**
-	 * @return The path where temp files are stored, ending in "/"
-	 */
-	public String getTempPath()
-	{
-		return tempPath;
 	}
 	/**
 	 * @return The path where uploaded files are stored, ending in "/"

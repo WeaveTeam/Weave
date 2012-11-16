@@ -94,8 +94,8 @@ public class SQLResult
 	{
 		try
 		{
-			String header = CSVParser.defaultParser.createCSV(new String[][]{ columnNames }, true);
-			String data = CSVParser.defaultParser.createCSV(rows, true);
+			String header = CSVParser.defaultParser.createCSVRow(columnNames, true);
+			String data = CSVParser.defaultParser.createCSV(rows, true, false);
 			return header + CSVParser.LF + data;
 		}
 		catch (IOException e)

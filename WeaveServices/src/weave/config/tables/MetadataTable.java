@@ -48,39 +48,15 @@ public class MetadataTable extends AbstractTable
 	
 	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_PROPERTY, FIELD_VALUE));
 	
-	public static final int maxQueue = 500;
-    private final List<Map<String,Object>> insertQueue = new Vector<Map<String,Object>>(maxQueue);
-	
 	private ManifestTable manifest = null;
 	
 	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
-		super(connectionConfig, schemaName, tableName);
+		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_PROPERTY, FIELD_VALUE);
 		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
 	}
-
-	private void insertRecord(Map<String,Object> record) throws RemoteException, SQLException
-	{
-		if (connectionConfig.migrationPending())
-		{
-			insertQueue.add(record);
-			if (insertQueue.size() < maxQueue)
-				return;
-		}
-		flushInserts();
-	}
-	
-    public void flushInserts() throws RemoteException, SQLException
-    {
-		if (insertQueue.size() > 0)
-		{
-			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.insertRows(conn, schemaName, tableName, insertQueue);
-			insertQueue.clear();
-		}
-    }
 	
     protected void initTable() throws RemoteException
 	{
@@ -97,7 +73,7 @@ public class MetadataTable extends AbstractTable
 			// we don't want duplicate properties for the same id
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
-				Arrays.asList(FIELD_ID, FIELD_PROPERTY, FIELD_VALUE),
+				Arrays.asList(fieldNames),
 				Arrays.asList(
 					"BIGINT UNSIGNED",
 					SQLUtils.getVarcharTypeString(conn, 256),
@@ -135,8 +111,6 @@ public class MetadataTable extends AbstractTable
 			System.out.println("WARNING: Failed to create index. This may happen if the table already exists.");
 		}
 	}
-	/* TODO: Add optimized methods for adding/removing multiple entries. */
-	/* if it is a null or empty string, it will simply unset the property. */
 	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException
 	{
 		try 
@@ -157,14 +131,7 @@ public class MetadataTable extends AbstractTable
 			{
 				String value = entry.getValue();
 				if (value != null && value.length() > 0)
-				{
-					Map<String,Object> record = MapUtils.fromPairs(
-						FIELD_ID, id,
-						FIELD_PROPERTY, entry.getKey(),
-						FIELD_VALUE, value
-					);
-					insertRecord(record);
-				}
+					insertRecord(id, entry.getKey(), value);
 			}
 		} 
 		catch (SQLException e)
@@ -172,7 +139,7 @@ public class MetadataTable extends AbstractTable
 			throw new RemoteException("Unable to set property.", e);
 		}
 	}
-	/* Nuke all entries for a given id */
+
 	public void removeAllProperties(Integer id) throws RemoteException
 	{
 		try 

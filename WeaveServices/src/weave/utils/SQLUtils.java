@@ -19,10 +19,6 @@
 
 package weave.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
@@ -45,8 +41,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
-
-import org.postgresql.PGConnection;
 
 
 /**
@@ -1036,54 +1030,6 @@ public class SQLUtils
 		for (TYPE param : params)
 			cstmt.setObject(i++, param);
 	}
-/* Service methods for maintaining my sanity and saving me keystrokes. -pkovac */
-	protected static String stringJoin(String separator, List<String> items)
-	{
-	    StringBuilder result = new StringBuilder((separator.length()+1)*items.size());
-	    int i = 0;
-	    for (String item : items)
-	    {
-	        if (i > 0)
-	        	result.append(separator);
-	        result.append(item);
-	        i++;
-	    }
-	    return result.toString();
-	}
-	protected static String stringMult(String separator, String item, Integer repeat)
-	{
-		StringBuilder out = new StringBuilder();
-	    for (int i = 0; i < repeat; i++)
-	    {
-	    	if (i > 0)
-	    		out.append(separator);
-	    	out.append(item);
-	    }
-	    return out.toString();
-	}
-	protected static <KEY,VALUE> List<Entry<KEY,VALUE>> imposeMapOrdering(Map<KEY,VALUE> inputMap)
-	{
-	    List<Entry<KEY,VALUE>> orderedEntries = new LinkedList<Entry<KEY,VALUE>>();
-	    for (Entry<KEY,VALUE> pair : inputMap.entrySet())
-	    {
-	        orderedEntries.add(pair);
-	    }
-	    return orderedEntries;
-	}
-	protected static <KEY,VALUE> List<KEY> getEntryKeys(List<Entry<KEY,VALUE>> orderedEntries)
-	{
-		List<KEY> result = new LinkedList<KEY>();
-		for (Entry<KEY,VALUE> entry : orderedEntries)
-			result.add(entry.getKey());
-		return result;
-	}
-	protected static <KEY,VALUE> List<VALUE> getEntryValues(List<Entry<KEY,VALUE>> orderedEntries)
-	{
-		List<VALUE> result = new LinkedList<VALUE>();
-		for (Entry<KEY,VALUE> entry : orderedEntries)
-			result.add(entry.getValue());
-		return result;
-	}
 	
 	public static int updateRows(Connection conn, String fromSchema, String fromTable, Map<String,Object> whereParams, Map<String,Object> dataUpdate, Set<String> caseSensitiveFields) throws SQLException
 	{
@@ -1099,7 +1045,7 @@ public class SQLUtils
 		        updateBlockList.add(String.format("%s=?", data.getKey()));
 		        queryParams.add(data.getValue());
 		    }
-			updateBlock = stringJoin(",", updateBlockList);
+			updateBlock = StringUtils.join(",", updateBlockList);
 		    
 			// build where clause
 		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields);
@@ -1128,9 +1074,9 @@ public class SQLUtils
 	        String qPropColumn = quoteSymbol(conn, propColumn);
 	        String qDataColumn = quoteSymbol(conn, dataColumn);
 	        String qSchemaTable = quoteSchemaTable(conn, schemaName, table);
-	        String whereClause = String.format("WHERE %s IN (%s)", qIdColumn, stringMult(",", "?", ids.size()));
+	        String whereClause = String.format("WHERE %s IN (%s)", qIdColumn, StringUtils.mult(",", "?", ids.size()));
 	        if (props != null && props.size() > 0)
-	        	whereClause += String.format(" AND %s IN (%s)", qPropColumn, stringMult(",", "?", props.size()));
+	        	whereClause += String.format(" AND %s IN (%s)", qPropColumn, StringUtils.mult(",", "?", props.size()));
 	        query = String.format(
 	    		"SELECT %s,%s,%s FROM %s %s ORDER BY %s",
 	    		qIdColumn, qPropColumn, qDataColumn,
@@ -1237,8 +1183,8 @@ public class SQLUtils
 		    {
 		        l_qmarks.add("?");
 		    }
-		    String column_string = stringJoin(",", columns);
-		    String qmark_string = stringJoin(",", l_qmarks);
+		    String column_string = StringUtils.join(",", columns);
+		    String qmark_string = StringUtils.join(",", l_qmarks);
 		    String query = String.format("INSERT INTO %s(%s) VALUES (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string, qmark_string);
 		    
 		    stmt = prepareStatement(conn, query, values);
@@ -1551,11 +1497,11 @@ public class SQLUtils
 				fieldNames.set(i, quoteSymbol(conn, fieldNames.get(i)));
 			
 			String quotedSchemaTable = quoteSchemaTable(conn, schemaName, tableName);
-			String fieldNamesStr = stringJoin(",", fieldNames);
+			String fieldNamesStr = StringUtils.join(",", fieldNames);
 			
 			// construct query
-			String recordClause = String.format("(%s)", stringMult(",", "?", fieldNames.size()));
-			String valuesClause = stringMult(",", recordClause, records.size());
+			String recordClause = String.format("(%s)", StringUtils.mult(",", "?", fieldNames.size()));
+			String valuesClause = StringUtils.mult(",", recordClause, records.size());
 			query = String.format(
 				"INSERT INTO %s (%s) VALUES %s",
 				quotedSchemaTable,
@@ -1785,89 +1731,6 @@ public class SQLUtils
 		return "DATETIME";
 	}
 	
-	public static void copyCsvToDatabase(Connection conn, String formatted_CSV_path, String sqlSchema, String sqlTable) throws SQLException, IOException
-	{
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		Statement stmt = null;
-		String quotedTable = quoteSchemaTable(conn, sqlSchema, sqlTable);
-
-		try
-		{
-			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
-			{
-				stmt = conn.createStatement();
-				//ignoring 1st line so that we don't put the column headers as the first row of data
-				stmt.executeUpdate(String.format(
-						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
-						formatted_CSV_path, quotedTable
-						));
-				stmt.close();
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
-			{
-				// Insert each row repeatedly
-				boolean prevAutoCommit = conn.getAutoCommit();
-				if (prevAutoCommit)
-					conn.setAutoCommit(false);
-				
-				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
-				String query = "", tempQuery = "INSERT INTO %s values (";
-				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
-				{
-					if (column == rows[0].length - 1)
-						tempQuery = tempQuery + "?)";
-					else
-						tempQuery = tempQuery + "?,";
-				}
-				
-				query = String.format(tempQuery, quotedTable);
-				
-				PreparedStatement pstmt = null;
-				try
-				{
-					pstmt = conn.prepareStatement(query);
-					for (int row = 1; row < rows.length; row++) //Skip header line
-					{
-						setPreparedStatementParams(pstmt, rows[row]);
-						pstmt.execute();
-					}
-				}
-				catch (SQLException e)
-				{
-					conn.rollback();
-					throw new RemoteException(e.getMessage(), e);
-				}
-				finally
-				{
-					SQLUtils.cleanup(pstmt);
-					try {
-						conn.setAutoCommit(prevAutoCommit);
-					} catch (SQLException e) { }
-				}
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
-			{
-				((PGConnection) conn).getCopyAPI().copyIn(
-						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
-						new FileInputStream(formatted_CSV_path));
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
-			{
-				stmt = conn.createStatement();
-
-				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
-				stmt.executeUpdate(String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
-						quotedTable, formatted_CSV_path, SQL_SERVER_DELIMETER
-					));
-			}
-		}
-		finally 
-		{
-			SQLUtils.cleanup(stmt);
-		}
-	}
-	
 	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException
 	{
 		String dbms = conn.getMetaData().getDatabaseProductName();
@@ -1899,39 +1762,6 @@ public class SQLUtils
 			// this should never happen
 			throw new RuntimeException(e);
 		}
-	}
-	
-	protected static final char SQL_SERVER_DELIMETER = (char)8;
-	
-	public static void generateCSV(Connection conn, String[][] csvData, File output) throws SQLException, IOException
-	{
-		FileWriter writer = new FileWriter(output);
-		
-		String outputNullValue = SQLUtils.getCSVNullValue(conn);
-		for (int i = 0; i < csvData.length; i++)
-		{
-			for (int j = 0; j < csvData[i].length; j++)
-			{
-				if (csvData[i][j] == null)
-					csvData[i][j] = outputNullValue;
-			}
-		}
-		
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		if (SQLSERVER.equalsIgnoreCase(dbms))
-		{
-			// special case for Microsoft SQL Server because it does not support quotes.
-			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
-			parser.createCSV(csvData, false, writer);
-		}
-		else
-		{
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
-		}
-		
-		writer.flush();
-		writer.close();
 	}
 	
 	protected static class WhereClause<V>
@@ -1995,9 +1825,9 @@ public class SQLUtils
 		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
 		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
 		        }
-		        junctions.add(String.format("(%s)", stringJoin(innerJunction, juncList)));
+		        junctions.add(String.format("(%s)", StringUtils.join(innerJunction, juncList)));
 		    }
-	        return stringJoin(outerJunction, junctions);
+	        return StringUtils.join(outerJunction, junctions);
 		}
 		
 		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException
