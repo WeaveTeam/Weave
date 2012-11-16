@@ -23,6 +23,10 @@ import java.util.LinkedList;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * @author pkovac
+ * @author adufilie
+ */
 public class ProgressManager extends Observable
 {
 	private final long ONE_SECOND = 1000000000;
@@ -40,6 +44,12 @@ public class ProgressManager extends Observable
     
     public ProgressManager()
     {
+    	duration_for_estimate = Long.MAX_VALUE;
+    }
+    
+    public ProgressManager(long durationForEstimate)
+    {
+    	duration_for_estimate = durationForEstimate;
     }
     
     public String getStepDescription() { return step_desc; }

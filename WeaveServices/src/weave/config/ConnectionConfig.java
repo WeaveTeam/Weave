@@ -65,6 +65,7 @@ public class ConnectionConfig
 		_file = file;
 	}
 	
+	private boolean _temporaryDataConfigPermission = false;
 	private boolean _oldVersionDetected = false;
 	private long _lastMod = 0L;
 	private File _file;
@@ -92,13 +93,10 @@ public class ConnectionConfig
 				
 				synchronized (this)
 				{
-					// clear the flag temporarily to allow the DataConfig to use the ConnectionConfig
-					_oldVersionDetected = false;
-					
+					// momentarily give DataConfig permission to initialize
+					_temporaryDataConfigPermission = true;
 					dataConfig = new DataConfig(this);
-					
-					// set the flag again temporarily to enable migration optimizations
-					_oldVersionDetected = true;
+					_temporaryDataConfigPermission = false;
 				}
 				
 				DeprecatedConfig.migrate(this, dataConfig, progress);
@@ -108,17 +106,20 @@ public class ConnectionConfig
 				_save();
 				return dataConfig;
 			}
-			catch (RemoteException e)
+			finally
 			{
-				// if something bad happens, reset this flag
-				_oldVersionDetected = true;
-				throw e;
+				_temporaryDataConfigPermission = false;
 			}
 		}
 		else
 		{
 			return new DataConfig(this);
 		}
+	}
+	
+	public boolean allowDataConfigInitialize() throws RemoteException
+	{
+		return _temporaryDataConfigPermission || !migrationPending();
 	}
 	
 	public boolean migrationPending() throws RemoteException

@@ -35,8 +35,8 @@ import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.utils.ListUtils;
-import weave.utils.SQLUtils;
 import weave.utils.ProgressManager;
+import weave.utils.SQLUtils;
 
 /**
  * This class is responsible for migrating from the old SQL config format to a DataConfig object.
@@ -56,6 +56,10 @@ import weave.utils.ProgressManager;
 	}
 	
 	private DeprecatedConfig() { }
+	
+	private final long ONE_SECOND = 1000000000;
+	private final long FLUSH_INTERVAL = ONE_SECOND * 10;
+	private long lastFlush = System.nanoTime();
 	
 	private ConnectionConfig connConfig;
 	private DataConfig dataConfig;
@@ -128,7 +132,6 @@ import weave.utils.ProgressManager;
 				SQLUtils.cleanup(resultSet);
 			}
 			
-			
 			progress.beginStep("Migrating to new config format", 0, 0, geomTotal + attrTotal);
 			
 			/////////////////////////////
@@ -162,9 +165,9 @@ import weave.utils.ProgressManager;
 				dataConfig.addChild(tableId, columnId, order++);
 				
 				progress.tick();
+				autoFlush();
 			}
 			SQLUtils.cleanup(resultSet);
-			dataConfig.flushInserts();
 			
 			/////////////////////////////
 			// migrate columns
@@ -204,6 +207,7 @@ import weave.utils.ProgressManager;
 				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata);
 				dataConfig.addChild(tableId, columnId, order++);
 				progress.tick();
+				autoFlush();
 			}
 			SQLUtils.cleanup(resultSet);
 		    dataConfig.flushInserts();
@@ -238,6 +242,16 @@ import weave.utils.ProgressManager;
 			try {
 				conn.setAutoCommit(prevAutoCommit);
 			} catch (SQLException e) { }
+		}
+	}
+	
+	private void autoFlush() throws RemoteException
+	{
+		long time = System.nanoTime();
+		if (time - lastFlush > FLUSH_INTERVAL)
+		{
+			dataConfig.flushInserts();
+			lastFlush = time;
 		}
 	}
 	

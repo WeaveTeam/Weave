@@ -74,7 +74,7 @@ public class DataConfig
 		long lastMod = connectionConfig.getLastModified();
 		if (this.lastModified < lastMod)
 		{
-			if (connectionConfig.migrationPending())
+			if (!connectionConfig.allowDataConfigInitialize())
 				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
 			
 			try
@@ -119,9 +119,10 @@ public class DataConfig
     {
         try 
         {
+        	manifest.flushInserts();
+        	hierarchy.flushInserts();
             private_metadata.flushInserts();
             public_metadata.flushInserts();
-            hierarchy.flushInserts();
         }
         catch (SQLException e)
         {
