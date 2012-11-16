@@ -43,7 +43,8 @@ public class ManifestTable extends AbstractTable
 {
 	public static final String FIELD_ID = "entity_id";
 	public static final String FIELD_TYPE = "type_id";
-	
+
+    private int currentId = -1;
 	public ManifestTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_TYPE);
@@ -72,7 +73,24 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_TYPE, type_id));
+            if (!connectionConfig.migrationPending())
+            {
+			    return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_TYPE, type_id));
+            }
+            else
+            {
+                if (currentId == -1)
+                {
+                    /* TODO: Find the current maximum ID number in the table. */
+                    currentId = 1;
+                }
+                else
+                {
+                    currentId++;
+                }
+                insertRecord(currentId, type_id);
+                return currentId; 
+            }
 		}
 		catch (SQLException e)
 		{
