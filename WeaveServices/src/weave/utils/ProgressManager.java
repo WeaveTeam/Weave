@@ -36,7 +36,8 @@ public class ProgressManager extends Observable
 	private long total_steps;
 	
 	LinkedList<Long> ticks = new LinkedList<Long>();
-	private long duration_for_estimate = ONE_SECOND * 10;
+	private long min_dur_for_est = ONE_SECOND * 10; // time from start before estimating begins
+	private long duration_for_estimate = ONE_SECOND * 10; // duration of ticks to use for estimate
 	private long current_items;
 	private long total_items;
 	private long paused_time;
@@ -60,7 +61,7 @@ public class ProgressManager extends Observable
     public long getStepTimeRemaining()
     {
     	double tick_duration = ticks.peekLast() - ticks.peekFirst();
-    	if (ticks.size() <= 1) // || tick_duration < duration_for_estimate)
+    	if (ticks.size() <= 1 || tick_duration < min_dur_for_est)
     		return Long.MAX_VALUE;
     	double rate_est = (tick_duration) / (ticks.size() - 1);
     	double time_rem = (total_items - current_items) * rate_est;

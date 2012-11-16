@@ -20,6 +20,7 @@
 package weave.services
 {
 	import avmplus.DescribeType;
+	import avmplus.getQualifiedClassName;
 	
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -72,9 +73,15 @@ package weave.services
 			dataService = new AMF3Servlet(url + "/DataService");
 			queue = new AsyncInvocationQueue();
 			
-			for each (var name:String in ObjectUtil.getClassInfo(this).properties)
-				propertyNameLookup[this[name]] = name;
+			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
+			for each (var item:Object in info.traits.methods)
+				propertyNameLookup[this[item.name]] = item.name;
 		}
+		
+		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */		
+		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
 		private var queue:AsyncInvocationQueue;
 		private var adminService:AMF3Servlet;
@@ -89,6 +96,8 @@ package weave.services
 		public function addHook(method:Function, resultHandler:Function):void
 		{
 			var methodName:String = propertyNameLookup[method];
+			if (!methodName)
+				throw new Error("method must be a member of " + getQualifiedClassName(this));
 			var hooks:Array = methodHooks[methodName];
 			if (!hooks)
 				methodHooks[methodName] = hooks = [];
@@ -119,6 +128,8 @@ package weave.services
 		private function invokeAdmin(method:Function, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
 		{
 			var methodName:String = propertyNameLookup[method];
+			if (!methodName)
+				throw new Error("method must be a member of " + getQualifiedClassName(this));
 			if (queued)
 				return generateQueryAndAddToQueue(adminService, methodName, parameters);
 			return adminService.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
@@ -147,6 +158,8 @@ package weave.services
 		private function invokeDataService(method:Function, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
 		{
 			var methodName:String = propertyNameLookup[method];
+			if (!methodName)
+				throw new Error("method must be a member of " + getQualifiedClassName(this));
 			if (queued)
 				return generateQueryAndAddToQueue(dataService, methodName, parameters);
 			return dataService.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
@@ -198,6 +211,14 @@ package weave.services
 			messageDisplay(event.fault.name, msg, true);
 		}
 
+		//////////////////////////////
+		// Initialization
+		
+		public function initializeAdminService():AsyncToken
+		{
+			return invokeAdmin(initializeAdminService, arguments);
+		}
+		
 		public function checkDatabaseConfigExists():AsyncToken
 		{
 			return invokeAdmin(checkDatabaseConfigExists, arguments);

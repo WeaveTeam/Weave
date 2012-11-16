@@ -44,24 +44,18 @@ public class WeaveConfig
 		return weaveContextParams;
 	}
 	
-	public static ConnectionConfig getConnectionConfig() throws RemoteException
+	synchronized public static ConnectionConfig getConnectionConfig() throws RemoteException
 	{
-		synchronized(_connConfig)
-		{
-			if (_connConfig == null)
-				_connConfig = new ConnectionConfig(new File(weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME));
-		}
+		if (_connConfig == null)
+			_connConfig = new ConnectionConfig(new File(weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME));
 		return _connConfig;
 	}
 	
-	public static DataConfig getDataConfig() throws RemoteException
+	synchronized public static DataConfig getDataConfig() throws RemoteException
 	{
 		ConnectionConfig cc = getConnectionConfig();
-		synchronized(_dataConfig)
-		{
-			if (_dataConfig == null)
-				_dataConfig = new DataConfig(cc);
-		}
+		if (_dataConfig == null)
+			_dataConfig = new DataConfig(cc);
 		return _dataConfig;
 	}
 
@@ -71,14 +65,11 @@ public class WeaveConfig
 	 * @param out A stream used to output SQL config data migration status updates.
 	 * @throws RemoteException Thrown when the DataConfig could not be initialized.
 	 */
-	public static void initializeAdminService(ProgressManager progress) throws RemoteException
+	synchronized public static void initializeAdminService(ProgressManager progress) throws RemoteException
 	{
 		ConnectionConfig cc = getConnectionConfig();
-		synchronized(_dataConfig)
-		{
-			if (_dataConfig == null)
-				_dataConfig = cc.initializeNewDataConfig(progress);
-		}
+		if (_dataConfig == null)
+			_dataConfig = cc.initializeNewDataConfig(progress);
 	}
 	
 	public static String getDocrootPath()

@@ -34,8 +34,47 @@ package weave.services
 	public class AdminInterface
 	{
 		private static var _thisInstance:AdminInterface = null;
+		
+		
+		
+		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
+		
 		[Bindable] public var databaseConfigExists:Boolean = true;
 		[Bindable] public var currentUserIsSuperuser:Boolean = false;
+
+		
+		[Bindable] public var userHasAuthenticated:Boolean = false;
+		
+		// values returned by the server
+		[Bindable] public var connectionNames:Array = [];
+		[Bindable] public var columnTree:Array = [];
+		[Bindable] public var columnIds:Object = {};
+		[Bindable] public var dataTableNames:Array = [];
+		[Bindable] public var geometryCollectionNames:Array = [];
+		[Bindable] public var weaveFileNames:Array = [];
+		[Bindable] public var privateWeaveFileNames:Array = [];
+		[Bindable] public var keyTypes:Array = [];
+		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
+		
+		[Bindable] public var dbfKeyColumns:Array = [];
+		
+		[Bindable] public var dbfData:Array = [];
+		
+		// values the user has currently selected
+		[Bindable] public var activePassword:String = '';
+		
+		
+		[Bindable] public var uploadedCSVFiles:Array = [];
+		[Bindable] public var uploadedShapeFiles:Array = [];
+		
+		public const entityCache:EntityCache = new EntityCache();
+		
+		private var _activeConnectionName:String = '';
+		
+
+		
+		
+		
 		public static function get instance():AdminInterface
 		{
 			if (_thisInstance == null)
@@ -61,17 +100,7 @@ package weave.services
 				service.checkDatabaseConfigExists,
 				function handleCheck(event:ResultEvent, token:Object = null):void
 				{
-					if (event.result.status as Boolean == false)
-					{
-						userHasAuthenticated = false;
-						WeaveAdminService.messageDisplay("Configuration problem", String(event.result.comment), false);
-						//Alert.show(event.result.comment, "Configuration problem");
-						databaseConfigExists = false;
-					}
-					else 
-					{
-						databaseConfigExists = true;
-					}
+					databaseConfigExists = event.result as Boolean;
 				}
 			);
 			service.addHook(
@@ -231,39 +260,6 @@ package weave.services
 		
 			
 			
-			
-			
-			
-			
-		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
-		
-		[Bindable] public var userHasAuthenticated:Boolean = false;
-		
-		// values returned by the server
-		[Bindable] public var connectionNames:Array = [];
-		[Bindable] public var columnTree:Array = [];
-		[Bindable] public var columnIds:Object = {};
-		[Bindable] public var dataTableNames:Array = [];
-		[Bindable] public var geometryCollectionNames:Array = [];
-		[Bindable] public var weaveFileNames:Array = [];
-		[Bindable] public var privateWeaveFileNames:Array = [];
-		[Bindable] public var keyTypes:Array = [];
-		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
-		
-		[Bindable] public var dbfKeyColumns:Array = [];
-		
-		[Bindable] public var dbfData:Array = [];
-		
-		// values the user has currently selected
-		[Bindable] public var activePassword:String = '';
-		
-		
-		[Bindable] public var uploadedCSVFiles:Array = [];
-		[Bindable] public var uploadedShapeFiles:Array = [];
-		
-		
-		
-		public const entityCache:EntityCache = new EntityCache();
 		// functions for managing static settings
 		public function getConnectionNames():void
 		{
@@ -275,7 +271,6 @@ package weave.services
 			service.getDatabaseConfigInfo()
 		}
 		
-		private var _activeConnectionName:String = '';
 		[Bindable] public function get activeConnectionName():String
 		{
 			return _activeConnectionName;
@@ -314,8 +309,8 @@ package weave.services
 
 		
 
-
-		//LocalConnection Code
+		//////////////////////////////////////////
+		// LocalConnection Code
 		
 		// this function is for verifying the local connection between Weave and the AdminConsole.
 		public function ping():String { return "pong"; }
@@ -366,6 +361,7 @@ package weave.services
 			(token as LocalAsyncService).dispose();
 			delete oldWeaveServices[token];
 		}
-		//End of LocalConnection Code
+		// End of LocalConnection Code
+		//////////////////////////////////////////
 	}
 }

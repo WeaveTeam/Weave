@@ -21,6 +21,9 @@ package weave.services
 {
 	import flash.events.Event;
 	
+	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 	
@@ -56,8 +59,14 @@ package weave.services
 			{
 				addAsyncResponder(
 					query,
-					function(..._):void { weaveTrace('Query returned: ' + query); },
-					function(..._):void { weaveTrace('Query failed: ' + query); }
+					function(event:ResultEvent, token:Object = null):void
+					{
+						weaveTrace('Query returned: ' + query, ObjectUtil.toString(event.result));
+					},
+					function(..._):void
+					{
+						weaveTrace('Query failed: ' + query);
+					}
 				);
 			}
 
