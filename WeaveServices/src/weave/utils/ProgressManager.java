@@ -156,12 +156,12 @@ public class ProgressManager extends Observable
 			}
 			
 			String remain = "";
-			double time = p.getStepTimeRemaining();
+			long time = p.getStepTimeRemaining();
 			if (time != Long.MAX_VALUE)
 			{
-				long s = (long)Math.ceil(time % 60);
-				long m = (long)(time/60) % 60;
-				long h = (long)(time/60/60);
+				long s = time % 60;
+				long m = (time/60) % 60;
+				long h = (time/60/60);
 				StringBuilder timeStr = new StringBuilder();
 				if (h > 0)
 					timeStr.append(h).append('h');
@@ -179,6 +179,7 @@ public class ProgressManager extends Observable
 				par = " (" + par + ")";
 			
 			out.println(step + desc + par);
+			out.flush();
     	}
     }
 }
