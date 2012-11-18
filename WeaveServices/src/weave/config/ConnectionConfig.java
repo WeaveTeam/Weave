@@ -292,7 +292,7 @@ public class ConnectionConfig
 		copy.copyFrom(original);
 		return copy;
 	}
-	public void addConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
+	public void saveConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
 	{
 		connectionInfo.validate();
 		

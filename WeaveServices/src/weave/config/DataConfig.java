@@ -130,7 +130,7 @@ public class DataConfig
         }
     }
 
-    public Integer addEntity(int type_id, DataEntityMetadata properties) throws RemoteException
+    public Integer newEntity(int type_id, DataEntityMetadata properties) throws RemoteException
     {
     	detectChange();
         int id = manifest.addEntry(type_id);
@@ -193,6 +193,7 @@ public class DataConfig
         }
         else
         {
+        	// filter by type
             if (type_id != -1)
                 matches.retainAll(manifest.getByType(type_id));
             return matches;
@@ -215,7 +216,7 @@ public class DataConfig
         for (Integer id : ids)
         {
             DataEntity entity = new DataEntity();
-            entity.id = id; 
+            entity.id = id;
            	entity.type = typeresults.get(id);
             entity.publicMetadata = publicresults.get(id);
             entity.privateMetadata = privateresults.get(id);
@@ -223,26 +224,69 @@ public class DataConfig
         }
         return results;
     }
-	/* Do a recursive copy of an entity and add it to a parent. */
-    public Integer copyEntity(int id) throws RemoteException
+    
+    /**
+     * @param parentId An existing parent to add a child hierarchy to.
+     * @param childId An existing child to copy the hierarchy of.
+     * @param insertBeforeId Identifies a child of the parent to insert the new child before.
+     * @throws RemoteException
+     */
+    public void buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
     {
-    	detectChange();
-        DataEntity original = getEntity(id);
-        Integer copy_id = addEntity(original.type, original);
+		detectChange();
+		
+		int newChildId;
+		DataEntity child = getEntity(childId);
 
-        List<Integer> children = getChildIds(id);
-        for (int i = 0; i < children.size(); i++)
+		if (parentId == -1) // parent is root
+		{
+			if (child.type == DataEntity.TYPE_HIERARCHY) // child is a hierarchy
+			{
+				// make a copy of the existing hierarchy
+				newChildId = newEntity(DataEntity.TYPE_HIERARCHY, child);
+			}
+			else // child is not a hierarchy
+			{
+				// create a new blank hierarchy to contain the child
+				int hierarchyId = newEntity(DataEntity.TYPE_HIERARCHY, null);
+				// recursive call with new parent id
+				buildHierarchy(hierarchyId, childId, 0);
+				return; // done
+			}
+		}
+		else // parent is not root
         {
-            int copy_child_id = copyEntity(children.get(i));
-            hierarchy.addChild(copy_id, copy_child_id, i);
-        }
-    	
-        return copy_id;
+			DataEntity parent = getEntity(parentId);
+			
+			// columns cannot be parents
+			if (parent.type == DataEntity.TYPE_COLUMN)
+				throw new RemoteException("Cannot add children to attribute columns.");
+			
+			if (child.type == DataEntity.TYPE_COLUMN) // child is a column
+			{
+				// columns can be added directly to new parents
+				newChildId = childId;
+			}
+			else // child is not a column
+			{
+				// non-columns always copy as categories
+				newChildId = newEntity(DataEntity.TYPE_CATEGORY, child);
+			}
+		}
+		
+		// add new child to parent
+		hierarchy.addChild(parentId, newChildId, insertAtIndex);
+		
+		// recursively copy each child hierarchy element
+		int order = 0;
+		for (int grandChildId : hierarchy.getChildren(childId))
+			buildHierarchy(newChildId, grandChildId, order++);
     }
-    public void addChild(int parent_id, int child_id, int order) throws RemoteException
+    
+    public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
     {
     	detectChange();
-   		hierarchy.addChild(parent_id, child_id, order);
+   		hierarchy.addChild(parent_id, child_id, insert_at_index);
     }
     public void removeChild(int parent_id, int child_id) throws RemoteException
     {
@@ -265,7 +309,9 @@ public class DataConfig
     	detectChange();
     	// if id is -1, we want ids of all entities without parents
         if (id == -1)
-        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY));
+        {
+        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY, DataEntity.TYPE_DATATABLE));
+        }
         return hierarchy.getChildren(id);
     }
     public Collection<String> getUniquePublicValues(String property) throws RemoteException

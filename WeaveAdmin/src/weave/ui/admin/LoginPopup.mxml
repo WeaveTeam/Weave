@@ -63,7 +63,7 @@ Author: skolman
 				enabled = false;
 				
 				// authenticate with server
-				addAsyncResponder(AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
+				addAsyncResponder(AdminInterface.service.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
 				function handleResult(..._):void
 				{
 					enabled = true;

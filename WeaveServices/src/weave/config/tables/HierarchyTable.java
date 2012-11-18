@@ -21,6 +21,7 @@ package weave.config.tables;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
@@ -34,6 +35,7 @@ import java.util.Vector;
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
+import weave.utils.SQLUtils.WhereClause;
 
 
 /**
@@ -48,6 +50,7 @@ public class HierarchyTable extends AbstractTable
 	private static final int NULL = -1;
 	
 	private ManifestTable manifest = null;
+	private int migrationOrder = 0;
     
 	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
@@ -97,38 +100,82 @@ public class HierarchyTable extends AbstractTable
 //			System.out.println("WARNING: Failed to create index. This may happen if the table already exists.");
 //		}
 	}
-	public void addChild(int parent_id, int child_id, int sortOrder) throws RemoteException
+	public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
 	{
+		System.out.println("addChild" + Arrays.asList(parent_id,child_id,insert_at_index));
+		String query = null;
 		Statement stmt = null;
+		ResultSet rs = null;
 		try
 		{
+			int sortOrder = 0;
+			
 			// during migration, do not update existing records
-			if (!connectionConfig.migrationPending())
+			if (connectionConfig.migrationPending())
 			{
-				// shift all existing children prior to insert
+				// always insert at end
+				sortOrder = migrationOrder++;
+			}
+			else // not currently migrating
+			{
 				Connection conn = connectionConfig.getAdminConnection();
 				stmt = conn.createStatement();
-				String orderField = SQLUtils.quoteSymbol(conn, FIELD_ORDER);
-				String updateQuery = String.format(
-						"update %s set %s=%s+1 where %s >= %s",
-						SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-						orderField,
-						orderField,
-						orderField,
+				
+				String quotedTable = SQLUtils.quoteSchemaTable(conn, schemaName, tableName);
+				String quotedParentField = SQLUtils.quoteSymbol(conn, FIELD_PARENT);
+				String quotedOrderField = SQLUtils.quoteSymbol(conn, FIELD_ORDER);
+				
+				// find the order value for the specified insert index
+				query = String.format(
+						"SELECT * FROM %s WHERE %s=%s ORDER BY %s",
+						quotedTable,
+						quotedParentField,
+						parent_id,
+						FIELD_ORDER
+					);
+				rs = stmt.executeQuery(query);
+				boolean found = false;
+				for (int i = 0; rs.next(); i++)
+				{
+					// avoid inserting duplicate relationships
+					if (rs.getInt(FIELD_CHILD) == child_id)
+						return;
+					
+					if (i == insert_at_index)
+					{
+						sortOrder = rs.getInt(FIELD_ORDER);
+						found = true;
+					}
+					else if (!found)
+					{
+						sortOrder = rs.getInt(FIELD_ORDER) + 1;
+					}
+				}
+				SQLUtils.cleanup(rs);
+				
+				// shift all existing children prior to insert
+				query = String.format(
+						"UPDATE %s SET %s=%s+1 WHERE %s >= %s",
+						quotedTable,
+						quotedOrderField,
+						quotedOrderField,
+						quotedOrderField,
 						sortOrder
 					);
-				stmt.executeUpdate(updateQuery);
-				SQLUtils.cleanup(stmt);
+				stmt.executeUpdate(query);
 			}
 			
             insertRecord(parent_id, child_id, sortOrder);
 		}
 		catch (SQLException e)
 		{
+			if (query != null)
+				System.out.println(query);
 			throw new RemoteException("Unable to add child.",e);
 		}
 		finally
 		{
+			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(stmt);
 		}
 	}
@@ -138,9 +185,10 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> query = MapUtils.fromPairs(FIELD_CHILD, child_id);
 			Set<Integer> parents = new HashSet<Integer>();
-			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, null, null))
+			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_CHILD, child_id);
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
+			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, null, Object.class))
 			{
 				Number parent = (Number)row.get(FIELD_PARENT);
 				parents.add(parent.intValue());
@@ -158,8 +206,9 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> query = MapUtils.fromPairs(FIELD_PARENT, parent_id);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, FIELD_ORDER, null);
+			Map<String,Object> conditions= MapUtils.fromPairs(FIELD_PARENT, parent_id);
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
+			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, FIELD_ORDER, Object.class);
 			List<Integer> children = new Vector<Integer>(rows.size());
 			for (Map<String,Object> row : rows)
 			{
@@ -186,7 +235,8 @@ public class HierarchyTable extends AbstractTable
 				whereParams.put(FIELD_CHILD, child_id);
 			if (parent_id != NULL)
 				whereParams.put(FIELD_PARENT, parent_id);
-			SQLUtils.deleteRows(conn, schemaName, tableName, whereParams, null, true);
+			WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, null, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)
 		{

@@ -87,13 +87,13 @@ package weave.services
 		private var adminService:AMF3Servlet;
 		private var dataService:AMF3Servlet;
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
-		private var methodHooks:Object = {}; // methodName -> Array
+		private var methodHooks:Object = {}; // methodName -> Array (of MethodHook)
 		
 		/**
 		 * @param method A pointer to a function of this WeaveAdminService.
 		 * @param resultHandler A ResultEvent handler:  function(event:ResultEvent, parameters:Array = null):void
 		 */
-		public function addHook(method:Function, resultHandler:Function):void
+		public function addHook(method:Function, captureHandler:Function, resultHandler:Function):void
 		{
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
@@ -101,7 +101,22 @@ package weave.services
 			var hooks:Array = methodHooks[methodName];
 			if (!hooks)
 				methodHooks[methodName] = hooks = [];
-			hooks.push(resultHandler);
+			var hook:MethodHook = new MethodHook();
+			hook.captureHandler = captureHandler;
+			hook.resultHandler = resultHandler;
+			hooks.push(hook);
+		}
+		
+		private function hookCaptureHandler(query:DelayedAsyncInvocation):void
+		{
+			for each (var hook:MethodHook in methodHooks[query.methodName])
+			{
+				if (hook.captureHandler == null)
+					continue;
+				var args:Array = (query.parameters as Array).concat();
+				args.length = hook.captureHandler.length;
+				hook.captureHandler.apply(null, args);
+			}
 		}
 		
 		/**
@@ -110,11 +125,13 @@ package weave.services
 		 */
 		private function hookHandler(event:ResultEvent, query:DelayedAsyncInvocation):void
 		{
-			for each (var hook:Function in methodHooks[query.methodName])
+			for each (var hook:MethodHook in methodHooks[query.methodName])
 			{
+				if (hook.resultHandler == null)
+					continue;
 				var args:Array = [event, query.parameters];
-				args.length = hook.length;
-				hook.apply(null, args);
+				args.length = hook.resultHandler.length;
+				hook.resultHandler.apply(null, args);
 			}
 		}
 		
@@ -178,6 +195,7 @@ package weave.services
 			var query:DelayedAsyncInvocation = new DelayedAsyncInvocation(service, methodName, parameters);
 			// we want to use a queue so the admin functions will execute in the correct order.
 			queue.addToQueue(query);
+			hookCaptureHandler(query);
 			// automatically display FaultEvent error messages as alert boxes
 			addAsyncResponder(query, hookHandler, alertFault, query);
 			return query;
@@ -224,9 +242,9 @@ package weave.services
 			return invokeAdmin(checkDatabaseConfigExists, arguments);
 		}
 		
-		public function authenticate():AsyncToken
+		public function authenticate(user:String, pass:String):AsyncToken
 		{
-			return invokeAdminWithLogin(authenticate, arguments);
+			return invokeAdmin(authenticate, arguments);
 		}
 
 		//////////////////////////////
@@ -298,7 +316,7 @@ package weave.services
 		//////////////////////////
 		// DataEntity management
 		
-		public function addParentChildRelationship(parentId:int, childId:int, index:int, blah:int):AsyncToken
+		public function addParentChildRelationship(parentId:int, childId:int, index:int):AsyncToken
 		{
 			return invokeAdminWithLogin(addParentChildRelationship, arguments);
 		}
@@ -306,13 +324,9 @@ package weave.services
 		{
 			return invokeAdminWithLogin(removeParentChildRelationship, arguments);
 		}
-		public function addEntity(entityType:int, metadata:EntityMetadata, parentId:int):AsyncToken
+		public function newEntity(entityType:int, metadata:EntityMetadata, parentId:int):AsyncToken
 		{
-			return invokeAdminWithLogin(addEntity, arguments);
-		}
-		public function copyEntity(entityId:int, newParentId:int):AsyncToken
-		{
-			return invokeAdminWithLogin(copyEntity, arguments);
+			return invokeAdminWithLogin(newEntity, arguments);
 		}
 		public function removeEntity(entityId:int):AsyncToken
 		{
@@ -483,4 +497,10 @@ package weave.services
 			return invokeDataService(getAttributeColumn, arguments, false);
 		}
 	}
+}
+
+internal class MethodHook
+{
+	public var captureHandler:Function;
+	public var resultHandler:Function;
 }

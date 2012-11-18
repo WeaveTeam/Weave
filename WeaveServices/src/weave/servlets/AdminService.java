@@ -121,9 +121,16 @@ public class AdminService
 		return getConnectionConfig().getDatabaseConfigInfo() != null;
 	}
 
-	public void authenticate(String user, String password) throws RemoteException
+	
+	/**
+	 * @param user
+	 * @param password
+	 * @return true if the user has superuser privileges.
+	 * @throws RemoteException If authentication fails.
+	 */
+	public boolean authenticate(String user, String password) throws RemoteException
 	{
-		getConnectionInfo(user, password);
+		return getConnectionInfo(user, password).is_superuser;
 	}
 	
 	private ConnectionInfo getConnectionInfo(String user, String password) throws RemoteException
@@ -453,7 +460,7 @@ public class AdminService
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 
 			config.removeConnectionInfo(newConnectionInfo.name);
-			config.addConnectionInfo(newConnectionInfo);
+			config.saveConnectionInfo(newConnectionInfo);
 		}
 		catch (Exception e)
 		{
@@ -530,10 +537,10 @@ public class AdminService
 	//////////////////////////
 	// DataEntity management
 	
-	public void addParentChildRelationship(String user, String password, int parentId, int childId, int order) throws RemoteException
+	public void addParentChildRelationship(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		getDataConfig().addChild(parentId, childId, order);
+		getDataConfig().buildHierarchy(parentId, childId, insertAtIndex);
 	}
 
 	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
@@ -545,18 +552,10 @@ public class AdminService
 	public int addEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId, int order) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		int new_id = getDataConfig().addEntity(entityType, meta);
+		int new_id = getDataConfig().newEntity(entityType, meta);
         getDataConfig().addChild(parentId, new_id, order);
         return new_id;
         
-	}
-
-	public int copyEntity(String user, String password, int entityId, int newParentId, int order) throws RemoteException
-	{
-		tryModify(user, password, newParentId);
-        int copy_id = getDataConfig().copyEntity(entityId);
-        getDataConfig().addChild(copy_id, newParentId, order);
-		return copy_id;
 	}
 
 	public void removeEntity(String user, String password, int entityId) throws RemoteException
@@ -1516,7 +1515,7 @@ public class AdminService
 
 			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			int table_id = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableProperties);
+			int table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableProperties);
 
 			for (int i = 0; i < titles.size(); i++)
 			{
@@ -1532,7 +1531,7 @@ public class AdminService
 				newMeta.publicMetadata.put(PublicMetadata.TITLE, titles.get(i));
 				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
-				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, newMeta);
+				int col_id = dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta);
                 dataConfig.addChild(table_id, col_id, 0);
 			}
 		}
@@ -1736,7 +1735,7 @@ public class AdminService
 			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 	
 			// TODO: use table ID from addConfigDataTable()
-			getDataConfig().addEntity(DataEntity.TYPE_COLUMN, geomInfo);
+			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo);
 		}
 		catch (IOException e)
 		{

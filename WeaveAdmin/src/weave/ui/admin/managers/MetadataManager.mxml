@@ -34,6 +34,6 @@
 	<mx:Button label="Refresh" click="AdminInterface.instance.entityCache.clearCache();"/>
 	<mx:HDividedBox width="100%" height="100%">
 		<ui:HierarchyEditor width="50%" height="100%" id="hierarchyEditor" enabled="{!metadataEditor.isChanged}"/>
-		<ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{hierarchyEditor.selectedItem}"/>
+		<ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItems="{hierarchyEditor.selectedItems}"/>
 	</mx:HDividedBox>
 </mx:VBox>

@@ -3,20 +3,22 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
-    width="100%" height="100%" creationComplete="handleCreationComplete()" enabled="{targetItem != null}">
+    width="100%" height="100%"
+	creationComplete="handleCreationComplete()">
     <mx:TabNavigator width="100%" height="100%">
         <ui:MetadataGrid id="publicMetaGrid" label="Public" 
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>    
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>    
         <ui:MetadataGrid id="privateMetaGrid" label="Private" 
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
     <mx:HBox>
-        <mx:Button label="Discard Changes" enabled="{isChanged}" click="setEditors(null)"/>
+        <mx:Button label="Discard Changes" enabled="{isChanged}" click="refresh()"/>
         <mx:Button label="Save Changes" enabled="{isChanged}" click="saveChanges()"/>
         <mx:Button label="Debug Meta" click="printpubMeta()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
+	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
 	import mx.controls.Alert;
 	
@@ -30,31 +32,52 @@
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
-    [Bindable] public var targetItem:EntityNode = null;
-    [Bindable] public var isChanged:Boolean = false;
-
-    private var pubWatcher:ChangeWatcher;
-    private var privWatcher:ChangeWatcher;
-    public function handleCreationComplete():void
-    {
-        ChangeWatcher.watch(this, "targetItem", setEditors);
-        pubWatcher = ChangeWatcher.watch(publicMetaGrid, "metadata", metaChanged);
-        privWatcher = ChangeWatcher.watch(privateMetaGrid, "metadata", metaChanged);
+	public function handleCreationComplete():void
+	{
+		BindingUtils.bindSetter(metaChanged, publicMetaGrid, 'metadata');
+		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
 		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, handleEntityCache);
-    }
-    private function setEditors(..._):void
-    {
-        if (targetItem == null)
-        {
-            return;
-        }
-		var entity:Entity = targetItem.getEntity();
+	}
+	
+    [Bindable] public var isChanged:Boolean = false;
+	
+	private var _targetItems:Array;
+	[Bindable] public function get targetItems():Array
+	{
+		return _targetItems;
+	}
+	public function set targetItems(items:Array):void
+	{
+		_targetItems = items;
+		refresh();
+	}
+	
+	private function refresh():void
+	{
+		//TODO: support editing multiple items at a time
+		
+		if (_targetItems == null || _targetItems.length > 1)
+		{
+			this.enabled = false;
+			return;
+		}
+		this.enabled = true;
+		
+		var item:EntityNode = _targetItems[0];
+		
+		var entity:Entity = item.getEntity();
         publicMetaGrid.metadata = entity.publicMetadata;
         privateMetaGrid.metadata = entity.privateMetadata;
-    }
+	}
+
     private function metaChanged(..._):void
     {
-		var entity:Entity = targetItem.getEntity();
+		if (_targetItems == null || _targetItems.length > 1)
+			return;
+		
+		var item:EntityNode = _targetItems[0];
+		
+		var entity:Entity = item.getEntity();
         var pubDiff:Object = EntityCache.diffObjects(publicMetaGrid.metadata, entity.publicMetadata);
         var privDiff:Object = EntityCache.diffObjects(privateMetaGrid.metadata, entity.privateMetadata);
         var prop:String;
@@ -72,7 +95,12 @@
     }
     private function saveChanges():void
     {
-		var entity:Entity = targetItem.getEntity();
+		if (_targetItems == null || _targetItems.length > 1)
+			return;
+		
+		var item:EntityNode = _targetItems[0];
+		
+		var entity:Entity = item.getEntity();
         var pubDiff:Object = EntityCache.diffObjects(entity.publicMetadata, publicMetaGrid.metadata);
         var privDiff:Object = EntityCache.diffObjects(entity.privateMetadata, privateMetaGrid.metadata);
         function validateCommit(..._):void
@@ -98,7 +126,9 @@
                 reportError('handleEntityCache(): isChanged is true');
 			}
             else
-                setEditors();
+			{
+				refresh();
+			}
 		}
 	}
 	

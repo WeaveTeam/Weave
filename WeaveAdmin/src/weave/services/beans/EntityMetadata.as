@@ -65,14 +65,5 @@ package weave.services.beans
 					diff[property] = fresh[property];
 			return diff;
 		}
-
-		[Deprecated] public function getAllMetadata():Object
-		{
-			return mergeObjects(privateMetadata, publicMetadata);
-		}
-		[Deprecated] public static function metadataPropertyIsPrivate(prop:String):Boolean
-		{
-			return prop in [CONNECTION, SQLQUERY, SQLPARAMS, SQLRESULT, SCHEMA, TABLEPREFIX, IMPORTNOTES];
-		}
 	}
 }

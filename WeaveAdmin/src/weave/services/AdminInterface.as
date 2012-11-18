@@ -88,62 +88,66 @@ package weave.services
 			// Initialization
 			service.addHook(
 				service.checkDatabaseConfigExists,
+				null,
 				function handleCheck(event:ResultEvent, token:Object = null):void
 				{
+					// save info
 					databaseConfigExists = event.result as Boolean;
 				}
 			);
 			service.addHook(
 				service.authenticate,
+				function(connectionName:String, password:String):void
+				{
+					// not logged in until result comes back
+					if (userHasAuthenticated)
+						userHasAuthenticated = false;
+					activeConnectionName = connectionName;
+					activePassword = password;
+				},
 				function(event:ResultEvent, token:Object = null):void
 				{
-					if (userHasAuthenticated != event.result as Boolean)
-						userHasAuthenticated = event.result as Boolean;
-					if (!userHasAuthenticated)
-					{
-						//Alert.show("Incorrect password.", "Login failed");
-						WeaveAdminService.messageDisplay("Login Failed","Incorrect password",false);
-					}
-					else
-					{
-						addAsyncResponder(service.getConnectionInfo(activeConnectionName), handleConnectionInfo);
-						function handleConnectionInfo(event:ResultEvent, token:Object = null):void
-						{
-							var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
-							currentUserIsSuperuser = cInfo.is_superuser;
-						}
-						
-						/* Do we really want to do this on auth? */
-						service.getWeaveFileNames(false);
-						service.getWeaveFileNames(true);
-						service.getConnectionNames();
-						service.getKeyTypes();
-						}
-					}
+					// save info
+					userHasAuthenticated = true;
+					currentUserIsSuperuser = event.result as Boolean;
+					
+					// refresh lists
+					service.getWeaveFileNames(false);
+					service.getWeaveFileNames(true);
+					service.getConnectionNames();
+					service.getKeyTypes();
+				}
 			);
 			//////////////////////////////
 			// Weave client config files
 			service.addHook(
 				service.saveWeaveFile,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
 					WeaveAdminService.messageDisplay(null, event.result as String, false);
+					
+					// refresh lists
 					service.getWeaveFileNames(false);
 					service.getWeaveFileNames(true);
 				}
 			);
 			service.addHook(
 				service.removeWeaveFile,
+				null,
 				function(..._):void
 				{
+					// refresh lists
 					service.getWeaveFileNames(false);
 					service.getWeaveFileNames(true);
 				}
 			);
 			service.addHook(
 				service.getWeaveFileNames,
+				null,
 				function(event:ResultEvent, arguments:Array):void
 				{
+					// save list
 					var showAllFiles:Boolean = arguments[0];
 					if (showAllFiles)
 						weaveFileNames = event.result as Array || [];
@@ -155,38 +159,48 @@ package weave.services
 			// ConnectionInfo management
 			service.addHook(
 				service.getConnectionNames,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save list
 					connectionNames = event.result as Array || [];
 				}
 			);
  			service.addHook(
 				service.saveConnectionInfo,
+				null,
 				function(event:ResultEvent, arguments:Array):void
 				{
-					getConnectionNames();
+					// refresh list
+					service.getConnectionNames();
 				}
 			);
 			service.addHook(
 				service.removeConnectionInfo,
+				null,
 				function(event:ResultEvent, arguments:Array):void
 				{
-					getConnectionNames();
+					// refresh list
+					service.getConnectionNames();
 				}
 			);
 			//////////////////////////////////
 			// DatabaseConfigInfo management
 			service.addHook(
 				service.getDatabaseConfigInfo,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save info
 					databaseConfigInfo = new DatabaseConfigInfo(event.result);
 				}
 			);
 			service.addHook(
 				service.setDatabaseConfigInfo,
+				null,
 				function(event:ResultEvent, token:Object=null):void
 				{
+					// save info
 					databaseConfigExists = Boolean(event.result);
 				}
 			);
@@ -194,8 +208,10 @@ package weave.services
 			// Key column uniqueness checks
 			service.addHook(
 				service.getDBFData,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save info
 					dbfData = event.result as Array || [];
 				}
 			);
@@ -203,22 +219,28 @@ package weave.services
 			// File uploads
 			service.addHook(
 				service.getUploadedCSVFiles,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save info
 					uploadedCSVFiles = event.result as Array || [];
 				}
 			);
 			service.addHook(
 				service.getUploadedSHPFiles,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save info
 					uploadedShapeFiles = event.result as Array || [];
 				}
 			);
 			service.addHook(
 				service.getDBFColumnNames,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save info
 					dbfKeyColumns = event.result as Array || [];
 				}
 			);
@@ -226,33 +248,45 @@ package weave.services
 			// Data import
 			service.addHook(
 				service.importSQL,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// request children
 					entityCache.invalidate(int(event.result), true);
+					// refresh list
 					service.getKeyTypes();
 				}
 			);
 			service.addHook(
 				service.importCSV,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// request children
 					entityCache.invalidate(int(event.result), true);
+					// refresh list
 					service.getKeyTypes();
 				}
 			);
 			service.addHook(
 				service.importSHP,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// request children
 					entityCache.invalidate(int(event.result), true);
+					// refresh list
 					service.getKeyTypes();
 				}
 			);
 			service.addHook(
 				service.importDBF,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// request children
 					entityCache.invalidate(int(event.result), true);
+					// refresh list
 					service.getKeyTypes();
 				}
 			);
@@ -260,8 +294,10 @@ package weave.services
 			// Miscellaneous
 			service.addHook(
 				service.getKeyTypes,
+				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					// save list
 					if (userHasAuthenticated)
 						keyTypes = event.result as Array || [];
 				}
@@ -271,18 +307,6 @@ package weave.services
 		}
 		
 			
-			
-		// functions for managing static settings
-		public function getConnectionNames():void
-		{
-			// clear current info, then request new info
-			connectionNames = [];
-			databaseConfigInfo = new DatabaseConfigInfo(null);
-			
-			service.getConnectionNames();
-			service.getDatabaseConfigInfo()
-		}
-		
 		[Bindable] public function get activeConnectionName():String
 		{
 			return _activeConnectionName;
@@ -305,20 +329,6 @@ package weave.services
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
-		public function authenticate(connectionName:String, password:String):AsyncToken
-		{
-			if (userHasAuthenticated)
-				userHasAuthenticated = false;
-			activeConnectionName = connectionName;
-			activePassword = password;
-
-			return service.authenticate();
-		}
-		
-		
-		
-
-
 		
 
 		//////////////////////////////////////////

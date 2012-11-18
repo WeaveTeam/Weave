@@ -65,8 +65,8 @@ package weave.ui
 				
 			if (debug)
 			{
-				var typeStrs:Array = ['Table','Column','Category'];
-				var typeInts:Array = [Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
+				var typeStrs:Array = ['Hierarchy','Table','Column','Category'];
+				var typeInts:Array = [Entity.TYPE_HIERARCHY, Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
 				var typeInt:int = info.type;
 				var typeStr:String = typeStrs[typeInts.indexOf(typeInt)];
 				var childrenStr:String = '';

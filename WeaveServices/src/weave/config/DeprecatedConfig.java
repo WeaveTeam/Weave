@@ -81,13 +81,13 @@ import weave.utils.SQLUtils;
 		{
 			conn = connConfig.getAdminConnection(); // this will fail if DatabaseConfigInfo is missing
 			prevAutoCommit = conn.getAutoCommit();
-			DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
-			stmt = conn.createStatement();
 			conn.setAutoCommit(false);
+			stmt = conn.createStatement();
 			
 			/////////////////////////////
 			
 			// check for problems
+			DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
 			if (dbInfo == null)
 				throw new InvalidParameterException("databaseConfig missing");
 			if (dbInfo.schema == null || dbInfo.schema.length() == 0)
@@ -106,8 +106,8 @@ import weave.utils.SQLUtils;
 			
 			progress.beginStep("Retrieving old dataset metadata", 0, 0, 0);
 			
-			int geomTotal = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedGeometryConfigTable));
-			int attrTotal = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedDataConfigTable));
+			int geomTotal = SQLUtils.getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedGeometryConfigTable), 0);
+			int attrTotal = SQLUtils.getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedDataConfigTable), 0);
 			
 			// initialize lookup tables
 			geomKeyTypeLookup = new HashMap<String,String>(geomTotal); // we will never have more entries than geomTotal
@@ -161,7 +161,7 @@ import weave.utils.SQLUtils;
 				// create an entity for the geometry column
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
 				int tableId = getTableId(name);
-				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata);
+				int columnId = dataConfig.newEntity(DataEntity.TYPE_COLUMN, geomMetadata);
 				dataConfig.addChild(tableId, columnId, order++);
 				
 				progress.tick();
@@ -204,7 +204,7 @@ import weave.utils.SQLUtils;
                 // create the column entity as a child of the table
                 DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
                 int tableId = getTableId(dataTableName);
-				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata);
+				int columnId = dataConfig.newEntity(DataEntity.TYPE_COLUMN, columnMetadata);
 				dataConfig.addChild(tableId, columnId, order++);
 				progress.tick();
 				autoFlush();
@@ -214,18 +214,6 @@ import weave.utils.SQLUtils;
 			/////////////////////////////
 			
 			conn.commit();
-		}
-		catch (OutOfMemoryError e)
-		{
-			e.printStackTrace();
-		}
-		catch (RemoteException e)
-		{
-			try {
-				conn.rollback();
-			} catch (SQLException ex) { }
-			
-			throw e;
 		}
 		catch (Exception e)
 		{
@@ -278,27 +266,12 @@ import weave.utils.SQLUtils;
 				metadata.publicMetadata.put(PublicMetadata.TITLE, tableName);
 			
 			// create the data table entity and remember the new id
-			tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, metadata);
+			tableId = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, metadata);
 			tableIdLookup.put(tableName, tableId);
 		}
 		
 		progress.resume();
 		return tableId;
-	}
-	
-	private static int getSingleIntFromQuery(Statement stmt, String query) throws SQLException
-	{
-		ResultSet resultSet = null;
-		try
-		{
-			resultSet = stmt.executeQuery(query);
-	        resultSet.next();
-	        return resultSet.getInt(1);
-		}
-		finally
-		{
-			SQLUtils.cleanup(resultSet);
-		}
 	}
 	
 	private static boolean isEmpty(String str)

@@ -69,7 +69,7 @@
 				<admin:LoginPopup id="login"/>
 			</mx:Box>
 			
-			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); AdminInterface.instance.getConnectionNames();">
+			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); AdminInterface.service.getConnectionNames();">
 				<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
 				<managers:SQLConnectionManager/>
 			</mx:VBox>

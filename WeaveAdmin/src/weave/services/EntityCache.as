@@ -120,7 +120,7 @@ package weave.services
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata = {title: label};
-			AdminInterface.service.addEntity(Entity.TYPE_CATEGORY, em, -1);
+			AdminInterface.service.newEntity(Entity.TYPE_CATEGORY, em, -1);
 			invalidate(ROOT_ID); // because the tag will appear under root
         }
         public function delete_entity(id:int):void
@@ -131,7 +131,6 @@ package weave.services
         }
         public function add_child(parent_id:int, child_id:int, index:int):void
         {
-			// add to root not supported
 			AdminInterface.service.addParentChildRelationship(parent_id, child_id, index);
 			invalidate(parent_id);
         }

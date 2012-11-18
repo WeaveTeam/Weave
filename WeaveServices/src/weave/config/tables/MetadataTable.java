@@ -35,6 +35,7 @@ import java.util.Vector;
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
+import weave.utils.SQLUtils.WhereClause;
 
 
 /**
@@ -117,14 +118,15 @@ public class MetadataTable extends AbstractTable
 		{
 			if (!connectionConfig.migrationPending())
 			{
+				Connection conn = connectionConfig.getAdminConnection();
 				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 				for (String property : diff.keySet())
 				{
 					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
 					records.add(record);
 				}
-				Connection conn = connectionConfig.getAdminConnection();
-				SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
+				WhereClause<Object> where = new WhereClause<Object>(conn, records, caseSensitiveFields, false);
+				SQLUtils.deleteRows(conn, schemaName, tableName, where);
 			}
 			
 			for (Entry<String,String> entry : diff.entrySet())
@@ -145,7 +147,9 @@ public class MetadataTable extends AbstractTable
 		try 
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.deleteRows(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_ID, id), caseSensitiveFields, true);
+			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_ID, id);
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, caseSensitiveFields, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)
 		{
@@ -158,8 +162,9 @@ public class MetadataTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<Integer,String> result = new HashMap<Integer,String>();
-			Map<String,Object> params = MapUtils.fromPairs(FIELD_PROPERTY, property);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class, null, caseSensitiveFields);
+			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_PROPERTY, property);
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, caseSensitiveFields, true);
+			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, where, null, Object.class);
 			for (Map<String,Object> row : rows)
 			{
 				Number id = (Number)row.get(FIELD_ID);
@@ -177,12 +182,31 @@ public class MetadataTable extends AbstractTable
 	{
 		try 
 		{
+			Map<Integer,Map<String,String>> result = MapUtils.fromPairs();
+			
 			Connection conn = connectionConfig.getAdminConnection();
-			return SQLUtils.idInSelect(conn, schemaName, tableName, FIELD_ID, FIELD_PROPERTY, FIELD_VALUE, ids, null);
+			List<Map<String,Object>> conditions = new Vector<Map<String,Object>>(ids.size());
+			for (int id : ids)
+			{
+				result.put(id, new HashMap<String,String>());
+				conditions.add(MapUtils.<String,Object>fromPairs(FIELD_ID, id));
+			}
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, false);
+			
+			for (Map<String,Object> record : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, null, Object.class))
+			{
+				int id = ((Number)record.get(FIELD_ID)).intValue();
+				String property = (String)record.get(FIELD_PROPERTY);
+				String value = (String)record.get(FIELD_VALUE);
+				
+				result.get(id).put(property, value);
+			}
+			
+			return result;
 		}   
 		catch (SQLException e)
 		{
-			throw new RemoteException("Unable to get properties for a list of ids.", e);
+			throw new RemoteException("Unable to retrieve metadata", e);
 		}
 	}
 	public Set<Integer> filter(Map<String,String> constraints) throws RemoteException

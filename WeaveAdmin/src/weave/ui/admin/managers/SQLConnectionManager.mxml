@@ -30,7 +30,7 @@
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
+			<mx:Button label="Refresh" click="refresh()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -81,7 +81,7 @@
 				</ui:Indent>
 				<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
 				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="migrateToDatabase()" />
+				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="saveDatabaseConfigInfo()" />
 			</mx:VBox>
 		</mx:Canvas>
 		<!--		<mx:Canvas label="etc" width="100%" height="100%">
@@ -233,27 +233,21 @@
 				{
 					if (info.name == AdminInterface.instance.activeConnectionName)
 					{
-						AdminInterface.instance.authenticate(info.name, info.pass);
+						AdminInterface.service.authenticate(info.name, info.pass);
+						// prevent interface from displaying as logged out
 						AdminInterface.instance.userHasAuthenticated = true;
 					}
 				}
 				dataChanged = false;
 			}
 			
-			private function migrateToDatabase():void
+			private function saveDatabaseConfigInfo():void
 			{
-				migrateButton.enabled = false;
-				var query:AsyncToken = AdminInterface.service.setDatabaseConfigInfo(
+				AdminInterface.service.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
 					   migrateSchemaInput.text
 					);
-				addAsyncResponder(query, enableMigrateButton, enableMigrateButton);
-				function enableMigrateButton(..._):void
-				{
-					migrateButton.enabled = true;
-					AdminInterface.instance.getConnectionNames(); // causes databaseConfigInfo to update
-				}
 			}
 			
 			private function handleRemoveConnection():void
@@ -278,6 +272,11 @@
 				}
 			}
 			
+			private function refresh():void
+			{
+				AdminInterface.service.getConnectionNames();
+				AdminInterface.service.getDatabaseConfigInfo();
+			}
 		]]>
 	</mx:Script>
 </mx:HDividedBox>
