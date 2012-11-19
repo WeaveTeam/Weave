@@ -608,7 +608,7 @@ package weave.visualization.layers
 			plotManager.zoomBounds.getDataBounds(tempDataBounds);
 			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 			
-			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
+			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE || _mouseMode == InteractionController.ZOOM)
 			{
 				_dashedLine.drawRect(dragX, dragY, dragWidth, dragHeight);
 			}
