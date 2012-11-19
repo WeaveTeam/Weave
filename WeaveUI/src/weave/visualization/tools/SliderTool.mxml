@@ -33,6 +33,7 @@
 <mx:Script>
 <![CDATA[
 	import mx.collections.ArrayCollection;
+	import mx.controls.listClasses.IListItemRenderer;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -40,13 +41,33 @@
 	import weave.api.linkBindableProperty;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IVisTool;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.LinkableTextFormat;
+	import weave.utils.VectorUtils;
 
+	//class data
+	
+	//@TODO session this so that the admin can specify a different maximum delay
+	private static const MAX_TIMER_DELAY:Number = 2500;
+	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
+	//dimensionsList is the dataprovider for the combo box
+	protected const dimensionsList:ArrayCollection = new ArrayCollection();
+	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
+	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
+	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
+	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
+	private var _timer:Timer;
+	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array));
+	[Bindable] protected var showLinkControls:Boolean = false;
+	
+	internal function getUnlinkedTools():Array { return VectorUtils.flatten(unlinkedTools.getSessionState() as Array); }
+	
 	//constructor
 	
 	//This class is the base class for Slider visualization tools
@@ -61,19 +82,59 @@
 		getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabelProperties, true);
 	}
 
-	//class data
-
-	//@TODO session this so that the admin can specify a different maximum delay
-	private static const MAX_TIMER_DELAY:Number = 2500;
-	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
-	//dimensionsList is the dataprovider for the combo box
-	protected const dimensionsList:ArrayCollection = new ArrayCollection();
-	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
-	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
-	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
-	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
-	private var _timer:Timer;
+	/**
+	 * This function gets called after children have been created
+	 */ 
+	override protected function childrenCreated():void
+	{
+		super.childrenCreated();
+		
+		this.height = 40;
+		
+		if (! timerDelay.value)
+			timerDelay.value = MAX_TIMER_DELAY;
+		speedSlider.minimum = 0;
+		speedSlider.maximum = 2000;
+		speedSlider.toolTip = lang("Change the speed of the slider");
+		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
+		//is there a timer that is still running? 
+		if ((playButton != null) && (_timer != null))
+		{
+			playButton.toolTip = lang("Automatically cycle through the times.");
+			if (_timer.running)
+			{
+				playButton.label = "||";
+				playButton.toolTip = lang("Stop");
+			}
+			else
+			{
+				playButton.label = ">";
+				playButton.toolTip = lang("Play")
+			}
+		}
+		
+		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
+		getCallbackCollection(WeaveAPI.globalHashMap).addGroupedCallback(this, updateLinkingControls);
+	}
 	
+	/**
+	 * dispose - called when the tool is deleted from the desktop
+	 * */
+	override public function dispose():void
+	{
+		if (_timer != null)
+		{
+			if (_timer.running) _timer.stop();
+			_timer.removeEventListener(TimerEvent.TIMER, moveSlider);
+		}
+		super.dispose();
+	}
+
+	private function updateLinkingControls():void
+	{
+		toolCheckboxList.dataProvider = WeaveAPI.globalHashMap.getNames(IVisTool).sort();
+	}
+
 	////abstract functions that must be overridden by subclasses of this class
 
 	/**
@@ -147,53 +208,6 @@
 		dimensionSlider.invalidateProperties();
 	}
 
-	/**
-	 * This function gets called after children have been created
-	 */ 
-	override protected function childrenCreated():void
-	{
-		super.childrenCreated();
-		
-		this.height = 40;
-
-		if (! timerDelay.value)
-			timerDelay.value = MAX_TIMER_DELAY;
-		speedSlider.minimum = 0;
-		speedSlider.maximum = 2000;
-		speedSlider.toolTip = lang("Change the speed of the slider");
-		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
-		//is there a timer that is still running? 
-		if ((playButton != null) && (_timer != null))
-		{
-			playButton.toolTip = lang("Automatically cycle through the times.");
-			if (_timer.running)
-			{
-				playButton.label = "||";
-				playButton.toolTip = lang("Stop");
-			}
-			else
-			{
-				playButton.label = ">";
-				playButton.toolTip = lang("Play")
-			}
-		}
-		
-		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
-	}		
-	
-	/**
-	 * dispose - called when the tool is deleted from the desktop
-	 * */
-	override public function dispose():void
-	{
-		if (_timer != null)
-		{
-			if (_timer.running) _timer.stop();
-			_timer.removeEventListener(TimerEvent.TIMER, moveSlider);
-		}
-		super.dispose();
-	}
-	
 	/**
 	 * getTimesFromCurrentDimensions
 	 * The labels for the time slider come from the dimensions 
@@ -388,6 +402,44 @@
 				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
 			</ui:Indent>
 			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
+			<mx:VBox height="100%" width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
+				<mx:Label text="Linked visualization tools"/>
+				<ui:Indent height="100%" width="100%">
+					<mx:List id="toolCheckboxList" height="100%" width="100%" borderStyle="none" selectable="false">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:CheckBox change="onChange()">
+									<mx:Script>
+										<![CDATA[
+											import weave.api.WeaveAPI;
+											import weave.ui.DraggablePanel;
+											override public function set data(value:Object):void
+											{
+												super.data = value;
+												var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
+												selected = _unlinkedTools.indexOf(value) < 0;
+												var tool:DraggablePanel = WeaveAPI.globalHashMap.getObject(String(value)) as DraggablePanel;
+												label = tool ? tool.title : String(value);
+											}
+											private function onChange():void
+											{
+												var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
+												var i:int = _unlinkedTools.indexOf(data);
+												if (i >= 0)
+													_unlinkedTools.splice(i, 1);
+												if (!selected)
+													_unlinkedTools.push(data);
+												_unlinkedTools.sort();
+												outerDocument.unlinkedTools.setSessionState(_unlinkedTools);
+											}
+										]]>
+									</mx:Script>
+								</mx:CheckBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:List>
+				</ui:Indent>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 
