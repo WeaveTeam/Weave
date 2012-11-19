@@ -275,13 +275,7 @@
     		}
     		public function addMenuItemToMenu(menu:WeaveMenuItem, menuItem:WeaveMenuItem):void
     		{
-    			var itemIndex:int = _menuList.getItemIndex(menu);
-    			if (itemIndex == -1)
-    			{
-					reportError("addMenuItemToMenu(): menu not found: "+menu.name);
-    				return;
-    			}
-    			var menuToModify:WeaveMenuItem = (_menuList.getItemAt( itemIndex ) as WeaveMenuItem);
+				var menuToModify:WeaveMenuItem = menu;
     			
     			if(menuToModify.children == null)
     				menuToModify.children = new ArrayCollection();

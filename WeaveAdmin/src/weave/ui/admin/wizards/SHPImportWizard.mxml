@@ -29,7 +29,7 @@
 			>
 	<mx:VBox width="100%" height="100%">
 		<ui:Indent width="100%" label="Load Shape files" group="{indentGroup}">
-			<mx:TextInput id="shpFileNameInput" enabled="true"/>
+			<mx:TextInput id="shpFileNameInput" enabled="true" width="240"/>
 			<mx:Button label="Upload ..." click="browseAndUploadShapeFiles();"/>
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
 			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
@@ -38,7 +38,7 @@
 			<mx:CheckBox id="dbfImportCheckBox" label="Import DBF file as Data Table" selected="true" change="handleKeyColumnsChange()" />
 		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
-			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" change="handleKeyColumnsChange()" editable="true"/>
+			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" width="240" change="handleKeyColumnsChange()" editable="true"/>
 			<ui:HelpComponent>
 				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
@@ -75,6 +75,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
@@ -105,12 +106,15 @@
 			
 			[Bindable] private var fileUploadCount:int = 0;
 			[Bindable] private var targetFileUploadCount:int = 0;
+			private var _fileUploadList:ArrayList = null;
 			private var _dbfFileToRequestColumnNamesFrom:FileReference;
 			private function shapeFileSelectedHandler(event:Event):void
 			{
+				_fileUploadList = new ArrayList();
 				fileUploadCount = 0;
 				targetFileUploadCount = shapeFileReferenceList.fileList.length;
 				shpFileNameInput.text = '';
+				
 				for each (var fileRef:FileReference in shapeFileReferenceList.fileList)
 				{
 					var name:String = fileRef.name;
@@ -169,36 +173,16 @@
 				if (shapeFileReferenceList.fileList.indexOf(token) >= 0)
 				{
 					fileUploadCount++;
+					_fileUploadList.addItem(token.name);
 					
-					// handle dbf file uploaded
-					if (token == _dbfFileToRequestColumnNamesFrom)
+					if( fileUploadCount == targetFileUploadCount )
 					{
-						AdminInterface.instance.listDBFFileColumns(_dbfFileToRequestColumnNamesFrom.name);
-						
-						getDBFDataFromFile(_dbfFileToRequestColumnNamesFrom.name);
+						AdminInterface.instance.listDBFFileColumns(_fileUploadList.getItemAt(_fileUploadList.length-1) as String);
 						enableAllWidgets();
 					}
 				}
 			}
-			
-			private function getDBFDataFromFile(file:String):void
-			{
-				var dbfDataQuery:DelayedAsyncInvocation = AdminInterface.instance.getDBFData(file);
-				
-				dbfDataQuery.addAsyncResponder(handleDBFDataResult,handleDBFDataFault);
-				
-				function handleDBFDataResult(event:ResultEvent, token:Object = null):void
-				{
-					handleKeyColumnsChange();
-				}
-				function handleDBFDataFault(event:FaultEvent, token:Object = null):void
-				{
-					
-				}
-				
-			}
-				
-			
+						
 			private var _serverFileBrowser:ServerFileViewer = null;
 			private function openServerBrowser():void
 			{
@@ -214,8 +198,6 @@
 				
 				AdminInterface.instance.listDBFFileColumns(tableName+".dbf");
 				tableSelector.activeTable = tableName;
-				
-				getDBFDataFromFile(tableName+".dbf");
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
@@ -292,7 +274,6 @@
 					return;
 				}
 				
-				
 				if(!dbfImportCheckBox.selected )
 				{
 					dbfKeyColumnsCombo.errorString = '';
@@ -301,48 +282,24 @@
 					return;
 				}
 				
-//				var selectedKeyColumn:String = dbfKeyColumnsCombo.selectedItem as String;
+				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
+				var keyCols:Array = trimmedKeyCols.split(","); 
 				
-				var selectedKeyColumns:String = dbfKeyColumnsCombo.text;
+				AdminInterface.instance.checkKeyColumnForDBFImport(
+					_fileUploadList.toArray(),
+					keyCols
+				).addAsyncResponder(keyColumnsCheckedForUniqueness);
 				
-				var selectedKeyColumnsArray:Array = selectedKeyColumns.split(",");
-				
-				var selectedKeyColumnIndex:Array =[];
-				for (var i:int = 0; i<selectedKeyColumnsArray.length; i++)
-				{
-					selectedKeyColumnIndex.push(AdminInterface.instance.dbfKeyColumns.indexOf(StringUtil.trim(selectedKeyColumnsArray[i])));
-					//check if last element added is -1. if True then the keycolumn name is wrong.
-					if(selectedKeyColumnIndex[selectedKeyColumnIndex.length-1] == -1)
-					{
-						dbfKeyColumnsCombo.errorString = "Key Column name '"+ StringUtil.trim(selectedKeyColumnsArray[i]) + "' does not exist";
-						finishEnabled = false;
-						nextEnabled = false;
-						return;
-					}
-						
-				}
-				
-				var keyIndex:int = AdminInterface.instance.dbfKeyColumns.indexOf(selectedKeyColumns);
-				
-				var keyColValues:Array = [];
-				
-				var temp:Array;
-				for (var j:int=0; j< AdminInterface.instance.dbfData.length; j++)
-				{
-					temp = [];
-					for (var k:int = 0; k<selectedKeyColumnIndex.length; k++)
-					{
-						temp.push(AdminInterface.instance.dbfData[j][selectedKeyColumnIndex[k]]);
-					}
-					keyColValues.push(temp.join(","));
-				}
-				
-				if(!isUnique(keyColValues))
+			}
+			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void
+			{
+				if(!AdminInterface.instance.dbfIsUnique)
 				{
 					dbfKeyColumnsCombo.errorString = 'Key values are not unique';
 					finishEnabled = false;
 					nextEnabled = false;
-				}else
+				}
+				else
 				{
 					dbfKeyColumnsCombo.errorString = '';
 					finishEnabled = true;
@@ -351,25 +308,6 @@
 				
 				dbfKeyColumnsCombo.invalidateDisplayList();
 			}
-			
-			private function isUnique(data:Array):Boolean
-			{
-				var unique:Boolean = true;
-				var testUniquenessObject:Object = new Object();
-				for(var i:int=0;i<data.length;i++)
-				{
-					if (testUniquenessObject[data[i]] == undefined)
-					{
-						testUniquenessObject[data[i]] = true;
-						continue;
-					}
-					unique = false;
-					break;
-				}
-				
-				return unique;
-			}
-			
 			
 			private function validateProjectionSRS():void
 			{

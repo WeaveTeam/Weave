@@ -250,12 +250,15 @@
 				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
 				
 				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;});
 				
 				selectionSubMenu.addSubMenuItem(lang("Circular Selection"),function():void{
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;});
 				
 				selectionSubMenu.addSubMenuItem(lang("Lasso Selection"),function():void{
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;});
 			}
 			
@@ -281,6 +284,7 @@
 							break;
 						case zoomModeButton:
 							defaultMode = InteractionController.ZOOM;
+							Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE; //to draw the blue rectangle
 							break;
 					}
 					Weave.properties.toolInteractions.defaultDragMode.value = defaultMode;

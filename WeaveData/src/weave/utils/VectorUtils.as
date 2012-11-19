@@ -210,7 +210,7 @@ package weave.utils
 				return destination;
 
 			for (var i:int = 0; i < source.length; i++)
-				if (source[i] is Array)
+				if (source[i] is Array || source[i] is Vector)
 					flatten(source[i], destination);
 				else
 					destination.push(source[i]);
