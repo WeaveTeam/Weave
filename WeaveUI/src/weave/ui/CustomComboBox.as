@@ -31,12 +31,16 @@ package weave.ui
 	/**
 	 * Added functionality: set selectedLabel()
 	 * 
+	 * Added functionality: get selectedLabel()
+	 * Added functionality: Multiple selection
+	 * 
 	 * @author adufilie
+	 * @author pstickne
 	 */
 	public class CustomComboBox extends ComboBox
 	{
-		
 		private var ctrlPressed:Boolean = false;
+		
 		
 		public function CustomComboBox()
 		{
@@ -104,7 +108,6 @@ package weave.ui
 				this.close();
 			}
 		}
-		
 		override public function close( trigger:Event = null ):void
 		{
 			if( this.ctrlPressed == false )
