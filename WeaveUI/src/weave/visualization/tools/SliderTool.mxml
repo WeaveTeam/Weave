@@ -114,7 +114,7 @@
 		}
 		
 		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
-		getCallbackCollection(WeaveAPI.globalHashMap).addGroupedCallback(this, updateLinkingControls);
+		getCallbackCollection(WeaveAPI.globalHashMap).addGroupedCallback(this, updateLinkingControls, true);
 	}
 	
 	/**
@@ -132,7 +132,11 @@
 
 	private function updateLinkingControls():void
 	{
-		toolCheckboxList.dataProvider = WeaveAPI.globalHashMap.getNames(IVisTool).sort();
+		var lineCharts:Array = WeaveAPI.globalHashMap.getNames(LineChartTool);
+		var list:Array = WeaveAPI.globalHashMap.getNames(IVisTool).sort();
+		for each (var lineChart:String in lineCharts)
+			list.splice(list.indexOf(lineChart), 1);
+		toolCheckboxList.dataProvider = list;
 	}
 
 	////abstract functions that must be overridden by subclasses of this class
