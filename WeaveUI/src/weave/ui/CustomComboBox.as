@@ -19,8 +19,14 @@
 
 package weave.ui
 {
+	import flash.events.Event;
+	import flash.events.KeyboardEvent;
+	
 	import mx.collections.CursorBookmark;
 	import mx.controls.ComboBox;
+	import mx.events.ListEvent;
+	import mx.states.OverrideBase;
+	import mx.utils.StringUtil;
 
 	/**
 	 * Added functionality: set selectedLabel()
@@ -29,6 +35,14 @@ package weave.ui
 	 */
 	public class CustomComboBox extends ComboBox
 	{
+		
+		private var ctrlPressed:Boolean = false;
+		
+		public function CustomComboBox()
+		{
+			super();
+		}
+		
 		/**
 		 * This function will set the selectedItem corresponding to the given label.
 		 * @param value The label of the item to select.
@@ -57,6 +71,72 @@ package weave.ui
 			// if label was found, set selected item
 			if (newSelectedItem != null)
 				selectedItem = newSelectedItem;
+		}
+		override public function get selectedLabel():String
+		{
+			var label:String = "";
+			if( selectedItems && selectedItems.length > 0 )
+			{
+				for( var i:int = 0; i < selectedItems.length-1; i++ )
+				{
+					label += selectedItems[i] + ",";
+				}
+				label += selectedItems[selectedItems.length-1];
+				return label;
+			}
+			return label;
+		}
+		override protected function keyDownHandler(event:KeyboardEvent):void
+		{
+			super.keyDownHandler(event);
+			this.ctrlPressed = event.ctrlKey;
+			if( this.ctrlPressed == true )
+				dropdown.allowMultipleSelection = true;
+		}
+		
+		override protected function keyUpHandler(event:KeyboardEvent):void
+		{
+			super.keyUpHandler(event);
+			this.ctrlPressed = event.ctrlKey;
+			
+			if( this.ctrlPressed == false )
+			{
+				this.close();
+			}
+		}
+		
+		override public function close( trigger:Event = null ):void
+		{
+			if( this.ctrlPressed == false )
+			{
+				super.close( trigger );
+			}
+		}
+		
+		public function set selectedItems( value:Array ):void
+		{
+			if( this.dropdown )
+				this.dropdown.selectedItems = value;
+		}
+		[Bindable] public function get selectedItems():Array
+		{
+			if( this.dropdown )
+				return this.dropdown.selectedItems;
+			else
+				return null;
+		}
+		
+		public function set selectedIndices( value:Array ):void
+		{
+			if( this.dropdown )
+				this.dropdown.selectedIndices = value;
+		}
+		[Bindable] public function get selectedIndices():Array
+		{
+			if( this.dropdown )
+				return this.dropdown.selectedIndices;
+			else
+				return null;
 		}
 	}
 }

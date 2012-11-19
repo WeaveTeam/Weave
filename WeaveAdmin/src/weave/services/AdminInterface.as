@@ -85,9 +85,9 @@ package weave.services
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
-		
+
+		[Bindable] public var dbfIsUnique:Boolean = false;
 		[Bindable] public var dbfKeyColumns:Array = [];
-		
 		[Bindable] public var dbfData:Array = [];
 		
 		// values the user has currently selected
@@ -495,6 +495,16 @@ package weave.services
 			{
 				getDataTableNames();
 				getKeyTypes();
+			}
+			return query;
+		}
+		public function checkKeyColumnForDBFImport(fileNames:Array, fieldNames:Array):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.checkKeyColumnForDBFImport(fileNames, fieldNames);
+			query.addAsyncResponder(handleCheckKeyColumnForDBFImport);
+			function handleCheckKeyColumnForDBFImport(event:ResultEvent, token:Object = null):void
+			{
+				dbfIsUnique = event.result as Boolean || false;
 			}
 			return query;
 		}
