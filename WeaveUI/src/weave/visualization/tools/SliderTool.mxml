@@ -132,11 +132,13 @@
 
 	private function updateLinkingControls():void
 	{
+		var sliders:Array = WeaveAPI.globalHashMap.getNames(SliderTool);
 		var lineCharts:Array = WeaveAPI.globalHashMap.getNames(LineChartTool);
-		var list:Array = WeaveAPI.globalHashMap.getNames(IVisTool).sort();
-		for each (var lineChart:String in lineCharts)
-			list.splice(list.indexOf(lineChart), 1);
-		toolCheckboxList.dataProvider = list;
+		var result:Array = WeaveAPI.globalHashMap.getNames(IVisTool).sort();
+		for each (var names:Array in [sliders, lineCharts])
+			for each (var name:String in names)
+				result.splice(result.indexOf(name), 1);
+		toolCheckboxList.dataProvider = result;
 	}
 
 	////abstract functions that must be overridden by subclasses of this class
