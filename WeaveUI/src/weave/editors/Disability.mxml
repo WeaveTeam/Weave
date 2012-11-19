@@ -59,7 +59,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 borderStyle="solid" 
 				 editable="false"  
 				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
-				 toolTip="changeme"
+				 toolTip="automatically generated text describing the trend of this line chart"
 				 wordWrap="true" text="before button clicked"/>
 	
 	<mx:Button label="Refresh Description"
@@ -157,6 +157,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleCreationComplete(event:Event) : void
 			{
 				variables = lineChartPlotter.columns;
+				linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 				checkingPlotterObjects();
 				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
 				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
@@ -166,6 +167,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					reportError("Error Creating request object from Disability Options");
 				else
 					linkBindableProperty(HashDisabilityText, event.target, "text");
+				
+
 				
 			}
 			
