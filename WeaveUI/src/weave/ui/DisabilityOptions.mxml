@@ -46,10 +46,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="longdesc text" textAlign="left"/>
 				<mx:TextInput id="longDescTextInputBox" width="100%" height="30%"
 							  backgroundColor="#EEEEEE" enabled="true" horizontalCenter="true"
-							  toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."/>
+							  toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."
+							  />
 				<mx:Button label="Refresh" click="updateCheckBoxes()" paddingLeft="5"
 						   paddingRight="5" toolTip="Refresh the list of visualizations"/>
-				<mx:CheckBox id="shortDescriptionCheckbox" label="Short Description"/>
+				<mx:CheckBox id="shortDescriptionCheckbox" label="Short Description" click ="modifyTextBox();"/>
+				<mx:CheckBox id="automaticDescLineChartCheckbox" label="Automatically generated description of Line Chart" click ="modifyTextBox();"/>
 				<mx:VBox id="menuToggleVBox" verticalScrollPolicy="on">
 					
 					<mx:Script>
@@ -70,8 +72,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							import weave.Weave;
 							import weave.api.WeaveAPI;
-							import weave.api.core.ILinkableObject;
 							import weave.api.core.IDisposableObject;
+							import weave.api.core.ILinkableObject;
 							import weave.api.detectLinkableObjectChange;
 							import weave.api.linkBindableProperty;
 							import weave.api.linkSessionState;
@@ -125,8 +127,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 								updateCheckBoxes();	
 								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);	
-								shortDescriptionCheckbox.addEventListener(MouseEvent.CLICK, shortDescriptioncCheckBoxClickHandler);
-								Weave.properties.disabilityHashMap.addDisposeCallback(label,updateCheckBoxes );
+								//shortDescriptionCheckbox.addEventListener(MouseEvent.CLICK, shortDescriptionCheckBoxClickHandler);
+								//automaticDescLineChartCheckbox.addEventListener(MouseEvent.CLICK, automaticDescLineChartCheckboxClickHandler);
+								
 								
 								
 							}
@@ -176,7 +179,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							protected function checkBoxClickHandler(event:MouseEvent):void
 							{
 								if(appendBasic == true)
+								{
 									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " ";
+									longDescTextInputBox.text = (Weave.properties.disabilitySystemText).value + " ";
+								}
 								else
 									longDescTextInputBox.text = "";
 								
@@ -202,7 +208,62 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 							}
 					
-							private function shortDescriptioncCheckBoxClickHandler(event:MouseEvent):void
+							private function modifyTextBox():void 
+							{
+								longDescTextInputBox.text = "";
+								
+								var label:String;
+								
+							
+								
+								if (shortDescriptionCheckbox.selected == true)
+								{
+									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " "  ;
+									for each (label in selectedCheckBoxLabelArray)
+									{
+										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + "\t" ;
+									}
+									appendBasic = true;
+									
+							
+								}
+								
+								if (automaticDescLineChartCheckbox.selected == true)
+								{
+									longDescTextInputBox.text = (Weave.properties.disabilitySystemText).value + " ";
+									for each (label in selectedCheckBoxLabelArray)
+									{
+										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
+									}
+									appendBasic = true;
+									
+								}
+							
+								if (automaticDescLineChartCheckbox.selected == true && shortDescriptionCheckbox.selected == true)
+								{
+									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " " +(Weave.properties.disabilitySystemText).value ;
+									for each (label in selectedCheckBoxLabelArray)
+									{
+										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
+									}
+								
+									appendBasic = true;
+								}
+								
+								else 
+								{
+									for each (label in selectedCheckBoxLabelArray)
+									{
+										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
+									}
+									
+									appendBasic = false;
+									
+								}
+								
+							}
+							
+				/*			private function shortDescriptionCheckBoxClickHandler(event:MouseEvent):void
 							{
 								longDescTextInputBox.text = "";
 								
@@ -210,7 +271,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 								if (shortDescriptionCheckbox.selected == true)
 								{
-									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " ";
+									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " "  ;
 									for each (label in selectedCheckBoxLabelArray)
 									{
 										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
@@ -226,9 +287,39 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									}
 								
 									appendBasic = false;
+								
 								}
 							
+							
 							}
+							private function automaticDescLineChartCheckboxClickHandler(event:MouseEvent):void
+							{
+								longDescTextInputBox.text = "";
+								
+								var label:String;
+								
+								if (automaticDescLineChartCheckbox.selected == true)
+								{
+									longDescTextInputBox.text = (Weave.properties.disabilitySystemText).value + " ";
+									for each (label in selectedCheckBoxLabelArray)
+									{
+										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
+									}
+									appendBasic = true;
+									
+								}
+								
+								else 
+								{
+									for each (label in selectedCheckBoxLabelArray)
+									{
+										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
+									}
+									
+									appendBasic = false;
+								}
+							}
+					*/
 							
 							
 							private function getWindowsOnStage(): Array
