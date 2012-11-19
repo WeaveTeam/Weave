@@ -72,14 +72,15 @@ import weave.config.WeaveContextParams;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
+import weave.utils.BulkSQLLoader;
 import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
 import weave.utils.ProgressManager.ProgressPrinter;
-import weave.utils.BulkSQLLoader;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import flex.messaging.io.amf.ASObject;
 
 public class AdminService
 		extends GenericServlet
@@ -95,6 +96,24 @@ public class AdminService
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+	}
+	
+	@Override
+	protected Object cast(Object value, Class<?> type)
+	{
+		if (type == DataEntityMetadata.class && value != null && value instanceof ASObject)
+		{
+			ASObject aso = (ASObject) value;
+			DataEntityMetadata dem = new DataEntityMetadata();
+			ASObject privateMetadata = (ASObject)aso.get("privateMetadata");
+			ASObject publicMetadata = (ASObject)aso.get("publicMetadata");
+			for (Object key : privateMetadata.keySet())
+				dem.privateMetadata.put((String)key, (String)privateMetadata.get(key));
+			for (Object key : publicMetadata.keySet())
+				dem.publicMetadata.put((String)key, (String)publicMetadata.get(key));
+			return dem;
+		}
+		return super.cast(value, type);
 	}
 	
 	/**
@@ -549,11 +568,11 @@ public class AdminService
 		getDataConfig().removeChild(parentId, childId);
 	}
 
-	public int addEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId, int order) throws RemoteException
+	public int newEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId) throws RemoteException
 	{
 		tryModify(user, password, parentId);
 		int new_id = getDataConfig().newEntity(entityType, meta);
-        getDataConfig().addChild(parentId, new_id, order);
+        getDataConfig().addChild(parentId, new_id, DataConfig.NULL);
         return new_id;
         
 	}
@@ -570,22 +589,22 @@ public class AdminService
 		getDataConfig().updateEntity(entityId, diff);
 	}
 
-	public Integer[] getEntityParentIds(String user, String password, int childId) throws RemoteException
+	public int[] getEntityParentIds(String user, String password, int childId) throws RemoteException
 	{
 		authenticate(user, password);
-		return getDataConfig().getParentIds(childId).toArray(new Integer[0]);
+		return ListUtils.toIntArray( getDataConfig().getParentIds(childId) );
 	}
 
-	public Integer[] getEntityChildIds(String user, String password, int parentId) throws RemoteException
+	public int[] getEntityChildIds(String user, String password, int parentId) throws RemoteException
 	{
 		authenticate(user, password);
-		return getDataConfig().getChildIds(parentId).toArray(new Integer[0]);
+		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
 	}
 
-	public Integer[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta, int entityType) throws RemoteException
+	public int[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta, int entityType) throws RemoteException
 	{
 		authenticate(user, password);
-		return getDataConfig().getEntityIdsByMetadata(meta, entityType).toArray(new Integer[0]);
+		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(meta, entityType) );
 	}
 
 	public DataEntity[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
@@ -598,7 +617,7 @@ public class AdminService
 		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
 		for (int i = 0; i < result.length; i++)
 		{
-			Integer[] childIds = config.getChildIds(result[i].id).toArray(new Integer[0]);
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(result[i].id) );
 			result[i] = new DataEntityWithChildren(result[i], childIds);
 		}
 		return result;
@@ -1238,8 +1257,7 @@ public class AdminService
 					if (nextLine[i] == null)
 						continue;
 
-					// 04 is a string (but Integer.parseInt would not throw an
-					// exception)
+					// 04 is a string (but Integer.parseInt would not throw an exception)
 					try
 					{
 						String value = nextLine[i];

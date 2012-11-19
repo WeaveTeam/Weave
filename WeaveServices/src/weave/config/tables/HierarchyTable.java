@@ -102,7 +102,6 @@ public class HierarchyTable extends AbstractTable
 	}
 	public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
 	{
-		System.out.println("addChild" + Arrays.asList(parent_id,child_id,insert_at_index));
 		String query = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -155,10 +154,12 @@ public class HierarchyTable extends AbstractTable
 				
 				// shift all existing children prior to insert
 				query = String.format(
-						"UPDATE %s SET %s=%s+1 WHERE %s >= %s",
+						"UPDATE %s SET %s=%s+1 WHERE %s=%s AND %s >= %s",
 						quotedTable,
 						quotedOrderField,
 						quotedOrderField,
+						quotedParentField,
+						parent_id,
 						quotedOrderField,
 						sortOrder
 					);

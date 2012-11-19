@@ -20,7 +20,8 @@ package weave.ui
         }
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
-			EntityNode.removeChild(parent as EntityNode, child as EntityNode);
+			if (child)
+				EntityNode.removeChild(parent as EntityNode, child as EntityNode);
 			return true;
         }
         public function getChildren(node:Object, model:Object = null):ICollectionView

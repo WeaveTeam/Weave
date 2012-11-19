@@ -20,6 +20,7 @@
 package weave.utils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -115,39 +116,44 @@ public class ListUtils
 			array[i] = list[i];
 		return array;
 	}
-	public static int[] toIntArray(List<Integer> list)
+	public static int[] toIntArray(Collection<Integer> list)
 	{
 		int[] array = new int[list.size()];
-		for (int i = 0; i < array.length; i++)
-			array[i] = list.get(i);
+		int i = 0;
+		for (int value : list)
+			array[i++] = value;
 		return array;
 	}
-	public static float[] toFloatArray(List<Float> list)
+	public static float[] toFloatArray(Collection<Float> list)
 	{
 		float[] array = new float[list.size()];
-		for (int i = 0; i < array.length; i++)
-			array[i] = list.get(i);
+		int i = 0;
+		for (float value : list)
+			array[i++] = value;
 		return array;
 	}
-	public static double[] toDoubleArray(List<Double> list)
+	public static double[] toDoubleArray(Collection<Double> list)
 	{
 		double[] array = new double[list.size()];
-		for (int i = 0; i < array.length; i++)
-			array[i] = list.get(i);
+		int i = 0;
+		for (double value : list)
+			array[i++] = value;
 		return array;
 	}
-	public static String[] toStringArray(List<String> list)
+	public static String[] toStringArray(Collection<String> list)
 	{
 		String[] array = new String[list.size()];
-		for (int i = 0; i < array.length; i++)
-			array[i] = list.get(i);
+		int i = 0;
+		for (String value : list)
+			array[i++] = value;
 		return array;
 	}
-	public static Object[] toObjectArray(List<Object> list)
+	public static Object[] toObjectArray(Collection<Object> list)
 	{
 		Object[] array = new Object[list.size()];
-		for (int i = 0; i < array.length; i++)
-			array[i] = list.get(i);
+		int i = 0;
+		for (Object value : list)
+			array[i++] = value;
 		return array;
 	}
 	/**

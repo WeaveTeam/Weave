@@ -18,6 +18,7 @@ package weave.services
 		private var cache_dirty:Object = {}; // id -> Boolean
         private var cache_entity:Object = {}; // id -> Array <Entity>
 		private var d2d_child_parent:Dictionary2D = new Dictionary2D(); // <child_id,parent_id> -> Boolean
+		private var delete_later:Object = {}; // id -> Boolean
 		
         public function EntityCache()
         {
@@ -72,8 +73,21 @@ package weave.services
 		
 		private function fetchDirtyEntities():void
 		{
+			var id:*;
+			
+			// delete marked entities
+			var deleted:Boolean = false;
+			for (id in delete_later)
+			{
+				AdminInterface.service.removeEntity(id);
+				deleted = true;
+			}
+			if (deleted)
+				delete_later = {};
+			
+			// request invalidated entities
 			var ids:Array = [];
-			for (var id:* in cache_dirty)
+			for (id in cache_dirty)
 				ids.push(int(id));
 			if (ids.length > 0)
 			{
@@ -115,13 +129,13 @@ package weave.services
 			AdminInterface.service.updateEntity(id, diff);
 			invalidate(id);
         }
-        public function add_tag(label:String):void
+        public function add_tag(label:String, parentId:int):void
         {
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata = {title: label};
-			AdminInterface.service.newEntity(Entity.TYPE_CATEGORY, em, -1);
-			invalidate(ROOT_ID); // because the tag will appear under root
+			AdminInterface.service.newEntity(Entity.TYPE_CATEGORY, em, parentId);
+			invalidate(parentId);
         }
         public function delete_entity(id:int):void
         {
@@ -139,16 +153,11 @@ package weave.services
 			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
 			if (parent_id == ROOT_ID)
 			{
+				delete_later[child_id] = true;
 				invalidate(ROOT_ID);
 			}
 			else
 			{
-				var d:Dictionary = d2d_child_parent.dictionary[child_id];
-				var count:int = 0;
-				for (var _id:* in d)
-					count++;
-				if (count == 1)
-					invalidate(ROOT_ID);
 				AdminInterface.service.removeParentChildRelationship(parent_id, child_id);
 			}
 			invalidate(child_id, true);

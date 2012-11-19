@@ -20,7 +20,7 @@
         <ui:EntityTree id="tagTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
-        <mx:HBox>
+        <mx:HBox enabled="{selectedItems.length == 1}">
             <ui:TextInputWithPrompt id="tagNameInput" prompt="New category name" width="100%"/>
             <mx:Button label="Add Category" click="addTag()"/>
             <mx:Button label="Remove" click="remove()" enabled="{tagTree.selectedItem != null}"/>
@@ -70,8 +70,12 @@
             UIUtils.componentPulse(tagNameInput);
             return;
         }
-        AdminInterface.instance.entityCache.add_tag(name);
-        tagNameInput.text = "";
+		if (selectedItems && selectedItems.length == 1)
+		{
+			var node:EntityNode = selectedItems[0];
+	        AdminInterface.instance.entityCache.add_tag(name, node.id);
+    	    tagNameInput.text = "";
+		}
     }
     public function selectionsChanged(event:ListEvent):void
     {

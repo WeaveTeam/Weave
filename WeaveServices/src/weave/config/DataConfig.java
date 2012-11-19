@@ -51,10 +51,12 @@ import weave.utils.SQLUtils;
 public class DataConfig
 {
 	/* Table name parts */
-	private final String SUFFIX_META_PRIVATE = "_meta_private";
-	private final String SUFFIX_META_PUBLIC = "_meta_public";
-	private final String SUFFIX_MANIFEST = "_manifest";
-	private final String SUFFIX_HIERARCHY = "_hierarchy";
+	static private final String SUFFIX_META_PRIVATE = "_meta_private";
+	static private final String SUFFIX_META_PUBLIC = "_meta_public";
+	static private final String SUFFIX_MANIFEST = "_manifest";
+	static private final String SUFFIX_HIERARCHY = "_hierarchy";
+	
+	static public final int NULL = -1;
 
 	private MetadataTable public_metadata;
 	private MetadataTable private_metadata;
@@ -130,7 +132,7 @@ public class DataConfig
         }
     }
 
-    public Integer newEntity(int type_id, DataEntityMetadata properties) throws RemoteException
+    public int newEntity(int type_id, DataEntityMetadata properties) throws RemoteException
     {
     	detectChange();
         int id = manifest.addEntry(type_id);
@@ -141,7 +143,7 @@ public class DataConfig
     private void removeChildren(int id) throws RemoteException
     {
     	detectChange();
-        for (Integer child : hierarchy.getChildren(id))
+        for (int child : hierarchy.getChildren(id))
         {
             removeEntity(child);
         }
@@ -194,7 +196,7 @@ public class DataConfig
         else
         {
         	// filter by type
-            if (type_id != -1)
+            if (type_id != NULL)
                 matches.retainAll(manifest.getByType(type_id));
             return matches;
         }
@@ -213,7 +215,7 @@ public class DataConfig
         Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
         Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
         Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
-        for (Integer id : ids)
+        for (int id : ids)
         {
             DataEntity entity = new DataEntity();
             entity.id = id;
@@ -238,7 +240,7 @@ public class DataConfig
 		int newChildId;
 		DataEntity child = getEntity(childId);
 
-		if (parentId == -1) // parent is root
+		if (parentId == NULL) // parent is root
 		{
 			if (child.type == DataEntity.TYPE_HIERARCHY) // child is a hierarchy
 			{
@@ -274,13 +276,17 @@ public class DataConfig
 			}
 		}
 		
-		// add new child to parent
-		hierarchy.addChild(parentId, newChildId, insertAtIndex);
+		// important to get the child list before we add a new child!
+		List<Integer> childIds = hierarchy.getChildren(childId);
 		
 		// recursively copy each child hierarchy element
 		int order = 0;
-		for (int grandChildId : hierarchy.getChildren(childId))
+		for (int grandChildId : childIds)
 			buildHierarchy(newChildId, grandChildId, order++);
+		
+		// add new child to parent
+		if (parentId != NULL)
+			hierarchy.addChild(parentId, newChildId, insertAtIndex);
     }
     
     public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
@@ -307,8 +313,8 @@ public class DataConfig
     public List<Integer> getChildIds(int id) throws RemoteException
     {
     	detectChange();
-    	// if id is -1, we want ids of all entities without parents
-        if (id == -1)
+    	// if id is NULL, we want ids of all entities without parents
+        if (id == NULL)
         {
         	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY, DataEntity.TYPE_DATATABLE));
         }
@@ -428,11 +434,11 @@ public class DataConfig
 	
 	static public class DataEntityWithChildren extends DataEntity
 	{
-		public Integer[] childIds;
+		public int[] childIds;
 		
 		public DataEntityWithChildren() { }
 		
-		public DataEntityWithChildren(DataEntity base, Integer[] childIds)
+		public DataEntityWithChildren(DataEntity base, int[] childIds)
 		{
 			if (base != null)
 			{
@@ -453,7 +459,7 @@ public class DataConfig
 		public int id = TYPE_ANY;
 		public int type;
 		
-		public static final int TYPE_ANY = -1;
+		public static final int TYPE_ANY = NULL;
         public static final int TYPE_HIERARCHY = 0;
 		public static final int TYPE_DATATABLE = 1;
 		public static final int TYPE_CATEGORY = 2;
@@ -461,14 +467,14 @@ public class DataConfig
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
-            return filterEntities(entities, params, -1);
+            return filterEntities(entities, params, TYPE_ANY);
         }
-        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, Integer manifestType)
+        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, int manifestType)
         {
             List<DataEntity> result = new LinkedList<DataEntity>();
             for (DataEntity entity : entities)
             {
-                if (manifestType != -1 && manifestType != entity.type)
+                if (manifestType != TYPE_ANY && manifestType != entity.type)
                     continue;
                 boolean match = true;
                 for (Entry<String,String> entry : params.entrySet())
