@@ -39,10 +39,6 @@ import org.geotools.data.shapefile.dbf.DbaseFileReader;
  * @author skolman
  * @author adufilie
  */
-/**
- * @author Andy
- *
- */
 public class DBFUtils
 {
 	/**
@@ -120,6 +116,7 @@ public class DBFUtils
 			Object[] row;
 			if (fieldNames != null)
 			{
+				dbfReader.read();
 				row = new Object[fieldNames.length];
 				for (int i = 0; i < fieldNames.length; i++)
 					row[i] = dbfReader.readField(allFields.indexOf(fieldNames[i]));

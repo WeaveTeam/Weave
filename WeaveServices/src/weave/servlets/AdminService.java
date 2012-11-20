@@ -1187,25 +1187,24 @@ public class AdminService extends GenericServlet
 		return isUnique;
 	}
 
+	public Boolean checkKeyColumnForDBFImport(String[] fileNames, String[] keyColumnNames) throws IOException
+	{
+		if( fileNames.length == 0 || keyColumnNames.length == 0 )
+			return false;
+		
+		File[] files = new File[fileNames.length];
+		for (int i = 0; i < fileNames.length; i++)
+			files[i] = new File(uploadPath, correctFileNameCase(fileNames[i]));
+		
+		return DBFUtils.isColumnUnique(files, keyColumnNames);
+	}
+	
 	public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
 	{
 		try
 		{
 			List<String> names = DBFUtils.getAttributeNames(new File(uploadPath, correctFileNameCase(dbfFileName)));
 			return ListUtils.toStringArray(names);
-		}
-		catch (IOException e)
-		{
-			throw new RemoteException("IOException", e);
-		}
-	}
-	
-	public Object[][] getDBFData(String dbfFileName) throws RemoteException
-	{
-		try
-		{
-			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)), null);
-			return dataArray;
 		}
 		catch (IOException e)
 		{
