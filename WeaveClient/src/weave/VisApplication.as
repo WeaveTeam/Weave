@@ -779,11 +779,11 @@ package weave
 					}
 				}
 				
-				if (!Weave.properties.weaveAnalystMode.value)
-				{
-					var _analyst:WeaveAnalyst = new WeaveAnalyst();
-					this.visDesktop.addChild(_analyst);
-				}
+//				if (Weave.properties.weaveAnalystMode.value)
+//				{
+//					var _analyst:WeaveAnalyst = new WeaveAnalyst();
+//					this.visDesktop.addChild(_analyst);
+//				}
 				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
@@ -792,11 +792,11 @@ package weave
 
 				));
 				
-				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
-					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Enable" : "Disable") + " Weave Analsyt"); },
-					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
-					
-				));
+//				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
+//					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Disable" : "Enable") + " Weave Analyst"); },
+//					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
+//					
+//				));
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
