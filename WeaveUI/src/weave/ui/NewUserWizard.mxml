@@ -470,7 +470,7 @@
 			{
 				var uniqueColumns:Array = []
 				
-				for(var j:int = 0;j<data.length;j++)
+				for(var j:int = 0;j<data[0].length;j++)
 				{
 					var unique:Boolean = true;
 					var testUniquenessObject:Object = new Object();
