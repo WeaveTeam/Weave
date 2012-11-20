@@ -57,7 +57,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 minWidth="5" 
 				 minHeight="5"
 				 borderStyle="solid" 
-				 editable="false"  
+				 editable="false" 
+				 creationComplete="automaticToolDescTextBoxInitialize(event);"
 				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
 				 toolTip="automatically generated text describing the trend of this line chart"
 				 wordWrap="true" text="before button clicked"/>
@@ -153,7 +154,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function getSystemGeneratedText():void
 			{
 			}
-		
+			
+			private function automaticToolDescTextBoxInitialize(event:Event):void
+			{
+				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
+				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', "automaticToolDescTextBox") as LinkableString);
+				
+				if( HashDisabilityText == null)
+					reportError("Error inserting Automatic tool desc box to disabilityHashmap");
+				else
+					linkBindableProperty(HashDisabilityText, event.target, "text");
+				
+			
+			}
 			private function handleCreationComplete(event:Event) : void
 			{
 				variables = lineChartPlotter.columns;
