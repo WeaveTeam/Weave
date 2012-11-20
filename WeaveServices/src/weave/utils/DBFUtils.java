@@ -73,15 +73,12 @@ public class DBFUtils
 	 * @return 
 	 * @throws IOException
 	 */
-	public static boolean isColumnUnique(String directoryPath, String[] dbfFileNames, String[] columnNames) throws IOException
+	public static boolean isColumnUnique(File[] dbfFile, String[] columnNames) throws IOException
 	{
 		Set<Object> set = new HashSet<Object>();
-		for (String file : dbfFileNames)
+		for (File file : dbfFile)
 		{
-			File f = new File(directoryPath, correctFileNameCase(directoryPath, file));
-			
-			Object[][] rows = getDBFData(f, columnNames);
-			
+			Object[][] rows = getDBFData(file, columnNames);
 			for (int i = 0; i < rows.length; i++)
 			{
 				// concatenate all values into a string
@@ -100,6 +97,7 @@ public class DBFUtils
 		}
 		return true;
 	}
+	
 	/**
 	 * @param dbfFile A DBF file
 	 * @param fieldNames A list of field names to retrieve, or null for all columns
@@ -116,12 +114,12 @@ public class DBFUtils
 		
 		List<Object[]> rowsList = new Vector<Object[]>();
 		
+
 		while(dbfReader.hasNext())
 		{
 			Object[] row;
 			if (fieldNames != null)
 			{
-				dbfReader.read();
 				row = new Object[fieldNames.length];
 				for (int i = 0; i < fieldNames.length; i++)
 					row[i] = dbfReader.readField(allFields.indexOf(fieldNames[i]));
@@ -133,12 +131,16 @@ public class DBFUtils
 			rowsList.add(row);
 		}
 		
+		
+		
 		int numOfCol = dbfHeader.getNumFields();
+		
 		Object[][] dataRows = new Object[rowsList.size()][numOfCol];
 		
 		for(int i=0; i < rowsList.size();i++)
 		{
 			dataRows[i] = rowsList.get(i);
+			
 		}
 		
 		return dataRows;
@@ -263,26 +265,5 @@ public class DBFUtils
 			throw new RuntimeException("Unknown DBF data type: "+dataType+" in column "+dbfHeader.getFieldName(index));
 		}
 		return sqlDataType;
-	}
-
-	private static String correctFileNameCase(String uploadPath, String fileName)
-	{
-		try 
-		{
-			File directory = new File(uploadPath);
-
-			if ( directory.isDirectory() )
-			{
-				for ( String file : directory.list() )
-				{
-					if ( file.equalsIgnoreCase(fileName) )
-						return file;
-				}
-			}
-		}
-		catch( Exception e )
-		{
-		}
-		return fileName;
 	}
 }
