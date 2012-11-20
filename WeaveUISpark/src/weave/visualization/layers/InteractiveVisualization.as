@@ -799,7 +799,7 @@ package weave.visualization.layers
 				if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
-				if (_lastProbedQKey && !plotter.keySet.containsKey(_lastProbedQKey))
+				if (_lastProbedQKey && !plotter.filteredKeySet.containsKey(_lastProbedQKey))
 					continue;
 				
 				// when using the selection layer, clear the probe

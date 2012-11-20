@@ -61,7 +61,9 @@
 				//plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);
 				
 				// by default this tool only displays the probed records.
-				mainLayerSettings.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
+				//TEMPORARY SOLUTION until we start using VisToolGroup
+				mainPlotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
+				//mainLayerSettings.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				mainLayerSettings.selectionFilter.removeObject();
 				mainLayerSettings.probeFilter.removeObject();
 

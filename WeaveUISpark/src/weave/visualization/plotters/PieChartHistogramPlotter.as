@@ -97,7 +97,7 @@ package weave.visualization.plotters
 			_binLookupStats = WeaveAPI.StatisticsCache.getColumnStatistics(_binLookup);
 			_binnedData = _binLookup.requestLocalObject(BinnedColumn, true);
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
-			linkSessionState(keySet.keyFilter, _filteredData.filter);
+			linkSessionState(filteredKeySet.keyFilter, _filteredData.filter);
 			registerLinkableChild(this, _binnedData);
 			setSingleKeySource(_filteredData);
 			
