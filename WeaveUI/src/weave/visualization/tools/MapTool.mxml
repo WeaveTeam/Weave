@@ -70,7 +70,7 @@
 
 			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
 			
-			protected static const locationsList:Array = ["Top left", "Top right", "Bottom left", "Bottom right"];
+			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
 			
 			// no main plotter
@@ -545,6 +545,7 @@
 						break;
 				}
 			}	
+			//location
 			private function locationChange():void
 			{
 				var index:int = maptoolLocationCombo.selectedIndex;
