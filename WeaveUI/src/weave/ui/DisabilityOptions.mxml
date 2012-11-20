@@ -125,7 +125,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								linkBindableProperty(Weave.properties.disabilityAltText, altTextInputBox, "text");
 								linkBindableProperty(Weave.properties.disabilityLongAltText, longDescTextInputBox, "text");
 								Weave.properties.disabilityAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
-								
+								Weave.properties.disabilityLongAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
 								updateCheckBoxes();	
 								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);	
 								shortDescriptionCheckbox.addEventListener(MouseEvent.CLICK, shortDescriptionCheckBoxClickHandler);

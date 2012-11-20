@@ -23,7 +23,7 @@
         <style type="text/css" media="screen"> 
             html, body  { height:100%; }
             body { margin:0; padding:0; overflow:auto; text-align:center; 
-                   background-color: #869ca7; }   
+                   background-color: #ffffff; }   
             object:focus { outline:none; }
             #flashContent { display:none; }
         </style>
@@ -77,7 +77,7 @@
  function getAltText(){
 
  	var weave = document.getElementById('weave');
- 	var altPath = ['WeaveProperties', 'disabilityAltText'];
+ 	var altPath = ['WeaveProperties', 'disabilityLongAltText'];
  	var dAltText = weave.getSessionState(altPath);
  	var demoText =  document.getElementById('demo');
  	demoText.innerHTML = dAltText;

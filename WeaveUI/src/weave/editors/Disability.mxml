@@ -26,47 +26,47 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @spurushe
 -->
 
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"		 
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"         
 		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*"
 		 label="Disability"
 		 implements="weave.api.core.ILinkableObject"
-		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark"	>
+		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark"    >
 	
 	<mx:Label text="User generated visualization description text:"
 			  textAlign="left"/>
 	
-	<mx:TextArea id="manualToolDescTextBox" 
-				 width="100%" 
-				 height="40%" 
-				 minWidth="5" 
+	<mx:TextArea id="manualToolDescTextBox"
+				 width="100%"
+				 height="40%"
+				 minWidth="5"
 				 minHeight="5"
-				 borderStyle="solid" 
-				 editable="true"  
+				 borderStyle="solid"
+				 editable="true" 
 				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
 				 toolTip="changeme"
-				 creationComplete="handleCreationComplete(event);" 
+				 creationComplete="handleCreationComplete(event);"
 				 wordWrap="true"/>
 	
 	<mx:Label text="System generated visualization description text:"
 			  textAlign="left"/>
 	
-	<mx:TextArea id="automaticToolDescTextBox" 
-				 width="100%" 
-				 height="40%" 
-				 minWidth="5" 
+	<mx:TextArea id="automaticToolDescTextBox"
+				 width="100%"
+				 height="40%"
+				 minWidth="5"
 				 minHeight="5"
-				 borderStyle="solid" 
-				 editable="false" 
-				 creationComplete="automaticToolDescTextBoxInitialize(event);"
+				 borderStyle="solid"
+				 editable="false"
+				 
 				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
 				 toolTip="automatically generated text describing the trend of this line chart"
 				 wordWrap="true" text="before button clicked"/>
 	
 	<mx:Button label="Refresh Description"
-			   id="automaticDescRefreshButton" 
+			   id="automaticDescRefreshButton"
 			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
-
+	
 	
 	
 	<mx:Script>
@@ -116,19 +116,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
 			
-			
+			// creationComplete="automaticToolDescTextBoxInitialize(event);"
 			
 			[Bindable] private var _panel:DraggablePanel = null;
-
+			
 			
 			public var vizEntities:Array = WeaveAPI.globalHashMap.getObjects(LineChartTool);//collect all the visualization tools
 			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);
-		
+			
 			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();
 			
-
-			public var variables:LinkableHashMap; 
-
+			
+			public var variables:LinkableHashMap;
+			
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
 			//public var joinedColsforRArrayUnsplit:Array = new Array();
@@ -155,18 +155,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 			}
 			
-			private function automaticToolDescTextBoxInitialize(event:Event):void
+			/*    private function automaticToolDescTextBoxInitialize(event:Event):void
 			{
-				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
-				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', "automaticToolDescTextBox") as LinkableString);
-				
-				if( HashDisabilityText == null)
-					reportError("Error inserting Automatic tool desc box to disabilityHashmap");
-				else
-					linkBindableProperty(HashDisabilityText, event.target, "text");
-				
+			Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
+			var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', "automaticToolDescTextBox") as LinkableString);
 			
-			}
+			if( HashDisabilityText == null)
+			reportError("Error inserting Automatic tool desc box to disabilityHashmap");
+			else
+			linkBindableProperty(HashDisabilityText, event.target, "text");
+			
+			
+			}*/
+			
 			private function handleCreationComplete(event:Event) : void
 			{
 				variables = lineChartPlotter.columns;
@@ -181,7 +182,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else
 					linkBindableProperty(HashDisabilityText, event.target, "text");
 				
-
+				
 				
 			}
 			
@@ -191,9 +192,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var dictionaryType:String;
 				var vizType:String;
 				var rResult:Array;
-		//		rResult = getInfoForR(/*columns???*/);
+				//        rResult = getInfoForR(/*columns???*/);
 				vizType = "lineChart";
-
+				
 			}
 			
 			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
@@ -206,37 +207,37 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//getting the columns ready for R
 			protected function columnPreprocessing():void
 			{
-				//use this function to gather the appropriate information that will be sent to R 
+				//use this function to gather the appropriate information that will be sent to R
 				//we have the columns in columnObjects
 				var numericCols:Array = new Array();
 				//below whatever cols are plotted it picks them up as individual objects
-
-				var colObjects:Array = variables.getObjects(IAttributeColumn)
-					
-					//pick only numeric columns to be sent to R
-					for(var i:int =0 ; i < colObjects.length; i++)
-					{
-						var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
-						var dataType:String = ColumnUtils.getDataType(col);
-						
-						if (dataType == "number")
-						{
-							numericCols.push(col);
-							columnNames.push(ColumnUtils.getTitle(col));
-						}
-					}
-					
-					
-				//joining columns returns columns only complete records (no incomplete records)
-			    var joinedColumns:Array = joinColumns(numericCols);
 				
-				joinKeysRArray = joinedColumns[0]; 
+				var colObjects:Array = variables.getObjects(IAttributeColumn)
+				
+				//pick only numeric columns to be sent to R
+				for(var i:int =0 ; i < colObjects.length; i++)
+				{
+					var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
+					var dataType:String = ColumnUtils.getDataType(col);
+					
+					if (dataType == "number")
+					{
+						numericCols.push(col);
+						columnNames.push(ColumnUtils.getTitle(col));
+					}
+				}
+				
+				
+				//joining columns returns columns only complete records (no incomplete records)
+				var joinedColumns:Array = joinColumns(numericCols);
+				
+				joinKeysRArray = joinedColumns[0];
 				joinColsRArray = joinedColumns[1];
-			
+				
 				//todo: getting axis, title, color, scale, etc
 				sendColumnsToR();
 				
-			
+				
 				
 			}
 			private function joinColumns(columns:Array):Array
@@ -248,7 +249,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
 				return [result.shift(), result];
 			}
-
+			
 			protected function sendColumnsToR():void
 			{
 				//send the columns and variables returned from getInfoForR to R using this function
@@ -262,23 +263,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for (var i:int = 0; i<joinColsRArray.length; i++){
 					inputValues.push(joinColsRArray[i][0].valueOf());
 				}
-			
-			/* for(var j:int = 0; j < 	joinColsRArray.length; j++)
-			{
+				
+				/* for(var j:int = 0; j <     joinColsRArray.length; j++)
+				{
 				for(var i :int = 0; i < joinColsRArray[j].length; i++)
 				{
-					inputValues.push(joinColsRArray[j][1]);
+				inputValues.push(joinColsRArray[j][1]);
 				}
 				
-			} */
+				} */
 				
-			    //inputValues = joinColsRArray; //use this
+				//inputValues = joinColsRArray; //use this
 				var outputNames:Array = ["mySlope"];
 				//default name to be used in R
 				var inputName:Array = ["y1", "y2"];
 				
-				 var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 
+				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);     
 				
 			}
 			public function handleRunScriptResult(event:ResultEvent, token:Object):void
@@ -289,7 +290,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rObject = event.result as Array;
 				var finalRObject:Array = new Array();//collects all the RResult objects after being returned from R
 				
-				if (rObject == null){ 
+				if (rObject == null){
 					reportError("R Servlet did not return an Array of results as expected.");
 					return;
 				}
@@ -305,11 +306,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					var rResult:RResult = new RResult(rObject[i]);
 					finalRObject[i] = rResult.value;
-			
+					
 				}
 				
 				processingRResult(finalRObject);
-			
+				
 			}
 			private function handleRunScriptFault(event:FaultEvent, token:Object):void
 			{
@@ -327,10 +328,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				tempProperties.push(_sentpropertiesValues);//returned from R
 				
 				//one DisabilityObject is made for every tool is one Weave instance
-			    var tempDisabilityObject :DisabilityObject = new DisabilityObject();
+				var tempDisabilityObject :DisabilityObject = new DisabilityObject();
 				tempDisabilityObject.properties = _sentpropertiesValues;
 				/* structure for vizDetails                 title
-														   Attributes */
+				Attributes */
 				tempDisabilityObject.vizDetails.push(_target.title);
 				tempDisabilityObject.vizDetails.push(columnNames);
 				
