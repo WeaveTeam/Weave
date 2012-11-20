@@ -29,8 +29,11 @@ package weave.services.beans
 		public static const TABLEPREFIX:String = "tablePrefix";
 		public static const IMPORTNOTES:String = "importNotes";
 		
-		public var privateMetadata:Object = {};
-		public var publicMetadata:Object = {};
+		protected var _privateMetadata:Object = {};
+		protected var _publicMetadata:Object = {};
+		
+		public function get privateMetadata():Object { return _privateMetadata; }
+		public function get publicMetadata():Object { return _publicMetadata; }
 		
 		private function objToStr(obj:Object):String
 		{
@@ -49,20 +52,22 @@ package weave.services.beans
 			return objToStr({'publicMetadata': objToStr(publicMetadata), 'privateMetadata': objToStr(privateMetadata)});
 		}
 
-		public static function mergeObjects(a:Object, b:Object):Object
+		private function outputDiff(oldObj:Object, newObj:Object, output:Object):void
 		{
-			var result:Object = {}
-			for each (var obj:Object in [a, b])
-			for (var property:Object in obj)
-				result[property] = obj[property];
-			return result;
+			var name:String;
+			for (name in oldObj)
+				if (oldObj[name] != newObj[name])
+					output[name] = newObj[name];
+			for (name in newObj)
+				if (oldObj[name] != newObj[name])
+					output[name] = newObj[name];
 		}
-		public static function diffObjects(old:Object, fresh:Object):Object
+		
+		public function getDiff(newPrivateMetadata:Object, newPublicMetadata:Object):EntityMetadata
 		{
-			var diff:Object = {};
-			for (var property:String in mergeObjects(old, fresh))
-				if (old[property] != fresh[property])
-					diff[property] = fresh[property];
+			var diff:EntityMetadata = new EntityMetadata();
+			outputDiff(_privateMetadata, newPrivateMetadata, diff._privateMetadata);
+			outputDiff(_publicMetadata, newPublicMetadata, diff._publicMetadata);
 			return diff;
 		}
 	}

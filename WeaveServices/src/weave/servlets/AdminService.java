@@ -63,6 +63,7 @@ import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataEntityTableInfo;
 import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
@@ -587,6 +588,12 @@ public class AdminService
 	{
 		tryModify(user, password, entityId);
 		getDataConfig().updateEntity(entityId, diff);
+	}
+	
+	public DataEntityTableInfo[] getDataTableList(String user, String password) throws RemoteException
+	{
+		authenticate(user, password);
+		return getDataConfig().getDataTableList();
 	}
 
 	public int[] getEntityParentIds(String user, String password, int childId) throws RemoteException

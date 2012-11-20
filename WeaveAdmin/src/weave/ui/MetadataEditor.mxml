@@ -25,7 +25,7 @@
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.core.UIUtils;
-	import weave.services.AdminInterface;
+	import weave.services.Admin;
 	import weave.services.EntityCache;
 	import weave.services.WeaveAdminService;
 	import weave.services.addAsyncResponder;
@@ -36,7 +36,7 @@
 	{
 		BindingUtils.bindSetter(metaChanged, publicMetaGrid, 'metadata');
 		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
-		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, handleEntityCache);
+		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
 	}
 	
     [Bindable] public var isChanged:Boolean = false;
@@ -78,15 +78,14 @@
 		var item:EntityNode = _targetItems[0];
 		
 		var entity:Entity = item.getEntity();
-        var pubDiff:Object = EntityCache.diffObjects(publicMetaGrid.metadata, entity.publicMetadata);
-        var privDiff:Object = EntityCache.diffObjects(privateMetaGrid.metadata, entity.privateMetadata);
+		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
         var prop:String;
-        for (prop in pubDiff)
+        for (prop in diff.privateMetadata)
         {
             isChanged = true;
             return;
         }
-        for (prop in privDiff)
+        for (prop in diff.publicMetadata)
         {
             isChanged = true;
             return;
@@ -101,17 +100,10 @@
 		var item:EntityNode = _targetItems[0];
 		
 		var entity:Entity = item.getEntity();
-        var pubDiff:Object = EntityCache.diffObjects(entity.publicMetadata, publicMetaGrid.metadata);
-        var privDiff:Object = EntityCache.diffObjects(entity.privateMetadata, privateMetaGrid.metadata);
-        function validateCommit(..._):void
-        {
-        }
-		var diff:EntityMetadata = new EntityMetadata();
-		diff.publicMetadata = pubDiff;
-		diff.privateMetadata = privDiff;
+		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
 		
 		checkIsChanged = true;
-        AdminInterface.instance.entityCache.update_metadata(entity.id, diff);
+        Admin.entityCache.update_metadata(entity.id, diff);
     }
 	private var checkIsChanged:Boolean = false;
 	private function handleEntityCache():void

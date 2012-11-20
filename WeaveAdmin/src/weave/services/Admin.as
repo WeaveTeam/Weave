@@ -21,68 +21,73 @@ package weave.services
 	import flash.external.ExternalInterface;
 	import flash.utils.Dictionary;
 	
-	import mx.rpc.AsyncToken;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
-	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 
-	public class AdminInterface
+	public class Admin
 	{
-		private static var _thisInstance:AdminInterface = null;
-		public static function get instance():AdminInterface
+		private static var _thisInstance:Admin = null;
+		public static function get instance():Admin
 		{
 			if (_thisInstance == null)
-				_thisInstance = new AdminInterface();
+				_thisInstance = new Admin();
 			return _thisInstance;
 		}
 		public static function get service():WeaveAdminService
 		{
 			return instance.service;
 		}
+		public static function get entityCache():EntityCache
+		{
+			return instance.entityCache;
+		}
 		
 		
+		private var _service:WeaveAdminService = null;
+		public function get service():WeaveAdminService
+		{
+			if (!_service)
+				_service = new WeaveAdminService("/WeaveServices");
+			return _service;
+		}
 		
+		private var _entityCache:EntityCache = null;
+		public function get entityCache():EntityCache
+		{
+			if (!_entityCache)
+				_entityCache = new EntityCache();
+			return _entityCache;
+		}
 		
-		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
 		
 		[Bindable] public var databaseConfigExists:Boolean = true;
 		[Bindable] public var currentUserIsSuperuser:Boolean = false;
-
-		
 		[Bindable] public var userHasAuthenticated:Boolean = false;
 		
 		// values returned by the server
 		[Bindable] public var connectionNames:Array = [];
-		[Bindable] public var columnTree:Array = [];
-		[Bindable] public var columnIds:Object = {};
-		[Bindable] public var dataTableNames:Array = [];
-		[Bindable] public var geometryCollectionNames:Array = [];
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
 		[Bindable] public var dbfKeyColumns:Array = [];
-		
 		[Bindable] public var dbfData:Array = [];
 		
 		// values the user has currently selected
 		[Bindable] public var activePassword:String = '';
 		
-		
 		[Bindable] public var uploadedCSVFiles:Array = [];
 		[Bindable] public var uploadedShapeFiles:Array = [];
-		
-		public const entityCache:EntityCache = new EntityCache();
 		
 		private var _activeConnectionName:String = '';
 		
 
 		
-		public function AdminInterface()
+		public function Admin()
 		{
 			///////////////////
 			// Initialization
@@ -321,8 +326,6 @@ package weave.services
 			userHasAuthenticated = false;
 			currentUserIsSuperuser = false;
 			connectionNames = [];
-			dataTableNames = [];
-			geometryCollectionNames = [];
 			weaveFileNames = [];
 			privateWeaveFileNames = [];
 			keyTypes = [];

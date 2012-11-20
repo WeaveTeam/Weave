@@ -23,14 +23,27 @@ package weave.services.beans
 
 	public class Entity extends EntityMetadata
 	{
-		public var id:int;
-		public var type:int;
-		public var childIds:Array;
+		private var _id:int;
+		private var _type:int;
+		private var _childIds:Array;
 		
-		public function Entity()
+		public function get id():int
 		{
-			id = -1;
-			type = TYPE_ANY;
+			return _id;
+		}
+		public function get type():int
+		{
+			return _type;
+		}
+		public function get childIds():Array
+		{
+			return _childIds;
+		}
+		
+		public function Entity(id:int)
+		{
+			_id = -1;
+			_type = TYPE_ANY;
 		}
 		
 		public static const TYPE_ANY:int = -1;
@@ -46,20 +59,20 @@ package weave.services.beans
 		
 		public function copyFromResult(result:Object):void
 		{
-			this.id = getEntityIdFromResult(result);
-			this.type = result.type;
-			this.privateMetadata = result.privateMetadata || {};
-			this.publicMetadata = result.publicMetadata || {};
-			this.childIds = result.childIds;
+			_id = getEntityIdFromResult(result);
+			_type = result.type;
+			_privateMetadata = result.privateMetadata || {};
+			_publicMetadata = result.publicMetadata || {};
+			_childIds = result.childIds;
 	
 			// replace nulls with empty strings
 			var name:String;
-			for (name in this.privateMetadata)
-				if (this.privateMetadata[name] == null)
-					this.privateMetadata[name] = '';
-			for (name in this.publicMetadata)
-				if (this.publicMetadata[name] == null)
-					this.publicMetadata[name] = '';
+			for (name in _privateMetadata)
+				if (_privateMetadata[name] == null)
+					_privateMetadata[name] = '';
+			for (name in _publicMetadata)
+				if (_publicMetadata[name] == null)
+					_publicMetadata[name] = '';
 		}
 	}
 }

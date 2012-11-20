@@ -69,7 +69,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.compiler.StandardLib;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.utils.FileUtils;
 			
@@ -91,9 +91,9 @@
 				var source:Array = new Array();
 				
 				if( inputType == INPUT_CSV )
-					source = AdminInterface.instance.uploadedCSVFiles;
+					source = Admin.instance.uploadedCSVFiles;
 				else if( inputType == INPUT_SHP )
-					source = AdminInterface.instance.uploadedShapeFiles;
+					source = Admin.instance.uploadedShapeFiles;
 				
 				if(searchTerm.text.length > 0)
 				{
@@ -126,9 +126,9 @@
 			private function creationComplete(event:FlexEvent):void
 			{
 				if( inputType == INPUT_CSV )
-					AdminInterface.service.getUploadedCSVFiles();
+					Admin.service.getUploadedCSVFiles();
 				else if( inputType == INPUT_SHP )
-					AdminInterface.service.getUploadedSHPFiles();
+					Admin.service.getUploadedSHPFiles();
 				
 				if( inputType == "" )
 				{
@@ -158,9 +158,9 @@
 				
 				var query:AsyncToken;
 				if( inputType == INPUT_CSV )
-					query = AdminInterface.service.getUploadedCSVFiles();
+					query = Admin.service.getUploadedCSVFiles();
 				else if( inputType == INPUT_SHP )
-					query = AdminInterface.service.getUploadedSHPFiles();
+					query = Admin.service.getUploadedSHPFiles();
 				
 				addAsyncResponder(query, handleUploadedFiles);
 				function handleUploadedFiles(event:ResultEvent, token:Object = null):void

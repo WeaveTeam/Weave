@@ -38,7 +38,7 @@
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Refresh" click="AdminInterface.service.getWeaveFileNames(false)"/>
+				<mx:Button label="Refresh" click="Admin.service.getWeaveFileNames(false)"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="All files">
@@ -50,7 +50,7 @@
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Refresh" click="AdminInterface.service.getWeaveFileNames(true)"/>
+				<mx:Button label="Refresh" click="Admin.service.getWeaveFileNames(true)"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>
@@ -71,19 +71,19 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
 			
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			
 			
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(sharedTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "weaveFileNames");
-				BindingUtils.bindSetter(userFolderTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "privateWeaveFileNames");
+				BindingUtils.bindSetter(sharedTreeWithSearch.generateFlatTreeFromLabels, Admin.instance, "weaveFileNames");
+				BindingUtils.bindSetter(userFolderTreeWithSearch.generateFlatTreeFromLabels, Admin.instance, "privateWeaveFileNames");
 				
 				function clearPreview(..._):void { weaveFileInfo.clearPreview(); }
-				BindingUtils.bindSetter(clearPreview, AdminInterface.instance, "weaveFileNames");
-				BindingUtils.bindSetter(clearPreview, AdminInterface.instance, "privateWeaveFileNames");
+				BindingUtils.bindSetter(clearPreview, Admin.instance, "weaveFileNames");
+				BindingUtils.bindSetter(clearPreview, Admin.instance, "privateWeaveFileNames");
 				
 				var delay:int = 100;
 				var preview:Function = function(event:Event):void {
@@ -98,7 +98,7 @@
 			{
 				var item:Object = component.tree.selectedItem;
 				if (item)
-					AdminInterface.instance.openWeavePopup(item.label);
+					Admin.instance.openWeavePopup(item.label);
 			}
 			
 			private function previewSelectedFile(component:TreeWithSearch):void
@@ -110,7 +110,7 @@
 			
 			private function createFile():void
 			{
-				AdminInterface.instance.openWeavePopup();
+				Admin.instance.openWeavePopup();
 			}
 			
 			private function removeClientConfigFile():void
@@ -137,7 +137,7 @@
 					
 					function del():void
 					{
-						AdminInterface.service.removeWeaveFile(fileName);
+						Admin.service.removeWeaveFile(fileName);
 					}
 				}
 				else

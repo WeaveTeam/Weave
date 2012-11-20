@@ -31,7 +31,7 @@
 			</mx:HBox>
 		</mx:VBox>
 		<mx:Canvas minHeight="128">
-			<mx:Image id="img" source="{_thumbByteArray}" buttonMode="true" useHandCursor="true" click="AdminInterface.instance.openWeavePopup(_title)" />
+			<mx:Image id="img" source="{_thumbByteArray}" buttonMode="true" useHandCursor="true" click="Admin.instance.openWeavePopup(_title)" />
 		</mx:Canvas>
 	</mx:VBox>
 	<mx:Script>
@@ -41,7 +41,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.compiler.StandardLib;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.utils.FileUtils;
 			
@@ -62,7 +62,7 @@
 			}
 			public function updatePreview(fileName:String):void
 			{
-				addAsyncResponder(AdminInterface.service.getWeaveFileInfo(fileName), handleInfo);
+				addAsyncResponder(Admin.service.getWeaveFileInfo(fileName), handleInfo);
 			}
 			private function handleInfo(event:ResultEvent, token:Object = null):void
 			{

@@ -45,7 +45,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
 			
@@ -53,9 +53,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function YesButton_clickHandler(event:MouseEvent):DelayedAsyncInvocation
 			{
 				var metadataArray:Array = (popUpDataGrid.dataProvider as ArrayCollection).source;
-				var service:WeaveAdminService = AdminInterface.instance.service;
-				var connectionName:String = AdminInterface.instance.activeConnectionName;
-				var password:String = AdminInterface.instance.activePassword;
+				var service:WeaveAdminService = Admin.instance.service;
+				var connectionName:String = Admin.instance.activeConnectionName;
+				var password:String = Admin.instance.activePassword;
 				PopUpManager.removePopUp(this);
 				return service.removeAttributeColumnInfo(connectionName,password,metadataArray);
 				

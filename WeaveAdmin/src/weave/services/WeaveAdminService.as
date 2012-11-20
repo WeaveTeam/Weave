@@ -22,6 +22,7 @@ package weave.services
 	import avmplus.DescribeType;
 	import avmplus.getQualifiedClassName;
 	
+	import flash.events.Event;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	
@@ -93,7 +94,7 @@ package weave.services
 		 * @param method A pointer to a function of this WeaveAdminService.
 		 * @param resultHandler A ResultEvent handler:  function(event:ResultEvent, parameters:Array = null):void
 		 */
-		public function addHook(method:Function, captureHandler:Function, resultHandler:Function):void
+		public function addHook(method:Function, captureHandler:Function, resultHandler:Function, faultHandler:Function = null):void
 		{
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
@@ -104,6 +105,7 @@ package weave.services
 			var hook:MethodHook = new MethodHook();
 			hook.captureHandler = captureHandler;
 			hook.resultHandler = resultHandler;
+			hook.faultHandler = faultHandler;
 			hooks.push(hook);
 		}
 		
@@ -123,15 +125,21 @@ package weave.services
 		 * This gets called automatically for each ResultEvent from an RPC.
 		 * @param method The WeaveAdminService function which corresponds to the RPC.
 		 */
-		private function hookHandler(event:ResultEvent, query:DelayedAsyncInvocation):void
+		private function hookHandler(event:Event, query:DelayedAsyncInvocation):void
 		{
+			var handler:Function;
 			for each (var hook:MethodHook in methodHooks[query.methodName])
 			{
-				if (hook.resultHandler == null)
+				if (event is ResultEvent)
+					handler = hook.resultHandler;
+				else
+					handler = hook.faultHandler;
+				if (handler == null)
 					continue;
+				
 				var args:Array = [event, query.parameters];
-				args.length = hook.resultHandler.length;
-				hook.resultHandler.apply(null, args);
+				args.length = handler.length;
+				handler.apply(null, args);
 			}
 		}
 		
@@ -161,7 +169,7 @@ package weave.services
 		 */		
 		private function invokeAdminWithLogin(method:Function, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
 		{
-			parameters.unshift(AdminInterface.instance.activeConnectionName, AdminInterface.instance.activePassword);
+			parameters.unshift(Admin.instance.activeConnectionName, Admin.instance.activePassword);
 			return invokeAdmin(method, parameters, queued);
 		}
 		
@@ -352,6 +360,10 @@ package weave.services
 		{
 			return invokeAdminWithLogin(getEntitiesById, arguments);
 		}
+		public function getDataTableList():AsyncToken
+		{
+			return invokeAdminWithLogin(getDataTableList, arguments);
+		}
 		
 		///////////////////////
 		// SQL info retrieval
@@ -503,4 +515,5 @@ internal class MethodHook
 {
 	public var captureHandler:Function;
 	public var resultHandler:Function;
+	public var faultHandler:Function;
 }

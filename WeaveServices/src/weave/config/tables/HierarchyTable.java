@@ -21,11 +21,13 @@ package weave.config.tables;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,9 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.StringUtils;
 import weave.utils.SQLUtils.WhereClause;
 
 
@@ -223,6 +227,45 @@ public class HierarchyTable extends AbstractTable
 			throw new RemoteException("Unable to retrieve children.", e);
 		}
 	}
+	
+	public Map<Integer,Integer> getChildCounts(Collection<Integer> ids) throws RemoteException
+	{
+		ResultSet rs = null;
+		PreparedStatement stmt = null;
+		try
+		{
+			Connection conn = connectionConfig.getAdminConnection();
+			Map<Integer,Integer> result = new HashMap<Integer,Integer>();
+			
+			// build query
+			String quotedParentField = SQLUtils.quoteSymbol(conn, FIELD_PARENT);
+			String query = String.format(
+					"SELECT %s,count(*) FROM %s WHERE %s IN (%s) GROUP BY %s",
+					quotedParentField,
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					quotedParentField,
+					StringUtils.join(",", ids),
+					quotedParentField
+				);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+				result.put(rs.getInt(1), rs.getInt(2)); // parent => count
+			
+			return result;
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException("Unable to get all instances of a property.", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+	}
+	
 	/* passing in a NULL releases the constraint. */
 	public void removeChild(int parent_id, int child_id) throws RemoteException
 	{

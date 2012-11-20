@@ -21,6 +21,8 @@ package weave.config.tables;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,8 +36,10 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
+import weave.utils.StringUtils;
 
 
 /**
@@ -156,26 +160,44 @@ public class MetadataTable extends AbstractTable
 			throw new RemoteException("Unable to clear properties for a given id.", e);
 		}
 	}
-	public Map<Integer, String> getProperty(String property) throws RemoteException
+	public Map<Integer, String> getPropertyMap(Collection<Integer> ids, String property) throws RemoteException
 	{
+		ResultSet rs = null;
+		PreparedStatement stmt = null;
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<Integer,String> result = new HashMap<Integer,String>();
-			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_PROPERTY, property);
-			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, caseSensitiveFields, true);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, where, null, Object.class);
-			for (Map<String,Object> row : rows)
-			{
-				Number id = (Number)row.get(FIELD_ID);
-				String value = (String)row.get(FIELD_VALUE);
-				result.put(id.intValue(), value);
-			}
+			
+			// build query
+			String quotedIdField = SQLUtils.quoteSymbol(conn, FIELD_ID);
+			String query = String.format(
+					"SELECT %s,%s FROM %s WHERE %s=?",
+					quotedIdField,
+					SQLUtils.quoteSymbol(conn, FIELD_VALUE),
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					SQLUtils.quoteSymbol(conn, FIELD_PROPERTY)
+				);
+			if (ids != null)
+				query += String.format(" AND %s IN (%s)", quotedIdField, StringUtils.join(",", ids));
+			
+			// make query and get values
+			stmt = SQLUtils.prepareStatement(conn, query, Arrays.asList(property));
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+				result.put(rs.getInt(FIELD_ID), rs.getString(FIELD_VALUE));
+			
 			return result;
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to get all instances of a property.", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	public Map<Integer, Map<String,String>> getProperties(Collection<Integer> ids) throws RemoteException

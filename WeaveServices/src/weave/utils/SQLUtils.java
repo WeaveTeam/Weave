@@ -522,6 +522,7 @@ public class SQLUtils
 		String[] columnNames = getColumnNamesFromResultSet(rs);
 		// create a Map from each row
 		List<Map<String,VALUE_TYPE>> records = new Vector<Map<String,VALUE_TYPE>>();
+		rs.setFetchSize(SQLResult.FETCH_SIZE);
 		while (rs.next())
 		{
 			Map<String,VALUE_TYPE> record = new HashMap<String,VALUE_TYPE>(columnNames.length);
@@ -986,14 +987,14 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	protected static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, List<TYPE> params) throws SQLException
+	public static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, List<TYPE> params) throws SQLException
 	{
 		PreparedStatement cstmt = conn.prepareStatement(query);
 		constrainQueryParams(conn, params);
 		setPreparedStatementParams(cstmt, params);
 		return cstmt;
 	}
-	protected static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, TYPE[] params) throws SQLException
+	public static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, TYPE[] params) throws SQLException
 	{
 		PreparedStatement cstmt = conn.prepareStatement(query);
 		constrainQueryParams(conn, params);
@@ -1100,13 +1101,10 @@ public class SQLUtils
 	            queryParams.size()
 	        );
 	    }
-	    stmt = conn.prepareStatement(query);
-	
-	    int i = 1;
-	    for (String value : where.params)
-	        stmt.setString(i++, value);
+	    stmt = prepareStatement(conn, query, where.params);
 	
 	    rs = stmt.executeQuery();
+	    rs.setFetchSize(SQLResult.FETCH_SIZE);
 	    while (rs.next())
 	    {
 	         results.add(rs.getInt(column));
@@ -1337,6 +1335,7 @@ public class SQLUtils
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
 			while (rs.next())
 				values.add(rs.getString(1));
 		}
@@ -1375,6 +1374,7 @@ public class SQLUtils
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
 			while (rs.next())
 				values.add(rs.getInt(1));
 		}
@@ -1689,8 +1689,14 @@ public class SQLUtils
 	
 	public static class WhereClause<V>
 	{
-		String clause = "";
-		public List<V> params = new Vector<V>();
+		String clause;
+		public List<V> params;
+		
+		public WhereClause(String whereClause, List<V> params)
+		{
+			this.clause = whereClause;
+			this.params = params;
+		}
 		
 		/**
 		 * @param conn
@@ -1713,6 +1719,7 @@ public class SQLUtils
 		
 		private void init(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
+			params = new Vector<V>();
 			if (caseSensitiveFields == null)
 				caseSensitiveFields = Collections.emptySet();
 			List<List<Pair>> nestedPairs = new LinkedList<List<Pair>>();
@@ -1729,6 +1736,8 @@ public class SQLUtils
 			String dnf = buildNormalForm(conn, nestedPairs, caseSensitiveFields, conjunctive);
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
+			else
+				clause = "";
 		}
 		
         protected static String buildDisjunctiveNormalForm(

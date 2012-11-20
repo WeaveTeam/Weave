@@ -19,7 +19,7 @@
 
 package weave.utils;
 
-import java.util.List;
+import java.util.Collection;
 
 
 /**
@@ -28,15 +28,15 @@ import java.util.List;
  */
 public class StringUtils
 {
-	public static String join(String separator, List<String> items)
+	public static String join(String separator, Collection<?> items)
 	{
 	    StringBuilder result = new StringBuilder((separator.length()+1)*items.size());
 	    int i = 0;
-	    for (String item : items)
+	    for (Object item : items)
 	    {
 	        if (i > 0)
 	        	result.append(separator);
-	        result.append(item);
+	        result.append(item.toString());
 	        i++;
 	    }
 	    return result.toString();

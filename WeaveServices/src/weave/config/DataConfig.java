@@ -26,6 +26,7 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -36,9 +37,9 @@ import java.util.Set;
 import java.util.Vector;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
-import weave.config.tables.MetadataTable;
-import weave.config.tables.ManifestTable;
 import weave.config.tables.HierarchyTable;
+import weave.config.tables.ManifestTable;
+import weave.config.tables.MetadataTable;
 import weave.utils.SQLUtils;
 
 
@@ -201,6 +202,7 @@ public class DataConfig
             return matches;
         }
     }
+    
     public DataEntity getEntity(int id) throws RemoteException
     {
     	detectChange();
@@ -316,16 +318,33 @@ public class DataConfig
     	// if id is NULL, we want ids of all entities without parents
         if (id == NULL)
         {
-        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY, DataEntity.TYPE_DATATABLE));
+        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY));
         }
         return hierarchy.getChildren(id);
     }
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {
     	detectChange();
-    	return new HashSet<String>(public_metadata.getProperty(property).values());
+    	return new HashSet<String>(public_metadata.getPropertyMap(null, property).values());
     }
-    
+    public DataEntityTableInfo[] getDataTableList() throws RemoteException
+    {
+    	Collection<Integer> ids = manifest.getByType(DataEntity.TYPE_DATATABLE);
+    	Map<Integer,Integer> childCounts = hierarchy.getChildCounts(ids);
+    	Map<Integer,String> titles = public_metadata.getPropertyMap(ids, PublicMetadata.TITLE);
+    	DataEntityTableInfo[] result = new DataEntityTableInfo[ids.size()];
+    	int i = 0;
+    	for (Integer id : ids)
+    	{
+    		DataEntityTableInfo info = new DataEntityTableInfo();
+    		info.id = id;
+    		info.title = titles.get(id);
+    		info.numChildren = childCounts.containsKey(id) ? childCounts.get(id) : 0;
+    		result[i++] = info;
+    	}
+    	Arrays.sort(result, DataEntityTableInfo.SORT_BY_TITLE);
+    	return result;
+    }
     
     
 
@@ -490,5 +509,20 @@ public class DataConfig
             }
             return result;
         }
+	}
+	
+	static public class DataEntityTableInfo
+	{
+		public int id;
+		public String title;
+		public int numChildren;
+		
+		public static Comparator<DataEntityTableInfo> SORT_BY_TITLE = new Comparator<DataEntityTableInfo>()
+		{
+			public int compare(DataEntityTableInfo o1, DataEntityTableInfo o2)
+			{
+				return String.CASE_INSENSITIVE_ORDER.compare(o1.title, o2.title);
+			}
+		};
 	}
 }

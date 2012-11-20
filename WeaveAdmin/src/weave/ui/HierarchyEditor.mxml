@@ -32,7 +32,7 @@
 	
 	import weave.api.getCallbackCollection;
 	import weave.core.UIUtils;
-	import weave.services.AdminInterface;
+	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.utils.PopUpUtils;
 
@@ -42,7 +42,7 @@
     {
         tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
         tagTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
-		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, tagTree.invalidateList);
+		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, tagTree.invalidateList);
     }
     public function importTable():void
     {
@@ -58,7 +58,7 @@
         {
 			for each (var item:EntityNode in tableTree.selectedItems)
 			{
-				AdminInterface.instance.entityCache.delete_entity(item.id);
+				Admin.entityCache.delete_entity(item.id);
 	        }
 		}
     }
@@ -73,7 +73,7 @@
 		if (selectedItems && selectedItems.length == 1)
 		{
 			var node:EntityNode = selectedItems[0];
-	        AdminInterface.instance.entityCache.add_tag(name, node.id);
+	        Admin.entityCache.add_tag(name, node.id);
     	    tagNameInput.text = "";
 		}
     }
@@ -106,11 +106,11 @@
 	        var parent:EntityNode = tagTree.getParentItem(item);
 	        if (parent)
 	        {
-				AdminInterface.instance.entityCache.remove_child(parent.id, item.id);
+				Admin.entityCache.remove_child(parent.id, item.id);
 	        }
 	        else if (type == Entity.TYPE_HIERARCHY)
 	        {
-				AdminInterface.instance.entityCache.delete_entity(item.id);
+				Admin.entityCache.delete_entity(item.id);
 	        }
 	        else
 	        {

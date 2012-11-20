@@ -12,7 +12,7 @@
 			import mx.events.DragEvent;
 			
 			import weave.api.getCallbackCollection;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			
 			public function set rootFilterType(type:int):void
 			{
@@ -24,8 +24,8 @@
 			
 			private function handleCreationComplete():void
 			{
-				getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, handleMetadataCache);
-				BindingUtils.bindSetter(connectionReady, AdminInterface.instance, 'userHasAuthenticated');
+				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleMetadataCache);
+				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
 				
 				debugTrace(a);
 			}

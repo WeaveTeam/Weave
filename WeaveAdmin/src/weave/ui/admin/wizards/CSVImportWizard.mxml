@@ -36,7 +36,7 @@
 			<mx:Text id="fileStatus"/>
 		</ui:Indent>
 		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
-			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="{lang('Configure data for Weave')}">
@@ -66,7 +66,7 @@
 			</ui:Indent>
 			
 			<mx:Label text="{lang('What do these keys correspond to?')}"/>
-			<admin:GeometryCollectionDialog id="geometrySelector"
+			<admin:KeyTypeDialog id="geometrySelector"
 											paddingLeft="{paddingIndent}"
 											defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
 			
@@ -120,7 +120,7 @@
 			
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.services.addAsyncResponder;
 			import weave.ui.BusyIndicator;
@@ -182,11 +182,11 @@
 					return;
 				}
 				
-				addAsyncResponder(AdminInterface.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
+				addAsyncResponder(Admin.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
-				addAsyncResponder(AdminInterface.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
+				addAsyncResponder(Admin.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
 			}
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
@@ -226,7 +226,7 @@
 				nextEnabled = false;
 				finishEnabled = false;
 				
-				addAsyncResponder(AdminInterface.service.getCSVColumnNames(tableName), handleGetCSVColumnNames,handleCSVFault,tableName);
+				addAsyncResponder(Admin.service.getCSVColumnNames(tableName), handleGetCSVColumnNames,handleCSVFault,tableName);
 				
 				csvFileNameInput.text = tableName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
@@ -280,7 +280,7 @@
 				var configTableName:String = dataTableNameInput.text
 				var geometryCollection:String = generateKeyColumnCheckBox.selected ? '' : geometrySelector.selectedGeometryCollection;
 				var keyType:String = generateKeyColumnCheckBox.selected ? configTableName : geometrySelector.selectedKeyType;
-				var query:AsyncToken = AdminInterface.service.importCSV(
+				var query:AsyncToken = Admin.service.importCSV(
 						csvFileNameInput.text,
 						keyColumn,
 						secondKeyColumn,
@@ -382,7 +382,7 @@
 				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
 				var secKeyColName:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.selectedItem as String : null;
 				addAsyncResponder(
-					AdminInterface.service.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
+					Admin.service.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
 					handleKeyColumnCheck,
 					handleKeyColumnCheckFault
 				);
