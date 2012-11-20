@@ -182,7 +182,24 @@
 					}
 				}
 			}
-						
+			
+			private function getDBFDataFromFile(file:String):void
+			{
+				var dbfDataQuery:DelayedAsyncInvocation = AdminInterface.instance.getDBFData(file);
+				
+				dbfDataQuery.addAsyncResponder(handleDBFDataResult,handleDBFDataFault);
+				
+				function handleDBFDataResult(event:ResultEvent, token:Object = null):void
+				{
+					handleKeyColumnsChange();
+				}
+				function handleDBFDataFault(event:FaultEvent, token:Object = null):void
+				{
+					
+				}
+			}
+				
+			
 			private var _serverFileBrowser:ServerFileViewer = null;
 			private function openServerBrowser():void
 			{
@@ -198,6 +215,8 @@
 				
 				AdminInterface.instance.listDBFFileColumns(tableName+".dbf");
 				tableSelector.activeTable = tableName;
+				
+				getDBFDataFromFile(tableName+".dbf");
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
@@ -282,12 +301,9 @@
 					return;
 				}
 				
-				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
-				var keyCols:Array = trimmedKeyCols.split(","); 
-				
 				AdminInterface.instance.checkKeyColumnForDBFImport(
 					_fileUploadList.toArray(),
-					keyCols
+					dbfKeyColumnsCombo.selectedItems
 				).addAsyncResponder(keyColumnsCheckedForUniqueness);
 				
 			}

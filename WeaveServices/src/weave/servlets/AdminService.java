@@ -1189,9 +1189,6 @@ public class AdminService extends GenericServlet
 
 	public Boolean checkKeyColumnForDBFImport(String[] fileNames, String[] keyColumnNames) throws IOException
 	{
-		if( fileNames.length == 0 || keyColumnNames.length == 0 )
-			return false;
-		
 		return DBFUtils.isColumnUnique(uploadPath, fileNames, keyColumnNames);
 	}
 	
