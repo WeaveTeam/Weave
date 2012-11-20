@@ -86,7 +86,9 @@ package weave.services
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 
+		[Bindable] public var dbfIsUnique:Boolean = false;
 		[Bindable] public var dbfKeyColumns:Array = [];
+		[Bindable] public var dbfData:Array = [];
 		
 		// values the user has currently selected
 		[Bindable] public var activePassword:String = '';
@@ -498,7 +500,13 @@ package weave.services
 		}
 		public function checkKeyColumnForDBFImport(fileNames:Array, fieldNames:Array):DelayedAsyncInvocation
 		{
-			return service.checkKeyColumnForDBFImport(fileNames, fieldNames);
+			var query:DelayedAsyncInvocation = service.checkKeyColumnForDBFImport(fileNames, fieldNames);
+			query.addAsyncResponder(handleCheckKeyColumnForDBFImport);
+			function handleCheckKeyColumnForDBFImport(event:ResultEvent, token:Object = null):void
+			{
+				dbfIsUnique = event.result as Boolean || false;
+			}
+			return query;
 		}
 		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
 		{
@@ -507,6 +515,16 @@ package weave.services
 			function handleListDBFFileColumns(event:ResultEvent, token:Object = null):void
 			{
 				dbfKeyColumns = event.result as Array || [];
+			}
+			return query;
+		}
+		public function getDBFData(dbfFileName:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.getDBFData(dbfFileName);
+			query.addAsyncResponder(handleGetDBFData);
+			function handleGetDBFData(event:ResultEvent, token:Object = null):void
+			{
+				dbfData = event.result as Array || [];
 			}
 			return query;
 		}

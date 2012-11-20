@@ -38,7 +38,7 @@
 			<mx:CheckBox id="dbfImportCheckBox" label="Import DBF file as Data Table" selected="true" change="handleKeyColumnsChange()" />
 		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
-			<ui:CustomComboBoxMultiSelect id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" width="240" change="handleKeyColumnsChange()" editable="true"/>
+			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" width="240" change="handleKeyColumnsChange()" editable="true"/>
 			<ui:HelpComponent>
 				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
@@ -91,7 +91,7 @@
 			import weave.ui.admin.ServerFileViewer;
 			
 			private static const paddingIndent:int = 20;
-			public const indentGroup:IndentGroup = new IndentGroup();
+			private const indentGroup:IndentGroup = new IndentGroup();
 			
 			private function handleCreationComplete():void
 			{
@@ -293,7 +293,7 @@
 			}
 			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void
 			{
-				if(!event.result)
+				if(!AdminInterface.instance.dbfIsUnique)
 				{
 					dbfKeyColumnsCombo.errorString = 'Key values are not unique';
 					finishEnabled = false;
