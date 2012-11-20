@@ -39,11 +39,13 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.UIUtils;
@@ -67,6 +69,9 @@
 			import weave.visualization.plotters.WMSPlotter;
 
 			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
+			
+			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
+			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
 			
 			// no main plotter
 			override protected function get mainPlotter():IPlotter { return null; }
@@ -517,6 +522,44 @@
 				}
 			}
 			
+			public function handleLocationChange():void 
+			{
+				clearMapcontroLocations();
+				switch (maptoolsLocation.value)
+				{
+					case 0:
+						mapControls.top = 0;
+						mapControls.left = 0;
+						break;
+					case 1:
+						mapControls.top = 0;
+						mapControls.right = 0;
+						break;
+					case 2:
+						mapControls.bottom = 0;
+						mapControls.left = 0;
+						break;
+					case 3:
+						mapControls.bottom = 0;
+						mapControls.right = 0;
+						break;
+				}
+			}	
+			//location
+			private function locationChange():void
+			{
+				var index:int = maptoolLocationCombo.selectedIndex;
+				if (index >= locationsList.length)
+					return;
+				maptoolsLocation.value = index;
+			}
+			private function clearMapcontroLocations():void
+			{
+				mapControls.right = null;
+				mapControls.bottom = null;
+				mapControls.left = null;
+				mapControls.top = null;
+			}
 			
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.plotManager.zoomToSelection; }
@@ -740,6 +783,10 @@
 				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
+			<mx:HBox verticalAlign="middle" horizontalAlign="center">
+			<mx:Label text="Map tools location "/> 
+			<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
@@ -775,7 +822,7 @@
 									[Bindable] private var layerName:String;
 									
 									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
-									
+																		
 									private function get vm():PlotManager { return outerDocument.visualization.plotManager; }
 									private function get settings():LayerSettings { return data as LayerSettings; }
 									

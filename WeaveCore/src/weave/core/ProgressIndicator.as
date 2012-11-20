@@ -31,6 +31,8 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -63,7 +65,7 @@ package weave.core
 			// if this token isn't in the Dictionary yet, increase count
 			if (_taskToProgressMap[taskToken] === undefined)
 			{
-				if (CallbackCollection.debug)
+				if (debug)
 					_taskToStackTraceMap[taskToken] = new Error("Stack trace").getStackTrace();
 				_taskCount++;
 				_maxTaskCount++;
@@ -106,6 +108,8 @@ package weave.core
 			var sum:Number = 0;
 			for (var task:Object in _taskToProgressMap)
 			{
+				var stackTrace:String = _taskToStackTraceMap[task]; // check this when debugging
+				
 				sum += Number(_taskToProgressMap[task]);
 			}
 			// make any pending requests that no longer exist count as 100% done

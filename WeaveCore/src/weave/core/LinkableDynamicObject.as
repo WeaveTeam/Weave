@@ -190,18 +190,20 @@ package weave.core
 				
 				var dynamicState:Object = null;
 				var objectName:String;
-				for each (dynamicState in newState)
+				for each (var item:Object in newState)
 				{
-					if (DynamicState.objectHasProperties(dynamicState))
+					if (DynamicState.objectHasProperties(item))
 					{
-						if (dynamicState[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
+						if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
 						{
-							if (globalName == dynamicState[DynamicState.OBJECT_NAME])
+							// remove object if name matches
+							if (globalName == item[DynamicState.OBJECT_NAME])
 								removeObject();
 						}
 						else
 						{
-							// dynamicState is now the first entry that isn't for a deleted object
+							// set dynamicState to the first entry that isn't for a deleted object
+							dynamicState = item;
 							break;
 						}
 					}

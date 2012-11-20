@@ -1187,14 +1187,6 @@ public class AdminService extends GenericServlet
 		return isUnique;
 	}
 
-	public Boolean checkKeyColumnForDBFImport(String[] fileNames, String[] keyColumnNames) throws IOException
-	{
-		if( fileNames.length == 0 || keyColumnNames.length == 0 )
-			return false;
-		
-		return DBFUtils.isColumnUnique(uploadPath, fileNames, keyColumnNames);
-	}
-	
 	public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
 	{
 		try
