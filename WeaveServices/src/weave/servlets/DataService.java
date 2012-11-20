@@ -26,12 +26,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+
+import flex.messaging.io.amf.ASObject;
 
 import weave.beans.AttributeColumnData;
 import weave.beans.GeometryStreamMetadata;
@@ -41,6 +45,8 @@ import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataEntityTableInfo;
+import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
@@ -70,6 +76,24 @@ public class DataService extends GenericServlet
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+	}
+	
+	@Override
+	protected Object cast(Object value, Class<?> type)
+	{
+		if (type == DataEntityMetadata.class && value != null && value instanceof ASObject)
+		{
+			ASObject aso = (ASObject) value;
+			DataEntityMetadata dem = new DataEntityMetadata();
+			ASObject privateMetadata = (ASObject)aso.get("privateMetadata");
+			ASObject publicMetadata = (ASObject)aso.get("publicMetadata");
+			for (Object key : privateMetadata.keySet())
+				dem.privateMetadata.put((String)key, (String)privateMetadata.get(key));
+			for (Object key : publicMetadata.keySet())
+				dem.publicMetadata.put((String)key, (String)publicMetadata.get(key));
+			return dem;
+		}
+		return super.cast(value, type);
 	}
 	
 	/////////////////////
@@ -260,26 +284,6 @@ public class DataService extends GenericServlet
 		
 		return result;
 	}
-	
-	/*
-	public SQLResult getRowSet(int columnId)
-		throws RemoteException
-	{
-		try
-		{
-			DataEntity entity = getColumnEntity(columnId);
-			String connectionName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-			String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
-			Connection conn = getConnectionConfig().getConnectionInfo(connectionName).getStaticReadOnlyConnection();
-			return SQLUtils.getRowSetFromQuery(conn, query);
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-			throw new RemoteException("getRowSet failed for column " + columnId);
-		}
-	}
-	*/
 	
 	@SuppressWarnings("unchecked")
 	public WeaveRecordList getRows(String keyType, String[] keysArray) throws RemoteException
@@ -486,6 +490,39 @@ public class DataService extends GenericServlet
 		}
 	}
 
+	////////////////////
+	// DataEntity info
+	
+	public DataEntityTableInfo[] getDataTableList() throws RemoteException
+	{
+		return getDataConfig().getDataTableList();
+	}
+
+	public int[] getEntityChildIds(int parentId) throws RemoteException
+	{
+		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
+	}
+
+	public int[] getEntityIdsByMetadata(DataEntityMetadata meta, int entityType) throws RemoteException
+	{
+		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(meta, entityType) );
+	}
+
+	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
+	{
+		DataConfig config = getDataConfig();
+		Set<Integer> idSet = new HashSet<Integer>();
+		for (int id : ids)
+			idSet.add(id);
+		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
+		for (int i = 0; i < result.length; i++)
+		{
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(result[i].id) );
+			result[i] = new DataEntityWithChildren(result[i], childIds);
+		}
+		return result;
+	}
+	
 	/////////////////////////////
 	// backwards compatibility
 	
