@@ -272,7 +272,7 @@
 				
 				//adding callback to subset. Thumbnails will be re-drawn to plot only included thumbnails
 				getCallbackCollection(_subset).addGroupedCallback(this,positionThumbnails);
-				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,positionThumbnails);
+				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,handleTagWordSubsetChange);
 				
 				//calling function to highlight the node based on node.selected.value
 				//				highlightNode();
@@ -287,9 +287,6 @@
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
 				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
-				
-				//adding a callback to the selection KeySet to highlight/unhighlight documents
-//				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
 				filteredWords.addGroupedCallback(this,filterListByKeywords,false);
 				
@@ -463,6 +460,7 @@
 				query.keywords.value = getRequiredKeywords().join(',');
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+				_selection.clearKeys();
 			}
 			
 			[Bindable]
@@ -532,6 +530,8 @@
 				//TODO:this should alreayd be set.
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+				
+				_selection.removeCallback(handleSelectionKeySetChange); //remove callback to selection keys and only call after we get entity distribution results.
 				
 				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,null);
 				
@@ -757,7 +757,7 @@
 				//					positionThumbnails();
 			}
 			
-			public var thumbnailsToPlotArray:Array = [];
+			public var _reusableThumbnailsToPlotArray:Array = [];
 			
 			/**
 			 * This function goes through the list of thumbnails and adds the ones included in the subset to an array.
@@ -772,7 +772,7 @@
 					return;
 				pointsCanvas.y = nodeBase.height;
 				
-				thumbnailsToPlotArray = [];
+				_reusableThumbnailsToPlotArray = [];
 				var tNails:Array = thumbnails.getObjects()
 				
 //				if(nodeBase.keywordTextArea.htmlText.indexOf("Total Documents") >-1)
@@ -835,7 +835,7 @@
 					
 					if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
 					{
-						thumbnailsToPlotArray.push(t);
+						_reusableThumbnailsToPlotArray.push(qKey);
 						t.visible = true;
 					}else{
 						
@@ -845,12 +845,49 @@
 				}
 				thumbnails.resumeCallbacks();
 				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
-				d.docKeys = thumbnailsToPlotArray;
-				handleSelectionKeySetChange();
+				d.docKeys = _reusableThumbnailsToPlotArray;
 				adjustNodeBase();
 				toggleList(null,true);
 				
 //				handleGlobalSearch();
+			}
+			
+			private function handleTagWordSubsetChange():void
+			{
+				if(_tagWordSubset.included.keys.length == 0)
+				{
+					//if records are selected then show nothing
+					if(_selection.keys.length >0)
+					{
+						d.docKeys = []
+					}
+					else //if no records are selected then show all
+					{
+						showAllDocumentsInList();
+					}
+				}else
+				{
+					d.docKeys = _tagWordSubset.included.keys;
+				}
+			}
+			
+			private function showAllDocumentsInList():void
+			{
+				var tNails:Array = thumbnails.getObjects();
+				_reusableThumbnailsToPlotArray = [];	
+				for (var i:int = 0; i<tNails.length; i++)
+				{
+					var t:DocThumbnailComponent = tNails[i];
+					
+					var docURL:String = thumbnails.getName(t);
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					if(_subset.containsKey(qKey))
+					{
+						_reusableThumbnailsToPlotArray.push(qKey);
+					}
+				}
+				d.docKeys = _reusableThumbnailsToPlotArray;
 			}
 			
 			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
@@ -900,8 +937,6 @@
 				
 				}
 				
-				nodeBase.distributionImg.visible = true;
-			
 				var requiredKeywords:Array = query.keywords.value.split(',');
 				
 				var relatedKeywords:Array = _parentPanel.relatedKeywords.value.split(',');
@@ -952,7 +987,8 @@
 					}
 				}
 				
-				
+				nodeBase.distributionImg.visible = true;
+				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 			}
 			
 			private function handleEntityQueryFault(event:FaultEvent,token:Object=null):void
@@ -1001,8 +1037,9 @@
 							keys = keys.concat(_entitiesToKeysHashMap[entity]);
 					}
 				}
-				
+				_selection.delayCallbacks();
 				_selection.replaceKeys(keys);
+				_selection.resumeCallbacks();
 			}
 			
 			private function handleDocumentSelectedFromList(event:ListEvent):void
@@ -1078,31 +1115,61 @@
 			 **/
 			private function handleSelectionKeySetChange():void
 			{
-				var docs:Array = thumbnails.getNames();
 				
-				var selectedDocs:Array = getSelectedDocumentKeys();
-				
-				//if none are selected set all to 
-				if(selectedDocs.length == 0)
+				var keys:Array = _selection.keys;
+				if(keys.length == 0)
 				{
-					for each(var doc1:String in docs)
-					{
-						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
-						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
-					}
+					handleClearFiltersButton();					
 					return;
 				}
+				var entities:Array = [];
 				
-				for each(var doc:String in docs)
+				for each (var key:IQualifiedKey in keys)
 				{
-					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
-					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
-					var selected:Boolean =_selection.containsKey(qKey) 
-					if(selected)
-						t.setMode(DocThumbnailComponent.SELECTED_MODE);
-					else
-						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
+					if(key.keyType != InfoMapsDataSource.DOC_KEYTYPE)//add all keys except for document keys. We might do away with document keys completely
+					{
+						for each (var entityColumn:IAttributeColumn in _parentPanel.entityColumnsHashmap.getObjects())
+						{
+							entities.push(entityColumn.getValueFromKey(key));
+						}
+					}
 				}
+				
+				var filterURLs:Array = [];
+				
+				for each (var entity:String in entities)
+				{
+					var temp:Array = _entitiesToURLsHashMap[entity] as Array;
+					if(temp)
+						filterURLs = filterURLs.concat(temp);	
+				}
+				
+				filterDocumentsByURLS(filterURLs,"Selected Records");
+//				var docs:Array = thumbnails.getNames();
+//				
+//				var selectedDocs:Array = getSelectedDocumentKeys();
+//				
+//				//if none are selected set all to 
+//				if(selectedDocs.length == 0)
+//				{
+//					for each(var doc1:String in docs)
+//					{
+//						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
+//						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
+//					}
+//					return;
+//				}
+//				
+//				for each(var doc:String in docs)
+//				{
+//					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
+//					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
+//					var selected:Boolean =_selection.containsKey(qKey) 
+//					if(selected)
+//						t.setMode(DocThumbnailComponent.SELECTED_MODE);
+//					else
+//						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
+//				}
 			}
 			
 			
@@ -1135,7 +1202,7 @@
 			private function handleSpacingChange():void
 			{
 				if(layout.internalObject)
-					(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
+					(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(_reusableThumbnailsToPlotArray,true);
 			}
 			
 			private var _searchKeySet:KeySet = new KeySet();
@@ -1717,10 +1784,11 @@
 			
 			private function handleClearFiltersButton():void
 			{
-				_tagWordSubset.replaceKeys(true,true);
+//				_tagWordSubset.replaceKeys(true,true);
 				filterStatus.text = "";
 				clearFiltersButton.visible = false;
 				filteredWords.value = "";
+				showAllDocumentsInList(); // we don't change the _tagWordSubset so that it's callbacks aren't called. 
 			}
 			
 			private function handleFadeInEffectsStart(event:EffectEvent):void

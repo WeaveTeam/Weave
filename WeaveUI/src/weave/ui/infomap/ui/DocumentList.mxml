@@ -214,7 +214,8 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			{
 				if(!_docKeys || _docKeys.length == 0)
 				{
-					docList.dataProvider = [];					
+					docList.dataProvider = [];
+					updateIndexText([]); 
 					return;
 				}
 				
@@ -222,10 +223,10 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 				
 				for (var i:int = 0; i < _docKeys.length; i++)
 				{
-					var k:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,(_docKeys[i] as DocThumbnailComponent).docURL.value);
+//					var k:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,(_docKeys[i] as DocThumbnailComponent).docURL.value);
 					
-					if(_subset.containsKey(k))
-						includedKeys.push((this.parent.parent as NodeHandler).thumbnails.getObject(k.localName)); 
+					if(_subset.containsKey(_docKeys[i]))
+						includedKeys.push((this.parent.parent as NodeHandler).thumbnails.getObject(_docKeys[i].localName)); 
 				}
 				
 				var listMaxLength:int = 10;
@@ -273,6 +274,10 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			
 			private function updateIndexText(keysToShow:Array):void
 			{
+				if(keysToShow.length == 0)
+				{
+					indexText.text = "No documents found.";
+				}
 				var st:int = startIndex.value+1;
 				
 				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0

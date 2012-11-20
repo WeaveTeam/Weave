@@ -31,7 +31,7 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
-		public static var debug:Boolean = false;
+		public static var debug:Boolean = true;
 		
 		/**
 		 * @inheritDoc
