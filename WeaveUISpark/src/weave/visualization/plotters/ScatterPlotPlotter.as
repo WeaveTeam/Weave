@@ -65,7 +65,7 @@ package weave.visualization.plotters
 		public var hack_verticalBackgroundLineStyle:Array;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (!keySet.keys.length)
+			if (!filteredKeySet.keys.length)
 				return;
 			if (hack_horizontalBackgroundLineStyle)
 			{

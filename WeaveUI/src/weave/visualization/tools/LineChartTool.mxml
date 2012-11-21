@@ -320,7 +320,7 @@
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
-				labelPlotter.hack_setSingleKeySource(_plotter.keySet);
+				labelPlotter.hack_setSingleKeySource(_plotter.filteredKeySet);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabel, true);
 			}
 			private function updateLabel():void

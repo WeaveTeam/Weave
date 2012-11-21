@@ -38,7 +38,7 @@ package weave.visualization.layers
 	{
 		public function LayerSettings()
 		{
-			subsetFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+//			subsetFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 			selectionFilter.globalName = Weave.DEFAULT_SELECTION_KEYSET;
 			probeFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
 		}
@@ -73,7 +73,7 @@ package weave.visualization.layers
 		
 		// temporary solution
 		// TODO: use VisToolGroup
-		public const subsetFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
+//		public const subsetFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
 		public const selectionFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
 		public const probeFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
 		

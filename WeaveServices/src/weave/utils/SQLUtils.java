@@ -36,6 +36,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -466,6 +467,26 @@ public class SQLUtils
 			return quoteSymbol(conn, schema) + "." + quoteSymbol(conn, table);
 	}
 
+	public static boolean sqlTypeIsNumeric(int sqlType)
+	{
+		switch (sqlType)
+		{
+			case Types.TINYINT:
+			case Types.SMALLINT:
+			case Types.BIGINT:
+			case Types.DECIMAL:
+			case Types.INTEGER:
+			case Types.FLOAT:
+			case Types.DOUBLE:
+			case Types.REAL:
+			case Types.NUMERIC:
+			/* case Types.ROWID: // produces compiler error in some environments */
+				return true;
+			default:
+				return false;
+		}
+	}
+	
 	/**
 	 * @param connection An SQL Connection
 	 * @param query An SQL query

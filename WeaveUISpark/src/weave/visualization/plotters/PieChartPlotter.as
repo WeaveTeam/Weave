@@ -60,7 +60,7 @@ package weave.visualization.plotters
 			_spanRadians.equation.value = "getNumber(sortedData) / getSum(sortedData) * 2 * PI";
 			var sortedData:SortedColumn = _spanRadians.requestVariable("sortedData", SortedColumn, true);
 			_filteredData = sortedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
-			linkSessionState(keySet.keyFilter, _filteredData.filter);
+			linkSessionState(filteredKeySet.keyFilter, _filteredData.filter);
 			
 			registerSpatialProperty(data);
 			setColumnKeySources([_filteredData]);

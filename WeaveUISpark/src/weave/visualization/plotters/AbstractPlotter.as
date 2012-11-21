@@ -58,7 +58,7 @@ package weave.visualization.plotters
 
 			var self:Object = this;
 			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
-			getCallbackCollection(keySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',keySet.keys.length); });
+			getCallbackCollection(filteredKeySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',filteredKeySet.keys.length); });
 		}
 		
 		/**
@@ -187,7 +187,7 @@ package weave.visualization.plotters
 		/**
 		 * @return An IKeySet interface to the record keys that can be passed to the drawRecord() and getDataBoundsFromRecordKey() functions.
 		 */
-		public function get keySet():IFilteredKeySet
+		public function get filteredKeySet():IFilteredKeySet
 		{
 			return _filteredKeySet;
 		}

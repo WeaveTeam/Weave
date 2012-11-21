@@ -295,8 +295,6 @@ package weave
 				// When we're creating a new config through the admin console, create a
 				// WeaveDataSource so the admin doesn't have to add it manually every time.
 				Weave.root.requestObject(null, WeaveDataSource, false);
-				// It's convenient if the admin sets probed columns first so new tools will have default attributes selected.
-				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
 			}
 			else
 			{
