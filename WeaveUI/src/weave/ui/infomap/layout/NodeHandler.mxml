@@ -317,6 +317,10 @@
 				
 				_nodeName= (owner as ILinkableHashMap).getName(this);
 				
+				entityDistributionDataSource = Weave.root.requestObject(_nodeName + "entityDistributionDataSource",CSVDataSource,false);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.csvData);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyColName);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
 			}
 			
 			private var _nodeName:String = "";
@@ -891,8 +895,7 @@
 			}
 			
 			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
-			public const entityDistributionDataSource:CSVDataSource = registerLinkableChild(this,
-				Weave.root.requestObject(_nodeName + "entityDistributionDataSource",CSVDataSource,false));
+			public var entityDistributionDataSource:CSVDataSource = new CSVDataSource(); 
 			
 			private const ENTITY_DISTRIBUTION_ENTITY_COLUMN:String =  "Entities";
 			private const ENTITY_DISTRIBUTION_NUMBER_COLUMN:String =  "Number of Documents";
@@ -996,14 +999,14 @@
 				return;
 			}
 			
-			private var _entityChartName:String = "";
+			private var _entityChartName:String = "entityDistributionChart";
 			private function showDistributionChart(event:Event):void
 			{
 				//clear any selection so that bars don't appear faded out
 				_selection.replaceKeys([]);
-				var className:String = getQualifiedClassName(CompoundBarChartTool).split("::")[1];
-				
-				_entityChartName = Weave.root.generateUniqueName(className);
+//				var className:String = getQualifiedClassName(CompoundBarChartTool).split("::")[1];
+//				
+//				_entityChartName = Weave.root.generateUniqueName(className);
 
 				var object:CompoundBarChartTool = Weave.root.requestObject(_entityChartName, CompoundBarChartTool, false);
 				object.showAllLabels.value = true;
@@ -1021,6 +1024,8 @@
 				
 				entityDistributionDataSource.setDynamicColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.labelColumn);
 				entityDistributionDataSource.setDynamicColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.sortColumn);
+				
+				object.panelTitle.value = 'Entity Distribution for Query "' + query.keywords.value + '"';
 			}
 			
 			private function handleDocumentSelection(urls:Array):void
