@@ -437,15 +437,23 @@ public class DataConfig
 	    private static final String PUBLIC_METADATA = "publicMetadata";
 	    private static final String PRIVATE_METADATA = "privateMetadata";
 	    
-		public static DataEntityMetadata fromMap(Map<String,Map<String,String>> object)
+		@SuppressWarnings("rawtypes")
+		public static DataEntityMetadata fromMap(Map object)
 		{
         	DataEntityMetadata dem = new DataEntityMetadata();
         	
         	if (object.get(PRIVATE_METADATA) != null)
-        		dem.privateMetadata = object.get(PRIVATE_METADATA);
-        	
+        	{
+        		Map map = (Map)object.get(PRIVATE_METADATA);
+        		for (Object key : map.keySet())
+        			dem.privateMetadata.put(key.toString(), map.get(key).toString());
+        	}
         	if (object.get(PUBLIC_METADATA) != null)
-        		dem.publicMetadata = object.get(PUBLIC_METADATA);
+        	{
+        		Map map = (Map)object.get(PUBLIC_METADATA);
+        		for (Object key : map.keySet())
+        			dem.publicMetadata.put(key.toString(), map.get(key).toString());
+        	}
         	
         	return dem;
 		}

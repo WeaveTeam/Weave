@@ -202,24 +202,33 @@ public class MetadataTable extends AbstractTable
 	}
 	public Map<Integer, Map<String,String>> getProperties(Collection<Integer> ids) throws RemoteException
 	{
-		try 
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try
 		{
 			Map<Integer,Map<String,String>> result = MapUtils.fromPairs();
 			
-			Connection conn = connectionConfig.getAdminConnection();
-			List<Map<String,Object>> conditions = new Vector<Map<String,Object>>(ids.size());
-			for (int id : ids)
-			{
-				result.put(id, new HashMap<String,String>());
-				conditions.add(MapUtils.<String,Object>fromPairs(FIELD_ID, id));
-			}
-			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, false);
+			if (ids.size() == 0)
+				return result;
 			
-			for (Map<String,Object> record : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, null, Object.class))
+			for (int id : ids)
+				result.put(id, new HashMap<String,String>());
+			
+			Connection conn = connectionConfig.getAdminConnection();
+			String query = String.format(
+					"SELECT * FROM %s WHERE %s IN (%s)",
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					SQLUtils.quoteSymbol(conn, FIELD_ID),
+					StringUtils.join(",", ids)
+				);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
 			{
-				int id = ((Number)record.get(FIELD_ID)).intValue();
-				String property = (String)record.get(FIELD_PROPERTY);
-				String value = (String)record.get(FIELD_VALUE);
+				int id = rs.getInt(FIELD_ID);
+				String property = rs.getString(FIELD_PROPERTY);
+				String value = rs.getString(FIELD_VALUE);
 				
 				result.get(id).put(property, value);
 			}
@@ -229,6 +238,11 @@ public class MetadataTable extends AbstractTable
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to retrieve metadata", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	public Set<Integer> filter(Map<String,String> constraints) throws RemoteException

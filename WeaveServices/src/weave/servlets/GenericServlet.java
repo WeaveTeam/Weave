@@ -320,12 +320,10 @@ public class GenericServlet extends HttpServlet
 		    	}
 	    		catch (IOException e)
 	    		{
-	    			e.printStackTrace();
 	    			sendError(response, e);
 	    		}
 		    	catch (Exception e)
 		    	{
-		    		e.printStackTrace();
 		    		sendError(response, e);
 		    	}
     		}
@@ -413,27 +411,41 @@ public class GenericServlet extends HttpServlet
 		// if given value is a String, check if the function is expecting a different type
 		if (value instanceof String)
 		{
-			if (type == int.class || type == Integer.class)
+			try
 			{
-				value = Integer.parseInt((String)value);
+				if (type == int.class || type == Integer.class)
+				{
+					value = Integer.parseInt((String)value);
+				}
+				else if (type == boolean.class || type == Boolean.class)
+				{
+					value = ((String)(value)).equalsIgnoreCase("true");
+				}
+				else if (type == String[].class || type == List.class)
+				{
+					String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
+					if (table.length == 0)
+						value = new String[0]; // empty
+					else
+						value = table[0]; // first row
+					
+					if (type == List.class)
+						value = Arrays.asList((String[])value);
+				}
 			}
-			else if (type == boolean.class || type == Boolean.class)
+			catch (NumberFormatException e)
 			{
-				value = ((String)(value)).equalsIgnoreCase("true");
-			}
-			else if (type == String[].class || type == List.class)
-			{
-				String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
-				if (table.length == 0)
-					value = new String[0]; // empty
-				else
-					value = table[0]; // first row
-				
-				if (type == List.class)
-					value = Arrays.asList((String[])value);
+				// if number parsing fails, leave the original value untouched
 			}
 		}
-		else if (value != null)
+		else if (value == null)
+		{
+			if (type == double.class || type == Double.class)
+				value = Double.NaN;
+			else if (type == float.class || type == Float.class)
+				value = Float.NaN;
+		}
+		else
 		{
 			// additional parameter type casting
 			if (value instanceof Boolean && type == boolean.class)
@@ -548,8 +560,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (InvocationTargetException e)
 		{
-			System.out.println(methodName + (List)Arrays.asList(methodParameters));
-			e.getCause().printStackTrace();
+			System.err.println(methodName + Arrays.asList(methodParameters));
 			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)
@@ -557,14 +568,12 @@ public class GenericServlet extends HttpServlet
 			String moreInfo = 
 				"Expected: " + formatFunctionSignature(methodName, expectedArgTypes, exposedMethod.paramNames) + "\n" +
 				"Received: " + formatFunctionSignature(methodName, methodParameters, null);
-			System.out.println(e.getMessage() + '\n' + moreInfo);
 			
 			sendError(response, e, moreInfo);
 		}
 		catch (Exception e)
 		{
-			System.out.println(methodName + (List)Arrays.asList(methodParameters));
-			e.printStackTrace();
+			System.err.println(methodName + Arrays.asList(methodParameters));
 			sendError(response, e);
 		}
     }
@@ -642,7 +651,12 @@ public class GenericServlet extends HttpServlet
     	String message = exception.getMessage();
     	if (moreInfo != null)
     		message += "\n" + moreInfo;
-    	System.out.println("Serializing ErrorMessage: "+message);
+    	
+    	// log errors
+    	exception.printStackTrace();
+    	if (moreInfo != null)
+    		System.err.println(moreInfo);
+    	System.err.println("Serializing ErrorMessage: "+message);
     	
     	ServletOutputStream servletOutputStream = response.getOutputStream();
     	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));

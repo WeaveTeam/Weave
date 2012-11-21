@@ -1689,7 +1689,7 @@ public class SQLUtils
 	
 	public static class WhereClause<V>
 	{
-		String clause;
+		public String clause;
 		public List<V> params;
 		
 		public WhereClause(String whereClause, List<V> params)

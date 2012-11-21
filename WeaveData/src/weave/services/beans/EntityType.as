@@ -18,21 +18,13 @@
 */
 
 package weave.services.beans
-{	
-	public class AttributeColumnDataWithKeys 
+{
+	public class EntityType
 	{
-		public function AttributeColumnDataWithKeys(result:Object)
-		{
-			this.metadata = result.metadata;
-			this.keys = result.keys;
-			this.data = result.data;
-			this.thirdColumn = result.thirdColumn;
-		}
-		
-		public var metadata:Object;
-		public var keys:Array;
-		public var data:Array;
-		public var thirdColumn:Array;
+		public static const ANY:int = -1;
+		public static const HIERARCHY:int = 0;
+		public static const TABLE:int = 1;
+		public static const CATEGORY:int = 2;
+		public static const COLUMN:int = 3;
 	}
-
 }

@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -81,7 +82,6 @@ import weave.utils.ListUtils;
 import weave.utils.ProgressManager.ProgressPrinter;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-import flex.messaging.io.amf.ASObject;
 
 public class AdminService
 		extends GenericServlet
@@ -99,20 +99,13 @@ public class AdminService
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected Object cast(Object value, Class<?> type)
 	{
-		if (type == DataEntityMetadata.class && value != null && value instanceof ASObject)
+		if (type == DataEntityMetadata.class && value != null && value instanceof Map)
 		{
-			ASObject aso = (ASObject) value;
-			DataEntityMetadata dem = new DataEntityMetadata();
-			ASObject privateMetadata = (ASObject)aso.get("privateMetadata");
-			ASObject publicMetadata = (ASObject)aso.get("publicMetadata");
-			for (Object key : privateMetadata.keySet())
-				dem.privateMetadata.put((String)key, (String)privateMetadata.get(key));
-			for (Object key : publicMetadata.keySet())
-				dem.publicMetadata.put((String)key, (String)publicMetadata.get(key));
-			return dem;
+			return DataEntityMetadata.fromMap((Map)value);
 		}
 		return super.cast(value, type);
 	}

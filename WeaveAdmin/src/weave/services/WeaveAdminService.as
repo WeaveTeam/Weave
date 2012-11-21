@@ -20,22 +20,20 @@
 package weave.services
 {
 	import avmplus.DescribeType;
-	import avmplus.getQualifiedClassName;
 	
 	import flash.events.Event;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.controls.Alert;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.core.CallbackCollection;
 	import weave.services.beans.ConnectionInfo;
-	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
 	/**
@@ -76,7 +74,11 @@ package weave.services
 			
 			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
-				propertyNameLookup[this[item.name]] = item.name;
+			{
+				var func:Function = this[item.name] as Function;
+				if (func != null)
+					propertyNameLookup[func] = item.name;
+			}
 		}
 		
 		/**
@@ -145,7 +147,7 @@ package weave.services
 		
 		/**
 		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
-		 * @param methodName The name of a Weave AdminService servlet method.
+		 * @param method A WeaveAdminService class member function.
 		 * @param parameters Parameters for the servlet method.
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
