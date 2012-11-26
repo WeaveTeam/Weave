@@ -6,8 +6,15 @@
 		   >
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.controls.Label;
 			import mx.core.UIComponent;
+			import mx.utils.ArrayUtil;
 			
+			import spark.core.SpriteVisualElement;
+			
+			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeyFilter;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.CustomCursorManager;
@@ -15,72 +22,148 @@
 			
 			// ToDo Session State & 2-way Linking
 			// ToDo Avoid the effect of redrawing multiple times
-			private var textField:TextField;
-			private var diameter:int;
-			private var component:UIComponent = new UIComponent();
-			private var sprite:Sprite = new Sprite();
+			// ToDo for nested component, need to set component width and height in the following code
+			// ToDo add more empty space between rectangles
+			// ToDo set minimal font size
+			// ToDo Give different font size according to the frequency of the word
 			private var textFormat:TextFormat = new TextFormat();
-			//private var _topicSubset:KeyFilter;
-			private var _topicURLS:Array;
-			
-			
-			public function draw(color:uint, numOfDoc:int, keywords:Array, topicURLs:Array):void
-				//, topicURLs:Array, topicSubset:KeyFilter
+			private var _cursorID:int;
+			public function drawTreeMap(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentComponent:UIComponent, spaceWidth:Number = 2):void
 			{
-				this._topicURLS = topicURLs;
-				//this._topicSubset = topicSubset;
-				diameter = numOfDoc;
-				sprite.graphics.clear();
-				//				sprite.graphics.beginFill(color);
-				//sprite.graphics.lineStyle(
-				sprite.graphics.lineStyle(1, color);
-				sprite.graphics.drawEllipse(0, 0, diameter, diameter);
-				//				sprite.graphics.endFill();
-				component.addChild(sprite);
-				addElement(component);
+				// ToDo bug try query "massachusetts hello" 21 docs but 20 urls in topic model
+				// ToDo slow on tag cloud and topic model???
+				// ToDo first divide on horizontal or vertical (default is vertical)
 				
-
-				textFormat.size = 15;
-				textFormat.align = TextFormatAlign.CENTER;
-				textField = new TextField();
-				textField.defaultTextFormat = textFormat;
-				var temptext:String = "";
-				for(var numOfkeywords:int = 0; numOfkeywords < keywords.length; numOfkeywords++){
-					temptext += (keywords[numOfkeywords] + " ");
+				// Sort by number of document of each topic
+				var numberOfTopic:int = urlsOfEachTopic.length;
+				var numOfUrlInEachTopic:ArrayList = new ArrayList();
+				var topicSortByNumOfUrl:ArrayList = new ArrayList();
+				
+				for (var i:int = 0; i < numberOfTopic; i++) numOfUrlInEachTopic.addItem([i, (urlsOfEachTopic[i] as Array).length]);
+				
+				topicSortByNumOfUrl.addItem([-1, Number.NEGATIVE_INFINITY]);
+				topicSortByNumOfUrl.addItem([-1, Number.POSITIVE_INFINITY]);
+				var temp:int;
+				for (var j:int = 0; j < numberOfTopic ; j++)
+				{
+					temp = topicSortByNumOfUrl.length;
+					for (var k:int = 0; k < temp; k++)
+					{
+						if ((numOfUrlInEachTopic.getItemAt(j) as Array)[1] <= (topicSortByNumOfUrl.getItemAt(k) as Array)[1])
+						{
+							topicSortByNumOfUrl.addItemAt(numOfUrlInEachTopic.getItemAt(j), k);
+							break;
+						}
+					}
+				}
+				topicSortByNumOfUrl.removeItemAt(0);
+				topicSortByNumOfUrl.removeItemAt(topicSortByNumOfUrl.length - 1);
+				
+				// Reverse the order of topicSortByNumOfUrl descending
+				var topicSortByNumOfUrlDesc:ArrayList = new ArrayList();
+				for (var n:int = 0; n < numberOfTopic; n++) topicSortByNumOfUrlDesc.addItem(topicSortByNumOfUrl.getItemAt(numberOfTopic - (n + 1)));
+				var tempTopicSortByNumOfUrlDesc:ArrayList = new ArrayList(); // For click listener
+				for (var z:int = 0; z < numberOfTopic; z++) tempTopicSortByNumOfUrlDesc.addItem(topicSortByNumOfUrlDesc.getItemAt(z)[0]); // For click listener
+				
+				// Gradient Color for distinguishing size of rectangle
+				// http://www.herethere.net/~samson/php/color_gradient/?cbegin=08519C&cend=EFF3FF&steps=10
+				var gradientColor:Array = [0x08519C, 0x1F61A5, 0x3671AF, 0x4D81B9, 0x6491C3, 0x7BA2CD, 0x92B2D7, 0xA9C2E1, 0xC0D2EB, 0xD7E2F5, 0xEFF3FF];				
+				addElement(parentComponent);
+				
+				var remainingWidth:Number = parentComponent.width;
+				var remainingHeight:Number = parentComponent.height - 30; // ToDo Deduct 20 for the space of spot label
+				var tempWidth:Number = 0;
+				var tempHeight:Number = 0;
+				var tempX:Number = 0;
+				var tempY:Number = 0;
+				var tempTotalNumOfUrl:int = 0;
+				for (var m:int = 0; m < numberOfTopic; m++)
+				{
+					tempTotalNumOfUrl = 0;
+					for (var l:int = 0; l < topicSortByNumOfUrlDesc.length; l++) tempTotalNumOfUrl += (topicSortByNumOfUrlDesc.getItemAt(l) as Array)[1];
+					
+					var sprite:CustomSprite = new CustomSprite();
+					var childComponent:UIComponent = new UIComponent();
+//					sprite.graphics.clear();
+					sprite.graphics.lineStyle(1, 0xC0C0C0);
+					sprite.graphics.beginFill(gradientColor[m]);
+					childComponent.addChild(sprite);
+					parentComponent.addChild(childComponent);
+					
+					if ((m % 2) == 0)
+					{
+						// Deal with even iteration (divide rectangle vertically)
+						childComponent.x = tempX;
+						childComponent.y = tempY;
+						tempWidth = Math.round((topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1] / tempTotalNumOfUrl * remainingWidth);
+						tempHeight = remainingHeight;
+						sprite.graphics.drawRoundRectComplex(0, 0, tempWidth, tempHeight, 5, 5, 5, 5); // ToDo give corner radius by percentage of width and height
+						remainingWidth = remainingWidth - tempWidth;
+						tempX = tempX + tempWidth;
+					}
+					else
+					{
+						// Deal with odd iteration (divide rectangle horizontally)
+						childComponent.x = tempX;
+						childComponent.y = tempY;
+						tempWidth = remainingWidth;
+						tempHeight = Math.round((topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1] / tempTotalNumOfUrl * remainingHeight);
+						sprite.graphics.drawRoundRectComplex(0, 0, tempWidth, tempHeight, 5, 5, 5, 5); // ToDo give corner radius by percentage of width and height
+						remainingHeight = remainingHeight - tempHeight;
+						tempY = tempY + tempHeight;
+					}
+					
+					// Add textfield in the recctangle
+					textFormat.size = 1;
+					textFormat.color = 0xFFFFFF;
+					textFormat.align = TextFormatAlign.CENTER;
+					var textField:TextField = new TextField();
+					textField.defaultTextFormat = textFormat;
+					var temptext:String = "";
+					for(var numOfkeywords:int = 0; numOfkeywords < keywordsOfEachTopic[(topicSortByNumOfUrlDesc.getItemAt(0) as Array)[0]].length; numOfkeywords++)
+						temptext += keywordsOfEachTopic[(topicSortByNumOfUrlDesc.getItemAt(0) as Array)[0]][numOfkeywords] + " ";
+					
+					textFormat.size = 1; // Give a small font size as initial value
+					textField.text = temptext;
+					textField.width = tempWidth;
+					textField.height = tempHeight;
+					textField.wordWrap = true;
+					textField.x = 0; // ToDo
+					textField.y = 0; // ToDo
+					sprite.addChild(textField);
+					
+					var flag:Boolean = true;
+					while(flag)
+					{
+						textFormat.size = (textFormat.size as Number) + 1;
+						textField.setTextFormat(textFormat);
+						if (textField.numLines > textField.bottomScrollV)
+						{
+							textFormat.size = (textFormat.size as Number) - 1;
+							textField.setTextFormat(textFormat);
+							flag = false;
+						}
+					}
+					
+					// ToDo Automatically change the font size when mouse roll over and out
+					sprite.addEventListener(MouseEvent.ROLL_OVER,function(event:Event):void{_cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND); spotLabel.visible = true; spotLabel.text = ((event.target as CustomSprite).getChildAt(0) as TextField).text;});
+					sprite.addEventListener(MouseEvent.ROLL_OUT,function(event:Event):void{CustomCursorManager.removeCursor(_cursorID); spotLabel.visible = false;});
+					sprite._topicFilter = urlsOfEachTopic[tempTopicSortByNumOfUrlDesc.getItemAt(m)]; // Set filter for each topic
+					sprite.addEventListener(MouseEvent.CLICK, function(event:Event):void{(parent as NodeHandler).filterDocumentsByURLS((event.currentTarget as CustomSprite)._topicFilter, "Selected topic");});
+					
+					topicSortByNumOfUrlDesc.removeItemAt(0);
 				}
 				
-				textField.text = temptext;
-				textField.width = diameter;
-				textField.wordWrap = true;
-				//				textField.height = diameter/2; // ToDo
-				textField.x = 0;
-				textField.y = diameter/4;
-				sprite.addChild(textField);
-				
-				
-				sprite.addEventListener(MouseEvent.ROLL_OVER,handleMouseOver);
-				sprite.addEventListener(MouseEvent.ROLL_OUT,handleMouseOut);
-				sprite.addEventListener(MouseEvent.CLICK, handleClick);
-			}
-			
-			
-			private function handleClick(event:Event):void
-			{
-				//_topicSubset.replaceKeys(false,true,this._topicURLS);
-				(this.parent as NodeHandler).filterDocumentsByURLS(_topicURLS,"Selected topic");   
-				 
-//				textField.text = this._topicURLS.toString();
-			}
-			
-			private var _cursorID:int;
-			private function handleMouseOver(event:Event):void
-			{
-				_cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND);
-			}
-			
-			private function handleMouseOut(event:Event):void
-			{
-				CustomCursorManager.removeCursor(_cursorID);
+				// ToDo Add label for mouse over and out event
+				var spotLabel:Label = new Label();
+				spotLabel.width = parentComponent.width;
+				spotLabel.height = 30; // ToDo
+				spotLabel.x = 0;
+				spotLabel.y = parentComponent.height - 30; // ToDo
+				spotLabel.visible = false;
+				spotLabel.setStyle("fontSize", 16);
+				spotLabel.setStyle("textAlign", "center");
+				parentComponent.addChild(spotLabel);
 			}
 		]]>
 	</mx:Script>
