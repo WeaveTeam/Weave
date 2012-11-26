@@ -36,6 +36,9 @@
 	<mx:Script>
 		<![CDATA[
 			import flash.events.MouseEvent;
+			
+			import mx.core.UIComponent;
+			
 			import flash.geom.Point;
 			import flash.net.URLRequest;
 			import flash.net.navigateToURL;
@@ -1660,7 +1663,6 @@
 			private var flag_init:Boolean =true;
 			private var _topicsResult:Object = null;
 			private var _numOfTopics:int = 5;
-			//private function toggleTagCloud(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
 			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
 			{   
 				if(_topicsResult == null)
@@ -1668,65 +1670,25 @@
 				fadeOut.play([pointsCanvas,listCanvas]);
 				if(tagCanvas)
 					fadeOut.play([tagCanvas]);
-				//mx.controls.Alert.show("You see me!");
-				
 				
 				if(flag_init){
 					
 					// ToDo This will not update automatically when new documents come in.
-					//	var colorColumn:DynamicColumn = Weave.defaultColorColumn.getInternalColumn(); // ToDo
 					//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
-					
-					// ToDo It is the center of the whole area after clicking show list
-					//	var centerX:int = this.measuredWidth/2;
-					//	var centerY:int = this.measuredHeight/2;
-					
-					var colorRamp:Array = [0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0];
-					var centerX:int = 0;
-					var centerY:int = 0;
-					var radius:int = 0;
-					//var numberOfTopic:int = 5;
-					
-					if (this.measuredHeight > this.measuredWidth)
-						radius = this.measuredHeight / 2;
-					else
-						radius = this.measuredWidth / 2;
-					
-					var minimalNumber:int = Number.MAX_VALUE;
-					var maximalNumber:int = Number.MIN_VALUE;
 					
 					var urls:Array = _topicsResult.urls;
 					var keywords:Array = _topicsResult.keywords;
 					
-					for (var i:int = 0; i < _numOfTopics; i++)
-					{
-						if(((urls[i] as Array).length)  < minimalNumber)
-						{
-							minimalNumber = (urls[i] as Array).length;
-						}
-						if(((urls[i] as Array).length) > maximalNumber)
-						{
-							maximalNumber = (urls[i] as Array).length;
-						}
-					}
+					var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+					var parentComponent:UIComponent = new UIComponent();
+					parentComponent.width = 400;
+					parentComponent.height = 230; // ToDo Add extra 20 for showing spot label
+					parentComponent.y= nodeBase.height;
 					
-					var diameterArray:Array = new Array(_numOfTopics);
-					var baseline:int = 100;
-					var threshHold:int = 100;
-					for (var ii:int = 0; ii < _numOfTopics; ii++)
-					{
-						diameterArray[ii] = baseline + ((urls[ii] as Array).length/maximalNumber)*threshHold;
-					}
-					for (var iii:int = 0; iii < _numOfTopics; iii++)
-					{
-						var topicComponent:TopicNodeComponent = new TopicNodeComponent();
-						topicComponent.x = centerX + Math.cos((Math.PI * 2) / _numOfTopics * iii) * radius;
-						topicComponent.y = centerY - Math.sin((Math.PI * 2) / _numOfTopics * iii) * radius;
-						topicComponent.draw(colorRamp[iii], diameterArray[iii],keywords[iii], urls[iii]);
-						addChild(topicComponent);
-						topicComponents.push(topicComponent);
-						//	fadeIn.play([topicComponent]);
-					}
+					topicComponent.drawTreeMap(urls, keywords, parentComponent);
+					topicComponents.push(topicComponent);
+					addChild(topicComponent);
+					
 					flag_init = false;
 				}
 				
