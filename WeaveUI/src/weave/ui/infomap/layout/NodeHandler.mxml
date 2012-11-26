@@ -205,7 +205,6 @@
 				
 				super.childrenCreated();
 				
-				nodeBase.controlBox.visible = false;
 				
 				getCallbackCollection(query).addGroupedCallback(this,createAndSendQuery,true);
 				getCallbackCollection(previousQuery).addGroupedCallback(this,updateTextArea,true);
@@ -228,7 +227,8 @@
 				
 				nodeBase.filterImg.visible = false;
 				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, toggleTagCloud);
-				//				nodeBase.searchImg.addEventListener(MouseEvent.CLICK,showPointCanvas);
+				
+				nodeBase.listImg.visible = false;
 				nodeBase.listImg.addEventListener(MouseEvent.CLICK,toggleList);
 				
 				nodeBase.distributionImg.visible = false;
@@ -492,6 +492,7 @@
 					thumbnails.removeAllObjects();//remove any old objects if any
 					getCallbackCollection(previousQuery).resumeCallbacks();
 					thumbnails.resumeCallbacks();
+					adjustNodeBase();
 					return;
 				}
 				
@@ -520,7 +521,7 @@
 					
 				}
 				
-				
+				nodeBase.listImg.visible = false;
 				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
 				{
 					if(t.highlighted.value)
@@ -553,6 +554,7 @@
 				if(numOfDocs <= 0)
 				{
 					status.text = "0 documents found.";
+					adjustNodeBase();
 					return;						
 				}
 				
@@ -619,7 +621,6 @@
 			{
 				trace("in handleDocKeySetChange");
 				status.text = "";
-				nodeBase.controlBox.visible = true;
 				var response:Array = docKeySet.keys;
 				
 				var nameOrder:Array = [];
@@ -671,6 +672,7 @@
 				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = currentNewDocsCount;
+				nodeBase.listImg.visible = true;
 				testAndBlinkNode();
 				getEntityDistribution();
 				getTopicsClassification();
@@ -748,7 +750,11 @@
 			private function adjustNodeBase():void
 			{
 				nodeBase.keywordTextArea.validateNow();
-				nodeBase.width = nodeBase.keywordTextArea.textWidth + 50;
+				var widthOffset:int = 50;
+				
+				nodeBase.width = nodeBase.keywordTextArea.textWidth + widthOffset;
+				if(nodeBase.width < 220)
+					nodeBase.width = 220;
 				nodeBase.keywordTextArea.width = nodeBase.width;
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
 				nodeBase.height = nodeBase.keywordTextArea.height+ 30;
@@ -905,6 +911,10 @@
 			{
 				
 				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				if(entityColumns.length == 0)
+					return;
+				
 				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
 				
 				var entities:Array = [];
