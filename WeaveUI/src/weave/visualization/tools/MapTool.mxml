@@ -545,7 +545,7 @@
 						break;
 				}
 			}	
-			//location
+			
 			private function locationChange():void
 			{
 				var index:int = maptoolLocationCombo.selectedIndex;
@@ -553,12 +553,25 @@
 					return;
 				maptoolsLocation.value = index;
 			}
+			
 			private function clearMapcontroLocations():void
 			{
 				mapControls.right = null;
 				mapControls.bottom = null;
 				mapControls.left = null;
 				mapControls.top = null;
+			}
+			
+			public const sizeFactorOfMapControls:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifySizeFactor), handleSizeFactorChange, true);
+			
+			public function handleSizeFactorChange():void 
+			{
+				mapControls.scaleX = sizeFactorOfMapControls.value;
+				mapControls.scaleY = sizeFactorOfMapControls.value;
+			}
+			private function verifySizeFactor(value:Number):Boolean
+			{
+				return value >= 1;
 			}
 			
 			// BACKWARDS COMPATIBILITY
@@ -573,7 +586,6 @@
 				verticalGap="{zoomControlsToggle.selected ? 2 : 0}"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				right="0" bottom="0"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				includeInLayout="{zoomControlsToggle.selected}"
@@ -782,6 +794,10 @@
 			<mx:HBox>
 				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Size factor of map controls:" />
+				<mx:NumericStepper maximum="2" minimum="1" stepSize=".05" creationComplete="linkBindableProperty(sizeFactorOfMapControls, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox verticalAlign="middle" horizontalAlign="center">
 			<mx:Label text="Map tools location "/> 
