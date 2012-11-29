@@ -17,8 +17,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 	alpha="0.8"
 	height="55%"
 	removedFromStage="rangeComboBox.selectedItem = '--Quick Select--';" xmlns:ui="weave.ui.infomap.ui.*"
-	addedToStage="if(sourcesGrid){sourcesGrid.refreshSourcesList();}if(feedTitle)feedTitle.text='';if(feedURL)feedURL.text='';"
 	>
+	<!--addedToStage="if(sourcesGrid){sourcesGrid.refreshSourcesList();}if(feedTitle)feedTitle.text='';if(feedURL)feedURL.text='';"-->
 	<!--Non visual tags like Validator, Style,  etc should be added as the immediate children of the root mxml tag-->
 	<mx:VBox paddingLeft="5" paddingTop="5" label="Basic">
 		<mx:HBox>
@@ -26,12 +26,12 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:TextInput id="keyword" keyDown="handleEnterKey(event)"/>
 			<mx:Button label="Apply" click="applyKeyword()"/>
 		</mx:HBox>
-		<mx:HBox>
+	<!--	<mx:HBox>
 			<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 			<mx:ComboBox id="operator"/>
-		</mx:HBox>
+		</mx:HBox>-->
 		<mx:HBox>
-			<mx:Label text="Number of words in word cloud" fontWeight="bold" width="{_leftAlignWidth}"/>					
+			<mx:Label text="Words in word-cloud" fontWeight="bold" width="{_leftAlignWidth}"/>					
 			<mx:TextInput toolTip="not more than 100" id="numOfWords" width="50"/>
 		</mx:HBox>
 		<!--<mx:HBox>
@@ -53,9 +53,9 @@ Info to provide a tooltip describing the node (like number of documents found)
 		<mx:List id="selectedSourcesList" selectable="true" allowMultipleSelection="true" width="50%"/>
 		<mx:Text fontSize="9" text="*if list is empty all available sources are queried."/>
 		<mx:Button label="Delete Selected Sources" click="removeSourceFromSelecedList()"/>-->
-	</mx:VBox>
+	<!--</mx:VBox>
 
-	<mx:VBox label="Add Date Filter">
+	<mx:VBox label="Add Date Filter">-->
 		<mx:Label text="Set a Date Range" fontWeight="bold"  />
 		<mx:HBox>
 			<mx:VBox>
@@ -73,9 +73,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:Button label="Remove Date Filter" click="handleClearDates()"/>
 		</mx:HBox>
 	</mx:VBox>
-	<mx:VBox label="Add Source Filter">
-		<!--<mx:Te width="100%" text="By default, the query searches in all the available data sources. You can choose which sources you want the query to search.
-				 Add a new source or make a selection from currently available sources."/>-->
+	<!--<mx:VBox label="Add Source Filter">
 		<mx:Label text="Add a new Source: " />
 		<mx:HBox>
 			<mx:Label text="Title"/>
@@ -85,9 +83,9 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:Button label="Add" click="addRssFeed()" />
 		</mx:HBox>	
 		<mx:Label id="errorMsg" color="red" fontWeight="bold" text="Both fields are required." visible="false"/>
-		<!--<mx:Button id="sourcesListButton" label="Show Available Sources" click="handleSourceListClick()"/>-->
+		<mx:Button id="sourcesListButton" label="Show Available Sources" click="handleSourceListClick()"/>
 		<ui:SourcesListComponent parentNode="{query}" id="sourcesGrid" width="100%"/>
-	</mx:VBox>
+	</mx:VBox>-->
 		 <mx:Script>
 			 <![CDATA[
 				 import mx.binding.utils.BindingUtils;
@@ -136,9 +134,16 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 }
 				 }
 				 
+				 private var _dateFilter:DateRangeFilter = null;
+				 
+				 public function set dateFilter(value:DateRangeFilter):void
+				 {
+					 _dateFilter = value;
+				 }
+				 
 				 
 				 [Bindable]
-				 private var _leftAlignWidth:Number = 100;
+				 private var _leftAlignWidth:Number = 150;
 				 
 				 
 				 private var startDateStr:LinkableString = new LinkableString('');
@@ -153,18 +158,18 @@ Info to provide a tooltip describing the node (like number of documents found)
 					//even if it was not the selected item
 //					layoutComboBox.dataProvider =  ['Radial','Grid'] ;
 					 
-					operator.dataProvider = ['OR','AND'];
+//					operator.dataProvider = ['OR','AND'];
 					 
 //					keyword.text = nodeHandler.node.keywords.value;
 					keyword.text = query.keywords.value;
 					 
 //					linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
 					
-					operator.selectedItem = query.operator.value;
-					linkBindableProperty(query.operator,operator,"selectedItem");
+//					operator.selectedItem = query.operator.value;
+//					linkBindableProperty(query.operator,operator,"selectedItem");
 					
-					query.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
-					query.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
+					_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
+					_dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
 					 
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);
@@ -174,7 +179,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					
 //					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
 					
-					this.targets = [query.keywords,query.sources,query.dateFilter.startDate,query.dateFilter.endDate]
+					this.targets = [query.keywords,query.sources,_dateFilter.startDate,_dateFilter.endDate]
 				 }
 				 
 //				 private function handleLayoutObjectChange():void
@@ -191,34 +196,34 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 {
 					 if(startDateStr.value == '' || endDateStr.value == '')
 						 return;
-					 getCallbackCollection(query.dateFilter).delayCallbacks();
+					 getCallbackCollection(_dateFilter).delayCallbacks();
 
-					 query.dateFilter.startDate.value = startDateStr.value;
-					 query.dateFilter.endDate.value = endDateStr.value;
+					 _dateFilter.startDate.value = startDateStr.value;
+					 _dateFilter.endDate.value = endDateStr.value;
 					 
-					 getCallbackCollection(query.dateFilter).resumeCallbacks();
-					 getCallbackCollection(query.dateFilter).triggerCallbacks();				 
+					 getCallbackCollection(_dateFilter).resumeCallbacks();
+//					 getCallbackCollection(_dateFilter).triggerCallbacks();				 
 				 }
 				 
 				 private function handleStartDateFilterChange():void
 				 {
-					 if(query.dateFilter.startDate.value != null)
+					 if(_dateFilter.startDate.value != null)
 					 {
-						 startDateStr.value = query.dateFilter.startDate.value;
-					 	startRange.selectedDate = DateUtils.getDateFromString(query.dateFilter.startDate.value);
-					 if(query.dateFilter.startDate.value.search('NOW') == -1)
+						 startDateStr.value = _dateFilter.startDate.value;
+					 	startRange.selectedDate = DateUtils.getDateFromString(_dateFilter.startDate.value);
+					 if(_dateFilter.startDate.value.search('NOW') == -1)
 					 	rangeComboBox.selectedItem = "--Quick Select--";
 					 }
 				 }
 				 
 				 private function handleEndDateFilterChange():void
 				 {
-					 if(query.dateFilter.endDate.value != null)
+					 if(_dateFilter.endDate.value != null)
 					 {
-						endDateStr.value = query.dateFilter.endDate.value;
-					 	endRange.selectedDate = DateUtils.getDateFromString(query.dateFilter.endDate.value);
+						endDateStr.value = _dateFilter.endDate.value;
+					 	endRange.selectedDate = DateUtils.getDateFromString(_dateFilter.endDate.value);
 					 }
-					 if(query.dateFilter.endDate.value &&  query.dateFilter.startDate.value.search('NOW') == -1)
+					 if(_dateFilter.endDate.value &&  _dateFilter.startDate.value.search('NOW') == -1)
 						 rangeComboBox.selectedItem = "--Quick Select--";
 				 }
 				 
@@ -339,8 +344,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 private function handleClearDates():void
 				 {
 					 //clearning dates in filterObject
-					 query.dateFilter.endDate.value = '';
-					 query.dateFilter.startDate.value = '';
+					 _dateFilter.endDate.value = '';
+					 _dateFilter.startDate.value = '';
 					 
 					 
 					 startRange.selectedDate = null;
@@ -353,27 +358,27 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 
 				 private function addRssFeed():void
 				 {
-					 var url:String = feedURL.text;
-					 url = StringUtil.trim(url);
-					 if(url == "")
-					 {
-						 errorMsg.visible = true;
-						 return;	
-					 }
-					 
-					 var title:String = feedTitle.text;
-					 title = StringUtil.trim(title);
-					 if(title == "")
-					 {
-						 errorMsg.visible = true;	
-						 return;
-					 }	
-					 
-					 InfoMapAdminInterface.instance.addRssFeed(feedTitle.text,feedURL.text);
-					 
-					 errorMsg.visible = false;
-					 
-					 addSourceString('"' + feedTitle.text + '"');
+//					 var url:String = feedURL.text;
+//					 url = StringUtil.trim(url);
+//					 if(url == "")
+//					 {
+//						 errorMsg.visible = true;
+//						 return;	
+//					 }
+//					 
+//					 var title:String = feedTitle.text;
+//					 title = StringUtil.trim(title);
+//					 if(title == "")
+//					 {
+//						 errorMsg.visible = true;	
+//						 return;
+//					 }	
+//					 
+//					 InfoMapAdminInterface.instance.addRssFeed(feedTitle.text,feedURL.text);
+//					 
+//					 errorMsg.visible = false;
+//					 
+//					 addSourceString('"' + feedTitle.text + '"');
 					 
 				 }
 				 

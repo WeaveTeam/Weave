@@ -36,9 +36,6 @@
 	<mx:Script>
 		<![CDATA[
 			import flash.events.MouseEvent;
-			
-			import mx.core.UIComponent;
-			
 			import flash.geom.Point;
 			import flash.net.URLRequest;
 			import flash.net.navigateToURL;
@@ -54,6 +51,7 @@
 			import mx.controls.TextArea;
 			import mx.core.Application;
 			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
 			import mx.core.UITextField;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
@@ -163,6 +161,8 @@
 			
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
+			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true);
+			
 			private const listWidth:LinkableNumber = new LinkableNumber();
 			
 			private var loader:URLLoader = null;
@@ -221,7 +221,7 @@
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				//opens the settings panel
-//				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
+				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
 				
 //				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
 				
@@ -377,7 +377,7 @@
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
 				status.text = "Searching...";
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,dateFilter);
 			}
 			
 			
@@ -430,22 +430,21 @@
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*\//g,"(" + currentNewDocsCount + "/");
 					else
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\(/g,"(" + currentNewDocsCount + "/");
-						
-					
-//					nodeBase.tickImg.enabled = true;
-//					nodeBase.tickImg.visible = true;
-					if(currentNewDocsCount != prevNewDocsCount.value || !_wasClicked)
-					{
-						startGlow();
-					}
-				}else{
-//					nodeBase.tickImg.enabled = false;
-//					nodeBase.tickImg.visible = false;
-					stopGlow();
 				}
-				
-				positionThumbnails();
-				adjustNodeBase();
+////					nodeBase.tickImg.enabled = true;
+////					nodeBase.tickImg.visible = true;
+//					if(currentNewDocsCount != prevNewDocsCount.value || !_wasClicked)
+//					{
+//						startGlow();
+//					}
+//				}else{
+////					nodeBase.tickImg.enabled = false;
+////					nodeBase.tickImg.visible = false;
+//					stopGlow();
+//				}
+//				
+//				positionThumbnails();
+//				adjustNodeBase();
 			}
 			
 			/* Since we use a private query object we define a public function to set variable */
@@ -468,6 +467,12 @@
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				_selection.clearKeys();
+			}
+			
+			
+			private function handleDateFilterChange():void
+			{
+				createAndSendQuery();
 			}
 			
 			[Bindable]
@@ -504,18 +509,24 @@
 					WeaveAPI.StageUtils.callLater(this,createAndSendQuery);
 					return;
 				}
+				
+				hideList();
+				if(tagCanvas)
+					hideTagCloud();
 				status.text = "Searching...";
 				
 				//delay callbacks till we get back query results
 				thumbnails.delayCallbacks();
 
-				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
-				if(diff)//diff is undefined if there is no difference.
+				var diffInQuery:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
+								
+				if(diffInQuery)//diff is undefined if there is no difference.
 				{
 					thumbnails.removeAllObjects();
 					currentNewDocsCount = 0;
 					hideList();
-					hideTagCloud();
+					if(tagCanvas)
+						hideTagCloud();
 					
 					var queryTerms:Array = query.keywords.value.split(',');
 					if(relatedKeywords!=null && relatedKeywords.length>0)
@@ -541,12 +552,16 @@
 				
 				_selection.removeCallback(handleSelectionKeySetChange); //remove callback to selection keys and only call after we get entity distribution results.
 				
-				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,null);
+				hideIcons();
+				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter);
 				
 				numOfDocsQuery.addAsyncResponder(handleNumOfDocsQueryResult,handleNumOfDocsQueryFault);
 				
-				
-				
+			}
+			
+			private function hideIcons():void
+			{
+				nodeBase.listImg.visible = nodeBase.filterImg.visible = nodeBase.distributionImg.visible = nodeBase.topicsImg.visible = false;
 			}
 			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:Object=null):void
@@ -557,7 +572,12 @@
 				if(numOfDocs <= 0)
 				{
 					status.text = "0 documents found.";
+					numOfMatchedDocuments.value = numOfDocs;
+					thumbnails.delayCallbacks();
+					thumbnails.removeAllObjects();//remove any old objects if any
+					thumbnails.resumeCallbacks();
 					adjustNodeBase();
+					updateTextArea();
 					return;						
 				}
 				
@@ -570,7 +590,7 @@
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(docKeySet,query.keywords.value.split(','),
-						relatedKeywords,null,5000);
+						relatedKeywords,dateFilter,5000);
 //				else
 //				{
 //					if(!query.sources.value == '')
@@ -581,7 +601,7 @@
 //				}
 				
 				var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
-					query.keywords.value.split(','),relatedKeywords,query.dateFilter);
+					query.keywords.value.split(','),relatedKeywords,dateFilter);
 				
 				wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault);
 					
@@ -677,6 +697,7 @@
 				prevNewDocsCount.value = currentNewDocsCount;
 				nodeBase.listImg.visible = true;
 				testAndBlinkNode();
+				positionThumbnails();
 				getEntityDistribution();
 				getTopicsClassification();
 			}
@@ -793,7 +814,7 @@
 //				else
 //					nodeBase.keywordTextArea.htmlText +="<br/><b>Total Documents Found:</b> " +  tNails.length;
 				
-				if(nodeBase.keywordTextArea.htmlText.indexOf("/") >-1)
+				if(nodeBase.keywordTextArea.text && nodeBase.keywordTextArea.text.indexOf("/") >-1)//we test the text because htmlText has tags with '/'
 					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" + numOfMatchedDocuments.value);
 				else
 					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" + numOfMatchedDocuments.value);
@@ -959,7 +980,7 @@
 				
 				
 				var entityQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,entities,query.dateFilter,5000);
+															relatedKeywords,entities,dateFilter,5000);
 				
 				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault);
 			}
@@ -1314,8 +1335,8 @@
 			private function handleGlobalDateChange():void
 			{
 				getCallbackCollection(query).delayCallbacks();
-				query.dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
-				query.dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
+				dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
+				dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
 				getCallbackCollection(query).resumeCallbacks();
 			}
 			private function removeEmptyStringElementsFromArray(arg:Array):Array
@@ -1417,7 +1438,7 @@
 			
 			private function filter(event:Event):void
 			{
-				DateFilterComponent.openInstance(this,query.dateFilter);
+				DateFilterComponent.openInstance(this,dateFilter);
 			}
 			
 			private var _instance:NodeSettingsComponent = null;
@@ -1433,6 +1454,7 @@
 					_instance = new NodeSettingsComponent();
 					_instance.query = this.query;
 					_instance.nodeHandler = this;
+					_instance.dateFilter = dateFilter;
 					PopUpManager.addPopUp(_instance,this);
 				}
 			}
@@ -1460,9 +1482,11 @@
 				{
 					tagCanvas = new TagCloud();
 					tagCanvas.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
-					tagCanvas.alpha = 0;
+					tagCanvas.visible = false;
 					tagCanvas.includeInLayout = false;
 					addChild(tagCanvas);
+					tagCanvas.alpha = 0;
+					tagCanvas.visible = true;
 				}
 				tagCanvas.y= nodeBase.height;
 				if(StandardLib.arrayCompare(tagCanvas.dataProvider,wordCount) != 0)
@@ -1473,12 +1497,16 @@
 				fadeOut.play([pointsCanvas,listCanvas]);
 				if(forceShow)
 				{
+					if(tagCanvas.alpha == 1)
+						return;
 					fadeIn.play([tagCanvas]);
 					return;
 				}
 				
 				if(forceHide)
 				{
+					if(tagCanvas.alpha ==0)
+						return;
 					fadeOut.play([tagCanvas]);
 					return;
 				}
@@ -1549,12 +1577,16 @@
 				
 				if(forceShow)
 				{
+					if(listCanvas.alpha == 1)
+						return;
 					fadeIn.play([listCanvas]);
 					return;
 				}
 				
 				if(forceHide)
 				{
+					if(listCanvas.alpha == 0)
+						return;
 					fadeOut.play([listCanvas]);
 					return;
 				}	
@@ -1622,7 +1654,7 @@
 				clearFiltersButton.visible = false;
 				
 				var filterQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(query.keywords.value.split(','),
-					relatedKeywords,query.dateFilter,filteredWords.value.split(','),5000);
+					relatedKeywords,dateFilter,filteredWords.value.split(','),5000);
 				
 				filterQuery.addAsyncResponder(handleFilterQueryResult,handleFilterQueryFault);
 			}
@@ -1662,7 +1694,7 @@
 					_numOfTopics = 3;
 				}
 					
-				var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
+				var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter,
 					5000,_numOfTopics);
 				
 				topicsQuery.addAsyncResponder(handleTopicsQueryResult,handleTopicsQueryFault);

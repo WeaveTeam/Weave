@@ -277,6 +277,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 				if(keysToShow.length == 0)
 				{
 					indexText.text = "No documents found.";
+					return;
 				}
 				var st:int = startIndex.value+1;
 				

@@ -18,10 +18,10 @@ It has 4 icons to:
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
 		<!--<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>-->
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
+		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
 		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
 		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/cloud.png')"/>
-		<!--<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
-		<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>--><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
+		<!--<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>--><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
 		<mx:Image id="distributionImg" source="@Embed(source='/weave/resources/images/bar_chart.png')"/>
 		<mx:Image id="topicsImg" source="@Embed(source='/weave/resources/images/topics.png')"/>
 	</mx:HBox>	
@@ -72,11 +72,10 @@ It has 4 icons to:
 			filterImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			
-//			settingsImg.toolTip = "Settings";
-//			settingsImg.width = 12;
-//			settingsImg.height = 12;
-//			settingsImg.visible = false;
-//			settingsImg.buttonMode = true; //you need this for click event to work on an image!
+			settingsImg.toolTip = "Settings";
+			settingsImg.width = 12;
+			settingsImg.height = 12;
+			settingsImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			distributionImg.toolTip = "Show Entity Distribution";
 			distributionImg.width = 12;
