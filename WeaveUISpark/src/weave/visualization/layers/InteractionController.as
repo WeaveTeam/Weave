@@ -24,6 +24,7 @@ package weave.visualization.layers
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
 
 	/**
@@ -98,9 +99,8 @@ package weave.visualization.layers
 		
 		/**
 		 * This is the default mode to use when dragging and no modifier keys are pressed.
-		 * Not included in session state.
 		 */
-		public const defaultDragMode:LinkableString = registerDisposableChild(this, new LinkableString(SELECT, verifyDefaultMode));
+		public const defaultDragMode:LinkableString = registerLinkableChild(this, new LinkableString(null, verifyDefaultMode), validate);
 		private function verifyDefaultMode(value:String):Boolean
 		{
 			return !value || [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
