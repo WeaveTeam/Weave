@@ -162,6 +162,18 @@
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true);
+
+			public const numOfTopics:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
+				if(value > 10 || value <2)
+					return false;
+				else 
+					return true;},false), handleTopicsPropertiesChange, true);
+			
+			public const numOfKeywordsInEachTopic:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
+				if(value > 10 || value < 1)
+					return false;
+				else 
+					return true;},false), handleTopicsPropertiesChange, true);
 			
 			private const listWidth:LinkableNumber = new LinkableNumber();
 			
@@ -940,7 +952,7 @@
 					return;
 				
 				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
-				
+
 				var entities:Array = [];
 				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
 				for each(var attrCol:IAttributeColumn in entityColumns)
@@ -1433,6 +1445,7 @@
 					query.keywords.value = nodeBase.keywordTextArea.text;
 					nodeBase.keywordTextArea.editable = false;
 					nodeBase.keywordTextArea.selectable = false;
+					//getTopicsClassification();
 				}
 			}
 			
@@ -1689,22 +1702,35 @@
 			
 			private function getTopicsClassification():void
 			{
-				if(numOfMatchedDocuments.value <= 20)
+				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
-					_numOfTopics = 3;
+					var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
+						5000, 3, numOfKeywordsInEachTopic.value);
 				}
-					
-				var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter,
-					5000,_numOfTopics);
-				
+				else{
+				var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
+					5000, numOfTopics.value, numOfKeywordsInEachTopic.value);
+				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
+				}
 				topicsQuery.addAsyncResponder(handleTopicsQueryResult,handleTopicsQueryFault);
+			}
+			
+			private function handleTopicsPropertiesChange():void
+			{
+				if(query.keywords.value != null)
+				{
+					getTopicsClassification();
+					flag_init = true;
+					
+				}
 			}
 			
 			private var topicComponents:Array = new Array();
 			private var flag_click:Boolean = true;
 			private var flag_init:Boolean =true;
 			private var _topicsResult:Object = null;
-			private var _numOfTopics:int = 5;
+			//private var _numOfTopics:int = 5;
+			
 			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
 			{   
 				if(_topicsResult == null)
@@ -1717,7 +1743,6 @@
 					
 					// ToDo This will not update automatically when new documents come in.
 					//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
-					
 					var urls:Array = _topicsResult.urls;
 					var keywords:Array = _topicsResult.keywords;
 					
