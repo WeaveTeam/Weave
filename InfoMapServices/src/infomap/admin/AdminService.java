@@ -130,13 +130,13 @@ public class AdminService extends GenericServlet{
     
     public static void main(String[] args) {
     	
-//    	AdminService inst = new AdminService();
-//    	
-//    	String [] requiredKeywords = new String[1];
-//    	
-//    	requiredKeywords[0] = "California";
-//    	
-//    	inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5, 5);
+    	//AdminService inst = new AdminService();
+    	
+    //	String [] requiredKeywords = new String[1];
+    	
+    	//requiredKeywords[0] = "obesity";
+    	
+    	//inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5, 20);
 	}
     
     private static void deleteAllDocuments()
@@ -958,24 +958,37 @@ public class AdminService extends GenericServlet{
 				}
 			}
 			
+			HashMap<Object, Integer> uniquewordChecker = new HashMap<Object, Integer>();
+			
+//   		mp.put("set", "BIG TITLE SABMAN. 8");
+			for (int topic = 0; topic < numOfTopics; topic++) {
+				Iterator<IDSorter> iterator = topicSortedWords.get(topic)
+				.iterator();
+				while (iterator.hasNext()){
+					IDSorter idCountPair = iterator.next();
+					if(uniquewordChecker.containsKey(dataAlphabet.lookupObject(idCountPair.getID()))){
+						uniquewordChecker.put(dataAlphabet.lookupObject(idCountPair.getID()), uniquewordChecker.get(dataAlphabet.lookupObject(idCountPair.getID())) + 1);
+					}
+					else{
+					uniquewordChecker.put(dataAlphabet.lookupObject(idCountPair.getID()), 1);
+					}
+				}
+			}
 			
 			
-			// Show top 5 words in topics with proportions for the first document
 			for (int topic = 0; topic < numOfTopics; topic++) {
 			Iterator<IDSorter> iterator = topicSortedWords.get(topic)
 			.iterator();
-
-
-			//out = new Formatter(new StringBuilder(), Locale.US);
-			//out.format("%d\t%.3f\t", topic, topicDistribution[topic]);
 			int rank = 0;
 			while (iterator.hasNext() && rank < numOfKeywordsInEachTopic) {
 			IDSorter idCountPair = iterator.next();
 			//out.format("%s (%.0f) ",
 			//dataAlphabet.lookupObject(idCountPair.getID()),
 			//idCountPair.getWeight());
-			topicKeywords[topic][rank]= dataAlphabet.lookupObject(idCountPair.getID()) + " ";
-			rank++;
+			if(uniquewordChecker.get(dataAlphabet.lookupObject(idCountPair.getID())) == 1){
+			   topicKeywords[topic][rank]= dataAlphabet.lookupObject(idCountPair.getID()) + " ";
+			   rank++;
+			}
 			}
 			//System.out.println(out);
 			}
@@ -997,6 +1010,16 @@ public class AdminService extends GenericServlet{
         			   }
         		   }
            }
+           //tracing
+/*           for(int i = 0; i < numOfTopics; i++)
+			{
+				for(int j = 0; j < numOfKeywordsInEachTopic; j++)
+				{
+				System.out.print(topicKeywords[i][j]);
+				}
+				System.out.println();
+			}*/
+           
 		      topicModelingResutls.keywords = topicKeywords;
 		      
 		      topicModelingResutls.urls = resultUrls; 

@@ -1721,7 +1721,10 @@
 				{
 					getTopicsClassification();
 					flag_init = true;
-					
+					/* if(!flag_click){
+						flag_click = true;
+						showClassificationResults();
+					} */
 				}
 			}
 			
