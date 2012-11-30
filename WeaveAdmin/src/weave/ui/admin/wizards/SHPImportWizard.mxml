@@ -106,11 +106,11 @@
 			
 			[Bindable] private var fileUploadCount:int = 0;
 			[Bindable] private var targetFileUploadCount:int = 0;
-			private var _fileUploadList:ArrayList = null;
+			private var _fileUploadList:ArrayList = new ArrayList();
 			private var _dbfFileToRequestColumnNamesFrom:FileReference;
 			private function shapeFileSelectedHandler(event:Event):void
 			{
-				_fileUploadList = new ArrayList();
+				_fileUploadList.removeAll();
 				fileUploadCount = 0;
 				targetFileUploadCount = shapeFileReferenceList.fileList.length;
 				shpFileNameInput.text = '';
@@ -198,6 +198,9 @@
 				
 				AdminInterface.instance.listDBFFileColumns(tableName+".dbf");
 				tableSelector.activeTable = tableName;
+				
+				_fileUploadList.removeAll();
+				_fileUploadList.addItem(tableName+".dbf");
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
