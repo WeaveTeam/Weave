@@ -1240,7 +1240,7 @@ public class AdminService extends GenericServlet{
      		
      		q.set(GroupParams.GROUP_LIMIT,rows);
      		
-     		q.toString();
+//     		System.out.println("ENTITY QUERY" + q.toString());
      		
      		response = solrInstance.query(q);
      		

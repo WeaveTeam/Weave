@@ -1,6 +1,10 @@
 package weave.utils
 {
+	import com.hurlant.util.asn1.parser.boolean;
+	
 	import mx.formatters.DateFormatter;
+	
+	import org.igniterealtime.xiff.events.BookmarkChangedEvent;
 
 	public class DateUtils
 	{
@@ -139,6 +143,24 @@ package weave.utils
 			var e:Date = getDateFromString(end);
 			
 			return isDateWithinRange(d,s,e);			
+		}
+		/**
+		 *Compares two dates in string format and returns true if they are same 
+		 * @param dateStr1 the first date parameter in String format
+		 * @param dateStr2 the second date parameter in String format
+		 * @return true if they are the same else false
+		 * 
+		 */		
+		public static function compareDate(dateStr1:String,dateStr2:String):Boolean
+		{
+			var date1:Date = getDateFromString(dateStr1);
+			var date2:Date = getDateFromString(dateStr2);
+			
+			if((date1.time - date2.time) ==0)
+				return true;
+			else
+				return false;
+			
 		}
 		
 		private static function getDateKeywordInMS(key:String):uint
