@@ -97,6 +97,7 @@ public class RServiceUsingRserve
 			str = String.format("jpeg(\"%s\")", dir + file);
 			evalScript(rConnection, str, showWarnings);
 			
+			rConnection.eval(str = script);
 			rConnection.eval(str = "dev.off()");
 		}
 		catch (RserveException e)
