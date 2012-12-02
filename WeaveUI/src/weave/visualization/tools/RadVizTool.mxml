@@ -125,7 +125,7 @@
 			{
 				super.childrenCreated();
 				
-				_plotter.columns.addGroupedCallback(this, normalizationInR);
+//				_plotter.columns.addGroupedCallback(this, normalizationInR);
 				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate);
 				
 				//visualization.rawChildren.addChild(probeSprite);

@@ -424,7 +424,15 @@
 				}
 				
 //				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + previousQuery.keywords.value;
-				nodeBase.keywordTextArea.htmlText = previousQuery.keywords.value + "()";
+				
+				//we restrict node length to 200.
+				if(previousQuery.keywords.value.length >200)
+				{
+					nodeBase.keywordTextArea.htmlText = previousQuery.keywords.value.substr(0,200) + " ... ()";
+				}else
+				{
+					nodeBase.keywordTextArea.htmlText = previousQuery.keywords.value + "()";
+				}
 				nodeBase.keywordTextArea.editable = false;
 				nodeBase.keywordTextArea.selectable = false;
 				
@@ -440,6 +448,7 @@
 			{
 				if((prevNewDocsCount.value>0) || (highlightNewDocuments && currentNewDocsCount>0 && currentNewDocsCount != prevNewDocsCount.value))
 				{
+					//TODO: Replace htmlText with text for testing. See other function using similar testing
 					if(nodeBase.keywordTextArea.htmlText.indexOf("/") >-1)
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*\//g,"(" + currentNewDocsCount + "/");
 					else
@@ -598,6 +607,7 @@
 					thumbnails.delayCallbacks();
 					thumbnails.removeAllObjects();//remove any old objects if any
 					thumbnails.resumeCallbacks();
+					WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 					adjustNodeBase();
 					updateTextArea();
 					return;						
@@ -1010,49 +1020,56 @@
 			private function getEntityDistribution():void
 			{
 				
-				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+//				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+//				
+//				if(entityColumns.length == 0)
+//					return;
+//				
+//				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
+//				
+//				//temporarily disable query for entities > 1000
+//				if(keys.length > 1000)
+//					return;
+//				
+//				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
+//				for each(var attrCol:IAttributeColumn in entityColumns)
+//				{
+//					for each(var qKey:IQualifiedKey in keys)
+//					{
+//						var value:String = ColumnUtils.getString(attrCol,qKey);
+//						if(value)
+//						{
+//							//if the entity is encountered for the first time, create an array containing the key
+//							//else push the key to the already existing array
+//							if(_entitiesToKeysHashMap[value] == undefined)
+//							{
+//								var a:Array = [qKey];
+//								_entitiesToKeysHashMap[value] = a;
+//								
+//							}else
+//							{
+//								(_entitiesToKeysHashMap[value] as Array).push(qKey);
+//							}
+//						}
+//					}
+//				}
 				
-				if(entityColumns.length == 0)
-					return;
-				
-				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
-
-				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
-				for each(var attrCol:IAttributeColumn in entityColumns)
-				{
-					for each(var qKey:IQualifiedKey in keys)
-					{
-						var value:String = ColumnUtils.getString(attrCol,qKey);
-						if(value)
-						{
-							//if the entity is encountered for the first time, create an array containing the key
-							//else push the key to the already existing array
-							if(_entitiesToKeysHashMap[value] == undefined)
-							{
-								var a:Array = [qKey];
-								_entitiesToKeysHashMap[value] = a;
-								
-							}else
-							{
-								(_entitiesToKeysHashMap[value] as Array).push(qKey);
-							}
-						}
-					}
-				}
-				
-				var entities:Array = [];
-				for (var key:Object in _entitiesToKeysHashMap)
-				{
-					entities.push(key);
-				}
+//				var entities:Array = [];
+//				for (var key:Object in _entitiesToKeysHashMap)
+//				{
+//					entities.push(key);
+//				}
 				
 				var requiredKeywords:Array = query.keywords.value.split(',');
 				
-				var relatedKeywords:Array = _parentPanel.relatedKeywords.value.split(',');
+				var relatedKeywords:Array = null;
+				
+				if(_parentPanel.relatedKeywords.value)
+					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				
 				var entityQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,entities,dateFilter,5000);
+															relatedKeywords,requiredKeywords,dateFilter,5000);
 				
 				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault,
 					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
@@ -1121,7 +1138,7 @@
 //				_entityChartName = Weave.root.generateUniqueName(className);
 
 				var object:CompoundBarChartTool = Weave.root.requestObject(_entityChartName, CompoundBarChartTool, false);
-				object.showAllLabels.value = true;
+				object.showAllLabels.value = false;
 				object.plotter.colorColumn.defaultValue.value = "0x0FDF801";
 				
 				if (object is DraggablePanel)
@@ -1626,7 +1643,7 @@
 				//if the list is not added yet
 				if(!listCanvas.contains(d))
 				{
-					listCanvas.visible = false;
+					listCanvas.alpha = 0;
 					listCanvas.addChild(d);
 					d.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
 					
@@ -1823,6 +1840,7 @@
 					
 					topicComponent.drawTreeMap(urls, keywords, parentComponent);
 					topicComponents.push(topicComponent);
+					topicComponent.includeInLayout = false;
 					addChild(topicComponent);
 					
 					flag_init = false;

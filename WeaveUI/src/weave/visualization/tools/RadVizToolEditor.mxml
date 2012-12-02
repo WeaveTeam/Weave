@@ -225,8 +225,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
 						
 						//send one column to R at a time
-						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
+//						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+//						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
 						//DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
 					}
 					

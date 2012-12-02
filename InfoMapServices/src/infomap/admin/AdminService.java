@@ -1203,6 +1203,8 @@ public class AdminService extends GenericServlet{
     
     public EntityDistributionObject getEntityDistributionForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter,String[] entities,int rows)
     {
+    	System.out.println("IN ENTITY QUERY ");
+		
     	Object [][] urls = new Object[entities.length][];
     	
     	setSolrServer(solrServerUrl);
@@ -1211,11 +1213,15 @@ public class AdminService extends GenericServlet{
     	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
 		
 		if(queryString == null)
+		{
+			System.out.println("ENTITY QUERY IS NULL");
 			return null;
+		}
     	 
      	QueryResponse response = null;
      	try{
- 			
+     		System.out.println("IN ENTITY QUERY TRY");
+    		
      		SolrQuery q = new SolrQuery().setQuery(queryString);
      		
      		if(dateFilter != null)
@@ -1229,54 +1235,54 @@ public class AdminService extends GenericServlet{
      		//For each value in the entities array, we set up a group by query and search for the entity value in the title or description.
      		q.set(GroupParams.GROUP, true);
      		
-     		String groupQuery= "title:(\"" + entities[0] + "\") OR description:(\"" + entities[0] + "\")";
- 			q.set(GroupParams.GROUP_QUERY, groupQuery);
-     		
-     		for (int i=1; i<entities.length; i++)
-     		{
-     			groupQuery= "title:(\"" + entities[i] + "\") OR description:(\"" + entities[i] + "\")";
-     			q.add(GroupParams.GROUP_QUERY, groupQuery);
-     		}
-     		
      		q.set(GroupParams.GROUP_LIMIT,rows);
      		
-//     		System.out.println("ENTITY QUERY" + q.toString());
-     		
-     		response = solrInstance.query(q);
-     		
-     		GroupResponse gr = response.getGroupResponse();
-     		
-     		List<GroupCommand> gc = gr.getValues();
-     		
-     		Iterator<GroupCommand> gcIter = gc.iterator();
-     		
-     		
-     		
      		int count = 0;
-     		while(gcIter.hasNext())
+     		for (int i=0; i<entities.length; i++)
      		{
-     			GroupCommand g = gcIter.next();
-     			
-     			List<Group> groups = g.getValues();
-     			
-     			Iterator<Group> groupsIter = groups.iterator();
-     			while(groupsIter.hasNext())
-     			{
-     				Group group = groupsIter.next();
-     				
-     				SolrDocumentList docList = group.getResult();
-     				
-     				Iterator<SolrDocument> docIter = docList.iterator();
-     				ArrayList<String> docs =  new ArrayList<String>();
-     				while(docIter.hasNext())
-     				{
-     					SolrDocument doc = docIter.next();
-     					
-     					docs.add((String)doc.getFieldValue("link"));
-     				}
-     				urls[count] = docs.toArray(); 
-      			}
-     			count++;
+     			String groupQuery= "title:(\"" + entities[i] + "\") OR description:(\"" + entities[i] + "\")";
+     			q.set(GroupParams.GROUP_QUERY, groupQuery);
+//     			groupQuery= "title:(\"" + entities[i] + "\") OR description:(\"" + entities[i] + "\")";
+//     			q.add(GroupParams.GROUP_QUERY, groupQuery);
+     		
+	     		
+//     			System.out.println("ENTITY QUERY" + q.toString());
+	     		
+	     		response = solrInstance.query(q);
+	     		
+	     		GroupResponse gr = response.getGroupResponse();
+	     		
+	     		List<GroupCommand> gc = gr.getValues();
+	     		
+	     		Iterator<GroupCommand> gcIter = gc.iterator();
+	     		
+	     		
+	     		
+	     		while(gcIter.hasNext())
+	     		{
+	     			GroupCommand g = gcIter.next();
+	     			
+	     			List<Group> groups = g.getValues();
+	     			
+	     			Iterator<Group> groupsIter = groups.iterator();
+	     			while(groupsIter.hasNext())
+	     			{
+	     				Group group = groupsIter.next();
+	     				
+	     				SolrDocumentList docList = group.getResult();
+	     				
+	     				Iterator<SolrDocument> docIter = docList.iterator();
+	     				ArrayList<String> docs =  new ArrayList<String>();
+	     				while(docIter.hasNext())
+	     				{
+	     					SolrDocument doc = docIter.next();
+	     					
+	     					docs.add((String)doc.getFieldValue("link"));
+	     				}
+	     				urls[count] = docs.toArray(); 
+	      			}
+	     		}
+	     		count++;
      		}
      		
      	}catch(Exception e)

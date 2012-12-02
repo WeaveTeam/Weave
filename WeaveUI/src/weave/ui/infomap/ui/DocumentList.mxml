@@ -89,6 +89,8 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 								
 								var d:DocThumbnailComponent = data as DocThumbnailComponent;
 								
+								if(d == null)
+									return;
 								if(!stageUtils.mouseButtonDown)
 									DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,d.docURL.value,event.currentTarget as DisplayObject);
 							}
