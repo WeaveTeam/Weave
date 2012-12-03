@@ -161,6 +161,8 @@
 			
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
+			/* We separate dateFilter from query because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
+			is unpredictable. It is easier to handle the callbacks for keywords and date separately.*/
 			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true);
 
 			public const numOfTopics:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
@@ -567,7 +569,9 @@
 				hideIcons();
 				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter);
 				
-				numOfDocsQuery.addAsyncResponder(handleNumOfDocsQueryResult,handleNumOfDocsQueryFault);
+				numOfDocsQuery.addAsyncResponder(handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
+					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
+				
 				
 			}
 			
@@ -578,6 +582,12 @@
 			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:Object=null):void
 			{
+				//if the query has changed do nothing
+				if(token.keywords != query.keywords.value ||
+					token.startDate != dateFilter.startDate.value ||
+					token.endDate != dateFilter.endDate.value)
+					return;
+				
 				var numOfDocs:Number = event.result as Number;
 				
 				//If no documents found, show status and do nothing.
@@ -601,8 +611,10 @@
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(docKeySet,query.keywords.value.split(','),
+				var docSetQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(query.keywords.value.split(','),
 						relatedKeywords,dateFilter,5000);
+				
+				docSetQuery.addAsyncResponder(handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 //				else
 //				{
 //					if(!query.sources.value == '')
@@ -615,13 +627,65 @@
 				var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
 					query.keywords.value.split(','),relatedKeywords,dateFilter);
 				
-				wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault);
+				wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault,token);
 					
+			}
+			
+			
+			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:Object=null):void
+			{
+				//if the query has changed do nothing
+				if(token.keywords != query.keywords.value ||
+					token.startDate != dateFilter.startDate.value ||
+					token.endDate != dateFilter.endDate.value)
+					return;
+				
+				var docsArray:Array = event.result as Array;
+				var docsToAdd:Array = [];
+				var keys:Array = [];
+				
+				var urlCol:IAttributeColumn =_parentPanel.infoMapsDataSource.getColumnByName('url'); 
+				
+				for (var i:int = 0; i < docsArray.length; i++)
+				{
+					var link:String = docsArray[i][0];
+					
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
+					
+					//if the key is already present in the column, then we only add it to the keys keyset
+					//we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString
+					if(urlCol.containsKey(key))
+					{
+						keys.push(link);
+						continue;
+					}
+					
+					docsToAdd.push(docsArray[i]);
+					
+					keys.push(link);
+				}
+				
+				_parentPanel.infoMapsDataSource.csvData.setSessionState(
+					(_parentPanel.infoMapsDataSource.csvData.getSessionState() as Array).concat(docsToAdd));			
+				
+				docKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+				// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
+				docKeySet.triggerCallbacks(); 
+			}
+			
+			private function handleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
+			{
+				
 			}
 			
 			
 			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
 			{
+				//if the query has changed do nothing
+				if(token.keywords != query.keywords.value ||
+					token.startDate != dateFilter.startDate.value ||
+					token.endDate != dateFilter.endDate.value)
+					return;
 				wordCount = event.result as Array;
 				nodeBase.filterImg.visible = true;
 			}
@@ -953,37 +1017,33 @@
 				
 				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
 
-				var entities:Array = [];
 				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
 				for each(var attrCol:IAttributeColumn in entityColumns)
 				{
-					for each(var key:IQualifiedKey in keys)
+					for each(var qKey:IQualifiedKey in keys)
 					{
-						var value:String = ColumnUtils.getString(attrCol,key);
+						var value:String = ColumnUtils.getString(attrCol,qKey);
 						if(value)
 						{
 							//if the entity is encountered for the first time, create an array containing the key
 							//else push the key to the already existing array
 							if(_entitiesToKeysHashMap[value] == undefined)
 							{
-								entities.push(value);
-								var a:Array = [key];
+								var a:Array = [qKey];
 								_entitiesToKeysHashMap[value] = a;
 								
 							}else
 							{
-								(_entitiesToKeysHashMap[value] as Array).push(key);
+								(_entitiesToKeysHashMap[value] as Array).push(qKey);
 							}
 						}
 					}
 				}
 				
-				
-				for (var i:int=0; i<entities.length; i++)
+				var entities:Array = [];
+				for (var key:Object in _entitiesToKeysHashMap)
 				{
-					var len:int = (_entitiesToKeysHashMap[entities[i]] as Array).length;
-					
-				
+					entities.push(key);
 				}
 				
 				var requiredKeywords:Array = query.keywords.value.split(',');
@@ -994,7 +1054,8 @@
 				var entityQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
 															relatedKeywords,entities,dateFilter,5000);
 				
-				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault);
+				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault,
+					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
 			}
 			
 			
@@ -1003,6 +1064,11 @@
 			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
 			private function handleEntityQueryResults(event:ResultEvent,token:Object=null):void
 			{
+				//if the query has changed do nothing
+				if(token.keywords != query.keywords.value ||
+					token.startDate != dateFilter.startDate.value ||
+					token.endDate != dateFilter.endDate.value)
+					return;
 				var entities:Array = event.result.entities;
 				var urls:Array = event.result.urls;
 				
@@ -1702,17 +1768,20 @@
 			
 			private function getTopicsClassification():void
 			{
+				var topicsQuery:DelayedAsyncInvocation = null
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
-					var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
 						5000, 3, numOfKeywordsInEachTopic.value);
 				}
 				else{
-				var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
+				topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
 					5000, numOfTopics.value, numOfKeywordsInEachTopic.value);
 				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
-				topicsQuery.addAsyncResponder(handleTopicsQueryResult,handleTopicsQueryFault);
+				
+				topicsQuery.addAsyncResponder(handleTopicsQueryResult,handleTopicsQueryFault,
+					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
 			}
 			
 			private function handleTopicsPropertiesChange():void
@@ -1778,6 +1847,10 @@
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
 			{
+				if(token.keywords != query.keywords.value ||
+					token.startDate != dateFilter.startDate.value ||
+					token.endDate != dateFilter.endDate.value)
+					return;
 				_topicsResult = event.result;
 
 				if (_topicsResult.keywords == null || _topicsResult.urls == null)

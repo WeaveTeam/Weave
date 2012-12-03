@@ -183,15 +183,15 @@ package weave.data.DataSources
 			return q;
 		}
 		
-		public function getDocumentsForQueryWithRelatedKeywords(docKeySet:KeySet,requiredKeywords:Array,relatedKeywords:Array,
-																dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):void
+		public function getDocumentsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,
+																dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):DelayedAsyncInvocation
 		{
 			
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
 			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getResultsForQueryWithRelatedKeywords(requiredKeywords,relatedKeywords,dateFilterString,
 																			numberOfRequestedDocuments);
-			q.addAsyncResponder(handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,{docKeySet:docKeySet});
+			return q;
 			
 		}
 		
@@ -260,44 +260,6 @@ package weave.data.DataSources
 			return dateFilterString;
 		}
 		
-		private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:Object=null):void
-		{
-			var docsArray:Array = event.result as Array;
-			var docsToAdd:Array = [];
-			var keys:Array = [];
-			
-			var urlCol:IAttributeColumn =getColumnByName('url'); 
-			
-			for (var i:int = 0; i < docsArray.length; i++)
-			{
-				var link:String = docsArray[i][0];
-				
-				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
-				
-				//if the key is already present in the column, then we only add it to the keys keyset
-				//we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString
-				if(urlCol.containsKey(key))
-				{
-					keys.push(link);
-					continue;
-				}
-				
-				docsToAdd.push(docsArray[i]);
-				
-				keys.push(link);
-			}
-			
-			csvData.setSessionState((csvData.getSessionState() as Array).concat(docsToAdd));			
-			
-			(token.docKeySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
-			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
-			(token.docKeySet as KeySet).triggerCallbacks(); 
-		}
-		
-		private function handleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
-		{
-			
-		}
 		
 		/**
 		 * This function takes a query and adds a filter to restrict by field values 

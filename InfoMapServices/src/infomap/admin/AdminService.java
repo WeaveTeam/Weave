@@ -130,13 +130,13 @@ public class AdminService extends GenericServlet{
     
     public static void main(String[] args) {
     	
-    	//AdminService inst = new AdminService();
-    	
-    //	String [] requiredKeywords = new String[1];
-    	
-    	//requiredKeywords[0] = "obesity";
-    	
-    	//inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5, 20);
+//    	AdminService inst = new AdminService();
+//    	
+//     String [] requiredKeywords = new String[1];
+//    	
+//    	requiredKeywords[0] = "obesity";
+//    	
+//    	inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5, 20);
 	}
     
     private static void deleteAllDocuments()
@@ -1011,14 +1011,14 @@ public class AdminService extends GenericServlet{
         		   }
            }
            //tracing
-/*           for(int i = 0; i < numOfTopics; i++)
-			{
-				for(int j = 0; j < numOfKeywordsInEachTopic; j++)
-				{
-				System.out.print(topicKeywords[i][j]);
-				}
-				System.out.println();
-			}*/
+//          for(int i = 0; i < numOfTopics; i++)
+//			{
+//				for(int j = 0; j < numOfKeywordsInEachTopic; j++)
+//				{
+//				System.out.print(topicKeywords[i][j]);
+//				}
+//				System.out.println();
+//			}
            
 		      topicModelingResutls.keywords = topicKeywords;
 		      
