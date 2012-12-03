@@ -4,7 +4,7 @@ Use the static functions to show this as a popup.
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 			 xmlns:infomap="weave.ui.infomap.*" 
-			 width="350" height="100%" 
+			 width="400" height="400" 
 			 verticalScrollPolicy="off" 
 			 horizontalScrollPolicy="off" 
 			 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
@@ -94,7 +94,13 @@ Use the static functions to show this as a popup.
 					instance.nodeTitle.text= source.getTitleForURL(_docURL.value);
 					instance.nodeDescription.htmlText = source.getDescriptionForURL(_docURL.value);
 					instance.nodeTimeStamp.text = source.getDatePublishedForURL(_docURL.value);
+//					instance.height = instance.nodeTitle.textHeight +  instance.nodeDescription.textHeight 
+//										+ instance.nodeTimeStamp.textHeight;
+//					instance.invalidateSize();
+//					instance.invalidateDisplayList();
 					instance.fadeIn.play();
+//					trace("TEXT HEIGHT IS ",instance.nodeDescription.textHeight);
+//					trace("HEIGHT IS ",instance.height);
 				}
 				
 				public static function hide():void

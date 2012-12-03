@@ -78,7 +78,6 @@ import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
 import com.google.gson.Gson;
 
-
 import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
 import infomap.beans.TopicClassificationResults;
@@ -93,1600 +92,1559 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-
 /**
- *class SolrDataServices
+ * class SolrDataServices
  */
-public class AdminService extends GenericServlet{
+public class AdminService extends GenericServlet {
 	private static final long serialVersionUID = 1L;
-       
-    private static String username = "root";
-    private static String password = "oic3Ind2";
-    private static String host = "129.63.8.219";
-    private static String port = "3306";
-    private static String database = "solr_sources";
-    private Connection conn = null;
-	
-    public static HttpSolrServer solrInstance = null;
-    private static int bufferSize = 20;
+
+	private static String username = "root";
+	private static String password = "oic3Ind2";
+	private static String host = "129.63.8.219";
+	private static String port = "3306";
+	private static String database = "solr_sources";
+	private Connection conn = null;
+
+	public static HttpSolrServer solrInstance = null;
+	private static int bufferSize = 20;
 	private static int backgroundThreads = 4;
-	
-	
-    public static String solrServerUrl = "http://129.63.8.219:8080/solr/demo_core/";
 
-    public static ConcurrentUpdateSolrServer streamingSolrserver = null;
-	
-    public AdminService() {
-        
-//        getConnection();
-//		try{
-//			
-//			solrInstance = new CommonsHttpSolrServer(solrServerUrl);
-//		}catch(Exception e){
-//			e.printStackTrace();
-//		}
-    }
-    
-    
-    public static void main(String[] args) {
-    	
-//    	AdminService inst = new AdminService();
-//    	
-//     String [] requiredKeywords = new String[1];
-//    	
-//    	requiredKeywords[0] = "obesity";
-//    	
-//    	inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5, 20);
+	public static String solrServerUrl = "http://129.63.8.219:8080/solr/demo_core/";
+
+	public static ConcurrentUpdateSolrServer streamingSolrserver = null;
+
+	public AdminService() {
+
+		// getConnection();
+		// try{
+		//
+		// solrInstance = new CommonsHttpSolrServer(solrServerUrl);
+		// }catch(Exception e){
+		// e.printStackTrace();
+		// }
 	}
-    
-    private static void deleteAllDocuments()
-    {
-    	try{
-    		setSolrServer("http://129.63.8.219:8080/solr/demo_core/");
-    		
-    		
-    		
-    		String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
-    		
-    		SolrQuery query = new SolrQuery();
-    		
-    		//query = query + "&wt=json";
-       	 QueryResponse response = null;
-       	 Object[][]result = new Object[5][];
-       	try{
-   			
-       		query.setQuery(queryString);
-       		
-       		query.setFields("link");
-       		
-       		query.set(GroupParams.GROUP_LIMIT, 5000);
-       		
-       		query.set(GroupParams.GROUP, true);
-       		
-	       	query.set(GroupParams.GROUP_QUERY, "title:(\"new jersey\") OR description:(\"new jersey\")");
-	       	
-	       	query.add(GroupParams.GROUP_QUERY, "title:(\"massachusetts\") OR description:(\"massachusetts\")");
-       		      	
-	       	response = solrInstance.query(query);
-       		GroupResponse gr = response.getGroupResponse();
-     		
-     		List<GroupCommand> gc = gr.getValues();
-     		
-     		Iterator<GroupCommand> gcIter = gc.iterator();
-     		
-     		
-     		int count = 0;
-     		while(gcIter.hasNext())
-     		{
-     			GroupCommand g = gcIter.next();
-     			
-     			List<Group> groups = g.getValues();
-     			
-     			Iterator<Group> groupsIter = groups.iterator();
-     			while(groupsIter.hasNext())
-     			{
-     				Group group = groupsIter.next();
-     				
-     				SolrDocumentList docList = group.getResult();
-     				
-     				Iterator<SolrDocument> docIter = docList.iterator();
-     				ArrayList<String> docs =  new ArrayList<String>();
-     				while(docIter.hasNext())
-     				{
-     					SolrDocument doc = docIter.next();
-     					
-     					docs.add((String)doc.getFieldValue("link"));
-     				}
-     				System.out.println("DOCS ARE + " + docs.toString());
-     				result[count] = docs.toArray(); 
-      			}
-     			count++;
-     		}
-       		
-//       		SolrInputDocument d = new SolrInputDocument();
-//       		Map<String, String> mp = new HashMap<String, String>();
-//       		mp.put("set", "BIG TITLE SABMAN. 8");
-//       		d.addField("link", "http://cardinalscholar.bsu.edu/handle/123456789/194764");
-////       		d.addField("imgName", mp);
-//       		d.addField("description","This is a description");
-////       		d.addField("attr_text_summary","This is a summary.");
-//       		d.addField("title",mp);
-////       		UpdateResponse resp = solrInstance.add(d);
-//       		
-//       		SolrInputDocument d2 = new SolrInputDocument();
-//       		Map<String, String> mp2 = new HashMap<String, String>();
-//       		mp2.put("set", "BIG TITLE SABMAN 9");
-//       		d2.addField("link", "http://cardinalscholar.bsu.edu/handle/123456789/1947640000");
-////       		d2.addField("imgName", mp2);
-//       		d2.addField("description","This is a description");
-////       		d2.addField("attr_text_summary","This is a summary.");
-//       		d2.addField("title",mp2);
-////       		UpdateResponse resp2 = solrInstance.add(d2);
-//       		
-//       		SolrInputDocument[] twoDocsArray = new SolrInputDocument[2];
-//       		
-//       		twoDocsArray[0] = d;
-//       		twoDocsArray[1] = d2;
-//       		
-//       		List<SolrInputDocument> twoDocs = Arrays.asList(twoDocsArray);
-//        	
-//       		setStreamingSolrServer("http://129.63.8.219:8080/solr/research_core/");
-//       		
-//       		streamingSolrserver.add(twoDocs,1000);
 
-       		System.out.println("Updated with ");
-       		
-       	}catch(Exception e)
-       	{
-       		e.printStackTrace();
-       	}
-    		
-    	}catch(Exception e)
-    	{
-    		e.printStackTrace();
-    	}
+	public static void main(String[] args) {
+//testing
+/*		 AdminService inst = new AdminService();
 		
-    }
-    
-	private static void setSolrServer(String solrURL)
-	{
-		try{
-			
-			if(solrInstance != null)
-			{
-				if(solrInstance.getBaseURL().equals(solrURL))
+		 String [] requiredKeywords = new String[1];
+		
+		 requiredKeywords[0] = "obesity";
+		
+		 inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5,
+		 20);*/
+	}
+
+	private static void deleteAllDocuments() {
+		try {
+			setSolrServer("http://129.63.8.219:8080/solr/demo_core/");
+
+			String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
+
+			SolrQuery query = new SolrQuery();
+
+			// query = query + "&wt=json";
+			QueryResponse response = null;
+			Object[][] result = new Object[5][];
+			try {
+
+				query.setQuery(queryString);
+
+				query.setFields("link");
+
+				query.set(GroupParams.GROUP_LIMIT, 5000);
+
+				query.set(GroupParams.GROUP, true);
+
+				query.set(GroupParams.GROUP_QUERY,
+						"title:(\"new jersey\") OR description:(\"new jersey\")");
+
+				query.add(GroupParams.GROUP_QUERY,
+						"title:(\"massachusetts\") OR description:(\"massachusetts\")");
+
+				response = solrInstance.query(query);
+				GroupResponse gr = response.getGroupResponse();
+
+				List<GroupCommand> gc = gr.getValues();
+
+				Iterator<GroupCommand> gcIter = gc.iterator();
+
+				int count = 0;
+				while (gcIter.hasNext()) {
+					GroupCommand g = gcIter.next();
+
+					List<Group> groups = g.getValues();
+
+					Iterator<Group> groupsIter = groups.iterator();
+					while (groupsIter.hasNext()) {
+						Group group = groupsIter.next();
+
+						SolrDocumentList docList = group.getResult();
+
+						Iterator<SolrDocument> docIter = docList.iterator();
+						ArrayList<String> docs = new ArrayList<String>();
+						while (docIter.hasNext()) {
+							SolrDocument doc = docIter.next();
+
+							docs.add((String) doc.getFieldValue("link"));
+						}
+						System.out.println("DOCS ARE + " + docs.toString());
+						result[count] = docs.toArray();
+					}
+					count++;
+				}
+
+				// SolrInputDocument d = new SolrInputDocument();
+				// Map<String, String> mp = new HashMap<String, String>();
+				// mp.put("set", "BIG TITLE SABMAN. 8");
+				// d.addField("link",
+				// "http://cardinalscholar.bsu.edu/handle/123456789/194764");
+				// // d.addField("imgName", mp);
+				// d.addField("description","This is a description");
+				// // d.addField("attr_text_summary","This is a summary.");
+				// d.addField("title",mp);
+				// // UpdateResponse resp = solrInstance.add(d);
+				//
+				// SolrInputDocument d2 = new SolrInputDocument();
+				// Map<String, String> mp2 = new HashMap<String, String>();
+				// mp2.put("set", "BIG TITLE SABMAN 9");
+				// d2.addField("link",
+				// "http://cardinalscholar.bsu.edu/handle/123456789/1947640000");
+				// // d2.addField("imgName", mp2);
+				// d2.addField("description","This is a description");
+				// // d2.addField("attr_text_summary","This is a summary.");
+				// d2.addField("title",mp2);
+				// // UpdateResponse resp2 = solrInstance.add(d2);
+				//
+				// SolrInputDocument[] twoDocsArray = new SolrInputDocument[2];
+				//
+				// twoDocsArray[0] = d;
+				// twoDocsArray[1] = d2;
+				//
+				// List<SolrInputDocument> twoDocs =
+				// Arrays.asList(twoDocsArray);
+				//
+				// setStreamingSolrServer("http://129.63.8.219:8080/solr/research_core/");
+				//
+				// streamingSolrserver.add(twoDocs,1000);
+
+				System.out.println("Updated with ");
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void setSolrServer(String solrURL) {
+		try {
+
+			if (solrInstance != null) {
+				if (solrInstance.getBaseURL().equals(solrURL))
 					return;
 			}
 			solrServerUrl = solrURL;
 			solrInstance = new HttpSolrServer(solrServerUrl);
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-	}
-	
-	private static void setStreamingSolrServer(String solrURL)
-	{
-		try {
-			if(streamingSolrserver!=null)
-			{
-				//if updating the same solr server no need to create another instance
-				if(solrServerUrl.equals(solrURL))
-						return;
-			}
-			
-			solrServerUrl = solrURL;
-			streamingSolrserver = new ConcurrentUpdateSolrServer(solrServerUrl, bufferSize, backgroundThreads);
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-    private void getConnection()
-    {
-    	try{
-    		Class.forName("com.mysql.jdbc.Driver").newInstance();
-    		
-    		String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-    		
-    		
-    		
-    	}catch (Exception e)
-    	{
-    		e.printStackTrace();
-    	}
-    	
-    }
-	
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
-    	super.doGet(request, response);
-    	PrintWriter out = response.getWriter();
-    	
+
+	private static void setStreamingSolrServer(String solrURL) {
+		try {
+			if (streamingSolrserver != null) {
+				// if updating the same solr server no need to create another
+				// instance
+				if (solrServerUrl.equals(solrURL))
+					return;
+			}
+
+			solrServerUrl = solrURL;
+			streamingSolrserver = new ConcurrentUpdateSolrServer(solrServerUrl,
+					bufferSize, backgroundThreads);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void getConnection() {
+		try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+			String url = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		super.doGet(request, response);
+		PrintWriter out = response.getWriter();
+
 		out.println("Deployed!");
 	}
-    
-    
-    @Override
-    public void destroy() {
-    	// TODO Auto-generated method stub
-    	System.out.println("Shutting down data sources Executor");
-    	executor.shutdown();
-    	super.destroy();
-    }
-    synchronized public Object[][] getRssFeeds()
-    {
-    	String query = "SELECT title,url FROM rss_feeds";
-    	SQLResult result = null;
-    	Connection connection = null;
-		try
-		{
-			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-			connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		System.out.println("Shutting down data sources Executor");
+		executor.shutdown();
+		super.destroy();
+	}
+
+	synchronized public Object[][] getRssFeeds() {
+		String query = "SELECT title,url FROM rss_feeds";
+		SQLResult result = null;
+		Connection connection = null;
+		try {
+			String url = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"),
+					url);
 			result = SQLUtils.getRowSetFromQuery(connection, query);
-			
-		}
-		catch (Exception e)
-		{
+
+		} catch (Exception e) {
 			System.out.println(query);
 			e.printStackTrace();
-		}finally{
+		} finally {
 			SQLUtils.cleanup(connection);
 		}
-		return  result.rows;	
-    }
-    
-    public String addRssFeed(String title,String url) throws RemoteException
-	{
-		try{
-			
-			
-			String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-			
+		return result.rows;
+	}
 
-			String query = "SELECT * FROM rss_feeds WHERE url = '"+ url + "'";
-			
+	public String addRssFeed(String title, String url) throws RemoteException {
+		try {
+
+			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+
+			String query = "SELECT * FROM rss_feeds WHERE url = '" + url + "'";
+
 			SQLResult checkResult = SQLUtils.getRowSetFromQuery(conn, query);
-			
-			if (checkResult.rows.length != 0)
-			{
+
+			if (checkResult.rows.length != 0) {
 				return "RSS Feed already exists";
 			}
-			
-			String titleQuery = "SELECT * FROM rss_feeds WHERE title = '"+ title + "'";
-			
-			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn, titleQuery);
-			
-			if (checkTitleQueryResult.rows.length != 0)
-			{
+
+			String titleQuery = "SELECT * FROM rss_feeds WHERE title = '"
+					+ title + "'";
+
+			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
+					titleQuery);
+
+			if (checkTitleQueryResult.rows.length != 0) {
 				return "There is already a feed with the same title. Please give a different title.";
 			}
-			
+
 			Map<String, Object> valueMap = new HashMap<String, Object>();
-			
+
 			valueMap.put("title", title);
 			valueMap.put("url", url);
-			
+
 			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
-			
+
 			return "RSS Feed added successfully";
-		}catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RemoteException(e.getMessage());
 		}
-		
-		
-	}
-    
-    
-    public String deleteRssFeed(String url) throws RemoteException
-	{
-    	try{
-			
-    		String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-			
-			
-			
-			String query = "DELETE FROM rss_feeds WHERE url = '"+ url + "'";
-			
-			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
-			
-			return "RSS Feed was deleted";
-		}catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
-		
+
 	}
 
-    public String addAtomFeed(String url, String title) throws RemoteException
-	{
-		try{
-			
-			
-			String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-			
+	public String deleteRssFeed(String url) throws RemoteException {
+		try {
+
+			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+
+			String query = "DELETE FROM rss_feeds WHERE url = '" + url + "'";
+
+			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
+
+			return "RSS Feed was deleted";
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
+		}
+
+	}
+
+	public String addAtomFeed(String url, String title) throws RemoteException {
+		try {
+
+			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+
 			Statement stat = conn.createStatement();
-			
-			String query = "SELECT * FROM atom_feeds WHERE url = '"+ url + "'";
-			
+
+			String query = "SELECT * FROM atom_feeds WHERE url = '" + url + "'";
+
 			ResultSet checkIfExists = stat.executeQuery(query);
-			
-			//if url already exists then return
-			if(!checkIfExists.next())
+
+			// if url already exists then return
+			if (!checkIfExists.next())
 				return "Atom Feed alreadt exists";
 
-			
-			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"+ title + "'";
-			
-			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn, titleQuery);
-			
+			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"
+					+ title + "'";
+
+			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
+					titleQuery);
+
 			if (checkTitleQueryResult.rows.length != 0)
 				return "There is already a feed with the same title. Please give a different title.";
-			
-			
+
 			Map<String, Object> valueMap = new HashMap<String, Object>();
-			
+
 			valueMap.put("title", title);
 			valueMap.put("url", url);
-			
+
 			SQLUtils.insertRow(conn, database, "atom_feeds", valueMap);
-			
+
 			return "Atom Feed added successfully";
-			
-		}catch (Exception e)
-		{
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RemoteException(e.getMessage());
 		}
-		
-		
+
 	}
-    public void deleteAtomFeed(String title)
-	{
-		try{
-			
-			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-			
-			
-			String deleteFileSource = "DELETE FROM atom_feeds WHERE titile ='"+title+"')";
-			
+
+	public void deleteAtomFeed(String title) {
+		try {
+
+			String url = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+
+			String deleteFileSource = "DELETE FROM atom_feeds WHERE titile ='"
+					+ title + "')";
+
 			Statement stat = conn.createStatement();
 			int result = stat.executeUpdate(deleteFileSource);
-			
+
 			System.out.println("deleting atom feed: " + result);
-			
+
 			stat.close();
 			conn.close();
-			
-		}catch (Exception e)
-		{
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-    
-    public void addFilePath(String url, String title)
-	{
-    	try{
-			
-    		String connURL = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-			
-		
-		String insertFileSource = "INSERT INTO file_sources (url,title) VALUE ('"+ url+"','"+title+"')";
-		
-		Statement stat = conn.createStatement();
-		int result = stat.executeUpdate(insertFileSource);
-		
-		System.out.println("adding file path : " + result);
-			
-		recursivelyAddFiles(url);
-		
-    	}catch(Exception e)
-    	{
-    		e.printStackTrace();
-    	}
-			
-		
-	}
-    
-    
-    public void recursivelyAddFiles(String path)
-    {
-    	
-    	File file = new File(path);
-		
-		if(file.isFile())
-		{
-	    	try{
-				
-	    		String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-	    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-				
-			
-			String insertFileSource = "INSERT INTO file_paths (url,title) VALUE ('"+ path+"')";
-			
+
+	public void addFilePath(String url, String title) {
+		try {
+
+			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+
+			String insertFileSource = "INSERT INTO file_sources (url,title) VALUE ('"
+					+ url + "','" + title + "')";
+
 			Statement stat = conn.createStatement();
 			int result = stat.executeUpdate(insertFileSource);
-			
-			System.out.println("adding file path : " + result);
-			
-			stat.close();
-			conn.close();
-		
-			}catch (Exception e)
-			{
-				e.printStackTrace();
-			}
-		}else if(file.isDirectory())
-		{
-			String[] fileList = file.list();
-			
-			for(int i=0; i<fileList.length; i++)
-			{
-				recursivelyAddFiles(path+"/"+fileList[i]);
-			}
-			
-		}
-	
-    
 
-	}
-    
-    public void deleteFilePath(String title)
-	{
-		try{
-			
-			String url = SQLUtils.getConnectString("MySQL", host, port, database, username, password);
-    		conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-			
-			String deleteFileSource = "DELETE FROM file_sources WHERE titile ='"+title+"')";
-			
-			Statement stat = conn.createStatement();
-			int result = stat.executeUpdate(deleteFileSource);
-			
-			System.out.println("deleting file path : " + result);
-			
-			stat.close();
-			conn.close();
-			
-		}catch (Exception e)
-		{
+			System.out.println("adding file path : " + result);
+
+			recursivelyAddFiles(url);
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-	}
-    
-    public String renameFile(String filePath, String newName, Boolean overwrite)
-    {
-    	File file = new File(filePath);
-    	 if(file.isFile())
-    	 {
-    		 File newFile = new File(file.getAbsolutePath()+newName);
-    		 if(newFile.isFile())
-    			 if(!overwrite)
-    				 return "file name already exists. Give a new file name or allow overwrite.";
-    			 else{
-    				 newFile.delete();
-    			 }
-    		
-    		 Boolean result = file.renameTo(newFile);
-    		 if(result)
-    			 return "file sucessfully renamed";
-    		 else
-    			 return "file rename not successful";
-    	 }else{
-    		 return "Given file path is not a file";
-    	 }
-    }
-    
-    /**
-     * This function takes an array of entities and an array of documents. This checks for which entities
-     * are present in the documents and returns that set of entities
-     * 
-     * @param entities
-     * @param docs
-     * @return
-     */
-    public String[] searchInDocuments(String[] entities, String[] docs,String solrURL)
-    {
-    	 setSolrServer(solrURL);
-    	HashMap<String, Boolean> matchedEntitiesMap = new HashMap<String, Boolean>();
-		
-    	for (int i = 0; i < docs.length; i++)
-    	{
-    		//$match = array('\\', '+', '-', '&', '|', '!', '(', ')', '{', '}', '[', ']', '^', '~', '*', '?', ':', '"', ';', ' ');
-            //$replace = array('\\\\', '\\+', '\\-', '\\&', '\\|', '\\!', '\\(', '\\)', '\\{', '\\}', '\\[', '\\]', '\\^', '\\~', '\\*', '\\?', '\\:', '\\"', '\\;', '\\ ');
-            
-    		String docURL = docs[i].replaceAll("\\:", "\\\\:");
-    		docURL = docURL.replaceAll("&amp;", "%26");
-    		System.out.println("QUERYING FOR " + docURL);
-    		String queryURL = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=1&indent=on&fl=description&q=link:" + docURL;
-    		try{
-    			
-    			URL url = new URL(queryURL);
-    			URLConnection solrConn = url.openConnection();
-    			solrConn.setDoOutput(true);
-    			
-    			//read the response
-    			BufferedReader rd = new BufferedReader(new InputStreamReader(solrConn.getInputStream()));
- 
-    			String line;
-    			String content = "";
-    			while ((line = rd.readLine()) != null) {
-    				
-    				content += line;
-    			}
-    			
-    			content = content.replaceAll("[^ -~]", " ");
-    			
-    			Document doc = XMLUtils.getXMLFromString(content);
 
-    			XPathFactory factory = XPathFactory.newInstance();
-    			XPath xpath = factory.newXPath();
-    			
-    			String descr = XMLUtils.getStringFromXPath(doc, xpath, "/response/result/doc/str/text()");
-    			
-    			for (int j=0; j < entities.length; j++)
-    			{
-    				if(descr.toLowerCase().indexOf(entities[j].toLowerCase()) != -1)
-    				{
-    					matchedEntitiesMap.put(entities[j], true);
-    				}
-    			}
-    			
-    			
-    			
-    		}catch (Exception e)
-    		{
-    			e.printStackTrace();
-    		}
-    		
-    	}
-    	
-    	
-    	return matchedEntitiesMap.keySet().toArray(new String[0]);
-    
-    	
-    	
-    }
-    
-    public long getNumberOfMatchedDocuments(String query,String fq,String solrURL)
-    {
-        	 setSolrServer(solrURL);
-        	//query = query + "&wt=json";
-        	 QueryResponse response = null;
-        	try{
-    			
-        		SolrQuery q = new SolrQuery().setQuery(query);
-        		if(!fq.isEmpty())
-        			q.setFilterQueries(fq);
-        		q.setRows(1);
-        		 response = solrInstance.query(q);
-        		
-        		System.out.println("QUERY IS " + q.toString());
-        		
-        	}catch(Exception e)
-        	{
-        		e.printStackTrace();
-        	}
-        	return response.getResults().getNumFound();
-    }
-    
-    private int highlightSnippetsCount =10; 
-    private int highlightFragmentSize = 150;
-    private ExecutorService executor = Executors.newFixedThreadPool(3);
-    private DebugTimer timer = new DebugTimer();
-    
-    private static String formulateQuery(String[] requiredKeywords,String[] relatedKeywords)
-    {
-    	String result = null;
-    	
-    	//We OR the required keywords and OR the related keywords. Then we AND between the two.
-    	//So this way, we have at least one of the required keywords and one of the related keywords
-    	
-    	
-    	if(requiredKeywords== null || requiredKeywords.length == 0)
-    	{
-    		return result;
-    	}
-    	
-    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
-    	String queryString = "(" + requiredQueryString + ")";
-		
-    	if(relatedKeywords !=null && relatedKeywords.length > 0)
-    	{
-    		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
-    		queryString = queryString + " AND " + "(" + relatedQueryString + ")";
-    	}
-    	
-    	result = "title:(" + queryString + ") OR description:(" + queryString + ") OR attr_text_keywords:(" + queryString + ")";
-    	
-    	return result;
-    }
-    
-    public String[][] getWordCount(String[] requiredKeywords,String[] relatedKeywords,String dateFilter)
-    {
+	}
+
+	public void recursivelyAddFiles(String path) {
+
+		File file = new File(path);
+
+		if (file.isFile()) {
+			try {
+
+				String url = SQLUtils.getConnectString("MySQL", host, port,
+						database, username, password);
+				conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+
+				String insertFileSource = "INSERT INTO file_paths (url,title) VALUE ('"
+						+ path + "')";
+
+				Statement stat = conn.createStatement();
+				int result = stat.executeUpdate(insertFileSource);
+
+				System.out.println("adding file path : " + result);
+
+				stat.close();
+				conn.close();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else if (file.isDirectory()) {
+			String[] fileList = file.list();
+
+			for (int i = 0; i < fileList.length; i++) {
+				recursivelyAddFiles(path + "/" + fileList[i]);
+			}
+
+		}
+
+	}
+
+	public void deleteFilePath(String title) {
+		try {
+
+			String url = SQLUtils.getConnectString("MySQL", host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+
+			String deleteFileSource = "DELETE FROM file_sources WHERE titile ='"
+					+ title + "')";
+
+			Statement stat = conn.createStatement();
+			int result = stat.executeUpdate(deleteFileSource);
+
+			System.out.println("deleting file path : " + result);
+
+			stat.close();
+			conn.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public String renameFile(String filePath, String newName, Boolean overwrite) {
+		File file = new File(filePath);
+		if (file.isFile()) {
+			File newFile = new File(file.getAbsolutePath() + newName);
+			if (newFile.isFile())
+				if (!overwrite)
+					return "file name already exists. Give a new file name or allow overwrite.";
+				else {
+					newFile.delete();
+				}
+
+			Boolean result = file.renameTo(newFile);
+			if (result)
+				return "file sucessfully renamed";
+			else
+				return "file rename not successful";
+		} else {
+			return "Given file path is not a file";
+		}
+	}
+
+	/**
+	 * This function takes an array of entities and an array of documents. This
+	 * checks for which entities are present in the documents and returns that
+	 * set of entities
+	 * 
+	 * @param entities
+	 * @param docs
+	 * @return
+	 */
+	public String[] searchInDocuments(String[] entities, String[] docs,
+			String solrURL) {
+		setSolrServer(solrURL);
+		HashMap<String, Boolean> matchedEntitiesMap = new HashMap<String, Boolean>();
+
+		for (int i = 0; i < docs.length; i++) {
+			// $match = array('\\', '+', '-', '&', '|', '!', '(', ')', '{', '}',
+			// '[', ']', '^', '~', '*', '?', ':', '"', ';', ' ');
+			// $replace = array('\\\\', '\\+', '\\-', '\\&', '\\|', '\\!',
+			// '\\(', '\\)', '\\{', '\\}', '\\[', '\\]', '\\^', '\\~', '\\*',
+			// '\\?', '\\:', '\\"', '\\;', '\\ ');
+
+			String docURL = docs[i].replaceAll("\\:", "\\\\:");
+			docURL = docURL.replaceAll("&amp;", "%26");
+			System.out.println("QUERYING FOR " + docURL);
+			String queryURL = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=1&indent=on&fl=description&q=link:"
+					+ docURL;
+			try {
+
+				URL url = new URL(queryURL);
+				URLConnection solrConn = url.openConnection();
+				solrConn.setDoOutput(true);
+
+				// read the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(
+						solrConn.getInputStream()));
+
+				String line;
+				String content = "";
+				while ((line = rd.readLine()) != null) {
+
+					content += line;
+				}
+
+				content = content.replaceAll("[^ -~]", " ");
+
+				Document doc = XMLUtils.getXMLFromString(content);
+
+				XPathFactory factory = XPathFactory.newInstance();
+				XPath xpath = factory.newXPath();
+
+				String descr = XMLUtils.getStringFromXPath(doc, xpath,
+						"/response/result/doc/str/text()");
+
+				for (int j = 0; j < entities.length; j++) {
+					if (descr.toLowerCase().indexOf(entities[j].toLowerCase()) != -1) {
+						matchedEntitiesMap.put(entities[j], true);
+					}
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		return matchedEntitiesMap.keySet().toArray(new String[0]);
+
+	}
+
+	public long getNumberOfMatchedDocuments(String query, String fq,
+			String solrURL) {
+		setSolrServer(solrURL);
+		// query = query + "&wt=json";
+		QueryResponse response = null;
+		try {
+
+			SolrQuery q = new SolrQuery().setQuery(query);
+			if (!fq.isEmpty())
+				q.setFilterQueries(fq);
+			q.setRows(1);
+			response = solrInstance.query(q);
+
+			System.out.println("QUERY IS " + q.toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response.getResults().getNumFound();
+	}
+
+	private int highlightSnippetsCount = 10;
+	private int highlightFragmentSize = 150;
+	private ExecutorService executor = Executors.newFixedThreadPool(3);
+	private DebugTimer timer = new DebugTimer();
+
+	private static String formulateQuery(String[] requiredKeywords,
+			String[] relatedKeywords) {
+		String result = null;
+
+		// We OR the required keywords and OR the related keywords. Then we AND
+		// between the two.
+		// So this way, we have at least one of the required keywords and one of
+		// the related keywords
+
+		if (requiredKeywords == null || requiredKeywords.length == 0) {
+			return result;
+		}
+
+		String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+		String queryString = "(" + requiredQueryString + ")";
+
+		if (relatedKeywords != null && relatedKeywords.length > 0) {
+			String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
+			queryString = queryString + " AND " + "(" + relatedQueryString
+					+ ")";
+		}
+
+		result = "title:(" + queryString + ") OR description:(" + queryString
+				+ ") OR attr_text_keywords:(" + queryString + ")";
+
+		return result;
+	}
+
+	public String[][] getWordCount(String[] requiredKeywords,
+			String[] relatedKeywords, String dateFilter) {
 		setSolrServer(solrServerUrl);
-    	
+
 		String[][] result = null;
-    	
+
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
-		
-		if(queryString == null)
+
+		if (queryString == null)
 			return null;
-		
-		try{
-			
-			//Query Results are always sorted by descending order of relevance
-    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
-    		if(dateFilter != null)
-    			if(!dateFilter.isEmpty())
-    				q.setFilterQueries(dateFilter);
-    		
-    		//set number of rows
-    		q.setRows(1);
-    		
-    		q.addFacetField("description");
-    		q.setFacet(true);
-    		q.setFacetLimit(100);
-    		
-    		//set fields to title,date and summary only
-    		q.setFields("link");
-    		
-    		
-    		QueryResponse response = solrInstance.query(q);
-    		Iterator<SolrDocument> iter = response.getResults().iterator();
-    		
+
+		try {
+
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
+					"score", SolrQuery.ORDER.desc);
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
+
+			// set number of rows
+			q.setRows(1);
+
+			q.addFacetField("description");
+			q.setFacet(true);
+			q.setFacetLimit(100);
+
+			// set fields to title,date and summary only
+			q.setFields("link");
+
+			QueryResponse response = solrInstance.query(q);
+			Iterator<SolrDocument> iter = response.getResults().iterator();
+
 			FacetField ff = response.getFacetField("description");
-			Iterator<Count> iter2= ff.getValues().iterator();
-			
+			Iterator<Count> iter2 = ff.getValues().iterator();
+
 			String[][] wordCount = new String[ff.getValueCount()][2];
 			result = new String[ff.getValueCount()][2];
 			int countIndex = 0;
-			
-			while(iter2.hasNext())
-			{
+
+			while (iter2.hasNext()) {
 				Count currentCount = iter2.next();
-				
+
 				String[] temp = new String[2];
-				
+
 				temp[0] = currentCount.getName();
 				temp[1] = String.valueOf(currentCount.getCount());
-				
+
 				wordCount[countIndex] = temp;
-				countIndex ++;
+				countIndex++;
 			}
-			
+
 			result = wordCount.clone();
-		}catch(Exception e)
-		{
+		} catch (Exception e) {
 			System.out.println("Error getting Facet Count ");
 			e.printStackTrace();
 		}
-		
+
 		return result;
-    }
-    
-    public  TopicClassificationResults classifyDocumentsForQuery(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,int rows,
-    		int numOfTopics,int numOfKeywordsInEachTopic) throws NullPointerException
-    {
-    	setSolrServer(solrServerUrl);
-    	
-    	ArrayList<String[]> r = new ArrayList<String[]>();
-    	
-    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
-		
-		if(queryString == null)
+	}
+
+	public TopicClassificationResults classifyDocumentsForQuery(
+			String[] requiredKeywords, String[] relatedKeywords,
+			String dateFilter, int rows, int numOfTopics,
+			int numOfKeywordsInEachTopic) throws NullPointerException {
+		setSolrServer(solrServerUrl);
+
+		ArrayList<String[]> r = new ArrayList<String[]>();
+
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+
+		if (queryString == null)
 			return null;
 
 		TopicClassificationResults topicModelingResutls = new TopicClassificationResults();
-		try{
-			
-			//Query Results are always sorted by descending order of relevance
-    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
-    		if(dateFilter != null)
-    			if(!dateFilter.isEmpty())
-    				q.setFilterQueries(dateFilter);
-    		
-    		//set number of rows
-    		q.setRows(rows);
-    		
-    		q.setFields("link,description");
-    		
-    		QueryResponse response = solrInstance.query(q);
-    		SolrDocumentList documents = response.getResults();
+		try {
+
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
+					"score", SolrQuery.ORDER.desc);
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
+
+			// set number of rows
+			q.setRows(rows);
+
+			q.setFields("link,description");
+
+			QueryResponse response = solrInstance.query(q);
+			SolrDocumentList documents = response.getResults();
 			int documentSize = documents.size();
 			SolrDocument doc = null;
 			Iterator<SolrDocument> itr = documents.iterator();
 			String originalTexts = "";
 			String singleInstance = "";
 			if (documentSize > 0) {
-			//int i = 1;
-			while (itr.hasNext()) {
-			doc = itr.next();
-			if(doc.getFieldValue("description") != null){
-			singleInstance = doc.getFieldValue("link").toString() + "\t" + "X" + "\t" + doc.getFieldValue("description").toString().replace('\n', ' ').replace('\r', ' ') + "\r\n";
-			originalTexts += singleInstance;
-			}
-			//i++;
+				// int i = 1;
+				while (itr.hasNext()) {
+					doc = itr.next();
+					if (doc.getFieldValue("description") != null) {
+						singleInstance = doc.getFieldValue("link").toString()
+								+ "\t"
+								+ "X"
+								+ "\t"
+								+ doc.getFieldValue("description").toString()
+										.replace('\n', ' ').replace('\r', ' ')
+								+ "\r\n";
+						originalTexts += singleInstance;
+					}
+					// i++;
+				}
+
+				// System.out.println("**");
+			} else {
+				System.out.println("NO Documents returned...");
 			}
 
-			//System.out.println("**");
-			} else {
-			System.out.println("NO Documents returned...");
-			}
-			         
 			// Begin by importing documents from text to feature sequences
 			ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
-
 
 			// Pipes: lowercase, tokenize, remove stopwords, map to features
 			pipeList.add(new CharSequenceLowercase());
 			pipeList.add(new CharSequence2TokenSequence(Pattern
-			.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
-			//pipeList.add(new TokenSequenceRemoveStopwords(new File(
-			//"stoplists/en.txt"), "UTF-8", false, false, false));
-			//File a = getClass().getClassLoader().getResourceAsStream(name)("infomap/resources/stopwords.txt");
-			
-			URL stoplistPath = getClass().getClassLoader().getResource("infomap/resources/stopwords.txt");
-			//System.out.println(getClass().getClassLoader().getResource("infomap/resources/stopwords.txt"));
+					.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
+			// pipeList.add(new TokenSequenceRemoveStopwords(new File(
+			// "stoplists/en.txt"), "UTF-8", false, false, false));
+			// File a =
+			// getClass().getClassLoader().getResourceAsStream(name)("infomap/resources/stopwords.txt");
+
+			URL stoplistPath = getClass().getClassLoader().getResource(
+					"infomap/resources/stopwords.txt");
+			// System.out.println(getClass().getClassLoader().getResource("infomap/resources/stopwords.txt"));
 			System.out.println(stoplistPath.getFile());
-			String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(), "UTF-8");
-			pipeList.add(new TokenSequenceRemoveStopwords(new File(stopListFilePath), "UTF-8", false, false, false));
-			//getClass().getClassLoader().getResourceAsStream("infomap/resources/stopwords.txt")
+			String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(),
+					"UTF-8");
+			pipeList.add(new TokenSequenceRemoveStopwords(new File(
+					stopListFilePath), "UTF-8", false, false, false));
+			// getClass().getClassLoader().getResourceAsStream("infomap/resources/stopwords.txt")
 			pipeList.add(new TokenSequence2FeatureSequence());
 
-			//getClass().getClassLoader().
+			// getClass().getClassLoader().
 			InstanceList instances = new InstanceList(new SerialPipes(pipeList));
-
 
 			// Reader fileReader = new InputStreamReader(new FileInputStream(new
 			// File(args[0])), "UTF-8");
-			Reader fileReader = new InputStreamReader(IOUtils.toInputStream(originalTexts));
-			instances.addThruPipe(new CsvIterator(fileReader, Pattern
-			.compile("^(\\S*)[\\s]*(\\S*)[\\s]*([\\w\\W\\s\\S\\d\\D]*)$"), 3, 2, 1)); // data,
+			Reader fileReader = new InputStreamReader(
+					IOUtils.toInputStream(originalTexts));
+			instances
+					.addThruPipe(new CsvIterator(
+							fileReader,
+							Pattern.compile("^(\\S*)[\\s]*(\\S*)[\\s]*([\\w\\W\\s\\S\\d\\D]*)$"),
+							3, 2, 1)); // data,
 			// label,
 			// name
 			// fields
 
-
 			// Create a model with 100 topics, alpha_t = 0.01, beta_w = 0.01
-			// Note that the first parameter is passed as the sum over topics, while
-			// the second is the parameter for a single dimension of the Dirichlet
+			// Note that the first parameter is passed as the sum over topics,
+			// while
+			// the second is the parameter for a single dimension of the
+			// Dirichlet
 			// prior.
-			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0, 0.01);
-
+			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0,
+					0.01);
 
 			model.addInstances(instances);
 
-
-			// Use two parallel samplers, which each look at one half the corpus and
+			// Use two parallel samplers, which each look at one half the corpus
+			// and
 			// combine
 			// statistics after every iteration.
 			model.setNumThreads(2);
 
-
-			// Run the model for 50 iterations and stop (this is for testing only,
+			// Run the model for 50 iterations and stop (this is for testing
+			// only,
 			// for real applications, use 1000 to 2000 iterations)
 			model.setNumIterations(100);
 			model.estimate();
 
-
 			// Show the words and topics in the first instance
-
 
 			// The data alphabet maps word IDs to strings
 			Alphabet dataAlphabet = instances.getDataAlphabet();
 
-
-			//System.out.println(out);
-			        //System.out.println("Query: " + url);
-			//System.out.println("Number of the documents:" + documentSize);
-			//System.out.println("Number of the groups:" + numTopics);
-
+			// System.out.println(out);
+			// System.out.println("Query: " + url);
+			// System.out.println("Number of the documents:" + documentSize);
+			// System.out.println("Number of the groups:" + numTopics);
 
 			int dataSize = instances.size();
-			int [] groupInfo = new int[dataSize];
-			for(int i = 0; i < dataSize; i++){
-			groupInfo[i] = 0;
+			int[] groupInfo = new int[dataSize];
+			for (int i = 0; i < dataSize; i++) {
+				groupInfo[i] = 0;
 			}
 
-
-			        double [] distributions;
+			double[] distributions;
 			double temp;
-			for(int i = 0; i < dataSize; i++){
-			distributions = model.getTopicProbabilities(i);
-			temp = 0.0;
-			for(int j = 0; j < distributions.length; j++){
-			if(temp < distributions[j]){
-			groupInfo[i] = j;
-			temp = distributions[j];
+			for (int i = 0; i < dataSize; i++) {
+				distributions = model.getTopicProbabilities(i);
+				temp = 0.0;
+				for (int j = 0; j < distributions.length; j++) {
+					if (temp < distributions[j]) {
+						groupInfo[i] = j;
+						temp = distributions[j];
+					}
+				}
 			}
-			}
-			}
-			int [] groupSize = new int[numOfTopics];
-			for(int i = 0; i < numOfTopics; i++)
-			{
+			int[] groupSize = new int[numOfTopics];
+			for (int i = 0; i < numOfTopics; i++) {
 				groupSize[i] = 0;
 			}
 
-			for(int i = 0; i < dataSize; i++)
-			{
-				//group[groupInfo[i]] += (" "+ documents.get(i).getFieldValue("description").toString());
+			for (int i = 0; i < dataSize; i++) {
+				// group[groupInfo[i]] += (" "+
+				// documents.get(i).getFieldValue("description").toString());
 				groupSize[groupInfo[i]]++;
 			}
-			/*for(int i = 0; i < numTopics; i++){
-			System.out.println("Group " + i + " size is :"+ groupSize[i]);
-			}*/
+			/*
+			 * for(int i = 0; i < numTopics; i++){ System.out.println("Group " +
+			 * i + " size is :"+ groupSize[i]); }
+			 */
 
-			//document Group infomation
+			// document Group infomation
 			String documentGroupInfo[][] = new String[dataSize][2];
-			for(int i = 0; i < dataSize; i++)
-			{
-				for(int j = 0; j < 2; j++){
+			for (int i = 0; i < dataSize; i++) {
+				for (int j = 0; j < 2; j++) {
 					documentGroupInfo[i][j] = "";
 				}
 			}
-			
-			for(int i = 0; i < dataSize; i++)
-			{
-				documentGroupInfo[i][0] = documents.get(i).getFieldValue("link").toString();
-				documentGroupInfo[i][1] = Integer.toString(groupInfo[i]);
-				//System.out.println("Document with link " + documentGroupInfo[i][0] + " belongs to group " + documentGroupInfo[i][1]);
-			}
 
+			for (int i = 0; i < dataSize; i++) {
+				documentGroupInfo[i][0] = documents.get(i)
+						.getFieldValue("link").toString();
+				documentGroupInfo[i][1] = Integer.toString(groupInfo[i]);
+				// System.out.println("Document with link " +
+				// documentGroupInfo[i][0] + " belongs to group " +
+				// documentGroupInfo[i][1]);
+			}
 
 			// Get an array of sorted sets of word ID/count pairs
-			ArrayList<TreeSet<IDSorter>> topicSortedWords = model.getSortedWords();
-			       
-			String topicKeywords [][] = new String[numOfTopics][numOfKeywordsInEachTopic];
-			for(int i = 0; i < numOfTopics; i++)
-			{
-				for(int j = 0; j < numOfKeywordsInEachTopic; j++)
-				{
-				topicKeywords[i][j] = "";
+			ArrayList<TreeSet<IDSorter>> topicSortedWords = model
+					.getSortedWords();
+
+			String topicKeywords[][] = new String[numOfTopics][numOfKeywordsInEachTopic];
+			for (int i = 0; i < numOfTopics; i++) {
+				for (int j = 0; j < numOfKeywordsInEachTopic; j++) {
+					topicKeywords[i][j] = "";
 				}
 			}
-			
+
 			HashMap<Object, Integer> uniquewordChecker = new HashMap<Object, Integer>();
-			
-//   		mp.put("set", "BIG TITLE SABMAN. 8");
+
 			for (int topic = 0; topic < numOfTopics; topic++) {
 				Iterator<IDSorter> iterator = topicSortedWords.get(topic)
-				.iterator();
-				while (iterator.hasNext()){
+						.iterator();
+				while (iterator.hasNext()) {
 					IDSorter idCountPair = iterator.next();
-					if(uniquewordChecker.containsKey(dataAlphabet.lookupObject(idCountPair.getID()))){
-						uniquewordChecker.put(dataAlphabet.lookupObject(idCountPair.getID()), uniquewordChecker.get(dataAlphabet.lookupObject(idCountPair.getID())) + 1);
-					}
-					else{
-					uniquewordChecker.put(dataAlphabet.lookupObject(idCountPair.getID()), 1);
+					if (uniquewordChecker.containsKey(dataAlphabet
+							.lookupObject(idCountPair.getID()))) {
+						uniquewordChecker
+								.put(dataAlphabet.lookupObject(idCountPair
+										.getID()), uniquewordChecker
+										.get(dataAlphabet
+												.lookupObject(idCountPair
+														.getID())) + 1);
+					} else {
+						uniquewordChecker.put(
+								dataAlphabet.lookupObject(idCountPair.getID()),
+								1);
 					}
 				}
 			}
-			
-			
+
 			for (int topic = 0; topic < numOfTopics; topic++) {
-			Iterator<IDSorter> iterator = topicSortedWords.get(topic)
-			.iterator();
-			int rank = 0;
-			while (iterator.hasNext() && rank < numOfKeywordsInEachTopic) {
-			IDSorter idCountPair = iterator.next();
-			//out.format("%s (%.0f) ",
-			//dataAlphabet.lookupObject(idCountPair.getID()),
-			//idCountPair.getWeight());
-			if(uniquewordChecker.get(dataAlphabet.lookupObject(idCountPair.getID())) == 1){
-			   topicKeywords[topic][rank]= dataAlphabet.lookupObject(idCountPair.getID()) + " ";
-			   rank++;
+				Iterator<IDSorter> iterator = topicSortedWords.get(topic)
+						.iterator();
+				int rank = 0;
+				while (iterator.hasNext() && rank < numOfKeywordsInEachTopic) {
+					IDSorter idCountPair = iterator.next();
+					if (uniquewordChecker.get(dataAlphabet
+							.lookupObject(idCountPair.getID())) == 1) {
+						topicKeywords[topic][rank] = dataAlphabet
+								.lookupObject(idCountPair.getID()) + " ";
+						rank++;
+					}
+				}
+				// System.out.println(out);
 			}
-			}
-			//System.out.println(out);
-			}
-			String [][] resultUrls = new String [numOfTopics][];
+			String[][] resultUrls = new String[numOfTopics][];
 
+			for (int i = 0; i < numOfTopics; i++) {
+				resultUrls[i] = new String[groupSize[i]];
+				int tempCounter = 0;
+				// for(int j = 0; j < groupSize[i]; j++){
 
-           for (int i = 0; i < numOfTopics; i++)
-           {
-        	   resultUrls[i] = new String[groupSize[i]];
- 		      int tempCounter = 0;
-        	   //for(int j = 0; j < groupSize[i]; j++){
-        		   
-        		   for(int k = 0; k < dataSize; k++)
-        		   {
-        			   if(groupInfo[k] == i)
-        			   {
-        				   resultUrls[i][tempCounter] = documents.get(k).getFieldValue("link").toString();
-        				   tempCounter ++;
-        			   }
-        		   }
-           }
-           //tracing
-//          for(int i = 0; i < numOfTopics; i++)
-//			{
-//				for(int j = 0; j < numOfKeywordsInEachTopic; j++)
-//				{
-//				System.out.print(topicKeywords[i][j]);
-//				}
-//				System.out.println();
-//			}
-           
-		      topicModelingResutls.keywords = topicKeywords;
-		      
-		      topicModelingResutls.urls = resultUrls; 
-			      
-		}catch(Exception e)
-		{
+				for (int k = 0; k < dataSize; k++) {
+					if (groupInfo[k] == i) {
+						resultUrls[i][tempCounter] = documents.get(k)
+								.getFieldValue("link").toString();
+						tempCounter++;
+					}
+				}
+			}
+			 //tracing
+/*			 for(int i = 0; i < numOfTopics; i++)
+			 {
+			 for(int j = 0; j < numOfKeywordsInEachTopic; j++)
+			 {
+			 System.out.print(topicKeywords[i][j]);
+			 }
+			 System.out.println();
+			 }*/
+
+			topicModelingResutls.keywords = topicKeywords;
+
+			topicModelingResutls.urls = resultUrls;
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return topicModelingResutls;
-    }
-    
-    public  Object[] getResultsForQueryWithRelatedKeywords(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,int rows) throws NullPointerException
-    {
-    	setSolrServer(solrServerUrl);
-    	
-    	ArrayList<String[]> r = new ArrayList<String[]>();
-    	
-    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
-		
-		if(queryString == null)
+	}
+
+	public Object[] getResultsForQueryWithRelatedKeywords(
+			String[] requiredKeywords, String[] relatedKeywords,
+			String dateFilter, int rows) throws NullPointerException {
+		setSolrServer(solrServerUrl);
+
+		ArrayList<String[]> r = new ArrayList<String[]>();
+
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+
+		if (queryString == null)
 			return null;
 
-		
-		try{
-			
-			//Query Results are always sorted by descending order of relevance
-    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
-    		if(dateFilter != null)
-    			if(!dateFilter.isEmpty())
-    				q.setFilterQueries(dateFilter);
-    		
-    		//set number of rows
-    		q.setRows(rows);
-    		
-    		//set fields to title,date and summary only
-    		q.setFields("link,title,attr_text_summary,date_added,date_published,imgName");
-    		
-    		//set highlighting
-    		q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount).setHighlightFragsize(highlightFragmentSize);
-    		
-    		q.setParam("hl.fl", "description");
-    		
-    		q.setParam("hl.simple.pre","<b>");
-    		q.setParam("hl.simple.post","</b>");
-    		
-    		QueryResponse response = solrInstance.query(q);
-    		Iterator<SolrDocument> iter = response.getResults().iterator();
-    		
-    		System.out.println("QUERY IS " + q.toString());
-    		
-    		while (iter.hasNext()){
-    			SolrDocument doc = iter.next();
-    			String[] docArray =new String[5];
-    			
-    			docArray[0] = (String)doc.getFieldValue("link");
-    			docArray[1] = (String)doc.getFieldValue("title");
-    			
-    			
-    			//Show text summary if exists
-    			docArray[2] = "";
-    			String docSummary = (String)doc.getFieldValue("attr_text_summary"); 
-    			if( docSummary !=null)
-    			{
-    				docArray[2] += "<b>Summary: </b>" + docSummary;
-    			}
-    			//Show sentences with containing query words
-    			if(response.getHighlighting().get(docArray[0]).get("description") !=null )
-    			{
-    				List<String> highlightsList = response.getHighlighting().get(docArray[0]).get("description");
-    				
-    				Iterator<String> highlightsIter = highlightsList.iterator();
-    				
-    				docArray[2] += "<br/><br/><b>Matches: </b>";
-    				
-    				while(highlightsIter.hasNext())
-    				{
-    					docArray[2] += " '" + highlightsIter.next() + "'...<br/><br/>";
-    				}
-    				
-    			}
-    			if(doc.getFieldValue("imgName") !=null)
-    				docArray[3] = "http://129.63.8.219:8080/thumbnails/"+  (String)doc.getFieldValue("imgName");
-    			
-    			if(doc.containsKey("date_published"))
-    				docArray[4] = doc.getFieldValue("date_published").toString();
-    			else if(doc.containsKey("date_added"))
-    				docArray[4] = doc.getFieldValue("date_added").toString();
-    			else
-    				docArray[4] = "";
-    			
-    			r.add(docArray);
-    		}
-    		
-    	}catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-    	
-    	
-    	
-    	Object[] queryResult = r.toArray();
-    	return queryResult;
-    	
-    }
-    
-    public  Object[] getLinksForFilteredQuery(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,String[] filterby,int rows) throws NullPointerException
-    {
-    	setSolrServer(solrServerUrl);
-    	
-    	ArrayList<String> r = new ArrayList<String>();
-    	
-    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
-		
-		if(queryString == null)
-			return null;
+		try {
 
-		
-		try{
-			
-			//Query Results are always sorted by descending order of relevance
-    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
-    		
-    		String filterString = "";
-    		
-    		for (int i = 0; i < filterby.length; i++)
-    		{
-    			filterString += "(title:"+filterby[i]+" OR description:"+filterby[i]+" OR attr_text_keywords:"+filterby[i]+")";
-    			
-    			if(i !=filterby.length-1)
-    			{
-    				filterString += " AND ";
-    			}
-    		}
-    		
-    		if(dateFilter != null)
-    			if(!dateFilter.isEmpty())
-    				filterString += filterString +" AND "+dateFilter;
-    		
-    		
-    		if(!filterString.isEmpty())
-    			q.setFilterQueries(filterString);
-    		
-    		//set number of rows
-    		q.setRows(rows);
-    		
-    		//set fields to title,date and summary only
-    		q.setFields("link");
-    		
-    		QueryResponse response = solrInstance.query(q);
-    		Iterator<SolrDocument> iter = response.getResults().iterator();
-    		
-    		System.out.println("QUERY IS " + q.toString());
-    		
-    		while (iter.hasNext()){
-    			SolrDocument doc = iter.next();
-    			
-    			r.add((String)doc.getFieldValue("link"));
-    		}
-    		
-    	}catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-    	
-    	
-    	
-    	Object[] queryResult = r.toArray();
-    	return queryResult;
-    	
-    }
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
+					"score", SolrQuery.ORDER.desc);
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
 
-    
-    
-    public long getNumOfDocumentsForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter)
-    {
-    	setSolrServer(solrServerUrl);
+			// set number of rows
+			q.setRows(rows);
 
-    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
-		
-		if(queryString == null)
-			return 0;
-    	 
-     	QueryResponse response = null;
-     	try{
- 			
-     		SolrQuery q = new SolrQuery().setQuery(queryString);
-     		
-     		if(dateFilter != null)
-    			if(!dateFilter.isEmpty())
-    				q.setFilterQueries(dateFilter);
-     		
-     		q.setRows(1);
-     		q.setFields("link");
-     		
-     		response = solrInstance.query(q);
-     		
-     	}catch(Exception e)
-     	{
-     		e.printStackTrace();
-     	}
-     	return response.getResults().getNumFound();
-    }
-    
-    public EntityDistributionObject getEntityDistributionForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter,String[] entities,int rows)
-    {
-    	Object [][] urls = new Object[entities.length][];
-    	
-    	setSolrServer(solrServerUrl);
-    	
-    	//Setting up the query
-    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
-		
-		if(queryString == null)
-			return null;
-    	 
-     	QueryResponse response = null;
-     	try{
- 			
-     		SolrQuery q = new SolrQuery().setQuery(queryString);
-     		
-     		if(dateFilter != null)
-    			if(!dateFilter.isEmpty())
-    				q.setFilterQueries(dateFilter);
-     		
-     		
-     		q.setFields("link");
-     		
-     		//Setting up the Group Parameters
-     		//For each value in the entities array, we set up a group by query and search for the entity value in the title or description.
-     		q.set(GroupParams.GROUP, true);
-     		
-     		String groupQuery= "title:(\"" + entities[0] + "\") OR description:(\"" + entities[0] + "\")";
- 			q.set(GroupParams.GROUP_QUERY, groupQuery);
-     		
-     		for (int i=1; i<entities.length; i++)
-     		{
-     			groupQuery= "title:(\"" + entities[i] + "\") OR description:(\"" + entities[i] + "\")";
-     			q.add(GroupParams.GROUP_QUERY, groupQuery);
-     		}
-     		
-     		q.set(GroupParams.GROUP_LIMIT,rows);
-     		
-     		q.toString();
-     		
-     		response = solrInstance.query(q);
-     		
-     		GroupResponse gr = response.getGroupResponse();
-     		
-     		List<GroupCommand> gc = gr.getValues();
-     		
-     		Iterator<GroupCommand> gcIter = gc.iterator();
-     		
-     		
-     		
-     		int count = 0;
-     		while(gcIter.hasNext())
-     		{
-     			GroupCommand g = gcIter.next();
-     			
-     			List<Group> groups = g.getValues();
-     			
-     			Iterator<Group> groupsIter = groups.iterator();
-     			while(groupsIter.hasNext())
-     			{
-     				Group group = groupsIter.next();
-     				
-     				SolrDocumentList docList = group.getResult();
-     				
-     				Iterator<SolrDocument> docIter = docList.iterator();
-     				ArrayList<String> docs =  new ArrayList<String>();
-     				while(docIter.hasNext())
-     				{
-     					SolrDocument doc = docIter.next();
-     					
-     					docs.add((String)doc.getFieldValue("link"));
-     				}
-     				urls[count] = docs.toArray(); 
-      			}
-     			count++;
-     		}
-     		
-     	}catch(Exception e)
-     	{
-     		e.printStackTrace();
-     	}
-     	
-     	EntityDistributionObject result = new EntityDistributionObject();
-     	
-     	result.entities = entities;
-     	result.urls = urls;
-     	return result;
-    }
-    
-    private static String mergeKeywords(String[] keywords, String operator)
-    {
-    	String result = "";
-    	
-    	if(keywords==null || keywords.length == 0)
-    		return result;
-    	//if it is not a single word we add the operator between each keyword
-		//splitting the keywords at the spaces. 
-		if(keywords.length > 1)
-		{
-			for(int i = 0; i < keywords.length; i++)
-			{
-				result += "\"" + keywords[i] + "\"";
-				if(i != keywords.length-1)
-					result += " "+operator+" ";
+			// set fields to title,date and summary only
+			q.setFields("link,title,attr_text_summary,date_added,date_published,imgName");
+
+			// set highlighting
+			q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount)
+					.setHighlightFragsize(highlightFragmentSize);
+
+			q.setParam("hl.fl", "description");
+
+			q.setParam("hl.simple.pre", "<b>");
+			q.setParam("hl.simple.post", "</b>");
+
+			QueryResponse response = solrInstance.query(q);
+			Iterator<SolrDocument> iter = response.getResults().iterator();
+
+			System.out.println("QUERY IS " + q.toString());
+
+			while (iter.hasNext()) {
+				SolrDocument doc = iter.next();
+				String[] docArray = new String[5];
+
+				docArray[0] = (String) doc.getFieldValue("link");
+				docArray[1] = (String) doc.getFieldValue("title");
+
+				// Show text summary if exists
+				docArray[2] = "";
+				String docSummary = (String) doc
+						.getFieldValue("attr_text_summary");
+				if (docSummary != null) {
+					docArray[2] += "<b>Summary: </b>" + docSummary;
+				}
+				// Show sentences with containing query words
+				if (response.getHighlighting().get(docArray[0])
+						.get("description") != null) {
+					List<String> highlightsList = response.getHighlighting()
+							.get(docArray[0]).get("description");
+
+					Iterator<String> highlightsIter = highlightsList.iterator();
+
+					docArray[2] += "<br/><br/><b>Matches: </b>";
+
+					while (highlightsIter.hasNext()) {
+						docArray[2] += " '" + highlightsIter.next()
+								+ "'...<br/><br/>";
+					}
+
+				}
+				if (doc.getFieldValue("imgName") != null)
+					docArray[3] = "http://129.63.8.219:8080/thumbnails/"
+							+ (String) doc.getFieldValue("imgName");
+
+				if (doc.containsKey("date_published"))
+					docArray[4] = doc.getFieldValue("date_published")
+							.toString();
+				else if (doc.containsKey("date_added"))
+					docArray[4] = doc.getFieldValue("date_added").toString();
+				else
+					docArray[4] = "";
+
+				r.add(docArray);
 			}
-			
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		else
-		{
+
+		Object[] queryResult = r.toArray();
+		return queryResult;
+
+	}
+
+	public Object[] getLinksForFilteredQuery(String[] requiredKeywords,
+			String[] relatedKeywords, String dateFilter, String[] filterby,
+			int rows) throws NullPointerException {
+		setSolrServer(solrServerUrl);
+
+		ArrayList<String> r = new ArrayList<String>();
+
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+
+		if (queryString == null)
+			return null;
+
+		try {
+
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
+					"score", SolrQuery.ORDER.desc);
+
+			String filterString = "";
+
+			for (int i = 0; i < filterby.length; i++) {
+				filterString += "(title:" + filterby[i] + " OR description:"
+						+ filterby[i] + " OR attr_text_keywords:" + filterby[i]
+						+ ")";
+
+				if (i != filterby.length - 1) {
+					filterString += " AND ";
+				}
+			}
+
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					filterString += filterString + " AND " + dateFilter;
+
+			if (!filterString.isEmpty())
+				q.setFilterQueries(filterString);
+
+			// set number of rows
+			q.setRows(rows);
+
+			// set fields to title,date and summary only
+			q.setFields("link");
+
+			QueryResponse response = solrInstance.query(q);
+			Iterator<SolrDocument> iter = response.getResults().iterator();
+
+			System.out.println("QUERY IS " + q.toString());
+
+			while (iter.hasNext()) {
+				SolrDocument doc = iter.next();
+
+				r.add((String) doc.getFieldValue("link"));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Object[] queryResult = r.toArray();
+		return queryResult;
+
+	}
+
+	public long getNumOfDocumentsForQuery(String[] requiredKeywords,
+			String[] relatedKeywords, String dateFilter) {
+		setSolrServer(solrServerUrl);
+
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+
+		if (queryString == null)
+			return 0;
+
+		QueryResponse response = null;
+		try {
+
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
+
+			q.setRows(1);
+			q.setFields("link");
+
+			response = solrInstance.query(q);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response.getResults().getNumFound();
+	}
+
+	public EntityDistributionObject getEntityDistributionForQuery(
+			String[] requiredKeywords, String[] relatedKeywords,
+			String dateFilter, String[] entities, int rows) {
+		System.out.println("IN ENTITY QUERY ");
+
+		Object[][] urls = new Object[entities.length][];
+
+		setSolrServer(solrServerUrl);
+
+		// Setting up the query
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+
+		if (queryString == null) {
+			System.out.println("ENTITY QUERY IS NULL");
+			return null;
+		}
+
+		QueryResponse response = null;
+		try {
+			System.out.println("IN ENTITY QUERY TRY");
+
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
+
+			q.setFields("link");
+
+			// Setting up the Group Parameters
+			// For each value in the entities array, we set up a group by query
+			// and search for the entity value in the title or description.
+			q.set(GroupParams.GROUP, true);
+
+			q.set(GroupParams.GROUP_LIMIT, rows);
+
+			int count = 0;
+			for (int i = 0; i < entities.length; i++) {
+				String groupQuery = "title:(\"" + entities[i]
+						+ "\") OR description:(\"" + entities[i] + "\")";
+				q.set(GroupParams.GROUP_QUERY, groupQuery);
+				// groupQuery= "title:(\"" + entities[i] +
+				// "\") OR description:(\"" + entities[i] + "\")";
+				// q.add(GroupParams.GROUP_QUERY, groupQuery);
+
+				// System.out.println("ENTITY QUERY" + q.toString());
+
+				response = solrInstance.query(q);
+
+				GroupResponse gr = response.getGroupResponse();
+
+				List<GroupCommand> gc = gr.getValues();
+
+				Iterator<GroupCommand> gcIter = gc.iterator();
+
+				while (gcIter.hasNext()) {
+					GroupCommand g = gcIter.next();
+
+					List<Group> groups = g.getValues();
+
+					Iterator<Group> groupsIter = groups.iterator();
+					while (groupsIter.hasNext()) {
+						Group group = groupsIter.next();
+
+						SolrDocumentList docList = group.getResult();
+
+						Iterator<SolrDocument> docIter = docList.iterator();
+						ArrayList<String> docs = new ArrayList<String>();
+						while (docIter.hasNext()) {
+							SolrDocument doc = docIter.next();
+
+							docs.add((String) doc.getFieldValue("link"));
+						}
+						urls[count] = docs.toArray();
+					}
+				}
+				count++;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		EntityDistributionObject result = new EntityDistributionObject();
+
+		result.entities = entities;
+		result.urls = urls;
+		return result;
+	}
+
+	private static String mergeKeywords(String[] keywords, String operator) {
+		String result = "";
+
+		if (keywords == null || keywords.length == 0)
+			return result;
+		// if it is not a single word we add the operator between each keyword
+		// splitting the keywords at the spaces.
+		if (keywords.length > 1) {
+			for (int i = 0; i < keywords.length; i++) {
+				result += "\"" + keywords[i] + "\"";
+				if (i != keywords.length - 1)
+					result += " " + operator + " ";
+			}
+
+		} else {
 			result = keywords[0];
 		}
-    	
-    	
-    	return result;
-    }
-    
-    public void queryDataSources(String[] queryTerms)
-    {
-    MendeleyDataSource mds = new MendeleyDataSource();
-   	 mds.query = queryTerms.clone();
-   	 mds.solrServerURL = solrServerUrl;
-   	 
-   	 ArxivDataSource ads = new ArxivDataSource();
-   	 ads.query = queryTerms.clone();
-   	 ads.solrServerURL = solrServerUrl;
-   	 
-   	 BaseDataSource bds = new BaseDataSource();
-   	 bds.query = queryTerms.clone();
-   	 bds.solrServerURL = solrServerUrl;
-   	 
-   	 executor.execute(ads);
-   	 executor.execute(mds);
-   	 executor.execute(bds);
-   	System.out.println("Finished Calling Sources " + timer.get());
-    }
-    
-    public QueryResultWithWordCount getQueryResults(String[] queryTerms,String fq,String sortField,int rows, String solrURL) throws NullPointerException
-    {
-    	 setSolrServer(solrURL);
-    	//query = query + "&wt=json";
-    	 timer.start();
-    	System.out.println("CALLING GET QUERY");
 
-    	
-    	String query = parseBasicQuery(queryTerms, "AND");
-    	long totalNumberOfDocuments = getNumberOfMatchedDocuments(query, fq, solrURL);
+		return result;
+	}
 
-    	ArrayList<String[]> r = new ArrayList<String[]>();
-    	QueryResultWithWordCount result = new QueryResultWithWordCount();
-    	
-    	try{
-			
-    		SolrQuery q = new SolrQuery().setQuery(query).setSortField(sortField, SolrQuery.ORDER.asc);
-    		if(!fq.isEmpty())
-    			q.setFilterQueries(fq);
-    		
-    		
-    		
-    		//set number of rows
-    		q.setRows(rows);
-    		
-    		//set highlighting
-    		q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount).setHighlightFragsize(highlightFragmentSize);
-    		
-    		q.setParam("hl.fl", "description");
-    		
-    		q.setParam("hl.simple.pre","<b>");
-    		q.setParam("hl.simple.post","</b>");
-    		
-    		q.addFacetField("description");
-    		q.setFacet(true);
-    		q.setFacetLimit(100);
-    		
-    		//set fields to title,date and summary only
-    		q.setFields("link,title,attr_text_summary,date_added,date_published,imgName");
-    		
-//    		.setFilterQueries(fq).setSortField(sortField, SolrQuery.ORDER.desc);
-    		
-    		System.out.println("Making Response " + timer.get());
-    		QueryResponse response = solrInstance.query(q);
-    		System.out.println("Got Response " + timer.get() + response.getElapsedTime() + response.getQTime());
-    		Iterator<SolrDocument> iter = response.getResults().iterator();
-    		
-    		System.out.println("QUERY IS " + q.toString());
-    		
-//    		System.out.println("NUM OF DOCUMENTS IS " + response.getResults().getNumFound());
-    		System.out.println("iterating throught documents " + timer.get());
-    		while (iter.hasNext()){
-    			SolrDocument doc = iter.next();
-    			String[] docArray =new String[5];
-    			
-    			docArray[0] = (String)doc.getFieldValue("link");
-    			docArray[1] = (String)doc.getFieldValue("title");
-    			
-    			
-    			//Show text summary if exists
-    			docArray[2] = "";
-    			String docSummary = (String)doc.getFieldValue("attr_text_summary"); 
-    			if( docSummary !=null)
-    			{
-    				docArray[2] += "<b>Summary: </b>" + docSummary;
-    			}
-    			//Show sentences with containing query words
-    			if(response.getHighlighting().get(docArray[0]).get("description") !=null )
-    			{
-    				List<String> highlightsList = response.getHighlighting().get(docArray[0]).get("description");
-    				
-    				Iterator<String> highlightsIter = highlightsList.iterator();
-    				
-    				docArray[2] += "<br/><br/><b>Matches: </b>";
-    				
-    				while(highlightsIter.hasNext())
-    				{
-    					docArray[2] += " '" + highlightsIter.next() + "'...";
-    				}
-    				
-    			}
-//    			else //else show first 200 characters of description
-//    			{
-//    				String descr = (String)doc.getFieldValue("description");
-//    				docArray[2] = "<b>Description: </b>";
-//    				if(descr == null)
-//    					descr = "No description available";
-//    				
-//        			if(descr.length()>200)
-//        				docArray[2] = descr.substring(0, 200);
-//        			else
-//        				docArray[2] = descr;
-//    			}
-    			
-    			
-//    			int linkLen = docArray[0].length();
-//    			String linkExtension = docArray[0].substring(linkLen-3,linkLen);
-//    			String imgExtension = ".jpg";
-//				
-//				if(linkExtension.equalsIgnoreCase("pdf") || linkExtension.equalsIgnoreCase("doc")){
-//					imgExtension = ".png";
-//				}
-    			if(doc.getFieldValue("imgName") !=null)
-    				docArray[3] = "http://129.63.8.219:8080/thumbnails/"+  (String)doc.getFieldValue("imgName");
-    			
-    			if(doc.containsKey("date_published"))
-    				docArray[4] = doc.getFieldValue("date_published").toString();
-    			else if(doc.containsKey("date_added"))
-    				docArray[4] = doc.getFieldValue("date_added").toString();
-    			else
-    				docArray[4] = "";
-//    			System.out.println("Content IS " + docArray[0] + docArray[1] + docArray[2] + docArray[3] + docArray[4]); 
-    			
-    			r.add(docArray);
-    		}
-    		
-    		
-    		//creating an array of facet words and its word count
-    		try{
-    			
-    			FacetField ff = response.getFacetField("description");
-    			Iterator<Count> iter2= ff.getValues().iterator();
-    			
-    			String[][] wordCount = new String[ff.getValueCount()][2];
-    			
-    			int countIndex = 0;
-    			
-    			while(iter2.hasNext())
-    			{
-    				Count currentCount = iter2.next();
-    				
-    				String[] temp = new String[2];
-    				
-    				temp[0] = currentCount.getName();
-    				temp[1] = String.valueOf(currentCount.getCount());
-    				
-    				wordCount[countIndex] = temp;
-    				countIndex ++;
-    			}
-    			
-    			result.wordCount = wordCount.clone();
-    		}catch(Exception e)
-    		{
-    			System.out.println("Error getting Facet Count ");
-    			e.printStackTrace();
-    		}
-    		
-    	}catch (Exception e)
-		{
+	public void queryDataSources(String[] queryTerms) {
+		MendeleyDataSource mds = new MendeleyDataSource();
+		mds.query = queryTerms.clone();
+		mds.solrServerURL = solrServerUrl;
+
+		ArxivDataSource ads = new ArxivDataSource();
+		ads.query = queryTerms.clone();
+		ads.solrServerURL = solrServerUrl;
+
+		BaseDataSource bds = new BaseDataSource();
+		bds.query = queryTerms.clone();
+		bds.solrServerURL = solrServerUrl;
+
+		executor.execute(ads);
+		executor.execute(mds);
+		executor.execute(bds);
+		System.out.println("Finished Calling Sources " + timer.get());
+	}
+
+	public QueryResultWithWordCount getQueryResults(String[] queryTerms,
+			String fq, String sortField, int rows, String solrURL)
+			throws NullPointerException {
+		setSolrServer(solrURL);
+		// query = query + "&wt=json";
+		timer.start();
+		System.out.println("CALLING GET QUERY");
+
+		String query = parseBasicQuery(queryTerms, "AND");
+		long totalNumberOfDocuments = getNumberOfMatchedDocuments(query, fq,
+				solrURL);
+
+		ArrayList<String[]> r = new ArrayList<String[]>();
+		QueryResultWithWordCount result = new QueryResultWithWordCount();
+
+		try {
+
+			SolrQuery q = new SolrQuery().setQuery(query).setSortField(
+					sortField, SolrQuery.ORDER.asc);
+			if (!fq.isEmpty())
+				q.setFilterQueries(fq);
+
+			// set number of rows
+			q.setRows(rows);
+
+			// set highlighting
+			q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount)
+					.setHighlightFragsize(highlightFragmentSize);
+
+			q.setParam("hl.fl", "description");
+
+			q.setParam("hl.simple.pre", "<b>");
+			q.setParam("hl.simple.post", "</b>");
+
+			q.addFacetField("description");
+			q.setFacet(true);
+			q.setFacetLimit(100);
+
+			// set fields to title,date and summary only
+			q.setFields("link,title,attr_text_summary,date_added,date_published,imgName");
+
+			// .setFilterQueries(fq).setSortField(sortField,
+			// SolrQuery.ORDER.desc);
+
+			System.out.println("Making Response " + timer.get());
+			QueryResponse response = solrInstance.query(q);
+			System.out.println("Got Response " + timer.get()
+					+ response.getElapsedTime() + response.getQTime());
+			Iterator<SolrDocument> iter = response.getResults().iterator();
+
+			System.out.println("QUERY IS " + q.toString());
+
+			// System.out.println("NUM OF DOCUMENTS IS " +
+			// response.getResults().getNumFound());
+			System.out.println("iterating throught documents " + timer.get());
+			while (iter.hasNext()) {
+				SolrDocument doc = iter.next();
+				String[] docArray = new String[5];
+
+				docArray[0] = (String) doc.getFieldValue("link");
+				docArray[1] = (String) doc.getFieldValue("title");
+
+				// Show text summary if exists
+				docArray[2] = "";
+				String docSummary = (String) doc
+						.getFieldValue("attr_text_summary");
+				if (docSummary != null) {
+					docArray[2] += "<b>Summary: </b>" + docSummary;
+				}
+				// Show sentences with containing query words
+				if (response.getHighlighting().get(docArray[0])
+						.get("description") != null) {
+					List<String> highlightsList = response.getHighlighting()
+							.get(docArray[0]).get("description");
+
+					Iterator<String> highlightsIter = highlightsList.iterator();
+
+					docArray[2] += "<br/><br/><b>Matches: </b>";
+
+					while (highlightsIter.hasNext()) {
+						docArray[2] += " '" + highlightsIter.next() + "'...";
+					}
+
+				}
+				// else //else show first 200 characters of description
+				// {
+				// String descr = (String)doc.getFieldValue("description");
+				// docArray[2] = "<b>Description: </b>";
+				// if(descr == null)
+				// descr = "No description available";
+				//
+				// if(descr.length()>200)
+				// docArray[2] = descr.substring(0, 200);
+				// else
+				// docArray[2] = descr;
+				// }
+
+				// int linkLen = docArray[0].length();
+				// String linkExtension =
+				// docArray[0].substring(linkLen-3,linkLen);
+				// String imgExtension = ".jpg";
+				//
+				// if(linkExtension.equalsIgnoreCase("pdf") ||
+				// linkExtension.equalsIgnoreCase("doc")){
+				// imgExtension = ".png";
+				// }
+				if (doc.getFieldValue("imgName") != null)
+					docArray[3] = "http://129.63.8.219:8080/thumbnails/"
+							+ (String) doc.getFieldValue("imgName");
+
+				if (doc.containsKey("date_published"))
+					docArray[4] = doc.getFieldValue("date_published")
+							.toString();
+				else if (doc.containsKey("date_added"))
+					docArray[4] = doc.getFieldValue("date_added").toString();
+				else
+					docArray[4] = "";
+				// System.out.println("Content IS " + docArray[0] + docArray[1]
+				// + docArray[2] + docArray[3] + docArray[4]);
+
+				r.add(docArray);
+			}
+
+			// creating an array of facet words and its word count
+			try {
+
+				FacetField ff = response.getFacetField("description");
+				Iterator<Count> iter2 = ff.getValues().iterator();
+
+				String[][] wordCount = new String[ff.getValueCount()][2];
+
+				int countIndex = 0;
+
+				while (iter2.hasNext()) {
+					Count currentCount = iter2.next();
+
+					String[] temp = new String[2];
+
+					temp[0] = currentCount.getName();
+					temp[1] = String.valueOf(currentCount.getCount());
+
+					wordCount[countIndex] = temp;
+					countIndex++;
+				}
+
+				result.wordCount = wordCount.clone();
+			} catch (Exception e) {
+				System.out.println("Error getting Facet Count ");
+				e.printStackTrace();
+			}
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	
-    	
-    	
-    	result.queryResult = r.toArray();
-    	result.totalNumberOfDocuments = (int)totalNumberOfDocuments;
-    	System.out.println("ENDING GET QUERY" + timer.get());
-    	return result;
-    }
-    
-    /**
-     * Add documents from Array to Solr Server
-     * @param an array of SolrInputDocument 
-     */
-    public static void addDocuments(SolrInputDocument[] docs,String solrURL)
-    {
-    	if(docs==null || docs.length == 0){
-    		
-    		return;
-    	}
-    	
-    	List<SolrInputDocument> d = Arrays.asList(docs);
-    	
-    	setStreamingSolrServer(solrURL);
-    	try{
-    	streamingSolrserver.add(d);
-    	System.out.println("ADDING DOCUMENTS TO " + solrURL + " WITH Num Of DOcs: " + docs.length);
-    	}catch(Exception e)
-    	{
-    		System.out.println("Error when adding "+docs.length+"documents");
-    		e.printStackTrace();
-    	}
-    }
-    
-    public static void addTextDocument(String username, String fileName, InputStream content, String solrURL) throws RemoteException, MalformedURLException, ParseException
-    {
-    	String link = username + ":" + fileName;
-    	
+
+		result.queryResult = r.toArray();
+		result.totalNumberOfDocuments = (int) totalNumberOfDocuments;
+		System.out.println("ENDING GET QUERY" + timer.get());
+		return result;
+	}
+
+	/**
+	 * Add documents from Array to Solr Server
+	 * 
+	 * @param an
+	 *            array of SolrInputDocument
+	 */
+	public static void addDocuments(SolrInputDocument[] docs, String solrURL) {
+		if (docs == null || docs.length == 0) {
+
+			return;
+		}
+
+		List<SolrInputDocument> d = Arrays.asList(docs);
+
+		setStreamingSolrServer(solrURL);
+		try {
+			streamingSolrserver.add(d);
+			System.out.println("ADDING DOCUMENTS TO " + solrURL
+					+ " WITH Num Of DOcs: " + docs.length);
+		} catch (Exception e) {
+			System.out
+					.println("Error when adding " + docs.length + "documents");
+			e.printStackTrace();
+		}
+	}
+
+	public static void addTextDocument(String username, String fileName,
+			InputStream content, String solrURL) throws RemoteException,
+			MalformedURLException, ParseException {
+		String link = username + ":" + fileName;
+
 		AutoDetectParser parser = new AutoDetectParser();
-		
-		
+
 		ContentHandler textHandler = new BodyContentHandler();
 		Metadata metadata = new Metadata();
-		
-		try{
+
+		try {
 			parser.parse(content, textHandler, metadata);
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		SolrInputDocument doc = new SolrInputDocument();
-		
+
 		doc.addField("link", link);
-		
+
 		String title = metadata.get("title");
-		if(title == null)
+		if (title == null)
 			title = fileName;
-		
+
 		Date currentDate = new Date();
 		doc.addField("title", title);
 		doc.addField("description", textHandler.toString());
 		doc.addField("username", username);
 		doc.addField("date_added", currentDate);
-		
-		if(metadata.get("Creation-Date") != null)
-		{
-			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		if (metadata.get("Creation-Date") != null) {
+			DateFormat formatter = new SimpleDateFormat(
+					"yyyy-MM-dd'T'HH:mm:ss'Z'");
 			Date date_published = new Date();
 			date_published = formatter.parse(metadata.get("Creation-Date"));
-			doc.addField("date_published", date_published);			
+			doc.addField("date_published", date_published);
 		}
-		
-//		System.out.println("Dumping metadata for file: " + fileName);
-//	    for (String name : metadata.names()) {
-//	    	System.out.println(name + ":" + metadata.get(name));
-//	    }
-		
-		addDoc(doc,solrURL, true);
-    }
-    
-    private static void addDoc(SolrInputDocument d,String solrURL,Boolean commit)
-    {
-    	try{
+
+		// System.out.println("Dumping metadata for file: " + fileName);
+		// for (String name : metadata.names()) {
+		// System.out.println(name + ":" + metadata.get(name));
+		// }
+
+		addDoc(doc, solrURL, true);
+	}
+
+	private static void addDoc(SolrInputDocument d, String solrURL,
+			Boolean commit) {
+		try {
 			setStreamingSolrServer(solrURL);
-			SolrQuery q = new SolrQuery().setQuery("link:"+"\""+d.getFieldValue("link").toString()+"\"");
+			SolrQuery q = new SolrQuery().setQuery("link:" + "\""
+					+ d.getFieldValue("link").toString() + "\"");
 			QueryResponse r = streamingSolrserver.query(q);
-			
-			if(r.getResults().getNumFound()>0)
-			{
-				System.out.println("Document already exists " + d.getFieldValue("link").toString());
-			}else{
-				
+
+			if (r.getResults().getNumFound() > 0) {
+				System.out.println("Document already exists "
+						+ d.getFieldValue("link").toString());
+			} else {
+
 				streamingSolrserver.add(d);
 			}
-			
-//			if(commit)
-//				streamingSolrserver.commit(); 
-		}catch (Exception e)
-		{
+
+			// if(commit)
+			// streamingSolrserver.commit();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
-    /**
-     * 
-     * @param query
-     * @param operator
-     * @return
-     */
-    private static String parseBasicQuery(String[] query, String operator)
-	{
-		
-    	String queryString = "";
-    	
-    	//if it is not a single word we add the operator between each keyword
-		//splitting the keywords at the spaces. 
-		if(query.length > 1)
-		{
-			for(int i = 0; i < query.length; i++)
-			{
+	/**
+	 * 
+	 * @param query
+	 * @param operator
+	 * @return
+	 */
+	private static String parseBasicQuery(String[] query, String operator) {
+
+		String queryString = "";
+
+		// if it is not a single word we add the operator between each keyword
+		// splitting the keywords at the spaces.
+		if (query.length > 1) {
+			for (int i = 0; i < query.length; i++) {
 				queryString += query[i];
-				//add operator for all terms except for last
-				if(i != query.length-1)
-					queryString += " "+operator+" ";
+				// add operator for all terms except for last
+				if (i != query.length - 1)
+					queryString += " " + operator + " ";
 			}
-			
-		}
-		else
-		{
+
+		} else {
 			queryString = query[0];
 		}
-		
-		//we need to search in both the title and the description fields.
-		//the solr syntax for searching multiple words in a single field is "field_name:(query words)"
-		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
-		
+
+		// we need to search in both the title and the description fields.
+		// the solr syntax for searching multiple words in a single field is
+		// "field_name:(query words)"
+		queryString = "title:(" + queryString + ") OR description:("
+				+ queryString + ")";
+
 		return queryString;
 	}
-    
-    
-    private static final String APP_KEY = "j8ffufccso68w4y";
-    private static final String APP_SECRET = "ww7tgcyeqr3ksmf";
-    private static final AccessType ACCESS_TYPE = AccessType.DROPBOX;
-    private static DropboxAPI<WebAuthSession> mDBApi;
- 
-    public String testDropbox() throws Exception 
-    {
-        AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
-        WebAuthSession session = new WebAuthSession(appKeys, ACCESS_TYPE);
-        WebAuthInfo authInfo = session.getAuthInfo();
- 
-        RequestTokenPair pair = authInfo.requestTokenPair;
-        String url = authInfo.url;
-        
-//        Desktop.getDesktop().browse(new URL(url).toURI());
-//        JOptionPane.showMessageDialog(null, "Press ok to continue once you have authenticated.");
-        session.retrieveWebAccessToken(pair);
- 
-        AccessTokenPair tokens = session.getAccessTokenPair();
-        System.out.println("Use this token pair in future so you don't have to re-authenticate each time:");
-        System.out.println("Key token: " + tokens.key);
-        System.out.println("Secret token: " + tokens.secret);
- 
-        mDBApi = new DropboxAPI<WebAuthSession>(session);
-        
-        return url;
-    }
-    
-    public void testAddFileToDropBox() throws Exception
-    {
-    	 System.out.println();
-         System.out.print("Uploading file...");
-         String fileContents = "Hello World!";
-         ByteArrayInputStream inputStream = new ByteArrayInputStream(fileContents.getBytes());
-         Entry newEntry = mDBApi.putFile("/testing.txt", inputStream, fileContents.length(), null, null);
-         System.out.println("Done. \nRevision of file: " + newEntry.rev);
-    }
-    
+
+	private static final String APP_KEY = "j8ffufccso68w4y";
+	private static final String APP_SECRET = "ww7tgcyeqr3ksmf";
+	private static final AccessType ACCESS_TYPE = AccessType.DROPBOX;
+	private static DropboxAPI<WebAuthSession> mDBApi;
+
+	public String testDropbox() throws Exception {
+		AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
+		WebAuthSession session = new WebAuthSession(appKeys, ACCESS_TYPE);
+		WebAuthInfo authInfo = session.getAuthInfo();
+
+		RequestTokenPair pair = authInfo.requestTokenPair;
+		String url = authInfo.url;
+
+		// Desktop.getDesktop().browse(new URL(url).toURI());
+		// JOptionPane.showMessageDialog(null,
+		// "Press ok to continue once you have authenticated.");
+		session.retrieveWebAccessToken(pair);
+
+		AccessTokenPair tokens = session.getAccessTokenPair();
+		System.out
+				.println("Use this token pair in future so you don't have to re-authenticate each time:");
+		System.out.println("Key token: " + tokens.key);
+		System.out.println("Secret token: " + tokens.secret);
+
+		mDBApi = new DropboxAPI<WebAuthSession>(session);
+
+		return url;
+	}
+
+	public void testAddFileToDropBox() throws Exception {
+		System.out.println();
+		System.out.print("Uploading file...");
+		String fileContents = "Hello World!";
+		ByteArrayInputStream inputStream = new ByteArrayInputStream(
+				fileContents.getBytes());
+		Entry newEntry = mDBApi.putFile("/testing.txt", inputStream,
+				fileContents.length(), null, null);
+		System.out.println("Done. \nRevision of file: " + newEntry.rev);
+	}
+
 }
