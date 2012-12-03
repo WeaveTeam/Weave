@@ -24,6 +24,13 @@ package weave.services
 	
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
+    import flash.net.URLRequest;
+    import flash.net.URLStream;
+    import flash.net.URLRequestMethod;
+    import flash.net.URLVariables;
+    import flash.events.Event;
+    import flash.events.ProgressEvent;
+    import flash.events.IOErrorEvent;
 	
 	import mx.controls.Alert;
 	import mx.rpc.AsyncToken;
@@ -64,12 +71,14 @@ package weave.services
 			messageLogCallbacks.triggerCallbacks();
 		}
 		
+        private var admin_url:String;
 		/**
 		 * @param url The URL pointing to where a WeaveServices.war has been deployed.  Example: http://example.com/WeaveServices
 		 */		
 		public function WeaveAdminService(url:String)
 		{
-			adminService = new AMF3Servlet(url + "/AdminService");
+            admin_url = url + "/AdminService";
+			adminService = new AMF3Servlet(admin_url);
 			dataService = new AMF3Servlet(url + "/DataService");
 			queue = new AsyncInvocationQueue();
 			
@@ -88,6 +97,7 @@ package weave.services
 		private var dataService:AMF3Servlet;
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
 		private var methodHooks:Object = {}; // methodName -> Array
+        [Bindable] public var initialized:Boolean = false;
 		
 		/**
 		 * @param method A pointer to a function of this WeaveAdminService.
@@ -213,10 +223,27 @@ package weave.services
 
 		//////////////////////////////
 		// Initialization
-		
-		public function initializeAdminService():AsyncToken
+         	
+        private function initializeAdminServiceComplete(event:Event):void
+        {
+//            initialized=true;
+        }
+        private function initializeAdminServiceError(event:IOErrorEvent):void
+        {
+            messageDisplay(event.type, event.text, true);
+        }
+		public function initializeAdminService(progressHandler:Function):void
 		{
-			return invokeAdmin(initializeAdminService, arguments);
+            var req:URLRequest = new URLRequest(admin_url);
+            req.data = new URLVariables();
+            req.method = URLRequestMethod.GET;
+            req.data["methodName"] = "initializeAdminService";
+            var loader:URLStream = new URLStream();
+            loader.load(req);
+            Alert.show(admin_url, "initializing...");
+            loader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+            loader.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);
+            loader.addEventListener(IOErrorEvent.IO_ERROR, initializeAdminServiceError);
 		}
 		
 		public function checkDatabaseConfigExists():AsyncToken

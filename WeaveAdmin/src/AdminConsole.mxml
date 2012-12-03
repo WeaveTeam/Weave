@@ -29,7 +29,7 @@
 		borderAlpha="0.5" backgroundColor="#DBDBDB"
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
-		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? MAIN_VIEW : (AdminInterface.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)}">
+		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.service.initialized ? (AdminInterface.instance.userHasAuthenticated ? MAIN_VIEW : (AdminInterface.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
@@ -73,6 +73,9 @@
 				<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
 				<managers:SQLConnectionManager/>
 			</mx:VBox>
+            <mx:VBox>
+                <admin:MigrationPanel visible="false"/>
+            </mx:VBox>
 		</mx:ViewStack>
 	</mx:Panel>
 	
@@ -111,6 +114,7 @@
 			private const MAIN_VIEW:int = 0;
 			private const LOGIN_VIEW:int = 1;
 			private const SETUP_VIEW:int = 2;
+            private const MIGRATE_VIEW:int = 3;
 			
 			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
 			

@@ -179,6 +179,7 @@ public class ProgressManager extends Observable
 				par = " (" + par + ")";
 			
 			out.println(step + desc + par);
+            out.flush();
     	}
     }
 }
