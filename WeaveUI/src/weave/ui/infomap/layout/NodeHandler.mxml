@@ -338,6 +338,7 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.csvData);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyColName);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
+				addChild(topicComponent);
 			}
 			
 			private var _nodeName:String = "";
@@ -1806,11 +1807,13 @@
 				if(query.keywords.value != null)
 				{
 					getTopicsClassification();
+					
 					flag_init = true;
-					/* if(!flag_click){
+					 if(!flag_click){
 						flag_click = true;
-						showClassificationResults();
-					} */
+						flag_topicPropertiesChange = true;
+						//showClassificationResults();
+					}  
 				}
 			}
 			
@@ -1818,8 +1821,9 @@
 			private var flag_click:Boolean = true;
 			private var flag_init:Boolean =true;
 			private var _topicsResult:Object = null;
+			private var flag_topicPropertiesChange:Boolean = false;
 			//private var _numOfTopics:int = 5;
-			
+			private var topicComponent:TopicNodeComponent = new TopicNodeComponent();
 			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
 			{   
 				if(_topicsResult == null)
@@ -1832,10 +1836,11 @@
 					
 					// ToDo This will not update automatically when new documents come in.
 					//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
+					topicComponent.removeAllChildren();
 					var urls:Array = _topicsResult.urls;
 					var keywords:Array = _topicsResult.keywords;
 					
-					var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+					//var topicComponent:TopicNodeComponent = new TopicNodeComponent();
 					var parentComponent:UIComponent = new UIComponent();
 					parentComponent.width = 400;
 					parentComponent.height = 230; // ToDo Add extra 20 for showing spot label
@@ -1844,7 +1849,8 @@
 					topicComponent.drawTreeMap(urls, keywords, parentComponent);
 					topicComponents.push(topicComponent);
 					topicComponent.includeInLayout = false;
-					addChild(topicComponent);
+					
+					//addChild(topicComponent);
 					
 					flag_init = false;
 				}
@@ -1880,6 +1886,12 @@
 				}
 				
 				nodeBase.topicsImg.visible = true;
+				if(flag_topicPropertiesChange){
+					showClassificationResults();
+					flag_topicPropertiesChange = false;
+				}
+				
+				
 			}
 			
 			private function handleTopicsQueryFault(event:FaultEvent, token:Object = null):void
