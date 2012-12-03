@@ -801,11 +801,7 @@ public class AdminService extends GenericServlet {
 			pipeList.add(new CharSequenceLowercase());
 			pipeList.add(new CharSequence2TokenSequence(Pattern
 					.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
-			// pipeList.add(new TokenSequenceRemoveStopwords(new File(
-			// "stoplists/en.txt"), "UTF-8", false, false, false));
-			// File a =
-			// getClass().getClassLoader().getResourceAsStream(name)("infomap/resources/stopwords.txt");
-
+		
 			URL stoplistPath = getClass().getClassLoader().getResource(
 					"infomap/resources/stopwords.txt");
 			// System.out.println(getClass().getClassLoader().getResource("infomap/resources/stopwords.txt"));
@@ -841,7 +837,7 @@ public class AdminService extends GenericServlet {
 			// prior.
 			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0,
 					0.01);
-
+			model.logger.setLevel(java.util.logging.Level.OFF);
 			model.addInstances(instances);
 
 			// Use two parallel samplers, which each look at one half the corpus
