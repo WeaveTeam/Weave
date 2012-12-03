@@ -18,21 +18,23 @@
 */
 
 package weave.services.beans
-{	
-	public class AttributeColumnDataWithKeys 
-	{
-		public function AttributeColumnDataWithKeys(result:Object)
-		{
-			this.metadata = result.metadata;
-			this.keys = result.keys;
-			this.data = result.data;
-			this.thirdColumn = result.thirdColumn;
-		}
-		
-		public var metadata:Object;
-		public var keys:Array;
-		public var data:Array;
-		public var thirdColumn:Array;
-	}
+{
+	import mx.utils.ObjectUtil;
 
+	public class EntityTableInfo
+	{
+		public var id:int;
+		public var title:String;
+		public var numChildren:int;
+		
+		public function EntityTableInfo(obj:Object)
+		{
+			for (var name:String in obj)
+				if (this.hasOwnProperty(name))
+					this[name] = obj[name];
+			
+			if (title == null)
+				title = "DataTable#" + id;
+		}
+	}
 }

@@ -17,27 +17,14 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.beans;
-
-public class AdminServiceResponse {
-	private boolean status;
-	private String comment;
-	public AdminServiceResponse(){}
-	public AdminServiceResponse(boolean status, String comment)
+package weave.services.beans
+{
+	public class EntityType
 	{
-		this.status = status;
-		this.comment = comment;
-	}
-	public boolean getStatus() {
-		return status;
-	}
-	public void setStatus(boolean status) {
-		this.status = status;
-	}
-	public String getComment() {
-		return comment;
-	}
-	public void setComment(String comment) {
-		this.comment = comment;
+		public static const ANY:int = -1;
+		public static const HIERARCHY:int = 0;
+		public static const TABLE:int = 1;
+		public static const CATEGORY:int = 2;
+		public static const COLUMN:int = 3;
 	}
 }

@@ -18,18 +18,13 @@
     </mx:HBox>
 <mx:Script>
 <![CDATA[
-    import weave.services.WeaveAdminService;
-    import weave.services.AdminInterface;
-    import weave.services.beans.Entity;
-    import weave.ui.EntityTreeNode;
-    
-    import weave.core.UIUtils;
-    
-    import mx.controls.dataGridClasses.DataGridColumn; 
-    import mx.events.DataGridEvent;
+    import mx.collections.ListCollectionView;
+    import mx.controls.dataGridClasses.DataGridColumn;
     import mx.events.CollectionEvent;
     import mx.events.ListEvent;
-    import mx.collections.ListCollectionView;
+    
+    import weave.core.UIUtils;
+	
     private function emitMetaChanged(o:Object = null):void
     {
         dispatchEvent(new Event("metaChanged"));

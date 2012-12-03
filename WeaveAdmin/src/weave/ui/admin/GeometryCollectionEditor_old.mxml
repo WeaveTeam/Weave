@@ -28,10 +28,10 @@
 		<mx:TextInput change="{dataChanged=true}" id="nameInput"/>
 	</ui:Indent>
 	<ui:Indent label="Connection">
-		<ui:CustomComboBox change="{dataChanged=true}" id="connectionCombo" dataProvider="{AdminInterface.instance.connectionNames}"/>
+		<ui:CustomComboBox change="{dataChanged=true}" id="connectionCombo" dataProvider="{Admin.instance.connectionNames}"/>
 	</ui:Indent>
 	<ui:Indent label="Key Type">
-		<ui:CustomComboBox change="{dataChanged=true}" id="keyTypeCombo" editable="true" dataProvider="{AdminInterface.instance.keyTypes}"/>
+		<ui:CustomComboBox change="{dataChanged=true}" id="keyTypeCombo" editable="true" dataProvider="{Admin.instance.keyTypes}"/>
 	</ui:Indent>
 	<ui:Indent label="Schema">
 		<mx:TextInput change="{dataChanged=true}" id="schemaInput"/>
@@ -59,7 +59,7 @@
 			import mx.collections.ICollectionView;
 			import mx.controls.Alert;
 			
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.utils.EventUtils;
 			
 			private function handleCreationComplete():void

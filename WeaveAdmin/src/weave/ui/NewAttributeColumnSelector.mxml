@@ -35,11 +35,11 @@
     import mx.events.TreeEvent;
     import mx.rpc.events.ResultEvent;
     import weave.core.UIUtils;
-    import weave.services.AdminInterface;
+    import weave.services.Admin;
     import weave.services.WeaveAdminService;
     import weave.services.beans.Entity;
     import weave.ui.EntityTreeNode;
-    public var adminService:AdminInterface
+    public var adminService:Admin
     [Bindable] public var selectedItem:EntityTreeNode;
     private var tagTree:Array;
     private var dataTables:Array;
@@ -77,7 +77,7 @@
                 onFinish();
             }
         }
-        AdminInterface.instance.getEntityChildren(-1, populateRootHandler);
+        Admin.instance.getEntityChildren(-1, populateRootHandler);
     }
     private function frobProvider():void
     {

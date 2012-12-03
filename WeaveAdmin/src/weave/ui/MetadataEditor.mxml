@@ -3,67 +3,89 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
-    width="100%" height="100%" creationComplete="handleCreationComplete()" enabled="{targetItem != null}">
+    width="100%" height="100%"
+	creationComplete="handleCreationComplete()">
     <mx:TabNavigator width="100%" height="100%">
         <ui:MetadataGrid id="publicMetaGrid" label="Public" 
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>    
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>    
         <ui:MetadataGrid id="privateMetaGrid" label="Private" 
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
     <mx:HBox>
-        <mx:Button label="Discard Changes" enabled="{isChanged}" click="setEditors(null)"/>
+        <mx:Button label="Discard Changes" enabled="{isChanged}" click="refresh()"/>
         <mx:Button label="Save Changes" enabled="{isChanged}" click="saveChanges()"/>
         <mx:Button label="Debug Meta" click="printpubMeta()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
+	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
 	import mx.controls.Alert;
 	
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.core.UIUtils;
-	import weave.services.AdminInterface;
+	import weave.services.Admin;
 	import weave.services.EntityCache;
 	import weave.services.WeaveAdminService;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
-    [Bindable] public var targetItem:EntityNode = null;
+	public function handleCreationComplete():void
+	{
+		BindingUtils.bindSetter(metaChanged, publicMetaGrid, 'metadata');
+		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
+		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
+	}
+	
     [Bindable] public var isChanged:Boolean = false;
-
-    private var pubWatcher:ChangeWatcher;
-    private var privWatcher:ChangeWatcher;
-    public function handleCreationComplete():void
-    {
-        ChangeWatcher.watch(this, "targetItem", setEditors);
-        pubWatcher = ChangeWatcher.watch(publicMetaGrid, "metadata", metaChanged);
-        privWatcher = ChangeWatcher.watch(privateMetaGrid, "metadata", metaChanged);
-		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, handleEntityCache);
-    }
-    private function setEditors(..._):void
-    {
-        if (targetItem == null)
-        {
-            return;
-        }
-		var entity:Entity = targetItem.getEntity();
+	
+	private var _targetItems:Array;
+	[Bindable] public function get targetItems():Array
+	{
+		return _targetItems;
+	}
+	public function set targetItems(items:Array):void
+	{
+		_targetItems = items;
+		refresh();
+	}
+	
+	private function refresh():void
+	{
+		//TODO: support editing multiple items at a time
+		
+		if (_targetItems == null || _targetItems.length > 1)
+		{
+			this.enabled = false;
+			return;
+		}
+		this.enabled = true;
+		
+		var item:EntityNode = _targetItems[0];
+		
+		var entity:Entity = item.getEntity();
         publicMetaGrid.metadata = entity.publicMetadata;
         privateMetaGrid.metadata = entity.privateMetadata;
-    }
+	}
+
     private function metaChanged(..._):void
     {
-		var entity:Entity = targetItem.getEntity();
-        var pubDiff:Object = EntityCache.diffObjects(publicMetaGrid.metadata, entity.publicMetadata);
-        var privDiff:Object = EntityCache.diffObjects(privateMetaGrid.metadata, entity.privateMetadata);
+		if (_targetItems == null || _targetItems.length > 1)
+			return;
+		
+		var item:EntityNode = _targetItems[0];
+		
+		var entity:Entity = item.getEntity();
+		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
         var prop:String;
-        for (prop in pubDiff)
+        for (prop in diff.privateMetadata)
         {
             isChanged = true;
             return;
         }
-        for (prop in privDiff)
+        for (prop in diff.publicMetadata)
         {
             isChanged = true;
             return;
@@ -72,18 +94,16 @@
     }
     private function saveChanges():void
     {
-		var entity:Entity = targetItem.getEntity();
-        var pubDiff:Object = EntityCache.diffObjects(entity.publicMetadata, publicMetaGrid.metadata);
-        var privDiff:Object = EntityCache.diffObjects(entity.privateMetadata, privateMetaGrid.metadata);
-        function validateCommit(..._):void
-        {
-        }
-		var diff:EntityMetadata = new EntityMetadata();
-		diff.publicMetadata = pubDiff;
-		diff.privateMetadata = privDiff;
+		if (_targetItems == null || _targetItems.length > 1)
+			return;
+		
+		var item:EntityNode = _targetItems[0];
+		
+		var entity:Entity = item.getEntity();
+		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
 		
 		checkIsChanged = true;
-        AdminInterface.instance.entityCache.update_metadata(entity.id, diff);
+        Admin.entityCache.update_metadata(entity.id, diff);
     }
 	private var checkIsChanged:Boolean = false;
 	private function handleEntityCache():void
@@ -98,7 +118,9 @@
                 reportError('handleEntityCache(): isChanged is true');
 			}
             else
-                setEditors();
+			{
+				refresh();
+			}
 		}
 	}
 	

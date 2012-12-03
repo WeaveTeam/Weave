@@ -21,6 +21,8 @@ package weave.config.tables;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,7 +36,10 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.SQLUtils.WhereClause;
+import weave.utils.StringUtils;
 
 
 /**
@@ -117,14 +122,15 @@ public class MetadataTable extends AbstractTable
 		{
 			if (!connectionConfig.migrationPending())
 			{
+				Connection conn = connectionConfig.getAdminConnection();
 				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 				for (String property : diff.keySet())
 				{
 					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
 					records.add(record);
 				}
-				Connection conn = connectionConfig.getAdminConnection();
-				SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
+				WhereClause<Object> where = new WhereClause<Object>(conn, records, caseSensitiveFields, false);
+				SQLUtils.deleteRows(conn, schemaName, tableName, where);
 			}
 			
 			for (Entry<String,String> entry : diff.entrySet())
@@ -145,44 +151,98 @@ public class MetadataTable extends AbstractTable
 		try 
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.deleteRows(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_ID, id), caseSensitiveFields, true);
+			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_ID, id);
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, caseSensitiveFields, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to clear properties for a given id.", e);
 		}
 	}
-	public Map<Integer, String> getProperty(String property) throws RemoteException
+	public Map<Integer, String> getPropertyMap(Collection<Integer> ids, String property) throws RemoteException
 	{
+		ResultSet rs = null;
+		PreparedStatement stmt = null;
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<Integer,String> result = new HashMap<Integer,String>();
-			Map<String,Object> params = MapUtils.fromPairs(FIELD_PROPERTY, property);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class, null, caseSensitiveFields);
-			for (Map<String,Object> row : rows)
-			{
-				Number id = (Number)row.get(FIELD_ID);
-				String value = (String)row.get(FIELD_VALUE);
-				result.put(id.intValue(), value);
-			}
+			
+			// build query
+			String quotedIdField = SQLUtils.quoteSymbol(conn, FIELD_ID);
+			String query = String.format(
+					"SELECT %s,%s FROM %s WHERE %s=?",
+					quotedIdField,
+					SQLUtils.quoteSymbol(conn, FIELD_VALUE),
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					SQLUtils.quoteSymbol(conn, FIELD_PROPERTY)
+				);
+			if (ids != null)
+				query += String.format(" AND %s IN (%s)", quotedIdField, StringUtils.join(",", ids));
+			
+			// make query and get values
+			stmt = SQLUtils.prepareStatement(conn, query, Arrays.asList(property));
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+				result.put(rs.getInt(FIELD_ID), rs.getString(FIELD_VALUE));
+			
 			return result;
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to get all instances of a property.", e);
 		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
 	}
 	public Map<Integer, Map<String,String>> getProperties(Collection<Integer> ids) throws RemoteException
 	{
-		try 
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try
 		{
+			Map<Integer,Map<String,String>> result = MapUtils.fromPairs();
+			
+			if (ids.size() == 0)
+				return result;
+			
+			for (int id : ids)
+				result.put(id, new HashMap<String,String>());
+			
 			Connection conn = connectionConfig.getAdminConnection();
-			return SQLUtils.idInSelect(conn, schemaName, tableName, FIELD_ID, FIELD_PROPERTY, FIELD_VALUE, ids, null);
+			String query = String.format(
+					"SELECT * FROM %s WHERE %s IN (%s)",
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					SQLUtils.quoteSymbol(conn, FIELD_ID),
+					StringUtils.join(",", ids)
+				);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+			{
+				int id = rs.getInt(FIELD_ID);
+				String property = rs.getString(FIELD_PROPERTY);
+				String value = rs.getString(FIELD_VALUE);
+				
+				result.get(id).put(property, value);
+			}
+			
+			return result;
 		}   
 		catch (SQLException e)
 		{
-			throw new RemoteException("Unable to get properties for a list of ids.", e);
+			throw new RemoteException("Unable to retrieve metadata", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	public Set<Integer> filter(Map<String,String> constraints) throws RemoteException

@@ -161,6 +161,30 @@ public class CSVParser
 	}
 	
 	/**
+	 * This function parses a String as a CSV-encoded row.
+	 * @param csvData The CSV string to parse.
+	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
+	 * @return The result of parsing the CSV string.
+	 */
+	public String[] parseCSVRow(String csvData, boolean parseTokens)
+	{
+		try {
+			if (csvData == null)
+				return null;
+			
+			String[][] rows = parseCSV(new ByteArrayInputStream(csvData.getBytes()), parseTokens);
+			if (rows.length > 0)
+				return rows[0];
+			
+			return new String[0];
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
+	/**
 	 * This function parses a String as a CSV-encoded table.
 	 * @param csvData The CSV string to parse.
 	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
@@ -169,6 +193,8 @@ public class CSVParser
 	public String[][] parseCSV(String csvData, boolean parseTokens)
 	{
 		try {
+			if (csvData == null)
+				return null;
 			return parseCSV(new ByteArrayInputStream(csvData.getBytes()), parseTokens);
 		}
 		catch (IOException e)
@@ -199,16 +225,15 @@ public class CSVParser
 		
 		Vector<Vector<StringBuilder>> rows = new Vector<Vector<StringBuilder>>();
 
+		boolean escaped = false;
+		boolean skipNext = false;
+		int next = csvReader.read();
+		
 		// special case -- if csv is empty, return an empty array (a set of zero rows)
-		if (csvInput.available() == 0)
+		if (next == -1)
 			return new String[0][];
 		
 		StringBuilder token = newToken(rows, true); // new row
-
-		boolean escaped = false;
-		
-		int next = csvReader.read();
-		boolean skipNext = false;
 		
 		while (next != -1)
 		{

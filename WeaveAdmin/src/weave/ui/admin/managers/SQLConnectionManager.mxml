@@ -30,7 +30,7 @@
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
+			<mx:Button label="Refresh" click="refresh()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -73,15 +73,15 @@
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label text='You are currently using the "{AdminInterface.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
+				<mx:Label text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
 				<mx:Spacer/>
 				<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>
 				<ui:Indent label="Connection to use">
-					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
+					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{Admin.instance.connectionNames}" width="200"/>
 				</ui:Indent>
 				<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
-				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="migrateToDatabase()" />
+				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
+				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="saveDatabaseConfigInfo()" />
 			</mx:VBox>
 		</mx:Canvas>
 		<!--		<mx:Canvas label="etc" width="100%" height="100%">
@@ -98,7 +98,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
 			import weave.ui.Indent;
@@ -113,7 +113,7 @@
 
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(handleConnectionNames, AdminInterface.instance, "connectionNames");
+				BindingUtils.bindSetter(handleConnectionNames, Admin.instance, "connectionNames");
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
 			}
 			
@@ -128,7 +128,7 @@
 				else
 				{
 					superuserCheckbox.enabled = true;
-					if (!AdminInterface.instance.databaseConfigExists)
+					if (!Admin.instance.databaseConfigExists)
 						tabNavigator.selectedChild = migrateTab;
 				}
 				migrateTab.enabled = names.length > 0;
@@ -163,7 +163,7 @@
 				tabNavigator.selectedChild = simpleSetting;
 				
 				var name:String = treeWithSearch.tree.selectedItem.label;
-				addAsyncResponder(AdminInterface.service.getConnectionInfo(name), handleResult);
+				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult);
 
 				function handleResult(event:ResultEvent, token:Object = null):void
 				{
@@ -212,7 +212,7 @@
 				connectionPasswordInput.text = "";
 				folderNameInput.text = "";
 				configOverwrite.selected = false;
-				superuserCheckbox.selected = (AdminInterface.instance.connectionNames.length == 0);
+				superuserCheckbox.selected = (Admin.instance.connectionNames.length == 0);
 			}
 			
 			private function saveConnectionInfo():void
@@ -228,32 +228,26 @@
 				info.is_superuser = superuserCheckbox.selected;
 				info.folderName = folderNameInput.text;
 				
-				addAsyncResponder(AdminInterface.service.saveConnectionInfo(info, configOverwrite.selected), handleSave);
+				addAsyncResponder(Admin.service.saveConnectionInfo(info, configOverwrite.selected), handleSave);
 				function handleSave(..._):void
 				{
-					if (info.name == AdminInterface.instance.activeConnectionName)
+					if (info.name == Admin.instance.activeConnectionName)
 					{
-						AdminInterface.instance.authenticate(info.name, info.pass);
-						AdminInterface.instance.userHasAuthenticated = true;
+						Admin.service.authenticate(info.name, info.pass);
+						// prevent interface from displaying as logged out
+						Admin.instance.userHasAuthenticated = true;
 					}
 				}
 				dataChanged = false;
 			}
 			
-			private function migrateToDatabase():void
+			private function saveDatabaseConfigInfo():void
 			{
-				migrateButton.enabled = false;
-				var query:AsyncToken = AdminInterface.service.setDatabaseConfigInfo(
+				Admin.service.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
 					   migrateSchemaInput.text
 					);
-				addAsyncResponder(query, enableMigrateButton, enableMigrateButton);
-				function enableMigrateButton(..._):void
-				{
-					migrateButton.enabled = true;
-					AdminInterface.instance.getConnectionNames(); // causes databaseConfigInfo to update
-				}
 			}
 			
 			private function handleRemoveConnection():void
@@ -274,10 +268,15 @@
 				);
 				function del():void
 				{
-					AdminInterface.service.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
+					Admin.service.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
 				}
 			}
 			
+			private function refresh():void
+			{
+				Admin.service.getConnectionNames();
+				Admin.service.getDatabaseConfigInfo();
+			}
 		]]>
 	</mx:Script>
 </mx:HDividedBox>

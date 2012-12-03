@@ -19,16 +19,23 @@
 
 package weave.servlets;
 
+import static weave.config.WeaveConfig.getConnectionConfig;
+import static weave.config.WeaveConfig.getDataConfig;
+import static weave.config.WeaveConfig.initWeaveConfig;
+
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -41,10 +48,11 @@ import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataEntityTableInfo;
+import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
-import static weave.config.WeaveConfig.*;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
@@ -70,6 +78,17 @@ public class DataService extends GenericServlet
 	{
 		super.init(config);
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	protected Object cast(Object value, Class<?> type)
+	{
+		if (type == DataEntityMetadata.class && value != null && value instanceof Map)
+		{
+			return DataEntityMetadata.fromMap((Map)value);
+		}
+		return super.cast(value, type);
 	}
 	
 	/////////////////////
@@ -101,30 +120,91 @@ public class DataService extends GenericServlet
 		}
 	}
 	
-	private void assertNonGeometryColumn(DataEntity entity) throws RemoteException
+//	private void assertNonGeometryColumn(DataEntity entity) throws RemoteException
+//	{
+//		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
+//		if (dataType.equals(DataType.GEOMETRY))
+//			throw new RemoteException(String.format("Column %s dataType is %s", entity.id, dataType));
+//		assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLQUERY);
+//	}
+	
+	private boolean assertGeometryColumn(DataEntity entity, boolean throwException) throws RemoteException
 	{
-		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
-		if (dataType.equals(DataType.GEOMETRY))
-			throw new RemoteException(String.format("Column %s dataType is %s", dataType, DataType.GEOMETRY));
-		assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLQUERY);
+		try
+		{
+			String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
+			if (!dataType.equals(DataType.GEOMETRY))
+				throw new RemoteException(String.format("Column %s dataType is %s, not %s", entity.id, dataType, DataType.GEOMETRY));
+			assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLSCHEMA, PrivateMetadata.SQLTABLEPREFIX);
+			return true;
+		}
+		catch (RemoteException e)
+		{
+			if (throwException)
+				throw e;
+			return false;
+		}
 	}
 	
-	private void assertGeometryColumn(DataEntity entity) throws RemoteException
+	////////////////////
+	// DataEntity info
+	
+	public DataEntityTableInfo[] getDataTableList() throws RemoteException
 	{
-		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
-		if (!dataType.equals(DataType.GEOMETRY))
-			throw new RemoteException(String.format("Column %s dataType is %s, not %s", entity.id, dataType, DataType.GEOMETRY));
-		assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLSCHEMA, PrivateMetadata.SQLTABLEPREFIX);
+		return getDataConfig().getDataTableList();
+	}
+
+	public int[] getEntityChildIds(int parentId) throws RemoteException
+	{
+		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
+	}
+
+	public int[] getEntityIdsByMetadata(DataEntityMetadata meta, int entityType) throws RemoteException
+	{
+		// prevent user from querying private metadata
+		if (meta != null)
+			meta.privateMetadata = Collections.emptyMap();
+		
+		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(meta, entityType) );
+	}
+
+	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
+	{
+		DataConfig config = getDataConfig();
+		Set<Integer> idSet = new HashSet<Integer>();
+		for (int id : ids)
+			idSet.add(id);
+		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
+		for (int i = 0; i < result.length; i++)
+		{
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(result[i].id) );
+			result[i] = new DataEntityWithChildren(result[i], childIds);
+			
+			// prevent user from receiving private metadata
+			result[i].privateMetadata = Collections.emptyMap();
+		}
+		return result;
 	}
 	
-	////////////////////////////////////
-	// string and numeric data columns
+	////////////
+	// Columns
 	
-	public AttributeColumnData getColumnData(int columnId, Double minParam, Double maxParam, String[] sqlParams)
+	public AttributeColumnData getColumn(int columnId, double minParam, double maxParam, String[] sqlParams)
 		throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
-		assertNonGeometryColumn(entity);
+		
+		// if it's a geometry column, just return the metadata
+		if (assertGeometryColumn(entity, false))
+		{
+			GeometryStreamMetadata gsm = (GeometryStreamMetadata) getGeometryData(entity, GeomStreamStep.TILE_DESCRIPTORS, null);
+			AttributeColumnData result = new AttributeColumnData();
+			result.id = columnId;
+			result.metadata = entity.publicMetadata;
+			result.metadataTileDescriptors = gsm.metadataTileDescriptors;
+			result.geometryTileDescriptors = gsm.geometryTileDescriptors;
+			return result;
+		}
 		
 		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
@@ -140,11 +220,11 @@ public class DataService extends GenericServlet
 		List<Object> thirdColumn = null; // hack for dimension slider format
 		
 		// use config min,max or param min,max to filter the data
-		double minValue = Double.NEGATIVE_INFINITY;
-		double maxValue = Double.POSITIVE_INFINITY;
+		double minValue = Double.NaN;
+		double maxValue = Double.NaN;
 		
 		// override config min,max with param values if given
-		if (minParam != null)
+		if (!Double.isNaN(minParam))
 		{
 			minValue = minParam;
 		}
@@ -154,7 +234,7 @@ public class DataService extends GenericServlet
 				minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
 			} catch (Exception e) { }
 		}
-		if (maxParam != null)
+		if (!Double.isNaN(maxParam))
 		{
 			maxValue = maxParam;
 		}
@@ -165,6 +245,12 @@ public class DataService extends GenericServlet
 			} catch (Exception e) { }
 		}
 		
+		if (Double.isNaN(minValue))
+			minValue = Double.NEGATIVE_INFINITY;
+		
+		if (Double.isNaN(maxValue))
+			maxValue = Double.POSITIVE_INFINITY;
+		
 		try
 		{
 			Connection conn = connInfo.getStaticReadOnlyConnection();
@@ -173,7 +259,7 @@ public class DataService extends GenericServlet
 			if (sqlParams == null || sqlParams.length == 0)
 			{
 				String sqlParamsString = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
-				sqlParams = CSVParser.defaultParser.parseCSV(sqlParamsString, true)[0];
+				sqlParams = CSVParser.defaultParser.parseCSVRow(sqlParamsString, true);
 			}
 			
 			SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);
@@ -248,6 +334,7 @@ public class DataService extends GenericServlet
 		}
 
 		AttributeColumnData result = new AttributeColumnData();
+		result.id = columnId;
 		result.metadata = entity.publicMetadata;
 		result.keys = keys.toArray(new String[keys.size()]);
 		if (numericData != null)
@@ -261,25 +348,61 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	/*
-	public SQLResult getRowSet(int columnId)
-		throws RemoteException
+	/////////////////////
+	// geometry columns
+	
+	public byte[] getGeometryStreamMetadataTiles(int columnId, List<Integer> tileIDs) throws RemoteException
 	{
+		DataEntity entity = getColumnEntity(columnId);
+		return (byte[]) getGeometryData(entity, GeomStreamStep.METADATA_TILES, tileIDs);
+	}
+	
+	public byte[] getGeometryStreamGeometryTiles(int columnId, List<Integer> tileIDs) throws RemoteException
+	{
+		DataEntity entity = getColumnEntity(columnId);
+		return (byte[]) getGeometryData(entity, GeomStreamStep.GEOMETRY_TILES, tileIDs);
+	}
+	
+	private static enum GeomStreamStep { TILE_DESCRIPTORS, METADATA_TILES, GEOMETRY_TILES };
+	
+	private Object getGeometryData(DataEntity entity, GeomStreamStep step, List<Integer> tileIDs) throws RemoteException
+	{
+		assertGeometryColumn(entity, true);
+		
+		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+		String schema = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
+		String tablePrefix = entity.privateMetadata.get(PrivateMetadata.SQLTABLEPREFIX);
+		
+		Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 		try
 		{
-			DataEntity entity = getColumnEntity(columnId);
-			String connectionName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-			String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
-			Connection conn = getConnectionConfig().getConnectionInfo(connectionName).getStaticReadOnlyConnection();
-			return SQLUtils.getRowSetFromQuery(conn, query);
+			switch (step)
+			{
+				case TILE_DESCRIPTORS:
+					GeometryStreamMetadata result = new GeometryStreamMetadata();
+					result.metadataTileDescriptors = SQLGeometryStreamReader.getMetadataTileDescriptors(conn, schema, tablePrefix);
+					result.geometryTileDescriptors = SQLGeometryStreamReader.getGeometryTileDescriptors(conn, schema, tablePrefix);
+					return result;
+					
+				case METADATA_TILES:
+					return SQLGeometryStreamReader.getMetadataTiles(conn, schema, tablePrefix, tileIDs);
+					
+				case GEOMETRY_TILES:
+					return SQLGeometryStreamReader.getGeometryTiles(conn, schema, tablePrefix, tileIDs);
+					
+				default:
+					throw new InvalidParameterException("Invalid step.");
+			}
 		}
-		catch (SQLException e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException("getRowSet failed for column " + columnId);
+			throw new RemoteException(String.format("Unable to read geometry data (id=%s)", entity.id));
 		}
 	}
-	*/
+	
+	////////////////////////////
+	// Row query
 	
 	@SuppressWarnings("unchecked")
 	public WeaveRecordList getRows(String keyType, String[] keysArray) throws RemoteException
@@ -426,80 +549,45 @@ public class DataService extends GenericServlet
 		
 		return result;
 	}
-	
-	/////////////////////
-	// geometry columns
-	
-	public GeometryStreamMetadata getGeometryStreamTileDescriptors(int columnId) throws RemoteException
-	{
-		return (GeometryStreamMetadata) getGeometryData(GeomStreamStep.TILE_DESCRIPTORS, columnId, null);
-	}
-	
-	public byte[] getGeometryStreamMetadataTiles(int columnId, List<Integer> tileIDs) throws RemoteException
-	{
-		return (byte[]) getGeometryData(GeomStreamStep.METADATA_TILES, columnId, tileIDs);
-	}
-	
-	public byte[] getGeometryStreamGeometryTiles(int columnId, List<Integer> tileIDs) throws RemoteException
-	{
-		return (byte[]) getGeometryData(GeomStreamStep.GEOMETRY_TILES, columnId, tileIDs);
-	}
-	
-	private static enum GeomStreamStep { TILE_DESCRIPTORS, METADATA_TILES, GEOMETRY_TILES };
-	
-	private Object getGeometryData(GeomStreamStep step, int columnId, List<Integer> tileIDs) throws RemoteException
-	{
-		DataEntity entity = getColumnEntity(columnId);
-		assertGeometryColumn(entity);
-		
-		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-		String schema = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
-		String tablePrefix = entity.privateMetadata.get(PrivateMetadata.SQLTABLEPREFIX);
-		
-		Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
-		try
-		{
-			switch (step)
-			{
-				case TILE_DESCRIPTORS:
-					GeometryStreamMetadata result = new GeometryStreamMetadata();
-					result.id = columnId;
-					result.metadata = entity.publicMetadata;
-					result.metadataTileDescriptors = SQLGeometryStreamReader.getMetadataTileDescriptors(conn, schema, tablePrefix);
-					result.geometryTileDescriptors = SQLGeometryStreamReader.getGeometryTileDescriptors(conn, schema, tablePrefix);
-					return result;
-					
-				case METADATA_TILES:
-					return SQLGeometryStreamReader.getMetadataTiles(conn, schema, tablePrefix, tileIDs);
-					
-				case GEOMETRY_TILES:
-					return SQLGeometryStreamReader.getGeometryTiles(conn, schema, tablePrefix, tileIDs);
-					
-				default:
-					throw new InvalidParameterException("Invalid step.");
-			}
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(String.format("Unable to read geometry data (id=%s)", columnId));
-		}
-	}
 
 	/////////////////////////////
 	// backwards compatibility
 	
+	/**
+	 * @param publicMetadata The metadata query.
+	 * @return The id of the matching column.
+	 * @throws RemoteException Thrown if the metadata query does not match exactly one column.
+	 */
 	@Deprecated
-	public int[] getColumnIds(Map<String, String> publicMetadata)
+	public AttributeColumnData getColumnFromMetadata(Map<String, String> metadata)
 		throws RemoteException
 	{
 		DataEntityMetadata params = new DataEntityMetadata();
-		params.publicMetadata = publicMetadata;
-		Collection<Integer> idCollection = getDataConfig().getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
-		int ids[] = new int[idCollection.size()];
-		int i = 0;
-		for (int id : idCollection)
-			ids[i++] = id;
-		return ids;
+		params.publicMetadata = metadata;
+		
+		// exclude these parameters from the query
+		String minStr = metadata.remove(PublicMetadata.MIN);
+		String maxStr = metadata.remove(PublicMetadata.MAX);
+		String paramsStr = metadata.remove(PrivateMetadata.SQLPARAMS);
+		
+		Collection<Integer> ids = getDataConfig().getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
+		
+		if (ids.size() > 1)
+			throw new RemoteException(String.format(
+					"Multiple columns (%s) match metadata query: %s",
+					ids.size(),
+					metadata
+				));
+		
+		for (int id : ids)
+		{
+			double min = (Double)cast(minStr, double.class);
+			double max = (Double)cast(maxStr, double.class);
+			String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
+			
+			return getColumn(id, min, max, sqlParams);
+		}
+		
+		throw new RemoteException("No column matches metadata query: " + metadata);
 	}
 }

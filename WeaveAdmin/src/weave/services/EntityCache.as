@@ -2,13 +2,16 @@ package weave.services
 {
     import flash.utils.Dictionary;
     
+    import mx.binding.utils.BindingUtils;
     import mx.rpc.events.ResultEvent;
     
     import weave.api.core.ICallbackCollection;
     import weave.api.core.ILinkableObject;
+    import weave.api.data.ColumnMetadata;
     import weave.api.getCallbackCollection;
     import weave.services.beans.Entity;
     import weave.services.beans.EntityMetadata;
+    import weave.services.beans.EntityTableInfo;
     import weave.utils.Dictionary2D;
 
     public class EntityCache implements ILinkableObject
@@ -18,10 +21,14 @@ package weave.services
 		private var cache_dirty:Object = {}; // id -> Boolean
         private var cache_entity:Object = {}; // id -> Array <Entity>
 		private var d2d_child_parent:Dictionary2D = new Dictionary2D(); // <child_id,parent_id> -> Boolean
+		private var delete_later:Object = {}; // id -> Boolean
+		private var _dataTableIds:Array = []; // array of EntityTableInfo
+		private var _dataTableLookup:Object = {}; // id -> EntityTableInfo
 		
         public function EntityCache()
         {
 			callbacks.addGroupedCallback(this, fetchDirtyEntities);
+			Admin.service.addHook(Admin.service.authenticate, null, fetchDirtyEntities);
         }
 		
 		public function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
@@ -35,8 +42,7 @@ package weave.services
 			
 			if (!cache_entity[id])
 			{
-				var entity:Entity = new Entity();
-				entity.id = id;
+				var entity:Entity = new Entity(id);
 				cache_entity[id] = entity;
 			}
 			
@@ -70,15 +76,35 @@ package weave.services
             return cache_entity[id];
 		}
 		
-		private function fetchDirtyEntities():void
+		private function fetchDirtyEntities(..._):void
 		{
+			if (!Admin.instance.userHasAuthenticated)
+				return;
+			
+			var id:*;
+			
+			// delete marked entities
+			var deleted:Boolean = false;
+			for (id in delete_later)
+			{
+				Admin.service.removeEntity(id);
+				deleted = true;
+			}
+			if (deleted)
+				delete_later = {};
+			
+			// request invalidated entities
 			var ids:Array = [];
-			for (var id:* in cache_dirty)
+			for (id in cache_dirty)
+			{
+				if (id == ROOT_ID)
+					addAsyncResponder(Admin.service.getDataTableList(), handleDataTableList);
 				ids.push(int(id));
+			}
 			if (ids.length > 0)
 			{
 				cache_dirty = {};
-				addAsyncResponder(AdminInterface.service.getEntitiesById(ids), getEntityHandler);
+				addAsyncResponder(Admin.service.getEntitiesById(ids), getEntityHandler);
 			}
         }
 		
@@ -87,7 +113,7 @@ package weave.services
 			for each (var result:Object in event.result)
 			{
 				var id:int = Entity.getEntityIdFromResult(result);
-				var entity:Entity = cache_entity[id] || new Entity();
+				var entity:Entity = cache_entity[id] || new Entity(id);
 				entity.copyFromResult(result);
 	            cache_entity[id] = entity;
 				
@@ -98,41 +124,70 @@ package weave.services
 			
 			callbacks.triggerCallbacks();
         }
+		
+		private function handleDataTableList(event:ResultEvent, token:Object = null):void
+		{
+			var items:Array = event.result as Array;
+			for (var i:int = 0; i < items.length; i++)
+			{
+				var item:EntityTableInfo = new EntityTableInfo(items[i]);
+				_dataTableLookup[item.id] = item;
+				items[i] = item.id;
+			}
+			_dataTableIds = items;
+			
+			callbacks.triggerCallbacks();
+		}
+		
+		public function getDataTableIds():Array
+		{
+			getEntity(ROOT_ID);
+			return _dataTableIds;
+		}
+		
+		public function getDataTableInfo(id:int):EntityTableInfo
+		{
+			getEntity(ROOT_ID);
+			return _dataTableLookup[id];
+		}
         
 		public function clearCache():void
         {
+			//TODO: clearCache() still causes full data table metadata to be requested
+			
 			callbacks.delayCallbacks();
 			
 			// we don't want to delete the cache because we can still use the cached values for display in the meantime.
 			for (var id:* in cache_entity)
 				invalidate(id);
 			
+			callbacks.triggerCallbacks();
+			
 			callbacks.resumeCallbacks();
         }
 		
 		public function update_metadata(id:int, diff:EntityMetadata):void
         {
-			AdminInterface.service.updateEntity(id, diff);
+			Admin.service.updateEntity(id, diff);
 			invalidate(id);
         }
-        public function add_tag(label:String):void
+        public function add_tag(label:String, parentId:int):void
         {
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             var em:EntityMetadata = new EntityMetadata();
-			em.publicMetadata = {title: label};
-			AdminInterface.service.addEntity(Entity.TYPE_CATEGORY, em, -1);
-			invalidate(ROOT_ID); // because the tag will appear under root
+			em.publicMetadata[ColumnMetadata.TITLE] = label;
+			Admin.service.newEntity(Entity.TYPE_CATEGORY, em, parentId);
+			invalidate(parentId);
         }
         public function delete_entity(id:int):void
         {
             /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
-			AdminInterface.service.removeEntity(id);
+			Admin.service.removeEntity(id);
 			invalidate(id, true);
         }
         public function add_child(parent_id:int, child_id:int, index:int):void
         {
-			// add to root not supported
-			AdminInterface.service.addParentChildRelationship(parent_id, child_id, index);
+			Admin.service.addParentChildRelationship(parent_id, child_id, index);
 			invalidate(parent_id);
         }
         public function remove_child(parent_id:int, child_id:int):void
@@ -140,41 +195,14 @@ package weave.services
 			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
 			if (parent_id == ROOT_ID)
 			{
+				delete_later[child_id] = true;
 				invalidate(ROOT_ID);
 			}
 			else
 			{
-				var d:Dictionary = d2d_child_parent.dictionary[child_id];
-				var count:int = 0;
-				for (var _id:* in d)
-					count++;
-				if (count == 1)
-					invalidate(ROOT_ID);
-				AdminInterface.service.removeParentChildRelationship(parent_id, child_id);
+				Admin.service.removeParentChildRelationship(parent_id, child_id);
 			}
 			invalidate(child_id, true);
         }
-		
-		static public function mergeObjects(oldObj:Object, newObj:Object):Object
-		{
-			var result:Object = {};
-			var prop:Object;
-			
-			for (prop in oldObj)
-				result[prop] = oldObj[prop];
-			
-			for (prop in newObj)
-				result[prop] = newObj[prop];
-			
-			return result;
-		}
-		static public function diffObjects(oldObj:Object, newObj:Object):Object
-		{
-			var diff:Object = {};
-			for (var property:String in mergeObjects(oldObj, newObj))
-				if (oldObj[property] != newObj[property])
-					diff[property] = newObj[property];
-			return diff;
-		}
     }
 }

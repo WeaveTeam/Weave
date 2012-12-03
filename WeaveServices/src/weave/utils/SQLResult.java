@@ -32,6 +32,8 @@ import java.util.LinkedList;
  */
 public class SQLResult
 {
+	public static final int FETCH_SIZE = 1000;
+	
 	public SQLResult(ResultSet rs) throws SQLException
 	{
 		read(rs, false);
@@ -39,6 +41,7 @@ public class SQLResult
 	
 	public SQLResult(ResultSet rs, boolean convertToStrings) throws SQLException
 	{
+		rs.setFetchSize(FETCH_SIZE);
 		read(rs, convertToStrings);
 	}
 	

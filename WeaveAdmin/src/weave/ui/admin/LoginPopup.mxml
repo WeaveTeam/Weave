@@ -41,7 +41,7 @@ Author: skolman
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 
 			/**
@@ -63,7 +63,7 @@ Author: skolman
 				enabled = false;
 				
 				// authenticate with server
-				addAsyncResponder(AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
+				addAsyncResponder(Admin.service.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
 				function handleResult(..._):void
 				{
 					enabled = true;

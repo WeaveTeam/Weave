@@ -17,10 +17,29 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.beans;
+package weave.services.beans
+{	
+	import flash.utils.ByteArray;
 
-public class GeometryStreamMetadata
-{
-	public byte[] metadataTileDescriptors;
-	public byte[] geometryTileDescriptors;
+	public class AttributeColumnData 
+	{
+		public function AttributeColumnData(result:Object)
+		{
+			this.id = result.id;
+			this.metadata = result.metadata;
+			this.keys = result.keys;
+			this.data = result.data;
+			this.thirdColumn = result.thirdColumn;
+			this.metadataTileDescriptors = result.metadataTileDescriptors;
+			this.geometryTileDescriptors = result.geometryTileDescriptors;
+		}
+		
+		public var id:int;
+		public var metadata:Object;
+		public var keys:Array;
+		public var data:Array;
+		public var thirdColumn:Array;
+		public var metadataTileDescriptors:ByteArray;
+		public var geometryTileDescriptors:ByteArray;
+	}
 }

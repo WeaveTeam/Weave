@@ -34,6 +34,7 @@ import weave.config.DataConfig.DataEntity;
 import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.SQLUtils.WhereClause;
 
 
 /**
@@ -103,7 +104,9 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.deleteRows(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_ID, id), null, true);
+			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_ID, id);
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, where);
 		}
 		catch (Exception e)
 		{
@@ -148,13 +151,23 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to get entry types.", e);
 		}
 	}
-	public Collection<Integer> getByType(Integer type_id) throws RemoteException
+	public Collection<Integer> getByType(int ... types) throws RemoteException
 	{
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> whereParams = MapUtils.fromPairs(FIELD_TYPE, type_id);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null, null);
+			List<Map<String,Object>> conditions = new Vector<Map<String,Object>>(types.length);
+			for (int type : types)
+			{
+				if (type == DataEntity.TYPE_ANY)
+				{
+					conditions.clear();
+					break;
+				}
+				conditions.add(MapUtils.<String,Object>fromPairs(FIELD_TYPE, type));
+			}
+			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, false);
+			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, where, null, Object.class);
 			List<Integer> ids = new Vector<Integer>(rows.size());
 			for (Map<String,Object> row : rows)
 			{
@@ -168,16 +181,4 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to get by type.", e);
 		}
 	}
-//	public List<Integer> getAll() throws RemoteException
-//	{
-//		try
-//		{
-//			Connection conn = connectionConfig.getAdminConnection();
-//			return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID);
-//		}
-//		catch (Exception e)
-//		{
-//			throw new RemoteException("Unable to get complete manifest.", e);
-//		} 
-//	}
 }

@@ -1,24 +1,15 @@
 
 package weave.ui
 {
-    import flash.events.Event;
-    import flash.events.EventDispatcher;
-    
     import mx.collections.ArrayCollection;
     import mx.collections.ICollectionView;
-    import mx.collections.ListCollectionView;
-    import mx.controls.Tree;
-    import mx.rpc.AsyncToken;
-    import mx.rpc.events.ResultEvent;
-    import mx.utils.ObjectUtil;
+    import mx.utils.StringUtil;
     
     import weave.api.data.ColumnMetadata;
-    import weave.services.AdminInterface;
+    import weave.services.Admin;
     import weave.services.EntityCache;
-    import weave.services.WeaveAdminService;
-    import weave.services.addAsyncResponder;
     import weave.services.beans.Entity;
-    import weave.services.beans.EntityMetadata;
+    import weave.services.beans.EntityTableInfo;
 
 	[RemoteClass]
     public class EntityNode
@@ -39,7 +30,7 @@ package weave.ui
 		
 		public function getEntity():Entity
 		{
-			return AdminInterface.instance.entityCache.getEntity(id);
+			return Admin.entityCache.getEntity(id);
 		}
 		
 		// the node can re-use the same children array
@@ -52,8 +43,15 @@ package weave.ui
 		
 		public function get label():String
 		{
-			if (!AdminInterface.instance.userHasAuthenticated)
+			if (!Admin.instance.userHasAuthenticated)
 				return 'Not logged in';
+			
+			var tableInfo:EntityTableInfo = Admin.entityCache.getDataTableInfo(id);
+			if (tableInfo != null)
+			{
+				// this is a table node, so avoid calling getEntity()
+				return StringUtil.substitute("{0} ({1})", tableInfo.title, tableInfo.numChildren);
+			}
 			
 			var info:Entity = getEntity();
 			
@@ -65,8 +63,8 @@ package weave.ui
 				
 			if (debug)
 			{
-				var typeStrs:Array = ['Table','Column','Category'];
-				var typeInts:Array = [Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
+				var typeStrs:Array = ['Hierarchy','Table','Column','Category'];
+				var typeInts:Array = [Entity.TYPE_HIERARCHY, Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
 				var typeInt:int = info.type;
 				var typeStr:String = typeStrs[typeInts.indexOf(typeInt)];
 				var childrenStr:String = '';
@@ -81,11 +79,22 @@ package weave.ui
 		
 		public function get children():ICollectionView
 		{
-			if (!AdminInterface.instance.userHasAuthenticated)
+			if (!Admin.instance.userHasAuthenticated)
 				return null;
 			
-			var entity:Entity = AdminInterface.instance.entityCache.getEntity(id);
-			var childIds:Array = entity.childIds;
+			var childIds:Array;
+			var type:int = _rootFilterType;
+			if (type == Entity.TYPE_TABLE)
+			{
+				childIds = Admin.entityCache.getDataTableIds();
+			}
+			else
+			{
+				var entity:Entity = Admin.entityCache.getEntity(id);
+				type = entity.type;
+				childIds = entity.childIds;
+			}
+			
 			if (!childIds)
 				return null;
 			
@@ -97,7 +106,7 @@ package weave.ui
 				// if there is a filter type, filter out non-column entities that do not have that type
 				if (_rootFilterType >= 0)
 				{
-					var childEntity:Entity = AdminInterface.instance.entityCache.getEntity(childId);
+					var childEntity:Entity = Admin.entityCache.getEntity(childId);
 					if (childEntity.type != _rootFilterType && childEntity.type != Entity.TYPE_COLUMN)
 					{
 						//trace('filter',_rootFilterType,'removed',childEntity.id,'(type',childEntity.entity_type,')');
@@ -118,7 +127,7 @@ package weave.ui
 			}
 			_childNodes.length = outputIndex;
 			
-			if (entity.type == Entity.TYPE_COLUMN && _childNodes.length == 0)
+			if (type == Entity.TYPE_COLUMN && _childNodes.length == 0)
 				return null; // leaf node
 			
 			return _childCollectionView;
@@ -126,11 +135,11 @@ package weave.ui
 		
 		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void
 		{
-			AdminInterface.instance.entityCache.add_child(parent ? parent.id : EntityCache.ROOT_ID, child.id, index);
+			Admin.entityCache.add_child(parent ? parent.id : EntityCache.ROOT_ID, child.id, index);
 		}
 		public static function removeChild(parent:EntityNode, child:EntityNode):void
 		{
-			AdminInterface.instance.entityCache.remove_child(parent ? parent.id : EntityCache.ROOT_ID, child.id);
+			Admin.entityCache.remove_child(parent ? parent.id : EntityCache.ROOT_ID, child.id);
 		}
     }
 }

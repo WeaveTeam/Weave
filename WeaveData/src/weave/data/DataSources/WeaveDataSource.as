@@ -26,7 +26,6 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -38,7 +37,6 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
-	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -50,9 +48,8 @@ package weave.data.DataSources
 	import weave.data.QKeyManager;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
-	import weave.services.beans.AttributeColumnDataWithKeys;
-	import weave.services.beans.DataServiceMetadata;
-	import weave.services.beans.DataTableMetadata;
+	import weave.services.beans.AttributeColumnData;
+	import weave.services.beans.EntityType;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	
@@ -164,10 +161,9 @@ package weave.data.DataSources
 		
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
 
-		private var dataService:IWeaveDataService = null;
+		private var dataService:WeaveDataServlet = null;
 		
 		/**
-		 * requestHierarchyFromSource
 		 * This function must be implemented by classes which extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the hierarchy.
 		 * @param subtreeNode A pointer to a node in the hierarchy representing the root of the subtree to request from the source.
@@ -194,22 +190,63 @@ package weave.data.DataSources
 				}
 				//trace("getDataServiceMetadata()");
 
-				query = dataService.getDataServiceMetadata();
-				addAsyncResponder(query, handleGetDataServiceMetadata, handleGetDataServiceMetadataFault);
+				// temporary solution
+				
+				// get all dataTables and all geometry columns
+				var _tableEntities:Array = null;
+				var _geometryEntities:Array = null;
+				
+				query = dataService.getEntityIdsByMetadata(null, EntityType.TABLE);
+				addAsyncResponder(query, handleRootIds, handleFault, EntityType.TABLE);
+				
+				// get all geometry columns
+				var param:Object = {};
+				param[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
+				query = dataService.getEntityIdsByMetadata(param, EntityType.COLUMN);
+				addAsyncResponder(query, handleRootIds, handleFault, EntityType.COLUMN);
+				
+				function handleRootIds(event:ResultEvent, entityType:int):void
+				{
+					var query:AsyncToken = dataService.getEntitiesById(event.result as Array);
+					addAsyncResponder(query, handleRootEntities, handleFault, entityType);
+				}
+				function handleRootEntities(event:ResultEvent, entityType:int):void
+				{
+					if (entityType == EntityType.TABLE)
+						_tableEntities = event.result as Array;
+					else
+						_geometryEntities = event.result as Array;
+					
+					// only proceed when we have both
+					if (!_tableEntities || !_geometryEntities)
+						return;
+					
+					generateRootHierarchy(_tableEntities, _geometryEntities);
+				}
 			}
 			else
 			{
-				// Right now, this just calls getDataTableMetadata.
-				// TODO: The server code should return a subtree given a path in the hierarchy.
-				var dataTableName:String = subtreeNode.attribute("name");
-				//trace("getDataTableMetadata("+dataTableName+")");
-				query = dataService.getDataTableMetadata(dataTableName);
-				addAsyncResponder(query, handleGetDataTableMetadata, handleGetDataTableMetadataFault, subtreeNode);
+				// temporary solution - get columns with matching dataTable metadata
+				var idStr:String = subtreeNode.attribute("id");
+				if (idStr)
+				{
+					query = dataService.getEntityChildIds(int(idStr));
+				}
+				else
+				{
+					var dataTableName:String = subtreeNode.attribute("name");
+					query = dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN);
+				}
+				addAsyncResponder(query, handleColumnIds, handleFault, subtreeNode);
+				function handleColumnIds(event:ResultEvent, token:Object = null):void
+				{
+					var query:AsyncToken = dataService.getEntitiesById(event.result as Array);
+					addAsyncResponder(query, handleColumnEntities, handleFault, token);
+				}
 			}
 		}
-
+		
 		/**
-		 * handleHierarchyURLDownload
 		 * Called when the hierarchy is downloaded from a URL.
 		 */
 		private function handleHierarchyURLDownload(event:ResultEvent, token:Object = null):void
@@ -220,7 +257,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * handleHierarchyURLDownloadError
 		 * Called when the hierarchy fails to download from a URL.
 		 */
 		private function handleHierarchyURLDownloadError(event:FaultEvent, token:Object = null):void
@@ -228,62 +264,74 @@ package weave.data.DataSources
 			reportError(event, null, token);
 		}
 		
-		private function handleGetDataServiceMetadata(event:ResultEvent, token:Object = null):void
+		private function generateRootHierarchy(tables:Array, geoms:Array):void
 		{
 			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
 				return;
-			
-			try
-			{
+
+			var tag:XML;
+			var attrName:String;
+			var i:int;
+			var parent:XML;
+			var metadata:Object;
+			var entityObj:Object;
+
+//			try
+//			{
+				for (i = 0; i < tables.length; i++)
+				{
+					metadata = tables[i].publicMetadata;
+					metadata['id'] = tables[i].id;
+					tables[i] = metadata;
+				}
+				
+				for (i = 0; i < geoms.length; i++)
+				{
+					metadata = geoms[i].publicMetadata;
+					metadata['id'] = geoms[i].id;
+					geoms[i] = metadata;
+				}
+				
+				tables.sortOn("title", Array.CASEINSENSITIVE);
+				geoms.sortOn("title", Array.CASEINSENSITIVE);
+	
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
-				var result:DataServiceMetadata = new DataServiceMetadata(event.result);
 
 				if (_attributeHierarchy.value == null)
-					_attributeHierarchy.value = <hierarchy name={ result.serverName }/>;
+					_attributeHierarchy.value = <hierarchy name="Weave Data Service"/>;
 				
 				// add each missing category
-				var i:int;
-				var parent:XML;
-
 				parent = <category name="Data Tables"/>;
 				_attributeHierarchy.value.appendChild(parent);
-				for (i = 0; i < result.dataTableMetadata.length; i++)
+				for (i = 0; i < tables.length; i++)
 				{
-					var metadata:Object = result.dataTableMetadata[i];
-					if (parent.category.(@name == metadata.name).length() == 0)
-					{
-						var tag:XML = <category/>;
-						for (var attrName:String in metadata)
-							tag['@'+attrName] = metadata[attrName];
-						parent.appendChild(tag);
-					}
+					metadata = tables[i];
+					tag = <category/>;
+					for (attrName in metadata)
+						tag['@'+attrName] = metadata[attrName];
+					parent.appendChild(tag);
 				}
 				
 				parent = <category name="Geometry Collections"/>;
 				_attributeHierarchy.value.appendChild(parent);
-				for (i = 0; i < result.geometryCollectionNames.length; i++)
+				for (i = 0; i < geoms.length; i++)
 				{
-					var gcName:String = result.geometryCollectionNames[i];
-					var keyType:String = result.geometryCollectionKeyTypes[i];
-					if (parent.category.(@name == gcName).length() == 0)
-						parent.appendChild(<attribute title={ gcName } name={ gcName } dataType={ DataTypes.GEOMETRY } keyType={ keyType }/>);
+					metadata = geoms[i];
+					tag = <attribute/>;
+					for (attrName in metadata)
+						tag['@'+attrName] = metadata[attrName];
+					parent.appendChild(tag);
 				}
 				
 				_attributeHierarchy.detectChanges();
-			}
-			catch (e:Error)
-			{
-				reportError(e, "Unable to process result from servlet: "+ObjectUtil.toString(event.result));
-			}
+//			}
+//			catch (e:Error)
+//			{
+//				reportError(e, "Unable to generate hierarchy");
+//			}
 		}
 
-		private function handleGetDataServiceMetadataFault(event:FaultEvent, token:Object = null):void
-		{
-			//trace("handleGetDataServiceMetadataFault", event.fault, event.message);
-			reportError(event);
-		}
-		
-		private function handleGetDataTableMetadata(event:ResultEvent, token:Object = null):void
+		private function handleColumnEntities(event:ResultEvent, token:Object = null):void
 		{
 			if (objectWasDisposed(this))
 				return;
@@ -291,35 +339,12 @@ package weave.data.DataSources
 			var hierarchyNode:XML = token as XML; // the node to add the list of columns to
 			try
 			{
-				//trace("handleGetDataTableMetadata",ObjectUtil.toString(event));
-				var result:DataTableMetadata = new DataTableMetadata(event.result);
-				
-				// append geometry attribute tag if necessary
-				if (result.geometryCollectionExists)
-				{
-					var geomName:String = hierarchyNode.@name;
-					hierarchyNode.appendChild(
-						<attribute
-							title={ geomName }
-							name={ geomName }
-							dataType={ DataTypes.GEOMETRY }
-							keyType={ result.geometryCollectionKeyType }
-							projection={ result.geometryCollectionProjectionSRS }
-						/>
-					);
-				}
+				var entities:Array = event.result as Array
 				
 				// append list of attributes
-				for (var i:int = 0; i < result.columnMetadata.length; i++)
+				for (var i:int = 0; i < entities.length; i++)
 				{
-					var metadata:Object = result.columnMetadata[i];
-					// fill in title if missing
-					if (!metadata['title'])
-					{
-						metadata['title'] = metadata['name'];
-						if (metadata['year'])
-							metadata['title'] += ' (' + metadata['year'] + ')';
-					}
+					var metadata:Object = entities[i].publicMetadata;
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property])
@@ -337,15 +362,13 @@ package weave.data.DataSources
 				_attributeHierarchy.detectChanges();
 			}
 		}
-		private function handleGetDataTableMetadataFault(event:FaultEvent, token:Object = null):void
+		private function handleFault(event:FaultEvent, token:Object = null):void
 		{
-			trace("handleGetDataTableMetadataFault", (token as XML).toXMLString(), event.fault, event.message);
-			// TODO: should fill in pending column requests under this hierarchy path to ProxyColumn.undefinedColumn
 			reportError(event);
+			trace('async token',ObjectUtil.toString(token));
 		}
 		
 		/**
-		 * requestColumnFromSource
 		 * This function must be implemented by classes by extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the proxy column.
 		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
@@ -360,22 +383,23 @@ package weave.data.DataSources
 			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
 			
 			//trace("requestColumnFromSource()",pathInHierarchy.toXMLString());
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
+			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
 			proxyColumn.setMetadata(leafNode);
-			if (ObjectUtil.stringCompare(ColumnUtils.getDataType(proxyColumn), DataTypes.GEOMETRY, true) == 0)
+			
+			var params:Object = new Object();
+			for each (var attr:String in ['dataTable', 'name', 'year', 'min', 'max', 'sqlParams']) // only use these properties for querying
 			{
-				var tileService:IWeaveGeometryTileService = dataService.createTileService(proxyColumn.getMetadata('name'));
-				proxyColumn.setInternalColumn(new StreamedGeometryColumn(tileService, leafNode));
+				var value:String = leafNode.attribute(attr);
+				if (value != '')
+					params[attr] = value;
 			}
-			else
-			{
-				// request attribute column
-				var query:AsyncToken = dataService.getAttributeColumn(pathInHierarchy);
-				var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-				addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, token);
-				WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
-			}
+			
+			var columnRequestToken:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
+			var query:AsyncToken = dataService.getColumnFromMetadata(params);
+			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
+			WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
 		}
+		
 		private function handleGetAttributeColumnFault(event:FaultEvent, token:Object = null):void
 		{
 			var request:ColumnRequestToken = token as ColumnRequestToken;
@@ -396,12 +420,16 @@ package weave.data.DataSources
 			var request:ColumnRequestToken = token as ColumnRequestToken;
 			var pathInHierarchy:XML = request.pathInHierarchy;
 			var proxyColumn:ProxyColumn = request.proxyColumn;
+			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
+			// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
+			if (hierarchyNode == null)
+				hierarchyNode = <attribute/>;
 
 			if (proxyColumn.wasDisposed)
 				return;
 			
-//			try
-//			{
+			try
+			{
 				if (!event.result)
 				{
 					var msg:String = "Did not receive any data from service for attribute column: "
@@ -409,8 +437,28 @@ package weave.data.DataSources
 					reportError(msg);
 					return;
 				}
-				var result:AttributeColumnDataWithKeys = new AttributeColumnDataWithKeys(event.result);
+				
+				var result:AttributeColumnData = new AttributeColumnData(event.result);
 				//trace("handleGetAttributeColumn",pathInHierarchy.toXMLString());
+	
+				// fill in metadata
+				for (var metadataName:String in result.metadata)
+				{
+					var metadataValue:String = result.metadata[metadataName];
+					if (metadataValue)
+						hierarchyNode['@' + metadataName] = metadataValue;
+				}
+				hierarchyNode['@id'] = result.id;
+				
+				// special case for geometry column
+				var dataType:String = ColumnUtils.getDataType(proxyColumn);
+				var isGeom:Boolean = ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0;
+				if (isGeom)
+				{
+					var tileService:IWeaveGeometryTileService = dataService.createTileService(result.id);
+					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, hierarchyNode));
+					return;
+				}
 	
 				// stop if no data
 				if (result.data == null)
@@ -418,31 +466,9 @@ package weave.data.DataSources
 					proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 					return;
 				}
-	
-				// fill in metadata
-				var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-				// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
-				if (hierarchyNode == null)
-					hierarchyNode = <attribute/>;
-				for (var metadataName:String in result.metadata)
-				{
-					var metadataValue:String = result.metadata[metadataName];
-					if (metadataValue)
-						hierarchyNode['@' + metadataName] = metadataValue;
-				}
 				
-				if (!String(hierarchyNode.@title))
-				{
-					hierarchyNode.@title = result.metadata.name; // temporary hack
-					
-					// year hack -- this could be replaced by a global "default title formatting function" like "title (year)"
-					var year:String = hierarchyNode.@year;
-					if (year)
-						hierarchyNode.@title += ' (' + year + ')';
-				}
-				
-				var keyType:String = hierarchyNode['@' + ColumnMetadata.KEY_TYPE];
-				var dataType:String = hierarchyNode['@' + ColumnMetadata.DATA_TYPE];
+				var keyType:String = hierarchyNode.attribute(ColumnMetadata.KEY_TYPE);
+				dataType = hierarchyNode.attribute(ColumnMetadata.DATA_TYPE);
 				
 				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 				var setRecords:Function = function():void
@@ -473,36 +499,11 @@ package weave.data.DataSources
 					_attributeHierarchy.detectChanges();
 				};
 				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType, result.keys, proxyColumn, setRecords, keysVector);
-//			}
-//			catch (e:Error)
-//			{
-//				trace(this,"handleGetAttributeColumn",pathInHierarchy.toXMLString(),e.getStackTrace());
-//			}
-		}
-		
-		public function getReport(name:String, keys:Array):void	
-		{
-			//convert vector of IQualifiedKeys into an array of key Strings
-			var keyStrings:Array = keys.concat();
-			for (var i:int = 0; i < keys.length; i++)
-			{
-				var qkey:IQualifiedKey = keys[i] as IQualifiedKey;
-				if (qkey)
-					keys[i] = qkey.localName;
 			}
-
-			var query:AsyncToken = dataService.createReport(name, keyStrings);
-			addAsyncResponder(query, handleReportResult, handleCreateReportFault, name);
-		}
-		
-		public function handleReportResult(event:ResultEvent, token:Object = null):void 
-		{
-			WeaveReport.handleReportResult(event, dataService);
-		}
-		
-		public function handleCreateReportFault(event:FaultEvent, token:Object = null):void
-		{
-			reportError(event, 'Error creating report "' + token + '"');
+			catch (e:Error)
+			{
+				trace(this,"handleGetAttributeColumn",pathInHierarchy.toXMLString(),e.getStackTrace());
+			}
 		}
 	}
 }

@@ -39,7 +39,7 @@
 				<ui:CustomComboBox id="keyColumnComboBox" prompt="{lang('Select a column...')}" dataProvider="{tableSelector.columns}" toolTip="{lang('Select the column whose values uniquely identify the rows in the table.')}" change="handleKeyColumnChange()"/>
 			</ui:Indent>
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
-				<admin:GeometryCollectionDialog paddingIndent="{paddingIndent}" id="geometrySelector" defaultKeyType="{tableSelector.activeTable}"/>
+				<admin:KeyTypeDialog paddingIndent="{paddingIndent}" id="geometrySelector" defaultKeyType="{tableSelector.activeTable}"/>
 				
 				<mx:CheckBox change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
 				<ui:Indent paddingLeft="{paddingIndent}"
@@ -67,7 +67,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			
 			private static const paddingIndent:int = 20;
@@ -93,7 +93,7 @@
 				}
 				
 				finishEnabled = false;
-				var query:AsyncToken = AdminInterface.service.checkKeyColumnForSQLImport(
+				var query:AsyncToken = Admin.service.checkKeyColumnForSQLImport(
 					tableSelector.activeSchema,
 					tableSelector.activeTable,
 					keyColumnComboBox.selectedLabel,
@@ -133,7 +133,7 @@
 				var filterColumns:Array = null;
 				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
 					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
-				var query:AsyncToken = AdminInterface.service.importSQL(
+				var query:AsyncToken = Admin.service.importSQL(
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						keyColumnComboBox.selectedLabel,

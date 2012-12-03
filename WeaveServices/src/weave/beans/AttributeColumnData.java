@@ -23,9 +23,12 @@ import java.util.Map;
 
 public class AttributeColumnData
 {
+	public int id;
 	public Map<String,String> metadata;
 	public String[] keys;
 	public Object[] data;
 	public Object[] thirdColumn; // hack for dimension slider format
+	public byte[] metadataTileDescriptors; // for geometry column
+	public byte[] geometryTileDescriptors; // for geometry column
 }
 

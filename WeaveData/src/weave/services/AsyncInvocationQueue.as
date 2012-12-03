@@ -61,7 +61,8 @@ package weave.services
 					query,
 					function(event:ResultEvent, token:Object = null):void
 					{
-						weaveTrace('Query returned: ' + query, ObjectUtil.toString(event.result));
+						weaveTrace('Query returned: ' + query);
+						//weaveTrace('Query returned: ' + query, ObjectUtil.toString(event.result));
 					},
 					function(..._):void
 					{

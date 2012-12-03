@@ -31,7 +31,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -523,6 +522,7 @@ public class SQLUtils
 		String[] columnNames = getColumnNamesFromResultSet(rs);
 		// create a Map from each row
 		List<Map<String,VALUE_TYPE>> records = new Vector<Map<String,VALUE_TYPE>>();
+		rs.setFetchSize(SQLResult.FETCH_SIZE);
 		while (rs.next())
 		{
 			Map<String,VALUE_TYPE> record = new HashMap<String,VALUE_TYPE>(columnNames.length);
@@ -561,13 +561,11 @@ public class SQLUtils
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,VALUE_TYPE> whereParams,
-			Class<VALUE_TYPE> valueType,
+			WhereClause<VALUE_TYPE> where,
 			String orderBy,
-			Set<String> caseSensitiveFields
+			Class<VALUE_TYPE> valueType
 		) throws SQLException
 	{
-		DebugTimer.go();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		String query = null;
@@ -584,13 +582,6 @@ public class SQLUtils
 			if (columnQuery.length() == 0)
 				columnQuery = "*"; // select all columns
 			
-			// build WHERE clause
-			if (whereParams == null)
-				whereParams = Collections.emptyMap();
-			
-			
-			WhereClause<VALUE_TYPE> where = new WhereClause<VALUE_TYPE>(conn, whereParams, caseSensitiveFields);
-			
 			String orderByQuery = "";
 			if (orderBy != null)
 				orderByQuery = String.format("ORDER BY %s", orderBy);
@@ -603,6 +594,7 @@ public class SQLUtils
 					where.clause,
 					orderByQuery
 				);
+			
 			pstmt = prepareStatement(conn, query, where.params);
 			rs = pstmt.executeQuery();
 			
@@ -618,7 +610,6 @@ public class SQLUtils
 			// close everything in reverse order
 			cleanup(rs);
 			cleanup(pstmt);
-			DebugTimer.stop(query);
 		}
 	}
 	
@@ -640,7 +631,6 @@ public class SQLUtils
 			Set<String> caseSensitiveFields
 		) throws SQLException
 	{
-		DebugTimer.go();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		SQLResult result = null;
@@ -659,7 +649,7 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields);
+			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields, true);
 			
 			// build complete query
 			query = String.format(
@@ -684,7 +674,6 @@ public class SQLUtils
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(pstmt);
-			DebugTimer.stop(query);
 		}
 		
 		// return the copy of the query result
@@ -701,7 +690,6 @@ public class SQLUtils
 	public static int getRowCountFromUpdateQuery(Connection connection, String query)
 		throws SQLException
 	{
-		DebugTimer.go();
 		Statement stmt = null;
 		int result = 0;
 		
@@ -718,13 +706,28 @@ public class SQLUtils
 		{
 			// close everything in reverse order
 			SQLUtils.cleanup(stmt);
-			DebugTimer.stop(query);
 		}
 		
 		// return the copy of the query result
 		return result;
 	}
-	
+
+	public static int getSingleIntFromQuery(Statement stmt, String query, int defaultValue) throws SQLException
+	{
+		ResultSet resultSet = null;
+		try
+		{
+			resultSet = stmt.executeQuery(query);
+	        if (resultSet.next())
+	        	return resultSet.getInt(1);
+	        return defaultValue;
+		}
+		finally
+		{
+			SQLUtils.cleanup(resultSet);
+		}
+	}
+
 	/**
 	 * @param conn An existing SQL Connection
 	 * @return A List of schema names
@@ -984,14 +987,14 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	protected static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, List<TYPE> params) throws SQLException
+	public static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, List<TYPE> params) throws SQLException
 	{
 		PreparedStatement cstmt = conn.prepareStatement(query);
 		constrainQueryParams(conn, params);
 		setPreparedStatementParams(cstmt, params);
 		return cstmt;
 	}
-	protected static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, TYPE[] params) throws SQLException
+	public static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, TYPE[] params) throws SQLException
 	{
 		PreparedStatement cstmt = conn.prepareStatement(query);
 		constrainQueryParams(conn, params);
@@ -1048,7 +1051,7 @@ public class SQLUtils
 			updateBlock = StringUtils.join(",", updateBlockList);
 		    
 			// build where clause
-		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields);
+		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields, true);
 		    queryParams.addAll(where.params);
 		    
 		    // build and execute query
@@ -1059,60 +1062,6 @@ public class SQLUtils
 		finally
 		{
 			cleanup(stmt);
-		}
-	}
-	public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String schemaName, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
-	{
-		String query = "";
-		try
-		{
-	        //TODO: Clean this up, make it more generic.
-	        Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
-	        if (ids.size() == 0)
-	        	return results;
-	        String qIdColumn = quoteSymbol(conn, idColumn);
-	        String qPropColumn = quoteSymbol(conn, propColumn);
-	        String qDataColumn = quoteSymbol(conn, dataColumn);
-	        String qSchemaTable = quoteSchemaTable(conn, schemaName, table);
-	        String whereClause = String.format("WHERE %s IN (%s)", qIdColumn, StringUtils.mult(",", "?", ids.size()));
-	        if (props != null && props.size() > 0)
-	        	whereClause += String.format(" AND %s IN (%s)", qPropColumn, StringUtils.mult(",", "?", props.size()));
-	        query = String.format(
-	    		"SELECT %s,%s,%s FROM %s %s ORDER BY %s",
-	    		qIdColumn, qPropColumn, qDataColumn,
-	    		qSchemaTable, whereClause, qIdColumn
-	        );
-	        PreparedStatement stmt = conn.prepareStatement(query);
-	        int i = 1;
-	        for (Integer val : ids)
-	        {
-	            results.put(val, new HashMap<String,String>());
-	            stmt.setInt(i,val);
-	            i++;
-	        }
-	        if (props != null)
-	        {
-	            for (String val : props)
-	            {
-	                stmt.setString(i,val);
-	                i++;
-	            }
-	        }
-	        ResultSet rs = stmt.executeQuery();
-	        while (rs.next())
-	        {
-	            Integer id = rs.getInt(idColumn);
-	            String prop = rs.getString(propColumn);
-	            String value = rs.getString(dataColumn);
-	            results.get(id).put(prop, value);
-	        }
-	
-	        return results;
-		}
-		catch (SQLException e)
-		{
-			System.out.println(query);
-			throw e;
 		}
 	}
 	/**
@@ -1152,13 +1101,10 @@ public class SQLUtils
 	            queryParams.size()
 	        );
 	    }
-	    stmt = conn.prepareStatement(query);
-	
-	    int i = 1;
-	    for (String value : where.params)
-	        stmt.setString(i++, value);
+	    stmt = prepareStatement(conn, query, where.params);
 	
 	    rs = stmt.executeQuery();
+	    rs.setFetchSize(SQLResult.FETCH_SIZE);
 	    while (rs.next())
 	    {
 	         results.add(rs.getInt(column));
@@ -1389,6 +1335,7 @@ public class SQLUtils
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
 			while (rs.next())
 				values.add(rs.getString(1));
 		}
@@ -1427,6 +1374,7 @@ public class SQLUtils
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
 			while (rs.next())
 				values.add(rs.getInt(1));
 		}
@@ -1473,8 +1421,6 @@ public class SQLUtils
 		String query = "insertRows()";
 		try
 		{
-			DebugTimer.go();
-			
 			// get a list of all the field names in all the records
 			Set<String> fieldSet = new HashSet<String>();
 			for (Map<String,V> record : records)
@@ -1524,7 +1470,6 @@ public class SQLUtils
 		finally
 		{
 			SQLUtils.cleanup(pstmt);
-			DebugTimer.stop(query.length() > 0 ? query.toString() : "insertRows(), no query");
 		}
 	}
 
@@ -1577,42 +1522,21 @@ public class SQLUtils
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
 	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
-	 * @param caseSensitiveFields
-	 * @param whereConjunctive Set to true to use AND logic, false for OR logic.
-	 * @return The number of rows that were deleted.
-	 * @throws SQLException If the query fails.
-	 */
-	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, Map<String,V> whereParams, Set<String> caseSensitiveFields, boolean whereConjunctive) throws SQLException
-	{
-		List<Map<String,V>> whereParamsList = new Vector<Map<String,V>>(1);
-		whereParamsList.add(whereParams);
-		// since we are nesting the where conditions, we have to swap the conjunctive mode
-		return deleteRows(conn, schemaName, tableName, whereParamsList, caseSensitiveFields, !whereConjunctive);
-	}
-
-	/**
-	 * This function will delete from a table the rows that have a specified set of column values.
-	 * @param conn An existing SQL Connection
-	 * @param schemaName A schema name accessible through the given connection
-	 * @param tableName A table name existing in the given schema
-	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
      * @param whereConjunctive Use CNF instead of DNF for the where parameters.
 	 * @return The number of rows that were deleted.
 	 * @throws SQLException If the query fails.
 	 */
-	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, List<Map<String,V>> whereParams, Set<String> caseSensitiveFields, boolean whereConjunctive) throws SQLException
+	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, WhereClause<V> where) throws SQLException
 	{
 		// VERY IMPORTANT - do not delete if there are no records specified, because that would delete everything.
-		if (whereParams.size() == 0)
+		if (where.params.size() == 0)
 			return 0;
 		
 		PreparedStatement pstmt = null;
 		String query = "";
 
-		DebugTimer.go();
 		try 
 		{
-			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields, whereConjunctive);
 			query = String.format("DELETE FROM %s %s", SQLUtils.quoteSchemaTable(conn, schemaName, tableName), where.clause);
 			pstmt = prepareStatement(conn, query, where.params);
 			return pstmt.executeUpdate();
@@ -1620,7 +1544,6 @@ public class SQLUtils
 		finally
 		{
 			SQLUtils.cleanup(pstmt);
-			DebugTimer.stop(query);
 		}		
 	}
 
@@ -1764,28 +1687,43 @@ public class SQLUtils
 		}
 	}
 	
-	protected static class WhereClause<V>
+	public static class WhereClause<V>
 	{
-		String clause = "";
-		public List<V> params = new Vector<V>();
+		public String clause;
+		public List<V> params;
 		
-		public WhereClause(Connection conn, Map<String,V> arguments, Set<String> caseSensitiveFields) throws SQLException
+		public WhereClause(String whereClause, List<V> params)
+		{
+			this.clause = whereClause;
+			this.params = params;
+		}
+		
+		/**
+		 * @param conn
+		 * @param conditions
+		 * @param caseSensitiveFields
+		 * @param conjunctive Set to <code>true</code> for "AND" logic or <code>false</code> for "OR" logic.
+		 * @throws SQLException
+		 */
+		public WhereClause(Connection conn, Map<String,V> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
 			List<Map<String,V>> list = new Vector<Map<String,V>>(1);
-			list.add(arguments);
-			init(conn, list, caseSensitiveFields, false);
+			list.add(conditions);
+			// we have to negate our conjunctive parameter because we have just nested our conditions
+			init(conn, list, caseSensitiveFields, !conjunctive);
 		}
-		public WhereClause(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		public WhereClause(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
-			init(conn, arguments, caseSensitiveFields, conjunctive);
+			init(conn, conditions, caseSensitiveFields, conjunctive);
 		}
 		
-		private void init(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		private void init(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
+			params = new Vector<V>();
 			if (caseSensitiveFields == null)
 				caseSensitiveFields = Collections.emptySet();
 			List<List<Pair>> nestedPairs = new LinkedList<List<Pair>>();
-			for (Map<String,V> group : arguments)
+			for (Map<String,V> group : conditions)
 			{
 				List<Pair> pairs = new LinkedList<Pair>();
 				for (Entry<String,V> entry : group.entrySet())
@@ -1798,6 +1736,8 @@ public class SQLUtils
 			String dnf = buildNormalForm(conn, nestedPairs, caseSensitiveFields, conjunctive);
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
+			else
+				clause = "";
 		}
 		
         protected static String buildDisjunctiveNormalForm(

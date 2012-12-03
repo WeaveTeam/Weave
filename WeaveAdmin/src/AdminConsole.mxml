@@ -38,15 +38,15 @@
 					<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{lang('This uploads and publishes shape data from files on your computer.')}"/>
 
 					<ui:CustomVRule/>
-					<mx:Button label="Open Weave" click="AdminInterface.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
-					<mx:Button label="Recover Last Session" click="AdminInterface.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
+					<mx:Button label="Open Weave" click="Admin.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
+					<mx:Button label="Recover Last Session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
 					
 					<mx:Spacer width="100%"/>
 					<mx:VBox>
 						<mx:HBox>
-							<mx:Label text="{'Signed in as: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
-							<mx:Button label="Sign out" enabled="{AdminInterface.instance.databaseConfigExists == true}"
-									   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
+							<mx:Label text="{'Signed in as: ' + Admin.instance.activeConnectionName}" textAlign="right"/>
+							<mx:Button label="Sign out" enabled="{Admin.instance.databaseConfigExists == true}"
+									   click="Admin.instance.activeConnectionName = Admin.instance.activePassword = '';"/>
 						</mx:HBox>
 						<mx:HBox id="resdHacks" visible='false' includeInLayout="false">
 							<mx:Button label="{lang('ACS Header Tool')}" click='openAcsHeaderTool()'/>
@@ -69,7 +69,7 @@
 				<admin:LoginPopup id="login"/>
 			</mx:Box>
 			
-			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); AdminInterface.instance.getConnectionNames();">
+			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); Admin.service.getConnectionNames();">
 				<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
 				<managers:SQLConnectionManager/>
 			</mx:VBox>
@@ -99,7 +99,7 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.ui.DraggablePanel;
 			import weave.ui.SessionStateEditor;
@@ -135,13 +135,13 @@
 						messageTextArea.percentHeight = 15;
 				}
 
-				BindingUtils.bindSetter(handleConnectionChange, AdminInterface.instance, "activeConnectionName");
+				BindingUtils.bindSetter(handleConnectionChange, Admin.instance, "activeConnectionName");
 				function handleConnectionChange(name:String):void
 				{
 					resdHacks.visible = resdHacks.includeInLayout = (name == 'resd');
 				}
 				
-				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
+				BindingUtils.bindSetter(handlePermissionChange, Admin.instance, "currentUserIsSuperuser");
 				function handlePermissionChange(isSuperuser:Boolean):void
 				{
 					if (isSuperuser != (tabNavigator == sqlConnectionManager.parent))

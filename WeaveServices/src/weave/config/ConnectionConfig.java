@@ -214,7 +214,7 @@ public class ConnectionConfig
 				databaseConfigInfo.copyFrom(attrs);
 				
 				// detect old version
-				_oldVersionDetected = attrs.containsKey("dataConfigTable");
+				_oldVersionDetected = databaseConfigInfo.dataConfigTable != null;
 				
 				// commit values only after everything succeeds
 				_connectionInfoMap = connectionInfoMap;
@@ -292,7 +292,7 @@ public class ConnectionConfig
 		copy.copyFrom(original);
 		return copy;
 	}
-	public void addConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
+	public void saveConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
 	{
 		connectionInfo.validate();
 		

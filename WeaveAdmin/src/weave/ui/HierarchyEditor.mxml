@@ -17,10 +17,10 @@
     </mx:VBox>
     <mx:VBox height="100%" width="60%">
         <mx:Label text="Custom Hierarchy"/>
-        <ui:EntityTree id="tagTree" rootFilterType="{Entity.TYPE_CATEGORY}"
+        <ui:EntityTree id="tagTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
-        <mx:HBox>
+        <mx:HBox enabled="{selectedItems.length == 1}">
             <ui:TextInputWithPrompt id="tagNameInput" prompt="New category name" width="100%"/>
             <mx:Button label="Add Category" click="addTag()"/>
             <mx:Button label="Remove" click="remove()" enabled="{tagTree.selectedItem != null}"/>
@@ -32,17 +32,17 @@
 	
 	import weave.api.getCallbackCollection;
 	import weave.core.UIUtils;
-	import weave.services.AdminInterface;
+	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.utils.PopUpUtils;
 
-    [Bindable] public var selectedItem:EntityNode;
+    [Bindable] public var selectedItems:Array;
 	
     public function handleCreated():void
     {
         tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
         tagTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
-		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, tagTree.invalidateList);
+		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, tagTree.invalidateList);
     }
     public function importTable():void
     {
@@ -50,15 +50,17 @@
     }
     public function deleteTable():void
     {
-        var item:EntityNode = tableTree.selectedItem as EntityNode;
-		if (item == null)
-			return;
-        /* Pop up confirmation, then delete table. */
-        PopUpUtils.confirm(this, "Delete Table", "Delete selected table? All data columns in this table will also be deleted from all associated categories.", deleteTableFunction, null, "Delete", "Keep")
+		//TODO: ask for password to confirm?
+		
+        /* Pop up confirmation, then delete tables. */
+        PopUpUtils.confirm(this, "Delete Table", "Delete selected tables? All data columns will also be deleted from all associated categories.", deleteTableFunction, null, "Delete", "Keep")
         function deleteTableFunction():void
         {
-			AdminInterface.instance.entityCache.delete_entity(item.id);
-        }
+			for each (var item:EntityNode in tableTree.selectedItems)
+			{
+				Admin.entityCache.delete_entity(item.id);
+	        }
+		}
     }
     public function addTag():void
     {
@@ -68,16 +70,17 @@
             UIUtils.componentPulse(tagNameInput);
             return;
         }
-        AdminInterface.instance.entityCache.add_tag(name);
-        tagNameInput.text = "";
+		if (selectedItems && selectedItems.length == 1)
+		{
+			var node:EntityNode = selectedItems[0];
+	        Admin.entityCache.add_tag(name, node.id);
+    	    tagNameInput.text = "";
+		}
     }
     public function selectionsChanged(event:ListEvent):void
     {
 		var tree:CustomTree = event.currentTarget as CustomTree;
-        var item:EntityNode = tree.selectedItem as EntityNode;
-        if (item == null)
-			return;
-        this.selectedItem = item;
+        this.selectedItems = tree.selectedItems;
         if (tree == tagTree) 
             tableTree.selectedItem = null;
         else 
@@ -103,16 +106,16 @@
 	        var parent:EntityNode = tagTree.getParentItem(item);
 	        if (parent)
 	        {
-				AdminInterface.instance.entityCache.remove_child(item.id, parent.id);
+				Admin.entityCache.remove_child(parent.id, item.id);
 	        }
-	        else if (type == Entity.TYPE_CATEGORY)
+	        else if (type == Entity.TYPE_HIERARCHY)
 	        {
-				AdminInterface.instance.entityCache.delete_entity(item.id);
+				Admin.entityCache.delete_entity(item.id);
 	        }
 	        else
 	        {
 				// this occurs when root item is selected.. should never happen
-				weaveTrace("Entity " + item.id + " is not a category and has no parent");
+				weaveTrace("Entity " + item.id + " has no parent and is not a hierarchy");
 	        }
 		}
 		tagTree.selectedItem = null;
