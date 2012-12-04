@@ -61,21 +61,29 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
+			import weave.api.reportError;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.editors.managers.AddDataSourcePanel;
 			import weave.editors.managers.EditDataGridPanel;
+			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
 			
 			private const indentGroup:IndentGroup = new IndentGroup();
 			
+			private var busyIndicator:BusyIndicator = new BusyIndicator();
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
+				addChild(busyIndicator);
+				hideBusy();
 				keyTypeSelector.labelText+=" *";
 				sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
 			}
+			
 			
 			[Bindable] private var _csvDataSource:CSVDataSource = null;
 			public function setTarget(object:ILinkableObject):void
@@ -128,18 +136,15 @@
 				if(_fileLoader == null)
 				{
 					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
-					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
+					_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+					_fileLoader.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+					_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 				}
 				
 				_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
 			}
 			
-			
-			private function handleDatasetSelected(event:Event):void
-			{
-				_fileLoader.load();
-			}
 			
 			// called when parser finishes
 			private function handleCSVParser():void
@@ -154,6 +159,10 @@
 				
 				//clearing the Source URL text input
 				url.text = "";
+				
+				hideBusy();
+				
+				(parent.parent.parent as AddDataSourcePanel).addButton.enabled = true; // Hard coded
 			}
 			
 			public function getCSVRows():Array
@@ -167,31 +176,6 @@
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
-			
-			private function handleDatasetLoaded(event:Event):void
-			{
-				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
-				var extensionPosition:int = _fileLoader.name.length - 4;
-				
-				try
-				{				
-					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
-					{
-						csvParser.parseCSV(_fileLoader.data.toString());
-						
-						uploadMessage.visible = true;
-						
-						//clearing the Text Area if any data was pasted before.
-						csvTextArea.text="";
-						//clearing the Source URL text input
-						url.text = "";
-					}
-				}
-				catch(e:Error)
-				{
-					Alert.show(lang("Error loading file"),e.message.toString());
-				}
-			}
 			
 			private function showGrid():void
 			{
@@ -237,6 +221,64 @@
 				csvTextArea.text = '';
 			}
 			
+			private function showBusy():void
+			{
+				busyIndicator.visible = true;
+			}
+			private function hideBusy(..._):void
+			{
+				busyIndicator.visible = false;
+			}
+			
+			private function handleProgress(event:ProgressEvent):void
+			{
+				WeaveAPI.ProgressIndicator.updateTask(_fileLoader, event.bytesLoaded / event.bytesTotal);
+			}
+			
+			private function csvFileSelectedHandler(event:Event):void
+			{
+				_fileLoader.load();
+				WeaveAPI.ProgressIndicator.addTask(_fileLoader);
+				showBusy();
+				(parent.parent.parent as AddDataSourcePanel).addButton.enabled = false; // Hard coded
+			}
+			
+			// Show busy indicator until parser finishes (handleCSVParser)
+			private function csvFileLoadCompleteHandler(event:Event):void
+			{
+				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
+				var extensionPosition:int = _fileLoader.name.length - 4;
+				
+				if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
+				{
+					csvParser.parseCSV(_fileLoader.data.toString());
+					
+					uploadMessage.visible = true;
+					
+					//clearing the Text Area if any data was pasted before.
+					csvTextArea.text="";
+					//clearing the Source URL text input
+					url.text = "";
+				}
+				
+				WeaveAPI.ProgressIndicator.removeTask(_fileLoader);
+
+				if (_fileLoader.data == null)
+				{
+					hideBusy();
+					return;
+				}
+			}
+			
+			private function fileErrorHandler(event:IOErrorEvent):void
+			{
+				hideBusy();
+				var fileRef:FileReference = event.target as FileReference;
+				reportError(
+					"File upload failed",
+					"File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text
+				);
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>
