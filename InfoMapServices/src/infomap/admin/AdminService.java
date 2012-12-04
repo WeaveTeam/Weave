@@ -15,6 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -126,14 +127,14 @@ public class AdminService extends GenericServlet {
 
 	public static void main(String[] args) {
 //testing
-/*		 AdminService inst = new AdminService();
-		
-		 String [] requiredKeywords = new String[1];
-		
-		 requiredKeywords[0] = "obesity";
-		
-		 inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5,
-		 20);*/
+//		 AdminService inst = new AdminService();
+//		
+//		 String [] requiredKeywords = new String[2];
+//		
+//		 requiredKeywords[0] = "asthma";
+//		 requiredKeywords[1] = "diabetes";
+//		 
+//		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
 	}
 
 	private static void deleteAllDocuments() {
@@ -1022,16 +1023,16 @@ public class AdminService extends GenericServlet {
 			q.setRows(rows);
 
 			// set fields to title,date and summary only
-			q.setFields("link,title,attr_text_summary,date_added,date_published,imgName");
+			q.setFields("link,title,date_added,date_published,imgName");
 
 			// set highlighting
-			q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount)
-					.setHighlightFragsize(highlightFragmentSize);
-
-			q.setParam("hl.fl", "description");
-
-			q.setParam("hl.simple.pre", "<b>");
-			q.setParam("hl.simple.post", "</b>");
+//			q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount)
+//					.setHighlightFragsize(highlightFragmentSize);
+//
+//			q.setParam("hl.fl", "description");
+//
+//			q.setParam("hl.simple.pre", "<b>");
+//			q.setParam("hl.simple.post", "</b>");
 
 			QueryResponse response = solrInstance.query(q);
 			Iterator<SolrDocument> iter = response.getResults().iterator();
@@ -1040,45 +1041,45 @@ public class AdminService extends GenericServlet {
 
 			while (iter.hasNext()) {
 				SolrDocument doc = iter.next();
-				String[] docArray = new String[5];
+				String[] docArray = new String[4];
 
 				docArray[0] = (String) doc.getFieldValue("link");
 				docArray[1] = (String) doc.getFieldValue("title");
 
 				// Show text summary if exists
-				docArray[2] = "";
-				String docSummary = (String) doc
-						.getFieldValue("attr_text_summary");
-				if (docSummary != null) {
-					docArray[2] += "<b>Summary: </b>" + docSummary;
-				}
-				// Show sentences with containing query words
-				if (response.getHighlighting().get(docArray[0])
-						.get("description") != null) {
-					List<String> highlightsList = response.getHighlighting()
-							.get(docArray[0]).get("description");
-
-					Iterator<String> highlightsIter = highlightsList.iterator();
-
-					docArray[2] += "<br/><br/><b>Matches: </b>";
-
-					while (highlightsIter.hasNext()) {
-						docArray[2] += " '" + highlightsIter.next()
-								+ "'...<br/><br/>";
-					}
-
-				}
+//				docArray[2] = "";
+//				String docSummary = (String) doc
+//						.getFieldValue("attr_text_summary");
+//				if (docSummary != null) {
+//					docArray[2] += "<b>Summary: </b>" + docSummary;
+//				}
+//				// Show sentences with containing query words
+//				if (response.getHighlighting().get(docArray[0])
+//						.get("description") != null) {
+//					List<String> highlightsList = response.getHighlighting()
+//							.get(docArray[0]).get("description");
+//
+//					Iterator<String> highlightsIter = highlightsList.iterator();
+//
+//					docArray[2] += "<br/><br/><b>Matches: </b>";
+//
+//					while (highlightsIter.hasNext()) {
+//						docArray[2] += " '" + highlightsIter.next()
+//								+ "'...<br/><br/>";
+//					}
+//
+//				}
 				if (doc.getFieldValue("imgName") != null)
-					docArray[3] = "http://129.63.8.219:8080/thumbnails/"
+					docArray[2] = "http://129.63.8.219:8080/thumbnails/"
 							+ (String) doc.getFieldValue("imgName");
 
 				if (doc.containsKey("date_published"))
-					docArray[4] = doc.getFieldValue("date_published")
+					docArray[3] = doc.getFieldValue("date_published")
 							.toString();
 				else if (doc.containsKey("date_added"))
-					docArray[4] = doc.getFieldValue("date_added").toString();
+					docArray[3] = doc.getFieldValue("date_added").toString();
 				else
-					docArray[4] = "";
+					docArray[3] = "";
 
 				r.add(docArray);
 			}
@@ -1090,6 +1091,81 @@ public class AdminService extends GenericServlet {
 		Object[] queryResult = r.toArray();
 		return queryResult;
 
+	}
+	
+	public String getDescriptionForURL(String url, String[] keywords)
+	{
+		setSolrServer(solrServerUrl);
+		
+		if (url == null)
+			return null;
+		String result ="";
+		try {
+			
+			//OR all keywords so that they are highlighted
+			String queryString = "";
+			
+			for (int i=0; i<keywords.length; i++)
+			{
+				if(i+1 == keywords.length)
+				{
+					queryString += keywords[i];
+					break;
+				}
+				queryString += keywords[i] + " OR ";
+			}
+			
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+
+			// set fields to title,date and summary only
+			q.setFields("link,attr_text_summary");
+			q.setRows(1);//redundant but still
+			String filteredQuery ="link:\""+url+"\""; 
+			q.setFilterQueries(filteredQuery);
+			
+			// set highlighting
+			q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount)
+					.setHighlightFragsize(highlightFragmentSize);
+
+			q.setParam("hl.fl", "description");
+
+			q.setParam("hl.simple.pre", "<b>");
+			q.setParam("hl.simple.post", "</b>");
+			
+			QueryResponse response = solrInstance.query(q);
+			Iterator<SolrDocument> iter = response.getResults().iterator();
+
+			while (iter.hasNext()) {
+				SolrDocument doc = iter.next();
+				String docSummary = (String) doc.getFieldValue("attr_text_summary");
+				if (docSummary != null) {
+					result += "<b>Summary: </b>" + docSummary;
+				}
+			}
+			//Show sentences with containing query words
+			if (response.getHighlighting().get(url)
+					.get("description") != null) {
+				List<String> highlightsList = response.getHighlighting()
+						.get(url).get("description");
+
+				Iterator<String> highlightsIter = highlightsList.iterator();
+
+				result += "<br/><br/><b>Matches: </b>";
+
+				while (highlightsIter.hasNext()) {
+					result += " '" + highlightsIter.next()
+							+ "'...<br/><br/>";
+				}
+
+			}
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return result;
+		
 	}
 
 	public Object[] getLinksForFilteredQuery(String[] requiredKeywords,
@@ -1197,13 +1273,11 @@ public class AdminService extends GenericServlet {
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
 
 		if (queryString == null) {
-			System.out.println("ENTITY QUERY IS NULL");
 			return null;
 		}
 
 		QueryResponse response = null;
 		try {
-			System.out.println("IN ENTITY QUERY TRY");
 
 			SolrQuery q = new SolrQuery().setQuery(queryString);
 

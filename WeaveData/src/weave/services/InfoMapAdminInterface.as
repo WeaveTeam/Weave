@@ -229,6 +229,11 @@ package weave.services
 				return query;
 			}
 			
+			public function getDescriptionForURL(url:String,keywords:Array):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getDescriptionForURL",[url,keywords]);
+				return query;
+			}
 			
 			public function testDropBox():DelayedAsyncInvocation
 			{

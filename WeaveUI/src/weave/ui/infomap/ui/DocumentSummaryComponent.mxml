@@ -36,7 +36,9 @@ Use the static functions to show this as a popup.
 				import weave.data.DataSources.InfoMapsDataSource;
 				import weave.ui.infomap.core.IInfoMapDocument;
 				import weave.ui.infomap.core.InfoMapDocument;
+				import weave.ui.infomap.core.InfoMapNode;
 				import weave.ui.infomap.core.SelectableInfoMapDocument;
+				import weave.ui.infomap.layout.NodeHandler;
 
 				private static var _docURL:LinkableString = new LinkableString("");
 				
@@ -69,7 +71,7 @@ Use the static functions to show this as a popup.
 				 * @param document The document object whose summary is to be displayed
 				 * @parent the parent display object calling this function
 				 * */
-				public static function show(xPos:Number,yPos:Number,docURL:String,parent:DisplayObject):void
+				public static function show(xPos:Number,yPos:Number,docURL:String,parent:DisplayObject,node:NodeHandler):void
 				{
 					if(!instance)
 						instance = new DocumentSummaryComponent();
@@ -92,7 +94,11 @@ Use the static functions to show this as a popup.
 					instance.move(xPos,yPos);
 					PopUpManager.addPopUp(instance,parent);
 					instance.nodeTitle.text= source.getTitleForURL(_docURL.value);
-					instance.nodeDescription.htmlText = source.getDescriptionForURL(_docURL.value);
+					
+					var keywords:Array = node.previousQuery.keywords.value.split(',');
+					if(node.parentPanel.relatedKeywords.value)
+						keywords = keywords.concat(node.parentPanel.relatedKeywords.value.split(','));
+					source.getDescriptionForURL(_docURL.value,keywords).addAsyncResponder(handleGetDescriptionResult,handleGetDescriptionFault,_docURL.value);
 					instance.nodeTimeStamp.text = source.getDatePublishedForURL(_docURL.value);
 //					instance.height = instance.nodeTitle.textHeight +  instance.nodeDescription.textHeight 
 //										+ instance.nodeTimeStamp.textHeight;
@@ -101,6 +107,17 @@ Use the static functions to show this as a popup.
 					instance.fadeIn.play();
 //					trace("TEXT HEIGHT IS ",instance.nodeDescription.textHeight);
 //					trace("HEIGHT IS ",instance.height);
+				}
+				
+				private static function handleGetDescriptionResult(event:ResultEvent,token:Object =null):void
+				{
+					if((token as String) != _docURL.value)
+						return;
+					instance.nodeDescription.htmlText = event.result as String; 
+				}
+				
+				private static function handleGetDescriptionFault(event:ResultEvent,token:Object =null):void
+				{
 				}
 				
 				public static function hide():void

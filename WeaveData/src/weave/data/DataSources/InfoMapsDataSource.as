@@ -44,7 +44,7 @@ package weave.data.DataSources
 		public function InfoMapsDataSource()
 		{
 			solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
-			setCSVDataString("url,title,description,imgURL,date_published,date_added");
+			setCSVDataString("url,title,imgURL,date_published,date_added");
 			keyColName.value = "url";
 			keyType.value = "infoMapsDoc";
 			
@@ -118,9 +118,11 @@ package weave.data.DataSources
 			return getColumnValueForURL("title",url) as String;
 		}
 		
-		public function getDescriptionForURL(url:String):String
+		public function getDescriptionForURL(url:String,keywords:Array):DelayedAsyncInvocation
 		{
-			return getColumnValueForURL("description",url) as String;
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getDescriptionForURL(url,keywords);
+			
+			return q;
 		}
 		
 		public function getImageURLForURL(url:String):String

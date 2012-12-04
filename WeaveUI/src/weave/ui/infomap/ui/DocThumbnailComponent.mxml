@@ -479,7 +479,9 @@ so that it can be moved, selected, handle filters.
 			private	var docPreview:DocumentSummaryComponent;
 			private function showDocSummary(event:MouseEvent):void
 			{
-				DocumentSummaryComponent.show(event.stageX,event.stageY,docURL.value,this);
+				var hashMap:LinkableHashMap = getLinkableOwner(this) as LinkableHashMap;
+				var nodeHandler:ILinkableObject = getLinkableOwner(hashMap);
+				DocumentSummaryComponent.show(event.stageX,event.stageY,docURL.value,this,nodeHandler as NodeHandler);
 				
 			}
 			

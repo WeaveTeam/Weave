@@ -201,6 +201,11 @@
 			}
 			
 			private var _parentPanel:InfoMapPanel;
+			public function get parentPanel():InfoMapPanel
+			{
+				return _parentPanel;
+			}
+			
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			
 			//We create a private key filter for tag word click
@@ -635,11 +640,6 @@
 //					_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter,5000);	
 //				}
 				
-				var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
-					query.keywords.value.split(','),relatedKeywords,dateFilter);
-				
-				wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault,token);
-					
 			}
 			
 			
@@ -698,7 +698,7 @@
 					token.endDate != dateFilter.endDate.value)
 					return;
 				wordCount = event.result as Array;
-				nodeBase.filterImg.visible = true;
+				toggleTagCloud(null,token.forceShow,token.forceHide);
 			}
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
@@ -1571,9 +1571,25 @@
 			private var wordCount:Array = [];
 			private function toggleTagCloud(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
 			{
-				clearFiltersButton.visible = false;
+				if(!forceHide|| forceShow || !tagCanvas ||tagCanvas.alpha ==0)//!tagCanvas happens when user clicks the button for the first time 
+					status.text = "Loading Word Cloud...";
 				fadeOut.play(topicComponents);
 				flag_click = true;
+				fadeOut.play([pointsCanvas,listCanvas]);
+
+				if(wordCount.length == 0)
+				{
+					var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
+						query.keywords.value.split(','),relatedKeywords,dateFilter);
+					
+					wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault,
+						{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value,
+							forceHide:forceHide,forceShow:forceShow});
+					
+					return;
+				}
+				clearFiltersButton.visible = false;
+				
 				//				statusBox.y = nodeBase.height + statusBox.height;
 				if(tagCanvas == null)
 				{
@@ -1591,7 +1607,9 @@
 					tagCanvas.dataProvider = wordCount;
 					tagCanvas.draw(numOfWordsInCloud.value);
 				}
-				fadeOut.play([pointsCanvas,listCanvas]);
+				
+				status.text = "";
+				
 				if(forceShow)
 				{
 					if(tagCanvas.alpha == 1)
@@ -1641,6 +1659,7 @@
 			{
 				fadeOut.play(topicComponents);
 				flag_click = true;
+				
 				//if the list is not added yet
 				if(!listCanvas.contains(d))
 				{
@@ -1891,6 +1910,7 @@
 					flag_topicPropertiesChange = false;
 				}
 				
+				nodeBase.filterImg.visible = true;//all queries are done. So can enable querying for word count
 				
 			}
 			
@@ -1939,6 +1959,10 @@
 			private function handleFadeOutEffectsEnd(event:EffectEvent):void
 			{
 				(event.effectInstance.target as DisplayObject).visible = false;
+				if(event.effectInstance.target == listCanvas)
+				{
+					handleClearFiltersButton();
+				}
 			}
 			
 			private function handleBorderColor():void

@@ -92,7 +92,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 								if(d == null)
 									return;
 								if(!stageUtils.mouseButtonDown)
-									DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,d.docURL.value,event.currentTarget as DisplayObject);
+									DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,d.docURL.value,event.currentTarget as DisplayObject,(outerDocument.parent.parent as NodeHandler));
 							}
 							private function handleItemRollOut(event:MouseEvent):void
 							{
