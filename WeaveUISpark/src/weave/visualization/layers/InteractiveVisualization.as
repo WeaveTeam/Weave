@@ -122,11 +122,26 @@ package weave.visualization.layers
 		public const enableZoomAndPan:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const enableSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const enableProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const minZoomLevelMapTool:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyMinZoomLevel));
+		public const maxZoomLevelMapTool:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, verifyMaxZoomLevel));
 		public const zoomFactor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2, verifyZoomFactor));
+
 		
 		private function verifyZoomFactor(value:Number):Boolean
 		{
-			return value >= 1;
+			return (minZoomLevelMapTool.value <= value && value <= maxZoomLevelMapTool.value) ;
+		}
+		
+		private function verifyMinZoomLevel(value:Number):Boolean
+		{
+			return (value >= 1);
+			verifyZoomFactor(this.zoomFactor);
+		}
+		
+		private function verifyMaxZoomLevel(value:Number):Boolean
+		{
+			return (value >= 1 && value >= minZoomLevelMapTool.value);
+			verifyZoomFactor(this.zoomFactor);
 		}
 		
 		private var activeKeyType:String = null;
