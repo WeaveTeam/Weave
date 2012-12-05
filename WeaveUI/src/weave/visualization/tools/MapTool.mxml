@@ -547,12 +547,6 @@
 				}
 			}	
 			
-			// call back function for minzoomlevel and maxzoomlevel
-			public function handleZoomLevelPropertiesChange():void 
-			{
-				
-			}	
-			
 			private function locationChange():void
 			{
 				var index:int = maptoolLocationCombo.selectedIndex;
