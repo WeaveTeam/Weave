@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="400">
+	<mx:Script>
+		<![CDATA[
+			
+			/*Thumbnails to plot  */
+			private var _docs:Array = [];
+			
+			private var _startIndex:int = 0;
+			
+			[Bindable]
+			private var _gridSize:int = 3;
+			
+			[Bindable]
+			private var _imageSize:int = 50;
+			
+			private function get numOfDocsInEachPage():int
+			{
+				return _gridSize*_gridSize;
+			}
+			
+			[Bindable]
+			private var _spacing:int = 2;
+			
+			public function plotThumbnails(thumbnails:Array):void
+			{
+				if(thumbnails.length ==0)
+					return;
+				
+				_docs = thumbnails;				
+				
+				draw();
+			}
+			
+			private function draw():void
+			{
+				gridCanvas.removeAllChildren();
+				var nextX:Number = 0;
+				var nextY:Number = 0;
+				var count:int = _startIndex;
+				var doc:DocThumbnailComponent = null;
+				for (var i:int = 0; i<_gridSize; i++)
+				{
+					if(count >= _docs.length)
+						break;
+					
+					for(var j:int = 0; j< _gridSize; j++)
+					{
+						if(count >= _docs.length)
+							break;
+						doc = _docs[count];
+						
+						if(!doc.hasBeenMoved.value)
+						{
+							gridCanvas.addChild(doc);
+							doc.positionThumbnail(nextX,nextY);
+							nextX += doc.imageWidth.value + _spacing;
+						}
+						
+						count++;
+					}
+					nextX = 0;
+					nextY += doc.imageHeight.value;
+				}
+				
+				if(doc)
+					_imageSize = doc.imageWidth.value;
+				navBox.y = nextY + navBox.height;
+				
+				updateIndexText();
+			}
+			
+			private function prev():void
+			{
+				//if startIndex is less than row count we don't want index to go below 0
+				if(_startIndex <numOfDocsInEachPage)
+				{
+					_startIndex = 0;
+					return;
+				}
+				_startIndex -= numOfDocsInEachPage;
+				draw();
+			}
+			
+			private function next():void
+			{
+				if(_startIndex + numOfDocsInEachPage > _docs.length)
+				{
+					return;//nothing more to show
+				}
+				
+				_startIndex += numOfDocsInEachPage;
+				draw();
+			}
+			
+			private function updateIndexText():void
+			{
+				if(_docs.length == 0)
+				{
+					indexText.text = "No documents found.";
+					return;
+				}
+				var st:int = _startIndex+1;
+				
+				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
+				
+				if((_startIndex + numOfDocsInEachPage) < _docs.length)
+				{
+					var et:int = _startIndex+ numOfDocsInEachPage; 					
+					indexText.text += et.toString();
+				}
+				else
+					indexText.text += _docs.length;
+				
+				indexText.text += " of " + _docs.length;
+				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas id="gridCanvas" height="100%" width="90%"/>
+	<mx:HBox id="navBox" width="{_gridSize *(_imageSize + _spacing) + indexText.textWidth}" clipContent="false">
+		<mx:Button id="prevButton" width="10%" label="Prev" click="prev()"/>
+		<mx:Label id="indexText" text="GRID VIEW" textAlign="center" width="80%"/>
+		<mx:Button id="nextButton" width="10%" label="Next" click="next()"/>
+	</mx:HBox>
+</mx:Canvas>

@@ -24,6 +24,7 @@ It has 4 icons to:
 		<!--<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>--><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
 		<mx:Image id="distributionImg" source="@Embed(source='/weave/resources/images/bar_chart.png')"/>
 		<mx:Image id="topicsImg" source="@Embed(source='/weave/resources/images/topics.png')"/>
+		<mx:Image id="gridImg" source="@Embed(source='/weave/resources/images/grid.png')"/><!--http://findicons.com/icon/267689/3x3_grid?width=16-->
 	</mx:HBox>	
 	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
 				 focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
@@ -87,6 +88,11 @@ It has 4 icons to:
 			topicsImg.height = 12;
 			topicsImg.buttonMode = true; //you need this for click event to work on an image!
 			
+			
+			gridImg.toolTip = "Show Grid View";
+			gridImg.width = 12;
+			gridImg.height = 12;
+			gridImg.buttonMode = true; //you need this for click event to work on an image!
 			//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
 			//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
 			//sphere icon: http://www.iconfinder.com/icondetails/29260/16/

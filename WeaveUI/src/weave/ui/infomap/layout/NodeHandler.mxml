@@ -124,6 +124,7 @@
 			import weave.ui.infomap.ui.NodeSettingsComponent;
 			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
+			import weave.ui.infomap.ui.ThumbnailsLayout;
 			import weave.ui.infomap.ui.TopicNodeComponent;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
@@ -258,6 +259,8 @@
 				
 				nodeBase.topicsImg.visible = false;
 				nodeBase.topicsImg.addEventListener(MouseEvent.CLICK,showClassificationResults);
+				
+				nodeBase.gridImg.addEventListener(MouseEvent.CLICK,showGridView);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -413,9 +416,9 @@
 					nodeBase.keywordTextArea.htmlText = "";
 					newDocumentHighlight.stop();//in case node is blinking
 					stopGlow()
-					if(listCanvas.contains(d))
+					if(listCanvas.contains(docListComponent))
 					{
-						d.docKeys = [];//clearing items in list
+						docListComponent.docKeys = [];//clearing items in list
 						hideList();
 					}
 					if(tagCanvas)
@@ -579,7 +582,7 @@
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
-				_selection.removeCallback(handleSelectionKeySetChange); //remove callback to selection keys and only call after we get entity distribution results.
+//				_selection.removeCallback(handleSelectionKeySetChange); //remove callback to selection keys and only call after we get entity distribution results.
 				
 				hideIcons();
 				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter);
@@ -686,7 +689,7 @@
 			
 			private function handleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
 			{
-				
+				reportError("Error making query");
 			}
 			
 			
@@ -703,7 +706,7 @@
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
 			{
-				
+				reportError("Error making query for word count");
 			}
 				
 			
@@ -966,9 +969,9 @@
 				}
 				thumbnails.resumeCallbacks();
 				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
-				d.docKeys = _reusableThumbnailsToPlotArray;
+				docListComponent.docKeys = _reusableThumbnailsToPlotArray;
 				adjustNodeBase();
-				toggleList(null,true);
+//				toggleList(null,true);
 				
 //				handleGlobalSearch();
 			}
@@ -980,19 +983,19 @@
 					//if records are selected then show nothing
 					if(_selection.keys.length >0)
 					{
-						d.docKeys = []
+						docListComponent.docKeys = []
 					}
 					else //if no records are selected then show all
 					{
-						showAllDocumentsInList();
+						addAllDocumentsToList();
 					}
 				}else
 				{
-					d.docKeys = _tagWordSubset.included.keys;
+					docListComponent.docKeys = _tagWordSubset.included.keys;
 				}
 			}
 			
-			private function showAllDocumentsInList():void
+			private function addAllDocumentsToList():void
 			{
 				var tNails:Array = thumbnails.getObjects();
 				_reusableThumbnailsToPlotArray = [];	
@@ -1008,7 +1011,7 @@
 						_reusableThumbnailsToPlotArray.push(qKey);
 					}
 				}
-				d.docKeys = _reusableThumbnailsToPlotArray;
+				docListComponent.docKeys = _reusableThumbnailsToPlotArray;
 			}
 			
 			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
@@ -1021,45 +1024,45 @@
 			private function getEntityDistribution():void
 			{
 				
-//				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
-//				
-//				if(entityColumns.length == 0)
-//					return;
-//				
-//				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
-//				
-//				//temporarily disable query for entities > 1000
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				if(entityColumns.length == 0)
+					return;
+				
+				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
+				
+				//temporarily disable query for entities > 1000
 //				if(keys.length > 1000)
 //					return;
-//				
-//				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
-//				for each(var attrCol:IAttributeColumn in entityColumns)
-//				{
-//					for each(var qKey:IQualifiedKey in keys)
-//					{
-//						var value:String = ColumnUtils.getString(attrCol,qKey);
-//						if(value)
-//						{
-//							//if the entity is encountered for the first time, create an array containing the key
-//							//else push the key to the already existing array
-//							if(_entitiesToKeysHashMap[value] == undefined)
-//							{
-//								var a:Array = [qKey];
-//								_entitiesToKeysHashMap[value] = a;
-//								
-//							}else
-//							{
-//								(_entitiesToKeysHashMap[value] as Array).push(qKey);
-//							}
-//						}
-//					}
-//				}
 				
-//				var entities:Array = [];
-//				for (var key:Object in _entitiesToKeysHashMap)
-//				{
-//					entities.push(key);
-//				}
+				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
+				for each(var attrCol:IAttributeColumn in entityColumns)
+				{
+					for each(var qKey:IQualifiedKey in keys)
+					{
+						var value:String = ColumnUtils.getString(attrCol,qKey);
+						if(value)
+						{
+							//if the entity is encountered for the first time, create an array containing the key
+							//else push the key to the already existing array
+							if(_entitiesToKeysHashMap[value] == undefined)
+							{
+								var a:Array = [qKey];
+								_entitiesToKeysHashMap[value] = a;
+								
+							}else
+							{
+								(_entitiesToKeysHashMap[value] as Array).push(qKey);
+							}
+						}
+					}
+				}
+				
+				var entities:Array = [];
+				for (var key:Object in _entitiesToKeysHashMap)
+				{
+					entities.push(key);
+				}
 				
 				var requiredKeywords:Array = query.keywords.value.split(',');
 				
@@ -1070,7 +1073,7 @@
 				
 				
 				var entityQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,requiredKeywords,dateFilter,5000);
+															relatedKeywords,entities,dateFilter,5000);
 				
 				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault,
 					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
@@ -1121,11 +1124,12 @@
 				}
 				
 				nodeBase.distributionImg.visible = true;
-				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
+//				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 			}
 			
 			private function handleEntityQueryFault(event:FaultEvent,token:Object=null):void
 			{
+				reportError("Error making query for entities");
 				return;
 			}
 			
@@ -1576,7 +1580,9 @@
 				fadeOut.play(topicComponents);
 				flag_click = true;
 				fadeOut.play([pointsCanvas,listCanvas]);
-
+				if(_gridView)
+					fadeOut.play([_gridView]);
+				
 				if(wordCount.length == 0)
 				{
 					var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
@@ -1588,7 +1594,7 @@
 					
 					return;
 				}
-				clearFiltersButton.visible = false;
+				handleClearFiltersButton();
 				
 				//				statusBox.y = nodeBase.height + statusBox.height;
 				if(tagCanvas == null)
@@ -1654,21 +1660,21 @@
 				toggleTagCloud(null,false,true);
 			}
 			
-			private var d:DocumentList = new DocumentList();
+			private var docListComponent:DocumentList = new DocumentList();
 			private function toggleList(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
 			{
 				fadeOut.play(topicComponents);
 				flag_click = true;
 				
 				//if the list is not added yet
-				if(!listCanvas.contains(d))
+				if(!listCanvas.contains(docListComponent))
 				{
 					listCanvas.alpha = 0;
-					listCanvas.addChild(d);
-					d.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
+					listCanvas.addChild(docListComponent);
+					docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
 					
-					d.y = nodeBase.height + statusBox.height;
-					statusBox.y = d.y-statusBox.height;
+					docListComponent.y = nodeBase.height + statusBox.height;
+					statusBox.y = docListComponent.y-statusBox.height;
 					
 					if(forceHide)
 						return;
@@ -1682,14 +1688,18 @@
 					return;
 				}
 				
-				d.y = nodeBase.height + statusBox.height;
-				statusBox.y = d.y-statusBox.height;
+				docListComponent.y = nodeBase.height + statusBox.height;
+				statusBox.y = docListComponent.y-statusBox.height;
 				
 				//hide other canvases 
 				if(tagCanvas)
 					fadeOut.play([tagCanvas,pointsCanvas]);
 				else 
 					fadeOut.play([pointsCanvas]);
+				
+				if(_gridView)
+					fadeOut.play([_gridView]);
+				
 				
 				if(forceShow)
 				{
@@ -1728,6 +1738,33 @@
 			{
 				toggleList(null,false,true);
 			}
+			
+			private var _gridView:ThumbnailsLayout = null;
+			private function showGridView(event:MouseEvent):void
+			{
+				if(!_gridView)
+				{
+					_gridView = new ThumbnailsLayout();
+					_gridView.alpha = 0;
+					_gridView.includeInLayout = false;
+					addChild(_gridView);
+					_gridView.y = nodeBase.height + statusBox.height;
+				}
+				
+				_gridView.plotThumbnails(thumbnails.getObjects());
+				
+				if(_gridView.alpha == 1)
+				{
+					fadeOut.play([_gridView]);
+				}else
+				{
+					fadeOut.play([pointsCanvas,listCanvas,topicComponent]);
+					if(tagCanvas)
+						fadeOut.play([tagCanvas]);
+					fadeIn.play([_gridView]);
+				}
+			}
+			
 			
 //			private function showPointCanvas(event:Event):void
 //			{
@@ -1783,6 +1820,7 @@
 				
 			private function handleFilterQueryFault(event:FaultEvent,token:Object=null):void
 			{
+				reportError("Error making query for filtering");
 				
 			}
 			
@@ -1850,6 +1888,8 @@
 				fadeOut.play([pointsCanvas,listCanvas]);
 				if(tagCanvas)
 					fadeOut.play([tagCanvas]);
+				if(_gridView)
+					fadeOut.play([_gridView]);
 				
 				if(flag_init){
 					
@@ -1948,7 +1988,7 @@
 				filterStatus.text = "";
 				clearFiltersButton.visible = false;
 				filteredWords.value = "";
-				showAllDocumentsInList(); // we don't change the _tagWordSubset so that it's callbacks aren't called. 
+				addAllDocumentsToList(); // we don't change the _tagWordSubset so that it's callbacks aren't called. 
 			}
 			
 			private function handleFadeInEffectsStart(event:EffectEvent):void

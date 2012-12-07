@@ -1263,7 +1263,6 @@ public class AdminService extends GenericServlet {
 	public EntityDistributionObject getEntityDistributionForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, String[] entities, int rows) {
-		System.out.println("IN ENTITY QUERY ");
 
 		Object[][] urls = new Object[entities.length][];
 
@@ -1295,7 +1294,9 @@ public class AdminService extends GenericServlet {
 			q.set(GroupParams.GROUP_LIMIT, rows);
 
 			int count = 0;
-			for (int i = 0; i < entities.length; i++) {
+			for (int i = 0; i < entities.length; i++) 
+			{
+				System.out.println("RUNNING QUERY FOR ENTITY" + entities[i]);
 				String groupQuery = "title:(\"" + entities[i]
 						+ "\") OR description:(\"" + entities[i] + "\")";
 				q.set(GroupParams.GROUP_QUERY, groupQuery);

@@ -148,7 +148,7 @@ so that it can be moved, selected, handle filters.
 				selectedBorderColor.addGroupedCallback(this,setMode);
 				defaultBorderColor.addGroupedCallback(this,setMode);
 				
-				hasBeenMoved.addGroupedCallback(this,handleMode,true);
+				hasBeenMoved.addGroupedCallback(this,handleMode,false);
 				
 				point.addChild(titleLabel);
 				
@@ -171,26 +171,8 @@ so that it can be moved, selected, handle filters.
 						var root:ILinkableObject = getLinkableRoot(this);
 						panel.map.addChild(this);
 					}
-					img.visible = true;
-//					img.includeInLayout = true;
 					
-					point.visible = false;
-//					point.includeInLayout = false;
-					
-					setStyle("borderStyle","solid");
-					setStyle("borderThickness", 1.5);
-					
-					imageHeight.value = 55;
-					imageWidth.value = 55;
-					
-					img.width = 50;
-					img.height = 50;
-					point.width = 0;
-					point.height = 0;
-					
-					handleImage();
-					
-					
+					showImage();
 				}
 				else
 				{
@@ -218,6 +200,27 @@ so that it can be moved, selected, handle filters.
 //					
 //					setStyle("borderStyle","none");
 				}
+			}
+			
+			private function showImage():void
+			{
+				handleImage();
+				img.visible = true;
+				//					img.includeInLayout = true;
+				
+				point.visible = false;
+				//					point.includeInLayout = false;
+				
+				setStyle("borderStyle","solid");
+				setStyle("borderThickness", 1.5);
+				
+				imageHeight.value = 55;
+				imageWidth.value = 55;
+				
+				img.width = 50;
+				img.height = 50;
+				point.width = 0;
+				point.height = 0;
 			}
 			
 			private var token:IURLRequestToken;
@@ -364,8 +367,6 @@ so that it can be moved, selected, handle filters.
 			{
 				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation
 				
-				var mtp:MovedThumbnailPosition = null;
-				
 				var parentNH:NodeHandler = null;
 				if(this.parent is NodeHandler)
 				{
@@ -376,11 +377,29 @@ so that it can be moved, selected, handle filters.
 				}else
 				{
 					this.move(x- _lastMouseDownPoint.x ,y - _lastMouseDownPoint.y);
-					xPos.value = x;
-					yPos.value = y;
+					handleMove();
 					
-					var parentMap:InfoMapPanel = (this.parent.parent) as InfoMapPanel; //better way ?
+				}
+			}
+			
+			override public function move(x:Number, y:Number):void
+			{
+				super.move(x,y);
+			}
+			
+			
+			private function handleMove():void
+			{
+				xPos.value = x;
+				yPos.value = y;
 				
+				var parentNH:NodeHandler = null;
+				var mtp:MovedThumbnailPosition = null;
+				
+				if((this.parent.parent) is InfoMapPanel)
+				{
+					var parentMap:InfoMapPanel = (this.parent.parent) as InfoMapPanel; //better way ?
+					
 					var nodeHandlers:Array = parentMap.nodes.getObjects();
 					for each (var n:NodeHandler in nodeHandlers)
 					{
@@ -390,15 +409,25 @@ so that it can be moved, selected, handle filters.
 							break;
 						}
 					}
-				
-					//set the movedThumbnailPosition for the thumbnail
-					mtp = parentNH.movedThumbNails.requestObject(docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
-					
-					mtp.xPos.value = x;
-					mtp.yPos.value = y;
+				}else if(this.parent.parent is ThumbnailsLayout)
+				{
+					parentNH = this.parent.parent.parent as NodeHandler; 
 				}
+				
+				//set the movedThumbnailPosition for the thumbnail
+				mtp = parentNH.movedThumbNails.requestObject(docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
+				
+				mtp.xPos.value = x;
+				mtp.yPos.value = y;
 			}
 			
+			/*Different from move. We are only laying out the thumbnail in a desired position without instructing a move so that \
+			we don't have to worry if the thumbnail hasBeenMoved or not*/
+			public function positionThumbnail(xPos:Number,yPos:Number):void
+			{
+				move(xPos,yPos);
+				showImage();
+			}
 			
 			private function handleStageMouseUp(event:MouseEvent):void
 			{
