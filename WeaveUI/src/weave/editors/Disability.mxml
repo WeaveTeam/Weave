@@ -26,7 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @spurushe
 -->
 
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"         
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"        
 		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*"
 		 label="Disability"
@@ -42,7 +42,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 minWidth="5"
 				 minHeight="5"
 				 borderStyle="solid"
-				 editable="true" 
+				 editable="true"
 				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
 				 toolTip="changeme"
 				 creationComplete="handleCreationComplete(event);"
@@ -126,7 +126,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();
 			
-			
 			public var variables:LinkableHashMap;
 			
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
@@ -149,29 +148,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
+				
 			}
 			
 			public function getSystemGeneratedText():void
 			{
 			}
 			
-			/*    private function automaticToolDescTextBoxInitialize(event:Event):void
-			{
-			Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
-			var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', "automaticToolDescTextBox") as LinkableString);
-			
-			if( HashDisabilityText == null)
-			reportError("Error inserting Automatic tool desc box to disabilityHashmap");
-			else
-			linkBindableProperty(HashDisabilityText, event.target, "text");
-			
-			
-			}*/
 			
 			private function handleCreationComplete(event:Event) : void
 			{
 				variables = lineChartPlotter.columns;
-				linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
+				//linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 				checkingPlotterObjects();
 				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
 				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
@@ -279,7 +267,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var inputName:Array = ["y1", "y2"];
 				
 				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);     
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);    
 				
 			}
 			public function handleRunScriptResult(event:ResultEvent, token:Object):void
@@ -337,7 +325,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				//this gives us the final array of text messages
 				var finalTextMessages:Array = checkLookUpDict.collectMessageCategoryID(tempDisabilityObject);
-				automaticToolDescTextBox.text = finalTextMessages[0];
+				
+				Weave.properties.disabilitySystemText.value = finalTextMessages[0];
+				
+				if(_panel.title.substring(0,4)=='Line')
+				{
+					automaticToolDescTextBox.text = finalTextMessages[0];
+				}
+				
+				
 			}
 			
 		]]>
