@@ -161,8 +161,6 @@
 				url.text = "";
 				
 				hideBusy();
-				
-				(parent.parent.parent as AddDataSourcePanel).addButton.enabled = true; // Hard coded
 			}
 			
 			public function getCSVRows():Array
@@ -240,7 +238,6 @@
 				_fileLoader.load();
 				WeaveAPI.ProgressIndicator.addTask(_fileLoader);
 				showBusy();
-				(parent.parent.parent as AddDataSourcePanel).addButton.enabled = false; // Hard coded
 			}
 			
 			// Show busy indicator until parser finishes (handleCSVParser)
