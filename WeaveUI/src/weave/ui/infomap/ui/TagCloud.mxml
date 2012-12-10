@@ -100,15 +100,6 @@
 						totalWordCount = totalWordCount + int(dataProvider[k][1]);
 						lengthOfWords[k] = dataProvider[k][0].toString().length;
 						
-						//trace(int(dataProvider[k-1][1]));
-						//trace("t: "+ totalWordCount);
-						//trace("w: " + dataProvider[k][0] + " l: " +lengthOfWords[k]);
-						//var testlabel:CustomLabel = new CustomLabel();
-						//testlabel.labelText.setStyle("fontSize",15);
-						//testlabel.labelText.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(k, 0, wordLimit)));
-						//testlabel.labelText.text = dataProvider[k][0];
-						//testlabel.labelText.validateProperties();
-						//trace("h: " + testlabel.labelText.textHeight + " w: " + testlabel.labelText.textWidth + " ratio: " + testlabel.labelText.textHeight*lengthOfWords[k]/testlabel.labelText.textWidth);
 					}
 
 				//rendering the tagCanvas to a BitMapData
@@ -132,9 +123,16 @@
 				
 			    var averageNumberOfWordsPerLine:int = Math.round(wordLimit/13);
 				
-				for (var i:int=1; i<wordLimit; i++)
+				var pattern:RegExp = /\d/;
+				
+				var counter:int = 0;
+				var i:int = 0;
+				while (counter<wordLimit)
 				{
-					
+					if(dataProvider[i][0].toString().length == 1 || pattern.test(dataProvider[i][0].toString())){
+						i++;
+					}
+						else{
 					validateNow();
 //					tagCanvasBitmapData.fillRect(tagCanvasBitmapData.rect,0x00000000);
 					tagCanvasBitmapData.draw(this);
@@ -235,7 +233,9 @@
 					{
 						maxY = currWordLabel.y+currWordLabel.labelText.height;
 					}
-					
+					   i++;
+					   counter++;
+						}
 				}
 				tagCanvasBitmapData.dispose();
 				
