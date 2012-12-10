@@ -134,27 +134,14 @@ package weave.visualization.layers
 		
 		private function verifyMinZoomLevel(value:Number):Boolean
 		{
-			if(this.zoomFactor == null){
-				return (value >= 1);
-			}
-			else{
-				if(this.maxZoomLevelMapTool == null){
-					return (value >= 1 && this.zoomFactor.value >= value);
-				}
-				else{
-					return (value >= 1 && this.zoomFactor.value >= value && value <= this.maxZoomLevelMapTool.value);
-				}
-			}
+			return (value >= 1);
+			verifyZoomFactor(this.zoomFactor);
 		}
 		
 		private function verifyMaxZoomLevel(value:Number):Boolean
 		{
-			if(this.zoomFactor == null){
-				return (value >= 1 && value >= minZoomLevelMapTool.value);
-			}
-			else{
-				return (value >= 1 && value >= minZoomLevelMapTool.value && this.zoomFactor.value <= value);
-			}
+			return (value >= 1 && value >= minZoomLevelMapTool.value);
+			verifyZoomFactor(this.zoomFactor);
 		}
 		
 		private var activeKeyType:String = null;
