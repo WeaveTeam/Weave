@@ -122,11 +122,39 @@ package weave.visualization.layers
 		public const enableZoomAndPan:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const enableSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const enableProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const minZoomLevelMapTool:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyMinZoomLevel));
+		public const maxZoomLevelMapTool:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, verifyMaxZoomLevel));
 		public const zoomFactor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2, verifyZoomFactor));
+
 		
 		private function verifyZoomFactor(value:Number):Boolean
 		{
-			return value >= 1;
+			return (minZoomLevelMapTool.value <= value && value <= maxZoomLevelMapTool.value) ;
+		}
+		
+		private function verifyMinZoomLevel(value:Number):Boolean
+		{
+			if(this.zoomFactor == null){
+				return (value >= 1);
+			}
+			else{
+				if(this.maxZoomLevelMapTool == null){
+					return (value >= 1 && this.zoomFactor.value >= value);
+				}
+				else{
+					return (value >= 1 && this.zoomFactor.value >= value && value <= this.maxZoomLevelMapTool.value);
+				}
+			}
+		}
+		
+		private function verifyMaxZoomLevel(value:Number):Boolean
+		{
+			if(this.zoomFactor == null){
+				return (value >= 1 && value >= minZoomLevelMapTool.value);
+			}
+			else{
+				return (value >= 1 && value >= minZoomLevelMapTool.value && this.zoomFactor.value <= value);
+			}
 		}
 		
 		private var activeKeyType:String = null;
