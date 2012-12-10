@@ -120,6 +120,8 @@ package weave
 		 */
 		public function VisApplication()
 		{
+			trace('VisApplication constructor');
+			
 			super();
 
 			setStyle("paddingLeft", 0);
@@ -156,10 +158,12 @@ package weave
 		{
 			if (!root)
 			{
+				trace('VisApplication waitForApplicationComplete root == null');
 				callLater(waitForApplicationComplete);
 				return;
 			}
 			
+			trace('VisApplication waitForApplicationComplete root != null');
 			try {
 				loaderInfo['uncaughtErrorEvents'].addEventListener(
 					'uncaughtError',
@@ -170,15 +174,19 @@ package weave
 				);
 			} catch (e:Error) { }
 			
+			trace('... 1');
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
 			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
-			
+			trace('... 2');
 			// special case - if an error occurred already
 			if (WeaveAPI.ErrorManager.errors.length > 0)
 				ErrorLogPanel.openErrorLog();
 			
+			trace('... 3');
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
+			trace('... 4');
 			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
+			trace('... 5');
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
