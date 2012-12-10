@@ -72,7 +72,6 @@
 			
 			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
-
 			
 			// no main plotter
 			override protected function get mainPlotter():IPlotter { return null; }
@@ -547,12 +546,6 @@
 				}
 			}	
 			
-			// call back function for minzoomlevel and maxzoomlevel
-			public function handleZoomLevelPropertiesChange():void 
-			{
-				
-			}	
-			
 			private function locationChange():void
 			{
 				var index:int = maptoolLocationCombo.selectedIndex;
@@ -799,16 +792,8 @@
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 			<mx:HBox>
-				<mx:Label text="Zoom Factor:" />
-				<mx:NumericStepper maximum="{this.visualization.maxZoomLevelMapTool}" minimum="{this.visualization.minZoomLevelMapTool}" stepSize="0.01" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="MinZoom Level:" />
-				<mx:NumericStepper maximum="{this.visualization.maxZoomLevelMapTool}" minimum="1" stepSize="1" creationComplete="linkBindableProperty(this.visualization.minZoomLevelMapTool, event.target, 'value')"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="MaxZoom Level:" />
-				<mx:NumericStepper maximum="10" minimum="{this.visualization.minZoomLevelMapTool}" stepSize="1" creationComplete="linkBindableProperty(this.visualization.maxZoomLevelMapTool, event.target, 'value')"/>
+				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
+				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Size factor of map controls:" />
