@@ -29,7 +29,7 @@
 		borderAlpha="0.5" backgroundColor="#DBDBDB"
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
-		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.service.initialized ? (AdminInterface.instance.userHasAuthenticated ? MAIN_VIEW : (AdminInterface.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
+		<mx:ViewStack width="100%" height="100%" selectedIndex="{Admin.instance.service.initialized ? (Admin.instance.userHasAuthenticated ? MAIN_VIEW : (Admin.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->

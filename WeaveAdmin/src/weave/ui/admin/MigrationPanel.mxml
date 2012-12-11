@@ -1,0 +1,37 @@
+<mx:VBox
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    creationComplete="handleCreationComplete()">
+    <mx:TextArea xmlns:mx="http://www.adobe.com/2006/mxml"
+        id="migrationTextArea" editable="false" 
+        wordWrap="true" width="100%" height="100%"
+        visible="true"/>
+	<mx:Script>
+		<![CDATA[
+            import flash.net.URLStream;
+            import flash.net.URLRequest;
+            import flash.events.Event;
+            import flash.events.ProgressEvent;
+            
+            import mx.controls.Alert;
+            import mx.containers.ViewStack;            
+
+            import weave.services.WeaveAdminService;
+            import weave.services.Admin;
+        
+            private function progressHandler(event:ProgressEvent):void
+            {
+                var stream:URLStream = event.target as URLStream;
+                migrationTextArea.text=stream.readMultiByte(event.bytesLoaded, "iso-8859-01");
+                trace("progressHandler: " + event);
+                Alert.show("progressHandler: " + event.bytesLoaded); 
+                return;
+            }
+			private function handleCreationComplete():void
+			{
+                Admin.instance.service.initializeAdminService(progressHandler);
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

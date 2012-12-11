@@ -253,7 +253,7 @@ package weave.services
          	
         private function initializeAdminServiceComplete(event:Event):void
         {
-//            initialized=true;
+            initialized=true;
         }
         private function initializeAdminServiceError(event:IOErrorEvent):void
         {
@@ -266,11 +266,12 @@ package weave.services
             req.method = URLRequestMethod.GET;
             req.data["methodName"] = "initializeAdminService";
             var loader:URLStream = new URLStream();
-            loader.load(req);
-            Alert.show(admin_url, "initializing...");
+ 
             loader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
             loader.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);
             loader.addEventListener(IOErrorEvent.IO_ERROR, initializeAdminServiceError);
+            loader.load(req);
+
 		}
 		
 		public function checkDatabaseConfigExists():AsyncToken
