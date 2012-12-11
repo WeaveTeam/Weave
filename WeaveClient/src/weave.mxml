@@ -26,9 +26,6 @@
 		verticalScrollPolicy="off"
 		paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
 		horizontalAlign="left"
-		initialize="trace('weave.mxml',event.type)"
-		applicationComplete="trace('weave.mxml',event.type)"
-		creationComplete="trace('weave.mxml',event.type)"
 		>
 	<weave:VisApplication width="100%" height="100%" id="visApp"/>
 	<mx:Script>
