@@ -1808,14 +1808,14 @@ public class AdminService
 		DataConfig config = getDataConfig();
 		Collection<Integer> ids = config.getChildIds(table_id);
 		DataEntity[] columns = config.getEntitiesById(ids).toArray(new DataEntity[0]);
+		String query = null;
 		for (DataEntity entity : columns)
 		{
 			try
 			{
+				query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
 				String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-				String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
 				String sqlParams = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
-				System.out.println(query);
 				SQLResult result;
 				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 
@@ -1830,6 +1830,7 @@ public class AdminService
 			}
 			catch (Exception e)
 			{
+				System.err.println(query);
 				e.printStackTrace();
 				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
 			}

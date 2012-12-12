@@ -169,15 +169,15 @@ public class XMLUtils
 	public static Node appendTextNode(Node parent, String child)
 	{
 		if (parent == null)
-			System.out.println("parent null 0");
+			System.err.println("parent null 0");
 		if (parent instanceof Document)
 			parent = ((Document)parent).getDocumentElement();
 		if (parent == null)
-			System.out.println("parent null 1");
+			System.err.println("parent null 1");
 		if (parent.getOwnerDocument() == null)
-			System.out.println("parent ownerdoc null");
+			System.err.println("parent ownerdoc null");
 		if (child == null)
-			System.out.println("child null");
+			System.err.println("child null");
 		Text newNode = parent.getOwnerDocument().createTextNode(child);
 		return parent.appendChild(newNode);
 	}

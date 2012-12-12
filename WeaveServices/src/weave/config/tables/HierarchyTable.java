@@ -101,7 +101,7 @@ public class HierarchyTable extends AbstractTable
 //		}
 //		catch (SQLException e)
 //		{
-//			System.out.println("WARNING: Failed to create index. This may happen if the table already exists.");
+//			System.err.println("WARNING: Failed to create index. This may happen if the table already exists.");
 //		}
 	}
 	public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
@@ -175,8 +175,8 @@ public class HierarchyTable extends AbstractTable
 		catch (SQLException e)
 		{
 			if (query != null)
-				System.out.println(query);
-			throw new RemoteException("Unable to add child.",e);
+				e = new SQLException("Query failed: " + query, e);
+			throw new RemoteException("Unable to add child.", e);
 		}
 		finally
 		{

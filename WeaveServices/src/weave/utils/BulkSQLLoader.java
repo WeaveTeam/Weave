@@ -244,6 +244,7 @@ public abstract class BulkSQLLoader
 	
 	public static void copyCsvToDatabase(Connection conn, String csvPath, String sqlSchema, String sqlTable) throws SQLException, IOException
 	{
+		String query = null;
 		String formatted_CSV_path = csvPath.replace('\\', '/');
 		String dbms = conn.getMetaData().getDatabaseProductName();
 		Statement stmt = null;
@@ -255,10 +256,11 @@ public abstract class BulkSQLLoader
 			{
 				stmt = conn.createStatement();
 				//ignoring 1st line so that we don't put the column headers as the first row of data
-				stmt.executeUpdate(String.format(
+				query = String.format(
 						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
 						formatted_CSV_path, quotedTable
-						));
+					);
+				stmt.executeUpdate(query);
 				stmt.close();
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
@@ -269,16 +271,7 @@ public abstract class BulkSQLLoader
 					conn.setAutoCommit(false);
 				
 				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
-				String query = "", tempQuery = "INSERT INTO %s values (";
-				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
-				{
-					if (column == rows[0].length - 1)
-						tempQuery = tempQuery + "?)";
-					else
-						tempQuery = tempQuery + "?,";
-				}
-				
-				query = String.format(tempQuery, quotedTable);
+				query = String.format("INSERT INTO %s values (%s)", quotedTable, StringUtils.mult(",", "?", rows[0].length));
 				
 				PreparedStatement pstmt = null;
 				try
@@ -305,20 +298,24 @@ public abstract class BulkSQLLoader
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{
-				((PGConnection) conn).getCopyAPI().copyIn(
-						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
-						new FileInputStream(formatted_CSV_path));
+				query = String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable);
+				((PGConnection) conn).getCopyAPI().copyIn(query, new FileInputStream(formatted_CSV_path));
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
 			{
 				stmt = conn.createStatement();
 
 				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
-				stmt.executeUpdate(String.format(
+				query = String.format(
 						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
 						quotedTable, formatted_CSV_path, BulkSQLLoader_CSV.SQL_SERVER_CSV_DELIMETER
-					));
+					);
+				stmt.executeUpdate(query);
 			}
+		}
+		catch (SQLException e)
+		{
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally 
 		{

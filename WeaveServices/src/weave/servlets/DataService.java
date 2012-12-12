@@ -323,7 +323,7 @@ public class DataService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
+			System.err.println(query);
 			e.printStackTrace();
 			throw new RemoteException(String.format("Unable to retrieve data for column %s", columnId));
 		}

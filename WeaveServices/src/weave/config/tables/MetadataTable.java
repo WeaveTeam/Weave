@@ -113,7 +113,7 @@ public class MetadataTable extends AbstractTable
 		}
 		catch (SQLException e)
 		{
-			System.out.println("WARNING: Failed to create index. This may happen if the table already exists.");
+			System.err.println("WARNING: Failed to create index. This may happen if the table already exists.");
 		}
 	}
 	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException

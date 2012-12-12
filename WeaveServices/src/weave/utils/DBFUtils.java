@@ -223,8 +223,8 @@ public class DBFUtils
 					}
 					catch (SQLException e)
 					{
-						System.out.println(String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record));
-						throw e;
+						String str = String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record);
+						throw new SQLException(str, e);
 					}
 				}
 				// close the file

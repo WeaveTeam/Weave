@@ -269,7 +269,7 @@ public class SQLUtils
 		}
 		catch (SQLException ex)
 		{
-			System.out.println(String.format("driver: %s\nconnectString: %s", driver, connectString));
+			System.err.println(String.format("driver: %s\nconnectString: %s", driver, connectString));
 			throw new RemoteException("Unable to connect to SQL database", ex);
 		}
 		catch (Exception ex)
@@ -623,8 +623,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -687,8 +686,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println("Query: "+query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -875,11 +873,16 @@ public class SQLUtils
 		if (SQLUtils.schemaExists(conn, schema))
 			return;
 
+		String query = "CREATE SCHEMA " + schema;
 		Statement stmt = null;
 		try
 		{
 			stmt = conn.createStatement();
-			stmt.executeUpdate("CREATE SCHEMA " + schema);
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -969,8 +972,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -1000,8 +1002,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -1220,7 +1221,6 @@ public class SQLUtils
 			// close everything in reverse order
 			cleanup(rs);
 		}
-		//System.out.println(sequences);
 		return sequences;
 	}
 	
@@ -1295,8 +1295,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			//System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -1325,8 +1324,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			//System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -1362,8 +1360,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -1401,8 +1398,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
-			throw e;
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
@@ -1484,9 +1480,8 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			System.out.println(query);
-			System.out.println(records);
-			throw e;
+			System.err.println(records);
+			throw new SQLException("Query failed: " + query, e);
 		}
 		finally
 		{
