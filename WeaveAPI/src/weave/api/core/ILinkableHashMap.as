@@ -93,10 +93,10 @@ package weave.api.core
 		function renameObject(oldName:String, newName:String):ILinkableObject;
 		
 		/**
-		 * This function will call lockObject() on all objects in this LinkableHashMap.
-		 * The LinkableHashMap will also be locked so that no new objects can be initialized.
+		 * This function will return true if the specified object was previously locked.
+		 * @param name The name of an object.
 		 */
-		function lock():void;
+		function objectIsLocked(name:String):Boolean;
 
 		/**
 		 * This function removes an object from the hash map.
