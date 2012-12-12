@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
+		   xmlns:infomap="weave.ui.infomap.*" 
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
+		   clipContent="false">
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.ArrayUtil;
+			
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.VectorUtils;
+			
+			public function drawPoints(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentNode:NodeHandler):void
+			{
+				removeAllChildren();
+				var g:Graphics = this.graphics;
+				g.clear();
+				
+				var xDisplacement:Number;
+				var yDisplacement:Number;
+				
+				var urlsArray:Array = [];
+				
+				var maxI:int = 0;
+				var minI:int = 0;
+				var len:int = urlsOfEachTopic.length -1; 
+				
+				if(len >1)//do swapping for largest and smallest array only for more than 1 subtopics
+				{
+					
+					for (var count:int=1; count<urlsOfEachTopic.length; count++)
+					{
+						if(urlsOfEachTopic[maxI].length<urlsOfEachTopic[count].length)
+							maxI = count;
+						if(urlsOfEachTopic[minI].length>urlsOfEachTopic[count].length)
+							minI = count;
+					}
+					
+					
+					//swapping largest array to first position
+					var temp:Array = [];
+					VectorUtils.copy(urlsOfEachTopic[0],temp);
+					VectorUtils.copy(urlsOfEachTopic[maxI],urlsOfEachTopic[0]);
+					VectorUtils.copy(temp,urlsOfEachTopic[maxI]);
+					
+					//swapping smallest array to last position
+					temp = [];
+					VectorUtils.copy(urlsOfEachTopic[len],temp);
+					VectorUtils.copy(urlsOfEachTopic[minI],urlsOfEachTopic[len]);
+					VectorUtils.copy(temp,urlsOfEachTopic[minI]);
+				}
+				
+				var total:int = 0;
+				for(var i:int =0; i<urlsOfEachTopic.length; i++)
+				{
+					//hardcoding positons of circular regions					
+					if(i==0)
+					{
+						xDisplacement = 50;
+						yDisplacement = 50;
+					}else if(i ==1)
+					{
+						xDisplacement = 150;
+						yDisplacement = 50;
+					}else if(i ==2)
+					{
+						xDisplacement = 50;
+						yDisplacement = 150;
+					}else if(i ==3)
+					{
+						xDisplacement = 250;
+						yDisplacement = 50;
+					}else if(i ==4)
+					{
+						xDisplacement = 250;
+						yDisplacement = 100;
+					}
+					
+					
+					
+					var radius:Number = Math.round(urlsOfEachTopic[i].length);
+					
+					if(radius >50)
+						radius = 50;
+					
+					if(radius<20)
+						radius = 20;
+					
+//					g.lineStyle(1);
+//					g.drawCircle(xDisplacement,yDisplacement,radius);
+					
+					for(var j:int=0; j <(urlsOfEachTopic[i] as Array).length; j++)
+					{
+						var t:DocThumbnailComponent = parentNode.thumbnails.getObject(urlsOfEachTopic[i][j]) as DocThumbnailComponent;
+						if(t.hasBeenMoved.value)
+							continue;
+						//Read http://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+						var theta:Number = 2*Math.PI*Math.random();
+						var u:Number = Math.random() + Math.random();
+						var dist:Number = u>1?2-u:u;
+						
+						var xPos:Number = (Math.cos(theta) * dist * radius) + (xDisplacement);
+						var yPos:Number = (Math.sin(theta) * dist * radius) + (yDisplacement);
+//						trace(xPos,xPos);
+						addChild(t);
+						t.positionPoint(xPos,yPos);
+						count++;
+						trace(count);
+					}
+					
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>
