@@ -19,15 +19,10 @@
 
 package weave.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
@@ -39,14 +34,14 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
-import org.postgresql.PGConnection;
 
 /**
  * SQLUtils
@@ -55,10 +50,7 @@ import org.postgresql.PGConnection;
  * @author Andrew Wilkinson
  * @author Kyle Monico
  * @author Yen-Fu Luo
- */
-/**
- * @author Administrator
- *
+ * @author Philip Kovac
  */
 public class SQLUtils
 {
@@ -159,24 +151,27 @@ public class SQLUtils
 	
 	/**
 	 * This function will test a connection by running a simple test query.
+	 * We cannot rely on Connection.isValid(timeout) because it does not work in some drivers.
+	 * Running a test query is a reliable way to find out if the connection is valid.
 	 * @param conn A SQL Connection.
 	 * @throws SQLException Thrown if the test query fails.
 	 */
 	public static void testConnection(Connection conn) throws SQLException
 	{
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		try
 		{
-			// run test query to see if connection is valid
+			stmt = conn.createStatement();
 			if (SQLUtils.isOracleServer(conn))
-				stmt = conn.prepareStatement("SELECT 0 FROM DUAL");
+				stmt.execute("SELECT 0 FROM DUAL");
 			else
-				stmt = conn.prepareStatement("SELECT 0;");
-			stmt.execute(); // this will throw an exception if the connection is invalid
+				stmt.execute("SELECT 0");
 		}
 		catch (RuntimeException e) // This is important for catching unexpected errors.
 		{
 			/*
+				Example unexpected error when the connection is invalid:
+				
 				java.lang.NullPointerException
 				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2484)
 				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2460)
@@ -408,7 +403,7 @@ public class SQLUtils
 	 * @param queryExpression An expression to be used in a SQL Query.
 	 * @return The query expression wrapped in a string cast.
 	 */
-	private static String stringCast(Connection conn, String queryExpression) throws SQLException
+	protected static String stringCast(Connection conn, String queryExpression) throws SQLException
 	{
 		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
 			return String.format("cast(%s as char)", queryExpression);
@@ -489,32 +484,29 @@ public class SQLUtils
 	
 	/**
 	 * @param connection An SQL Connection
-	 * @param query An SQL query
+	 * @param query An SQL Query with '?' place holders for parameters
+	 * @param params Parameters for the SQL query for all '?' place holders, or null if there are no parameters.
 	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
 	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query)
-	throws SQLException
-	{
-		return getRowSetFromQuery(connection, query, false);
-	}
-	
-	/**
-	 * @param connection An SQL Connection
-	 * @param query An SQL query
-	 * @param convertToStrings Set this to true to convert all result values to Strings.
-	 * @return A SQLResult object containing the result of the query
-	 * @throws SQLException
-	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query, boolean convertToStrings) throws SQLException
+	public static <TYPE> SQLResult getResultFromQuery(Connection connection, String query, TYPE[] params, boolean convertToStrings)
+		throws SQLException
 	{
 		Statement stmt = null;
 		ResultSet rs = null;
 		SQLResult result = null;
 		try
 		{
-			stmt = connection.createStatement();
-			rs = stmt.executeQuery(query);
+			if (params == null || params.length == 0)
+			{
+				stmt = connection.createStatement();
+				rs = stmt.executeQuery(query);
+			}
+			else
+			{
+				stmt = prepareStatement(connection, query, params);
+				rs = ((PreparedStatement)stmt).executeQuery();
+			}
 			
 			// make a copy of the query result
 			result = new SQLResult(rs, convertToStrings);
@@ -536,129 +528,66 @@ public class SQLUtils
 	}
 	
 	/**
-	 * @param connection An SQL Connection
-	 * @param query An SQL Query with '?' place holders for parameters
-	 * @param params Parameters for the SQL query for all '?' place holders.
-	 * @return A SQLResult object containing the result of the query
-	 * @throws SQLException
-	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query, String[] params)
-	throws SQLException
-	{
-		CallableStatement stmt = null;
-		ResultSet rs = null;
-		SQLResult result = null;
-		try
-		{
-			stmt = connection.prepareCall(query);
-			for (int i = 0; i < params.length; i++)
-				stmt.setString(i + 1, params[i]);
-			rs = stmt.executeQuery();
-			
-			// make a copy of the query result
-			result = new SQLResult(rs);
-		}
-		catch (SQLException e)
-		{
-			//e.printStackTrace();
-			throw e;
-		}
-		finally
-		{
-			// close everything in reverse order
-			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(stmt);
-		}
-		
-		// return the copy of the query result
-		return result;
-	}
-	
-	/**
 	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @param valueType Either String.class or Object.class to denote the VALUE_TYPE class.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
-			Connection conn,
-			String fromSchema,
-			String fromTable,
-			Map<String,String> whereParams
-		) throws SQLException
-	{
-		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
-	}
-	
-	/**
-	 * @param conn An existing SQL Connection
-	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
-	 * @param fromTable The table to perform the SELECT statement on.
-	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @return The resulting rows returned by the query.
-	 * @throws SQLException If the query fails.
-	 */
-	public static List<Map<String,String>> getRecordsFromResultSet(ResultSet rs) throws SQLException
+	@SuppressWarnings("unchecked")
+	public static <VALUE_TYPE> List<Map<String,VALUE_TYPE>> getRecordsFromResultSet(ResultSet rs, Class<VALUE_TYPE> valueType) throws SQLException
 	{
 		// list the column names in the result
-		String[] columnNames = new String[rs.getMetaData().getColumnCount()];
-		for (int i = 0; i < columnNames.length; i++)
-			columnNames[i] = rs.getMetaData().getColumnName(i + 1);
+		String[] columnNames = getColumnNamesFromResultSet(rs);
 		// create a Map from each row
-		List<Map<String,String>> records = new Vector<Map<String,String>>();
+		List<Map<String,VALUE_TYPE>> records = new Vector<Map<String,VALUE_TYPE>>();
+		rs.setFetchSize(SQLResult.FETCH_SIZE);
 		while (rs.next())
 		{
-			Map<String,String> record = new HashMap<String,String>(columnNames.length);
+			Map<String,VALUE_TYPE> record = new HashMap<String,VALUE_TYPE>(columnNames.length);
 			for (int i = 0; i < columnNames.length; i++)
 			{
 				String columnName = columnNames[i];
-				String columnValue = rs.getString(columnName);
-				record.put(columnName, columnValue);
+				Object columnValue = (valueType == String.class) ? rs.getString(columnName) : rs.getObject(columnName);
+				
+				record.put(columnName, (VALUE_TYPE)columnValue);
 			}
 			records.add(record);
 		}
 		return records;
 	}
-	
-	/**
-	 * @param conn An existing SQL Connection
-	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
-	 * @param fromTable The table to perform the SELECT statement on.
-	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @return The resulting rows returned by the query.
-	 * @throws SQLException If the query fails.
-	 */
-	public static SQLResult getRowSetFromQuery(
-			Connection conn,
-			String fromSchema,
-			String fromTable,
-			Map<String,String> whereParams
-		) throws SQLException
+	public static String[] getColumnNamesFromResultSet(ResultSet rs) throws SQLException
 	{
-		return getRowSetFromQuery(conn, null, fromSchema, fromTable, whereParams);
+		String[] columnNames = new String[rs.getMetaData().getColumnCount()];
+		for (int i = 0; i < columnNames.length; i++)
+			columnNames[i] = rs.getMetaData().getColumnName(i + 1);
+		return columnNames;
 	}
 	
-	
 	/**
 	 * @param conn An existing SQL Connection
-	 * @param selectColumns The list of column names 
+	 * @param selectColumns The list of column names, or null for all columns 
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @param valueType Either String.class or Object.class to denote the VALUE_TYPE class.
+	 * @param orderBy The field to order by, or null for no specific order.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static List<Map<String,String>> getRecordsFromQuery(
+	public static <VALUE_TYPE> List<Map<String,VALUE_TYPE>> getRecordsFromQuery(
 			Connection conn,
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,String> whereParams
+			WhereClause<VALUE_TYPE> where,
+			String orderBy,
+			Class<VALUE_TYPE> valueType
 		) throws SQLException
 	{
-		CallableStatement cstmt = null;
+		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		String query = null;
 		try
@@ -674,45 +603,23 @@ public class SQLUtils
 			if (columnQuery.length() == 0)
 				columnQuery = "*"; // select all columns
 			
-			// build WHERE clause
-			String whereQuery = "";
-			int i = 0;
-			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Entry<String, String> pair = paramsIter.next();
-				String key = pair.getKey();
-				if( i > 0 )
-					whereQuery += " AND ";
-				whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, key), "?");
-				i++;
-			}
-			if (whereQuery.length() > 0)
-				whereQuery = "WHERE " + whereQuery;
+			String orderByQuery = "";
+			if (orderBy != null)
+				orderByQuery = String.format("ORDER BY %s", orderBy);
 			
 			// build complete query
 			query = String.format(
-					"SELECT %s FROM %s %s",
+					"SELECT %s FROM %s %s %s",
 					columnQuery,
 					quoteSchemaTable(conn, fromSchema, fromTable),
-					whereQuery
+					where.clause,
+					orderByQuery
 				);
-			cstmt = conn.prepareCall(query);
 			
-			// set query parameters
-			i = 1;
-			paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
-				String value = pairs.getValue();
-				cstmt.setString( i, value );
-				i++;
-			}
+			pstmt = prepareStatement(conn, query, where.params);
+			rs = pstmt.executeQuery();
 			
-			rs = cstmt.executeQuery();
-			
-			return getRecordsFromResultSet(rs);
+			return getRecordsFromResultSet(rs, valueType);
 		}
 		catch (SQLException e)
 		{
@@ -723,29 +630,29 @@ public class SQLUtils
 		{
 			// close everything in reverse order
 			cleanup(rs);
-			cleanup(cstmt);
+			cleanup(pstmt);
 		}
 	}
 	
 	/**
 	 * @param conn An existing SQL Connection
-	 * @param selectColumns The list of columns in the SELECT statement.
+	 * @param selectColumns The list of columns in the SELECT statement, or null for all columns.
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static SQLResult getRowSetFromQuery(
+	public static <V> SQLResult getResultFromQuery(
 			Connection conn,
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,String> whereParams
+			Map<String,V> whereParams,
+			Set<String> caseSensitiveFields
 		) throws SQLException
 	{
-		DebugTimer t = new DebugTimer();
-		CallableStatement cstmt = null;
+		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		SQLResult result = null;
 		String query = null;
@@ -763,48 +670,20 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			String whereQuery = "";
-			int i = 0;
-			Iterator<Entry<String, String>> paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Entry<String, String> pair = paramsIter.next();
-				String key = pair.getKey();
-				if( i > 0 )
-					whereQuery += " AND ";
-				whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, key), "?"); // case-sensitive
-				i++;
-			}
-			if (whereQuery.length() > 0)
-				whereQuery = "WHERE " + whereQuery;
+			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields, true);
 			
 			// build complete query
 			query = String.format(
 					"SELECT %s FROM %s %s",
 					columnQuery,
 					quoteSchemaTable(conn, fromSchema, fromTable),
-					whereQuery
+					where.clause
 				);
-			cstmt = conn.prepareCall(query);
-			
-			// set query parameters
-			i = 1;
-			paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Map.Entry<String, String> pairs = (Map.Entry<String, String>)paramsIter.next();
-				String value = pairs.getValue();
-				cstmt.setString( i, value );
-				i++;
-			}
-			
-			t.lap("prepare query");
-			rs = cstmt.executeQuery();
-			t.lap(query);
+			pstmt = prepareStatement(conn, query, where.params);
+			rs = pstmt.executeQuery();
 			
 			// make a copy of the query result
 			result = new SQLResult(rs);
-			t.lap("cache row set");
 		}
 		catch (SQLException e)
 		{
@@ -815,10 +694,9 @@ public class SQLUtils
 		{
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(cstmt);
+			SQLUtils.cleanup(pstmt);
 		}
 		
-		t.report();
 		// return the copy of the query result
 		return result;
 	}
@@ -854,7 +732,23 @@ public class SQLUtils
 		// return the copy of the query result
 		return result;
 	}
-	
+
+	public static int getSingleIntFromQuery(Statement stmt, String query, int defaultValue) throws SQLException
+	{
+		ResultSet resultSet = null;
+		try
+		{
+			resultSet = stmt.executeQuery(query);
+	        if (resultSet.next())
+	        	return resultSet.getInt(1);
+	        return defaultValue;
+		}
+		finally
+		{
+			SQLUtils.cleanup(resultSet);
+		}
+	}
+
 	/**
 	 * @param conn An existing SQL Connection
 	 * @return A List of schema names
@@ -943,7 +837,6 @@ public class SQLUtils
 		throws SQLException
 	{
 		List<String> columns = new Vector<String>();
-		CallableStatement cstmt = null;
 		ResultSet rs = null;
 		try
 		{
@@ -967,7 +860,6 @@ public class SQLUtils
 		{
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(cstmt);
 		}
 		return columns;
 	}
@@ -994,7 +886,6 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
@@ -1003,7 +894,14 @@ public class SQLUtils
 	 * @param columnTypes The SQL types to use when creating the ctable
 	 * @throws SQLException If the query fails.
 	 */
-	public static void createTable( Connection conn, String schemaName, String tableName, List<String> columnNames, List<String> columnTypes)
+	public static void createTable(
+			Connection conn,
+			String schemaName,
+			String tableName,
+			List<String> columnNames,
+			List<String> columnTypes,
+			List<String> primaryKeyColumns
+		)
 		throws SQLException
 	{
 		if (columnNames.size() != columnTypes.size())
@@ -1013,25 +911,38 @@ public class SQLUtils
 		if( tableExists(conn, schemaName, tableName) )
 			return;
 		
-		Statement stmt = null;
-		
-		String query = "CREATE TABLE " + quoteSchemaTable(conn, schemaName, tableName) + " ( ";
-		
+		StringBuilder columnClause = new StringBuilder();
 		int oraclePrimaryKeyColumn = -1;
 		for (int i = 0; i < columnNames.size(); i++)
 		{
 			if( i > 0 )
-				query += ", ";
+				columnClause.append(',');
 			String type = columnTypes.get(i);
 			if (ORACLE_SERIAL_TYPE.equals(type))
 			{
 				type = "integer not null";
 				oraclePrimaryKeyColumn = i;
 			}
-			query += quoteSymbol(conn, columnNames.get(i)) + " " + type;
+			columnClause.append(String.format("%s %s", quoteSymbol(conn, columnNames.get(i)), type));
 		}
-		query += ")";
 		
+		// http://www.w3schools.com/sql/sql_primarykey.asp
+		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
+		{
+			columnClause.append(", CONSTRAINT primary_key PRIMARY KEY (");
+			int i = 0;
+			for (String keyColumn : primaryKeyColumns)
+			{
+				if (i++ > 0)
+					columnClause.append(',');
+				columnClause.append(quoteSymbol(conn, keyColumn));
+			}
+			columnClause.append(")");
+		}
+		
+		String query = String.format("CREATE TABLE %s (%s)", quoteSchemaTable(conn, schemaName, tableName), columnClause);
+		
+		Statement stmt = null;
 		try
 		{
 			stmt = conn.createStatement();
@@ -1052,6 +963,7 @@ public class SQLUtils
 				else
 					stmt.executeUpdate("create sequence " + tableName + "_AUTOID start with 1 increment by 1");
 				
+				//TODO: the_geom_id should not appear hard-coded in this query.
 				stmt.executeUpdate("create or replace trigger " + tableName + "_IDTRIGGER before insert on \"" + tableName + "\" for each row begin select " + tableName + "_AUTOID.nextval into :new.\"the_geom_id\" from dual; end;");
 			}
 		}
@@ -1065,6 +977,200 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
+	public static void addForeignKey(
+			Connection conn,
+			String schemaName,
+			String tableName,
+			String keyName,
+			String targetTable,
+			String targetKey
+		) throws SQLException
+	{
+		// TODO: Check for cross-DB portability
+		Statement stmt = null;
+		String query = String.format("ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s(%s)", 
+				quoteSchemaTable(conn, schemaName, tableName),
+				quoteSymbol(conn, keyName),
+				quoteSchemaTable(conn, schemaName, targetTable),
+				quoteSymbol(conn, targetKey));
+		try
+		{
+			stmt = conn.createStatement();
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			throw e;
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}
+	public static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, List<TYPE> params) throws SQLException
+	{
+		PreparedStatement cstmt = conn.prepareStatement(query);
+		constrainQueryParams(conn, params);
+		setPreparedStatementParams(cstmt, params);
+		return cstmt;
+	}
+	public static <TYPE> PreparedStatement prepareStatement(Connection conn, String query, TYPE[] params) throws SQLException
+	{
+		PreparedStatement cstmt = conn.prepareStatement(query);
+		constrainQueryParams(conn, params);
+		setPreparedStatementParams(cstmt, params);
+		return cstmt;
+	}
+	protected static <T> void constrainQueryParams(Connection conn, List<T> params)
+	{
+		if (isOracleServer(conn))
+			for (int i = 0; i < params.size(); i++)
+				params.set(i, constrainOracleQueryParam(params.get(i)));
+	}
+	protected static <T> void constrainQueryParams(Connection conn, T[] params)
+	{
+		if (isOracleServer(conn))
+			for (int i = 0; i < params.length; i++)
+				params[i] = constrainOracleQueryParam(params[i]);
+	}
+	@SuppressWarnings("unchecked")
+	protected static <T> T constrainOracleQueryParam(T param)
+	{
+		// constrain oracle double values to float range
+		if (param instanceof Double)
+			param = (T)(Float)((Double) param).floatValue();
+		return param;
+	}
+	protected static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, List<TYPE> params) throws SQLException
+	{
+		int i = 1;
+		for (TYPE param : params)
+			cstmt.setObject(i++, param);
+	}
+	protected static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, TYPE[] params) throws SQLException
+	{
+		int i = 1;
+		for (TYPE param : params)
+			cstmt.setObject(i++, param);
+	}
+	
+	public static int updateRows(Connection conn, String fromSchema, String fromTable, Map<String,Object> whereParams, Map<String,Object> dataUpdate, Set<String> caseSensitiveFields) throws SQLException
+	{
+		PreparedStatement stmt = null;
+		try
+		{
+			// build the update block
+			String updateBlock;
+			List<String> updateBlockList = new LinkedList<String>();
+			List<Object> queryParams = new LinkedList<Object>();
+			for (Entry<String,Object> data : dataUpdate.entrySet())
+			{
+		        updateBlockList.add(String.format("%s=?", data.getKey()));
+		        queryParams.add(data.getValue());
+		    }
+			updateBlock = StringUtils.join(",", updateBlockList);
+		    
+			// build where clause
+		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields, true);
+		    queryParams.addAll(where.params);
+		    
+		    // build and execute query
+		    String query = String.format("UPDATE %s SET %s %s", fromTable, updateBlock, where.clause);
+		    stmt = prepareStatement(conn, query, queryParams);
+		    return stmt.executeUpdate();
+		}
+		finally
+		{
+			cleanup(stmt);
+		}
+	}
+	/**
+	 * Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for,
+	 * this will only be two entries long, but this covers the general case.
+	 * @param conn
+	 * @param schemaName
+	 * @param table
+	 * @param column The name of the column to return.
+	 * @param queryParams A list of where parameters specified as Map entries.
+	 * @return The values from the specified column.
+	 * @throws SQLException
+	 */
+	public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> queryParams, Set<String> caseSensitiveFields) throws SQLException
+	{
+	    PreparedStatement stmt = null;
+	    List<Integer> results = new LinkedList<Integer>();
+	    ResultSet rs;
+	    WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields, false);
+	    // Construct the query with placeholders.
+	    String query;
+	    String qColumn = quoteSymbol(conn, column);
+	    String qTable = quoteSchemaTable(conn, schemaName, table);
+	    if (queryParams.size() == 0)
+	    {
+	    	query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
+	    }
+	    else
+	    {
+	        query = String.format(
+	        	"SELECT %s FROM (SELECT %s, count(*) c FROM %s %s group by %s) result WHERE c = %s",
+	            qColumn,
+	            qColumn,
+	            qTable,
+	            where.clause,
+	            qColumn,
+	            queryParams.size()
+	        );
+	    }
+	    stmt = prepareStatement(conn, query, where.params);
+	
+	    rs = stmt.executeQuery();
+	    rs.setFetchSize(SQLResult.FETCH_SIZE);
+	    while (rs.next())
+	    {
+	         results.add(rs.getInt(column));
+	    }
+	    return results;
+	}
+	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException
+	{
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+		    List<String> columns = new LinkedList<String>();
+		    List<Object> values = new LinkedList<Object>();
+		    for (Entry<String,Object> entry : data.entrySet())
+		    {
+		        columns.add(quoteSymbol(conn, entry.getKey()));
+		        values.add(entry.getValue());
+		    }
+		    List<String> l_qmarks = new LinkedList<String>();
+		    for (int i = 0; i < values.size(); i++)
+		    {
+		        l_qmarks.add("?");
+		    }
+		    String column_string = StringUtils.join(",", columns);
+		    String qmark_string = StringUtils.join(",", l_qmarks);
+		    String query = String.format("INSERT INTO %s(%s) VALUES (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string, qmark_string);
+		    
+		    stmt = prepareStatement(conn, query, values);
+		    stmt.executeUpdate();
+		    cleanup(stmt);
+		    
+		    query = "select last_insert_id()";
+		    stmt = conn.prepareStatement(query);
+		    rs = stmt.executeQuery();
+		    rs.first();
+		    return rs.getInt(1);
+		}
+		finally
+		{
+			cleanup(rs);
+			cleanup(stmt);
+		}
+	}
+	
 	
 	/**
 	 * This function is for use with an Oracle connection
@@ -1074,7 +1180,7 @@ public class SQLUtils
 	 * @return true if the sequence exists in the specified schema.
 	 * @throws SQLException.
 	 */
-	private static boolean sequenceExists(Connection conn, String schema, String sequence)
+	protected static boolean sequenceExists(Connection conn, String schema, String sequence)
 		throws SQLException
 	{
 		List<String> sequences = getSequences(conn, schema);
@@ -1091,7 +1197,7 @@ public class SQLUtils
 	 * @return A List of sequence names in the given schema
 	 * @throws SQLException If the query fails.
 	 */
-	private static List<String> getSequences(Connection conn, String schemaName) throws SQLException
+	protected static List<String> getSequences(Connection conn, String schemaName) throws SQLException
 	{
 		List<String> sequences = new Vector<String>();
 		ResultSet rs = null;
@@ -1141,8 +1247,7 @@ public class SQLUtils
 
 		return false;
 	}
-
-	/**
+        /**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
 	 * @param tableName The name of an existing table
@@ -1150,14 +1255,35 @@ public class SQLUtils
 	 * @throws SQLException If the query fails.
 	 */
 	public static void createIndex(Connection conn, String schemaName, String tableName, String[] columnNames) throws SQLException
+        {
+            createIndex(conn, schemaName, tableName, tableName + "_index", columnNames, null);
+        }
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param SchemaName A schema name accessible through the given connection
+	 * @param tableName The name of an existing table
+	 * @param indexName The name to use for the new index.
+	 * @param columnNames The names of the columns to use.
+	 * @param columnLengths The lengths to use as indices, may be null.
+	 * @throws SQLException If the query fails.
+	 */
+	public static void createIndex(Connection conn, String schemaName, String tableName, String indexName, String[] columnNames, Integer[] columnLengths) throws SQLException
 	{
 		String columnNamesStr = "";
 		for (int i = 0; i < columnNames.length; i++)
-			columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
-		
+		{
+			if ((columnLengths != null) && columnLengths[i] != 0)
+			{
+			    columnNamesStr += (i > 0 ? ", " : "") + String.format("%s(%d)", quoteSymbol(conn, columnNames[i]), columnLengths[i]);
+			}
+			else
+			{
+			    columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
+			}
+		}
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
-				SQLUtils.quoteSymbol(conn, tableName + "_index"),
+				SQLUtils.quoteSymbol(conn, indexName),
 				SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
 				columnNamesStr
 		);
@@ -1213,7 +1339,7 @@ public class SQLUtils
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
 	 * @param columnArg	The name of the column to grab
-	 * @return A List of the column values from given table
+	 * @return A List of string values from the column
 	 * @throws SQLException If the query fails.
 	 */
 	public static List<String> getColumn(Connection conn, String schemaName, String tableName, String columnArg)
@@ -1228,9 +1354,10 @@ public class SQLUtils
 		{
 			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
 			
-			stmt = conn.createStatement();			//prepare the SQL statement
-			rs = stmt.executeQuery(query);			//execute the SQL statement
-			while (rs.next())						//peel off results into vector
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
 				values.add(rs.getString(1));
 		}
 		catch (SQLException e)
@@ -1250,59 +1377,115 @@ public class SQLUtils
 	 * @param conn An existing SQL Connection
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
-	 * @param newColumnValues The values to be inserted into that table
+	 * @param columnArg	The name of the integer column to grab
+	 * @return A List of integer values from the column
 	 * @throws SQLException If the query fails.
 	 */
-	public static void insertRow( Connection conn, String schemaName, String tableName, Map<String,Object> newColumnValues)
-		throws SQLException
+	public static List<Integer> getIntColumn(Connection conn, String schemaName, String tableName, String columnArg)
+	throws SQLException
 	{
-		CallableStatement pstmt = null;
+		List<Integer> values = new Vector<Integer>(); 	//Return value
+		Statement stmt = null;
+		ResultSet rs = null;
+		
 		String query = "";
-		int i = 0;
 		try
 		{
-			// build list of quoted column names, question marks, and array of values in correct order
-			Set<Entry<String,Object>> entrySet = newColumnValues.entrySet();
-			String columnNames = "";
-			String questionMarks = "";
-			Object[] values = new Object[entrySet.size()];
-
-			for (Entry<String,Object> entry : entrySet)
-			{
-				if (i > 0)
-				{
-					columnNames += ",";
-					questionMarks += ",";
-				}
-				columnNames += quoteSymbol(conn, entry.getKey());
-				questionMarks += "?";
-				values[i] = entry.getValue();
-				
-				// constrain oracle double values to float range
-				if (isOracleServer(conn) && values[i] instanceof Double)
-					values[i] = ((Double) values[i]).floatValue();
-				
-				i++;
-			}
+			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
 			
-			query = String.format(
-					"INSERT INTO %s (%s) VALUES (%s)",
-					quoteSchemaTable(conn, schemaName, tableName),
-					columnNames,
-					questionMarks
-			);
-			
-			// prepare call and set string parameters
-			pstmt = conn.prepareCall(query);
-			for (i = 0; i < values.length; i++)
-				pstmt.setObject(i+1, values[i]);
-
-			pstmt.execute();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+				values.add(rs.getInt(1));
 		}
 		catch (SQLException e)
 		{
 			System.out.println(query);
-			System.out.println(newColumnValues);
+			throw e;
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
+		}
+		return values;
+	}
+	
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param schemaName A schema name accessible through the given connection
+	 * @param tableName A table name existing in the given schema
+	 * @param records The records to be inserted into the table
+	 * @return The number of rows inserted.
+	 * @throws SQLException If the query fails.
+	 */
+	public static <V> int insertRow( Connection conn, String schemaName, String tableName, Map<String,V> record)
+		throws SQLException
+	{
+		List<Map<String,V>> list = new Vector<Map<String,V>>(1);
+		list.add(record);
+		return insertRows(conn, schemaName, tableName, list);
+	}
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param schemaName A schema name accessible through the given connection
+	 * @param tableName A table name existing in the given schema
+	 * @param records The records to be inserted into the table
+	 * @return The number of rows inserted.
+	 * @throws SQLException If the query fails.
+	 */
+	public static <V> int insertRows( Connection conn, String schemaName, String tableName, List<Map<String,V>> records)
+		throws SQLException
+	{
+		PreparedStatement pstmt = null;
+		String query = "insertRows()";
+		try
+		{
+			// get a list of all the field names in all the records
+			Set<String> fieldSet = new HashSet<String>();
+			for (Map<String,V> record : records)
+				fieldSet.addAll(record.keySet());
+			List<String> fieldNames = new Vector<String>(fieldSet);
+			
+			// stop if there aren't any records or field names
+			if (records.size() == 0 || fieldNames.size() == 0)
+				return 0;
+			
+			// get full list of ordered query params
+			Object[] queryParams = new Object[fieldNames.size() * records.size()];
+			int i = 0;
+			for (Map<String, V> record : records)
+				for (String fieldName : fieldNames)
+					queryParams[i++] = record.get(fieldName);
+
+			// quote field names
+			for (i = 0; i < fieldNames.size(); i++)
+				fieldNames.set(i, quoteSymbol(conn, fieldNames.get(i)));
+			
+			String quotedSchemaTable = quoteSchemaTable(conn, schemaName, tableName);
+			String fieldNamesStr = StringUtils.join(",", fieldNames);
+			
+			// construct query
+			String recordClause = String.format("(%s)", StringUtils.mult(",", "?", fieldNames.size()));
+			String valuesClause = StringUtils.mult(",", recordClause, records.size());
+			query = String.format(
+				"INSERT INTO %s (%s) VALUES %s",
+				quotedSchemaTable,
+				fieldNamesStr,
+				valuesClause
+			);
+			
+			// prepare call and set string parameters
+			pstmt = prepareStatement(conn, query.toString(), queryParams);
+			int result = pstmt.executeUpdate();
+			
+			return result;
+		}
+		catch (SQLException e)
+		{
+			System.out.println(query);
+			System.out.println(records);
 			throw e;
 		}
 		finally
@@ -1360,37 +1543,28 @@ public class SQLUtils
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
 	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
+     * @param whereConjunctive Use CNF instead of DNF for the where parameters.
+	 * @return The number of rows that were deleted.
 	 * @throws SQLException If the query fails.
 	 */
-	@SuppressWarnings("unchecked")
-	public static void deleteRows(Connection conn, String schemaName, String tableName, Map<String,String> whereParams) throws SQLException
+	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, WhereClause<V> where) throws SQLException
 	{
-		CallableStatement cstmt = null;
+		// VERY IMPORTANT - do not delete if there are no records specified, because that would delete everything.
+		if (where.params.size() == 0)
+			return 0;
+		
+		PreparedStatement pstmt = null;
 		String query = "";
 
 		try 
 		{
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName) + " WHERE ";
-			
-			Entry<String,String>[] params = whereParams.entrySet().toArray(new Entry[0]);
-
-			for (int i = 0; i < params.length; i++)
-			{
-				if (i > 0)
-					query += " AND ";
-				query += caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, params[i].getKey()), "?");
-			}
-			
-			cstmt = conn.prepareCall(query);
-			
-			for (int i = 0; i < params.length; i++)
-				cstmt.setString(i + 1, params[i].getValue());
-			
-			cstmt.execute();
+			query = String.format("DELETE FROM %s %s", SQLUtils.quoteSchemaTable(conn, schemaName, tableName), where.clause);
+			pstmt = prepareStatement(conn, query, where.params);
+			return pstmt.executeUpdate();
 		}
 		finally
 		{
-			SQLUtils.cleanup(cstmt);
+			SQLUtils.cleanup(pstmt);
 		}		
 	}
 
@@ -1438,10 +1612,6 @@ public class SQLUtils
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
 	}
 	public static void cleanup(Statement obj)
-	{
-		if (obj != null) try { obj.close(); } catch (Exception e) { }
-	}
-	public static void cleanup(CallableStatement obj)
 	{
 		if (obj != null) try { obj.close(); } catch (Exception e) { }
 	}
@@ -1505,89 +1675,6 @@ public class SQLUtils
 		return "DATETIME";
 	}
 	
-	public static void copyCsvToDatabase(Connection conn, String formatted_CSV_path, String sqlSchema, String sqlTable) throws SQLException, IOException
-	{
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		Statement stmt = null;
-		String quotedTable = quoteSchemaTable(conn, sqlSchema, sqlTable);
-
-		try
-		{
-			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
-			{
-				stmt = conn.createStatement();
-				//ignoring 1st line so that we don't put the column headers as the first row of data
-				stmt.executeUpdate(String.format(
-						"load data local infile '%s' into table %s fields terminated by ',' enclosed by '\"' lines terminated by '\\n' ignore 1 lines",
-						formatted_CSV_path, quotedTable
-						));
-				stmt.close();
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
-			{
-				// Insert each row repeatedly
-				boolean prevAutoCommit = conn.getAutoCommit();
-				if (prevAutoCommit)
-					conn.setAutoCommit(false);
-				
-				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
-				String query = "", tempQuery = "INSERT INTO %s values (";
-				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
-				{
-					if (column == rows[0].length - 1)
-						tempQuery = tempQuery + "?)";
-					else
-						tempQuery = tempQuery + "?,";
-				}
-				
-				query = String.format(tempQuery, quotedTable);
-				
-				CallableStatement cstmt = null;
-				try
-				{
-					cstmt = conn.prepareCall(query);;
-
-					for (int row = 1; row < rows.length; row++) //Skip header line
-					{
-						for (int column = 0; column < rows[row].length; column++)
-						{
-							cstmt.setString(column+1, rows[row][column]);
-						}
-						cstmt.execute();
-					}
-				}
-				catch (SQLException e)
-				{
-					throw new RemoteException(e.getMessage(), e);
-				}
-				finally
-				{
-					SQLUtils.cleanup(cstmt);
-				}
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
-			{
-				((PGConnection) conn).getCopyAPI().copyIn(
-						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
-						new FileInputStream(formatted_CSV_path));
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
-			{
-				stmt = conn.createStatement();
-
-				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
-				stmt.executeUpdate(String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
-						quotedTable, formatted_CSV_path, SQL_SERVER_DELIMETER
-					));
-			}
-		}
-		finally 
-		{
-			SQLUtils.cleanup(stmt);
-		}
-	}
-	
 	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException
 	{
 		String dbms = conn.getMetaData().getDatabaseProductName();
@@ -1601,7 +1688,7 @@ public class SQLUtils
 		return "SERIAL PRIMARY KEY";
 	}
 
-	private static String getCSVNullValue(Connection conn)
+	protected static String getCSVNullValue(Connection conn)
 	{
 		try
 		{
@@ -1621,36 +1708,109 @@ public class SQLUtils
 		}
 	}
 	
-	private static final char SQL_SERVER_DELIMETER = (char)8;
-	
-	public static void generateCSV(Connection conn, String[][] csvData, File output) throws SQLException, IOException
+	public static class WhereClause<V>
 	{
-		FileWriter writer = new FileWriter(output);
+		public String clause;
+		public List<V> params;
 		
-		String outputNullValue = SQLUtils.getCSVNullValue(conn);
-		for (int i = 0; i < csvData.length; i++)
+		public WhereClause(String whereClause, List<V> params)
 		{
-			for (int j = 0; j < csvData[i].length; j++)
+			this.clause = whereClause;
+			this.params = params;
+		}
+		
+		/**
+		 * @param conn
+		 * @param conditions
+		 * @param caseSensitiveFields
+		 * @param conjunctive Set to <code>true</code> for "AND" logic or <code>false</code> for "OR" logic.
+		 * @throws SQLException
+		 */
+		public WhereClause(Connection conn, Map<String,V> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		{
+			List<Map<String,V>> list = new Vector<Map<String,V>>(1);
+			list.add(conditions);
+			// we have to negate our conjunctive parameter because we have just nested our conditions
+			init(conn, list, caseSensitiveFields, !conjunctive);
+		}
+		public WhereClause(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		{
+			init(conn, conditions, caseSensitiveFields, conjunctive);
+		}
+		
+		private void init(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		{
+			params = new Vector<V>();
+			if (caseSensitiveFields == null)
+				caseSensitiveFields = Collections.emptySet();
+			List<List<Pair>> nestedPairs = new LinkedList<List<Pair>>();
+			for (Map<String,V> group : conditions)
 			{
-				if (csvData[i][j] == null)
-					csvData[i][j] = outputNullValue;
+				List<Pair> pairs = new LinkedList<Pair>();
+				for (Entry<String,V> entry : group.entrySet())
+				{
+					pairs.add(new Pair(entry.getKey(), "?"));
+					params.add(entry.getValue());
+				}
+				nestedPairs.add(pairs);
+			}
+			String dnf = buildNormalForm(conn, nestedPairs, caseSensitiveFields, conjunctive);
+			if (dnf.length() > 0)
+				clause = String.format(" WHERE %s ", dnf);
+			else
+				clause = "";
+		}
+		
+        protected static String buildDisjunctiveNormalForm(
+                Connection conn,
+				List<List<Pair>> symbolicArguments,
+				Set<String> caseSensitiveFields
+            ) throws SQLException
+        {
+            return buildNormalForm(conn, symbolicArguments, caseSensitiveFields, false);
+        }
+		protected static String buildNormalForm(
+				Connection conn,
+				List<List<Pair>> nestedPairs,
+				Set<String> caseSensitiveFields, boolean conjunctive
+			) throws SQLException
+		{
+			String outerJunction = conjunctive ? " AND " : " OR ";
+			String innerJunction = conjunctive ? " OR " : " AND ";
+		    List<String> junctions = new LinkedList<String>();
+		    for (List<Pair> juncMap : nestedPairs)
+		    {
+		        List<String> juncList = new LinkedList<String>();
+		        for (Pair pair : juncMap)
+		        {
+		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
+		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
+		        }
+		        junctions.add(String.format("(%s)", StringUtils.join(innerJunction, juncList)));
+		    }
+	        return StringUtils.join(outerJunction, junctions);
+		}
+		
+		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException
+		{
+			if (caseSensitive)
+			{
+				String compare = caseSensitiveCompare(conn, symbol1, symbol2);
+				return new StringBuilder().append('(').append(compare).append(')').toString();
+			}
+			return new StringBuilder().append('(').append(symbol1).append('=').append(symbol2).append(')').toString();
+		}
+		
+		protected static class Pair
+		{
+			public String a;
+			public String b;
+			
+			public Pair(String a, String b)
+			{
+				this.a = a;
+				this.b = b;
 			}
 		}
-		
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		if (SQLSERVER.equalsIgnoreCase(dbms))
-		{
-			// special case for Microsoft SQL Server because it does not support quotes.
-			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
-			parser.createCSV(csvData, false, writer);
-		}
-		else
-		{
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
-		}
-		
-		writer.flush();
-		writer.close();
 	}
 }

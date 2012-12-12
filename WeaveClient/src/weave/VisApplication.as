@@ -33,7 +33,6 @@ package weave
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
-	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.ByteArray;
@@ -70,8 +69,8 @@ package weave
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
+	import weave.services.addAsyncResponder;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
@@ -109,7 +108,6 @@ package weave
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
-	import weave.visualization.tools.WeaveAnalyst;
 
 	public class VisApplication extends VBox implements ILinkableObject
 	{
@@ -224,7 +222,7 @@ package weave
 				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
 				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
 				// when admin console responds, set adminService
-				DelayedAsyncResponder.addResponder(
+				addAsyncResponder(
 					pendingAdminService.invokeAsyncMethod("ping"),
 					resultHandler,
 					faultHandler
@@ -556,7 +554,7 @@ package weave
 				}
 				
 				var token:AsyncToken = adminService.invokeAsyncMethod('saveWeaveFile', [content, fileName, true]);
-				DelayedAsyncResponder.addResponder(
+				addAsyncResponder(
 					token,
 					function(event:ResultEvent, token:Object = null):void
 					{

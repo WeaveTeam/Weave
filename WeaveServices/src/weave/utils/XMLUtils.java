@@ -219,7 +219,11 @@ public class XMLUtils
 	}
 	public static Document getValidatedXMLFromFile(String xmlFile) throws ParserConfigurationException, SAXException, IOException
 	{
-		String workingPath = System.setProperty("user.dir", new File(xmlFile).getAbsoluteFile().getParent());
+		return getValidatedXMLFromFile(new File(xmlFile));
+	}
+	public static Document getValidatedXMLFromFile(File xmlFile) throws ParserConfigurationException, SAXException, IOException
+	{
+		String workingPath = System.setProperty("user.dir", xmlFile.getAbsoluteFile().getParent());
 		Document doc;
 		try
 		{
@@ -255,6 +259,10 @@ public class XMLUtils
 		getStringFromXML(node, dtdFilename, sw);
 		return sw.getBuffer().toString();
 	}
+        public static void writeXML(Node node, String dtdFilename, String outputFileName) throws TransformerException, IOException
+        {
+            getStringFromXML(node, dtdFilename, outputFileName);
+        }
 	public static void getStringFromXML(Node node, String dtdFilename, String outputFileName) throws TransformerException, IOException
 	{
 		File file = new File(outputFileName);

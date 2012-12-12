@@ -23,16 +23,12 @@ package weave.services.beans
 	{
 		[Bindable] public var connection:String = "";
 		[Bindable] public var schema:String = "";
-		[Bindable] public var geometryConfigTable:String = "";
-		[Bindable] public var dataConfigTable:String = "";
 		
 		public function DatabaseConfigInfo(obj:Object)
 		{
 			if (obj == null)
 			{
 				schema = 'weave';
-				geometryConfigTable = 'config_geometry';
-				dataConfigTable = 'config_data';
 			}
 			else
 			{

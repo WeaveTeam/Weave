@@ -35,7 +35,7 @@
 			<mx:TextInput id="importDBFFileNameInputToStore" enabled="true"/>
 			<mx:Button label="Upload ..." click="browseAndUploadDBFFiles();"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 		<ui:Center>
 			<mx:VBox>
 				<mx:Label text="Note: This does not create a Weave configuration entry yet, it only uploads the data to a SQL table."/>
@@ -52,7 +52,7 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.reportError;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			import weave.services.DelayedAsyncInvocation;
 			
 			private var dbfFileReference:FileReference = new FileReference();
@@ -83,7 +83,7 @@
 			
 			private function dbfFileCompleteHandler():void
 			{
-				AdminInterface.instance.uploadFile(dbfFileReference);
+				Admin.instance.uploadFile(dbfFileReference);
 			}
 
 			protected function handleCreationComplete():void
@@ -103,7 +103,7 @@
 					Alert.show("You must specify the name of the destination SQL table.", alertTitle);
 				else
 				{
-					var query:DelayedAsyncInvocation = AdminInterface.instance.storeDBFDataToDatabase(
+					var query:DelayedAsyncInvocation = Admin.instance.storeDBFDataToDatabase(
 						importDBFFileNameInputToStore.text,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
@@ -112,7 +112,7 @@
 					);
 					
 					controlBarEnabled = false;
-					query.addAsyncResponder(handleResult, handleFault);
+					addAsyncResponder(query, handleResult, handleFault);
 					function handleResult(event:ResultEvent, token:Object = null):void
 					{
 						controlBarEnabled = true;

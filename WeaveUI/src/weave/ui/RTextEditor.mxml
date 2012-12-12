@@ -114,8 +114,8 @@ RTextEditor
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
@@ -253,7 +253,7 @@ RTextEditor
 				var showWarnings:Boolean = warningCB.selected;
 				var query:AsyncToken = Rservice.runScript(null,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,false);
 				
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 			}
 			
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void

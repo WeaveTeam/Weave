@@ -23,14 +23,14 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="Database connections{dataChanged ? '*' : ''}"
+				label="Connections{dataChanged ? '*' : ''}"
 				creationComplete="handleCreationComplete()"
 				>
 	<mx:VBox height="100%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
+			<mx:Button label="Refresh" click="refresh()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -67,21 +67,21 @@
 				<mx:HBox>
 					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
 					<mx:Button label="Clear fields" click="clearConnectionFields()" />
-					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{AdminInterface.instance.userHasAuthenticated}"/>
+					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label fontWeight="bold" text="Set the location of the SQL tables where Weave will store configuration data:"/>
+				<mx:Label text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
+				<mx:Spacer/>
+				<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>
 				<ui:Indent label="Connection to use">
-					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
+					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{Admin.instance.connectionNames}" width="200"/>
 				</ui:Indent>
 				<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
-				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-				<ui:IndentTextInput label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
-				<ui:IndentTextInput label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
-				<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" />
+				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
+				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="saveDatabaseConfigInfo()" />
 			</mx:VBox>
 		</mx:Canvas>
 		<!--		<mx:Canvas label="etc" width="100%" height="100%">
@@ -94,11 +94,12 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.events.ListEvent;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
 			import weave.ui.Indent;
 			import weave.ui.IndentTextInput;
@@ -112,7 +113,7 @@
 
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(handleConnectionNames, AdminInterface.instance, "connectionNames");
+				BindingUtils.bindSetter(handleConnectionNames, Admin.instance, "connectionNames");
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
 			}
 			
@@ -127,7 +128,7 @@
 				else
 				{
 					superuserCheckbox.enabled = true;
-					if (!AdminInterface.instance.sqlConfigExists)
+					if (!Admin.instance.databaseConfigExists)
 						tabNavigator.selectedChild = migrateTab;
 				}
 				migrateTab.enabled = names.length > 0;
@@ -156,16 +157,18 @@
 			
 			private function loadDatabaseInfo():void
 			{
+				if (treeWithSearch.tree.selectedItem == null)
+					return;
+				
 				tabNavigator.selectedChild = simpleSetting;
 				
-				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
-				query.addAsyncResponder(handleResult);
+				var name:String = treeWithSearch.tree.selectedItem.label;
+				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult);
 
 				function handleResult(event:ResultEvent, token:Object = null):void
 				{
 					var info:ConnectionInfo = new ConnectionInfo(event.result);
 					//Connection name
-					//connectionNameInput.text = tree.tree.selectedItem.label;
 					connectionNameInput.text = info.name;
 					//SQL Server Type
 					connectionDBMSCombo.selectedIndex = ConnectionInfo.dbmsList.indexOf(info.dbms);
@@ -209,7 +212,7 @@
 				connectionPasswordInput.text = "";
 				folderNameInput.text = "";
 				configOverwrite.selected = false;
-				superuserCheckbox.selected = (AdminInterface.instance.connectionNames.length == 0);
+				superuserCheckbox.selected = (Admin.instance.connectionNames.length == 0);
 			}
 			
 			private function saveConnectionInfo():void
@@ -225,33 +228,26 @@
 				info.is_superuser = superuserCheckbox.selected;
 				info.folderName = folderNameInput.text;
 				
-				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected).addAsyncResponder(handleSave);
+				addAsyncResponder(Admin.service.saveConnectionInfo(info, configOverwrite.selected), handleSave);
 				function handleSave(..._):void
 				{
-					if (info.name == AdminInterface.instance.activeConnectionName)
+					if (info.name == Admin.instance.activeConnectionName)
 					{
-						AdminInterface.instance.authenticate(info.name, info.pass);
-						AdminInterface.instance.userHasAuthenticated = true;
+						Admin.service.authenticate(info.name, info.pass);
+						// prevent interface from displaying as logged out
+						Admin.instance.userHasAuthenticated = true;
 					}
 				}
 				dataChanged = false;
 			}
 			
-			private function migrateToDatabase():void
+			private function saveDatabaseConfigInfo():void
 			{
-				migrateButton.enabled = false;
-				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
+				Admin.service.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
-					   migrateSchemaInput.text,
-					   migrateGeometryConfigInput.text,
-					   migrateDataConfigInput.text
+					   migrateSchemaInput.text
 					);
-				query.addAsyncResponder(enableMigrateButton, enableMigrateButton);
-				function enableMigrateButton(..._):void
-				{
-					migrateButton.enabled = true;
-				}
 			}
 			
 			private function handleRemoveConnection():void
@@ -272,10 +268,15 @@
 				);
 				function del():void
 				{
-					AdminInterface.instance.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
+					Admin.service.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
 				}
 			}
 			
+			private function refresh():void
+			{
+				Admin.service.getConnectionNames();
+				Admin.service.getDatabaseConfigInfo();
+			}
 		]]>
 	</mx:Script>
 </mx:HDividedBox>

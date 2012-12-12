@@ -21,6 +21,9 @@ package weave.services
 {
 	import flash.events.Event;
 	
+	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 	
@@ -32,6 +35,8 @@ package weave.services
 	 */
 	public class AsyncInvocationQueue
 	{
+		public static var debug:Boolean = true;
+		
 		public function AsyncInvocationQueue()
 		{
 		}
@@ -49,6 +54,23 @@ package weave.services
 			}
 			
 			WeaveAPI.ProgressIndicator.addTask(query);
+			
+			if (debug)
+			{
+				addAsyncResponder(
+					query,
+					function(event:ResultEvent, token:Object = null):void
+					{
+						weaveTrace('Query returned: ' + query);
+						//weaveTrace('Query returned: ' + query, ObjectUtil.toString(event.result));
+					},
+					function(..._):void
+					{
+						weaveTrace('Query failed: ' + query);
+					}
+				);
+			}
+
 			
 			_downloadQueue.push(query);
 			
@@ -70,9 +92,12 @@ package weave.services
 		protected function performQuery(query:DelayedAsyncInvocation):void
 		{
 			//trace("performQuery (timeout = "+query.webService.requestTimeout+")",query.toString());
-			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
+			addAsyncResponder(query, handleQueryResultOrFault, handleQueryResultOrFault, query);
 			
 			//URLRequestUtils.reportProgress = false;
+			
+			if (debug)
+				weaveTrace('Query sent: ' + query);
 			
 			query.invoke();
 			

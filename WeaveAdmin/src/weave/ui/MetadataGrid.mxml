@@ -1,0 +1,115 @@
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    width="100%" height="100%">
+    <mx:DataGrid id="grid" editable="true" 
+        change="changedItemSelect(event)"
+        width="100%" height="100%">
+        <mx:columns>
+            <mx:DataGridColumn headerText="Property" labelFunction = "labelFunction" editable="false"/>
+            <mx:DataGridColumn headerText="Value" dataField = "value" editable="true"/>
+        </mx:columns>
+    </mx:DataGrid>
+    <mx:HBox width="100%">
+        <ui:TextInputWithPrompt id="newPropName" prompt="New Property Name" enter="addProp()"/>
+        <mx:Button id="addPropButton" label="Add Property" click="addProp()"/>
+        <mx:Button id="delPropButton" label="Delete Property" click="delProp()" 
+            enabled="{grid.selectedItem}"/>
+    </mx:HBox>
+<mx:Script>
+<![CDATA[
+    import mx.collections.ListCollectionView;
+    import mx.controls.dataGridClasses.DataGridColumn;
+    import mx.events.CollectionEvent;
+    import mx.events.ListEvent;
+    
+    import weave.core.UIUtils;
+	
+    private function emitMetaChanged(o:Object = null):void
+    {
+        dispatchEvent(new Event("metaChanged"));
+    }
+    private static function labelFunction(item:Object, column:DataGridColumn):String
+    {
+        /* TODO: Pretty formatting to make it clear that these prefixes aren't part of the name.*/
+        if (item.deleted)
+            return "[DELETED] " + item.property;
+        else if (item.original == false)
+            return "[ADDED] " + item.property;
+        else
+            return item.property;
+    }
+    [Bindable(event="metaChanged")] public function get metadata():Object
+    {
+        /* Convert from the grid's dataProvider to an object that is expected. */
+        var lcv:ListCollectionView = grid.dataProvider as ListCollectionView;
+        if (lcv == null) return {};
+        var rows:Array = lcv.toArray();
+        var destmeta:Object = new Object();
+        for each (var row:Object in rows)
+        {
+            if (row.deleted)
+            {
+                if (row.original)
+                    destmeta[row.property] = null;
+                else
+                    continue; /* If a nonoriginal property was deleted 
+                                we don't need other components to hear about it. */
+            }
+            else
+                destmeta[row.property] = row.value;
+        }
+        return destmeta;
+    }
+    public function set metadata(srcmeta:Object):void
+    {
+        /* Convert from an object to a format expected by the dataProvider */
+        var rows:Array = new Array();
+        for (var prop:String in srcmeta)
+            rows.push({property: prop, value: srcmeta[prop], original: true, deleted: false});
+        grid.dataProvider = rows;
+        (grid.dataProvider as ListCollectionView).addEventListener(CollectionEvent.COLLECTION_CHANGE, emitMetaChanged);
+        dispatchEvent(new Event("metaChanged"));
+    }
+    public function addProp():void
+    {
+        var prop:String = newPropName.text;
+        var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;
+        if (prop) 
+            datalist.addItem({property: prop, value: "", original: false, deleted: false});
+        else
+            UIUtils.componentPulse(newPropName);
+        newPropName.text = null;
+        dispatchEvent(new Event("metaChanged"));
+    }
+    public function delProp():void
+    {
+        var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;
+        var row:Object = grid.selectedItem;
+        var idx:int;
+        row.deleted = !row.deleted;
+        if (!row.original && row.deleted)
+        {
+            idx = datalist.getItemIndex(row);
+            datalist.removeItemAt(idx);
+        }
+        grid.dataProvider.refresh();
+        changedItemSelect(null);
+        dispatchEvent(new Event("metaChanged"));
+    }
+    public function changedItemSelect(event:ListEvent):void
+    {
+        if (!grid.selectedItem) return;
+        if (grid.selectedItem.deleted)
+        {
+            delPropButton.label = "Undo Delete";
+        }
+        else
+        {
+            delPropButton.label = "Delete Property";
+        }
+    }
+]]>
+</mx:Script>
+</mx:VBox>
+

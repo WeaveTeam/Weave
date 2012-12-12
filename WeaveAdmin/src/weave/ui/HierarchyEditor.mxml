@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+                xmlns:ui="weave.ui.*"
+                xmlns:aci="weave.services.beans.*"
+                xmlns="weave.ui.*"
+                label="Hierarchy Editor"
+                creationComplete="handleCreated()">
+    <mx:VBox height="100%" width="40%">
+        <mx:Label text="Tables"/>
+        <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}"
+			change="deleteTableButton.enabled = tableTree.selectedItem &amp;&amp; (tableTree.selectedItem as EntityNode).getEntity().type == Entity.TYPE_TABLE;"
+            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
+        <mx:HBox width="100%">
+            <mx:Button label="Import Table..." click="importTable()"/>
+            <mx:Button id="deleteTableButton" label="Delete Table" click="deleteTable()"/>
+        </mx:HBox>
+    </mx:VBox>
+    <mx:VBox height="100%" width="60%">
+        <mx:Label text="Custom Hierarchy"/>
+        <ui:EntityTree id="tagTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
+            width="100%" height="100%" 
+            dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
+        <mx:HBox enabled="{selectedItems.length == 1}">
+            <ui:TextInputWithPrompt id="tagNameInput" prompt="New category name" width="100%"/>
+            <mx:Button label="Add Category" click="addTag()"/>
+            <mx:Button label="Remove" click="remove()" enabled="{tagTree.selectedItem != null}"/>
+        </mx:HBox>
+    </mx:VBox>
+<mx:Script>
+<![CDATA[
+	import mx.events.ListEvent;
+	
+	import weave.api.getCallbackCollection;
+	import weave.core.UIUtils;
+	import weave.services.Admin;
+	import weave.services.beans.Entity;
+	import weave.utils.PopUpUtils;
+
+    [Bindable] public var selectedItems:Array;
+	
+    public function handleCreated():void
+    {
+        tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
+        tagTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
+		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, tagTree.invalidateList);
+    }
+    public function importTable():void
+    {
+        /* Pop up table import wizard */
+    }
+    public function deleteTable():void
+    {
+		//TODO: ask for password to confirm?
+		
+        /* Pop up confirmation, then delete tables. */
+        PopUpUtils.confirm(this, "Delete Table", "Delete selected tables? All data columns will also be deleted from all associated categories.", deleteTableFunction, null, "Delete", "Keep")
+        function deleteTableFunction():void
+        {
+			for each (var item:EntityNode in tableTree.selectedItems)
+			{
+				Admin.entityCache.delete_entity(item.id);
+	        }
+		}
+    }
+    public function addTag():void
+    {
+		var name:String = tagNameInput.text
+        if (!name)
+        {
+            UIUtils.componentPulse(tagNameInput);
+            return;
+        }
+		if (selectedItems && selectedItems.length == 1)
+		{
+			var node:EntityNode = selectedItems[0];
+	        Admin.entityCache.add_tag(name, node.id);
+    	    tagNameInput.text = "";
+		}
+    }
+    public function selectionsChanged(event:ListEvent):void
+    {
+		var tree:CustomTree = event.currentTarget as CustomTree;
+        this.selectedItems = tree.selectedItems;
+        if (tree == tagTree) 
+            tableTree.selectedItem = null;
+        else 
+            tagTree.selectedItem = null;
+    }
+    public function remove():void
+    {
+		for each (var item:EntityNode in tagTree.selectedItems)
+		{
+			if (tagTree.getParentItem(item) == null && item.getEntity().type == Entity.TYPE_CATEGORY)
+			{
+	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root categories.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
+				return;
+			}
+		}
+		removeImmediately();
+	}
+	private function removeImmediately():void
+	{
+		for each (var item:EntityNode in tagTree.selectedItems)
+		{
+	        var type:int = item.getEntity().type;
+	        var parent:EntityNode = tagTree.getParentItem(item);
+	        if (parent)
+	        {
+				Admin.entityCache.remove_child(parent.id, item.id);
+	        }
+	        else if (type == Entity.TYPE_HIERARCHY)
+	        {
+				Admin.entityCache.delete_entity(item.id);
+	        }
+	        else
+	        {
+				// this occurs when root item is selected.. should never happen
+				weaveTrace("Entity " + item.id + " has no parent and is not a hierarchy");
+	        }
+		}
+		tagTree.selectedItem = null;
+    }
+	private function removeItem(item:EntityNode):void
+	{
+		
+	}
+]]>
+</mx:Script>
+</mx:HDividedBox>

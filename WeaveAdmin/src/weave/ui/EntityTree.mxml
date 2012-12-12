@@ -1,0 +1,57 @@
+<CustomTree xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    creationComplete="handleCreationComplete()"
+    openDuration="0" dragEnabled="true"
+	allowMultipleSelection="true"
+    showRoot="false">
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.IList;
+			import mx.events.DragEvent;
+			
+			import weave.api.getCallbackCollection;
+			import weave.services.Admin;
+			
+			public function set rootFilterType(type:int):void
+			{
+				dataProvider = _rootNode = new EntityNode(type);
+				dataDescriptor = new EntityTreeDataDescriptor();
+			}
+			
+			private var _rootNode:EntityNode;
+			
+			private function handleCreationComplete():void
+			{
+				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleMetadataCache);
+				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
+				
+				debugTrace(a);
+			}
+			
+			private var a:Array = [];
+			private function debugEvent(e:Event):void
+			{
+				trace(e.type);
+				a.push(e);
+			}
+	
+			private function connectionReady(userHasAuthenticated:Boolean):void
+			{
+			    if (userHasAuthenticated == true)
+					invalidateList();
+			}
+			
+			private function handleMetadataCache():void
+			{
+				// Because we are not rendering the root node, we need to explicitly request the children from
+				// the root so that the children will be fetched.
+				if (_rootNode)
+					_rootNode.children;
+				
+				invalidateList();
+			}
+		]]>
+	</mx:Script>
+</CustomTree>
