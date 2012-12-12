@@ -2,33 +2,41 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-    creationComplete="handleCreationComplete()">
-    <mx:TextArea xmlns:mx="http://www.adobe.com/2006/mxml"
-        id="migrationTextArea" editable="false" 
-        wordWrap="true" width="100%" height="100%"
-        visible="true"/>
+    creationComplete="handleCreationComplete()" horizontalAlign="center">
+	
+	<mx:Spacer height="100%"/>
+	<mx:Label id="migrationTextArea"/>
+	<mx:Spacer height="100%"/>
+	
+	<ui:BusyIndicator visible="{!migrationTextArea.text}"/>
 	<mx:Script>
 		<![CDATA[
-            import flash.net.URLStream;
-            import flash.net.URLRequest;
-            import flash.events.Event;
-            import flash.events.ProgressEvent;
-            
-            import mx.controls.Alert;
-            import mx.containers.ViewStack;            
-
-            import weave.services.WeaveAdminService;
-            import weave.services.Admin;
+			import flash.events.Event;
+			import flash.events.ProgressEvent;
+			import flash.net.URLRequest;
+			import flash.net.URLStream;
+			
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.utils.StringUtil;
+			
+			import weave.compiler.StandardLib;
+			import weave.services.Admin;
+			import weave.services.WeaveAdminService;
         
             private function progressHandler(event:ProgressEvent):void
             {
                 var stream:URLStream = event.target as URLStream;
-                migrationTextArea.text=stream.readMultiByte(event.bytesLoaded, "iso-8859-01");
-                trace("progressHandler: " + event);
-                Alert.show("progressHandler: " + event.bytesLoaded); 
-                return;
+				if (stream.bytesAvailable > 0)
+				{
+					var text:String = migrationTextArea.text;
+					text += "\n" + stream.readMultiByte(stream.bytesAvailable, "iso-8859-01");
+					text = StandardLib.replace(text, "\r\n", "\n");
+					text = StringUtil.trim(text).split('\n').pop();
+					migrationTextArea.text = text;
+				}
             }
-			private function handleCreationComplete():void
+			private function handleCreationComplete():void 
 			{
                 Admin.instance.service.initializeAdminService(progressHandler);
 			}

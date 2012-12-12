@@ -125,12 +125,25 @@ public abstract class BulkSQLLoader
 		@Override
 		public void flush() throws RemoteException
 		{
+			try
+			{
+				conn.commit();
+			}
+			catch (SQLException e)
+			{
+				throw new RemoteException("Unable to flush records", e);
+			}
 		}
 		
 		@Override
 		protected void finalize() throws Throwable
 		{
 			SQLUtils.cleanup(stmt);
+			
+			try {
+				conn.setAutoCommit(prevAutoCommit);
+			} catch (SQLException ex) { }
+			
 			super.finalize();
 		}
 	}

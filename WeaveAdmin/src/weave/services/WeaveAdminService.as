@@ -266,12 +266,10 @@ package weave.services
             req.method = URLRequestMethod.GET;
             req.data["methodName"] = "initializeAdminService";
             var loader:URLStream = new URLStream();
- 
             loader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
             loader.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);
             loader.addEventListener(IOErrorEvent.IO_ERROR, initializeAdminServiceError);
             loader.load(req);
-
 		}
 		
 		public function checkDatabaseConfigExists():AsyncToken

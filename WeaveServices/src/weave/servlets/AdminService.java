@@ -121,7 +121,6 @@ public class AdminService
 		{
 			PrintStream ps = new PrintStream(getServletRequestInfo().response.getOutputStream());
 			ProgressPrinter pp = new ProgressPrinter(ps);
-            System.out.println("Initializing Admin Service...");
 			WeaveConfig.initializeAdminService(pp.getProgressManager());
 		}
 		catch (IOException e)

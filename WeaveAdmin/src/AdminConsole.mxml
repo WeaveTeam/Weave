@@ -74,7 +74,7 @@
 				<managers:SQLConnectionManager/>
 			</mx:VBox>
             <mx:VBox>
-                <admin:MigrationPanel visible="false"/>
+                <admin:MigrationPanel width="100%" height="100%"/>
             </mx:VBox>
 		</mx:ViewStack>
 	</mx:Panel>

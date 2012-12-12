@@ -68,8 +68,11 @@ public class WeaveConfig
 	synchronized public static void initializeAdminService(ProgressManager progress) throws RemoteException
 	{
 		ConnectionConfig cc = getConnectionConfig();
-		if (_dataConfig == null)
+		if (_dataConfig == null || cc.migrationPending())
+		{
+			_dataConfig = null;
 			_dataConfig = cc.initializeNewDataConfig(progress);
+		}
 	}
 	
 	public static String getDocrootPath()
