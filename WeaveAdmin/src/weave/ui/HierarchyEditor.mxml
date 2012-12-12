@@ -20,10 +20,12 @@
         <ui:EntityTree id="tagTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
-        <mx:HBox enabled="{selectedItems.length == 1}">
-            <ui:TextInputWithPrompt id="tagNameInput" prompt="New category name" width="100%"/>
-            <mx:Button label="Add Category" click="addTag()"/>
-            <mx:Button label="Remove" click="remove()" enabled="{tagTree.selectedItem != null}"/>
+        <mx:HBox>
+			<mx:HBox enabled="{selectedItems.length == 1}">
+    	        <ui:TextInputWithPrompt id="tagNameInput" prompt="New category name" width="100%"/>
+	            <mx:Button label="Add Category" click="addTag()"/>
+			</mx:HBox>
+            <mx:Button label="Remove" click="remove()" enabled="{tagTree.selectedItems.length > 0}"/>
         </mx:HBox>
     </mx:VBox>
 <mx:Script>
@@ -120,10 +122,6 @@
 		}
 		tagTree.selectedItem = null;
     }
-	private function removeItem(item:EntityNode):void
-	{
-		
-	}
 ]]>
 </mx:Script>
 </mx:HDividedBox>

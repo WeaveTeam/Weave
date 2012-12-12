@@ -20,6 +20,7 @@
 package weave.config;
 
 import java.rmi.RemoteException;
+import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -264,7 +265,11 @@ public class DataConfig
 			
 			// columns cannot be parents
 			if (parent.type == DataEntity.TYPE_COLUMN)
-				throw new RemoteException("Cannot add children to attribute columns.");
+				throw new RemoteException(String.format(
+						"Cannot add children to attribute columns (parent#%s=%s, child#%s=%s).",
+						parentId, DataEntity.getTypeString(parent.type),
+						childId, DataEntity.getTypeString(child.type)
+					));
 			
 			if (child.type == DataEntity.TYPE_COLUMN) // child is a column
 			{
@@ -491,6 +496,20 @@ public class DataConfig
 		public static final int TYPE_DATATABLE = 1;
 		public static final int TYPE_CATEGORY = 2;
 		public static final int TYPE_COLUMN = 3;
+		
+		public static String getTypeString(int type)
+		{
+			switch (type)
+			{
+				case TYPE_ANY: return "ANY";
+				case TYPE_HIERARCHY: return "HIERARCHY";
+				case TYPE_DATATABLE: return "DATATABLE";
+				case TYPE_CATEGORY: return "CATEGORY";
+				case TYPE_COLUMN: return "COLUMN";
+			}
+			throw new InvalidParameterException("Invalid type: " + type);
+		}
+		
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
