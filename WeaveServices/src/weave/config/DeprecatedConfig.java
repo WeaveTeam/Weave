@@ -70,6 +70,8 @@ import weave.utils.SQLUtils;
 	
 	private void migrate() throws RemoteException
 	{
+		System.out.println("Converting old Weave config data to new format...");
+		
 		int fetchSize = 1024;
 		int order = 0;
 		String[] columnNames;
@@ -214,6 +216,8 @@ import weave.utils.SQLUtils;
 			/////////////////////////////
 			
 			conn.commit();
+			
+			System.out.println("Done converting Weave config data.");
 		}
 		catch (Exception e)
 		{
