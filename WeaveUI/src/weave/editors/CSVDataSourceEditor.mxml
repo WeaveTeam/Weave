@@ -64,7 +64,6 @@
 			import weave.api.reportError;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
-			import weave.editors.managers.AddDataSourcePanel;
 			import weave.editors.managers.EditDataGridPanel;
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
@@ -161,8 +160,6 @@
 				url.text = "";
 				
 				hideBusy();
-				
-				(parent.parent.parent as AddDataSourcePanel).addButton.enabled = true; // Hard coded
 			}
 			
 			public function getCSVRows():Array
@@ -240,7 +237,6 @@
 				_fileLoader.load();
 				WeaveAPI.ProgressIndicator.addTask(_fileLoader);
 				showBusy();
-				(parent.parent.parent as AddDataSourcePanel).addButton.enabled = false; // Hard coded
 			}
 			
 			// Show busy indicator until parser finishes (handleCSVParser)
