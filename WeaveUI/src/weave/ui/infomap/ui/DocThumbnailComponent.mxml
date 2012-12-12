@@ -223,6 +223,23 @@ so that it can be moved, selected, handle filters.
 				point.height = 0;
 			}
 			
+			private function showPoint():void
+			{
+				img.visible = false;
+				img.width = 0;
+				img.height = 0;
+				imageHeight.value = 6;
+				imageWidth.value = 6;
+//				setStyle("borderThickness", 0);
+				
+				point.visible = true; 
+//				var g:Graphics = point.graphics;
+//				g.clear();
+//				g.lineStyle(1,0,1.0);
+//				g.beginFill(defaultBorderColor.value,1.0);
+//				g.drawCircle(0,0,3);	
+			}
+			
 			private var token:IURLRequestToken;
 			
 			private var _imageURL:String = null;
@@ -427,6 +444,12 @@ so that it can be moved, selected, handle filters.
 			{
 				move(xPos,yPos);
 				showImage();
+			}
+			
+			public function positionPoint(xPos:Number,yPos:Number):void
+			{
+				move(xPos,yPos);
+				showPoint();
 			}
 			
 			private function handleStageMouseUp(event:MouseEvent):void

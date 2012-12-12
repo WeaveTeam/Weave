@@ -122,6 +122,7 @@
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
+			import weave.ui.infomap.ui.PointsLayout;
 			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
 			import weave.ui.infomap.ui.ThumbnailsLayout;
@@ -260,6 +261,10 @@
 				nodeBase.topicsImg.visible = false;
 				nodeBase.topicsImg.addEventListener(MouseEvent.CLICK,showClassificationResults);
 				
+				nodeBase.pointsImg.visible = false;
+				nodeBase.pointsImg.addEventListener(MouseEvent.CLICK,showPoints);
+				
+				nodeBase.gridImg.visible = false;
 				nodeBase.gridImg.addEventListener(MouseEvent.CLICK,showGridView);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
@@ -567,7 +572,7 @@
 					
 				}
 				
-				nodeBase.listImg.visible = false;
+				nodeBase.listImg.visible = nodeBase.gridImg.visible = false;
 				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
 				{
 					if(t.highlighted.value)
@@ -595,7 +600,8 @@
 			
 			private function hideIcons():void
 			{
-				nodeBase.listImg.visible = nodeBase.filterImg.visible = nodeBase.distributionImg.visible = nodeBase.topicsImg.visible = false;
+				nodeBase.gridImg.visible = nodeBase.listImg.visible = nodeBase.filterImg.visible = 
+					nodeBase.distributionImg.visible = nodeBase.topicsImg.visible = nodeBase.pointsImg.visible= false;
 			}
 			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:Object=null):void
@@ -786,6 +792,7 @@
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = currentNewDocsCount;
 				nodeBase.listImg.visible = true;
+				nodeBase.gridImg.visible = true;
 				testAndBlinkNode();
 				positionThumbnails();
 				getEntityDistribution();
@@ -1579,7 +1586,7 @@
 					status.text = "Loading Word Cloud...";
 				fadeOut.play(topicComponents);
 				flag_click = true;
-				fadeOut.play([pointsCanvas,listCanvas]);
+				fadeOut.play([pointsCanvas,listCanvas,_pointCanvas]);
 				if(_gridView)
 					fadeOut.play([_gridView]);
 				
@@ -1682,7 +1689,7 @@
 					fadeIn.play([listCanvas]);
 					//hide other canvases 
 					if(tagCanvas)
-						fadeOut.play([tagCanvas,pointsCanvas]);
+						fadeOut.play([tagCanvas,pointsCanvas,_pointCanvas]);
 					else 
 						fadeOut.play([pointsCanvas]);
 					return;
@@ -1693,9 +1700,9 @@
 				
 				//hide other canvases 
 				if(tagCanvas)
-					fadeOut.play([tagCanvas,pointsCanvas]);
+					fadeOut.play([tagCanvas,pointsCanvas,_pointCanvas]);
 				else 
-					fadeOut.play([pointsCanvas]);
+					fadeOut.play([pointsCanvas,_pointCanvas]);
 				
 				if(_gridView)
 					fadeOut.play([_gridView]);
@@ -1758,10 +1765,39 @@
 					fadeOut.play([_gridView]);
 				}else
 				{
-					fadeOut.play([pointsCanvas,listCanvas,topicComponent]);
+					fadeOut.play([pointsCanvas,listCanvas,topicComponent,_pointCanvas]);
 					if(tagCanvas)
 						fadeOut.play([tagCanvas]);
 					fadeIn.play([_gridView]);
+				}
+			}
+			
+			private var _pointCanvas:PointsLayout = new PointsLayout();
+			private function showPoints(event:Event=null):void
+			{
+				var urls:Array = [];
+				VectorUtils.copy(_topicsResult.urls,urls);
+				var keywords:Array = _topicsResult.keywords;
+				
+				if(!contains(_pointCanvas))
+				{
+					addChild(_pointCanvas);
+				}
+				_pointCanvas.y = nodeBase.height + statusBox.height;
+				_pointCanvas.drawPoints(urls, keywords, this);
+				
+				
+				if(_pointCanvas.alpha == 1)
+				{
+					fadeOut.play([_pointCanvas]);
+				}else
+				{
+					fadeOut.play([pointsCanvas,listCanvas,topicComponent]);
+					if(_gridView)
+						fadeOut.play([_gridView]);
+					if(tagCanvas)
+						fadeOut.play([tagCanvas]);
+					fadeIn.play([_pointCanvas]);
 				}
 			}
 			
@@ -1885,7 +1921,7 @@
 			{   
 				if(_topicsResult == null)
 					return;
-				fadeOut.play([pointsCanvas,listCanvas]);
+				fadeOut.play([pointsCanvas,listCanvas,_pointCanvas]);
 				if(tagCanvas)
 					fadeOut.play([tagCanvas]);
 				if(_gridView)
@@ -1927,7 +1963,6 @@
 				
 			}
 			
-			
 			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
 			{
 				if(token.keywords != query.keywords.value ||
@@ -1940,11 +1975,13 @@
 				{
 					reportError(lang("Topic Models did not return an Array of results as expected."));
 					nodeBase.topicsImg.visible = false;
+					nodeBase.pointsImg.visible = false;
 					return;
 					
 				}
 				
 				nodeBase.topicsImg.visible = true;
+				nodeBase.pointsImg.visible = true;
 				if(flag_topicPropertiesChange){
 					showClassificationResults();
 					flag_topicPropertiesChange = false;

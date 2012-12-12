@@ -16,7 +16,6 @@ It has 4 icons to:
 	  width="100%" minWidth="220">
 	<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
-		<!--<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>-->
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
 		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
@@ -25,6 +24,7 @@ It has 4 icons to:
 		<mx:Image id="distributionImg" source="@Embed(source='/weave/resources/images/bar_chart.png')"/>
 		<mx:Image id="topicsImg" source="@Embed(source='/weave/resources/images/topics.png')"/>
 		<mx:Image id="gridImg" source="@Embed(source='/weave/resources/images/grid.png')"/><!--http://findicons.com/icon/267689/3x3_grid?width=16-->
+		<mx:Image id="pointsImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>
 	</mx:HBox>	
 	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
 				 focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
@@ -61,11 +61,10 @@ It has 4 icons to:
 			listImg.height = 16;
 			listImg.buttonMode = true; //you need this for click event to work on an image!
 			
-//			searchImg.toolTip = "Show points";
-//			searchImg.width = 16;
-//			searchImg.height = 16;
-//			searchImg.visible = true;
-//			searchImg.buttonMode = true; //you need this for click event to work on an image!
+			pointsImg.toolTip = "Show points";
+			pointsImg.width = 16;
+			pointsImg.height = 16;
+			pointsImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			filterImg.toolTip = "Show Word Cloud";
 			filterImg.width = 16;

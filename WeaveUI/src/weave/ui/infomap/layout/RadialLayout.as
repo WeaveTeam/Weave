@@ -43,7 +43,7 @@ package weave.ui.infomap.layout
 				return;
 			graphics.lineStyle(0,0,0);
 			graphics.beginFill(0,0);
-			graphics.drawCircle(0,0,thumbnailSpacing.value);
+//			graphics.drawCircle(0,0,thumbnailSpacing.value);
 			
 //			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.query.keywords.value;
 //			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
