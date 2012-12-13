@@ -315,7 +315,7 @@ public abstract class BulkSQLLoader
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally 
 		{

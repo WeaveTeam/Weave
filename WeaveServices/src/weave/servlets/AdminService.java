@@ -565,10 +565,7 @@ public class AdminService
 	public int newEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		int new_id = getDataConfig().newEntity(entityType, meta);
-        getDataConfig().addChild(parentId, new_id, DataConfig.NULL);
-        return new_id;
-        
+		return getDataConfig().newEntity(entityType, meta, parentId, DataConfig.NULL);
 	}
 
 	public void removeEntity(String user, String password, int entityId) throws RemoteException
@@ -1526,7 +1523,7 @@ public class AdminService
 
 			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			int table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableProperties);
+			int table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableProperties, DataConfig.NULL, DataConfig.NULL);
 
 			for (int i = 0; i < titles.size(); i++)
 			{
@@ -1542,8 +1539,7 @@ public class AdminService
 				newMeta.publicMetadata.put(PublicMetadata.TITLE, titles.get(i));
 				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
-				int col_id = dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta);
-                dataConfig.addChild(table_id, col_id, 0);
+				dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta, table_id, DataConfig.NULL);
 			}
 		}
 		catch (SQLException e)
@@ -1746,7 +1742,9 @@ public class AdminService
 			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 	
 			// TODO: use table ID from addConfigDataTable()
-			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo);
+			int tableId = DataConfig.NULL;
+			
+			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, 0);
 		}
 		catch (IOException e)
 		{

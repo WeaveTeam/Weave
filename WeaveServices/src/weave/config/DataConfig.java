@@ -134,12 +134,26 @@ public class DataConfig
         }
     }
 
-    public int newEntity(int type_id, DataEntityMetadata properties) throws RemoteException
+    public int newEntity(int type_id, DataEntityMetadata properties, int parent_id, int insert_at_index) throws RemoteException
     {
     	detectChange();
-        int id = manifest.addEntry(type_id);
+    	
+    	int parentType = manifest.getEntryType(parent_id);
+    	if (!DataEntity.parentChildRelationshipAllowed(parentType, type_id))
+    	{
+    		throw new RemoteException(String.format(
+    				"Invalid parent-child relationship (parent#%s=%s, child=%s).",
+    				parent_id,
+    				DataEntity.getTypeString(parentType),
+    				DataEntity.getTypeString(type_id)
+    			));
+    	}
+    	
+        int id = manifest.newEntry(type_id);
         if (properties != null)
             updateEntity(id, properties);
+        if (parent_id != NULL)
+        	hierarchy.addChild(parent_id, id, insert_at_index);
         return id;
     }
     private void removeChildren(int id) throws RemoteException
@@ -241,19 +255,22 @@ public class DataConfig
 		detectChange();
 		
 		int newChildId;
-		DataEntity child = getEntity(childId);
+		Map<Integer,Integer> entityTypes = manifest.getEntryTypes(Arrays.asList(parentId, childId));
+		int parentType = entityTypes.get(parentId);
+		int childType = entityTypes.get(childId);
+		
 
 		if (parentId == NULL) // parent is root
 		{
-			if (child.type == DataEntity.TYPE_HIERARCHY) // child is a hierarchy
+			if (entityTypes.get(childId) == DataEntity.TYPE_HIERARCHY) // child is a hierarchy
 			{
 				// make a copy of the existing hierarchy
-				newChildId = newEntity(DataEntity.TYPE_HIERARCHY, child);
+				newChildId = newEntity(DataEntity.TYPE_HIERARCHY, getEntity(childId), NULL, NULL);
 			}
 			else // child is not a hierarchy
 			{
 				// create a new blank hierarchy to contain the child
-				int hierarchyId = newEntity(DataEntity.TYPE_HIERARCHY, null);
+				int hierarchyId = newEntity(DataEntity.TYPE_HIERARCHY, null, NULL, NULL);
 				// recursive call with new parent id
 				buildHierarchy(hierarchyId, childId, 0);
 				return; // done
@@ -261,17 +278,7 @@ public class DataConfig
 		}
 		else // parent is not root
         {
-			DataEntity parent = getEntity(parentId);
-			
-			// columns cannot be parents
-			if (parent.type == DataEntity.TYPE_COLUMN)
-				throw new RemoteException(String.format(
-						"Cannot add children to attribute columns (parent#%s=%s, child#%s=%s).",
-						parentId, DataEntity.getTypeString(parent.type),
-						childId, DataEntity.getTypeString(child.type)
-					));
-			
-			if (child.type == DataEntity.TYPE_COLUMN) // child is a column
+			if (childType == DataEntity.TYPE_COLUMN) // child is a column
 			{
 				// columns can be added directly to new parents
 				newChildId = childId;
@@ -279,7 +286,7 @@ public class DataConfig
 			else // child is not a column
 			{
 				// non-columns always copy as categories
-				newChildId = newEntity(DataEntity.TYPE_CATEGORY, child);
+				newChildId = newEntity(DataEntity.TYPE_CATEGORY, getEntity(childId), parentId, NULL);
 			}
 		}
 		
@@ -293,14 +300,20 @@ public class DataConfig
 		
 		// add new child to parent
 		if (parentId != NULL)
+		{
+			// make sure hierarchy relationship is acceptable
+			if (!DataEntity.parentChildRelationshipAllowed(parentType, childType))
+			{
+				throw new RemoteException(String.format(
+						"Invalid parent-child relationship (parent#%s=%s, child#%s=%s).",
+						parentId, DataEntity.getTypeString(parentType),
+						childId, DataEntity.getTypeString(childType)
+				));
+			}
 			hierarchy.addChild(parentId, newChildId, insertAtIndex);
+		}
     }
     
-    public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
-    {
-    	detectChange();
-   		hierarchy.addChild(parent_id, child_id, insert_at_index);
-    }
     public void removeChild(int parent_id, int child_id) throws RemoteException
     {
     	detectChange();
@@ -488,20 +501,31 @@ public class DataConfig
 	 */
 	static public class DataEntity extends DataEntityMetadata
 	{
-		public int id = TYPE_ANY;
+		public int id = TYPE_UNSPECIFIED;
 		public int type;
 		
-		public static final int TYPE_ANY = NULL;
+		public static final int TYPE_UNSPECIFIED = NULL;
         public static final int TYPE_HIERARCHY = 0;
 		public static final int TYPE_DATATABLE = 1;
 		public static final int TYPE_CATEGORY = 2;
 		public static final int TYPE_COLUMN = 3;
 		
+	    public static boolean parentChildRelationshipAllowed(int parentType, int childType)
+	    {
+	    	return (parentType == TYPE_UNSPECIFIED && childType == TYPE_DATATABLE)
+	    		|| (parentType == TYPE_UNSPECIFIED && childType == TYPE_HIERARCHY)
+	    		|| (parentType == TYPE_DATATABLE && childType == TYPE_COLUMN)
+		    	|| (parentType == TYPE_HIERARCHY && childType == TYPE_CATEGORY)
+		    	|| (parentType == TYPE_HIERARCHY && childType == TYPE_COLUMN)
+		    	|| (parentType == TYPE_CATEGORY && childType == TYPE_CATEGORY)
+		    	|| (parentType == TYPE_CATEGORY && childType == TYPE_COLUMN);
+	    }
+	    
 		public static String getTypeString(int type)
 		{
 			switch (type)
 			{
-				case TYPE_ANY: return "ANY";
+				case TYPE_UNSPECIFIED: return "UNSPECIFIED";
 				case TYPE_HIERARCHY: return "HIERARCHY";
 				case TYPE_DATATABLE: return "DATATABLE";
 				case TYPE_CATEGORY: return "CATEGORY";
@@ -513,26 +537,27 @@ public class DataConfig
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
-            return filterEntities(entities, params, TYPE_ANY);
+            return filterEntities(entities, params, TYPE_UNSPECIFIED);
         }
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, int manifestType)
         {
             List<DataEntity> result = new LinkedList<DataEntity>();
             for (DataEntity entity : entities)
             {
-                if (manifestType != TYPE_ANY && manifestType != entity.type)
-                    continue;
-                boolean match = true;
-                for (Entry<String,String> entry : params.entrySet())
+                if (manifestType == TYPE_UNSPECIFIED || entity.type == manifestType)
                 {
-                    if (params.get(entry.getKey()) != entry.getValue())
-                    {
-                        match = false;
-                        break;
-                    }
+	                boolean match = true;
+	                for (Entry<String,String> entry : params.entrySet())
+	                {
+	                    if (params.get(entry.getKey()) != entry.getValue())
+	                    {
+	                        match = false;
+	                        break;
+	                    }
+	                }
+	                if (match)
+	                    result.add(entity);
                 }
-                if (match)
-                    result.add(entity);
             }
             return result;
         }

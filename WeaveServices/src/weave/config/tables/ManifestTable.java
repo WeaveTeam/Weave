@@ -69,7 +69,7 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to initialize manifest table.", e);
 		}
 	}
-	public Integer addEntry(int type_id) throws RemoteException
+	public Integer newEntry(int type_id) throws RemoteException
 	{
 		try
 		{
@@ -116,7 +116,7 @@ public class ManifestTable extends AbstractTable
 	public Integer getEntryType(int id) throws RemoteException
 	{
 		Integer type = getEntryTypes(Arrays.asList(id)).get(id);
-		return type == null ? DataEntity.TYPE_ANY : type;
+		return type == null ? DataEntity.TYPE_UNSPECIFIED: type;
 	}
 	public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
 	{
@@ -139,7 +139,7 @@ public class ManifestTable extends AbstractTable
 				}
 				else if (result.rows.length == 0)
 				{
-					idToTypeMap.put(id, DataEntity.TYPE_ANY);
+					idToTypeMap.put(id, DataEntity.TYPE_UNSPECIFIED);
 				}
 				else
 					throw new RemoteException(String.format("Multiple rows in manifest table with %s=%s", FIELD_ID, id));
@@ -159,7 +159,7 @@ public class ManifestTable extends AbstractTable
 			List<Map<String,Object>> conditions = new Vector<Map<String,Object>>(types.length);
 			for (int type : types)
 			{
-				if (type == DataEntity.TYPE_ANY)
+				if (type == DataEntity.TYPE_UNSPECIFIED)
 				{
 					conditions.clear();
 					break;

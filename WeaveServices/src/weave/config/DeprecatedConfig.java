@@ -163,8 +163,7 @@ import weave.utils.SQLUtils;
 				// create an entity for the geometry column
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
 				int tableId = getTableId(name);
-				int columnId = dataConfig.newEntity(DataEntity.TYPE_COLUMN, geomMetadata);
-				dataConfig.addChild(tableId, columnId, order++);
+				dataConfig.newEntity(DataEntity.TYPE_COLUMN, geomMetadata, tableId, order++);
 				
 				progress.tick();
 				autoFlush();
@@ -206,8 +205,7 @@ import weave.utils.SQLUtils;
                 // create the column entity as a child of the table
                 DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
                 int tableId = getTableId(dataTableName);
-				int columnId = dataConfig.newEntity(DataEntity.TYPE_COLUMN, columnMetadata);
-				dataConfig.addChild(tableId, columnId, order++);
+				dataConfig.newEntity(DataEntity.TYPE_COLUMN, columnMetadata, tableId, order++);
 				progress.tick();
 				autoFlush();
 			}
@@ -270,7 +268,7 @@ import weave.utils.SQLUtils;
 				metadata.publicMetadata.put(PublicMetadata.TITLE, tableName);
 			
 			// create the data table entity and remember the new id
-			tableId = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, metadata);
+			tableId = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, metadata, DataConfig.NULL, DataConfig.NULL);
 			tableIdLookup.put(tableName, tableId);
 		}
 		

@@ -623,7 +623,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -686,7 +686,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -882,7 +882,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -972,7 +972,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1002,7 +1002,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1295,7 +1295,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1324,7 +1324,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1360,7 +1360,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1398,7 +1398,7 @@ public class SQLUtils
 		}
 		catch (SQLException e)
 		{
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1481,7 +1481,7 @@ public class SQLUtils
 		catch (SQLException e)
 		{
 			System.err.println(records);
-			throw new SQLException("Query failed: " + query, e);
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{

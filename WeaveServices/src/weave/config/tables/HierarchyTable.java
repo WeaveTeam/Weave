@@ -36,6 +36,7 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
+import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.StringUtils;
@@ -168,6 +169,7 @@ public class HierarchyTable extends AbstractTable
 						sortOrder
 					);
 				stmt.executeUpdate(query);
+				query = null;
 			}
 			
             insertRecord(parent_id, child_id, sortOrder);
@@ -175,7 +177,7 @@ public class HierarchyTable extends AbstractTable
 		catch (SQLException e)
 		{
 			if (query != null)
-				e = new SQLException("Query failed: " + query, e);
+				e = new SQLExceptionWithQuery(query, e);
 			throw new RemoteException("Unable to add child.", e);
 		}
 		finally
