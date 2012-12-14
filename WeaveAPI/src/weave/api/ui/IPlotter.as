@@ -44,7 +44,7 @@ package weave.api.ui
 		 * An optional filter can be applied to filter the records before the plotter generates graphics for them.
 		 * @return The set of record keys that can be passed to the drawPlot() and getDataBoundsFromRecordKey() functions.
 		 */
-		function get keySet():IFilteredKeySet;
+		function get filteredKeySet():IFilteredKeySet;
 		
 		/**
 		 * This function provides a mapping from a record key to an Array of bounds objects, specified

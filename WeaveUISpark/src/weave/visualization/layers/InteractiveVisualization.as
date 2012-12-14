@@ -608,7 +608,7 @@ package weave.visualization.layers
 			plotManager.zoomBounds.getDataBounds(tempDataBounds);
 			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 			
-			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
+			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE || _mouseMode == InteractionController.ZOOM)
 			{
 				_dashedLine.drawRect(dragX, dragY, dragWidth, dragHeight);
 			}
@@ -799,7 +799,7 @@ package weave.visualization.layers
 				if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
-				if (_lastProbedQKey && !plotter.keySet.containsKey(_lastProbedQKey))
+				if (_lastProbedQKey && !plotter.filteredKeySet.containsKey(_lastProbedQKey))
 					continue;
 				
 				// when using the selection layer, clear the probe

@@ -172,7 +172,7 @@ package weave.visualization.plotters
 		{
 			var bounds:IBounds2D = getReusableBounds();
 			if (layoutAlgorithm)
-				(layoutAlgorithm as IGraphAlgorithm).getOutputBounds(keySet.keys, bounds);
+				(layoutAlgorithm as IGraphAlgorithm).getOutputBounds(filteredKeySet.keys, bounds);
 			return bounds;
 		}				
 		

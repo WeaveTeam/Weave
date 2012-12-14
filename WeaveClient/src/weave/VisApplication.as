@@ -289,8 +289,6 @@ package weave
 				// When we're creating a new config through the admin console, create a
 				// WeaveDataSource so the admin doesn't have to add it manually every time.
 				Weave.root.requestObject(null, WeaveDataSource, false);
-				// It's convenient if the admin sets probed columns first so new tools will have default attributes selected.
-				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
 			}
 			else
 			{
@@ -713,7 +711,7 @@ package weave
 			if (Weave.properties.enableDataMenu.value)
 			{
 				_dataMenu = _weaveMenu.addMenuToMenuBar(lang("Data"), false);
-				if (Weave.properties.enableNewUserWizard)
+				if (Weave.properties.enableNewUserWizard.value)
 				{
 					_weaveMenu.addMenuItemToMenu(
 						_dataMenu,
@@ -741,10 +739,10 @@ package weave
 				}
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup));
 			}
 			
 			
@@ -779,11 +777,11 @@ package weave
 					}
 				}
 				
-				if (!Weave.properties.weaveAnalystMode.value)
-				{
-					var _analyst:WeaveAnalyst = new WeaveAnalyst();
-					this.visDesktop.addChild(_analyst);
-				}
+//				if (Weave.properties.weaveAnalystMode.value)
+//				{
+//					var _analyst:WeaveAnalyst = new WeaveAnalyst();
+//					this.visDesktop.addChild(_analyst);
+//				}
 				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
@@ -792,11 +790,11 @@ package weave
 
 				));
 				
-				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
-					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Enable" : "Disable") + " Weave Analsyt"); },
-					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
-					
-				));
+//				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
+//					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Disable" : "Enable") + " Weave Analyst"); },
+//					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
+//					
+//				));
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)

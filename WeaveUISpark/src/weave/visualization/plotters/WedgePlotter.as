@@ -117,7 +117,7 @@ package weave.visualization.plotters
 		}
 
 		// projects data coordinates to screen coordinates and draws wedge
-		public static function drawProjectedWedge(destination:Graphics, dataBounds:IBounds2D, screenBounds:IBounds2D, beginRadians:Number, spanRadians:Number, xDataCenter:Number = 0, yDataCenter:Number = 0, dataRadius:Number = 1):void
+		public static function drawProjectedWedge(destination:Graphics, dataBounds:IBounds2D, screenBounds:IBounds2D, beginRadians:Number, spanRadians:Number, xDataCenter:Number = 0, yDataCenter:Number = 0, dataOuterRadius:Number = 1, dataInnerRadius:Number = 0):void
 		{
 			tempPoint.x = xDataCenter;
 			tempPoint.y = yDataCenter;
@@ -125,15 +125,25 @@ package weave.visualization.plotters
 			var xScreenCenter:Number = tempPoint.x;
 			var yScreenCenter:Number = tempPoint.y;
 			// convert x,y distance from data coordinates to screen coordinates to get screen radius
-			var xScreenRadius:Number = dataRadius * screenBounds.getWidth() / dataBounds.getWidth() ;
-			var yScreenRadius:Number = dataRadius * screenBounds.getHeight() / dataBounds.getHeight() ;
+			var xScreenRadius:Number = dataOuterRadius * screenBounds.getWidth() / dataBounds.getWidth();
+			var yScreenRadius:Number = dataOuterRadius * screenBounds.getHeight() / dataBounds.getHeight();
 			
-			// move to center point
-			destination.moveTo(xScreenCenter, yScreenCenter);
-			// line to beginning of arc, draw arc
-			DrawUtils.arcTo(destination, true, xScreenCenter, yScreenCenter, beginRadians, beginRadians + spanRadians, xScreenRadius, yScreenRadius);
-			// line back to center point
-			destination.lineTo(xScreenCenter, yScreenCenter);
+			// move to beginning of outer arc, draw outer arc and output start coordinates to tempPoint
+			DrawUtils.arcTo(destination, false, xScreenCenter, yScreenCenter, beginRadians, beginRadians + spanRadians, xScreenRadius, yScreenRadius, tempPoint);
+			if (dataInnerRadius == 0)
+			{
+				// continue line to center
+				destination.lineTo(xScreenCenter, yScreenCenter);
+			}
+			else
+			{
+				// continue line to inner arc, draw inner arc
+				xScreenRadius = dataInnerRadius * screenBounds.getWidth() / dataBounds.getWidth();
+				yScreenRadius = dataInnerRadius * screenBounds.getHeight() / dataBounds.getHeight();
+				DrawUtils.arcTo(destination, true, xScreenCenter, yScreenCenter, beginRadians, beginRadians + spanRadians, xScreenRadius, yScreenRadius);
+			}
+			// continue line back to start of outer arc
+			destination.lineTo(tempPoint.x, tempPoint.y);
 		}
 	}
 }

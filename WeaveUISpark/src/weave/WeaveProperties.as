@@ -323,7 +323,7 @@ package weave
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
 		
 		
-		public const weaveAnalystMode:LinkableBoolean = new LinkableBoolean(true);// enable/disable use of the Weave Analyst
+		public const weaveAnalystMode:LinkableBoolean = new LinkableBoolean(false);// enable/disable use of the Weave Analyst
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
 		public const enableAxisToolTips:LinkableBoolean = new LinkableBoolean(true);
@@ -370,8 +370,7 @@ package weave
 			if (csv === null) 
 				return false;
 			
-			var parser:CSVParser = new CSVParser();
-			var rows:Array = parser.parseCSV(csv);
+			var rows:Array = WeaveAPI.CSVParser.parseCSV(csv);
 			
 			if (rows.length == 0)
 				return false;

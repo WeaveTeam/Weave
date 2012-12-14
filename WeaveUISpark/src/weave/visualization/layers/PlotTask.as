@@ -103,7 +103,10 @@ package weave.visualization.layers
 			_zoomBounds = zoomBounds;
 			_layerSettings = layerSettings;
 			
-			var keyFilters:Array = [_layerSettings.subsetFilter, _layerSettings.selectionFilter, _layerSettings.probeFilter];
+			// TEMPORARY SOLUTION until we start using VisToolGroup
+			var subsetFilter:IKeyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
+			
+			var keyFilters:Array = [subsetFilter, _layerSettings.selectionFilter, _layerSettings.probeFilter];
 			var keyFilter:ILinkableObject = keyFilters[_taskType];
 			
 			// _dependencies is used as the parent so we can check its busy status with a single function call.
@@ -111,7 +114,7 @@ package weave.visualization.layers
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
 			
-			getCallbackCollection(_plotter.keySet).addImmediateCallback(this, handleKeySetChange, true);
+			getCallbackCollection(_plotter.filteredKeySet).addImmediateCallback(this, handleKeySetChange, true);
 			
 			_dependencies.addImmediateCallback(this, asyncStart, true);
 			
@@ -197,7 +200,7 @@ package weave.visualization.layers
 			// save a lookup from key to sorted index
 			// this is very fast
 			_keyToSortIndex = new Dictionary(true);
-			var sorted:Array = _plotter.keySet.keys;
+			var sorted:Array = _plotter.filteredKeySet.keys;
 			for (var i:int = sorted.length - 1; i >= 0; i--)
 				_keyToSortIndex[sorted[i]] = i;
 		}
@@ -280,12 +283,16 @@ package weave.visualization.layers
 			_progress = 0;
 			_iteration = 0;
 			_iPendingKey = 0;
-			_pendingKeys = _plotter.keySet.keys;
+			_pendingKeys = _plotter.filteredKeySet.keys;
 			_recordKeys = [];
 			_zoomBounds.getDataBounds(_dataBounds);
 			_zoomBounds.getScreenBounds(_screenBounds);
 			if (_taskType == TASK_TYPE_SUBSET)
-				_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
+			{
+				// TEMPORARY SOLUTION until we start using VisToolGroup
+				_keyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
+				//_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
+			}
 			else if (_taskType == TASK_TYPE_SELECTION)
 				_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
 			else if (_taskType == TASK_TYPE_PROBE)

@@ -25,8 +25,10 @@ import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
@@ -36,6 +38,10 @@ import org.geotools.data.shapefile.dbf.DbaseFileReader;
 /**
  * @author skolman
  * @author adufilie
+ */
+/**
+ * @author Andy
+ *
  */
 public class DBFUtils
 {
@@ -61,11 +67,45 @@ public class DBFUtils
 	}
 	
 	/**
+	 * Tests a combined column for uniqueness across several files
+	 * @param dbfFile
+	 * @param columnNames
+	 * @return 
+	 * @throws IOException
+	 */
+	public static boolean isColumnUnique(File[] dbfFile, String[] columnNames) throws IOException
+	{
+		Set<Object> set = new HashSet<Object>();
+		for (File file : dbfFile)
+		{
+			Object[][] rows = getDBFData(file, columnNames);
+			for (int i = 0; i < rows.length; i++)
+			{
+				// concatenate all values into a string
+				StringBuilder sb = new StringBuilder();
+				for (Object str : rows[i])
+					sb.append(str);
+				String value = sb.toString();
+				
+				// check if we have seen this value before
+				if (set.contains(value))
+					return false;
+				
+				// remember this value
+				set.add(value);
+			}
+		}
+		return true;
+	}
+	
+	/**
 	 * @param dbfFile A DBF file
+	 * @param fieldNames A list of field names to retrieve, or null for all columns
 	 * @return A list of attribute names in the DBF file
 	 */
-	public static Object[][] getDBFData(File dbfFile) throws IOException
+	public static Object[][] getDBFData(File dbfFile, String[] fieldNames) throws IOException
 	{
+		List<String> allFields = getAttributeNames(dbfFile);
 		FileInputStream fis = new FileInputStream(dbfFile);
 		DbaseFileReader dbfReader = new DbaseFileReader(fis.getChannel(), false, Charset.forName("ISO-8859-1"));
 		
@@ -77,7 +117,18 @@ public class DBFUtils
 
 		while(dbfReader.hasNext())
 		{
-			rowsList.add(dbfReader.readEntry());
+			Object[] row;
+			if (fieldNames != null)
+			{
+				row = new Object[fieldNames.length];
+				for (int i = 0; i < fieldNames.length; i++)
+					row[i] = dbfReader.readField(allFields.indexOf(fieldNames[i]));
+			}
+			else
+			{
+				row = dbfReader.readEntry();
+			}
+			rowsList.add(row);
 		}
 		
 		

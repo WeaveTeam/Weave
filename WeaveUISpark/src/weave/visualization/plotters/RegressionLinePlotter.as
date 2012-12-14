@@ -92,7 +92,7 @@ package weave.visualization.plotters
 					+"slope <- coefficients(fit)[2]\n"
 					+"rSquared <- summary(fit)$r.squared\n";
 				
-				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, keySet.keys);
+				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
 				
 				// sends a request to Rserve to calculate the slope and intercept of a regression line fitted to xColumn and yColumn 
 				var token:AsyncToken = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["intercept","slope","rSquared"],Rstring,"",false,false,false);

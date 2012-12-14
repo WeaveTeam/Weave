@@ -21,12 +21,12 @@ package weave.config;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
-import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-import weave.utils.SQLUtils;
 import org.w3c.dom.Document;
+
+import weave.utils.SQLUtils;
 
 /**
  * ISQLConfig An interface to retrieve strings from a configuration file. TODO:
@@ -339,22 +339,7 @@ public interface ISQLConfig
 			 */
 			public static DataType fromSQLType(int sqlType)
 			{
-				switch (sqlType)
-				{
-					case Types.TINYINT:
-					case Types.SMALLINT:
-					case Types.BIGINT:
-					case Types.DECIMAL:
-					case Types.INTEGER:
-					case Types.FLOAT:
-					case Types.DOUBLE:
-					case Types.REAL:
-					case Types.NUMERIC:
-					/* case Types.ROWID: // produces compiler error in some environments */
-						return DataType.NUMBER;
-					default:
-						return DataType.STRING;
-				}
+				return SQLUtils.sqlTypeIsNumeric(sqlType) ? DataType.NUMBER : DataType.STRING;
 			}
 		}
 

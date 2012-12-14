@@ -32,13 +32,12 @@
 	roundedBottomCorners="true"
 	height="564"
 	creationComplete="handleCreationComplete()" width="184" xmlns:ui="weave.ui.*">
-	<mx:HBox height="100%">
-		<mx:VBox cornerRadius="10" borderThickness="5" borderStyle="solid" borderColor="#939178" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
-			<mx:List id="sourceList" change="handleSourceSelect()" borderThickness="0" dataProvider="{sources}" labelFunction="getLabel"/>
-		</mx:VBox>
-		<mx:Box width="100%" height="100%" id="sourceEditor" cornerRadius="5">
-			
-		</mx:Box>
+	<mx:HBox height="100%" width="100%" horizontalGap="0">
+		<mx:List id="sourceList" change="handleSourceSelect()" borderThickness="0"
+				 dataProvider="{sources}" labelFunction="getLabel"
+				 paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" />
+		<mx:Canvas backgroundColor="#939178" width="5" height="100%"/>
+		<mx:Box width="100%" height="100%" id="sourceEditor" paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5"/>
 	</mx:HBox>
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
 		<mx:Button label="{lang('New data source...')}" click="addSource()"/>
@@ -95,6 +94,8 @@
 					{
 						editor = EditorManager.getNewEditor(dataSource);
 						sourceEditor.addChild(editor as DisplayObject);
+						editor.percentWidth = 100;
+						editor.percentHeight = 100;
 					}
 				}
 				private function addSource():void

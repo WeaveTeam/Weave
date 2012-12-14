@@ -32,7 +32,6 @@
 
 <mx:Script>
 		<![CDATA[
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
@@ -44,164 +43,174 @@
 
 			WeaveAPI.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
 			
-	override protected function constructor():void
-	{
-		super.constructor();
-	}
-	
-	//overrides of abstract SliderTool functions
-	
-	/**
-	 * This function finds a list of attribute tags in the same attribute hierarchy
-	 * that have the same @dataTable and @name attributes, then returns a list of
-	 * their @year values.
-	 * @param ref A reference to an attribute tag in an AttributeHierarchy.
-	 * @return An Array of @year values that the referenced column is defined for.
-	 */
-	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
-	{
-		var times:Array = getTimesFromDimension(ref);
-		if (times.length > 0)
-			addToListOfDims(ref);
-		return times;
-	}
-	
-	/**
-	 * handleLabelChange
-	 * This method is called every time there is a change in labels,
-	 * so be sure to change labels only as often as is necesary.  
-	 * We fill in the hslider labels from this.labelsLinkableString
-	 * Since this.labelsLinkableString is a LinkableString it can be changed by
-	 * the user by editing the sessionHistory.  
-	 * */
-	override public function handleLabelChange():void
-	{
-		//@TODO have values associated with the labels so that the labels can be
-		//   changed and the values are still passed into the column request
-		if (parent == null)
-			return callLater(handleLabelChange);
-		var labelsString:String = labelsLinkableString.value || ''; // avoid null pointer error
-		dimensionSlider.labels = labelsString.split(',');
-		dimensionSlider.minimum = 0;
-		dimensionSlider.maximum = dimensionSlider.labels.length - 1;		
-		labelsInput.text = labelsString;
-	}	
-	
-	/** 
-	 * change - this method is automatically called when the hslider
-	 *  is changed.  Here we update all the visualization tools to 
-	 *  the new time.  
-	 * **/
-	override public function handleSliderChange():void
-	{
-		var newTime:String = dimensionSlider.labels[dimensionSlider.value] || '';
-		if (!newTime)
-			return;
-		var descendants:Array = [];
-		for each (var object:ILinkableObject in WeaveAPI.globalHashMap.getObjects())
-		{
-			if (object is LineChartTool)
-				continue;
-			descendants.push(WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference));
-		}
-		descendants = VectorUtils.flatten(descendants);
-		
-		var len:int = descendants.length;
-		for (var i:int = 0; i < len; i++)
-		{
-			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
-			var path:XML = XML(ref.hierarchyPath.value).copy(); // make a copy so we don't modify the original
-			var search:XML = path..attribute[0];
-			if (String(search.@year) && String(search.@year) != newTime)
+			override protected function constructor():void
 			{
-				delete search.@title;
-				search.@year = newTime;
-				if (search.@csvColumn)
+				super.constructor();
+				showLinkControls = true;
+			}
+			
+			//overrides of abstract SliderTool functions
+			
+			/**
+			 * This function finds a list of attribute tags in the same attribute hierarchy
+			 * that have the same @dataTable and @name attributes, then returns a list of
+			 * their @year values.
+			 * @param ref A reference to an attribute tag in an AttributeHierarchy.
+			 * @return An Array of @year values that the referenced column is defined for.
+			 */
+			override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
+			{
+				var times:Array = getTimesFromDimension(ref);
+				if (times.length > 0)
+					addToListOfDims(ref);
+				return times;
+			}
+			
+			/**
+			 * handleLabelChange
+			 * This method is called every time there is a change in labels,
+			 * so be sure to change labels only as often as is necesary.  
+			 * We fill in the hslider labels from this.labelsLinkableString
+			 * Since this.labelsLinkableString is a LinkableString it can be changed by
+			 * the user by editing the sessionHistory.  
+			 * */
+			override public function handleLabelChange():void
+			{
+				//@TODO have values associated with the labels so that the labels can be
+				//   changed and the values are still passed into the column request
+				if (parent == null)
+					return callLater(handleLabelChange);
+				var labelsString:String = labelsLinkableString.value || ''; // avoid null pointer error
+				dimensionSlider.labels = labelsString.split(',');
+				dimensionSlider.minimum = 0;
+				dimensionSlider.maximum = dimensionSlider.labels.length - 1;		
+				labelsInput.text = labelsString;
+			}
+			
+			/** 
+			 * change - this method is automatically called when the hslider
+			 *  is changed.  Here we update all the visualization tools to 
+			 *  the new time.  
+			 * **/
+			override public function handleSliderChange():void
+			{
+				var newTime:String = dimensionSlider.labels[dimensionSlider.value] || '';
+				if (!newTime)
+					return;
+				
+				var _unlinkedTools:Array = getUnlinkedTools();
+				
+				// get descendants of all global objects except LineChartTool
+				var obj:Object;
+				var dd:Dictionary = new Dictionary(true);
+				var names:Array = WeaveAPI.globalHashMap.getNames();
+				for each (var name:String in names)
 				{
-					// this hack adds support for CSVDataSource
-					try
+					if (_unlinkedTools.indexOf(name) >= 0)
+						continue;
+					var object:ILinkableObject = WeaveAPI.globalHashMap.getObject(name);
+					if (object is LineChartTool)
+						continue;
+					for each (obj in WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference))
+						dd[obj] = true;
+				}
+				var descendants:Array = [];
+				for (obj in dd)
+					descendants.push(obj);
+				
+				var len:int = descendants.length;
+				for (var i:int = 0; i < len; i++)
+				{
+					var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
+					var path:XML = XML(ref.hierarchyPath.value).copy(); // make a copy so we don't modify the original
+					var search:XML = path..attribute[0] || path;
+					if (String(search.@year) && String(search.@year) != newTime)
 					{
-						delete search.@csvColumn;
-						if (String(search.@name))
-							delete search.@title;
-						var hierarchy:AttributeHierarchy = ref.getDataSource().attributeHierarchy as AttributeHierarchy;
-						var list:XMLList = hierarchy.value.descendants('attribute');
-						for (var j:int = 0; j < list.length(); j++)
+						delete search.@title;
+						search.@year = newTime;
+						if (search.@csvColumn)
 						{
-							if (HierarchyUtils.nodeContainsAttributes(list[j], search))
+							// this hack adds support for CSVDataSource
+							try
 							{
-								path = hierarchy.getPathFromNode(list[j]);
-								break;
+								delete search.@csvColumn;
+								if (String(search.@name))
+									delete search.@title;
+								var hierarchy:AttributeHierarchy = ref.getDataSource().attributeHierarchy as AttributeHierarchy;
+								var xmlList:XMLList = hierarchy.value.descendants('attribute');
+								for (var j:int = 0; j < xmlList.length(); j++)
+								{
+									if (HierarchyUtils.nodeContainsAttributes(xmlList[j], search))
+									{
+										path = hierarchy.getPathFromNode(xmlList[j]);
+										break;
+									}
+								}
 							}
+							catch (e:Error) { }
 						}
 					}
-					catch (e:Error) { }
+					ref.hierarchyPath.value = path;
 				}
 			}
-			ref.hierarchyPath.value = path;
-		}
-	}
-	
-	
-	/**
-	 * This is specified in the HSlider above - called to get the tooltip that appears when 
-	 * the user probes over the slider.  Item is the index of the value that the user is hovering 
-	 * over.  
-	 **/
-	override protected function formatDataTip(item:Number):String 
-	{
-		var value:String = dimensionSlider.labels[item];
-		return value;
-	}
-	
-	//other class methods
-	
-	/**
-	 * For a given datasource/dataTable/columnName, get the year values from the hierarchy
-	 * */
-	protected static function getTimesFromDimension(ref:HierarchyColumnReference):Array
-	{
-		var times:Array = [];
+			
+			
+			/**
+			 * This is specified in the HSlider above - called to get the tooltip that appears when 
+			 * the user probes over the slider.  Item is the index of the value that the user is hovering 
+			 * over.  
+			 **/
+			override protected function formatDataTip(item:Number):String 
+			{
+				var value:String = dimensionSlider.labels[item];
+				return value;
+			}
+			
+			//other class methods
+			
+			/**
+			 * For a given datasource/dataTable/columnName, get the year values from the hierarchy
+			 * */
+			protected static function getTimesFromDimension(ref:HierarchyColumnReference):Array
+			{
+				var times:Array = [];
+				
+				var path:XML = ref.hierarchyPath.value;
+				var dataSource:IDataSource = ref.getDataSource();
+				if (dataSource == null)
+					return times;
 		
-		var path:XML = ref.hierarchyPath.value;
-		var dataSource:IDataSource = ref.getDataSource();
-		if (dataSource == null)
-			return times;
-
-		var node:XML = (dataSource.attributeHierarchy as AttributeHierarchy).getNodeFromPath(path);
-		var hierarchy:XML = (dataSource.attributeHierarchy as AttributeHierarchy).value;
-		if (!hierarchy)
-			return times;
+				var node:XML = (dataSource.attributeHierarchy as AttributeHierarchy).getNodeFromPath(path);
+				var hierarchy:XML = (dataSource.attributeHierarchy as AttributeHierarchy).value;
+				if (!hierarchy)
+					return times;
+				
+				var attrList:XMLList;
+				if (node)
+				{
+					// found matching node in hierarchy, so just search the current category
+					attrList = XML(node.parent()).child("attribute");
+				}
+				else
+				{
+					node = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
+					//get a list of all attribute tags
+					attrList = hierarchy.descendants("attribute");
+				}
+				
+				// filter attribute tags by name
+				var property:String = 'name';
+				attrList = attrList.(String(attribute(property)) == String(node["@" + property]) && attribute("year"));
+				// get the year value from each attribute tag
+				for (var i:int = 0; i < attrList.length(); i++)
+				{
+					var year:String = attrList[i].@year.toString();
+					if (year.length > 0)
+						times.push(year);
+				}
 		
-		var attrList:XMLList;
-		if (node)
-		{
-			// found matching node in hierarchy, so just search the current category
-			attrList = XML(node.parent()).child("attribute");
-		}
-		else
-		{
-			node = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
-			//get a list of all attribute tags
-			attrList = hierarchy.descendants("attribute");
-		}
-		
-		// filter attribute tags by name
-		var property:String = 'name';
-		attrList = attrList.(String(attribute(property)) == String(node["@" + property]) && attribute("year"));
-		// get the year value from each attribute tag
-		for (var i:int = 0; i < attrList.length(); i++)
-		{
-			var year:String = attrList[i].@year.toString();
-			if (year.length > 0)
-				times.push(year);
-		}
-
-		return times;		
-	}
-	
-	
-
+				return times;		
+			}
 		]]>
 	</mx:Script>
 </SliderTool>

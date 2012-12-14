@@ -39,11 +39,13 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
 			import weave.core.UIUtils;
@@ -67,6 +69,9 @@
 			import weave.visualization.plotters.WMSPlotter;
 
 			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
+			
+			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
+			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
 			
 			// no main plotter
 			override protected function get mainPlotter():IPlotter { return null; }
@@ -250,12 +255,15 @@
 				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
 				
 				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;});
 				
 				selectionSubMenu.addSubMenuItem(lang("Circular Selection"),function():void{
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;});
 				
 				selectionSubMenu.addSubMenuItem(lang("Lasso Selection"),function():void{
+					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;});
 			}
 			
@@ -281,6 +289,7 @@
 							break;
 						case zoomModeButton:
 							defaultMode = InteractionController.ZOOM;
+							Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE; //to draw the blue rectangle
 							break;
 					}
 					Weave.properties.toolInteractions.defaultDragMode.value = defaultMode;
@@ -513,6 +522,57 @@
 				}
 			}
 			
+			public function handleLocationChange():void 
+			{
+				clearMapcontroLocations();
+				switch (maptoolsLocation.value)
+				{
+					case 0:
+						mapControls.top = 0;
+						mapControls.left = 0;
+						break;
+					case 1:
+						mapControls.top = 0;
+						mapControls.right = 0;
+						break;
+					case 2:
+						mapControls.bottom = 0;
+						mapControls.left = 0;
+						break;
+					case 3:
+						mapControls.bottom = 0;
+						mapControls.right = 0;
+						break;
+				}
+			}	
+			
+			private function locationChange():void
+			{
+				var index:int = maptoolLocationCombo.selectedIndex;
+				if (index >= locationsList.length)
+					return;
+				maptoolsLocation.value = index;
+			}
+			
+			private function clearMapcontroLocations():void
+			{
+				mapControls.right = null;
+				mapControls.bottom = null;
+				mapControls.left = null;
+				mapControls.top = null;
+			}
+			
+			public const sizeFactorOfMapControls:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifySizeFactor), handleSizeFactorChange, true);
+			
+			public function handleSizeFactorChange():void 
+			{
+				mapControls.scaleX = sizeFactorOfMapControls.value;
+				mapControls.scaleY = sizeFactorOfMapControls.value;
+			}
+			private function verifySizeFactor(value:Number):Boolean
+			{
+				return value >= 1;
+			}
 			
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.plotManager.zoomToSelection; }
@@ -526,7 +586,6 @@
 				verticalGap="{zoomControlsToggle.selected ? 2 : 0}"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				right="0" bottom="0"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				includeInLayout="{zoomControlsToggle.selected}"
@@ -732,10 +791,29 @@
 						 enabled="{enableZoomToggle.selected}"
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
+			<mx:HBox verticalAlign="middle" horizontalAlign="center">
+				<mx:Label text="Map tools location "/> 
+				<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
+			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
+				<mx:Label text="Size factor of map controls:" />
+				<mx:NumericStepper maximum="2" minimum="1" stepSize=".05" creationComplete="linkBindableProperty(sizeFactorOfMapControls, event.target, 'value')"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Zoom Sensitivity for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
+			<mx:HBox>
+			<mx:HBox>
+				<mx:Label text="MinZoom Level:" />
+				<mx:NumericStepper maximum="{this.visualization.plotManager.maxZoomLevel}" minimum="1" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value')"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="MaxZoom Level:" />
+				<mx:NumericStepper maximum="100" minimum="{this.visualization.plotManager.minZoomLevel}" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value')"/>
+			</mx:HBox>
+			</mx:HBox>
+
 		</mx:VBox>
 		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
@@ -771,7 +849,7 @@
 									[Bindable] private var layerName:String;
 									
 									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
-									
+																		
 									private function get vm():PlotManager { return outerDocument.visualization.plotManager; }
 									private function get settings():LayerSettings { return data as LayerSettings; }
 									

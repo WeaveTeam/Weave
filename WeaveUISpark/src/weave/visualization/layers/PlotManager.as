@@ -427,14 +427,11 @@ package weave.visualization.layers
 			if (newName)
 			{
 				var newPlotter:IPlotter = plotters.childListCallbacks.lastObjectAdded as IPlotter;
-				var settings:LayerSettings = layerSettings.requestObject(newName, LayerSettings, false);
-				copySessionState(settings.subsetFilter, newPlotter.keySet.keyFilter);
+				var settings:LayerSettings = layerSettings.requestObject(newName, LayerSettings, plotters.objectIsLocked(newName));
 				
-				// hack for fixing messed up session state
-				WeaveAPI.StageUtils.callLater(newPlotter, function():void {
-					if (!newPlotter.keySet.keyFilter.internalObject)
-						copySessionState(settings.subsetFilter, newPlotter.keySet.keyFilter);
-				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				// TEMPORARY SOLUTION until we start using VisToolGroup
+				newPlotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+//				copySessionState(settings.subsetFilter, newPlotter.filteredKeySet.keyFilter);
 				
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[newName] = newDisposableChild(newPlotter, SpatialIndex);
 				var tasks:Array = _name_to_PlotTask_Array[newName] = [];

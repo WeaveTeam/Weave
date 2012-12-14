@@ -25,41 +25,33 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_csvDataSource ? 'Edit' : 'Add'} CSV Data Source"/>
-	<mx:HBox>
-		<mx:Label text="Source Name *" width="140"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Source URL')}" width="140"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
-	</mx:HBox>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_csvDataSource ? 'Edit' : 'Add') + ' CSV Data Source')}"/>
+	<ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
+	</ui:Indent>
+	<ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
+		<mx:TextInput change="handleURLTextChange()" id="url" width="100%" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+	</ui:Indent>
 	<mx:VBox width="100%" enabled="{url.text?false:true}">
 		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
-		<mx:HBox>
-			<mx:Label text="{lang('Open local CSV file')}" width="140"/>
+		<ui:Indent group="{indentGroup}" label="{lang('Open local CSV file')}">
 			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
 			<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
-		</mx:HBox>
+		</ui:Indent>
 		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
-		<mx:HBox>
-			<mx:Label text="{lang('Paste/Edit CSV Data')}" width="140"/>
-			<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="300" height="100" cornerRadius="5" borderStyle="solid"/>
-		</mx:HBox>
+		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
+			<mx:TextArea id="csvTextArea" change="csvParser.parseCSV(csvTextArea.text)" width="100%" height="100"/>
+		</ui:Indent>
 		<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	</mx:VBox>
-	<mx:HBox>
-		<mx:Label text="Key Type *" width="140"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Key Column')}" width="140"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
-	</mx:HBox>
+	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
+		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+	</ui:Indent>
+	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" id="keyTypeSelector"/>
 	<mx:Spacer/>
-	<mx:Label text="* = required"/>
+	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -68,15 +60,29 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.api.reportError;
+			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.editors.managers.EditDataGridPanel;
+			import weave.ui.BusyIndicator;
+			import weave.ui.IndentGroup;
+			
+			private const indentGroup:IndentGroup = new IndentGroup();
+			
+			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				
-				keyType.text = sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+				addChild(busyIndicator);
+				hideBusy();
+				keyTypeSelector.labelText+=" *";
+				sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
+				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
 			}
+			
 			
 			[Bindable] private var _csvDataSource:CSVDataSource = null;
 			public function setTarget(object:ILinkableObject):void
@@ -93,10 +99,10 @@
 					sourceName.text = Weave.root.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
-					keyType.text = _csvDataSource.keyType.value;
+					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
 					var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
 					csvTextArea.text = WeaveAPI.CSVParser.createCSV(rows);
-					updateCSVDataString(csvTextArea.text);
+					csvParser.parseCSV(csvTextArea.text);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 					showGridButton.enabled = true;
@@ -109,8 +115,8 @@
 				{
 					_csvDataSource.url.value = url.text;
 					_csvDataSource.keyColName.value = keyColumnName.text;
-					_csvDataSource.keyType.value = keyType.text;
-					_csvDataSource.setCSVDataString(csvDataString);
+					_csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+					_csvDataSource.csvData.setSessionState(csvRows);
 					Alert.show(lang("Changes saved."))
 				}
 				catch(e:Error)
@@ -129,81 +135,48 @@
 				if(_fileLoader == null)
 				{
 					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
-					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
+					_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+					_fileLoader.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+					_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 				}
 				
 				_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
 			}
 			
 			
-			private function handleDatasetSelected(event:Event):void
+			// called when parser finishes
+			private function handleCSVParser():void
 			{
-				_fileLoader.load();
+				csvRows = csvParser.parseResult;
+				headerArray = csvRows[0];
+				//this is showGridButton is disabled only if a file has been loaded as the source
+				showGridButton.enabled = true;
+				
+				//this is set to false because this function might be called from Text Area change.
+				uploadMessage.visible = false;
+				
+				//clearing the Source URL text input
+				url.text = "";
+				
+				hideBusy();
 			}
 			
-			/**
-			 * this variable will be updated only when a file is uploaded or CSV string data is added to the text area.
-			 * 
-			 **/
-			public var csvDataString:String = "";
-			
-			private function updateCSVDataString(dataString:String):void
+			public function getCSVRows():Array
 			{
-				csvDataString = dataString;
-				if (dataString)
-				{
-					var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
-					headerArray = tempArray[0];
-					//this is showGridButton is disabled only if a file has been loaded as the source
-					showGridButton.enabled = true;
-					
-					//this is set to false because this function might be called from Text Area change.
-					uploadMessage.visible = false;
-					
-					//clearing the Source URL text input
-					url.text = "";
-				}
+				return csvRows;
 			}
 			
-			private var csvDataArray:Array = [];
-			private var csvByteArray:ByteArray = null;
+			private const csvParser:CSVParser = new CSVParser(true);
+			private var csvRows:Array = [];
+			private var csvRecords:Array = [];
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
 			
-			private function handleDatasetLoaded(event:Event):void
-			{
-				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
-				var extensionPosition:int = _fileLoader.name.length - 4;
-				
-				try
-				{				
-					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
-					{
-						csvByteArray = _fileLoader.data;
-						
-						updateCSVDataString(csvByteArray.toString());		
-						
-						uploadMessage.visible = true;
-						
-						//clearing the Text Area if any data was pasted before.
-						csvTextArea.text="";
-						//clearing the Source URL text input
-						url.text = "";
-					}
-				}
-				catch(e:Error)
-				{
-					Alert.show(lang("Error uploading file"),e.message.toString());
-				}
-				
-				
-			}
-			
 			private function showGrid():void
 			{
-				if (csvDataString == "")
+				if (csvRows == null)
 				{
 					Alert.show(lang("No data found"));
 					return;
@@ -217,10 +190,9 @@
 				//Because if data is modified in the gird it is saved to the csvDataArray irrespective of whether the user clicks the Save button or not.
 				//when data is saved in the Grid it is saved to the csvDataString. When the grid is re-opened, csvDataArray is recreated.  
 				//csvDataArray acts as the global object for CSVDataSourceEditor and DataGridEditor to modify the csv data.
-				var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
-				csvDataArray = WeaveAPI.CSVParser.convertRowsToRecords(tempArray);
+				csvRecords = WeaveAPI.CSVParser.convertRowsToRecords(csvRows);
 				
-				grid.loadData(csvDataArray, headerArray);
+				grid.loadData(csvRecords, headerArray);
 				
 				PopUpManager.bringToFront(grid);
 			}
@@ -228,27 +200,81 @@
 			private function handleSaveButtonClick(event:MouseEvent):void
 			{
 				// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
-				for each (var item:Object in csvDataArray)
+				for each (var item:Object in csvRecords)
 					delete item['mx_internal_uid'];
 				
-				var tempArray:Array = WeaveAPI.CSVParser.convertRecordsToRows(csvDataArray);
-				csvDataString = WeaveAPI.CSVParser.createCSV(tempArray);
+				csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords);
 				
-				//if the data entered through the text area, update the text area to reflect the changes made.
+				//if the data entered through the text area, clear the text area
 				if (csvTextArea.text != "")
-				{
-					csvTextArea.text = csvDataString;
-				}
+					csvTextArea.text = '';
 			}
 			
 			private function handleURLTextChange():void
 			{
 				uploadMessage.visible = false;
 				showGridButton.enabled = false;
-				csvDataString = '';
+				csvRows = null;
 				csvTextArea.text = '';
 			}
 			
+			private function showBusy():void
+			{
+				busyIndicator.visible = true;
+			}
+			private function hideBusy(..._):void
+			{
+				busyIndicator.visible = false;
+			}
+			
+			private function handleProgress(event:ProgressEvent):void
+			{
+				WeaveAPI.ProgressIndicator.updateTask(_fileLoader, event.bytesLoaded / event.bytesTotal);
+			}
+			
+			private function csvFileSelectedHandler(event:Event):void
+			{
+				_fileLoader.load();
+				WeaveAPI.ProgressIndicator.addTask(_fileLoader);
+				showBusy();
+			}
+			
+			// Show busy indicator until parser finishes (handleCSVParser)
+			private function csvFileLoadCompleteHandler(event:Event):void
+			{
+				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
+				var extensionPosition:int = _fileLoader.name.length - 4;
+				
+				if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
+				{
+					csvParser.parseCSV(_fileLoader.data.toString());
+					
+					uploadMessage.visible = true;
+					
+					//clearing the Text Area if any data was pasted before.
+					csvTextArea.text="";
+					//clearing the Source URL text input
+					url.text = "";
+				}
+				
+				WeaveAPI.ProgressIndicator.removeTask(_fileLoader);
+
+				if (_fileLoader.data == null)
+				{
+					hideBusy();
+					return;
+				}
+			}
+			
+			private function fileErrorHandler(event:IOErrorEvent):void
+			{
+				hideBusy();
+				var fileRef:FileReference = event.target as FileReference;
+				reportError(
+					"File upload failed",
+					"File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text
+				);
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

@@ -74,7 +74,7 @@ package weave.visualization.plotters
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
-			getCallbackCollection(keySet).addImmediateCallback(this, handleColumnsChange, true);
+			getCallbackCollection(filteredKeySet).addImmediateCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 		}
 		private function handleColumnsListChange():void
@@ -163,7 +163,7 @@ package weave.visualization.plotters
 				keySources.unshift(radiusColumn);
 				setColumnKeySources(keySources, [true]);
 			
-				for each( var key:IQualifiedKey in keySet.keys)
+				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					
 					randomArrayIndexMap[key] = i ;										
 					var magnitude:Number = 0;
@@ -192,7 +192,7 @@ package weave.visualization.plotters
 					i++
 				}
 				
-				for each( var k:IQualifiedKey in keySet.keys)
+				for each( var k:IQualifiedKey in filteredKeySet.keys)
 				{
 					keyNormArray = [];
 					i = 0;
@@ -494,8 +494,8 @@ package weave.visualization.plotters
 			} catch(e:Error) {return;}
 			var graphics:Graphics = destination;
 			graphics.clear();
-			if(probedKeys.length && keySet.keys.length)
-				if(probedKeys[0].keyType != keySet.keys[0].keyType) return;
+			if(probedKeys.length && filteredKeySet.keys.length)
+				if(probedKeys[0].keyType != filteredKeySet.keys[0].keyType) return;
 			
 			for each( var key:IQualifiedKey in probedKeys)
 			{

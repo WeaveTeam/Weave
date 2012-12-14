@@ -317,7 +317,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (panelTitle.value)
 				{
 					panelTitleFunction.value = '`' + panelTitle.value.split('`').join('\\`') + '`';
-					evaluatePanelTitle();
+					// title will be automatically updated by grouped callback
 				}
 				else
 				{

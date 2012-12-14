@@ -167,6 +167,42 @@ package weave.data.DataSources
 			return WeaveAPI.AttributeColumnCache.getColumn(_reusableReference);
 		}
 		
+		/**
+		 * Sets the metadata for a column
+		 * @param csvColumnName the name of the column 
+		 * @param metaDataName the name of the metadata. Use ColumnMetadata to get property name
+		 * @value value the value to set for the metadata property
+		 **/
+//		public function setColumnMetaData(csvColumnName:String,metaDataName:String,value:String):void
+//		{
+//			var hierarchy:XML = _attributeHierarchy.value;
+//			if (hierarchy)
+//			{
+//				for each (var tag:XML in hierarchy.descendants('attribute'))
+//				{
+//					if (String(tag.@csvColumn) == csvColumnName)
+//					{
+//						if(metaDataName == ColumnMetadata.DATA_TYPE)
+//							tag.@dataType = value;
+//						else if(metaDataName == ColumnMetadata.KEY_TYPE)
+//							tag.@keyType = value;
+//						else if(metaDataName == ColumnMetadata.MAX)
+//							tag.@max = value;
+//						else if(metaDataName == ColumnMetadata.MIN)
+//							tag.@min = value;
+//						else if(metaDataName == ColumnMetadata.NUMBER)
+//							tag.@number = value;
+//						else if (metaDataName == ColumnMetadata.PROJECTION)
+//							tag.@projection = value;
+//						else if (metaDataName == ColumnMetadata.STRING)
+//							tag.@string = value;
+//						else if (metaDataName == ColumnMetadata.TITLE)
+//							tag.@title = value;
+//					}
+//				}
+//			}
+//		}
+		
 		// used by getColumnByName
 		private const _reusableReference:HierarchyColumnReference = newDisposableChild(this, HierarchyColumnReference);
 		

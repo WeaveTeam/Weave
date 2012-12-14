@@ -483,7 +483,7 @@
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
-								getCallbackCollection(geomPlotter.keySet).addImmediateCallback(null, handleSubsetChange, true);
+								getCallbackCollection(geomPlotter.filteredKeySet).addImmediateCallback(null, handleSubsetChange, true);
 								linkBindableProperty(geomPlotter.iconSize, iconSize, "value");
 								linkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 								
@@ -537,7 +537,7 @@
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
-								getCallbackCollection(geomPlotter.keySet).removeCallback(handleSubsetChange);
+								getCallbackCollection(geomPlotter.filteredKeySet).removeCallback(handleSubsetChange);
 								unlinkBindableProperty(geomPlotter.iconSize, iconSize, "value");
 								unlinkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 									
@@ -708,16 +708,16 @@
 						{
 							if (ignoreSubsetCheck.selected)
 							{
-								plotter.keySet.keyFilter.removeObject();
+								plotter.filteredKeySet.keyFilter.removeObject();
 							}
 							else
 							{
-								plotter.keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+								plotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 							}
 						}
 						private function handleSubsetChange():void
 						{
-							ignoreSubsetCheck.selected = plotter.keySet.keyFilter.globalName ? false : true;
+							ignoreSubsetCheck.selected = plotter.filteredKeySet.keyFilter.globalName ? false : true;
 						}
 					]]>
 				</mx:Script>

@@ -127,7 +127,7 @@ package weave.visualization.plotters
 			_binToString = [];
 			_binToBounds = [];
 			
-			var keys:Array = keySet.keys;
+			var keys:Array = filteredKeySet.keys;
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (!internalColorColumn)
 				return;
@@ -178,7 +178,7 @@ package weave.visualization.plotters
 		{
 			// draw the bins that have no records in them in the background
 			_drawBackground = true;
-			drawBinnedPlot(keySet.keys, dataBounds, screenBounds, destination);
+			drawBinnedPlot(filteredKeySet.keys, dataBounds, screenBounds, destination);
 			_drawBackground = false;
 		}
 

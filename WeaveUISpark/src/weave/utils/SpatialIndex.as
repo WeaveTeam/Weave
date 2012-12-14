@@ -149,7 +149,7 @@ package weave.utils
 				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
 				
 				// make a copy of the keys vector
-				VectorUtils.copy(plotter.keySet.keys, _keysArray);			
+				VectorUtils.copy(plotter.filteredKeySet.keys, _keysArray);			
 			}
 			
 			// if auto-balance is disabled, randomize insertion order

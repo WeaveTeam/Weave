@@ -25,19 +25,17 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	implements="weave.api.ui.ILinkableObjectEditor"
-	creationPolicy="all"
+	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_wfsDataSource ? 'Edit' : 'Add'} WFS Data Source"/>
-	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
-		<mx:TextInput id="sourceName" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Source URL *" width="120"/>
-		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
-	</mx:HBox>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_wfsDataSource ? 'Edit' : 'Add') + ' WFS Data Source')}"/>
+	<ui:Indent label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" width="100%"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Source URL *')}">
+		<mx:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
+	</ui:Indent>
 	<mx:Spacer height="20"/>
-	<mx:Label text="* = required"/>
+	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;

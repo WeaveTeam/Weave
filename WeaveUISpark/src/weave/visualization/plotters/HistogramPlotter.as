@@ -60,7 +60,7 @@ package weave.visualization.plotters
 			// the data inside the binned column needs to be filtered by the subset
 			var filteredColumn:FilteredColumn = _binnedColumn.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			
-			linkSessionState(keySet.keyFilter, filteredColumn.filter);
+			linkSessionState(filteredKeySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
 			registerSpatialProperty(dynamicColorColumn);

@@ -207,15 +207,20 @@ public class CSVParser
 
 		boolean escaped = false;
 		
-		int fileSize = csvInput.available();
-		char next = (char) csvReader.read();
-		for (int i = 0; i < fileSize; i++)
+		int next = csvReader.read();
+		boolean skipNext = false;
+		
+		while (next != -1)
 		{
-			char chr = next;
-			if (i < fileSize - 1)
-				next = (char) csvReader.read();
-			else
-				next = LF;
+			char chr = (char) next;
+			next = csvReader.read();
+			
+			if (skipNext)
+			{
+				skipNext = false;
+				continue;
+			}
+			
 			if (escaped)
 			{
 				if (chr == quote)
@@ -228,7 +233,7 @@ public class CSVParser
 						// always append second quote
 						token.append(quote);
 						// skip second quote mark
-						i++;
+						skipNext = true;
 					}
 					else // end of escaped text
 					{
@@ -263,7 +268,7 @@ public class CSVParser
 				{
 					// handle CRLF
 					if (next == LF)
-						i++; // skip line feed
+						skipNext = true; // skip line feed
 					// start new token on new row
 					token = newToken(rows, true);
 				}
@@ -337,14 +342,13 @@ public class CSVParser
 				output.append(LF);
 			
 			Object[] row = rows[iRow];
-			int lastCol = row.length - 1;
-			for (int iCol = 0; iCol <= lastCol; iCol++)
+			for (int iCol = 0; iCol < row.length; iCol++)
 			{
 				Object value = row[iCol];
 				String token = value == null ? nullToken : createCSVToken(value.toString(), quoteEmptyStrings);
-				output.append(token);
-				if (iCol < lastCol)
+				if (iCol > 0)
 					output.append(delimiter);
+				output.append(token);
 			}
 		}
 	}

@@ -185,7 +185,9 @@
 				copySessionState(histogramColumn, histo.internalDataColumn);
 				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalBinningDefinition as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
-				var keySet:KeySet = histo.visualization.getMainLayerSettings().subsetFilter.requestLocalObject(KeySet, false)
+				// TEMPORARY SOLUTION until we start using VisToolGroup
+				var keySet:KeySet = histo.visualization.getMainPlotter().filteredKeySet.keyFilter.requestLocalObject(KeySet, false)
+				//var keySet:KeySet = histo.visualization.getMainLayerSettings().subsetFilter.requestLocalObject(KeySet, false)
 				copySessionState(Weave.defaultSelectionKeySet, keySet);
 			}
 			public const histogramColumn:DynamicColumn = new DynamicColumn();
