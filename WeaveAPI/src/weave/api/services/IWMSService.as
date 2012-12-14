@@ -54,12 +54,10 @@ package weave.api.services
 		function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array;
 		
 		/**
-		 * Return the bounds which contains all valid tile requests.
-		 * 
-		 * @return A Bounds2D object which covers the entire bounds. If a tile request is 
+		 * Outputs the bounds which contains all valid tile requests. If a tile request is
 		 * not contained inside this bounds, the request is invalid.
 		 */ 
-		function getAllowedBounds():IBounds2D;
+		function getAllowedBounds(output:IBounds2D):void;
 		
 		/**
 		 * This function will return the SRS code of the tile requests.
