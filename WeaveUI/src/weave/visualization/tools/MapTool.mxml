@@ -791,18 +791,29 @@
 						 enabled="{enableZoomToggle.selected}"
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
-			<mx:HBox>
-				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
-				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
+			<mx:HBox verticalAlign="middle" horizontalAlign="center">
+				<mx:Label text="Map tools location "/> 
+				<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Size factor of map controls:" />
 				<mx:NumericStepper maximum="2" minimum="1" stepSize=".05" creationComplete="linkBindableProperty(sizeFactorOfMapControls, event.target, 'value')"/>
 			</mx:HBox>
-			<mx:HBox verticalAlign="middle" horizontalAlign="center">
-			<mx:Label text="Map tools location "/> 
-			<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
+			<mx:HBox>
+				<mx:Label text="Zoom Sensitivity for mouse wheel and zoom buttons:" />
+				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
+			<mx:HBox>
+			<mx:HBox>
+				<mx:Label text="MinZoom Level:" />
+				<mx:NumericStepper maximum="{this.visualization.plotManager.maxZoomLevel}" minimum="1" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value')"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="MaxZoom Level:" />
+				<mx:NumericStepper maximum="100" minimum="{this.visualization.plotManager.minZoomLevel}" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value')"/>
+			</mx:HBox>
+			</mx:HBox>
+
 		</mx:VBox>
 		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
