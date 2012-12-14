@@ -175,8 +175,8 @@ package weave.core
 				for (var i:int = 0; i < _callbackEntries.length; i++)
 				{
 					// If this flag is set to true, it means a recursive call has finished running callbacks.
-					// If preCallbackParams are specified, we don't want to exit the loop because that cause a loss of information.
-					if (_runCallbacksCompleted && preCallbackParams.length == 0)
+					// If _preCallback is specified, we don't want to exit the loop because that cause a loss of information.
+					if (_runCallbacksCompleted && _preCallback == null)
 						break;
 					
 					var entry:CallbackEntry = _callbackEntries[i] as CallbackEntry;
@@ -202,8 +202,8 @@ package weave.core
 						_callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
 						continue;
 					}
-					// if preCallbackParams are specified, we don't want to limit recursion because that would cause a loss of information.
-					if (entry.recursionCount <= entry.recursionLimit || preCallbackParams.length > 0)
+					// if _preCallback is specified, we don't want to limit recursion because that would cause a loss of information.
+					if (entry.recursionCount <= entry.recursionLimit || _preCallback != null)
 					{
 						entry.recursionCount++; // increase count to signal that we are currently running this callback.
 						if (_preCallback != null)
