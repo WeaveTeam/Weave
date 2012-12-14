@@ -73,13 +73,15 @@ public class DataConfig
 		detectChange();
 	}
 	
+	private final String CONTACT_ADDRESS = "weave-users@googlegroups.com";
+	
 	private void detectChange() throws RemoteException
 	{
 		long lastMod = connectionConfig.getLastModified();
 		if (this.lastModified < lastMod)
 		{
 			if (!connectionConfig.allowDataConfigInitialize())
-				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
+				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.  If you are seeing this error message in the Admin Console, please contact us:\n" + CONTACT_ADDRESS);
 			
 			try
 			{
