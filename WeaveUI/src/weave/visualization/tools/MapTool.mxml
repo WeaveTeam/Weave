@@ -806,11 +806,11 @@
 			<mx:HBox>
 			<mx:HBox>
 				<mx:Label text="MinZoom Level:" />
-				<mx:NumericStepper maximum="{this.visualization.plotManager.maxZoomLevel}" minimum="1" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value')"/>
+				<mx:NumericStepper minimum="1" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'maximum')"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="MaxZoom Level:" />
-				<mx:NumericStepper maximum="100" minimum="{this.visualization.plotManager.minZoomLevel}" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value')"/>
+				<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
 			</mx:HBox>
 			</mx:HBox>
 
