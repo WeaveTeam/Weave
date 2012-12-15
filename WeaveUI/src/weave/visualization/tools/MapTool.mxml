@@ -792,26 +792,26 @@
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 			<mx:HBox verticalAlign="middle" horizontalAlign="center">
-				<mx:Label text="Map tools location "/> 
+				<mx:Label text="Zoom controls location:"/> 
 				<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Size factor of map controls:" />
+				<mx:Label text="Zoom controls widget scale:" />
 				<mx:NumericStepper maximum="2" minimum="1" stepSize=".05" creationComplete="linkBindableProperty(sizeFactorOfMapControls, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Zoom Sensitivity for mouse wheel and zoom buttons:" />
+				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
-			<mx:HBox>
-				<mx:Label text="MinZoom Level:" />
-				<mx:NumericStepper minimum="1" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'maximum')"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="MaxZoom Level:" />
-				<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
-			</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Minimum zoom level:" />
+					<mx:NumericStepper minimum="0" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'maximum')"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Maximum zoom level:" />
+					<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
+				</mx:HBox>
 			</mx:HBox>
 
 		</mx:VBox>
