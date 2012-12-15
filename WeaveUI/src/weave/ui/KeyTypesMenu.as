@@ -84,8 +84,14 @@ package weave.ui
 		 **/
 		public function get selectedItem():Object
 		{
-			return comboBox.selectedItem;
+			return comboBox.text;//we use text and not selectedItem because user can enter the keytype
 		}
+		
+		public function set selectedItem(item:Object):void
+		{
+			comboBox.selectedItem = item;	
+		}
+		
 		private function handleQKeyManagerChange():void
 		{
 			var keytypes:Array = WeaveAPI.QKeyManager.getAllKeyTypes();

@@ -23,6 +23,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -48,6 +49,7 @@ package weave.data.AttributeColumns
 			{
 				case ColumnMetadata.TITLE: return title.value;
 				case ColumnMetadata.KEY_TYPE: return keyType.value;
+				case ColumnMetadata.DATA_TYPE: return numericMode.value ? DataTypes.NUMBER : DataTypes.STRING;
 			}
 			return super.getMetadata(propertyName);
 		}
@@ -57,7 +59,25 @@ package weave.data.AttributeColumns
 		/**
 		 * This should contain a two-column CSV with the first column containing the keys and the second column containing the values.
 		 */
-		public const data:LinkableVariable = newLinkableChild(this, LinkableString, invalidate);
+		public const data:LinkableVariable = newLinkableChild(this, LinkableVariable, invalidate);
+		
+		/**
+		 * Use this function to set the keys and data of the column.
+		 * @param table An Array of rows where each row is an Array containing a key and a data value.
+		 */		
+		public function setDataTable(table:Array):void
+		{
+			var stringTable:Array = [];
+			for (var r:int = 0; r < table.length; r++)
+			{
+				var row:Array = (table[r] as Array).concat(); // make a copy of the row
+				// convert each value to a string
+				for (var c:int = 0; c < row.length; c++)
+					row[c] = String(row[c]);
+				stringTable[r] = row; // save the copied row
+			}
+			data.setSessionState(stringTable);
+		}
 		
 		[Deprecated] public function set csvData(value:String):void
 		{

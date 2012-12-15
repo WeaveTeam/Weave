@@ -49,7 +49,12 @@
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" id="keyTypeSelector"/>
+	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" creationComplete="{if(_csvDataSource)
+					 {
+					 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_csvDataSource.keyType.value);
+					 	(event.target as KeyTypesMenu).selectedItem = _csvDataSource.keyType.value;
+					 }}" 
+					 id="keyTypeSelector"/>
 	<mx:Spacer/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
