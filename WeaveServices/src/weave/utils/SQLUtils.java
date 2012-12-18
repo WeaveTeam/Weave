@@ -1549,13 +1549,17 @@ public class SQLUtils
 			return 0;
 		
 		PreparedStatement pstmt = null;
-		String query = "";
+		String query = null;
 
 		try 
 		{
 			query = String.format("DELETE FROM %s %s", SQLUtils.quoteSchemaTable(conn, schemaName, tableName), where.clause);
 			pstmt = prepareStatement(conn, query, where.params);
 			return pstmt.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
