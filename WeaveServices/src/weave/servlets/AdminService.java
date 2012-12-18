@@ -1742,6 +1742,10 @@ public class AdminService
 		else
 		{
 			resultAddSQL = "DBF Import disabled.";
+            DataEntityMetadata tableInfo = new DataEntityMetadata();
+            tableInfo.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SHP);
+            tableInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
+            tableId = getDataConfig().newEntity(DataEntity.TYPE_DATATABLE, tableInfo, DataConfig.NULL, DataConfig.NULL);
 		}
 
 		try
@@ -1759,9 +1763,8 @@ public class AdminService
 			geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
 			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 	
-			// TODO: use table ID from addConfigDataTable()
 			
-			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, 0);
+			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, DataConfig.NULL);
 		}
 		catch (IOException e)
 		{
