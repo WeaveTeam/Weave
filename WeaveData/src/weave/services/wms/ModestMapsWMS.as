@@ -54,6 +54,7 @@ package weave.services.wms
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
+	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
 	import weave.utils.AsyncSort;
 
@@ -69,7 +70,7 @@ package weave.services.wms
 		{
 			_srs = IMAGE_PROJECTION_SRS; 
 
-			_tempBounds.copyFrom(_worldBoundsMercator);
+			ProjectionManager.getMercatorTileBoundsInLatLong(_tempBounds);
 			setReprojectedBounds(_tempBounds, _worldBoundsMercator, _tileProjectionSRS, _srs); // get world bounds in our Mercator
 		}
 		
@@ -151,11 +152,7 @@ package weave.services.wms
 		private var _imageHeight:int;
 		
 		// some parameters about the tiles
-		private const _minWorldLon:Number = -180.0 + ProjConstants.EPSLN; // because Proj4 wraps coordinates
-		private const _maxWorldLon:Number = 180.0 - ProjConstants.EPSLN; // because Proj4 wraps coordinates
-		private const _minWorldLat:Number = -Math.atan(ProjConstants.sinh(Math.PI)) * ProjConstants.R2D; 
-		private const _maxWorldLat:Number = Math.atan(ProjConstants.sinh(Math.PI)) * ProjConstants.R2D;
-		private const _worldBoundsMercator:IBounds2D = new Bounds2D(_minWorldLon, _minWorldLat, _maxWorldLon, _maxWorldLat);
+		private const _worldBoundsMercator:IBounds2D = new Bounds2D();
 		private const _tileProjectionSRS:String = "EPSG:4326"; // constant for modestMaps
 		
 		// reusable objects
@@ -455,9 +452,9 @@ package weave.services.wms
 			handleTileDownload(tile);
 		}
 		
-		override public function getAllowedBounds():IBounds2D
+		override public function getAllowedBounds(output:IBounds2D):void
 		{
-			return _worldBoundsMercator.cloneBounds(); 
+			return output.copyFrom(_worldBoundsMercator);
 		}
 		
 		/**

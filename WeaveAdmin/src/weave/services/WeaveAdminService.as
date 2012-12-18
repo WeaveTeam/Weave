@@ -368,9 +368,9 @@ package weave.services
 		{
 			return invokeAdminWithLogin(newEntity, arguments);
 		}
-		public function removeEntity(entityId:int):AsyncToken
+		public function removeEntities(entityIds:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(removeEntity, arguments);
+			return invokeAdminWithLogin(removeEntities, arguments);
 		}
 		public function updateEntity(entityId:int, diff:EntityMetadata):AsyncToken
 		{

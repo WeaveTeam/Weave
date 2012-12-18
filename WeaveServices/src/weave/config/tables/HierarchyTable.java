@@ -213,7 +213,7 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> conditions= MapUtils.fromPairs(FIELD_PARENT, parent_id);
+			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_PARENT, parent_id);
 			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
 			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, FIELD_ORDER, Object.class);
 			List<Integer> children = new Vector<Integer>(rows.size());
@@ -234,14 +234,17 @@ public class HierarchyTable extends AbstractTable
 	{
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
+		String query = null;
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<Integer,Integer> result = new HashMap<Integer,Integer>();
+			if (ids.size() == 0)
+				return result;
 			
 			// build query
 			String quotedParentField = SQLUtils.quoteSymbol(conn, FIELD_PARENT);
-			String query = String.format(
+			query = String.format(
 					"SELECT %s,count(*) FROM %s WHERE %s IN (%s) GROUP BY %s",
 					quotedParentField,
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
@@ -259,6 +262,8 @@ public class HierarchyTable extends AbstractTable
 		}
 		catch (SQLException e)
 		{
+			if (query != null)
+				e = new SQLExceptionWithQuery(query, e);
 			throw new RemoteException("Unable to get all instances of a property.", e);
 		}
 		finally

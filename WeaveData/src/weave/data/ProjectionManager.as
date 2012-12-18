@@ -24,6 +24,7 @@ package weave.data
 	import flash.utils.Dictionary;
 	
 	import org.openscales.proj4as.Proj4as;
+	import org.openscales.proj4as.ProjConstants;
 	import org.openscales.proj4as.ProjPoint;
 	import org.openscales.proj4as.ProjProjection;
 	
@@ -296,6 +297,19 @@ package weave.data
 		 */
 		private const _tempPoint:Point = new Point();
 
+		/**
+		 * This will output the lat,long bounds commonly used for map tiles.  This bounds does not include the poles.
+		 * @param output
+		 */		
+		public static function getMercatorTileBoundsInLatLong(output:IBounds2D):void
+		{
+			var minWorldLon:Number = -180.0 + ProjConstants.EPSLN; // because Proj4 wraps coordinates
+			var maxWorldLon:Number = 180.0 - ProjConstants.EPSLN; // because Proj4 wraps coordinates
+			var minWorldLat:Number = -Math.atan(ProjConstants.sinh(Math.PI)) * ProjConstants.R2D;
+			var maxWorldLat:Number = Math.atan(ProjConstants.sinh(Math.PI)) * ProjConstants.R2D;
+			
+			output.setBounds(minWorldLon, minWorldLat, maxWorldLon, maxWorldLat);
+		}
 	}
 }
 

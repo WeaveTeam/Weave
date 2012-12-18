@@ -79,22 +79,6 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-								
-				// make sure WMS layers are included in the full data bounds
-				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
-				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
-				
-				visualization.plotManager.enableFixedAspectRatio.value = true;
-				visualization.plotManager.enableAutoZoomToExtent.value = false;
-				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
-				
-				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
-				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
-				
-				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
-				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
-				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
-				
 			}
 			
 			private var selectionSubMenu:SubMenu;
@@ -240,19 +224,37 @@
 				windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
 				simpleAxisEditor.parent.removeChild(simpleAxisEditor);
 				
-				linkBindableProperty(visualization.plotManager.minZoomLevel, this, "zoomSliderMinimum");
-				linkBindableProperty(visualization.plotManager.maxZoomLevel, this, "zoomSliderMaximum");
-				
 				if (visualization.plotManager.plotters.getNames().length == 0)
 					addGeomLayer();
-				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
+				// make sure WMS layers are included in the full data bounds
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
+				
+				visualization.plotManager.enableFixedAspectRatio.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
+				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
+				
+				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
+				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
+				
+				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
+				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
+				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+				
+				linkBindableProperty(visualization.plotManager.minZoomLevel, this, "zoomSliderMinimum");
+				linkBindableProperty(visualization.plotManager.maxZoomLevel, this, "zoomSliderMaximum");
+				
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
+				
+				
+				
+				selectionSubMenu = new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
 				
 				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
 					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
@@ -524,6 +526,12 @@
 			
 			public function handleLocationChange():void 
 			{
+				if (!parent)
+				{
+					callLater(handleLocationChange);
+					return;
+				}
+				
 				clearMapcontroLocations();
 				switch (maptoolsLocation.value)
 				{
@@ -566,6 +574,12 @@
 			
 			public function handleSizeFactorChange():void 
 			{
+				if (!parent)
+				{
+					callLater(handleSizeFactorChange);
+					return;
+				}
+				
 				mapControls.scaleX = sizeFactorOfMapControls.value;
 				mapControls.scaleY = sizeFactorOfMapControls.value;
 			}
@@ -791,18 +805,29 @@
 						 enabled="{enableZoomToggle.selected}"
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
+			<mx:HBox verticalAlign="middle" horizontalAlign="center">
+				<mx:Label text="Zoom controls location:"/> 
+				<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Zoom controls widget scale:" />
+				<mx:NumericStepper maximum="2" minimum="1" stepSize=".05" creationComplete="linkBindableProperty(sizeFactorOfMapControls, event.target, 'value')"/>
+			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Size factor of map controls:" />
-				<mx:NumericStepper maximum="2" minimum="1" stepSize=".05" creationComplete="linkBindableProperty(sizeFactorOfMapControls, event.target, 'value')"/>
+				<mx:HBox>
+					<mx:Label text="Minimum zoom level:" />
+					<mx:NumericStepper minimum="0" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'maximum')"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Maximum zoom level:" />
+					<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(this.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(this.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
+				</mx:HBox>
 			</mx:HBox>
-			<mx:HBox verticalAlign="middle" horizontalAlign="center">
-			<mx:Label text="Map tools location "/> 
-			<ui:CustomComboBox id="maptoolLocationCombo" dataProvider="{locationsList}" change="locationChange()"/>
-			</mx:HBox>
+
 		</mx:VBox>
 		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">

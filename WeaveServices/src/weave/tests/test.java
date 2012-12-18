@@ -75,9 +75,16 @@ public class test
 			if (file.exists())
 			{
 				ConnectionConfig connConfig = new ConnectionConfig(file);
-				ProgressPrinter pp = new ProgressPrinter(System.out);
-				DataConfig dataConfig = connConfig.initializeNewDataConfig(pp.getProgressManager());
-				
+				if (connConfig.migrationPending())
+				{
+					ProgressPrinter pp = new ProgressPrinter(System.out);
+					DataConfig dataConfig = connConfig.initializeNewDataConfig(pp.getProgressManager());
+				}
+				else
+				{
+					DataConfig dataConfig = new DataConfig(connConfig);
+//					dataConfig.buildHierarchy(135616, 135616, 1);
+				}
 				break;
 			}
 		}

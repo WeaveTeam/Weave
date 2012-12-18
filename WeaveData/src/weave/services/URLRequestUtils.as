@@ -70,10 +70,16 @@ package weave.services
 		 */
 		public function setBaseURL(baseURL:String):void
 		{
-			// remove '?' and everything after
-			baseURL = baseURL.split('?')[0];
-			// remove last '/' and everything after
-			_baseURL = baseURL.substr(0, baseURL.lastIndexOf('/'));
+			// get everything before first '/'
+			var beforeSlash:String = baseURL.split('/')[0];
+			// only set baseURL if there is a ':'
+			if (beforeSlash.indexOf(':') >= 0)
+			{
+				// remove '?' and everything after
+				baseURL = baseURL.split('?')[0];
+				// remove last '/' and everything after
+				_baseURL = baseURL.substr(0, baseURL.lastIndexOf('/'));
+			}
 		}
 		
 		private var _baseURL:String;
