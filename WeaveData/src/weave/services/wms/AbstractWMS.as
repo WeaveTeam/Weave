@@ -154,9 +154,9 @@ package weave.services.wms
 		 * Return the allowed bounds.
 		 * @see weave.api.core.IWMSService#getAllowedBounds
 		 */ 
-		/* abstract */ public function getAllowedBounds():IBounds2D
+		public function getAllowedBounds(output:IBounds2D):void
 		{
-			return null;
+			output.reset();
 		}
 		
 		/* abstract */ public function setProvider(provider:String):void

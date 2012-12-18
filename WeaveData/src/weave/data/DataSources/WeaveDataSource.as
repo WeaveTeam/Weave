@@ -384,7 +384,7 @@ package weave.data.DataSources
 			
 			//trace("requestColumnFromSource()",pathInHierarchy.toXMLString());
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
-			proxyColumn.setMetadata(leafNode);
+			proxyColumn.setMetadata(leafNode.copy());
 			
 			var params:Object = new Object();
 			for each (var attr:String in ['dataTable', 'name', 'year', 'min', 'max', 'sqlParams']) // only use these properties for querying

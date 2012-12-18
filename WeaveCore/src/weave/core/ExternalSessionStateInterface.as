@@ -387,7 +387,8 @@ package weave.core
 		{
 			try
 			{
-				ExternalInterface.addCallback(functionName, closure);
+				if (ExternalInterface.available)
+					ExternalInterface.addCallback(functionName, closure);
 			}
 			catch (e:Error)
 			{

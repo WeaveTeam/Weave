@@ -388,14 +388,14 @@ package weave.services.wms
 				return -1;			
 		}
 
-		override public function getAllowedBounds():IBounds2D
+		override public function getAllowedBounds(output:IBounds2D):void
 		{
 			/* this WMS is still subject to change so we need to parse the XML. 
 			 * but we need the allowed bounds early for the map tool. These bounds
 			 * should never change for this service. The use of epsilon is necessary because
 			 * proj4as wraps points at extremities.
 			 */
-			return new Bounds2D(-180 + ProjConstants.EPSLN, -90 + ProjConstants.EPSLN, 180 - ProjConstants.EPSLN, 90 - ProjConstants.EPSLN); 
+			output.setBounds(-180 + ProjConstants.EPSLN, -90 + ProjConstants.EPSLN, 180 - ProjConstants.EPSLN, 90 - ProjConstants.EPSLN);
 		}
 		
 		
