@@ -239,6 +239,8 @@ public class HierarchyTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<Integer,Integer> result = new HashMap<Integer,Integer>();
+			if (ids.size() == 0)
+				return result;
 			
 			// build query
 			String quotedParentField = SQLUtils.quoteSymbol(conn, FIELD_PARENT);
