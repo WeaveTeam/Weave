@@ -34,7 +34,7 @@ package weave
 	import weave.api.data.IDataRowSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
-	import weave.services.DelayedAsyncResponder;
+	import weave.services.addAsyncResponder;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.RecordDataTable;
 	
@@ -206,7 +206,7 @@ package weave
 					for each (var datasource:IDataRowSource in dataSources)
 					{
 						var token:AsyncToken = datasource.getRows(_localProbeKeySet.keys);
-						DelayedAsyncResponder.addResponder(token, recordTable.handleGetRowResult, recordTable.handleGetRowFault);
+						addAsyncResponder(token, recordTable.handleGetRowResult, recordTable.handleGetRowFault);
 					}
 					recordTable.addEventListener(FlexEvent.CREATION_COMPLETE,
 						function(e:FlexEvent):void
