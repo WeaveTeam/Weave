@@ -140,15 +140,18 @@ public class DataConfig
     {
     	detectChange();
     	
-    	int parentType = manifest.getEntryType(parent_id);
-    	if (!DataEntity.parentChildRelationshipAllowed(parentType, type_id))
+    	if (!connectionConfig.migrationPending())
     	{
-    		throw new RemoteException(String.format(
-    				"Invalid parent-child relationship (parent#%s=%s, child=%s).",
-    				parent_id,
-    				DataEntity.getTypeString(parentType),
-    				DataEntity.getTypeString(type_id)
-    			));
+	    	int parentType = manifest.getEntryType(parent_id);
+	    	if (!DataEntity.parentChildRelationshipAllowed(parentType, type_id))
+	    	{
+	    		throw new RemoteException(String.format(
+	    				"Invalid parent-child relationship (parent#%s=%s, child=%s).",
+	    				parent_id,
+	    				DataEntity.getTypeString(parentType),
+	    				DataEntity.getTypeString(type_id)
+	    			));
+	    	}
     	}
     	
         int id = manifest.newEntry(type_id);
@@ -264,18 +267,20 @@ public class DataConfig
 
 		if (parentId == NULL) // parent is root
 		{
-			if (entityTypes.get(childId) == DataEntity.TYPE_HIERARCHY) // child is a hierarchy
-			{
-				// make a copy of the existing hierarchy
-				newChildId = newEntity(DataEntity.TYPE_HIERARCHY, getEntity(childId), NULL, NULL);
-			}
-			else // child is not a hierarchy
+			if (childType == DataEntity.TYPE_COLUMN)
 			{
 				// create a new blank hierarchy to contain the child
-				int hierarchyId = newEntity(DataEntity.TYPE_HIERARCHY, null, NULL, NULL);
+				parentType = DataEntity.TYPE_HIERARCHY;
+				parentId = newEntity(parentType, null, NULL, NULL);
 				// recursive call with new parent id
-				buildHierarchy(hierarchyId, childId, 0);
+				buildHierarchy(parentId, childId, 0);
 				return; // done
+			}
+			else // child is not a column
+			{
+				// copy the child as a hierarchy
+				childType = DataEntity.TYPE_HIERARCHY;
+				newChildId = newEntity(childType, getEntity(childId), NULL, NULL);
 			}
 		}
 		else // parent is not root
@@ -288,7 +293,8 @@ public class DataConfig
 			else // child is not a column
 			{
 				// non-columns always copy as categories
-				newChildId = newEntity(DataEntity.TYPE_CATEGORY, getEntity(childId), parentId, NULL);
+				childType = DataEntity.TYPE_CATEGORY;
+				newChildId = newEntity(childType, getEntity(childId), parentId, insertAtIndex);
 			}
 		}
 		
@@ -575,6 +581,13 @@ public class DataConfig
 		{
 			public int compare(DataEntityTableInfo o1, DataEntityTableInfo o2)
 			{
+				// special cases for null values to prevent null pointer errors
+				if (o1.title == null)
+					return -1;
+				if (o2.title == null)
+					return 1;
+				if (o1 == o2)
+					return 0;
 				return String.CASE_INSENSITIVE_ORDER.compare(o1.title, o2.title);
 			}
 		};

@@ -264,7 +264,7 @@ import weave.utils.SQLUtils;
 				metadata = new DataEntityMetadata();
 			
 			// copy tableName to "title" property if missing
-			if (!metadata.publicMetadata.containsKey(PublicMetadata.TITLE))
+			if (metadata.publicMetadata.get(PublicMetadata.TITLE) == null) // use get() instead of containsKey() because value may be null
 				metadata.publicMetadata.put(PublicMetadata.TITLE, tableName);
 			
 			// create the data table entity and remember the new id
