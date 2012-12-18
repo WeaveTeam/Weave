@@ -394,6 +394,7 @@ public class DataConfig
 		static public final String SQLQUERY = "sqlQuery"; // required to retrieve data from sql, not visible to client
 		static public final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
 		static public final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
+        static public final String SQLKEYCOLUMN = "sqlKeyColumn";
 		static public final String SQLTABLEPREFIX = "sqlTablePrefix"; // used for geometry column
 		static public final String FILENAME = "fileName";
 		static public final String KEYCOLUMN = "keyColumn";
