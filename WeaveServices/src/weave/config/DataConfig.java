@@ -161,24 +161,21 @@ public class DataConfig
         	hierarchy.addChild(parent_id, id, insert_at_index);
         return id;
     }
-    private void removeChildren(int id) throws RemoteException
+    public Collection<Integer> removeEntities(Collection<Integer> ids) throws RemoteException
     {
+    	Collection<Integer> removed = new LinkedList<Integer>(ids);
     	detectChange();
-        for (int child : hierarchy.getChildren(id))
-        {
-            removeEntity(child);
-        }
-    }
-    public void removeEntity(int id) throws RemoteException
-    {
-    	detectChange();
-        /* Need to delete all attributeColumns which are children of a table. */
-        if (getEntity(id).type == DataEntity.TYPE_DATATABLE)
-            removeChildren(id);
-        manifest.removeEntry(id);
-        hierarchy.purge(id);
-        public_metadata.removeAllProperties(id);
-        private_metadata.removeAllProperties(id);
+    	for (int id : ids)
+    	{
+    		// remove all children
+	        if (getEntity(id).type == DataEntity.TYPE_DATATABLE)
+	            removed.addAll( removeEntities( hierarchy.getChildren(id) ) );
+	        manifest.removeEntry(id);
+	        hierarchy.purge(id);
+	        public_metadata.removeAllProperties(id);
+	        private_metadata.removeAllProperties(id);
+    	}
+    	return removed;
     }
     public void updateEntity(int id, DataEntityMetadata diff) throws RemoteException
     {
@@ -367,9 +364,12 @@ public class DataConfig
     public DataEntityTableInfo[] getDataTableList() throws RemoteException
     {
     	Collection<Integer> ids = manifest.getByType(DataEntity.TYPE_DATATABLE);
+    	DataEntityTableInfo[] result = new DataEntityTableInfo[ids.size()];
+    	if (result.length == 0)
+    		return result;
+    	
     	Map<Integer,Integer> childCounts = hierarchy.getChildCounts(ids);
     	Map<Integer,String> titles = public_metadata.getPropertyMap(ids, PublicMetadata.TITLE);
-    	DataEntityTableInfo[] result = new DataEntityTableInfo[ids.size()];
     	int i = 0;
     	for (Integer id : ids)
     	{

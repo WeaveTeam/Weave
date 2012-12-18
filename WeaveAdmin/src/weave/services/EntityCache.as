@@ -85,13 +85,15 @@ package weave.services
 			
 			// delete marked entities
 			var deleted:Boolean = false;
+			var idsToRemove:Array = [];
 			for (id in delete_later)
+				idsToRemove.push(id);
+			
+			if (idsToRemove.length)
 			{
-				Admin.service.removeEntity(id);
-				deleted = true;
-			}
-			if (deleted)
+				addAsyncResponder(Admin.service.removeEntities(idsToRemove), handleRemoveEntities);
 				delete_later = {};
+			}
 			
 			// request invalidated entities
 			var ids:Array = [];
@@ -107,6 +109,12 @@ package weave.services
 				addAsyncResponder(Admin.service.getEntitiesById(ids), getEntityHandler);
 			}
         }
+		
+		private function handleRemoveEntities(event:ResultEvent, token:Object):void
+		{
+			for each (var id:int in event.result as Array)
+				invalidate(id, true);
+		}
 		
         private function getEntityHandler(event:ResultEvent, token:Object):void
         {
@@ -182,7 +190,7 @@ package weave.services
         public function delete_entity(id:int):void
         {
             /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
-			Admin.service.removeEntity(id);
+			delete_later[id] = true;
 			invalidate(id, true);
         }
         public function add_child(parent_id:int, child_id:int, index:int):void

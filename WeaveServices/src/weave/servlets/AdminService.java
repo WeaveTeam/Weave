@@ -568,10 +568,15 @@ public class AdminService
 		return getDataConfig().newEntity(entityType, meta, parentId, DataConfig.NULL);
 	}
 
-	public void removeEntity(String user, String password, int entityId) throws RemoteException
+	public int[] removeEntities(String user, String password, int[] entityIds) throws RemoteException
 	{
-		tryModify(user, password, entityId);
-		getDataConfig().removeEntity(entityId);
+		Collection<Integer> ids = new LinkedList<Integer>();
+		for (int id : entityIds)
+		{
+			tryModify(user, password, id);
+			ids.add(id);
+		}
+		return ListUtils.toIntArray( getDataConfig().removeEntities(ids) );
 	}
 
 	public void updateEntity(String user, String password, int entityId, DataEntityMetadata diff) throws RemoteException
