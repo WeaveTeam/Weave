@@ -69,6 +69,11 @@ package weave.services
 			
 			messageLogCallbacks.triggerCallbacks();
 		}
+		public static function clearMessageLog():void
+		{
+			messageLog.length = 0;
+			messageLogCallbacks.triggerCallbacks();
+		}
 		
         private var admin_url:String;
 		/**
