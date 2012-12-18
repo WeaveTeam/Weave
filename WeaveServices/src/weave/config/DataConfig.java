@@ -290,21 +290,32 @@ public class DataConfig
 				// columns can be added directly to new parents
 				newChildId = childId;
 			}
-			else // child is not a column
+			else if (childType == DataEntity.TYPE_CATEGORY && hierarchy.getParents(childId).size() == 0)
 			{
-				// non-columns always copy as categories
+				// ok to use existing child category since it has no parents
+				newChildId = childId;
+			}
+			else // need to make a copy
+			{
+				// copy as a new category
 				childType = DataEntity.TYPE_CATEGORY;
 				newChildId = newEntity(childType, getEntity(childId), parentId, insertAtIndex);
 			}
 		}
 		
-		// important to get the child list before we add a new child!
-		List<Integer> childIds = hierarchy.getChildren(childId);
-		
-		// recursively copy each child hierarchy element
-		int order = 0;
-		for (int grandChildId : childIds)
-			buildHierarchy(newChildId, grandChildId, order++);
+		if (newChildId != childId)
+		{
+			// important to get the child list before we add a new child!
+			List<Integer> childIds = hierarchy.getChildren(childId);
+			
+			// recursively copy each child hierarchy element
+			int order = 0;
+			for (int grandChildId : childIds)
+			{
+				if (grandChildId != newChildId)
+					buildHierarchy(newChildId, grandChildId, order++);
+			}
+		}
 		
 		// add new child to parent
 		if (parentId != NULL)
