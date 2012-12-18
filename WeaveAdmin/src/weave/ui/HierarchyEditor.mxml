@@ -62,6 +62,7 @@
 			{
 				Admin.entityCache.delete_entity(item.id);
 	        }
+			tableTree.selectedItem = null;
 		}
     }
     public function addTag():void
