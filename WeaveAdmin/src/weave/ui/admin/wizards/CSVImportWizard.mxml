@@ -274,12 +274,11 @@
 			 */
 			override public function finish():void
 			{
-				throw new Error("TODO: geometry selector does nothing, so remove it");
 				var keyColumn:String = generateKeyColumnCheckBox.selected ? '' : csvKeyColumnCombo.text;
 				var secondKeyColumn:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null;
 				var configTableName:String = dataTableNameInput.text
-				var geometryCollection:String = generateKeyColumnCheckBox.selected ? '' : geometrySelector.selectedGeometryCollection;
-				var keyType:String = generateKeyColumnCheckBox.selected ? configTableName : geometrySelector.selectedKeyType;
+				var geometryCollection:String = '';
+				var keyType:String = configTableName;
 				var query:AsyncToken = Admin.service.importCSV(
 						csvFileNameInput.text,
 						keyColumn,

@@ -1083,7 +1083,7 @@ public class AdminService
 		return false;
 	}
 
-	public String importCSV(
+	public int importCSV(
 			String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
 			String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName,
 			boolean configOverwrite, String configKeyType, String[] nullValues,
@@ -1357,10 +1357,16 @@ public class AdminService
 				loader.addRow(row);
 			loader.flush();
 
-			return addConfigDataTable(
+            DataEntityMetadata props = new DataEntityMetadata();
+            props.privateMetadata.put(PrivateMetadata.FILENAME, csvFile);
+            props.privateMetadata.put(PrivateMetadata.KEYCOLUMN, csvKeyColumn);
+            props.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_CSV);
+			int table_id = addConfigDataTable(
 					configDataTableName, connectionName,
 					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames, columnNames, sqlSchema,
-					sqlTable, ignoreKeyColumnQueries, filterColumnNames);
+					sqlTable, ignoreKeyColumnQueries, filterColumnNames, props);
+
+            return table_id;
 		}
 		catch (RemoteException e) // required since RemoteException extends
 									// IOException
@@ -1389,7 +1395,7 @@ public class AdminService
 		}
 	}
 
-	public String importSQL(
+	public int importSQL(
 			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
 			String secondaryKeyColumnName, String configDataTableName,
 			String keyType, String[] filterColumnNames)
@@ -1397,21 +1403,23 @@ public class AdminService
 	{
 		authenticate(connectionName, password);
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
-		return addConfigDataTable(
+        DataEntityMetadata props = new DataEntityMetadata();
+        props.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SQL);
+        int tableId = addConfigDataTable(
 				configDataTableName, connectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
-				filterColumnNames);
+				filterColumnNames, props);
+        return tableId;
 	}
 
-	private String addConfigDataTable(
+	private int addConfigDataTable(
 			String configDataTableName, String connectionName,
 			String keyType, String keyColumnName, String secondarySqlKeyColumn,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
-			boolean ignoreKeyColumnQueries, String[] filterColumnNames)
+			boolean ignoreKeyColumnQueries, String[] filterColumnNames, DataEntityMetadata auxTableData)
 		throws RemoteException
 	{
-		//TODO: return table ID
-		
+	    int table_id = -1;	
 		DataConfig dataConfig = getDataConfig();
 		ConnectionConfig connConfig = getConnectionConfig();
 		
@@ -1520,16 +1528,25 @@ public class AdminService
 				}
 			}
 			// done generating queries
+			DataEntityMetadata tableProperties = auxTableData == null ? new DataEntityMetadata() : auxTableData;
 
-			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			int table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableProperties, DataConfig.NULL, DataConfig.NULL);
+            
+            tableProperties.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName); 
+            tableProperties.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
+            tableProperties.privateMetadata.put(PrivateMetadata.SQLTABLE, sqlTable);
+            tableProperties.privateMetadata.put(PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn);
+            
+			table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableProperties, DataConfig.NULL, DataConfig.NULL);
 
 			for (int i = 0; i < titles.size(); i++)
 			{
 				DataEntityMetadata newMeta = new DataEntityMetadata();
 				newMeta.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName);
 				newMeta.privateMetadata.put(PrivateMetadata.SQLQUERY, queries.get(i));
+                newMeta.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
+                newMeta.privateMetadata.put(PrivateMetadata.SQLTABLE, sqlTable);
+                newMeta.privateMetadata.put(PrivateMetadata.SQLCOLUMN, sqlColumnNames[i]);
 				if (filteredValues != null)
 				{
 					String paramsStr = CSVParser.defaultParser.createCSVRow(queryParamsList.get(i), true);
@@ -1555,9 +1572,7 @@ public class AdminService
 			throw new RemoteException(failMessage, e);
 		}
 
-		return String.format(
-				"DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n",
-				configDataTableName, titles.size());
+        return table_id;
 	}
 
 	/**
@@ -1643,7 +1658,7 @@ public class AdminService
 	 * The following functions involve getting shapes into the database and into the config file.
 	 */
 
-	public String importSHP(
+	public int importSHP(
 			String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns,
 			String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configTitle,
 			String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData)
@@ -1661,6 +1676,7 @@ public class AdminService
 
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
+        int tableId = -1;
 		try
 		{
 			conn = connInfo.getConnection();
@@ -1716,10 +1732,12 @@ public class AdminService
 
 			// add SQL statements to sqlconfig
 			String[] columnNames = getSQLColumnNames(configConnectionName, password, sqlSchema, dbfTableName);
-			resultAddSQL = addConfigDataTable(
+            DataEntityMetadata props = new DataEntityMetadata();
+            props.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SHP);
+			tableId = addConfigDataTable(
 					configTitle, configConnectionName,
 					configKeyType, keyColumnsString, null, columnNames, columnNames,
-					sqlSchema, dbfTableName, false, null);
+					sqlSchema, dbfTableName, false, null, props);
 		}
 		else
 		{
@@ -1742,7 +1760,6 @@ public class AdminService
 			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 	
 			// TODO: use table ID from addConfigDataTable()
-			int tableId = DataConfig.NULL;
 			
 			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, 0);
 		}
@@ -1751,7 +1768,7 @@ public class AdminService
 			throw new RemoteException("Unexpected error",e);
 		}
 
-		return resultAddSQL;
+		return tableId;
 	}
 
 	public String importDBF(
