@@ -133,7 +133,7 @@ public class AdminService extends GenericServlet {
 
 	public static void main(String[] args) {
 //testing
-	 AdminService inst = new AdminService();
+/*	 AdminService inst = new AdminService();
 		
 		 String [] requiredKeywords = new String[2];
 		 String [] relatedKeywords = new String[2];
@@ -143,7 +143,7 @@ public class AdminService extends GenericServlet {
 	     relatedKeywords[0] = "massachusetts";
 	     relatedKeywords[1] = "california";
 	     
-		 inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
+		 inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);*/
 //		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
 	}
 
@@ -815,13 +815,14 @@ public class AdminService extends GenericServlet {
 		}
 		
 		//tracing
-		for(int i=0; i<result.length; i++){
+/*		for(int i=0; i<result.length; i++){
 			System.out.println("******" + result[i]);
-		}
+		}*/
 		
 		return result;
 	}
 
+	//use topic modeling to divide all the documents returned for a query into several groups
 	public TopicClassificationResults classifyDocumentsForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows, int numOfTopics,
@@ -858,7 +859,6 @@ public class AdminService extends GenericServlet {
 			String originalTexts = "";
 			String singleInstance = "";
 			if (documentSize > 0) {
-				// int i = 1;
 				while (itr.hasNext()) {
 					doc = itr.next();
 					if (doc.getFieldValue("description") != null) {
@@ -871,10 +871,7 @@ public class AdminService extends GenericServlet {
 								+ "\r\n";
 						originalTexts += singleInstance;
 					}
-					// i++;
 				}
-
-				// System.out.println("**");
 			} else {
 				System.out.println("NO Documents returned...");
 			}
@@ -889,51 +886,34 @@ public class AdminService extends GenericServlet {
 		
 			URL stoplistPath = getClass().getClassLoader().getResource(
 					"infomap/resources/stopwords.txt");
-			// System.out.println(getClass().getClassLoader().getResource("infomap/resources/stopwords.txt"));
 			System.out.println(stoplistPath.getFile());
 			String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(),
 					"UTF-8");
 			pipeList.add(new TokenSequenceRemoveStopwords(new File(
 					stopListFilePath), "UTF-8", false, false, false));
-			// getClass().getClassLoader().getResourceAsStream("infomap/resources/stopwords.txt")
 			pipeList.add(new TokenSequence2FeatureSequence());
-
-			// getClass().getClassLoader().
 			InstanceList instances = new InstanceList(new SerialPipes(pipeList));
-
-			// Reader fileReader = new InputStreamReader(new FileInputStream(new
-			// File(args[0])), "UTF-8");
 			Reader fileReader = new InputStreamReader(
 					IOUtils.toInputStream(originalTexts));
 			instances
 					.addThruPipe(new CsvIterator(
 							fileReader,
 							Pattern.compile("^(\\S*)[\\s]*(\\S*)[\\s]*([\\w\\W\\s\\S\\d\\D]*)$"),
-							3, 2, 1)); // data,
-			// label,
-			// name
-			// fields
+							3, 2, 1)); 	// data, label, name, fields
 
-			// Create a model with 100 topics, alpha_t = 0.01, beta_w = 0.01
+			// Create a model with numOfTopics topics, alpha_t = 0.01, beta_w = 0.01
 			// Note that the first parameter is passed as the sum over topics,
-			// while
-			// the second is the parameter for a single dimension of the
-			// Dirichlet
-			// prior.
+			// while the second is the parameter for a single dimension of the
+			// Dirichlet prior.
 			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0,
 					0.01);
 			model.logger.setLevel(java.util.logging.Level.OFF);
 			model.addInstances(instances);
 
-			// Use two parallel samplers, which each look at one half the corpus
-			// and
-			// combine
-			// statistics after every iteration.
+			//two parallel samplers
 			model.setNumThreads(2);
 
-			// Run the model for 100 iterations and stop (this is for testing
-			// only,
-			// for real applications, use 1000 to 2000 iterations)
+			//for better result, change 100 to some larger number such as 1000 or 2000
 			model.setNumIterations(100);
 			model.estimate();
 
@@ -962,14 +942,8 @@ public class AdminService extends GenericServlet {
 			}
 
 			for (int i = 0; i < dataSize; i++) {
-				// group[groupInfo[i]] += (" "+
-				// documents.get(i).getFieldValue("description").toString());
 				groupSize[groupInfo[i]]++;
 			}
-			/*
-			 * for(int i = 0; i < numTopics; i++){ System.out.println("Group " +
-			 * i + " size is :"+ groupSize[i]); }
-			 */
 
 			// document Group infomation
 			String documentGroupInfo[][] = new String[dataSize][2];
@@ -983,9 +957,6 @@ public class AdminService extends GenericServlet {
 				documentGroupInfo[i][0] = documents.get(i)
 						.getFieldValue("link").toString();
 				documentGroupInfo[i][1] = Integer.toString(groupInfo[i]);
-				// System.out.println("Document with link " +
-				// documentGroupInfo[i][0] + " belongs to group " +
-				// documentGroupInfo[i][1]);
 			}
 
 			// Get an array of sorted sets of word ID/count pairs
