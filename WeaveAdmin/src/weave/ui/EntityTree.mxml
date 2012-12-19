@@ -26,17 +26,8 @@
 			{
 				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleMetadataCache);
 				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
-				
-				debugTrace(a);
 			}
 			
-			private var a:Array = [];
-			private function debugEvent(e:Event):void
-			{
-				trace(e.type);
-				a.push(e);
-			}
-	
 			private function connectionReady(userHasAuthenticated:Boolean):void
 			{
 			    if (userHasAuthenticated == true)
