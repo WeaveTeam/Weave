@@ -88,6 +88,12 @@ import infomap.utils.SQLResult;
 import infomap.utils.SQLUtils;
 import infomap.utils.XMLUtils;
 
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.Tokenizer;
+import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
+
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -127,13 +133,17 @@ public class AdminService extends GenericServlet {
 
 	public static void main(String[] args) {
 //testing
-//		 AdminService inst = new AdminService();
-//		
-//		 String [] requiredKeywords = new String[2];
-//		
-//		 requiredKeywords[0] = "asthma";
-//		 requiredKeywords[1] = "diabetes";
-//		 
+	 AdminService inst = new AdminService();
+		
+		 String [] requiredKeywords = new String[2];
+		 String [] relatedKeywords = new String[2];
+		
+		 requiredKeywords[0] = "asthma";
+	     requiredKeywords[1] = "diabetes";
+	     relatedKeywords[0] = "massachusetts";
+	     relatedKeywords[1] = "california";
+	     
+		 inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
 //		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
 	}
 
@@ -737,6 +747,80 @@ public class AdminService extends GenericServlet {
 
 		return result;
 	}
+	
+	//return all the sentences that contains at least one required keyword and one related keywords
+	public String[] entitySentences(String[] requiredKeywords, String[] relatedKeywords, String dateFilter,
+			 int rows) throws NullPointerException{
+		
+		setSolrServer(solrServerUrl);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);  
+        Set<String> tempresult = new HashSet<String>();
+		if (queryString == null)
+			return null;
+		try {
+
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
+					"score", SolrQuery.ORDER.desc);
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
+			q.setRows(rows);
+			q.setFields("link,description");
+			QueryResponse response = solrInstance.query(q);
+			SolrDocumentList documents = response.getResults();
+			int documentSize = documents.size();
+			SolrDocument doc = null;
+			String originalTexts = "";
+			URL sentenceModelPath = getClass().getClassLoader().getResource("infomap/resources/en-sent.bin");
+	        String sentenceModelFilePath = URLDecoder.decode(sentenceModelPath.getFile(),"UTF-8");
+	        SentenceModel senModel = new SentenceModel(new FileInputStream(sentenceModelFilePath));
+	        SentenceDetectorME sentenceDetector = new SentenceDetectorME(senModel);
+	        String sentences[] = null;
+			Iterator<SolrDocument> itr1 = documents.iterator();
+			if (documentSize > 0) {
+				while(itr1.hasNext()){
+					doc = itr1.next();
+					if (doc.getFieldValue("description") != null) {
+					originalTexts = doc.getFieldValue("description").toString();
+					sentences = sentenceDetector.sentDetect(doc.getFieldValue("description").toString());
+					for(int j=0; j<sentences.length; j++){
+                        //use required keyword and related keyword
+						for(int k=0; k<requiredKeywords.length; k++){
+							for(int l=0; l<relatedKeywords.length; l++){
+								if(sentences[j].contains(requiredKeywords[k]) && sentences[j].contains(relatedKeywords[l]) && !tempresult.add(sentences[j]) ){ 
+									tempresult.add(sentences[j]); 
+									}
+							}
+						}
+					}
+				}
+				}				
+				
+			} else {
+				System.out.println("NO Documents returned...");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		String [] result = new String[tempresult.size()];
+		Iterator<String> iter = tempresult.iterator();
+		int tempcounter = 0;
+		String tempString = "";
+		while(iter.hasNext()){
+			tempString = iter.next();
+			result[tempcounter] = tempString;
+            tempcounter++;
+		}
+		
+		//tracing
+		for(int i=0; i<result.length; i++){
+			System.out.println("******" + result[i]);
+		}
+		
+		return result;
+	}
 
 	public TopicClassificationResults classifyDocumentsForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
@@ -847,22 +931,13 @@ public class AdminService extends GenericServlet {
 			// statistics after every iteration.
 			model.setNumThreads(2);
 
-			// Run the model for 50 iterations and stop (this is for testing
+			// Run the model for 100 iterations and stop (this is for testing
 			// only,
 			// for real applications, use 1000 to 2000 iterations)
 			model.setNumIterations(100);
 			model.estimate();
 
-			// Show the words and topics in the first instance
-
-			// The data alphabet maps word IDs to strings
 			Alphabet dataAlphabet = instances.getDataAlphabet();
-
-			// System.out.println(out);
-			// System.out.println("Query: " + url);
-			// System.out.println("Number of the documents:" + documentSize);
-			// System.out.println("Number of the groups:" + numTopics);
-
 			int dataSize = instances.size();
 			int[] groupInfo = new int[dataSize];
 			for (int i = 0; i < dataSize; i++) {
