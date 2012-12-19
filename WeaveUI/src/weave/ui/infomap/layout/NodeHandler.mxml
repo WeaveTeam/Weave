@@ -1935,6 +1935,9 @@
 					var urls:Array = _topicsResult.urls;
 					var keywords:Array = _topicsResult.keywords;
 					
+					//store all the urls of the uncategoried documents, it is an 1D.
+					var uncategoried:Array = _topicsResult.uncategoried; 
+					
 					//var topicComponent:TopicNodeComponent = new TopicNodeComponent();
 					var parentComponent:UIComponent = new UIComponent();
 					parentComponent.width = 400;
@@ -1960,7 +1963,6 @@
 					fadeOut.play(topicComponents);
 					flag_click = true;
 				}
-				
 			}
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void

@@ -142,8 +142,9 @@ public class AdminService extends GenericServlet {
 	     requiredKeywords[1] = "diabetes";
 	     relatedKeywords[0] = "massachusetts";
 	     relatedKeywords[1] = "california";
-	     
-		 inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);*/
+	     inst.classifyDocumentsForQuery(requiredKeywords, relatedKeywords, null, 100, 5, 5);*/
+		 //inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
+	     //inst.
 //		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
 	}
 
@@ -830,6 +831,9 @@ public class AdminService extends GenericServlet {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
+		
+		String[] uncategoried = null;
+        Set<String> tempuncategoried = new HashSet<String>();
 
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
 
@@ -870,6 +874,8 @@ public class AdminService extends GenericServlet {
 										.replace('\n', ' ').replace('\r', ' ')
 								+ "\r\n";
 						originalTexts += singleInstance;
+					}else{
+						tempuncategoried.add(doc.getFieldValue("link").toString());
 					}
 				}
 			} else {
@@ -1033,9 +1039,24 @@ public class AdminService extends GenericServlet {
 			 System.out.println();
 			 }*/
 
+			if(tempuncategoried.size()>0){
+				uncategoried = new String[tempuncategoried.size()];
+				Iterator<String> iter = tempuncategoried.iterator();
+				int tempcounter = 0;
+				String tempString = "";
+				while(iter.hasNext()){
+					tempString = iter.next();
+					uncategoried[tempcounter] = tempString;
+		            tempcounter++;
+				}
+			}
+			
 			topicModelingResutls.keywords = topicKeywords;
 
 			topicModelingResutls.urls = resultUrls;
+			
+			topicModelingResutls.uncategoried = uncategoried;
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
