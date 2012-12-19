@@ -54,7 +54,7 @@ package weave.visualization.plotters
 			var fill:SolidFillStyle = fillStyle.internalObject as SolidFillStyle;
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			_beginRadians = newLinkableChild(this, EquationColumn);
+			_beginRadians = newSpatialProperty(EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(sortedData) / getSum(sortedData) * 2 * PI";
@@ -167,6 +167,7 @@ package weave.visualization.plotters
 			var spanRadians:Number = _spanRadians.getValueFromKey(recordKey, Number);
 			var bounds:IBounds2D = getReusableBounds();
 			WedgePlotter.getWedgeBounds(bounds, beginRadians, spanRadians);
+			trace(recordKey.localName,bounds);
 			return [bounds];
 		}
 		
