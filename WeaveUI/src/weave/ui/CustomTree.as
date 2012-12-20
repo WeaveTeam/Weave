@@ -1,15 +1,12 @@
 // modified from http://www.frishy.com/2007/09/autoscrolling-for-flex-tree/
-package weave.ui {
+package weave.ui
+{
 	import flash.events.Event;
 	
-	import mx.collections.ICollectionView;
 	import mx.collections.IList;
 	import mx.controls.Tree;
-	import mx.controls.listClasses.IListItemRenderer;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
-	
-	import spark.components.supportClasses.ItemRenderer;
 	
 	import weave.utils.EventUtils;
 	
@@ -65,8 +62,6 @@ package weave.ui {
 			invalidateDisplayList();
 		}
 		
-		private var _rootItemRenderer:IListItemRenderer;
-		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			if (_scrollInvalid)
@@ -87,24 +82,16 @@ package weave.ui {
 				_invalidateScrollLater();
 			}
 			
-			// if showRoot is false and root is showing, refresh data provider to hide root
+			// If showRoot is false and root is showing, force commitProperties() to fix the problem.
+			// This workaround requires that the data descriptor reports that the root item is a branch and it has children, even if it doesn't.
 			if (!showRoot)
 			{
-				try {
-					var rootItem:Object = (dataProvider as IList).getItemAt(0);
-					
-					// make sure to reset visibility if item render gets re-used.
-					if (_rootItemRenderer && _rootItemRenderer.data != rootItem)
-						_rootItemRenderer.visible = true;
-					
-					_rootItemRenderer = itemToItemRenderer(rootItem);
-					if (_rootItemRenderer)
-					{
-						_rootItemRenderer.visible = false;
-						dataProvider = dataProvider;
-						validateNow();
-					}
-				} catch (e:Error) { }
+				var rootItem:Object = dataProvider is IList ? (dataProvider as IList).getItemAt(0) : null;
+				if (rootItem && itemToItemRenderer(rootItem))
+				{
+					mx_internal::showRootChanged = true;
+					commitProperties();
+				}
 			}
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);

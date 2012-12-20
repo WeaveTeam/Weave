@@ -1,6 +1,7 @@
 package weave.ui
 {
     import mx.collections.ICollectionView;
+    import mx.collections.IList;
     import mx.controls.treeClasses.ITreeDataDescriptor;
     
     public class EntityTreeDataDescriptor implements ITreeDataDescriptor
@@ -31,7 +32,14 @@ package weave.ui
         public function hasChildren(node:Object, model:Object = null):Boolean
         {
 			var children:ICollectionView = (node as EntityNode).children;
-			return children && children.length;
+			if (children && children.length)
+				return true;
+			
+			// special case - check for root
+			if (model is IList && node == (model as IList).getItemAt(0))
+				return true;
+			
+			return false;
         }
         public function getData(node:Object, model:Object = null):Object
         {
@@ -39,7 +47,14 @@ package weave.ui
         }
         public function isBranch(node:Object, model:Object = null):Boolean
         {
-			return (node as EntityNode).children != null;
+			if ((node as EntityNode).children != null)
+				return true;
+			
+			// special case - check for root
+			if (model is IList && node == (model as IList).getItemAt(0))
+				return true;
+			
+			return false;
         }
     }
 }
