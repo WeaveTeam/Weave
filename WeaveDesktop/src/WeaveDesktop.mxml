@@ -2,7 +2,6 @@
 <mx:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
-					   xmlns:weave="weave.*"
 					   enterFrame="handleEnterFrame()"
 					   invoke="handleInvoke(event)" layout="absolute"
 					   paddingTop="0"
@@ -16,11 +15,11 @@
 		<![CDATA[
 			import mx.core.FlexGlobals;
 			import mx.rpc.events.ResultEvent;
+			import weave.application.VisApp;
 			
-			import weave.VisApplication;
 			import weave.api.WeaveAPI;
 			
-			public var visApp:VisApplication = null
+			public var visApp:VisApp = null
 			private var params:Object = null;
 			
 			override public function get parameters():Object
@@ -83,7 +82,7 @@
 				var app:Object = FlexGlobals.topLevelApplication;
 				if (!visApp && app && app.stage && params)
 				{
-					addChild(visApp = new VisApplication());
+					addChild(visApp = new VisApp());
 					visApp.setFlashVars(params);
 				}
 			}

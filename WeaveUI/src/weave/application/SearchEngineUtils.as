@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-package weave
+package weave.application
 {
 	import flash.display.DisplayObject;
 	import flash.events.ContextMenuEvent;
@@ -48,7 +48,7 @@ package weave
 	import weave.ui.CustomContextMenuManager;
 	import weave.utils.ProbeTextUtils;
 	
-	public class SearchEngineUtils
+	internal class SearchEngineUtils
 	{
 		private static var _globalProbeKeySet:KeySet = null; // pointer to global probe key set
 		private static const _localProbeKeySet:KeySet = new KeySet(); // local object to store last non-empty probe set

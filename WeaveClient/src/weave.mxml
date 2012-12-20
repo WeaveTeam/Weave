@@ -21,13 +21,12 @@
 -->
 <mx:Application
 		xmlns:mx="http://www.adobe.com/2006/mxml"
-		xmlns:weave="weave.*"
 		horizontalScrollPolicy="off"
 		verticalScrollPolicy="off"
 		paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
-		horizontalAlign="left"
+		horizontalAlign="left" xmlns:application="weave.application.*"
 		>
-	<weave:VisApplication width="100%" height="100%" id="visApp"/>
+	<application:VisApp id="visApp"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;

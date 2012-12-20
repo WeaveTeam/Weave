@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave
+package weave.application
 {
 	import mx.containers.Canvas;
 	
@@ -28,7 +28,7 @@ package weave
 	import weave.core.LinkableDynamicObject;
 	import weave.core.UIUtils;
 	
-	public class VisDesktop extends Canvas implements ILinkableContainer, IDisposableObject
+	internal class VisDesktop extends Canvas implements ILinkableContainer, IDisposableObject
 	{
 		public function VisDesktop()
 		{
