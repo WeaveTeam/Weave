@@ -130,12 +130,12 @@ package weave.data.AttributeColumns
 			for (var i:int = 0; i < table.length; i++)
 			{
 				var row:Array = table[i] as Array;
-				if (row.length == 0)
+				if (row == null || row.length == 0)
 					continue; // skip blank lines
 
 				// get the key from the first column and the value from the second.
-				key = WeaveAPI.QKeyManager.getQKey(keyType.value, row[0] as String);
-				value = (row.length > 1 ? row[1] : '') as String;
+				key = WeaveAPI.QKeyManager.getQKey(keyType.value, String(row[0]));
+				value = String(row.length > 1 ? row[1] : '');
 				
 				// save the results of parsing the CSV row
 				_keyToIndexMap[key] = _keys.length;
