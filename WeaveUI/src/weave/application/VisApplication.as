@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave
+package weave.application
 {
 	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
@@ -53,6 +53,8 @@ package weave
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.Weave;
+	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
@@ -112,7 +114,7 @@ package weave
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.WeaveAnalyst;
 
-	public class VisApplication extends VBox implements ILinkableObject
+	internal class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
@@ -146,6 +148,9 @@ package weave
 			verticalScrollPolicy   = "off";
 			visDesktop.verticalScrollPolicy   = "off";
 			visDesktop.horizontalScrollPolicy = "off";
+			
+			percentWidth = 100;
+			percentHeight = 100;
 
 			callLater(waitForApplicationComplete);
 		}
@@ -188,7 +193,7 @@ package weave
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, true);
+			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 			
 			getFlashVars();
 			handleFlashVarAllowDomain();
@@ -307,12 +312,14 @@ package weave
 		}
 		
 		
-		private function handleBackgroundColorChange():void
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			var color:Number = Weave.properties.backgroundColor.value;
-			this.setStyle('backgroundColor', color);
+			this.graphics.clear();
+			this.graphics.beginFill(color);
+			this.graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
 			
-			//(WeaveAPI.topLevelApplication as UIComponent).setStyle("backgroundGradientColors", [color, color]);
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		
 		/**

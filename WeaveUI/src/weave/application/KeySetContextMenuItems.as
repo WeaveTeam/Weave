@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave
+package weave.application
 {
 	import flash.display.DisplayObject;
 	import flash.events.ContextMenuEvent;
@@ -29,6 +29,7 @@ package weave
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
 	import weave.api.data.IDataRowSource;
@@ -46,7 +47,7 @@ package weave
 	 * @author abaumann
 	 * @author adufilie
 	 */
-	public class KeySetContextMenuItems
+	internal class KeySetContextMenuItems
 	{
 		private static var _createSubsetCMI:ContextMenuItem = null;
 		private static var _addToSubsetCMI:ContextMenuItem = null;
