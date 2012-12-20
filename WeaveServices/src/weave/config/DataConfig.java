@@ -273,7 +273,12 @@ public class DataConfig
 				buildHierarchy(parentId, childId, 0);
 				return; // done
 			}
-			else // child is not a column
+			else if (childType == DataEntity.TYPE_HIERARCHY)
+			{
+				// hierarchies are always at root, so do nothing.
+				return;
+			}
+			else // child is not a column or a hierarchy
 			{
 				// copy the child as a hierarchy
 				childType = DataEntity.TYPE_HIERARCHY;

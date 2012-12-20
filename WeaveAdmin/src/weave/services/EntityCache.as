@@ -195,6 +195,12 @@ package weave.services
         }
         public function add_child(parent_id:int, child_id:int, index:int):void
         {
+			if (parent_id == ROOT_ID && delete_later[child_id])
+			{
+				// prevent hierarchy-dragged-to-root from removing the hierarchy
+				delete delete_later[child_id];
+				return;
+			}
 			Admin.service.addParentChildRelationship(parent_id, child_id, index);
 			invalidate(parent_id);
         }
