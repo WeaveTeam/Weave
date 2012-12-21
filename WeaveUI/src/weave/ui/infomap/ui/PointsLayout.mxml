@@ -106,7 +106,6 @@
 						addChild(t);
 						t.positionPoint(xPos,yPos);
 						count++;
-						trace(count);
 					}
 					
 				}

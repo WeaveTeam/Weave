@@ -1,6 +1,8 @@
 package infomap.scheduler;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -100,14 +102,23 @@ public final class SolrScheduler extends HttpServlet{
 		
 		Boolean keepRunning = true;
 		
-		
-
 		public Boolean call() 
 		{
 			System.out.println("RUNNING SOLRSCHEDULER THREAD WITH NAME " + Thread.currentThread().getName());
 			// TODO Auto-generated method stub
 			System.out.println("Setting up Scheduler...");
-			System.out.println("RUNNING WITH MEMORY SIZE" + Runtime.getRuntime().maxMemory());
+			System.out.println("RUNNING WITH MEMORY SIZE " + Runtime.getRuntime().maxMemory());
+			
+			Properties prop = new Properties();
+			try{
+				InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+				prop.load(config);
+			}catch (Exception e)
+			{
+				System.out.println("Error reading configuration file");
+				return false;
+			}
+			
 			try{
 			
 				sched = _schedFactory.getScheduler();
@@ -124,12 +135,17 @@ public final class SolrScheduler extends HttpServlet{
 				sched.scheduleJob(indexingJob, triggerIndexingJob);
 				sched.start();
 				
+				String enableThumbnail = prop.getProperty("enableThumbnailing");
+				
 				JobKey thumbnailJobKey = JobKey.jobKey(jobNameForThumbnaiil,jobGroupName);
-				JobDetail thumbnailJob = JobBuilder.newJob(GenerateThumbnailJob.class).withIdentity(thumbnailJobKey)
-										.storeDurably()
-										.build();
-				sched.addJob(thumbnailJob,true);
-				sched.triggerJob(thumbnailJobKey);
+				if(enableThumbnail.equalsIgnoreCase("true"))
+				{
+					JobDetail thumbnailJob = JobBuilder.newJob(GenerateThumbnailJob.class).withIdentity(thumbnailJobKey)
+					.storeDurably()
+					.build();
+					sched.addJob(thumbnailJob,true);
+					sched.triggerJob(thumbnailJobKey);
+				}
 				
 				JobKey summarizationJobKey = JobKey.jobKey(jobNameForSummarization,jobGroupName);
 				JobDetail summarizationJob = JobBuilder.newJob(SummarizationJob.class).withIdentity(summarizationJobKey)
@@ -162,7 +178,7 @@ public final class SolrScheduler extends HttpServlet{
 					}else
 					{
 						try{
-							if(!thumbnailJobfound)
+							if(!thumbnailJobfound && enableThumbnail.equalsIgnoreCase("true"))
 							{
 								sched.triggerJob(thumbnailJobKey);
 								System.out.println("Triggering Thumbnail Job");

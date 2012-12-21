@@ -490,7 +490,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						var r:Rectangle = t.getRect(map);
 						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
-						if(selectionRect.intersects(r))
+						if(t.visible == true && selectionRect.intersects(r))
 						{
 //							map.graphics.lineStyle(1,0);
 //							map.graphics.drawRect(r.x,r.y,r.width,r.height);
@@ -802,12 +802,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function popupLoader():void
 			{
-//				var loader:HTMLFileUploader = PopUpManager.createPopUp(this,HTMLFileUploader) as HTMLFileUploader;
-//				PopUpManager.centerPopUp(loader);
-//				loader.addEventListener(CloseEvent.CLOSE,function():void{PopUpManager.removePopUp(loader);});
+				var loader:HTMLFileUploader = PopUpManager.createPopUp(this,HTMLFileUploader) as HTMLFileUploader;
+				PopUpManager.centerPopUp(loader);
+				loader.addEventListener(CloseEvent.CLOSE,function():void{PopUpManager.removePopUp(loader);});
 				
-				var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.testDropBox();
-				q.addAsyncResponder(callDropBox,faultDropBox);
 			}
 			
 			private function callDropBox(event:ResultEvent,token:Object = null):void

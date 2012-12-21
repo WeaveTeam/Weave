@@ -5,6 +5,7 @@ package weave.services
 		import flash.utils.Dictionary;
 		import flash.utils.getDefinitionByName;
 		
+		import mx.rpc.AsyncToken;
 		import mx.rpc.Fault;
 		import mx.rpc.events.FaultEvent;
 		import mx.rpc.events.ResultEvent;
@@ -63,6 +64,12 @@ package weave.services
 				queue.addToQueue(query);
 				// automatically display FaultEvent error messages as alert boxes
 				query.addAsyncResponder(null, alertFault, query);
+				return query;
+			}
+			
+			private function generateQueryAndRun(methodName:String, parameters:Array):AsyncToken
+			{
+				var query:AsyncToken = service.invokeAsyncMethod(methodName, parameters);
 				return query;
 			}
 			// this function displays a String response from a server in an Alert box.
@@ -175,76 +182,65 @@ package weave.services
 //				return query;
 //			}
 			
-			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int):DelayedAsyncInvocation
+			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows]);
+				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows]);
 				return query;
 			}
 			
-			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,numOfTopics:int=5,numOfKeywords:int=5):DelayedAsyncInvocation
+			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords]);
+				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords]);
 				return query;
 			}
 			
-			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,rows:int):DelayedAsyncInvocation
+			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,rows:int):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,dateFilter,filterTerms,rows]);
+				var query:AsyncToken = generateQueryAndRun("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,dateFilter,filterTerms,rows]);
 				return query;
 			}			
 			
-			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String):DelayedAsyncInvocation
+			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString]);
+				var query:AsyncToken = generateQueryAndRun("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString]);
 				return query;
 			}
 			
-			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int):DelayedAsyncInvocation
+			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows]);
+				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows]);
 				return query;
 			}
 			
 			
-			public function getQueryResults(queryTerms:Array,filterQuery:String,sortField:String,rows:int,solrURL:String=null):DelayedAsyncInvocation
+			public function getQueryResults(queryTerms:Array,filterQuery:String,sortField:String,rows:int,solrURL:String=null):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryTerms,filterQuery,sortField,rows,solrURL]);
+				var query:AsyncToken = generateQueryAndRun("getQueryResults",[queryTerms,filterQuery,sortField,rows,solrURL]);
 				return query;
 			}
 			
-			public function getNumberOfMatchedDocuments(queryTerms:Array,filterQuery:String,solrURL:String=null):DelayedAsyncInvocation
+			public function getNumberOfMatchedDocuments(queryTerms:Array,filterQuery:String,solrURL:String=null):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryTerms,filterQuery,solrURL]);
+				var query:AsyncToken = generateQueryAndRun("getNumberOfMatchedDocuments",[queryTerms,filterQuery,solrURL]);
 				return query;
 			}
 			
 			public function queryDataSources(queryTerms:Array):void
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("queryDataSources",[queryTerms]);
+				var query:AsyncToken = generateQueryAndRun("queryDataSources",[queryTerms]);
 			}
 			
-			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String):DelayedAsyncInvocation
+			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getWordCount",[requiredKeywords,relatedKeywords,dateFilter]);
+				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter]);
 				return query;
 			}
 			
-			public function getDescriptionForURL(url:String,keywords:Array):DelayedAsyncInvocation
+			public function getDescriptionForURL(url:String,keywords:Array):AsyncToken
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getDescriptionForURL",[url,keywords]);
+				var query:AsyncToken = generateQueryAndRun("getDescriptionForURL",[url,keywords]);
 				return query;
 			}
 			
-			public function testDropBox():DelayedAsyncInvocation
-			{
-				var q:DelayedAsyncInvocation = generateQueryAndAddToQueue("testDropbox",[]);
-				return q;
-			}
-			
-			public function testAddFileToDropBox():DelayedAsyncInvocation
-			{
-				var q:DelayedAsyncInvocation = generateQueryAndAddToQueue("testAddFileToDropBox",[]);
-				return q;
-			}
 		}
 }

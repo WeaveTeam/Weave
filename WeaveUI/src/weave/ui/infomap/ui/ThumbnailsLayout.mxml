@@ -28,7 +28,7 @@
 					return;
 				
 				_docs = thumbnails;				
-				
+				_startIndex = 0;
 				draw();
 			}
 			

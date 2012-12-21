@@ -65,6 +65,7 @@
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.managers.PopUpManagerChildList;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
@@ -107,6 +108,7 @@
 			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
 			import weave.services.DelayedAsyncInvocation;
+			import weave.services.DelayedAsyncResponder;
 			import weave.services.beans.TopicClassificationResults;
 			import weave.ui.CustomLabel;
 			import weave.ui.DraggablePanel;
@@ -590,9 +592,9 @@
 //				_selection.removeCallback(handleSelectionKeySetChange); //remove callback to selection keys and only call after we get entity distribution results.
 				
 				hideIcons();
-				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter);
+				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,dateFilter);
 				
-				numOfDocsQuery.addAsyncResponder(handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
+				DelayedAsyncResponder.addResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
 					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
 				
 				
@@ -636,10 +638,10 @@
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
-				var docSetQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(query.keywords.value.split(','),
+				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(query.keywords.value.split(','),
 						relatedKeywords,dateFilter,5000);
 				
-				docSetQuery.addAsyncResponder(handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+				DelayedAsyncResponder.addResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 //				else
 //				{
 //					if(!query.sources.value == '')
@@ -707,7 +709,8 @@
 					token.endDate != dateFilter.endDate.value)
 					return;
 				wordCount = event.result as Array;
-				toggleTagCloud(null,token.forceShow,token.forceHide);
+				nodeBase.filterImg.visible = true;
+//				toggleTagCloud(null,token.forceShow,token.forceHide);
 			}
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
@@ -795,6 +798,14 @@
 				nodeBase.gridImg.visible = true;
 				testAndBlinkNode();
 				positionThumbnails();
+				
+				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
+					query.keywords.value.split(','),relatedKeywords,dateFilter);
+				
+				DelayedAsyncResponder.addResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
+					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value,
+						forceHide:true,forceShow:false});
+				
 				getEntityDistribution();
 				getTopicsClassification();
 			}
@@ -987,15 +998,23 @@
 			{
 				if(_tagWordSubset.included.keys.length == 0)
 				{
-					//if records are selected then show nothing
-					if(_selection.keys.length >0)
+					//unsetting visible property for filtered DocThumbnailComponents
+					var thumbs:Array = thumbnails.getObjects();
+					for (var i:int = 0; i < thumbs.length; i++)
 					{
-						docListComponent.docKeys = []
+						var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
+						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+						
+						if(_subset.containsKey(qKey))
+						{
+							(thumbs[i] as DocThumbnailComponent).visible = true;
+						}
 					}
-					else //if no records are selected then show all
-					{
-						addAllDocumentsToList();
-					}
+					
+					addAllDocumentsToList();
+					if(_gridView && _gridView.alpha ==1)
+						redrawGrid();
+						
 				}else
 				{
 					docListComponent.docKeys = _tagWordSubset.included.keys;
@@ -1079,10 +1098,10 @@
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				
-				var entityQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
+				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
 															relatedKeywords,entities,dateFilter,5000);
 				
-				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault,
+				DelayedAsyncResponder.addResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
 					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
 			}
 			
@@ -1192,7 +1211,7 @@
 			{
 				var items:Array = (event.currentTarget as List).selectedItems;
 				
-				var urls:Array = []
+				var urls:Array = [];
 				for each (var doc:DocThumbnailComponent in items)
 				{
 					urls.push(doc.docURL.value);
@@ -1592,10 +1611,10 @@
 				
 				if(wordCount.length == 0)
 				{
-					var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
+					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
 						query.keywords.value.split(','),relatedKeywords,dateFilter);
 					
-					wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault,
+					DelayedAsyncResponder.addResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 						{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value,
 							forceHide:forceHide,forceShow:forceShow});
 					
@@ -1758,7 +1777,7 @@
 					_gridView.y = nodeBase.height + statusBox.height;
 				}
 				
-				_gridView.plotThumbnails(thumbnails.getObjects());
+				_gridView.plotThumbnails(includedThumbnails());
 				
 				if(_gridView.alpha == 1)
 				{
@@ -1772,9 +1791,39 @@
 				}
 			}
 			
+			private function redrawGrid():void
+			{
+				_gridView.y = nodeBase.height + statusBox.height;
+				_gridView.plotThumbnails(includedThumbnails());
+			}
+			
+			private function includedThumbnails():Array
+			{
+				var thumbs:Array = thumbnails.getObjects();
+				var requiredThumbs:Array = []
+				for (var i:int = 0; i < thumbs.length; i++)
+				{
+					var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
+					{
+						requiredThumbs.push(thumbs[i]);
+					}
+				}
+				return requiredThumbs;
+			}
+			
 			private var _pointCanvas:PointsLayout = new PointsLayout();
 			private function showPoints(event:Event=null):void
 			{
+				if(_pointCanvas.alpha == 1)
+				{
+					fadeOut.play([_pointCanvas]);
+					return;
+				}
+
+				status.text = "Drawing points...";
 				var urls:Array = [];
 				VectorUtils.copy(_topicsResult.urls,urls);
 				var keywords:Array = _topicsResult.keywords;
@@ -1786,19 +1835,13 @@
 				_pointCanvas.y = nodeBase.height + statusBox.height;
 				_pointCanvas.drawPoints(urls, keywords, this);
 				
-				
-				if(_pointCanvas.alpha == 1)
-				{
-					fadeOut.play([_pointCanvas]);
-				}else
-				{
-					fadeOut.play([pointsCanvas,listCanvas,topicComponent]);
-					if(_gridView)
-						fadeOut.play([_gridView]);
-					if(tagCanvas)
-						fadeOut.play([tagCanvas]);
-					fadeIn.play([_pointCanvas]);
-				}
+				fadeOut.play([pointsCanvas,listCanvas,topicComponent]);
+				if(_gridView)
+					fadeOut.play([_gridView]);
+				if(tagCanvas)
+					fadeOut.play([tagCanvas]);
+				fadeIn.play([_pointCanvas]);
+				status.text = "";
 			}
 			
 			
@@ -1828,7 +1871,10 @@
 			private function filterListByKeywords():void
 			{
 				if(!filteredWords.value)
+				{
+					_tagWordSubset.replaceKeys(false,true,[]);					
 					return;
+				}
 				
 //				if(!query.sources.value == '')
 //				{
@@ -1842,10 +1888,10 @@
 				status.htmlText= "Filtering list...";
 				clearFiltersButton.visible = false;
 				
-				var filterQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(query.keywords.value.split(','),
+				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(query.keywords.value.split(','),
 					relatedKeywords,dateFilter,filteredWords.value.split(','),5000);
 				
-				filterQuery.addAsyncResponder(handleFilterQueryResult,handleFilterQueryFault);
+				DelayedAsyncResponder.addResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
 			}
 			
 			private function handleFilterQueryResult(event:ResultEvent,token:Object=null):void
@@ -1879,7 +1925,7 @@
 			
 			private function getTopicsClassification():void
 			{
-				var topicsQuery:DelayedAsyncInvocation = null
+				var topicsQuery:AsyncToken = null
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
 					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
@@ -1891,7 +1937,7 @@
 				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
 				
-				topicsQuery.addAsyncResponder(handleTopicsQueryResult,handleTopicsQueryFault,
+				DelayedAsyncResponder.addResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
 					{keywords:query.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
 			}
 			
@@ -1986,9 +2032,6 @@
 					showClassificationResults();
 					flag_topicPropertiesChange = false;
 				}
-				
-				nodeBase.filterImg.visible = true;//all queries are done. So can enable querying for word count
-				
 			}
 			
 			private function handleTopicsQueryFault(event:FaultEvent, token:Object = null):void
@@ -2025,7 +2068,11 @@
 				filterStatus.text = "";
 				clearFiltersButton.visible = false;
 				filteredWords.value = "";
-				addAllDocumentsToList(); // we don't change the _tagWordSubset so that it's callbacks aren't called. 
+				_tagWordSubset.replaceKeys(false,true,[]);
+//				addAllDocumentsToList(); // we don't change the _tagWordSubset so that it's callbacks aren't called.
+				
+				if(_gridView && _gridView.alpha == 1)
+					redrawGrid();
 			}
 			
 			private function handleFadeInEffectsStart(event:EffectEvent):void
@@ -2036,10 +2083,10 @@
 			private function handleFadeOutEffectsEnd(event:EffectEvent):void
 			{
 				(event.effectInstance.target as DisplayObject).visible = false;
-				if(event.effectInstance.target == listCanvas)
-				{
-					handleClearFiltersButton();
-				}
+//				if(event.effectInstance.target == listCanvas)
+//				{
+//					handleClearFiltersButton();
+//				}
 			}
 			
 			private function handleBorderColor():void
