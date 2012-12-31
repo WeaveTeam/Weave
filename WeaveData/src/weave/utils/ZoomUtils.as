@@ -91,23 +91,6 @@ package weave.utils
 		}
 
 		/**
-		 * This function generates a matrix for transforming points from one bounds to another.
-		 */
-		public static function generateTransformMatrix(outputMatrix:Matrix, fromBounds:IBounds2D, toBounds:IBounds2D):void
-		{
-			outputMatrix.identity();
-			outputMatrix.translate(-fromBounds.getXMin(), -fromBounds.getYMin());
-
-			var fromWidth:Number = fromBounds.getWidth();
-			var fromHeight:Number = fromBounds.getHeight();
-			var toWidth:Number = toBounds.getWidth();
-			var toHeight:Number = toBounds.getHeight();
-
-			outputMatrix.scale(toWidth / fromWidth, toHeight / fromHeight);
-			outputMatrix.translate(toBounds.getXMin(), toBounds.getYMin());
-		}
-		
-		/**
 		 * conformDataBoundsToAspectRatio
 		 * Enforce an aspect ratio on xDataUnitsPerPixel to yDataUnitsPerPixel.
 		 * This will increase the size of the given dataBounds either vertically or horizontally if necessary.
