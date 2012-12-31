@@ -214,7 +214,7 @@ public class ConnectionConfig
 				databaseConfigInfo.copyFrom(attrs);
 				
 				// detect old version
-				_oldVersionDetected = databaseConfigInfo.dataConfigTable != null;
+				_oldVersionDetected = databaseConfigInfo.dataConfigTable != null && databaseConfigInfo.dataConfigTable.length() != 0;
 				
 				// commit values only after everything succeeds
 				_connectionInfoMap = connectionInfoMap;
