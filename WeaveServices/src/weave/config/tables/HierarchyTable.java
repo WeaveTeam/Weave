@@ -91,19 +91,15 @@ public class HierarchyTable extends AbstractTable
 			throw new RemoteException("Unable to initialize parent/child table.", e);
 		}
 		
-//		try
-//		{
-//			SQLUtils.createIndex(
-//					conn, schemaName, tableName,
-//					tableName+FIELD_PARENT+FIELD_CHILD+FIELD_ORDER,
-//					new String[]{FIELD_PARENT, FIELD_CHILD, FIELD_ORDER},
-//					null
-//			);
-//		}
-//		catch (SQLException e)
-//		{
-//			System.err.println("WARNING: Failed to create index. This may happen if the table already exists.");
-//		}
+		try
+		{
+			// index speeds up purgeByChild()
+			SQLUtils.createIndex(conn, schemaName, tableName, new String[]{FIELD_CHILD});
+		}
+		catch (SQLException e)
+		{
+			System.err.println("WARNING: Failed to create index. This may happen if the table already exists.");
+		}
 	}
 	public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException
 	{

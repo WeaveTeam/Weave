@@ -65,7 +65,7 @@ public class SQLUtils
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
 	 * @return A driver name that can be used in the getConnection() function.
 	 */
-	public static String getDriver(String dbms)
+	public static String getDriver(String dbms) throws RemoteException
 	{
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
@@ -75,9 +75,24 @@ public class SQLUtils
 			return "net.sourceforge.jtds.jdbc.Driver";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			return "oracle.jdbc.OracleDriver";
-		return "";
+		
+		throw new RemoteException("Unknown DBMS");
 	}
-
+	
+	public static String getDbmsFromConnectString(String connectString) throws RemoteException
+	{
+		if (connectString.startsWith("jdbc:jtds"))
+			return SQLSERVER;
+		if (connectString.startsWith("jdbc:oracle"))
+			return ORACLE;
+		if (connectString.startsWith("jdbc:mysql"))
+			return MYSQL;
+		if (connectString.startsWith("jdbc:postgresql"))
+			return POSTGRESQL;
+		
+		throw new RemoteException("Unknown DBMS");
+	}
+	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
 	 * @param ip The IP address of the DBMS.
@@ -216,7 +231,7 @@ public class SQLUtils
 	 * @param connectString The connect string used to create the Connection.
 	 * @return A static read-only Connection.
 	 */
-	public static Connection getStaticReadOnlyConnection(String driver, String connectString) throws RemoteException
+	public static Connection getStaticReadOnlyConnection(String connectString) throws RemoteException
 	{
 		synchronized (_staticReadOnlyConnections)
 		{
@@ -231,7 +246,7 @@ public class SQLUtils
 			}
 			
 			// get a new connection, throwing an exception if this fails
-			conn = getConnection(driver, connectString);
+			conn = getConnection(connectString);
 			
 			// try to set readOnly.. if this fails, continue anyway.
 			try
@@ -256,8 +271,12 @@ public class SQLUtils
 	 * @param connectString The connect string to use.
 	 * @return A new SQL connection using the specified driver & connect string 
 	 */
-	public static Connection getConnection(String driver, String connectString) throws RemoteException
+	public static Connection getConnection(String connectString) throws RemoteException
 	{
+		String dbms = getDbmsFromConnectString(connectString);
+		
+		String driver = getDriver(dbms);
+		
 		Connection conn = null;
 		try
 		{

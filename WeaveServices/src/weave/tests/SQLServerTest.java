@@ -13,9 +13,8 @@ public class SQLServerTest
 	{
 		try
 		{
-			String sqlDriver = SQLUtils.getDriver(SQLUtils.SQLSERVER);
 			String connectString = SQLUtils.getConnectString(SQLUtils.SQLSERVER, "localhost", "1433", "<INSTNANCE_NAME>", "<USERNAME>", "<PASSWORD>");
-			Connection conn = SQLUtils.getConnection(sqlDriver, connectString);
+			Connection conn = SQLUtils.getConnection(connectString);
 			Map<String, Object> valueMap = MapUtils.fromPairs(
 				"First Name", "fName",
 				"Last Name", "lName",

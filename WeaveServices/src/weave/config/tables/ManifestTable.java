@@ -113,7 +113,7 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to remove entry from manifest table.", e);
 		}
 	}
-	public Integer getEntryType(int id) throws RemoteException
+	public int getEntryType(int id) throws RemoteException
 	{
 		Integer type = getEntryTypes(Arrays.asList(id)).get(id);
 		return type == null ? DataEntity.TYPE_UNSPECIFIED: type;

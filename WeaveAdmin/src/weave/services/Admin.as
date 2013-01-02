@@ -120,6 +120,7 @@ package weave.services
 					service.getWeaveFileNames(false);
 					service.getWeaveFileNames(true);
 					service.getConnectionNames();
+					service.getDatabaseConfigInfo();
 					service.getKeyTypes();
 				}
 			);
@@ -178,6 +179,7 @@ package weave.services
 				{
 					// refresh list
 					service.getConnectionNames();
+					service.getDatabaseConfigInfo();
 				}
 			);
 			service.addHook(
@@ -187,6 +189,7 @@ package weave.services
 				{
 					// refresh list
 					service.getConnectionNames();
+					service.getDatabaseConfigInfo();
 				}
 			);
 			//////////////////////////////////

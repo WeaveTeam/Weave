@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:ui="weave.ui.*"
+				xmlns="weave.ui.admin.managers.*" 
+				>
+	<ui:Indent label="SQL Server type">
+		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
+	</ui:Indent>
+	<ui:IndentTextInput label="SQL Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130"/>
+	<ui:IndentTextInput label="SQL Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130"/>
+	<ui:Indent label="SQL Database name">
+		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
+		<mx:Label text="(Optional)"/>
+		<ui:HelpComponent>
+			This field is optional.  You can specify the name of a default database to connect to.
+			For SQL Server, this is an instance name.
+			Similarly in PostGreSQL, databases are different from schemas.
+			MySQL does not differentiate between the two.
+		</ui:HelpComponent>
+		<!--
+			This field is required only for MS SQLServer connections.
+			If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express.
+			If there is no instance name for your server, you may leave this blank.
+		-->
+	</ui:Indent>
+	<ui:IndentTextInput label="SQL User Name" id="userInput" change="{generate()}" inputWidth="130"/>
+	<ui:IndentTextInput label="SQL Password" id="passInput" change="{generate()}" displayAsPassword="true" inputWidth="130"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
+			import weave.services.beans.ConnectionInfo;
+			import weave.ui.Indent;
+			import weave.ui.IndentTextInput;
+			import weave.utils.EventUtils;
+			
+			[Bindable] public var connectString:String = '';
+			
+			private function get hostUrl():String
+			{
+				var result:Array = WeaveAPI.topLevelApplication.url.split("http://");
+				result = (result.pop() as String).split("/");
+				return result[0] as String;
+			}
+			
+			private const hostIP:String = hostUrl.split(':')[0];
+			
+			public function resetFields(resetConnectString:Boolean = true):void
+			{
+				dbmsCombo.selectedIndex = 0;
+				ipInput.text = hostIP;
+				databaseInput.text = "";
+				userInput.text = "";
+				passInput.text = "";
+				if (resetConnectString)
+					connectString = "jdbc:mysql://localhost:3306/?user=&password=";
+			}
+			
+			private var generate:Function = EventUtils.generateDelayedCallback(this, _generate, 500);
+			
+			private function _generate():void
+			{
+				connectString = '';
+				var token:AsyncToken = Admin.service.getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
+				addAsyncResponder(token, function(event:ResultEvent, _:*):void { connectString = event.result as String; });
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

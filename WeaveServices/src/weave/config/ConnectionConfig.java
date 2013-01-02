@@ -208,13 +208,19 @@ public class ConnectionConfig
 				}
 				
 				// read DatabaseConfigInfo
+				DatabaseConfigInfo databaseConfigInfo = null;
 				Node node = (Node) xpath.evaluate("/sqlConfig/databaseConfig", doc, XPathConstants.NODE);
-				DatabaseConfigInfo databaseConfigInfo = new DatabaseConfigInfo();
-				Map<String,String> attrs = _getXMLAttributes(node);
-				databaseConfigInfo.copyFrom(attrs);
+				if (node != null)
+				{
+					databaseConfigInfo = new DatabaseConfigInfo();
+					Map<String,String> attrs = _getXMLAttributes(node);
+					databaseConfigInfo.copyFrom(attrs);
+				}
 				
 				// detect old version
-				_oldVersionDetected = databaseConfigInfo.dataConfigTable != null && databaseConfigInfo.dataConfigTable.length() != 0;
+				_oldVersionDetected = databaseConfigInfo != null
+					&& databaseConfigInfo.dataConfigTable != null
+					&& databaseConfigInfo.dataConfigTable.length() != 0;
 				
 				// commit values only after everything succeeds
 				_connectionInfoMap = connectionInfoMap;
@@ -243,11 +249,15 @@ public class ConnectionConfig
 			
 			Document doc = XMLUtils.getXMLFromString("<sqlConfig/>");
 			Node rootNode = doc.getDocumentElement();
+			Element element;
 
 			// write DatabaseConfigInfo
-			Element element = doc.createElement("databaseConfig");
-			_setXMLAttributes(element, _databaseConfigInfo.getPropertyMap());
-			rootNode.appendChild(element);
+			if (_databaseConfigInfo != null)
+			{
+				element = doc.createElement("databaseConfig");
+				_setXMLAttributes(element, _databaseConfigInfo.getPropertyMap());
+				rootNode.appendChild(element);
+			}
 
 			// write all ConnectionInfo, sorted by name
 			List<String> names = new LinkedList<String>(getConnectionInfoNames());
@@ -397,8 +407,6 @@ public class ConnectionConfig
 			String missingField = null;
 			if (isEmpty(name))
 				missingField = "name";
-			else if (isEmpty(dbms))
-				missingField = "dbms";
 			else if (isEmpty(pass))
 				missingField = "password";
 			else if (isEmpty(connectString))
@@ -410,7 +418,6 @@ public class ConnectionConfig
 		public void copyFrom(Map<String,String> other)
 		{
 			this.name = other.get("name");
-			this.dbms = other.get("dbms");
 			this.pass = other.get("pass");
 			this.folderName = other.get("folderName");
 			this.connectString = other.get("connectString");
@@ -419,6 +426,7 @@ public class ConnectionConfig
 			// backwards compatibility
 			if (connectString == null || connectString.length() == 0)
 			{
+				String dbms = other.get("dbms");
 				String ip = other.get("ip");
 				String port = other.get("port");
 				String database = other.get("database");
@@ -429,7 +437,6 @@ public class ConnectionConfig
 		public void copyFrom(ConnectionInfo other)
 		{
 			this.name = other.name;
-			this.dbms = other.dbms;
 			this.pass = other.pass;
 			this.folderName = other.folderName;
 			this.connectString = other.connectString;
@@ -439,7 +446,6 @@ public class ConnectionConfig
 		{
 			return MapUtils.fromPairs(
 				"name", name,
-				"dbms", dbms,
 				"pass", pass,
 				"folderName", folderName,
 				"connectString", connectString,
@@ -448,20 +454,19 @@ public class ConnectionConfig
 		}
 		
 		public String name = "";
-		public String dbms = "";
 		public String pass = "";
 		public String folderName = "";
 		public String connectString = "";
 		public boolean is_superuser = false;
-
+		
 		public Connection getStaticReadOnlyConnection() throws RemoteException
 		{
-			return SQLUtils.getStaticReadOnlyConnection(SQLUtils.getDriver(dbms), connectString);
+			return SQLUtils.getStaticReadOnlyConnection(connectString);
 		}
 
 		public Connection getConnection() throws RemoteException
 		{
-			return SQLUtils.getConnection(SQLUtils.getDriver(dbms), connectString);
+			return SQLUtils.getConnection(connectString);
 		}
 	}
 }

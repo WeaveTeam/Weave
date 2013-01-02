@@ -24,13 +24,9 @@ package weave.services.beans
 	public class ConnectionInfo
 	{
 		[Bindable] public var name:String = "";
-		[Bindable] public var dbms:String = "";
-		[Bindable] public var ip:String = "";
-		[Bindable] public var port:String = "";
-		[Bindable] public var database:String = "";
-		[Bindable] public var user:String = "";
 		[Bindable] public var pass:String = "";
 		[Bindable] public var folderName:String = "" ;
+		[Bindable] public var connectString:String = "" ;
 		[Bindable] public var is_superuser:Boolean = false;
 		
 		public function ConnectionInfo(obj:Object)
@@ -38,12 +34,6 @@ package weave.services.beans
 			for (var name:String in obj)
 				if (this.hasOwnProperty(name))
 					this[name] = obj[name];
-
-			if (ip == '')
-				ip = 'localhost';
-			
-			if (port == '')
-				port = String(getDefaultPort(dbms));
 		}
 
 		/**

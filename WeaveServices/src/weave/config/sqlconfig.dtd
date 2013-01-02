@@ -1,4 +1,4 @@
-<!ELEMENT sqlConfig (databaseConfig,connection*)>
+<!ELEMENT sqlConfig (databaseConfig*,connection*)*>
 
 <!ELEMENT databaseConfig EMPTY><!-- specifies which connection to use to store configuration data -->
 <!ATTLIST databaseConfig connection CDATA #REQUIRED>
@@ -6,8 +6,7 @@
 
 <!ELEMENT connection EMPTY><!-- defines a connection for an SQL server -->
 <!ATTLIST connection name CDATA #REQUIRED><!-- an identifying name for this connection (used for signing in to the admin console and referenced elsewhere in the xml) -->
-<!ATTLIST connection dbms CDATA #REQUIRED><!-- type of SQL server (dbms = DataBase Management System): mysql, postgresql, ... -->
-<!ATTLIST connection pass CDATA #REQUIRED><!-- password for SQL server and Admin Console sign-in -->
-<!ATTLIST connection is_superuser CDATA #REQUIRED><!-- when true, grants permission to manage everything. default true for backwards compatibility -->
+<!ATTLIST connection pass CDATA #REQUIRED><!-- password for Admin Console sign-in -->
+<!ATTLIST connection is_superuser CDATA #REQUIRED><!-- when true, grants permission to manage everything -->
 <!ATTLIST connection folderName CDATA ""><!-- user's folder's name inside docroot -->
 <!ATTLIST connection connectString CDATA #REQUIRED><!-- SQL connect string -->

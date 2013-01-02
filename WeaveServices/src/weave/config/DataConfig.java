@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -168,7 +167,7 @@ public class DataConfig
     	for (int id : ids)
     	{
     		// remove all children
-	        if (getEntity(id).type == DataEntity.TYPE_DATATABLE)
+	        if (manifest.getEntryType(id) == DataEntity.TYPE_DATATABLE)
 	            removed.addAll( removeEntities( hierarchy.getChildren(id) ) );
 	        manifest.removeEntry(id);
 	        hierarchy.purge(id);
@@ -562,34 +561,6 @@ public class DataConfig
 			}
 			throw new InvalidParameterException("Invalid type: " + type);
 		}
-		
-        /* For cases where the config API isn't sufficient. TODO */
-        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
-        {
-            return filterEntities(entities, params, TYPE_UNSPECIFIED);
-        }
-        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, int manifestType)
-        {
-            List<DataEntity> result = new LinkedList<DataEntity>();
-            for (DataEntity entity : entities)
-            {
-                if (manifestType == TYPE_UNSPECIFIED || entity.type == manifestType)
-                {
-	                boolean match = true;
-	                for (Entry<String,String> entry : params.entrySet())
-	                {
-	                    if (params.get(entry.getKey()) != entry.getValue())
-	                    {
-	                        match = false;
-	                        break;
-	                    }
-	                }
-	                if (match)
-	                    result.add(entity);
-                }
-            }
-            return result;
-        }
 	}
 	
 	static public class DataEntityTableInfo

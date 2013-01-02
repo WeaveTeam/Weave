@@ -22,15 +22,14 @@ package weave.services
 	import avmplus.DescribeType;
 	
 	import flash.events.Event;
+	import flash.events.IOErrorEvent;
+	import flash.events.ProgressEvent;
+	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
+	import flash.net.URLStream;
+	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
-    import flash.net.URLRequest;
-    import flash.net.URLStream;
-    import flash.net.URLRequestMethod;
-    import flash.net.URLVariables;
-    import flash.events.Event;
-    import flash.events.ProgressEvent;
-    import flash.events.IOErrorEvent;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.controls.Alert;
@@ -171,9 +170,7 @@ package weave.services
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
-			if (queued)
-				return generateQueryAndAddToQueue(adminService, methodName, parameters);
-			return adminService.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
+			return generateQuery(adminService, methodName, parameters, queued);
 		}
 		
 		/**
@@ -196,16 +193,14 @@ package weave.services
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeDataService(method:Function, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
+		private function invokeDataService(method:Function, parameters:Array, queued:Boolean = true):AsyncToken
 		{
 			var methodName:String = propertyNameLookup[method];
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
-			if (queued)
-				return generateQueryAndAddToQueue(dataService, methodName, parameters);
-			return dataService.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
+			return generateQuery(dataService, methodName, parameters, queued);
 		}
-			
+		
 		/**
 		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
 		 * @param service The servlet.
@@ -214,11 +209,19 @@ package weave.services
 		 * @param byteArray An optional byteArray to append to the end of the stream.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function generateQueryAndAddToQueue(service:AMF3Servlet, methodName:String, parameters:Array):DelayedAsyncInvocation
+		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = new DelayedAsyncInvocation(service, methodName, parameters);
-			// we want to use a queue so the admin functions will execute in the correct order.
-			queue.addToQueue(query);
+			var query:DelayedAsyncInvocation;
+			if (queued)
+			{
+				query = new DelayedAsyncInvocation(service, methodName, parameters);
+				queue.addToQueue(query);
+			}
+			else
+			{
+				query = service.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
+			}
+
 			hookCaptureHandler(query);
 			// automatically display FaultEvent error messages as alert boxes
 			addAsyncResponder(query, hookHandler, alertFault, query);
@@ -314,9 +317,9 @@ package weave.services
 		//////////////////////////////
 		// ConnectionInfo management
 		
-		public function generateConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String):AsyncToken
+		public function getConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String):AsyncToken
 		{
-			return invokeAdmin(generateConnectString, arguments);
+			return invokeAdmin(getConnectString, arguments, false);
 		}
 		public function getConnectionNames():AsyncToken
 		{
@@ -324,11 +327,14 @@ package weave.services
 		}
 		public function getConnectionInfo(userToGet:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getConnectionInfo, arguments, false);
+			return invokeAdminWithLogin(getConnectionInfo, arguments);
 		}
 		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):AsyncToken
 		{
-			var query:AsyncToken = invokeAdminWithLogin(saveConnectionInfo, [info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.folderName, info.is_superuser, configOverwrite]);
+			var query:AsyncToken = invokeAdminWithLogin(
+				saveConnectionInfo,
+				[info.name, info.pass, info.folderName, info.is_superuser, info.connectString, configOverwrite]
+			);
 			addAsyncResponder(query, alertResult);
 		    return query;
 		}
@@ -344,7 +350,7 @@ package weave.services
 		
 		public function getDatabaseConfigInfo():AsyncToken
 		{
-			return invokeAdminWithLogin(getDatabaseConfigInfo, arguments, false);
+			return invokeAdminWithLogin(getDatabaseConfigInfo, arguments);
 		}
 		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):AsyncToken
 		{

@@ -351,8 +351,7 @@ public class AdminService
 	//////////////////////////////
 	// ConnectionInfo management
 
-	public String generateConnectString(String dbms, String ip, String port, String database, String user, String pass)
-		throws RemoteException
+	public String getConnectString(String dbms, String ip, String port, String database, String user, String pass)
 	{
 		return SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
 	}
@@ -389,10 +388,10 @@ public class AdminService
 			return getConnectionConfig().getConnectionInfo(userToGet);
 		return null;
 	}
-
+	
 	public String saveConnectionInfo(
 			String currentUser, String currentPass,
-			String newUser, String dbms, String newPass,
+			String newUser, String newPass,
 			String folderName, boolean grantSuperuser, String connectString,
 			boolean configOverwrite)
 		throws RemoteException
@@ -402,7 +401,6 @@ public class AdminService
 
 		ConnectionInfo newConnectionInfo = new ConnectionInfo();
 		newConnectionInfo.name = newUser;
-		newConnectionInfo.dbms = dbms;
 		newConnectionInfo.pass = newPass;
 		newConnectionInfo.folderName = folderName;
 		newConnectionInfo.is_superuser = true;
@@ -472,7 +470,6 @@ public class AdminService
 			if (currentUser == newUser && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 
-			config.removeConnectionInfo(newConnectionInfo.name);
 			config.saveConnectionInfo(newConnectionInfo);
 		}
 		catch (Exception e)
@@ -497,7 +494,7 @@ public class AdminService
 		{
 			ConnectionConfig config = getConnectionConfig();
 			
-			if (config.getConnectionInfoNames().contains(userToRemove))
+			if (!config.getConnectionInfoNames().contains(userToRemove))
 				throw new RemoteException("Connection \"" + userToRemove + "\" does not exist.");
 
 			// check for number of superusers
@@ -1428,56 +1425,55 @@ public class AdminService
 		DataConfig dataConfig = getDataConfig();
 		ConnectionConfig connConfig = getConnectionConfig();
 		
-		String failMessage = String.format(
-				"Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
+		String failMessage = String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		if (sqlColumnNames == null || sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connectionName);
 		if (connInfo == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
-		String dbms = connInfo.dbms;
-
-		// if key column is actually the name of a column, put quotes around it.
-		// otherwise, don't.
-		int iKey = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames);
-		int iSecondaryKey = ListUtils.findIgnoreCase(secondarySqlKeyColumn, sqlColumnNames);
-
-		String sqlKeyColumn; // save the original column name
-		if (iKey >= 0)
-		{
-			sqlKeyColumn = keyColumnName; // before quoting, save the column
-											// name
-			keyColumnName = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iKey]);
-		}
-		else
-		{
-			sqlKeyColumn = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get
-																		// the
-																		// original
-																		// columnname
-		}
-
-		if (iSecondaryKey >= 0)
-			secondarySqlKeyColumn = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iSecondaryKey]);
-		// Write SQL statements into sqlconfig.
-
-		List<String> uniqueNames = new LinkedList<String>();
-		for (DataEntity de : dataConfig.getEntitiesById(dataConfig.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
-			uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
-		if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
-			throw new RemoteException(String.format(
-					"DataTable \"%s\" already exists in the configuration.", configDataTableName));
-
-		// connect to database, generate and test each query before modifying
-		// config file
-		List<String> titles = new LinkedList<String>();
-		List<String> queries = new Vector<String>();
-		List<Object[]> queryParamsList = new Vector<Object[]>();
-		List<String> dataTypes = new Vector<String>();
+		
 		String query = null;
-		Connection conn = connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection();
 		try
 		{
+			Connection conn = connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection();
+			
+			// if key column is actually the name of a column, put quotes around it.
+			// otherwise, don't.
+			int iKey = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames);
+			int iSecondaryKey = ListUtils.findIgnoreCase(secondarySqlKeyColumn, sqlColumnNames);
+			
+			String sqlKeyColumn; // save the original column name
+			if (iKey >= 0)
+			{
+				sqlKeyColumn = keyColumnName; // before quoting, save the column
+				// name
+				keyColumnName = SQLUtils.quoteSymbol(conn, sqlColumnNames[iKey]);
+			}
+			else
+			{
+				sqlKeyColumn = SQLUtils.unquoteSymbol(conn, keyColumnName); // get
+				// the
+				// original
+				// columnname
+			}
+			
+			if (iSecondaryKey >= 0)
+				secondarySqlKeyColumn = SQLUtils.quoteSymbol(conn, sqlColumnNames[iSecondaryKey]);
+			// Write SQL statements into sqlconfig.
+			
+			List<String> uniqueNames = new LinkedList<String>();
+			for (DataEntity de : dataConfig.getEntitiesById(dataConfig.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
+				uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
+			if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
+				throw new RemoteException(String.format(
+						"DataTable \"%s\" already exists in the configuration.", configDataTableName));
+			
+			// generate and test each query before modifying config file
+			List<String> titles = new LinkedList<String>();
+			List<String> queries = new Vector<String>();
+			List<Object[]> queryParamsList = new Vector<Object[]>();
+			List<String> dataTypes = new Vector<String>();
+			
 			SQLResult filteredValues = null;
 			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
@@ -1503,15 +1499,19 @@ public class AdminService
 				// originalKeyColumName);
 				if (ignoreKeyColumnQueries && sqlKeyColumn.equals(sqlColumn))
 					continue;
-				sqlColumn = SQLUtils.quoteSymbol(dbms, sqlColumn);
+				sqlColumn = SQLUtils.quoteSymbol(conn, sqlColumn);
 
 				// hack
 				if (secondarySqlKeyColumn != null && secondarySqlKeyColumn.length() > 0)
 					sqlColumn += "," + secondarySqlKeyColumn;
 
 				// generate column query
-				query = String.format("SELECT %s,%s FROM %s", keyColumnName, sqlColumn, SQLUtils.quoteSchemaTable(
-						dbms, sqlSchema, sqlTable));
+				query = String.format(
+						"SELECT %s,%s FROM %s",
+						keyColumnName,
+						sqlColumn,
+						SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable)
+					);
 
 				if (filteredValues != null)
 				{
@@ -1674,7 +1674,6 @@ public class AdminService
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
 
-
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
@@ -1713,10 +1712,8 @@ public class AdminService
 			SQLUtils.cleanup(conn);
 		}
 
-		String resultAddSQL = "";
 		if (importDBFData)
 		{
-
 			// get key column SQL code
 			String keyColumnsString;
 			if (keyColumns.length == 1)
@@ -1746,7 +1743,6 @@ public class AdminService
 		}
 		else
 		{
-			resultAddSQL = "DBF Import disabled.";
             DataEntityMetadata tableInfo = new DataEntityMetadata();
             tableInfo.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SHP);
             tableInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
