@@ -191,6 +191,17 @@ public class ConnectionConfig
 		long lastMod = _file.lastModified();
 		if (_lastMod != lastMod)
 		{
+			// if file was deleted since last time, clear all info
+			if (!_file.exists())
+			{
+				_lastMod = 0L;
+				_oldVersionDetected = false;
+				_connectionInfoMap.clear();
+				_databaseConfigInfo = null;
+				resetAdminConnection();
+				return;
+			}
+			
 			try
 			{
 				// read file as XML

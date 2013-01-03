@@ -103,8 +103,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.controls.Alert;
-			import mx.controls.TextArea;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;

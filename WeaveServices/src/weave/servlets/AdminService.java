@@ -523,8 +523,10 @@ public class AdminService
 	public DatabaseConfigInfo getDatabaseConfigInfo(String user, String password)
 		throws RemoteException
 	{
-		authenticate(user, password);
-		return getConnectionConfig().getDatabaseConfigInfo();
+		DatabaseConfigInfo dbInfo = getConnectionConfig().getDatabaseConfigInfo();
+		if (dbInfo != null)
+			authenticate(user, password);
+		return dbInfo;
 	}
 
 	public String setDatabaseConfigInfo(String user, String password, String schema)

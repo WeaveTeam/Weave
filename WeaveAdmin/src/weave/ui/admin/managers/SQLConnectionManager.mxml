@@ -85,16 +85,12 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.events.ListEvent;
-			import mx.rpc.AsyncToken;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
-			import weave.ui.Indent;
-			import weave.ui.IndentTextInput;
 			import weave.utils.PopUpUtils;
 			
 			[Bindable]
