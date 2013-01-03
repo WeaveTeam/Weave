@@ -30,6 +30,7 @@
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
+			<mx:Button label="Remove" click="handleRemoveConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
 			<mx:Button label="Refresh" click="refresh()"/>
 		</mx:HBox>
 	</mx:VBox>
@@ -56,7 +57,6 @@
 				<mx:HBox>
 					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
 					<mx:Button label="Clear fields" click="clearConnectionFields(true)" />
-					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
 				</mx:HBox>
 				<mx:Spacer height="32"/>
 				<mx:Label fontWeight="bold" text="Optional: Use these fields to generate a SQL Connect String above"/>
@@ -107,7 +107,7 @@
 			{
 				clearConnectionFields(true);
 				BindingUtils.bindSetter(handleConnectionNames, Admin.instance, "connectionNames");
-				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
+				treeWithSearch.tree.addEventListener(Event.CHANGE, handleTreeSelection);
 			}
 			
 			public function handleConnectionNames(names:Array):void
@@ -127,7 +127,7 @@
 				migrateTab.enabled = names.length > 0;
 			}
 			
-			private function handleItemClick(event:ListEvent):void
+			private function handleTreeSelection(event:Event):void
 			{
 				if (dataChanged)
 				{
