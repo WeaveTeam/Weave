@@ -133,6 +133,11 @@ package weave.ui
 			return _childCollectionView;
 		}
 		
+		public function toString():String
+		{
+			return label;
+		}
+		
 		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void
 		{
 			Admin.entityCache.add_child(parent ? parent.id : EntityCache.ROOT_ID, child.id, index);

@@ -23,12 +23,16 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="Data Hierarchies{metadataEditor.isChanged?'*':''}">
+				label="Data Hierarchies{metadataEditor.isChanged?'*':''}"
+				creationComplete="creationComplete()">
 	<mx:Script>
 		<![CDATA[
 			import weave.services.Admin;
 			
-			private var debug:* = debugId(this);
+			private function creationComplete():void
+			{
+				debugTrace(this);
+			}
 		]]>
 	</mx:Script>
 	<mx:Button label="Refresh" click="Admin.entityCache.clearCache();"/>
