@@ -19,8 +19,9 @@
 
 package weave.services.beans
 {
-	import mx.rpc.events.ResultEvent;
-
+	/**
+	 * @author adufilie
+	 */
 	public class Entity extends EntityMetadata
 	{
 		private var _id:int;

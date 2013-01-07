@@ -8,8 +8,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.collections.IList;
-			import mx.events.DragEvent;
 			
 			import weave.api.getCallbackCollection;
 			import weave.services.Admin;

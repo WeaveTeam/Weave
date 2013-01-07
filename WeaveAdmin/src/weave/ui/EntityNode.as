@@ -5,6 +5,7 @@ package weave.ui
     import mx.collections.ICollectionView;
     import mx.utils.StringUtil;
     
+    import weave.api.reportError;
     import weave.api.data.ColumnMetadata;
     import weave.services.Admin;
     import weave.services.EntityCache;
@@ -50,7 +51,12 @@ package weave.ui
 			if (tableInfo != null)
 			{
 				// this is a table node, so avoid calling getEntity()
-				return StringUtil.substitute("{0} ({1})", tableInfo.title, tableInfo.numChildren);
+				var str:String = StringUtil.substitute("{0} ({1})", tableInfo.title, tableInfo.numChildren);
+				
+				if (debug)
+					str = "(Table#" + tableInfo.id + ") " + str;
+				
+				return str;
 			}
 			
 			var info:Entity = getEntity();
@@ -77,22 +83,38 @@ package weave.ui
 			return title;
 		}
 		
+		public function isBranch():Boolean
+		{
+			// tables are branches
+			if (Admin.entityCache.getDataTableInfo(id))
+				return true;
+			
+			var entity:Entity = Admin.entityCache.getEntity(id);
+			
+			// columns are leaf nodes
+			if (entity.type == Entity.TYPE_COLUMN)
+				return false;
+			
+			// treat entities that haven't downloaded yet as leaf nodes
+			return entity.childIds != null;
+		}
+		
 		public function get children():ICollectionView
 		{
 			if (!Admin.instance.userHasAuthenticated)
 				return null;
 			
 			var childIds:Array;
-			var type:int = _rootFilterType;
-			if (type == Entity.TYPE_TABLE)
+			if (_rootFilterType == Entity.TYPE_TABLE)
 			{
 				childIds = Admin.entityCache.getDataTableIds();
 			}
 			else
 			{
 				var entity:Entity = Admin.entityCache.getEntity(id);
-				type = entity.type;
 				childIds = entity.childIds;
+				if (entity.type == Entity.TYPE_COLUMN)
+					return null; // leaf node
 			}
 			
 			if (!childIds)
@@ -104,7 +126,7 @@ package weave.ui
 				var childId:int = childIds[i];
 				
 				// if there is a filter type, filter out non-column entities that do not have that type
-				if (_rootFilterType >= 0)
+				if (_rootFilterType >= 0 && _rootFilterType != Entity.TYPE_TABLE)
 				{
 					var childEntity:Entity = Admin.entityCache.getEntity(childId);
 					if (childEntity.type != _rootFilterType && childEntity.type != Entity.TYPE_COLUMN)
@@ -114,21 +136,24 @@ package weave.ui
 					}
 				}
 				
-				var child:EntityNode = _childNodeCache[childId];
-				
+				var child:EntityNode = _childNodeCache[childId] as EntityNode;
 				if (!child)
-					_childNodeCache[childId] = child = new EntityNode();
+				{
+					child = new EntityNode();
+					child.id = childId;
+					_childNodeCache[childId] = child;
+				}
 				
-				// set id whether or not it's a new child
-				child.id = childId;
+				if (child.id != childId)
+				{
+					reportError("BUG: EntityNode id has changed since it was first cached");
+					child.id = childId;
+				}
 				
 				_childNodes[outputIndex] = child;
 				outputIndex++;
 			}
 			_childNodes.length = outputIndex;
-			
-			if (type == Entity.TYPE_COLUMN && _childNodes.length == 0)
-				return null; // leaf node
 			
 			return _childCollectionView;
 		}
