@@ -398,7 +398,7 @@ public class GenericServlet extends HttpServlet
 		}
 		if (extraParameters != null)
 		{
-			System.out.println("Received servlet request: " + methodName + Arrays.asList(argValues));
+			System.out.println("Received servlet request: " + methodName + Arrays.deepToString(argValues));
 			System.out.println("Unused parameters: "+extraParameters.entrySet());
 		}
 		
@@ -528,7 +528,7 @@ public class GenericServlet extends HttpServlet
 		HttpServletResponse response = getServletRequestInfo().response;
 		
 		// debug
-		//System.out.println(methodName + Arrays.asList(methodParameters));
+		//System.out.println(methodName + arrayToString(methodParameters));
 		
 		// get method by name
 		ExposedMethod exposedMethod = methodMap.get(methodName);
@@ -552,15 +552,21 @@ public class GenericServlet extends HttpServlet
 		
 		// Invoke the method on the object with the arguments 
 		try
-		{			
+		{
+			long startTime = System.currentTimeMillis();
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, methodParameters);
+			long endTime = System.currentTimeMillis();
+			
+			// debug
+			if (endTime - startTime > 1000)
+				System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(methodParameters)));
 			
 			if (exposedMethod.method.getReturnType() != void.class)
 				seriaizeCompressedAmf3(result, servletOutputStream);
 		}
 		catch (InvocationTargetException e)
 		{
-			System.err.println(methodName + Arrays.asList(methodParameters));
+			System.err.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)
@@ -573,7 +579,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (Exception e)
 		{
-			System.err.println(methodName + Arrays.asList(methodParameters));
+			System.err.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e);
 		}
     }
