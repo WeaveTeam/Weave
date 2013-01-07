@@ -2,13 +2,12 @@ package weave.services
 {
     import flash.utils.Dictionary;
     
-    import mx.binding.utils.BindingUtils;
     import mx.rpc.events.ResultEvent;
     
+    import weave.api.getCallbackCollection;
     import weave.api.core.ICallbackCollection;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
-    import weave.api.getCallbackCollection;
     import weave.services.beans.Entity;
     import weave.services.beans.EntityMetadata;
     import weave.services.beans.EntityTableInfo;

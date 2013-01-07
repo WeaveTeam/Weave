@@ -27,8 +27,6 @@ import java.util.Map;
  */
 public class MapUtils
 {
-	private static final long serialVersionUID = 1L;
-
 	@SuppressWarnings("unchecked")
 	public static <K,V> Map<K,V> fromPairs(Object ... pairs)
     {
