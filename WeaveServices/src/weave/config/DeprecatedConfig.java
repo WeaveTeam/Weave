@@ -129,7 +129,9 @@ import weave.utils.SQLUtils;
 					if (!tableMetadataLookup.containsKey(tableName))
 						tableMetadataLookup.put(tableName, new DataEntityMetadata());
 					DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
-					metadata.publicMetadata.put(property, value);
+					// discard empty values
+					if (value != null && value.length() != 0)
+						metadata.publicMetadata.put(property, value);
 				}
 				SQLUtils.cleanup(resultSet);
 			}
