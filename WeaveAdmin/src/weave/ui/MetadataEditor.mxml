@@ -113,14 +113,16 @@
 			checkIsChanged = false;
 			
             metaChanged();
+			
             if (isChanged)
 			{
                 reportError('handleEntityCache(): isChanged is true');
 			}
-            else
-			{
-				refresh();
-			}
+		}
+		
+		if (!isChanged)
+		{
+			refresh();
 		}
 	}
 	
