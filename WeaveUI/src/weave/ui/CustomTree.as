@@ -7,6 +7,7 @@ package weave.ui
 	import mx.controls.Tree;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
 	
 	import weave.utils.EventUtils;
 	
@@ -15,9 +16,10 @@ package weave.ui
 	 */	
 	public class CustomTree extends Tree
 	{
-		public function CustomTree(){
+		public function CustomTree()
+		{
 			super();
-			horizontalScrollPolicy = ScrollPolicy.AUTO;
+			addEventListener("scroll", updateHScrollLater);
 		}
 		
 		// we need to override maxHorizontalScrollPosition because setting
@@ -39,7 +41,7 @@ package weave.ui
 		
 		override public function set maxHorizontalScrollPosition(value:Number):void
 		{
-			if (_scrollInvalid)
+			if (ObjectUtil.numericCompare(mx_internal::_maxHorizontalScrollPosition, value) != 0)
 			{
 				mx_internal::_maxHorizontalScrollPosition = value;
 				dispatchEvent(new Event("maxHorizontalScrollPositionChanged"));
@@ -47,40 +49,38 @@ package weave.ui
 				scrollAreaChanged = true;
 				invalidateDisplayList();
 			}
-			else
-			{
-				super.maxHorizontalScrollPosition = value;
-				_invalidateScrollLater();
-			}
 		}
 		
-		private var _invalidateScrollLater:Function = EventUtils.generateDelayedCallback(this, _invalidateScroll);
-		private var _scrollInvalid:Boolean = false;
-		private function _invalidateScroll():void
+		private const updateHScrollLater:Function = EventUtils.generateDelayedCallback(this, updateHScrollNow, 0);
+		
+		private function updateHScrollNow():void
 		{
-			_scrollInvalid = true;
-			invalidateDisplayList();
+			// we call measureWidthOfItems to get the max width of the item renderers.
+			// then we see how much space we need to scroll, setting maxHorizontalScrollPosition appropriately
+			var widthOfVisibleItems:int = measureWidthOfItems(verticalScrollPosition - offscreenExtraRowsTop, listItems.length);
+			var maxHSP:Number = widthOfVisibleItems - (unscaledWidth - viewMetrics.left - viewMetrics.right);
+			
+			var hspolicy:String = ScrollPolicy.ON;
+			if (maxHSP <= 0)
+			{
+				maxHSP = 0;
+				horizontalScrollPosition = 0;
+				
+				// horizontal scroll is kept on except when there is no vertical scroll
+				// this avoids an infinite hide/show loop where hiding/showing the h-scroll bar affects the max h-scroll value
+				if (maxVerticalScrollPosition == 0)
+					hspolicy = ScrollPolicy.OFF;
+			}
+			
+			maxHorizontalScrollPosition = maxHSP;
+			
+			if (horizontalScrollPolicy != hspolicy)
+				horizontalScrollPolicy = hspolicy;
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
-			if (_scrollInvalid)
-			{
-				// we call measureWidthOfItems to get the max width of the item renderers.
-				// then we see how much space we need to scroll, setting maxHorizontalScrollPosition appropriately
-				var diffWidth:Number = /*measureWidthOfItems(0,0)*/measuredWidth - (unscaledWidth - viewMetrics.left - viewMetrics.right);
-				
-				if (diffWidth <= 0)
-					maxHorizontalScrollPosition = NaN;
-				else
-					maxHorizontalScrollPosition = diffWidth;
-				
-				_scrollInvalid = false;
-			}
-			else
-			{
-				_invalidateScrollLater();
-			}
+			updateHScrollLater();
 			
 			// If showRoot is false and root is showing, force commitProperties() to fix the problem.
 			// This workaround requires that the data descriptor reports that the root item is a branch and it has children, even if it doesn't.
