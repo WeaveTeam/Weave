@@ -23,6 +23,7 @@ package weave.services
 		private var delete_later:Object = {}; // id -> Boolean
 		private var _dataTableIds:Array = []; // array of EntityTableInfo
 		private var _dataTableLookup:Object = {}; // id -> EntityTableInfo
+		private var pending_invalidate:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
 		
         public function EntityCache()
         {
@@ -37,6 +38,7 @@ package weave.services
 			if (!cache_dirty[id])
 				callbacks.triggerCallbacks();
 			
+			pending_invalidate[id] = false;
 			cache_dirty[id] = true;
 			
 			if (!cache_entity[id])
@@ -69,7 +71,7 @@ package weave.services
 		public function getEntity(id:int):Entity
 		{
 			// if there is no cached value, call invalidate() to create a placeholder.
-			if (!cache_entity[id])
+			if (!cache_entity[id] || pending_invalidate[id])
 				invalidate(id);
 			
             return cache_entity[id];
@@ -98,6 +100,7 @@ package weave.services
 			var ids:Array = [];
 			for (id in cache_dirty)
 			{
+				// when requesting root, also request data table list
 				if (id == ROOT_ID)
 					addAsyncResponder(Admin.service.getDataTableList(), handleDataTableList);
 				ids.push(int(id));
@@ -160,13 +163,11 @@ package weave.services
         
 		public function clearCache():void
         {
-			//TODO: clearCache() still causes full data table metadata to be requested
-			
 			callbacks.delayCallbacks();
 			
 			// we don't want to delete the cache because we can still use the cached values for display in the meantime.
 			for (var id:* in cache_entity)
-				invalidate(id);
+				pending_invalidate[id] = true;
 			
 			callbacks.triggerCallbacks();
 			
