@@ -179,7 +179,7 @@ package weave.services
 			Admin.service.updateEntity(id, diff);
 			invalidate(id);
         }
-        public function add_tag(label:String, parentId:int):void
+        public function add_category(label:String, parentId:int):void
         {
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             var em:EntityMetadata = new EntityMetadata();
