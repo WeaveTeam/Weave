@@ -32,7 +32,7 @@ Author: skolman
 	<ui:Indent label="Connection Name:">
 		<mx:TextInput id="connectionInput" enter="login()"/>
 	</ui:Indent>
-	<ui:Indent label="SQL Password:">
+	<ui:Indent label="Password:">
 		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="login()"/>
 	</ui:Indent>
 	<ui:Center>
