@@ -387,10 +387,10 @@ package weave.utils
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
 						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, dataBounds);
 						
-						if (simplifiedGeom.length == 0)
+						if (simplifiedGeom.length == 0 && genGeom.bounds.overlaps(queryBounds))
 						{
 							result.push(key);
-							continue keyLoop;
+							continue;
 						}
 						
 						// for each part, build the vertices polygon and check for the overlap
