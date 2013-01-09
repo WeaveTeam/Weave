@@ -118,7 +118,7 @@ package weave.ui
 			}
 			
 			if (!childIds)
-				return null;
+				return isBranch() ? _childCollectionView : null;
 			
 			var outputIndex:int = 0;
 			for (var i:int = 0; i < childIds.length; i++)
