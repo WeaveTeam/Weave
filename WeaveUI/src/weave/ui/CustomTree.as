@@ -78,6 +78,16 @@ package weave.ui
 				horizontalScrollPolicy = hspolicy;
 		}
 		
+		override protected function seekPositionSafely(index:int):Boolean
+		{
+			// "iterator" is a HierarchicalViewCursor, and its movePrevious()/moveNext()/seek() functions do not work if "current" is null.
+			// To work around the problem, we create a new cursor.
+			if (iterator && iterator.current == null)
+				iterator = collection.createCursor();
+			
+			return super.seekPositionSafely(index);
+		}
+		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			updateHScrollLater();
@@ -86,14 +96,14 @@ package weave.ui
 			// This workaround requires that the data descriptor reports that the root item is a branch and it has children, even if it doesn't.
 			if (!showRoot)
 			{
-				var rootItem:Object = dataProvider is IList ? (dataProvider as IList).getItemAt(0) : null;
+				var rootItem:Object = dataProvider is IList && (dataProvider as IList).length > 0 ? (dataProvider as IList).getItemAt(0) : null;
 				if (rootItem && itemToItemRenderer(rootItem))
 				{
 					mx_internal::showRootChanged = true;
 					commitProperties();
 				}
 			}
-			
+				
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 	}
