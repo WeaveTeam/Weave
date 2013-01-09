@@ -44,7 +44,6 @@
     {
         tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
         hierarchyTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
-		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, hierarchyTree.invalidateList);
     }
     public function importTable():void
     {
