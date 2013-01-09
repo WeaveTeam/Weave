@@ -36,31 +36,47 @@
 	</mx:VBox>
 	
 	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
-		<mx:Canvas id="simpleSetting" label="Add database connection{dataChanged ? '*' : ''}" width="100%" height="100%">
-			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
+		<mx:Canvas id="simpleSetting" label="Database connections{dataChanged ? '*' : ''}" width="100%" height="100%">
+			<mx:VBox id="simpleSettingVBox" width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+				
 				<ui:Indent label="Connection name">
 					<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
 					<mx:CheckBox label="Overwrite" id="configOverwrite"/>
 				</ui:Indent>
-				<ui:IndentTextInput change="{dataChanged=true}" label="Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
+				<ui:IndentTextInput id="connectionPasswordInput" label="Password" change="{dataChanged=true}" displayAsPassword="false" inputWidth="130"/>
 				<ui:Indent label="User Folder Name">
 					<mx:TextInput id="folderNameInput" width="130"/>
 					<ui:HelpComponent>Specify the folder in docroot to store user-created configurations</ui:HelpComponent>
 				</ui:Indent>
-				<ui:Indent>
-					<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>					
+				<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>
+				
+				<mx:Spacer height="8"/>
+				
+				<mx:HBox>
+					<mx:Label text="SQL Connection Info"/>
+					<ui:HelpComponent>
+						Use these fields to generate a SQL Connect String below.  The values from these individual fields are not saved.
+					</ui:HelpComponent>
+				</mx:HBox>
+				<ui:Indent indent="32">
+					<admin:ConnectStringGenerator id="connectStringGenerator"/>
 				</ui:Indent>
+				
+				<mx:Spacer height="8"/>
+				
 				<ui:Indent label="SQL Connect String">
+					<ui:HelpComponent>
+						This is automatically generated using the SQL Connection Info fields above. Advanced users may modify this value directly.
+					</ui:HelpComponent>
 					<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}"/>
 				</ui:Indent>
+
+				<mx:Spacer height="8"/>
+				
 				<mx:HBox>
 					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
 					<mx:Button label="Clear fields" click="clearConnectionFields(true)" />
 				</mx:HBox>
-				<mx:Spacer height="32"/>
-				<mx:Label fontWeight="bold" text="Optional: Use these fields to generate a SQL Connect String above"/>
-				<admin:ConnectStringGenerator id="connectStringGenerator"/>
 			</mx:VBox>
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">

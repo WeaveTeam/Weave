@@ -535,6 +535,8 @@ public class AdminService
 		if (!getConnectionInfo(user, password).is_superuser)
 			throw new RemoteException("Unable to store configuration information without superuser privileges.");
 		
+		//TODO: migrate data from old db to new db?
+		
 		// create info object
 		DatabaseConfigInfo info = new DatabaseConfigInfo();
 		info.schema = schema;

@@ -23,12 +23,12 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				>
-	<ui:Indent label="SQL Server type">
+	<ui:Indent label="SQL Server type" group="{indentGroup}">
 		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
-	<ui:IndentTextInput label="SQL Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130"/>
-	<ui:IndentTextInput label="SQL Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130"/>
-	<ui:Indent label="SQL Database name">
+	<ui:IndentTextInput label="SQL Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="SQL Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
+	<ui:Indent label="SQL Database name" group="{indentGroup}">
 		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
 		<mx:Label text="(Optional)"/>
 		<ui:HelpComponent>
@@ -43,8 +43,8 @@
 			If there is no instance name for your server, you may leave this blank.
 		-->
 	</ui:Indent>
-	<ui:IndentTextInput label="SQL User Name" id="userInput" change="{generate()}" inputWidth="130"/>
-	<ui:IndentTextInput label="SQL Password" id="passInput" change="{generate()}" displayAsPassword="true" inputWidth="130"/>
+	<ui:IndentTextInput label="SQL User Name" id="userInput" change="{generate()}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="SQL Password" id="passInput" change="{generate()}" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
@@ -54,9 +54,9 @@
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
-			import weave.ui.Indent;
-			import weave.ui.IndentTextInput;
 			import weave.utils.EventUtils;
+			
+			[Bindable] public var indentGroup:Object = this;
 			
 			[Bindable] public var connectString:String = '';
 			

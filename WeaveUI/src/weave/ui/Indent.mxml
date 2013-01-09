@@ -78,7 +78,7 @@
 			/**
 			 * Set this to an IndentGroup to coordinate the indentation of several Indent components.
 			 */
-			public function set group(indentGroup:IndentGroup):void
+			public function set group(indentGroup:Object):void
 			{
 				setGroup(indentGroup);
 			}
