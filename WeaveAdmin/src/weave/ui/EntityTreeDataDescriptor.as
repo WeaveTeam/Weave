@@ -26,7 +26,7 @@ package weave.ui
         public function hasChildren(node:Object, model:Object = null):Boolean
         {
 			var children:ICollectionView = getChildren(node, model);
-			return children && children.length;
+			return children != null;
         }
         public function getData(node:Object, model:Object = null):Object
         {

@@ -107,11 +107,13 @@ package weave.ui
 		// solution for display bugs when hierarchical data changes
 		
 		private var _dataProvider:Object; // remembers previous value that was passed to "set dataProvider"
+		private var _rootItem:Object;
 		
 		override public function set dataProvider(value:Object):void
 		{
 			_dataProvider = value;
 			super.dataProvider = value;
+			_rootItem = mx_internal::_hasRoot ? mx_internal::_rootModel.createCursor().current : null;
 		}
 		
 		/**
@@ -131,10 +133,13 @@ package weave.ui
 			
 			validateNow(); // necessary in order to select previous items and scroll back to the correct position
 			
-			// scroll to the previous item, but only if it is within scroll range
-			var vsp:int = getItemIndex(_firstVisibleItem);
-			if (vsp >= 0 && vsp <= maxVerticalScrollPosition)
-				firstVisibleItem = _firstVisibleItem;
+			if (showRoot || _firstVisibleItem != _rootItem)
+			{
+				// scroll to the previous item, but only if it is within scroll range
+				var vsp:int = getItemIndex(_firstVisibleItem);
+				if (vsp >= 0 && vsp <= maxVerticalScrollPosition)
+					firstVisibleItem = _firstVisibleItem;
+			}
 			
 			// selectedItems must be set last to avoid a bug where the Tree scrolls to the top.
 			selectedItems = _selectedItems;
@@ -172,14 +177,10 @@ package weave.ui
 			
 			// If showRoot is false and root is showing, force commitProperties() to fix the problem.
 			// This workaround requires that the data descriptor reports that the root item is a branch and it has children, even if it doesn't.
-			if (!showRoot)
+			if (!showRoot && _rootItem && itemToItemRenderer(_rootItem))
 			{
-				var rootItem:Object = dataProvider is IList && (dataProvider as IList).length > 0 ? (dataProvider as IList).getItemAt(0) : null;
-				if (rootItem && itemToItemRenderer(rootItem))
-				{
-					mx_internal::showRootChanged = true;
-					commitProperties();
-				}
+				mx_internal::showRootChanged = true;
+				commitProperties();
 			}
 			
 			// "iterator" is a HierarchicalViewCursor, and its movePrevious()/moveNext()/seek() functions do not work if "current" is null.
