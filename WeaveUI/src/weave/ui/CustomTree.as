@@ -20,7 +20,9 @@ package weave.ui
 {
 	import flash.events.Event;
 	
+	import mx.collections.ICollectionView;
 	import mx.collections.IList;
+	import mx.collections.IViewCursor;
 	import mx.controls.Tree;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
@@ -144,9 +146,13 @@ package weave.ui
 		 */
 		override protected function configureScrollBars():void
 		{
+			var ac:ICollectionView = actualCollection;
+			var ai:IViewCursor = actualIterator;
 			var rda:Boolean = runningDataEffect;
 			
 			runningDataEffect = true;
+			actualCollection = ac || collection; // avoids null pointer error
+			actualIterator = ai || iterator;
 			
 			// This is not a perfect scrolling solution.  It looks ok when there is a partial row showing at the bottom.
 			var mvsp:int = Math.max(0, collection.length - listItems.length + 1);
@@ -156,6 +162,8 @@ package weave.ui
 			super.configureScrollBars();
 			
 			runningDataEffect = rda;
+			actualCollection = ac;
+			actualIterator = ai;
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
