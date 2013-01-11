@@ -56,7 +56,7 @@
 	{
 		//TODO: support editing multiple items at a time
 		
-		if (_targetItems == null || _targetItems.length > 1)
+		if (_targetItems == null || _targetItems.length == 0 || _targetItems.length > 1)
 		{
 			this.enabled = false;
 			return;
