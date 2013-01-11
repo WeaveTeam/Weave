@@ -37,6 +37,8 @@
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
+	import weave.ui.EntityNode;
+	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
 
@@ -89,7 +91,7 @@
     }
     public function selectionsChanged(event:ListEvent):void
     {
-		var tree:CustomTree = event.currentTarget as CustomTree;
+		var tree:EntityTree = event.currentTarget as EntityTree;
         this.selectedItems = tree.selectedItems;
         if (tree == hierarchyTree) 
             tableTree.selectedItem = null;

@@ -19,16 +19,10 @@
 <mx:Script>
 <![CDATA[
 	import mx.binding.utils.BindingUtils;
-	import mx.binding.utils.ChangeWatcher;
-	import mx.controls.Alert;
 	
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
-	import weave.core.UIUtils;
 	import weave.services.Admin;
-	import weave.services.EntityCache;
-	import weave.services.WeaveAdminService;
-	import weave.services.addAsyncResponder;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
