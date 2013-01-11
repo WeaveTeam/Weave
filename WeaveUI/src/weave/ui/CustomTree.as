@@ -1,4 +1,21 @@
-// modified from http://www.frishy.com/2007/09/autoscrolling-for-flex-tree/
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package weave.ui
 {
 	import flash.events.Event;
@@ -13,6 +30,7 @@ package weave.ui
 	
 	/**
 	 * This class features a correctly behaving auto horizontal scroll policy.
+	 * @author adufilie
 	 */	
 	public class CustomTree extends Tree
 	{
@@ -21,6 +39,10 @@ package weave.ui
 			super();
 			addEventListener("scroll", updateHScrollLater);
 		}
+		
+		///////////////////////////////////////////////////////////////////////////////
+		// solution for automatic maxHorizontalScrollPosition calculation
+		// modified from http://www.frishy.com/2007/09/autoscrolling-for-flex-tree/
 		
 		// we need to override maxHorizontalScrollPosition because setting
 		// Tree's maxHorizontalScrollPosition adds an indent value to it,
@@ -78,14 +100,62 @@ package weave.ui
 				horizontalScrollPolicy = hspolicy;
 		}
 		
-		override protected function seekPositionSafely(index:int):Boolean
+		
+		///////////////////////////////////////////////////////////////////////////////
+		// solution for display bugs when hierarchical data changes
+		
+		private var _dataProvider:Object; // remembers previous value that was passed to "set dataProvider"
+		
+		override public function set dataProvider(value:Object):void
 		{
-			// "iterator" is a HierarchicalViewCursor, and its movePrevious()/moveNext()/seek() functions do not work if "current" is null.
-			// To work around the problem, we create a new cursor.
-			if (iterator && iterator.current == null)
-				iterator = collection.createCursor();
+			_dataProvider = value;
+			super.dataProvider = value;
+		}
+		
+		/**
+		 * This function must be called whenever the hierarchical data changes.
+		 * Otherwise, the Tree will not display properly.
+		 */
+		public function refreshDataProvider():void
+		{
+			var _firstVisibleItem:Object = firstVisibleItem;
+			var _selectedItems:Array = selectedItems;
+			var _openItems:Array = openItems.concat();
 			
-			return super.seekPositionSafely(index);
+			// use value previously passed to "set dataProvider" in order to create a new collection wrapper.
+			dataProvider = _dataProvider;
+			// commitProperties() behaves as desired when both dataProvider and openItems are set.
+			openItems = _openItems;
+			
+			validateNow(); // necessary in order to select previous items and scroll back to the correct position
+			
+			// scroll to the previous item, but only if it is within scroll range
+			var vsp:int = getItemIndex(_firstVisibleItem);
+			if (vsp >= 0 && vsp <= maxVerticalScrollPosition)
+				firstVisibleItem = _firstVisibleItem;
+			
+			// selectedItems must be set last to avoid a bug where the Tree scrolls to the top.
+			selectedItems = _selectedItems;
+		}
+		
+		/**
+		 * This contains a workaround for a problem in List.configureScrollBars relying on a non-working function CursorBookmark.getViewIndex().
+		 * This fixes the bug where the tree would scroll all the way from the bottom to the top when a node is collapsed. 
+		 */
+		override protected function configureScrollBars():void
+		{
+			var rda:Boolean = runningDataEffect;
+			
+			runningDataEffect = true;
+			
+			// This is not a perfect scrolling solution.  It looks ok when there is a partial row showing at the bottom.
+			var mvsp:int = Math.max(0, collection.length - listItems.length + 1);
+			if (verticalScrollPosition > mvsp)
+				verticalScrollPosition = mvsp;
+			
+			super.configureScrollBars();
+			
+			runningDataEffect = rda;
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -103,7 +173,12 @@ package weave.ui
 					commitProperties();
 				}
 			}
-				
+			
+			// "iterator" is a HierarchicalViewCursor, and its movePrevious()/moveNext()/seek() functions do not work if "current" is null.
+			// Calling refreshDataProvider() returns the tree to a working state.
+			if (iterator && iterator.current == null)
+				refreshDataProvider();
+			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 	}

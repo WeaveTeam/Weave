@@ -29,7 +29,7 @@
 			private function connectionReady(userHasAuthenticated:Boolean):void
 			{
 			    if (userHasAuthenticated == true)
-					invalidateList();
+					refreshDataProvider();
 			}
 			
 			private function handleMetadataCache():void
@@ -39,7 +39,7 @@
 				if (_rootNode)
 					_rootNode.children;
 				
-				invalidateList();
+				refreshDataProvider();
 			}
 		]]>
 	</mx:Script>
