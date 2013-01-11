@@ -16,13 +16,23 @@
 			{
 				dataProvider = _rootNode = new EntityNode(type);
 				dataDescriptor = new EntityTreeDataDescriptor();
+				nodeFilterFunction = _nodeFilterFunction;
 			}
 			
+			private var _nodeFilterFunction:Function;
 			private var _rootNode:EntityNode;
+			
+			public function set nodeFilterFunction(filter:Function):void
+			{
+				if (_rootNode)
+					_rootNode.children.filterFunction = filter;
+				else
+					_nodeFilterFunction = filter;
+			}
 			
 			private function handleCreationComplete():void
 			{
-				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleMetadataCache);
+				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, refresh);
 				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
 			}
 			
@@ -32,12 +42,12 @@
 					refreshDataProvider();
 			}
 			
-			private function handleMetadataCache():void
+			public function refresh():void
 			{
 				// Because we are not rendering the root node, we need to explicitly request the children from
 				// the root so that the children will be fetched.
 				if (_rootNode)
-					_rootNode.children;
+					_rootNode.children.refresh();
 				
 				refreshDataProvider();
 			}

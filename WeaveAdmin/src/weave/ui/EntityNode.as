@@ -85,6 +85,10 @@ package weave.ui
 		
 		public function isBranch():Boolean
 		{
+			// root is a branch
+			if (_rootFilterType >= 0)
+				return true;
+			
 			// tables are branches
 			if (Admin.entityCache.getDataTableInfo(id))
 				return true;
@@ -101,9 +105,6 @@ package weave.ui
 		
 		public function get children():ICollectionView
 		{
-			if (!Admin.instance.userHasAuthenticated)
-				return null;
-			
 			var childIds:Array;
 			if (_rootFilterType == Entity.TYPE_TABLE)
 			{
@@ -117,8 +118,11 @@ package weave.ui
 					return null; // leaf node
 			}
 			
-			if (!childIds)
+			if (!childIds || !Admin.instance.userHasAuthenticated)
+			{
+				_childNodes.length = 0;
 				return isBranch() ? _childCollectionView : null;
+			}
 			
 			var outputIndex:int = 0;
 			for (var i:int = 0; i < childIds.length; i++)

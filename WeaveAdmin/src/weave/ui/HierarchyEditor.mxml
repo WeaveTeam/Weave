@@ -2,20 +2,21 @@
 <mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
                 xmlns:ui="weave.ui.*"
                 xmlns:aci="weave.services.beans.*"
-                xmlns="weave.ui.*"
-                label="Hierarchy Editor"
+                xmlns="weave.ui.admin.managers.*"
+                label="Data Hierarchies{metadataEditor.isChanged?'*':''}"
                 creationComplete="handleCreated()">
-    <mx:VBox height="100%" width="40%">
-        <mx:Label text="Tables"/>
-        <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}"
+    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
+		<ui:IndentTextInput label="Tables" prompt="Search" id="tableSearch" width="100%"/>
+        <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}" nodeFilterFunction="{filterTables}"
 			change="deleteTableButton.enabled = tableTree.selectedItem &amp;&amp; (tableTree.selectedItem as EntityNode).getEntity().type == Entity.TYPE_TABLE;"
             width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
         <mx:HBox width="100%">
-            <mx:Button label="Import Table..." click="importTable()"/>
+			<mx:Spacer width="100%"/>
             <mx:Button id="deleteTableButton" label="Delete Table" click="deleteTable()"/>
+			<mx:Button label="Refresh" click="Admin.entityCache.clearCache();"/>
         </mx:HBox>
     </mx:VBox>
-    <mx:VBox height="100%" width="60%">
+    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
         <mx:Label text="Custom Hierarchy"/>
         <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" 
@@ -28,6 +29,7 @@
             <mx:Button label="Remove" click="remove()" enabled="{hierarchyTree.selectedItems.length > 0}"/>
         </mx:HBox>
     </mx:VBox>
+	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
 	import mx.events.ListEvent;
@@ -35,19 +37,26 @@
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
+	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
 
     [Bindable] public var selectedItems:Array;
 	
     public function handleCreated():void
     {
+		debugTrace(this);
+		
         tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
         hierarchyTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
+		
+		EventUtils.addDelayedEventCallback(tableSearch, Event.CHANGE, tableTree.refresh, 100);
     }
-    public function importTable():void
-    {
-        /* Pop up table import wizard */
-    }
+	
+	private function filterTables(item:EntityNode):Boolean
+	{
+		return item.label.search(tableSearch.text) >= 0;
+	}
+	
     public function deleteTable():void
     {
 		//TODO: ask for password to confirm?
