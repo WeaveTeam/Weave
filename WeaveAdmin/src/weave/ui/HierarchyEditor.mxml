@@ -32,7 +32,6 @@
 <![CDATA[
 	import mx.events.ListEvent;
 	
-	import weave.api.getCallbackCollection;
 	import weave.core.UIUtils;
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
