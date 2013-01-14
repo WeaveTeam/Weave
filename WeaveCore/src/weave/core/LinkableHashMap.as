@@ -54,7 +54,6 @@ package weave.core
 		private const _objectToNameMap:Dictionary = new Dictionary(true); // maps an object to an identifying name
 		private const _nameIsLocked:Object = {}; // maps an identifying name to a value of true if that name is locked.
 		private const _previousNameMap:Object = {}; // maps a previously used name to a value of true.  used when generating unique names.
-		private var _hashMapIsLocked:Boolean = false; // true if the LinkableHashMap is locked.
 		private var _typeRestriction:Class = null; // restricts the type of object that can be stored
 		private var _typeRestrictionClassName:String = null; // qualified class name of _typeRestriction
 		
@@ -124,9 +123,6 @@ package weave.core
 		 */
 		public function setNameOrder(newOrder:Array):void
 		{
-			if (_hashMapIsLocked)
-				return;
-			
 			var changeDetected:Boolean = false;
 			var name:String;
 			var i:int;
@@ -239,7 +235,7 @@ package weave.core
 		private function initObjectByClassName(name:String, className:String, lockObject:Boolean = false):ILinkableObject
 		{
 			// do nothing if locked or className is null
-			if (!_hashMapIsLocked && className != null)
+			if (className != null)
 			{
 				className = _deprecatedClassReplacements[className] || className;
 				
@@ -260,8 +256,8 @@ package weave.core
 						// associate the name with a new object of the specified type.
 						var classDef:Class = ClassUtils.getClassDefinition(className);
 						if (!(_nameToObjectMap[name] is classDef))
-							createAndSaveNewObject(name, classDef);
-						if (lockObject)
+							createAndSaveNewObject(name, classDef, lockObject);
+						else if (lockObject)
 							this.lockObject(name);
 //					}
 //					catch (e:Error)
@@ -282,7 +278,7 @@ package weave.core
 		 * @param name The identifying name to associate with a new object.
 		 * @param classDef The Class definition used to instantiate a new object.
 		 */
-	    private function createAndSaveNewObject(name:String, classDef:Class):void
+	    private function createAndSaveNewObject(name:String, classDef:Class, lockObject:Boolean):void
 	    {
 	    	if (_nameIsLocked[name] != undefined)
 	    		return;
@@ -300,6 +296,9 @@ package weave.core
 			_orderedNames.push(name);
 			// remember that this name was used.
 			_previousNameMap[name] = true;
+			
+			if (lockObject)
+				this.lockObject(name);
 
 			// make sure the callback variables signal that the object was added
 			_childListCallbacks.runCallbacks(name, object, null);
@@ -315,14 +314,12 @@ package weave.core
 		    	_nameIsLocked[name] = true;
 	    }
 		/**
-		 * This function will call lockObject() on all objects in this LinkableHashMap.
-		 * The LinkableHashMap will also be locked so that no new objects can be initialized.
+		 * This function will return true if the specified object was previously locked.
+		 * @param name The name of an object.
 		 */
-		public function lock():void
+		public function objectIsLocked(name:String):Boolean
 		{
-			_hashMapIsLocked = true;
-			for (var name:String in _nameToObjectMap)
-				_nameIsLocked[name] = true;
+			return _nameIsLocked[name] ? true : false;
 		}
 		/**
 		 * @param name The identifying name of an object previously saved with setObject().

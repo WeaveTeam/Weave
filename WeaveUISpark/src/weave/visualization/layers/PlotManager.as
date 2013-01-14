@@ -427,7 +427,7 @@ package weave.visualization.layers
 			if (newName)
 			{
 				var newPlotter:IPlotter = plotters.childListCallbacks.lastObjectAdded as IPlotter;
-				var settings:LayerSettings = layerSettings.requestObject(newName, LayerSettings, false);
+				var settings:LayerSettings = layerSettings.requestObject(newName, LayerSettings, plotters.objectIsLocked(newName));
 				
 				// TEMPORARY SOLUTION until we start using VisToolGroup
 				newPlotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;

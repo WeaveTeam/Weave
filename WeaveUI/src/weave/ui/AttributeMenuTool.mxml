@@ -185,6 +185,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function constructor():void
 			{
 				super.constructor();
+			}
+			
+			// called after children have been created
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
 				
 				// have a default dynamic title
 				panelTitle.value = lang('Attribute menu for {0}', '{targetAttribute.value}');
@@ -197,12 +203,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
 				var target:UIComponent = this;
 				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
-			}
-			
-			// called after children have been created
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
 				
 				addEventListener(Event.ENTER_FRAME, enterFrame);
 				
@@ -307,6 +307,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// called when the admin alters the choices through the control panel
 			private function handleChoicesChange():void
 			{
+				if (!parent)
+				{
+					callLater(handleChoicesChange);
+					return;
+				}
+				
 				// update the list of column objects available through the main window combo box
 				choiceCombo.dataProvider = choices.getObjects();
 				choiceList.dataProvider = choices.getObjects();
@@ -382,6 +388,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleSelectedAttributeChange():void
 			{
+				if (!parent)
+				{
+					callLater(handleSelectedAttributeChange)
+					return;
+				}
+				
 				var names:Array = choices.getNames();
 				var selectedIndex:int = names.indexOf(selectedAttribute.value);
 				choiceCombo.selectedIndex = selectedIndex;

@@ -40,7 +40,11 @@
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:KeyTypesMenu id="keyTypeSelector"/>
+	<ui:KeyTypesMenu id="keyTypeSelector" creationComplete="{if(_dbfDataSource)
+					 {
+					 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_dbfDataSource.keyType.value);
+					 	(event.target as KeyTypesMenu).selectedItem = _dbfDataSource.keyType.value;
+					 }}"/>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>

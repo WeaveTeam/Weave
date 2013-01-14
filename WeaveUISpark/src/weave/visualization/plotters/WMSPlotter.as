@@ -377,7 +377,7 @@ package weave.visualization.plotters
 				);
 
 				// calculate clip rectangle for nasa service because tiles go outside the lat/long bounds
-				_tempBounds.copyFrom(_service.getAllowedBounds()); // data
+				_service.getAllowedBounds(_tempBounds); // data
 				dataBounds.projectCoordsTo(_tempBounds, screenBounds); // data to screen
 				_tempBounds.getRectangle(_clipRectangle); // get screen rect
 				_clipRectangle.x = Math.floor(_clipRectangle.x);
@@ -440,7 +440,7 @@ package weave.visualization.plotters
 			if (_service != null)
 			{
 				// determine bounds of plotter
-				bounds.copyFrom(_service.getAllowedBounds());
+				_service.getAllowedBounds(bounds);
 				
 				var serviceSRS:String = _service.getProjectionSRS();
 				if (serviceSRS != srs.value

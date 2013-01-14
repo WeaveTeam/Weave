@@ -361,7 +361,7 @@ package weave.data.DataSources
 			
 			//trace("requestColumnFromSource()",pathInHierarchy.toXMLString());
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
+			proxyColumn.setMetadata(leafNode != null ? leafNode.copy() : null);
 			if (ObjectUtil.stringCompare(ColumnUtils.getDataType(proxyColumn), DataTypes.GEOMETRY, true) == 0)
 			{
 				var tileService:IWeaveGeometryTileService = dataService.createTileService(proxyColumn.getMetadata('name'));

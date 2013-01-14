@@ -97,7 +97,7 @@
 					 borderStyle="solid" borderThickness="1"
 					 verticalAlign="middle"
 					 verticalGap="0"
-					 creationComplete="handleCreationComplete()">
+					 >
 				<mx:HBox width="100%" horizontalGap="1" verticalAlign="middle" paddingBottom="0" paddingTop="0">
 					<mx:CheckBox id="visibleCheckbox" 
 								 label="{lang('visible')}" 
@@ -342,18 +342,6 @@
 						import weave.visualization.plotters.styles.SolidFillStyle;
 						import weave.visualization.plotters.styles.SolidLineStyle;
 						
-						private function handleCreationComplete():void
-						{
-							if(plotter is WMSPlotter)
-								getCallbackCollection(plotter).addGroupedCallback(this,handleWMSPlotterChange,true);
-						}
-						
-						private function handleWMSPlotterChange():void
-						{
-							wmsLayerService.selectedItem  = (plotter as WMSPlotter).providerName;	
-						}
-						
-						
 						private function get plotterName():String
 						{
 							return data as String;
@@ -570,7 +558,10 @@
 							if (plotter is GeometryPlotter)
 								_label = ColumnUtils.getTitle((plotter as GeometryPlotter).geometryColumn);
 							else if (plotter is WMSPlotter)
+							{
 								_label = (plotter as WMSPlotter).providerName;
+								wmsLayerService.selectedItem  = (plotter as WMSPlotter).providerName;
+							}
 							else
 								_label = plotterName;
 							

@@ -21,6 +21,7 @@ package weave.services.wms
 	import weave.api.reportError;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.LinkableNumberFormatter;
 	import weave.utils.AsyncSort;
@@ -29,11 +30,14 @@ package weave.services.wms
 	{
 		public function CustomWMS()
 		{
-			
-			_tempBounds.copyFrom(_worldBoundsMercator);
-			setReprojectedBounds(_tempBounds, _worldBoundsMercator, "EPSG:4326", tileProjectionSRS.value); // get world bounds in our Mercator
 			_currentTileIndex = new WMSTileIndex();
 			getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		override public function getAllowedBounds(output:IBounds2D):void
+		{
+			ProjectionManager.getMercatorTileBoundsInLatLong(_tempBounds);
+			setReprojectedBounds(_tempBounds, output, "EPSG:4326", tileProjectionSRS.value);
 		}
 		
 		override public function setProvider(provider:String):void
@@ -47,7 +51,7 @@ package weave.services.wms
 		}
 		
 		public const wmsURL:LinkableString = registerLinkableChild(this,new LinkableString(),getImageAttributes);
-		public const tileProjectionSRS:LinkableString= registerLinkableChild(this,new LinkableString("EPSG:3857")); 
+		public const tileProjectionSRS:LinkableString = registerLinkableChild(this,new LinkableString("EPSG:3857"));
 		public const maxZoom:LinkableNumber = registerLinkableChild(this,new LinkableNumber(18));
 		
 		static public const IMAGE_PROJECTION_SRS:String = 'EPSG:3857';
@@ -121,7 +125,8 @@ package weave.services.wms
 			
 			// now determine the data bounds we need to covert in lat/lon
 			copyDataBounds.copyFrom(dataBounds);
-			_worldBoundsMercator.constrainBounds(copyDataBounds, false);
+			getAllowedBounds(_tempBounds);
+			_tempBounds.constrainBounds(copyDataBounds, false);
 			setReprojectedBounds(copyDataBounds, latLonCopyDataBounds, tileProjectionSRS.value, "EPSG:4326");
 			
 			var latLonViewingDataBounds:Bounds2D = latLonCopyDataBounds;
@@ -138,8 +143,9 @@ package weave.services.wms
 			var mercatorTileXYBounds:Bounds2D = _tempBounds2;
 			var latLonTileXYBounds:Bounds2D = _tempBounds3;
 			tileXYToDataBounds(tileXYBounds, latLonTileXYBounds, zoomScale);
-			setReprojectedBounds(latLonTileXYBounds, mercatorTileXYBounds, "EPSG:4326", tileProjectionSRS.value); 
-			_worldBoundsMercator.constrainBounds(mercatorTileXYBounds);
+			setReprojectedBounds(latLonTileXYBounds, mercatorTileXYBounds, "EPSG:4326", tileProjectionSRS.value);
+			getAllowedBounds(_tempBounds);
+			_tempBounds.constrainBounds(mercatorTileXYBounds);
 			
 			
 			// get tiles we need using the map's mercator projection because the tiles' bounds must be in this projection
@@ -270,20 +276,6 @@ package weave.services.wms
 		}
 		
 		
-		// some parameters about the tiles
-		private const _minWorldLon:Number = -180.0 + ProjConstants.EPSLN; // because Proj4 wraps coordinates
-		private const _maxWorldLon:Number = 180.0 - ProjConstants.EPSLN; // because Proj4 wraps coordinates
-		private const _minWorldLat:Number = -Math.atan(ProjConstants.sinh(Math.PI)) * ProjConstants.R2D; 
-		private const _maxWorldLat:Number = Math.atan(ProjConstants.sinh(Math.PI)) * ProjConstants.R2D;
-		private const _worldBoundsMercator:IBounds2D = new Bounds2D(_minWorldLon, _minWorldLat, _maxWorldLon, _maxWorldLat);
-		
-		
-//		override public function getProjectionSRS():String
-//		{
-//			return tileProjectionSRS.value;
-//		}
-		
-		
 		/**
 		 * This function sets the value of _tempCoord.zoom.
 		 */
@@ -293,8 +285,9 @@ package weave.services.wms
 			if (lowerQuality == true)
 				requestedPrecision *= 4; // go one level higher, which means twice the data width and height => 4 times
 			
+			getAllowedBounds(_tempBounds);
+			var worldArea:Number = _tempBounds.getArea();
 			var imageArea:int = _imageWidth* _imageHeight;
-			var worldArea:Number = _worldBoundsMercator.getArea();
 			var higherQualZoomLevel:int = Number.POSITIVE_INFINITY;
 			var lowerQualZoomLevel:int = Number.POSITIVE_INFINITY;
 			var numTiles:Number;

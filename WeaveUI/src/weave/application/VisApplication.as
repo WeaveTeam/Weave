@@ -17,7 +17,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave
+package weave.application
 {
 	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
@@ -33,6 +33,7 @@ package weave
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
+	import flash.system.Capabilities;
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
@@ -52,6 +53,8 @@ package weave
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.Weave;
+	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
@@ -117,7 +120,7 @@ package weave
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.WeaveAnalyst;
 
-	public class VisApplication extends VBox implements ILinkableObject
+	internal class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
@@ -151,8 +154,11 @@ package weave
 			verticalScrollPolicy   = "off";
 			visDesktop.verticalScrollPolicy   = "off";
 			visDesktop.horizontalScrollPolicy = "off";
+			
+			percentWidth = 100;
+			percentHeight = 100;
 
-			waitForApplicationComplete();
+			callLater(waitForApplicationComplete);
 		}
 
 		/**
@@ -193,7 +199,7 @@ package weave
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, true);
+			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 			
 			getFlashVars();
 			handleFlashVarAllowDomain();
@@ -254,8 +260,9 @@ package weave
 			else
 			{
 				// load the session state file
-				var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
+				var fileName:String = getFlashVarFile() || DEFAULT_CONFIG_FILE_NAME;
 				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
+				
 				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
@@ -263,9 +270,15 @@ package weave
 		{
 			var fileName:String = token as String;
 			if (!event)
+			{
 				loadSessionState(null, null);
+			}
 			else
+			{
+				if (Capabilities.localFileReadDisable == false)
+					WeaveAPI.URLRequestUtils.setBaseURL(fileName);
 				loadSessionState(event.result, fileName);
+			}
 			
 			if (getFlashVarEditable())
 			{
@@ -288,7 +301,7 @@ package weave
 		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
 		{
 			// When creating a new file through the admin console, don't report an error for the missing file.
-			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarConfigFileName());
+			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarFile());
 			if (adminDefault)
 			{
 				// The admin hasn't created a default configuration yet.
@@ -305,12 +318,14 @@ package weave
 		}
 		
 		
-		private function handleBackgroundColorChange():void
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			var color:Number = Weave.properties.backgroundColor.value;
-			this.setStyle('backgroundColor', color);
+			this.graphics.clear();
+			this.graphics.beginFill(color);
+			this.graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
 			
-			//(WeaveAPI.topLevelApplication as UIComponent).setStyle("backgroundGradientColors", [color, color]);
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		
 		/**
@@ -348,7 +363,7 @@ package weave
 		/**
 		 * Gets the name of the config file.
 		 */
-		private function getFlashVarConfigFileName():String
+		private function getFlashVarFile():String
 		{
 			return unescape(_flashVars[CONFIG_FILE_FLASH_VAR_NAME] || '');
 		}
@@ -364,11 +379,19 @@ package weave
 			return undefined;
 		}
 		
+		public function setFlashVars(vars:Object):void
+		{
+			_flashVars = vars;
+		}
+		
 		/**
 		 * Gets the flash vars.
 		 */
 		private function getFlashVars():void
 		{
+			if (_flashVars)
+				return;
+			
 			// We want FlashVars to take priority over the address bar parameters.
 			_flashVars = LoaderInfo(this.root.loaderInfo).parameters;
 			
@@ -538,7 +561,7 @@ package weave
 			
 			_useWeaveExtensionWhenSavingToServer = useWeaveExtension;
 			
-			var fileName:String = getFlashVarConfigFileName().split("/").pop();
+			var fileName:String = getFlashVarFile().split("/").pop();
 			fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
 			
 			var fileSaveDialogBox:AlertTextBox;
@@ -1391,7 +1414,13 @@ package weave
 				contextMenu = new ContextMenu();
 			
 			// Hide the default Flash menu
-			contextMenu.hideBuiltInItems();
+			try
+			{
+				contextMenu['hideBuiltInItems']();
+			}
+			catch (e:Error)
+			{
+			}
 			
 			CustomContextMenuManager.removeAllContextMenuItems();
 			

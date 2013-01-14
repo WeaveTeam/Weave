@@ -34,7 +34,6 @@ package weave.utils
 	import weave.data.StatisticsCache;
 	
 	/**
-	 * EquationColumnLib
 	 * This class contains static functions that access values from IAttributeColumn objects.
 	 * Many of the functions in this library use the static variable 'currentRecordKey'.
 	 * This value should be set before calling a function that uses it.
@@ -402,7 +401,8 @@ package weave.utils
 			if (column != null)
 			{
 				var runningTotals:Dictionary = (WeaveAPI.StatisticsCache as StatisticsCache).getRunningTotals(column);
-				result = runningTotals[key];
+				if (runningTotals != null)
+					result = runningTotals[key];
 			}
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
