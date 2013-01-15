@@ -81,7 +81,7 @@ public class MetadataTable extends AbstractTable
 				Arrays.asList(fieldNames),
 				Arrays.asList(
 					"BIGINT UNSIGNED",
-					SQLUtils.getVarcharTypeString(conn, 256),
+					SQLUtils.getVarcharTypeString(conn, 255),
 					SQLUtils.getVarcharTypeString(conn, 2048)
 				),
 				Arrays.asList(FIELD_ID, FIELD_PROPERTY)
