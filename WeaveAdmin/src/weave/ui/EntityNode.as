@@ -75,7 +75,7 @@ package weave.ui
 				var typeStr:String = typeStrs[typeInts.indexOf(typeInt)];
 				var childrenStr:String = '';
 				if (typeInt != Entity.TYPE_COLUMN)
-					childrenStr = '; ' + _childNodes.length + ' children';
+					childrenStr = '; ' + children.length + ' children';
 				var idStr:String = '(' + typeStr + "#" + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
 			}
