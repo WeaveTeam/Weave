@@ -39,7 +39,7 @@
 				<ui:CustomComboBox id="keyColumnComboBox" prompt="{lang('Select a column...')}" dataProvider="{tableSelector.columns}" toolTip="{lang('Select the column whose values uniquely identify the rows in the table.')}" change="handleKeyColumnChange()"/>
 			</ui:Indent>
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
-				<admin:KeyTypeDialog paddingIndent="{paddingIndent}" id="geometrySelector" defaultKeyType="{tableSelector.activeTable}"/>
+				<admin:KeyTypeDialog paddingIndent="{paddingIndent}" id="keyTypeSelector" defaultKeyType="{tableSelector.activeTable}"/>
 				
 				<mx:CheckBox change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
 				<ui:Indent paddingLeft="{paddingIndent}"
@@ -129,7 +129,6 @@
 			
 			override public function finish():void
 			{
-				throw new Error("TODO: geometry selector does nothing, so remove it");
 				var filterColumns:Array = null;
 				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
 					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
@@ -139,7 +138,7 @@
 						keyColumnComboBox.selectedLabel,
 						secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.selectedLabel : null,
 						tableNameInput.text,
-						geometrySelector.selectedKeyType,
+						keyTypeSelector.selectedKeyType,
 						filterColumns
 					);
 				
