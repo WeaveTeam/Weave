@@ -592,12 +592,6 @@ public class AdminService
 		return getDataConfig().getDataTableList();
 	}
 
-	public int[] getEntityChildIds(String user, String password, int parentId) throws RemoteException
-	{
-		authenticate(user, password);
-		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
-	}
-
 	public int[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta, int entityType) throws RemoteException
 	{
 		authenticate(user, password);

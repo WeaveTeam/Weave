@@ -382,10 +382,6 @@ package weave.services
 		{
 			return invokeAdminWithLogin(updateEntity, arguments);
 		}
-		public function getEntityChildIds(parentId:int):AsyncToken
-		{
-			return invokeAdminWithLogin(getEntityChildIds, arguments);
-		}
 		public function getEntityIdsByMetadata(metadata:EntityMetadata, entityType:int):AsyncToken
 		{
 			return invokeAdminWithLogin(getEntityIdsByMetadata, arguments);
