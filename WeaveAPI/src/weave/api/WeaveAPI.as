@@ -38,6 +38,7 @@ package weave.api
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.api.ui.ICollabCursorManager;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -70,6 +71,13 @@ package weave.api
 		public static function get SessionManager():ISessionManager
 		{
 			return getSingletonInstance(ISessionManager);
+		}
+		/**
+		 * This is the singleton instance of the registered ICollabCursorManger implementation.
+		 */
+		public static function get CollaborationCursorManager():ICollabCursorManager
+		{
+			return getSingletonInstance(ICollabCursorManager);
 		}
 		/**
 		 * This is the singleton instance of the registered IStageUtils implementation.

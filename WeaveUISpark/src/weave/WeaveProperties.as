@@ -226,6 +226,7 @@ package weave
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
 		public const collabServerRoom:LinkableString = new LinkableString("");
+		public const collabRTMPServer:LinkableString = new LinkableString("rtmp://demo.oicweave.org/live");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
