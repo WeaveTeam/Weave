@@ -107,7 +107,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						(canvasList[controlList[k]] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
 						this.height = (canvasList[controlList[k]] as CollaborationVideoComponent).height + 18;
 						//Need to use callLater here, as the height and width changes don't take effect immediately.
-						(canvasList[controlList[k]] as CollaborationVideoComponent).adjustCamera();		
 					}
 				}
 				adjustLayout();
@@ -121,7 +120,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					(canvasList[id] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
 					this.height = 97;
 					//Need to use callLater here, as the height and width changes don't take effect immediately.
-					(canvasList[id] as CollaborationVideoComponent).adjustCamera();		
 				}
 				adjustLayout();
 			}
@@ -215,14 +213,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							else if( bigWindow && !extraWidth )
 								(canvasList[idList[i]] as CollaborationVideoComponent).x = xCoord - (canvasList[idList[i-1]] as CollaborationVideoComponent).width;
 							(canvasList[idList[i]] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
-							(canvasList[idList[i]] as CollaborationVideoComponent).adjustCamera();		
+							//(canvasList[idList[i]] as CollaborationVideoComponent).adjustCamera();		
 							addChild( canvasList[idList[i]] );
 							if( !bigWindow )
 								xCoord = xCoord + (canvasList[idList[i]] as CollaborationVideoComponent).width;	
 							counted = 0;
 							bigWindow = false;
 						}
-						(canvasList[idList[i]] as CollaborationVideoComponent).adjustCamera();
+						//(canvasList[idList[i]] as CollaborationVideoComponent).adjustCamera();
 					}
 					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
 				}

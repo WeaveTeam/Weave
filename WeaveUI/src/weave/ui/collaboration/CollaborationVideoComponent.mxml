@@ -43,6 +43,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var profilePicture:Bitmap = new Bitmap(new BitmapData(100, 100));
 			private var streamingVid:Boolean = false;
 			
+			override public function set width(value:Number):void
+			{
+				super.width = value;
+				if( videoArea != null )
+					videoArea.width = value;
+			}
+			
+			override public function set height(value:Number):void
+			{
+				super.height = value;
+				if( videoArea != null )
+					videoArea.height = value
+			}
+			
 			/*
 			* This is used to set the label, since setting the label directly can result in an error sometimes.
 			*/
