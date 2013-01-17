@@ -96,13 +96,13 @@ public class MetadataTable extends AbstractTable
 		
 		try
 		{
-//			/* Index of (id) */
-//			SQLUtils.createIndex(
-//					conn, schemaName, tableName,
-//					tableName+FIELD_ID,
-//					new String[]{FIELD_ID},
-//					null
-//			);
+			/* Index of (property) */
+			SQLUtils.createIndex(
+					conn, schemaName, tableName,
+					tableName+FIELD_PROPERTY,
+					new String[]{FIELD_PROPERTY},
+					null
+			);
 			/* Index of (Property, Value), important for finding ids with metadata criteria */
 			SQLUtils.createIndex(
 					conn, schemaName, tableName,
