@@ -354,8 +354,10 @@ package weave.core
 		 */
 		public function removeAllObjects():void
 		{
+			delayCallbacks();
 			for each (var name:String in getNames())
 				removeObject(name);
+			resumeCallbacks();
 		}
 		
 		/**

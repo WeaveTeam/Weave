@@ -33,10 +33,10 @@ package weave.core
 	import mx.core.mx_internal;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
 	import weave.utils.DebugUtils;
@@ -319,11 +319,16 @@ package weave.core
 		 */
 		private function handleCallLater():void
 		{
+			if (UIComponentGlobals.callLaterSuspendCount > 0)
+				return;
+			
 			var args:Array;
 			var stackTrace:String;
 			var i:int;
+			var now:int;
+			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
 
-			// first run the functions that cannot be delayed more than one frame.
+			// first run the functions that should be called before anything else.
 			var calls:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
 			if (calls.length > 0)
 			{
@@ -338,6 +343,14 @@ package weave.core
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
 					
+					now = getTimer();
+					// if max computation time was reached for this frame, queue this function for later
+					if (now > allStop)
+					{
+						(_priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array).push(args);
+						continue;
+					}
+					
 //					WeaveAPI.SessionManager.unassignBusyTask(args);
 					
 					// don't call the function if the relevantContext was disposed of.
@@ -349,11 +362,8 @@ package weave.core
 				}
 			}
 			
-			if (UIComponentGlobals.callLaterSuspendCount > 0)
-				return;
 //			trace('-------');
 			var minPriority:int = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1;
-			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
 			var pElapsed:int = int(_priorityElapsedTimes[_activePriority]);
@@ -364,7 +374,7 @@ package weave.core
 				if (debug_callLater)
 					DebugTimer.begin();
 				
-				var now:int = getTimer();
+				now = getTimer();
 				if (now > pStop || pQueue.length == 0)
 				{
 					// keep track of elapsed time for this priority
