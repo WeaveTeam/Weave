@@ -114,8 +114,12 @@ package weave.services
 		
 		private function handleRemoveEntities(event:ResultEvent, token:Object):void
 		{
+			callbacks.delayCallbacks();
+			
 			for each (var id:int in event.result as Array)
 				invalidate(id, true);
+			
+			callbacks.resumeCallbacks();
 		}
 		
         private function getEntityHandler(event:ResultEvent, token:Object):void
@@ -126,6 +130,13 @@ package weave.services
 				var entity:Entity = cache_entity[id] || new Entity(id);
 				entity.copyFromResult(result);
 	            cache_entity[id] = entity;
+				
+				var tableInfo:EntityTableInfo = _dataTableLookup[id];
+				if (tableInfo)
+				{
+					tableInfo.title = entity.publicMetadata['title'];
+					tableInfo.numChildren = entity.childIds.length;
+				}
 				
 				// cache child-to-parent mappings
 				for each (var childId:int in entity.childIds)
