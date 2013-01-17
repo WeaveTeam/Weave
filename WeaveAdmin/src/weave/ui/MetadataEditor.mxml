@@ -19,10 +19,12 @@
 <mx:Script>
 <![CDATA[
 	import mx.binding.utils.BindingUtils;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.services.Admin;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
@@ -96,11 +98,11 @@
 		var entity:Entity = item.getEntity();
 		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
 		
-		checkIsChanged = true;
         Admin.entityCache.update_metadata(entity.id, diff);
+		checkIsChanged = true;
     }
 	private var checkIsChanged:Boolean = false;
-	private function handleEntityCache():void
+	private function handleEntityCache(..._):void
 	{
 		if (checkIsChanged)
 		{
@@ -120,14 +122,9 @@
 		}
 	}
 	
-    private static function printobj(o:Object):void
-    {
-        for (var prop:String in o)
-			weaveTrace(prop + ":" + o[prop]);
-    }
     private function printpubMeta():void
     {
-        printobj(publicMetaGrid.metadata);
+        weaveTrace(ObjectUtil.toString(publicMetaGrid.metadata));
     }
 
 ]]>
