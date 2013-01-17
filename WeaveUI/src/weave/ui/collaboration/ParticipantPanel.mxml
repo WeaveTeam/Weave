@@ -27,22 +27,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const windowSizeConstant:Number = 2;
 			
 			//Canvas list is an array of all the components.
-			private var canvasList:Array = new Array();
+			private var canvasList:Dictionary = new Dictionary();
 			//Control list is the list of all the users currently in control.
 			private var controlList:Array = new Array();
+			private var idList:Array = new Array();
 
 			public function addToParticpantList(id:String):void
 			{
 				if( canvasList == null )
-					canvasList = new Array();
-				if( alreadyExists(id, canvasList) ) return;
+					canvasList = new Dictionary();
+				if( canvasList[id] != null ) return;
 				var collabVidComp:CollaborationVideoComponent = new CollaborationVideoComponent();
 				//The username is longer than 10 characters shorten it so it isn't too big for the componenet.
 				if( id.length > 10 )
 					collabVidComp.labelText = id.substr(0, 10) + "...";
 				else
 					collabVidComp.labelText = id;
-				canvasList.push(collabVidComp);
+				canvasList[id] = collabVidComp;
+				idList.push(id);
 				adjustLayout();
 			}
 			
@@ -62,14 +64,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						break;
 					}
 				}
-				for( var i:int = 0; i < canvasList.length; i++ )
-				{
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
-					{
-						canvasList.splice(i, 1);
-						break;
-					}
-				}
+				if( canvasList[id] != null )
+					canvasList[id] = null;
+				var listLocation:int = idList.indexOf(id);
+				idList.splice(listLocation, 1);
 				adjustLayout();
 			}
 			/*
@@ -79,6 +77,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				canvasList = null;
 				controlList = new Array();
+				idList = new Array();
 				this.height = 97;
 				adjustLayout();
 			}
@@ -101,40 +100,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for( var k:int = 0; k < controlList.length; k++ )
 				{
 					if( controlList[k] is Number ) continue;
-					if( controlList[k].length > 10 )
-						testID = controlList[k].substr(0, 10) + "...";
-					else
-						testID = controlList[k];
 						
-					for( var m:int = 0; m < canvasList.length; m++ )
-						if( (canvasList[m] as CollaborationVideoComponent).nameLabel.text == testID )
-						{
-							(canvasList[m] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-							(canvasList[m] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
-							this.height = (canvasList[m] as CollaborationVideoComponent).height + 18;
-							//Need to use callLater here, as the height and width changes don't take effect immediately.
-							callLater((canvasList[m] as CollaborationVideoComponent).adjustCamera);		
-						}
+					if( canvasList[controlList[k]] != null )
+					{
+						(canvasList[controlList[k]] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+						(canvasList[controlList[k]] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						this.height = (canvasList[controlList[k]] as CollaborationVideoComponent).height + 18;
+						//Need to use callLater here, as the height and width changes don't take effect immediately.
+						(canvasList[controlList[k]] as CollaborationVideoComponent).adjustCamera();		
+					}
 				}
 				adjustLayout();
 			}
 			//This function is used by inControl() to shrink a user's component when they lose control.
 			private function lostControl(id:String):void
 			{
-				var testID:String = new String();
-				if( id.length > 10 )
-					testID = id.substr(0, 10) + "...";
-				else
-					testID = id;
-				for( var i:int = 0; i < canvasList.length; i++ )
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
-					{
-						(canvasList[i] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
-						(canvasList[i] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
-						this.height = 97;
-						//Need to use callLater here, as the height and width changes don't take effect immediately.
-						callLater((canvasList[i] as CollaborationVideoComponent).adjustCamera);		
-					}
+				if( canvasList[id] != null )
+				{
+					(canvasList[id] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
+					(canvasList[id] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
+					this.height = 97;
+					//Need to use callLater here, as the height and width changes don't take effect immediately.
+					(canvasList[id] as CollaborationVideoComponent).adjustCamera();		
+				}
 				adjustLayout();
 			}
 			/*
@@ -173,17 +161,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					this.width = 0;
 					var counted:int = 0;
 					//This sets the width and height of the panel.
-					for( var j:int = 0; j < canvasList.length; j++ )
+					for( var j:int = 0; j < idList.length; j++ )
 					{
-						if( (canvasList[j] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth && counted == 1 )
+						if( (canvasList[idList[j]] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth && counted == 1 )
 							counted = 0;
 						else
 						{
-							this.width += (canvasList[j] as CollaborationVideoComponent).width;
-							if( (canvasList[j] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
+							this.width += (canvasList[idList[j]] as CollaborationVideoComponent).width;
+							if( (canvasList[idList[j]] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
 								counted++;
 							else
-								this.height = (canvasList[j] as CollaborationVideoComponent).height + 18;
+								this.height = (canvasList[idList[j]] as CollaborationVideoComponent).height + 18;
 						}
 					}
 					this.width += 20;
@@ -191,50 +179,50 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var bigWindow:Boolean = false;
 					var extraWidth:Boolean = false;
 					//This lays out all of the VideoCollaborationComponents in the panel.
-					for( var i:int = 0; i < canvasList.length ; i++ )
+					for( var i:int = 0; i < idList.length ; i++ )
 					{
-						if( counted == 0 || (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
+						if( counted == 0 || (canvasList[idList[i]] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
 						{
 							bigWindow = false;
 							extraWidth = false;
-							(canvasList[i] as CollaborationVideoComponent).x = xCoord;
-							(canvasList[i] as CollaborationVideoComponent).y = 0;
-							if( (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
+							(canvasList[idList[i]] as CollaborationVideoComponent).x = xCoord;
+							(canvasList[idList[i]] as CollaborationVideoComponent).y = 0;
+							if( (canvasList[idList[i]] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
 							{
-								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
+								xCoord = xCoord + (canvasList[idList[i]] as CollaborationVideoComponent).width;	
 								if( i > 0 )
-									if( (canvasList[i] as CollaborationVideoComponent).x == (canvasList[i-1] as CollaborationVideoComponent).x )
+									if( (canvasList[idList[i]] as CollaborationVideoComponent).x == (canvasList[idList[i-1]] as CollaborationVideoComponent).x )
 									{
-										(canvasList[i] as CollaborationVideoComponent).x = (canvasList[i] as CollaborationVideoComponent).x + CollaborationVideoComponent.defaultWidth;
-										xCoord += (canvasList[i-1] as CollaborationVideoComponent).width;
+										(canvasList[idList[i]] as CollaborationVideoComponent).x = (canvasList[idList[i]] as CollaborationVideoComponent).x + CollaborationVideoComponent.defaultWidth;
+										xCoord += (canvasList[idList[i-1]] as CollaborationVideoComponent).width;
 										extraWidth = true;
 									}
 								bigWindow = true;										
 							}
-							(canvasList[i] as CollaborationVideoComponent).adjustCamera();		
-							addChild( canvasList[i] );
-							if( (canvasList[i] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
+							addChild( canvasList[idList[i]] );
+							if( (canvasList[idList[i]] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
 								counted++;
 						}
 						else
 						{
 							if( !bigWindow )
-								(canvasList[i] as CollaborationVideoComponent).x = xCoord;
+								(canvasList[idList[i]] as CollaborationVideoComponent).x = xCoord;
 							else if( bigWindow && extraWidth )
 							{
-								(canvasList[i] as CollaborationVideoComponent).x = xCoord - (canvasList[i-1] as CollaborationVideoComponent).width - CollaborationVideoComponent.defaultWidth;
+								(canvasList[idList[i]] as CollaborationVideoComponent).x = xCoord - (canvasList[idList[i-1]] as CollaborationVideoComponent).width - CollaborationVideoComponent.defaultWidth;
 								extraWidth = false;
 							}
 							else if( bigWindow && !extraWidth )
-								(canvasList[i] as CollaborationVideoComponent).x = xCoord - (canvasList[i-1] as CollaborationVideoComponent).width;
-							(canvasList[i] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
-							(canvasList[i] as CollaborationVideoComponent).adjustCamera();		
-							addChild( canvasList[i] );
+								(canvasList[idList[i]] as CollaborationVideoComponent).x = xCoord - (canvasList[idList[i-1]] as CollaborationVideoComponent).width;
+							(canvasList[idList[i]] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
+							(canvasList[idList[i]] as CollaborationVideoComponent).adjustCamera();		
+							addChild( canvasList[idList[i]] );
 							if( !bigWindow )
-								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
+								xCoord = xCoord + (canvasList[idList[i]] as CollaborationVideoComponent).width;	
 							counted = 0;
 							bigWindow = false;
 						}
+						(canvasList[idList[i]] as CollaborationVideoComponent).adjustCamera();
 					}
 					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
 				}
@@ -246,8 +234,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				//Needed to make sure pictures stay within the boundary of their components.
 				if( canvasList != null )
-					for( var z:int = 0; z < canvasList.length; z++ )
-						callLater((canvasList[z] as CollaborationVideoComponent).adjustCamera);
+					for( var z:int = 0; z < idList.length; z++ )
+						(canvasList[idList[z]] as CollaborationVideoComponent).adjustCamera();
 			}
 			
 			//Camera streaming functions.
@@ -289,17 +277,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function findVideoComponent(name:String):CollaborationVideoComponent
 			{
-				var testID:String = new String();
-				if( name.length > 10 )
-					testID = name.substr(0, 10) + "...";
-				else
-					testID = name;
-				for( var i:int = 0; i < canvasList.length; i++ )
-				{
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
-						return canvasList[i] as CollaborationVideoComponent;
-				}
-				return null;
+				return canvasList[name] as CollaborationVideoComponent;
 			}
 		]]>
 	</mx:Script>

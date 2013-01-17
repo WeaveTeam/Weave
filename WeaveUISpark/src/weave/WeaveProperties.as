@@ -220,13 +220,13 @@ package weave
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
 		// Collaboration
-		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
+		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(true); // collaboration menu bar (bottom of screen)
 		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(false); // menu item
-		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
-		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
+		public const collabServerIP:LinkableString = new LinkableString("129.63.16.54");
+		public const collabServerName:LinkableString = new LinkableString("weave-demo");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
-		public const collabServerRoom:LinkableString = new LinkableString("");
-		public const collabRTMPServer:LinkableString = new LinkableString("rtmp://demo.oicweave.org/live");
+		public const collabServerRoom:LinkableString = new LinkableString("test");
+		public const collabRTMPServer:LinkableString = new LinkableString("rtmp://129.63.16.54/live");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
