@@ -62,18 +62,18 @@ package weave.services.beans
 		{
 			_id = getEntityIdFromResult(result);
 			_type = result.type;
-			_privateMetadata = result.privateMetadata || {};
-			_publicMetadata = result.publicMetadata || {};
+			privateMetadata = result.privateMetadata || {};
+			publicMetadata = result.publicMetadata || {};
 			_childIds = result.childIds;
 	
 			// replace nulls with empty strings
 			var name:String;
-			for (name in _privateMetadata)
-				if (_privateMetadata[name] == null)
-					_privateMetadata[name] = '';
-			for (name in _publicMetadata)
-				if (_publicMetadata[name] == null)
-					_publicMetadata[name] = '';
+			for (name in privateMetadata)
+				if (privateMetadata[name] == null)
+					privateMetadata[name] = '';
+			for (name in publicMetadata)
+				if (publicMetadata[name] == null)
+					publicMetadata[name] = '';
 		}
 	}
 }

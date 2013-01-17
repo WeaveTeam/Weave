@@ -29,11 +29,8 @@ package weave.services.beans
 		public static const TABLEPREFIX:String = "tablePrefix";
 		public static const IMPORTNOTES:String = "importNotes";
 		
-		protected var _privateMetadata:Object = {};
-		protected var _publicMetadata:Object = {};
-		
-		public function get privateMetadata():Object { return _privateMetadata; }
-		public function get publicMetadata():Object { return _publicMetadata; }
+		public var privateMetadata:Object = {};
+		public var publicMetadata:Object = {};
 		
 		private function objToStr(obj:Object):String
 		{
@@ -66,8 +63,8 @@ package weave.services.beans
 		public function getDiff(newPrivateMetadata:Object, newPublicMetadata:Object):EntityMetadata
 		{
 			var diff:EntityMetadata = new EntityMetadata();
-			outputDiff(_privateMetadata, newPrivateMetadata, diff._privateMetadata);
-			outputDiff(_publicMetadata, newPublicMetadata, diff._publicMetadata);
+			outputDiff(privateMetadata, newPrivateMetadata, diff.privateMetadata);
+			outputDiff(publicMetadata, newPublicMetadata, diff.publicMetadata);
 			return diff;
 		}
 	}
