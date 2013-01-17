@@ -19,8 +19,6 @@
 
 package weave.services.beans
 {
-	import mx.utils.ObjectUtil;
-
 	public class EntityTableInfo
 	{
 		public var id:int;
