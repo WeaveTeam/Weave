@@ -74,8 +74,7 @@ package weave.services
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
-		[Bindable] public var dbfKeyColumns:Array = [];
-		[Bindable] public var dbfData:Array = [];
+		[Bindable] public var dbfColumns:Array = [];
 		
 		// values the user has currently selected
 		[Bindable] public var activePassword:String = '';
@@ -212,17 +211,6 @@ package weave.services
 					databaseConfigExists = Boolean(event.result);
 				}
 			);
-			/////////////////////////////////
-			// Key column uniqueness checks
-			service.addHook(
-				service.getDBFData,
-				null,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					// save info
-					dbfData = event.result as Array || [];
-				}
-			);
 			/////////////////
 			// File uploads
 			service.addHook(
@@ -249,7 +237,7 @@ package weave.services
 				function(event:ResultEvent, token:Object = null):void
 				{
 					// save info
-					dbfKeyColumns = event.result as Array || [];
+					dbfColumns = event.result as Array || [];
 				}
 			);
 			////////////////

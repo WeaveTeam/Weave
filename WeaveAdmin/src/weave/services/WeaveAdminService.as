@@ -449,13 +449,9 @@ package weave.services
 		{
 			return invokeAdmin(getCSVColumnNames, arguments);
 		}
-		public function getDBFColumnNames(dbfFileName:String):AsyncToken
+		public function getDBFColumnNames(dbfFileNames:Array):AsyncToken
 		{
 		    return invokeAdmin(getDBFColumnNames, arguments);
-		}
-		public function getDBFData(dbfFileName:String):AsyncToken
-		{
-			return invokeAdmin(getDBFData, arguments);
 		}
 		
 		/////////////////////////////////
@@ -468,6 +464,10 @@ package weave.services
 		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumnName:String, secondaryKeyColumnName:String):AsyncToken
 		{
 			return invokeAdmin(checkKeyColumnForCSVImport,arguments);
+		}
+		public function checkKeyColumnForDBFImport(dbfFileNames:Array, keyColumnNames:Array):DelayedAsyncInvocation
+		{
+			return invokeAdmin(checkKeyColumnForDBFImport, arguments);
 		}
 		
 		////////////////

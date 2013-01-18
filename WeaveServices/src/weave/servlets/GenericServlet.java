@@ -528,7 +528,7 @@ public class GenericServlet extends HttpServlet
 		HttpServletResponse response = getServletRequestInfo().response;
 		
 		// debug
-		//System.out.println(methodName + arrayToString(methodParameters));
+		//System.out.println(methodName + Arrays.deepToString(methodParameters));
 		
 		// get method by name
 		ExposedMethod exposedMethod = methodMap.get(methodName);
@@ -566,7 +566,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (InvocationTargetException e)
 		{
-			System.err.println(methodName + Arrays.deepToString(methodParameters));
+			System.out.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)

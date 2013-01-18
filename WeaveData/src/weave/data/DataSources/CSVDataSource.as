@@ -364,6 +364,8 @@ package weave.data.DataSources
 				//check if it is a numeric column.
 				for each (var columnValue:String in csvDataColumn)
 				{
+					if (columnValue == null) // this is possible if rows have missing values
+						continue;
 					// if a string is 2 characters or more and begins with a '0', treat it as a string.
 					if (columnValue.length > 1 && columnValue.charAt(0) == '0' && columnValue.charAt(1) != '.')
 					{
@@ -433,6 +435,7 @@ package weave.data.DataSources
 				for (i = 1; i < rows.length; i++)
 					outputArrayOrVector[i-1] = rows[i][columnIndex];
 			}
+			outputArrayOrVector.length = rows.length;
 		}
 		
 		private function getNumberFromString(value:String):Number
