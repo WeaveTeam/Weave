@@ -19,7 +19,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
 		   width="100" height="80" borderColor="#54585E" borderStyle="solid" borderThickness="3"
-		   creationComplete="creationComplete(event)" creationPolicy="all">
+		   creationComplete="creationComplete(event)" creationPolicy="all" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 	<mx:VBox width="100%" height="100%">
 		<mx:UIComponent id="videoArea" width="100%" height="100%"/>
 		<mx:Label id="nameLabel" width="100%" height="3%"/>
@@ -46,15 +46,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override public function set width(value:Number):void
 			{
 				super.width = value;
-				if( videoArea != null )
-					videoArea.width = value;
+			 	if( videoArea != null )
+					videoArea.width = value - (this.borderMetrics.right * 2);
 			}
 			
 			override public function set height(value:Number):void
 			{
 				super.height = value;
 				if( videoArea != null )
-					videoArea.height = value
+					videoArea.height = value - nameLabel.height - 2 - (this.borderMetrics.bottom * 2);  
 			}
 			
 			/*
