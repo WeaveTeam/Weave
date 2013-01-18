@@ -400,7 +400,7 @@ public class GenericServlet extends HttpServlet
 		}
 		if (extraParameters != null)
 		{
-			System.out.println("Received servlet request: " + methodName + Arrays.asList(argValues));
+			System.out.println("Received servlet request: " + methodName + Arrays.deepToString(argValues));
 			System.out.println("Unused parameters: "+extraParameters.entrySet());
 		}
 		
@@ -417,7 +417,7 @@ public class GenericServlet extends HttpServlet
 		HttpServletResponse response = getServletRequestInfo().response;
 		
 		// debug
-		//System.out.println(methodName + Arrays.asList(methodParameters));
+		//System.out.println(methodName + Arrays.deepToString(methodParameters));
 		
 		// get method by name
 		ExposedMethod exposedMethod = methodMap.get(methodName);
@@ -528,7 +528,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (InvocationTargetException e)
 		{
-			System.out.println(methodName + (List)Arrays.asList(methodParameters));
+			System.out.println(methodName + Arrays.deepToString(methodParameters));
 			e.getCause().printStackTrace();
 			sendError(response, e.getCause());
 		}
@@ -543,7 +543,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (Exception e)
 		{
-			System.out.println(methodName + (List)Arrays.asList(methodParameters));
+			System.out.println(methodName + Arrays.deepToString(methodParameters));
 			e.printStackTrace();
 			sendError(response, e);
 		}
