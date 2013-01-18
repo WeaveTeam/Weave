@@ -1199,12 +1199,25 @@ public class AdminService extends GenericServlet
 		return DBFUtils.isColumnUnique(files, keyColumnNames);
 	}
 	
-	public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
+	public String[] listDBFFileColumns(String[] dbfFileNames) throws RemoteException
 	{
 		try
 		{
-			List<String> names = DBFUtils.getAttributeNames(new File(uploadPath, correctFileNameCase(dbfFileName)));
-			return ListUtils.toStringArray(names);
+			Set<String> set = new HashSet<String>();
+			List<String> list = new LinkedList<String>();
+			for (String dbfFileName : dbfFileNames)
+			{
+				List<String> cols = DBFUtils.getAttributeNames(new File(uploadPath, correctFileNameCase(dbfFileName)));
+				for (String col : cols)
+				{
+					if (!set.contains(col))
+					{
+						set.add(col);
+						list.add(col);
+					}
+				}
+			}
+			return ListUtils.toStringArray(list);
 		}
 		catch (IOException e)
 		{

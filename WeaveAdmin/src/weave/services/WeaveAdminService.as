@@ -365,7 +365,7 @@ package weave.services
 			//query.addAsyncResponder(alertResult);
 			return query;
 		}
-		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
+		public function listDBFFileColumns(dbfFileNames:Array):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("listDBFFileColumns", arguments);
 		    return query;

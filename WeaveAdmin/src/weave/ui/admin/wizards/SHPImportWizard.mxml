@@ -38,7 +38,7 @@
 			<mx:CheckBox id="dbfImportCheckBox" label="Import DBF file as Data Table" selected="true" change="handleKeyColumnsChange()" />
 		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
-			<ui:CustomComboBoxMultiSelect id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" width="240" change="handleKeyColumnsChange()" editable="true"/>
+			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" width="240" change="handleKeyColumnsChange()" editable="true"/>
 			<ui:HelpComponent>
 				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
@@ -75,7 +75,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
-			import mx.collections.ArrayList;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
@@ -106,14 +105,13 @@
 			
 			[Bindable] private var fileUploadCount:int = 0;
 			[Bindable] private var targetFileUploadCount:int = 0;
-			private var _fileUploadList:ArrayList = new ArrayList();
-			private var _dbfFileToRequestColumnNamesFrom:FileReference;
+			private var _dbfFilesToRequestColumnNamesFrom:Array = []; // of String
 			private function shapeFileSelectedHandler(event:Event):void
 			{
-				_fileUploadList.removeAll();
 				fileUploadCount = 0;
 				targetFileUploadCount = shapeFileReferenceList.fileList.length;
 				shpFileNameInput.text = '';
+				_dbfFilesToRequestColumnNamesFrom.length = 0;
 				
 				for each (var fileRef:FileReference in shapeFileReferenceList.fileList)
 				{
@@ -129,7 +127,7 @@
 					if (ext == ".dbf")
 					{
 						AdminInterface.instance.dbfKeyColumns = [];
-						_dbfFileToRequestColumnNamesFrom = fileRef;
+						_dbfFilesToRequestColumnNamesFrom.push(fileRef.name);
 					}
 					
 					fileRef.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
@@ -173,11 +171,10 @@
 				if (shapeFileReferenceList.fileList.indexOf(token) >= 0)
 				{
 					fileUploadCount++;
-					_fileUploadList.addItem(token.name);
 					
 					if( fileUploadCount == targetFileUploadCount )
 					{
-						AdminInterface.instance.listDBFFileColumns(_fileUploadList.getItemAt(_fileUploadList.length-1) as String);
+						AdminInterface.instance.listDBFFileColumns(_dbfFilesToRequestColumnNamesFrom);
 						enableAllWidgets();
 					}
 				}
@@ -196,11 +193,10 @@
 				
 				shpFileNameInput.text = tableName;
 				
-				AdminInterface.instance.listDBFFileColumns(tableName+".dbf");
-				tableSelector.activeTable = tableName;
+				_dbfFilesToRequestColumnNamesFrom = [tableName + ".dbf"];
 				
-				_fileUploadList.removeAll();
-				_fileUploadList.addItem(tableName+".dbf");
+				AdminInterface.instance.listDBFFileColumns(_dbfFilesToRequestColumnNamesFrom);
+				tableSelector.activeTable = tableName;
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
@@ -288,10 +284,7 @@
 				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 				var keyCols:Array = trimmedKeyCols.split(","); 
 				
-				AdminInterface.instance.checkKeyColumnForDBFImport(
-					_fileUploadList.toArray(),
-					keyCols
-				).addAsyncResponder(keyColumnsCheckedForUniqueness);
+				AdminInterface.instance.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols).addAsyncResponder(keyColumnsCheckedForUniqueness);
 				
 			}
 			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void

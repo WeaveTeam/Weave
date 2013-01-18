@@ -500,9 +500,9 @@ package weave.services
 		{
 			return service.checkKeyColumnForDBFImport(fileNames, fieldNames);
 		}
-		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
+		public function listDBFFileColumns(dbfFileNames:Array):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = service.listDBFFileColumns(dbfFileName);
+			var query:DelayedAsyncInvocation = service.listDBFFileColumns(dbfFileNames);
 			query.addAsyncResponder(handleListDBFFileColumns);
 			function handleListDBFFileColumns(event:ResultEvent, token:Object = null):void
 			{
