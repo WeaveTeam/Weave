@@ -42,7 +42,7 @@
 			</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
-			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{Admin.instance.dbfColumns}" change="handleKeyColumnsChange()" editable="true" width="240"/>
+			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{dbfColumns}" change="handleKeyColumnsChange()" editable="true" width="240"/>
 			<ui:HelpComponent>
 				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
@@ -107,6 +107,7 @@
 				finishEnabled = false;
 			}
 			
+			[Bindable] public var dbfColumns:Array = [];
 			[Bindable] private var fileUploadCount:int = 0;
 			[Bindable] private var targetFileUploadCount:int = 0;
 			private var _dbfFilesToRequestColumnNamesFrom:Array = []; // of String
@@ -130,7 +131,7 @@
 					}
 					if (ext == ".dbf")
 					{
-						Admin.instance.dbfColumns = [];
+						dbfColumns = [];
 						_dbfFilesToRequestColumnNamesFrom.push(fileRef.name);
 					}
 					
@@ -178,10 +179,19 @@
 					
 					if( fileUploadCount == targetFileUploadCount )
 					{
-						Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom);
+						addAsyncResponder(
+							Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
+							handleDBFColumnNames
+						);
 						enableAllWidgets();
 					}
 				}
+			}
+			
+			private function handleDBFColumnNames(event:ResultEvent, token:Object):void
+			{
+				dbfColumns = event.result as Array || [];
+				handleKeyColumnsChange();
 			}
 						
 			private var _serverFileBrowser:ServerFileViewer = null;
@@ -287,7 +297,10 @@
 				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 				var keyCols:Array = trimmedKeyCols.split(","); 
 				
-				Admin.service.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols).addAsyncResponder(keyColumnsCheckedForUniqueness);
+				addAsyncResponder(
+					Admin.service.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols),
+					keyColumnsCheckedForUniqueness
+				);
 			}
 			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void
 			{

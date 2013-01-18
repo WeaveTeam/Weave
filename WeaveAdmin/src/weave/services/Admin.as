@@ -74,8 +74,6 @@ package weave.services
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
-		[Bindable] public var dbfColumns:Array = [];
-		
 		// values the user has currently selected
 		[Bindable] public var activePassword:String = '';
 		
@@ -229,15 +227,6 @@ package weave.services
 				{
 					// save info
 					uploadedShapeFiles = event.result as Array || [];
-				}
-			);
-			service.addHook(
-				service.getDBFColumnNames,
-				null,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					// save info
-					dbfColumns = event.result as Array || [];
 				}
 			);
 			////////////////
