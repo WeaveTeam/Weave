@@ -11,6 +11,7 @@
 			
 			import weave.api.getCallbackCollection;
 			import weave.services.Admin;
+			import weave.utils.EventUtils;
 			
 			public function set rootFilterType(type:int):void
 			{
@@ -32,7 +33,7 @@
 			
 			private function handleCreationComplete():void
 			{
-				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, refresh);
+				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, delayedRefresh);
 				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
 			}
 			
@@ -41,6 +42,8 @@
 			    if (userHasAuthenticated == true)
 					refreshDataProvider();
 			}
+			
+			private const delayedRefresh:Function = EventUtils.generateDelayedCallback(this, refresh, 100);
 			
 			public function refresh():void
 			{

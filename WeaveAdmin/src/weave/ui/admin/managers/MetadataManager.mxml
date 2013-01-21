@@ -56,7 +56,9 @@
 	
 	private function filterTables(item:EntityNode):Boolean
 	{
-		return item.label.search(tableSearch.text) >= 0;
+		if (!tableSearch.text)
+			return true;
+		return item.label.toLowerCase().search(tableSearch.text.toLowerCase()) >= 0;
 	}
 	
     public function deleteTable():void

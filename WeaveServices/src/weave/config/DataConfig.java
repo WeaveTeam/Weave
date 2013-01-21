@@ -40,6 +40,7 @@ import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.tables.HierarchyTable;
 import weave.config.tables.ManifestTable;
 import weave.config.tables.MetadataTable;
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 
@@ -487,21 +488,31 @@ public class DataConfig
 		public static DataEntityMetadata fromMap(Map object)
 		{
         	DataEntityMetadata dem = new DataEntityMetadata();
-        	
-        	if (object.get(PRIVATE_METADATA) != null)
-        	{
-        		Map map = (Map)object.get(PRIVATE_METADATA);
-        		for (Object key : map.keySet())
-        			dem.privateMetadata.put(key.toString(), map.get(key).toString());
-        	}
-        	if (object.get(PUBLIC_METADATA) != null)
-        	{
-        		Map map = (Map)object.get(PUBLIC_METADATA);
-        		for (Object key : map.keySet())
-        			dem.publicMetadata.put(key.toString(), map.get(key).toString());
-        	}
-        	
+        	copyMap((Map)object.get(PRIVATE_METADATA), dem.privateMetadata);
+       		copyMap((Map)object.get(PUBLIC_METADATA), dem.publicMetadata);
         	return dem;
+		}
+		
+		@SuppressWarnings("rawtypes")
+		private static void copyMap(Map input, Map<String,String> output)
+		{
+			if (input == null)
+				return;
+			
+			for (Object key : input.keySet())
+			{
+				Object value = input.get(key);
+				String valueStr = value == null ? null : value.toString();
+				output.put(key.toString(), valueStr);
+			}
+		}
+		
+		public String toString()
+		{
+			return MapUtils.fromPairs(
+					"publicMetadata", publicMetadata,
+					"privateMetadata", privateMetadata
+				).toString();
 		}
 	}
 	
@@ -521,6 +532,16 @@ public class DataConfig
 				this.privateMetadata = base.privateMetadata;
 			}
 			this.childIds = childIds;
+		}
+		
+		public String toString()
+		{
+			return String.format("(%s%s)",
+					MapUtils.fromPairs(
+							"childIds", Arrays.toString(childIds)
+						).toString(),
+					super.toString()
+				);
 		}
 	}
 
@@ -560,6 +581,17 @@ public class DataConfig
 				case TYPE_COLUMN: return "COLUMN";
 			}
 			throw new InvalidParameterException("Invalid type: " + type);
+		}
+		
+		public String toString()
+		{
+			return String.format("(%s%s)",
+					MapUtils.fromPairs(
+							"id", id,
+							"type", DataEntity.getTypeString(type)
+						).toString(),
+					super.toString()
+				);
 		}
 	}
 	

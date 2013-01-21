@@ -2,12 +2,12 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%">
-    <mx:DataGrid id="grid" editable="true" 
+    <mx:DataGrid id="grid" editable="true"
         change="changedItemSelect(event)"
         width="100%" height="100%">
         <mx:columns>
-            <mx:DataGridColumn headerText="Property" labelFunction = "labelFunction" editable="false"/>
-            <mx:DataGridColumn headerText="Value" dataField = "value" editable="true"/>
+            <mx:DataGridColumn headerText="Property" labelFunction="labelFunction" editable="false" width="{grid.width/3}"/>
+            <mx:DataGridColumn headerText="Value" dataField="value" editable="true"/>
         </mx:columns>
     </mx:DataGrid>
     <mx:HBox width="100%">
@@ -18,12 +18,13 @@
     </mx:HBox>
 <mx:Script>
 <![CDATA[
-    import mx.collections.ListCollectionView;
-    import mx.controls.dataGridClasses.DataGridColumn;
-    import mx.events.CollectionEvent;
-    import mx.events.ListEvent;
-    
-    import weave.core.UIUtils;
+	import mx.collections.ArrayCollection;
+	import mx.collections.ListCollectionView;
+	import mx.controls.dataGridClasses.DataGridColumn;
+	import mx.events.CollectionEvent;
+	import mx.events.ListEvent;
+	
+	import weave.core.UIUtils;
 	
     private function emitMetaChanged(o:Object = null):void
     {
@@ -32,12 +33,21 @@
     private static function labelFunction(item:Object, column:DataGridColumn):String
     {
         /* TODO: Pretty formatting to make it clear that these prefixes aren't part of the name.*/
-        if (item.deleted)
-            return "[DELETED] " + item.property;
-        else if (item.original == false)
-            return "[ADDED] " + item.property;
-        else
-            return item.property;
+		var empty:Boolean = item.deleted || !item.value;
+		if (empty)
+		{
+			if (item.original)
+				return "[DELETED] " + item.property;
+			else
+				return "[NEW] " + item.property;
+		}
+		else
+		{
+			if (item.original)
+				return item.property;
+			else
+				return "[ADDED] " + item.property;
+		}
     }
     [Bindable(event="metaChanged")] public function get metadata():Object
     {
@@ -48,7 +58,7 @@
         var destmeta:Object = new Object();
         for each (var row:Object in rows)
         {
-            if (row.deleted)
+            if (row.deleted || !row.value)
             {
                 if (row.original)
                     destmeta[row.property] = null;
@@ -74,14 +84,39 @@
     public function addProp():void
     {
         var prop:String = newPropName.text;
-        var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;
-        if (prop) 
-            datalist.addItem({property: prop, value: "", original: false, deleted: false});
-        else
-            UIUtils.componentPulse(newPropName);
         newPropName.text = null;
-        dispatchEvent(new Event("metaChanged"));
+        if (!prop)
+		{
+            UIUtils.componentPulse(newPropName);
+			return;
+		}
+		
+        var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
+		if (indexOfItemWithProperty(rows.source, 'property', prop) < 0)
+		{
+            rows.addItem({property: prop, value: "", original: false, deleted: false});
+	        dispatchEvent(new Event("metaChanged"));
+		}
+		
+		openEditor(prop);
     }
+	
+	private function indexOfItemWithProperty(array:Array, property:String, value:String):int
+	{
+		for (var i:int = 0; i < array.length; i++)
+			if (array[i][property] == value)
+				return i;
+		return -1;
+	}
+	private function openEditor(property:String):void
+	{
+        var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
+		grid.editedItemPosition = {
+			rowIndex: indexOfItemWithProperty(rows.source, 'property', property),
+			columnIndex: indexOfItemWithProperty(grid.columns, 'dataField', 'value')
+		};
+	}
+	
     public function delProp():void
     {
         var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;

@@ -122,6 +122,7 @@ public class MetadataTable extends AbstractTable
 		{
 			if (!connectionConfig.migrationPending())
 			{
+				// remove any existing values for the specified properties
 				Connection conn = connectionConfig.getAdminConnection();
 				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 				for (String property : diff.keySet())
@@ -136,6 +137,7 @@ public class MetadataTable extends AbstractTable
 			for (Entry<String,String> entry : diff.entrySet())
 			{
 				String value = entry.getValue();
+				// ignore null values and empty strings (has the effect of deleting the property)
 				if (value != null && value.length() > 0)
 					insertRecord(id, entry.getKey(), value);
 			}

@@ -6,9 +6,9 @@
     width="100%" height="100%"
 	creationComplete="handleCreationComplete()">
     <mx:TabNavigator width="100%" height="100%">
-        <ui:MetadataGrid id="publicMetaGrid" label="Public" 
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>    
-        <ui:MetadataGrid id="privateMetaGrid" label="Private" 
+        <ui:MetadataGrid id="publicMetaGrid" label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0})"
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
+        <ui:MetadataGrid id="privateMetaGrid" label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0})"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
     <mx:HBox>
@@ -24,7 +24,6 @@
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.services.Admin;
-	import weave.services.addAsyncResponder;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
@@ -34,7 +33,9 @@
 		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
 		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
 	}
-	
+
+	[Bindable] private var publicPropertyCount:int = 0;
+	[Bindable] private var privatePropertyCount:int = 0;
     [Bindable] public var isChanged:Boolean = false;
 	
 	private var _targetItems:Array;
