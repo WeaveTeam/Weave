@@ -49,7 +49,7 @@
 						if(count >= _docs.length)
 							break;
 						doc = _docs[count];
-						
+//						trace(debugId(doc));
 						if(!doc.hasBeenMoved.value)
 						{
 							gridCanvas.addChild(doc);

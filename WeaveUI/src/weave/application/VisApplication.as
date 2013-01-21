@@ -589,7 +589,7 @@ package weave.application
 			if(!Weave.properties.enableInfoMap.value)
 				return;
 			
-			var fileName:String = getFlashVarConfigFileName                                                                                                 ().split("/").pop();
+			var fileName:String = getFlashVarFile().split("/").pop();
 			fileName = Weave.fixWeaveFileName(fileName, true);
 			
 			var content:ByteArray;

@@ -132,17 +132,14 @@ public class AdminService extends GenericServlet {
 	}
 
 	public static void main(String[] args) {
-//testing
-/*	 AdminService inst = new AdminService();
+		//testing
+		AdminService inst = new AdminService();
 		
-		 String [] requiredKeywords = new String[2];
+		 String [] requiredKeywords = new String[1];
 		 String [] relatedKeywords = new String[2];
 		
-		 requiredKeywords[0] = "asthma";
-	     requiredKeywords[1] = "diabetes";
-	     relatedKeywords[0] = "massachusetts";
-	     relatedKeywords[1] = "california";
-	     inst.classifyDocumentsForQuery(requiredKeywords, relatedKeywords, null, 100, 5, 5);*/
+		 requiredKeywords[0] = "california";
+	     inst.getResultsForQueryWithRelatedKeywords(requiredKeywords,null,null,2000);
 		 //inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
 	     //inst.
 //		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);

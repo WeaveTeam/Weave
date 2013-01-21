@@ -45,10 +45,12 @@ package weave.ui.infomap
 		
 		public static function openPanel():void
 		{
-			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
+			var className:String = getQualifiedClassName(InfoMapPanel).split("::")[1];
+			var uniqueMapName:String = Weave.root.generateUniqueName(className);
+			var panel:InfoMapPanel = Weave.root.requestObject(uniqueMapName,InfoMapPanel,false);
 			//show infomap panel
 			panel.restorePanel();
-			Weave.root.setNameOrder(["InfoMapPanel"]);
+			Weave.root.setNameOrder([uniqueMapName]);
 		}
 		
 		public static function openPanelWithName(mapName:String):void

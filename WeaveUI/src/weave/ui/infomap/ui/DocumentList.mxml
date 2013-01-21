@@ -12,7 +12,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 	<mx:List allowMultipleSelection="true"
-		doubleClickEnabled="true" mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%">
+		doubleClickEnabled="true" mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%" dragComplete="handleItemDragComplete(event)">
 		<mx:itemRenderer>
 			<mx:Component>
 				<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.
@@ -177,7 +177,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			private var resultsRowCount:int = 10;
 			override protected function childrenCreated():void
 			{
-				startIndex.addGroupedCallback(this,updateDocumentList,false);
+				startIndex.addGroupedCallback(this,updateDocumentList,true);
 				getCallbackCollection(_subset).addGroupedCallback(this,updateDocumentList);
 			}
 			
@@ -301,6 +301,14 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			{
 				//we don't want selection rectangle to be drawn when mouse is down on list.
 				event.stopImmediatePropagation();
+			}
+			
+			private function handleItemDragComplete(event:DragEvent):void
+			{
+				var t:DocThumbnailComponent = ((event.currentTarget as List).selectedItem as DocThumbnailComponent);
+				
+				if(t)
+					t.handleMove();
 			}
 			
 		]]>

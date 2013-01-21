@@ -148,7 +148,7 @@ so that it can be moved, selected, handle filters.
 				selectedBorderColor.addGroupedCallback(this,setMode);
 				defaultBorderColor.addGroupedCallback(this,setMode);
 				
-				hasBeenMoved.addGroupedCallback(this,handleMode,false);
+				hasBeenMoved.addGroupedCallback(this,handleMode,true);//set to true so that it is called if set from session state
 				
 				point.addChild(titleLabel);
 				
@@ -176,30 +176,10 @@ so that it can be moved, selected, handle filters.
 				}
 				else
 				{
-					if(parent)
-						parent.removeChild(this);
-//					img.visible = false;
-////					img.includeInLayout = false;
-//					
-//					point.visible = true;
-////					point.includeInLayout = true;
-//					
-//					imageHeight.value = 10;
-//					imageWidth.value = 10;
-//					
-					
-//					img.width = 0;
-//					img.height = 0;
-//					point.width = 10;
-//					point.height = 10;
-//					
-//					var g:Graphics = point.graphics;
-//					g.clear();
-//					g.lineStyle(1,0,1.0);
-//					g.beginFill(defaultBorderColor.value,1.0);
-//					g.drawCircle(0,0,imageWidth.value/2);	
-//					
-//					setStyle("borderStyle","none");
+//					if(parent)
+//					{
+//						parent.removeChild(this);
+//					}
 				}
 			}
 			
@@ -263,20 +243,25 @@ so that it can be moved, selected, handle filters.
 									
 					if(source)
 					{
-						source.getColumnByName("imgURL").addImmediateCallback(this, function():void{
-							//if URL is already set don't do anything. This is to avoid callbacks for csv sources
-							_imageURL = source.getImageURLForURL(docURL.value);
-							if(_imageURL == null)
-								return;
-							if(_imageURL.indexOf("ERROR")>-1)
-								return;
-							
-							token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
-						},true);
+						source.getColumnByName("imgURL").addImmediateCallback(this, handleImageURLFromColumn, true);
 						
 					}
 					
 				}
+			}
+			
+			private function handleImageURLFromColumn():void
+			{
+				var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
+				
+				//if URL is already set don't do anything. This is to avoid callbacks for csv sources
+				_imageURL = source.getImageURLForURL(docURL.value);
+				if(_imageURL == null)
+					return;
+				if(_imageURL.indexOf("ERROR")>-1)
+					return;
+				
+				token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
 			}
 			
 			public function dispose():void
@@ -408,8 +393,8 @@ so that it can be moved, selected, handle filters.
 				super.move(x,y);
 			}
 			
-			
-			private function handleMove():void
+			/* Made this function public. So that when this component is dragged from a list it is added to the movedThumbnails  */
+			public function handleMove():void
 			{
 				xPos.value = x;
 				yPos.value = y;
@@ -440,6 +425,7 @@ so that it can be moved, selected, handle filters.
 				
 				mtp.xPos.value = x;
 				mtp.yPos.value = y;
+				
 			}
 			
 			/*Different from move. We are only laying out the thumbnail in a desired position without instructing a move so that \
@@ -450,6 +436,8 @@ so that it can be moved, selected, handle filters.
 				showImage();
 			}
 			
+			/*Different from move. We are only laying out the thumbnail in a desired position without instructing a move so that \
+			we don't have to worry if the thumbnail hasBeenMoved or not*/
 			public function positionPoint(xPos:Number,yPos:Number):void
 			{
 				move(xPos,yPos);

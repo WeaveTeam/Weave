@@ -8,8 +8,11 @@
 		<![CDATA[
 			import mx.utils.ArrayUtil;
 			
+			import weave.api.WeaveAPI;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.VectorUtils;
+			
+			private var _parentNode:NodeHandler = null;
 			
 			public function drawPoints(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentNode:NodeHandler):void
 			{
@@ -17,8 +20,7 @@
 				var g:Graphics = this.graphics;
 				g.clear();
 				
-				var xDisplacement:Number;
-				var yDisplacement:Number;
+				_parentNode = parentNode;
 				
 				var urlsArray:Array = [];
 				
@@ -51,64 +53,104 @@
 					VectorUtils.copy(temp,urlsOfEachTopic[minI]);
 				}
 				
-				var total:int = 0;
-				for(var i:int =0; i<urlsOfEachTopic.length; i++)
-				{
-					//hardcoding positons of circular regions					
-					if(i==0)
-					{
-						xDisplacement = 50;
-						yDisplacement = 50;
-					}else if(i ==1)
-					{
-						xDisplacement = 150;
-						yDisplacement = 50;
-					}else if(i ==2)
-					{
-						xDisplacement = 50;
-						yDisplacement = 150;
-					}else if(i ==3)
-					{
-						xDisplacement = 250;
-						yDisplacement = 50;
-					}else if(i ==4)
-					{
-						xDisplacement = 250;
-						yDisplacement = 100;
-					}
-					
-					
-					
-					var radius:Number = Math.round(urlsOfEachTopic[i].length);
-					
-					if(radius >50)
-						radius = 50;
-					
-					if(radius<20)
-						radius = 20;
-					
+				_urlsOfEachTopic = urlsOfEachTopic;
+				_currentIteration = 0;
+				_currentTopic = 0;
+				WeaveAPI.StageUtils.startTask(this,_iterate,WeaveAPI.TASK_PRIORITY_PARSING);
 //					g.lineStyle(1);
 //					g.drawCircle(xDisplacement,yDisplacement,radius);
 					
-					for(var j:int=0; j <(urlsOfEachTopic[i] as Array).length; j++)
+//					for(var j:int=0; j <(urlsOfEachTopic[i] as Array).length; j++)
+//					{
+//						var t:DocThumbnailComponent = parentNode.thumbnails.getObject(urlsOfEachTopic[i][j]) as DocThumbnailComponent;
+//						if(t.hasBeenMoved.value)
+//							continue;
+//						//Read http://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+//						var theta:Number = 2*Math.PI*Math.random();
+//						var u:Number = Math.random() + Math.random();
+//						var dist:Number = u>1?2-u:u;
+//						
+//						var xPos:Number = (Math.cos(theta) * dist * radius) + (xDisplacement);
+//						var yPos:Number = (Math.sin(theta) * dist * radius) + (yDisplacement);
+////						trace(xPos,xPos);
+//						addChild(t);
+//						t.positionPoint(xPos,yPos);
+////						count++;
+//					}
+					
+			}
+			
+			
+			private var _urlsOfEachTopic:Array;
+			private var _currentTopic:Number;
+			private var _currentURLSToPlot:Array;
+			private var _currentRadius:Number;
+			private var _currentIteration:Number;
+			private var _currentXDisplacement:Number;
+			private var _currentYDisplacement:Number;
+			private function _iterate():Number
+			{
+				//iterating through each topic
+				if(_currentTopic>=_urlsOfEachTopic.length)
+					return 1;
+				
+				//hardcoding positons of circular regions of each topic					
+				if(_currentTopic==0)
+				{
+					_currentXDisplacement = 50;
+					_currentYDisplacement = 50;
+				}else if(_currentTopic ==1)
+				{
+					_currentXDisplacement = 150;
+					_currentYDisplacement = 50;
+				}else if(_currentTopic ==2)
+				{
+					_currentXDisplacement = 50;
+					_currentYDisplacement = 150;
+				}else if(_currentTopic ==3)
+				{
+					_currentXDisplacement = 250;
+					_currentYDisplacement = 50;
+				}else if(_currentTopic ==4)
+				{
+					_currentXDisplacement = 250;
+					_currentYDisplacement = 100;
+				}
+				
+				_currentURLSToPlot = _urlsOfEachTopic[_currentTopic];
+				_currentRadius = Math.round(_currentURLSToPlot.length);
+				
+				if(_currentRadius>50)
+					_currentRadius= 50;
+				
+				if(_currentRadius<20)
+					_currentRadius= 20;
+				
+				if(_currentIteration < _currentURLSToPlot.length)
+				{
+					_currentURLSToPlot = _urlsOfEachTopic[_currentTopic];
+					var t:DocThumbnailComponent = _parentNode.thumbnails.getObject(_currentURLSToPlot[_currentIteration]) as DocThumbnailComponent;
+					if(!t.hasBeenMoved.value)
 					{
-						var t:DocThumbnailComponent = parentNode.thumbnails.getObject(urlsOfEachTopic[i][j]) as DocThumbnailComponent;
-						if(t.hasBeenMoved.value)
-							continue;
 						//Read http://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
 						var theta:Number = 2*Math.PI*Math.random();
 						var u:Number = Math.random() + Math.random();
 						var dist:Number = u>1?2-u:u;
 						
-						var xPos:Number = (Math.cos(theta) * dist * radius) + (xDisplacement);
-						var yPos:Number = (Math.sin(theta) * dist * radius) + (yDisplacement);
-//						trace(xPos,xPos);
+						var xPos:Number = (Math.cos(theta) * dist * _currentRadius) + (_currentXDisplacement);
+						var yPos:Number = (Math.sin(theta) * dist * _currentRadius) + (_currentYDisplacement);
+						//						trace(xPos,xPos);
 						addChild(t);
 						t.positionPoint(xPos,yPos);
-						count++;
 					}
-					
+					_currentIteration++;
+				 }
+				if(_currentIteration >= _currentURLSToPlot.length)
+				{
+					_currentTopic++;
+					_currentIteration = 0;
 				}
+				return _currentTopic/_urlsOfEachTopic.length;
 			}
 		]]>
 	</mx:Script>
