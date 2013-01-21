@@ -28,7 +28,8 @@
 	xmlns="weave.ui.admin.*"
 	creationPolicy="all"
 	paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8"
-	width="640" height="340"
+	width="100%" height="100%"
+	minWidth="640" minHeight="340"
 	>
 	<mx:Script>
 		<![CDATA[

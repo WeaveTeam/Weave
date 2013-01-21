@@ -1187,25 +1187,37 @@ public class AdminService extends GenericServlet
 		return isUnique;
 	}
 
-	public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
+	public Boolean checkKeyColumnForDBFImport(String[] fileNames, String[] keyColumnNames) throws IOException
 	{
-		try
-		{
-			List<String> names = DBFUtils.getAttributeNames(new File(uploadPath, correctFileNameCase(dbfFileName)));
-			return ListUtils.toStringArray(names);
-		}
-		catch (IOException e)
-		{
-			throw new RemoteException("IOException", e);
-		}
+		if( fileNames.length == 0 || keyColumnNames.length == 0 )
+			return false;
+		
+		File[] files = new File[fileNames.length];
+		for (int i = 0; i < fileNames.length; i++)
+			files[i] = new File(uploadPath, correctFileNameCase(fileNames[i]));
+		
+		return DBFUtils.isColumnUnique(files, keyColumnNames);
 	}
 	
-	public Object[][] getDBFData(String dbfFileName) throws RemoteException
+	public String[] listDBFFileColumns(String[] dbfFileNames) throws RemoteException
 	{
 		try
 		{
-			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)), null);
-			return dataArray;
+			Set<String> set = new HashSet<String>();
+			List<String> list = new LinkedList<String>();
+			for (String dbfFileName : dbfFileNames)
+			{
+				List<String> cols = DBFUtils.getAttributeNames(new File(uploadPath, correctFileNameCase(dbfFileName)));
+				for (String col : cols)
+				{
+					if (!set.contains(col))
+					{
+						set.add(col);
+						list.add(col);
+					}
+				}
+			}
+			return ListUtils.toStringArray(list);
 		}
 		catch (IOException e)
 		{
