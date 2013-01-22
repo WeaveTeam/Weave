@@ -180,8 +180,6 @@
 				collab_CAMERA = Camera.getCamera(camList.selectedIndex as String);
 				
 				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
-				
-				saveSettings(event);
 			}
 			
 			//Show and hide functions for the settings panel to be used by other classes.
