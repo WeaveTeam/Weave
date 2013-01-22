@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
-		   xmlns:infomap="weave.ui.infomap.*" 
+		   xmlns:infomap="weave.ui.infomap.*"
+		   implements="weave.api.core.ILinkableObject"
 		   verticalScrollPolicy="off" 
 		   horizontalScrollPolicy="off"
 		   >
@@ -14,8 +15,10 @@
 			
 			import spark.core.SpriteVisualElement;
 			
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeyFilter;
+			import weave.primitives.ColorRamp;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.CustomCursorManager;
 			import weave.visualization.layers.InteractiveVisualization;
@@ -26,9 +29,14 @@
 			// ToDo add more empty space between rectangles
 			// ToDo set minimal font size
 			// ToDo Give different font size according to the frequency of the word
+			// *** ToDo Give same color to the topics with the same number of documents ***
+			// *** ToDo Normalize the size of the rectangles ***
+			// *** ToDo create a new layout with equal size rectangle ; use different color to represent the number of documents
+			// *** Illusion when comparing the size of different shapes (Treemap???)
+			public const rectColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("5-Color")));
 			private var textFormat:TextFormat = new TextFormat();
 			private var _cursorID:int;
-			public function drawTreeMap(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentComponent:UIComponent, spaceWidth:Number = 2):void
+			public function drawTreeMap(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentComponent:UIComponent, spaceWidth:Number = 3):void
 			{
 				// ToDo bug try query "massachusetts hello" 21 docs but 20 urls in topic model
 				// ToDo slow on tag cloud and topic model???
@@ -67,7 +75,14 @@
 				
 				// Gradient Color for distinguishing size of rectangle
 				// http://www.herethere.net/~samson/php/color_gradient/?cbegin=08519C&cend=EFF3FF&steps=10
-				var gradientColor:Array = [0x08519C, 0x1F61A5, 0x3671AF, 0x4D81B9, 0x6491C3, 0x7BA2CD, 0x92B2D7, 0xA9C2E1, 0xC0D2EB, 0xD7E2F5, 0xEFF3FF];
+				// var gradientColor:Array = [0x08519C, 0x1F61A5, 0x3671AF, 0x4D81B9, 0x6491C3, 0x7BA2CD, 0x92B2D7, 0xA9C2E1, 0xC0D2EB, 0xD7E2F5, 0xEFF3FF];
+				
+				// Get color for each records from color ramp
+				var colorNorm:Number;
+				var color:Number;
+				var maxValue:Number = (topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1];
+				var minValue:Number = (topicSortByNumOfUrlDesc.getItemAt(topicSortByNumOfUrlDesc.length - 1) as Array)[1];	
+				
 				parentComponent.includeInLayout = false;
 				addElement(parentComponent);
 				
@@ -78,40 +93,80 @@
 				var tempX:Number = 0;
 				var tempY:Number = 0;
 				var tempTotalNumOfUrl:int = 0;
+				var verticalFlag:Boolean = true; // Flag for the first division
+				var horizontalFlag:Boolean = true; // Flag for the first division
 				for (var m:int = 0; m < numberOfTopic; m++)
 				{
+					colorNorm = ((topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1] - minValue) / (maxValue- minValue);
+					//					if (reverseOrder) // ToDo
+					//						colorNorm = 1 - colorNorm;
+					color = rectColors.getColorFromNorm(colorNorm);
+					
 					tempTotalNumOfUrl = 0;
 					for (var l:int = 0; l < topicSortByNumOfUrlDesc.length; l++) tempTotalNumOfUrl += (topicSortByNumOfUrlDesc.getItemAt(l) as Array)[1];
 					
+					// ToDo Check NaN to fix the invalid parameter bug
+					if (tempTotalNumOfUrl == 0) continue;
+					
 					var sprite:CustomSprite = new CustomSprite();
 					var childComponent:UIComponent = new UIComponent();
-//					sprite.graphics.clear();
+					//					sprite.graphics.clear();
 					sprite.graphics.lineStyle(1, 0xC0C0C0);
-					sprite.graphics.beginFill(gradientColor[m]);
+					//					sprite.graphics.beginFill(gradientColor[m]);
+					sprite.graphics.beginFill(color);
 					childComponent.addChild(sprite);
 					parentComponent.addChild(childComponent);
 					
 					if ((m % 2) == 0)
 					{
 						// Deal with even iteration (divide rectangle vertically)
+						// For the first division only
+						if (verticalFlag) remainingWidth = remainingWidth - spaceWidth;
+						
 						childComponent.x = tempX;
 						childComponent.y = tempY;
 						tempWidth = Math.round((topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1] / tempTotalNumOfUrl * remainingWidth);
 						tempHeight = remainingHeight;
-						sprite.graphics.drawRoundRectComplex(0, 0, tempWidth, tempHeight, 5, 5, 5, 5); // ToDo give corner radius by percentage of width and height
-						remainingWidth = remainingWidth - tempWidth;
-						tempX = tempX + tempWidth;
+						//						sprite.graphics.drawRoundRectComplex(0, 0, tempWidth, tempHeight, 5, 5, 5, 5); // ToDo give corner radius by percentage of width and height
+						//						if (tempWidth <= 1)
+						//							tempWidth = 1;
+						//						if (tempHeight <= 1)
+						//							tempHeight = 1;
+						// ToDo Check NaN to fix the bug
+						sprite.graphics.drawRect(0, 0, tempWidth, tempHeight);
+						if (verticalFlag)
+						{
+							remainingWidth = remainingWidth - tempWidth;
+							verticalFlag = false;
+						}
+						else
+							remainingWidth = remainingWidth - tempWidth - spaceWidth;
+						tempX = tempX + tempWidth + spaceWidth;
 					}
 					else
 					{
 						// Deal with odd iteration (divide rectangle horizontally)
+						// For the first division only
+						if (horizontalFlag) remainingHeight = remainingHeight - spaceWidth;
+						
 						childComponent.x = tempX;
 						childComponent.y = tempY;
 						tempWidth = remainingWidth;
 						tempHeight = Math.round((topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1] / tempTotalNumOfUrl * remainingHeight);
-						sprite.graphics.drawRoundRectComplex(0, 0, tempWidth, tempHeight, 5, 5, 5, 5); // ToDo give corner radius by percentage of width and height
-						remainingHeight = remainingHeight - tempHeight;
-						tempY = tempY + tempHeight;
+						//						sprite.graphics.drawRoundRectComplex(0, 0, tempWidth, tempHeight, 5, 5, 5, 5); // ToDo give corner radius by percentage of width and height
+						if (tempWidth <= 1)
+							tempWidth = 1;
+						if (tempHeight <= 1)
+							tempHeight = 1;
+						sprite.graphics.drawRect(0, 0, tempWidth, tempHeight);
+						if (horizontalFlag)
+						{
+							remainingHeight = remainingHeight - tempHeight;
+							horizontalFlag = false;
+						}
+						else
+							remainingHeight = remainingHeight - tempHeight - spaceWidth;
+						tempY = tempY + tempHeight + spaceWidth;
 					}
 					
 					// Add textfield in the recctangle
