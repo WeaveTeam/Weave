@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ui="weave.ui.*"
+	paddingLeft="5"
+	paddingTop="5"
+	label="Topic Model"
+	creationComplete="creationComplete()">
+	<mx:HBox>
+		<mx:Label text="Number of groups" fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:TextInput toolTip="between 2 and 10" id="numOfTopics" width="50"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Number of keywords in each group" fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:TextInput toolTip="between 1 and 10" id="numOfKeywords" width="50"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Space between Topic Rectangles" fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:TextInput toolTip="between 1 and 10" id="rectSpace" width="50"/>
+	</mx:HBox>
+	<ui:ColorRampEditor id="cRampEditor" toolTip="{lang('...')}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.unlinkBindableProperty;
+			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableString;
+			import weave.data.CSVParser;
+			import weave.primitives.DateRangeFilter;
+			import weave.services.InfoMapAdminInterface;
+			import weave.ui.infomap.core.InfoMapNode;
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.CascadeLayout;
+			import weave.ui.infomap.layout.GridLayout;
+			import weave.ui.infomap.layout.HorizontalLayout;
+			import weave.ui.infomap.layout.IInfoMapNodeLayout;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.ui.infomap.layout.RadialLayout;
+			import weave.ui.infomap.layout.VerticalLayout;
+			import weave.utils.DateUtils;
+			import weave.utils.EventUtils;
+			
+			protected function creationComplete():void
+			{
+				if (_nodeHandler.topicNodeComponent) // ToDo
+				{
+					cRampEditor.colorRamp = _nodeHandler.topicNodeComponent.rectColors;
+				}
+			}
+			
+			private var _nodeHandler:NodeHandler = null;
+			
+			public function set nodeHandler(value:Object):void
+			{
+				if(value is NodeHandler)
+				{
+					_nodeHandler = value as NodeHandler;
+					
+				}
+			}
+			
+			[Bindable]
+			private var _leftAlignWidth:Number = 150;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				if(_nodeHandler != null){
+					linkBindableProperty(_nodeHandler.numOfTopics, numOfTopics,"text",1000);
+					linkBindableProperty(_nodeHandler.numOfKeywordsInEachTopic, numOfKeywords,"text",1000);
+					linkBindableProperty(_nodeHandler.spaceBetwwenTopicRect, rectSpace,"text",1000);
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

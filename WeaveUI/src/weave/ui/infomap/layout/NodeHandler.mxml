@@ -33,6 +33,10 @@
 	</mx:Sequence>
 	<mx:Script>
 		<![CDATA[
+			import weave.ui.infomap.ui.TopicNodeSettingComponent;
+			import weave.ui.infomap.ui.TagCloudSettingComponent;
+			import weave.ui.infomap.ui.BasicSettingsComponent;
+			import weave.ui.ControlPanel;
 			import flash.events.MouseEvent;
 			
 			import spark.accessibility.ToggleButtonAccImpl;
@@ -1442,7 +1446,28 @@
 				DateFilterComponent.openInstance(this,dateFilter);
 			}
 			
-			private var _instance:NodeSettingsComponent = null;
+//			private var _instance:NodeSettingsComponent = null;
+//			private function settings(event:Event):void
+//			{
+//				
+//				if(_instance)
+//				{
+//					PopUpManager.addPopUp(_instance,this);
+//				}
+//				else
+//				{
+//					_instance = new NodeSettingsComponent();
+//					_instance.query = this.currentQuery;
+//					_instance.nodeHandler = this;
+//					_instance.dateFilter = dateFilter;
+//					PopUpManager.addPopUp(_instance,this);
+//				}
+//			}
+			
+			private var _instance:ControlPanel = null;
+			protected var basicSettingComponent:BasicSettingsComponent;
+			protected var tagCloudSettingComponent:TagCloudSettingComponent;
+			protected var topicModelSettingComponent:TopicNodeSettingComponent
 			private function settings(event:Event):void
 			{
 				
@@ -1452,10 +1477,22 @@
 				}
 				else
 				{
-					_instance = new NodeSettingsComponent();
-					_instance.query = this.currentQuery;
-					_instance.nodeHandler = this;
-					_instance.dateFilter = dateFilter;
+					_instance = new ControlPanel();
+					
+					basicSettingComponent = new BasicSettingsComponent();
+					basicSettingComponent.query = this.previousQuery;
+					basicSettingComponent.dateFilter = dateFilter;
+					basicSettingComponent.nodeHandler = this;
+					
+					tagCloudSettingComponent = new TagCloudSettingComponent();
+					tagCloudSettingComponent.nodeHandler = this;
+					
+					topicModelSettingComponent = new TopicNodeSettingComponent();
+					topicModelSettingComponent.nodeHandler = this;
+					
+					_instance.targets = [basicSettingComponent.query.keywords,basicSettingComponent.query.sources, basicSettingComponent.dateFilter.startDate, basicSettingComponent.dateFilter.endDate]
+					_instance.children = [basicSettingComponent, tagCloudSettingComponent, topicModelSettingComponent];
+					
 					PopUpManager.addPopUp(_instance,this);
 				}
 			}
@@ -1838,7 +1875,11 @@
 			private var flag_topicPropertiesChange:Boolean = false;
 			//private var _numOfTopics:int = 5;
 //			public var topicComponent:TopicNodeComponent = new TopicNodeComponent();
-			public const topicComponent:TopicNodeComponent = registerLinkableChild(this, new TopicNodeComponent()); 
+			public const topicComponent:TopicNodeComponent = registerLinkableChild(this, new TopicNodeComponent());
+			public function get topicNodeComponent():TopicNodeComponent // ToDo TopicModelSettingComponent
+			{
+				return topicComponent;
+			}
 			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
 			{   
 				if(_topicsResult == null)
