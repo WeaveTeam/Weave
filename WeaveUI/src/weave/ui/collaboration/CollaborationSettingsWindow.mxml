@@ -103,6 +103,10 @@
 					</mx:HBox>
 					<mx:Spacer height="100%"/>
 					<ui:Center>
+						<mx:Label id="addonsSavedLabel" text="{lang('Camera and Microphone have been saved.')}"
+								   visible="false"/>
+					</ui:Center>
+					<ui:Center>
 						<mx:Button id="saveAddonsButton" label="{lang('Save')}"
 								   click="saveAddons(event)"/>
 					</ui:Center>
@@ -122,7 +126,7 @@
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 150;
-			private const padding:Number = 10;
+			private const padding:Number = 5;
 
 			//Mic and cam variables.
 			private var testMic:Microphone;
@@ -180,6 +184,7 @@
 				collab_CAMERA = Camera.getCamera(camList.selectedIndex as String);
 				
 				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
+				addonsSavedLabel.visible = true;
 			}
 			
 			//Show and hide functions for the settings panel to be used by other classes.
