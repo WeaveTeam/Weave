@@ -34,6 +34,9 @@
 	<mx:Script>
 		<![CDATA[
 			import flash.events.MouseEvent;
+			
+			import spark.accessibility.ToggleButtonAccImpl;
+			
 			import flash.geom.Point;
 			import flash.net.URLRequest;
 			import flash.net.navigateToURL;
@@ -178,6 +181,18 @@
 					return false;
 				else 
 					return true;},false), handleTopicsPropertiesChange, true);
+			
+			public const spaceBetwwenTopicRect:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, function(value:*):Boolean{
+				if(value > 10 || value < 1)
+					return false;
+				else 
+					return true;},false), handleTopicLayoutSettingChange, true); // ToDo
+			
+			private function handleTopicLayoutSettingChange():void
+			{
+				flag_init = true;
+				showClassificationResults();
+			}
 			
 			private const listWidth:LinkableNumber = new LinkableNumber();
 			
@@ -349,6 +364,7 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyColName);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
 				addChild(topicComponent);
+				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
 			}
 			
 			private var _nodeName:String = "";
@@ -1832,7 +1848,8 @@
 			private var _topicsResult:Object = null;
 			private var flag_topicPropertiesChange:Boolean = false;
 			//private var _numOfTopics:int = 5;
-			private var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+//			public var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+			public const topicComponent:TopicNodeComponent = registerLinkableChild(this, new TopicNodeComponent()); 
 			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
 			{   
 				if(_topicsResult == null)
@@ -1860,7 +1877,7 @@
 					parentComponent.height = 230; // ToDo Add extra 20 for showing spot label
 					parentComponent.y= nodeBase.height;
 					
-					topicComponent.drawTreeMap(urls, keywords, parentComponent);
+					topicComponent.drawTreeMap(urls, keywords, parentComponent, spaceBetwwenTopicRect.value);
 					topicComponents.push(topicComponent);
 					topicComponent.includeInLayout = false;
 					
