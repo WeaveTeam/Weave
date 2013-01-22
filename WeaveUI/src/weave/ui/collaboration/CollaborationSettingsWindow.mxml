@@ -103,7 +103,7 @@
 					</mx:HBox>
 					<mx:Spacer height="100%"/>
 					<ui:Center>
-						<mx:Label id="addonsSavedLabel" text="{lang('Camera and Microphone have been saved.')}"
+						<mx:Label id="addonsSavedLabel" text="{lang('Camera and microphone have been saved.')}"
 								   visible="false"/>
 					</ui:Center>
 					<ui:Center>
@@ -116,13 +116,13 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.ui.collaboration.CollabMouseCursor;
 			import mx.controls.Alert;
 			import mx.events.IndexChangedEvent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.services.collaboration.CollaborationEvent;
+			import weave.ui.collaboration.CollabMouseCursor;
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 150;
@@ -135,6 +135,8 @@
 			private var testCam:Camera;
 			public var collab_MIC:Microphone = null;
 			public var collab_CAMERA:Camera = null;
+			
+			private var labelTimer:Timer = new Timer(3000);
 			
 			public var collab_NICKNAME:String;
 			public var collab_COLOR:uint;
@@ -180,11 +182,21 @@
 			
 			private function saveAddons(event:MouseEvent):void
 			{
+				labelTimer.addEventListener(TimerEvent.TIMER, hideAddonLabel);
+				addonsSavedLabel.visible = true;
+				labelTimer.start();
+				
 				collab_MIC = Microphone.getMicrophone(micList.selectedIndex);
 				collab_CAMERA = Camera.getCamera(camList.selectedIndex as String);
 				
 				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
-				addonsSavedLabel.visible = true;
+			}
+			
+			private function hideAddonLabel(e:TimerEvent):void
+			{
+				labelTimer.stop();
+				addonsSavedLabel.visible = false;
+				labelTimer.removeEventListener(TimerEvent.TIMER, hideAddonLabel);
 			}
 			
 			//Show and hide functions for the settings panel to be used by other classes.
