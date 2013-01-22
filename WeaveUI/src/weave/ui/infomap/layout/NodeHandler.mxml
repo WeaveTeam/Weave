@@ -512,7 +512,6 @@
 				status.text = "";
 				var response:Array = docKeySet.keys;
 				
-				var nameOrder:Array = [];
 				
 				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),
 					WeaveAPI.SessionManager.getSessionState(currentQuery));
@@ -544,76 +543,91 @@
 				
 				_reusableThumbnailsToPlotArray = [];
 				_currentNewDocsCount = 0;
-				for(var i:int; i<response.length ;i++)
+				_thumbnailCount = 0;
+				_nameOrder = [];
+				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_PARSING,_completeThumbnailsIteration);
+			}
+			
+			private var _thumbnailCount:Number = 0;
+			private var _nameOrder:Array = [];
+			private function _iterateEachThumbnail():Number
+			{
+				if(_thumbnailCount >= docKeySet.keys.length)
+					return 1;
+				
+				var link:String = (docKeySet.keys[_thumbnailCount] as IQualifiedKey).localName;					
+				_nameOrder.push(link);
+				var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
+				
+				
+				if(!thumbnail)//if thumbnail does not exist
 				{
+					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
 					
-					var link:String = (response[i] as IQualifiedKey).localName;					
-					nameOrder.push(link);
-					var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
-					
-					
-					if(!thumbnail)//if thumbnail does not exist
+					thumbnail.docURL.value = link;
+					if(highlightNewDocuments)
 					{
-						thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
-						
-						thumbnail.docURL.value = link;
-						if(highlightNewDocuments)
-						{
-							thumbnail.highlighted.value = true;
-							_currentNewDocsCount++;
-						}
+						thumbnail.highlighted.value = true;
+						_currentNewDocsCount++;
 					}
+				}
+				
+				thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
+				
+				/* first check to see if the thumbnail is present in movedThumbnails */
+				var position:MovedThumbnailPosition = movedThumbNails.getObject(thumbnail.docURL.value) as MovedThumbnailPosition;
+				
+				/* if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true; */
+				if(position)
+				{
+					thumbnail.hasBeenMoved.value = true;
 					
-					thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
-					
-					/* first check to see if the thumbnail is present in movedThumbnails */
-					var position:MovedThumbnailPosition = movedThumbNails.getObject(thumbnail.docURL.value) as MovedThumbnailPosition;
-					
-					/* if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true; */
-					if(position)
+					copySessionState(position.xPos,thumbnail.xPos);
+					copySessionState(position.yPos,thumbnail.yPos);
+				}
+				
+				
+				/* if thumbnail has been moved make sure to add it as a child to Panel else make sure to add it as child to node. */
+				if(thumbnail.hasBeenMoved.value)
+				{
+					if(thumbnail.parent != _parentPanel.map)
 					{
-						thumbnail.hasBeenMoved.value = true;
+						_parentPanel.map.addChild(thumbnail);
 						
-						copySessionState(position.xPos,thumbnail.xPos);
-						copySessionState(position.yPos,thumbnail.yPos);
 					}
+					//xPos and yPos are not linked
+					thumbnail.move(thumbnail.xPos.value,thumbnail.yPos.value);
 					
-					
-					/* if thumbnail has been moved make sure to add it as a child to Panel else make sure to add it as child to node. */
-					if(thumbnail.hasBeenMoved.value)
+				}else
+				{
+					if(thumbnail.parent != this)
 					{
-						if(thumbnail.parent != _parentPanel.map)
-						{
-							_parentPanel.map.addChild(thumbnail);
-							
-						}
-						//xPos and yPos are not linked
-						thumbnail.move(thumbnail.xPos.value,thumbnail.yPos.value);
-						
-					}else
-					{
-						if(thumbnail.parent != this)
-						{
-							thumbnail.visible = false;
-						}
-					}
-					
-					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,link);
-					
-					if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
-					{
-						_reusableThumbnailsToPlotArray.push(qKey);
-						thumbnail.visible = true;
-					}else{
-						
 						thumbnail.visible = false;
 					}
-					thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
-					linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
-					linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
-					
 				}
-				thumbnails.setNameOrder(nameOrder);
+				
+				var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,link);
+				
+				if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
+				{
+					_reusableThumbnailsToPlotArray.push(qKey);
+					thumbnail.visible = true;
+				}else{
+					
+					thumbnail.visible = false;
+				}
+				thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
+				linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+				linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
+				
+				_thumbnailCount++;
+				
+				return _thumbnailCount/docKeySet.keys.length;
+			}
+			
+			private function _completeThumbnailsIteration():void
+			{
+				thumbnails.setNameOrder(_nameOrder);
 				//				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
@@ -633,8 +647,6 @@
 				getTopicsClassification();
 				docListComponent.docKeys = _reusableThumbnailsToPlotArray;
 			}
-			
-			
 			
 			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
 			{
@@ -661,7 +673,6 @@
 			
 			
 			private var parser:CSVParser = new CSVParser();
-			private var timer:Timer = new Timer(2000);
 			
 			public const prevNewDocsCount:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0)); 
 			[Bindable]
@@ -2114,7 +2125,10 @@
 				docKeySet.replaceKeys([]);
 			}
 			
-			
+			public function dispose():void
+			{
+				refreshTimer.stop();
+			}
 			
 			//							private function handleEditCommentsClick(event:MouseEvent):void
 			//			{
