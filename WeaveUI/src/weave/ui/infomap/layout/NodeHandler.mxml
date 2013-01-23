@@ -170,9 +170,9 @@
 			
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
-			/* We separate dateFilter from query because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
+			/* We separate dateFilter from previousQuery because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
 			is unpredictable. It is easier to handle the callbacks for keywords and date separately.*/
-			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true);
+//			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true); // ToDo
 
 			public const numOfTopics:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
 				if(value > 10 || value <2)
@@ -435,10 +435,10 @@
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
-				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,dateFilter);
+				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 				
 				DelayedAsyncResponder.addResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
-					{keywords:currentQuery.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
+					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 				
 			}
 			
@@ -446,8 +446,8 @@
 			{
 				/* if the query has changed do nothing */
 				if(token.keywords != currentQuery.keywords.value ||
-					token.startDate != dateFilter.startDate.value ||
-					token.endDate != dateFilter.endDate.value)
+					token.startDate != currentQuery.dateFilter.startDate.value ||
+					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
 				
 				var numOfDocs:Number = event.result as Number;
@@ -469,7 +469,7 @@
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(currentQuery.keywords.value.split(','),
-						relatedKeywords,dateFilter,2000);
+						relatedKeywords,currentQuery.dateFilter,2000);
 				
 				DelayedAsyncResponder.addResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 			}
@@ -479,8 +479,8 @@
 			{
 				//if the query has changed do nothing
 				if(token.keywords != currentQuery.keywords.value ||
-					token.startDate != dateFilter.startDate.value ||
-					token.endDate != dateFilter.endDate.value)
+					token.startDate != currentQuery.dateFilter.startDate.value ||
+					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
 				
 				var docsArray:Array = event.result as Array;
@@ -657,10 +657,10 @@
 				positionThumbnails();
 				adjustNodeBase();
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-					currentQuery.keywords.value.split(','),relatedKeywords,dateFilter);
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 				
 				DelayedAsyncResponder.addResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
-					{keywords:currentQuery.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value,
+					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
 						forceHide:true,forceShow:false});
 				
 				getEntityDistribution();
@@ -672,8 +672,8 @@
 			{
 				//if the query has changed do nothing
 				if(token.keywords != currentQuery.keywords.value ||
-					token.startDate != dateFilter.startDate.value ||
-					token.endDate != dateFilter.endDate.value)
+					token.startDate != currentQuery.dateFilter.startDate.value ||
+					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
 				wordCount = event.result as Array;
 				nodeBase.filterImg.visible = true;
@@ -988,10 +988,10 @@
 				
 				
 				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,entities,dateFilter,2000);
+															relatedKeywords,entities,currentQuery.dateFilter,2000);
 				
 				DelayedAsyncResponder.addResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
-					{keywords:currentQuery.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
+					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 			}
 			
 			
@@ -1002,8 +1002,8 @@
 			{
 				//if the query has changed do nothing
 				if(token.keywords != currentQuery.keywords.value ||
-					token.startDate != dateFilter.startDate.value ||
-					token.endDate != dateFilter.endDate.value)
+					token.startDate != currentQuery.dateFilter.startDate.value ||
+					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
 				var entities:Array = event.result.entities;
 				var urls:Array = event.result.urls;
@@ -1347,12 +1347,13 @@
 				
 			}
 			
+			// ToDo dateFilter should be previousQuery.dateFilter
 			private function handleGlobalDateChange():void
 			{
-				getCallbackCollection(currentQuery).delayCallbacks();
-				dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
-				dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
-				getCallbackCollection(currentQuery).resumeCallbacks();
+//				getCallbackCollection(currentQuery).delayCallbacks();
+//				dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
+//				dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
+//				getCallbackCollection(currentQuery).resumeCallbacks();
 			}
 			private function removeEmptyStringElementsFromArray(arg:Array):Array
 			{
@@ -1452,10 +1453,11 @@
 				}
 			}
 			
-			private function filter(event:Event):void
-			{
-				DateFilterComponent.openInstance(this,dateFilter);
-			}
+			// ToDo ???
+//			private function filter(event:Event):void
+//			{
+//				DateFilterComponent.openInstance(this,dateFilter);
+//			}
 			
 //			private var _instance:NodeSettingsComponent = null;
 //			private function settings(event:Event):void
@@ -1492,7 +1494,7 @@
 					
 					basicSettingComponent = new BasicSettingsComponent();
 					basicSettingComponent.query = this.previousQuery;
-					basicSettingComponent.dateFilter = dateFilter;
+					basicSettingComponent.dateFilter = previousQuery.dateFilter;
 					basicSettingComponent.nodeHandler = this;
 					
 					tagCloudSettingComponent = new TagCloudSettingComponent();
@@ -1501,7 +1503,7 @@
 					topicModelSettingComponent = new TopicNodeSettingComponent();
 					topicModelSettingComponent.nodeHandler = this;
 					
-					_instance.targets = [basicSettingComponent.query.keywords,basicSettingComponent.query.sources, basicSettingComponent.dateFilter.startDate, basicSettingComponent.dateFilter.endDate]
+				_instance.targets = [basicSettingComponent.query.keywords,basicSettingComponent.query.sources, basicSettingComponent.dateFilter.startDate, basicSettingComponent.dateFilter.endDate, numOfWordsInCloud, numOfTopics, numOfKeywordsInEachTopic, spaceBetwwenTopicRect, topicNodeComponent.rectColors]
 					_instance.children = [basicSettingComponent, tagCloudSettingComponent, topicModelSettingComponent];
 					
 					PopUpManager.addPopUp(_instance,this);
@@ -1534,10 +1536,10 @@
 				if(wordCount.length == 0)
 				{
 					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-						currentQuery.keywords.value.split(','),relatedKeywords,dateFilter);
+						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 					
 					DelayedAsyncResponder.addResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
-						{keywords:currentQuery.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value,
+						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
 							forceHide:forceHide,forceShow:forceShow});
 					
 					return;
@@ -1812,7 +1814,7 @@
 				clearFiltersButton.visible = false;
 				
 				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(currentQuery.keywords.value.split(','),
-					relatedKeywords,dateFilter,filteredWords.value.split(','),2000);
+					relatedKeywords,currentQuery.dateFilter,filteredWords.value.split(','),2000);
 				
 				DelayedAsyncResponder.addResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
 			}
@@ -1861,7 +1863,7 @@
 				}
 				
 				DelayedAsyncResponder.addResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
-					{keywords:currentQuery.keywords.value,startDate:dateFilter.startDate.value,endDate:dateFilter.endDate.value});
+					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 			}
 			
 			private function handleTopicsPropertiesChange():void
@@ -1942,8 +1944,8 @@
 			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
 			{
 				if(token.keywords != currentQuery.keywords.value ||
-					token.startDate != dateFilter.startDate.value ||
-					token.endDate != dateFilter.endDate.value)
+					token.startDate != currentQuery.dateFilter.startDate.value ||
+					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
 				_topicsResult = event.result;
 
@@ -1981,7 +1983,7 @@
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
 				status.text = "Searching...";
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,dateFilter);
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
 			}
 			
 			
@@ -2093,7 +2095,7 @@
 			
 			private function handleDateFilterChange():void
 			{
-				//				createAndSendQuery();
+//								createAndSendQuery(); // ToDo
 			}
 			
 			

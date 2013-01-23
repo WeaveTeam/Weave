@@ -98,11 +98,21 @@
 				
 				keyword.text = query.keywords.value;
 				
+				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
+				
 				_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
 				_dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
 				
 				startDateStr.addGroupedCallback(this,handleDateChange);
 				endDateStr.addGroupedCallback(this,handleDateChange);
+			}
+			
+			private function handleKeywordsChange():void
+			{
+				if(query.keywords.value != null)
+				{
+					keyword.text = query.keywords.value;
+				}
 			}
 			
 			// we only want to make a query if both dates are set. 
