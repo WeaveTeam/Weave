@@ -119,6 +119,8 @@
 			public function handleConnectionNames(names:Array):void
 			{
 				treeWithSearch.generateFlatTreeFromLabels(names);
+				if(!names)
+					return;
 				if (names.length == 0)
 				{
 					superuserCheckbox.selected = true;

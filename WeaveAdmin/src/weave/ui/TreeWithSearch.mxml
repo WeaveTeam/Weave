@@ -105,6 +105,8 @@
 		public function generateFlatTreeFromLabels(labels:Array):void
 		{
 			var root:Object = null;
+			if(!labels)
+				return;
 			if (labels.length > 0)
 			{
 				root = {label: "", object: "", children: []};

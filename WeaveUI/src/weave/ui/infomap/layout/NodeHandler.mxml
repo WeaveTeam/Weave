@@ -166,7 +166,7 @@
 			
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
-			/* We separate dateFilter from query because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
+			/* We separate dateFilter from previousQuery because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
 			is unpredictable. It is easier to handle the callbacks for keywords and date separately.*/
 			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true);
 
@@ -1977,8 +1977,6 @@
 					adjustNodeBase();
 					return;
 				}
-				
-				//				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + previousQuery.keywords.value;
 				
 				//we restrict node length to 200.
 				if(previousQuery.keywords.value.length >200)

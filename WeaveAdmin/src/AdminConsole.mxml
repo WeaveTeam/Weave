@@ -19,7 +19,7 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
+<mx:Application preinitialize="handlePreInitialize()" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
 	<!--  cornerRadius="0" -->
 	<mx:Panel
 		headerHeight="25"
@@ -126,9 +126,53 @@
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;
+			/**
+			 * The mapping for the flash vars.
+			 */
+			private var _flashVars:Object;
+			private var _initialized:Boolean = false;
+			private function handlePreInitialize():void
+			{
+				if(!root)
+				{
+					callLater(handlePreInitialize);
+					return;					
+				}
+
+				// We want FlashVars to take priority over the address bar parameters.
+				_flashVars = LoaderInfo(this.root.loaderInfo).parameters;
+				
+				// check address bar for any variables not found in FlashVars
+				try
+				{
+					weaveTrace(ExternalInterface.call("window.location.search.substring", 1));
+					var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
+					for (var key:String in urlParams)
+						if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
+							_flashVars[key] = urlParams[key];
+					
+					if(_flashVars["adminServiceURL"])
+					{
+						AdminInterface.instance.service = new WeaveAdminService(_flashVars["adminServiceURL"]+"/WeaveServices");
+					}else
+					{
+						AdminInterface.instance.service = new WeaveAdminService("/WeaveServices");
+					}
+					
+					_initialized = true;
+				}
+				/* URLVariables throws an error when there are no name-value pairs */
+				catch(e:Error) { Alert.show(e.message); AdminInterface.instance.service = new WeaveAdminService("/WeaveServices");} 
+				
+			}
 			
 			private function handleCreationComplete():void
 			{
+				if(!_initialized)
+				{
+					callLater(handleCreationComplete);
+					return;
+				}
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
 				function handleMessageLog():void
 				{

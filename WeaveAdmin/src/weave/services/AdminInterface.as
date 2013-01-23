@@ -56,6 +56,8 @@ package weave.services
 		
 		private function checkSQLConfigExists():void
 		{
+			if(!service)
+				return;
 			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
 			function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
 			{
@@ -73,7 +75,7 @@ package weave.services
 			}
 		}
 
-		public const service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
+		public var service:WeaveAdminService = null;
 		
 		[Bindable] public var userHasAuthenticated:Boolean = false;
 		
