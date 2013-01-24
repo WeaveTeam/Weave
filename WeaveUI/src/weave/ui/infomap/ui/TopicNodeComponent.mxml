@@ -195,7 +195,7 @@
 						textField.setTextFormat(textFormat);
 						if (textField.numLines > textField.bottomScrollV)
 						{
-							textFormat.size = (textFormat.size as Number) - 1;
+							textFormat.size = (textFormat.size as Number) - 2; // ToDo Reduce the font size by 2 instead of 1
 							textField.setTextFormat(textFormat);
 							flag = false;
 						}
