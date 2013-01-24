@@ -69,6 +69,14 @@
     <servlet-name>JRIService</servlet-name>
     <servlet-class>weave.servlets.JRIService</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>BNetService</servlet-name>
+    <servlet-class>weave.servlets.BNetService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BNetService</servlet-name>
+    <url-pattern>/BNetService</url-pattern>
+  </servlet-mapping>
   <servlet-mapping>
     <servlet-name>JRIService</servlet-name>
     <url-pattern>/JRIService</url-pattern>
