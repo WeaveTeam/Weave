@@ -14,7 +14,7 @@
 		<mx:Label text="Number of keywords in each group" fontWeight="bold" width="{_leftAlignWidth}"/>					
 		<mx:TextInput toolTip="between 1 and 10" id="numOfKeywords" width="50"/>
 	</mx:HBox>
-	<mx:HBox>
+	<mx:HBox id="spaceLayout">
 		<mx:Label text="Space between Topic Rectangles" fontWeight="bold" width="{_leftAlignWidth}"/>					
 		<mx:TextInput toolTip="between 1 and 10" id="rectSpace" width="50"/>
 	</mx:HBox>
@@ -83,6 +83,10 @@
 					linkBindableProperty(_nodeHandler.numOfKeywordsInEachTopic, numOfKeywords,"text",1000);
 					linkBindableProperty(_nodeHandler.spaceBetwwenTopicRect, rectSpace,"text",1000);
 				}
+				
+				// ToDo Temporary Comment out
+				cRampEditor.visible = false;
+				spaceLayout.visible = false;
 			}
 		]]>
 	</mx:Script>

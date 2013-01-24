@@ -171,7 +171,7 @@
 					
 					// Add textfield in the recctangle
 					textFormat.size = 1;
-					textFormat.color = 0xFFFFFF;
+					textFormat.color = 0x000000;
 					textFormat.align = TextFormatAlign.CENTER;
 					var textField:TextField = new TextField();
 					textField.defaultTextFormat = textFormat;
