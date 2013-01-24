@@ -162,7 +162,7 @@
 					_initialized = true;
 				}
 				/* URLVariables throws an error when there are no name-value pairs */
-				catch(e:Error) { Alert.show(e.message); AdminInterface.instance.service = new WeaveAdminService("/WeaveServices");} 
+				catch(e:Error) {AdminInterface.instance.service = new WeaveAdminService("/WeaveServices");} 
 				
 			}
 			
