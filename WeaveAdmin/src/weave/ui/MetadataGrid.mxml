@@ -2,52 +2,112 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%">
-    <mx:DataGrid id="grid" editable="true"
-        change="changedItemSelect(event)"
-        width="100%" height="100%">
+    <mx:DataGrid id="grid" editable="true" itemEditEnd="callLater(afterItemEditEnd)" width="100%" height="100%" minWidth="0">
         <mx:columns>
             <mx:DataGridColumn headerText="Property" labelFunction="labelFunction" editable="false" width="{grid.width/3}"/>
-            <mx:DataGridColumn headerText="Value" dataField="value" editable="true"/>
+            <mx:DataGridColumn id="valueCol" headerText="Value" dataField="value" editable="true" editorDataField="text">
+				<mx:itemEditor>
+					<mx:Component>
+						<mx:Canvas width="100%">
+							<mx:Script>
+								<![CDATA[
+									import weave.services.Admin;
+									
+									public function get text():String
+									{
+										if (comboBox.visible)
+											return comboBox.text;
+										return textInput.text;
+									}
+									
+									override public function set data(_item:Object):void
+									{
+										var item:MetadataGridItem = _item as MetadataGridItem;
+										var values:Array = Admin.instance.getSuggestedPropertyValues(item.property);
+										if (values && values.length > 0)
+										{
+											// if current value is in the list, remove it and put it at the front.
+											var index:int = values.indexOf(item.value);
+											if (index > 0)
+											{
+												// make a copy of the array and put the item up front
+												values = [item.value].concat(values);
+												// remove the existing value, which has now been shifted by 1
+												values.splice(index + 1, 1);
+												comboBox.dataProvider = values;
+											}
+											else
+												comboBox.dataProvider = values.concat();
+											
+											textInput.visible = false;
+											comboBox.selectedIndex = -1;
+											comboBox.text = item.value;
+											comboBox.visible = true;
+											comboBox.setFocus();
+										}
+										else
+										{
+											comboBox.dataProvider = null;
+											comboBox.visible = false;
+											
+											textInput.visible = true;
+											textInput.text = item.value;
+											textInput.setFocus();
+											textInput.setSelection(0, int.MAX_VALUE);
+										}
+									}
+								]]>
+							</mx:Script>
+							<mx:TextInput id="textInput" width="{width}" height="{height}"/>
+							<CustomComboBox id="comboBox" width="{width}" height="{height}" editable="true" fontWeight="normal"/>
+						</mx:Canvas>
+					</mx:Component>
+				</mx:itemEditor>
+			</mx:DataGridColumn>
         </mx:columns>
     </mx:DataGrid>
-    <mx:HBox width="100%">
-        <ui:TextInputWithPrompt id="newPropName" prompt="New Property Name" enter="addProp()"/>
-        <mx:Button id="addPropButton" label="Add Property" click="addProp()"/>
-        <mx:Button id="delPropButton" label="Delete Property" click="delProp()" 
-            enabled="{grid.selectedItem}"/>
-    </mx:HBox>
+	<Indent label="Add property:">
+		<CustomComboBox id="newPropCombo" editable="true" enter="addProp();" change="if (newPropCombo.selectedIndex >= 0) addProp();" width="100%"/>
+        <mx:Button id="addPropButton" label="Add property" click="addProp()" enabled="{newPropCombo.text ? true : false}"/>
+	</Indent>
 <mx:Script>
 <![CDATA[
+	import mx.utils.ObjectUtil;
 	import mx.collections.ArrayCollection;
 	import mx.collections.ListCollectionView;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.events.CollectionEvent;
-	import mx.events.ListEvent;
 	
 	import weave.core.UIUtils;
+	
+	/**
+	 * Set this to the list of property names you want to display in the drop-down box for adding a new property. 
+	 */
+	[Bindable] public var selectablePropertyNames:Array = [];
 	
     private function emitMetaChanged(o:Object = null):void
     {
         dispatchEvent(new Event("metaChanged"));
     }
-    private static function labelFunction(item:Object, column:DataGridColumn):String
+    private static function labelFunction(item:MetadataGridItem, column:DataGridColumn):String
     {
+		if (item.oldValue != item.value && (item.oldValue || item.value))
+		{
+			return "*" + item.property;
+		}
+		
         /* TODO: Pretty formatting to make it clear that these prefixes aren't part of the name.*/
-		var empty:Boolean = item.deleted || !item.value;
-		if (empty)
-		{
-			if (item.original)
-				return "[DELETED] " + item.property;
-			else
-				return "[NEW] " + item.property;
-		}
-		else
-		{
-			if (item.original)
-				return item.property;
-			else
-				return "[ADDED] " + item.property;
-		}
+		
+//		if (!item.oldValue)
+//			return (item.value ? '[ADDED] ' : '[NEW] ') + item.property;
+//		
+//		if (!item.value)
+//			return '[DELETED] ' + item.property;
+//		
+//		if (item.oldValue != item.value)
+//			return '[CHANGED] ' + item.property;
+		
+		return item.property;
     }
     [Bindable(event="metaChanged")] public function get metadata():Object
     {
@@ -56,11 +116,11 @@
         if (lcv == null) return {};
         var rows:Array = lcv.toArray();
         var destmeta:Object = new Object();
-        for each (var row:Object in rows)
+        for each (var row:MetadataGridItem in rows)
         {
-            if (row.deleted || !row.value)
+            if (!row.value)
             {
-                if (row.original)
+                if (row.oldValue)
                     destmeta[row.property] = null;
                 else
                     continue; /* If a nonoriginal property was deleted 
@@ -71,30 +131,47 @@
         }
         return destmeta;
     }
+	private function updateMissingPropNames():void
+	{
+		var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
+		var missingPropNames:Array = selectablePropertyNames.concat();
+		for each (var item:MetadataGridItem in rows)
+		{
+			// exclude this prop from missingPropNames
+			var index:int = missingPropNames.indexOf(item.property);
+			if (index >= 0)
+				missingPropNames.splice(index, 1);
+		}
+		missingPropNames.sort(propertySort);
+		newPropCombo.dataProvider = missingPropNames;
+		newPropCombo.selectedIndex = -1;
+	}
     public function set metadata(srcmeta:Object):void
     {
         /* Convert from an object to a format expected by the dataProvider */
         var rows:Array = new Array();
         for (var prop:String in srcmeta)
-            rows.push({property: prop, value: srcmeta[prop], original: true, deleted: false});
+			rows.push(new MetadataGridItem(prop, srcmeta[prop]));
+		rows.sort(propertySort);
         grid.dataProvider = rows;
         (grid.dataProvider as ListCollectionView).addEventListener(CollectionEvent.COLLECTION_CHANGE, emitMetaChanged);
+		updateMissingPropNames();
         dispatchEvent(new Event("metaChanged"));
     }
     public function addProp():void
     {
-        var prop:String = newPropName.text;
-        newPropName.text = null;
+        var prop:String = newPropCombo.text;
+        newPropCombo.text = null;
         if (!prop)
 		{
-            UIUtils.componentPulse(newPropName);
+            UIUtils.componentPulse(newPropCombo);
 			return;
 		}
 		
         var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
 		if (indexOfItemWithProperty(rows.source, 'property', prop) < 0)
 		{
-            rows.addItem({property: prop, value: "", original: false, deleted: false});
+            rows.addItem(new MetadataGridItem(prop));
 	        dispatchEvent(new Event("metaChanged"));
 		}
 		
@@ -117,33 +194,51 @@
 		};
 	}
 	
-    public function delProp():void
-    {
-        var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;
-        var row:Object = grid.selectedItem;
-        var idx:int;
-        row.deleted = !row.deleted;
-        if (!row.original && row.deleted)
-        {
-            idx = datalist.getItemIndex(row);
-            datalist.removeItemAt(idx);
-        }
-        grid.dataProvider.refresh();
-        changedItemSelect(null);
-        dispatchEvent(new Event("metaChanged"));
-    }
-    public function changedItemSelect(event:ListEvent):void
-    {
-        if (!grid.selectedItem) return;
-        if (grid.selectedItem.deleted)
-        {
-            delPropButton.label = "Undo Delete";
-        }
-        else
-        {
-            delPropButton.label = "Delete Property";
-        }
-    }
+	private function afterItemEditEnd():void
+	{
+		/*
+		// if user has added a property but not entered a value, remove the property
+        var rows:ListCollectionView = grid.dataProvider as ListCollectionView;
+		var length:int = rows.length;
+		for (var i:int = length - 1; i >= 0; i--)
+		{
+			var item:MetadataGridItem = rows.getItemAt(i) as MetadataGridItem;
+			if (!item.oldValue && !item.value)
+				rows.removeItemAt(i);
+		}
+		if (rows.length != length)
+			rows.refresh();
+		*/
+		updateMissingPropNames();
+	}
+	
+	/**
+	 * This function compares two MetadataGridItem objects by comparing the property names.
+	 * Items will be sorted according to preferredMetadataOrder.
+	 * @param a The first value to compare, either a MetadataGridItem or a String.
+	 * @param b The second value to compare, either a MetadataGridItem or a String.
+	 * @return A value of -1, 0, or 1, which is used by Array.sort().
+	 */
+	private function propertySort(a:Object, b:Object):int
+	{
+		if (a is MetadataGridItem)
+			a = (a as MetadataGridItem).property;
+		if (b is MetadataGridItem)
+			b = (b as MetadataGridItem).property;
+		var order:Array = preferredMetadataOrder;
+		var ia:int = order.indexOf(a);
+		var ib:int = order.indexOf(b);
+		if (ia >= 0 && ib >= 0)
+			return ObjectUtil.numericCompare(ia, ib);
+		if (ia >= 0)
+			return -1;
+		if (ib >= 0)
+			return 1;
+		
+		return ObjectUtil.stringCompare(a as String, b as String, true);
+	}
+	private const preferredMetadataOrder:Array = "sqlResult,title,keyType,dataType,number,string,min,max,year,connection,sqlQuery,sqlParams".split(',');
+	
 ]]>
 </mx:Script>
 </mx:VBox>

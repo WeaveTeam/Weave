@@ -5,16 +5,22 @@
     xmlns="weave.ui.*"
     width="100%" height="100%"
 	creationComplete="handleCreationComplete()">
-    <mx:TabNavigator width="100%" height="100%">
+	<mx:HBox width="100%">
+		<mx:Label id="title" fontWeight="bold"/>
+		<mx:Spacer width="100%"/>
+		<mx:Label id="idDisplay"/>
+	</mx:HBox>
+    <mx:TabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid" label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0})"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
         <ui:MetadataGrid id="privateMetaGrid" label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0})"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
-    <mx:HBox>
-        <mx:Button label="Discard Changes" enabled="{isChanged}" click="refresh()"/>
-        <mx:Button label="Save Changes" enabled="{isChanged}" click="saveChanges()"/>
-        <mx:Button label="Debug Meta" click="printpubMeta()"/>
+    <mx:HBox width="100%">
+		<mx:Spacer width="100%"/>
+        <!--<mx:Button label="Debug Meta" click="printpubMeta()"/>-->
+        <mx:Button label="Save changes" enabled="{isChanged}" click="saveChanges()"/>
+        <mx:Button label="Discard changes" enabled="{isChanged}" click="refresh()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
@@ -26,9 +32,12 @@
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
+	import weave.services.beans.EntityType;
 	
 	public function handleCreationComplete():void
 	{
+		publicMetaGrid.selectablePropertyNames = EntityMetadata.getSuggestedPublicPropertyNames();
+		privateMetaGrid.selectablePropertyNames = EntityMetadata.getSuggestedPrivatePropertyNames();
 		BindingUtils.bindSetter(metaChanged, publicMetaGrid, 'metadata');
 		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
 		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
@@ -56,12 +65,18 @@
 		if (_targetItems == null || _targetItems.length == 0 || _targetItems.length > 1)
 		{
 			this.enabled = false;
+			title.text = "Metadata for selected item";
+			idDisplay.text = "";
+			publicMetaGrid.metadata = null;
+			privateMetaGrid.metadata = null;
 			return;
 		}
 		this.enabled = true;
 		
 		var item:EntityNode = _targetItems[0];
-		
+		var typeStr:String = item.getEntity().getTypeString() || 'item';
+		title.text = "Metadata for selected " + typeStr.toLowerCase();
+		idDisplay.text = "id=" + item.id;
 		var entity:Entity = item.getEntity();
         publicMetaGrid.metadata = entity.publicMetadata;
         privateMetaGrid.metadata = entity.privateMetadata;
@@ -69,7 +84,7 @@
 
     private function metaChanged(..._):void
     {
-		if (_targetItems == null || _targetItems.length > 1)
+		if (_targetItems == null || _targetItems.length != 1)
 			return;
 		
 		var item:EntityNode = _targetItems[0];
@@ -123,7 +138,7 @@
 		}
 	}
 	
-    private function printpubMeta():void
+    public function printpubMeta():void
     {
         weaveTrace(ObjectUtil.toString(publicMetaGrid.metadata));
     }

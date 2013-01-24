@@ -1873,6 +1873,8 @@ public class AdminService
 	public String[] getKeyTypes()
 		throws RemoteException
 	{
-		return getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
+		List<String> list = new ArrayList<String>(getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE));
+		Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+		return list.toArray(new String[0]);
 	}
 }

@@ -19,15 +19,42 @@
 
 package weave.services.beans
 {
+	import weave.api.data.ColumnMetadata;
+
 	public class EntityMetadata
 	{
-		public static const CONNECTION:String = "connection";
-		public static const SQLQUERY:String = "sqlQuery";
-		public static const SQLPARAMS:String = "sqlParams";
-		public static const SQLRESULT:String = "sqlResult";
-		public static const SCHEMA:String = "schema";
-		public static const TABLEPREFIX:String = "tablePrefix";
-		public static const IMPORTNOTES:String = "importNotes";
+		public static function getSuggestedPublicPropertyNames():Array
+		{
+			return [
+				ColumnMetadata.TITLE,
+				ColumnMetadata.NUMBER,
+				ColumnMetadata.STRING,
+				ColumnMetadata.KEY_TYPE,
+				ColumnMetadata.DATA_TYPE,
+				ColumnMetadata.PROJECTION,
+				ColumnMetadata.MIN,
+				ColumnMetadata.MAX,
+				'year'
+			];
+		}
+		
+		public static function getSuggestedPrivatePropertyNames():Array
+		{
+			return [
+				"connection",
+				"sqlSchema",
+				"sqlTable",
+				"sqlColumn",
+				"sqlQuery",
+				"sqlParams",
+				"sqlResult",
+				"importMethod",
+				"sqlKeyColumn",
+				"sqlTablePrefix",
+				"fileName",
+				"keyColumn"
+			];
+		}
 		
 		public var privateMetadata:Object = {};
 		public var publicMetadata:Object = {};

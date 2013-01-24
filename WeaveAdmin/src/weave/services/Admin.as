@@ -25,6 +25,8 @@ package weave.services
 	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.services.beans.DatabaseConfigInfo;
 
 	public class Admin
@@ -368,5 +370,25 @@ package weave.services
 		}
 		// End of LocalConnection Code
 		//////////////////////////////////////////
+		
+		
+		
+		public function getSuggestedPropertyValues(propertyName:String):Array
+		{
+			switch (propertyName)
+			{
+				case 'connection':
+					return connectionNames;
+				
+				case ColumnMetadata.DATA_TYPE:
+					return [DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY];
+				
+				case ColumnMetadata.KEY_TYPE:
+					return keyTypes;
+				
+				default:
+					return null;
+			}
+		}
 	}
 }

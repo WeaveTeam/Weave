@@ -29,7 +29,7 @@ Author: skolman
 		  xmlns="weave.ui.admin.*"
 		  backgroundAlpha="1"
 		  creationComplete="onCreationComplete()">
-	<ui:Indent label="Connection Name:">
+	<ui:Indent label="Connection name:">
 		<mx:TextInput id="connectionInput" enter="login()"/>
 	</ui:Indent>
 	<ui:Indent label="Password:">

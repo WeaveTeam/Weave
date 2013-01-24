@@ -40,6 +40,11 @@
 			 */
 			public const labelComponent:Label = new Label();
 			
+			public function set labelFontWeight(value:String):void
+			{
+				labelComponent.setStyle('fontWeight', value);
+			}
+			
 			private var _group:* = undefined;
 			private var _grouped:Boolean = true;
     	

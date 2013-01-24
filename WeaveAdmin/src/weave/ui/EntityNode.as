@@ -5,12 +5,13 @@ package weave.ui
     import mx.collections.ICollectionView;
     import mx.utils.StringUtil;
     
-    import weave.api.reportError;
     import weave.api.data.ColumnMetadata;
+    import weave.api.reportError;
     import weave.services.Admin;
     import weave.services.EntityCache;
     import weave.services.beans.Entity;
     import weave.services.beans.EntityTableInfo;
+    import weave.services.beans.EntityType;
 
 	[RemoteClass]
     public class EntityNode
@@ -69,12 +70,9 @@ package weave.ui
 				
 			if (debug)
 			{
-				var typeStrs:Array = ['Hierarchy','Table','Column','Category'];
-				var typeInts:Array = [Entity.TYPE_HIERARCHY, Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
-				var typeInt:int = info.type;
-				var typeStr:String = typeStrs[typeInts.indexOf(typeInt)];
+				var typeStr:String = info.getTypeString();
 				var childrenStr:String = '';
-				if (typeInt != Entity.TYPE_COLUMN)
+				if (info.type != Entity.TYPE_COLUMN)
 					childrenStr = '; ' + children.length + ' children';
 				var idStr:String = '(' + typeStr + "#" + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
