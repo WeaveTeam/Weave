@@ -128,6 +128,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			*/
 			private function alreadyExists(id:String, arrayToCheck:Array):Boolean
 			{
+				if( id == null )
+					return false;
 				//testID is only for use for CollaborationVideoComponents, otherwise use the full id.
 				var testID:String = new String();
 				if( id.length > 10 )
