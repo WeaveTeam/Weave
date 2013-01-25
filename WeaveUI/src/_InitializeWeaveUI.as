@@ -44,6 +44,7 @@ package
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.RTextEditor;
+	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -125,6 +126,7 @@ package
 			GaugeTool,
 			HistogramTool,
 			Histogram2DTool,
+			InfoMapPanel,
 			GraphTool,
 			LineChartTool,
 			DimensionSliderTool,

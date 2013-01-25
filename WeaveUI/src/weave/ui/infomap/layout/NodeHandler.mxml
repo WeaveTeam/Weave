@@ -945,10 +945,13 @@
 					return;
 				
 				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
+				var requiredKeywords:Array = currentQuery.keywords.value.split(',');
 				
-				//temporarily disable query for entities > 1000
-//				if(keys.length > 1000)
-//					return;
+				/* if there more than 1000 entities we will only show entity distribution for selected entities */
+				if(keys.length > 1000)
+				{
+					keys = requiredKeywords;					
+				}
 				
 				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
 				for each(var attrCol:IAttributeColumn in entityColumns)
@@ -978,8 +981,6 @@
 				{
 					entities.push(key);
 				}
-				
-				var requiredKeywords:Array = currentQuery.keywords.value.split(',');
 				
 				var relatedKeywords:Array = null;
 				
@@ -1747,7 +1748,7 @@
 					fadeOut.play([_pointCanvas]);
 					return;
 				}
-
+				handleClearFiltersButton();
 				status.text = "Drawing points...";
 				var urls:Array = [];
 				VectorUtils.copy(_topicsResult.urls,urls);

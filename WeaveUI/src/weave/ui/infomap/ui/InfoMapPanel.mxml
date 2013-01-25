@@ -32,6 +32,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	backgroundSize="100%"
 	dragDrop="dragDropHandler(event)"
 	dragEnter="dragEnterHandler(event)"
+	implements="weave.api.ui.IVisTool"
 	>
 	
 	<mx:Script>
@@ -113,6 +114,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.PopUpUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.WordProcessingUtils;
+			
+			WeaveAPI.registerImplementation(IVisTool, InfoMapPanel, "InfoMaps Tool");
 			
 			/**
 			 * @public
@@ -641,7 +644,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			
 			private var loader:URLLoader = null;
-			private function addRssFeed():void
+			/* private function addRssFeed():void
 			{
 				var url:String = feedURL.text;
 				url = StringUtil.trim(url);
@@ -688,15 +691,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					sortByTitle();
 				}
 			}
-			
+			*/
 			private function sortByTitle():void
 			{
-				var dp:ArrayCollection = grid.dataProvider as ArrayCollection;
+				/* var dp:ArrayCollection = grid.dataProvider as ArrayCollection;
 				var sort:Sort = new Sort();
 				var sortF:SortField = new SortField("Title",true,false);
 				sort.fields = [sortF];
-				dp.sort = sort;
-			}
+				dp.sort = sort; */
+			} 
 			
 			
 			
@@ -822,7 +825,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable] private var targetFileUploadCount:int = 0;
 			private function folderSelectHanlder(event:Event):void
 			{
-				if(!username.text)
+				/* if(!username.text)
 				{
 					Alert.show("Please enter an username to associate with the files","Error");
 					return;
@@ -849,8 +852,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						WeaveAPI.ErrorManager.reportError(e.message);
 					}
-				}
-			}
+				} */
+			} 
 			
 			private function folderErrorHandler(event:IOErrorEvent):void
 			{
@@ -861,7 +864,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			private function fileLoadCompleteHandler(event:Event):void
+			/* private function fileLoadCompleteHandler(event:Event):void
 			{
 				if ((event.target as FileReference).data == null)
 					return;
@@ -872,7 +875,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				InfoMapAdminInterface.instance.addDocumentToSolr(username.text,event.target as FileReference);
 				fileUploadCount++; //TODO Check for file index status.
-			}
+			} */
 			
 			private function handleSolrServerURLChange():void
 			{
@@ -1021,9 +1024,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:VBox label="Set Keywords">
 					<mx:HBox>
 						<mx:Label fontWeight="bold" text="Current Keywords: "/>
-						<mx:Text creationComplete='{linkBindableProperty(relatedKeywords,event.currentTarget,"text")}'/>
+						<mx:TextInput creationComplete='{linkBindableProperty(relatedKeywords,event.currentTarget,"text")}'/>
+						<ui:HelpComponent content="Add keywords to use as a part of the queries. Separate the keywords by commas"/>
  					</mx:HBox>
-					<mx:List borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
+					<!--<mx:List borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
 						<mx:itemRenderer>
 							<mx:Component>
 								<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
@@ -1039,12 +1043,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								</mx:CheckBox>
 							</mx:Component>
 						</mx:itemRenderer>
-					</mx:List>
+					</mx:List>-->
 					<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>
 				</mx:VBox>
 			</mx:Accordion>
 		</mx:VBox>
-		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
+		<!--<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
 		<mx:Label text="Enter RSS Feed: " />
 		<mx:HBox>
 			<mx:Label text="Title"/>
@@ -1078,7 +1082,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files indexed' : ''}"/>
 			</mx:HBox>
 			<mx:Button label="Open Loader" click="popupLoader()"/>
-		</mx:VBox>
+		</mx:VBox>-->
 		<ui:UserWindowSettings targetTool="{this}"/>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

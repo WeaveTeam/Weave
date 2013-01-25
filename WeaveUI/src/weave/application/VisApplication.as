@@ -838,7 +838,7 @@ package weave.application
 				{
 					_weaveMenu.addSeparatorToMenu(_toolsMenu);
 					
-					createToolMenuItem(Weave.properties.enableInfoMap, "Add InfoMap Tool",InfoMapLoader.openPanel);
+//					createToolMenuItem(Weave.properties.enableInfoMap, "Add InfoMap Tool",InfoMapLoader.openPanel);
 					
 					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 					{
