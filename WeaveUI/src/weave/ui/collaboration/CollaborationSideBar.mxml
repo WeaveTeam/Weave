@@ -498,6 +498,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					reportError(e.getText() + "\'s mouse does not exist.");
 					return;
 				}
+				removeMouseFromQueue(e);
 				WeaveAPI.CollaborationCursorManager.removeCursor(e.getText());
 				PARTICIPANTS.removeFromParticipantList(e.getText());
 				setUserAttribute(TYPE_CAM, e.getText(), 0);
