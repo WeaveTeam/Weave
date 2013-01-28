@@ -128,11 +128,13 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 
 	public void writeMetadataTiles(List<StreamTile> tiles) throws Exception
 	{
+		//System.out.println("writeMetadataTiles");
 		writeTilesToSQL(tiles, sqlMetadataTable, metadataTileIDGenerator);
 	}
 	
 	public void writeGeometryTiles(List<StreamTile> tiles) throws Exception
 	{
+		//System.out.println("writeGeometryTiles");
 		writeTilesToSQL(tiles, sqlGeometryTable, geometryTileIDGenerator);
 	}
 
@@ -157,6 +159,9 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 			StreamTile tile = streamTiles.get(i);
 			tile.writeStream(data, tileID);
 
+			byte[] bytes = baos.toByteArray();
+			//System.out.println(String.format("tile %s, %s bytes", tileID, bytes.length));
+			
 			// save tile data in sql table
 			Map<String, Object> values = MapUtils.fromPairs(
 				MIN_IMPORTANCE, tile.minImportance,
@@ -166,7 +171,7 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 				X_MAX_BOUNDS, tile.queryBounds.xMax,
 				Y_MAX_BOUNDS, tile.queryBounds.yMax,
 				TILE_ID, tileID,
-				TILE_DATA, baos.toByteArray()
+				TILE_DATA, bytes
 			);
 			SQLUtils.insertRow(conn, sqlSchema, sqlTable, values);
 		}

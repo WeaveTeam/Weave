@@ -16,7 +16,7 @@ package weave.ui
 	[RemoteClass]
     public class EntityNode
     {
-		public static var debug:Boolean = true;
+		public static var debug:Boolean = false;
 		
 		/**
 		 * @param filterType To be used by root node only.

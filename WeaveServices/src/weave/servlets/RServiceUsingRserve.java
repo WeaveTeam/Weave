@@ -117,7 +117,6 @@ public class RServiceUsingRserve
 		return evalValue;
 	}
 	
-	
 	/**
 	 * This will wrap an object in an REXP object.
 	 * @param object
@@ -126,11 +125,26 @@ public class RServiceUsingRserve
 	 */
 	private static REXP getREXP(Object object) throws RemoteException
 	{
+		/*
+		 * <p><table>
+		 *  <tr><td> null	<td> REXPNull
+		 *  <tr><td> boolean, Boolean, boolean[], Boolean[]	<td> REXPLogical
+		 *  <tr><td> int, Integer, int[], Integer[]	<td> REXPInteger
+		 *  <tr><td> double, Double, double[], double[][], Double[]	<td> REXPDouble
+		 *  <tr><td> String, String[]	<td> REXPString
+		 *  <tr><td> byte[]	<td> REXPRaw
+		 *  <tr><td> Enum	<td> REXPString
+		 *  <tr><td> Object[], List, Map	<td> REXPGenericVector
+		 *  <tr><td> RObject, java bean (experimental)	<td> REXPGenericVector
+		 *  <tr><td> ROpaque (experimental)	<td> only function arguments (REXPReference?)
+		 *  </table>
+		 */
+		
 		// if it's an array...
 		if (object instanceof Object[])
 		{
 			Object[] array = (Object[])object;
-			if (array[0] instanceof Object[]) // 2-d matrix
+			if (array.length == 0 || array[0] instanceof Object[]) // 2-d matrix
 			{
 				// handle 2-d matrix
 				RList rList = new RList();

@@ -22,7 +22,6 @@ package weave.services
 	import flash.events.Event;
 	
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
@@ -30,12 +29,11 @@ package weave.services
 	/**
 	 * this class contains functions that handle a queue of remote procedure calls
 	 * 
-	 * @author abaumann
 	 * @author adufilie
 	 */
 	public class AsyncInvocationQueue
 	{
-		public static var debug:Boolean = true;
+		public static var debug:Boolean = false;
 		
 		public function AsyncInvocationQueue()
 		{
