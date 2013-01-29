@@ -1266,7 +1266,32 @@ public class SQLUtils
 
 		return false;
 	}
-        /**
+	
+	/**
+	 * This function checks if a connection is for a Microsoft SQL Server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a Microsoft SQL Server.
+	 */
+	public static boolean isSQLServer(Connection conn)
+	{
+		try
+		{
+			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(SQLSERVER))
+				return true;
+		}
+		catch (SQLException e) // This is expected to be thrown if the connection is invalid.
+		{
+			e.printStackTrace();
+		}
+		catch (RuntimeException e) // This is important for catching unexpected errors.
+		{
+			return false;
+		}
+		
+		return false;
+	}
+	
+	/**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
 	 * @param tableName The name of an existing table

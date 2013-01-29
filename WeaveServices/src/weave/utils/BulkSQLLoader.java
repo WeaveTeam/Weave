@@ -39,7 +39,7 @@ public abstract class BulkSQLLoader
 {
 	public static BulkSQLLoader newInstance(Connection conn, String schema, String table, String[] fieldNames) throws RemoteException
 	{
-		if (SQLUtils.isOracleServer(conn))
+		if (SQLUtils.isOracleServer(conn) || SQLUtils.isSQLServer(conn))
 			return new BulkSQLLoader_Direct(conn, schema, table, fieldNames);
 		else
 			return new BulkSQLLoader_CSV(conn, schema, table, fieldNames);
