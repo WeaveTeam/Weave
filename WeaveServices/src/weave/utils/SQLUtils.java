@@ -1523,7 +1523,7 @@ public class SQLUtils
 						));
 				stmt.close();
 			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE) || dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
 			{
 				// Insert each row repeatedly
 				boolean prevAutoCommit = conn.getAutoCommit();
@@ -1570,16 +1570,6 @@ public class SQLUtils
 				((PGConnection) conn).getCopyAPI().copyIn(
 						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
 						new FileInputStream(formatted_CSV_path));
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
-			{
-				stmt = conn.createStatement();
-
-				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
-				stmt.executeUpdate(String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
-						quotedTable, formatted_CSV_path, SQL_SERVER_DELIMETER
-					));
 			}
 		}
 		finally 
