@@ -243,6 +243,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				targetTool.addImmediateCallback(this, handleTargetToolChange, true);
 				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addImmediateCallback(this, handleChoicesChange, true);
+				showPlayButton.addImmediateCallback(this, stopPlay);
 				
 				choicesComponent.hashMap = choices;
 				
@@ -252,9 +253,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				callLater(showControlPanelIfNothingSelected);
 			}
 			
-			private function handleLayoutMode():void
+			private function stopPlay():void
 			{
 				playButton.selected = false;
+			}
+			
+			private function handleLayoutMode():void
+			{
+				stopPlay();
 				layoutViewStack.selectedIndex = layouts.indexOf(layoutMode.value);
 			}
 			
