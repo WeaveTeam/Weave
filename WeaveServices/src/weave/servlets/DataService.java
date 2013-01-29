@@ -114,7 +114,7 @@ public class DataService extends GenericServlet
 			if (isEmpty(columnEntity.privateMetadata.get(field)))
 			{
 				String dataType = columnEntity.publicMetadata.get(PublicMetadata.DATATYPE);
-				String description = dataType.equals(DataType.GEOMETRY) ? "Geometry column" : "Column";
+				String description = (dataType != null && dataType.equals(DataType.GEOMETRY)) ? "Geometry column" : "Column";
 				throw new RemoteException(String.format("%s %s is missing private metadata %s", description, columnEntity.id, field));
 			}
 		}
@@ -123,7 +123,7 @@ public class DataService extends GenericServlet
 //	private void assertNonGeometryColumn(DataEntity entity) throws RemoteException
 //	{
 //		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
-//		if (dataType.equals(DataType.GEOMETRY))
+//		if (dataType != null && dataType.equals(DataType.GEOMETRY))
 //			throw new RemoteException(String.format("Column %s dataType is %s", entity.id, dataType));
 //		assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLQUERY);
 //	}
@@ -133,7 +133,7 @@ public class DataService extends GenericServlet
 		try
 		{
 			String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
-			if (!dataType.equals(DataType.GEOMETRY))
+			if (dataType == null || !dataType.equals(DataType.GEOMETRY))
 				throw new RemoteException(String.format("Column %s dataType is %s, not %s", entity.id, dataType, DataType.GEOMETRY));
 			assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLSCHEMA, PrivateMetadata.SQLTABLEPREFIX);
 			return true;
@@ -266,7 +266,7 @@ public class DataService extends GenericServlet
 			
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
-			if (dataType.length() == 0)
+			if (isEmpty(dataType))
 			{
 				dataType = DataType.fromSQLType(result.columnTypes[1]);
 				entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
@@ -478,7 +478,7 @@ public class DataService extends GenericServlet
 				//timer.lap("get row set");
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
-				if (dataType.length() == 0)
+				if (isEmpty(dataType))
 					dataType = DataType.fromSQLType(result.columnTypes[1]);
 				if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
 					numericData = new ArrayList<Double>();

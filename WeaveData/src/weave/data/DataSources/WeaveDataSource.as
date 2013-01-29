@@ -387,12 +387,18 @@ package weave.data.DataSources
 			proxyColumn.setMetadata(leafNode.copy());
 			
 			var params:Object = new Object();
-			for each (var attr:String in ['dataTable', 'name', 'year', 'min', 'max', 'sqlParams']) // only use these properties for querying
+			var queryProperties:Array = [
+				ColumnMetadata.DATA_TYPE, ColumnMetadata.MIN, ColumnMetadata.MAX,
+				'dataTable', 'name', 'year', 'sqlParams'
+			]; // use only these properties for querying
+			for each (var attr:String in queryProperties)
 			{
 				var value:String = leafNode.attribute(attr);
 				if (value != '')
 					params[attr] = value;
 			}
+			if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
+				delete params[ColumnMetadata.DATA_TYPE];
 			
 			var columnRequestToken:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
 			var query:AsyncToken = dataService.getColumnFromMetadata(params);
