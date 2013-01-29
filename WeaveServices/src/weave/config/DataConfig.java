@@ -65,7 +65,7 @@ public class DataConfig
 	private ManifestTable manifest;
 	private HierarchyTable hierarchy;
 	private ConnectionConfig connectionConfig;
-	private long lastModified = 0L;
+	private long lastModified = -1L;
 
 	public DataConfig(ConnectionConfig connectionConfig) throws RemoteException
 	{

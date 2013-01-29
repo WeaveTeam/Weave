@@ -97,6 +97,8 @@ package weave.services
 				{
 					// save info
 					databaseConfigExists = event.result as Boolean;
+					if (!databaseConfigExists)
+						service.getConnectionNames();
 				}
 			);
 			service.addHook(
