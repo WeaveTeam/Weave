@@ -131,7 +131,10 @@ public class AdminService
 	
 	public boolean checkDatabaseConfigExists() throws RemoteException
 	{
-		return getConnectionConfig().getDatabaseConfigInfo() != null;
+		DatabaseConfigInfo dbInfo = getConnectionConfig().getDatabaseConfigInfo();
+		return dbInfo != null;
+		
+		//TODO: if getConnectionConfig().getAdminConnection() fails, ask user to set up databaseConfig (other GUI should be hidden)
 	}
 
 	

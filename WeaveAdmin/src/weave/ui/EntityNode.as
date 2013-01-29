@@ -64,12 +64,17 @@ package weave.ui
 			
 			var title:String = info.publicMetadata[ColumnMetadata.TITLE];
 			if (!title)
-				title = '[name: ' + info.publicMetadata['name'] + ']';
-			if (!title)
-				title = '[untitled]';
+			{
+				var name:String = info.publicMetadata['name'];
+				if (name)
+					title = '[name: ' + name + ']';
+			}
 				
 			if (debug)
 			{
+				if (!title)
+					title = '[untitled]';
+				
 				var typeStr:String = info.getTypeString();
 				var childrenStr:String = '';
 				if (info.type != Entity.TYPE_COLUMN)

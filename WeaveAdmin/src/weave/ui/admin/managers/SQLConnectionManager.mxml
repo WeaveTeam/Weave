@@ -80,10 +80,12 @@
 			</mx:VBox>
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
-			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
+			<mx:VBox height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+				<mx:Label id="lblAre" text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
 				<mx:Spacer/>
-				<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>
+				<!--<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>-->
+				<mx:Label id="lblMay" text="You may switch to a different location, but the existing configuration data will not be copied over.  That functionality will be available in a future Weave update."/>
+				<mx:Label id="lblPlease" text="Please specify where the configuration data should be stored."/>
 				<ui:Indent label="Connection to use">
 					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{Admin.instance.connectionNames}" width="200"/>
 				</ui:Indent>
@@ -107,6 +109,7 @@
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
+			import weave.services.beans.DatabaseConfigInfo;
 			import weave.utils.PopUpUtils;
 			
 			[Bindable]
@@ -120,6 +123,15 @@
 				clearConnectionFields(true);
 				BindingUtils.bindSetter(handleConnectionNames, Admin.instance, "connectionNames");
 				treeWithSearch.tree.addEventListener(Event.CHANGE, handleTreeSelection);
+				BindingUtils.bindSetter(handleDBConfig, Admin.instance, "databaseConfigInfo");
+			}
+			
+			private function handleDBConfig(dbInfo:DatabaseConfigInfo):void
+			{
+				var configured:Boolean = dbInfo && dbInfo.connection;
+				lblAre.visible = lblAre.includeInLayout = configured;
+				lblMay.visible = lblMay.includeInLayout = configured;
+				lblPlease.visible = lblPlease.includeInLayout = !configured;
 			}
 			
 			public function handleConnectionNames(names:Array):void

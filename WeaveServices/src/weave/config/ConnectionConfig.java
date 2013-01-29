@@ -155,7 +155,7 @@ public class ConnectionConfig
 		ConnectionInfo connInfo = getConnectionInfo(dbInfo.connection);
 		
 		if (connInfo == null)
-			throw new RemoteException(String.format("Connection named \"%s\" doead not exist.", dbInfo.connection));
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", dbInfo.connection));
 		
 		return _adminConnection = connInfo.getConnection();
 	}

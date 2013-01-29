@@ -22,6 +22,7 @@
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
         <mx:HBox>
+			<mx:Spacer width="100%"/>
 			<mx:HBox enabled="{selectedItems.length == 1}">
     	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="New category name" width="100%"/>
 	            <mx:Button label="Add category" click="addCategory()" enabled="{categoryNameInput.text}"/>

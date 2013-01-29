@@ -211,6 +211,10 @@ package weave.services
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
+					
+					// refresh
+					service.getDatabaseConfigInfo();
+					entityCache.clearCache();
 				}
 			);
 			/////////////////
