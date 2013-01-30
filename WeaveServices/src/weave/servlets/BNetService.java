@@ -19,8 +19,10 @@
 
 package weave.servlets;
 
+import java.lang.StringBuilder;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.File;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
@@ -28,7 +30,8 @@ import javax.servlet.ServletException;
 
 import weave.config.WeaveContextParams;
 
-
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,78 +42,72 @@ import java.util.Collections;
 
 import com.cra.bnet.engine.*;
 import com.cra.shared.graph.*;
+import com.cra.bnet.io.HuginFormat;
 import com.cra.bnet.io.XbnFormat;
 
 public class BNetService extends GenericServlet
 {
     private Map<String,BayesianNetwork> networks;
-	public BNetService()
+	public BNetService() throws RemoteException
 	{
         networks = new HashMap<String,BayesianNetwork>();
+        return;
 	}
     public List<String> listNetworks()
     {
-        return new ArrayList<String>(networks.keySet());
+        return new LinkedList<String>(networks.keySet());
     }
-    public List<String> listNodesAsCSV(String netName)
+    public String listNodes(String netName)
     {
-        List<String> result = new LinkedList<String>();
-        BayesianNetwork net = networks.get(netName);
 
-        for (Node node : net.nodeSet())
+        StringBuilder result = new StringBuilder();
+        BayesianNetwork net = networks.get(netName);
+        result.append("nodeName,nodeBelief");
+        for (DiscreteNode node : net.discreteNodeSet())
         {
             String nodeName = node.getName();
-            String nodeBelief = node.getBelief("true");
+            String nodeBelief = "" + node.getBelief("true");
             String nodeDescription = node.getDescription();
-            result.add(nodeName + "," + nodeBelief);
+            result.append(nodeName + "," + nodeBelief + "\n");
         }
-        return result;
+        return result.toString();
     }
-    public List<String> listEdgesAsCSV(String netName)
+    public String listEdges(String netName)
     {
-        List<String> result = new LinkedList<String>();
+        StringBuilder result = new StringBuilder();
         BayesianNetwork net = networks.get(netName);
-        result.add("edgeId,edgeSource,edgeTarget");
-        for (Node node : net.nodeSet())
+        result.append("edgeId,edgeSource,edgeTarget\n");
+        for (Node node : net.discreteNodeSet())
         {
-            for (Node parent : node.getParents())
+            List<Node> parents = new LinkedList<Node>(node.getParents());
+            for (Node parent : parents)
             {
                 String edgeSource = parent.getName();
                 String edgeTarget = node.getName();
-                String edgeId = edgeSrc+edgeTarget;
-                result.add(edgeId + "," + edgeSource + "," + edgeUniq);
+                String edgeId = edgeSource+edgeTarget;
+                result.append(edgeId + "," + edgeSource + "," + edgeId + "\n");
             }
         }
-        return result;
+        return result.toString();
     }
-
-    public boolean createNetwork(String netName)
+    public void postEvidence(String netName, String nodeName, double value)
     {
-        BayesianNetwork net;
-        if (networks.get(netName) != null)
-        {
-            return false;
-        }
-        else
-        {
-            net = new BayesianNetwork();
-            net.setName(netName);
-            networks.put(netName, net);
-            return true;
-        }
-    }
-    public void destroyNetwork(String netName)
-    {
-        networks.remove(netName);
-        return;        
+        BayesianNetwork net = networks.get(netName);
+        DiscreteNode node = net.getDiscreteNode(nodeName);
+        node.setEvidence("true", value);
+        node.setEvidence("false", 1.0-value);
+        return;
     }
     /* Takes an XML string in XBN format describing the Bayesian network, and returns the network id */
-    public boolean loadNetwork(String content, String withName) 
+    public boolean loadNetwork(String path, String withName) throws RemoteException
     {
+        File f = new File(path);
+        if (f.exists())
+        {
+            System.out.println("Located network file.");
+        }
 
-        StringReader content_reader = new StringReader(content);
-        XbnFormat fmt = new XbnFormat();
-        BayesianNetwork net = fmt.read(content_reader);
+        BayesianNetwork net = XbnFormat.read(new File(path));
         if (withName != null && !withName.equals(""))
         {
             net.setName(withName);
@@ -118,5 +115,6 @@ public class BNetService extends GenericServlet
         networks.put(net.getName(), net);
         return true;
     }
+    
 
 }

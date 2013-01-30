@@ -44,9 +44,14 @@ package weave.services
 			registerLinkableChild(this, servlet);
 		}
 		protected var servlet:AMF3Servlet;
+
 		public function listNetworks():DelayedAsyncInvocation
 		{
 			return servlet.invokeAsyncMethod("listNetworks") as DelayedAsyncInvocation;
+		}
+		public function loadNetwork(path:String, withName:String):DelayedAsyncInvocation
+		{
+			return servlet.invokeAsyncMethod("loadNetwork", arguments) as DelayedAsyncInvocation;
 		}
 		public function listEdges():DelayedAsyncInvocation
 		{
@@ -56,15 +61,7 @@ package weave.services
 		{
 			return servlet.invokeAsyncMethod("listNodes") as DelayedAsyncInvocation;
 		}
-		public function createNetwork(netName:String):DelayedAsyncInvocation
-		{
-			return servlet.invokeAsyncMethod("createNetwork", null) as DelayedAsyncInvocation;
-		}
-		public function destroyNetwork(netName:String):DelayedAsyncInvocation
-		{
-			return servlet.invokeAsyncMethod("destroyNetwork", arguments) as DelayedAsyncInvocation;
-		}
-		public function setEvidence(netName:String, nodeName:String, nodeState:String, nodeEvidence:Number):DelayedAsyncInvocation
+		public function postEvidence(netName:String, nodeName:String, value:Number):DelayedAsyncInvocation
 		{
 			return servlet.invokeAsyncMethod("setEvidence", arguments) as DelayedAsyncInvocation;
 		}

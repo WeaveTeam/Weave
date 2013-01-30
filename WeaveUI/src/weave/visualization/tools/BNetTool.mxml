@@ -31,7 +31,9 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import mx.rpc.events.ResultEvent;
 			import weave.Weave;
+			import weave.api.reportError;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
@@ -50,6 +52,7 @@
 			import weave.visualization.plotters.GraphLabelPlotter;
 			import weave.visualization.plotters.GraphPlotter;
 			import weave.services.BNetServlet;
+
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;
@@ -59,6 +62,7 @@
 			override protected function constructor():void
 			{
 				super.constructor();
+				initializeNetwork();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(GraphPlotter, false);
 				// create new label layer
@@ -78,11 +82,20 @@
 				linkSessionState(_plotter.nodesColumn, _labelPlotter.nodesColumn);
 				linkSessionState(_plotter.edgeSourceColumn, _labelPlotter.edgeSourceColumn);
 				linkSessionState(_plotter.edgeTargetColumn, _labelPlotter.edgeTargetColumn);
+
 			}
-			private var servlet:BNetServlet;
+			public var servlet:BNetServlet;
+			public var networkList:Array;
 			private function initializeNetwork():void
 			{
-				servlet = new BNetServlet("http://localhost:8080/BNetService/");
+				servlet = new BNetServlet("http://localhost:8080/WeaveServices/BNetService");
+				servlet.loadNetwork("/home/pkovac/wetgrass-basic.xbn","testNetwork");
+				function afterNetworkList(event:ResultEvent)
+				{
+					reportError(event.result);
+					networkList = event.result as Array;
+				}
+				servlet.listNetworks().addAsyncResponder(afterNetworkList);
 			}
 			private function handleLayoutAlgorithmChange():void
 			{
