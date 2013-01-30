@@ -55,11 +55,11 @@ package weave.application
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
-	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
@@ -1556,7 +1556,8 @@ package weave.application
 		{
 			try
 			{
-				ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+				if (ExternalInterface.available)
+					ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
 			}
 			catch (e:Error)
 			{
