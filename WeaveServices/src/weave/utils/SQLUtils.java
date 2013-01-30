@@ -1510,7 +1510,7 @@ public class SQLUtils
 		String dbms = conn.getMetaData().getDatabaseProductName();
 		Statement stmt = null;
 		String quotedTable = quoteSchemaTable(conn, sqlSchema, sqlTable);
-
+		String query = "";
 		try
 		{
 			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
@@ -1531,7 +1531,7 @@ public class SQLUtils
 					conn.setAutoCommit(false);
 				
 				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
-				String query = "", tempQuery = "INSERT INTO %s values (";
+				String tempQuery = "INSERT INTO %s values (";
 				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
 				{
 					if (column == rows[0].length - 1)
@@ -1545,24 +1545,31 @@ public class SQLUtils
 				CallableStatement cstmt = null;
 				try
 				{
-					cstmt = conn.prepareCall(query);;
+					cstmt = conn.prepareCall(query);
 
 					for (int row = 1; row < rows.length; row++) //Skip header line
 					{
-						for (int column = 0; column < rows[row].length; column++)
+						for (int column = 0; column < rows[0].length; column++)
 						{
-							cstmt.setString(column+1, rows[row][column]);
+							if (column < rows[row].length)
+								cstmt.setString(column+1, rows[row][column]);
+							else
+								cstmt.setString(column+1, null);
 						}
 						cstmt.execute();
 					}
 				}
 				catch (SQLException e)
 				{
+					conn.rollback();
+					System.err.println(query);
 					throw new RemoteException(e.getMessage(), e);
 				}
 				finally
 				{
 					SQLUtils.cleanup(cstmt);
+					
+					conn.setAutoCommit(prevAutoCommit);
 				}
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
@@ -1611,8 +1618,6 @@ public class SQLUtils
 		}
 	}
 	
-	private static final char SQL_SERVER_DELIMETER = (char)8;
-	
 	public static void generateCSV(Connection conn, String[][] csvData, File output) throws SQLException, IOException
 	{
 		FileWriter writer = new FileWriter(output);
@@ -1627,18 +1632,8 @@ public class SQLUtils
 			}
 		}
 		
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		if (SQLSERVER.equalsIgnoreCase(dbms))
-		{
-			// special case for Microsoft SQL Server because it does not support quotes.
-			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
-			parser.createCSV(csvData, false, writer);
-		}
-		else
-		{
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
-		}
+		boolean quoteEmptyStrings = outputNullValue.length() > 0;
+		CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
 		
 		writer.flush();
 		writer.close();

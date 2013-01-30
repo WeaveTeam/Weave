@@ -1608,6 +1608,7 @@ public class AdminService extends GenericServlet
 
 			// import the data
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
+			SQLUtils.cleanup(conn);
 			
 			return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName,
 					configGeometryCollectionName, configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames,
