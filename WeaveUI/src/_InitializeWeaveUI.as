@@ -56,6 +56,7 @@ package
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
+	import weave.visualization.tools.BNetTool;
 	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
@@ -118,6 +119,7 @@ package
 			CompoundBarChartTool,
 			ColorBinLegendTool,
 			ColormapHistogramTool,
+			BNetTool,
 			CompoundRadVizTool,
 			CustomTool,
 			SchafersMissingDataTool,

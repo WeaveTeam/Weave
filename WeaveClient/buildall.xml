@@ -73,6 +73,11 @@
 			<include name="*.css"/>
 		    </fileset>
 		</copy>
+                <copy todir="${WEAVE_DOCROOT}/..">
+                    <fileset dir="${basedir}">
+                        <include name="WeaveServices.war"/>
+                    </fileset>
+                </copy>
 	</target>
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->

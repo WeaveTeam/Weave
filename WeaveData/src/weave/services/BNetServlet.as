@@ -29,6 +29,7 @@ package weave.services
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.utils.HierarchyUtils;
+	import weave.services.DelayedAsyncInvocation;
 	
 	/**
 	 * This is a wrapper class for making asynchronous calls to a Weave data servlet.
@@ -43,37 +44,29 @@ package weave.services
 			registerLinkableChild(this, servlet);
 		}
 		protected var servlet:AMF3Servlet;
-		public function createNetwork(name:String):AsyncToken
+		public function listNetworks():DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("createNetwork", null);
+			return servlet.invokeAsyncMethod("listNetworks") as DelayedAsyncInvocation;
 		}
-		public function destroyNetwork(netId:int):AsyncToken
+		public function listEdges():DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("destroyNetwork", arguments);
+			return servlet.invokeAsyncMethod("listEdges") as DelayedAsyncInvocation;
 		}
-		public function addNode(netId:int, name:String):AsyncToken
+		public function listNodes():DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("addNode", arguments);
+			return servlet.invokeAsyncMethod("listNodes") as DelayedAsyncInvocation;
 		}
-		public function removeNode(netId:int, name:String):AsyncToken
+		public function createNetwork(netName:String):DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("removeNode", arguments);
+			return servlet.invokeAsyncMethod("createNetwork", null) as DelayedAsyncInvocation;
 		}
-		public function addEdge(netId:int, srcName:String, destName:String):AsyncToken
+		public function destroyNetwork(netName:String):DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("addEdge", arguments);
+			return servlet.invokeAsyncMethod("destroyNetwork", arguments) as DelayedAsyncInvocation;
 		}
-		public function removeEdge(netId:int, srcName:String, destName:String):AsyncToken
+		public function setEvidence(netName:String, nodeName:String, nodeState:String, nodeEvidence:Number):DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("removeEdge", arguments);
-		}
-		public function listNodes(netId:int):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("listNodes", arguments);
-		}
-		public function setEvidence(netId:int, nodeName:String, srcName:String, destName:String):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("setEvidence", arguments);
+			return servlet.invokeAsyncMethod("setEvidence", arguments) as DelayedAsyncInvocation;
 		}
 	}
 }

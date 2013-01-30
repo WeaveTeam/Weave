@@ -20,6 +20,7 @@
 package weave.servlets;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
@@ -38,65 +39,84 @@ import java.util.Collections;
 
 import com.cra.bnet.engine.*;
 import com.cra.shared.graph.*;
+import com.cra.bnet.io.XbnFormat;
 
 public class BNetService extends GenericServlet
 {
-    private Map<Integer,BayesianNetwork> networks;
-    int nextNetId = 0;
+    private Map<String,BayesianNetwork> networks;
 	public BNetService()
 	{
-        networks = new HashMap<Integer,BayesianNetwork>();
+        networks = new HashMap<String,BayesianNetwork>();
 	}
-    public int createNetwork(String name)
+    public List<String> listNetworks()
     {
-        int id = nextNetId++;
-        BayesianNetwork net = new BayesianNetwork();
-        net.setName(name);
-        networks.put(id, net);
-        return id;
+        return new ArrayList<String>(networks.keySet());
     }
-    public void destroyNetwork(int netId)
+    public List<String> listNodesAsCSV(String netName)
     {
-        networks.remove(netId);
+        List<String> result = new LinkedList<String>();
+        BayesianNetwork net = networks.get(netName);
+
+        for (Node node : net.nodeSet())
+        {
+            String nodeName = node.getName();
+            String nodeBelief = node.getBelief("true");
+            String nodeDescription = node.getDescription();
+            result.add(nodeName + "," + nodeBelief);
+        }
+        return result;
+    }
+    public List<String> listEdgesAsCSV(String netName)
+    {
+        List<String> result = new LinkedList<String>();
+        BayesianNetwork net = networks.get(netName);
+        result.add("edgeId,edgeSource,edgeTarget");
+        for (Node node : net.nodeSet())
+        {
+            for (Node parent : node.getParents())
+            {
+                String edgeSource = parent.getName();
+                String edgeTarget = node.getName();
+                String edgeId = edgeSrc+edgeTarget;
+                result.add(edgeId + "," + edgeSource + "," + edgeUniq);
+            }
+        }
+        return result;
+    }
+
+    public boolean createNetwork(String netName)
+    {
+        BayesianNetwork net;
+        if (networks.get(netName) != null)
+        {
+            return false;
+        }
+        else
+        {
+            net = new BayesianNetwork();
+            net.setName(netName);
+            networks.put(netName, net);
+            return true;
+        }
+    }
+    public void destroyNetwork(String netName)
+    {
+        networks.remove(netName);
         return;        
     }
-    public boolean addNode(int netId, String nodeName)
+    /* Takes an XML string in XBN format describing the Bayesian network, and returns the network id */
+    public boolean loadNetwork(String content, String withName) 
     {
-        BayesianNetwork net = networks.get(netId);
-        return net.addDiscreteNode(nodeName) != null;
+
+        StringReader content_reader = new StringReader(content);
+        XbnFormat fmt = new XbnFormat();
+        BayesianNetwork net = fmt.read(content_reader);
+        if (withName != null && !withName.equals(""))
+        {
+            net.setName(withName);
+        }
+        networks.put(net.getName(), net);
+        return true;
     }
-    public boolean removeNode(int netId, String nodeName)
-    {
-        BayesianNetwork net = networks.get(netId);
-        Node node = net.getNode(nodeName);
-        return net.removeNode(node);
-    }
-    public void addEdge(int netId, String srcNodeName, String destNodeName)
-    {
-        BayesianNetwork net = networks.get(netId);
-        Node srcNode = net.getNode(srcNodeName);
-        Node destNode = net.getNode(destNodeName);
-        net.addEdge(srcNode, destNode);
-    }
-    public void removeEdge(int netId, String srcNodeName, String destNodeName)
-    {
-        BayesianNetwork net = networks.get(netId);
-        Node srcNode = net.getNode(srcNodeName);
-        Node destNode = net.getNode(destNodeName);
-        net.removeEdge(srcNode, destNode);
-    }
-    public List<String> listNodes(int netId)
-    {
-        List<String> result = new LinkedList<String>();
-        return result;
-    }
-    public List<String> listEdges(int netId, String srcNodeName)
-    {
-        List<String> result = new LinkedList<String>();
-        return result;
-    }
-    public void setEvidence(int netId, String nodeName, boolean b, double value)
-    {
-        return;
-    }
+
 }
