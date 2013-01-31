@@ -132,6 +132,7 @@
 				lblAre.visible = lblAre.includeInLayout = configured;
 				lblMay.visible = lblMay.includeInLayout = configured;
 				lblPlease.visible = lblPlease.includeInLayout = !configured;
+				migrateConnectionCombo.selectedItem = Admin.instance.databaseConfigInfo.connection;
 			}
 			
 			public function handleConnectionNames(names:Array):void
@@ -149,6 +150,7 @@
 						tabNavigator.selectedChild = migrateTab;
 				}
 				migrateTab.enabled = names.length > 0;
+				handleDBConfig(Admin.instance.databaseConfigInfo);
 			}
 			
 			private function handleTreeSelection(event:Event):void

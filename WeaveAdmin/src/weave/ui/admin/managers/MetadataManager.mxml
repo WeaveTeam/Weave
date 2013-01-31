@@ -21,7 +21,7 @@
         <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
-        <mx:HBox>
+        <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
 			<mx:HBox enabled="{selectedItems.length == 1}">
     	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="New category name" width="100%"/>
@@ -105,9 +105,9 @@
     {
 		for each (var item:EntityNode in hierarchyTree.selectedItems)
 		{
-			if (hierarchyTree.getParentItem(item) == null && item.getEntity().type == Entity.TYPE_CATEGORY)
+			if (item.getEntity().type == Entity.TYPE_HIERARCHY)
 			{
-	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root categories.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
+	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root hierarchies.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
 				return;
 			}
 		}
@@ -134,6 +134,7 @@
 	        }
 		}
 		hierarchyTree.selectedItem = null;
+		selectedItems = [];
     }
 ]]>
 </mx:Script>

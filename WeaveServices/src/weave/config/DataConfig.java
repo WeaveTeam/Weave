@@ -71,9 +71,9 @@ public class DataConfig
 	{
 		this.connectionConfig = connectionConfig;
 		detectChange();
+//		if (connectionConfig.migrationPending())
+//			deleteTables();
 	}
-	
-	private final String CONTACT_ADDRESS = "weave-users@googlegroups.com";
 	
 	private void detectChange() throws RemoteException
 	{
@@ -81,7 +81,7 @@ public class DataConfig
 		if (this.lastModified < lastMod)
 		{
 			if (!connectionConfig.allowDataConfigInitialize())
-				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.  If you are seeing this error message in the Admin Console, please contact us:\n" + CONTACT_ADDRESS);
+				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
 			
 			try
 			{
@@ -105,10 +105,10 @@ public class DataConfig
 				String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
 				String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
 				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
-				String table_tags = tablePrefix + SUFFIX_HIERARCHY;
-				
+				String table_hierarchy = tablePrefix + SUFFIX_HIERARCHY;
+
 				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_tags, manifest);
+				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_hierarchy, manifest);
 				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private, manifest);
 				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public, manifest);
 			}
@@ -120,7 +120,38 @@ public class DataConfig
 			this.lastModified = lastMod;
 		}
 	}
+	
+	public boolean isEmpty() throws RemoteException
+	{
+		return manifest.getByType().size() == 0;
+	}
 
+//	private void deleteTables() throws RemoteException
+//	{
+//		String tablePrefix = "weave";
+//		String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
+//		String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
+//		String table_manifest = tablePrefix + SUFFIX_MANIFEST;
+//		String table_hierarchy = tablePrefix + SUFFIX_HIERARCHY;
+//		
+//		try
+//		{
+//			Connection conn = connectionConfig.getAdminConnection();
+//			DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
+//			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_meta_private);
+//			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_meta_public);
+//			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_hierarchy);
+//			SQLUtils.dropTableIfExists(conn, dbInfo.schema, table_manifest);
+//		}
+//		catch (SQLException e)
+//		{
+//			throw new RemoteException("deleteTables() failed", e);
+//		}
+//		
+//		lastModified = -1L;
+//		detectChange();
+//	}
+	
     public void flushInserts() throws RemoteException
     {
         try 

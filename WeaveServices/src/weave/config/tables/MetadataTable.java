@@ -80,7 +80,7 @@ public class MetadataTable extends AbstractTable
 				conn, schemaName, tableName,
 				Arrays.asList(fieldNames),
 				Arrays.asList(
-					"BIGINT UNSIGNED",
+					"BIGINT",
 					SQLUtils.getVarcharTypeString(conn, 255),
 					SQLUtils.getVarcharTypeString(conn, 2048)
 				),
@@ -88,14 +88,7 @@ public class MetadataTable extends AbstractTable
 			);
 			
 //			addForeignKey(FIELD_ID, manifest, ManifestTable.FIELD_ID);
-		} 
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to initialize attribute-value-table.", e);
-		}
-		
-		try
-		{
+			
 			/* Index of (property) */
 			SQLUtils.createIndex(
 					conn, schemaName, tableName,
@@ -110,10 +103,10 @@ public class MetadataTable extends AbstractTable
 					new String[]{FIELD_PROPERTY, FIELD_VALUE},
 					new Integer[]{32,32}
 			);
-		}
+		} 
 		catch (SQLException e)
 		{
-			System.err.println("WARNING: Failed to create index. This may happen if the table already exists.");
+			throw new RemoteException("Unable to initialize metadata table.", e);
 		}
 	}
 	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException

@@ -298,7 +298,6 @@ package weave.services
 			
 			service.checkDatabaseConfigExists();
 		}
-		
 			
 		[Bindable] public function get activeConnectionName():String
 		{

@@ -38,6 +38,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.EntityMetadata;
@@ -83,7 +84,7 @@ package weave.services
             admin_url = url + "/AdminService";
 			adminService = new AMF3Servlet(admin_url);
 			dataService = new AMF3Servlet(url + "/DataService");
-			queue = new AsyncInvocationQueue();
+			queue = new AsyncInvocationQueue(true);
 			
 			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
@@ -92,6 +93,8 @@ package weave.services
 				if (func != null)
 					propertyNameLookup[func] = item.name;
 			}
+			
+			initializeAdminService();
 		}
 		
 		/**
@@ -259,15 +262,9 @@ package weave.services
 		//////////////////////////////
 		// Initialization
          	
-        private function initializeAdminServiceComplete(event:Event):void
-        {
-            initialized=true;
-        }
-        private function initializeAdminServiceError(event:IOErrorEvent):void
-        {
-            messageDisplay(event.type, event.text, true);
-        }
-		public function initializeAdminService(progressHandler:Function):void
+		[Bindable] public var migrationProgress:String = '';
+		
+		private function initializeAdminService():void
 		{
             var req:URLRequest = new URLRequest(admin_url);
             req.data = new URLVariables();
@@ -279,6 +276,27 @@ package weave.services
             loader.addEventListener(IOErrorEvent.IO_ERROR, initializeAdminServiceError);
             loader.load(req);
 		}
+		private function progressHandler(event:ProgressEvent):void
+		{
+			var stream:URLStream = event.target as URLStream;
+			if (stream.bytesAvailable > 0)
+			{
+				var text:String = migrationProgress;
+				text += "\n" + stream.readMultiByte(stream.bytesAvailable, "iso-8859-01");
+				text = StandardLib.replace(text, "\r\n", "\n");
+				text = StringUtil.trim(text).split('\n').pop();
+				migrationProgress = text;
+			}
+		}
+        private function initializeAdminServiceComplete(event:Event):void
+        {
+            initialized=true;
+			queue.begin();
+        }
+        private function initializeAdminServiceError(event:IOErrorEvent):void
+        {
+            messageDisplay(event.type, event.text, true);
+        }
 		
 		public function checkDatabaseConfigExists():AsyncToken
 		{
@@ -480,9 +498,7 @@ package weave.services
 				filterColumnNames:Array
 			):AsyncToken
 		{
-		    var query:AsyncToken = invokeAdminWithLogin(importCSV, arguments);
-			addAsyncResponder(query, alertResult);
-		    return query;
+		    return invokeAdminWithLogin(importCSV, arguments);
 		}
 		public function importSQL(
 				schemaName:String, tableName:String, keyColumnName:String,
@@ -490,9 +506,7 @@ package weave.services
 				keyType:String, filterColumns:Array
 			):AsyncToken
 		{
-		    var query:AsyncToken = invokeAdminWithLogin(importSQL, arguments);
-			addAsyncResponder(query, alertResult);
-		    return query;
+		    return invokeAdminWithLogin(importSQL, arguments);
 		}
 		public function importSHP(
 				configfileNameWithoutExtension:String, keyColumns:Array,
@@ -500,9 +514,7 @@ package weave.services
 				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean
 			):AsyncToken
 		{
-		    var query:AsyncToken = invokeAdminWithLogin(importSHP, arguments);
-			addAsyncResponder(query, alertResult);
-		    return query;
+		    return invokeAdminWithLogin(importSHP, arguments);
 		}
 		
 		public function importDBF(
@@ -510,9 +522,7 @@ package weave.services
 				sqlTableName:String, sqlOverwrite:Boolean, nullValues:String
 			):AsyncToken
 		{
-			var query:AsyncToken = invokeAdminWithLogin(importDBF, arguments);
-			addAsyncResponder(query, alertResult);
-			return query;
+			return invokeAdminWithLogin(importDBF, arguments);
 		}
 		
 		//////////////////////

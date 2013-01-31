@@ -79,26 +79,19 @@ public class HierarchyTable extends AbstractTable
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
 					Arrays.asList(fieldNames),
-					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED", "BIGINT UNSIGNED"),
+					Arrays.asList("BIGINT", "BIGINT", "BIGINT"),
 					Arrays.asList(FIELD_PARENT, FIELD_CHILD)
 			);
 
 //			addForeignKey(FIELD_PARENT, manifest, ManifestTable.FIELD_ID);
 //			addForeignKey(FIELD_CHILD, manifest, ManifestTable.FIELD_ID);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to initialize parent/child table.", e);
-		}
-		
-		try
-		{
+			
 			// index speeds up purgeByChild()
 			SQLUtils.createIndex(conn, schemaName, tableName, new String[]{FIELD_CHILD});
 		}
 		catch (SQLException e)
 		{
-			System.err.println("WARNING: Failed to create index. This may happen if the table already exists.");
+			throw new RemoteException("Unable to initialize hierarchy table.", e);
 		}
 	}
 	public void addChild(int parent_id, int child_id, int insert_at_index) throws RemoteException

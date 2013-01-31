@@ -107,7 +107,7 @@
 				// clear current list, then request new list
 				schemas = [];
 				addAsyncResponder(
-					Admin.instance.service.getSQLSchemaNames(),
+					Admin.service.getSQLSchemaNames(),
 					handler,
 					handler
 				);
@@ -144,7 +144,7 @@
 				if (activeSchema != '')
 				{
 					addAsyncResponder(
-						Admin.instance.service.getSQLTableNames(activeSchema),
+						Admin.service.getSQLTableNames(activeSchema),
 						handler,
 						handler
 					);
@@ -180,7 +180,7 @@
 				if (activeSchema != '' && activeTable != '')
 				{
 					addAsyncResponder(
-						Admin.instance.service.getSQLColumnNames(activeSchema, activeTable),
+						Admin.service.getSQLColumnNames(activeSchema, activeTable),
 						handleGetColumns
 					);
 				}

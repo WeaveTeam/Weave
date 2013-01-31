@@ -53,7 +53,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function YesButton_clickHandler(event:MouseEvent):DelayedAsyncInvocation
 			{
 				var metadataArray:Array = (popUpDataGrid.dataProvider as ArrayCollection).source;
-				var service:WeaveAdminService = Admin.instance.service;
+				var service:WeaveAdminService = Admin.service;
 				var connectionName:String = Admin.instance.activeConnectionName;
 				var password:String = Admin.instance.activePassword;
 				PopUpManager.removePopUp(this);

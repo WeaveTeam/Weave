@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 
 import org.postgresql.PGConnection;
 
@@ -68,6 +69,7 @@ public abstract class BulkSQLLoader
 	
 	public static class BulkSQLLoader_Direct extends BulkSQLLoader
 	{
+		private String query = null;
 		private PreparedStatement stmt = null;
 		private boolean prevAutoCommit;
 		
@@ -82,11 +84,15 @@ public abstract class BulkSQLLoader
 					conn.setAutoCommit(false);
 				
 				String quotedTable = SQLUtils.quoteSchemaTable(conn, schema, table);
-				String query = String.format(
-						"INSERT INTO %s values (%s)",
-						quotedTable,
-						StringUtils.mult(",", "?", fieldNames.length)
-					);
+				
+				String[] columns = new String[fieldNames.length];
+				for (int i = 0; i < fieldNames.length; i++)
+					columns[i] = SQLUtils.quoteSymbol(conn, fieldNames[i]);
+				
+			    String column_string = StringUtils.join(",", columns);
+			    String qmark_string = StringUtils.mult(",", "?", fieldNames.length);
+			    
+			    query = String.format("INSERT INTO %s(%s) VALUES (%s)", quotedTable, column_string, qmark_string);
 				stmt = conn.prepareStatement(query);
 			}
 			catch (SQLException e)
@@ -103,21 +109,24 @@ public abstract class BulkSQLLoader
 			
 			try
 			{
+				System.out.println(query + " " + Arrays.deepToString(values));
 				SQLUtils.setPreparedStatementParams(stmt, values);
 				stmt.execute();
 			}
 			catch (SQLException e)
 			{
-				SQLUtils.cleanup(stmt);
 				try {
 					conn.rollback();
 				} catch (SQLException ex) { }
-				try {
-					conn.setAutoCommit(prevAutoCommit);
-				} catch (SQLException ex) { }
+				
+				try { 
+					finalize();
+				} catch (Throwable thrown) { }
 				
 				stmt = null;
 				conn = null;
+				
+				e = new SQLExceptionWithQuery(query, e);
 				throw new RemoteException("Unable to insert record", e);
 			}
 		}
@@ -153,7 +162,6 @@ public abstract class BulkSQLLoader
 	
 	public static class BulkSQLLoader_CSV extends BulkSQLLoader
 	{
-		protected CSVParser parser;
 		protected String outputNullValue;
 		protected boolean quoteEmptyStrings;
 		protected File file;
@@ -163,19 +171,23 @@ public abstract class BulkSQLLoader
 		public BulkSQLLoader_CSV(Connection conn, String schema, String table, String[] fieldNames) throws RemoteException
 		{
 			super(conn, schema, table, fieldNames);
-			
+
+			try
+			{
+				String dbms = conn.getMetaData().getDatabaseProductName();
+				if (!dbms.equalsIgnoreCase(SQLUtils.MYSQL) && !dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
+					throw new RemoteException("BulkSQLLoader_CSV does not support " + dbms);
+			}
+			catch (SQLException e)
+			{
+				throw new RemoteException("Unable to initialize bulk loader", e);
+			}
+
 			try
 			{
 				this.tempRows[0] = new Object[fieldNames.length];
 				outputNullValue = SQLUtils.getCSVNullValue(conn);
 				quoteEmptyStrings = outputNullValue.length() > 0;
-				
-				String dbms = conn.getMetaData().getDatabaseProductName();
-				// special case for Microsoft SQL Server because it does not support quotes.
-				if (SQLUtils.SQLSERVER.equalsIgnoreCase(dbms))
-					parser = new CSVParser(SQL_SERVER_CSV_DELIMETER);
-				else
-					parser = CSVParser.defaultParser;
 				
 				file = File.createTempFile("Weave", ".csv");
 				file.deleteOnExit();
@@ -203,7 +215,7 @@ public abstract class BulkSQLLoader
 				for (Object value : values)
 					tempRows[0][i++] = value == null ? outputNullValue : value;
 				
-				parser.createCSV(tempRows, quoteEmptyStrings, writer, true);
+				CSVParser.defaultParser.createCSV(tempRows, quoteEmptyStrings, writer, true);
 			}
 			catch (Exception e)
 			{
@@ -240,8 +252,6 @@ public abstract class BulkSQLLoader
 		}
 	}
 
-	public static final char SQL_SERVER_CSV_DELIMETER = (char)8;
-	
 	public static void copyCsvToDatabase(Connection conn, String csvPath, String sqlSchema, String sqlTable) throws SQLException, IOException
 	{
 		String query = null;
@@ -263,54 +273,10 @@ public abstract class BulkSQLLoader
 				stmt.executeUpdate(query);
 				stmt.close();
 			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
-			{
-				// Insert each row repeatedly
-				boolean prevAutoCommit = conn.getAutoCommit();
-				if (prevAutoCommit)
-					conn.setAutoCommit(false);
-				
-				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
-				query = String.format("INSERT INTO %s values (%s)", quotedTable, StringUtils.mult(",", "?", rows[0].length));
-				
-				PreparedStatement pstmt = null;
-				try
-				{
-					pstmt = conn.prepareStatement(query);
-					for (int row = 1; row < rows.length; row++) //Skip header line
-					{
-						SQLUtils.setPreparedStatementParams(pstmt, rows[row]);
-						pstmt.execute();
-					}
-				}
-				catch (SQLException e)
-				{
-					conn.rollback();
-					throw new RemoteException(e.getMessage(), e);
-				}
-				finally
-				{
-					SQLUtils.cleanup(pstmt);
-					try {
-						conn.setAutoCommit(prevAutoCommit);
-					} catch (SQLException e) { }
-				}
-			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{
 				query = String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable);
 				((PGConnection) conn).getCopyAPI().copyIn(query, new FileInputStream(formatted_CSV_path));
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
-			{
-				stmt = conn.createStatement();
-
-				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
-				query = String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
-						quotedTable, formatted_CSV_path, BulkSQLLoader_CSV.SQL_SERVER_CSV_DELIMETER
-					);
-				stmt.executeUpdate(query);
 			}
 		}
 		catch (SQLException e)

@@ -49,10 +49,7 @@ public abstract class AbstractTable
 		this.tableName = tableName;
 		this.schemaName = schemaName;
 		this.fieldNames = fieldNames;
-		if (!tableExists())
-			initTable();
 	}
-	protected abstract void initTable() throws RemoteException;
 	protected boolean tableExists() throws RemoteException
 	{
 		try

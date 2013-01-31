@@ -35,8 +35,27 @@ package weave.services
 	{
 		public static var debug:Boolean = false;
 		
-		public function AsyncInvocationQueue()
+		/**
+		 * @param paused When set to true, no queries will be executed until begin() is called.
+		 */
+		public function AsyncInvocationQueue(paused:Boolean = false)
 		{
+			_paused = paused;
+		}
+		
+		private var _paused:Boolean = false;
+		
+		/**
+		 * If the 'paused' constructor parameter was set to true, use this function to start invoking queued queries.
+		 */		
+		public function begin():void
+		{
+			if (_paused)
+			{
+				_paused = false;
+				if (_downloadQueue.length)
+					performQuery(_downloadQueue[0]);
+			}
 		}
 
 		// interface to add a query to the download queue. 
@@ -72,7 +91,7 @@ package weave.services
 			
 			_downloadQueue.push(query);
 			
-			if(_downloadQueue.length == 1)
+			if (!_paused && _downloadQueue.length == 1)
 			{
 				//trace("downloading immediately", query);
 				performQuery(query);

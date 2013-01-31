@@ -49,6 +49,8 @@ public class ManifestTable extends AbstractTable
 	public ManifestTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_TYPE);
+		if (!tableExists())
+			initTable();
 	}
 	protected void initTable() throws RemoteException
 	{
@@ -60,9 +62,11 @@ public class ManifestTable extends AbstractTable
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
 				Arrays.asList(fieldNames),
-				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"),
+				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT"),
 				null
 			);
+			
+			SQLUtils.setSQLServerIdentityInsert(conn, schemaName, tableName, true);
 		}
 		catch (SQLException e)
 		{
@@ -76,7 +80,7 @@ public class ManifestTable extends AbstractTable
 			Connection conn = connectionConfig.getAdminConnection();
             if (!connectionConfig.migrationPending())
             {
-			    return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_TYPE, type_id));
+			    return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_TYPE, type_id), FIELD_ID);
             }
             else
             {

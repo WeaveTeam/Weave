@@ -87,6 +87,7 @@ public class AdminService
 		extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
+	private RemoteException initializationError = null;
 	
 	public AdminService()
 	{
@@ -119,18 +120,30 @@ public class AdminService
 	{
 		try
 		{
-			PrintStream ps = new PrintStream(getServletRequestInfo().response.getOutputStream());
-			ProgressPrinter pp = new ProgressPrinter(ps);
-			WeaveConfig.initializeAdminService(pp.getProgressManager());
+			try
+			{
+				PrintStream ps = new PrintStream(getServletRequestInfo().response.getOutputStream());
+				ProgressPrinter pp = new ProgressPrinter(ps);
+				WeaveConfig.initializeAdminService(pp.getProgressManager());
+			}
+			catch (IOException e)
+			{
+				throw new RemoteException("Unable to initialize admin service", e);
+			}
+			initializationError = null;
 		}
-		catch (IOException e)
+		catch (RemoteException e)
 		{
-			throw new RemoteException("Unable to initialize admin service", e);
+			initializationError = e;
+			throw e;
 		}
 	}
 	
 	public boolean checkDatabaseConfigExists() throws RemoteException
 	{
+		if (initializationError != null)
+			throw initializationError;
+		
 		DatabaseConfigInfo dbInfo = getConnectionConfig().getDatabaseConfigInfo();
 		return dbInfo != null;
 		
@@ -1691,6 +1704,9 @@ public class AdminService
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
 
+		if (sqlSchema == null || sqlSchema.length() == 0)
+			throw new RemoteException("Schema must be specified.");
+		
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
         int tableId = -1;
@@ -1788,7 +1804,7 @@ public class AdminService
 		return tableId;
 	}
 
-	public String importDBF(
+	public void importDBF(
 			String configConnectionName, String password, String[] fileNameWithoutExtension, String sqlSchema,
 			String sqlTableName, boolean sqlOverwrite, String[] nullValues)
 		throws RemoteException
@@ -1821,10 +1837,6 @@ public class AdminService
 		{
 			SQLUtils.cleanup(conn);
 		}
-		// String importNotes = String.format("file: %s, keyColumns: %s",
-		// fileNameWithoutExtension, keyColumns);
-
-		return "DBF Data stored successfully";
 	}
 	
 	//////////////////////

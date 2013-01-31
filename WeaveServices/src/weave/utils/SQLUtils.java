@@ -951,7 +951,8 @@ public class SQLUtils
 		// http://www.w3schools.com/sql/sql_primarykey.asp
 		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
 		{
-			columnClause.append(", CONSTRAINT primary_key PRIMARY KEY (");
+			String constraintName = String.format("%s_%s_primary_key", schemaName, tableName);
+			columnClause.append(String.format(", CONSTRAINT %s PRIMARY KEY (", quoteSymbol(conn, constraintName)));
 			int i = 0;
 			for (String keyColumn : primaryKeyColumns)
 			{
@@ -1152,8 +1153,9 @@ public class SQLUtils
 	    }
 	    return results;
 	}
-	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data) throws SQLException
+	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
 	{
+		boolean isSQLServer = isSQLServer(conn);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try
@@ -1172,16 +1174,26 @@ public class SQLUtils
 		    }
 		    String column_string = StringUtils.join(",", columns);
 		    String qmark_string = StringUtils.join(",", l_qmarks);
-		    String query = String.format("INSERT INTO %s(%s) VALUES (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string, qmark_string);
+		    String query = String.format("INSERT INTO %s(%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
+		    if (isSQLServer)
+		    	query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
+		    query += String.format(" VALUES (%s)", qmark_string);
 		    
 		    stmt = prepareStatement(conn, query, values);
-		    stmt.executeUpdate();
-		    cleanup(stmt);
-		    
-		    query = "select last_insert_id()";
-		    stmt = conn.prepareStatement(query);
-		    rs = stmt.executeQuery();
-		    rs.first();
+		    if (isSQLServer)
+		    {
+		    	rs = stmt.executeQuery();
+		    }
+		    else
+		    {
+		    	stmt.executeUpdate();
+		    	cleanup(stmt);
+		    	
+		    	query = "select last_insert_id()";
+		    	stmt = conn.prepareStatement(query);
+		    	rs = stmt.executeQuery();
+		    }
+		    rs.next();
 		    return rs.getInt(1);
 		}
 		finally
@@ -1313,23 +1325,24 @@ public class SQLUtils
 	 */
 	public static void createIndex(Connection conn, String schemaName, String tableName, String indexName, String[] columnNames, Integer[] columnLengths) throws SQLException
 	{
-		String columnNamesStr = "";
+		boolean isSQLServer = isSQLServer(conn);
+		String fields = "";
 		for (int i = 0; i < columnNames.length; i++)
 		{
-			if ((columnLengths != null) && columnLengths[i] != 0)
-			{
-			    columnNamesStr += (i > 0 ? ", " : "") + String.format("%s(%d)", quoteSymbol(conn, columnNames[i]), columnLengths[i]);
-			}
+			if (i > 0)
+				fields += ", ";
+			
+			String symbol = quoteSymbol(conn, columnNames[i]);
+			if (isSQLServer || columnLengths == null || columnLengths[i] == 0)
+				fields += symbol;
 			else
-			{
-			    columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
-			}
+				fields += String.format("%s(%d)", symbol, columnLengths[i]);
 		}
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
 				SQLUtils.quoteSymbol(conn, indexName),
 				SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-				columnNamesStr
+				fields
 		);
 		Statement stmt = null;
 		try
@@ -1575,7 +1588,7 @@ public class SQLUtils
 		stmt.close();
 		cleanup(stmt);
 	}
-		
+	
 	/**
 	 * This function will delete from a table the rows that have a specified set of column values.
 	 * @param conn An existing SQL Connection
@@ -1748,6 +1761,38 @@ public class SQLUtils
 		{
 			// this should never happen
 			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * This function should only be called on a SQL Server connection.
+	 * @param conn
+	 * @param schema
+	 * @param table
+	 * @param on
+	 * @throws SQLException
+	 */
+	public static void setSQLServerIdentityInsert(Connection conn, String schema, String table, boolean on) throws SQLException
+	{
+		if (!isSQLServer(conn))
+			return;
+		
+		String quotedTable = SQLUtils.quoteSchemaTable(conn, schema, table);
+		String query = String.format("SET IDENTITY_INSERT %s %s", quotedTable, on ? "ON" : "OFF");
+		
+		Statement stmt = null;
+		try
+		{
+			stmt = conn.createStatement();
+			stmt.execute(query);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	

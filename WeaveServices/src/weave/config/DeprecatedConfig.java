@@ -70,6 +70,10 @@ import weave.utils.SQLUtils;
 	
 	private void migrate() throws RemoteException
 	{
+		// do not migrate if dataConfig already has entities.
+		if (!dataConfig.isEmpty())
+			return;
+		
 		System.out.println("Converting old Weave config data to new format...");
 		
 		int fetchSize = 1024;

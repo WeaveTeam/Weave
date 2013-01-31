@@ -549,24 +549,19 @@ public class GenericServlet extends HttpServlet
 
     	// prepare to output the result of the method call
     	ServletOutputStream servletOutputStream = response.getOutputStream();
-		
+		long startTime = System.currentTimeMillis();
+    	
 		// Invoke the method on the object with the arguments 
 		try
 		{
-			long startTime = System.currentTimeMillis();
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, methodParameters);
-			long endTime = System.currentTimeMillis();
-			
-			// debug
-			if (endTime - startTime > 0)//1000)
-				System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(methodParameters)));
 			
 			if (exposedMethod.method.getReturnType() != void.class)
 				seriaizeCompressedAmf3(result, servletOutputStream);
 		}
 		catch (InvocationTargetException e)
 		{
-			System.out.println(methodName + Arrays.deepToString(methodParameters));
+			System.err.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)
@@ -582,6 +577,11 @@ public class GenericServlet extends HttpServlet
 			System.err.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e);
 		}
+		
+		long endTime = System.currentTimeMillis();
+		// debug
+//		if (endTime - startTime > 1000)
+			System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(methodParameters)));
     }
     
     /**
