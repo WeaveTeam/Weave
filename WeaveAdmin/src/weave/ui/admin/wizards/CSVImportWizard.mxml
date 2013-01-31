@@ -26,7 +26,6 @@
 			xmlns="weave.ui.admin.wizards.*" 
 			label="{lang('Import CSV data to Weave')}"
 			creationComplete="handleCreationComplete()"
-			addedToStage="handleAddedToStage()"
 			>
 	<mx:VBox id="csvUploadPage" label="{lang('Import a CSV file to SQL')}">
 		<ui:Indent group="{tableSelector.indentGroup}" label="{lang('CSV file')}" >
@@ -44,7 +43,6 @@
 		<ui:Indent label="{lang('Table display name')}">
 			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
 			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
-			<mx:CheckBox label="{lang('Overwrite')}" id="dataTableOverwriteCheck" selected="false"/>
 		</ui:Indent>
 		<ui:Indent label="{lang('Null flag values')}">
 			<mx:TextInput id="nullFlagInput" editable="true"/>
@@ -97,11 +95,11 @@
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="dublinCorePage" width="100%" label="{lang('Specify Dublin Core metadata')}">
-		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="{lang('Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the metadata tab of the data table view.')}"/>
+		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="{lang('Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the Data Hierarchies tab.')}"/>
 		<mx:LinkButton label="{lang('Click for Dublin Core Reference')}" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
 		<mx:Form>
 			<mx:FormItem label="{lang('Title')}">
-				<mx:TextInput id="dcTitleTextInput" toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
+				<mx:TextInput id="dcTitleTextInput" text="{dataTableNameInput.text}" toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
 			</mx:FormItem>
 			<mx:FormItem label="{lang('Subject')}">
 				<mx:TextInput id="dcSubjectTextInput" toolTip="{lang('The topic of the content of the resource. Typically, a Subject will be expressed as keywords or key phrases or classification codes that describe the topic of the resource. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme.')}"/>
@@ -124,6 +122,7 @@
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.services.addAsyncResponder;
+			import weave.services.beans.EntityMetadata;
 			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
 
@@ -134,14 +133,10 @@
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerFileViewer = null;
 			
-			private function handleAddedToStage():void
-			{
-				callLater(parent.addChild, [busyIndicator]);
-				hideBusy();
-			}
-			
 			private function handleCreationComplete():void
 			{
+				csvUploadPage.addChild(busyIndicator);
+				hideBusy();
 				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
 				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
@@ -293,41 +288,40 @@
 						tableSelector.activeTable,
 						tableSelector.tableOverwriteCheck.selected,
 						configTableName,
-						dataTableOverwriteCheck.selected,
 						keyType,
 						nullFlagInput.text,
 						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
 					);
 				
-				controlBarEnabled = false;
+				enabled = controlBarEnabled = false;
 				addAsyncResponder(query, handleImportCSV, handleFault);
 				function handleImportCSV(event:ResultEvent, token:Object = null):void
 				{
 					selectedChild = dublinCorePage;
-					commitDublinCoreElements();
-					controlBarEnabled = true; 
+					var tableId:int = int(event.result);
+					
+					var em:EntityMetadata = new EntityMetadata();
+					if (dcTitleTextInput.text)
+						em.publicMetadata["title"] = dcTitleTextInput.text;
+					if (dcSubjectTextInput.text)
+						em.publicMetadata["subject"] = dcSubjectTextInput.text;
+					if (dcDescriptionTextInput.text)
+						em.publicMetadata["description"] = dcDescriptionTextInput.text;
+					
+					addAsyncResponder(
+						Admin.service.updateEntity(tableId, em),
+						function(..._):void
+						{
+							WeaveAdminService.messageDisplay(null, "CSV import successful.", false);
+						}
+					);
+
+					enabled = controlBarEnabled = true; 
 				}
 				function handleFault(event:FaultEvent, token:Object = null):void
 				{
-					controlBarEnabled = true;
+					enabled = controlBarEnabled = true;
 				}
-			}
-			
-            
-			private function commitDublinCoreElements():void
-			{
-				var elements:Object = new Object();
-				if (dcTitleTextInput.text)
-					elements["title"] = dcTitleTextInput.text;
-				if (dcSubjectTextInput.text)
-					elements["subject"] = dcSubjectTextInput.text;
-				if (dcDescriptionTextInput.text)
-					elements["description"] = dcDescriptionTextInput.text;
-				
-				var datasetName:String = dataTableNameInput.text;
-				
-				Alert.show("This feature isn't working yet.");
-				//AdminInterface.instance.addDCElements(datasetName, elements);
 			}
 			
 			private function enableAllWidgets(enable:Boolean = true):void

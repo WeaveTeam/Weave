@@ -494,7 +494,7 @@ package weave.services
 		public function importCSV(
 				csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String,
 				sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String,
-				configOverwrite:Boolean, configKeyType:String, nullValues:String,
+				configKeyType:String, nullValues:String,
 				filterColumnNames:Array
 			):AsyncToken
 		{

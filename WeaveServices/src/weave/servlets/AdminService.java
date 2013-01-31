@@ -1114,12 +1114,11 @@ public class AdminService
 	public int importCSV(
 			String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
 			String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName,
-			boolean configOverwrite, String configKeyType, String[] nullValues,
+			String configKeyType, String[] nullValues,
 			String[] filterColumnNames)
 		throws RemoteException
 	{
 		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
 		
 		final int StringType = 0;
 		final int IntType = 1;
@@ -1344,19 +1343,6 @@ public class AdminService
 					throw new RemoteException("CSV not imported.\nSQL table already exists.");
 			}
 
-			if (!configOverwrite)
-			{
-				/* Get list of unique values common among datatables only. */
-				List<String> uniqueNames = new LinkedList<String>();
-				for (DataEntity de : dataConfig.getEntitiesById(dataConfig.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
-					uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
-
-				if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
-					throw new RemoteException(String.format(
-							"CSV not imported.\nDataTable \"%s\" already exists in the configuration.",
-							configDataTableName));
-			}
-			
 			// create a list of the column types
 			List<String> columnTypesList = new Vector<String>();
 			for (int iCol = 0; iCol < columnNames.length; iCol++)
@@ -1478,13 +1464,6 @@ public class AdminService
 			if (iSecondaryKey >= 0)
 				secondarySqlKeyColumn = SQLUtils.quoteSymbol(conn, sqlColumnNames[iSecondaryKey]);
 			// Write SQL statements into sqlconfig.
-			
-			List<String> uniqueNames = new LinkedList<String>();
-			for (DataEntity de : dataConfig.getEntitiesById(dataConfig.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
-				uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
-			if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
-				throw new RemoteException(String.format(
-						"DataTable \"%s\" already exists in the configuration.", configDataTableName));
 			
 			// generate and test each query before modifying config file
 			List<String> titles = new LinkedList<String>();

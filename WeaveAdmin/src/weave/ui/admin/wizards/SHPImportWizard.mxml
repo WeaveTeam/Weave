@@ -56,7 +56,6 @@
 			<mx:TextArea width="{indentGroup.measuredIndent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>
 			<mx:HBox verticalAlign="middle">
 				<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
-				<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
 				<ui:HelpComponent>
 					Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here.
 				</ui:HelpComponent>
@@ -246,15 +245,16 @@
 							dbfImportCheckBox.selected
 						);
 					
-					controlBarEnabled = false;
+					enabled = controlBarEnabled = false;
 					addAsyncResponder(query, handleResult, handleFault);
 					function handleResult(event:ResultEvent, token:Object = null):void
 					{
-						controlBarEnabled = true;
+						enabled = controlBarEnabled = true;
+						WeaveAdminService.messageDisplay(null, "SHP import successful.", false);
 					}
 					function handleFault(event:FaultEvent, token:Object = null):void
 					{
-						controlBarEnabled = true;
+						enabled = controlBarEnabled = true;
 					}
 				}
 			}
