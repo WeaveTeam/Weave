@@ -450,9 +450,6 @@ public class DataConfig
 		static public final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
 		static public final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
         static public final String IMPORTMETHOD = "importMethod";
-        static public final String IMPORTMETHOD_CSV = "CSV";
-        static public final String IMPORTMETHOD_SHP = "SHP";
-        static public final String IMPORTMETHOD_SQL = "SQL";
         static public final String SQLKEYCOLUMN = "sqlKeyColumn";
 		static public final String SQLTABLEPREFIX = "sqlTablePrefix"; // used for geometry column
 		static public final String FILENAME = "fileName";

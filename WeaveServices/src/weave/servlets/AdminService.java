@@ -79,6 +79,7 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 import weave.utils.ProgressManager.ProgressPrinter;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -1364,14 +1365,17 @@ public class AdminService
 			loader.flush();
 			SQLUtils.cleanup(conn);
 
-            DataEntityMetadata props = new DataEntityMetadata();
-            props.privateMetadata.put(PrivateMetadata.FILENAME, csvFile);
-            props.privateMetadata.put(PrivateMetadata.KEYCOLUMN, csvKeyColumn);
-            props.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_CSV);
+            DataEntityMetadata tableInfo = new DataEntityMetadata();
+            MapUtils.addPairs(
+            		tableInfo.privateMetadata,
+            		PrivateMetadata.IMPORTMETHOD, "importCSV",
+            		PrivateMetadata.FILENAME, csvFile,
+            		PrivateMetadata.KEYCOLUMN, csvKeyColumn
+            );
 			int table_id = addConfigDataTable(
 					configDataTableName, connectionName,
 					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames, columnNames, sqlSchema,
-					sqlTable, ignoreKeyColumnQueries, filterColumnNames, props);
+					sqlTable, ignoreKeyColumnQueries, filterColumnNames, tableInfo);
 
             return table_id;
 		}
@@ -1409,12 +1413,15 @@ public class AdminService
 	{
 		authenticate(connectionName, password);
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
-        DataEntityMetadata props = new DataEntityMetadata();
-        props.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SQL);
+        DataEntityMetadata tableInfo = new DataEntityMetadata();
+        MapUtils.addPairs(
+        	tableInfo.privateMetadata,
+        	PrivateMetadata.IMPORTMETHOD, "importSQL"
+        );
         int tableId = addConfigDataTable(
 				configDataTableName, connectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
-				filterColumnNames, props);
+				filterColumnNames, tableInfo);
         return tableId;
 	}
 
@@ -1422,7 +1429,7 @@ public class AdminService
 			String configDataTableName, String connectionName,
 			String keyType, String keyColumnName, String secondarySqlKeyColumn,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
-			boolean ignoreKeyColumnQueries, String[] filterColumnNames, DataEntityMetadata auxTableData)
+			boolean ignoreKeyColumnQueries, String[] filterColumnNames, DataEntityMetadata tableImportInfo)
 		throws RemoteException
 	{
 	    int table_id = -1;	
@@ -1530,33 +1537,40 @@ public class AdminService
 				}
 			}
 			// done generating queries
-			DataEntityMetadata tableProperties = auxTableData == null ? new DataEntityMetadata() : auxTableData;
-
-			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
+			DataEntityMetadata tableInfo = tableImportInfo == null ? new DataEntityMetadata() : tableImportInfo;
+			tableInfo.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
+            MapUtils.addPairs(
+        		tableInfo.privateMetadata,
+        		PrivateMetadata.CONNECTION, connectionName,
+        		PrivateMetadata.SQLSCHEMA, sqlSchema,
+        		PrivateMetadata.SQLTABLE, sqlTable,
+        		PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn
+        	);
             
-            tableProperties.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName); 
-            tableProperties.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
-            tableProperties.privateMetadata.put(PrivateMetadata.SQLTABLE, sqlTable);
-            tableProperties.privateMetadata.put(PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn);
-            
-			table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableProperties, DataConfig.NULL, DataConfig.NULL);
+			table_id = dataConfig.newEntity(DataEntity.TYPE_DATATABLE, tableInfo, DataConfig.NULL, DataConfig.NULL);
 
 			for (int i = 0; i < titles.size(); i++)
 			{
 				DataEntityMetadata newMeta = new DataEntityMetadata();
-				newMeta.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName);
-				newMeta.privateMetadata.put(PrivateMetadata.SQLQUERY, queries.get(i));
-                newMeta.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
-                newMeta.privateMetadata.put(PrivateMetadata.SQLTABLE, sqlTable);
-                newMeta.privateMetadata.put(PrivateMetadata.SQLCOLUMN, sqlColumnNames[i]);
+				MapUtils.addPairs(
+					newMeta.privateMetadata,
+					PrivateMetadata.CONNECTION, connectionName,
+					PrivateMetadata.SQLQUERY, queries.get(i),
+					PrivateMetadata.SQLSCHEMA, sqlSchema,
+					PrivateMetadata.SQLTABLE, sqlTable,
+					PrivateMetadata.SQLCOLUMN, sqlColumnNames[i]
+				);
 				if (filteredValues != null)
 				{
 					String paramsStr = CSVParser.defaultParser.createCSVRow(queryParamsList.get(i), true);
 					newMeta.privateMetadata.put(PrivateMetadata.SQLPARAMS, paramsStr);
 				}
-				newMeta.publicMetadata.put(PublicMetadata.KEYTYPE, keyType);
-				newMeta.publicMetadata.put(PublicMetadata.TITLE, titles.get(i));
-				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
+				MapUtils.addPairs(
+					newMeta.publicMetadata,
+					PublicMetadata.TITLE, titles.get(i),
+					PublicMetadata.KEYTYPE, keyType,
+					PublicMetadata.DATATYPE, dataTypes.get(i)
+				);
 
 				dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta, table_id, DataConfig.NULL);
 			}
@@ -1566,10 +1580,6 @@ public class AdminService
 			throw new RemoteException(failMessage, e);
 		}
 		catch (RemoteException e)
-		{
-			throw new RemoteException(failMessage, e);
-		}
-		catch (IOException e)
 		{
 			throw new RemoteException(failMessage, e);
 		}
@@ -1712,8 +1722,21 @@ public class AdminService
 			SQLUtils.cleanup(conn);
 		}
 
+        DataEntityMetadata tableInfo = new DataEntityMetadata();
+        tableInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
+        MapUtils.addPairs(
+        	tableInfo.privateMetadata,
+        	PrivateMetadata.IMPORTMETHOD, "importSHP",
+        	PrivateMetadata.CONNECTION, configConnectionName,
+        	PrivateMetadata.SQLSCHEMA, sqlSchema,
+        	PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix,
+        	PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true),
+        	PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true)
+        );
+		
 		if (importDBFData)
 		{
+			
 			// get key column SQL code
 			String keyColumnsString;
 			if (keyColumns.length == 1)
@@ -1734,18 +1757,13 @@ public class AdminService
 
 			// add SQL statements to sqlconfig
 			String[] columnNames = getSQLColumnNames(configConnectionName, password, sqlSchema, dbfTableName);
-            DataEntityMetadata props = new DataEntityMetadata();
-            props.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SHP);
 			tableId = addConfigDataTable(
 					configTitle, configConnectionName,
 					configKeyType, keyColumnsString, null, columnNames, columnNames,
-					sqlSchema, dbfTableName, false, null, props);
+					sqlSchema, dbfTableName, false, null, tableInfo);
 		}
 		else
 		{
-            DataEntityMetadata tableInfo = new DataEntityMetadata();
-            tableInfo.privateMetadata.put(PrivateMetadata.IMPORTMETHOD, PrivateMetadata.IMPORTMETHOD_SHP);
-            tableInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
             tableId = getDataConfig().newEntity(DataEntity.TYPE_DATATABLE, tableInfo, DataConfig.NULL, DataConfig.NULL);
 		}
 

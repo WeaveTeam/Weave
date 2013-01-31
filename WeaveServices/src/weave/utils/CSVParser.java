@@ -345,7 +345,7 @@ public class CSVParser
 	 * @param rows An array of row values.  If the row values are not Strings, toString() will be called on each value.
 	 * @return The row encoded as a CSV String.
 	 */
-	public String createCSVRow(Object[] row, boolean quoteEmptyStrings) throws IOException
+	public String createCSVRow(Object[] row, boolean quoteEmptyStrings)
 	{
 		return createCSV(new Object[][]{ row }, quoteEmptyStrings, false);
 	}
@@ -355,11 +355,20 @@ public class CSVParser
 	 * @param rows An array of rows.  If the row values are not Strings, toString() will be called on each value.
 	 * @return The rows encoded as a CSV String.
 	 */
-	public String createCSV(Object[][] rows, boolean quoteEmptyStrings, boolean endingLineFeed) throws IOException
+	public String createCSV(Object[][] rows, boolean quoteEmptyStrings, boolean endingLineFeed)
 	{
-		StringWriter out = new StringWriter();
-		createCSV(rows, quoteEmptyStrings, out, endingLineFeed);
-		return out.toString();
+		try
+		{
+			StringWriter out = new StringWriter();
+			createCSV(rows, quoteEmptyStrings, out, endingLineFeed);
+			return out.toString();
+		}
+		catch (IOException e)
+		{
+			// should never happen
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**
