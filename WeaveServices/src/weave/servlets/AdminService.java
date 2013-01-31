@@ -1378,12 +1378,12 @@ public class AdminService
 			// create the table
 			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList, null);
 
-			
 			// import the data
 			BulkSQLLoader loader = BulkSQLLoader.newInstance(conn, sqlSchema, sqlTable, columnNames);
 			for (Object[] row : rows)
 				loader.addRow(row);
 			loader.flush();
+			SQLUtils.cleanup(conn);
 
             DataEntityMetadata props = new DataEntityMetadata();
             props.privateMetadata.put(PrivateMetadata.FILENAME, csvFile);
@@ -1396,8 +1396,7 @@ public class AdminService
 
             return table_id;
 		}
-		catch (RemoteException e) // required since RemoteException extends
-									// IOException
+		catch (RemoteException e) // required since RemoteException extends IOException
 		{
 			throw e;
 		}
