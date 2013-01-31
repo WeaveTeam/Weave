@@ -19,8 +19,8 @@
     <mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
         <!--<mx:Button label="Debug Meta" click="printpubMeta()"/>-->
-        <mx:Button label="Save changes" enabled="{isChanged}" click="saveChanges()"/>
-        <mx:Button label="Discard changes" enabled="{isChanged}" click="refresh()"/>
+        <mx:Button label="Save" enabled="{isChanged}" click="saveChanges()"/>
+        <mx:Button label="Cancel" enabled="{isChanged}" click="refresh()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
