@@ -1143,9 +1143,6 @@ public class AdminService
 
 			// Load the CSV file and reformat it
 			int[] types = null;
-			int i = 0;
-			int j = 0;
-			int num = 1;
 
 			boolean ignoreKeyColumnQueries = false;
 
@@ -1161,27 +1158,26 @@ public class AdminService
 				ignoreKeyColumnQueries = true;
 				// get the maximum number of rows in a column
 				int maxNumRows = 0;
-				for (i = 0; i < rows.length; ++i)
+				for (int iRow = 0; iRow < rows.length; ++iRow)
 				{
-					String[] column = rows[i];
-					int numRows = column.length; // this includes the column
-													// name in row 0
+					String[] column = rows[iRow];
+					int numRows = column.length; // this includes the column name in row 0
 					if (numRows > maxNumRows)
 						maxNumRows = numRows;
 				}
 
 				csvKeyColumn = "row_id";
-				for (i = 0; i < rows.length; ++i)
+				for (int iRow = 0; iRow < rows.length; ++iRow)
 				{
-					String[] row = rows[i];
+					String[] row = rows[iRow];
 					String[] newRow = new String[row.length + 1];
 
 					System.arraycopy(row, 0, newRow, 0, row.length);
-					if (i == 0)
+					if (iRow == 0)
 						newRow[newRow.length - 1] = csvKeyColumn;
 					else
-						newRow[newRow.length - 1] = "row" + i;
-					rows[i] = newRow;
+						newRow[newRow.length - 1] = "row" + iRow;
+					rows[iRow] = newRow;
 				}
 			}
 
@@ -1191,24 +1187,21 @@ public class AdminService
 			originalColumnNames = new String[columnNames.length];
 			fieldLengths = new int[columnNames.length];
 			// converge the column name to meet the requirement of mySQL.
-			for (i = 0; i < columnNames.length; i++)
+			for (int iCol = 0; iCol < columnNames.length; iCol++)
 			{
-				String colName = columnNames[i];
+				String colName = columnNames[iCol];
 				if (colName.length() == 0)
-					colName = "Column " + (i + 1);
+					colName = "Column " + (iCol + 1);
 				// save original column name
-				originalColumnNames[i] = colName;
+				originalColumnNames[iCol] = colName;
 				// if the column name has "/", "\", ".", "<", ">".
 				colName = colName.replace("/", "");
 				colName = colName.replace("\\", "");
 				colName = colName.replace(".", "");
 				colName = colName.replace("<", "less than");
 				colName = colName.replace(">", "more than");
-				// if the length of the column name is longer than the
-				// 64-character limit
-				int maxColNameLength = 64 - 4; // leave space for "_123" if
-												// there end up being duplicate
-												// column names
+				// if the length of the column name is longer than the 64-character limit
+				int maxColNameLength = 64 - 4; // leave space for "_123" if there end up being duplicate column names
 				boolean isKeyCol = csvKeyColumn.equalsIgnoreCase(colName);
 				// if name too long, remove spaces
 				if (colName.length() > maxColNameLength)
@@ -1223,25 +1216,25 @@ public class AdminService
 				if (isKeyCol)
 					csvKeyColumn = colName;
 				// if find the column names are repetitive
-				for (j = 0; j < i; j++)
+				for (int j = 0; j < iCol; j++)
 				{
 					if (colName.equalsIgnoreCase(columnNames[j]))
 					{
-						colName += "_" + num;
-						num++;
+						colName += "_" + j;
+						j = 0; // need to re-check previous names
 					}
 				}
 				// save the new name
-				columnNames[i] = colName;
+				columnNames[iCol] = colName;
 			}
 
 			// Initialize the types of columns as int (will be changed inside
 			// loop if necessary)
 			types = new int[columnNames.length];
-			for (i = 0; i < columnNames.length; i++)
+			for (int iCol = 0; iCol < columnNames.length; iCol++)
 			{
-				fieldLengths[i] = 0;
-				types[i] = IntType;
+				fieldLengths[iCol] = 0;
+				types[iCol] = IntType;
 			}
 
 			// Read the data and get the column type
@@ -1249,11 +1242,11 @@ public class AdminService
 			{
 				String[] nextLine = rows[iRow];
 				// Format each line
-				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
+				for (int iCol = 0; iCol < columnNames.length && iCol < nextLine.length; iCol++)
 				{
 					// keep track of the longest String value found in this
 					// column
-					fieldLengths[i] = Math.max(fieldLengths[i], nextLine[i].length());
+					fieldLengths[iCol] = Math.max(fieldLengths[iCol], nextLine[iCol].length());
 
 					// Change missing data into NULL, later add more cases to
 					// deal with missing data.
@@ -1264,21 +1257,21 @@ public class AdminService
 					{
 						for (String nullValue : values)
 						{
-							if (nextLine[i] != null && nextLine[i].equalsIgnoreCase(nullValue))
+							if (nextLine[iCol] != null && nextLine[iCol].equalsIgnoreCase(nullValue))
 							{
-								nextLine[i] = null;
+								nextLine[iCol] = null;
 
 								break ALL_NULL_VALUES;
 							}
 						}
 					}
-					if (nextLine[i] == null)
+					if (nextLine[iCol] == null)
 						continue;
 
 					// 04 is a string (but Integer.parseInt would not throw an exception)
 					try
 					{
-						String value = nextLine[i];
+						String value = nextLine[iCol];
 						while (value.indexOf(',') > 0)
 							value = value.replace(",", ""); // valid input
 															// format
@@ -1286,15 +1279,15 @@ public class AdminService
 						// if the value is an int or double with an extraneous
 						// leading zero, it's defined to be a string
 						if (valueHasLeadingZero(value))
-							types[i] = StringType;
+							types[iCol] = StringType;
 
 						// if the type was determined to be a string before (or
 						// just above), continue
-						if (types[i] == StringType)
+						if (types[iCol] == StringType)
 							continue;
 
 						// if the type is an int
-						if (types[i] == IntType)
+						if (types[iCol] == IntType)
 						{
 							// check that it's still an int
 							if (valueIsInt(value))
@@ -1305,17 +1298,17 @@ public class AdminService
 						// for a double
 						if (valueIsDouble(value))
 						{
-							types[i] = DoubleType;
+							types[iCol] = DoubleType;
 							continue;
 						}
 
 						// if we're down here, it must be a string
-						types[i] = StringType;
+						types[iCol] = StringType;
 					}
 					catch (Exception e)
 					{
 						// this shouldn't happen, but it's just to be safe
-						types[i] = StringType;
+						types[iCol] = StringType;
 					}
 				}
 			}
@@ -1326,16 +1319,16 @@ public class AdminService
 			{
 				String[] nextLine = rows[iRow];
 				// Format each line
-				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
+				for (int iCol = 0; iCol < columnNames.length && iCol < nextLine.length; iCol++)
 				{
-					if (nextLine[i] == null)
+					if (nextLine[iCol] == null)
 						continue;
-					String value = nextLine[i];
-					if (types[i] == IntType || types[i] == DoubleType)
+					String value = nextLine[iCol];
+					if (types[iCol] == IntType || types[iCol] == DoubleType)
 					{
 						while (value.indexOf(",") >= 0)
 							value = value.replace(",", "");
-						nextLine[i] = value;
+						nextLine[iCol] = value;
 					}
 				}
 			}
@@ -1366,13 +1359,13 @@ public class AdminService
 			
 			// create a list of the column types
 			List<String> columnTypesList = new Vector<String>();
-			for (i = 0; i < columnNames.length; i++)
+			for (int iCol = 0; iCol < columnNames.length; iCol++)
 			{
-				if (types[i] == StringType || csvKeyColumn.equalsIgnoreCase(columnNames[i]))
-					columnTypesList.add(SQLUtils.getVarcharTypeString(conn, fieldLengths[i]));
-				else if (types[i] == IntType)
+				if (types[iCol] == StringType || csvKeyColumn.equalsIgnoreCase(columnNames[iCol]))
+					columnTypesList.add(SQLUtils.getVarcharTypeString(conn, fieldLengths[iCol]));
+				else if (types[iCol] == IntType)
 					columnTypesList.add(SQLUtils.getIntTypeString(conn));
-				else if (types[i] == DoubleType)
+				else if (types[iCol] == DoubleType)
 					columnTypesList.add(SQLUtils.getDoubleTypeString(conn));
 			}
 			// create the table
@@ -1380,8 +1373,8 @@ public class AdminService
 
 			// import the data
 			BulkSQLLoader loader = BulkSQLLoader.newInstance(conn, sqlSchema, sqlTable, columnNames);
-			for (Object[] row : rows)
-				loader.addRow(row);
+			for (int iRow = 1; iRow < rows.length; iRow++) // skip header row
+				loader.addRow((Object[])rows[iRow]);
 			loader.flush();
 			SQLUtils.cleanup(conn);
 
