@@ -30,7 +30,7 @@
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
 		<mx:VDividedBox width="100%" height="100%">
-			<mx:ViewStack width="100%" height="100%" selectedIndex="{Admin.instance.service.initialized ? (Admin.instance.userHasAuthenticated ? MAIN_VIEW : (Admin.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
+			<mx:ViewStack width="100%" height="100%" selectedIndex="{Admin.service.initialized ? (Admin.instance.userHasAuthenticated ? MAIN_VIEW : (Admin.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
 				
 				<!-- main interface -->
 				<mx:VBox width="100%" height="100%">
@@ -134,13 +134,11 @@
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog, true);
 				function handleMessageLog():void
 				{
-					if (!WeaveAdminService.messageLog.length)
-						return;
 					
 					messageTextArea.text = WeaveAdminService.messageLog.join('\n\n');
 					messageTextArea.validateProperties();
 					messageTextArea.verticalScrollPosition = messageTextArea.maxVerticalScrollPosition;
-					if (messageTextArea.height < 64)
+					if (WeaveAdminService.messageLog.length && messageTextArea.height < 64)
 					{
 						// Set height explicitly because if we set percentHeight and then
 						// the user resizes the division, the percentHeight will be ignored.
