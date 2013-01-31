@@ -27,12 +27,17 @@ import java.util.Map;
  */
 public class MapUtils
 {
-	@SuppressWarnings("unchecked")
-	public static <K,V> Map<K,V> fromPairs(Object ... pairs)
+	public static <K,V> Map<K,V> fromPairs(Object ...pairs)
     {
     	Map<K,V> map = new HashMap<K,V>(pairs.length / 2);
-    	for (int i = 1; i < pairs.length; i += 2)
-    		map.put((K)pairs[i - 1], (V)pairs[i]);
+    	addPairs(map, pairs);
     	return map;
     }
+	
+	@SuppressWarnings("unchecked")
+	public static <K,V> void addPairs(Map<K,V> map, Object ...pairs)
+	{
+		for (int i = 1; i < pairs.length; i += 2)
+			map.put((K)pairs[i - 1], (V)pairs[i]);
+	}
 }
