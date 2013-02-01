@@ -201,9 +201,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					if( type == TYPE_MIC )
 					{
-						var ns:NetStream = new NetStream(rtmpService);
-						ns.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-						ns.play("m-"+roomName+"-"+name);
+						if( name != collabService.nickname )
+						{
+							var ns:NetStream = new NetStream(rtmpService);
+							ns.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+							ns.play("m-"+roomName+"-"+name);
+						}
 						nsPlayMicList[name] = ns;
 					}
 					else if( type == TYPE_CAM )
@@ -220,7 +223,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if( nsPlayMicList[name] )
 						{
 							nsPlayMicList[name].removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-							nsPlayMicList[name].close();
+							if( name != collabService.nickname )
+								nsPlayMicList[name].close();
 							delete nsPlayMicList[name];
 						}
 					}
@@ -265,7 +269,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue);
 				collabService.addEventListener(CollaborationEvent.USER_REQUEST_PROFILE_PIC_LINK, requestPicLink);
 				
-				stage.addEventListener(Event.RESIZE, handleResize);
+				if( stage != null )
+					stage.addEventListener(Event.RESIZE, handleResize);
 	
 				userNameList = collabService.userList;
 				
@@ -319,6 +324,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					PopUpManager.removePopUp(SETTINGS);
 					SETTINGS = null;
 				}
+				if(PARTICIPANTS)
+				{
+					PopUpManager.removePopUp(PARTICIPANTS);
+					PARTICIPANTS = null;
+				}
+					
 			}
 			
 			private function connect(e:CollaborationEvent = null):void
@@ -341,7 +352,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function disconnect(e:CollaborationEvent = null):void
 			{
 				disConButtonPushed = true;
-				CHAT.visible = false;
+				if( CHAT != null )
+					CHAT.visible = false;
+				if( PARTICIPANTS != null )
+					PARTICIPANTS.visible = false;
 				if( collabService.isConnected )
 					collabService.disconnect();
 				disconnectionFromRTMPServer();
@@ -791,7 +805,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rtmpPollingServer = false;
 				rtmpTimer.stop();
 				rtmpPollingTimer.stop();
-				if( rtmpService.connected )	rtmpService.close();
+				if( rtmpService != null )
+					if( rtmpService.connected )	rtmpService.close();
 			}
 			
 			private function handleRTMPReconnect(e:TimerEvent):void
