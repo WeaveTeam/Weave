@@ -588,7 +588,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function createParticipantPanel():void
 			{
 				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel) as ParticipantPanel;
-				PARTICIPANTS.visible = true;
+				PARTICIPANTS.visible = false;
 				PARTICIPANTS.y = WeaveAPI.topLevelApplication.visDesktop.y;
 				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - PARTICIPANTS.width / 2;
 			}
@@ -792,6 +792,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rtmpService.client = this;
 				rtmpService.connect(Weave.properties.collabRTMPServer.value);
 				
+				PARTICIPANTS.visible = true;
+				
 				if( !rtmpPollingServer )
 				{
 					rtmpTimer.addEventListener(TimerEvent.TIMER, handleRTMPReconnect);
@@ -807,6 +809,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rtmpPollingTimer.stop();
 				if( rtmpService != null )
 					if( rtmpService.connected )	rtmpService.close();
+				if( PARTICIPANTS != null )
+					PARTICIPANTS.visible = false;
 			}
 			
 			private function handleRTMPReconnect(e:TimerEvent):void

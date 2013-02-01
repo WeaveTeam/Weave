@@ -60,7 +60,7 @@
 					<mx:HBox>
 						<mx:Label text="Show participants' cameras:"/>
 						<mx:CheckBox id="showParticipantPanel"
-									 click="showParticipantPanelClick(event)" selected="true"/>					
+									 click="showParticipantPanelClick(event)" selected="false"/>					
 					</mx:HBox>
 					<mx:Spacer height="10"/>
 					<ui:Center>
