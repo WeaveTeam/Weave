@@ -135,6 +135,7 @@
 			private var testCam:Camera;
 			public var collab_MIC:Microphone = null;
 			public var collab_CAMERA:Camera = null;
+			private var gainLevelCheck:Number = 0;
 			
 			private var labelTimer:Timer = new Timer(3000);
 			
@@ -187,6 +188,7 @@
 				labelTimer.start();
 				
 				collab_MIC = Microphone.getMicrophone(micList.selectedIndex);
+				collab_MIC.setLoopBack(false);
 				collab_CAMERA = Camera.getCamera(camList.selectedIndex as String);
 				
 				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
@@ -235,6 +237,12 @@
 				testMic = Microphone.getMicrophone(micList.selectedIndex);
 				if( !testMic ) return;
 				
+				//Setup Microphone settings for optimal quality
+				testMic.codec = SoundCodec.SPEEX;
+				testMic.setSilenceLevel(0);
+				testMic.enableVAD = true;
+				testMic.encodeQuality = 8;
+				
 				testMic.setLoopBack(true);
 				testMic.setUseEchoSuppression(true);
 				
@@ -254,9 +262,14 @@
 			
 			private function updateWidth(e:TimerEvent):void
 			{
+				//if( testMic.activityLevel > gainLevelCheck )
+					//gainLevelCheck = testMic.activityLevel;
 				var width:Number = ( textAreaWidth / 100 ) * testMic.activityLevel;
 				if( width >= 0 ) micActivity.width = width;
 				else micActivity.width = 0;
+				//if( micTimer.currentCount == 17 )
+					//if( gainLevelCheck < 40 )
+						//testMic.gain = 70;
 			}
 			
 			private function startCamActivityMonitor():void
