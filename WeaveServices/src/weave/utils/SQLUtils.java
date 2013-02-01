@@ -813,6 +813,14 @@ public class SQLUtils
 	public static List<String> getTables(Connection conn, String schemaName)
 		throws SQLException
 	{
+		if (schemaName != null)
+		{
+			if (SQLUtils.isOracleServer(conn))
+				schemaName = schemaName.toUpperCase();
+			if (schemaName.length() == 0)
+				schemaName = null;
+		}
+		
 		List<String> tables = new Vector<String>();
 		ResultSet rs = null;
 		try
@@ -823,8 +831,6 @@ public class SQLUtils
 			// MySQL uses "catalogs" instead of "schemas"
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
 				rs = md.getTables(schemaName, null, null, types);
-			else if (SQLUtils.isOracleServer(conn))
-				rs = md.getTables(null, schemaName.toUpperCase(), null, types);
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
