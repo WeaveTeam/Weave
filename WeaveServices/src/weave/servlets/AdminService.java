@@ -79,7 +79,6 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
-import weave.utils.MapUtils;
 import weave.utils.ProgressManager.ProgressPrinter;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -110,6 +109,11 @@ public class AdminService
 			return DataEntityMetadata.fromMap((Map)value);
 		}
 		return super.cast(value, type);
+	}
+	
+	private boolean isEmpty(String str)
+	{
+		return str == null || str.length() == 0;
 	}
 	
 	/**
@@ -235,7 +239,7 @@ public class AdminService
 		}
 
 		String path = getDocrootPath();
-		if (!showAllFiles && info.folderName.length() > 0)
+		if (!showAllFiles && !isEmpty(info.folderName))
 			path = path + info.folderName + "/";
 
 		File docrootFolder = new File(path);
@@ -248,7 +252,7 @@ public class AdminService
 			{
 				if (file.isFile())
 				{
-					listOfFiles.add(((!showAllFiles && info.folderName.length() > 0)
+					listOfFiles.add(((!showAllFiles && !isEmpty(info.folderName))
 							? info.folderName + "/" : "") + file.getName().toString());
 				}
 			}
@@ -286,7 +290,7 @@ public class AdminService
 				fileName += ".weave";
 
 			String path = getDocrootPath();
-			if (info.folderName.length() > 0)
+			if (!isEmpty(info.folderName))
 				path = path + info.folderName + "/";
 
 			File file = new File(path + fileName);
@@ -295,7 +299,7 @@ public class AdminService
 			{
 				if (!overwriteFile)
 					return String.format("File already exists and was not changed: \"%s\"", fileName);
-				if (!info.is_superuser && info.folderName.length() == 0)
+				if (!info.is_superuser && isEmpty(info.folderName))
 					return String.format(
 							"User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.",
 							user);
@@ -322,12 +326,12 @@ public class AdminService
 	{
 		ConnectionInfo info = getConnectionInfo(user, password);
 
-		if (!info.is_superuser && info.folderName.length() == 0)
+		if (!info.is_superuser && isEmpty(info.folderName))
 			return String.format(
 					"User \"%s\" does not have permission to remove configuration files.", user);
 
 		String path = getDocrootPath();
-		if (info.folderName.length() > 0)
+		if (!isEmpty(info.folderName))
 			path = path + info.folderName + "/";
 
 		File f = new File(path + fileName);
@@ -911,7 +915,7 @@ public class AdminService
 			if (iSecondaryKey >= 0)
 				secondaryKeyColumnName = SQLUtils.quoteSymbol(conn, columnNames.get(iSecondaryKey));
 
-			if (secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
+			if (isEmpty(secondaryKeyColumnName))
 			{
 				String totalRowsQuery = String.format(
 						"select count(%s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
@@ -1121,6 +1125,9 @@ public class AdminService
 	{
 		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
 		
+		if (isEmpty(sqlSchema))
+			throw new RemoteException("Schema must be specified.");
+		
 		final int StringType = 0;
 		final int IntType = 1;
 		final int DoubleType = 2;
@@ -1190,7 +1197,7 @@ public class AdminService
 			for (int iCol = 0; iCol < columnNames.length; iCol++)
 			{
 				String colName = columnNames[iCol];
-				if (colName.length() == 0)
+				if (isEmpty(colName))
 					colName = "Column " + (iCol + 1);
 				// save original column name
 				originalColumnNames[iCol] = colName;
@@ -1366,11 +1373,10 @@ public class AdminService
 			SQLUtils.cleanup(conn);
 
             DataEntityMetadata tableInfo = new DataEntityMetadata();
-            MapUtils.addPairs(
-            		tableInfo.privateMetadata,
-            		PrivateMetadata.IMPORTMETHOD, "importCSV",
-            		PrivateMetadata.FILENAME, csvFile,
-            		PrivateMetadata.KEYCOLUMN, csvKeyColumn
+            tableInfo.setPrivateMetadata(
+            	PrivateMetadata.IMPORTMETHOD, "importCSV",
+            	PrivateMetadata.FILENAME, csvFile,
+            	PrivateMetadata.KEYCOLUMN, csvKeyColumn
             );
 			int table_id = addConfigDataTable(
 					configDataTableName, connectionName,
@@ -1412,12 +1418,13 @@ public class AdminService
 		throws RemoteException
 	{
 		authenticate(connectionName, password);
+		
+		if (isEmpty(schemaName))
+			throw new RemoteException("Schema must be specified.");
+		
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
         DataEntityMetadata tableInfo = new DataEntityMetadata();
-        MapUtils.addPairs(
-        	tableInfo.privateMetadata,
-        	PrivateMetadata.IMPORTMETHOD, "importSQL"
-        );
+       	tableInfo.setPrivateMetadata(PrivateMetadata.IMPORTMETHOD, "importSQL");
         int tableId = addConfigDataTable(
 				configDataTableName, connectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
@@ -1506,7 +1513,7 @@ public class AdminService
 				sqlColumn = SQLUtils.quoteSymbol(conn, sqlColumn);
 
 				// hack
-				if (secondarySqlKeyColumn != null && secondarySqlKeyColumn.length() > 0)
+				if (!isEmpty(secondarySqlKeyColumn))
 					sqlColumn += "," + secondarySqlKeyColumn;
 
 				// generate column query
@@ -1538,9 +1545,8 @@ public class AdminService
 			}
 			// done generating queries
 			DataEntityMetadata tableInfo = tableImportInfo == null ? new DataEntityMetadata() : tableImportInfo;
-			tableInfo.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-            MapUtils.addPairs(
-        		tableInfo.privateMetadata,
+			tableInfo.setPublicMetadata(PublicMetadata.TITLE, configDataTableName);
+        	tableInfo.setPrivateMetadata(
         		PrivateMetadata.CONNECTION, connectionName,
         		PrivateMetadata.SQLSCHEMA, sqlSchema,
         		PrivateMetadata.SQLTABLE, sqlTable,
@@ -1552,21 +1558,20 @@ public class AdminService
 			for (int i = 0; i < titles.size(); i++)
 			{
 				DataEntityMetadata newMeta = new DataEntityMetadata();
-				MapUtils.addPairs(
-					newMeta.privateMetadata,
+				newMeta.setPrivateMetadata(
 					PrivateMetadata.CONNECTION, connectionName,
 					PrivateMetadata.SQLQUERY, queries.get(i),
 					PrivateMetadata.SQLSCHEMA, sqlSchema,
 					PrivateMetadata.SQLTABLE, sqlTable,
+					PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn,
 					PrivateMetadata.SQLCOLUMN, sqlColumnNames[i]
 				);
 				if (filteredValues != null)
 				{
 					String paramsStr = CSVParser.defaultParser.createCSVRow(queryParamsList.get(i), true);
-					newMeta.privateMetadata.put(PrivateMetadata.SQLPARAMS, paramsStr);
+					newMeta.setPrivateMetadata(PrivateMetadata.SQLPARAMS, paramsStr);
 				}
-				MapUtils.addPairs(
-					newMeta.publicMetadata,
+				newMeta.setPublicMetadata(
 					PublicMetadata.TITLE, titles.get(i),
 					PublicMetadata.KEYTYPE, keyType,
 					PublicMetadata.DATATYPE, dataTypes.get(i)
@@ -1678,6 +1683,9 @@ public class AdminService
 	{
 		ConnectionInfo connInfo = getConnectionInfo(configConnectionName, password);
 		
+		if (isEmpty(sqlSchema))
+			throw new RemoteException("Schema must be specified.");
+		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
 
@@ -1685,9 +1693,6 @@ public class AdminService
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
 
-		if (sqlSchema == null || sqlSchema.length() == 0)
-			throw new RemoteException("Schema must be specified.");
-		
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
         int tableId = -1;
@@ -1723,15 +1728,14 @@ public class AdminService
 		}
 
         DataEntityMetadata tableInfo = new DataEntityMetadata();
-        tableInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
-        MapUtils.addPairs(
-        	tableInfo.privateMetadata,
+        tableInfo.setPublicMetadata(PublicMetadata.TITLE, configTitle);
+        tableInfo.setPrivateMetadata(
         	PrivateMetadata.IMPORTMETHOD, "importSHP",
+        	PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true),
+        	PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true),
         	PrivateMetadata.CONNECTION, configConnectionName,
         	PrivateMetadata.SQLSCHEMA, sqlSchema,
-        	PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix,
-        	PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true),
-        	PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true)
+        	PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
         );
 		
 		if (importDBFData)
@@ -1771,19 +1775,19 @@ public class AdminService
 		{
 			// add geometry column
 			DataEntityMetadata geomInfo = new DataEntityMetadata();
-	
-			geomInfo.privateMetadata.put(PrivateMetadata.CONNECTION, configConnectionName);
-			geomInfo.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
-			geomInfo.privateMetadata.put(PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix);
-			geomInfo.privateMetadata.put(PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true));
-			geomInfo.privateMetadata.put(PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true));
-	
-			geomInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
-			geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
-			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
-	
+			geomInfo.setPrivateMetadata(
+				PrivateMetadata.CONNECTION, configConnectionName,
+				PrivateMetadata.SQLSCHEMA, sqlSchema,
+				PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
+			);
+			geomInfo.setPublicMetadata(
+				PublicMetadata.TITLE, configTitle,
+				PublicMetadata.KEYTYPE, configKeyType,
+				PublicMetadata.DATATYPE, DataType.GEOMETRY,
+				PublicMetadata.PROJECTION, projectionSRS
+			);
 			
-			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, DataConfig.NULL);
+			getDataConfig().newEntity(DataEntity.TYPE_COLUMN, geomInfo, tableId, 0);
 		}
 		catch (IOException e)
 		{
@@ -1799,6 +1803,9 @@ public class AdminService
 		throws RemoteException
 	{
 		ConnectionInfo info = getConnectionInfo(configConnectionName, password);
+		
+		if (isEmpty(sqlSchema))
+			throw new RemoteException("Schema must be specified.");
 		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTableName = sqlTableName.toLowerCase();
@@ -1853,19 +1860,18 @@ public class AdminService
 				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 
 				String[] sqlParamsArray = null;
-				if (sqlParams != null && sqlParams.length() > 0)
+				if (!isEmpty(sqlParams))
 					sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
 				
 				result = SQLUtils.getResultFromQuery(conn, query, sqlParamsArray, false);
 
-				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format(
-						"Returned %s rows", result.rows.length));
+				entity.setPrivateMetadata(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
 			catch (Exception e)
 			{
 				System.err.println(query);
 				e.printStackTrace();
-				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
+				entity.setPrivateMetadata(PrivateMetadata.SQLRESULT, e.getMessage());
 			}
 		}
 		return columns;

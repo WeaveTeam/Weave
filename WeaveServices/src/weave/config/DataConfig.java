@@ -509,6 +509,22 @@ public class DataConfig
 		public Map<String,String> privateMetadata = new HashMap<String, String>();
 		public Map<String,String> publicMetadata = new HashMap<String, String>();
 		
+		/**
+		 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
+		 */
+		public void setPublicMetadata(String ...pairs)
+		{
+			MapUtils.putPairs(publicMetadata, (Object[])pairs);
+		}
+		
+		/**
+		 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
+		 */
+		public void setPrivateMetadata(String ...pairs)
+		{
+			MapUtils.putPairs(privateMetadata, (Object[])pairs);
+		}
+		
 	    private static final String PUBLIC_METADATA = "publicMetadata";
 	    private static final String PRIVATE_METADATA = "privateMetadata";
 	    

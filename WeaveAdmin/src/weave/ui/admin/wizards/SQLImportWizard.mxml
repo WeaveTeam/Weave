@@ -24,7 +24,7 @@
 			xmlns:ui="weave.ui.*"
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*"
-			label="Import SQL tables to Weave"
+			label="{lang('Import SQL tables to Weave')}"
 			finishEnabled="false"
 			>
 	<mx:VBox width="100%" height="100%">
@@ -33,7 +33,6 @@
 		<mx:VBox visible="{Boolean(tableSelector.activeTable)}">
 			<ui:Indent group="{tableSelector.indentGroup}" label="{lang('Table display name')}">
 				<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{lang('Type in a name for the table that is chosen above. This is the name that will be visible in Weave and will be visible to users.')}"/>
-				<mx:CheckBox label="{lang('Overwrite')}" id="tableNameOverwriteCheck" selected="false"/>
 			</ui:Indent>
 			<ui:Indent group="{tableSelector.indentGroup}" label="{lang('Key column name')}">
 				<ui:CustomComboBox id="keyColumnComboBox" prompt="{lang('Select a column...')}" dataProvider="{tableSelector.columns}" toolTip="{lang('Select the column whose values uniquely identify the rows in the table.')}" change="handleKeyColumnChange()"/>
@@ -100,14 +99,15 @@
 					secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.selectedLabel : null
 				);
 				
-				addAsyncResponder(query, handleCheckResult, handleFaultCheck);
+				addAsyncResponder(query, handleCheckResult);
 				
 				function handleCheckResult(event:ResultEvent,token:Object=null):void
 				{
 					if(!event.result as Boolean)
 					{
-						keyColumnComboBox.errorString = "Key values are not unique";
-						sqlSecondaryKeyColumnCombo.errorString = "Key values are not unique";
+						var err:String = lang("Key values are not unique");
+						sqlSecondaryKeyColumnCombo.errorString = err;
+						keyColumnComboBox.errorString = err;
 						
 						finishEnabled = false;
 					}else{
@@ -120,11 +120,6 @@
 					keyColumnComboBox.invalidateDisplayList();
 					sqlSecondaryKeyColumnCombo.invalidateDisplayList();
 				}
-				function handleFaultCheck(event:FaultEvent,token:Object=null):void
-				{
-					
-				}
-				
 			}
 			
 			override public function finish():void
@@ -132,7 +127,10 @@
 				var filterColumns:Array = null;
 				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
 					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
-				var query:AsyncToken = Admin.service.importSQL(
+				
+				disable();
+				addAsyncResponder(
+					Admin.service.importSQL(
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						keyColumnComboBox.selectedLabel,
@@ -140,18 +138,14 @@
 						tableNameInput.text,
 						keyTypeSelector.selectedKeyType,
 						filterColumns
-					);
-				
-				controlBarEnabled = false;
-				addAsyncResponder(query, handleResult, handleFault);
-				function handleResult(event:ResultEvent, token:Object = null):void
-				{
-					controlBarEnabled = true;
-				}
-				function handleFault(event:FaultEvent, token:Object = null):void
-				{
-					controlBarEnabled = true;
-				}
+					),
+					function(..._):void
+					{
+						weaveTrace(lang("Data table entry created successfully."));
+						close();
+					},
+					enable
+				);
 			}
 		]]>
 	</mx:Script>

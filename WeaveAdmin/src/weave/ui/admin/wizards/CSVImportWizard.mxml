@@ -112,6 +112,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
@@ -280,7 +281,10 @@
 				var configTableName:String = dataTableNameInput.text
 				var geometryCollection:String = '';
 				var keyType:String = configTableName;
-				var query:AsyncToken = Admin.service.importCSV(
+				
+				disable();
+				addAsyncResponder(
+					Admin.service.importCSV(
 						csvFileNameInput.text,
 						keyColumn,
 						secondKeyColumn,
@@ -291,37 +295,31 @@
 						keyType,
 						nullFlagInput.text,
 						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
-					);
-				
-				enabled = controlBarEnabled = false;
-				addAsyncResponder(query, handleImportCSV, handleFault);
-				function handleImportCSV(event:ResultEvent, token:Object = null):void
-				{
-					selectedChild = dublinCorePage;
-					var tableId:int = int(event.result);
-					
-					var em:EntityMetadata = new EntityMetadata();
-					if (dcTitleTextInput.text)
-						em.publicMetadata["title"] = dcTitleTextInput.text;
-					if (dcSubjectTextInput.text)
-						em.publicMetadata["subject"] = dcSubjectTextInput.text;
-					if (dcDescriptionTextInput.text)
-						em.publicMetadata["description"] = dcDescriptionTextInput.text;
-					
-					addAsyncResponder(
-						Admin.service.updateEntity(tableId, em),
-						function(..._):void
-						{
-							WeaveAdminService.messageDisplay(null, "CSV import successful.", false);
-						}
-					);
-
-					enabled = controlBarEnabled = true; 
-				}
-				function handleFault(event:FaultEvent, token:Object = null):void
-				{
-					enabled = controlBarEnabled = true;
-				}
+					),
+					function handleImportCSV(event:ResultEvent, token:Object = null):void
+					{
+						var tableId:int = int(event.result);
+						
+						var em:EntityMetadata = new EntityMetadata();
+						if (dcTitleTextInput.text)
+							em.publicMetadata["title"] = dcTitleTextInput.text;
+						if (dcSubjectTextInput.text)
+							em.publicMetadata["subject"] = dcSubjectTextInput.text;
+						if (dcDescriptionTextInput.text)
+							em.publicMetadata["description"] = dcDescriptionTextInput.text;
+						
+						addAsyncResponder(
+							Admin.service.updateEntity(tableId, em),
+							function(..._):void
+							{
+								weaveTrace(lang("Data table entry created successfully."));
+								close();
+							},
+							enable
+						);
+					},
+					enable
+				);
 			}
 			
 			private function enableAllWidgets(enable:Boolean = true):void

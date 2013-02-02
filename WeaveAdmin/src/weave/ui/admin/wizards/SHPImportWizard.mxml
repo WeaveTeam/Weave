@@ -232,7 +232,9 @@
 					var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 					var keyCols:Array = trimmedKeyCols.split(","); 
 					
-					var query:AsyncToken = Admin.service.importSHP(
+					disable();
+					addAsyncResponder(
+						Admin.service.importSHP(
 							shpFileNameInput.text,
 							keyCols,
 							tableSelector.activeSchema,
@@ -243,19 +245,14 @@
 							srsProjectionTxtInput.text,
 							nullFlagInput.text,
 							dbfImportCheckBox.selected
-						);
-					
-					enabled = controlBarEnabled = false;
-					addAsyncResponder(query, handleResult, handleFault);
-					function handleResult(event:ResultEvent, token:Object = null):void
-					{
-						enabled = controlBarEnabled = true;
-						WeaveAdminService.messageDisplay(null, "SHP import successful.", false);
-					}
-					function handleFault(event:FaultEvent, token:Object = null):void
-					{
-						enabled = controlBarEnabled = true;
-					}
+						),
+						function(..._):void
+						{
+							weaveTrace(lang("Data table entry created successfully."));
+							close();
+						},
+						enable
+					);
 				}
 			}
 			

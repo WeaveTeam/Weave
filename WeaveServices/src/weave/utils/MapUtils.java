@@ -27,15 +27,21 @@ import java.util.Map;
  */
 public class MapUtils
 {
+	/**
+	 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
+	 */
 	public static <K,V> Map<K,V> fromPairs(Object ...pairs)
     {
     	Map<K,V> map = new HashMap<K,V>(pairs.length / 2);
-    	addPairs(map, pairs);
+    	putPairs(map, pairs);
     	return map;
     }
 	
+	/**
+	 * @param pairs A list of Key-value pairs, like [key1,value1,key2,value2,...]
+	 */
 	@SuppressWarnings("unchecked")
-	public static <K,V> void addPairs(Map<K,V> map, Object ...pairs)
+	public static <K,V> void putPairs(Map<K,V> map, Object ...pairs)
 	{
 		for (int i = 1; i < pairs.length; i += 2)
 			map.put((K)pairs[i - 1], (V)pairs[i]);

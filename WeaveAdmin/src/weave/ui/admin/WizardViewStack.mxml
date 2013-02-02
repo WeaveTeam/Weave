@@ -36,6 +36,7 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
 			/**
@@ -87,6 +88,30 @@
 			public function cancel():void
 			{
 				// to be implemented by subclasses
+			}
+			
+			/**
+			 * Dispatches a close event which will close the wizard.
+			 */
+			public function close():void
+			{
+				dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+			
+			/**
+			 * Use this as an async responder function.
+			 */
+			protected function disable(..._):void
+			{
+				enabled = controlBarEnabled = false;
+			}
+			
+			/**
+			 * Use this as an async responder function.
+			 */
+			protected function enable(..._):void
+			{
+				enabled = controlBarEnabled = true;
 			}
 		]]>
 	</mx:Script>
