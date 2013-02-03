@@ -27,31 +27,32 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.disposeObjects;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.data.QKeyManager;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
 	import weave.services.beans.EntityType;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * WeaveDataSource is an interface for retrieving columns from Weave data servlets.
@@ -207,15 +208,29 @@ package weave.data.DataSources
 				
 				function handleRootIds(event:ResultEvent, entityType:int):void
 				{
-					var query:AsyncToken = dataService.getEntitiesById(event.result as Array);
-					addAsyncResponder(query, handleRootEntities, handleFault, entityType);
+					var ids:Array = event.result as Array;
+					var query:AsyncToken = dataService.getEntitiesById(ids);
+					addAsyncResponder(query, handleRootEntities, handleFault, [entityType, ids]);
 				}
-				function handleRootEntities(event:ResultEvent, entityType:int):void
+				function handleRootEntities(event:ResultEvent, entityType_entityIds:Array):void
 				{
+					var entityType:int = entityType_entityIds[0];
+					var entityIds:Array = entityType_entityIds[1];
+					
+					var entities:Array = event.result as Array;
+					entities.sort(
+						function(entity1:Object, entity2:Object):int
+						{
+							var i1:int = entityIds.indexOf(entity1.id);
+							var i2:int = entityIds.indexOf(entity2.id);
+							return ObjectUtil.numericCompare(i1, i2);
+						}
+					);
+					
 					if (entityType == EntityType.TABLE)
-						_tableEntities = event.result as Array;
+						_tableEntities = entities;
 					else
-						_geometryEntities = event.result as Array;
+						_geometryEntities = entities;
 					
 					// only proceed when we have both
 					if (!_tableEntities || !_geometryEntities)
@@ -238,10 +253,11 @@ package weave.data.DataSources
 					query = dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN);
 				}
 				addAsyncResponder(query, handleColumnIds, handleFault, subtreeNode);
-				function handleColumnIds(event:ResultEvent, token:Object = null):void
+				function handleColumnIds(event:ResultEvent, subtreeNode:XML):void
 				{
-					var query:AsyncToken = dataService.getEntitiesById(event.result as Array);
-					addAsyncResponder(query, handleColumnEntities, handleFault, token);
+					var ids:Array = event.result as Array;
+					var query:AsyncToken = dataService.getEntitiesById(ids);
+					addAsyncResponder(query, handleColumnEntities, handleFault, [subtreeNode, ids]);
 				}
 			}
 		}
@@ -331,20 +347,31 @@ package weave.data.DataSources
 //			}
 		}
 
-		private function handleColumnEntities(event:ResultEvent, token:Object = null):void
+		private function handleColumnEntities(event:ResultEvent, hierarcyNode_entityIds:Array):void
 		{
 			if (objectWasDisposed(this))
 				return;
 
-			var hierarchyNode:XML = token as XML; // the node to add the list of columns to
+			var hierarchyNode:XML = hierarcyNode_entityIds[0] as XML; // the node to add the list of columns to
+			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
+
 			try
 			{
-				var entities:Array = event.result as Array
+				var entities:Array = event.result as Array;
+				entities.sort(
+					function(entity1:Object, entity2:Object):int
+					{
+						var i1:int = entityIds.indexOf(entity1.id);
+						var i2:int = entityIds.indexOf(entity2.id);
+						return ObjectUtil.numericCompare(i1, i2);
+					}
+				);
 				
 				// append list of attributes
 				for (var i:int = 0; i < entities.length; i++)
 				{
 					var metadata:Object = entities[i].publicMetadata;
+					metadata['id'] = entities[i].id;
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property])
@@ -386,22 +413,36 @@ package weave.data.DataSources
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
 			proxyColumn.setMetadata(leafNode.copy());
 			
+			// get metadata properties from XML attributes
 			var params:Object = new Object();
+			const ID:String = 'id';
+			const SQLPARAMS:String = 'sqlParams';
 			var queryProperties:Array = [
+				ID, SQLPARAMS,
 				ColumnMetadata.DATA_TYPE, ColumnMetadata.MIN, ColumnMetadata.MAX,
-				'dataTable', 'name', 'year', 'sqlParams'
+				'dataTable', 'name', 'year'
 			]; // use only these properties for querying
 			for each (var attr:String in queryProperties)
 			{
 				var value:String = leafNode.attribute(attr);
-				if (value != '')
+				if (value)
 					params[attr] = value;
 			}
-			if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
-				delete params[ColumnMetadata.DATA_TYPE];
 			
 			var columnRequestToken:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-			var query:AsyncToken = dataService.getColumnFromMetadata(params);
+			var query:AsyncToken;
+			if (params[ID])
+			{
+				var sqlParams:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(params[SQLPARAMS]));
+				query = dataService.getColumn(params[ID], params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
+			}
+			else // backwards compatibility - search using metadata
+			{
+				if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
+					delete params[ColumnMetadata.DATA_TYPE];
+				
+				query = dataService.getColumnFromMetadata(params);
+			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
 			WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
 		}
@@ -514,7 +555,6 @@ package weave.data.DataSources
 	}
 }
 
-import weave.api.WeaveAPI;
 import weave.data.AttributeColumns.ProxyColumn;
 
 /**
