@@ -80,6 +80,22 @@ public class SQLUtils
 		throw new RemoteException("Unknown DBMS");
 	}
 	
+	public static String getDbmsFromConnection(Connection conn)
+	{
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+				if (dbms.equalsIgnoreCase(match))
+					return match;
+			return dbms;
+		}
+		catch (SQLException e)
+		{
+			return "";
+		}
+	}
+	
 	public static String getDbmsFromConnectString(String connectString) throws RemoteException
 	{
 		if (connectString.startsWith("jdbc:jtds"))
@@ -338,7 +354,7 @@ public class SQLUtils
 	 */
 	public static String quoteSymbol(Connection conn, String symbol) throws SQLException, IllegalArgumentException
 	{
-		String dbms = conn.getMetaData().getDatabaseProductName();
+		String dbms = getDbmsFromConnection(conn);
 		return quoteSymbol(dbms, symbol);
 	}
 	
@@ -381,7 +397,7 @@ public class SQLUtils
 	 * @param symbol The quoted symbol.
 	 * @return The symbol without its dbms-specific quotes.
 	 */
-	public static String unquoteSymbol(Connection conn, String symbol) throws SQLException
+	public static String unquoteSymbol(Connection conn, String symbol) throws SQLException, IllegalArgumentException
 	{
 		char quote = conn.getMetaData().getIdentifierQuoteString().charAt(0);
 		int length = symbol.length();
@@ -404,7 +420,7 @@ public class SQLUtils
 	public static String caseSensitiveCompare(Connection conn, String expr1, String expr2) throws SQLException
 	{
 		String operator;
-		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+		if (getDbmsFromConnection(conn).equals(MYSQL))
 			operator = "= BINARY";
 		else
 			operator = "=";
@@ -425,9 +441,10 @@ public class SQLUtils
 	 */
 	protected static String stringCast(Connection conn, String queryExpression) throws SQLException
 	{
-		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+		String dbms = getDbmsFromConnection(conn);
+		if (dbms.equals(MYSQL))
 			return String.format("cast(%s as char)", queryExpression);
-		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(POSTGRESQL))
+		if (dbms.equals(POSTGRESQL))
 			return String.format("cast(%s as varchar)", queryExpression);
 		
 		// dbms type not supported by this function yet
@@ -785,7 +802,7 @@ public class SQLUtils
 			DatabaseMetaData md = conn.getMetaData();
 			
 			// MySQL "doesn't support schemas," so use catalogs.
-			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+			if (md.getDatabaseProductName().equalsIgnoreCase(MYSQL))
 			{
 				rs = md.getCatalogs();
 				// use column index instead of name because sometimes the names are lower case, sometimes upper.
@@ -834,7 +851,7 @@ public class SQLUtils
 			String[] types = new String[]{"TABLE", "VIEW"};
 			
 			// MySQL uses "catalogs" instead of "schemas"
-			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+			if (md.getDatabaseProductName().equalsIgnoreCase(MYSQL))
 				rs = md.getTables(schemaName, null, null, types);
 			else
 				rs = md.getTables(null, schemaName, null, types);
@@ -873,7 +890,7 @@ public class SQLUtils
 			tableName = escapeSearchString(conn, tableName);
 			
 			// MySQL uses "catalogs" instead of "schemas"
-			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+			if (md.getDatabaseProductName().equalsIgnoreCase(MYSQL))
 				rs = md.getColumns(schemaName, null, tableName, null);
 			else if (isOracleServer(conn))
 				rs = md.getColumns(null, schemaName.toUpperCase(), tableName, null);
@@ -1176,49 +1193,63 @@ public class SQLUtils
 	}
 	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
 	{
-		boolean isOracle = isOracleServer(conn);
-		boolean isSQLServer = isSQLServer(conn);
+		String dbms = getDbmsFromConnection(conn);
+		boolean isOracle = dbms.equals(ORACLE);
+		boolean isSQLServer = dbms.equals(SQLSERVER);
+		boolean isMySQL = dbms.equals(MYSQL);
+		boolean isPostGreSQL = dbms.equals(POSTGRESQL);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String query = null;
 		try
 		{
-		    List<String> columns = new LinkedList<String>();
-		    List<Object> values = new LinkedList<Object>();
-		    for (Entry<String,Object> entry : data.entrySet())
-		    {
-		        columns.add(quoteSymbol(conn, entry.getKey()));
-		        values.add(entry.getValue());
-		    }
-		    String column_string = StringUtils.join(",", columns);
-		    String qmark_string = StringUtils.mult(",", "?", values.size());
-		    query = String.format("INSERT INTO %s (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
-		    if (isSQLServer)
-		    	query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
-		    query += String.format(" VALUES (%s)", qmark_string);
-		    
-		    stmt = prepareStatement(conn, query, values);
-		    if (isSQLServer)
-		    {
-		    	rs = stmt.executeQuery();
-		    }
-		    else
-		    {
-		    	stmt.executeUpdate();
-		    	cleanup(stmt);
-		    	
-		    	if (isOracle)
-		    	{
-		    		String quotedSequenceName = getOracleQuotedSequenceName(schemaName, tableName);
-		    		query = String.format("select %s.currval from dual", quotedSequenceName);
-		    	}
-		    	else
-		    	{
-		    		query = "select last_insert_id()";
-		    	}
-		    	stmt = conn.prepareStatement(query);
-		    	rs = stmt.executeQuery();
-		    }
+			List<String> columns = new LinkedList<String>();
+			List<Object> values = new LinkedList<Object>();
+			for (Entry<String,Object> entry : data.entrySet())
+			{
+				columns.add(quoteSymbol(conn, entry.getKey()));
+				values.add(entry.getValue());
+			}
+			String column_string = StringUtils.join(",", columns);
+			String qmark_string = StringUtils.mult(",", "?", values.size());
+			query = String.format("INSERT INTO %s (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
+			if (isSQLServer)
+				query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
+			query += String.format(" VALUES (%s)", qmark_string);
+			
+			stmt = prepareStatement(conn, query, values);
+			synchronized (conn)
+			{
+			    if (isSQLServer)
+			    {
+			    	rs = stmt.executeQuery();
+			    }
+			    else
+			    {
+			    	stmt.executeUpdate();
+			    	cleanup(stmt);
+			    	
+			    	if (isOracle)
+			    	{
+			    		String quotedSequenceName = getOracleQuotedSequenceName(schemaName, tableName);
+			    		query = String.format("select %s.currval from dual", quotedSequenceName);
+			    	}
+			    	else if (isMySQL)
+			    	{
+			    		query = "select last_insert_id()";
+			    	}
+			    	else if (isPostGreSQL)
+			    	{
+			    		query = "select lastval()";
+			    	}
+			    	else
+			    	{
+			    		throw new SQLException("insertRowReturnID: dbms not supported: " + dbms);
+			    	}
+			    	stmt = conn.prepareStatement(query);
+			    	rs = stmt.executeQuery();
+			    }
+			}
 		    rs.next();
 		    return rs.getInt(1);
 		}
@@ -1271,24 +1302,11 @@ public class SQLUtils
 	 * This function checks if a connection is for an Oracle server.
 	 * @param conn A SQL Connection.
 	 * @return A value of true if the Connection is for an Oracle server.
+	 * @throws SQLException 
 	 */
 	public static boolean isOracleServer(Connection conn)
 	{
-		try
-		{
-			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(ORACLE))
-				return true;
-		}
-		catch (SQLException e) // This is expected to be thrown if the connection is invalid.
-		{
-			e.printStackTrace();
-		}
-		catch (RuntimeException e) // This is important for catching unexpected errors.
-		{
-			return false;
-		}
-
-		return false;
+		return getDbmsFromConnection(conn).equals(ORACLE);
 	}
 	
 	/**
@@ -1298,21 +1316,7 @@ public class SQLUtils
 	 */
 	public static boolean isSQLServer(Connection conn)
 	{
-		try
-		{
-			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(SQLSERVER))
-				return true;
-		}
-		catch (SQLException e) // This is expected to be thrown if the connection is invalid.
-		{
-			e.printStackTrace();
-		}
-		catch (RuntimeException e) // This is important for catching unexpected errors.
-		{
-			return false;
-		}
-		
-		return false;
+		return getDbmsFromConnection(conn).equals(SQLSERVER);
 	}
 	
 	private static String truncate(String str, int maxLength)
@@ -1359,8 +1363,7 @@ public class SQLUtils
 	 */
 	public static void createIndex(Connection conn, String schemaName, String tableName, String[] columnNames, Integer[] columnLengths) throws SQLException
 	{
-		boolean isOracle = isOracleServer(conn);
-		boolean isSQLServer = isSQLServer(conn);
+		boolean isMySQL = getDbmsFromConnection(conn).equals(MYSQL);
 		String fields = "";
 		for (int i = 0; i < columnNames.length; i++)
 		{
@@ -1368,10 +1371,10 @@ public class SQLUtils
 				fields += ", ";
 			
 			String symbol = quoteSymbol(conn, columnNames[i]);
-			if (isOracle || isSQLServer || columnLengths == null || columnLengths[i] == 0)
-				fields += symbol;
-			else // mysql, postgres
+			if (isMySQL && columnLengths != null && columnLengths[i] > 0)
 				fields += String.format("%s(%d)", symbol, columnLengths[i]);
+			else
+				fields += symbol;
 		}
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
@@ -1599,14 +1602,14 @@ public class SQLUtils
 	
 	public static void dropTableIfExists(Connection conn, String schema, String table) throws SQLException
 	{
-		String dbms = conn.getMetaData().getDatabaseProductName();
+		String dbms = getDbmsFromConnection(conn);
 		String quotedTable = SQLUtils.quoteSchemaTable(conn, schema, table);
 		String query = "";
-		if (SQLSERVER.equalsIgnoreCase(dbms))
+		if (dbms.equals(SQLSERVER))
 		{
 			query = "IF OBJECT_ID('" + quotedTable + "','U') IS NOT NULL DROP TABLE " + quotedTable;
 		}
-		else if (ORACLE.equalsIgnoreCase(dbms))
+		else if (dbms.equals(ORACLE))
 		{
 			// do nothing if table doesn't exist
 			if (!SQLUtils.tableExists(conn, schema, table))
@@ -1717,10 +1720,15 @@ public class SQLUtils
 			return String.format("VARCHAR2(%s CHAR)", length);
 		return String.format("VARCHAR(%s)", length);
 	}
-	public static String getTinyIntTypeString(Connection conn)
+	public static String getTinyIntTypeString(Connection conn) throws SQLException
 	{
-		if (isOracleServer(conn))
+		String dbms = getDbmsFromConnection(conn);
+		if (dbms.equals(ORACLE))
 			return "NUMBER(1,0)";
+		if (dbms.equals(POSTGRESQL))
+			return "SMALLINT";
+		
+		// mysql, sqlserver
 		return "TINYINT";
 	}
 	public static String getIntTypeString(Connection conn)
@@ -1751,11 +1759,11 @@ public class SQLUtils
 	
 	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException
 	{
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		if (SQLSERVER.equalsIgnoreCase(dbms))
+		String dbms = getDbmsFromConnection(conn);
+		if (dbms.equals(SQLSERVER))
 			return "BIGINT PRIMARY KEY IDENTITY";
 		
-		if (ORACLE.equalsIgnoreCase(dbms))
+		if (dbms.equals(ORACLE))
 			return ORACLE_SERIAL_TYPE;
 		
 		// for mysql and postgresql, return the following.
@@ -1776,11 +1784,11 @@ public class SQLUtils
 	{
 		try
 		{
-			String dbms = conn.getMetaData().getDatabaseProductName();
+			String dbms = getDbmsFromConnection(conn);
 			
-			if (MYSQL.equalsIgnoreCase(dbms))
+			if (dbms.equals(MYSQL))
 				return "\\N";
-			else if (POSTGRESQL.equalsIgnoreCase(dbms) || SQLSERVER.equalsIgnoreCase(dbms) || ORACLE.equalsIgnoreCase(dbms))
+			else if (dbms.equals(POSTGRESQL) || dbms.equals(SQLSERVER) || dbms.equals(ORACLE))
 				return ""; // empty string (no quotes)
 			else
 				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
