@@ -53,6 +53,10 @@ package weave.services
 			if (_paused)
 			{
 				_paused = false;
+				
+				for each (var query:DelayedAsyncInvocation in _downloadQueue)
+					WeaveAPI.ProgressIndicator.addTask(query);
+				
 				if (_downloadQueue.length)
 					performQuery(_downloadQueue[0]);
 			}
@@ -70,7 +74,8 @@ package weave.services
 				return;
 			}
 			
-			WeaveAPI.ProgressIndicator.addTask(query);
+			if (!_paused)
+				WeaveAPI.ProgressIndicator.addTask(query);
 			
 			if (debug)
 			{
