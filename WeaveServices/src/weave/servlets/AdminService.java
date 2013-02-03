@@ -517,6 +517,11 @@ public class AdminService
 			
 			if (!config.getConnectionInfoNames().contains(userToRemove))
 				throw new RemoteException("Connection \"" + userToRemove + "\" does not exist.");
+			
+			// disallow removing databaseConfig connection
+			DatabaseConfigInfo dbInfo = config.getDatabaseConfigInfo();
+			if (dbInfo != null && dbInfo.connection.equals(userToRemove))
+				throw new RemoteException(String.format("Cannot remove connection \"%s\" which is used to store configuration information.", userToRemove));
 
 			// check for number of superusers
 			Collection<String> connectionNames = config.getConnectionInfoNames();
