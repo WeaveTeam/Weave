@@ -25,7 +25,7 @@
 			<mx:Spacer width="100%"/>
 			<mx:HBox enabled="{selectedItems.length == 1}">
     	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="New category name" width="100%"/>
-	            <mx:Button label="Add category" click="addCategory()" enabled="{categoryNameInput.text}"/>
+	            <mx:Button label="Add category" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
 			</mx:HBox>
             <mx:Button label="Remove" click="remove()" enabled="{hierarchyTree.selectedItems.length > 0}"/>
         </mx:HBox>

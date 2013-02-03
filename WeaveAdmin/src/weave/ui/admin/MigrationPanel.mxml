@@ -5,7 +5,9 @@
     horizontalAlign="center">
 	
 	<mx:Spacer height="100%"/>
-	<mx:Label id="migrationTextArea" text="{Admin.service.migrationProgress}"/>
+	<AutoResizingTextArea id="migrationTextArea" htmlText="{Admin.service.migrationProgress}"
+				 width="100%" focusAlpha="0" textAlign="center"
+				 backgroundAlpha="0" wordWrap="true" borderStyle="none" editable="false"/>
 	<mx:Spacer height="100%"/>
 	
 	<ui:BusyIndicator visible="{!migrationTextArea.text}"/>

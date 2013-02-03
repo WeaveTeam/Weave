@@ -30,7 +30,7 @@
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Remove" click="handleRemoveConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
+			<mx:Button label="Remove" click="removeConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
 			<mx:Button label="Refresh" click="refresh()"/>
 		</mx:HBox>
 	</mx:VBox>
@@ -249,7 +249,7 @@
 					);
 			}
 			
-			private function handleRemoveConnection():void
+			private function removeConnection():void
 			{
 				var connectionLabel:String;
 				

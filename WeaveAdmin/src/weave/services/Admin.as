@@ -188,9 +188,18 @@ package weave.services
 				null,
 				function(event:ResultEvent, arguments:Array):void
 				{
-					// refresh list
-					service.getConnectionNames();
-					service.getDatabaseConfigInfo();
+					// if user removed self, log out
+					if (arguments[0] == arguments[2])
+					{
+						activeConnectionName = '';
+						activePassword = '';
+					}
+					else
+					{
+						// refresh list
+						service.getConnectionNames();
+						service.getDatabaseConfigInfo();
+					}
 				}
 			);
 			//////////////////////////////////
