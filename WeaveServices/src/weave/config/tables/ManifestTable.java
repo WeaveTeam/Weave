@@ -62,7 +62,7 @@ public class ManifestTable extends AbstractTable
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
 				Arrays.asList(fieldNames),
-				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT"),
+				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), SQLUtils.getTinyIntTypeString(conn)),
 				null
 			);
 			

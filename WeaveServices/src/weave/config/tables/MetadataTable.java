@@ -36,6 +36,7 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.utils.MapUtils;
+import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -48,16 +49,16 @@ import weave.utils.StringUtils;
 public class MetadataTable extends AbstractTable
 {
 	public static final String FIELD_ID = "entity_id";
-	public static final String FIELD_PROPERTY = "property";
-	public static final String FIELD_VALUE = "value";
+	public static final String FIELD_NAME = "meta_name";
+	public static final String FIELD_VALUE = "meta_value";
 	
-	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_PROPERTY, FIELD_VALUE));
+	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_NAME, FIELD_VALUE));
 	
 	private ManifestTable manifest = null;
 	
 	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
-		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_PROPERTY, FIELD_VALUE);
+		super(connectionConfig, schemaName, tableName, FIELD_ID, FIELD_NAME, FIELD_VALUE);
 		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
@@ -80,11 +81,11 @@ public class MetadataTable extends AbstractTable
 				conn, schemaName, tableName,
 				Arrays.asList(fieldNames),
 				Arrays.asList(
-					"BIGINT",
+					SQLUtils.getBigIntTypeString(conn),
 					SQLUtils.getVarcharTypeString(conn, 255),
 					SQLUtils.getVarcharTypeString(conn, 2048)
 				),
-				Arrays.asList(FIELD_ID, FIELD_PROPERTY)
+				Arrays.asList(FIELD_ID, FIELD_NAME)
 			);
 			
 //			addForeignKey(FIELD_ID, manifest, ManifestTable.FIELD_ID);
@@ -92,15 +93,13 @@ public class MetadataTable extends AbstractTable
 			/* Index of (property) */
 			SQLUtils.createIndex(
 					conn, schemaName, tableName,
-					tableName+FIELD_PROPERTY,
-					new String[]{FIELD_PROPERTY},
+					new String[]{FIELD_NAME},
 					null
 			);
 			/* Index of (Property, Value), important for finding ids with metadata criteria */
 			SQLUtils.createIndex(
 					conn, schemaName, tableName,
-					tableName+FIELD_PROPERTY+FIELD_VALUE,
-					new String[]{FIELD_PROPERTY, FIELD_VALUE},
+					new String[]{FIELD_NAME, FIELD_VALUE},
 					new Integer[]{32,32}
 			);
 		} 
@@ -120,7 +119,7 @@ public class MetadataTable extends AbstractTable
 				List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 				for (String property : diff.keySet())
 				{
-					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
+					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_NAME, property);
 					records.add(record);
 				}
 				WhereClause<Object> where = new WhereClause<Object>(conn, records, caseSensitiveFields, false);
@@ -159,6 +158,7 @@ public class MetadataTable extends AbstractTable
 	{
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
+		String query = null;
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
@@ -166,12 +166,12 @@ public class MetadataTable extends AbstractTable
 			
 			// build query
 			String quotedIdField = SQLUtils.quoteSymbol(conn, FIELD_ID);
-			String query = String.format(
+			query = String.format(
 					"SELECT %s,%s FROM %s WHERE %s=?",
 					quotedIdField,
 					SQLUtils.quoteSymbol(conn, FIELD_VALUE),
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-					SQLUtils.quoteSymbol(conn, FIELD_PROPERTY)
+					SQLUtils.quoteSymbol(conn, FIELD_NAME)
 				);
 			if (ids != null)
 				query += String.format(" AND %s IN (%s)", quotedIdField, StringUtils.join(",", ids));
@@ -187,6 +187,7 @@ public class MetadataTable extends AbstractTable
 		}
 		catch (SQLException e)
 		{
+			e = new SQLExceptionWithQuery(query, e);
 			throw new RemoteException("Unable to get all instances of a property.", e);
 		}
 		finally
@@ -222,7 +223,7 @@ public class MetadataTable extends AbstractTable
 			while (rs.next())
 			{
 				int id = rs.getInt(FIELD_ID);
-				String property = rs.getString(FIELD_PROPERTY);
+				String property = rs.getString(FIELD_NAME);
 				String value = rs.getString(FIELD_VALUE);
 				
 				result.get(id).put(property, value);
@@ -252,7 +253,7 @@ public class MetadataTable extends AbstractTable
 				if (keyValPair.getKey() == null || keyValPair.getValue() == null)
 					continue;
 				Map<String,String> colValPair = MapUtils.fromPairs(
-					FIELD_PROPERTY, keyValPair.getKey(),
+					FIELD_NAME, keyValPair.getKey(),
 					FIELD_VALUE, keyValPair.getValue()
 				);
 				crossRowArgs.add(colValPair);

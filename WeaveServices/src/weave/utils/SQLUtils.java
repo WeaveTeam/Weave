@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -460,6 +461,10 @@ public class SQLUtils
 	{
 		if (schema.length() == 0)
 			return quoteSymbol(dbms, table);
+		
+		if (dbms.equalsIgnoreCase(ORACLE))
+			schema = schema.toUpperCase();
+		
 		return quoteSymbol(dbms, schema) + "." + quoteSymbol(dbms, table);
 	}
 	
@@ -624,7 +629,7 @@ public class SQLUtils
 			
 			String orderByQuery = "";
 			if (orderBy != null)
-				orderByQuery = String.format("ORDER BY %s", orderBy);
+				orderByQuery = String.format("ORDER BY %s", quoteSymbol(conn, orderBy));
 			
 			// build complete query
 			query = String.format(
@@ -948,28 +953,36 @@ public class SQLUtils
 			String type = columnTypes.get(i);
 			if (ORACLE_SERIAL_TYPE.equals(type))
 			{
-				type = "integer not null";
+				type = getBigIntTypeString(conn) + " NOT NULL";
 				oraclePrimaryKeyColumn = i;
 			}
 			columnClause.append(String.format("%s %s", quoteSymbol(conn, columnNames.get(i)), type));
 		}
 		
-		// http://www.w3schools.com/sql/sql_primarykey.asp
+		if (primaryKeyColumns == null && oraclePrimaryKeyColumn >= 0)
+			primaryKeyColumns = Arrays.asList(columnNames.get(oraclePrimaryKeyColumn));
+		
 		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
 		{
-			String constraintName = String.format("%s_%s_primary_key", schemaName, tableName);
-			columnClause.append(String.format(", CONSTRAINT %s PRIMARY KEY (", quoteSymbol(conn, constraintName)));
+			String pkName = truncate(String.format("pk_%s", tableName), 30);
+			
+			String[] quotedKeyColumns = new String[primaryKeyColumns.size()];
 			int i = 0;
-			for (String keyColumn : primaryKeyColumns)
-			{
-				if (i++ > 0)
-					columnClause.append(',');
-				columnClause.append(quoteSymbol(conn, keyColumn));
-			}
-			columnClause.append(")");
+			for (String keyCol : primaryKeyColumns)
+				quotedKeyColumns[i++] = quoteSymbol(conn, keyCol);
+			
+			// http://www.w3schools.com/sql/sql_primarykey.asp
+			columnClause.append(
+				String.format(
+					", CONSTRAINT %s PRIMARY KEY (%s)",
+					quoteSymbol(conn, pkName),
+					StringUtils.join(",", quotedKeyColumns)
+				)
+			);
 		}
 		
-		String query = String.format("CREATE TABLE %s (%s)", quoteSchemaTable(conn, schemaName, tableName), columnClause);
+		String quotedSchemaTable = quoteSchemaTable(conn, schemaName, tableName);
+		String query = String.format("CREATE TABLE %s (%s)", quotedSchemaTable, columnClause);
 		
 		Statement stmt = null;
 		try
@@ -979,21 +992,23 @@ public class SQLUtils
 			
 			if (oraclePrimaryKeyColumn >= 0)
 			{
-				// Create a sequence and trigger for each table?
-				//stmt.executeUpdate("create sequence " + schemaName + "_" + tableName + "_AUTOID start with 1 increment by 1");
-				// Identifier is too long
-				//stmt.executeUpdate("create trigger " + schemaName + "_" + tableName + "_IDTRIGGER before insert on " + tableName + " for each row begin select " + schemaName + "_" + tableName + "_AUTOID.nextval into :new.the_geom_id from dual; end;");
+				String quotedSequenceName = getOracleQuotedSequenceName(schemaName, tableName);
+				String unquotedSequenceName = getOracleUnquotedSequenceName(schemaName, tableName);
 				
-				if (sequenceExists(conn, schemaName, tableName + "_AUTOID"))
-				{
-					stmt.executeUpdate("drop sequence " + tableName + "_AUTOID");
-					stmt.executeUpdate("create sequence " + tableName + "_AUTOID start with 1 increment by 1");
-				}
-				else
-					stmt.executeUpdate("create sequence " + tableName + "_AUTOID start with 1 increment by 1");
+				if (getSequences(conn, schemaName).indexOf(unquotedSequenceName) >= 0)
+					stmt.executeUpdate(query = String.format("drop sequence %s", quotedSequenceName));
 				
-				//TODO: the_geom_id should not appear hard-coded in this query.
-				stmt.executeUpdate("create or replace trigger " + tableName + "_IDTRIGGER before insert on \"" + tableName + "\" for each row begin select " + tableName + "_AUTOID.nextval into :new.\"the_geom_id\" from dual; end;");
+				stmt.executeUpdate(query = String.format("create sequence %s start with 1 increment by 1", quotedSequenceName));
+				
+				String quotedTriggerName = quoteSchemaTable(ORACLE, schemaName, "trigger_" + unquotedSequenceName);
+				String quotedIdColumn = quoteSymbol(ORACLE, columnNames.get(oraclePrimaryKeyColumn));
+				query = String.format(
+					"create or replace trigger %s before insert on %s for each row " +
+					"when (new.%s is null) begin select %s.nextval into :new.%s from dual; end;",
+					quotedTriggerName, quotedSchemaTable,
+					quotedIdColumn, quotedSequenceName, quotedIdColumn
+				);
+				stmt.executeUpdate(query);
 			}
 		}
 		catch (SQLException e)
@@ -1161,9 +1176,11 @@ public class SQLUtils
 	}
 	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
 	{
+		boolean isOracle = isOracleServer(conn);
 		boolean isSQLServer = isSQLServer(conn);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		String query = null;
 		try
 		{
 		    List<String> columns = new LinkedList<String>();
@@ -1173,14 +1190,9 @@ public class SQLUtils
 		        columns.add(quoteSymbol(conn, entry.getKey()));
 		        values.add(entry.getValue());
 		    }
-		    List<String> l_qmarks = new LinkedList<String>();
-		    for (int i = 0; i < values.size(); i++)
-		    {
-		        l_qmarks.add("?");
-		    }
 		    String column_string = StringUtils.join(",", columns);
-		    String qmark_string = StringUtils.join(",", l_qmarks);
-		    String query = String.format("INSERT INTO %s(%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
+		    String qmark_string = StringUtils.mult(",", "?", values.size());
+		    query = String.format("INSERT INTO %s (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
 		    if (isSQLServer)
 		    	query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
 		    query += String.format(" VALUES (%s)", qmark_string);
@@ -1195,12 +1207,24 @@ public class SQLUtils
 		    	stmt.executeUpdate();
 		    	cleanup(stmt);
 		    	
-		    	query = "select last_insert_id()";
+		    	if (isOracle)
+		    	{
+		    		String quotedSequenceName = getOracleQuotedSequenceName(schemaName, tableName);
+		    		query = String.format("select %s.currval from dual", quotedSequenceName);
+		    	}
+		    	else
+		    	{
+		    		query = "select last_insert_id()";
+		    	}
 		    	stmt = conn.prepareStatement(query);
 		    	rs = stmt.executeQuery();
 		    }
 		    rs.next();
 		    return rs.getInt(1);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1210,24 +1234,6 @@ public class SQLUtils
 	}
 	
 	
-	/**
-	 * This function is for use with an Oracle connection
-	 * @param conn An existing Oracle SQL Connection
-	 * @param schema The name of a schema to check in.
-	 * @param sequence The name of a sequence to check for.
-	 * @return true if the sequence exists in the specified schema.
-	 * @throws SQLException.
-	 */
-	protected static boolean sequenceExists(Connection conn, String schema, String sequence)
-		throws SQLException
-	{
-		List<String> sequences = getSequences(conn, schema);
-		for (String existingSequence : sequences)
-			if (existingSequence.equalsIgnoreCase(sequence))
-				return true;
-		return false;
-	}
-
 	/**
 	 * This function is for use with an Oracle connection
 	 * @param conn An existing Oracle SQL Connection
@@ -1309,6 +1315,28 @@ public class SQLUtils
 		return false;
 	}
 	
+	private static String truncate(String str, int maxLength)
+	{
+		if (str.length() > maxLength)
+			return str.substring(0, maxLength);
+		return str;
+	}
+	
+	private static String generateSymbolName(String prefix, Object ...items)
+	{
+		int hash = Arrays.deepToString(items).hashCode();
+		return String.format("%s_%s", prefix, hash);
+	}
+	
+	private static String generateQuotedSymbolName(String prefix, Connection conn, String schema, String table, String ...columns) throws SQLException
+	{
+		String indexName = generateSymbolName(prefix, schema, table, columns);
+		if (isOracleServer(conn))
+			return quoteSchemaTable(conn, schema, indexName);
+		else
+			return quoteSymbol(conn, indexName);
+	}
+	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
@@ -1317,9 +1345,9 @@ public class SQLUtils
 	 * @throws SQLException If the query fails.
 	 */
 	public static void createIndex(Connection conn, String schemaName, String tableName, String[] columnNames) throws SQLException
-        {
-            createIndex(conn, schemaName, tableName, tableName + "_index", columnNames, null);
-        }
+    {
+        createIndex(conn, schemaName, tableName, columnNames, null);
+    }
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
@@ -1329,8 +1357,9 @@ public class SQLUtils
 	 * @param columnLengths The lengths to use as indices, may be null.
 	 * @throws SQLException If the query fails.
 	 */
-	public static void createIndex(Connection conn, String schemaName, String tableName, String indexName, String[] columnNames, Integer[] columnLengths) throws SQLException
+	public static void createIndex(Connection conn, String schemaName, String tableName, String[] columnNames, Integer[] columnLengths) throws SQLException
 	{
+		boolean isOracle = isOracleServer(conn);
 		boolean isSQLServer = isSQLServer(conn);
 		String fields = "";
 		for (int i = 0; i < columnNames.length; i++)
@@ -1339,14 +1368,14 @@ public class SQLUtils
 				fields += ", ";
 			
 			String symbol = quoteSymbol(conn, columnNames[i]);
-			if (isSQLServer || columnLengths == null || columnLengths[i] == 0)
+			if (isOracle || isSQLServer || columnLengths == null || columnLengths[i] == 0)
 				fields += symbol;
-			else
+			else // mysql, postgres
 				fields += String.format("%s(%d)", symbol, columnLengths[i]);
 		}
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
-				SQLUtils.quoteSymbol(conn, indexName),
+				generateQuotedSymbolName("index", conn, schemaName, tableName, columnNames),
 				SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
 				fields
 		);
@@ -1685,55 +1714,38 @@ public class SQLUtils
 	public static String getVarcharTypeString(Connection conn, int length)
 	{
 		if (isOracleServer(conn))
-			return String.format("VARCHAR2(%s)", length);
+			return String.format("VARCHAR2(%s CHAR)", length);
 		return String.format("VARCHAR(%s)", length);
 	}
-	public static String getIntTypeString(Connection conn) 
+	public static String getTinyIntTypeString(Connection conn)
 	{
+		if (isOracleServer(conn))
+			return "NUMBER(1,0)";
+		return "TINYINT";
+	}
+	public static String getIntTypeString(Connection conn)
+	{
+		if (isOracleServer(conn))
+			return "NUMBER(10,0)";
 		return "INT";
 	}
 	public static String getDoubleTypeString(Connection conn)
 	{
-		String dbms = "";
-		try
-		{
-			dbms = conn.getMetaData().getDatabaseProductName();
-		}
-		catch (Exception e)
-		{
-			// this should never happen
-			throw new RuntimeException(e);
-		}
-		
-		if (SQLSERVER.equalsIgnoreCase(dbms))
+		if (isSQLServer(conn))
 			return "FLOAT"; // this is an 8 floating point type with 53 bits for the mantissa, the same as an 8 byte double.
 			                // but SQL Server's DOUBLE PRECISION type isn't standard
-		
 		return "DOUBLE PRECISION";
 	}
 	public static String getBigIntTypeString(Connection conn)
 	{
-		String dbms = "";
-		try
-		{
-			dbms = conn.getMetaData().getDatabaseProductName();
-		}
-		catch (Exception e)
-		{
-			// this should never happen
-			throw new RuntimeException(e);
-		}
-		
-		if (ORACLE.equalsIgnoreCase(dbms))
-			return "NUMBER(19, 0)";
-		
+		if (isOracleServer(conn))
+			return "NUMBER(20,0)";
 		return "BIGINT";
 	}
 	public static String getDateTimeTypeString(Connection conn)
 	{
 		if (isOracleServer(conn))
 			return "DATE";
-		
 		return "DATETIME";
 	}
 	
@@ -1748,6 +1760,16 @@ public class SQLUtils
 		
 		// for mysql and postgresql, return the following.
 		return "SERIAL PRIMARY KEY";
+	}
+	
+	private static String getOracleUnquotedSequenceName(String schema, String table)
+	{
+		return generateSymbolName("sequence", schema, table);
+	}
+	
+	private static String getOracleQuotedSequenceName(String schema, String table)
+	{
+		return quoteSchemaTable(ORACLE, schema, getOracleUnquotedSequenceName(schema, table));
 	}
 
 	protected static String getCSVNullValue(Connection conn)
@@ -1843,7 +1865,7 @@ public class SQLUtils
 				List<Pair> pairs = new LinkedList<Pair>();
 				for (Entry<String,V> entry : group.entrySet())
 				{
-					pairs.add(new Pair(entry.getKey(), "?"));
+					pairs.add(new Pair(quoteSymbol(conn, entry.getKey()), "?"));
 					params.add(entry.getValue());
 				}
 				nestedPairs.add(pairs);

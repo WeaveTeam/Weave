@@ -74,12 +74,13 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			conn = connectionConfig.getAdminConnection();
+			String BIGINT = SQLUtils.getBigIntTypeString(conn);
 			
 			// primary key is (parent,child) both for indexing and for avoiding duplicate relationships
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
 					Arrays.asList(fieldNames),
-					Arrays.asList("BIGINT", "BIGINT", "BIGINT"),
+					Arrays.asList(BIGINT, BIGINT, SQLUtils.getIntTypeString(conn)),
 					Arrays.asList(FIELD_PARENT, FIELD_CHILD)
 			);
 
@@ -124,7 +125,7 @@ public class HierarchyTable extends AbstractTable
 						quotedTable,
 						quotedParentField,
 						parent_id,
-						FIELD_ORDER
+						quotedOrderField
 					);
 				rs = stmt.executeQuery(query);
 				boolean found = false;
