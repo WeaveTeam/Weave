@@ -66,8 +66,10 @@ public class GeometryStreamConverter
 	protected Vector<VertexChainLink> reusableVertexChainLinks = new Vector<VertexChainLink>();
 
 	/**
-	 * @param feature Contains geometries to convert.
-	 * @param keyAttributes The names of attributes to be concatenated to generate a record key for this feature.
+	 * @param geomStream Provides a stream of geometries from a feature.
+	 * @param shapeType Feature type
+	 * @param shapeKey Identifies the feature
+	 * @param projectionWKT Projection info in Well-Known-Text format
 	 * @throws Exception
 	 */
 	public void convertFeature(FeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
