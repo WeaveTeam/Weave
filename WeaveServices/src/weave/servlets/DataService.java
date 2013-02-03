@@ -197,7 +197,7 @@ public class DataService extends GenericServlet
 		// if it's a geometry column, just return the metadata
 		if (assertGeometryColumn(entity, false))
 		{
-			GeometryStreamMetadata gsm = (GeometryStreamMetadata) getGeometryData(entity, GeomStreamStep.TILE_DESCRIPTORS, null);
+			GeometryStreamMetadata gsm = (GeometryStreamMetadata) getGeometryData(entity, GeomStreamComponent.TILE_DESCRIPTORS, null);
 			AttributeColumnData result = new AttributeColumnData();
 			result.id = columnId;
 			result.metadata = entity.publicMetadata;
@@ -354,18 +354,18 @@ public class DataService extends GenericServlet
 	public byte[] getGeometryStreamMetadataTiles(int columnId, List<Integer> tileIDs) throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
-		return (byte[]) getGeometryData(entity, GeomStreamStep.METADATA_TILES, tileIDs);
+		return (byte[]) getGeometryData(entity, GeomStreamComponent.METADATA_TILES, tileIDs);
 	}
 	
 	public byte[] getGeometryStreamGeometryTiles(int columnId, List<Integer> tileIDs) throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
-		return (byte[]) getGeometryData(entity, GeomStreamStep.GEOMETRY_TILES, tileIDs);
+		return (byte[]) getGeometryData(entity, GeomStreamComponent.GEOMETRY_TILES, tileIDs);
 	}
 	
-	private static enum GeomStreamStep { TILE_DESCRIPTORS, METADATA_TILES, GEOMETRY_TILES };
+	private static enum GeomStreamComponent { TILE_DESCRIPTORS, METADATA_TILES, GEOMETRY_TILES };
 	
-	private Object getGeometryData(DataEntity entity, GeomStreamStep step, List<Integer> tileIDs) throws RemoteException
+	private Object getGeometryData(DataEntity entity, GeomStreamComponent component, List<Integer> tileIDs) throws RemoteException
 	{
 		assertGeometryColumn(entity, true);
 		
@@ -376,7 +376,7 @@ public class DataService extends GenericServlet
 		Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 		try
 		{
-			switch (step)
+			switch (component)
 			{
 				case TILE_DESCRIPTORS:
 					GeometryStreamMetadata result = new GeometryStreamMetadata();
@@ -391,7 +391,7 @@ public class DataService extends GenericServlet
 					return SQLGeometryStreamReader.getGeometryTiles(conn, schema, tablePrefix, tileIDs);
 					
 				default:
-					throw new InvalidParameterException("Invalid step.");
+					throw new InvalidParameterException("Invalid GeometryStreamComponent param.");
 			}
 		}
 		catch (Exception e)

@@ -23,7 +23,6 @@ import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -481,22 +480,7 @@ public class DataConfig
 		 */
 		static public String fromSQLType(int sqlType)
 		{
-			switch (sqlType)
-			{
-			case Types.TINYINT:
-			case Types.SMALLINT:
-			case Types.BIGINT:
-			case Types.DECIMAL:
-			case Types.INTEGER:
-			case Types.FLOAT:
-			case Types.DOUBLE:
-			case Types.REAL:
-			case Types.NUMERIC:
-				/* case Types.ROWID: // produces compiler error in some environments */
-				return NUMBER;
-			default:
-				return STRING;
-			}
+			return SQLUtils.sqlTypeIsNumeric(sqlType) ? NUMBER : STRING;
 		}
 	}
 	

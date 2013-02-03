@@ -29,7 +29,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 
 import org.postgresql.PGConnection;
 
@@ -109,7 +108,7 @@ public abstract class BulkSQLLoader
 			
 			try
 			{
-				System.out.println(query + " " + Arrays.deepToString(values));
+				//System.out.println(query + " " + Arrays.deepToString(values));
 				SQLUtils.setPreparedStatementParams(stmt, values);
 				stmt.execute();
 			}
