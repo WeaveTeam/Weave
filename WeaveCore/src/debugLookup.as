@@ -24,7 +24,7 @@ package
 	/**
 	 * @see weave.utils.DebugUtils#debugLookup
 	 */
-	public function debugLookup(debugId:String):Object
+	public function debugLookup(debugId:* = undefined):Object
 	{
 		return DebugUtils.debugLookup(debugId);
 	}

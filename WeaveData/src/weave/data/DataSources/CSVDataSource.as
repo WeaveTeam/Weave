@@ -414,7 +414,7 @@ package weave.data.DataSources
 				var newColumn:IAttributeColumn;
 				if (isNumericColumn)
 				{
-					var numericVector:Vector.<Number> = new Vector.<Number>();
+					var numericVector:Vector.<Number> = new Vector.<Number>(csvDataColumn.length);
 					for (i = 0; i < csvDataColumn.length; i++)
 						numericVector[i] = getNumberFromString(csvDataColumn[i]);
 	
@@ -445,6 +445,7 @@ package weave.data.DataSources
 		 */		
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
 		{
+			outputArrayOrVector.length = rows.length;
 			var i:int;
 			if (columnIndex < 0)
 			{
@@ -458,7 +459,6 @@ package weave.data.DataSources
 				for (i = 1; i < rows.length; i++)
 					outputArrayOrVector[i-1] = rows[i][columnIndex];
 			}
-			outputArrayOrVector.length = rows.length;
 		}
 		
 		private function getNumberFromString(value:String):Number

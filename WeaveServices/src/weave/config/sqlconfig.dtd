@@ -10,7 +10,7 @@
 
 <!ELEMENT connection EMPTY><!-- defines a connection for an SQL server -->
 <!ATTLIST connection name CDATA ""><!-- an identifying name for this connection (used for signing in to the admin console and referenced elsewhere in the xml) -->
-<!ATTLIST connection dbms CDATA #REQUIRED><!-- type of SQL server (dbms = DataBase Management System): mysql, postgresql, ... -->
+<!ATTLIST connection dbms CDATA ""><!-- type of SQL server (dbms = DataBase Management System): mysql, postgresql, ... -->
 <!ATTLIST connection ip CDATA ""><!-- ip address of SQL server -->
 <!ATTLIST connection port CDATA #IMPLIED><!-- port to use when connecting to SQL server -->
 <!ATTLIST connection database CDATA ""><!-- name of database to connect to -->

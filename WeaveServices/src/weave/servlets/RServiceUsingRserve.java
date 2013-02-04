@@ -51,8 +51,6 @@ import weave.utils.ListUtils;
  */
 public class RServiceUsingRserve 
 {
-	private static final long serialVersionUID = 1L;
-
 	public RServiceUsingRserve()
 	{
 	}

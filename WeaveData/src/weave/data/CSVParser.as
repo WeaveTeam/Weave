@@ -208,7 +208,8 @@ package weave.data
 					csvDataArray.splice(iRow, 1);
 			}
 			
-			getCallbackCollection(this).triggerCallbacks();
+			if (asyncMode)
+				getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**

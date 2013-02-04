@@ -85,7 +85,6 @@ public class CategoryReport extends ReportResult
 		
 		//from the columns, get the data only for the subset of keys that will go into the report
 		Iterator<String> reportKeysIter = _reportKeys.iterator();
-		int iReportKey = 0;
 		String dataValueForKey = null; 
 		while (reportKeysIter.hasNext())
 		{			
@@ -110,7 +109,6 @@ public class CategoryReport extends ReportResult
 						
 			//add it to the array and move to next key in the parameter list
 			reportRows.add(reportData);
-			iReportKey++;
 		}
 		//sort
 		Collections.sort(reportRows);		

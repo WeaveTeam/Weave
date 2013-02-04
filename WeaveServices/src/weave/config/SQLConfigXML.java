@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import javax.xml.xpath.XPathFactory;
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -417,6 +419,15 @@ public class SQLConfigXML implements ISQLConfig
 		info.is_superuser = Boolean.parseBoolean(getNonNullValue(map, ConnectionInfo.IS_SUPERUSER));
 		info.folderName = getNonNullValue(map, ConnectionInfo.FOLDERNAME);
 		info.connectString = getNonNullValue(map, ConnectionInfo.CONNECTSTRING);
+		try
+		{
+			if (info.dbms.length() == 0)
+				info.dbms = SQLUtils.getDbmsFromConnectString(info.connectString);
+		}
+		catch (RemoteException e)
+		{
+			// oh well, we tried.
+		}
 		return info;
 	}
 
