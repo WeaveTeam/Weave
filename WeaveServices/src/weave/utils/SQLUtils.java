@@ -85,7 +85,37 @@ public class SQLUtils
 			return "oracle.jdbc.OracleDriver";
 		return "";
 	}
-
+	
+	public static String getDbmsFromConnection(Connection conn)
+	{
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+				if (dbms.equalsIgnoreCase(match))
+					return match;
+			return dbms;
+		}
+		catch (SQLException e)
+		{
+			return "";
+		}
+	}
+	
+	public static String getDbmsFromConnectString(String connectString) throws RemoteException
+	{
+		if (connectString.startsWith("jdbc:jtds"))
+			return SQLSERVER;
+		if (connectString.startsWith("jdbc:oracle"))
+			return ORACLE;
+		if (connectString.startsWith("jdbc:mysql"))
+			return MYSQL;
+		if (connectString.startsWith("jdbc:postgresql"))
+			return POSTGRESQL;
+		
+		throw new RemoteException("Unknown DBMS");
+	}
+	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
 	 * @param ip The IP address of the DBMS.
@@ -263,6 +293,8 @@ public class SQLUtils
 	 */
 	public static Connection getConnection(String driver, String connectString) throws RemoteException
 	{
+		if (driver == null || driver.length() == 0)
+			driver = getDriver(getDbmsFromConnectString(connectString));
 		Connection conn = null;
 		try
 		{
