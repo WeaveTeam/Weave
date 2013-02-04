@@ -24,7 +24,12 @@ package weave.utils
 	
 	import mx.utils.ObjectUtil;
 	
+	import org.osmf.metadata.Metadata;
+	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
+	import weave.api.getLinkableOwner;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
@@ -34,14 +39,12 @@ package weave.utils
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
+	import weave.data.AttributeColumnCache;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	
@@ -482,6 +485,29 @@ package weave.utils
 				// done editing session state
 				getCallbackCollection(columnHashMap).resumeCallbacks();
 			}
+		}
+		
+		/**
+		 * Returns all the values from the column sorted in ascedning order.
+		 * @param column An IattributeColumn with numeric values 
+		 * */
+		public static function getSortedNumbersFromColumn(column:IAttributeColumn):Array
+		{
+			var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
+			
+			if(dataType != 'number')
+				return null;
+			
+			var keys:Array = column ? column.keys : [];
+			var sortedColumn:Array = new Array(keys.length);
+			var i:uint = 0;
+			for each (var key:IQualifiedKey in keys)	
+			{
+				sortedColumn[i] = column.getValueFromKey(key,Number);
+				i = i+1;
+			}
+			AsyncSort.sortImmediately(sortedColumn, ObjectUtil.numericCompare);
+			return sortedColumn;
 		}
 		
 		//todo: (cached) get sorted index from a key and a column
