@@ -85,7 +85,7 @@
 
 			}
 			public var servlet:BNetServlet;
-			public var networkList:Array;
+			public var networkList:Object;
 			private function initializeNetwork():void
 			{
 				servlet = new BNetServlet("http://localhost:8080/WeaveServices/BNetService");
@@ -93,7 +93,7 @@
 				function afterNetworkList(event:ResultEvent)
 				{
 					reportError(event.result);
-					networkList = event.result as Array;
+					networkList = event.result;
 				}
 				servlet.listNetworks().addAsyncResponder(afterNetworkList);
 			}

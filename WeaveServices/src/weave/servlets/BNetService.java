@@ -28,6 +28,9 @@ import java.rmi.RemoteException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+
 import weave.config.WeaveContextParams;
 
 import java.io.FileReader;
@@ -38,8 +41,12 @@ import java.util.Set;
 import java.util.Map;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Collections;
 
+import com.cra.bnet.engine.HuginInferenceEngine;
+import com.cra.bnet.engine.JunctionTreeInferenceEngine;
+import com.cra.bnet.engine.BytecodeInferenceEngine;
 import com.cra.bnet.engine.*;
 import com.cra.shared.graph.*;
 import com.cra.bnet.io.HuginFormat;
@@ -50,12 +57,13 @@ public class BNetService extends GenericServlet
     private Map<String,BayesianNetwork> networks;
 	public BNetService() throws RemoteException
 	{
+        BayesianNetwork.setDefaultInferenceEngine("com.cra.bnet.engine.HuginInferenceEngine");
         networks = new HashMap<String,BayesianNetwork>();
         return;
 	}
     public List<String> listNetworks()
     {
-        return new LinkedList<String>(networks.keySet());
+        return new ArrayList<String>(networks.keySet());
     }
     public String listNodes(String netName)
     {
@@ -99,21 +107,32 @@ public class BNetService extends GenericServlet
         return;
     }
     /* Takes an XML string in XBN format describing the Bayesian network, and returns the network id */
-    public boolean loadNetwork(String path, String withName) throws RemoteException
+    public void loadNetwork(String path, String withName) throws RemoteException
     {
+        if (withName == null || withName.equals(""))
+        {
+            throw new RemoteException("withName must not be empty or null.", null);
+        }
+        if (networks.get(withName) != null)
+        {
+            throw new RemoteException("Network named \'" + withName + "\' already exists.", null);
+        }
         File f = new File(path);
-        if (f.exists())
+        if (!f.exists())
         {
-            System.out.println("Located network file.");
+            throw new RemoteException("Network file named \'" + path + "\' not found.", null);
         }
-
-        BayesianNetwork net = XbnFormat.read(new File(path));
-        if (withName != null && !withName.equals(""))
+        BayesianNetwork net = null;
+        try {
+            net = XbnFormat.read(new File(path));
+            if (net == null)
+                throw new Exception("Network failed to load.");
+        }
+        catch (Exception e)
         {
-            net.setName(withName);
+            throw new RemoteException("Failed to load network.",e);
         }
-        networks.put(net.getName(), net);
-        return true;
+        networks.put(withName, net);
     }
     
 

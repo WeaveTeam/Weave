@@ -10,7 +10,7 @@
     <target name="build">
 		<echo message="Compiling ${ant.project.name}..."/>
         <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath" debug="true"/>
         <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
     </target>
     <target name="dist" depends="build">

@@ -53,13 +53,13 @@ package weave.services
 		{
 			return servlet.invokeAsyncMethod("loadNetwork", arguments) as DelayedAsyncInvocation;
 		}
-		public function listEdges():DelayedAsyncInvocation
+		public function listEdges(networkName:String):DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("listEdges") as DelayedAsyncInvocation;
+			return servlet.invokeAsyncMethod("listEdges", arguments) as DelayedAsyncInvocation;
 		}
-		public function listNodes():DelayedAsyncInvocation
+		public function listNodes(netName:String):DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("listNodes") as DelayedAsyncInvocation;
+			return servlet.invokeAsyncMethod("listNodes", arguments) as DelayedAsyncInvocation;
 		}
 		public function postEvidence(netName:String, nodeName:String, value:Number):DelayedAsyncInvocation
 		{

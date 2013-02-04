@@ -365,6 +365,7 @@ package weave.graphs
 		protected function handleLayoutResult(event:ResultEvent, token:Object = null):void
 		{
 			// do nothing if this wasn't the last R call
+			debugTrace(arguments);
 			var rId:int = (token as RToken).id;
 			if (rId != _rId)
 				return;
