@@ -33,14 +33,7 @@
 	</mx:Sequence>
 	<mx:Script>
 		<![CDATA[
-			import weave.ui.infomap.ui.TopicNodeSettingComponent;
-			import weave.ui.infomap.ui.TagCloudSettingComponent;
-			import weave.ui.infomap.ui.BasicSettingsComponent;
-			import weave.ui.ControlPanel;
 			import flash.events.MouseEvent;
-			
-			import spark.accessibility.ToggleButtonAccImpl;
-			
 			import flash.geom.Point;
 			import flash.net.URLRequest;
 			import flash.net.navigateToURL;
@@ -73,6 +66,8 @@
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			
+			import spark.accessibility.ToggleButtonAccImpl;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -114,7 +109,9 @@
 			import weave.primitives.DateRangeFilter;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
+			import weave.services.InfoMapAdminInterface;
 			import weave.services.beans.TopicClassificationResults;
+			import weave.ui.ControlPanel;
 			import weave.ui.CustomLabel;
 			import weave.ui.DraggablePanel;
 			import weave.ui.ResizableBox;
@@ -123,6 +120,7 @@
 			import weave.ui.infomap.core.InfoMapNode;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.ui.BasicSettingsComponent;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
 			import weave.ui.infomap.ui.DocumentList;
@@ -132,8 +130,10 @@
 			import weave.ui.infomap.ui.PointsLayout;
 			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
+			import weave.ui.infomap.ui.TagCloudSettingComponent;
 			import weave.ui.infomap.ui.ThumbnailsLayout;
 			import weave.ui.infomap.ui.TopicNodeComponent;
+			import weave.ui.infomap.ui.TopicNodeSettingComponent;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ComputationalGeometryUtils;
@@ -413,6 +413,10 @@
 				var isQueryDifferent:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),
 					WeaveAPI.SessionManager.getSessionState(currentQuery));
 								
+				/* Make query to get number of documents */
+				if(_parentPanel.relatedKeywords.value)
+					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+
 				if(isQueryDifferent)
 				{
 					/* remove all documents */
@@ -426,19 +430,29 @@
 					hideIcons();
 					
 					prevNewDocsCount.value = 0;
+					
 				}
+				DelayedAsyncResponder.addResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResults(currentQuery.keywords.value.split(','),relatedKeywords),
+					handleTotalResults,handleTotalResultsFault);
 				
 				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
 				wordCount = [];
 				
-				/* Make query to get number of documents */
-				if(_parentPanel.relatedKeywords.value)
-					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 				
 				DelayedAsyncResponder.addResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+				
+			}
+			
+			private function handleTotalResults(event:ResultEvent,token:Object=null):void
+			{
+					Alert.show(event.result.toString(),"YES");
+			}
+			
+			private function handleTotalResultsFault(event:FaultEvent,token:Object=null):void
+			{
 				
 			}
 			
@@ -950,7 +964,7 @@
 				/* if there more than 1000 entities we will only show entity distribution for selected entities */
 				if(keys.length > 1000)
 				{
-					keys = requiredKeywords;					
+				 return;					
 				}
 				
 				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
