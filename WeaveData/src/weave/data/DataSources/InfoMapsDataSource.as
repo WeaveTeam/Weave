@@ -142,10 +142,10 @@ package weave.data.DataSources
 			return getColumnValueForURL("date_added",url) as String;
 		}
 		
-		public function queryDataSources(queryTerms:Array):void
-		{
-			InfoMapAdminInterface.instance.queryDataSources(queryTerms);
-		}
+//		public function queryDataSources(queryTerms:Array):void
+//		{
+//			InfoMapAdminInterface.instance.queryDataSources(queryTerms);
+//		}
 		
 		public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,
 									 dateFilter:DateRangeFilter=null):AsyncToken

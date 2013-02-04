@@ -1,5 +1,6 @@
 package infomap.admin;
 
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -8,11 +9,15 @@ import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
 
+import com.mendeley.oapi.common.PagedList;
 import com.mendeley.oapi.schema.Document;
 import com.mendeley.oapi.schema.Person;
+import com.mendeley.oapi.services.MendeleyException;
 import com.mendeley.oapi.services.MendeleyServiceFactory;
 import com.mendeley.oapi.services.SearchService;
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.ParseException;
+
+import flex.messaging.io.ArrayList;
 
 public class MendeleyDataSource extends AbstractDataSource {
 	
@@ -28,108 +33,161 @@ public class MendeleyDataSource extends AbstractDataSource {
 	String getSourceName() {
 		return SOURCE_NAME;
 	}
-
+	
+	private static int numberOfDocumentsPerRequest = 20;
+	
+	private String generateQuery(String requiredTerm)
+	{
+		String result = "\"" + requiredTerm + "\"";
+		
+		/* If no related terms return only required term*/
+		if(relatedQueryTerms == null || relatedQueryTerms.length == 0)
+		{
+			return result;
+		}
+		
+		result +=  " AND (";
+		
+		for (int i = 0; i <relatedQueryTerms.length; i++)
+		{
+			result = result + "\""+relatedQueryTerms[i]+"\"";
+			
+			if(i != relatedQueryTerms.length-1)
+			{
+				result = result + " OR ";
+			}
+		}
+		
+		result = result + ")";
+		try
+		{
+			result = URLEncoder.encode(result, "UTF-8");
+		}catch (Exception e) {
+			System.out.println("Error encoding URL");
+		}
+		return result;
+	}
+	
+	private long getNumberOfPagesForQuery(String requiredTerm)
+	{
+		String queryString = generateQuery(requiredTerm);
+		
+		MendeleyServiceFactory factory = MendeleyServiceFactory.newInstance(CONSUMER_KEY, CONSUMER_SECRET);
+		SearchService service = factory.createSearchService();
+		
+		PagedList<Document> l = service.search(queryString,0,numberOfDocumentsPerRequest);
+		
+		return l.totalPages();
+	}
+	
 	@Override
-	SolrInputDocument[] searchForQuery(String operator) throws ParseException{
+	long getTotalNumberOfQueryResults() {
+		//always return 20 for now.
+		return 20;
+	}
+	
+	@Override
+	SolrInputDocument[] searchForQuery() throws ParseException{
 
 		MendeleyServiceFactory factory = MendeleyServiceFactory.newInstance(CONSUMER_KEY, CONSUMER_SECRET);
 		SearchService service = factory.createSearchService();
 		
-		//parsing the query
-		String queryString = "";
-		
-		for (int i =0; i <query.length; i++)
+		List<SolrInputDocument> results = new ArrayList();
+		for (int i = 0; i< requiredQueryTerms.length; i++)
 		{
-			queryString += query[i];
+			//long totalPages = getNumberOfPagesForQuery(requiredQueryTerms[i]);
+			long totalPages = 1; /* There is a 500 requests per hour limit for document details request. So we take only top 20 docs */
 			
-			//encoding space
-			if(i!=query.length -1)
+			for(int j=0; j < totalPages; j++)
 			{
-				queryString += "+";
-			}
-		}
-		
-		
-		List<Document> documents = service.search(queryString);
-		
-		SolrInputDocument[] results = new SolrInputDocument[documents.size()];
-		
-		if(documents.size() == 0)
-		{
-			return results;
-		}
-		int count = 0;
-		
-		for (int k=0; k<documents.size(); k++) {
-			//Document d = service.getDocumentDetails(document.getId());
-			
-			Document document = documents.get(k);
-			
-			SolrInputDocument d = new SolrInputDocument();
-			
-			if(document.getTitle() == null)
-				continue;
-			
-			if(document.getMendeleyUrl() == null)
-				continue;
-			
-			//setting title string by appending document tile and authors if any
-			String authors = "";
-			
-			List<Person> authorsList= document.getAuthors();
-			
-			if(authorsList !=null && authorsList.size() != 0)
-			{
-				Iterator<Person> persons = authorsList.iterator();
+				//parsing the query
+				String queryString = generateQuery(requiredQueryTerms[i]);
 				
-				while(persons.hasNext())
+				PagedList<Document> documents = service.search(queryString,j,numberOfDocumentsPerRequest);
+				
+				if(documents.size() == 0)
 				{
-					authors += persons.next().toString() + ",";
+					return results.toArray(new SolrInputDocument[results.size()]);
 				}
 				
-				//remove last comma
-				authors.substring(0, authors.length()-2);
-			}
-			
-			String title = document.getTitle();
-			
-			if(!authors.equals(""))
-				title += " by " + authors;
-			d.addField("title", title);
-			
-			d.addField("link", document.getMendeleyUrl());
-
-			String docAbstract = service.getDocumentAbstractFromUUID(document.getUuid());
-			
-			if(docAbstract !=null)
-				d.addField("description", docAbstract);
-			
-			//setting date published to start of year of publication
-			String yy ="";
-			try{
-				if(document.getYear() != 0)
+				for (int k=0; k<documents.size(); k++) 
 				{
-					yy = String.valueOf(document.getYear());
-					String mm = "01";
-					String dd = "01";
-					DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-					String pubDate = yy +"-"+ mm+"-"+dd+"T00:00:00Z";
-					Date date_published = format.parse(pubDate); 
+					//Document d = service.getDocumentDetails(document.getId());
+					
+					Document document = documents.get(k);
+					
+					SolrInputDocument d = new SolrInputDocument();
+					
+					if(document.getTitle() == null)
+						continue;
+					
+					if(document.getMendeleyUrl() == null)
+						continue;
+					
+					//setting title string by appending document tile and authors if any
+					String authors = "";
+					
+					List<Person> authorsList= document.getAuthors();
+					
+					if(authorsList !=null && authorsList.size() != 0)
+					{
+						Iterator<Person> persons = authorsList.iterator();
 						
-					d.addField("date_published", date_published);
+						while(persons.hasNext())
+						{
+							authors += persons.next().toString() + ",";
+						}
+						
+						//remove last comma
+						authors.substring(0, authors.length()-2);
+					}
+					
+					String title = document.getTitle();
+					
+					if(!authors.equals(""))
+						title += " by " + authors;
+					d.addField("title", title);
+					
+					d.addField("link", document.getMendeleyUrl());
+					
+					try{
+						
+						String docAbstract = service.getDocumentAbstractFromUUID(document.getUuid());
+						if(docAbstract !=null)
+							d.addField("description", docAbstract);
+					}catch (MendeleyException e)
+					{
+						System.out.println("Error Querying Mendeley Service : " + e.getMessage());
+						return null;
+					}
+					
+					//setting date published to start of year of publication
+					String yy ="";
+					try{
+						if(document.getYear() != 0)
+						{
+							yy = String.valueOf(document.getYear());
+							String mm = "01";
+							String dd = "01";
+							DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+							String pubDate = yy +"-"+ mm+"-"+dd+"T00:00:00Z";
+							Date date_published = format.parse(pubDate); 
+							
+							d.addField("date_published", date_published);
+						}
+					}catch(Exception e){
+						System.out.println("Exception parsing date in Medeley Data Source");
+					}
+					
+					//setting date_added to current date
+					Date date_added = new Date();
+					d.addField("date_added", date_added);			
+					
+					results.add(d);
 				}
-			}catch(Exception e){
-				System.out.println("Exception parsing date in Medeley Data Source");
 			}
 			
-			//setting date_added to current date
-			Date date_added = new Date();
-			d.addField("date_added", date_added);			
-			
-			results[count]= d;
-			count++;	
 		}
-		return results;
+		return results.toArray(new SolrInputDocument[results.size()]);
 	}
-	
 }

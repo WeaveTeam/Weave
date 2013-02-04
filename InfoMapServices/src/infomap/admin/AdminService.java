@@ -1433,18 +1433,42 @@ public class AdminService extends GenericServlet {
 
 		return result;
 	}
-
-	public void queryDataSources(String[] queryTerms) {
+	
+	public long getTotalNumberOfQueryResults(String[] requiredQueryTerms, String[] relatedQueryTerms)
+	{
+		long result=0;
 		MendeleyDataSource mds = new MendeleyDataSource();
-		mds.query = queryTerms.clone();
+		mds.requiredQueryTerms= requiredQueryTerms.clone();
+		mds.relatedQueryTerms = relatedQueryTerms.clone();
+		result = result + mds.getTotalNumberOfQueryResults();
+		
+		ArxivDataSource ads = new ArxivDataSource();
+		ads.requiredQueryTerms = requiredQueryTerms.clone();
+		ads.relatedQueryTerms = relatedQueryTerms.clone();
+		result = result + ads.getTotalNumberOfQueryResults();
+		
+		BaseDataSource bds = new BaseDataSource();
+		bds.requiredQueryTerms = requiredQueryTerms.clone();
+		bds.relatedQueryTerms = relatedQueryTerms.clone();
+		result = result + bds.getTotalNumberOfQueryResults();
+		
+		return result;
+	}
+	
+	public void queryDataSources(String[] requiredQueryTerms, String[] relatedQueryTerms) {
+		MendeleyDataSource mds = new MendeleyDataSource();
+		mds.requiredQueryTerms= requiredQueryTerms.clone();
+		mds.relatedQueryTerms = relatedQueryTerms.clone();
 		mds.solrServerURL = solrServerUrl;
 
 		ArxivDataSource ads = new ArxivDataSource();
-		ads.query = queryTerms.clone();
+		ads.requiredQueryTerms = requiredQueryTerms.clone();
+		ads.relatedQueryTerms = relatedQueryTerms.clone();
 		ads.solrServerURL = solrServerUrl;
 
 		BaseDataSource bds = new BaseDataSource();
-		bds.query = queryTerms.clone();
+		bds.requiredQueryTerms = requiredQueryTerms.clone();
+		bds.relatedQueryTerms = relatedQueryTerms.clone();
 		bds.solrServerURL = solrServerUrl;
 
 		executor.execute(ads);

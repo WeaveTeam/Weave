@@ -16,7 +16,9 @@ import org.apache.solr.common.SolrInputDocument;
 public abstract class AbstractDataSource implements Runnable
 {
 	
-	public String[] query;
+	public String[] requiredQueryTerms;
+	
+	public String[] relatedQueryTerms;
 	
 	public String solrServerURL;
 	/**
@@ -31,7 +33,13 @@ public abstract class AbstractDataSource implements Runnable
 	 * @param query the query terms to search for
 	 * @return An array of SolrInputDocument 
 	 */
-	abstract SolrInputDocument[] searchForQuery(String operator);
+	abstract SolrInputDocument[] searchForQuery();
+	
+	/**
+	 * Returns total number of results for given query terms 
+	 */
+	abstract long getTotalNumberOfQueryResults();
+	
 	
 	/**
 	 * This function should be called after getting the search results for a query
@@ -73,9 +81,9 @@ public abstract class AbstractDataSource implements Runnable
 	public void run()
 	{
 		System.out.println("IN RUN for " + getSourceName() );
-		if(query.length>0)
+		if(requiredQueryTerms.length>0)
 		{
-			SolrInputDocument[] results = searchForQuery("AND");
+			SolrInputDocument[] results = searchForQuery();
 			updateSolrServer(results);
 		}else
 		{

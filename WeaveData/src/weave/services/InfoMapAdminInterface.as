@@ -225,10 +225,17 @@ package weave.services
 				return query;
 			}
 			
-			public function queryDataSources(queryTerms:Array):void
+			public function queryDataSources(requiredQueryTerms:Array,relatedQueryTerms:Array):void
 			{
-				var query:AsyncToken = generateQueryAndRun("queryDataSources",[queryTerms]);
+				var query:AsyncToken = generateQueryAndRun("queryDataSources",[requiredQueryTerms,relatedQueryTerms]);
 			}
+			
+			public function getTotalNumberOfQueryResults(requiredQueryTerms:Array,relatedQueryTerms:Array):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("getTotalNumberOfQueryResults",[requiredQueryTerms,relatedQueryTerms]);
+				return query;
+			}
+			
 			
 			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String):AsyncToken
 			{
