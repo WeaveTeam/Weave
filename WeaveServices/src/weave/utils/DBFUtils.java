@@ -39,10 +39,6 @@ import org.geotools.data.shapefile.dbf.DbaseFileReader;
  * @author skolman
  * @author adufilie
  */
-/**
- * @author Andy
- *
- */
 public class DBFUtils
 {
 	/**
@@ -68,15 +64,15 @@ public class DBFUtils
 	
 	/**
 	 * Tests a combined column for uniqueness across several files
-	 * @param dbfFile
+	 * @param dbfFiles
 	 * @param columnNames
 	 * @return 
 	 * @throws IOException
 	 */
-	public static boolean isColumnUnique(File[] dbfFile, String[] columnNames) throws IOException
+	public static boolean isColumnUnique(File[] dbfFiles, String[] columnNames) throws IOException
 	{
 		Set<Object> set = new HashSet<Object>();
-		for (File file : dbfFile)
+		for (File file : dbfFiles)
 		{
 			Object[][] rows = getDBFData(file, columnNames);
 			for (int i = 0; i < rows.length; i++)
@@ -120,9 +116,16 @@ public class DBFUtils
 			Object[] row;
 			if (fieldNames != null)
 			{
+				dbfReader.read();
 				row = new Object[fieldNames.length];
 				for (int i = 0; i < fieldNames.length; i++)
-					row[i] = dbfReader.readField(allFields.indexOf(fieldNames[i]));
+				{
+					int index = allFields.indexOf(fieldNames[i]);
+					if (index < 0)
+						row[i] = "";
+					else
+						row[i] = dbfReader.readField(index);
+				}
 			}
 			else
 			{

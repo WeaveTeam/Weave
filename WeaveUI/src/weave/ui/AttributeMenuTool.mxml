@@ -47,7 +47,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
 				<mx:VBox visible="{showPlayButtonCheck.selected}" includeInLayout="{showPlayButtonCheck.selected}" horizontalAlign="center">
-					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="lastFrame = getTimer() - 1000 / playSlider.value / 2;"/>
+					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
 					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
 				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
@@ -76,9 +76,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
 										dataProvider="{layouts}"/>
 						<HelpComponent content="{lang('Select the layout for the attribute menu.')}"/>
-						<mx:CheckBox id="showPlayButtonCheck" label="Show play button"
-									 visible="{layoutCombo.selectedItem == 'HSlider'}"
-									 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+						<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
+								 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
+							<mx:CheckBox id="showPlayButtonCheck" label="Show play button"
+										 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+							<mx:CheckBox id="autoPlayRepeatCheck" label="Loop"
+										 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
+						</mx:HBox>
 					</Indent>
 				</mx:VBox>
 			</mx:HBox>
@@ -124,6 +128,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
+			private function handlePlayClick():void
+			{
+				lastFrame = getTimer() - 1000 / playSlider.value / 2;
+				
+				// when play is started, repeat is off, and last attr is selected, select first attr.
+				if (playButton.selected && !autoPlayRepeat.value)
+				{
+					var n:int = choices.getNames().length;
+					if (choiceHSlider.value == n - 1)
+					{
+						lastFrame = getTimer();
+						handleAttrSelected(0);
+					}
+				}
+			}
+			
 			private var lastFrame:int = 0;
 			private function enterFrame(event:Event):void
 			{
@@ -135,7 +155,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (lastFrame == 0 || getTimer() > lastFrame + 1000 / playSlider.value)
 					{
 						if (lastFrame)
-							handleAttrSelected((choiceHSlider.value + 1) % choices.getNames().length);
+						{
+							var n:int = choices.getNames().length;
+							if (choiceHSlider.value == n - 1 && !autoPlayRepeat.value)
+							{
+								playButton.selected = false;
+							}
+							else
+							{
+								handleAttrSelected((choiceHSlider.value + 1) % n);
+							}
+						}
 						lastFrame = getTimer();
 					}
 				}
@@ -153,7 +183,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
-			public const showPlayButton:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			// used to label the choices
 			private function choiceLabelFunction(column:IAttributeColumn):String
@@ -212,6 +243,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				targetTool.addImmediateCallback(this, handleTargetToolChange, true);
 				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addImmediateCallback(this, handleChoicesChange, true);
+				showPlayButton.addImmediateCallback(this, stopPlay);
 				
 				choicesComponent.hashMap = choices;
 				
@@ -221,8 +253,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				callLater(showControlPanelIfNothingSelected);
 			}
 			
+			private function stopPlay():void
+			{
+				playButton.selected = false;
+			}
+			
 			private function handleLayoutMode():void
 			{
+				stopPlay();
 				layoutViewStack.selectedIndex = layouts.indexOf(layoutMode.value);
 			}
 			

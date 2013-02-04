@@ -85,7 +85,37 @@ public class SQLUtils
 			return "oracle.jdbc.OracleDriver";
 		return "";
 	}
-
+	
+	public static String getDbmsFromConnection(Connection conn)
+	{
+		try
+		{
+			String dbms = conn.getMetaData().getDatabaseProductName();
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+				if (dbms.equalsIgnoreCase(match))
+					return match;
+			return dbms;
+		}
+		catch (SQLException e)
+		{
+			return "";
+		}
+	}
+	
+	public static String getDbmsFromConnectString(String connectString) throws RemoteException
+	{
+		if (connectString.startsWith("jdbc:jtds"))
+			return SQLSERVER;
+		if (connectString.startsWith("jdbc:oracle"))
+			return ORACLE;
+		if (connectString.startsWith("jdbc:mysql"))
+			return MYSQL;
+		if (connectString.startsWith("jdbc:postgresql"))
+			return POSTGRESQL;
+		
+		throw new RemoteException("Unknown DBMS");
+	}
+	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
 	 * @param ip The IP address of the DBMS.
@@ -263,6 +293,8 @@ public class SQLUtils
 	 */
 	public static Connection getConnection(String driver, String connectString) throws RemoteException
 	{
+		if (driver == null || driver.length() == 0)
+			driver = getDriver(getDbmsFromConnectString(connectString));
 		Connection conn = null;
 		try
 		{
@@ -1510,7 +1542,7 @@ public class SQLUtils
 		String dbms = conn.getMetaData().getDatabaseProductName();
 		Statement stmt = null;
 		String quotedTable = quoteSchemaTable(conn, sqlSchema, sqlTable);
-
+		String query = "";
 		try
 		{
 			if (dbms.equalsIgnoreCase(SQLUtils.MYSQL))
@@ -1523,7 +1555,7 @@ public class SQLUtils
 						));
 				stmt.close();
 			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE) || dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
 			{
 				// Insert each row repeatedly
 				boolean prevAutoCommit = conn.getAutoCommit();
@@ -1531,7 +1563,7 @@ public class SQLUtils
 					conn.setAutoCommit(false);
 				
 				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
-				String query = "", tempQuery = "INSERT INTO %s values (";
+				String tempQuery = "INSERT INTO %s values (";
 				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
 				{
 					if (column == rows[0].length - 1)
@@ -1545,24 +1577,31 @@ public class SQLUtils
 				CallableStatement cstmt = null;
 				try
 				{
-					cstmt = conn.prepareCall(query);;
+					cstmt = conn.prepareCall(query);
 
 					for (int row = 1; row < rows.length; row++) //Skip header line
 					{
-						for (int column = 0; column < rows[row].length; column++)
+						for (int column = 0; column < rows[0].length; column++)
 						{
-							cstmt.setString(column+1, rows[row][column]);
+							if (column < rows[row].length)
+								cstmt.setString(column+1, rows[row][column]);
+							else
+								cstmt.setString(column+1, null);
 						}
 						cstmt.execute();
 					}
 				}
 				catch (SQLException e)
 				{
+					conn.rollback();
+					System.err.println(query);
 					throw new RemoteException(e.getMessage(), e);
 				}
 				finally
 				{
 					SQLUtils.cleanup(cstmt);
+					
+					conn.setAutoCommit(prevAutoCommit);
 				}
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
@@ -1570,16 +1609,6 @@ public class SQLUtils
 				((PGConnection) conn).getCopyAPI().copyIn(
 						String.format("COPY %s FROM STDIN WITH CSV HEADER", quotedTable),
 						new FileInputStream(formatted_CSV_path));
-			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
-			{
-				stmt = conn.createStatement();
-
-				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
-				stmt.executeUpdate(String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
-						quotedTable, formatted_CSV_path, SQL_SERVER_DELIMETER
-					));
 			}
 		}
 		finally 
@@ -1621,8 +1650,6 @@ public class SQLUtils
 		}
 	}
 	
-	private static final char SQL_SERVER_DELIMETER = (char)8;
-	
 	public static void generateCSV(Connection conn, String[][] csvData, File output) throws SQLException, IOException
 	{
 		FileWriter writer = new FileWriter(output);
@@ -1637,18 +1664,8 @@ public class SQLUtils
 			}
 		}
 		
-		String dbms = conn.getMetaData().getDatabaseProductName();
-		if (SQLSERVER.equalsIgnoreCase(dbms))
-		{
-			// special case for Microsoft SQL Server because it does not support quotes.
-			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
-			parser.createCSV(csvData, false, writer);
-		}
-		else
-		{
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
-		}
+		boolean quoteEmptyStrings = outputNullValue.length() > 0;
+		CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
 		
 		writer.flush();
 		writer.close();

@@ -26,6 +26,7 @@
 			xmlns="weave.ui.admin.wizards.*" 
 			label="Import CSV data to Weave"
 			creationComplete="handleCreationComplete()"
+			addedToStage="handleAddedToStage()"
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
@@ -132,9 +133,14 @@
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerFileViewer = null;
 			
+			private function handleAddedToStage():void
+			{
+				callLater(parent.addChild, [busyIndicator]);
+				hideBusy();
+			}
+			
 			private function handleCreationComplete():void
 			{
-				addChild(busyIndicator);
 				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
 				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);

@@ -88,7 +88,7 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="lib/GeometryStreamConverter.jar">
+	<classpathentry exported="true" kind="lib" path="lib/GeometryStreamConverter.jar" sourcepath="/GeometryStreamConverter/src">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
