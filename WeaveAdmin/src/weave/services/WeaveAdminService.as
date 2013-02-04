@@ -19,8 +19,6 @@
 
 package weave.services
 {
-	import avmplus.DescribeType;
-	
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
@@ -36,7 +34,10 @@ package weave.services
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
+	
+	import avmplus.DescribeType;
 	
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -238,13 +239,17 @@ package weave.services
 		}
 		
 		// this function displays an error message from a FaultEvent in an Alert box.
-		public function alertFault(event:FaultEvent, token:Object = null):void
+		private function alertFault(event:FaultEvent, token:Object = null):void
 		{
 			var query:AsyncToken = token as AsyncToken;
 			
 			var paramDebugStr:String = '';
-			if (query.parameters.length > 0)
+			
+			if (query.parameters is Array && query.parameters.length > 0)
 				paramDebugStr = '"' + query.parameters.join('", "') + '"';
+			else
+				paramDebugStr += ObjectUtil.toString(query.parameters);
+			
 			trace(StringUtil.substitute(
 					"Received error on {0}({1}):\n\t{2}",
 					query.methodName,
