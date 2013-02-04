@@ -1019,12 +1019,26 @@ public class SQLUtils
 				
 				String quotedTriggerName = quoteSchemaTable(ORACLE, schemaName, "trigger_" + unquotedSequenceName);
 				String quotedIdColumn = quoteSymbol(ORACLE, columnNames.get(oraclePrimaryKeyColumn));
-				query = String.format(
-					"create or replace trigger %s before insert on %s for each row " +
-					"when (new.%s is null) begin select %s.nextval into :new.%s from dual; end;",
-					quotedTriggerName, quotedSchemaTable,
-					quotedIdColumn, quotedSequenceName, quotedIdColumn
-				);
+				// http://earlruby.org/2009/01/creating-auto-increment-columns-in-oracle/
+				query = String.format("create or replace trigger %s\n", quotedTriggerName) +
+					String.format("before insert on %s\n", quotedSchemaTable) +
+					              "for each row\n" +
+					              "declare\n" +
+					              "  max_id number;\n" +
+					              "  cur_seq number;\n" +
+					              "begin\n" +
+					String.format("  if :new.%s is null then\n", quotedIdColumn) +
+					String.format("    select %s.nextval into :new.%s from dual;\n", quotedSequenceName, quotedIdColumn) +
+					              "  else\n" +
+					String.format("    select greatest(nvl(max(%s),0), :new.%s) into max_id from %s;\n", quotedIdColumn, quotedIdColumn, quotedSchemaTable) +
+					String.format("    select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
+					              "    while cur_seq < max_id\n" +
+					              "    loop\n" +
+					String.format("      select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
+					              "    end loop;\n" +
+					              "  end if;\n" +
+					              "end;\n";
+					
 				stmt.executeUpdate(query);
 			}
 		}
