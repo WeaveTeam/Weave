@@ -190,12 +190,12 @@ package weave.services
 			Admin.service.updateEntity(id, diff);
 			invalidate(id);
         }
-        public function add_category(label:String, parentId:int):void
+        public function add_category(label:String, parentId:int, index:int):void
         {
 			var type:int = parentId == ROOT_ID ? Entity.TYPE_HIERARCHY : Entity.TYPE_CATEGORY;
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata[ColumnMetadata.TITLE] = label;
-			Admin.service.newEntity(type, em, parentId);
+			Admin.service.newEntity(type, em, parentId, index);
 			invalidate(parentId);
         }
         public function delete_entity(id:int):void

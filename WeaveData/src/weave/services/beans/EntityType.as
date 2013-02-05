@@ -22,9 +22,9 @@ package weave.services.beans
 	public class EntityType
 	{
 		public static const ANY:int = -1;
-		public static const HIERARCHY:int = 0;
-		public static const TABLE:int = 1;
-		public static const CATEGORY:int = 2;
-		public static const COLUMN:int = 3;
+		public static const TABLE:int = 0;
+		public static const COLUMN:int = 1;
+		public static const HIERARCHY:int = 2;
+		public static const CATEGORY:int = 3;
 	}
 }

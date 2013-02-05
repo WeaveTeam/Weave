@@ -589,10 +589,10 @@ public class AdminService
 		getDataConfig().removeChild(parentId, childId);
 	}
 
-	public int newEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId) throws RemoteException
+	public int newEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId, int insertAtIndex) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		return getDataConfig().newEntity(entityType, meta, parentId, DataConfig.NULL);
+		return getDataConfig().newEntity(entityType, meta, parentId, insertAtIndex);
 	}
 
 	public int[] removeEntities(String user, String password, int[] entityIds) throws RemoteException

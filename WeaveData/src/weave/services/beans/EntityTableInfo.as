@@ -30,9 +30,6 @@ package weave.services.beans
 			for (var name:String in obj)
 				if (this.hasOwnProperty(name))
 					this[name] = obj[name];
-			
-			if (title == null)
-				title = "DataTable#" + id;
 		}
 	}
 }

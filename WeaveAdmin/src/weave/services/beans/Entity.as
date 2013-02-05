@@ -51,16 +51,16 @@ package weave.services.beans
 		{
 			if (_type == TYPE_ANY)
 				return null;
-			var typeInts:Array = [TYPE_HIERARCHY, TYPE_TABLE, TYPE_COLUMN, TYPE_CATEGORY];
-			var typeStrs:Array = ['Hierarchy','Table','Column','Category'];
+			var typeInts:Array = [TYPE_TABLE, TYPE_COLUMN, TYPE_HIERARCHY, TYPE_CATEGORY];
+			var typeStrs:Array = [lang('Table'), lang('Column'), lang('Hierarchy'), lang('Category')];
 			return typeStrs[typeInts.indexOf(_type)];
 		}
 		
 		public static const TYPE_ANY:int = -1;
-		public static const TYPE_TABLE:int = 1;
-		public static const TYPE_COLUMN:int = 3;
-		public static const TYPE_HIERARCHY:int = 0;
-		public static const TYPE_CATEGORY:int = 2;
+		public static const TYPE_TABLE:int = 0;
+		public static const TYPE_COLUMN:int = 1;
+		public static const TYPE_HIERARCHY:int = 2;
+		public static const TYPE_CATEGORY:int = 3;
 		
 		public static function getEntityIdFromResult(result:Object):int
 		{

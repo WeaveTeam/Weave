@@ -395,7 +395,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(removeParentChildRelationship, arguments);
 		}
-		public function newEntity(entityType:int, metadata:EntityMetadata, parentId:int):AsyncToken
+		public function newEntity(entityType:int, metadata:EntityMetadata, parentId:int, index:int):AsyncToken
 		{
 			return invokeAdminWithLogin(newEntity, arguments);
 		}

@@ -582,10 +582,10 @@ public class DataConfig
 		public int type;
 		
 		public static final int TYPE_UNSPECIFIED = NULL;
-        public static final int TYPE_HIERARCHY = 0;
-		public static final int TYPE_DATATABLE = 1;
-		public static final int TYPE_CATEGORY = 2;
-		public static final int TYPE_COLUMN = 3;
+		public static final int TYPE_DATATABLE = 0;
+		public static final int TYPE_COLUMN = 1;
+		public static final int TYPE_HIERARCHY = 2;
+		public static final int TYPE_CATEGORY = 3;
 		
 	    public static boolean parentChildRelationshipAllowed(int parentType, int childType)
 	    {

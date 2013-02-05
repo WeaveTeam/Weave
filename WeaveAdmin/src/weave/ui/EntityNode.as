@@ -10,6 +10,7 @@ package weave.ui
     import weave.services.Admin;
     import weave.services.EntityCache;
     import weave.services.beans.Entity;
+    import weave.services.beans.EntityMetadata;
     import weave.services.beans.EntityTableInfo;
     import weave.services.beans.EntityType;
 
@@ -46,38 +47,43 @@ package weave.ui
 		public function get label():String
 		{
 			if (!Admin.instance.userHasAuthenticated)
-				return 'Not logged in';
+				return lang('Not logged in');
 			
 			var tableInfo:EntityTableInfo = Admin.entityCache.getDataTableInfo(id);
 			if (tableInfo != null)
 			{
+				var tableTitle:String = tableInfo.title || lang("Untitled Table#{0}", tableInfo.id);
+				
 				// this is a table node, so avoid calling getEntity()
-				var str:String = StringUtil.substitute("{0} ({1})", tableInfo.title, tableInfo.numChildren);
+				var str:String = lang("{0} ({1})", tableTitle, tableInfo.numChildren);
 				
 				if (debug)
-					str = "(Table#" + tableInfo.id + ") " + str;
+					str = lang("(Table#{0}) {1}", tableInfo.id, str);
 				
 				return str;
 			}
 			
-			var info:Entity = getEntity();
+			var entity:Entity = getEntity();
 			
-			var title:String = info.publicMetadata[ColumnMetadata.TITLE];
+			var title:String = entity.publicMetadata[ColumnMetadata.TITLE];
 			if (!title)
 			{
-				var name:String = info.publicMetadata['name'];
+				var name:String = entity.publicMetadata['name'];
 				if (name)
 					title = '[name: ' + name + ']';
 			}
-				
+			
+			if (!title)
+				title = lang("{0}#{1}", entity.getTypeString(), entity.id);
+			
 			if (debug)
 			{
 				if (!title)
 					title = '[untitled]';
 				
-				var typeStr:String = info.getTypeString();
+				var typeStr:String = entity.getTypeString();
 				var childrenStr:String = '';
-				if (info.type != Entity.TYPE_COLUMN)
+				if (entity.type != Entity.TYPE_COLUMN)
 					childrenStr = '; ' + children.length + ' children';
 				var idStr:String = '(' + typeStr + "#" + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
