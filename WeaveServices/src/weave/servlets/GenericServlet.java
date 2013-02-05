@@ -580,7 +580,7 @@ public class GenericServlet extends HttpServlet
 		
 		long endTime = System.currentTimeMillis();
 		// debug
-//		if (endTime - startTime > 1000)
+		if (endTime - startTime > 1000)
 			System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(methodParameters)));
     }
     
