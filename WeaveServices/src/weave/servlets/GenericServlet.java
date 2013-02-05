@@ -417,6 +417,14 @@ public class GenericServlet extends HttpServlet
 				{
 					value = Integer.parseInt((String)value);
 				}
+				else if (type == float.class || type == Float.class)
+				{
+					value = Float.parseFloat((String)value);
+				}
+				else if (type == double.class || type == Double.class)
+				{
+					value = Double.parseDouble((String)value);
+				}
 				else if (type == boolean.class || type == Boolean.class)
 				{
 					value = ((String)(value)).equalsIgnoreCase("true");
