@@ -26,6 +26,7 @@ package weave.visualization.layers
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
@@ -92,10 +93,7 @@ package weave.visualization.layers
 			plotManager.layerSettings.delayCallbacks();
 			
 			var dynamicState:Object;
-			var removeMissingDynamicObjects:Boolean = true;
-			for each (dynamicState in array)
-				if (dynamicState is String || !dynamicState.className || dynamicState.className == SessionManager.DIFF_DELETE)
-					removeMissingDynamicObjects = false;
+			var removeMissingDynamicObjects:Boolean = (WeaveAPI.SessionManager as SessionManager).deprecatedSetterShouldRemoveMissingDynamicObjects;
 			
 			if (removeMissingDynamicObjects)
 				plotManager.plotters.removeAllObjects();

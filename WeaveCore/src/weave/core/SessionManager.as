@@ -420,11 +420,22 @@ package weave.core
 			
 			// pass deprecated session state to deprecated setters
 			for each (name in getDeprecatedSetterNames(linkableObject))
+			{
 				if (newState.hasOwnProperty(name) && newState[name] !== null)
+				{
+					_deprecatedSetterShouldRemoveMissingDynamicObjects = removeMissingDynamicObjects;
 					linkableObject[name] = newState[name];
+				}
+			}
 			
 			// resume callbacks after setting session state
 			objectCC.resumeCallbacks();
+		}
+		
+		private var _deprecatedSetterShouldRemoveMissingDynamicObjects:Boolean;
+		public function get deprecatedSetterShouldRemoveMissingDynamicObjects():Boolean
+		{
+			return _deprecatedSetterShouldRemoveMissingDynamicObjects;
 		}
 		
 		private const _getSessionStateIgnoreList:Dictionary = new Dictionary(true); // keeps track of which objects are currently being traversed
