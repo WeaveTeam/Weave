@@ -241,14 +241,14 @@ package weave.data.DataSources
 			}
 			else
 			{
-				// temporary solution - get columns with matching dataTable metadata
-				var idStr:String = subtreeNode.attribute("id");
+				var idStr:String = subtreeNode.attribute(ENTITY_ID);
 				if (idStr)
 				{
 					query = dataService.getEntityChildIds(int(idStr));
 				}
 				else
 				{
+					// backwards compatibility - get columns with matching dataTable metadata
 					var dataTableName:String = subtreeNode.attribute("name");
 					query = dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN);
 				}
@@ -280,6 +280,8 @@ package weave.data.DataSources
 			reportError(event, null, token);
 		}
 		
+		public static const ENTITY_ID:String = 'entityId';
+		
 		private function generateRootHierarchy(tables:Array, geoms:Array):void
 		{
 			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
@@ -297,14 +299,14 @@ package weave.data.DataSources
 				for (i = 0; i < tables.length; i++)
 				{
 					metadata = tables[i].publicMetadata;
-					metadata['id'] = tables[i].id;
+					metadata[ENTITY_ID] = tables[i].id;
 					tables[i] = metadata;
 				}
 				
 				for (i = 0; i < geoms.length; i++)
 				{
 					metadata = geoms[i].publicMetadata;
-					metadata['id'] = geoms[i].id;
+					metadata[ENTITY_ID] = geoms[i].id;
 					geoms[i] = metadata;
 				}
 				
@@ -371,7 +373,7 @@ package weave.data.DataSources
 				for (var i:int = 0; i < entities.length; i++)
 				{
 					var metadata:Object = entities[i].publicMetadata;
-					metadata['id'] = entities[i].id;
+					metadata[ENTITY_ID] = entities[i].id;
 					var node:XML = <attribute/>;
 					for (var property:String in metadata)
 						if (metadata[property])
@@ -415,10 +417,9 @@ package weave.data.DataSources
 			
 			// get metadata properties from XML attributes
 			var params:Object = new Object();
-			const ID:String = 'id';
 			const SQLPARAMS:String = 'sqlParams';
 			var queryProperties:Array = [
-				ID, SQLPARAMS,
+				ENTITY_ID, SQLPARAMS,
 				ColumnMetadata.DATA_TYPE, ColumnMetadata.MIN, ColumnMetadata.MAX,
 				'dataTable', 'name', 'year'
 			]; // use only these properties for querying
@@ -431,10 +432,10 @@ package weave.data.DataSources
 			
 			var columnRequestToken:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
 			var query:AsyncToken;
-			if (params[ID])
+			if (params[ENTITY_ID])
 			{
 				var sqlParams:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(params[SQLPARAMS]));
-				query = dataService.getColumn(params[ID], params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
+				query = dataService.getColumn(params[ENTITY_ID], params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
