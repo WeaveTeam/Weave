@@ -76,7 +76,7 @@
 			{
 				super.childrenCreated();
 				
-				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager, DescribeType);
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
 				input.getTextField().alwaysShowSelection = true;
 		    }
 			
@@ -157,11 +157,7 @@
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
-				'trace': consoleTrace,
-				'debugId': debugId,
-				'debugLookup': debugLookup,
-				'debugTrace': debugTrace,
-				'debugDisplayList': DebugUtils.debugDisplayList
+				'trace': consoleTrace
 			};
 			private function getVisApp():Object
 			{

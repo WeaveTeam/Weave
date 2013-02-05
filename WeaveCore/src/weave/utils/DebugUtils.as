@@ -88,11 +88,22 @@ package weave.utils
 		 * This function will look up the object corresponding to the specified debugId.
 		 * @param debugId A debugId String or integer.
 		 */
-		public static function debugLookup(debugId:*):Object
+		public static function debugLookup(debugId:* = undefined):Object
 		{
+			if (debugId == undefined)
+				return getAllDebugIds();
 			for (var object:Object in _idToObjRef[debugId])
 				return object;
 			return null;
+		}
+		
+		public static function getAllDebugIds():Array
+		{
+			var ids:Array = new Array(_nextId);
+			for (var i:int = 0; i < _nextId; i++)
+				for (var object:Object in _idToObjRef[i])
+					ids[i] = _objToId[object];
+			return ids;
 		}
 		
 		/**

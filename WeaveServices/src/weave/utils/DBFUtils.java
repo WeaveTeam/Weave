@@ -215,7 +215,7 @@ public class DBFUtils
 					Object[] entry = readers[f].readEntry();
 					for (int c = 0; c < numFields; c++)
 					{
-						if (ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
+						if (entry[c] != null && ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
 							record.put(headers[f].getFieldName(c), entry[c]);
 					}
 					
