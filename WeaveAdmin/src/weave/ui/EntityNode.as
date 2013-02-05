@@ -74,7 +74,12 @@ package weave.ui
 			}
 			
 			if (!title)
-				title = lang("{0}#{1}", entity.getTypeString(), entity.id);
+			{
+				if (entity.id == -1)
+					title = '...';
+				else
+					title = lang("{0}#{1}", entity.getTypeString(), entity.id);
+			}
 			
 			if (debug)
 			{
