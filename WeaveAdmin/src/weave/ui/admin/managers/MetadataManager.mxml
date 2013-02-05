@@ -17,7 +17,12 @@
         </mx:HBox>
     </mx:VBox>
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
-        <mx:Label text="Custom hierarchies" fontWeight="bold"/>
+        <mx:HBox>
+			<mx:Label text="Custom hierarchies" fontWeight="bold"/>
+			<ui:HelpComponent>
+				The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
+			</ui:HelpComponent>
+		</mx:HBox>
         <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" entityCache="{Admin.entityCache}"
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
@@ -33,10 +38,12 @@
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
+	import mx.controls.Alert;
 	import mx.events.ListEvent;
 	
 	import weave.core.UIUtils;
 	import weave.services.Admin;
+	import weave.services.WeaveAdminService;
 	import weave.services.beans.Entity;
 	import weave.ui.EntityNode;
 	import weave.ui.EntityTree;
@@ -117,7 +124,16 @@
 		if (hierarchyTree.selectedItems.length == 1)
 			node = hierarchyTree.selectedItems[0];
         
-		Admin.entityCache.add_category(name, node.id);
+		var index:int = -1;
+		// if user selected a column, use its parent node and insert at the column's position
+		if (node.getEntity().type == Entity.TYPE_COLUMN)
+		{
+			var parent:EntityNode = hierarchyTree.getParentItem(node);
+			index = parent.getEntity().childIds.indexOf(node.id);
+			node = parent;
+		}
+		
+		Admin.entityCache.add_category(name, node.id, index);
    	    categoryNameInput.text = "";
 		hierarchyTree.expandItem(node, true); // expand so new child can be selected
     }
