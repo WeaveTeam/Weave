@@ -48,10 +48,7 @@ package
 		}
 		
 		if (parameters.length)
-		{
-			parameters.unshift(newText);
-			return StringUtil.substitute.apply(null, parameters);
-		}
+			return StringUtil.substitute(newText, parameters);
 		
 		return newText;
 	}
