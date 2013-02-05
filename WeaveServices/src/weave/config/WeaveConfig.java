@@ -22,6 +22,7 @@ package weave.config;
 import java.io.File;
 import java.rmi.RemoteException;
 
+import weave.utils.BulkSQLLoader;
 import weave.utils.ProgressManager;
 
 /**
@@ -36,7 +37,10 @@ public class WeaveConfig
 	public static void initWeaveConfig(WeaveContextParams wcp)
 	{
 		if (weaveContextParams == null)
+		{
 			weaveContextParams = wcp;
+			BulkSQLLoader.temporaryFilesDirectory = new File(getUploadPath());
+		}
 	}
 	
 	public static WeaveContextParams getWeaveContextParams()

@@ -37,6 +37,8 @@ import org.postgresql.PGConnection;
  */
 public abstract class BulkSQLLoader
 {
+	public static File temporaryFilesDirectory = null;
+	
 	public static BulkSQLLoader newInstance(Connection conn, String schema, String table, String[] fieldNames) throws RemoteException
 	{
 		if (SQLUtils.isOracleServer(conn) || SQLUtils.isSQLServer(conn))
@@ -188,7 +190,7 @@ public abstract class BulkSQLLoader
 				outputNullValue = SQLUtils.getCSVNullValue(conn);
 				quoteEmptyStrings = outputNullValue.length() > 0;
 				
-				file = File.createTempFile("Weave", ".csv");
+				file = File.createTempFile("Weave", ".csv", temporaryFilesDirectory);
 				file.deleteOnExit();
 				writer = new FileWriter(file);
 				
