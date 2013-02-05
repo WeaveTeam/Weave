@@ -174,7 +174,26 @@ public class SQLUtils
 	 * This maps a driver name to a Driver instance.
 	 * The purpose of this map is to avoid instantiating extra Driver objects unnecessarily.
 	 */
-	private static Map<String, Driver> _driverMap = new HashMap<String, Driver>();
+	private static DriverMap _driverMap = new DriverMap();
+	
+	@SuppressWarnings("serial")
+	private static class DriverMap extends HashMap<String,Driver>
+	{
+		protected void finalize()
+		{
+			for (Driver driver : _driverMap.values())
+			{
+				try
+				{
+					DriverManager.deregisterDriver(driver);
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 	/**
 	 * This maps a connection string to a Connection object.  Used by getStaticReadOnlyConnection().
