@@ -4,10 +4,10 @@ package weave.services
     
     import mx.rpc.events.ResultEvent;
     
-    import weave.api.getCallbackCollection;
     import weave.api.core.ICallbackCollection;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
+    import weave.api.getCallbackCollection;
     import weave.services.beans.Entity;
     import weave.services.beans.EntityMetadata;
     import weave.services.beans.EntityTableInfo;
@@ -192,10 +192,10 @@ package weave.services
         }
         public function add_category(label:String, parentId:int):void
         {
-            /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
+			var type:int = parentId == ROOT_ID ? Entity.TYPE_HIERARCHY : Entity.TYPE_CATEGORY;
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata[ColumnMetadata.TITLE] = label;
-			Admin.service.newEntity(Entity.TYPE_CATEGORY, em, parentId);
+			Admin.service.newEntity(type, em, parentId);
 			invalidate(parentId);
         }
         public function delete_entity(id:int):void

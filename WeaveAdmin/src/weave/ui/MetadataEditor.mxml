@@ -73,13 +73,27 @@
 		}
 		this.enabled = true;
 		
-		var item:EntityNode = _targetItems[0];
-		var typeStr:String = item.getEntity().getTypeString() || 'item';
+		var item:Object = _targetItems[0];
+		
+		var entity:Entity = getEntityFromSelectedItem(item);
+			
+		var typeStr:String = entity.getTypeString() || 'item';
 		title.text = "Metadata for selected " + typeStr.toLowerCase();
-		idDisplay.text = "id=" + item.id;
-		var entity:Entity = item.getEntity();
+		idDisplay.text = "id=" + entity.id;
+		
         publicMetaGrid.metadata = entity.publicMetadata;
         privateMetaGrid.metadata = entity.privateMetadata;
+	}
+	
+	private function getEntityFromSelectedItem(node_or_id:Object):Entity
+	{
+		var entity:Entity;
+		var node:EntityNode = node_or_id as EntityNode;
+		if (node)
+			entity = node.getEntity();
+		else
+			entity = Admin.instance.entityCache.getEntity(int(node_or_id));
+		return entity;
 	}
 
     private function metaChanged(..._):void
@@ -87,9 +101,9 @@
 		if (_targetItems == null || _targetItems.length != 1)
 			return;
 		
-		var item:EntityNode = _targetItems[0];
+		var item:Object = _targetItems[0];
 		
-		var entity:Entity = item.getEntity();
+		var entity:Entity = getEntityFromSelectedItem(item);
 		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
         var prop:String;
         for (prop in diff.privateMetadata)

@@ -111,7 +111,9 @@ package weave.services
         [Bindable] public var initialized:Boolean = false;
 		/**
 		 * @param method A pointer to a function of this WeaveAdminService.
+		 * @param captureHandler Receives the parameters of the RPC call with the 'this' pointer set to the AsyncToken object.
 		 * @param resultHandler A ResultEvent handler:  function(event:ResultEvent, parameters:Array = null):void
+		 * @param faultHandler A FaultEvent handler:  function(event:FaultEvent, parameters:Array = null):void
 		 */
 		public function addHook(method:Function, captureHandler:Function, resultHandler:Function, faultHandler:Function = null):void
 		{
@@ -136,7 +138,7 @@ package weave.services
 					continue;
 				var args:Array = (query.parameters as Array).concat();
 				args.length = hook.captureHandler.length;
-				hook.captureHandler.apply(null, args);
+				hook.captureHandler.apply(query, args);
 			}
 		}
 		

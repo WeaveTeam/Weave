@@ -20,6 +20,7 @@ package weave.ui
 {
 	import flash.events.Event;
 	
+	import mx.collections.CursorBookmark;
 	import mx.collections.ICollectionView;
 	import mx.collections.IList;
 	import mx.collections.IViewCursor;
@@ -102,6 +103,27 @@ package weave.ui
 				horizontalScrollPolicy = hspolicy;
 		}
 		
+		
+		public function scrollToAndSelectMatchingItem(itemTest:Function):void
+		{
+			var i:int = 0;
+			var cursor:IViewCursor = collection.createCursor();
+			do
+			{
+				if (itemTest(cursor.current))
+				{
+					// set selection before scrollToIndex() or it won't scroll
+					selectedItems = [cursor.current];
+					scrollToIndex(i);
+					return;
+				}
+				i++;
+			}
+			while (cursor.moveNext());
+			
+			// no selection
+			selectedItems = [];
+		}
 		
 		///////////////////////////////////////////////////////////////////////////////
 		// solution for display bugs when hierarchical data changes

@@ -55,6 +55,21 @@ package weave.services
 				_service = new WeaveAdminService("/WeaveServices");
 			return _service;
 		}
+
+		private var focusEntityId:int = -1;
+		/**
+		 * This is an entity id on which editors should focus.
+		 * It will be set to the newest entity that was created by the administrator.
+		 * After an editor has focused on the entity, clearFocusEntityId() should be called.
+		 */
+		public function getFocusEntityId():int
+		{
+			return focusEntityId;
+		}
+		public function clearFocusEntityId():void
+		{
+			focusEntityId = -1;
+		}
 		
 		private var _entityCache:EntityCache = null;
 		public function get entityCache():EntityCache
@@ -93,7 +108,7 @@ package weave.services
 			service.addHook(
 				service.checkDatabaseConfigExists,
 				null,
-				function handleCheck(event:ResultEvent, token:Object = null):void
+				function handleCheck(event:ResultEvent, token:Object):void
 				{
 					// save info
 					databaseConfigExists = event.result as Boolean;
@@ -111,7 +126,7 @@ package weave.services
 					activeConnectionName = connectionName;
 					activePassword = password;
 				},
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save info
 					userHasAuthenticated = true;
@@ -130,7 +145,7 @@ package weave.services
 			service.addHook(
 				service.saveWeaveFile,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					WeaveAdminService.messageDisplay(null, event.result as String, false);
 					
@@ -167,7 +182,7 @@ package weave.services
 			service.addHook(
 				service.getConnectionNames,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save list
 					connectionNames = event.result as Array || [];
@@ -176,8 +191,16 @@ package weave.services
  			service.addHook(
 				service.saveConnectionInfo,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, args:Array):void
 				{
+					// when connection save succeeds and we just changed our password, change our login credentials
+					// 0=activeName, 1=activePass, 2=saveName, 3=savePass, 4=folderName, 5=is_superuser, 6=connectString, 7=overwrite
+					var activeName:String = args[0];
+					var saveName:String = args[2];
+					var savePass:String = args[3];
+					if (activeName == saveName && activeConnectionName == saveName)
+						activePassword = savePass;
+					
 					// refresh list
 					service.getConnectionNames();
 					service.getDatabaseConfigInfo();
@@ -207,7 +230,7 @@ package weave.services
 			service.addHook(
 				service.getDatabaseConfigInfo,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save info
 					databaseConfigInfo = new DatabaseConfigInfo(event.result);
@@ -216,7 +239,7 @@ package weave.services
 			service.addHook(
 				service.setDatabaseConfigInfo,
 				null,
-				function(event:ResultEvent, token:Object=null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
@@ -231,7 +254,7 @@ package weave.services
 			service.addHook(
 				service.getUploadedCSVFiles,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save info
 					uploadedCSVFiles = event.result as Array || [];
@@ -240,7 +263,7 @@ package weave.services
 			service.addHook(
 				service.getUploadedSHPFiles,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save info
 					uploadedShapeFiles = event.result as Array || [];
@@ -251,10 +274,12 @@ package weave.services
 			service.addHook(
 				service.importSQL,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
+					var id:int = int(event.result);
+					focusEntityId = id;
 					// request children
-					entityCache.invalidate(int(event.result), true);
+					entityCache.invalidate(id, true);
 					// refresh list
 					service.getKeyTypes();
 				}
@@ -262,10 +287,12 @@ package weave.services
 			service.addHook(
 				service.importCSV,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
+					var id:int = int(event.result);
+					focusEntityId = id;
 					// request children
-					entityCache.invalidate(int(event.result), true);
+					entityCache.invalidate(id, true);
 					// refresh list
 					service.getKeyTypes();
 				}
@@ -273,35 +300,50 @@ package weave.services
 			service.addHook(
 				service.importSHP,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
+					var id:int = int(event.result);
+					focusEntityId = id;
 					// request children
-					entityCache.invalidate(int(event.result), true);
+					entityCache.invalidate(id, true);
 					// refresh list
 					service.getKeyTypes();
 				}
 			);
+			/*
 			service.addHook(
 				service.importDBF,
 				null,
 				function(event:ResultEvent, token:Object = null):void
 				{
+					focusEntityId = int(event.result);
 					// request children
 					entityCache.invalidate(int(event.result), true);
 					// refresh list
 					service.getKeyTypes();
 				}
 			);
+			*/
 			//////////////////
 			// Miscellaneous
 			service.addHook(
 				service.getKeyTypes,
 				null,
-				function(event:ResultEvent, token:Object = null):void
+				function(event:ResultEvent, token:Object):void
 				{
 					// save list
 					if (userHasAuthenticated)
 						keyTypes = event.result as Array || [];
+				}
+			);
+			service.addHook(
+				service.newEntity,
+				null,
+				function(event:ResultEvent, token:Object):void
+				{
+					var id:int = int(event.result);
+					focusEntityId = id;
+					entityCache.invalidate(id);
 				}
 			);
 			

@@ -227,16 +227,7 @@
 				info.folderName = folderNameInput.text;
 				info.connectString = connectStringInput.text
 				
-				addAsyncResponder(Admin.service.saveConnectionInfo(info, configOverwrite.selected), handleSave);
-				function handleSave(..._):void
-				{
-					if (info.name == Admin.instance.activeConnectionName)
-					{
-						Admin.service.authenticate(info.name, info.pass);
-						// prevent interface from displaying as logged out
-						Admin.instance.userHasAuthenticated = true;
-					}
-				}
+				Admin.service.saveConnectionInfo(info, configOverwrite.selected);
 				dataChanged = false;
 			}
 			
