@@ -39,6 +39,7 @@ import weave.utils.SQLUtils.WhereClause;
 
 /**
  * @author Philip Kovac
+ * @author Andy Dufilie
  */
 public class ManifestTable extends AbstractTable
 {

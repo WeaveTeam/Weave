@@ -45,6 +45,7 @@ import weave.utils.StringUtils;
 
 /**
  * @author Philip Kovac
+ * @author Andy Dufilie
  */
 public class MetadataTable extends AbstractTable
 {

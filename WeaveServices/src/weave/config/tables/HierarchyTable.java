@@ -45,6 +45,7 @@ import weave.utils.SQLUtils.WhereClause;
 
 /**
  * @author Philip Kovac
+ * @author Andy Dufilie
  */
 public class HierarchyTable extends AbstractTable
 {

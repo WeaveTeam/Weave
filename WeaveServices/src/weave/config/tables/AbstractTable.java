@@ -33,7 +33,7 @@ import weave.utils.SQLUtils;
 
 /**
  * @author Philip Kovac
- * @author adufilie
+ * @author Andy Dufilie
  */
 public abstract class AbstractTable
 {
