@@ -68,9 +68,9 @@ public class WeaveConfig
 	synchronized public static void initializeAdminService(ProgressManager progress) throws RemoteException
 	{
 		ConnectionConfig cc = getConnectionConfig();
-		if (_dataConfig == null || cc.migrationPending())
+		if (cc.migrationPending())
 		{
-			_dataConfig = null;
+			_dataConfig = null; // set to null first in case next line fails
 			_dataConfig = cc.initializeNewDataConfig(progress);
 		}
 	}

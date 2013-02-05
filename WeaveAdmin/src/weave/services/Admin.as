@@ -58,7 +58,7 @@ package weave.services
 
 		private var focusEntityId:int = -1;
 		/**
-		 * This is an entity id on which editors should focus.
+		 * This is an entity id on which editors should focus, or -1 if none.
 		 * It will be set to the newest entity that was created by the administrator.
 		 * After an editor has focused on the entity, clearFocusEntityId() should be called.
 		 */
@@ -123,6 +123,7 @@ package weave.services
 					// not logged in until result comes back
 					if (userHasAuthenticated)
 						userHasAuthenticated = false;
+					
 					activeConnectionName = connectionName;
 					activePassword = password;
 				},
@@ -198,8 +199,15 @@ package weave.services
 					var activeName:String = args[0];
 					var saveName:String = args[2];
 					var savePass:String = args[3];
-					if (activeName == saveName && activeConnectionName == saveName)
+					if (!userHasAuthenticated)
+					{
+						activeConnectionName = saveName;
 						activePassword = savePass;
+					}
+					else if (activeName == saveName && activeConnectionName == saveName)
+					{
+						activePassword = savePass;
+					}
 					
 					// refresh list
 					service.getConnectionNames();
@@ -243,6 +251,8 @@ package weave.services
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
+					if (!userHasAuthenticated)
+						service.authenticate(activeConnectionName, activePassword);
 					
 					// refresh
 					service.getDatabaseConfigInfo();
