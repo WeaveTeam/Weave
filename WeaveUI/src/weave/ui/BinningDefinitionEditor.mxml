@@ -91,6 +91,19 @@
 			<mx:HRule width="100%"/>
 			
 			<mx:HBox width="100%" verticalAlign="middle">
+				<mx:RadioButton id="jenksRadio" label="{lang('Natural Jenks Classification')}" groupName="typeGroup" selected="true" width="100%" data="{_jenks}"/>
+				<ui:Indent enabled="{jenksRadio.selected}" label="{lang('Number of bins:')}" indent="{indent}">
+					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfJenksClass" width="{inputWidth}"/>
+				</ui:Indent>
+				<ui:HelpComponent label="{jenksRadio.label}">
+					The Jenks optimization method, also called the Jenks natural breaks classification method, is a data classification method designed to determine the best arrangement of values into different classes.
+					... http://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization
+				</ui:HelpComponent>
+			</mx:HBox>
+			
+			<mx:HRule width="100%"/>
+			
+			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="catRadio" label="{lang('All categories (string values)')}" groupName="typeGroup" width="100%" data="{_category}"/>
 				<ui:HelpComponent label="{catRadio.label}">
 					One bin will be created for each unique string value in the column.
@@ -123,6 +136,7 @@
 			import weave.data.BinningDefinitions.CategoryBinningDefinition;
 			import weave.data.BinningDefinitions.CustomSplitBinningDefinition;
 			import weave.data.BinningDefinitions.EqualIntervalBinningDefinition;
+			import weave.data.BinningDefinitions.NaturalJenksBinningDefinition;
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
@@ -138,6 +152,7 @@
 			private const _equalInterval:EqualIntervalBinningDefinition = newLinkableChild(this, EqualIntervalBinningDefinition);
 			private const _stdDev:StandardDeviationBinningDefinition = newLinkableChild(this, StandardDeviationBinningDefinition);
 			private const _category:CategoryBinningDefinition = newLinkableChild(this, CategoryBinningDefinition);
+			private const _jenks:NaturalJenksBinningDefinition = newLinkableChild(this,NaturalJenksBinningDefinition);
 			
 			private function getAbstractDef():AbstractBinningDefinition
 			{
@@ -155,6 +170,7 @@
 				linkBindableProperty(_customSplit.splitValues, splitValues, 'text', delay);
 				linkBindableProperty(_quantile.refQuantile, refQuantile, 'text', delay);
 				linkBindableProperty(_equalInterval.dataInterval, dataInterval, 'text', delay);
+				linkBindableProperty(_jenks.numOfBins,numOfJenksClass,'value',delay);
 			}
 			
 			// called when a radio button is selected
