@@ -280,7 +280,7 @@ package weave.data.DataSources
 			reportError(event, null, token);
 		}
 		
-		public static const ENTITY_ID:String = 'entityId';
+		public static const ENTITY_ID:String = 'weaveEntityId';
 		
 		private function generateRootHierarchy(tables:Array, geoms:Array):void
 		{
