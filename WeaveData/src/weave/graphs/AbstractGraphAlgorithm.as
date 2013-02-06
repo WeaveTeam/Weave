@@ -46,6 +46,7 @@ package weave.graphs
 	import weave.services.WeaveRServlet;
 	import weave.services.beans.RResult;
 	import weave.utils.ComputationalGeometryUtils;
+	import mx.utils.ObjectUtil;
 
 	/**
 	 * An abstract class with a callback collection which implements IGraphAlgorithm.
@@ -376,7 +377,7 @@ package weave.graphs
 			var array:Array = event.result as Array;
 			if (!array || array.length < 3)
 			{
-				reportError("Invalid or insufficient results from RService.");
+				reportError("Invalid or insufficient results from RService:" + ObjectUtil.toString(event.result));
 				return;
 			}
 			
