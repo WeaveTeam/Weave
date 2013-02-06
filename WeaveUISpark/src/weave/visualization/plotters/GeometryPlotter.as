@@ -350,7 +350,10 @@ package weave.visualization.plotters
 			for each (var plotter:IPlotter in symbolPlottersArray)
 			{
 				if (task.iteration == 0)
+				{
 					_asyncState[plotter] = {};
+					_asyncProgress[plotter] = 0;
+				}
 				task.asyncState = _asyncState[plotter];
 				if (_asyncProgress[plotter] != 1)
 					_asyncProgress[plotter] = plotter.drawPlotAsyncIteration(task);
