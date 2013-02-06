@@ -38,16 +38,11 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.events.ListEvent;
-			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
-			import weave.api.newDisposableChild;
-			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.SessionManager;
-			import weave.utils.EditorManager;
-			import weave.utils.PopUpUtils;
 
 			private var _rootObject:ILinkableObject = null;
 			public function set rootObject(value:ILinkableObject):void

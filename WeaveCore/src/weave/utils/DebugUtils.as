@@ -44,7 +44,7 @@ package weave.utils
 		 ****************************/
 		
 		private static var _idToObjRef:Dictionary = new Dictionary();
-		private static var _objToId:Dictionary = new Dictionary(true);
+		private static var _objToId:Dictionary = new Dictionary(true); // weakKeys=true to avoid memory leak
 		private static var _nextId:int = 0;
 		
 		/**

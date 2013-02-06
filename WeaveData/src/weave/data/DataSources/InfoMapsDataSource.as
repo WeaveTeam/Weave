@@ -38,6 +38,7 @@ package weave.data.DataSources
 	import weave.services.DelayedAsyncInvocation;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.InfoMapAdminInterface;
+	import weave.services.addAsyncResponder;
 	import weave.utils.DateUtils;
 	import weave.utils.VectorUtils;
 
@@ -337,7 +338,7 @@ package weave.data.DataSources
 				
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfRequestedDocuments,solrURL.value);
-			DelayedAsyncResponder.addResponder(q,handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount,numberOfMatchedDocuments:numberOfMatchedDocuments});
+			addAsyncResponder(q,handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount,numberOfMatchedDocuments:numberOfMatchedDocuments});
 		}
 		
 		private static function parseFilterQuery(filterQuery:String,dateFilter:DateRangeFilter=null,sources:Array=null):String

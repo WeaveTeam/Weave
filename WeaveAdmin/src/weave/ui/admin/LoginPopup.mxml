@@ -29,10 +29,10 @@ Author: skolman
 		  xmlns="weave.ui.admin.*"
 		  backgroundAlpha="1"
 		  creationComplete="onCreationComplete()">
-	<ui:Indent label="Connection Name:">
+	<ui:Indent label="Connection name:">
 		<mx:TextInput id="connectionInput" enter="login()"/>
 	</ui:Indent>
-	<ui:Indent label="SQL Password:">
+	<ui:Indent label="Password:">
 		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="login()"/>
 	</ui:Indent>
 	<ui:Center>
@@ -41,18 +41,15 @@ Author: skolman
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
-			import mx.managers.PopUpManager;
-			import mx.rpc.events.ResultEvent;
-			
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
 
 			/**
 			 * This function gets called when this panel is shown.
 			 */
 			private function onCreationComplete():void
 			{
-				connectionInput.setFocus();
+				callLater(connectionInput.setFocus);
 				//Fix to set cursor in Text Input. Though the focus is set to the password inout box the cursor is not set it till 
 				//you click anywhere in the flash application. This is because when the browser loads the page the flash object is not selected.
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
@@ -66,7 +63,7 @@ Author: skolman
 				enabled = false;
 				
 				// authenticate with server
-				AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text).addAsyncResponder(handleResult, handleFault);
+				addAsyncResponder(Admin.service.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
 				function handleResult(..._):void
 				{
 					enabled = true;

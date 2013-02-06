@@ -320,12 +320,10 @@ public class GenericServlet extends HttpServlet
 		    	}
 	    		catch (IOException e)
 	    		{
-	    			e.printStackTrace();
 	    			sendError(response, e);
 	    		}
 		    	catch (Exception e)
 		    	{
-		    		e.printStackTrace();
 		    		sendError(response, e);
 		    	}
     		}
@@ -407,11 +405,132 @@ public class GenericServlet extends HttpServlet
 		invokeMethod(methodName, argValues);
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object cast(Object value, Class<?> type)
+	{
+		// if given value is a String, check if the function is expecting a different type
+		if (value instanceof String)
+		{
+			try
+			{
+				if (type == int.class || type == Integer.class)
+				{
+					value = Integer.parseInt((String)value);
+				}
+				else if (type == float.class || type == Float.class)
+				{
+					value = Float.parseFloat((String)value);
+				}
+				else if (type == double.class || type == Double.class)
+				{
+					value = Double.parseDouble((String)value);
+				}
+				else if (type == boolean.class || type == Boolean.class)
+				{
+					value = ((String)(value)).equalsIgnoreCase("true");
+				}
+				else if (type == String[].class || type == List.class)
+				{
+					String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
+					if (table.length == 0)
+						value = new String[0]; // empty
+					else
+						value = table[0]; // first row
+					
+					if (type == List.class)
+						value = Arrays.asList((String[])value);
+				}
+			}
+			catch (NumberFormatException e)
+			{
+				// if number parsing fails, leave the original value untouched
+			}
+		}
+		else if (value == null)
+		{
+			if (type == double.class || type == Double.class)
+				value = Double.NaN;
+			else if (type == float.class || type == Float.class)
+				value = Float.NaN;
+		}
+		else
+		{
+			// additional parameter type casting
+			if (value instanceof Boolean && type == boolean.class)
+			{
+				value = (boolean)(Boolean)value;
+			}
+			else if (value.getClass() == Object[].class)
+			{
+				Object[] valueArray = (Object[])value;
+				if (type == List.class)
+				{
+					value = ListUtils.copyArrayToList(valueArray, new Vector());
+				}
+				else if (type == Object[][].class)
+				{
+					Object[][] valueMatrix = new Object[valueArray.length][];
+					for (int i = 0; i < valueArray.length; i++)
+					{
+						valueMatrix[i] = (Object[])valueArray[i];
+					}
+					value = valueMatrix;
+				}
+				else if (type == String[][].class)
+				{
+					String[][] valueMatrix = new String[valueArray.length][];
+					for (int i = 0; i < valueArray.length; i++)
+					{
+						// cast Objects to Strings
+						Object[] objectArray = (Object[])valueArray[i];
+						valueMatrix[i] = ListUtils.copyStringArray(objectArray, new String[objectArray.length]);
+					}
+					value = valueMatrix;
+				}
+				else if (type == String[].class)
+				{
+					value = ListUtils.copyStringArray(valueArray, new String[valueArray.length]);
+				}
+				else if (type == double[][].class)
+				{
+					double[][] valueMatrix = new double[valueArray.length][];
+					for (int i = 0; i < valueArray.length; i++)
+					{
+						// cast Objects to doubles
+						Object[] objectArray = (Object[])valueArray[i];
+						valueMatrix[i] = ListUtils.copyDoubleArray(objectArray, new double[objectArray.length]);
+					}
+					value = valueMatrix;
+				}
+				else if (type == double[].class)
+				{
+					value = ListUtils.copyDoubleArray(valueArray, new double[valueArray.length]);
+				}
+				else if (type == int[][].class)
+				{
+					int[][] valueMatrix = new int[valueArray.length][];
+					for (int i = 0; i < valueArray.length; i++)
+					{
+						// cast Objects to doubles
+						Object[] objectArray = (Object[])valueArray[i];
+						valueMatrix[i] = ListUtils.copyIntegerArray(objectArray, new int[objectArray.length]);
+					}
+					value = valueMatrix;
+				}
+				else if (type == int[].class)
+				{
+					value = ListUtils.copyIntegerArray(valueArray, new int[valueArray.length]);
+				}
+			}
+		}
+		return value;
+	}
+	
 	/**
 	 * @param methodName The name of the function to invoke.
 	 * @param methodParameters A list of input parameters for the method.  Values will be cast to the appropriate types if necessary.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("rawtypes")
 	private void invokeMethod(String methodName, Object[] methodParameters) throws IOException
 	{
 		HttpServletResponse response = getServletRequestInfo().response;
@@ -432,95 +551,17 @@ public class GenericServlet extends HttpServlet
 		{
 	    	for (int index = 0; index < methodParameters.length; index++)
 	    	{
-	    		Object value = methodParameters[index];
-	    		// if given value is a String, check if the function is expecting a different type
-				if (value instanceof String)
-				{
-					if (expectedArgTypes[index] == int.class || expectedArgTypes[index] == Integer.class)
-					{
-						value = Integer.parseInt((String)value);
-					}
-					else if (expectedArgTypes[index] == boolean.class || expectedArgTypes[index] == Boolean.class)
-					{
-						value = ((String)(value)).equalsIgnoreCase("true");
-					}
-					else if (expectedArgTypes[index] == String[].class || expectedArgTypes[index] == List.class)
-					{
-						String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
-						if (table.length == 0)
-							value = new String[0]; // empty
-						else
-							value = table[0]; // first row
-						
-						if (expectedArgTypes[index] == List.class)
-							value = Arrays.asList((String[])value);
-					}
-				}
-				else if (value != null)
-				{
-					// additional parameter type casting
-					if (value instanceof Boolean && expectedArgTypes[index] == boolean.class)
-					{
-						value = (boolean)(Boolean)value;
-					}
-					else if (value.getClass() == Object[].class)
-					{
-						Object[] valueArray = (Object[])value;
-						if (expectedArgTypes[index] == List.class)
-						{
-							value = ListUtils.copyArrayToList(valueArray, new Vector());
-						}
-						else if (expectedArgTypes[index] == Object[][].class)
-						{
-							Object[][] valueMatrix = new Object[valueArray.length][];
-							for (int i = 0; i < valueArray.length; i++)
-							{
-								valueMatrix[i] = (Object[])valueArray[i];
-							}
-							value = valueMatrix;
-						}
-						else if (expectedArgTypes[index] == String[][].class)
-						{
-							String[][] valueMatrix = new String[valueArray.length][];
-							for (int i = 0; i < valueArray.length; i++)
-							{
-								// cast Objects to Strings
-								Object[] objectArray = (Object[])valueArray[i];
-								valueMatrix[i] = ListUtils.copyStringArray(objectArray, new String[objectArray.length]);
-							}
-							value = valueMatrix;
-						}
-						else if (expectedArgTypes[index] == String[].class)
-						{
-							value = ListUtils.copyStringArray(valueArray, new String[valueArray.length]);
-						}
-						else if (expectedArgTypes[index] == double[][].class)
-						{
-							double[][] valueMatrix = new double[valueArray.length][];
-							for (int i = 0; i < valueArray.length; i++)
-							{
-								// cast Objects to doubles
-								Object[] objectArray = (Object[])valueArray[i];
-								valueMatrix[i] = ListUtils.copyDoubleArray(objectArray, new double[objectArray.length]);
-							}
-							value = valueMatrix;
-						}
-						else if (expectedArgTypes[index] == double[].class)
-						{
-							value = ListUtils.copyDoubleArray(valueArray, new double[valueArray.length]);
-						}
-					}
-				}
-				methodParameters[index] = value;
+				methodParameters[index] = cast(methodParameters[index], expectedArgTypes[index]);
 			}
     	}
 
     	// prepare to output the result of the method call
     	ServletOutputStream servletOutputStream = response.getOutputStream();
-		
+		long startTime = System.currentTimeMillis();
+    	
 		// Invoke the method on the object with the arguments 
 		try
-		{			
+		{
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, methodParameters);
 			
 			if (exposedMethod.method.getReturnType() != void.class)
@@ -528,8 +569,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (InvocationTargetException e)
 		{
-			System.out.println(methodName + Arrays.deepToString(methodParameters));
-			e.getCause().printStackTrace();
+			System.err.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e.getCause());
 		}
 		catch (IllegalArgumentException e)
@@ -537,16 +577,19 @@ public class GenericServlet extends HttpServlet
 			String moreInfo = 
 				"Expected: " + formatFunctionSignature(methodName, expectedArgTypes, exposedMethod.paramNames) + "\n" +
 				"Received: " + formatFunctionSignature(methodName, methodParameters, null);
-			System.out.println(e.getMessage() + '\n' + moreInfo);
 			
 			sendError(response, e, moreInfo);
 		}
 		catch (Exception e)
 		{
-			System.out.println(methodName + Arrays.deepToString(methodParameters));
-			e.printStackTrace();
+			System.err.println(methodName + Arrays.deepToString(methodParameters));
 			sendError(response, e);
 		}
+		
+		long endTime = System.currentTimeMillis();
+		// debug
+		if (endTime - startTime > 1000)
+			System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(methodParameters)));
     }
     
     /**
@@ -622,7 +665,12 @@ public class GenericServlet extends HttpServlet
     	String message = exception.getMessage();
     	if (moreInfo != null)
     		message += "\n" + moreInfo;
-    	System.out.println("Serializing ErrorMessage: "+message);
+    	
+    	// log errors
+    	exception.printStackTrace();
+    	if (moreInfo != null)
+    		System.err.println(moreInfo);
+    	System.err.println("Serializing ErrorMessage: "+message);
     	
     	ServletOutputStream servletOutputStream = response.getOutputStream();
     	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));

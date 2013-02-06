@@ -1,0 +1,73 @@
+<CustomTree xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    creationComplete="handleCreationComplete()"
+    openDuration="0" dragEnabled="true"
+	allowMultipleSelection="true"
+    showRoot="false">
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.events.ListEvent;
+			
+			import weave.core.CallbackJuggler;
+			import weave.services.Admin;
+			import weave.services.EntityCache;
+			import weave.utils.EventUtils;
+			
+			public function set entityCache(cache:EntityCache):void
+			{
+				cacheJuggler.target = cache;
+			}
+			
+			private var cacheJuggler:CallbackJuggler = new CallbackJuggler(this, EventUtils.generateDelayedCallback(this, refresh, 100), false);
+			
+			public function set rootFilterType(type:int):void
+			{
+				dataProvider = _rootNode = new EntityNode(type);
+				dataDescriptor = new EntityTreeDataDescriptor();
+				nodeFilterFunction = _nodeFilterFunction;
+			}
+			
+			private var _nodeFilterFunction:Function;
+			private var _rootNode:EntityNode;
+			public function get rootNode():EntityNode
+			{
+				return _rootNode;
+			}
+			
+			public function set nodeFilterFunction(filter:Function):void
+			{
+				if (_rootNode)
+					_rootNode.children.filterFunction = filter;
+				else
+					_nodeFilterFunction = filter;
+			}
+			
+			private function handleCreationComplete():void
+			{
+				BindingUtils.bindSetter(connectionReady, Admin.instance, 'userHasAuthenticated');
+			}
+			
+			private function connectionReady(userHasAuthenticated:Boolean):void
+			{
+			    if (userHasAuthenticated == true)
+					refreshDataProvider();
+			}
+			
+			public function refresh():void
+			{
+				// Because we are not rendering the root node, we need to explicitly request the children from
+				// the root so that the children will be fetched.
+				if (_rootNode)
+					_rootNode.children.refresh();
+				
+				refreshDataProvider();
+				
+				// since this function may be called some time after the EntityCache updates,
+				// dispatching an event here allows other code to know when data is actually refreshed
+				dispatchEvent(new ListEvent(ListEvent.CHANGE));
+			}
+		]]>
+	</mx:Script>
+</CustomTree>

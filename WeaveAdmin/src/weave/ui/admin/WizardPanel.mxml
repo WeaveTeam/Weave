@@ -62,6 +62,7 @@
 			import mx.core.IUIComponent;
 			import mx.core.ScrollPolicy;
 			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
@@ -127,47 +128,15 @@
 			 */
 			public static function createWizard(parent:DisplayObject, wizardViewStack:WizardViewStack):Container
 			{
+				function close(..._):void{ PopUpManager.removePopUp(wiz); }
+				
 				var wiz:WizardPanel = PopUpManager.createPopUp(parent, WizardPanel, true) as WizardPanel;
 				wiz.setWizardViewStack(wizardViewStack);
+				wizardViewStack.addEventListener(CloseEvent.CLOSE, close);
 				PopUpManager.centerPopUp(wiz);
-				wiz.cancelButton.addEventListener(MouseEvent.CLICK, function(..._):void{ PopUpManager.removePopUp(wiz); });
+				wiz.cancelButton.addEventListener(MouseEvent.CLICK, close);
 				return wiz;
 			}
 		]]>
 	</mx:Script>
-	<mx:Style>
-		.weave-panel-style, .weave-system-style {
-			borderAlpha: 0.95;
-			alpha: 1.0;
-			backgroundAlpha: 1.0;
-			borderColor: #4D5258;
-			
-			headerHeight: 20;
-			
-			paddingLeft: 0;
-			paddingRight: 0;
-			paddingTop: 0;
-			paddingBottom: 0;
-			
-			resizeBorderThickness: 5;
-			
-			borderThicknessTop: 2;
-			borderThicknessBottom: 2;
-			borderThicknessLeft: 2;
-			borderThicknessRight: 2;
-			
-			roundedBottomCorners: false;
-		}
-		.weave-system-style, .weave-system-title-style {
-			fontFamily: Verdana;
-			fontWeight: normal;
-			fontSize: 10;
-			fontStyle: normal;
-			textDecoration: none;
-		}
-		.weave-panel-title-style, .weave-system-title-style {
-			fontWeight: normal;
-			color: white;
-		}
-	</mx:Style>
 </mx:Panel>

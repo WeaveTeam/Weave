@@ -37,7 +37,7 @@ package weave.data.AttributeColumns
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.services.DelayedAsyncResponder;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.GeometryStreamDecoder;
 	
@@ -50,15 +50,17 @@ package weave.data.AttributeColumns
 	{
 		private static var _debug:Boolean = false;
 		
-		public function StreamedGeometryColumn(tileService:IWeaveGeometryTileService, metadata:XML = null)
+		public function StreamedGeometryColumn(metadataTileDescriptors:ByteArray, geometryTileDescriptors:ByteArray, tileService:IWeaveGeometryTileService, metadata:XML = null)
 		{
 			super(metadata);
 			
 			_tileService = registerLinkableChild(this, tileService);
 			
-			// request a list of tiles for this geometry collection
-			var query:AsyncToken = _tileService.getTileDescriptors();
-			query.addAsyncResponder(handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
+			_geometryStreamDecoder.keyType = metadata.@keyType;
+			
+			// handle tile descriptors
+			WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [metadataTileDescriptors]);
+			WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [geometryTileDescriptors]);
 			
 			var self:Object = this;
 			boundingBoxCallbacks.addImmediateCallback(this, function():void{
@@ -78,16 +80,8 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == ColumnMetadata.PROJECTION)
-				return projectionSrsCode;
 			return super.getMetadata(propertyName);
 		}
-		
-		/**
-		 * This is the projection that the coordinates are in.
-		 * Note: SRS ID means "Spatial Reference System Identifier"
-		 */
-		private var projectionSrsCode:String = null;
 		
 		/**
 		 * This is a list of unique keys this column defines values for.
@@ -192,7 +186,7 @@ package weave.data.AttributeColumns
 			while (metadataTileIDs.length > 0)
 			{
 				query = _tileService.getMetadataTiles(metadataTileIDs.splice(0, metadataTilesPerQuery));
-				DelayedAsyncResponder.addResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, query);
+				addAsyncResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, query);
 				
 				_metadataStreamDownloadCounter++;
 			}
@@ -200,7 +194,7 @@ package weave.data.AttributeColumns
 			while (geometryTileIDs.length > 0)
 			{
 				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
-				DelayedAsyncResponder.addResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, query);
+				addAsyncResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, query);
 				_geometryStreamDownloadCounter++;
 			} 
 		}
@@ -217,42 +211,6 @@ package weave.data.AttributeColumns
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_geometryStreamDownloadCounter--;
 		}
-
-		private function handleGetTileDescriptorsFault(event:FaultEvent, token:Object = null):void
-		{
-			reportError(event);
-		}
-		
-		private function handleGetTileDescriptors(event:ResultEvent, token:Object = null):void
-		{
-			if (event.result == null)
-			{
-				reportNullResult(ObjectUtil.toString(token));
-				return;
-			}
-			try
-			{
-				//trace("handleGetTileDescriptors",ObjectUtil.toString(token),ObjectUtil.toString(result));
-
-				var result:GeometryStreamMetadata = new GeometryStreamMetadata(event.result);
-				
-				_metadata.@keyType = result.keyType;
-				_geometryStreamDecoder.keyType = result.keyType;
-				projectionSrsCode = result.projection;
-				
-				// handle metadata tiles
-				WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [result.metadataTileDescriptors]);
-				
-				// handle geometry tiles
-				WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [result.geometryTileDescriptors]);
-				
-			}
-			catch (error:Error)
-			{
-				reportError(error, 'handleGetTileDescriptors() error parsing result from server');
-			}
-		}
-		
 
 		private function reportNullResult(token:Object):void
 		{

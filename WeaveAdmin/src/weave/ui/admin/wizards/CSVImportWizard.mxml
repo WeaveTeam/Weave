@@ -24,72 +24,69 @@
 			xmlns:ui="weave.ui.*"
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*" 
-			label="Import CSV data to Weave"
+			label="{lang('Import CSV data to Weave')}"
 			creationComplete="handleCreationComplete()"
-			addedToStage="handleAddedToStage()"
 			>
-	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
-	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
-		<ui:Indent group="{tableSelector.indentGroup}" label="CSV file" >
+	<mx:VBox id="csvUploadPage" label="{lang('Import a CSV file to SQL')}">
+		<ui:Indent group="{tableSelector.indentGroup}" label="{lang('CSV file')}" >
 			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
-			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="Select a CSV file." change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
-			<mx:Button label="Upload File" click="browseAndUpload();"/>
-			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
+			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="{lang('Select a CSV file.')}" change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
+			<mx:Button label="{lang('Upload File')}" click="browseAndUpload();"/>
+			<mx:Button label="{lang('Choose File on Server')}" click="openServerBrowser();" />
 			<mx:Text id="fileStatus"/>
 		</ui:Indent>
 		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
-			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 		</mx:VBox>
 	</mx:VBox>
-	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
-		<ui:Indent label="{Strings.table_display_name}">
-			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}"/>
+	<mx:VBox id="optionalSettingsPage" label="{lang('Configure data for Weave')}">
+		<ui:Indent label="{lang('Table display name')}">
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
 			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
-			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</ui:Indent>
-		<ui:Indent label="Null flag values">
+		<ui:Indent label="{lang('Null flag values')}">
 			<mx:TextInput id="nullFlagInput" editable="true"/>
 			<ui:HelpComponent>
 				If your data has values like "-1" representing missing data, you can enter the values here and Weave will treat them as missing data.  Separate multiple flag values by commas.
 			</ui:HelpComponent>
 		</ui:Indent>
 		<mx:HBox>
-			<mx:CheckBox id="generateKeyColumnCheckBox" selected="true" label="Generate a new primary key column"/>
+			<mx:CheckBox id="generateKeyColumnCheckBox" selected="true" label="{lang('Generate a new primary key column')}"/>
 			<ui:HelpComponent>
 				This will generate a new unique key for each row.  It is the simplest option, but will not allow you to link the data to other data sets.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:VBox paddingLeft="{paddingIndent}" visible="{!generateKeyColumnCheckBox.selected}">
-			<ui:Indent label="Key column" grouped="false">
+			<ui:Indent label="{lang('Key column')}" grouped="false">
 				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true"/><!-- editable because user may have typed in a file name manually -->
 				<ui:HelpComponent>
 					Select the column whose values uniquely identify the rows in the table.  If there is no such column, you can either use the option to generate a new primary key column, or one of the advanced options below.
 				</ui:HelpComponent>
 			</ui:Indent>
 			
-			<mx:Label text="What do these keys correspond to?"/>
-			<admin:GeometryCollectionDialog id="geometrySelector"
+			<mx:Label text="{lang('What do these keys correspond to?')}"/>
+			<admin:KeyTypeDialog id="geometrySelector"
 											paddingLeft="{paddingIndent}"
 											defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
 			
-			<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-			<ui:Indent label="Secondary key column"
+			<mx:CheckBox id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
+			<ui:Indent label="{lang('Secondary key column')}"
 					   paddingLeft="{paddingIndent}"
 					   grouped="false"
 					   visible="{secondaryKeyColumnCheckBox.selected}"
 					   includeInLayout="{secondaryKeyColumnCheckBox.selected}">
-				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
+				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="{lang('Select a secondary key column for use with the Dimension Slider')}" />
 			</ui:Indent>
 			
 			<mx:HBox>
-				<mx:CheckBox id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="Generate filtered column queries" selected="false"/>
+				<mx:CheckBox id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false"/>
 				<ui:HelpComponent>
 					This option is to be used when the new data table has a column that refers to keys in another data table but the keys do not uniquely identify rows in the new table.
 					
 					Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<ui:Indent label="Columns to use as filters" paddingLeft="{paddingIndent}" visible="{generateFilterColumnsCheckBox.selected}">
+			<ui:Indent label="{lang('Columns to use as filters')}" paddingLeft="{paddingIndent}" visible="{generateFilterColumnsCheckBox.selected}">
 				<mx:TextInput id="filterColumnsInput"/>
 				<ui:HelpComponent>
 					Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
@@ -97,35 +94,39 @@
 			</ui:Indent>
 		</mx:VBox>
 	</mx:VBox>
-	<mx:VBox id="dublinCorePage" width="100%" label="Specify Dublin Core metadata">
-		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the metadata tab of the data table view."/>
-		<mx:LinkButton label="Click for Dublin Core Reference" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
+	<mx:VBox id="dublinCorePage" width="100%" label="{lang('Specify Dublin Core metadata')}">
+		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="{lang('Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the Data Hierarchies tab.')}"/>
+		<mx:LinkButton label="{lang('Click for Dublin Core Reference')}" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
 		<mx:Form>
-			<mx:FormItem label="Title">
-				<mx:TextInput id="dcTitleTextInput" toolTip="The name given to the resource. Typically, a Title will be a name by which the resource is formally known."/>
+			<mx:FormItem label="{lang('Title')}">
+				<mx:TextInput id="dcTitleTextInput" text="{dataTableNameInput.text}" toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
 			</mx:FormItem>
-			<mx:FormItem label="Subject">
-				<mx:TextInput id="dcSubjectTextInput" toolTip="The topic of the content of the resource. Typically, a Subject will be expressed as keywords or key phrases or classification codes that describe the topic of the resource. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme."/>
+			<mx:FormItem label="{lang('Subject')}">
+				<mx:TextInput id="dcSubjectTextInput" toolTip="{lang('The topic of the content of the resource. Typically, a Subject will be expressed as keywords or key phrases or classification codes that describe the topic of the resource. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme.')}"/>
 			</mx:FormItem>
-			<mx:FormItem label="Description">
-				<mx:TextArea id="dcDescriptionTextInput"  toolTip="An account of the content of the resource. Description may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content."/>
+			<mx:FormItem label="{lang('Description')}">
+				<mx:TextArea id="dcDescriptionTextInput"  toolTip="{lang('An account of the content of the resource. Description may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.')}"/>
 			</mx:FormItem>
 		</mx:Form>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
-			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
+			import weave.services.addAsyncResponder;
+			import weave.services.beans.EntityMetadata;
 			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
+
 			
 			private static const paddingIndent:int = 20;
 			private var busyIndicator:BusyIndicator = new BusyIndicator();
@@ -133,14 +134,10 @@
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerFileViewer = null;
 			
-			private function handleAddedToStage():void
-			{
-				callLater(parent.addChild, [busyIndicator]);
-				hideBusy();
-			}
-			
 			private function handleCreationComplete():void
 			{
+				csvUploadPage.addChild(busyIndicator);
+				hideBusy();
 				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
 				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
@@ -187,11 +184,11 @@
 					return;
 				}
 				
-				AdminInterface.instance.uploadFile(_csvFileReference).addAsyncResponder(hideBusy, hideBusy);
+				addAsyncResponder(Admin.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
-				AdminInterface.instance.service.getCSVColumnNames(_csvFileReference.name).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,_csvFileReference.name);
+				addAsyncResponder(Admin.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
 			}
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
@@ -231,7 +228,7 @@
 				nextEnabled = false;
 				finishEnabled = false;
 				
-				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,tableName);
+				addAsyncResponder(Admin.service.getCSVColumnNames(tableName), handleGetCSVColumnNames,handleCSVFault,tableName);
 				
 				csvFileNameInput.text = tableName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
@@ -282,9 +279,12 @@
 				var keyColumn:String = generateKeyColumnCheckBox.selected ? '' : csvKeyColumnCombo.text;
 				var secondKeyColumn:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null;
 				var configTableName:String = dataTableNameInput.text
-				var geometryCollection:String = generateKeyColumnCheckBox.selected ? '' : geometrySelector.selectedGeometryCollection;
-				var keyType:String = generateKeyColumnCheckBox.selected ? configTableName : geometrySelector.selectedKeyType;
-				var query:DelayedAsyncInvocation = AdminInterface.instance.importCSV(
+				var geometryCollection:String = '';
+				var keyType:String = configTableName;
+				
+				disable();
+				addAsyncResponder(
+					Admin.service.importCSV(
 						csvFileNameInput.text,
 						keyColumn,
 						secondKeyColumn,
@@ -292,42 +292,34 @@
 						tableSelector.activeTable,
 						tableSelector.tableOverwriteCheck.selected,
 						configTableName,
-						dataTableOverwriteCheck.selected,
-						geometryCollection,
 						keyType,
 						nullFlagInput.text,
 						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
-					);
-				
-				controlBarEnabled = false;
-				query.addAsyncResponder(handleImportCSV, handleFault);
-				function handleImportCSV(event:ResultEvent, token:Object = null):void
-				{
-					selectedChild = dublinCorePage;
-					commitDublinCoreElements();
-					controlBarEnabled = true;
-				}
-				function handleFault(event:FaultEvent, token:Object = null):void
-				{
-					controlBarEnabled = true;
-				}
-			}
-			
-			private function commitDublinCoreElements():void
-			{
-				var elements:Object = new Object();
-				if (dcTitleTextInput.text)
-					elements["title"] = dcTitleTextInput.text;
-				if (dcSubjectTextInput.text)
-					elements["subject"] = dcSubjectTextInput.text;
-				if (dcDescriptionTextInput.text)
-					elements["description"] = dcDescriptionTextInput.text;
-				
-				//An assumtion is made that this text (dataTableNameInput.text) will not change,
-				//and still represents the correct dataset name at the time this code is run. -Curran
-				var datasetName:String = dataTableNameInput.text;
-				
-				AdminInterface.instance.addDCElements(datasetName, elements);
+					),
+					function handleImportCSV(event:ResultEvent, token:Object = null):void
+					{
+						var tableId:int = int(event.result);
+						
+						var em:EntityMetadata = new EntityMetadata();
+						if (dcTitleTextInput.text)
+							em.publicMetadata["title"] = dcTitleTextInput.text;
+						if (dcSubjectTextInput.text)
+							em.publicMetadata["subject"] = dcSubjectTextInput.text;
+						if (dcDescriptionTextInput.text)
+							em.publicMetadata["description"] = dcDescriptionTextInput.text;
+						
+						addAsyncResponder(
+							Admin.service.updateEntity(tableId, em),
+							function(..._):void
+							{
+								weaveTrace(lang("Data table entry created successfully."));
+								close();
+							},
+							enable
+						);
+					},
+					enable
+				);
 			}
 			
 			private function enableAllWidgets(enable:Boolean = true):void
@@ -385,20 +377,12 @@
 				nextEnabled = false;
 				
 				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
-				var secKeyColName:String = csvSecondaryKeyColumnCombo.selectedItem as String;
-				
-				if(secondaryKeyColumnCheckBox.selected)
-				{
-					AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName)
-						.addAsyncResponder(handleKeyColumnCheck,handleKeyColumnCheckFault);
-				}
-				else
-				{
-					AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName)
-						.addAsyncResponder(handleKeyColumnCheck,handleKeyColumnCheckFault);
-				}
-				
-				
+				var secKeyColName:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.selectedItem as String : null;
+				addAsyncResponder(
+					Admin.service.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
+					handleKeyColumnCheck,
+					handleKeyColumnCheckFault
+				);
 			}
 			
 			private function handleKeyColumnCheck(e:ResultEvent,token:Object=null):void

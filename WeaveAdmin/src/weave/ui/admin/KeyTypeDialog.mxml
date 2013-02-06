@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+		 xmlns="weave.ui.admin.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%"
+		 creationComplete="creationComplete()"
+		 xmlns:ui="weave.ui.*">
+
+	<mx:HBox>
+		<mx:Label text="{lang('What do these keys correspond to?')}"/>
+		<ui:HelpComponent>
+			If two tables have compatible keys, you should give them the same key type.
+			If two tables have incompatible keys, they should not have the same key type.
+			Weave only allows two columns to be compared if they have the same key type.
+		</ui:HelpComponent>
+	</mx:HBox>
+	<mx:VBox paddingLeft="{paddingIndent}">
+		<ui:Indent label="{lang('Key type')}"
+				   enabled="{!refreshingKeyTypes}">
+			<ui:CustomComboBox id="keyTypeCombo"
+							   editable="true"
+							   text="{_defaultKeyType}"
+							   dataProvider="{Admin.instance.keyTypes}"
+							   valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"
+							   toolTip="{lang('Choose a key type that describes the identifiers in the key column.')}"/>
+			<mx:Button id="keyTypeRefresh"
+					   label="Refresh"
+					   click="Admin.service.getKeyTypes()"
+					   toolTip="{lang('This button updates the list of key types - use it if you think the list of key types may have changed since you first opened the admin console.')}"/>
+		</ui:Indent>
+	</mx:VBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.AsyncToken;
+			
+			import weave.core.UIUtils;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
+			
+			[Bindable] public var paddingIndent:int = 20;
+			[Bindable] private var _indent:Number = NaN;
+			
+			private function creationComplete():void
+			{
+				var busy:Function = function():void { refreshingKeyTypes = true; };
+				var done:Function = function():void { refreshingKeyTypes = false; };
+				Admin.service.addHook(Admin.service.getKeyTypes, busy, done, done);
+				
+				Admin.service.getKeyTypes();
+			}
+			
+			public function get selectedKeyType():String
+			{
+				return keyTypeCombo.text;
+			}
+			
+			public function set defaultKeyType(value:String):void
+			{
+				if (!keyTypeIsSet)
+					_defaultKeyType = value;
+			}
+			[Bindable] private var _defaultKeyType:String = '';
+			
+			private var keyTypeIsSet:Boolean = false;
+			[Bindable] private var refreshingKeyTypes:Boolean = false;
+		]]>
+	</mx:Script>
+</mx:VBox>

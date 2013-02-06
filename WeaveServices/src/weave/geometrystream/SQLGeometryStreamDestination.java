@@ -24,12 +24,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 import weave.utils.SerialIDGenerator;
 
@@ -123,17 +122,19 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 			colNames.add(def[i]);
 			colTypes.add(def[i + 1]);
 		}
-		SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes);
+		SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes, null);
 		SQLUtils.createIndex(conn, sqlSchema, sqlTable, new String[]{X_MIN_BOUNDS,Y_MIN_BOUNDS,X_MAX_BOUNDS,Y_MAX_BOUNDS});
 	}
 
 	public void writeMetadataTiles(List<StreamTile> tiles) throws Exception
 	{
+		//System.out.println("writeMetadataTiles");
 		writeTilesToSQL(tiles, sqlMetadataTable, metadataTileIDGenerator);
 	}
 	
 	public void writeGeometryTiles(List<StreamTile> tiles) throws Exception
 	{
+		//System.out.println("writeGeometryTiles");
 		writeTilesToSQL(tiles, sqlGeometryTable, geometryTileIDGenerator);
 	}
 
@@ -158,16 +159,20 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 			StreamTile tile = streamTiles.get(i);
 			tile.writeStream(data, tileID);
 
+			byte[] bytes = baos.toByteArray();
+			//System.out.println(String.format("tile %s, %s bytes", tileID, bytes.length));
+			
 			// save tile data in sql table
-			Map<String, Object> values = new HashMap<String, Object>();
-			values.put(MIN_IMPORTANCE, tile.minImportance);
-			values.put(MAX_IMPORTANCE, tile.maxImportance);
-			values.put(X_MIN_BOUNDS, tile.queryBounds.xMin);
-			values.put(Y_MIN_BOUNDS, tile.queryBounds.yMin);
-			values.put(X_MAX_BOUNDS, tile.queryBounds.xMax);
-			values.put(Y_MAX_BOUNDS, tile.queryBounds.yMax);
-			values.put(TILE_ID, tileID);
-			values.put(TILE_DATA, baos.toByteArray());
+			Map<String, Object> values = MapUtils.fromPairs(
+				MIN_IMPORTANCE, tile.minImportance,
+				MAX_IMPORTANCE, tile.maxImportance,
+				X_MIN_BOUNDS, tile.queryBounds.xMin,
+				Y_MIN_BOUNDS, tile.queryBounds.yMin,
+				X_MAX_BOUNDS, tile.queryBounds.xMax,
+				Y_MAX_BOUNDS, tile.queryBounds.yMax,
+				TILE_ID, tileID,
+				TILE_DATA, bytes
+			);
 			SQLUtils.insertRow(conn, sqlSchema, sqlTable, values);
 		}
 	}

@@ -44,7 +44,7 @@ public class RunShapeFileAttributeConvertor  {
 		String fileName = "st99_d00.dbf";
 		String[] nullValues={};
 		
-		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(dbms), SQLUtils.getConnectString(dbms, ip, port, database, user, pass));
+		Connection conn = SQLUtils.getConnection(SQLUtils.getConnectString(dbms, ip, port, database, user, pass));
 		DBFUtils.storeAttributes(new File[]{ new File(fileName) }, conn, sqlSchema, sqlTable, true, nullValues);
 	}
 

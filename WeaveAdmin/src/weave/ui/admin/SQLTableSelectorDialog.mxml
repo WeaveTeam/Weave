@@ -25,15 +25,43 @@
 		 creationComplete="getSchemas()"
 		 xmlns:ui="weave.ui.*">
 	<ui:IndentGroup id="indentGroup"/>
-	<ui:Indent group="{indentGroup}" label="{Strings.sql_schema}">
-		<ui:CustomComboBox id="schemaInput" enabled="{schemaInput.dataProvider.length > 0}" width="240" prompt="Select a schema..." toolTip="{Strings.tip_sql_schema_dropdown}" text="{activeSchema}" dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
-		<mx:Button id="schemasRefreshButton" label="Refresh" click="getSchemas()" toolTip="{Strings.tip_refresh_schemas}"/>
+	<ui:Indent group="{indentGroup}" label="{lang('SQL schema')}">
+		<ui:CustomComboBox id="schemaInput"
+						   enabled="{schemaInput.dataProvider.length > 0}"
+						   prompt="{lang('Select a schema...')}"
+						   toolTip="{lang('A schema is just a collection of tables; please select the schema in which to place this new table')}"
+						   text="{activeSchema}"
+						   dataProvider="{schemas}"
+						   change="activeSchema = schemaInput.text;"/>
+		<mx:Button id="schemasRefreshButton"
+				   label="{lang('Refresh')}"
+				   click="getSchemas()"
+				   toolTip="{lang('This button updates the list of SQL schemas - use it if you think the list of schemas may have changed since you first opened the admin console.')}"/>
 	</ui:Indent>
-	<ui:Indent id="tableControls" group="{indentGroup}" label="{Strings.sql_table}">
-		<ui:CustomComboBox id="_tableCombo" enabled="{_tableCombo.dataProvider.length > 0}" prompt="Select a table..." text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{Strings.tip_sql_table_dropdown}"/>
-		<mx:Button id="tablesRefreshButton" label="Refresh" enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}" click="getTables()" toolTip="{Strings.tip_refresh_tables}"/>
-		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" width="240" prompt="Enter a table name" change="activeTable = _tableInput.text;"/>
-		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" includeInLayout="{tableOverwriteCheckVisible}" toolTip="{Strings.tip_overwrite_sql_table}"/>
+	<ui:Indent id="tableControls" group="{indentGroup}" label="{lang('SQL table')}">
+		<ui:CustomComboBox id="_tableCombo"
+						   enabled="{_tableCombo.dataProvider.length > 0}"
+						   prompt="{lang('Select a table...')}"
+						   text="{activeTable}"
+						   dataProvider="{tables}"
+						   change="activeTable = _tableCombo.text;"
+						   toolTip="{lang('Select the SQL table that you wish to publish. Tables shown in this dropdown menu are those that exist in the schema selected above.')}"/>
+		<mx:Button id="tablesRefreshButton"
+				   label="{lang('Refresh')}"
+				   enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}"
+				   click="getTables()"
+				   toolTip="{lang('This button updates the list of tables that exist in the SQL schema you selected above. Use this button to refresh the list if you suspect it may have changed since you first opened the admin console.')}"/>
+		<ui:TextInputWithPrompt id="_tableInput"
+								editable="true"
+								text="{activeTable}"
+								prompt="{lang('Enter a table name')}"
+								change="activeTable = _tableInput.text;"/>
+		<mx:CheckBox id="tableOverwriteCheck"
+					 label="{lang('Overwrite')}"
+					 selected="false"
+					 visible="{tableOverwriteCheckVisible}"
+					 includeInLayout="{tableOverwriteCheckVisible}"
+					 toolTip="{lang('Checking this box will allow you to overwrite the data in an existing table. The data will be replaced with the data from your CSV.')}"/>
 	</ui:Indent>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]
@@ -43,8 +71,8 @@
 		<![CDATA[
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.Strings;
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
 			
 			// values returned by the server that depend on the active selected values
 			[Bindable] public var schemas:Array = [];
@@ -78,10 +106,11 @@
 				activeSchema = '';
 				// clear current list, then request new list
 				schemas = [];
-				AdminInterface.instance.service.getSchemas(
-					AdminInterface.instance.activeConnectionName,
-					AdminInterface.instance.activePassword
-				).addAsyncResponder(handler, handler);
+				addAsyncResponder(
+					Admin.service.getSQLSchemaNames(),
+					handler,
+					handler
+				);
 				
 				schemasRefreshButton.enabled = false;
 				function handler(event:Event, token:Object = null):void
@@ -114,11 +143,11 @@
 				tables = [];
 				if (activeSchema != '')
 				{
-					AdminInterface.instance.service.getTables(
-						AdminInterface.instance.activeConnectionName,
-						AdminInterface.instance.activePassword,
-						activeSchema
-					).addAsyncResponder(handler, handler);
+					addAsyncResponder(
+						Admin.service.getSQLTableNames(activeSchema),
+						handler,
+						handler
+					);
 					
 					refreshingTables = true;
 					function handler(event:Event, token:Object = null):void
@@ -150,12 +179,10 @@
 				columns = [];
 				if (activeSchema != '' && activeTable != '')
 				{
-					AdminInterface.instance.service.getColumns(
-						AdminInterface.instance.activeConnectionName,
-						AdminInterface.instance.activePassword,
-						activeSchema,
-						activeTable
-					).addAsyncResponder(handleGetColumns);
+					addAsyncResponder(
+						Admin.service.getSQLColumnNames(activeSchema, activeTable),
+						handleGetColumns
+					);
 				}
 				
 				function handleGetColumns(event:ResultEvent, token:Object = null):void

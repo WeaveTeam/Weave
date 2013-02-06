@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+                xmlns:ui="weave.ui.*"
+                xmlns:aci="weave.services.beans.*"
+                xmlns="weave.ui.admin.managers.*"
+                label="Data Hierarchies{metadataEditor.isChanged?'*':''}"
+                creationComplete="handleCreated()">
+    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
+		<ui:IndentTextInput label="Tables" labelFontWeight="bold" prompt="Search" id="tableSearch" width="100%"/>
+        <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}" nodeFilterFunction="{filterTables}"
+			entityCache="{Admin.entityCache}"
+            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
+        <mx:HBox width="100%">
+			<mx:Spacer width="100%"/>
+            <mx:Button id="deleteTableButton" label="Delete table" click="deleteTable()"/>
+			<mx:Button label="Refresh" click="Admin.entityCache.clearCache();"/>
+        </mx:HBox>
+    </mx:VBox>
+    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
+        <mx:HBox>
+			<mx:Label text="Custom hierarchies" fontWeight="bold"/>
+			<ui:HelpComponent>
+				The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
+			</ui:HelpComponent>
+		</mx:HBox>
+        <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
+            width="100%" height="100%" entityCache="{Admin.entityCache}"
+            dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
+        <mx:HBox width="100%">
+			<mx:Spacer width="100%"/>
+			<mx:HBox enabled="{selectedItems.length &lt; 2}">
+    	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="New {hierarchyTree.selectedItem ? 'category' : 'hierarchy'} name" width="100%" enter="addCategory()"/>
+	            <mx:Button label="Add {hierarchyTree.selectedItem ? 'category' : 'hierarchy'}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
+			</mx:HBox>
+            <mx:Button label="Remove" click="remove()" enabled="{hierarchyTree.selectedItems.length > 0}"/>
+        </mx:HBox>
+    </mx:VBox>
+	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
+<mx:Script>
+<![CDATA[
+	import mx.controls.Alert;
+	import mx.events.ListEvent;
+	
+	import weave.core.UIUtils;
+	import weave.services.Admin;
+	import weave.services.WeaveAdminService;
+	import weave.services.beans.Entity;
+	import weave.ui.EntityNode;
+	import weave.ui.EntityTree;
+	import weave.utils.EventUtils;
+	import weave.utils.PopUpUtils;
+
+    [Bindable] public var selectedItems:Array = [];
+	
+    public function handleCreated():void
+    {
+		debugId(this);
+		
+        tableTree.addEventListener(ListEvent.CHANGE, handleTableTreeChange);
+        hierarchyTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
+		
+		EventUtils.addDelayedEventCallback(tableSearch, Event.CHANGE, tableTree.refresh, 100);
+    }
+	
+	private function handleTableTreeChange(event:ListEvent):void
+	{
+		deleteTableButton.enabled = tableTree.selectedItem && (tableTree.selectedItem as EntityNode).getEntity().type == Entity.TYPE_TABLE;
+		handleTreeChange(event);
+	}
+	private function handleTreeChange(event:ListEvent):void
+	{
+		var tree:EntityTree = event.currentTarget as EntityTree;
+		if (Admin.instance.getFocusEntityId() >= 0)
+		{
+			var node:EntityNode = tree.scrollToAndSelectMatchingItem(isFocusedEntityNode) as EntityNode;
+			if (node)
+				tree.expandItem(node, true);
+		}
+		
+		selectionsChanged(event);
+	}
+	
+	private function isFocusedEntityNode(node:EntityNode):Boolean
+	{
+		if (node && node.id == Admin.instance.getFocusEntityId())
+		{
+			Admin.instance.clearFocusEntityId();
+			return true;
+		}
+		
+		return false;
+	}
+
+	private function filterTables(item:EntityNode):Boolean
+	{
+		if (!tableSearch.text)
+			return true;
+		return item.label.toLowerCase().search(tableSearch.text.toLowerCase()) >= 0;
+	}
+	
+    public function deleteTable():void
+    {
+		//TODO: ask for password to confirm?
+		
+        /* Pop up confirmation, then delete tables. */
+        PopUpUtils.confirm(this, "Delete Table", "Delete selected tables? All data columns will also be deleted from all associated categories.", deleteTableFunction, null, "Delete", "Cancel")
+        function deleteTableFunction():void
+        {
+			for each (var item:EntityNode in tableTree.selectedItems)
+			{
+				Admin.entityCache.delete_entity(item.id);
+	        }
+			tableTree.selectedItem = null;
+		}
+    }
+    public function addCategory():void
+    {
+		var name:String = categoryNameInput.text
+        if (!name)
+        {
+            UIUtils.componentPulse(categoryNameInput);
+            return;
+        }
+		
+		var node:EntityNode;
+		if (hierarchyTree.selectedItems.length == 0)
+			node = hierarchyTree.rootNode;
+		if (hierarchyTree.selectedItems.length == 1)
+			node = hierarchyTree.selectedItems[0];
+        
+		var index:int = -1;
+		// if user selected a column, use its parent node and insert at the column's position
+		if (node.getEntity().type == Entity.TYPE_COLUMN)
+		{
+			var parent:EntityNode = hierarchyTree.getParentItem(node);
+			index = parent.getEntity().childIds.indexOf(node.id);
+			node = parent;
+		}
+		
+		Admin.entityCache.add_category(name, node.id, index);
+   	    categoryNameInput.text = "";
+		hierarchyTree.expandItem(node, true); // expand so new child can be selected
+    }
+    public function selectionsChanged(event:ListEvent):void
+    {
+		var tree:EntityTree = event.currentTarget as EntityTree;
+		var otherTree:EntityTree = tree === tableTree ? hierarchyTree : tableTree;
+		
+		// if both trees have something selected, prefer the tree that just selected something.
+		if (tree.selectedItem && otherTree.selectedItem)
+			otherTree.selectedItems = [];
+		
+		if (tree.selectedItem)
+			this.selectedItems = tree.selectedItems;
+		else if (!otherTree.selectedItem)
+			this.selectedItems = []; // neither tree has selection
+    }
+    public function remove():void
+    {
+		for each (var item:EntityNode in hierarchyTree.selectedItems)
+		{
+			if (item.getEntity().type == Entity.TYPE_HIERARCHY)
+			{
+	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root hierarchies.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
+				return;
+			}
+		}
+		removeImmediately();
+	}
+	private function removeImmediately():void
+	{
+		for each (var item:EntityNode in hierarchyTree.selectedItems)
+		{
+	        var type:int = item.getEntity().type;
+	        var parent:EntityNode = hierarchyTree.getParentItem(item);
+	        if (parent)
+	        {
+				Admin.entityCache.remove_child(parent.id, item.id);
+	        }
+	        else if (type == Entity.TYPE_HIERARCHY)
+	        {
+				Admin.entityCache.delete_entity(item.id);
+	        }
+	        else
+	        {
+				// this occurs when root item is selected.. should never happen
+				weaveTrace("Entity " + item.id + " has no parent and is not a hierarchy");
+	        }
+		}
+		hierarchyTree.selectedItem = null;
+		selectedItems = [];
+    }
+]]>
+</mx:Script>
+</mx:HDividedBox>

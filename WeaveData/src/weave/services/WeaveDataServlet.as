@@ -19,12 +19,17 @@
 
 package weave.services
 {
+	import avmplus.DescribeType;
+	
+	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
+	
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.utils.HierarchyUtils;
 	
@@ -33,21 +38,115 @@ package weave.services
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataServlet implements IWeaveDataService
+	public class WeaveDataServlet implements ILinkableObject
 	{
+		protected var servlet:AMF3Servlet;
+		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
+
 		public function WeaveDataServlet(url:String)
 		{
 			servlet = new AMF3Servlet(url);
 			registerLinkableChild(this, servlet);
+			
+			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
+			for each (var item:Object in info.traits.methods)
+			{
+				var func:Function = this[item.name] as Function;
+				if (func != null)
+					propertyNameLookup[func] = item.name;
+			}
 		}
-		protected var servlet:AMF3Servlet;
-
-		public function getDataServiceMetadata():AsyncToken
+		
+		////////////////////
+		// Helper functions
+		
+		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */		
+		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		
+		/**
+		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
+		 * @param method A WeaveAdminService class member function or a String.
+		 * @param parameters Parameters for the servlet method.
+		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
+		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
+		 */		
+		private function invoke(method:Object, parameters:Array):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("getDataServiceMetadata", null);
+			var methodName:String;
+			if (method is Function)
+				methodName = propertyNameLookup[method] as String;
+			else
+				methodName = method as String;
+			
+			if (!methodName)
+				throw new Error("method must be a member of " + getQualifiedClassName(this));
+			
+			return servlet.invokeAsyncMethod(methodName, parameters);
 		}
-
-		public function getRows(keys:Array):AsyncToken
+		
+		////////////////////
+		// DataEntity info
+		
+		public function getDataTableList():AsyncToken // returns DataEntityTableInfo[]
+		{
+			return invoke(getDataTableList, arguments);
+		}
+		
+		public function getEntityChildIds(parentId:int):AsyncToken // returns int[]
+		{
+			return invoke(getEntityChildIds, arguments);
+		}
+		
+		public function getEntityIdsByMetadata(publicMetadata:Object, entityType:int):AsyncToken // returns int[]
+		{
+			return invoke(getEntityIdsByMetadata, [{"publicMetadata": publicMetadata}, entityType]);
+		}
+		
+		public function getEntitiesById(ids:Array):AsyncToken // returns DataEntity[]
+		{
+			return invoke(getEntitiesById, arguments);
+		}
+		
+		////////////////////////////////////
+		// string and numeric data columns
+		
+		public function getColumn(columnId:int, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken // returns AttributeColumnData
+		{
+			return invoke(getColumn, arguments);
+		}
+		
+		/////////////////////
+		// Geometry columns
+		
+		public function getGeometryStreamTileDescriptors(columnId:int):AsyncToken // returns GeometryStreamMetadata
+		{
+			return invoke(getGeometryStreamTileDescriptors, arguments);
+		}
+		public function getGeometryStreamMetadataTiles(columnId:int, tileIDs:Array):AsyncToken // returns byte[]
+		{
+			return invoke(getGeometryStreamMetadataTiles, arguments);
+		}
+		public function getGeometryStreamGeometryTiles(columnId:int, tileIDs:Array):AsyncToken // returns byte[]
+		{
+			return invoke(getGeometryStreamGeometryTiles, arguments);
+		}
+		
+		public function createTileService(columnId:int):IWeaveGeometryTileService
+		{
+			var tileService:IWeaveGeometryTileService = new WeaveGeometryTileServlet(this, columnId);
+			
+			// when we dispose of this servlet, we also want to dispose of the spawned tile servlet
+			registerDisposableChild(this, tileService);
+			
+			return tileService;
+		}
+		
+		//////////////
+		// Row query
+		
+		public function getRows(keys:Array):AsyncToken // returns WeaveRecordList
 		{
 			var keysArray:Array = [];
 			for each( var key:IQualifiedKey in keys)
@@ -55,63 +154,15 @@ package weave.services
 				keysArray.push(key.localName);
 			}
 			var keytype:String = (keys[0] as IQualifiedKey).keyType;
-			return servlet.invokeAsyncMethod("getRows",[keytype,keysArray]);
+			return invoke(getRows,[keytype,keysArray]);
 		}
 		
-		public function getDataTableMetadata(dataTableName:String):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("getDataTableMetadata", arguments);
-		}
+		////////////////////////////
+		// backwards compatibility
 		
-		public function getAttributeColumn(pathInHierarchy:XML):AsyncToken
+		[Deprecated] public function getColumnFromMetadata(metadata:Object):AsyncToken // returns AttributeColumnData
 		{
-			var node:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
-
-			var params:Object = new Object();
-			for each (var attr:String in ['dataTable', 'name', 'year', 'min', 'max', 'sqlParams']) // only use these properties for querying
-			{
-				var value:String = node.attribute(attr);
-				if (value != '')
-					params[attr] = value;
-			}
-			
-			return servlet.invokeAsyncMethod("getAttributeColumn", params);
-		}
-		
-		public function getAttributeColumnFromMetadata(Metadata:Object):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("getAttributeColumn", arguments);
-		}
-		
-		// async result is a GeometryStreamMetadata object
-		public function getTileDescriptors(geometryCollectionName:String):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("getGeometryStreamTileDescriptors", arguments);
-		}
-		// async result is a ByteArray
-		public function getMetadataTiles(geometryCollectionName:String, tileIDs:Array):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("getGeometryStreamMetadataTiles", arguments);
-		}
-		// async result is a ByteArray
-		public function getGeometryTiles(geometryCollectionName:String, tileIDs:Array):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("getGeometryStreamGeometryTiles", arguments);
-		}
-		
-		public function createTileService(geometryCollectionName:String):IWeaveGeometryTileService
-		{
-			var tileService:IWeaveGeometryTileService = new WeaveGeometryTileServlet(this, geometryCollectionName);
-			
-			// when we dispose of this servlet, we also want to dispose of the spawned tile servlet
-			registerDisposableChild(this, tileService);
-			
-			return tileService;
-		}
-
-		public function createReport(name:String, keys:Array):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("createReport", arguments);
+			return invoke(getColumnFromMetadata, arguments);
 		}
 	}
 }
@@ -130,32 +181,25 @@ import weave.services.WeaveDataServlet;
  */
 internal class WeaveGeometryTileServlet implements IWeaveGeometryTileService
 {
-	public function WeaveGeometryTileServlet(service:WeaveDataServlet, geometryCollectionName:String)
+	public function WeaveGeometryTileServlet(service:WeaveDataServlet, columnId:int)
 	{
 		_service = service;
-		_geometryCollectionName = geometryCollectionName;
+		_columnId = columnId;
 	}
 	
 	private var _service:WeaveDataServlet;
-	private var _geometryCollectionName:String;
-	
-	public function getTileDescriptors():AsyncToken
-	{
-		var token:AsyncToken = _service.getTileDescriptors(_geometryCollectionName);
-		WeaveAPI.SessionManager.assignBusyTask(token, this);
-		return token;
-	}
+	private var _columnId:int;
 	
 	public function getMetadataTiles(tileIDs:Array):AsyncToken
 	{
-		var token:AsyncToken = _service.getMetadataTiles(_geometryCollectionName, tileIDs);
+		var token:AsyncToken = _service.getGeometryStreamMetadataTiles(_columnId, tileIDs);
 		WeaveAPI.SessionManager.assignBusyTask(token, this);
 		return token;
 	}
 	
 	public function getGeometryTiles(tileIDs:Array):AsyncToken
 	{
-		var token:AsyncToken = _service.getGeometryTiles(_geometryCollectionName, tileIDs);
+		var token:AsyncToken = _service.getGeometryStreamGeometryTiles(_columnId, tileIDs);
 		WeaveAPI.SessionManager.assignBusyTask(token, this);
 		return token;
 	}

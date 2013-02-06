@@ -110,6 +110,7 @@
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.TopicClassificationResults;
 			import weave.ui.ControlPanel;
 			import weave.ui.CustomLabel;
@@ -432,7 +433,7 @@
 					prevNewDocsCount.value = 0;
 					
 				}
-				DelayedAsyncResponder.addResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResults(currentQuery.keywords.value.split(','),relatedKeywords),
+				addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResults(currentQuery.keywords.value.split(','),relatedKeywords),
 					handleTotalResults,handleTotalResultsFault);
 				
 				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
@@ -441,7 +442,7 @@
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 				
-				DelayedAsyncResponder.addResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
+				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 				
 			}
@@ -485,7 +486,7 @@
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(currentQuery.keywords.value.split(','),
 						relatedKeywords,currentQuery.dateFilter,2000);
 				
-				DelayedAsyncResponder.addResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 			}
 			
 			
@@ -673,7 +674,7 @@
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
 					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 				
-				DelayedAsyncResponder.addResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
+				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
 						forceHide:true,forceShow:false});
 				
@@ -1005,7 +1006,7 @@
 				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
 															relatedKeywords,entities,currentQuery.dateFilter,2000);
 				
-				DelayedAsyncResponder.addResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
+				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 			}
 			
@@ -1553,7 +1554,7 @@
 					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
 						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
 					
-					DelayedAsyncResponder.addResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
+					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
 							forceHide:forceHide,forceShow:forceShow});
 					
@@ -1831,7 +1832,7 @@
 				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(currentQuery.keywords.value.split(','),
 					relatedKeywords,currentQuery.dateFilter,filteredWords.value.split(','),2000);
 				
-				DelayedAsyncResponder.addResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
+				addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
 			}
 			
 			private function handleFilterQueryResult(event:ResultEvent,token:Object=null):void
@@ -1877,7 +1878,7 @@
 				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
 				
-				DelayedAsyncResponder.addResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
+				addAsyncResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 			}
 			

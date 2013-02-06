@@ -23,13 +23,14 @@
     xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns="weave.ui.*"
     >
-    <mx:TextInput id="input" text="{text}" change="handleInputChange()" displayAsPassword="{displayAsPassword}"/>
+    <TextInputWithPrompt id="input" prompt="{prompt}" text="{text}" change="handleInputChange()" displayAsPassword="{displayAsPassword}" width="100%"/>
 	
 	<mx:Metadata>
 		[Event(name="change", type="flash.events.Event")]
 	</mx:Metadata>
     <mx:Script>
     	<![CDATA[
+			[Bindable] public var prompt:String = "";
     		[Bindable] public var text:String = "";
     		[Bindable] public var displayAsPassword:Boolean = false;
 			
