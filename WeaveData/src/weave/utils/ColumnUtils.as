@@ -487,29 +487,6 @@ package weave.utils
 			}
 		}
 		
-		/**
-		 * Returns all the values from the column sorted in ascedning order.
-		 * @param column An IattributeColumn with numeric values 
-		 * */
-		public static function getSortedNumbersFromColumn(column:IAttributeColumn):Array
-		{
-			var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
-			
-			if(dataType != 'number')
-				return null;
-			
-			var keys:Array = column ? column.keys : [];
-			var sortedColumn:Array = new Array(keys.length);
-			var i:uint = 0;
-			for each (var key:IQualifiedKey in keys)	
-			{
-				sortedColumn[i] = column.getValueFromKey(key,Number);
-				i = i+1;
-			}
-			AsyncSort.sortImmediately(sortedColumn, ObjectUtil.numericCompare);
-			return sortedColumn;
-		}
-		
 		//todo: (cached) get sorted index from a key and a column
 		
 		//todo: (cached) get bins from a column with a filter applied

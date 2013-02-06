@@ -30,16 +30,15 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
-	import weave.api.linkSessionState;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -280,16 +279,22 @@ package weave.visualization.plotters
 		
 		private const RECORD_INDEX:String = 'recordIndex';
 		private const MIN_IMPORTANCE:String = 'minImportance';
+		private const D_PROGRESS:String = 'd_progress';
+		private const D_ASYNCSTATE:String = 'd_asyncState';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			if (task.iteration == 0)
 			{
-				task.asyncState[RECORD_INDEX] = 0; 
+				task.asyncState[RECORD_INDEX] = 0;
 				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(task.dataBounds, task.screenBounds) * pixellation.value;
+				task.asyncState[D_PROGRESS] = new Dictionary(true);
+				task.asyncState[D_ASYNCSTATE] = new Dictionary(true);
 			}
 			
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
+			var d_progress:Dictionary = task.asyncState[D_PROGRESS];
+			var d_asyncState:Dictionary = task.asyncState[D_ASYNCSTATE];
 			var progress:Number = 1; // set to 1 in case loop is not entered
 			while (recordIndex < task.recordKeys.length)
 			{
@@ -350,19 +355,19 @@ package weave.visualization.plotters
 			for each (var plotter:IPlotter in symbolPlottersArray)
 			{
 				if (task.iteration == 0)
-					_asyncState[plotter] = {};
-				task.asyncState = _asyncState[plotter];
-				if (_asyncProgress[plotter] != 1)
-					_asyncProgress[plotter] = plotter.drawPlotAsyncIteration(task);
-				progress += _asyncProgress[plotter];
+				{
+					d_asyncState[plotter] = {};
+					d_progress[plotter] = 0;
+				}
+				task.asyncState = d_asyncState[plotter];
+				if (d_progress[plotter] != 1)
+					d_progress[plotter] = plotter.drawPlotAsyncIteration(task);
+				progress += d_progress[plotter];
 			}
 			task.asyncState = ourAsyncState;
 			
 			return progress / (1 + symbolPlottersArray.length);
 		}
-		
-		private const _asyncState:Dictionary = new Dictionary(true); // IPlotter -> Object
-		private const _asyncProgress:Dictionary = new Dictionary(true); // IPlotter -> Number
 		
 		private static const tempPoint:Point = new Point(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object

@@ -247,8 +247,8 @@ package weave.services
 				abstractOperation.addEventListener(FaultEvent.FAULT, handleWebMethodFault);
 
 			// if the query produces a fault, notify the user
-			query.addAsyncResponder(null, handleDownloadFault, query);
-			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
+			addAsyncResponder(query, null, handleDownloadFault, query);
+			addAsyncResponder(query, handleQueryResultOrFault, handleQueryResultOrFault, query);
 
 			// instead of downloading from this class, pass the query on to the global queue
 			//globalQueue.addToQueue(query);

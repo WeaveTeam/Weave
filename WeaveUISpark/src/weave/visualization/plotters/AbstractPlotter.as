@@ -47,8 +47,6 @@ package weave.visualization.plotters
 	 */
 	public class AbstractPlotter implements IPlotter, IDisposableObject
 	{
-		private function debugTrace(..._):void { } // comment this line to enable debugging
-		
 		/**
 		 * @param columnToGetKeysFrom The column that the IKeySet object uses to get keys from.
 		 */
@@ -56,9 +54,9 @@ package weave.visualization.plotters
 		{
 			spatialCallbacks.addImmediateCallback(this, returnPooledObjects);
 
-			var self:Object = this;
-			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
-			getCallbackCollection(filteredKeySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',filteredKeySet.keys.length); });
+//			var self:Object = this;
+//			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
+//			getCallbackCollection(filteredKeySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',filteredKeySet.keys.length); });
 		}
 		
 		/**

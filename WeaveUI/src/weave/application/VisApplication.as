@@ -34,7 +34,6 @@ package weave.application
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
 	import flash.system.Capabilities;
-	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.ByteArray;
@@ -56,11 +55,11 @@ package weave.application
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
-	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
@@ -73,8 +72,8 @@ package weave.application
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
+	import weave.services.addAsyncResponder;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
@@ -112,7 +111,6 @@ package weave.application
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
-	import weave.visualization.tools.WeaveAnalyst;
 
 	internal class VisApplication extends VBox implements ILinkableObject
 	{
@@ -230,7 +228,7 @@ package weave.application
 				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
 				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
 				// when admin console responds, set adminService
-				DelayedAsyncResponder.addResponder(
+				addAsyncResponder(
 					pendingAdminService.invokeAsyncMethod("ping"),
 					resultHandler,
 					faultHandler
@@ -579,7 +577,7 @@ package weave.application
 				}
 				
 				var token:AsyncToken = adminService.invokeAsyncMethod('saveWeaveFile', [content, fileName, true]);
-				DelayedAsyncResponder.addResponder(
+				addAsyncResponder(
 					token,
 					function(event:ResultEvent, token:Object = null):void
 					{
@@ -1558,7 +1556,8 @@ package weave.application
 		{
 			try
 			{
-				ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+				if (ExternalInterface.available)
+					ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
 			}
 			catch (e:Error)
 			{

@@ -29,58 +29,62 @@
 		borderAlpha="0.5" backgroundColor="#DBDBDB"
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
-		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : (AdminInterface.instance.sqlConfigExists ? 1 : 2)}">
-			<mx:VBox width="100%" height="100%">
-				<mx:HBox width="100%">
-					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
-					<mx:Button label="Import existing SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
-					<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{Strings.tip_import_csv_data}"/>
-					<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{Strings.tip_import_shp_and_dbf}"/>
-
-					<ui:CustomVRule/>
-					<mx:Button label="Open Weave" click="AdminInterface.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
-					<mx:Button label="Recover Last Session" click="AdminInterface.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
-					
-					<mx:Spacer width="100%"/>
-					<mx:Button id="translationButton" label="{lang('Edit translations')}" click="DraggablePanel.openStaticInstance(TranslationPanel);"/>
-					<mx:Label text="{'Signed in as: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
-					<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
-							   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
-				</mx:HBox>
-				<mx:HRule width="100%"/>
-				<mx:VDividedBox width="100%" height="100%" >
-					<mx:TabNavigator id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
-						<managers:ClientConfigurationManager id="clientConfig"/>
-						<managers:DataTableManager/>
-						<managers:GeometryCollectionManager/>
+		<mx:VDividedBox width="100%" height="100%">
+			<mx:ViewStack width="100%" height="100%" selectedIndex="{Admin.service.initialized ? (Admin.instance.userHasAuthenticated ? MAIN_VIEW : (Admin.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
+				
+				<!-- main interface -->
+				<mx:VBox width="100%" height="100%">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<mx:Label fontWeight="bold" text="Import data:"/>
+						<mx:Button label="SQL" click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{lang('This publishes an existing SQL table through the Weave server. This will not create any new tables in the database. This will just allow Weave users to access the data.')}"/>
+						<mx:Button label="CSV" click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{lang('This uploads and publishes data from a CSV file on your computer.')}"/>
+						<mx:Button label="SHP + DBF" click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{lang('This uploads and publishes shape data from files on your computer.')}"/>
+						
+						<mx:HRule width="100%"/>
+						
+						<mx:Button label="Open Weave" click="Admin.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
+						<mx:Button label="Recover Last Session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
+						
+						<mx:HRule width="100%"/>
+						
+						<mx:Label text="{'Signed in as: ' + Admin.instance.activeConnectionName}" textAlign="right"/>
+						<mx:Button label="Sign out" enabled="{Admin.instance.databaseConfigExists == true}"
+								   click="Admin.instance.activeConnectionName = Admin.instance.activePassword = '';"/>
+					</mx:HBox>
+					<mx:HRule width="100%"/>
+					<mx:TabNavigator tabWidth="160" id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
+						<managers:ClientConfigurationManager id="clientConfigManager"/>
+						<managers:MetadataManager id="metadataManager"/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
-						<mx:VBox id="acsTab" label="ACS Header tool">
-							<mx:Label text="Paste the header rows you want to combine."/>
-							<mx:TextArea width="100%" height="100%" id="acsInput" change="mergeHeaderRows()"/>
-							<ui:Indent label="Separator used when merging header rows:">
-								<mx:TextInput id="acsSeparator" text=" - " change="mergeHeaderRows()"/>
-							</ui:Indent>
-							<mx:HBox>
-								<mx:Label text="Merged header rows:"/>
-								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy to clipboard" click="Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, acsOutput.text);"/>
-							</mx:HBox>
-							<mx:TextArea width="100%" height="100%" id="acsOutput"/>
-						</mx:VBox>
 					</mx:TabNavigator>
-					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>
-				</mx:VDividedBox>
-			</mx:VBox>
-			
-			<mx:Box horizontalAlign="center" verticalAlign="middle" show="login.connectionInput.setFocus()">
-				<admin:LoginPopup id="login"/>
-			</mx:Box>
-			
-			<mx:VBox show="Alert.show(firstTimeTextArea.text, 'First time setup'); AdminInterface.instance.getConnectionNames();">
-				<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
-				<managers:SQLConnectionManager/>
-			</mx:VBox>
-		</mx:ViewStack>
+					<mx:HBox id="resdHacks" visible='false' includeInLayout="false" width="100%">
+						<mx:Spacer width="100%"/>
+						<mx:Button label="{lang('ACS Header Tool')}" click='openAcsHeaderTool()'/>
+						<mx:Button label="{lang('Edit translations')}" click="DraggablePanel.openStaticInstance(TranslationPanel);"/>
+					</mx:HBox>
+				</mx:VBox>
+				
+				<!-- login interface -->
+				<mx:Box horizontalAlign="center" verticalAlign="middle" show="login.connectionInput.setFocus()">
+					<admin:LoginPopup id="login"/>
+				</mx:Box>
+				
+				<!-- first time setup interface -->
+				<mx:VBox>
+					<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
+					<managers:SQLConnectionManager/>
+				</mx:VBox>
+				
+				<!-- old version migration interface -->
+	            <mx:VBox>
+	                <admin:MigrationPanel width="100%" height="100%"/>
+	            </mx:VBox>
+				
+			</mx:ViewStack>
+			<mx:TextArea id="messageTextArea" editable="false"
+						 width="100%" height="0%" visible="{messageTextArea.height > 0}"
+						 keyDown="if (event.keyCode == Keyboard.DELETE) WeaveAdminService.clearMessageLog();"/>
+		</mx:VDividedBox>
 	</mx:Panel>
 	
 	<!--
@@ -97,19 +101,12 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.desktop.Clipboard;
-			import flash.desktop.ClipboardFormats;
-			
 			import mx.binding.utils.BindingUtils;
-			import mx.controls.Alert;
-			import mx.controls.TextArea;
 			import mx.managers.PopUpManager;
 			
-			import weave.Strings;
 			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.reportError;
-			import weave.services.AdminInterface;
+			import weave.api.getCallbackCollection;
+			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
 			import weave.ui.DraggablePanel;
 			import weave.ui.SessionStateEditor;
@@ -120,37 +117,43 @@
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
-			import weave.utils.VectorUtils;
+
+			private const MAIN_VIEW:int = 0;
+			private const LOGIN_VIEW:int = 1;
+			private const SETUP_VIEW:int = 2;
+            private const MIGRATE_VIEW:int = 3;
 			
 			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
+			
+			private var _weaveTrace:Function = weaveTraceImpl; // reference this here so it gets compiled
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;
 			
 			private function handleCreationComplete():void
 			{
-				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
+				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog, true);
 				function handleMessageLog():void
 				{
+					
 					messageTextArea.text = WeaveAdminService.messageLog.join('\n\n');
 					messageTextArea.validateProperties();
 					messageTextArea.verticalScrollPosition = messageTextArea.maxVerticalScrollPosition;
-					if (messageTextArea.height == 0)
-						messageTextArea.percentHeight = 15;
+					if (WeaveAdminService.messageLog.length && messageTextArea.height < 64)
+					{
+						// Set height explicitly because if we set percentHeight and then
+						// the user resizes the division, the percentHeight will be ignored.
+						messageTextArea.height = 128;
+					}
 				}
 
-				BindingUtils.bindSetter(updateACSTool, AdminInterface.instance, "activeConnectionName");
-				function updateACSTool(name:String):void
+				BindingUtils.bindSetter(handleConnectionChange, Admin.instance, "activeConnectionName");
+				function handleConnectionChange(name:String):void
 				{
-					if (acsTab.parent)
-						acsTab.parent.removeChild(acsTab);
-					if (name == 'resd')
-						tabNavigator.addChild(acsTab);
-					
-					translationButton.visible = translationButton.includeInLayout = (name == 'resd');
+					resdHacks.visible = resdHacks.includeInLayout = (name == 'resd');
 				}
 				
-				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
+				BindingUtils.bindSetter(handlePermissionChange, Admin.instance, "currentUserIsSuperuser");
 				function handlePermissionChange(isSuperuser:Boolean):void
 				{
 					if (isSuperuser != (tabNavigator == sqlConnectionManager.parent))
@@ -167,22 +170,18 @@
 				}
 				
 				PopUpManager.createPopUp(this, WeaveProgressBar);
+				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
 			}
 			
-			private function mergeHeaderRows():void
+			private function handleEntityCache():void
 			{
-				try
-				{
-					var table:Array = WeaveAPI.CSVParser.parseCSV(acsInput.text);
-					if (table.length > 10)
-						table.length = 10;
-					var joined:Array = VectorUtils.joinItems(table, acsSeparator.text, false);
-					acsOutput.text = WeaveAPI.CSVParser.createCSV([joined]);
-				}
-				catch (e:Error)
-				{
-					reportError(e);
-				}
+				if (Admin.instance.getFocusEntityId() != -1)
+					tabNavigator.selectedChild = metadataManager;
+			}
+			
+			private function openAcsHeaderTool():void
+			{
+				ExternalInterface.call('window.open("http://demo.oicweave.org/HeaderTool.swf", "_blank")');
 			}
 		]]>
 	</mx:Script>

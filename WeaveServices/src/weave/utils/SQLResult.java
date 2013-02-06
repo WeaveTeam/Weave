@@ -19,7 +19,6 @@
 
 package weave.utils;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -32,6 +31,8 @@ import java.util.LinkedList;
  */
 public class SQLResult
 {
+	public static final int FETCH_SIZE = 1000;
+	
 	public SQLResult(ResultSet rs) throws SQLException
 	{
 		read(rs, false);
@@ -39,6 +40,7 @@ public class SQLResult
 	
 	public SQLResult(ResultSet rs, boolean convertToStrings) throws SQLException
 	{
+		rs.setFetchSize(FETCH_SIZE);
 		read(rs, convertToStrings);
 	}
 	
@@ -92,15 +94,8 @@ public class SQLResult
 	 */
 	public String toString()
 	{
-		try
-		{
-			String header = CSVParser.defaultParser.createCSV(new String[][]{ columnNames }, true);
-			String data = CSVParser.defaultParser.createCSV(rows, true);
-			return header + CSVParser.LF + data;
-		}
-		catch (IOException e)
-		{
-			return null;
-		}
+		String header = CSVParser.defaultParser.createCSVRow(columnNames, true);
+		String data = CSVParser.defaultParser.createCSV(rows, true, false);
+		return header + CSVParser.LF + data;
 	}
 }

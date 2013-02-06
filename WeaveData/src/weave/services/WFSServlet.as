@@ -20,15 +20,11 @@
 package weave.services
 {
 	import flash.net.URLLoaderDataFormat;
-	import flash.net.URLRequest;
-	import flash.net.URLVariables;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.reportError;
-	import weave.utils.HierarchyUtils;
 
 	public class WFSServlet extends Servlet
 	{
@@ -61,7 +57,7 @@ package weave.services
 			
 			if (invokeLater)
 			{
-				DelayedAsyncResponder.addResponder(token, handleGetCapabilities, handleGetCapabilitiesFault);
+				addAsyncResponder(token, handleGetCapabilities, handleGetCapabilitiesFault);
 				invokeNow(token); // invoke getCapabilities immediately
 			}
 			

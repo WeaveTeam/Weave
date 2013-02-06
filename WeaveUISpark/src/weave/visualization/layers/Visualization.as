@@ -26,12 +26,12 @@ package weave.visualization.layers
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
+	import weave.api.WeaveAPI;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
+	import weave.api.core.ILinkableObject;
+	import weave.api.primitives.IBounds2D;
 	import weave.core.ClassUtils;
 	import weave.core.SessionManager;
 
@@ -92,10 +92,7 @@ package weave.visualization.layers
 			plotManager.layerSettings.delayCallbacks();
 			
 			var dynamicState:Object;
-			var removeMissingDynamicObjects:Boolean = true;
-			for each (dynamicState in array)
-				if (dynamicState is String || !dynamicState.className || dynamicState.className == SessionManager.DIFF_DELETE)
-					removeMissingDynamicObjects = false;
+			var removeMissingDynamicObjects:Boolean = (WeaveAPI.SessionManager as SessionManager).deprecatedSetterShouldRemoveMissingDynamicObjects;
 			
 			if (removeMissingDynamicObjects)
 				plotManager.plotters.removeAllObjects();
@@ -120,7 +117,18 @@ package weave.visualization.layers
 					var plotter:ILinkableObject = plotManager.plotters.getObject(dynamicState.objectName);
 					var settings:ILinkableObject = plotManager.getLayerSettings(dynamicState.objectName);
 					if (plotter && plotterState)
+					{
+						try {
+							var sps:Array = plotterState.sessionState.symbolPlotters;
+							for each (var sp:Object in sps)
+							{
+								try {
+									sp.sessionState.filteredKeySet = sp.sessionState.keySet;
+								} catch (e:Error) { }
+							}
+						} catch (e:Error) { }
 						setSessionState(plotter, plotterState.sessionState, removeMissingDynamicObjects);
+					}
 					if (settings)
 						setSessionState(settings, layerState, removeMissingDynamicObjects);
 				}

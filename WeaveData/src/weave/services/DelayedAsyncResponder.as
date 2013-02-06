@@ -31,7 +31,7 @@ package weave.services
 	 */
 	public class DelayedAsyncResponder extends AsyncResponder
 	{
-		public static function addResponder(destination:AsyncToken, result:Function, fault:Function, token:Object = null):void
+		internal static function addResponder(destination:AsyncToken, result:Function, fault:Function = null, token:Object = null):void
 		{
 			destination.addResponder(new DelayedAsyncResponder(result, fault, token));
 		}

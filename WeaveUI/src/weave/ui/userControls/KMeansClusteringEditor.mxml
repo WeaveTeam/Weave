@@ -62,13 +62,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.controls.DataGrid;
-			import mx.controls.Image;
-			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -76,28 +69,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
-			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
-			import weave.visualization.tools.DataTableTool;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			
 			
@@ -180,7 +165,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var clusterQuery:AsyncToken = Rservice.KMeansClustering(assignNames, clusterInputValues,false, Number(clusternumberTI.text),Number(iterationnumberTI.text));
 				//var script:String = "Clus <- kmeans(dataframe1, "+ clusterNumber.text+","+ iterationNumber.text+")"
-				DelayedAsyncResponder.addResponder(clusterQuery, handleClusterScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				addAsyncResponder(clusterQuery, handleClusterScriptResult, handleRunScriptFault, joinedColumnQKeys);
 				
 			}
 			

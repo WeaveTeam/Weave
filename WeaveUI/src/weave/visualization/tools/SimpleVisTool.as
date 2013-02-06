@@ -413,7 +413,6 @@ package weave.visualization.tools
 			super.dispose();
 		}
 		
-		//ICSV exportbale interface Method
 		public function exportCSV():String{
 			var toolColumns:Array = getSelectableAttributes();
 			if(toolColumns.length == 0)

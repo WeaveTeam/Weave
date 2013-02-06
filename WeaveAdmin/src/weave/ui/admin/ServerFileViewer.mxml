@@ -65,11 +65,12 @@
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.compiler.StandardLib;
-			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
 			import weave.utils.FileUtils;
 			
 			public static const INPUT_CSV:String = "INPUT_CSV";
@@ -90,9 +91,9 @@
 				var source:Array = new Array();
 				
 				if( inputType == INPUT_CSV )
-					source = AdminInterface.instance.uploadedCSVFiles;
+					source = Admin.instance.uploadedCSVFiles;
 				else if( inputType == INPUT_SHP )
-					source = AdminInterface.instance.uploadedShapeFiles;
+					source = Admin.instance.uploadedShapeFiles;
 				
 				if(searchTerm.text.length > 0)
 				{
@@ -125,9 +126,9 @@
 			private function creationComplete(event:FlexEvent):void
 			{
 				if( inputType == INPUT_CSV )
-					AdminInterface.instance.getUploadedCSVFiles();
+					Admin.service.getUploadedCSVFiles();
 				else if( inputType == INPUT_SHP )
-					AdminInterface.instance.getUploadedShapeFiles();
+					Admin.service.getUploadedSHPFiles();
 				
 				if( inputType == "" )
 				{
@@ -155,13 +156,13 @@
 				refreshButton.enabled = false;
 				statusLabel.text = "Loading...";
 				
-				var query:DelayedAsyncInvocation;
+				var query:AsyncToken;
 				if( inputType == INPUT_CSV )
-					query = AdminInterface.instance.getUploadedCSVFiles();
+					query = Admin.service.getUploadedCSVFiles();
 				else if( inputType == INPUT_SHP )
-					query = AdminInterface.instance.getUploadedShapeFiles();
+					query = Admin.service.getUploadedSHPFiles();
 				
-				query.addAsyncResponder(handleUploadedFiles);
+				addAsyncResponder(query, handleUploadedFiles);
 				function handleUploadedFiles(event:ResultEvent, token:Object = null):void
 				{
 					search();

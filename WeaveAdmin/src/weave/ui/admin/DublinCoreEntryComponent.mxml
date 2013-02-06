@@ -53,7 +53,7 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.services.AdminInterface;
+			import weave.services.Admin;
 			
 			private var elementName:String = null;
 			private var datasetName:String = null;
@@ -82,7 +82,7 @@
 				
 				var elements:Object = new Object();
 				elements[elementName] = textArea.text;
-				AdminInterface.instance.addDCElements(datasetName, elements).addAsyncResponder(handleAdd);
+				addAsyncResponder(Admin.instance.addDCElements(datasetName, elements), handleAdd);
 			}
 			private function handleAdd(event:ResultEvent, token:Object = null):void
 			{

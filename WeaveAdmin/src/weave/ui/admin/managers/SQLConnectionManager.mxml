@@ -23,65 +23,75 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="Database connections{dataChanged ? '*' : ''}"
-				creationComplete="handleCreationComplete()"
+				label="Connections{dataChanged ? '*' : ''}"
+				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*"
 				>
 	<mx:VBox height="100%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getConnectionNames()"/>
+			<mx:Button label="Remove" click="removeConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
+			<mx:Button label="Refresh" click="refresh()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
 	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
-		<mx:Canvas id="simpleSetting" label="Add database connection{dataChanged ? '*' : ''}" width="100%" height="100%">
-			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
+		<mx:Canvas id="simpleSetting" label="Database connections{dataChanged ? '*' : ''}" width="100%" height="100%">
+			<mx:VBox id="simpleSettingVBox" width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
+				
 				<ui:Indent label="Connection name">
 					<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
 					<mx:CheckBox label="Overwrite" id="configOverwrite"/>
 				</ui:Indent>
-				<ui:Indent label="SQL Server type">
-					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
+				<ui:IndentTextInput id="connectionPasswordInput" label="Password" change="{dataChanged=true}" displayAsPassword="false" inputWidth="130"/>
+				<ui:Indent label="User Folder Name">
+					<mx:TextInput id="folderNameInput" width="130"/>
+					<ui:HelpComponent>Specify the folder in docroot to store user-created configurations</ui:HelpComponent>
 				</ui:Indent>
-				<ui:IndentTextInput change="{dataChanged=true}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" inputWidth="130"/>
-				<ui:IndentTextInput change="{dataChanged=true}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" inputWidth="130"/>
-				<ui:Indent label="SQL Database name">
-					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
-					<mx:Label text="(Optional)"/>
+				<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>
+				
+				<mx:Spacer height="8"/>
+				
+				<mx:HBox>
+					<mx:Label text="SQL Connection Info"/>
 					<ui:HelpComponent>
-						This field is optional.  You can specify the name of a default database to connect to.
-						For SQL Server, this is an instance name.
-						Similarly in PostGreSQL, databases are different from schemas.
-						MySQL does not differentiate between the two.
+						Use these fields to generate a SQL Connect String below.  The values from these individual fields are not saved.
 					</ui:HelpComponent>
-					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
+				</mx:HBox>
+				<ui:Indent indent="32">
+					<admin:ConnectStringGenerator id="connectStringGenerator"/>
 				</ui:Indent>
-				<ui:IndentTextInput change="{dataChanged=true}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>
-				<ui:IndentTextInput change="{dataChanged=true}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
-				<ui:IndentTextInput label="User Folder Name" text="" id="folderNameInput" inputWidth="130" toolTip="Specify the folder in docroot to store user-created configurations"/>
-				<ui:Indent>
-					<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>					
+				
+				<mx:Spacer height="8"/>
+				
+				<ui:Indent label="SQL Connect String">
+					<ui:HelpComponent>
+						This is automatically generated using the SQL Connection Info fields above. Advanced users may modify this value directly.
+					</ui:HelpComponent>
+					<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}"/>
 				</ui:Indent>
+
+				<mx:Spacer height="8"/>
+				
 				<mx:HBox>
 					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
-					<mx:Button label="Clear fields" click="clearConnectionFields()" />
-					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{AdminInterface.instance.userHasAuthenticated}"/>
+					<mx:Button label="Clear fields" click="clearConnectionFields(true)" />
 				</mx:HBox>
 			</mx:VBox>
 		</mx:Canvas>
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
-			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				<mx:Label fontWeight="bold" text="Set the location of the SQL tables where Weave will store configuration data:"/>
+			<mx:VBox height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top" minWidth="500">
+				<mx:Label id="lblAre" text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
+				<mx:Spacer/>
+				<!--<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>-->
+				<ui:AutoResizingTextArea width="100%" editable="false" borderStyle="none" selectable="false" id="lblMay" text="You may switch to a different location, but the existing configuration data will not be copied over. That functionality may be available in a future Weave update."/>
+				<mx:Label id="lblPlease" text="Please specify where the configuration data should be stored."/>
 				<ui:Indent label="Connection to use">
-					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
+					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{Admin.instance.connectionNames}" width="200"/>
 				</ui:Indent>
 				<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
-				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-				<ui:IndentTextInput label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
-				<ui:IndentTextInput label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
-				<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" />
+				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
+				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="saveDatabaseConfigInfo()" />
 			</mx:VBox>
 		</mx:Canvas>
 		<!--		<mx:Canvas label="etc" width="100%" height="100%">
@@ -93,15 +103,13 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.events.ListEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.Admin;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
-			import weave.ui.Indent;
-			import weave.ui.IndentTextInput;
+			import weave.services.beans.DatabaseConfigInfo;
 			import weave.utils.PopUpUtils;
 			
 			[Bindable]
@@ -112,8 +120,20 @@
 
 			private function handleCreationComplete():void
 			{
-				BindingUtils.bindSetter(handleConnectionNames, AdminInterface.instance, "connectionNames");
-				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
+				connectionNameInput.setFocus();
+				clearConnectionFields(true);
+				BindingUtils.bindSetter(handleConnectionNames, Admin.instance, "connectionNames");
+				treeWithSearch.tree.addEventListener(Event.CHANGE, handleTreeSelection);
+				BindingUtils.bindSetter(handleDBConfig, Admin.instance, "databaseConfigInfo");
+			}
+			
+			private function handleDBConfig(dbInfo:DatabaseConfigInfo):void
+			{
+				var configured:Boolean = dbInfo && dbInfo.connection;
+				lblAre.visible = lblAre.includeInLayout = configured;
+				lblMay.visible = lblMay.includeInLayout = configured;
+				lblPlease.visible = lblPlease.includeInLayout = !configured;
+				migrateConnectionCombo.selectedItem = Admin.instance.databaseConfigInfo.connection;
 			}
 			
 			public function handleConnectionNames(names:Array):void
@@ -127,13 +147,14 @@
 				else
 				{
 					superuserCheckbox.enabled = true;
-					if (!AdminInterface.instance.sqlConfigExists)
+					if (!Admin.instance.databaseConfigExists)
 						tabNavigator.selectedChild = migrateTab;
 				}
 				migrateTab.enabled = names.length > 0;
+				handleDBConfig(Admin.instance.databaseConfigInfo);
 			}
 			
-			private function handleItemClick(event:ListEvent):void
+			private function handleTreeSelection(event:Event):void
 			{
 				if (dataChanged)
 				{
@@ -144,7 +165,7 @@
 					// ask user to confirm
 					PopUpUtils.confirm(
 						this,
-						"Discard changes",
+						'Discard changes',
 						'Discard unsaved changes?',
 						loadDatabaseInfo, cancel,
 						'Discard', 'Cancel'
@@ -156,33 +177,23 @@
 			
 			private function loadDatabaseInfo():void
 			{
+				if (treeWithSearch.tree.selectedItem == null)
+					return;
+				
 				tabNavigator.selectedChild = simpleSetting;
 				
-				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
-				query.addAsyncResponder(handleResult);
+				var name:String = treeWithSearch.tree.selectedItem.label;
+				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult);
 
 				function handleResult(event:ResultEvent, token:Object = null):void
 				{
+					clearConnectionFields(false);
 					var info:ConnectionInfo = new ConnectionInfo(event.result);
-					//Connection name
-					//connectionNameInput.text = tree.tree.selectedItem.label;
 					connectionNameInput.text = info.name;
-					//SQL Server Type
-					connectionDBMSCombo.selectedIndex = ConnectionInfo.dbmsList.indexOf(info.dbms);
-					//SQL Server Ip
-					connectionIPInput.text = info.ip;
-					//SQL Server Port
-					connectionPortInput.text = info.port;
-					//SQL Database Name
-					connectionDatabaseInput.text = info.database; 
-					//User Name
-					connectionUserInput.text = info.user;
-					//Password
 					connectionPasswordInput.text = info.pass;
-					// is superuser
 					superuserCheckbox.selected = info.is_superuser;
-					// user folder name
 					folderNameInput.text = info.folderName;
+					connectStringInput.text = info.connectString;
 				}
 				
 				dataChanged = false;
@@ -191,70 +202,46 @@
 			private function get hostUrl():String
 			{
 				var result:Array = WeaveAPI.topLevelApplication.url.split("http://");
-				var index:int = (result.length > 1) ? 1 : 0;
-				result = (result[index] as String).split("/");
+				result = (result.pop() as String).split("/");
 				return result[0] as String;
 			}
 			
 			private const hostIP:String = hostUrl.split(':')[0];
 			
-			protected function clearConnectionFields():void
+			protected function clearConnectionFields(resetConnectString:Boolean):void
 			{
 				connectionNameInput.text = "";
-				connectionDBMSCombo.selectedIndex = 0;
-				connectionIPInput.text = "localhost";
-				connectionPortInput.text = "3306";
-				connectionDatabaseInput.text = "";
-				connectionUserInput.text = "";
 				connectionPasswordInput.text = "";
 				folderNameInput.text = "";
 				configOverwrite.selected = false;
-				superuserCheckbox.selected = (AdminInterface.instance.connectionNames.length == 0);
+				superuserCheckbox.selected = (Admin.instance.connectionNames.length == 0);
+				connectStringGenerator.resetFields(resetConnectString);
+				connectStringInput.text = connectStringGenerator.connectString;
 			}
 			
 			private function saveConnectionInfo():void
 			{
 				var info:ConnectionInfo = new ConnectionInfo(null);
 				info.name = connectionNameInput.text;
-				info.dbms = connectionDBMSCombo.text;
-				info.ip = connectionIPInput.text;
-				info.port = connectionPortInput.text;
-				info.database = connectionDatabaseInput.text;
-				info.user = connectionUserInput.text;
 				info.pass = connectionPasswordInput.text;
 				info.is_superuser = superuserCheckbox.selected;
 				info.folderName = folderNameInput.text;
+				info.connectString = connectStringInput.text
 				
-				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected).addAsyncResponder(handleSave);
-				function handleSave(..._):void
-				{
-					if (info.name == AdminInterface.instance.activeConnectionName)
-					{
-						AdminInterface.instance.authenticate(info.name, info.pass);
-						AdminInterface.instance.userHasAuthenticated = true;
-					}
-				}
+				Admin.service.saveConnectionInfo(info, configOverwrite.selected);
 				dataChanged = false;
 			}
 			
-			private function migrateToDatabase():void
+			private function saveDatabaseConfigInfo():void
 			{
-				migrateButton.enabled = false;
-				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
+				Admin.service.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
-					   migrateSchemaInput.text,
-					   migrateGeometryConfigInput.text,
-					   migrateDataConfigInput.text
+					   migrateSchemaInput.text
 					);
-				query.addAsyncResponder(enableMigrateButton, enableMigrateButton);
-				function enableMigrateButton(..._):void
-				{
-					migrateButton.enabled = true;
-				}
 			}
 			
-			private function handleRemoveConnection():void
+			private function removeConnection():void
 			{
 				var connectionLabel:String;
 				
@@ -272,10 +259,15 @@
 				);
 				function del():void
 				{
-					AdminInterface.instance.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
+					Admin.service.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
 				}
 			}
 			
+			private function refresh():void
+			{
+				Admin.service.getConnectionNames();
+				Admin.service.getDatabaseConfigInfo();
+			}
 		]]>
 	</mx:Script>
 </mx:HDividedBox>

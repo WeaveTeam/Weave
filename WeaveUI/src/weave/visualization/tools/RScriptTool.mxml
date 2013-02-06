@@ -64,10 +64,6 @@
 	</mx:Panel>
 	<mx:Script>
 		<![CDATA[
-			import mx.events.ChildExistenceChangedEvent;
-			import mx.events.FlexEvent;
-			import mx.events.IndexChangedEvent;
-			import mx.events.SliderEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -76,25 +72,14 @@
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
-			import weave.core.LinkableString;
-			import weave.core.LinkableVariable;
-			import weave.core.SessionManager;
-			import weave.core.UIUtils;
-			import weave.core.WeaveXMLDecoder;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.BinningDefinitions.DynamicBinningDefinition;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DraggablePanel;
-			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DebugUtils;
 		
 			[Bindable]
 			private var clusterNumValue:int = 3;
@@ -186,7 +171,7 @@
 				//Query is created from runScript with same signature from Jave side
 				var query:AsyncToken = Rservice.runScript(null, inputNames, inputValues, outputNames, script,plotScript,false,false, false);
 				//Keys are passed as token 
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);			
+				addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);			
 				
 			}
 			
@@ -251,7 +236,7 @@
 				//Query is created from runScript with same signature from Jave side
 				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,"",false,false,false);
 				//Keys are passed as token 
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
+				addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
 			}
 			
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void

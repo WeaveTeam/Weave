@@ -18,11 +18,15 @@
 */
 package weave.tests;
 
+import java.io.File;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 
 import weave.beans.RResult;
+import weave.config.ConnectionConfig;
+import weave.config.DataConfig;
 import weave.servlets.RService;
+import weave.utils.ProgressManager.ProgressPrinter;
 
 public class test
 {
@@ -60,7 +64,50 @@ public class test
 	}
 	
 	@SuppressWarnings("unused")
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception
+	{
+		for (String fileName : Arrays.asList(
+				"/home/pkovac/dload/cfg/sqlconfig.xml",
+				"d:/tomcat/webapps/weave-config/sqlconfig.xml",
+				"c:/tomcat/webapps/weave-config/sqlconfig.xml"))
+		{
+			File file = new File(fileName);
+			if (file.exists())
+			{
+				ConnectionConfig connConfig = new ConnectionConfig(file);
+				if (connConfig.migrationPending())
+				{
+					ProgressPrinter pp = new ProgressPrinter(System.out);
+					DataConfig dataConfig = connConfig.initializeNewDataConfig(pp.getProgressManager());
+				}
+				else
+				{
+					DataConfig dataConfig = new DataConfig(connConfig);
+//					dataConfig.buildHierarchy(135616, 135616, 1);
+				}
+				break;
+			}
+		}
+		
+//		ConnectionInfo connInfo = new ConnectionInfo();
+//		connInfo.connectString = "hello";
+//		connInfo.name = "myname";
+//		connInfo.dbms = "what";
+//		connInfo.pass = "PPPASS";
+//		connConfig.addConnectionInfo(connInfo);
+//		
+//		DatabaseConfigInfo dbInfo = new DatabaseConfigInfo();
+//		dbInfo.connection = "myname";
+//		dbInfo.schema = "weave";
+//		connConfig.setDatabaseConfigInfo(dbInfo);
+		
+		if (true)
+			return;
+		
+//		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
+//		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
+//		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("sqlconfig.xml"));
+//		System.out.println(sqlcfg.addEntry("Hello", null));
 		// TODO Auto-generated method stub
 		ws = new RService();
 	

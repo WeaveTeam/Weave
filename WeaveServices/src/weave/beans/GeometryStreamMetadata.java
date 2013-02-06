@@ -21,52 +21,6 @@ package weave.beans;
 
 public class GeometryStreamMetadata
 {
-	public GeometryStreamMetadata()
-	{
-	}
-
-	private String keyType;
-	private String projection;
-	private byte[] metadataTileDescriptors;
-	private byte[] geometryTileDescriptors;
-
-	public String getProjection()
-	{
-		return projection;
-	}
-
-	public void setProjection(String projection)
-	{
-		this.projection = projection;
-	}
-
-	public String getKeyType()
-	{
-		return keyType;
-	}
-
-	public void setKeyType(String keyType)
-	{
-		this.keyType = keyType;
-	}
-
-	public byte[] getMetadataTileDescriptors()
-	{
-		return metadataTileDescriptors;
-	}
-
-	public void setMetadataTileDescriptors(byte[] metadataTileDescriptors)
-	{
-		this.metadataTileDescriptors = metadataTileDescriptors;
-	}
-
-	public byte[] getGeometryTileDescriptors()
-	{
-		return geometryTileDescriptors;
-	}
-
-	public void setGeometryTileDescriptors(byte[] combinedPointTileDescriptors)
-	{
-		this.geometryTileDescriptors = combinedPointTileDescriptors;
-	}
+	public byte[] metadataTileDescriptors;
+	public byte[] geometryTileDescriptors;
 }

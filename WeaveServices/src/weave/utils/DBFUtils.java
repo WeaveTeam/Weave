@@ -200,7 +200,8 @@ public class DBFUtils
 				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
 			fieldNames.add(0, "the_geom_id");
 			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
-			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes);
+
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes, null);
 			
 			// import data from each file
 			for (int f = 0; f < dbfFiles.length; f++)
@@ -214,7 +215,7 @@ public class DBFUtils
 					Object[] entry = readers[f].readEntry();
 					for (int c = 0; c < numFields; c++)
 					{
-						if (ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
+						if (entry[c] != null && ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
 							record.put(headers[f].getFieldName(c), entry[c]);
 					}
 					
@@ -225,8 +226,8 @@ public class DBFUtils
 					}
 					catch (SQLException e)
 					{
-						System.out.println(String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record));
-						throw e;
+						String str = String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record);
+						throw new SQLException(str, e);
 					}
 				}
 				// close the file

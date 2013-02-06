@@ -35,15 +35,19 @@
 			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
 		</ui:Indent>
 		<ui:Indent width="100%" group="{indentGroup}">
-			<mx:CheckBox id="dbfImportCheckBox" label="Import DBF file as Data Table" selected="true" change="handleKeyColumnsChange()" />
+			<mx:CheckBox id="dbfImportCheckBox" label="Import DBF file as a Weave Data Table" selected="true" change="handleKeyColumnsChange()" />
+			<ui:HelpComponent>
+				The DBF file is used to generate record identifiers for the geometries contained in the SHP file.
+				Creating a Data Table containing the rest of the DBF data is optional.
+			</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
-			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" width="240" change="handleKeyColumnsChange()" editable="true"/>
+			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{dbfColumns}" change="handleKeyColumnsChange()" editable="true" width="240"/>
 			<ui:HelpComponent>
 				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
 		</ui:Indent>
-		<admin:SQLTableSelectorDialog indentGroup="{indentGroup}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+		<admin:SQLTableSelectorDialog indentGroup="{indentGroup}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
 		<ui:IndentTextInput label="Null flag values" enabled="false" id="nullFlagInput" group="{indentGroup}"
@@ -52,15 +56,14 @@
 			<mx:TextArea width="{indentGroup.measuredIndent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>
 			<mx:HBox verticalAlign="middle">
 				<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
-				<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
 				<ui:HelpComponent>
 					Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here.
 				</ui:HelpComponent>
 			</mx:HBox>
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" group="{indentGroup}">
-			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_shp_key_type_dropdown}"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
+			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{Admin.instance.keyTypes}" toolTip="{lang('Choose a key type that corresponds to the type of the column that was chosen for the DBF key column name(s).  For example US State Fips codes or US State Abbreviations.')}"/>
+			<mx:Button label="Refresh" click="Admin.service.getKeyTypes()"/>
 			<ui:HelpComponent>
 				If two tables have compatible keys, you should give them the same key type. <!--
 				-->If two tables have incompatible keys, they should not have the same key type. <!--
@@ -77,15 +80,15 @@
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
-			import weave.Strings;
 			import weave.api.WeaveAPI;
-			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
+			import weave.services.addAsyncResponder;
 			import weave.ui.IndentGroup;
 			import weave.ui.admin.ServerFileViewer;
 			
@@ -103,6 +106,7 @@
 				finishEnabled = false;
 			}
 			
+			[Bindable] public var dbfColumns:Array = [];
 			[Bindable] private var fileUploadCount:int = 0;
 			[Bindable] private var targetFileUploadCount:int = 0;
 			private var _dbfFilesToRequestColumnNamesFrom:Array = []; // of String
@@ -126,7 +130,7 @@
 					}
 					if (ext == ".dbf")
 					{
-						AdminInterface.instance.dbfKeyColumns = [];
+						dbfColumns = [];
 						_dbfFilesToRequestColumnNamesFrom.push(fileRef.name);
 					}
 					
@@ -161,8 +165,8 @@
 				var fileRef:FileReference = event.target as FileReference;
 				if (shapeFileReferenceList.fileList.indexOf(fileRef) >= 0)
 				{
-					var query:DelayedAsyncInvocation = AdminInterface.instance.uploadFile(fileRef);
-					query.addAsyncResponder(handleFileUploadComplete, null, fileRef);
+					var query:AsyncToken = Admin.service.uploadFile(fileRef.name, fileRef.data);
+					addAsyncResponder(query, handleFileUploadComplete, null, fileRef);
 				}
 			}
 			
@@ -174,10 +178,19 @@
 					
 					if( fileUploadCount == targetFileUploadCount )
 					{
-						AdminInterface.instance.listDBFFileColumns(_dbfFilesToRequestColumnNamesFrom);
+						addAsyncResponder(
+							Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
+							handleDBFColumnNames
+						);
 						enableAllWidgets();
 					}
 				}
+			}
+			
+			private function handleDBFColumnNames(event:ResultEvent, token:Object):void
+			{
+				dbfColumns = event.result as Array || [];
+				handleKeyColumnsChange();
 			}
 						
 			private var _serverFileBrowser:ServerFileViewer = null;
@@ -195,7 +208,7 @@
 				
 				_dbfFilesToRequestColumnNamesFrom = [tableName + ".dbf"];
 				
-				AdminInterface.instance.listDBFFileColumns(_dbfFilesToRequestColumnNamesFrom);
+				Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom);
 				tableSelector.activeTable = tableName;
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
@@ -219,30 +232,27 @@
 					var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 					var keyCols:Array = trimmedKeyCols.split(","); 
 					
-					var query:DelayedAsyncInvocation = AdminInterface.instance.convertShapefileToSQLStream(
+					disable();
+					addAsyncResponder(
+						Admin.service.importSHP(
 							shpFileNameInput.text,
 							keyCols,
 							tableSelector.activeSchema,
 							tableSelector.activeTable,
 							tableSelector.tableOverwriteCheck.selected,
 							geometryCollectionNameInput.text,
-							configOverwriteCheck.selected,
 							shpKeyTypeCombo.text,
 							srsProjectionTxtInput.text,
 							nullFlagInput.text,
 							dbfImportCheckBox.selected
-						);
-					
-					controlBarEnabled = false;
-					query.addAsyncResponder(handleResult, handleFault);
-					function handleResult(event:ResultEvent, token:Object = null):void
-					{
-						controlBarEnabled = true;
-					}
-					function handleFault(event:FaultEvent, token:Object = null):void
-					{
-						controlBarEnabled = true;
-					}
+						),
+						function(..._):void
+						{
+							weaveTrace(lang("Data table entry created successfully."));
+							close();
+						},
+						enable
+					);
 				}
 			}
 			
@@ -284,8 +294,10 @@
 				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 				var keyCols:Array = trimmedKeyCols.split(","); 
 				
-				AdminInterface.instance.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols).addAsyncResponder(keyColumnsCheckedForUniqueness);
-				
+				addAsyncResponder(
+					Admin.service.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols),
+					keyColumnsCheckedForUniqueness
+				);
 			}
 			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void
 			{

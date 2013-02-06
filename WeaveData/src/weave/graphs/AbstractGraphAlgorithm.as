@@ -34,19 +34,14 @@ package weave.graphs
 	import weave.api.graphs.IGraphAlgorithm;
 	import weave.api.graphs.IGraphNode;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.CallbackCollection;
-	import weave.core.ErrorManager;
-	import weave.core.LinkableNumber;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
 	import weave.services.beans.RResult;
 	import weave.utils.ComputationalGeometryUtils;
 	import mx.utils.ObjectUtil;
+	import weave.services.addAsyncResponder;
 
 	/**
 	 * An abstract class with a callback collection which implements IGraphAlgorithm.
@@ -66,7 +61,7 @@ package weave.graphs
 
 			var token:RToken = new RToken(bounds, ++_rId);
 			var asyncToken:AsyncToken = rService.runScript([],[], [], outputParams, script, "", true, true,false);
-			DelayedAsyncResponder.addResponder(asyncToken, handleLayoutResult, handleLayoutFault, token);
+			addAsyncResponder(asyncToken, handleLayoutResult, handleLayoutFault, token);
 		}
 
 		public function setupData(nodesColumn:IAttributeColumn, edgeSources:IAttributeColumn, edgeTargets:IAttributeColumn):void

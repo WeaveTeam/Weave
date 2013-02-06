@@ -44,10 +44,9 @@ Displays catoegories in a tree view and the attributes in a list.
 			import mx.collections.ICollectionView;
 			import mx.collections.XMLListCollection;
 			
-			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.api.reportError;
+			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableString;
 			import weave.core.LinkableXML;
 			import weave.primitives.AttributeHierarchy;
