@@ -80,13 +80,17 @@ package weave.services.wms
 			
 			var basicReq:String = getTileUrls(new Coordinate(0,0,0));
 			var instance:CustomWMS = this;
-			WeaveAPI.URLRequestUtils.getImage(this, new URLRequest(basicReq), function(event:ResultEvent,token:Object=null):void{
-				_imageWidth = (event.result as Bitmap).width;
-				_imageHeight = (event.result as Bitmap).height;
-				imageAttributesSet = true;
-				getCallbackCollection(instance).triggerCallbacks();
-			}
-				, function(event:FaultEvent,token:Object=null):void
+			WeaveAPI.URLRequestUtils.getContent(
+				this,
+				new URLRequest(basicReq),
+				function(event:ResultEvent,token:Object=null):void
+				{
+					_imageWidth = (event.result as Bitmap).width;
+					_imageHeight = (event.result as Bitmap).height;
+					imageAttributesSet = true;
+					getCallbackCollection(instance).triggerCallbacks();
+				},
+				function(event:FaultEvent,token:Object=null):void
 				{
 					//setting defaults values of 256 if there is an error in the request
 					_imageWidth = 256;
