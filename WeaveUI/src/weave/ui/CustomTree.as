@@ -104,7 +104,11 @@ package weave.ui
 		}
 		
 		
-		public function scrollToAndSelectMatchingItem(itemTest:Function):void
+		/**
+		 * @param itemTest A function to test for a matching item:  function(item:Object):Boolean
+		 * @return The matching item, if found.
+		 */		
+		public function scrollToAndSelectMatchingItem(itemTest:Function):Object
 		{
 			var i:int = 0;
 			var cursor:IViewCursor = collection.createCursor();
@@ -115,7 +119,7 @@ package weave.ui
 					// set selection before scrollToIndex() or it won't scroll
 					selectedItems = [cursor.current];
 					scrollToIndex(i);
-					return;
+					return cursor.current;
 				}
 				i++;
 			}
@@ -123,6 +127,7 @@ package weave.ui
 			
 			// no selection
 			selectedItems = [];
+			return null;
 		}
 		
 		///////////////////////////////////////////////////////////////////////////////

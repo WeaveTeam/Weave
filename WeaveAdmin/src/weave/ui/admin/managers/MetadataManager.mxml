@@ -71,7 +71,11 @@
 	{
 		var tree:EntityTree = event.currentTarget as EntityTree;
 		if (Admin.instance.getFocusEntityId() >= 0)
-			tree.scrollToAndSelectMatchingItem(isFocusedEntityNode);
+		{
+			var node:EntityNode = tree.scrollToAndSelectMatchingItem(isFocusedEntityNode) as EntityNode;
+			if (node)
+				tree.expandItem(node, true);
+		}
 		
 		selectionsChanged(event);
 	}
