@@ -37,6 +37,7 @@ package weave.utils
 	import weave.core.CallbackCollection;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.GeometryType;
 	import weave.primitives.KDNode;
 	import weave.primitives.KDTree;
 
@@ -281,7 +282,7 @@ package weave.utils
 		 * This value specifies the type of the geometries currently being streamed
 		 */
 		
-		private var _currentGeometryType:String = GeneralizedGeometry.GEOM_TYPE_POLYGON;
+		private var _currentGeometryType:String = GeometryType.POLYGON;
 		private function get currentGeometryType():String
 		{
 			return _currentGeometryType;
@@ -449,17 +450,17 @@ package weave.utils
 									//MultiPoint
 									case 8:
 									case 28:
-										currentGeometryType = GeneralizedGeometry.GEOM_TYPE_POINT;
+										currentGeometryType = GeometryType.POINT;
 									break;
 									//PolyLine
 									case 3:
 									case 23:
-										currentGeometryType = GeneralizedGeometry.GEOM_TYPE_LINE;
+										currentGeometryType = GeometryType.LINE;
 									break;
 									//Polygon
 									case 5:
 									case 25:
-										currentGeometryType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
+										currentGeometryType = GeometryType.POLYGON;
 									break;
 									default:
 								}

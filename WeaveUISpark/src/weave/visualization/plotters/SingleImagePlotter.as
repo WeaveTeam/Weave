@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.BitmapText;
 
@@ -182,7 +183,7 @@ package weave.visualization.plotters
 
 		public function getBackgroundGeometries():Array
 		{
-			var simpleGeom:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.POINT);
+			var simpleGeom:ISimpleGeometry = new SimpleGeometry(GeometryType.POINT);
 			var p1:Point = new Point(dataX.value, dataY.value);
 			_tempArray.length = 0;
 			_tempArray.push(p1);
