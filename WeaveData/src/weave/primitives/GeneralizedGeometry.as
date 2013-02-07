@@ -42,8 +42,6 @@ package weave.primitives
 		 */
 		public function GeneralizedGeometry(geomType:String = GeometryType.POLYGON)
 		{
-			debugTrace(this);
-			
 			this.geomType = geomType;
 			this.parts[0] = new BLGTree();
 		}
