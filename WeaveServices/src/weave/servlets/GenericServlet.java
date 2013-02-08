@@ -90,6 +90,7 @@ import flex.messaging.messages.ErrorMessage;
 public class GenericServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 1L;
+	public static long debugThreshold = 1000;
 	
 	/**
 	 * This is the name of the URL parameter corresponding to the method name.
@@ -588,7 +589,7 @@ public class GenericServlet extends HttpServlet
 		
 		long endTime = System.currentTimeMillis();
 		// debug
-		if (endTime - startTime > 1000)
+		if (endTime - startTime >= debugThreshold)
 			System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(methodParameters)));
     }
     
