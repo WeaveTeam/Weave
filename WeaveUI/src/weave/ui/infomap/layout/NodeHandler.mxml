@@ -241,7 +241,8 @@
 				this.addChild(nodeBase);
 			}
 			
-			//			private var log:SessionStateLog = new SessionStateLog(thumbnails);
+			/* We will use this variable to send a query to data sources on first load of the node */
+			private var _firstLoad:Boolean = true;
 			
 			override protected function childrenCreated():void
 			{
@@ -433,34 +434,51 @@
 					prevNewDocsCount.value = 0;
 					
 				}
-				addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResults(currentQuery.keywords.value.split(','),relatedKeywords),
-					handleTotalResults,handleTotalResultsFault);
+				
+				if(isQueryDifferent || _firstLoad)
+				{
+					_firstLoad = false;
+
+					InfoMapAdminInterface.instance.queryDataSources(currentQuery.keywords.value.split(','),
+						relatedKeywords);
+				}
 				
 				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
 				wordCount = [];
 				
-				
-				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
+				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
 				
 				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
-					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
+						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 				
 			}
 			
 			private function handleTotalResults(event:ResultEvent,token:Object=null):void
 			{
 					Alert.show(event.result.toString(),"YES");
+					
+					if(event.result as Number> 0)
+					{
+						status.text = "Documents found in data sources. Wait for next refresh...";
+					}
+					else
+					{
+						status.text = "No documents found in data sources."; 
+						
+					}
 			}
 			
 			private function handleTotalResultsFault(event:FaultEvent,token:Object=null):void
 			{
-				
+				WeaveAPI.ErrorManager.reportError(event.fault.message,"Error with Data Source query");
 			}
 			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:Object=null):void
 			{
 				/* if the query has changed do nothing */
-				if(token.keywords != currentQuery.keywords.value ||
+				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
 					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
@@ -470,7 +488,9 @@
 				/* If no documents found, show status and do nothing. */
 				if(numOfDocs <= 0)
 				{
-					status.text = "0 documents found.";
+					status.text = "0 documents found. Checking with data sources...";
+					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource(currentQuery.keywords.value.split(','),relatedKeywords),
+						handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
 					return;						
 				}
@@ -483,8 +503,8 @@
 				if(_parentPanel.relatedKeywords.value)
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
-				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(currentQuery.keywords.value.split(','),
-						relatedKeywords,currentQuery.dateFilter,2000);
+				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000);
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 			}
@@ -493,7 +513,7 @@
 			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:Object=null):void
 			{
 				//if the query has changed do nothing
-				if(token.keywords != currentQuery.keywords.value ||
+				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
 					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
@@ -605,6 +625,10 @@
 						thumbnail.highlighted.value = true;
 						_currentNewDocsCount++;
 					}
+				}else
+				{
+					if(thumbnail.highlighted.value)
+						_currentNewDocsCount++;
 				}
 				
 				thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
@@ -668,15 +692,15 @@
 				prevNewDocsCount.value = _currentNewDocsCount;
 				nodeBase.listImg.visible = true;
 				nodeBase.gridImg.visible = true;
-				testAndBlinkNode();
+				updateNodeTextOnNewDocuments();
 				positionThumbnails();
 				adjustNodeBase();
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
 				
 				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
-					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
-						forceHide:true,forceShow:false});
+					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,operator:currentQuery.operator.value,
+						endDate:currentQuery.dateFilter.endDate.value,forceHide:true,forceShow:false});
 				
 				getEntityDistribution();
 				getTopicsClassification();
@@ -686,7 +710,7 @@
 			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
 			{
 				//if the query has changed do nothing
-				if(token.keywords != currentQuery.keywords.value ||
+				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
 					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
@@ -725,8 +749,6 @@
 				stopGlow();
 				prevNewDocsCount.value = 0;
 				_currentNewDocsCount = 0;
-//				nodeBase.tickImg.visible = false;
-//				updateTextArea();
 			}
 			
 			private function getRequiredKeywords():Array
@@ -1004,10 +1026,11 @@
 				
 				
 				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,entities,currentQuery.dateFilter,2000);
+															relatedKeywords,entities,currentQuery.operator.value,currentQuery.dateFilter,2000);
 				
 				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
-					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
+						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 			}
 			
 			
@@ -1017,7 +1040,7 @@
 			private function handleEntityQueryResults(event:ResultEvent,token:Object=null):void
 			{
 				//if the query has changed do nothing
-				if(token.keywords != currentQuery.keywords.value ||
+				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
 					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
@@ -1552,10 +1575,11 @@
 				if(wordCount.length == 0)
 				{
 					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter);
+						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
 					
 					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
-						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
+						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,
+							endDate:currentQuery.dateFilter.endDate.value,operator:currentQuery.operator.value,
 							forceHide:forceHide,forceShow:forceShow});
 					
 					return;
@@ -1817,20 +1841,12 @@
 					return;
 				}
 				
-//				if(!query.sources.value == '')
-//				{
-//					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-//				}
-//				
-//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],null,query.keywords.value + " " + filteredWords.value,"AND",sourceNames,query.dateFilter);
-				
-				
-				
+				//TODO: should I send token?				
 				status.htmlText= "Filtering list...";
 				clearFiltersButton.visible = false;
 				
 				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(currentQuery.keywords.value.split(','),
-					relatedKeywords,currentQuery.dateFilter,filteredWords.value.split(','),2000);
+					relatedKeywords,currentQuery.dateFilter,filteredWords.value.split(','),2000,currentQuery.operator.value);
 				
 				addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
 			}
@@ -1869,17 +1885,18 @@
 				var topicsQuery:AsyncToken = null
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
-					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter,
-						2000, 3, numOfKeywordsInEachTopic.value);
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),
+						relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000, 3, numOfKeywordsInEachTopic.value);
 				}
 				else{
-				topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.dateFilter,
-					2000, numOfTopics.value, numOfKeywordsInEachTopic.value);
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),
+						relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000, numOfTopics.value, numOfKeywordsInEachTopic.value);
 				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
 				
 				addAsyncResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
-					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
+						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
 			}
 			
 			private function handleTopicsPropertiesChange():void
@@ -1959,7 +1976,7 @@
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
 			{
-				if(token.keywords != currentQuery.keywords.value ||
+				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
 					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
@@ -2051,37 +2068,35 @@
 				
 				if(diff)
 					copySessionState(previousQuery,currentQuery);
+
+				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
-				//				testAndBlinkNode();
 			}
 			
-			private function testAndBlinkNode():void
+			private function updateNodeTextOnNewDocuments():void
 			{
 				if((prevNewDocsCount.value>0) || (highlightNewDocuments && _currentNewDocsCount>0 && _currentNewDocsCount != prevNewDocsCount.value))
 				{
-					//TODO: Replace htmlText with text for testing. See other function using similar testing
-					if(nodeBase.keywordTextArea.text.indexOf("/") >-1)
+					
+					/* htmlText sometimes just has the text and sometimes the text with the HTML tags.
+						I haven't tested to see when each case specifically occirs. For now, I test it with text and if text is null
+						test it with htmlText.
+					*/
+					var nodeText:String;
+					if(nodeBase.keywordTextArea.text)
+					{
+						nodeText = nodeBase.keywordTextArea.text;
+					}
+					else
+					{
+						nodeText = nodeBase.keywordTextArea.htmlText;	
+					}
+					
+					if(nodeText.indexOf("/") >-1)
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*\//g,"(" + _currentNewDocsCount + "/");
 					else
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\(/g,"(" + _currentNewDocsCount + "/");
-					
-					adjustNodeBase();
 				}
-				
-				////					nodeBase.tickImg.enabled = true;
-				////					nodeBase.tickImg.visible = true;
-				//					if(currentNewDocsCount != prevNewDocsCount.value || !_wasClicked)
-				//					{
-				//						startGlow();
-				//					}
-				//				}else{
-				////					nodeBase.tickImg.enabled = false;
-				////					nodeBase.tickImg.visible = false;
-				//					stopGlow();
-				//				}
-				//				
-				//				positionThumbnails();
-				//				adjustNodeBase();
 			}
 			
 			/* Since we use a private query object we define a public function to set variable */

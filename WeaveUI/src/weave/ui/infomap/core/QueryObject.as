@@ -28,7 +28,15 @@ package weave.ui.infomap.core
 		 * AND will search for documents containing all the keywords
 		 * OR will search for documents containing any of the keywords
 		 * */ 
-		public const operator:LinkableString = registerLinkableChild(this,new LinkableString('AND',null,false));
+		public const operator:LinkableString = registerLinkableChild(this,new LinkableString('AND',operatorVerifier,false));
+		
+		private function operatorVerifier(value:*):Boolean
+		{
+			if((value as String) == 'OR' || (value as String) == 'AND' )
+				return true;
+			else 
+				return false;
+		}
 		
 		/**
 		 * @public 

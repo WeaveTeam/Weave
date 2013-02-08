@@ -26,10 +26,10 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:TextInput id="keyword" keyDown="handleEnterKey(event)"/>
 			<mx:Button label="Apply" click="applyKeyword()"/>
 		</mx:HBox>
-	<!--	<mx:HBox>
+		<mx:HBox>
 			<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 			<mx:ComboBox id="operator"/>
-		</mx:HBox>-->
+		</mx:HBox>
 		<mx:HBox>
 			<mx:Label text="Words in word-cloud" fontWeight="bold" width="{_leftAlignWidth}"/>					
 			<mx:TextInput toolTip="not more than 100" id="numOfWords" width="50"/>
@@ -166,15 +166,15 @@ Info to provide a tooltip describing the node (like number of documents found)
 					//even if it was not the selected item
 //					layoutComboBox.dataProvider =  ['Radial','Grid'] ;
 					 
-//					operator.dataProvider = ['OR','AND'];
+					operator.dataProvider = ['OR','AND'];
 					 
 //					keyword.text = nodeHandler.node.keywords.value;
 					keyword.text = query.keywords.value;
 					 
 //					linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
 					
-//					operator.selectedItem = query.operator.value;
-//					linkBindableProperty(query.operator,operator,"selectedItem");
+					operator.selectedItem = query.operator.value;
+					linkBindableProperty(query.operator,operator,"selectedItem");
 					
 					_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
 					_dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);

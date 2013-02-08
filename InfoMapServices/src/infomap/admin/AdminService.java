@@ -131,19 +131,19 @@ public class AdminService extends GenericServlet {
 		// }
 	}
 
-	public static void main(String[] args) {
-		//testing
-		AdminService inst = new AdminService();
-		
-		 String [] requiredKeywords = new String[1];
-		 String [] relatedKeywords = new String[2];
-		
-		 requiredKeywords[0] = "california";
-	     inst.getResultsForQueryWithRelatedKeywords(requiredKeywords,null,null,2000);
-		 //inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
-	     //inst.
-//		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
-	}
+//	public static void main(String[] args) {
+//		//testing
+//		AdminService inst = new AdminService();
+//		
+//		 String [] requiredKeywords = new String[1];
+//		 String [] relatedKeywords = new String[2];
+//		
+//		 requiredKeywords[0] = "california";
+//	     inst.getResultsForQueryWithRelatedKeywords(requiredKeywords,null,null,2000);
+//		 //inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
+//	     //inst.
+////		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
+//	}
 
 	private static void deleteAllDocuments() {
 		try {
@@ -658,7 +658,7 @@ public class AdminService extends GenericServlet {
 	private DebugTimer timer = new DebugTimer();
 
 	private static String formulateQuery(String[] requiredKeywords,
-			String[] relatedKeywords) {
+			String[] relatedKeywords, String operator) {
 		String result = null;
 
 		// We OR the required keywords and OR the related keywords. Then we AND
@@ -669,15 +669,25 @@ public class AdminService extends GenericServlet {
 		if (requiredKeywords == null || requiredKeywords.length == 0) {
 			return result;
 		}
-
-		String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
-		String queryString = "(" + requiredQueryString + ")";
-
-		if (relatedKeywords != null && relatedKeywords.length > 0) {
-			String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
-			queryString = queryString + " AND " + "(" + relatedQueryString
-					+ ")";
+		
+		String queryString = "";
+		if(relatedKeywords == null || relatedKeywords.length ==0)
+		{
+			queryString = mergeKeywords(requiredKeywords, operator);
 		}
+		else
+		{
+			
+			String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+			queryString = "(" + requiredQueryString + ")";
+			
+			if (relatedKeywords != null && relatedKeywords.length > 0) {
+				String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
+				queryString = queryString + " AND " + "(" + relatedQueryString
+				+ ")";
+			}
+		}
+		
 
 		result = "title:(" + queryString + ") OR description:(" + queryString
 				+ ") OR attr_text_keywords:(" + queryString + ")";
@@ -686,12 +696,12 @@ public class AdminService extends GenericServlet {
 	}
 
 	public String[][] getWordCount(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter) {
+			String[] relatedKeywords, String dateFilter, String operator) {
 		setSolrServer(solrServerUrl);
 
 		String[][] result = null;
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
 
 		if (queryString == null)
 			return null;
@@ -748,10 +758,10 @@ public class AdminService extends GenericServlet {
 	
 	//return all the sentences that contains at least one required keyword and one related keywords
 	public String[] entitySentences(String[] requiredKeywords, String[] relatedKeywords, String dateFilter,
-			 int rows) throws NullPointerException{
+			 int rows,String operator) throws NullPointerException{
 		
 		setSolrServer(solrServerUrl);
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);  
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);  
         Set<String> tempresult = new HashSet<String>();
 		if (queryString == null)
 			return null;
@@ -824,7 +834,7 @@ public class AdminService extends GenericServlet {
 	public TopicClassificationResults classifyDocumentsForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows, int numOfTopics,
-			int numOfKeywordsInEachTopic) throws NullPointerException {
+			int numOfKeywordsInEachTopic,String operator) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -832,7 +842,7 @@ public class AdminService extends GenericServlet {
 		String[] uncategoried = null;
         Set<String> tempuncategoried = new HashSet<String>();
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
 
 		if (queryString == null)
 			return null;
@@ -1064,12 +1074,12 @@ public class AdminService extends GenericServlet {
 
 	public Object[] getResultsForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows) throws NullPointerException {
+			String dateFilter, int rows,String operator) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
 
 		if (queryString == null)
 			return null;
@@ -1234,12 +1244,12 @@ public class AdminService extends GenericServlet {
 
 	public Object[] getLinksForFilteredQuery(String[] requiredKeywords,
 			String[] relatedKeywords, String dateFilter, String[] filterby,
-			int rows) throws NullPointerException {
+			int rows,String operator) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String> r = new ArrayList<String>();
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
 
 		if (queryString == null)
 			return null;
@@ -1296,10 +1306,10 @@ public class AdminService extends GenericServlet {
 	}
 
 	public long getNumOfDocumentsForQuery(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter) {
+			String[] relatedKeywords, String dateFilter, String operator) {
 		setSolrServer(solrServerUrl);
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
 
 		if (queryString == null)
 			return 0;
@@ -1326,14 +1336,14 @@ public class AdminService extends GenericServlet {
 
 	public EntityDistributionObject getEntityDistributionForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, String[] entities, int rows) {
+			String dateFilter, String[] entities, int rows, String operator) {
 
 		Object[][] urls = new Object[entities.length][];
 
 		setSolrServer(solrServerUrl);
 
 		// Setting up the query
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
 
 		if (queryString == null) {
 			return null;

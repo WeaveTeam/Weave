@@ -148,13 +148,13 @@ package weave.data.DataSources
 //			InfoMapAdminInterface.instance.queryDataSources(queryTerms);
 //		}
 		
-		public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,
+		public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,operator:String,
 									 dateFilter:DateRangeFilter=null):AsyncToken
 		{
 			trace("CALLING WORD COUNT" + DateUtils.getCurrentDate().toUTCString());
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getWordCount(requiredKeywords,relatedKeywords,dateFilterString);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getWordCount(requiredKeywords,relatedKeywords,dateFilterString,operator);
 			
 			return q;
 		}
@@ -179,55 +179,57 @@ package weave.data.DataSources
 			
 		}
 
-		public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,
+		public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,operator:String,
 												  dateFilter:DateRangeFilter=null):AsyncToken
 		{
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getNumOfDocumentsForQuery(requiredKeywords,relatedKeywords,dateFilterString);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getNumOfDocumentsForQuery(requiredKeywords,relatedKeywords,dateFilterString,operator);
 			
 			return q;
 		}
 		
-		public function getDocumentsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,
+		public function getDocumentsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,operator:String,
 																dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
 		{
 			
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getResultsForQueryWithRelatedKeywords(requiredKeywords,relatedKeywords,dateFilterString,
-																			numberOfRequestedDocuments);
+																			numberOfRequestedDocuments,operator);
 			return q;
 			
 		}
 		
-		public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,
+		public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,operator:String,
 												 dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,numOfTopics:int=5, numOfKeywords:int=5):AsyncToken
 		{
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.classifyDocumentsForQuery(requiredKeywords,relatedKeywords,
-				dateFilterString,numberOfRequestedDocuments,numOfTopics,numOfKeywords);
+				dateFilterString,numberOfRequestedDocuments,operator,numOfTopics,numOfKeywords);
 			
 			return q;
 		}
 		
-		public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:DateRangeFilter,filterTerms:Array,rows:int):AsyncToken
+		public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:DateRangeFilter,
+												 filterTerms:Array,rows:int,operator:String):AsyncToken
 		{
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getLinksForFilteredQuery(requiredKeywords,relatedKeywords,dateFilterString,
-				filterTerms,rows);
+				filterTerms,rows,operator);
 			
 			return q;
 		}
 		
-		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
+		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,operator:String,
+													  dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
 		{
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,dateFilterString,entities,
-				numberOfRequestedDocuments);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,
+				dateFilterString,entities,numberOfRequestedDocuments,operator);
 			
 			return q;
 			

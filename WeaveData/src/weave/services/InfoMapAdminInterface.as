@@ -182,33 +182,33 @@ package weave.services
 //				return query;
 //			}
 			
-			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int):AsyncToken
+			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows]);
+				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator]);
 				return query;
 			}
 			
-			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
+			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords]);
+				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords,operator]);
 				return query;
 			}
 			
-			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,rows:int):AsyncToken
+			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,rows:int,operator:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,dateFilter,filterTerms,rows]);
+				var query:AsyncToken = generateQueryAndRun("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,dateFilter,filterTerms,rows,operator]);
 				return query;
 			}			
 			
-			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String):AsyncToken
+			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String,operator:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString]);
+				var query:AsyncToken = generateQueryAndRun("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString,operator]);
 				return query;
 			}
 			
-			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int):AsyncToken
+			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int, operator:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows]);
+				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows,operator]);
 				return query;
 			}
 			
@@ -230,16 +230,16 @@ package weave.services
 				var query:AsyncToken = generateQueryAndRun("queryDataSources",[requiredQueryTerms,relatedQueryTerms]);
 			}
 			
-			public function getTotalNumberOfQueryResults(requiredQueryTerms:Array,relatedQueryTerms:Array):AsyncToken
+			public function getTotalNumberOfQueryResultsFromSource(requiredQueryTerms:Array,relatedQueryTerms:Array):AsyncToken
 			{
 				var query:AsyncToken = generateQueryAndRun("getTotalNumberOfQueryResults",[requiredQueryTerms,relatedQueryTerms]);
 				return query;
 			}
 			
 			
-			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String):AsyncToken
+			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,operator:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter]);
+				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter,operator]);
 				return query;
 			}
 			
