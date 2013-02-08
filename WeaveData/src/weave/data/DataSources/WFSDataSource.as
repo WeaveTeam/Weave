@@ -43,6 +43,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.GeometryType;
 	import weave.services.WFSServlet;
 	import weave.services.addAsyncResponder;
 	import weave.utils.BLGTreeUtils;
@@ -383,12 +384,12 @@ package weave.data.DataSources
 					var firstFeatureData:XML = features[0].descendants(dataQName)[0];
 					var geomType:String = firstFeatureData.children()[0].name().toString();
 					if (geomType == (gmlURI + "::Point"))
-						geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
+						geomType = GeometryType.POINT;
 					else if (geomType.indexOf(gmlURI + "::") == 0 && (geomType.indexOf('LineString') >= 0 || geomType.indexOf('Curve') >= 0))
-						geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
+						geomType = GeometryType.LINE;
 					else
-						geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
-					var gmlPos:QName = new QName(gmlURI, geomType == GeneralizedGeometry.GEOM_TYPE_POINT ? 'pos' : 'posList');
+						geomType = GeometryType.POLYGON;
+					var gmlPos:QName = new QName(gmlURI, geomType == GeometryType.POINT ? 'pos' : 'posList');
 
 					for (var geometryIndex:int = 0; geometryIndex < keysVector.length; geometryIndex++)
 					{

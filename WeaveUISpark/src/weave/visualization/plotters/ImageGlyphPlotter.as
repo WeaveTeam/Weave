@@ -105,7 +105,7 @@ package weave.visualization.plotters
 //					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 					
 					// get all images hack
-					WeaveAPI.URLRequestUtils.getImage(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 				}
 				
 				return task.iteration / task.recordKeys.length;

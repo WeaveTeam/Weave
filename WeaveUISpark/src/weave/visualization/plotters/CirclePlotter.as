@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
+	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 
 	/**
@@ -147,7 +148,7 @@ package weave.visualization.plotters
 			_tempArray.length = 0;
 			
 			var geometryVector:Array = [];
-			var simpleGeom:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
+			var simpleGeom:ISimpleGeometry = new SimpleGeometry(GeometryType.POLYGON);
 			var numVertices:int = polygonVertexCount.value;
 			var radiusValue:Number = radius.value;
 			var angle:Number = 0;

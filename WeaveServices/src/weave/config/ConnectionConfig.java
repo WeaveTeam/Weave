@@ -345,12 +345,12 @@ public class ConnectionConfig
 	}
 	public void setDatabaseConfigInfo(DatabaseConfigInfo info) throws RemoteException
 	{
+		_load();
 		if (!_connectionInfoMap.containsKey(info.connection))
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", info.connection));
 		if (info.schema == null || info.schema.length() == 0)
 			throw new RemoteException("Schema must be specified.");
 		
-		_load();
 		if (_databaseConfigInfo == null)
 			_databaseConfigInfo = new DatabaseConfigInfo();
 		_databaseConfigInfo.copyFrom(info);

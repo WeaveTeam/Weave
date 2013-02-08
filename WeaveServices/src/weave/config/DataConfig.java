@@ -51,7 +51,6 @@ import weave.utils.SQLUtils;
  */
 public class DataConfig
 {
-	/* Table name parts */
 	static private final String SUFFIX_META_PRIVATE = "_meta_private";
 	static private final String SUFFIX_META_PUBLIC = "_meta_public";
 	static private final String SUFFIX_MANIFEST = "_manifest";
@@ -122,6 +121,7 @@ public class DataConfig
 	
 	public boolean isEmpty() throws RemoteException
 	{
+		detectChange();
 		return manifest.getByType().size() == 0;
 	}
 
@@ -153,6 +153,7 @@ public class DataConfig
 	
     public void flushInserts() throws RemoteException
     {
+    	detectChange();
         try 
         {
         	manifest.flushInserts();
@@ -193,6 +194,7 @@ public class DataConfig
     }
     public Collection<Integer> removeEntities(Collection<Integer> ids) throws RemoteException
     {
+    	detectChange();
     	Collection<Integer> removed = new LinkedList<Integer>(ids);
     	detectChange();
     	for (int id : ids)
@@ -398,6 +400,7 @@ public class DataConfig
     }
     public DataEntityTableInfo[] getDataTableList() throws RemoteException
     {
+    	detectChange();
     	Collection<Integer> ids = manifest.getByType(DataEntity.TYPE_DATATABLE);
     	DataEntityTableInfo[] result = new DataEntityTableInfo[ids.size()];
     	if (result.length == 0)

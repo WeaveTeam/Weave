@@ -219,6 +219,7 @@
 				superuserCheckbox.selected = (Admin.instance.connectionNames.length == 0);
 				connectStringGenerator.resetFields(resetConnectString);
 				connectStringInput.text = connectStringGenerator.connectString;
+				dataChanged = false;
 			}
 			
 			private function saveConnectionInfo():void

@@ -333,6 +333,7 @@ import weave.data.AttributeColumns.StreamedGeometryColumn;
 import weave.data.ProjectionManager;
 import weave.primitives.BLGNode;
 import weave.primitives.GeneralizedGeometry;
+import weave.primitives.GeometryType;
 import weave.utils.BLGTreeUtils;
 import weave.utils.ColumnUtils;
 	
@@ -463,7 +464,7 @@ internal class WorkerThread
 				{
 					var oldGeometry:GeneralizedGeometry = geomArray[geometryIndex] as GeneralizedGeometry;
 					var geomParts:Vector.<Vector.<BLGNode>> = oldGeometry.getSimplifiedGeometry(); // no parameters = full list of vertices
-					var geomIsPolygon:Boolean = oldGeometry.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON;
+					var geomIsPolygon:Boolean = oldGeometry.geomType == GeometryType.POLYGON;
 	
 					var newCoords:Array = [];
 					var newGeometry:GeneralizedGeometry = new GeneralizedGeometry(oldGeometry.geomType);

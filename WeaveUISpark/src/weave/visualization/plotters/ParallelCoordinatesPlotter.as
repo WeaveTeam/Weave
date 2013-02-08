@@ -46,6 +46,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.data.KeySets.KeySetUnion;
+	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
@@ -305,7 +306,7 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.LINE);
+					var geometry:ISimpleGeometry = new SimpleGeometry(GeometryType.LINE);
 					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
 					results.push(geometry);
 				}

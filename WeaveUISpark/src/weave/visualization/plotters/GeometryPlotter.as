@@ -30,15 +30,15 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.linkSessionState;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -49,6 +49,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.GeometryType;
 	import weave.utils.PlotterUtils;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
@@ -321,7 +322,7 @@ package weave.visualization.plotters
 						if (geom)
 						{
 							// skip shapes that are considered unimportant at this zoom level
-							if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance)
+							if (geom.geomType == GeometryType.POLYGON && geom.bounds.getArea() < minImportance)
 								continue;
 							if (!styleSet)
 							{
@@ -392,7 +393,7 @@ package weave.visualization.plotters
 
 			var currentNode:Object;
 
-			if (shapeType == GeneralizedGeometry.GEOM_TYPE_POINT)
+			if (shapeType == GeometryType.POINT)
 			{
 				for each (currentNode in points)
 				{
@@ -422,7 +423,7 @@ package weave.visualization.plotters
 			}
 
 			// prevent moveTo/lineTo from drawing a filled polygon if the shape type is line
-			if (shapeType == GeneralizedGeometry.GEOM_TYPE_LINE)
+			if (shapeType == GeometryType.LINE)
 				outputGraphics.endFill();
 
 			var numPoints:int = points.length;
@@ -444,7 +445,7 @@ package weave.visualization.plotters
 				outputGraphics.lineTo(tempPoint.x, tempPoint.y);
 			}
 			
-			if (shapeType == GeneralizedGeometry.GEOM_TYPE_POLYGON)
+			if (shapeType == GeometryType.POLYGON)
 				outputGraphics.lineTo(firstX, firstY);
 		}
 		
