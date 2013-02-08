@@ -385,9 +385,6 @@ package weave.services
 		//////////////////////////////////////////
 		// LocalConnection Code
 		
-		// this function is for verifying the local connection between Weave and the AdminConsole.
-		public function ping():String { return "pong"; }
-		
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
 			var url:String = 'weave.html?';
@@ -423,7 +420,7 @@ package weave.services
 			}
 			// create a new service with a new name
 			var connectionName:String = UIDUtil.createUID(); // NameUtil.createUniqueName(this);
-			weaveService = new LocalAsyncService(this, true, connectionName);
+			weaveService = new LocalAsyncService(service, true, connectionName);
 			return connectionName;
 		}
 

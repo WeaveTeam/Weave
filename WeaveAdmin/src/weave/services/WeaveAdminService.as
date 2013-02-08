@@ -548,6 +548,9 @@ package weave.services
 			return invokeAdmin(getKeyTypes, arguments);
 		}
 		
+		// this function is for verifying the local connection between Weave and the AdminConsole.
+		public function ping():String { return "pong"; }
+		
 		//////////////////////////
 		// DataService functions
 		
