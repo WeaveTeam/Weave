@@ -397,7 +397,8 @@ package weave.visualization.layers
 					if ( geometry is GeneralizedGeometry )
 					{						
 						var geometryAsSimpleGeometries:Array = (geometry as GeneralizedGeometry).getSimpleGeometries();
-						queriedKeys = spatialIndex.getKeysGeometryOverlapGeometries(geometryAsSimpleGeometries);
+						throw new Error("missing spatialIndex.getKeysGeometryOverlapGeometries()");
+						//queriedKeys = spatialIndex.getKeysGeometryOverlapGeometries(geometryAsSimpleGeometries);
 					}
 					else if (simpleGeometry)
 					{
