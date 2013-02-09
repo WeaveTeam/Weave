@@ -28,27 +28,30 @@
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:HBox enabled="{selectedItems.length &lt; 2}">
+			<mx:HBox enabled="{arrayLengthLessThanTwo(selectedItems)}">
     	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="New {hierarchyTree.selectedItem ? 'category' : 'hierarchy'} name" width="100%" enter="addCategory()"/>
 	            <mx:Button label="Add {hierarchyTree.selectedItem ? 'category' : 'hierarchy'}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
 			</mx:HBox>
-            <mx:Button label="Remove" click="remove()" enabled="{hierarchyTree.selectedItems.length > 0}"/>
+            <mx:Button label="Remove" click="remove()" enabled="{hierarchyTree.selectedItem}"/>
         </mx:HBox>
     </mx:VBox>
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
-	import mx.controls.Alert;
 	import mx.events.ListEvent;
 	
 	import weave.core.UIUtils;
 	import weave.services.Admin;
-	import weave.services.WeaveAdminService;
 	import weave.services.beans.Entity;
 	import weave.ui.EntityNode;
 	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
+	
+	private function arrayLengthLessThanTwo(array:Array):Boolean
+	{
+		return array.length < 2;
+	}
 
     [Bindable] public var selectedItems:Array = [];
 	

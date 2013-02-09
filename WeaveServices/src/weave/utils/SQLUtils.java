@@ -1190,39 +1190,52 @@ public class SQLUtils
 	 */
 	public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> queryParams, Set<String> caseSensitiveFields) throws SQLException
 	{
-	    PreparedStatement stmt = null;
-	    List<Integer> results = new LinkedList<Integer>();
-	    ResultSet rs;
-	    WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields, false);
-	    // Construct the query with placeholders.
-	    String query;
-	    String qColumn = quoteSymbol(conn, column);
-	    String qTable = quoteSchemaTable(conn, schemaName, table);
-	    if (queryParams.size() == 0)
-	    {
-	    	query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
-	    }
-	    else
-	    {
-	        query = String.format(
-	        	"SELECT %s FROM (SELECT %s, count(*) c FROM %s %s group by %s) result WHERE c = %s",
-	            qColumn,
-	            qColumn,
-	            qTable,
-	            where.clause,
-	            qColumn,
-	            queryParams.size()
-	        );
-	    }
-	    stmt = prepareStatement(conn, query, where.params);
-	
-	    rs = stmt.executeQuery();
-	    rs.setFetchSize(SQLResult.FETCH_SIZE);
-	    while (rs.next())
-	    {
-	         results.add(rs.getInt(column));
-	    }
-	    return results;
+		String query = null;
+		List<Integer> results = new LinkedList<Integer>();
+		WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields, false);
+		// Construct the query with placeholders.
+		String qColumn = quoteSymbol(conn, column);
+		String qTable = quoteSchemaTable(conn, schemaName, table);
+		if (queryParams.size() == 0)
+		{
+			query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
+		}
+		else
+		{
+			query = String.format(
+					"SELECT %s FROM (SELECT %s, count(*) c FROM %s %s group by %s) result WHERE c = %s",
+					qColumn,
+					qColumn,
+					qTable,
+					where.clause,
+					qColumn,
+					queryParams.size()
+					);
+		}
+		
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = prepareStatement(conn, query, where.params);
+			
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+			{
+				results.add(rs.getInt(column));
+			}
+			return results;
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
+		}
+		finally
+		{
+			cleanup(rs);
+			cleanup(stmt);
+		}
 	}
 	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
 	{
@@ -1231,24 +1244,26 @@ public class SQLUtils
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
 		boolean isPostGreSQL = dbms.equals(POSTGRESQL);
+		
+		String query = null;
+		List<String> columns = new LinkedList<String>();
+		List<Object> values = new LinkedList<Object>();
+		for (Entry<String,Object> entry : data.entrySet())
+		{
+			columns.add(quoteSymbol(conn, entry.getKey()));
+			values.add(entry.getValue());
+		}
+		String column_string = StringUtils.join(",", columns);
+		String qmark_string = StringUtils.mult(",", "?", values.size());
+		query = String.format("INSERT INTO %s (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
+		if (isSQLServer)
+			query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
+		query += String.format(" VALUES (%s)", qmark_string);
+		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		String query = null;
 		try
 		{
-			List<String> columns = new LinkedList<String>();
-			List<Object> values = new LinkedList<Object>();
-			for (Entry<String,Object> entry : data.entrySet())
-			{
-				columns.add(quoteSymbol(conn, entry.getKey()));
-				values.add(entry.getValue());
-			}
-			String column_string = StringUtils.join(",", columns);
-			String qmark_string = StringUtils.mult(",", "?", values.size());
-			query = String.format("INSERT INTO %s (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
-			if (isSQLServer)
-				query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
-			query += String.format(" VALUES (%s)", qmark_string);
 			
 			stmt = prepareStatement(conn, query, values);
 			synchronized (conn)
@@ -1911,7 +1926,10 @@ public class SQLUtils
 				}
 				nestedPairs.add(pairs);
 			}
-			String dnf = buildNormalForm(conn, nestedPairs, caseSensitiveFields, conjunctive);
+			Set<String> quotedCSF = new HashSet<String>();
+			for (String field : caseSensitiveFields)
+				quotedCSF.add(quoteSymbol(conn, field));
+			String dnf = buildNormalForm(conn, nestedPairs, quotedCSF, conjunctive);
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
 			else

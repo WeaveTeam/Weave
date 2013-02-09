@@ -5,10 +5,8 @@
 				   layout="absolute" width="25%" height="20%">
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
 			import mx.controls.Button;
 			import mx.core.UIComponent;
-			import mx.events.FlexEvent;
 			
 			import weave.Weave;
 			import weave.api.getCallbackCollection;

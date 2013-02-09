@@ -65,7 +65,7 @@
 			</ui:Indent>
 			
 			<mx:Label text="{lang('What do these keys correspond to?')}"/>
-			<admin:KeyTypeDialog id="geometrySelector"
+			<admin:KeyTypeDialog id="keytypeSelector"
 											paddingLeft="{paddingIndent}"
 											defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
 			
@@ -280,7 +280,12 @@
 				var secondKeyColumn:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null;
 				var configTableName:String = dataTableNameInput.text
 				var geometryCollection:String = '';
-				var keyType:String = configTableName;
+				var keyType:String = "";
+				
+				if(generateKeyColumnCheckBox.selected)
+					keyType = configTableName;
+				else
+					keyType = keytypeSelector.selectedKeyType;
 				
 				disable();
 				addAsyncResponder(

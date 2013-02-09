@@ -168,11 +168,11 @@ public class MetadataTable extends AbstractTable
 			// build query
 			String quotedIdField = SQLUtils.quoteSymbol(conn, FIELD_ID);
 			query = String.format(
-					"SELECT %s,%s FROM %s WHERE %s=?",
+					"SELECT %s,%s FROM %s WHERE %s",
 					quotedIdField,
 					SQLUtils.quoteSymbol(conn, FIELD_VALUE),
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-					SQLUtils.quoteSymbol(conn, FIELD_NAME)
+					SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, FIELD_NAME), "?")
 				);
 			if (ids != null)
 				query += String.format(" AND %s IN (%s)", quotedIdField, StringUtils.join(",", ids));
