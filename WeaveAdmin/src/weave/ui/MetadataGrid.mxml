@@ -172,6 +172,7 @@
 		if (indexOfItemWithProperty(rows.source, 'property', prop) < 0)
 		{
             rows.addItem(new MetadataGridItem(prop));
+			updateMissingPropNames();
 	        dispatchEvent(new Event("metaChanged"));
 		}
 		
@@ -207,9 +208,11 @@
 				rows.removeItemAt(i);
 		}
 		if (rows.length != length)
+		{
 			rows.refresh();
+			updateMissingPropNames();
+		}
 		*/
-		updateMissingPropNames();
 	}
 	
 	/**
