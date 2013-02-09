@@ -704,6 +704,38 @@ package weave.utils
 		}
 
 		/**
+		 * This function will get the keys whose geometries intersect with the given array of geometries.
+		 * This function call getKeysOverlapGeometry below for each element in the array.
+		 * @param geometries an Array of ISimpleGeometry objects used to query the spatial index.
+		 * @param minImportance The minimum importance value to use when determining geometry overlap.
+		 * @param filterBoundingBoxesByImportance If true, bounding boxes will be pre-filtered by importance before checking geometry overlap.
+		 * @return An array of IQualifiedKey objects.
+		 **/		
+	
+
+		public function getKeysGeometryOverlapGeometries(geometries:Array, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array
+		{
+			var queriedKeys:Array = [];
+			var keys:Dictionary = new Dictionary();
+
+			for each ( var geometry:ISimpleGeometry in geometries )
+			{
+				queriedKeys = getKeysGeometryOverlapGeometry(geometry, minImportance, filterBoundingBoxesByImportance);					
+				
+				for each (var key:IQualifiedKey in queriedKeys)
+				{
+					keys[key] = true;
+				}
+			}
+		
+			var result:Array = [];
+			for (var keyObj:* in keys)
+				result.push(keyObj as IQualifiedKey);
+			
+			return result;
+		}
+		
+		/**
 		 * This function will get the keys whose geometries intersect with the given geometry.
 		 * 
 		 * @param geometry An ISimpleGeometry object used to query the spatial index.
