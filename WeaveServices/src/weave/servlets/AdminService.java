@@ -1503,8 +1503,6 @@ public class AdminService
 					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
 				}
 				
-				//TODO: fix this problem: SELECT DISTINCT is case insensitive, but we generate queries that are case sensitive
-				
 				query = String.format("select distinct %s from %s order by %s", columnList, SQLUtils.quoteSchemaTable(
 						conn, sqlSchema, sqlTable), columnList);
 				filteredValues = SQLUtils.getResultFromQuery(conn, query, null, true);
@@ -1681,7 +1679,10 @@ public class AdminService
 		{
 			if (j > 0)
 				query += " and ";
-			query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
+			
+			// use case insensitive compare because that's what SELECT DISTINCT does.
+			query += SQLUtils.quoteSymbol(conn, columnNames[j]) + "=?";
+			//query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
 		}
 		return query;
 	}
