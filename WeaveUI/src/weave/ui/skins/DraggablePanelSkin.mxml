@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+ADOBE SYSTEMS INCORPORATED
+Copyright 2008 Adobe Systems Incorporated
+All Rights Reserved.
+
+NOTICE: Adobe permits you to use, modify, and distribute this file
+in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- The default skin class for a Spark SkinnableContainer container.  
+
+@see spark.components.SkinnableContainer
+
+@langversion 3.0
+@playerversion Flash 10
+@playerversion AIR 1.5
+@productversion Flex 4
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:fb="http://ns.adobe.com/flashbuilder/2009" alpha.disabled="0.5" mouseEnabled="false"
+		minWidth="{hostComponent.minWidth}" minHeight="{hostComponent.minHeight}" creationComplete="skin1_creationCompleteHandler(event)"
+		>
+	<fx:Metadata>
+	
+		[HostComponent("weave.ui.DraggablePanel")]
+	</fx:Metadata>
+	
+	<fx:Script fb:purpose="styling">
+		<![CDATA[         
+			import mx.events.FlexEvent;
+			
+			import spark.components.Image;
+			
+			import weave.Weave;
+			import weave.api.getLinkableOwner;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableString;
+			import weave.ui.DraggablePanel;
+			import weave.ui.MinimizedComponent;
+			/**
+			 *  @private
+			 */
+			
+			
+			
+			
+			override protected function initializationComplete():void
+			{
+				
+				super.initializationComplete();
+			}
+			
+		//	public const panelStyleList:LinkableString = newLinkableChild(hostComponent, LinkableString, handlePanelStyleListChange);
+				private function handlePanelStyleListChange():void
+				{
+					_overriddenStyles = new Object();
+					
+					try
+					{
+						var ss:StyleSheet = new StyleSheet();
+						var styleName:String = 'panel';
+						ss.parseCSS(styleName + '{' + hostComponent.panelStyleList.value + '}');
+						var style:Object = ss.getStyle(styleName);
+						for (var propName:String in style)
+						{
+							var value:* = style[propName];
+							
+							// the only case that seems to cause problems is Numbers, which will not get parsed properly when 
+							// in String format by getStyle(...).  If it is a valid Number, cast it to one
+							try {
+								_overriddenStyles[propName] = Number(value);
+							} catch (e:Error) { } // ok if number parse fails
+							
+							if (isNaN(_overriddenStyles[propName]))
+								_overriddenStyles[propName] = String(value);
+						}
+					}
+					catch(error:Error) { } // ok if style parse fails
+					
+					// notify style change, just a random style chosen here so we only call it once instead of in the loop above
+					// this causes the style changes above to take effect
+					styleChanged("headerHeight");
+					notifyStyleChangeInChildren("headerHeight", true);
+				}
+			
+			private var _overriddenStyles:Object = new Object();
+			
+			 override public function getStyle(styleProp:String):*
+			{
+				var value:* = null;	
+				
+				// if we override the borders before the window has been intialized, tools display nothing
+				if (initialized && getLinkableOwner(hostComponent))
+				{
+					// if we are hiding the borders, return style bogus values that cause the borders to hide
+					if (!hostComponent.borderIsVisible)
+					{
+						// override border styles to hide the borders
+						
+						var borderProps:Array = [
+							"borderThicknessTop",
+							"borderThicknessBottom",
+							"borderThicknessLeft",
+							"borderThicknessRight",
+							"headerHeight",
+							"cornerRadius"
+						];
+						if (borderProps.indexOf(styleProp) >= 0)
+							return 0;
+						
+						if (styleProp == "dropShadowEnabled")
+							return false;
+					}
+				}
+				
+				if (_overriddenStyles[styleProp] != undefined )
+					value = _overriddenStyles[styleProp];
+				else if (styleProp == 'backgroundColor' && isFinite(hostComponent.contentBackgroundColor.value))
+					value = hostComponent.contentBackgroundColor.value;
+				else if (styleProp == 'borderColor' && isFinite(hostComponent.panelBorderColor.value))
+					value = hostComponent.panelBorderColor.value;
+				else
+					value = super.getStyle(styleProp);
+				
+				var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
+					_overriddenStyles["cornerRadius"] :
+					super.getStyle("cornerRadius");
+				
+				var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
+					_overriddenStyles["roundedBottomCorners"] : 
+					super.getStyle("roundedBottomCorners");
+				
+				// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
+				// of the cornerRadius, otherwise you get an odd looking panel
+				
+				// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
+				//if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
+				//return Math.max( cornerRadius, value );
+				
+				// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
+				// outside the panel
+				if (styleProp == "headerHeight")
+					return Math.max( cornerRadius, value );
+				
+				return value;
+			} 
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number) : void
+			{
+				
+				
+				// Push backgroundColor and backgroundAlpha directly.
+				// Handle undefined backgroundColor by hiding the background object.
+				if (isNaN(getStyle("backgroundColor")))
+				{
+					background.visible = false;
+				}
+				else
+				{
+					background.visible = true;
+					bgFill.color = getStyle("backgroundColor");
+					bgFill.alpha = getStyle("backgroundAlpha");
+				}
+				
+				if (isNaN(getStyle("borderColor")))
+				{
+					border.visible = false;
+				}
+				else
+				{
+					border.visible = true;
+					var colorCode:Number = getStyle("borderColor");
+					borderStroke.color = colorCode
+					titleBarColor.color = colorCode;
+ 					//borderStroke.alpha = getStyle("borderAlpha");
+				}
+				
+				resizeBorder.depth = this.numElements;
+				
+				super.updateDisplayList(unscaledWidth, unscaledHeight);				
+			}
+			
+			
+			
+			protected function skin1_creationCompleteHandler(event:FlexEvent):void
+			{
+				hostComponent.panelStyleList.addImmediateCallback(hostComponent,handlePanelStyleListChange,true);
+			}
+			
+		]]>        
+	</fx:Script>
+	<fx:Declarations>
+		<fx:Component id="userControlButtonFactory">
+			<s:Button/>
+		</fx:Component>
+		
+		<fx:Component id="subMenuButtonFactory">
+			<s:Button/>
+		</fx:Component>
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="disabled" />
+	</s:states>
+	
+	
+	<!--<s:RectangularDropShadow id="dropShadow" blurX="10" blurY="10" 
+							 alpha="1" distance="3" angle="0" color="#222222" left="0" 
+							 top="3" right="3" bottom="0" />-->
+	<!-- drop shadow can't be hittable so all other graphics go in this group -->
+	<s:BitmapImage id="moveImage" source="@Embed('/weave/resources/images/panMode.png')" x="5" y="5" alpha="0.25">
+		
+	</s:BitmapImage>
+	<s:Group left="0" right="0" top="0" bottom="0" width="100%" height="100%"  >
+				
+		<!-- layer 1: border -->
+		<!--- @private -->
+		<s:Rect id="border" left="0" right="0" top="0" bottom="0" >
+			<s:stroke>
+				<!--- @private -->
+				<s:SolidColorStroke id="borderStroke" weight="2"  /> <!--color="#54585e" -->
+			</s:stroke>
+		</s:Rect>
+		
+		<s:Rect id="resizeBorder" left="0" right="0" top="0" bottom="0" >
+			<s:stroke>
+				<!--- @private -->
+				<s:SolidColorStroke id="resizeBorderStroke" weight="6"   alpha="0"  /> 
+			</s:stroke>
+		</s:Rect>
+		
+		<!-- layer 2: background fill -->
+		<!--Background color and alpha are set from backgroundcolor property and updated in Update display list-->
+		<!--- Defines the appearance of the SkinnableContainer class's background. -->
+		<s:Rect id="background" left="1" right="1" top="1" bottom="1">
+			<s:fill>
+				<!--- @private -->
+				<s:SolidColor id="bgFill"/>
+			</s:fill>
+		</s:Rect>
+		
+		<!-- layer 3: contents -->
+		<!--- Contains the vertical stack of titlebar content and controlbar. -->
+		<s:Group left="1" right="1" top="1" bottom="1" id="contents"  >
+			<s:layout >
+				<s:VerticalLayout  gap="0" horizontalAlign="justify"   />
+			</s:layout>
+			
+			<!--- @private -->
+			<s:Group id="topGroup" minWidth="0"  >
+				
+				<!-- layer 0: title bar fill -->
+				<!--- @private -->
+				<s:Rect id="tbFill" left="0" right="0" top="0" bottom="1">
+					<s:fill>
+						<s:SolidColor id="titleBarColor"/>
+					</s:fill>
+				</s:Rect>
+				
+						
+							
+				<!-- layer 3.3: titleBar -->
+				<s:Group id="titleBar" left="0" right="0" top="0" bottom="0"   >
+					<!-- layer 3.3.1: titleBar -->
+					<s:HGroup id="titleSettingsHolder" left="4" top="2" bottom="2" 
+							  horizontalAlign="left" verticalAlign="middle" gap="2" minWidth="0" clipAndEnableScrolling="true" >
+						<s:Label id="titleLabel" maxDisplayedLines="1" text="{this.hostComponent.title}"
+								 bottom="0" 
+								 verticalAlign="middle" textAlign="start" fontWeight="bold"
+								 fontSize="11" fontFamily="arial" kerning="off" >
+						</s:Label>
+						
+					</s:HGroup> 
+					
+					
+					<!-- layer 3.3.2: controlsHolder -->
+					<s:HGroup id="titleBarControlsHolder" right="4" top="0" bottom="2" gap="2" horizontalAlign="right" verticalAlign="middle" >
+						<s:ToggleButton id="pinButton" skinClass="weave.ui.skins.PinButtonSkin" />
+						<s:Button id="minimizeButton" skinClass="weave.ui.skins.MinimizeButtonSkin"  />
+						<s:ToggleButton id="maximizeButton" skinClass="weave.ui.skins.MaximizeButtonSkin" />
+						<s:Button id="closePanelButton" skinClass="weave.ui.skins.ClosePanelButtonSkin" />
+					</s:HGroup>  
+				</s:Group>
+				
+				                    
+			</s:Group>
+			<!--
+			Note: setting the minimum size to 0 here so that changes to the host component's
+			size will not be thwarted by this skin part's minimum size.   This is a compromise,
+			more about it here: http://bugs.adobe.com/jira/browse/SDK-21143
+			-->
+			<!--- @copy spark.components.SkinnableContainer#contentGroup -->
+			<s:Group id="contentGroup"  minWidth="0" minHeight="0"  width="100%" height="100%">
+				<s:layout>
+					<s:BasicLayout clipAndEnableScrolling="true" />
+				</s:layout>
+			</s:Group>
+			
+		</s:Group>
+	</s:Group>	
+	
+</s:Skin>
