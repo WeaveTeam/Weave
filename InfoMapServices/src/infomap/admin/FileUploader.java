@@ -1,9 +1,11 @@
 package infomap.admin;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,12 +21,24 @@ import org.apache.solr.common.SolrInputDocument;
 
 public class FileUploader extends HttpServlet{
 	
+	public FileUploader() {
+		Properties prop = new Properties();
+		try{
+			InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+			prop.load(config);
+			
+			solrServerUrl = prop.getProperty("solrServerURL");
+		}catch (Exception e)
+		{
+			System.out.println("Error reading configuration file");
+		}
+	}
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	public static SolrServer solrInstance = null;
-    public String solrServerUrl = "http://129.63.8.219:8080/solr/";
+    public String solrServerUrl = null;
 	
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SolrException
 	{

@@ -46,7 +46,7 @@ package weave.data.DataSources
 	{
 		public function InfoMapsDataSource()
 		{
-			solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
+			solrURL.value = "http://209.204.119.180:8080/solr/demo/";
 			setCSVDataString("url,title,imgURL,date_published,date_added");
 			keyColName.value = "url";
 			keyType.value = "infoMapsDoc";

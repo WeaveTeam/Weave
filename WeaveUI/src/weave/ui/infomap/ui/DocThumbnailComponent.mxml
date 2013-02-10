@@ -322,13 +322,14 @@ so that it can be moved, selected, handle filters.
 				var link:String = docURL.value;
 				var linkLen:int = link.length;
 				var linkExtension:String = link.substring(linkLen-3,linkLen);
-				if(linkExtension == "pdf")
-				{
-					link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-				}
-				else{
-					link = docURL.value;
-				}
+//				if(linkExtension == "pdf")
+//				{
+//					link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//				}
+//				else{
+//					link = docURL.value;
+//				}
+				link = docURL.value;
 				navigateToURL(new URLRequest(link));
 			}
 			

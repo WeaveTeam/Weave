@@ -51,7 +51,7 @@ package weave.services
 			{
 				service = new AMF3Servlet(url + "/AdminService");
 				queue = new AsyncInvocationQueue();
-				getRssFeeds();
+//				getRssFeeds();
 			}
 			
 			private var queue:AsyncInvocationQueue;

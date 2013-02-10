@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
@@ -37,9 +38,18 @@ public class SummarizationJob implements Job{
 		//Reading and initializing Stop words from file
 		stopWords = new Hashtable<String, Integer>();
 		
-		solrServerURL = "http://129.63.8.219:8080/solr/demo_core/";
 		
 		try{
+			Properties prop = new Properties();
+			try{
+				InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+				prop.load(config);
+				
+				solrServerURL = prop.getProperty("solrServerURL");
+			}catch (Exception e)
+			{
+				System.out.println("Error reading configuration file");
+			}
 			
 			BufferedReader stopWordsList = new BufferedReader(
 					new InputStreamReader(getClass().getClassLoader().getResourceAsStream("infomap/resources/stopwords.txt")));
@@ -74,7 +84,7 @@ public class SummarizationJob implements Job{
 	
 	private TokenizerModel tokeModel;
 	
-	public String solrServerURL;
+	public String solrServerURL = null;
 	
 	@Override
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {

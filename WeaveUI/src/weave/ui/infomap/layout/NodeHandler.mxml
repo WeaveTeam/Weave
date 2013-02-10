@@ -457,8 +457,6 @@
 			
 			private function handleTotalResults(event:ResultEvent,token:Object=null):void
 			{
-					Alert.show(event.result.toString(),"YES");
-					
 					if(event.result as Number> 0)
 					{
 						status.text = "Documents found in data sources. Wait for next refresh...";

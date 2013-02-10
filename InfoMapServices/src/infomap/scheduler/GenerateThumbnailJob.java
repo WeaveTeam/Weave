@@ -45,6 +45,12 @@ public class GenerateThumbnailJob implements Job{
 	**/
 	private URL wkPath;
 	
+	/**`
+	 *The path to the 64 bit wkhtmltoimage tool for creating thumbnail images from web documents on Linux/OS X machines
+	**/
+	private URL wkPath64;
+	
+	
 	/**
 	 *The path to the CutyCapt tool for creating thumbnail images from web documents on Windows machines
 	**/
@@ -89,6 +95,7 @@ public class GenerateThumbnailJob implements Job{
 		
 		// initializing the file paths
 		wkPath = getClass().getClassLoader().getResource("infomap/resources/wkhtmltoimage-i386");
+		wkPath64 = getClass().getClassLoader().getResource("infomap/resources/wkhtmltoimage-amd64");
 		ccPath = getClass().getClassLoader().getResource("/infomap/resources/CutyCapt.exe");
 		pdf2ImgPath = getClass().getClassLoader().getResource("infomap/resources/pdfbox-app-1.6.0.jar");
 		config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
@@ -150,137 +157,109 @@ public class GenerateThumbnailJob implements Job{
 		//GET LIST OF LINKS TO GENERATE THUMBNAILS
 		HttpSolrServer server = new HttpSolrServer(solrServerURL);
 		
-		//get all cores
-		List<String> cores = new ArrayList<String>();
-//		CoreAdminRequest req = new CoreAdminRequest();
-//		req.setAction(CoreAdminAction.STATUS);
-//		try{
-//			CoreAdminResponse response = req.process(server);
-//		
-//		
-//			for(int i=0; i<response.getCoreStatus().size();i++)
-//			{
-//				cores.add(response.getCoreStatus().getName(i));
-//			}
-//		}catch(Exception e)
-//		{
-//			System.out.println("Error querying Solr Server for Cores");
-//			e.printStackTrace();
-//		}
+		HttpSolrServer coreSolrServer = new HttpSolrServer(solrServerURL); 
 		
-		cores.add("demo_core");
+		//query to check for documents whose imgName have not been set
+		SolrQuery q = new SolrQuery();
 		
-		Iterator<String> itr = cores.iterator();
+		q.setQuery("!imgName:[\"\" TO *]");
 		
-		while(itr.hasNext())
-		{
-			String coreName = itr.next();
+		q.setSortField("date_added",SolrQuery.ORDER.asc);
+		
+		q.setFields("link");
+		
+		//query for documents whose imgName has been set as ERROR 
+		
+		SolrQuery qForErrorImg = new SolrQuery();
+		
+		qForErrorImg.setQuery("imgName:ERROR");
+		qForErrorImg.setSortField("date_added",SolrQuery.ORDER.asc);
+		qForErrorImg.setFields("link");
 			
-			System.out.println("Checking for documents in core " + coreName);
+		try{
+			System.out.println("MAKING THUMBNAIL QUERY " + q.toString());
+			//Setting thumbnails for previously unset documents
+			QueryResponse qResponse = coreSolrServer.query(q);
 			
-			HttpSolrServer coreSolrServer = new HttpSolrServer(solrServerURL + coreName + "/"); 
+			long totalFound = qResponse.getResults().getNumFound();
 			
-			//query to check for documents whose imgName have not been set
-			SolrQuery q = new SolrQuery();
+			System.out.println("Total documents found with no thumbnails " + totalFound);
 			
-			q.setQuery("!imgName:[\"\" TO *]");
-			
-			q.setSortField("date_added",SolrQuery.ORDER.asc);
-			
-			q.setFields("link");
-			
-			//query for documents whose imgName has been set as ERROR 
-			
-			SolrQuery qForErrorImg = new SolrQuery();
-			
-			qForErrorImg.setQuery("imgName:ERROR");
-			qForErrorImg.setSortField("date_added",SolrQuery.ORDER.asc);
-			qForErrorImg.setFields("link");
+			//We break it into chunk of requests of size 1 documents
+			for (int k = 0; k<=totalFound; k++)
+			{
+				q.setStart(k);
+				q.setRows(1);
 				
-			try{
+				QueryResponse totalQueryResponse = coreSolrServer.query(q);
 				
-				//Setting thumbnails for previously unset documents
-				QueryResponse qResponse = coreSolrServer.query(q);
+				SolrDocumentList results = totalQueryResponse.getResults();
 				
-				long totalFound = qResponse.getResults().getNumFound();
+				Iterator<SolrDocument> docItr = results.iterator();
 				
-				System.out.println("Total documents found with no thumbnails " + totalFound);
-				
-				//We break it into chunk of requests of size 1 documents
-				for (int k = 0; k<=totalFound; k++)
+				while(docItr.hasNext())
 				{
-					q.setStart(k);
-					q.setRows(1);
+					SolrDocument d = docItr.next();
 					
-					QueryResponse totalQueryResponse = coreSolrServer.query(q);
+					String docURL = (String)d.getFieldValue("link");
+					String imgName = generateUniqueNameFromURL(docURL);
 					
-					SolrDocumentList results = totalQueryResponse.getResults();
 					
-					Iterator<SolrDocument> docItr = results.iterator();
+					Boolean success = createImageForDocument(docURL, imgName);
 					
-					while(docItr.hasNext())
-					{
-						SolrDocument d = docItr.next();
-						
-						String docURL = (String)d.getFieldValue("link");
-						String imgName = generateUniqueNameFromURL(docURL);
-						
-						
-						Boolean success = createImageForDocument(docURL, imgName);
-						
-						//update document with imgName. If no image was created updated with ERROR message
-						SolrInputDocument dInput = new SolrInputDocument();
-						dInput.addField("link", docURL);
-						Map<String, String> mp = new HashMap<String, String>();
-			       		if(success)
-			       			mp.put("set",imgName+"." + imgExtension);
-			       		else
-			       			mp.put("set","ERROR");//Updated With ERROR string if creating thumbnail failed.
-						dInput.addField("imgName", mp);
-						UpdateResponse r = coreSolrServer.add(dInput);
-						System.out.println("Document updated with status code "+r.getStatus()); 
-					}
+					//update document with imgName. If no image was created updated with ERROR message
+					SolrInputDocument dInput = new SolrInputDocument();
+					dInput.addField("link", docURL);
+					Map<String, String> mp = new HashMap<String, String>();
+		       		if(success)
+		       			mp.put("set",imgName+"." + imgExtension);
+		       		else
+		       			mp.put("set","ERROR");//Updated With ERROR string if creating thumbnail failed.
+					dInput.addField("imgName", mp);
+					UpdateResponse r = coreSolrServer.add(dInput);
+					System.out.println("Document updated with status code "+r.getStatus()); 
 				}
+			}
+			
+			QueryResponse qWithErrorResponse = coreSolrServer.query(qForErrorImg);
+			
+			totalFound = qWithErrorResponse.getResults().getNumFound();
+			
+			for(int j =0; j<=totalFound; j++)
+			{
+				qForErrorImg.setStart(j);
+				qForErrorImg.setRows(1);
 				
-				QueryResponse qWithErrorResponse = coreSolrServer.query(qForErrorImg);
 				
-				totalFound = qWithErrorResponse.getResults().getNumFound();
+				QueryResponse totalErrorQueryResponse = coreSolrServer.query(qForErrorImg);
 				
-				for(int j =0; j<=totalFound; j++)
+				SolrDocumentList resultsForError = totalErrorQueryResponse.getResults();
+				
+				Iterator<SolrDocument> docItrForError = resultsForError.iterator();
+				
+				while(docItrForError.hasNext())
 				{
-					qForErrorImg.setStart(j);
-					qForErrorImg.setRows(1);
+					SolrDocument d = docItrForError.next();
+					
+					String docURLForError = (String)d.getFieldValue("link");
+					String imgNameForError = generateUniqueNameFromURL(docURLForError);
 					
 					
-					QueryResponse totalErrorQueryResponse = coreSolrServer.query(qForErrorImg);
+					Boolean successForError = createImageForDocument(docURLForError, imgNameForError);
 					
-					SolrDocumentList resultsForError = totalErrorQueryResponse.getResults();
-					
-					Iterator<SolrDocument> docItrForError = resultsForError.iterator();
-					
-					while(docItrForError.hasNext())
-					{
-						SolrDocument d = docItrForError.next();
-						
-						String docURLForError = (String)d.getFieldValue("link");
-						String imgNameForError = generateUniqueNameFromURL(docURLForError);
-						
-						
-						Boolean successForError = createImageForDocument(docURLForError, imgNameForError);
-						
-						//update document with imgName. If no image was created updated with ERROR message
-						SolrInputDocument dInputForError = new SolrInputDocument();
-						dInputForError.addField("link", docURLForError);
-						Map<String, String> mpForError = new HashMap<String, String>();
-			       		if(successForError)
-			       			mpForError.put("set",imgNameForError+"." + imgExtension);
-			       		else
-			       			mpForError.put("set","ERROR");//Updated With ERROR string if creating thumbnail failed.
-						dInputForError.addField("imgName", mpForError);
-						UpdateResponse rForError = coreSolrServer.add(dInputForError);
-						System.out.println("Document updated with status code "+rForError.getStatus()); 
-					}
+					//update document with imgName. If no image was created updated with ERROR message
+					SolrInputDocument dInputForError = new SolrInputDocument();
+					dInputForError.addField("link", docURLForError);
+					Map<String, String> mpForError = new HashMap<String, String>();
+		       		if(successForError)
+		       			mpForError.put("set",imgNameForError+"." + imgExtension);
+		       		else
+		       			mpForError.put("set","ERROR");//Updated With ERROR string if creating thumbnail failed.
+					dInputForError.addField("imgName", mpForError);
+					UpdateResponse rForError = coreSolrServer.add(dInputForError);
+					System.out.println("Document updated with status code "+rForError.getStatus()); 
 				}
+			}
 				
 				
 //				if(totalFound>0)
@@ -296,7 +275,6 @@ public class GenerateThumbnailJob implements Job{
 				e.printStackTrace();
 			}
 			
-		}
 		server.shutdown();
 		return;
 	}
@@ -348,12 +326,16 @@ public class GenerateThumbnailJob implements Job{
 				}else{//any other web document
 					
 					String osName = System.getProperty("os.name");
-//					System.out.println("OPERATING SYS IS " + osName);
-//					System.out.println("Matches : " + osName.matches(".*Windows.*"));
-					//if using non-Window system run wkhtmltoimage
 					if(!osName.matches("(?i).*windows.*"))
 					{
-						command.add(wkPath.toURI().getPath());
+						if(System.getProperty("os.arch").equals("x86"))
+						{
+							command.add(wkPath.toURI().getPath());
+						}
+						else
+						{
+							command.add(wkPath64.toURI().getPath());
+						}
 						command.add("--disable-javascript");
 						command.add("--load-error-handling");
 						command.add("ignore");

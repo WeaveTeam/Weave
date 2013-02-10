@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -105,9 +106,9 @@ import java.util.regex.Pattern;
 public class AdminService extends GenericServlet {
 	private static final long serialVersionUID = 1L;
 
-	private static String username = "root";
-	private static String password = "oic3Ind2";
-	private static String host = "129.63.8.219";
+	private static String username = null;
+	private static String password = null;
+	private static String host = "localhost";
 	private static String port = "3306";
 	private static String database = "solr_sources";
 	private Connection conn = null;
@@ -116,19 +117,26 @@ public class AdminService extends GenericServlet {
 	private static int bufferSize = 20;
 	private static int backgroundThreads = 4;
 
-	public static String solrServerUrl = "http://129.63.8.219:8080/solr/demo_core/";
+	public static String solrServerUrl = null;
+	
+	public static String serverURL = null;
 
 	public static ConcurrentUpdateSolrServer streamingSolrserver = null;
 
 	public AdminService() {
-
-		// getConnection();
-		// try{
-		//
-		// solrInstance = new CommonsHttpSolrServer(solrServerUrl);
-		// }catch(Exception e){
-		// e.printStackTrace();
-		// }
+		Properties prop = new Properties();
+		try{
+			InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+			prop.load(config);
+			
+			solrServerUrl = prop.getProperty("solrServerURL");
+			serverURL = prop.getProperty("serverURL");
+			username = prop.getProperty("dbUsername");
+			password = prop.getProperty("dbPassword");
+		}catch (Exception e)
+		{
+			System.out.println("Error reading configuration file");
+		}
 	}
 
 //	public static void main(String[] args) {
@@ -147,8 +155,6 @@ public class AdminService extends GenericServlet {
 
 	private static void deleteAllDocuments() {
 		try {
-			setSolrServer("http://129.63.8.219:8080/solr/demo_core/");
-
 			String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
 
 			SolrQuery query = new SolrQuery();
@@ -203,41 +209,6 @@ public class AdminService extends GenericServlet {
 					}
 					count++;
 				}
-
-				// SolrInputDocument d = new SolrInputDocument();
-				// Map<String, String> mp = new HashMap<String, String>();
-				// mp.put("set", "BIG TITLE SABMAN. 8");
-				// d.addField("link",
-				// "http://cardinalscholar.bsu.edu/handle/123456789/194764");
-				// // d.addField("imgName", mp);
-				// d.addField("description","This is a description");
-				// // d.addField("attr_text_summary","This is a summary.");
-				// d.addField("title",mp);
-				// // UpdateResponse resp = solrInstance.add(d);
-				//
-				// SolrInputDocument d2 = new SolrInputDocument();
-				// Map<String, String> mp2 = new HashMap<String, String>();
-				// mp2.put("set", "BIG TITLE SABMAN 9");
-				// d2.addField("link",
-				// "http://cardinalscholar.bsu.edu/handle/123456789/1947640000");
-				// // d2.addField("imgName", mp2);
-				// d2.addField("description","This is a description");
-				// // d2.addField("attr_text_summary","This is a summary.");
-				// d2.addField("title",mp2);
-				// // UpdateResponse resp2 = solrInstance.add(d2);
-				//
-				// SolrInputDocument[] twoDocsArray = new SolrInputDocument[2];
-				//
-				// twoDocsArray[0] = d;
-				// twoDocsArray[1] = d2;
-				//
-				// List<SolrInputDocument> twoDocs =
-				// Arrays.asList(twoDocsArray);
-				//
-				// setStreamingSolrServer("http://129.63.8.219:8080/solr/research_core/");
-				//
-				// streamingSolrserver.add(twoDocs,1000);
-
 				System.out.println("Updated with ");
 
 			} catch (Exception e) {
@@ -586,7 +557,7 @@ public class AdminService extends GenericServlet {
 			String docURL = docs[i].replaceAll("\\:", "\\\\:");
 			docURL = docURL.replaceAll("&amp;", "%26");
 			System.out.println("QUERYING FOR " + docURL);
-			String queryURL = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=1&indent=on&fl=description&q=link:"
+			String queryURL = solrServerUrl + "/select/?version=2.2&start=0&rows=1&indent=on&fl=description&q=link:"
 					+ docURL;
 			try {
 
@@ -1144,7 +1115,7 @@ public class AdminService extends GenericServlet {
 //
 //				}
 				if (doc.getFieldValue("imgName") != null)
-					docArray[2] = "http://129.63.8.219:8080/thumbnails/"
+					docArray[2] = serverURL + "thumbnails/"
 							+ (String) doc.getFieldValue("imgName");
 
 				if (doc.containsKey("date_published"))
@@ -1594,7 +1565,7 @@ public class AdminService extends GenericServlet {
 				// imgExtension = ".png";
 				// }
 				if (doc.getFieldValue("imgName") != null)
-					docArray[3] = "http://129.63.8.219:8080/thumbnails/"
+					docArray[3] = serverURL + "thumbnails/"
 							+ (String) doc.getFieldValue("imgName");
 
 				if (doc.containsKey("date_published"))

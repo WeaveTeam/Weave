@@ -48,7 +48,7 @@ public abstract class AbstractDataSource implements Runnable
 	 */
 	void updateSolrServer(SolrInputDocument[] results)
 	{
-		System.out.println("adding documents in " + solrServerURL + " for " + getSourceName());
+		System.out.println("adding "+ results.length + " documents in " + solrServerURL + " for " + getSourceName());
 		HttpSolrServer solrServer = new HttpSolrServer(solrServerURL);
 		ArrayList<SolrInputDocument>updatedResults = new ArrayList<SolrInputDocument>();
 		int count = 0;
