@@ -380,7 +380,7 @@ public class CSVParser
 	 */
 	public void createCSV(Object[][] rows, boolean quoteEmptyStrings, Appendable output, boolean endingLineFeed) throws IOException
 	{
-		String nullToken = quoteEmptyStrings ? "" : null;
+		String nullToken = quoteEmptyStrings ? "\"\"" : null;
 		for (int iRow = 0; iRow < rows.length; iRow++)
 		{
 			if (iRow > 0)

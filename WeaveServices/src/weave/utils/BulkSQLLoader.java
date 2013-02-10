@@ -41,10 +41,13 @@ public abstract class BulkSQLLoader
 	
 	public static BulkSQLLoader newInstance(Connection conn, String schema, String table, String[] fieldNames) throws RemoteException
 	{
-		if (SQLUtils.isOracleServer(conn) || SQLUtils.isSQLServer(conn))
-			return new BulkSQLLoader_Direct(conn, schema, table, fieldNames);
-		else
+		// BulkSQLLoader_CSV doesn't work for mysql unless LOAD DATA LOCAL feature is enabled...
+		
+		String dbms = SQLUtils.getDbmsFromConnection(conn);
+		if (dbms.equals(SQLUtils.POSTGRESQL))
 			return new BulkSQLLoader_CSV(conn, schema, table, fieldNames);
+		else
+			return new BulkSQLLoader_Direct(conn, schema, table, fieldNames);
 	}
 	
 	////////////////////////////////

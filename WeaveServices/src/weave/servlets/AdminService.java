@@ -1486,6 +1486,7 @@ public class AdminService
 			
 			// generate and test each query before modifying config file
 			List<String> titles = new LinkedList<String>();
+			List<String> sqlFields = new LinkedList<String>();
 			List<String> queries = new Vector<String>();
 			List<Object[]> queryParamsList = new Vector<Object[]>();
 			List<String> dataTypes = new Vector<String>();
@@ -1501,6 +1502,7 @@ public class AdminService
 						columnList += ",";
 					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
 				}
+				
 				query = String.format("select distinct %s from %s order by %s", columnList, SQLUtils.quoteSchemaTable(
 						conn, sqlSchema, sqlTable), columnList);
 				filteredValues = SQLUtils.getResultFromQuery(conn, query, null, true);
@@ -1536,6 +1538,7 @@ public class AdminService
 					{
 						String filteredQuery = buildFilteredQuery(conn, query, filteredValues.columnNames);
 						titles.add(buildFilteredColumnTitle(configColumnNames[iCol], filteredValues.rows[iRow]));
+						sqlFields.add(sqlColumn);
 						queries.add(filteredQuery);
 						queryParamsList.add(filteredValues.rows[iRow]);
 						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery, filteredValues.rows[iRow]));
@@ -1544,6 +1547,7 @@ public class AdminService
 				else
 				{
 					titles.add(configColumnNames[iCol]);
+					sqlFields.add(sqlColumn);
 					queries.add(query);
 					dataTypes.add(testQueryAndGetDataType(conn, query, null));
 				}
@@ -1563,24 +1567,28 @@ public class AdminService
 			for (int i = 0; i < titles.size(); i++)
 			{
 				DataEntityMetadata newMeta = new DataEntityMetadata();
+				newMeta.setPublicMetadata(
+					PublicMetadata.TITLE, titles.get(i),
+					PublicMetadata.KEYTYPE, keyType,
+					PublicMetadata.DATATYPE, dataTypes.get(i)
+				);
 				newMeta.setPrivateMetadata(
 					PrivateMetadata.CONNECTION, connectionName,
 					PrivateMetadata.SQLQUERY, queries.get(i),
 					PrivateMetadata.SQLSCHEMA, sqlSchema,
 					PrivateMetadata.SQLTABLE, sqlTable,
 					PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn,
-					PrivateMetadata.SQLCOLUMN, sqlColumnNames[i]
+					PrivateMetadata.SQLCOLUMN, sqlFields.get(i)
 				);
 				if (filteredValues != null)
 				{
+					String filterStr = CSVParser.defaultParser.createCSVRow(filterColumnNames, true);
 					String paramsStr = CSVParser.defaultParser.createCSVRow(queryParamsList.get(i), true);
-					newMeta.setPrivateMetadata(PrivateMetadata.SQLPARAMS, paramsStr);
+					newMeta.setPrivateMetadata(
+						PrivateMetadata.SQLPARAMS, paramsStr,
+						PrivateMetadata.SQLFILTERCOLUMNS, filterStr
+					);
 				}
-				newMeta.setPublicMetadata(
-					PublicMetadata.TITLE, titles.get(i),
-					PublicMetadata.KEYTYPE, keyType,
-					PublicMetadata.DATATYPE, dataTypes.get(i)
-				);
 
 				dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta, table_id, DataConfig.NULL);
 			}
@@ -1671,7 +1679,10 @@ public class AdminService
 		{
 			if (j > 0)
 				query += " and ";
-			query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
+			
+			// use case insensitive compare because that's what SELECT DISTINCT does.
+			query += SQLUtils.quoteSymbol(conn, columnNames[j]) + "=?";
+			//query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
 		}
 		return query;
 	}

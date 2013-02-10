@@ -663,7 +663,11 @@ public class GenericServlet extends HttpServlet
     	//response.setHeader("Cache-Control", "no-cache");
     	//response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
     	
-    	String message = exception.getMessage();
+    	String message;
+    	if (exception instanceof RuntimeException)
+    		message = exception.toString();
+    	else
+    		message = exception.getMessage();
     	if (moreInfo != null)
     		message += "\n" + moreInfo;
     	

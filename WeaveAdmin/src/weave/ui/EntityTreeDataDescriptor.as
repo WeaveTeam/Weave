@@ -10,12 +10,16 @@ package weave.ui
     {
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
-			EntityNode.addChildAt(parent as EntityNode, newChild as EntityNode, index);
-			return true;
+			if (newChild is EntityNode)
+			{
+				EntityNode.addChildAt(parent as EntityNode, newChild as EntityNode, index);
+				return true;
+			}
+			return false;
         }
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
-			if (child)
+			if (child is EntityNode)
 				EntityNode.removeChild(parent as EntityNode, child as EntityNode);
 			return true;
         }
