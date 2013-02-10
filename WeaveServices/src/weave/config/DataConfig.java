@@ -448,6 +448,7 @@ public class DataConfig
 		static public final String SQLSCHEMA = "sqlSchema";
 		static public final String SQLTABLE = "sqlTable";
 		static public final String SQLCOLUMN = "sqlColumn";
+		static public final String SQLFILTERCOLUMNS = "sqlFilterColumns";
 		static public final String SQLQUERY = "sqlQuery"; // required to retrieve data from sql, not visible to client
 		static public final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
 		static public final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
