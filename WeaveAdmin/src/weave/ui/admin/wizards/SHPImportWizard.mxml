@@ -55,14 +55,14 @@
 		<mx:HBox id="geoCol" enabled="false">
 			<mx:TextArea width="{indentGroup.measuredIndent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>
 			<mx:HBox verticalAlign="middle">
-				<mx:TextInput id="tableTitleInput" text="{tableSelector.activeTable}"/>
+				<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
 				<ui:HelpComponent>
 					Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here.
 				</ui:HelpComponent>
 			</mx:HBox>
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" group="{indentGroup}">
-			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{tableTitleInput.text}" editable="true" dataProvider="{Admin.instance.keyTypes}" toolTip="{lang('Choose a key type that corresponds to the type of the column that was chosen for the DBF key column name(s).  For example US State Fips codes or US State Abbreviations.')}"/>
+			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{Admin.instance.keyTypes}" toolTip="{lang('Choose a key type that corresponds to the type of the column that was chosen for the DBF key column name(s).  For example US State Fips codes or US State Abbreviations.')}"/>
 			<mx:Button label="Refresh" click="Admin.service.getKeyTypes()"/>
 			<ui:HelpComponent>
 				If two tables have compatible keys, you should give them the same key type. <!--
@@ -81,6 +81,7 @@
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
@@ -223,8 +224,8 @@
 					Alert.show("You must specify the name(s) of the key column(s) in the DBF file.", alertTitle);
 				else if (tableSelector.activeTable == '')
 					Alert.show("You must specify the name of the destination SQL table.", alertTitle);
-				else if (tableTitleInput.text == '')
-					Alert.show("You must specify the name of the data table to be visible by users.", alertTitle);
+				else if (geometryCollectionNameInput.text == '')
+					Alert.show("You must specify the name of the GeometryCollection to be visible by users.", alertTitle);
 				else
 				{
 					
@@ -239,7 +240,7 @@
 							tableSelector.activeSchema,
 							tableSelector.activeTable,
 							tableSelector.tableOverwriteCheck.selected,
-							tableTitleInput.text,
+							geometryCollectionNameInput.text,
 							shpKeyTypeCombo.text,
 							srsProjectionTxtInput.text,
 							nullFlagInput.text,
