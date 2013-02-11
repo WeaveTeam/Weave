@@ -62,7 +62,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
-			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;

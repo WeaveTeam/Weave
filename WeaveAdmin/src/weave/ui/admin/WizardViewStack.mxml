@@ -37,7 +37,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.events.CloseEvent;
-			import mx.managers.PopUpManager;
 			
 			/**
 			 * This tells the WizardPanel when to enable the "Back" button.

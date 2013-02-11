@@ -1131,7 +1131,9 @@ public class AdminService
 		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
 		
 		if (isEmpty(sqlSchema))
-			throw new RemoteException("Schema must be specified.");
+			throw new RemoteException("SQL schema must be specified.");
+		if (isEmpty(sqlTable))
+			throw new RemoteException("SQL table must be specified.");
 		
 		final int StringType = 0;
 		final int IntType = 1;
@@ -1425,7 +1427,9 @@ public class AdminService
 		authenticate(connectionName, password);
 		
 		if (isEmpty(schemaName))
-			throw new RemoteException("Schema must be specified.");
+			throw new RemoteException("SQL schema must be specified.");
+		if (isEmpty(tableName))
+			throw new RemoteException("SQL table must be specified.");
 		
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
         DataEntityMetadata tableInfo = new DataEntityMetadata();
@@ -1700,7 +1704,9 @@ public class AdminService
 		ConnectionInfo connInfo = getConnectionInfo(configConnectionName, password);
 		
 		if (isEmpty(sqlSchema))
-			throw new RemoteException("Schema must be specified.");
+			throw new RemoteException("SQL schema must be specified.");
+		if (isEmpty(sqlTablePrefix))
+			throw new RemoteException("SQL table prefix must be specified.");
 		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();

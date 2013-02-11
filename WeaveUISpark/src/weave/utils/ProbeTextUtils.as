@@ -45,7 +45,7 @@ package weave.utils
 	public class ProbeTextUtils
 	{
 		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
-		public static const showEmptyProbeRecordIdentifiers:LinkableBoolean = new LinkableBoolean(false);
+		public static const showEmptyProbeRecordIdentifiers:LinkableBoolean = new LinkableBoolean(true);
 		
 		public static function get probedColumns():ILinkableHashMap
 		{
@@ -131,7 +131,7 @@ package weave.utils
 						//reportError(e);
 					}
 				}
-				if (!record)
+				if (record)
 				{
 					result += record + '\n';
 					recordCount++;
