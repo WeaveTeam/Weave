@@ -505,6 +505,7 @@ public class GenerateThumbnailJob implements Job{
 			e.printStackTrace();
 			success = false;
 		}
+		executor.shutdownNow();
 		future.cancel(true);
 		return success;
 	}

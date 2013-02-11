@@ -139,19 +139,17 @@ public class AdminService extends GenericServlet {
 		}
 	}
 
-//	public static void main(String[] args) {
+	public static void main(String[] args) {
 //		//testing
-//		AdminService inst = new AdminService();
-//		
-//		 String [] requiredKeywords = new String[1];
-//		 String [] relatedKeywords = new String[2];
-//		
-//		 requiredKeywords[0] = "california";
-//	     inst.getResultsForQueryWithRelatedKeywords(requiredKeywords,null,null,2000);
-//		 //inst.entitySentences(requiredKeywords, relatedKeywords, null, 300);
-//	     //inst.
-////		 inst.getDescriptionForURL("http://bmb.oxfordjournals.org/cgi/content/short/48/1/23", requiredKeywords);
-//	}
+		AdminService inst = new AdminService();
+		
+		 String [] requiredKeywords = new String[2];
+		 String [] relatedKeywords = null;
+		
+		 requiredKeywords[0] = "age of decline";
+		 requiredKeywords[1] = "sex";
+	     inst.getNumOfDocumentsForQuery(requiredKeywords, relatedKeywords, null, "AND");
+	}
 
 	private static void deleteAllDocuments() {
 		try {
@@ -1399,13 +1397,21 @@ public class AdminService extends GenericServlet {
 
 		if (keywords == null || keywords.length == 0)
 			return result;
+		String tempStr = "";
+		String[] tempArr;
 		// if it is not a single word we add the operator between each keyword
 		// splitting the keywords at the spaces.
 		if (keywords.length > 1) {
 			for (int i = 0; i < keywords.length; i++) {
-				result += "\"" + keywords[i] + "\"";
+				tempArr = keywords[i].split(" ");
+				if(tempArr.length >1)
+					result += mergeKeywords(tempArr, "AND");
+				else
+					result += "\"" + keywords[i] + "\"";
 				if (i != keywords.length - 1)
+				{
 					result += " " + operator + " ";
+				}
 			}
 
 		} else {
@@ -1418,38 +1424,52 @@ public class AdminService extends GenericServlet {
 	public long getTotalNumberOfQueryResults(String[] requiredQueryTerms, String[] relatedQueryTerms)
 	{
 		long result=0;
+
+		if(requiredQueryTerms == null)
+			return 0;
+		
 		MendeleyDataSource mds = new MendeleyDataSource();
 		mds.requiredQueryTerms= requiredQueryTerms.clone();
-		mds.relatedQueryTerms = relatedQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			mds.relatedQueryTerms = relatedQueryTerms.clone();
 		result = result + mds.getTotalNumberOfQueryResults();
 		
 		ArxivDataSource ads = new ArxivDataSource();
 		ads.requiredQueryTerms = requiredQueryTerms.clone();
-		ads.relatedQueryTerms = relatedQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			ads.relatedQueryTerms = relatedQueryTerms.clone();
 		result = result + ads.getTotalNumberOfQueryResults();
 		
 		BaseDataSource bds = new BaseDataSource();
 		bds.requiredQueryTerms = requiredQueryTerms.clone();
-		bds.relatedQueryTerms = relatedQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			bds.relatedQueryTerms = relatedQueryTerms.clone();
 		result = result + bds.getTotalNumberOfQueryResults();
 		
 		return result;
 	}
 	
-	public void queryDataSources(String[] requiredQueryTerms, String[] relatedQueryTerms) {
+	public void queryDataSources(String[] requiredQueryTerms, String[] relatedQueryTerms) 
+	{
+		if(requiredQueryTerms == null)
+			return;
+		
 		MendeleyDataSource mds = new MendeleyDataSource();
 		mds.requiredQueryTerms= requiredQueryTerms.clone();
-		mds.relatedQueryTerms = relatedQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			mds.relatedQueryTerms = relatedQueryTerms.clone();
 		mds.solrServerURL = solrServerUrl;
 
 		ArxivDataSource ads = new ArxivDataSource();
 		ads.requiredQueryTerms = requiredQueryTerms.clone();
-		ads.relatedQueryTerms = relatedQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			ads.relatedQueryTerms = relatedQueryTerms.clone();
 		ads.solrServerURL = solrServerUrl;
 
 		BaseDataSource bds = new BaseDataSource();
 		bds.requiredQueryTerms = requiredQueryTerms.clone();
-		bds.relatedQueryTerms = relatedQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			bds.relatedQueryTerms = relatedQueryTerms.clone();
 		bds.solrServerURL = solrServerUrl;
 
 		executor.execute(ads);

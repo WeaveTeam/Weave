@@ -9,6 +9,10 @@
 		<mx:TextInput id="keyword" keyDown="handleEnterKey(event)"/>
 		<mx:Button label="Apply" click="applyKeyword()"/>
 	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:ComboBox id="operator"/>
+	</mx:HBox>
 	<mx:Label text="Set a Date Range" fontWeight="bold"  />
 	<mx:HBox>
 		<mx:VBox>
@@ -98,6 +102,10 @@
 				
 				keyword.text = query.keywords.value;
 				
+				operator.dataProvider = ['OR','AND'];
+				operator.selectedItem = query.operator.value;
+				linkBindableProperty(query.operator,operator,"selectedItem");
+								
 				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
 				
 				_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
