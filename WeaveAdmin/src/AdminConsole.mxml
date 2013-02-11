@@ -20,6 +20,9 @@
 */
 -->
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
+	<mx:Style>
+		{ fillAlphas: 1, 1, 1, 1; }
+	</mx:Style>
 	<!--  cornerRadius="0" -->
 	<mx:Panel
 		headerHeight="25"
