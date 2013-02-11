@@ -1149,7 +1149,8 @@ package weave.compiler
 				constant = call.compiledMethod as CompiledConstant;
 				if (constant && constant.name === constant.value)
 					return name;
-				return "(#" + name + ")";
+				throw new Error("Unable to decompile dynamic variable lookup");
+				//return "(#" + name + ")";
 			}
 			
 			// decompile each paramter
