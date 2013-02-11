@@ -157,8 +157,18 @@
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
+				'trace': consoleTrace,
+				'$': debugHelper
 			};
+			
+			private function debugHelper(arg:* = null):*
+			{
+				var type:String = typeof(arg);
+				if (arg == null || type != 'object' && type != 'function')
+					return debugLookup(arg);
+				return debugId(arg);
+			}
+			
 			private function getVisApp():Object
 			{
 				var app:Object = WeaveAPI.topLevelApplication;
