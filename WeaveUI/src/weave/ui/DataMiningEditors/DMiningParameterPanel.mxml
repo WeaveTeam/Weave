@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*Editor to specify parameters for all the  data mining algorithms*/
+@spurushe-->
+
+<mx:Panel title="Algorithm Parameter Input Panel" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+		  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop = "10">
+	<mx:ControlBar  horizontalAlign="right" width = "400" height="50">
+		<mx:Button label="Save" click="savingParameters(event)"/>
+	</mx:ControlBar>
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.containers.HBox;
+			import mx.containers.VBox;
+			import mx.controls.ComboBox;
+			import mx.controls.Label;
+			import mx.controls.Spacer;
+			
+			import spark.components.ComboBox;
+			
+			import weave.core.UIUtils;
+			import weave.ui.Indent;
+			import weave.ui.TextInputWithPrompt;
+
+
+
+
+			/* check the algorithm name and accordingly generate UI components and store the parameters in the corresponding datamining object 
+			parameters are (1) the datamining object whose parameters have to be filled through the UI
+			(2) Tha algorithm name example KMeans Clustering*/
+			
+			//this is the list of all the UI components to create for a particular algorithm
+			public var uiComponents:Array = new Array();
+			private var currentDMObject:DataMiningAlgorithmObject = new DataMiningAlgorithmObject();
+			
+			public function generateUIComponents(dmObject : DataMiningAlgorithmObject):Array
+			{
+				uiComponents = [];
+				currentDMObject = dmObject;
+				var algorithm:String = dmObject.label;
+				
+				if(algorithm == "KMeans Clustering") 
+				   createParameterInputForKMeans();
+				
+				if(algorithm == "Fuzzy KMeans Clustering")
+					createParameterInputForFuzzyKMeans();
+				return uiComponents;
+			}
+			
+			//creates UI for KMeans Clustering
+			private function createParameterInputForKMeans():void
+			{
+				uiComponents = [];
+				var kmeansVBox:VBox = new VBox(); var s:Spacer = new Spacer(); s.width = 10; s.height = 10; kmeansVBox.addChild(s);
+				
+				//Input 1
+				var kMeansIndent:Indent = new Indent();
+				kMeansIndent.label = "Enter Cluster Number";
+				var kMeansClusterInput:TextInputWithPrompt = new TextInputWithPrompt(); 
+				kMeansIndent.addChild(kMeansClusterInput);
+				kmeansVBox.addChild(kMeansIndent);
+				
+				//input 2
+				var kMeansIndent2:Indent = new Indent(); kMeansIndent2.label = "Enter Number of Iterations"; 
+				var kMeansIterationsInput:TextInputWithPrompt = new TextInputWithPrompt();
+				kMeansIndent2.addChild(kMeansIterationsInput);
+				kmeansVBox.addChild(kMeansIndent2);
+				
+				//input 3
+				var kMeansIndent3:Indent = new Indent(); kMeansIndent3.label = "Select the algorithm";
+				var kMeansAlgoBox:mx.controls.ComboBox = new mx.controls.ComboBox();
+				var boxFiller:Array = ["Choose an algorithm", "Hartigan-Wong", "Lloyd","Forgy", "MacQueen"];
+				kMeansAlgoBox.dataProvider = boxFiller;
+				kMeansIndent3.addChild(kMeansAlgoBox);
+				kmeansVBox.addChild(kMeansIndent3);
+				
+				//finally
+				uiComponents.push(kmeansVBox);
+				
+			}
+			
+			
+			//creates UI for FuzzyKMeans Clustering
+			private function createParameterInputForFuzzyKMeans():void
+			{
+				uiComponents = [];
+				var fuzzkmeansVBox:VBox = new VBox(); var s:Spacer = new Spacer(); s.width = 10; s.height = 10; fuzzkmeansVBox.addChild(s);
+				
+				//input 1
+				var fuzzkMeansIndent:Indent = new Indent();
+				fuzzkMeansIndent.label = "Enter Cluster Number";
+				var fuzzkMeansClusterInput:TextInputWithPrompt = new TextInputWithPrompt(); 
+				fuzzkMeansIndent.addChild(fuzzkMeansClusterInput);
+				fuzzkmeansVBox.addChild(fuzzkMeansIndent);
+				
+				//input 2
+				var fuzzkMeansIndent2:Indent = new Indent(); fuzzkMeansIndent2.label = "Enter Number of Iterations"; 
+				var fuzzkMeansIterationsInput:TextInputWithPrompt = new TextInputWithPrompt();
+				fuzzkMeansIndent2.addChild(fuzzkMeansIterationsInput);
+				fuzzkmeansVBox.addChild(fuzzkMeansIndent2);
+				
+				//finally
+				uiComponents.push(fuzzkmeansVBox);
+			}
+			
+			
+			protected function savingParameters(event:MouseEvent):void
+			{
+				/* if(currentDMObject.label == "KMeans Clustering")
+				//testing
+				{
+					var clusterNumber:String = new String();
+					var iterationNumber:String = new String();
+					var algoType:String = new String();
+					currentDMObject.parameterMapping[clusterNumber] = ;
+					currentDMObject.parameterMapping[iterationNumber]= null;
+					currentDMObject.parameterMapping[algoType]= null;
+					currentDMObject.parameterMapping[clusterNumber]
+				} */
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Panel>

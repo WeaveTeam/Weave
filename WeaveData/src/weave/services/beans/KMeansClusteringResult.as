@@ -1,8 +1,3 @@
-// ActionScript file
-package weave.services.beans
-{
-	import weave.data.AttributeColumns.NumberColumn;
-	import weave.utils.VectorUtils;
 	/*
     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
@@ -21,35 +16,41 @@ package weave.services.beans
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-	
+
+/**
+ * Contains the properties that define a KMeans Clustering object
+ * @spurushe
+ * */
+package weave.services.beans
+{
 	public class KMeansClusteringResult
 	{
-		public static function cast(object:Object):KMeansClusteringResult
-		{
-			return new KMeansClusteringResult(object);
-		}
+		public var clusterVector:Array = new Array();//A vector of integers (from 1:k) indicating the cluster to which each point is allocated
+		public var centers:Array = new Array();//A matrix of cluster centres. 
+		public var totSumOfSquares:Number; //The total sum of squares
+		public var withinSumOfSquares:Array;//Vector of within-cluster sum of squares, one component per cluster.
+		public var totWithinSumOfSquares:Number;//Total within-cluster sum of squares, i.e., sum(withinSumOfSquares).
+		public var betweenSumOfSquares:Number;//The between-cluster sum of squares, i.e. totSumOfSquares-totWithinSumOfSquares.
+		public var clusterSize:Array;// The number of points in each cluster.
 		
-		public var clusterMeans:Array;
-		public var clusterSize:Number;
-		public var withinSumOfSquares:Number;
-		public var clusterGroup:Array;
-		public var RImageFilePath:String;
-//		public var residual:NumberColumn = new NumberColumn(<attribute name="Residual values"/>);
 		
-		public function KMeansClusteringResult(kresult:Object)
+		public function KMeansClusteringResult(input:Array)
 		{
-			this.clusterMeans = kresult.clusterMeans;
-			this.clusterGroup = kresult.clusterGroup;
-			this.withinSumOfSquares = kresult.withinSumOfSquares;
-			this.clusterSize = kresult.clusterSize;
-			this.RImageFilePath = kresult.RImageFilePath;
+			 //to do: find better way of collecting centers
+			this.clusterVector = input[0];
+			var check:Array = new Array();
+			check = input[1][0];
+			this.centers.push(check);
+			var check2:Array = input[1][1];this.centers.push(check2);
+			var check3:Array = input[1][2];this.centers.push(check3);
 			
 			
-//			// convert arrays to vectors and store the residual values			
-//			var keys:Vector.<String> = Vector.<String>(kresult.keys);
-//			var data:Vector.<Number> = Vector.<Number>(kresult.residual);
-//			//TODO: need residual.keyType
-//			this.residual.updateRecords(keys, data, true);
+			this.totSumOfSquares = input[2];
+			this.withinSumOfSquares = input[3];
+			this.totWithinSumOfSquares = input[4];
+			this.betweenSumOfSquares = input[5];
+			this.clusterSize = input[6];
+			
 		}
 	}
 }

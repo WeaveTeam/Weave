@@ -72,6 +72,7 @@ package
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
+	import weave.visualization.tools.RInterfaceTool;
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
@@ -137,6 +138,7 @@ package
 			TimeSliderTool,
 			RamachandranPlotTool,
 			DataStatisticsTool,
+			RInterfaceTool,
 		]).toString();
 		
 		/**

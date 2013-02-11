@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*Editor to specify parameters for Kmeans Clustering*/
+@spurushe-->
+
+
+
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="K Means Clustering Editor"
+				
+				backgroundColor="#EFF4BC" width="300" height="400"
+				layout="horizontal"
+				autoLayout="true"
+				implements="weave.api.ui.IVisTool"
+				>
+	<mx:HBox width="100%" height="100%">
+		<mx:VBox width="50%" paddingLeft="5" paddingBottom="5" paddingRight="5" height="100%">
+		<mx:Label text="1.Select the input Columns" fontWeight="bold"/>	
+		<ColumnListComponent id="kMeansColumns" hashMap="{inputColumns}"/>
+		</mx:VBox>
+		<mx:VBox paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" height="100%">
+			<Indent label="2.Enter the number of clusters" fontWeight="bold" width="100%">
+				
+				<TextInputWithPrompt id="clusterNumber" prompt="5" toolTip="either the number of clusters, say k, or a set of initial (distinct) cluster centres. If a number, a random set of (distinct) rows in x is chosen as the initial centres."/>
+			</Indent>
+			
+			<Indent label="3.Enter the number of iterations" fontWeight="bold" width="100%">
+				<TextInputWithPrompt id="iterations" prompt="100" toolTip="the maximum number of iterations allowed."/>
+					
+			</Indent>	
+			<Indent label="4.Enter the number of random sets to be chosen" fontWeight="bold" width="100%">
+				<TextInputWithPrompt id="randomSets" prompt="100" toolTip="if centers is a number, how many random sets should be chosen?"/>
+				
+			</Indent>
+			<Indent label="5.Select the algorithm" fontWeight="bold" width="100%">
+				<mx:ComboBox id="clustAlgo" >
+					<mx:String>Choose algorithm</mx:String>
+					<mx:String>Hartigan-Wong</mx:String>
+					<mx:String>Lloyd</mx:String>
+					<mx:String>Forgy</mx:String>
+					<mx:String>MacQueen</mx:String>
+				</mx:ComboBox>
+				</Indent>
+			<mx:Button id="editScript" label="View/Edit Script" click="editScript_clickHandler(event)"/>
+			<mx:TextArea id="displayScriptTA" width="100%">
+				
+			</mx:TextArea>
+			<mx:Button label="Run Script" id="doKMeansButton" click="doKMeansButton_clickHandler(event)"/>
+		</mx:VBox>
+	
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.Image;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableString;
+			import weave.data.AttributeColumns.CSVColumn;
+			import weave.data.AttributeColumns.StringColumn;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.data.KeySets.KeySet;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveRServlet;
+			import weave.services.beans.RResult;
+			import weave.utils.ColumnUtils;
+			import weave.utils.ResultUtils;
+			import weave.utils.VectorUtils;
+			import weave.visualization.tools.DataTableTool;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			//to do: take input as columns and as subsets from vizs
+			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			private var assignNames: Array = new Array();
+			public var latestColumnKeys:Array = new Array();
+			public var finalColumns:Array = new Array();
+			//private var _initialing:* = constructor();
+			 
+			private var kMeans:KMeansClustering = new KMeansClustering();
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				for (var i:int = 0; i < columns.length; i++)
+					inputColumns.requestObjectCopy(null, columns[i]);
+			}
+			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				preprocessingColumns();
+				inputColumns.addGroupedCallback(this, preprocessingColumns);
+			}
+			
+			// we need only numerical columns for clustering
+			 private function preprocessingColumns():void
+			{
+				var colObjects:Array = inputColumns.getObjects(IAttributeColumn);
+				var attributeColumns :Array = new Array();
+				for (var i:int = 0; i < colObjects.length; i++)
+				{
+					var col:IAttributeColumn = colObjects[i] as IAttributeColumn;
+					var datatype:String = ColumnUtils.getDataType(col);
+					if(datatype == "number")
+					{
+						attributeColumns.push(col);
+					}
+					
+					var joinedColumns:Array = kMeans.joinColumns(attributeColumns);
+					latestColumnKeys = joinedColumns[0];
+					finalColumns = joinedColumns[1];
+				}
+			} 
+		
+			
+			 protected function editScript_clickHandler(event:MouseEvent):void
+			{
+				//to do: Make script change accoring to user inputs of parameters
+				displayScriptTA.text = "frame <- data.frame(inputColumns)\n" +
+				"kMeansResult <- kmeans(frame,"+ clusterNumber.text + "," + iterations.text + "," + randomSets.text +"," + clustAlgo.selectedLabel+")";
+			} 
+			
+			protected function doKMeansButton_clickHandler(event:MouseEvent):void
+			{
+				var clusternumber:Number = Number(clusterNumber.text);
+				var iterationNumber:Number = Number(iterations.text);
+				var randomSetNumber:Number = Number(randomSets.text);
+				if(!(clustAlgo.selectedLabel == "Choose algorithm"))
+				{
+					kMeans.doKMeans(finalColumns,latestColumnKeys,clusternumber,iterationNumber,clustAlgo.selectedLabel,randomSetNumber );
+					
+				}
+				else
+				{
+					kMeans.doKMeans(finalColumns,latestColumnKeys,clusternumber,iterationNumber,"euclidean",randomSetNumber );
+				}
+				
+			}
+			
+		]]>
+	</mx:Script>
+
+</DraggablePanel>

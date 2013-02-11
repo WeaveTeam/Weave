@@ -19,12 +19,15 @@
 
 package weave
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.DisplayObject;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
+	import mx.core.FlexGlobals;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
@@ -32,11 +35,16 @@ package weave
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
 	import weave.api.data.IDataRowSource;
+	import weave.core.LinkableHashMap;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.services.DelayedAsyncResponder;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.DataMiningEditors.ClusteringCollection;
+	import weave.ui.DataMiningEditors.DataMiningPlatter;
+	import weave.ui.DraggablePanel;
 	import weave.ui.RecordDataTable;
+	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
 	 * TODO: this code should be moved into the multiVisLayer class
@@ -53,6 +61,7 @@ package weave
 		private static var _removeFromSubsetCMI:ContextMenuItem = null;
 		private static var _showAllRecordsCMI:ContextMenuItem = null;
 		private static var _viewRecordCMI:ContextMenuItem = null;
+		private static var _runClusteringonSubsetCMI:ContextMenuItem = null;
 		
 		//todo: get these from the active visualization instead?
 		private static var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -67,6 +76,8 @@ package weave
 		private static const SUBSET_CREATE_PROBE_CAPTION:String     = lang("Create subset from probed record(s)");
 		private static const SUBSET_REMOVE_SELECTION_CAPTION:String = lang("Remove selected record(s) from subset");
 		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove probed record(s) from subset");
+		
+		private static const SUBSET_RUN_CLUSTERING_CAPTION:String           = lang("Run clustering on subset");
 		
 		/**
 		 * @param context Any object created as a descendant of a Weave instance.
@@ -98,12 +109,14 @@ package weave
 						
 						// create subset only if we have something selected
 						_createSubsetCMI.enabled   		= usingSelection;
+						_runClusteringonSubsetCMI.enabled       = usingSelection;
 
 						// first check to see if there is a selection - if so make subset from selection
 						if(selection.keys.length > 0)
 						{
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_SELECTION_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_SELECTION_CAPTION;
+							_runClusteringonSubsetCMI.caption = SUBSET_RUN_CLUSTERING_CAPTION;
 						}
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
@@ -143,7 +156,42 @@ package weave
 					},
 					groupName
 				);
-
+			
+			
+			_runClusteringonSubsetCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
+				SUBSET_RUN_CLUSTERING_CAPTION,
+				destination,
+					function (e:Event):void
+					{
+						trace("running clustering");
+						//collect selected records and send to the clustering collection to send to R
+						//needed to collect the tool on which the context menu is opened
+						var activeTool:DraggablePanel = CustomContextMenuManager.activePanel;
+						var attrs:Array = (activeTool as SimpleVisTool).getSelectableAttributes();
+						var input:LinkableHashMap;
+						for(var i :int = 0; i < attrs.length; i++)
+						{
+							if(attrs[i] is LinkableHashMap)//picking up only the hashmap of the current opened tool
+								input = attrs[i];
+						}
+						//works
+						/*var clusterTray:ClusteringCollection = new ClusteringCollection();
+						clusterTray.selectedRecords = selection.keys;
+						clusterTray.inputColumns = input;
+						FlexGlobals.topLevelApplication.visDesktop.addChild(clusterTray);*/
+						
+						//testing
+						var dmTool:DataMiningPlatter = DataMiningPlatter.getPlatterInstance();
+						dmTool.selectedRecords = selection.keys;
+						dmTool.inputVariables = input;
+						dmTool.subsetSelectedOn = true;
+						FlexGlobals.topLevelApplication.visDesktop.addChild(dmTool);
+						
+					},
+					groupName
+				);
+				
+				
 			// create and add the add to subset context menu item
 //			_addToSubsetCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
 //					"Add Selected to Subset", 
