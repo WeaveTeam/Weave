@@ -106,8 +106,6 @@ public class CombinedPoint implements StreamObject
 		pointStream.writeFloat((float)importance);
 	}
 	
-	private static final long serialVersionUID = -7090731893590156775L;
-	
 	public double getImportance()
 	{
 		return importance;

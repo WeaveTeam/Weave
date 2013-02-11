@@ -179,6 +179,9 @@ package weave.api
 		 */
 		public static function initializeExternalInterface():void
 		{
+			if (!ExternalInterface.available)
+				return;
+			
 			try
 			{
 				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary

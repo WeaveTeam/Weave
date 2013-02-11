@@ -364,6 +364,8 @@ package weave.data.DataSources
 				//check if it is a numeric column.
 				for each (var columnValue:String in csvDataColumn)
 				{
+					if (columnValue == null) // this is possible if rows have missing values
+						continue;
 					// if a string is 2 characters or more and begins with a '0', treat it as a string.
 					if (columnValue.length > 1 && columnValue.charAt(0) == '0' && columnValue.charAt(1) != '.')
 					{
@@ -389,7 +391,7 @@ package weave.data.DataSources
 				var newColumn:IAttributeColumn;
 				if (isNumericColumn)
 				{
-					var numericVector:Vector.<Number> = new Vector.<Number>();
+					var numericVector:Vector.<Number> = new Vector.<Number>(csvDataColumn.length);
 					for (i = 0; i < csvDataColumn.length; i++)
 						numericVector[i] = getNumberFromString(csvDataColumn[i]);
 	
@@ -420,6 +422,7 @@ package weave.data.DataSources
 		 */		
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
 		{
+			outputArrayOrVector.length = rows.length;
 			var i:int;
 			if (columnIndex < 0)
 			{

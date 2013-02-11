@@ -172,8 +172,8 @@ JRITextEditor
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
@@ -341,7 +341,7 @@ JRITextEditor
 				}
 				//Query is created from runScript with same signature from Jave side				
 				var query:AsyncToken = rService.runScript(joinedColumnKeys,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,useColumnAsList);
-				DelayedAsyncResponder.addResponder(query, handleScriptResult, handleScriptFault, token);
+				addAsyncResponder(query, handleScriptResult, handleScriptFault, token);
 			}
 			
 			private function handleScriptResult(event:ResultEvent, token:Object = null):void

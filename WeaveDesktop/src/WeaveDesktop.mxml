@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   enterFrame="handleEnterFrame()"
+					   invoke="handleInvoke(event)" layout="absolute"
+					   paddingTop="0"
+					   paddingLeft="0"
+					   paddingBottom="0"
+					   paddingRight="0"
+					   applicationComplete="appComplete()"
+					   width="900" height="700"
+					   showStatusBar="false">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.rpc.events.ResultEvent;
+			import weave.application.VisApp;
+			
+			import weave.api.WeaveAPI;
+			
+			public var visApp:VisApp = null
+			private var params:Object = null;
+			
+			override public function get parameters():Object
+			{
+				return params;
+			}
+			
+			private function appComplete():void
+			{
+				addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, doDragEnter);
+				addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, doDragDrop);
+				addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, doDragExit);
+			}
+			private function doDragEnter(e:NativeDragEvent):void
+			{
+				NativeDragManager.acceptDragDrop(this);
+			}
+			private function doDragDrop(e:NativeDragEvent):void
+			{
+				var dropFiles:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				for each (var file:File in dropFiles)
+				{
+					switch (file.extension.toLowerCase())
+					{
+						case "xml":
+						case "weave":
+							params['file'] = file.nativePath;
+							loadFile(file.nativePath);
+							return;
+						default:
+					}
+				}
+				var url:String = e.clipboard.getData(ClipboardFormats.URL_FORMAT) as String;
+				if (url)
+				{
+					loadFile(url);
+					return;
+				}
+			}
+			private function doDragExit(e:NativeDragEvent):void
+			{
+				
+			}
+			
+			private function loadFile(path:String):void
+			{
+				WeaveAPI.URLRequestUtils.getURL(
+					null,
+					new URLRequest(path),
+					function (event:ResultEvent, token:Object = null):void
+					{
+						WeaveAPI.URLRequestUtils.setBaseURL(path);
+						visApp.loadSessionState(event.result, path);
+					}
+				);
+			}
+			
+			private function handleEnterFrame():void
+			{
+				var app:Object = FlexGlobals.topLevelApplication;
+				if (!visApp && app && app.stage && params)
+				{
+					addChild(visApp = new VisApp());
+					visApp.setFlashVars(params);
+				}
+			}
+			private function handleInvoke(event:InvokeEvent):void
+			{
+				var acceptedParams:Array = []; // TODO: add parameter names here if wanted, so we can support --PARAM_NAME=PARAM_VALUE
+				var args:Array = event.arguments;
+				var params:Object = {};
+				var i:int = 0;
+				outerLoop: for (; i < args.length; i++)
+				{
+					for each (var name:String in acceptedParams) // check for switches
+					{
+						if (name == '--') // end of switches
+							break;
+						
+						var prefix:String = '--' + name + '=';
+						var arg:String = args[i];
+						if (arg.indexOf(prefix) == 0)
+						{
+							params[name] = arg.substr(prefix.length);
+							continue outerLoop; // check for another switch
+						}
+					}
+					// first parameter is filename
+					if (i >= args.length)
+					{
+						trace('no file name specified');
+						args.push('defaults.xml');
+					}
+					params['file'] = args[i];
+				}
+				this.params = params;
+			}
+		]]>
+	</fx:Script>
+	<!--<weave:VisApplication width="100%" height="100%" id="visApp"/>-->
+</mx:WindowedApplication >

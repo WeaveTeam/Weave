@@ -50,12 +50,13 @@ public class GeometryStreamConverter
 	public int tileSize = 32 * 1024; // default 32k
 	
 	/**
-	 * When the size of the geometry stream tile buffer becomes larger than this value, flushGeometryTiles() will be called.
+	 * When the size of a either tile stream buffer becomes larger than this value, the appropriate flush function will be called.
 	 */
-	public int geometryTileFlushInterval = 10 * 1024 * 1024; // default 10 megabytes
+	public int streamFlushInterval = 10 * 1024 * 1024; // default 10 megabytes
 	
 	protected GeometryStreamDestination destination;
 	protected SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
+	protected int metadataStreamSize = 0;
 	protected LinkedList<StreamObject> metadataList = new LinkedList<StreamObject>();
 	protected VertexMap vertexMap = new VertexMap();
 	
@@ -65,8 +66,10 @@ public class GeometryStreamConverter
 	protected Vector<VertexChainLink> reusableVertexChainLinks = new Vector<VertexChainLink>();
 
 	/**
-	 * @param feature Contains geometries to convert.
-	 * @param keyAttributes The names of attributes to be concatenated to generate a record key for this feature.
+	 * @param geomStream Provides a stream of geometries from a feature.
+	 * @param shapeType Feature type
+	 * @param shapeKey Identifies the feature
+	 * @param projectionWKT Projection info in Well-Known-Text format
 	 * @throws Exception
 	 */
 	public void convertFeature(FeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
@@ -151,7 +154,11 @@ public class GeometryStreamConverter
 				// done copying points for this part, advance firstVertexID to after the current part
 				firstVertexID += chainLength;
 			}
+			
+			if (vertexMap.getTotalStreamSize() >= streamFlushInterval)
+				flushGeometryTiles();
 		}
+		
 		if (debugCounts)
 		{
 			long endTime = System.currentTimeMillis(); 
@@ -160,10 +167,13 @@ public class GeometryStreamConverter
 					shapeKey,
 					(endTime - startTime),
 					(firstVertexID-1)
-				));
+			));
 		}
-		if (vertexMap.getTotalStreamSize() >= geometryTileFlushInterval)
-			flushGeometryTiles();
+		
+		// can't check size or flush metadata until after the loop because geometryMetadata is changing inside the loop
+		metadataStreamSize += geometryMetadata.getStreamSize();
+		if (metadataStreamSize >= streamFlushInterval)
+			flushMetadataTiles();
 	}
 
 	/**
@@ -267,6 +277,7 @@ public class GeometryStreamConverter
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(metadataList, tileSize);
 		destination.writeMetadataTiles(tiles);
 		metadataList.clear();
+		metadataStreamSize = 0;
 
 		long elapsed = System.currentTimeMillis() - startTime;
 		if (debugFlush)

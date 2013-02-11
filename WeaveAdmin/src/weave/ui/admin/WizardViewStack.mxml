@@ -28,13 +28,15 @@
 	xmlns="weave.ui.admin.*"
 	creationPolicy="all"
 	paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8"
-	width="640" height="340"
+	width="100%" height="100%"
+	minWidth="640" minHeight="340"
 	>
+	<mx:Metadata>
+		[Event(name="close", type="mx.events.CloseEvent")]
+	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import mx.managers.PopUpManager;
-			
-			[Event(name="close", type="mx.events.CloseEvent")]
+			import mx.events.CloseEvent;
 			
 			/**
 			 * This tells the WizardPanel when to enable the "Back" button.
@@ -85,6 +87,30 @@
 			public function cancel():void
 			{
 				// to be implemented by subclasses
+			}
+			
+			/**
+			 * Dispatches a close event which will close the wizard.
+			 */
+			public function close():void
+			{
+				dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+			
+			/**
+			 * Use this as an async responder function.
+			 */
+			protected function disable(..._):void
+			{
+				enabled = controlBarEnabled = false;
+			}
+			
+			/**
+			 * Use this as an async responder function.
+			 */
+			protected function enable(..._):void
+			{
+				enabled = controlBarEnabled = true;
 			}
 		]]>
 	</mx:Script>

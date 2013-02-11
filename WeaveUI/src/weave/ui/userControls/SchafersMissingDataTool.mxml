@@ -105,15 +105,11 @@ SchafersMissingDataImputation
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			
 			import mx.controls.Alert;
-			import mx.controls.DataGrid;
-			import mx.controls.Image;
-			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -127,15 +123,12 @@ SchafersMissingDataImputation
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.data.AttributeColumns.CSVColumn;
-			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.DataTableTool;
 			import weave.visualization.tools.SimpleVisTool;
@@ -495,7 +488,7 @@ SchafersMissingDataImputation
 				}
 				
 				
-				DelayedAsyncResponder.addResponder(imputationQuery, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				addAsyncResponder(imputationQuery, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 				
 			}
 		
@@ -560,7 +553,7 @@ SchafersMissingDataImputation
 				
 				//var clusterQuery:AsyncToken = Rservice.KMeansClustering(assignNames, clusterInputValues,false, Number(clusterNumber.text),Number(iterationNumber.text));
 				
-				DelayedAsyncResponder.addResponder(clusterQuery, handleClusterScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				addAsyncResponder(clusterQuery, handleClusterScriptResult, handleRunScriptFault, joinedColumnQKeys);
 				
 			} */
 			

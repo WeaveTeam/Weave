@@ -20,21 +20,19 @@
 package weave.services.beans
 {
 	import flash.utils.ByteArray;
-	
-	import mx.utils.Base64Decoder;
 
 	public class GeometryStreamMetadata
 	{
 		public function GeometryStreamMetadata(result:Object)
 		{
-			this.keyType = result.keyType;
-			this.projection = result.projection;
+			this.id = result.id;
+			this.metadata = result.metadata;
 			this.metadataTileDescriptors = ByteArray(result.metadataTileDescriptors);
 			this.geometryTileDescriptors = ByteArray(result.geometryTileDescriptors);
 		}
-	
-		public var keyType:String;
-		public var projection:String;
+		
+		public var id:int;
+		public var metadata:Object;
 		public var metadataTileDescriptors:ByteArray;
 		public var geometryTileDescriptors:ByteArray;
 	}

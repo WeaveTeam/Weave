@@ -153,7 +153,7 @@ public class SQLGeometryStreamReader
 		{
 			if (pg != null)
 			{
-				System.out.println("Attempted both upper and lower-case column names in queries, both failed.");
+				System.err.println("Attempted both upper and lower-case column names in queries, both failed.");
 				pg.printStackTrace();
 				throw pg;
 			}
@@ -235,7 +235,7 @@ public class SQLGeometryStreamReader
 		{
 			if (pg != null)
 			{
-				System.out.println("Attempted both upper and lower-case column names in queries, both failed.");
+				System.err.println("Attempted both upper and lower-case column names in queries, both failed.");
 				pg.printStackTrace();
 				throw pg;
 			}

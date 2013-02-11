@@ -19,18 +19,12 @@
 
 package weave.services.beans
 {
-	import mx.utils.ObjectUtil;
-
 	public class ConnectionInfo
 	{
 		[Bindable] public var name:String = "";
-		[Bindable] public var dbms:String = "";
-		[Bindable] public var ip:String = "";
-		[Bindable] public var port:String = "";
-		[Bindable] public var database:String = "";
-		[Bindable] public var user:String = "";
 		[Bindable] public var pass:String = "";
 		[Bindable] public var folderName:String = "" ;
+		[Bindable] public var connectString:String = "" ;
 		[Bindable] public var is_superuser:Boolean = false;
 		
 		public function ConnectionInfo(obj:Object)
@@ -38,12 +32,6 @@ package weave.services.beans
 			for (var name:String in obj)
 				if (this.hasOwnProperty(name))
 					this[name] = obj[name];
-
-			if (ip == '')
-				ip = 'localhost';
-			
-			if (port == '')
-				port = String(getDefaultPort(dbms));
 		}
 
 		/**
@@ -51,8 +39,13 @@ package weave.services.beans
 		 */
 		public static function get dbmsList():Array
 		{
-			return ['MySQL', 'PostGreSQL', 'Microsoft SQL Server', 'Oracle'];
+			return [MYSQL, POSTGRESQL, SQLSERVER, ORACLE];
 		}
+		
+		private static const MYSQL:String = 'MySQL';
+		private static const POSTGRESQL:String = 'PostGreSQL';
+		private static const SQLSERVER:String = 'Microsoft SQL Server';
+		private static const ORACLE:String = 'Oracle';
 		
 		/**
 		 * This function will get the default port for a DBMS.
@@ -61,13 +54,14 @@ package weave.services.beans
 		 */
 		public static function getDefaultPort(dbms:String):int
 		{
-			var list:Array = dbmsList;
-			for (var i:int = 0; i < list.length; i++)
-				if (ObjectUtil.stringCompare(list[i], dbms, true) == 0)
-					return defaultPortList[i];
+			switch (dbms)
+			{
+				case MYSQL: return 3306;
+				case POSTGRESQL: return 5432;
+				case SQLSERVER: return 1433;
+				case ORACLE: return 1521;
+			}
 			return 0;
 		}
-		
-		private static const defaultPortList:Array = [3306, 5432, 1433, 1521]; // corresponding to the database products in dbmsList
 	}
 }

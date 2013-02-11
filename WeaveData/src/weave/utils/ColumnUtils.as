@@ -24,7 +24,12 @@ package weave.utils
 	
 	import mx.utils.ObjectUtil;
 	
+	import org.osmf.metadata.Metadata;
+	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
+	import weave.api.getLinkableOwner;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
@@ -34,14 +39,12 @@ package weave.utils
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
+	import weave.data.AttributeColumnCache;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	

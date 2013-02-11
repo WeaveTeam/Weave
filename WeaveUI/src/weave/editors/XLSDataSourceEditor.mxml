@@ -43,7 +43,12 @@
 		<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 	</ui:Indent>
 	
-	<ui:KeyTypesMenu indent="{uploadSection.labelComponent.width}"  id="keyTypeSelector"/>
+	<ui:KeyTypesMenu indent="{uploadSection.labelComponent.width}"  id="keyTypeSelector"
+					 creationComplete="{if(_xlsDataSource)
+					 {
+					 (event.target as KeyTypesMenu).addKeyTypeToMenu(_xlsDataSource.keyType.value);
+					 (event.target as KeyTypesMenu).selectedItem = _xlsDataSource.keyType.value;
+					 }}"/>
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>

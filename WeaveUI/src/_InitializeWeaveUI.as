@@ -69,13 +69,14 @@ package
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
 	import weave.visualization.tools.PieChartTool;
+	import weave.visualization.tools.RInterfaceTool;
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
-	import weave.visualization.tools.RInterfaceTool;
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
+	import weave.visualization.tools.TransposedTableTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -136,9 +137,10 @@ package
 			ScatterPlotTool,
 			ThermometerTool,
 			TimeSliderTool,
+			TransposedTableTool,
 			RamachandranPlotTool,
 			DataStatisticsTool,
-			RInterfaceTool,
+			RInterfaceTool
 		]).toString();
 		
 		/**

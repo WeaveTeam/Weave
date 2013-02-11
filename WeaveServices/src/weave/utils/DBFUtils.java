@@ -39,10 +39,6 @@ import org.geotools.data.shapefile.dbf.DbaseFileReader;
  * @author skolman
  * @author adufilie
  */
-/**
- * @author Andy
- *
- */
 public class DBFUtils
 {
 	/**
@@ -68,15 +64,15 @@ public class DBFUtils
 	
 	/**
 	 * Tests a combined column for uniqueness across several files
-	 * @param dbfFile
+	 * @param dbfFiles
 	 * @param columnNames
 	 * @return 
 	 * @throws IOException
 	 */
-	public static boolean isColumnUnique(File[] dbfFile, String[] columnNames) throws IOException
+	public static boolean isColumnUnique(File[] dbfFiles, String[] columnNames) throws IOException
 	{
 		Set<Object> set = new HashSet<Object>();
-		for (File file : dbfFile)
+		for (File file : dbfFiles)
 		{
 			Object[][] rows = getDBFData(file, columnNames);
 			for (int i = 0; i < rows.length; i++)
@@ -120,9 +116,16 @@ public class DBFUtils
 			Object[] row;
 			if (fieldNames != null)
 			{
+				dbfReader.read();
 				row = new Object[fieldNames.length];
 				for (int i = 0; i < fieldNames.length; i++)
-					row[i] = dbfReader.readField(allFields.indexOf(fieldNames[i]));
+				{
+					int index = allFields.indexOf(fieldNames[i]);
+					if (index < 0)
+						row[i] = "";
+					else
+						row[i] = dbfReader.readField(index);
+				}
 			}
 			else
 			{
@@ -197,7 +200,8 @@ public class DBFUtils
 				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
 			fieldNames.add(0, "the_geom_id");
 			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
-			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes);
+
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes, null);
 			
 			// import data from each file
 			for (int f = 0; f < dbfFiles.length; f++)
@@ -211,7 +215,7 @@ public class DBFUtils
 					Object[] entry = readers[f].readEntry();
 					for (int c = 0; c < numFields; c++)
 					{
-						if (ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
+						if (entry[c] != null && ListUtils.findIgnoreCase(entry[c].toString(), nullValues) < 0)
 							record.put(headers[f].getFieldName(c), entry[c]);
 					}
 					
@@ -222,8 +226,8 @@ public class DBFUtils
 					}
 					catch (SQLException e)
 					{
-						System.out.println(String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record));
-						throw e;
+						String str = String.format("Insert failed on row %s of %s: %s", r, dbfFiles[f].getName(), record);
+						throw new SQLException(str, e);
 					}
 				}
 				// close the file

@@ -33,6 +33,7 @@ package weave.utils
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.GeometryType;
 	
 	
 	/**
@@ -81,7 +82,7 @@ package weave.utils
 	
 				if( record.shape is ShpPolygon )
 				{
-					geom.geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
+					geom.geomType = GeometryType.POLYGON;
 					var poly:ShpPolygon = record.shape as ShpPolygon;
 					for(iring = 0; iring < poly.rings.length; iring++ )
 					{
@@ -94,10 +95,10 @@ package weave.utils
 					}
 				}
 				if( record.shape is ShpPolyline )
-					geom.geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
+					geom.geomType = GeometryType.LINE;
 				if( record.shape is ShpPoint )
 				{
-					geom.geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
+					geom.geomType = GeometryType.POINT;
 					point = record.shape as ShpPoint;
 					points.push( point.x, point.y );
 				}

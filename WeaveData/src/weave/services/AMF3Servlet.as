@@ -56,9 +56,10 @@ package weave.services
 				return super.invokeAsyncMethod(methodName, (methodParameters as DelayedParameters).methodParameters);
 			
 			// create a wrapper object for these parameters to serve as a flag to say that they are coming from a DelayedAsyncInvocation object.
-			methodParameters = new DelayedParameters(methodParameters);
-			var token:DelayedAsyncInvocation = new DelayedAsyncInvocation(this, methodName, methodParameters, readCompressedObject, true);
+			var token:DelayedAsyncInvocation = new DelayedAsyncInvocation(this, methodName, new DelayedParameters(methodParameters), readCompressedObject, true);
 			token.invoke();
+			// discard params wrapper immediately after invoking
+			token.parameters = methodParameters;
 			return token;
 		}
 		

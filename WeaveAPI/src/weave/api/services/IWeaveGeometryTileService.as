@@ -26,9 +26,6 @@ package weave.api.services
 	 */
 	public interface IWeaveGeometryTileService extends ILinkableObject
 	{
-		// This function should return an AsyncToken whose ResultEvent will contain a GeometryStreamMetadata object as the result.
-		function getTileDescriptors():AsyncToken;
-		
 		// This function should return an AsyncToken whose ResultEvent will contain a ByteArray as the result.
 		function getMetadataTiles(tileIDs:Array):AsyncToken;
 		

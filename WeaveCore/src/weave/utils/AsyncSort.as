@@ -24,8 +24,8 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * Asynchronous merge sort.
@@ -35,10 +35,6 @@ package weave.utils
 	public class AsyncSort implements ILinkableObject
 	{
 		public static var debug:Boolean = false;
-		
-		public function AsyncSort():void
-		{
-		}
 		
 		private static var _immediateSorter:AsyncSort; // used by sortImmediately()
 		
@@ -50,11 +46,11 @@ package weave.utils
 		public static function sortImmediately(array:*, compareFunction:Function = null):void
 		{
 			if (!_immediateSorter)
+			{
 				_immediateSorter = new AsyncSort();
-			
-			_immediateSorter._immediately = true;
+				_immediateSorter._immediately = true;
+			}
 			_immediateSorter.beginSort(array, compareFunction);
-			_immediateSorter._immediately = false;
 		}
 		
 		/**
@@ -90,6 +86,10 @@ package weave.utils
 			if (a is Date && b is Date)
 				return ObjectUtil.dateCompare(a as Date, b as Date);
 			return 1; // not equal
+		}
+		
+		public function AsyncSort():void
+		{
 		}
 		
 		/**
@@ -137,6 +137,8 @@ package weave.utils
 			destination.length = length;
 			
 			subArraySize = 1;
+			iLeft = 0;
+			iRight = 0;
 			middle = 0;
 			end = 0;
 			elapsed = 0;
@@ -226,7 +228,8 @@ package weave.utils
 			if (debug && elapsed > 0)
 				debugTrace(this,result.length,'in',elapsed/1000,'seconds');
 			
-			getCallbackCollection(this).triggerCallbacks();
+			if (!_immediately)
+				getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/*************

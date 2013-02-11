@@ -216,7 +216,7 @@ public class RServiceUsingJRI
 		}
 		catch (ScriptException e)
 		{
-			System.out.println(str);
+			System.err.println(str);
 			throw e;
 		}
 		

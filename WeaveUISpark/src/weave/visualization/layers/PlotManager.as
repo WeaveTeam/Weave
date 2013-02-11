@@ -46,6 +46,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -54,7 +55,9 @@ package weave.visualization.layers
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.ZoomBounds;
+	import weave.utils.ColumnUtils;
 	import weave.utils.NumberUtils;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
@@ -370,22 +373,37 @@ package weave.visualization.layers
 		 * This function will get all the unique keys that overlap each geometry specified by
 		 * simpleGeometries. 
 		 * @param simpleGeometries
+		 * @param LayerName optional parameter, when specified, will only return the overlapping geometries for the given layer.
 		 * @return An array of keys.
 		 */		
-		public function getKeysOverlappingGeometry(simpleGeometries:Array):Array
+		public function getKeysOverlappingGeometry(simpleGeometries:Array, layerName:String = null):Array
 		{
 			var key:IQualifiedKey;
 			var keys:Dictionary = new Dictionary();
-			var simpleGeometry:ISimpleGeometry;
-			var names:Array = plotters.getNames();
+			var geometry:Object;
+			
+			var names:Array = layerName ? [layerName] : plotters.getNames();
+			
 			
 			// Go through the layers and make a query for each layer
 			for each (var name:String in names)
 			{
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
-				for each (simpleGeometry in simpleGeometries)
+				for each (geometry in simpleGeometries)
 				{
-					var queriedKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(simpleGeometry);
+					var simpleGeometry:ISimpleGeometry = geometry as ISimpleGeometry;	
+					var queriedKeys:Array;
+					
+					if ( geometry is GeneralizedGeometry )
+					{						
+						var geometryAsSimpleGeometries:Array = (geometry as GeneralizedGeometry).getSimpleGeometries();
+						queriedKeys = spatialIndex.getKeysGeometryOverlapGeometries(geometryAsSimpleGeometries);
+					}
+					else if (simpleGeometry)
+					{
+						queriedKeys = spatialIndex.getKeysGeometryOverlapGeometry(simpleGeometry);
+					}
+						
 					// use the dictionary to handle duplicates
 					for each (key in queriedKeys)
 					{
@@ -399,6 +417,49 @@ package weave.visualization.layers
 				result.push(keyObj as IQualifiedKey);
 			
 			return result;
+		}
+		
+		
+		/**
+		 * This function will return the overlapping in the destination layer overlapping keys
+		 *
+		 * @author fkamayou 
+		 * @param SourceKeys Array of IQualifiedKey objects which overlap the geometries of the the source layer 
+		 * @param SourceLayer The source layer specified by <code>LayerName</code>
+		 * @param destinationLayer The destination layer specified by <code>LayerName</code>
+		 *
+		 * @return An array of IQualifiedKey objects which overlap the geometries of the destination layer.
+		 **/
+		public function getOverlappingKeysAcrossLayers(sourceKeys:Array, sourceLayer:String, destinationLayer:String):Array
+		{
+			sourceKeys = ColumnUtils.getQKeys(sourceKeys);
+			var simpleGeometriesInSourceLayer:Array = [];
+			var simpleGeometry:ISimpleGeometry;
+			var queriedKeys:Array = [];
+			var keys:Dictionary = new Dictionary();
+			
+			// get plotter from sourceLayer
+			var plotterFromSourceLayer:IPlotterWithGeometries = plotters.getObject(sourceLayer) as IPlotterWithGeometries;
+			
+				
+			// use the source keys to get a list of overlapping geometries on the destination layer.
+			// Iterate over all the keys
+			for each ( var key:IQualifiedKey in sourceKeys)
+			{	
+				simpleGeometriesInSourceLayer = plotterFromSourceLayer.getGeometriesFromRecordKey(key);			
+				
+				// use the dictionary to handle duplicates
+				for each (key in getKeysOverlappingGeometry(simpleGeometriesInSourceLayer, destinationLayer))
+				{
+					keys[key] = true;
+				}
+			}
+			var result:Array = [];
+			for (var keyObj:* in keys)
+				result.push(keyObj as IQualifiedKey);
+			
+			return result;
+								
 		}
 		
 		private function handleSettingsList():void

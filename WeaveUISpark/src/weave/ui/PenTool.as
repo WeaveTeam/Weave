@@ -35,15 +35,16 @@ package weave.ui
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ILinkableContainer;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.SpatialIndex;
@@ -596,7 +597,7 @@ package weave.ui
 		}
 				
 		private const _tempArray:Array = [];
-		private const _simpleGeom:SimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
+		private const _simpleGeom:SimpleGeometry = new SimpleGeometry(GeometryType.POLYGON);
 		private const _tempScreenBounds:IBounds2D = new Bounds2D();
 		private const _tempDataBounds:IBounds2D = new Bounds2D();
 		private const _tempPoint:Point = new Point();
@@ -614,9 +615,9 @@ package weave.ui
 		private static const REMOVE_DRAWINGS:String = lang("Remove All Drawings");
 		private static const CHANGE_DRAWING_MODE:String = lang("Change Drawing Mode");
 		private static const PEN_OBJECT_NAME:String = "penTool";
-		public static const FREE_DRAW_MODE:String = lang("Free Draw Mode");
-		public static const POLYGON_DRAW_MODE:String = lang("Polygon Draw Mode");
-		private static const SELECT_RECORDS:String = lang("Select Records in Polygon");
+		public static const FREE_DRAW_MODE:String = "Free Draw Mode";
+		public static const POLYGON_DRAW_MODE:String = "Polygon Draw Mode";
+		private static const SELECT_RECORDS:String = "Select Records in Polygon";
 		private static const _menuGroupName:String = "9 drawingMenuitems";
 		public static function createContextMenuItems(destination:DisplayObject):Boolean
 		{

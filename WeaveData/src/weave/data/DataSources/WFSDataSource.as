@@ -43,11 +43,11 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.services.DelayedAsyncResponder;
+	import weave.primitives.GeometryType;
 	import weave.services.WFSServlet;
+	import weave.services.addAsyncResponder;
 	import weave.utils.BLGTreeUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * 
@@ -130,7 +130,7 @@ package weave.data.DataSources
 			{
 				query = wfsDataService.getCapabilties();
 
-				DelayedAsyncResponder.addResponder(query, handleGetCapabilities, handleGetCapabilitiesError);
+				addAsyncResponder(query, handleGetCapabilities, handleGetCapabilitiesError);
 			}
 			else // download a list of properties for a given featureTypeName
 			{
@@ -138,7 +138,7 @@ package weave.data.DataSources
 				
 				query = wfsDataService.describeFeatureType(dataTableName);
 				
-				DelayedAsyncResponder.addResponder(query, handleDescribeFeature, handleDescribeFeatureError, subtreeNode);
+				addAsyncResponder(query, handleDescribeFeature, handleDescribeFeatureError, subtreeNode);
 			}
 		}
 		
@@ -291,7 +291,7 @@ package weave.data.DataSources
 			propertyNamesArray.push(propertyName);
 			query = wfsDataService.getFeature(featureTypeName, propertyNamesArray);
 			var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-			DelayedAsyncResponder.addResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
+			addAsyncResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
 		}
 		
 		private function getQName(xmlContainingNamespaceInfo:XML, qname:String):QName
@@ -384,12 +384,12 @@ package weave.data.DataSources
 					var firstFeatureData:XML = features[0].descendants(dataQName)[0];
 					var geomType:String = firstFeatureData.children()[0].name().toString();
 					if (geomType == (gmlURI + "::Point"))
-						geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
+						geomType = GeometryType.POINT;
 					else if (geomType.indexOf(gmlURI + "::") == 0 && (geomType.indexOf('LineString') >= 0 || geomType.indexOf('Curve') >= 0))
-						geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
+						geomType = GeometryType.LINE;
 					else
-						geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
-					var gmlPos:QName = new QName(gmlURI, geomType == GeneralizedGeometry.GEOM_TYPE_POINT ? 'pos' : 'posList');
+						geomType = GeometryType.POLYGON;
+					var gmlPos:QName = new QName(gmlURI, geomType == GeometryType.POINT ? 'pos' : 'posList');
 
 					for (var geometryIndex:int = 0; geometryIndex < keysVector.length; geometryIndex++)
 					{

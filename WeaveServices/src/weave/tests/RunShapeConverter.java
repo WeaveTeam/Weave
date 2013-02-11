@@ -68,7 +68,7 @@ public class RunShapeConverter
 		String sqlSchema = "shp_convert";
 		String sqlTablePrefix = "shptest";
 		
-		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(dbms), SQLUtils.getConnectString(dbms, ip, port, database, user, pass));
+		Connection conn = SQLUtils.getConnection(SQLUtils.getConnectString(dbms, ip, port, database, user, pass));
 		GeometryStreamConverter converter = new GeometryStreamConverter(new SQLGeometryStreamDestination(conn, sqlSchema, sqlTablePrefix, true));
 		for (String file : files)
 			SHPGeometryStreamUtils.convertShapefile(converter, file, attributes);

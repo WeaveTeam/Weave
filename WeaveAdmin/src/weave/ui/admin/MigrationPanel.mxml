@@ -1,0 +1,19 @@
+<mx:VBox
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    horizontalAlign="center">
+	
+	<mx:Spacer height="100%"/>
+	<AutoResizingTextArea id="migrationTextArea" htmlText="{Admin.service.migrationProgress}"
+				 width="100%" focusAlpha="0" textAlign="center"
+				 backgroundAlpha="0" wordWrap="true" borderStyle="none" editable="false"/>
+	<mx:Spacer height="100%"/>
+	
+	<ui:BusyIndicator visible="{!migrationTextArea.text}"/>
+	<mx:Script>
+		<![CDATA[
+			import weave.services.Admin;
+		]]>
+	</mx:Script>
+</mx:VBox>
