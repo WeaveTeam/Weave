@@ -24,7 +24,6 @@ package weave.utils
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.managers.ToolTipManager;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -46,6 +45,7 @@ package weave.utils
 	public class ProbeTextUtils
 	{
 		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
+		public static const showEmptyProbeRecordIdentifiers:LinkableBoolean = new LinkableBoolean(true);
 		
 		public static function get probedColumns():ILinkableHashMap
 		{
@@ -96,19 +96,19 @@ package weave.utils
 					var headerValue:String = StandardLib.asString(header.getValueFromKey(key, String));
 					if (headerValue == '')
 						continue;
-					if (record != '')
+					if (record)
 						record += ', ';
 					record += headerValue;
 				}
 				
-				if (record != '')
+				if (record)
 					record += '\n';
 				var lookup:Object = new Object() ;
 				for (var iColumn:int = 0; iColumn < columns.length; iColumn++)
 				{
 					var column:IAttributeColumn = columns[iColumn] as IAttributeColumn;
 					var value:String = String(column.getValueFromKey(key, String));
-					if (value == '' || value == 'NaN')
+					if (!value || value == 'NaN')
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
 					try
@@ -131,7 +131,7 @@ package weave.utils
 						//reportError(e);
 					}
 				}
-				if (record != '')
+				if (record)
 				{
 					result += record + '\n';
 					recordCount++;
@@ -141,7 +141,7 @@ package weave.utils
 			while (result.substr(result.length - 1) == '\n')
 				result = result.substr(0, result.length - 1);
 			
-			if (result == '')
+			if (!result && showEmptyProbeRecordIdentifiers.value)
 			{
 				result = 'Record Identifier' + (keys.length > 1 ? 's' : '') + ':\n';
 				for (var i:int = 0; i < keys.length && i < maxRecordsShown; i++)
@@ -152,7 +152,7 @@ package weave.utils
 				}
 			}
 			
-			if (recordCount >= maxRecordsShown && keys.length > maxRecordsShown)
+			if (result && recordCount >= maxRecordsShown && keys.length > maxRecordsShown)
 			{
 				result += '\n... (' + keys.length + ' records total, ' + recordCount + ' shown)';
 			}
@@ -173,100 +173,98 @@ package weave.utils
 		//For now the toolTipLocation.value parameter will be utilised by the ColorBinLegendTool. In the future this feature can be generalised for every tool.
 		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, stageBounds:IBounds2D = null, margin:int = 5):void
 		{
-			if( WeaveAPI.globalHashMap.getObject("ProbeToolTipWindow") == null)
-			{
-				if (!probeToolTip)
-					probeToolTip = ToolTipManager.createToolTip('', 0, 0);
-			
-				hideProbeToolTip();
-			
-				if (!enableProbeToolTip.value)
-					return;
-			
-				var stage:Stage = WeaveAPI.topLevelApplication.stage;
-				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
-			
-				if (stageBounds == null)
-					stageBounds = tempBounds;
-			
-				// create new tooltip
-				probeToolTip.text = probeText;
-				probeToolTip.visible = true;
-			
-				// make tooltip completely opaque because text + graphics on same sprite is slow
-				setProbeToolTipAppearance();
-			
-				//this step is required to set the height and width of probeToolTip to the right size.
-				(probeToolTip as UIComponent).validateNow();
-			
-				var xMin:Number = stageBounds.getXNumericMin();
-				var yMin:Number = stageBounds.getYNumericMin();
-				var xMax:Number = stageBounds.getXNumericMax() - probeToolTip.width;
-				var yMax:Number = stageBounds.getYNumericMax() - probeToolTip.height;
-			
-				// calculate y coordinate
-				var y:int;
-				// calculate y pos depending on toolTipAbove setting
-				if (toolTipAbove)
-				{
-					y = stageY - (probeToolTip.height + 2 * margin);
-					if (yAxisToolTip != null)
-						y = yAxisToolTip.y - margin - probeToolTip.height ;
-				}
-				else // below
-				{
-					y = stageY + margin * 2;
-					if (yAxisToolTip != null)
-						y = yAxisToolTip.y + yAxisToolTip.height+margin;
-				}
-			
-				// flip y position if out of bounds
-				if ((y < yMin && toolTipAbove) || (y > yMax && !toolTipAbove))
-					toolTipAbove = !toolTipAbove;
-				
-				// calculate x coordinate
-				var x:int;
-				if (cornerToolTip)
-				{
-					// check twice to prevent flipping back and forth when weave desktop size is very small
-					for (var checkTwice:int = 0; checkTwice < 2; checkTwice++)
-					{
-						// want toolTip corner to be near probe point
-						if (toolTipToTheLeft)
-						{
-							x = stageX - margin - probeToolTip.width;
-							if(xAxisToolTip != null)
-								x = xAxisToolTip.x - margin - probeToolTip.width; 
-						}
-						else // to the right
-						{
-							x = stageX + margin;
-							if(xAxisToolTip != null)
-								x = xAxisToolTip.x+xAxisToolTip.width+margin;
-						}
-					
-						// flip x position if out of bounds
-						if ((x < xMin && toolTipToTheLeft) || (x > xMax && !toolTipToTheLeft))
-							toolTipToTheLeft = !toolTipToTheLeft;
-					}
-				}
-				else // center x coordinate
-				{
-					x = stageX - probeToolTip.width / 2;
-				}
-			
-				// if at lower-right corner of mouse, shift to the right 10 pixels to get away from the mouse pointer
-				if (x > stageX && y > stageY)
-					x += 10;
-				
-				// enforce min/max values and position tooltip
-				x = Math.max(xMin, Math.min(x, xMax));
-				y = Math.max(yMin, Math.min(y, yMax));
-			
-				probeToolTip.move(x, y);
+			hideProbeToolTip();
+		
+			if (!enableProbeToolTip.value)
 				return;
+			
+			if (!probeText || WeaveAPI.globalHashMap.getObject("ProbeToolTipWindow"))
+				return;
+			
+			if (!probeToolTip)
+				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
+		
+			var stage:Stage = WeaveAPI.topLevelApplication.stage;
+			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
+		
+			if (stageBounds == null)
+				stageBounds = tempBounds;
+		
+			// create new tooltip
+			probeToolTip.text = probeText;
+			probeToolTip.visible = true;
+		
+			// make tooltip completely opaque because text + graphics on same sprite is slow
+			setProbeToolTipAppearance();
+		
+			//this step is required to set the height and width of probeToolTip to the right size.
+			(probeToolTip as UIComponent).validateNow();
+		
+			var xMin:Number = stageBounds.getXNumericMin();
+			var yMin:Number = stageBounds.getYNumericMin();
+			var xMax:Number = stageBounds.getXNumericMax() - probeToolTip.width;
+			var yMax:Number = stageBounds.getYNumericMax() - probeToolTip.height;
+		
+			// calculate y coordinate
+			var y:int;
+			// calculate y pos depending on toolTipAbove setting
+			if (toolTipAbove)
+			{
+				y = stageY - (probeToolTip.height + 2 * margin);
+				if (yAxisToolTip != null)
+					y = yAxisToolTip.y - margin - probeToolTip.height ;
 			}
-			return;
+			else // below
+			{
+				y = stageY + margin * 2;
+				if (yAxisToolTip != null)
+					y = yAxisToolTip.y + yAxisToolTip.height+margin;
+			}
+		
+			// flip y position if out of bounds
+			if ((y < yMin && toolTipAbove) || (y > yMax && !toolTipAbove))
+				toolTipAbove = !toolTipAbove;
+			
+			// calculate x coordinate
+			var x:int;
+			if (cornerToolTip)
+			{
+				// check twice to prevent flipping back and forth when weave desktop size is very small
+				for (var checkTwice:int = 0; checkTwice < 2; checkTwice++)
+				{
+					// want toolTip corner to be near probe point
+					if (toolTipToTheLeft)
+					{
+						x = stageX - margin - probeToolTip.width;
+						if(xAxisToolTip != null)
+							x = xAxisToolTip.x - margin - probeToolTip.width; 
+					}
+					else // to the right
+					{
+						x = stageX + margin;
+						if(xAxisToolTip != null)
+							x = xAxisToolTip.x+xAxisToolTip.width+margin;
+					}
+				
+					// flip x position if out of bounds
+					if ((x < xMin && toolTipToTheLeft) || (x > xMax && !toolTipToTheLeft))
+						toolTipToTheLeft = !toolTipToTheLeft;
+				}
+			}
+			else // center x coordinate
+			{
+				x = stageX - probeToolTip.width / 2;
+			}
+		
+			// if at lower-right corner of mouse, shift to the right 10 pixels to get away from the mouse pointer
+			if (x > stageX && y > stageY)
+				x += 10;
+			
+			// enforce min/max values and position tooltip
+			x = Math.max(xMin, Math.min(x, xMax));
+			y = Math.max(yMin, Math.min(y, yMax));
+		
+			probeToolTip.move(x, y);
 		}
 		
 		
