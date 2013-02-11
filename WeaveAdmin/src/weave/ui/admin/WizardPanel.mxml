@@ -52,16 +52,9 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.containers.ViewStack;
-			import mx.controls.Alert;
 			import mx.controls.TextArea;
 			import mx.core.Container;
-			import mx.core.IFlexDisplayObject;
-			import mx.core.IUIComponent;
 			import mx.core.ScrollPolicy;
-			import mx.core.UIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
