@@ -158,7 +158,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									
 									cb = new CheckBox();
 									cb.label=panel.title;
+									//linkBindableProperty(Weave.properties.getToolToggle(panel), cb, 'selected');
 									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
+									cb.selected = true;
 									cbArray.push(cb);
 									
 								}            
@@ -179,7 +181,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 							}
 							
-							protected function checkBoxClickHandler(event:MouseEvent):void
+							public function checkBoxClickHandler(event:MouseEvent):void
 							{
 								
 								

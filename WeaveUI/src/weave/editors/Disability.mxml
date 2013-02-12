@@ -162,6 +162,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 				checkingPlotterObjects();
 				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
+				
 				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
 				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
 				
@@ -193,6 +194,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			//getting the columns ready for R
+			
+			public var joinedColumns:Array = new Array();
+			
 			protected function columnPreprocessing():void
 			{
 				//use this function to gather the appropriate information that will be sent to R
@@ -206,7 +210,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for(var i:int =0 ; i < colObjects.length; i++)
 				{
 					var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
-					var dataType:String = ColumnUtils.getDataType(col);
+					var dataType:String = ColumnUtils.getDataType(col); //ColumnUtils : This is a shortcut for column.getMetadata(AttributeColumnMetadata.TITLE).
 					
 					if (dataType == "number")
 					{
@@ -217,7 +221,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				
 				//joining columns returns columns only complete records (no incomplete records)
-				var joinedColumns:Array = joinColumns(numericCols);
+				joinColumns(numericCols);
 				
 				joinKeysRArray = joinedColumns[0];
 				joinColsRArray = joinedColumns[1];
@@ -332,9 +336,71 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					automaticToolDescTextBox.text = finalTextMessages[0];
 				}
+			}
 				
+			public function isSegmentationNeeded(joinedColumns:Array):void
+			{
+				if (splitDecision(joinedColumns)==true)
+					
+				{automaticToolDescTextBox.text = 'yesss';
+					splitIntoTwo(joinedColumns);}
+				
+				else
+					sendColumnsToR();
+			}
+			
+			public function splitDecision(joinedColumns:Array):Boolean
+			{
+				var inputValues:Array = new Array();
+				var tempArray:Array = new Array();
+				
+				for (var i:int = 0; i<joinColsRArray.length; i++){
+					inputValues.push(joinColsRArray[i][0].valueOf());
+				}
+				var computeCScript:String = "correlationCoefficent <- cor(var1, var2)";
+				
+				var outputNames:Array = ["correlationCoefficent"];
+				//default name to be used in R
+				var inputName:Array = ["var1", "var2"];
+				
+				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeCScript, "", false, false, false);
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);    
+				
+				return true;
+			}
+			public function splitIntoTwo(joinedColumns:Array):void
+			{	
+				var perpendicularDifference:int = new int();
+				var verticalDifference:int = new int();
+				
+				
+				if(perpendicularDifference > verticalDifference)
+					perceptualImportantPoint(joinedColumns);
+				else
+					minMaxPoint(joinedColumns);	
 				
 			}
+			
+			public function perceptualImportantPoint(joinedColumns:Array):void
+			{
+				var segment1:Array = new Array();
+				var segment2:Array = new Array();
+				
+				isSegmentationNeeded(segment1);
+				isSegmentationNeeded(segment2);
+			}
+			
+			public function minMaxPoint(joinedColumns:Array):void
+			{
+				var segment1:Array = new Array();
+				var segment2:Array = new Array();
+				
+				isSegmentationNeeded(segment1);
+				isSegmentationNeeded(segment2);
+			}
+				
+				
+			
 			
 		]]>
 	</mx:Script>
