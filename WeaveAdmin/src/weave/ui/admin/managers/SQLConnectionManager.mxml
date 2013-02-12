@@ -19,93 +19,91 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:TabNavigator xmlns:mx="http://www.adobe.com/2006/mxml"
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
-				width="100%" height="100%" 
+				width="100%" height="100%"
+				paddingBottom="16" paddingLeft="8" paddingRight="8" paddingTop="8"
 				label="Connections{dataChanged ? '*' : ''}"
 				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*"
 				>
-	<mx:VBox height="100%">
-		<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
-		<mx:HBox width="100%">
-			<mx:Spacer width="100%"/>
-			<mx:Button label="Remove" click="removeConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
-			<mx:Button label="Refresh" click="refresh()"/>
-		</mx:HBox>
-	</mx:VBox>
-	
-	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
-		<mx:Canvas id="simpleSetting" label="Database connections{dataChanged ? '*' : ''}" width="100%" height="100%">
-			<mx:VBox id="simpleSettingVBox" width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
-				
-				<ui:Indent label="Connection name">
-					<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
-					<mx:CheckBox label="Overwrite" id="configOverwrite"/>
-				</ui:Indent>
-				<ui:IndentTextInput id="connectionPasswordInput" label="Password" change="{dataChanged=true}" displayAsPassword="false" inputWidth="130"/>
-				<ui:Indent label="User Folder Name">
-					<mx:TextInput id="folderNameInput" width="130"/>
-					<ui:HelpComponent>Specify the folder in docroot to store user-created configurations</ui:HelpComponent>
-				</ui:Indent>
-				<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>
-				
-				<mx:Spacer height="8"/>
-				
-				<mx:HBox>
-					<mx:Label text="SQL Connection Info"/>
-					<ui:HelpComponent>
-						Use these fields to generate a SQL Connect String below.  The values from these individual fields are not saved.
-					</ui:HelpComponent>
-				</mx:HBox>
-				<ui:Indent indent="32">
-					<admin:ConnectStringGenerator id="connectStringGenerator"/>
-				</ui:Indent>
-				
-				<mx:Spacer height="8"/>
-				
-				<ui:Indent label="SQL Connect String">
-					<ui:HelpComponent>
-						This is automatically generated using the SQL Connection Info fields above. Advanced users may modify this value directly.
-					</ui:HelpComponent>
-					<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}"/>
-				</ui:Indent>
+	<mx:HDividedBox id="simpleSetting" label="Database connections{dataChanged ? '*' : ''}" width="100%" height="100%">
+		<mx:VBox height="100%">
+			<ui:TreeWithSearch id="treeWithSearch" prompt="Search connections"/>
+			<mx:HBox width="100%">
+				<mx:Spacer width="100%"/>
+				<mx:Button label="Remove" click="removeConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
+				<mx:Button label="Refresh" click="refresh()"/>
+			</mx:HBox>
+		</mx:VBox>
+		
+		<mx:VBox width="100%" height="100%">
+			<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>
+			<ui:Indent label="Connection name">
+				<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
+				<mx:CheckBox label="Overwrite" id="configOverwrite"/>
+			</ui:Indent>
+			<ui:IndentTextInput id="connectionPasswordInput" label="Password" change="{dataChanged=true}" displayAsPassword="false" inputWidth="130"/>
+			<ui:Indent label="User Folder Name">
+				<mx:TextInput id="folderNameInput" width="130"/>
+				<ui:HelpComponent>Specify the folder in docroot to store user-created configurations</ui:HelpComponent>
+			</ui:Indent>
+			
+			<mx:HBox>
+				<mx:Label id="fieldToggle" text="{lang('SQL Connection Info')}"/>
+				<ui:HelpComponent>
+					The basic view provides individual fields which are used to generate a SQL Connect String. <!--
+					--> The resulting Connect String can be modified in the advanced view. The individual values from the basic view are not saved.
+				</ui:HelpComponent>
+			</mx:HBox>
+			<mx:Box paddingLeft="32" width="100%">
+				<mx:TabNavigator width="100%" paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8" id="connectionInfoTabs">
+					<mx:VBox width="100%" label="Basic" id="basicInterface">
+						<admin:ConnectStringGenerator id="connectStringGenerator"/>
+					</mx:VBox>
+					
+					<mx:VBox width="100%" height="{basicInterface.height}" label="Advanced" id="advancedInterface">
+						<mx:Label text="{lang('Connect String')}"/>
+						<mx:Box paddingLeft="32" width="100%">
+							<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}"/>
+						</mx:Box>
+					</mx:VBox>
+				</mx:TabNavigator>
+			</mx:Box>
 
-				<mx:Spacer height="8"/>
-				
-				<mx:HBox>
-					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
-					<mx:Button label="Clear fields" click="clearConnectionFields(true)" />
-				</mx:HBox>
-			</mx:VBox>
-		</mx:Canvas>
-		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
-			<mx:VBox height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top" minWidth="500">
-				<mx:Label id="lblAre" text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
-				<mx:Spacer/>
-				<!--<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>-->
-				<ui:AutoResizingTextArea width="100%" editable="false" borderStyle="none" selectable="false" id="lblMay" text="You may switch to a different location, but the existing configuration data will not be copied over. That functionality may be available in a future Weave update."/>
-				<mx:Label id="lblPlease" text="Please specify where the configuration data should be stored."/>
-				<ui:Indent label="Connection to use">
-					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{Admin.instance.connectionNames}" width="200"/>
-				</ui:Indent>
-				<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
-				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
-				<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="saveDatabaseConfigInfo()" />
-			</mx:VBox>
-		</mx:Canvas>
-		<!--		<mx:Canvas label="etc" width="100%" height="100%">
-		<mx:TextArea x="55.5" y="76" width="413" height="221" editable="false" selectable="false">
-		<mx:text><![CDATA[Controls for editing the item selected in the tree on the left.  Most used/simplest settings should be highlighted, more advanced controls available via more tabs if needed]]></mx:text>
-		</mx:TextArea>
-		</mx:Canvas>-->
-	</mx:TabNavigator>	
+			<mx:Spacer height="8"/>
+			
+			<mx:HBox>
+				<mx:Button label="Save this database connection" click="saveConnectionInfo()" id="saveButton"/>
+				<mx:Button label="Clear fields" click="clearConnectionFields(true)" />
+			</mx:HBox>
+		</mx:VBox>
+	</mx:HDividedBox>
+	
+	<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
+		<mx:VBox height="100%" minWidth="500">
+			<mx:Label id="lblAre" text='You are currently using the "{Admin.instance.databaseConfigInfo.connection}" connection to store configuration data.'/>
+			<mx:Spacer/>
+			<!--<mx:Label text="You may optionally migrate the configuration data to a new database with the controls below."/>-->
+			<ui:AutoResizingTextArea width="100%" editable="false" borderStyle="none" selectable="false" id="lblMay" text="You may switch to a different location, but the existing configuration data will not be copied over. That functionality may be available in a future Weave update."/>
+			<mx:Label id="lblPlease" text="Please specify where the configuration data should be stored."/>
+			<ui:Indent label="Connection to use">
+				<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{Admin.instance.connectionNames}" width="200"/>
+			</ui:Indent>
+			<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
+			<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{Admin.instance.databaseConfigInfo.schema}"/>
+			<mx:Button id="migrateButton" label="Store Weave configuration at this location" click="saveDatabaseConfigInfo()" />
+		</mx:VBox>
+	</mx:Canvas>
+	
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkableObjectIsBusy;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
@@ -125,6 +123,12 @@
 				BindingUtils.bindSetter(handleConnectionNames, Admin.instance, "connectionNames");
 				treeWithSearch.tree.addEventListener(Event.CHANGE, handleTreeSelection);
 				BindingUtils.bindSetter(handleDBConfig, Admin.instance, "databaseConfigInfo");
+				getCallbackCollection(connectStringGenerator).addImmediateCallback(this, handleConnectStringGenerator);
+			}
+			
+			private function handleConnectStringGenerator():void
+			{
+				saveButton.enabled = !linkableObjectIsBusy(connectStringGenerator);
 			}
 			
 			private function handleDBConfig(dbInfo:DatabaseConfigInfo):void
@@ -148,7 +152,7 @@
 				{
 					superuserCheckbox.enabled = true;
 					if (!Admin.instance.databaseConfigExists)
-						tabNavigator.selectedChild = migrateTab;
+						this.selectedChild = migrateTab;
 				}
 				migrateTab.enabled = names.length > 0;
 				handleDBConfig(Admin.instance.databaseConfigInfo);
@@ -180,7 +184,7 @@
 				if (treeWithSearch.tree.selectedItem == null)
 					return;
 				
-				tabNavigator.selectedChild = simpleSetting;
+				this.selectedChild = simpleSetting;
 				
 				var name:String = treeWithSearch.tree.selectedItem.label;
 				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult);
@@ -194,6 +198,7 @@
 					superuserCheckbox.selected = info.is_superuser;
 					folderNameInput.text = info.folderName;
 					connectStringInput.text = info.connectString;
+					connectionInfoTabs.selectedChild = advancedInterface;
 				}
 				
 				dataChanged = false;
@@ -217,6 +222,7 @@
 				superuserCheckbox.selected = (Admin.instance.connectionNames.length == 0);
 				connectStringGenerator.resetFields(resetConnectString);
 				connectStringInput.text = connectStringGenerator.connectString;
+				connectionInfoTabs.selectedChild = basicInterface;
 				dataChanged = false;
 			}
 			
@@ -271,4 +277,4 @@
 			}
 		]]>
 	</mx:Script>
-</mx:HDividedBox>
+</mx:TabNavigator>
