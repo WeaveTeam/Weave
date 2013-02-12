@@ -87,6 +87,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				setWMSLayerServiceOnPlotterChange();
 				handleWMSProviderChange();
 				wmsURLText.toolTip =  "Enclose x,y,z in curly braces as shown in this sample URL: http://tile.openstreetmap.org/{z}/{x}/{y}.png";
 			}
