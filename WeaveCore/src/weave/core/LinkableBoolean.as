@@ -21,12 +21,10 @@ package weave.core
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
-	
 	/**
-	 * LinkableBoolean
-	 * 
+	 * This is a LinkableVariable which limits its session state to Boolean values.
 	 * @author adufilie
+	 * @see weave.core.LinkableVariable
 	 */
 	public class LinkableBoolean extends LinkableVariable
 	{

@@ -37,11 +37,8 @@ package weave.core
 	public class LinkableVariable extends CallbackCollection implements ILinkableVariable
 	{
 		/**
-		 * This constructor does not allow an initial value to be specified, because no other class has a pointer to this object until the
-		 * constructor completes, which means the value cannot be retrieved during any callbacks that would run in the constructor.  This
-		 * forces the developer to set default values outside the constructor of the LinkableVariable, which means the callbacks will run
-		 * the first time the value is set.  This behavior is desirable because it allows the initial value to be handled by the same code
-		 * that handles new values.
+		 * If a defaultValue is specified, callbacks will be triggered in a later frame unless they have already been triggered before then.
+		 * This behavior is desirable because it allows the initial value to be handled by the same callbacks that handles new values.
 		 * @param sessionStateType The type of values accepted for this sessioned property.
 		 * @param verifier A function that returns true or false to verify that a value is accepted as a session state or not.  The function signature should be  function(value:*):Boolean.
 		 * @param defaultValue The default value for the session state.
