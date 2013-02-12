@@ -254,7 +254,7 @@
 				PopUpUtils.confirm(
 					this,
 					"Confirm delete",
-					'Delete connection "' + connectionLabel + '"?',
+					'Delete connection "' + connectionLabel + '"?  Any existing attribute columns configured to use this connection will stop working.',
 					del, null,
 					'Delete', 'Cancel'
 				);
