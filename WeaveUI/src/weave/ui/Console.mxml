@@ -158,7 +158,8 @@
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
-				'$': debugHelper
+				'$': debugHelper,
+				'_': {}
 			};
 			
 			private function debugHelper(arg:* = null):*
