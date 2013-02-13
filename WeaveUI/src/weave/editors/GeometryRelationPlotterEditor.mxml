@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" label="{lang('Geometry Relations')}" 
+		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
+	<mx:VBox width="100%">
+		<ui:DynamicColumnComponent id="relationSourceComponent" label="{lang('Source')}"/>
+		<ui:DynamicColumnComponent id="relationDestinationComponent" label="{lang('Destination')}"/>
+		<ui:DynamicColumnComponent id="relationValueComponent" label="{lang('Value')}"/>
+		<ui:DynamicColumnComponent id="relationGeometryComponent" label="{lang('Geometry')}"/>
+	</mx:VBox>
+	<mx:HBox width="100%">
+		<mx:Label text="{lang('Relation Line Width:')}" fontWeight="bold"/>
+		<mx:HSlider id="lineWidthSlider"
+					width="100%"
+					alpha="1.0"
+					snapInterval="1"
+					tickInterval="1" labels="{['5','6','7','8','9','10']}"
+					minimum="5" maximum="10"
+					liveDragging="true" mouseDown="event.stopPropagation()"
+					creationComplete="linkBindableProperty(_plotter.lineWidth, event.target, 'value')"/>
+	</mx:HBox>
+	<mx:HBox width="100%">
+		<mx:Label text="{lang('Positive Value Color:')}" fontWeight="bold"/>
+		<mx:ColorPicker id="pos_ColorPicker" width="22" height="22"
+						creationComplete="linkBindableProperty(_plotter.posLineColor, event.target, 'selectedColor')"/>
+	</mx:HBox>
+	<mx:HBox width="100%">
+		<mx:Label text="{lang('Negative Value Color:')}" fontWeight="bold"/>
+		<mx:ColorPicker id="neg_ColorPicker" width="22" height="22"
+						creationComplete="linkBindableProperty(_plotter.negLineColor, event.target, 'selectedColor')"/>
+	</mx:HBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.visualization.plotters.GeometryRelationPlotter;
+			
+			private var _plotter:GeometryRelationPlotter = null;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				_plotter = object as GeometryRelationPlotter;
+			}
+			
+			public function applyChanges():void
+			{
+				
+			}			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				linkGeometryProperties();
+			}
+			
+			private function linkGeometryProperties():void
+			{
+				relationSourceComponent.dynamicObject = _plotter.sourceKeyColumn;
+				relationDestinationComponent.dynamicObject = _plotter.destinationKeyColumn;
+				relationValueComponent.dynamicObject = _plotter.valueColumn;
+				relationGeometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+			}
+			
+			
+			private function unlinkGeometryProperties():void
+			{
+				if (!data)
+					return;
+				
+				relationSourceComponent.dynamicObject = null;
+				relationDestinationComponent.dynamicObject = null;
+				relationValueComponent.dynamicObject = null;
+				relationGeometryComponent.dynamicObject = null;
+			}
+			
+		]]>
+	</mx:Script>
+		
+</mx:VBox>

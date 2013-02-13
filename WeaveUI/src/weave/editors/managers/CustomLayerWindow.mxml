@@ -40,6 +40,7 @@
 			
 			<!--<mx:Object label="{lang('Bars')}" plotterClass="{CompoundBarChartPlotter}" selectable="true"/>-->
 			<mx:Object label="{lang('Geometry Labels')}" plotterClass="{GeometryLabelPlotter}" selectable="true"/>
+			<mx:Object label="{lang('Geometry Relations')}" plotterClass="{GeometryRelationPlotter}" selectable="true"/>
 			<mx:Object label="{lang('Geometry Plotter')}" plotterClass="{GeometryPlotter}" selectable="true"/>
 			<mx:Object label="{lang('WMS Plotter')}" plotterClass="{WMSPlotter}" selectable="true"/>
 			<mx:Object label="{lang('Grid lines')}" plotterClass="{GridLinePlotter}" selectable="false"/>
@@ -56,6 +57,7 @@
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
+			import weave.visualization.plotters.GeometryRelationPlotter;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.disposeObjects;
 			import weave.api.registerDisposableChild;
