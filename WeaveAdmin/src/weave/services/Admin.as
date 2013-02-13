@@ -251,12 +251,16 @@ package weave.services
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
-					if (!userHasAuthenticated)
-						service.authenticate(activeConnectionName, activePassword);
+					if (activeConnectionName && activePassword)
+					{
+						if (!userHasAuthenticated)
+							service.authenticate(activeConnectionName, activePassword);
 					
-					// refresh
-					service.getDatabaseConfigInfo();
-					entityCache.clearCache();
+						// refresh
+						service.getDatabaseConfigInfo();
+					}
+					// purge cache
+					entityCache.invalidateAll(true);
 				}
 			);
 			/////////////////

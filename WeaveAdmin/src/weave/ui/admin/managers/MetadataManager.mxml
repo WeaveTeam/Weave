@@ -13,7 +13,7 @@
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
             <mx:Button id="deleteTableButton" label="Delete table" click="deleteTable()"/>
-			<mx:Button label="Refresh" click="Admin.entityCache.clearCache();"/>
+			<mx:Button label="Refresh" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
