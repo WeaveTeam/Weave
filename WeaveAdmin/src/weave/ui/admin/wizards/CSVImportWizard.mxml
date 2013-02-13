@@ -64,12 +64,12 @@
 				</ui:HelpComponent>
 			</ui:Indent>
 			
-			<mx:Label text="{lang('What do these keys correspond to?')}"/>
-			<admin:KeyTypeDialog id="keytypeSelector"
-											paddingLeft="{paddingIndent}"
-											defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
+			<admin:KeyTypeDialog id="keytypeSelector" defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
 			
-			<mx:CheckBox id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
+			<mx:RadioButtonGroup id="radioGroup"/>
+			<mx:RadioButton label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
+			
+			<mx:RadioButton id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false" group="{radioGroup}"/>
 			<ui:Indent label="{lang('Secondary key column')}"
 					   paddingLeft="{paddingIndent}"
 					   grouped="false"
@@ -79,7 +79,7 @@
 			</ui:Indent>
 			
 			<mx:HBox>
-				<mx:CheckBox id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false"/>
+				<mx:RadioButton id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false" group="{radioGroup}"/>
 				<ui:HelpComponent>
 					This option is to be used when the new data table has a column that refers to keys in another data table but the keys do not uniquely identify rows in the new table.
 					

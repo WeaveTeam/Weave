@@ -19,13 +19,10 @@
 
 package weave.core
 {
-	import weave.api.WeaveAPI;
-
 	/**
-	 * LinkableString
-	 * 
-	 * 
+	 * This is a LinkableVariable which limits its session state to String values.
 	 * @author adufilie
+	 * @see weave.core.LinkableVariable
 	 */
 	public class LinkableString extends LinkableVariable
 	{

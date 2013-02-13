@@ -212,7 +212,10 @@ public class DataService extends GenericServlet
 		
 		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
 		if (connInfo == null)
-			throw new RemoteException(String.format("Connection associated with column %s no longer exists", columnId));
+		{
+			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
+			throw new RemoteException(String.format("Connection named '%s' associated with column #%s (%s) no longer exists", connName, columnId, title));
+		}
 		
 		List<String> keys = new ArrayList<String>();
 		List<Double> numericData = null;

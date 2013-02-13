@@ -19,15 +19,10 @@
 
 package weave.core
 {
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.WeaveAPI;
-	
 	/**
-	 * LinkableNumber
-	 * 
-	 * 
+	 * This is a LinkableVariable which limits its session state to Number values.
 	 * @author adufilie
+	 * @see weave.core.LinkableVariable
 	 */
 	public class LinkableNumber extends LinkableVariable
 	{

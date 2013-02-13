@@ -30,13 +30,6 @@ package weave.compiler
 	{
 		public function CompiledFunctionCall(compiledName:ICompiledObject, compiledParams:Array)
 		{
-			constructor(compiledName, compiledParams);
-		}
-		/**
-		 * This is the constructor code. The code is in a separate function because constructors do not get compiled.
-		 */
-		private function constructor(compiledName:ICompiledObject, compiledParams:Array):void
-		{
 			this.compiledMethod = compiledName;
 			this.compiledParams = compiledParams;
 			

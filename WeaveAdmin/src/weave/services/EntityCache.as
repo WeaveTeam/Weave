@@ -4,10 +4,10 @@ package weave.services
     
     import mx.rpc.events.ResultEvent;
     
+    import weave.api.getCallbackCollection;
     import weave.api.core.ICallbackCollection;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
-    import weave.api.getCallbackCollection;
     import weave.services.beans.Entity;
     import weave.services.beans.EntityMetadata;
     import weave.services.beans.EntityTableInfo;
@@ -172,14 +172,26 @@ package weave.services
 			return _dataTableLookup[id];
 		}
         
-		public function clearCache():void
+		public function invalidateAll(purge:Boolean = false):void
         {
 			callbacks.delayCallbacks();
 			
-			// we don't want to delete the cache because we can still use the cached values for display in the meantime.
-			for (var id:* in cache_entity)
-				pending_invalidate[id] = true;
-			
+			if (purge)
+			{
+				cache_dirty = {};
+				cache_entity = {};
+				d2d_child_parent = new Dictionary2D();
+				delete_later = {};
+				_dataTableIds = [];
+				_dataTableLookup = {};
+				pending_invalidate = {};
+			}
+			else
+			{
+				// we don't want to delete the cache because we can still use the cached values for display in the meantime.
+				for (var id:* in cache_entity)
+					pending_invalidate[id] = true;
+			}
 			callbacks.triggerCallbacks();
 			
 			callbacks.resumeCallbacks();

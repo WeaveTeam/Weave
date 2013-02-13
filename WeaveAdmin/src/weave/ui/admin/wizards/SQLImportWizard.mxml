@@ -40,7 +40,10 @@
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
 				<admin:KeyTypeDialog paddingIndent="{paddingIndent}" id="keyTypeSelector" defaultKeyType="{tableSelector.activeTable}"/>
 				
-				<mx:CheckBox change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
+				<mx:RadioButtonGroup id="radioGroup"/>
+				<mx:RadioButton label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
+				
+				<mx:RadioButton change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false" group="{radioGroup}"/>
 				<ui:Indent paddingLeft="{paddingIndent}"
 						   grouped="false"
 						   visible="{secondaryKeyColumnCheckBox.selected}"
@@ -49,7 +52,7 @@
 					<ui:CustomComboBox change="handleKeyColumnChange()" id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
 				</ui:Indent>
 				
-				<mx:CheckBox id="generateFilterColumnsCheckBox" label="{lang('Generate filtered column queries')}" selected="false" change="handleKeyColumnChange();"/>
+				<mx:RadioButton id="generateFilterColumnsCheckBox" label="{lang('Generate filtered column queries')}" selected="false" change="handleKeyColumnChange();" group="{radioGroup}"/>
 				<ui:IndentTextInput visible="{generateFilterColumnsCheckBox.selected}"
 							paddingLeft="{paddingIndent}"
 							grouped="false"

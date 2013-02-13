@@ -19,8 +19,6 @@
 
 package weave.compiler
 {
-	import avmplus.DescribeType;
-	
 	import flash.utils.Dictionary;
 	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
@@ -28,6 +26,8 @@ package weave.compiler
 	
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
+	
+	import avmplus.DescribeType;
 	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
@@ -68,10 +68,6 @@ package weave.compiler
 		 * This is a String containing all the characters that are treated as whitespace.
 		 */
 		private static const WHITESPACE:String = '\r\n \t\f';
-//		/**
-//		 * This is the maximum allowed length of an operator.
-//		 */		
-//		private static const MAX_OPERATOR_LENGTH:int = 4;
 		/**
 		 * This is used to match number tokens.
 		 */		
@@ -472,23 +468,7 @@ package weave.compiler
 					break;
 				// operator terminates a token
 				if (operators[c] != undefined)
-				{
-					/*
-					// special case: "operator" followed by an operator symbol is treated as a single token
-					if (expression.substring(index, endIndex) == OPERATOR_PREFIX1)
-					{
-						for (var operatorLength:int = MAX_OPERATOR_LENGTH; operatorLength > 0; operatorLength--)
-						{
-							if (constants[expression.substring(index, endIndex + operatorLength)] is Function)
-							{
-								endIndex += operatorLength;
-								break;
-							}
-						}
-					}
-					*/
 					break;
-				}
 			}
 			return expression.substring(index, endIndex);
 		}
@@ -856,10 +836,10 @@ package weave.compiler
 				
 				// use matching brackets
 				rightBracket = tokens[close];
-				if (rightBracket.charAt(0) == '.')
-					leftBracket = rightBracket;
+				if (rightBracket == '..')
+					leftBracket = '..';
 				else
-					leftBracket = '[({'.charAt('])}'.indexOf(rightBracket));
+					leftBracket = '.[({'.charAt('.])}'.indexOf(rightBracket));
 				
 				// work backwards to the preceeding, matching opening bracket or stop if '.'
 				for (open = close; open >= 0; open--)
@@ -937,21 +917,21 @@ package weave.compiler
 					tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams));
 					continue;
 				}
-				else // '{' or '(' group that does not correspond to a function call
-				{
-					var op:String = leftBracket == '(' ? ',' : ';';
-					
-					if (leftBracket == '(' && compiledParams.length == 0)
-						throw new Error("Missing expression inside parentheses");
-					
-					if (compiledParams.length == 1) // single command
-						tokens.splice(open, 2, compiledParams[0]);
-					else // multiple commands
-						tokens.splice(open, 2, compileOperator(op, compiledParams));
-					continue;
-				}
 				
-				break;
+				// '{' or '(' group that does not correspond to a function call
+				
+				if (leftBracket == '(' && compiledParams.length == 0)
+					throw new Error("Missing expression inside parentheses");
+				
+				if (compiledParams.length == 1) // single command
+				{
+					tokens.splice(open, 2, compiledParams[0]);
+				}
+				else // multiple commands
+				{
+					var op:String = leftBracket == '{' ? ';' : ',';
+					tokens.splice(open, 2, compileOperator(op, compiledParams));
+				}
 			}
 		}
 		
@@ -1121,7 +1101,10 @@ package weave.compiler
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
 			*/
-			operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
+			if (operatorName == ',')
+				operatorName = '{,}';
+			else
+				operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
 			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 
@@ -1149,7 +1132,8 @@ package weave.compiler
 				constant = call.compiledMethod as CompiledConstant;
 				if (constant && constant.name === constant.value)
 					return name;
-				return "(#" + name + ")";
+				throw new Error("Unable to decompile dynamic variable lookup");
+				//return "(#" + name + ")";
 			}
 			
 			// decompile each paramter
@@ -1159,7 +1143,7 @@ package weave.compiler
 				params[i] = decompileObject(call.compiledParams[i]);
 			
 			// replace infix operator function calls with the preferred infix syntax
-			if (name.indexOf(OPERATOR_PREFIX) == 0)
+			if (name.indexOf(OPERATOR_PREFIX) == 0 || name == '{,}')
 			{
 				var op:String = name.substr(OPERATOR_PREFIX.length);
 				op = op.substr(0, -OPERATOR_SUFFIX.length);
