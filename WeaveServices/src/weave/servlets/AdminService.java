@@ -366,7 +366,7 @@ public class AdminService
 		throws RemoteException
 	{
 		authenticate(user, password);
-		return new WeaveFileInfo(getDocrootPath() + fileName);
+		return new WeaveFileInfo(getDocrootPath(), fileName);
 	}
 
 	//////////////////////////////
