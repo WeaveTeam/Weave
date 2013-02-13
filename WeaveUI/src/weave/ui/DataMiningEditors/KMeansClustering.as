@@ -43,6 +43,7 @@ package weave.ui.DataMiningEditors
 	import weave.data.KeySets.KeySet;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.KMeansClusteringResult;
 	import weave.services.beans.RResult;
 	import weave.utils.ColumnUtils;
@@ -55,11 +56,15 @@ package weave.ui.DataMiningEditors
 		private var assignNames: Array = new Array();
 		public var finalResult:KMeansClusteringResult;
 		
+		public var checkingIfFilled:Function;
+		
 		public var kMeansScript:String = "frame <- data.frame(inputColumns)\n" +
 				"kMeansResult <- kmeans(frame,number_of_clusters,number_of_Iterations, randomsets, algorithm)\n";
 		
-		public function KMeansClustering()
+		//we're passing a pointer to a callback defined in the DataMiningChannelToR
+		public function KMeansClustering(foo:Function = null)
 		{
+			checkingIfFilled = foo;
 		}
 		
 		public function doKMeans(_columns:Array,token:Array,_numberOfClusters:Number, _numberOfIterations:Number, _algorithm:String, _randomSets:Number):void
@@ -79,29 +84,11 @@ package weave.ui.DataMiningEditors
 			var outputNames:Array = ["kMeansResult$cluster","kMeansResult$centers", "kMeansResult$totss", "kMeansResult$withinss","kMeansResult$tot.withinss","kMeansResult$betweenss","kMeansResult$size"];
 			
 			var query:AsyncToken = Rservice.runScript(token,inputNames, inputValues,outputNames,kMeansScript,"",false, false, false);
-			DelayedAsyncResponder.addResponder(query,handleRunScriptResult, handleRunScriptFault,token);
-			
-		}
-		
-		public static function get selection():KeySet
-		{
-			return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-		}
-		
-		/**
-		 * @return A multi-dimensional Array like [keys, [data1, data2, ...]] where keys implement IQualifiedKey
-		 */
-		public function joinColumns(columns:Array):Array
-		{
-			var keys:Array = selection.keys.length > 0 ? selection.keys : null;
-			//make dataype Null, so that columns will be sent as exact dataype to R
-			//if mentioned as String or NUmber ,will convert all columns to String or Number .
-			var result:Array = ColumnUtils.joinColumns(columns,null, true, keys);
-			return [result.shift(),result];
+			addAsyncResponder(query,handleRunScriptResult, handleRunScriptFault,token);
 		}
 		
 		
-		public function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+		public function handleRunScriptResult(event:ResultEvent, token:Array = null):void
 		{
 			//Object to stored returned result - Which is array of object{name: , value: }
 			var RresultArray:Array = new Array();//this collects only the cluster groupings vector
@@ -133,6 +120,9 @@ package weave.ui.DataMiningEditors
 			 Entire object
 			 this contains all the different metrics of a single Kmeans clustering object*/
 			 finalResult = new KMeansClusteringResult(clusterResult);
+			 
+			 if(checkingIfFilled != null )
+			 checkingIfFilled();
 			 
 			
 			//To make availabe for Weave -Mapping with key returned from Token

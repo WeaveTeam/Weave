@@ -165,6 +165,7 @@ package weave.core
 					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 					value = XML(value).toXMLString();
 				}
+				
 				else if (type == 'object')
 					value = ObjectUtil.copy(value);
 			}

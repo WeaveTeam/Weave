@@ -96,6 +96,7 @@
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.ui.userControls.DatagridDisplay;
 			import weave.utils.ColumnUtils;
@@ -187,7 +188,7 @@
 				{
 					inputValues.push(joinedColumns); 
 					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,normScript,"",false,false,false);
-					DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[latestjoinedColumnKeys,tag]);
+					addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[latestjoinedColumnKeys,tag]);
 				}
 			}
 			
@@ -209,7 +210,7 @@
 						var resultNames: Array = new Array(); resultNames = ["answer$counts","answer$breaks"];
 						
 						var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys, inputNames, inputValues, resultNames, binningScript,"", false, false, false);
-						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [latestjoinedColumnKeys,tag]);
+						addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, [latestjoinedColumnKeys,tag]);
 						sentToRcounter++;
 					}
 						
@@ -249,7 +250,7 @@
 					
 					var inputNames:Array = ["myVector"];
 					var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys,inputNames,inputValues, statoutputNames, statScript, "",false, false, false);
-					DelayedAsyncResponder.addResponder(query,handleStatScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+					addAsyncResponder(query,handleStatScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
 					sendingStatColstoR++;
 				}
 			}

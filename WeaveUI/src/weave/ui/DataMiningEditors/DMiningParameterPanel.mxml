@@ -19,19 +19,21 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*Editor to specify parameters for all the  data mining algorithms*/
+/*Editor to specify parameters for all the  data mining algorithms*
+/Editors are generated dynamically depending on the identity of the datamining algorithm object
 @spurushe-->
 
 <mx:Panel title="Algorithm Parameter Input Panel" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
-		  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop = "10">
-	<mx:ControlBar  horizontalAlign="right" width = "400" height="50">
+		  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop = "10" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<!--mx:ControlBar  horizontalAlign="right" width = "400" height="50">
 		<mx:Button label="Save" click="savingParameters(event)"/>
-	</mx:ControlBar>
+	</mx:ControlBar-->
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.containers.HBox;
 			import mx.containers.VBox;
+			import mx.controls.Button;
 			import mx.controls.ComboBox;
 			import mx.controls.Label;
 			import mx.controls.Spacer;
@@ -51,93 +53,74 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			//this is the list of all the UI components to create for a particular algorithm
 			public var uiComponents:Array = new Array();
-			private var currentDMObject:DataMiningAlgorithmObject = new DataMiningAlgorithmObject();
 			
 			public function generateUIComponents(dmObject : DataMiningAlgorithmObject):Array
 			{
 				uiComponents = [];
-				currentDMObject = dmObject;
 				var algorithm:String = dmObject.label;
 				
 				if(algorithm == "KMeans Clustering") 
-				   createParameterInputForKMeans();
+				   createParameterInputForKMeans(dmObject);
 				
 				if(algorithm == "Fuzzy KMeans Clustering")
-					createParameterInputForFuzzyKMeans();
+					createParameterInputForFuzzyKMeans(dmObject);
 				return uiComponents;
 			}
 			
-			//creates UI for KMeans Clustering
-			private function createParameterInputForKMeans():void
+			/*------------------------------------------creates editor for KMeans Clustering--------------------------------------------------------------*/
+			private function createParameterInputForKMeans(dmObject:DataMiningAlgorithmObject):void
 			{
 				uiComponents = [];
-				var kmeansVBox:VBox = new VBox(); var s:Spacer = new Spacer(); s.width = 10; s.height = 10; kmeansVBox.addChild(s);
+				var kmeansVBox:VBox = new VBox();
+				var s:Spacer = new Spacer(); s.width = 10; s.height = 10; kmeansVBox.addChild(s);
 				
 				//Input 1
-				var kMeansIndent:Indent = new Indent();
-				kMeansIndent.label = "Enter Cluster Number";
-				var kMeansClusterInput:TextInputWithPrompt = new TextInputWithPrompt(); 
-				kMeansIndent.addChild(kMeansClusterInput);
-				kmeansVBox.addChild(kMeansIndent);
+				//indent does not work
+				var kMeansClusterInput:NumberInputComponent = new NumberInputComponent("kClusterNumber","Enter the number of Clusters", "5");
+				var kMeansIterationsInput:NumberInputComponent = new NumberInputComponent("kIterationNumber","Enter the number of iterations", "500");
+				var kMeansAlgo:ChoiceInputComponent = new ChoiceInputComponent("kMeansAlgo","Select the algorithm", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
 				
-				//input 2
-				var kMeansIndent2:Indent = new Indent(); kMeansIndent2.label = "Enter Number of Iterations"; 
-				var kMeansIterationsInput:TextInputWithPrompt = new TextInputWithPrompt();
-				kMeansIndent2.addChild(kMeansIterationsInput);
-				kmeansVBox.addChild(kMeansIndent2);
+				//works
+				dmObject.parameters = [kMeansClusterInput, kMeansIterationsInput, kMeansAlgo];
 				
-				//input 3
-				var kMeansIndent3:Indent = new Indent(); kMeansIndent3.label = "Select the algorithm";
-				var kMeansAlgoBox:mx.controls.ComboBox = new mx.controls.ComboBox();
-				var boxFiller:Array = ["Choose an algorithm", "Hartigan-Wong", "Lloyd","Forgy", "MacQueen"];
-				kMeansAlgoBox.dataProvider = boxFiller;
-				kMeansIndent3.addChild(kMeansAlgoBox);
-				kmeansVBox.addChild(kMeansIndent3);
+				for ( var f:int = 0; f < dmObject.parameters.length; f++)
+				{
+					kmeansVBox.addChild(dmObject.parameters[f]);
+				} 
+				
 				
 				//finally
 				uiComponents.push(kmeansVBox);
+				uiComponents.push(dmObject);
 				
 			}
 			
 			
-			//creates UI for FuzzyKMeans Clustering
-			private function createParameterInputForFuzzyKMeans():void
+			/*----------------------------------------------creates Editor for FuzzyKMeans Clustering-----------------------------------------------------------*/
+			private function createParameterInputForFuzzyKMeans(dmObject:DataMiningAlgorithmObject):void
 			{
 				uiComponents = [];
-				var fuzzkmeansVBox:VBox = new VBox(); var s:Spacer = new Spacer(); s.width = 10; s.height = 10; fuzzkmeansVBox.addChild(s);
+				var fkmeansVBox:VBox = new VBox();
+				var s:Spacer = new Spacer(); s.width = 10; s.height = 10; fkmeansVBox.addChild(s);
+				//Input 1
+				//indent does not work
+				var fuzzkMeansClusterInput:NumberInputComponent = new NumberInputComponent("fkClusterNumber","Enter the number of Clusters", "5");
+				var fuzzkMeansIterationsInput:NumberInputComponent = new NumberInputComponent("fkIterationNumber","Enter the number of iterations", "500");
+				var fuzzkMeansAlgo:ChoiceInputComponent = new ChoiceInputComponent("fkMeansAlgo","Select the algorithm", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
 				
-				//input 1
-				var fuzzkMeansIndent:Indent = new Indent();
-				fuzzkMeansIndent.label = "Enter Cluster Number";
-				var fuzzkMeansClusterInput:TextInputWithPrompt = new TextInputWithPrompt(); 
-				fuzzkMeansIndent.addChild(fuzzkMeansClusterInput);
-				fuzzkmeansVBox.addChild(fuzzkMeansIndent);
+				dmObject.parameters = [fuzzkMeansClusterInput, fuzzkMeansIterationsInput, fuzzkMeansAlgo];
 				
-				//input 2
-				var fuzzkMeansIndent2:Indent = new Indent(); fuzzkMeansIndent2.label = "Enter Number of Iterations"; 
-				var fuzzkMeansIterationsInput:TextInputWithPrompt = new TextInputWithPrompt();
-				fuzzkMeansIndent2.addChild(fuzzkMeansIterationsInput);
-				fuzzkmeansVBox.addChild(fuzzkMeansIndent2);
+				for ( var f:int = 0; f < dmObject.parameters.length; f++)
+				{
+					fkmeansVBox.addChild(dmObject.parameters[f]);
+				} 
+				
 				
 				//finally
-				uiComponents.push(fuzzkmeansVBox);
+				uiComponents.push(fkmeansVBox);
+				uiComponents.push(dmObject);
 			}
 			
-			
-			protected function savingParameters(event:MouseEvent):void
-			{
-				/* if(currentDMObject.label == "KMeans Clustering")
-				//testing
-				{
-					var clusterNumber:String = new String();
-					var iterationNumber:String = new String();
-					var algoType:String = new String();
-					currentDMObject.parameterMapping[clusterNumber] = ;
-					currentDMObject.parameterMapping[iterationNumber]= null;
-					currentDMObject.parameterMapping[algoType]= null;
-					currentDMObject.parameterMapping[clusterNumber]
-				} */
-			}
 			
 		]]>
 	</mx:Script>

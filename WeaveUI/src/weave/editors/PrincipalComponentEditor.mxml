@@ -17,6 +17,9 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
+			
+			import weave.services.addAsyncResponder;
+			
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
@@ -101,7 +104,7 @@
 				var outputNames:Array = ["pcaResult$loadings", "pcaResult$sd^2"];
 				
 				var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,pcaScript,"",false,false,false);
-				DelayedAsyncResponder.addResponder(query,handleRunScriptResult,handleRunScriptFault, latestColumnKeys);
+				addAsyncResponder(query,handleRunScriptResult,handleRunScriptFault, latestColumnKeys);
 			}
 			
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void

@@ -106,5 +106,22 @@ package weave.utils
 			return numColumn;
 		}
 		
+		/**
+		 * @return A multi-dimensional Array like [keys, [data1, data2, ...]] where keys implement IQualifiedKey
+		 */
+		public static function joinColumns(columns:Array):Array
+		{
+		var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+		//make dataype Null, so that columns will be sent as exact dataype to R
+		//if mentioned as String or NUmber ,will convert all columns to String or Number .
+		var result:Array = ColumnUtils.joinColumns(columns,null, true, keys);
+		return [result.shift(),result];
+		}
+		
+		public static function get selection():KeySet
+		{
+		return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		}
+		
 	}
 }

@@ -533,6 +533,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				2. fate of the children?
 				3. sessioned or not?
 				4. give user the ability to save the results of Weave analyst?*/
+				
 			}
 			
 			override public function move(x:Number, y:Number):void

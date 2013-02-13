@@ -38,6 +38,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
+			import mx.containers.VBox;
+			import mx.controls.Spacer;
+			import mx.core.UIComponent;
 			import mx.events.CollectionEvent;
 			import mx.events.ListEvent;
 			import mx.utils.ObjectUtil;
@@ -72,6 +75,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			private static var platterInstance : DataMiningPlatter = null;
+			private var currentDMObject:DataMiningAlgorithmObject;
+			private var collectionOfDataMinigObjects:Array;// collects all the data mining objects and then sends them to the DataminingChannelToR for comuptation in R
 			
 			[Bindable]
 			public function get inputVariables():ILinkableHashMap
@@ -121,22 +126,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				preprocessingColumns();
 			}
 			
-			public static function get selection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			}
-			
-			/**
-			 * @return A multi-dimensional Array like [keys, [data1, data2, ...]] where keys implement IQualifiedKey
-			 */
-			public function joinColumns(columns:Array):Array
-			{
-				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
-				//make dataype Null, so that columns will be sent as exact dataype to R
-				//if mentioned as String or NUmber ,will convert all columns to String or Number .
-				var result:Array = ColumnUtils.joinColumns(columns,null, true, keys);
-				return [result.shift(),result];
-			}
 			// we need only numerical columns for clustering
 			private function preprocessingColumns():void
 			{
@@ -154,13 +143,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(subsetSelectedOn == true)
 				{
-					handleColumnsForSubsetSelection(attributeColumns);
+					handleColumnsForSubsetSelection(attributeColumns);//when user wants to run data mining algorithms on selected subsets 
 					subsetSelectedOn = false;
 				}
 				
 				else
 				{
-					handleRegularColumns(attributeColumns);
+					handleRegularColumns(attributeColumns);//when user loads in a dataset or selects entire columns
 				}
 				
 			}
@@ -168,7 +157,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//handles columns when this tool is run on columns loaded through columns list component
 			private function handleRegularColumns(attributeColumns:Array):void
 			{
-				var joinedColumns:Array = joinColumns(subsetFinalColumns);
+				var joinedColumns:Array = ResultUtils.joinColumns(subsetFinalColumns);
 				latestColumnKeys = joinedColumns[0];
 				finalColumns = joinedColumns[1]; 
 			}
@@ -212,7 +201,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (WeaveAPI.SessionManager.linkableObjectIsBusy(finalColumnsGroup))//do the next chunk of code only after _plotter.columns is filled
 					return;
 				
-				 var joinedColumns:Array = joinColumns(subsetFinalColumns);
+				 var joinedColumns:Array = ResultUtils.joinColumns(subsetFinalColumns);
 				latestColumnKeys = joinedColumns[0];
 				finalColumns = joinedColumns[1]; 
 				
@@ -248,30 +237,78 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//this constructs the respective UI components depending on which algorithm is selected
 		    public function constructParameterInput(data:DataMiningAlgorithmObject):void
 			{
+					var cb:ControlBar = new ControlBar();
 				//check if already exists; creating only one instance of the platter
 				if(parameterInputPanel == null) 
 				{
 					parameterInputPanel = new DMiningParameterPanel;
-					parameterInputPanel.width = 0.35 * originalBox.width; parameterInputPanel.height = 0.8 * originalBox.height;
+					parameterInputPanel.width = 0.35 * originalBox.width; 
+					parameterInputPanel.height = 0.8 * originalBox.height;
+					var saveB:Button = new Button(); 
+					saveB.label = "Save"; 
+					saveB.addEventListener(MouseEvent.CLICK, savingParameters);
+					cb.addChild(saveB);
 				}
 				originalBox.addChild(parameterInputPanel);
 				
 				if(data.isSelectedInAlgorithmList == false)
+				{
 					parameterInputPanel.removeAllChildren();
+					
+				}
 				
 				//clear the panel before any new dispay of input UI
 				if(data.isSelectedInAlgorithmList == true)
 				{
 					parameterInputPanel.removeAllChildren();
-					var uiComponenetList:Array = parameterInputPanel.generateUIComponents(data);
-					for(var f:int = 0; f < uiComponenetList.length; f++)
+					var objectsReturned:Array = parameterInputPanel.generateUIComponents(data);//returns an array [uicomponents, dmObject]
+					
+					for( var r:int = 0; r < objectsReturned.length; r++)
 					{
-						parameterInputPanel.addChild(uiComponenetList[f]);
+						if(objectsReturned[r] is VBox)
+						var uiComponentList:VBox = objectsReturned[r];
+						if(objectsReturned[r] is DataMiningAlgorithmObject)
+				   	    currentDMObject = objectsReturned[r] as DataMiningAlgorithmObject;
 					}
 					
 					
+					parameterInputPanel.addChild(uiComponentList);
+					parameterInputPanel.addChild(cb);//always keep the Save button
+					
 				}
 			}	
+			
+			/* -----------------------------------------------BUTTON CLICK HANDLERS-------------------------------------------------------------------------- */		
+			//saves the parameters for each dataminingalgorithm object
+			private function savingParameters(event:Event):void
+			{
+				for(var g :int = 0; g < currentDMObject.parameters.length; g++)
+				{
+					if(currentDMObject.parameters[g] is NumberInputComponent)
+					{
+						var tempComponentType:NumberInputComponent = currentDMObject.parameters[g];
+						currentDMObject.parameterMapping[tempComponentType.identifier] = Number(tempComponentType.numberInput.text);
+						
+					}
+					
+					if(currentDMObject.parameters[g] is ChoiceInputComponent)
+					{
+						var tempComponentType2:ChoiceInputComponent = currentDMObject.parameters[g];
+						currentDMObject.parameterMapping[tempComponentType2.identifier] = tempComponentType2.choiceBox.selectedLabel;
+						
+					}
+				}
+				
+				//finally
+				collectionOfDataMinigObjects.push(currentDMObject);
+			}
+			
+			/*------------------------------------------------SENDING DATAMING OBJECTS TO R---------------------------------------------------------------------*/
+			
+			protected function sendToRButton_clickHandler(event:MouseEvent):void
+			{
+				 var Rchannel:DataMiningChannelToR = new DataMiningChannelToR(collectionOfDataMinigObjects,finalColumns,latestColumnKeys);
+			}
 			
 		]]>
 	</mx:Script>
@@ -285,10 +322,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:ArrayCollection id="algoListFiller" 
 						source="{listOfAlgo}" 
 						collectionChange="algoListFiller_collectionChange(event);"/>
-		
-	<mx:HBox id="originalBox" width="100%" height="100%">
+	<mx:VBox width="100%" height="100%">
+	<mx:HBox id="originalBox" width="100%" height="95%">
 		<!--1-->
 		<ColumnListComponent width="20%" height="80%" id="columns" hashMap="{inputVariables}"/>
+		<!--2-->
 			<mx:Panel width="20%" height="80%"
 					  id="pan1" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
 					  title="Choose the data mining algorithms"
@@ -321,7 +359,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
    			</mx:Panel>	
 	
 		
-		<!--2-->
+		<!--3-->
 			<mx:Panel width="25%" height="80%" title="Algorithm Cart" fontWeight="bold" styleName="opaquePanel"
 					  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
 				<mx:List width = "100%" height="100%" id="secondList" dataProvider="{selectedAlgorithmList}"
@@ -337,6 +375,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		  </mx:Panel>
 		
 </mx:HBox>
-
+	
+	<mx:HBox width="100%" height="5%">
+		
+	<s:Spacer height="10" width="90%"/>
+   <mx:Button id="sendToRButton" height="20" label="Run" click="sendToRButton_clickHandler(event)"/>
+	</mx:HBox>
+</mx:VBox>
 </DraggablePanel> 
 

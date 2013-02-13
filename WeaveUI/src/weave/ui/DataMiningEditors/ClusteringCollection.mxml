@@ -78,7 +78,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.rpc.AsyncToken;
 			
-			import weave.api.WeaveAPI;
+			import weave.services.addAsyncResponder;
 			
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -265,7 +265,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var outputNames:Array = ["kMeansResult$cluster","fuzzkmResult$clustering"];
 				
 				var query:AsyncToken = Rservice.runScript(latestColumnKeys,inputNames,inputValues,outputNames,script,"",false, false, false);
-				DelayedAsyncResponder.addResponder(query,handleRunScriptResult, handleRunScriptFault,latestColumnKeys);
+				addAsyncResponder(query,handleRunScriptResult, handleRunScriptFault,latestColumnKeys);
 			}
 			
 			public function handleRunScriptResult(event:ResultEvent, token:Object = null):void

@@ -130,18 +130,24 @@ public class test
 		
 
 		//String docrootPath  = "";
-		inputNames = new String []{"mymatrix"};//for operations on matrices
+		//inputNames = new String []{"inputColumns", "number_of_clusters", "number_of_Iterations", "randomsets", "algorithm"};//for operations on matrices
+		
+		inputNames = new String []{"inputColumns","fnumberOfClusters","dmetric","fnumberOfIterations"};
+		//inputNames = new String []{"inputColumns", "knumber_of_clusters","knumber_of_Iterations","randomsets","algorithm","fnumberOfClusters","dmetric","fnumberOfIterations"};//for operations on matrices
+		Number number_of_clusters = 3;
+		Number number_of_Iterations = 10;
+		Number fnumber_of_clusters = 3;
+		Number fnumber_of_Iterations = 500;
+		Number randomsets = 1;
+		String algorithm = "Forgy";
+		String dmetric = "manhattan";
 		//inputNames =  new String []{"myVector"};//for operations on vectors
 	//inputValues = new Object[][]{array1,array2};
-		//Object[][] myMatrix = new Object[][]{array1, array2, array3};
-	inputValues1 = new Object[]{ array3 };
-		//inputValues1 = new Object[]{myMatrix};
-	parameters = new Object []{"less",false, false};
-//		keys = new String []{"a","b","c","d","e","f"};
-		//plotscript = "hist(Vec1)";
-//		
-		
-		
+		Object[][] myMatrix = new Object[][]{array1, array2, array3};
+	//inputValues1 = new Object[]{ array3 };
+		inputValues1 = new Object[]{myMatrix,fnumber_of_clusters,dmetric,fnumber_of_Iterations};
+	//inputValues1 = new Object[]{myMatrix,number_of_clusters,number_of_Iterations,randomsets,algorithm,fnumber_of_clusters,dmetric,fnumber_of_Iterations};
+
 		//keys = new  String[]{};
 //		script = "Clustering <- function(clusternumber, iterations)\n" +
 //				 "{result1 <- kmeans(dataframe1, clusternumber, iterations)\n" +
@@ -158,11 +164,16 @@ public class test
 	    //imputation script
 //		script = "  library(norm) \n pre<-prelim.norm(Bind) \n eeo <- em.norm(pre) \n rngseed(34215) \n " +
 //				 " imputed <- imp.norm(pre, eeo, Bind) ";
-	
-	//script = "cdoutput<- t.test(mtVec1,myVector, var.equal = FALSE)";//test for vectors
-		//script = "frame";
-		//resultNames = new String[]{"frame"};
-	
+
+//	
+	script = "library(cluster)\n" +
+			"frame <- data.frame(inputColumns)\n" +
+	"fuzzkMeansResult <- fanny(frame,fnumberOfClusters, metric = dmetric, maxit = fnumberOfIterations)\n";
+//	script = "frame <- data.frame(inputColumns)\n" +
+//	"kMeansResult <- kmeans(frame,knumber_of_clusters,knumber_of_Iterations, nstart = randomsets, algorithm)\n" +
+//	"library(cluster)\n" +
+//	"fuzzkMeansResult <- fanny(frame,fnumberOfClusters, metric = dmetric, maxit = fnumberOfIterations)\n"; 
+
 //	script =	"frame <- data.frame(mymatrix)\n" +
 //				"v <- function(frame){\n" +
 //				"RR <- nrow(frame)\n"+
@@ -183,8 +194,11 @@ public class test
 	
 	//script = "answer <- cor(mymatrix, use = \"everything\", method = \"pearson\")";
 		//resultNames =  new String []{"answer"};//test for matrix
-	resultNames = new String[]{"d"};
-//	
+	//resultNames = new String[]{"2"};
+	resultNames = new String[]{"fuzzkMeansResult"};
+	//resultNames = new String[]{"pcaResult$loadings", "pcaResult$sd^2"};
+	//plotscript = "plot(x <- c(1,2,3,4))";
+	
 //	plotscript = "for(i in 1:3)\n" +
 //			"{" +
 //			"hist(myVector)\n" +
@@ -196,8 +210,10 @@ public class test
 	//script = "s <- data.frame(Vec1)";
 		//script = "Vec1 <- as.matrix(Vec1)\n";
 		//resultNames = new String[]{"CluResult$cluster", "CluResult$centers", "CluResult$size", "CluResult$withinss"};
-	script = "d <- is.vector(mymatrix)";
-		call(null,inputNames, inputValues1,resultNames,script,plotscript, false,false,false);
+	//script = "d <- is.vector(mymatrix)";
+//	script = "frame <- data.frame(mymatrix)\n" +
+//	"pcaResult <- princomp(frame)\n";
+		call(null,inputNames, inputValues1,resultNames,script,plotscript, true,false,false);
 		
 	}
 }

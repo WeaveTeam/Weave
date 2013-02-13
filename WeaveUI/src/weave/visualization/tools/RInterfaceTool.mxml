@@ -175,6 +175,9 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			
+			import weave.services.addAsyncResponder;
+			
 			import mx.controls.Alert;
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
@@ -396,7 +399,7 @@
 				var showWarnings:Boolean = warningCB.selected;
 				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,false);
 				
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 			}
 			
 			public var scriptResultValueExhibitMap:Dictionary = new Dictionary();

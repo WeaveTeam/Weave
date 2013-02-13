@@ -149,7 +149,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						attributeColumns.push(col);
 					}
 					
-					var joinedColumns:Array = kMeans.joinColumns(attributeColumns);
+					var joinedColumns:Array = ResultUtils.joinColumns(attributeColumns);
 					latestColumnKeys = joinedColumns[0];
 					finalColumns = joinedColumns[1];
 				}

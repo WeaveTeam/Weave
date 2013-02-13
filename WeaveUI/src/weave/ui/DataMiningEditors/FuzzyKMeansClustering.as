@@ -36,6 +36,7 @@ package weave.ui.DataMiningEditors
 	import weave.data.KeySets.KeySet;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.RResult;
 	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
@@ -90,7 +91,7 @@ package weave.ui.DataMiningEditors
 			//var outputNames:Array = ["kMeansResult$cluster","kMeansResult$centers", "kMeansResult$totss", "kMeansResult$withinss","kMeansResult$tot.withinss","kMeansResult$betweenss","kMeansResult$size"];
 			
 			var query:AsyncToken = Rservice.runScript(token,inputNames, inputValues,outputNames,fuzzkMeansScript,"",true, true, false);
-			DelayedAsyncResponder.addResponder(query,handleRunScriptResult, handleRunScriptFault,token);
+			addAsyncResponder(query,handleRunScriptResult, handleRunScriptFault,token);
 			
 		}
 		

@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
-  <includeClasses/>
+  <includeClasses>
+    <classEntry path="weave.editors.PrincipalComponentEditor"/>
+    <classEntry path="weave.ui.DataMiningEditors.KMeansClustering"/>
+    <classEntry path="weave.ui.DataMiningEditors.ClusteringCollection"/>
+    <classEntry path="weave.ui.DataMiningEditors.DataMiningAlgorithmObject"/>
+    <classEntry path="weave.ui.DataMiningEditors.DMiningParameterPanel"/>
+    <classEntry path="weave.ui.DataMiningEditors.NumberInputComponent"/>
+    <classEntry path="weave.ui.DataMiningEditors.DataMiningChannelToR"/>
+  </includeClasses>
   <includeResources/>
   <namespaceManifests/>
 </flexLibProperties>
