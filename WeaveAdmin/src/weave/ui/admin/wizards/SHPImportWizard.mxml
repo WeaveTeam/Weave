@@ -117,7 +117,6 @@
 			
 			private function handleCreationComplete():void
 			{
-				debugTrace(this);
 				shapeFileReferenceList.addEventListener(Event.SELECT, shapeFileSelectedHandler);
 				shpFileNameInput.addEventListener(
 					Event.CHANGE,
