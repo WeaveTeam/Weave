@@ -77,7 +77,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							import weave.api.newLinkableChild;
 							import weave.api.registerLinkableChild;
-							import weave.api.reportError;       
+							import weave.api.reportError;      
 							import weave.core.LinkableString;
 							import weave.core.SessionManager;
 							import weave.editors.Disability;
@@ -121,8 +121,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								linkBindableProperty(Weave.properties.disabilityLongAltText, longDescTextInputBox, "text");
 								Weave.properties.disabilityAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
 								Weave.properties.disabilityLongAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
-								updateCheckBoxes();   
-								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);   
+								updateCheckBoxes();  
+								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);  
 								shortDescriptionCheckbox.addEventListener(MouseEvent.CLICK, shortDescriptionCheckBoxClickHandler);
 								automaticDescLineChartCheckbox.addEventListener(MouseEvent.CLICK, automaticDescLineChartCheckboxClickHandler);
 								
@@ -137,10 +137,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							
 							protected function panelRemovedEventHandler(event:Event):void
-							{   
+							{  
 								var Name : String = WeaveAPI.getRegisteredImplementationDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop();
 								
-								updateCheckBoxes();       
+								updateCheckBoxes();      
 							}
 							
 							private function updateCheckBoxes():void
@@ -158,30 +158,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									
 									cb = new CheckBox();
 									cb.label=panel.title;
-									//linkBindableProperty(Weave.properties.getToolToggle(panel), cb, 'selected');
 									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
-									cb.selected = true;
 									cbArray.push(cb);
 									
-								}            
+								}           
 								
 								cbArray.sortOn('label');
 								for each (cb in cbArray)
 								{
 									menuToggleVBox.addChild(cb);
-									cb.addEventListener(MouseEvent.CLICK, checkBoxClickHandler);       
+									cb.addEventListener(MouseEvent.CLICK, checkBoxClickHandler);      
 								}
 								
 							}
 							
 							protected function AppendStaticWidget():void
-							{
-								
-								
+							{           
 								
 							}
 							
-							public function checkBoxClickHandler(event:MouseEvent):void
+							protected function checkBoxClickHandler(event:MouseEvent):void
 							{
 								
 								
@@ -199,7 +195,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									
 									selectedCheckBoxLabelArray.push(event.target.label);
 									
-								}                               
+								}                              
 								else // checkbox deselected
 								{
 									selectedCheckBoxLabelArray.splice(selectedCheckBoxLabelArray.indexOf(event.target.label), 1);
@@ -292,8 +288,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 							
 						]]>
-					</mx:Script>   
-				</mx:VBox>   
+					</mx:Script>  
+				</mx:VBox>  
 			</mx:VBox>
 		</mx:TabNavigator>
 	</mx:HDividedBox>

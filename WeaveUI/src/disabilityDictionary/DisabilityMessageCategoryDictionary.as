@@ -21,8 +21,8 @@ package disabilityDictionary
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.editors.Disability;
-
-	public class DisabilityMessageCategoryDictionary 
+	
+	public class DisabilityMessageCategoryDictionary
 	{
 		
 		public var messageCategoryMap:Dictionary;
@@ -31,16 +31,17 @@ package disabilityDictionary
 		{
 			messageCategoryMap = DisabilityMessageProperties.getMessageCategoryMap();
 		}
-
+		
 		
 		public function setMessage(messageID:Array):Array//returns an array of strings(messages)
-		
+			
 		{
 			var messageCollections:Array = new Array();//collects all the messages together
 			for (var i:int =0; i < messageID.length; i++)//picking up as many nessages as there are IDs
 			{
 				messageCollections[i] = messageCategoryMap[messageID[i]];
 			}
+			
 			
 			return messageCollections;
 		}
@@ -57,18 +58,18 @@ package disabilityDictionary
 			
 			//for(var i:int = 0; i < objProperties.length; i++)
 			//{
-				//flesh out these if else checks to make the decision for the message category
-				
-				
-				if (objProperties[0] > 0)   // propertyNames[0] -> slope hard coded
-					messageCategoryIDs.push(DisabilityMessageProperties.INCREASING_TREND_ID);
-				else if (objProperties[0] < 0) 
-					messageCategoryIDs.push(DisabilityMessageProperties.DECREASING_TREND_ID);
-				else if (objProperties[0] == 0)
-					messageCategoryIDs.push(DisabilityMessageProperties.STABLE_TREND_ID); 
-			//	else 
-			//		messageCategoryIDs.push(DisabilityMessageProperties.UNDEFINED_TREND_ID);
-				
+			//flesh out these if else checks to make the decision for the message category
+			
+			
+			if (objProperties[0] > 0)   // propertyNames[0] -> slope hard coded
+				messageCategoryIDs.push(DisabilityMessageProperties.INCREASING_TREND_ID);
+			else if (objProperties[0] < 0)
+				messageCategoryIDs.push(DisabilityMessageProperties.DECREASING_TREND_ID);
+			else if (objProperties[0] == 0)
+				messageCategoryIDs.push(DisabilityMessageProperties.STABLE_TREND_ID);
+			//    else
+			//        messageCategoryIDs.push(DisabilityMessageProperties.UNDEFINED_TREND_ID);
+			
 			//}
 			
 			
