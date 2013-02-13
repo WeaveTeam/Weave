@@ -168,10 +168,9 @@ package weave.services
 			service.addHook(
 				service.getWeaveFileNames,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, user_pass_showAllFiles:Array):void
 				{
-					// save list
-					var showAllFiles:Boolean = arguments[0];
+					var showAllFiles:Boolean = user_pass_showAllFiles[2];
 					if (showAllFiles)
 						weaveFileNames = event.result as Array || [];
 					else
@@ -217,10 +216,12 @@ package weave.services
 			service.addHook(
 				service.removeConnectionInfo,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, user_pass_connectionNameToRemove:Array):void
 				{
+					var activeUser:String = user_pass_connectionNameToRemove[0];
+					var removedUser:String = user_pass_connectionNameToRemove[2];
 					// if user removed self, log out
-					if (arguments[0] == arguments[2])
+					if (activeUser == removedUser)
 					{
 						activeConnectionName = '';
 						activePassword = '';
