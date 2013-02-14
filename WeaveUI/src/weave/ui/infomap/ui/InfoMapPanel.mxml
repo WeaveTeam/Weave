@@ -137,7 +137,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const entityColumnsHashmap:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
 			
-			public const relatedColumnsHashmap:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(),handleRelatedColumnsChange);
+			private const relatedColumnsHashmap:LinkableHashMap = new LinkableHashMap();
 			
 			/**
 			 * @public
@@ -221,6 +221,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				entityColumnsList.reverseButton.enabled = false;
 				entityColumnsList.reverseButton.visible = false;
+				
+				relatedColumnsHashmap.addGroupedCallback(this,handleRelatedColumnsChange,false);
 			}
 			
 			private function handleGlobalKeyInput(event:KeyboardEvent):void

@@ -4,10 +4,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -132,9 +130,6 @@ public class SummarizationJob implements Job{
 					query.setStart(k);
 					query.setRows(1);
 					
-					SolrInputDocument[] docsInCurrentChunk = new SolrInputDocument[2000];
-					int count = 0;
-					
 					response = server.query(query);
 					documents = response.getResults();
 					doucumentSize = documents.size();
@@ -173,12 +168,6 @@ public class SummarizationJob implements Job{
 								revisedDoc.addField("hasSummary",
 										partialUpdateHasSummary);
 								
-//								System.out.println("ADDING DOC" + revisedDoc.getField("link").getValue() + 
-//										revisedDoc.getField("attr_text_summary").getValue()
-//										+revisedDoc.getField("attr_text_topicSentence").getValue()
-//										+revisedDoc.getField("hasSummary").getValue());
-//								docsInCurrentChunk[count] = revisedDoc;
-//								System.out.println("Summarized " + doc.getFieldValue("link") + "with" + summary);
 								updateServer.add(revisedDoc);
 							} else {
 								revisedDoc.addField("link", doc.getFieldValue("link"));
@@ -186,7 +175,6 @@ public class SummarizationJob implements Job{
 								revisedDoc.addField("hasSummary",
 										partialUpdateHasSummary);
 								updateServer.add(revisedDoc);
-//								docsInCurrentChunk[count] = revisedDoc;
 							}
 		
 						}

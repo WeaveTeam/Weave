@@ -1,6 +1,5 @@
 package infomap.admin;
 
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -15,9 +14,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.apache.solr.common.SolrInputDocument;
-import org.jdom.Element;
-
-import thredds.cataloggen.config.ResultService;
 
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.ParseException;
 import com.sun.syndication.feed.synd.SyndContent;
@@ -109,7 +105,6 @@ public class ArxivDataSource extends AbstractDataSource{
 			String line = reader.readLine();
 			String content = line;
 			Pattern pat = Pattern.compile("(.*>)([0-9]+)(</opensearch:totalResults>)");
-			String[] matches = new String[10];
 			Boolean b = false;
 			while((line = reader.readLine())!=null)
 			{

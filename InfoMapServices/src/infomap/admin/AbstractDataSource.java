@@ -80,7 +80,6 @@ public abstract class AbstractDataSource implements Runnable
 	
 	public void run()
 	{
-		System.out.println("IN RUN for " + getSourceName() );
 		if(requiredQueryTerms.length>0)
 		{
 			SolrInputDocument[] results = searchForQuery();

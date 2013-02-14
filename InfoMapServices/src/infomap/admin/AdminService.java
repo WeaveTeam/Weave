@@ -15,7 +15,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -39,17 +38,14 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.Group;
 import org.apache.solr.client.solrj.response.GroupCommand;
 import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
@@ -57,17 +53,14 @@ import org.apache.solr.common.params.GroupParams;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.slf4j.spi.LocationAwareLogger;
 import org.w3c.dom.Document;
 
-import cc.mallet.util.*;
 import cc.mallet.types.*;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.*;
 import cc.mallet.topics.*;
 
 import java.util.*;
-import java.util.regex.*;
 import java.io.*;
 
 import com.dropbox.client2.DropboxAPI;
@@ -78,7 +71,6 @@ import com.dropbox.client2.session.RequestTokenPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
-import com.google.gson.Gson;
 
 import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
@@ -91,9 +83,6 @@ import infomap.utils.XMLUtils;
 
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
-import opennlp.tools.tokenize.Tokenizer;
-import opennlp.tools.tokenize.TokenizerME;
-import opennlp.tools.tokenize.TokenizerModel;
 
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
@@ -144,10 +133,11 @@ public class AdminService extends GenericServlet {
 		AdminService inst = new AdminService();
 		
 		 String [] requiredKeywords = new String[2];
-		 String [] relatedKeywords = null;
+		 String [] relatedKeywords = new String[1];
 		
-		 requiredKeywords[0] = "age of decline";
-		 requiredKeywords[1] = "sex";
+		 requiredKeywords[0] = "Johnson County";
+		 requiredKeywords[1] = " Wyoming";
+		 relatedKeywords[0] = "divorced";
 	     inst.getNumOfDocumentsForQuery(requiredKeywords, relatedKeywords, null, "AND");
 	}
 
@@ -695,7 +685,6 @@ public class AdminService extends GenericServlet {
 			q.setFields("link");
 
 			QueryResponse response = solrInstance.query(q);
-			Iterator<SolrDocument> iter = response.getResults().iterator();
 
 			FacetField ff = response.getFacetField("description");
 			Iterator<Count> iter2 = ff.getValues().iterator();
@@ -1049,7 +1038,6 @@ public class AdminService extends GenericServlet {
 		ArrayList<String[]> r = new ArrayList<String[]>();
 
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
-
 		if (queryString == null)
 			return null;
 
@@ -1402,12 +1390,22 @@ public class AdminService extends GenericServlet {
 		// if it is not a single word we add the operator between each keyword
 		// splitting the keywords at the spaces.
 		if (keywords.length > 1) {
-			for (int i = 0; i < keywords.length; i++) {
-				tempArr = keywords[i].split(" ");
+			for (int i = 0; i < keywords.length; i++) 
+			{
+				
+				tempStr = keywords[i].trim();
+				
+				tempArr = tempStr.split(" ");
+				
 				if(tempArr.length >1)
+				{
 					result += mergeKeywords(tempArr, "AND");
+				}
 				else
-					result += "\"" + keywords[i] + "\"";
+				{
+					result += "\"" + tempStr + "\"";
+				}
+				
 				if (i != keywords.length - 1)
 				{
 					result += " " + operator + " ";

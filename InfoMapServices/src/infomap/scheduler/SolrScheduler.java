@@ -123,17 +123,17 @@ public final class SolrScheduler extends HttpServlet{
 			
 				sched = _schedFactory.getScheduler();
 				
-				JobDetail indexingJob = JobBuilder.newJob(SolrIndexingJob.class).withIdentity(jobNameForIndexing,jobGroupName).build();
-				
-				Trigger triggerIndexingJob = TriggerBuilder.newTrigger()
-								.withIdentity("triggerForIndexing","solr")
-								.startAt(DateBuilder.futureDate(5, IntervalUnit.MINUTE))
-								.withSchedule(repeatMinutelyForever(interval))
-								.build();
-				
-				
-				sched.scheduleJob(indexingJob, triggerIndexingJob);
-				sched.start();
+//				JobDetail indexingJob = JobBuilder.newJob(SolrIndexingJob.class).withIdentity(jobNameForIndexing,jobGroupName).build();
+//				
+//				Trigger triggerIndexingJob = TriggerBuilder.newTrigger()
+//								.withIdentity("triggerForIndexing","solr")
+//								.startAt(DateBuilder.futureDate(5, IntervalUnit.MINUTE))
+//								.withSchedule(repeatMinutelyForever(interval))
+//								.build();
+//				
+//				
+//				sched.scheduleJob(indexingJob, triggerIndexingJob);
+//				sched.start();
 				
 				String enableThumbnail = prop.getProperty("enableThumbnailing");
 				
@@ -147,12 +147,22 @@ public final class SolrScheduler extends HttpServlet{
 					sched.triggerJob(thumbnailJobKey);
 				}
 				
+				
+				String enableSummarization = prop.getProperty("enableSummarization");
 				JobKey summarizationJobKey = JobKey.jobKey(jobNameForSummarization,jobGroupName);
-				JobDetail summarizationJob = JobBuilder.newJob(SummarizationJob.class).withIdentity(summarizationJobKey)
-													.storeDurably()
-													.build();
-				sched.addJob(summarizationJob,true);
-				sched.triggerJob(summarizationJobKey);
+				if(enableSummarization.equalsIgnoreCase("true"))
+				{
+					JobDetail summarizationJob = JobBuilder.newJob(SummarizationJob.class).withIdentity(summarizationJobKey)
+														.storeDurably()
+														.build();
+					sched.addJob(summarizationJob,true);
+					sched.triggerJob(summarizationJobKey);
+				}
+				
+				if(enableThumbnail.equalsIgnoreCase("false") &&  enableSummarization.equalsIgnoreCase("false"))
+				{
+					keepRunning = false;
+				}
 				//Sleep for a minute before going into while loop
 				waitForMinutes(1, "first trigger of jobs");
 				while(keepRunning)

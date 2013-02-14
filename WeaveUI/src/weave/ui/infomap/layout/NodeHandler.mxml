@@ -459,12 +459,11 @@
 			{
 					if(event.result as Number> 0)
 					{
-						status.text = "Documents found in data sources. Wait for next refresh...";
+						status.text = "No documents found. Wait for next refresh...";
 					}
 					else
 					{
-						status.text = "No documents found in data sources."; 
-						
+						status.text = "No documents found."; 
 					}
 			}
 			
@@ -491,6 +490,12 @@
 						handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
 					return;						
+				}
+				
+				if(numOfMatchedDocuments.value == numOfDocs)
+				{
+					status.text = "";					
+					return;
 				}
 				
 				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
@@ -573,6 +578,10 @@
 					//its a new query
 					thumbnails.removeAllObjects();
 					highlightNewDocuments = false;
+					/* We do this because we list to remain on the same page if it is the same query. 
+					Only switch to first page if it is new query*/
+					if(docListComponent)
+						docListComponent.startIndex.value = 0;
 				}else
 				{
 					//its an old query

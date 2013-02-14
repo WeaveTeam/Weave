@@ -2,14 +2,11 @@ package infomap.scheduler;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.request.CoreAdminRequest;
-import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.CoreAdminParams.CoreAdminAction;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 
@@ -18,7 +15,6 @@ import infomap.utils.FileUtils;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.net.URI;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.*;
@@ -71,16 +67,6 @@ public class GenerateThumbnailJob implements Job{
 	**/
 	private String thumbnailPath;
 	
-//	/**
-//	 *The URL for the document. Could be a file path or a Web document URL
-//	**/
-//	public String url;
-//	
-//	/**
-//	 *The name to use when creating the image. 
-//	**/
-//	public String imgName;
-	
 	/**
 	 *The image format. Default to JPG for smaller sized images.
 	**/
@@ -115,7 +101,6 @@ public class GenerateThumbnailJob implements Job{
 				thumbnailPath = tomcatPath + "/webapps/ROOT/thumbnails/";
 			
 			File tbPath = new File(thumbnailPath);
-//			System.out.println(thumbnailPath);
 			if(!tbPath.isDirectory())
 			{
 				Boolean createDir = tbPath.mkdir();
@@ -261,15 +246,6 @@ public class GenerateThumbnailJob implements Job{
 				}
 			}
 				
-				
-//				if(totalFound>0)
-//				{
-//					coreSolrServer.commit();
-//					System.out.println("committing updated documents");
-//				}
-				
-				
-				
 			}catch (Exception e) {
 				System.out.println("Error querying Core Solr Server");
 				e.printStackTrace();
@@ -287,7 +263,6 @@ public class GenerateThumbnailJob implements Job{
 		
 		try
 		{
-			System.out.println("Creating image for document " + url);
 			URL docURL = new URL(url);
 			String protocol = docURL.getProtocol();
 			String tempPDFFilePath;
@@ -353,7 +328,6 @@ public class GenerateThumbnailJob implements Job{
 						command.add("--url="+url);
 						command.add("--out="+thumbnailPath + imgName + "." + imgExtension);
 					}
-//					System.out.println("running command  " + command.toArray().length);
 					success = runCommand(command);
 				}
 			}
@@ -434,8 +408,6 @@ public class GenerateThumbnailJob implements Job{
 		command.add("PDFToImage");
 		command.add("-imageType");
 		command.add(imgExtension);
-//		command.add("-outputPrefix");
-//		command.add(imgName);
 		command.add("-startPage");
 		command.add("1");
 		command.add("-endPage");
@@ -492,8 +464,6 @@ public class GenerateThumbnailJob implements Job{
 	private ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private Boolean runCommand(ArrayList<String> command)
 	{
-//		System.out.println("in runn command");
-//		System.out.println(command.toString());
 		Boolean success = false;
 		RunCommand task = new RunCommand();
 		task.command = command;
@@ -502,11 +472,13 @@ public class GenerateThumbnailJob implements Job{
 			success = future.get(30, TimeUnit.SECONDS);
 		}catch (Exception e) {
 			System.out.println("Command could not be completed");
+			System.out.println(command.toString());
 			e.printStackTrace();
 			success = false;
+		}finally
+		{
+			future.cancel(true);
 		}
-		executor.shutdownNow();
-		future.cancel(true);
 		return success;
 	}
 	
@@ -525,7 +497,6 @@ public class GenerateThumbnailJob implements Job{
 		public Boolean call() throws Exception {
 			try
 			{
-//				System.out.println("RUNNING THREAD FROM GENERATE THUMBNAIL WITH NAME " + Thread.currentThread().getName());
 				String[] commmandsToExec = new String[0];
 				
 				commmandsToExec = command.toArray(commmandsToExec);

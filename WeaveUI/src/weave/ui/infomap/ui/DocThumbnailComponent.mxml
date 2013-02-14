@@ -113,7 +113,7 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the thickness of the border of this image.
 			 * */
-			public const borderThickness:LinkableNumber = newLinkableChild(this,LinkableNumber);
+//			public const borderThickness:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			/**
 			 * @public
 			 * This variable sets the x position of this image.

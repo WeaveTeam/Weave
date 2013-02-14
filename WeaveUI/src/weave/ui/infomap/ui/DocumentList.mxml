@@ -183,8 +183,6 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			
 			private function handleKeysChange():void
 			{
-				startIndex.value = 0;
-				
 				startIndex.triggerCallbacks();
 			}
 			
