@@ -119,7 +119,6 @@ LayerListComponent
 								{
 									linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
 									linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
-									selectedCheckbox.visible = true;
 								}
 							}
 							
