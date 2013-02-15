@@ -18,6 +18,7 @@
 */
 package weave.api.ui
 {
+
 	/**
 	 * This is an interface for a collaboration cursor manager, which is in charge of rendering collaboration mouse cursors.
 	 * After any change in the property of a cursor, if nothing occurs after a set amount of time (for example, 5000 milliseconds),
@@ -25,9 +26,15 @@ package weave.api.ui
 	 * the cursor should fade back into view quickly during the move animation.
 	 * 
 	 * @author adufilie
+	 * @author jfallon
 	 */
 	public interface ICollabCursorManager
 	{
+		/**
+		 * This function creates a mouse cursor and needs to be passed a name, preferably the collaborator's username.
+		 * @param id Identity to use to refer to the mouse cursor with.
+		 */		
+		function createCursor(id:String):void;
 		/**
 		 * This is a list of all existing cursor ids.
 		 * @return An Array of mouse cursor ids.
@@ -40,7 +47,7 @@ package weave.api.ui
 		 * @param visible Set to true if the mouse should become visible, or false if it should become invisible.
 		 * @param duration The duration of the visibility transition, in milliseconds.
 		 */
-		function setVisible(id:String, visible:Boolean, duration:uint = 1000):void;
+		function setVisible(id:String, visible:Boolean, duration:uint = 3000):void;
 
 		/**
 		 * Set the coordinates of a specific mouse cursor.
@@ -61,9 +68,38 @@ package weave.api.ui
 		function setColor(id:String, color:uint, duration:uint = 1000):void;
 		
 		/**
+		 * This function returns the color of a specified mouse cursor's color. 
+		 * @param Id of the mouse.
+		 * @return Returns the color of the cursor, or NaN if the cursor doesn't exist.
+		 */
+		function getColor(id:String):Number;
+		
+		/**
 		 * Remove a specific mouse cursor immediately so it no longer appears on the screen or in the list of cursor ids.
 		 * @param id Identifies a cursor. If the cursor doesn't exist, this function has no effect.
 		 */		
 		function removeCursor(id:String):void;
+		
+		/**
+		 * A function for returning the mouse queue.
+		 * @return An array containing the id's of all the users in the queue.
+		 */
+		function getMouseQueue():Array;
+		
+		/**
+		 * Adds a user into the mouse queue to get in line for control of the session.
+		 * @param id The id of the mouse to be added to the queue.
+		 * @param self The id of yourself to check if your mouse should be displayed for others.
+		 * @return Returns an array of which the first index indicates your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue. The following indexes of the array are the usernames of the users who have control of the session. 
+		 */
+		function addToQueue(id:String, self:String):Array;
+		
+		/**
+		 * Remove a person from the mouse queue.
+		 * @param id The id of the mouse to be removed from the queue.
+		 * @param self The id of yourself to check if your mouse should be displayed for others.
+		 * @return Returns an array of which the first index indicates your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue. The following indexes of the array are the usernames of the users who have control of the session.
+		 */
+		function removeFromQueue(id:String, self:String):Array;
 	}
 }

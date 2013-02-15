@@ -102,6 +102,7 @@ package weave.application
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationEditor;
 	import weave.ui.collaboration.CollaborationMenuBar;
+	import weave.ui.collaboration.CollaborationSideBar;
 	import weave.ui.collaboration.CollaborationTool;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
@@ -185,7 +186,7 @@ package weave.application
 			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
+			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationSideBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
@@ -601,33 +602,28 @@ package weave.application
 		}
 
 		/**
-		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
+		 * Optional menu bar (side of screen) to control the collaboration service and interaction
 		 * between users.
 		 */
-		private var _collabMenu:CollaborationMenuBar = null;
+		private var _collabBar:CollaborationSideBar = null;
 		
-		private function toggleCollaborationMenuBar():void
+		private function toggleCollaborationSideBar():void
 		{
-			if (!_collabMenu)
-				_collabMenu = new CollaborationMenuBar();
+			if (!_collabBar && Weave.properties.enableCollaborationBar.value )
+				_collabBar = new CollaborationSideBar();
 			
-			if( Weave.properties.enableCollaborationBar.value )
+			if( Weave.properties.enableCollaborationBar.value )	
+				PopUpManager.addPopUp(_collabBar, this);
+			else if( _collabBar != null )
 			{
-				if( !_collabMenu.parent )
-				{
-					_collabMenu.percentWidth = 100;
-					this.addChild(_collabMenu);
-					_collabMenu.addedToStage();
-				}
-			} else {
 				try
 				{
-					if( this == _collabMenu.parent ) {
-						_collabMenu.dispose();
-						this.removeChild(_collabMenu);
-					}
-					
-				} catch( error:Error ) {
+					_collabBar.removed();
+					PopUpManager.removePopUp(_collabBar);	
+					_collabBar = null;
+				}
+				catch( error:Error )
+				{
 					reportError(error);
 				}
 			}

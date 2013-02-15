@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	
 	Weave (Web-based Analysis and Visualization Environment)
 	Copyright (C) 2008-2011 University of Massachusetts Lowell
 	
@@ -17,11 +16,7 @@
 	
 	You should have received a copy of the GNU General Public License
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-
 -->
-
-
-
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
@@ -30,34 +25,13 @@
 				   creationPolicy="all" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
-			import mx.controls.ToolTip;
-			import mx.core.Application;
-			import mx.core.IFlexDisplayObject;
-			import mx.events.CloseEvent;
-			import mx.events.ListEvent;
-			import mx.managers.PopUpManager;
-			import mx.utils.StringUtil;
-			
-			import org.igniterealtime.xiff.events.OutgoingDataEvent;
-			import org.igniterealtime.xiff.events.RoomEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
-			import weave.api.newDisposableChild;
 			import weave.api.registerDisposableChild;
-			import weave.api.registerLinkableChild;
-			import weave.api.setSessionState;
-			import weave.core.SessionManager;
-			import weave.core.SessionStateLog;
 			import weave.services.collaboration.CollaborationEvent;
 			import weave.services.collaboration.CollaborationService;
-			import weave.ui.AlertTextBox;
 			
 			public static function get instance():CollaborationTool
 			{
@@ -78,7 +52,6 @@
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 200;
-			private var cursorList:ArrayCollection = new ArrayCollection();
 			
 			override protected function childrenCreated():void
 			{
@@ -89,7 +62,6 @@
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
-				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
 				
 				linkBindableProperty(Weave.properties.collabServerIP, serverIP, 'text');
 				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
@@ -176,10 +148,6 @@
 			{
 				updateEnabledSettings();
 			}
-			private function handleCreateUserMouse(e:CollaborationEvent):void
-			{
-				//cursorList.addItem(CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject));
-			}
 			
 			private function handleSettingsKeyDown(event:KeyboardEvent):void
 			{
@@ -192,13 +160,13 @@
 		]]>
 	</mx:Script>
 
-	<mx:TabNavigator width="100%" height="100%" id="tabs">
-		<mx:VBox label="Chat" width="100%" height="100%"
-				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
-				 id="chat">
+	<mx:TabNavigator id="tabs" width="100%" height="100%">
+		<mx:VBox id="chat" width="100%" height="100%" label="Chat" paddingBottom="10"
+				 paddingLeft="10" paddingRight="10" paddingTop="10">
 			<mx:HDividedBox width="100%" height="100%" enabled="{disconnectButton.enabled}">
 				<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
-				<mx:List id="users" height="100%" width="20%" minWidth="100" editable="false" dataProvider="{collabService.userList}" />
+				<mx:List id="users" width="20%" height="100%" minWidth="100"
+						 dataProvider="{collabService.userList}" editable="false"/>
 			</mx:HDividedBox>
 			<mx:HBox width="100%" enabled="{disconnectButton.enabled}">
 				<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
@@ -206,24 +174,28 @@
 			</mx:HBox>
 		</mx:VBox>
 	
-		<mx:VBox label="{lang('Settings')}" width="100%" height="100%"
+		<mx:VBox id="settings" width="100%" height="100%" minHeight="0" label="Settings"
 				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
-				 id="settings" verticalScrollPolicy="auto" minHeight="0">
+				 verticalScrollPolicy="auto">
 			<mx:VBox id="serverSettings">
 				<ui:Indent label="{lang('IP:')}">
-					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':REQUIRED}"/>
+					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverName.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('ServerName:')}">
-					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':REQUIRED}"/>
+					<mx:TextInput id="serverName" width="{textAreaWidth}"
+								  errorString="{serverName.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Port:')}">
-					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':REQUIRED}"/>
+					<mx:TextInput id="port" width="{textAreaWidth}"
+								  errorString="{port.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Room Name:')}">
-					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':REQUIRED}"/>
+					<mx:TextInput id="roomToJoin" width="{textAreaWidth}"
+								  errorString="{roomToJoin.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Username:')}">
-					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':REQUIRED}"/>
+					<mx:TextInput id="username" width="{textAreaWidth}"
+								  errorString="{username.text?'':'Required'}"/>
 				</ui:Indent>
 			</mx:VBox>
 			<!--<ui:Indent label="{lang('Cursor color:')}">

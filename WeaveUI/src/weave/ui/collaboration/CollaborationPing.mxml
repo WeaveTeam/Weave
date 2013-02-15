@@ -4,7 +4,7 @@
 	Copyright (C) 2008-2011 University of Massachusetts Lowell
 	
 	This file is a part of Weave.
-	
+
 	Weave is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, Version 3,
 	as published by the Free Software Foundation.
@@ -15,15 +15,21 @@
 	GNU General Public License for more details.
 	
 	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off"
-		   width="50" height="25" backgroundAlpha="1" toolTip="{'Connection Speed: '+ strength}">
-	<mx:HBox width="100%" height="100%" horizontalGap="1" horizontalScrollPolicy="off" verticalAlign="bottom">
-		<mx:Canvas id="bar1" width="{width/5}" height="{1*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-		<mx:Canvas id="bar2" width="{width/5}" height="{2*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-		<mx:Canvas id="bar3" width="{width/5}" height="{3*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-		<mx:Canvas id="bar4" width="{width/5}" height="{4*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="50" height="25" backgroundAlpha="1" horizontalScrollPolicy="off"
+		   toolTip="{'Connection Speed: '+ strength}">
+	<mx:HBox width="100%" height="100%" horizontalGap="1" horizontalScrollPolicy="off"
+			 verticalAlign="bottom">
+		<mx:Canvas id="bar1" width="{width/5}" height="{1*height/4}" borderColor="0x000000"
+				   borderStyle="solid" borderThickness="1"/>
+		<mx:Canvas id="bar2" width="{width/5}" height="{2*height/4}" borderColor="0x000000"
+				   borderStyle="solid" borderThickness="1"/>
+		<mx:Canvas id="bar3" width="{width/5}" height="{3*height/4}" borderColor="0x000000"
+				   borderStyle="solid" borderThickness="1"/>
+		<mx:Canvas id="bar4" width="{width/5}" height="{4*height/4}" borderColor="0x000000"
+				   borderStyle="solid" borderThickness="1"/>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
@@ -49,6 +55,10 @@
 					strength = "N/A";
 				}
 			}
+			
+			/*
+			* This function is used for drawing the bars to show the ping.
+			*/
 			private function setBars(bars:Number):void
 			{
 				clearBars();
@@ -77,6 +87,7 @@
 					}
 				}
 			}
+			
 			private function clearBars():void
 			{
 				bar4.setStyle("backgroundAlpha", 0);
