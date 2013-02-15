@@ -174,8 +174,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				UIUtils.linkDisplayObjects(map,nodes,false);
-				sortByTitle();
-//				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text",500);
 				
 				registerDisposableChild(this,globalSearchKeyword);
 				registerDisposableChild(this,globalDateFilter);
@@ -186,7 +184,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleMouseUp);
 				
-//				selectionKeywords.addGroupedCallback(this,handleRecordsSelection,false);
 				
 				_entityKeySet.addGroupedCallback(this,parseRecordsSelectionQueryResponse,false);
 				
@@ -196,8 +193,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				internalColorRamp.value = '<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>';
 				
-//				linkBindableProperty(defaultNodeBorderColor,defaultNodeColorPicker,"selectedColor");
-//				linkBindableProperty(selectedNodeBorderColor,selectedNodeColorPicker,"selectedColor");
 				linkBindableProperty(defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
@@ -208,8 +203,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_infomapSubMenu.addSubMenuItem("Add Query Node",addInfoMapNode);
 				_infomapSubMenu.addSubMenuItem("Add Map Node",addInfoMapLink);
-				_infomapSubMenu.addSubMenuItem("Show all Tag Clouds",showAllTagClouds);
-				_infomapSubMenu.addSubMenuItem("Hide all Tag Clouds",hideAllTagClouds);
+				_infomapSubMenu.addSubMenuItem("Show related Data records",showRelatedDataRecords);
+				_infomapSubMenu.addSubMenuItem("Show related Documents",showRelatedDocuments);
 				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 				
@@ -281,6 +276,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				t.imageHeight.value = 50;
 				t.imageWidth.value = 50;
 				
+			}
+			
+			private function showRelatedDataRecords():void
+			{
+				var nodeHandlers:Array = nodes.getObjects();
+				for each (var node:NodeHandler in nodeHandlers)
+				{
+					node.showRelatedRecords();
+				}
+			}
+			
+			private function showRelatedDocuments():void
+			{
+				var nodeHandlers:Array = nodes.getObjects();
+				for each (var node:NodeHandler in nodeHandlers)
+				{
+					node.showRelatedDocuments();
+				}
 			}
 			
 			private var _subset:KeyFilter;
@@ -922,7 +935,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				relatedKeywordsArrayCollection.source = relatedKeywordsArray;
 			}
 			
-			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString(""));
+			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString(""),updatePanelTitle);
+			
+			private function updatePanelTitle():void
+			{
+				if(relatedKeywords.value)
+					panelTitle.value = "InfoMapPanel with keywords " + relatedKeywords.value;
+				else
+					panelTitle.value = "InfoMapPanel with no keywords ";
+			}
+			
 			private function handleRelatedKeywordsChange(event:Event):void
 			{
 				var keywords:Array = relatedKeywordsArrayCollection.source as Array;

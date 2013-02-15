@@ -371,6 +371,8 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
 				addChild(topicComponent);
 				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
+				
+				parentPanel.entityColumnsHashmap.addGroupedCallback(this,getEntityDistribution);
 			}
 			
 			private var _nodeName:String = "";
@@ -982,13 +984,23 @@
 			
 			private function getEntityDistribution():void
 			{
-				
+				trace("calling Entity Distribution");
 				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
 				
 				if(entityColumns.length == 0)
 					return;
 				
-				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
+				var keys:Array = [];
+				for each(var col:IAttributeColumn in entityColumns)
+				{
+					keys = keys.concat((col as IAttributeColumn).keys);
+				}
+				
+				if(keys.length ==0)
+				{
+					return;
+				}
+				
 				var requiredKeywords:Array = currentQuery.keywords.value.split(',');
 				
 				/* if there more than 1000 entities we will only show entity distribution for selected entities */
@@ -1123,6 +1135,53 @@
 				object.panelTitle.value = 'Entity Distribution for Query "' + currentQuery.keywords.value + '"';
 			}
 			
+			public function showRelatedRecords():void
+			{
+				var selectedKeys:Array = _selection.keys;
+				
+				var requiredURLS:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+					{
+						requiredURLS.push(key.localName);		
+					}
+				}
+				
+				handleDocumentSelection(requiredURLS);				
+			}
+			
+			public function showRelatedDocuments():void
+			{
+				var requiredKeys:Array = _selection.keys;
+				var entityColumns:Array = parentPanel.entityColumnsHashmap.getObjects();
+				
+				var entities:Array = [];
+				
+				for each (var key:IQualifiedKey in requiredKeys)
+				{
+					for each(var c:IAttributeColumn in entityColumns)
+					{
+						if(c.containsKey(key))
+						{
+							entities.push(c.getValueFromKey(key));				
+						}
+					}
+				}
+				
+				var docs:Array = [];
+				for each (var entity:String in entities)
+				{
+					docs = docs.concat(_entitiesToURLsHashMap[entity]);
+				}
+				
+				var requiredDocKeys:Array = WeaveAPI.QKeyManager.getQKeys(InfoMapsDataSource.DOC_KEYTYPE,docs);
+				
+				_selection.addKeys(requiredDocKeys);
+			}
+			
+			
 			private function handleDocumentSelection(urls:Array):void
 			{
 				var keys:Array = [];
@@ -1138,7 +1197,7 @@
 					}
 				}
 				_selection.delayCallbacks();
-				_selection.replaceKeys(keys);
+				_selection.addKeys(keys);
 				_selection.resumeCallbacks();
 			}
 			
