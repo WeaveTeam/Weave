@@ -19,11 +19,15 @@
 
 package weave.compiler
 {
+	import flash.utils.ByteArray;
+	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.utils.AsyncSort;
+	import weave.utils.DebugTimer;
 
 	/**
 	 * This provides a set of useful static functions.
@@ -572,7 +576,77 @@ package weave.compiler
 		private static const _dateFormatter:DateFormatter = new DateFormatter();
 		/**
 		 * The number of milliseconds in one minute.
-		 */		
+		 */
 		private static const _timezoneMultiplier:Number = 60000;
+		
+		private static const _1:ByteArray = new ByteArray();
+		private static const _2:ByteArray = new ByteArray();
+		
+		/**
+		 * This function writes two objects to two separate ByteArrays and compares the bytes.
+		 * This is much faster than using ObjectUtil.compare() but not guaranteed to give the same results.
+		 * @param object1
+		 * @param object2
+		 * @return A value of zero if the ByteArray serializations of the objects are equal, nonzero if not equal.
+		 */
+		public static function compareBytes(object1:Object, object2:Object):int
+		{
+			if (object1 === object2)
+				return 0;
+			
+			// prepare byte arrays
+			_1.length = 0;
+			_1.writeObject(object1);
+			_1.position = 0;
+			_2.length = 0;
+			_2.writeObject(object2);
+			_2.position = 0;
+			
+			var n:int = _1.length;
+			if (n != _2.length)
+				return n < _2.length ? 1 : -1;
+			
+			while (n-- > 0)
+			{
+				var b1:int = _1.readByte();
+				var b2:int = _2.readByte();
+				if (b1 != b2)
+					return b1 < b2 ? 1 : -1;
+			}
+			return 0;
+		}
+		
+		private static function testCompareBytes_generate(base:Object, depth:int):Object
+		{
+			for (var i:int = 0; i < 10; i++)
+			{
+				var child:Object = depth > 0 ? {} : Math.random();
+				base[Math.random()] = child;
+				if (depth > 0)
+					testCompareBytes_generate(child, depth - 1);
+			}
+			return base;
+		}
+		
+		//WeaveAPI.StageUtils.callLater(null, testCompareBytes);
+		private static function testCompareBytes():void
+		{
+			var i:int;
+			var orig:Object = testCompareBytes_generate({}, 3);
+			var o1:Object = ObjectUtil.copy(orig);
+			var o2:Object = ObjectUtil.copy(orig);
+			
+			trace(ObjectUtil.toString(o1));
+			
+			var dt:DebugTimer = new DebugTimer();
+			for (i = 0; i < 100; i++)
+				if (ObjectUtil.compare(o1,o2) != 0)
+					throw "fail";
+			DebugTimer.lap('ObjectUtil.compare');
+			for (i = 0; i < 100; i++)
+				if (compareBytes(o1,o2) != 0)
+					throw "fail";
+			DebugTimer.end('StandardLib.compareBytes');
+		}
 	}
 }

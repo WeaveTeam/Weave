@@ -26,7 +26,7 @@ package weave.core
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
-	import weave.utils.AsyncSort;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -88,7 +88,7 @@ package weave.core
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			if (_sessionStateType == null) // if no type restriction...
-				return AsyncSort.defaultCompare(_sessionState, otherSessionState) == 0;
+				return StandardLib.compareBytes(_sessionState, otherSessionState) == 0;
 			return _sessionState == otherSessionState;
 		}
 		
