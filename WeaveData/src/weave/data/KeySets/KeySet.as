@@ -25,10 +25,10 @@ package weave.data.KeySets
 	
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
-	import weave.api.data.IKeySet;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
 	import weave.api.setSessionState;
+	import weave.api.data.IKeySet;
+	import weave.api.data.IQualifiedKey;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
@@ -41,9 +41,20 @@ package weave.data.KeySets
 	{
 		public function KeySet()
 		{
-			super(Array);
+			super(Array, verifySessionState);
 			// The first callback will update the keys from the session state.
 			addImmediateCallback(this, updateKeys);
+		}
+		
+		/**
+		 * Verifies that the value is a two-dimensional array or null.
+		 */		
+		private function verifySessionState(value:Array):Boolean
+		{
+			for each (var row:Object in value)
+				if (!(row is Array))
+					return false;
+			return true;
 		}
 		
 		/**
@@ -313,12 +324,11 @@ package weave.data.KeySets
 					if (value[keyTypeProperty] != null && value[keysProperty] != null)
 						value = WeaveAPI.CSVParser.createCSVToken(value[keyTypeProperty]) + ',' + value[keysProperty];
 			}
-			// backwards compatibility -- parse CSV
+			// backwards compatibility -- parse CSV String
 			if (value is String)
 				value = WeaveAPI.CSVParser.parseCSV(value as String);
 			
 			// expecting a two-dimensional Array at this point
-			// TODO: error checking?
 			super.setSessionState(value);
 		}
 		
