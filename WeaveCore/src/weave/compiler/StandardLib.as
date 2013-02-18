@@ -19,7 +19,6 @@
 
 package weave.compiler
 {
-	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.DateFormatter;
@@ -580,7 +579,7 @@ package weave.compiler
 		private static const _timezoneMultiplier:Number = 60000;
 		
 		/**
-		 * This is much faster than using ObjectUtil.compare().	It is meant to be used on dynamic, untyped objects.
+		 * This compares two dynamic objects or primitive values and is much faster than ObjectUtil.compare().
 		 * @param a First dynamic object or primitive value.
 		 * @param b Second dynamic object or primitive value.
 		 * @return A value of zero if the two objects are equal, nonzero if not equal.
@@ -603,7 +602,7 @@ package weave.compiler
 				return ObjectUtil.numericCompare(a as Number, b as Number);
 			if (typeA == 'string')
 				return ObjectUtil.stringCompare(a as String, b as String);
-			if (typeA == 'xml')
+			if (typeA != 'object')
 				return 1;
 			if (a is Date && b is Date)
 				return ObjectUtil.dateCompare(a as Date, b as Date);
@@ -615,61 +614,35 @@ package weave.compiler
 				return ObjectUtil.stringCompare(qna, qnb);
 			
 			var p:String;
+			
+			// test if objects are dynamic
+			try
+			{
+				a[''];
+				b[''];
+			}
+			catch (e:Error)
+			{
+				return 1; // not dynamic objects
+			}
+			
 			// if there are properties in a not found in b, return -1
 			for (p in a)
 			{
-				if (b[p] === undefined)
+				if (!b.hasOwnProperty(p))
 					return -1;
 			}
 			for (p in b)
 			{
 				// if there are properties in b not found in a, return 1
-				var aa:* = a[p];
-				if (aa === undefined)
+				if (!a.hasOwnProperty(p))
 					return 1;
 				
-				var c:int = compareDynamicObjects(aa, b[p]);
+				var c:int = compareDynamicObjects(a[p], b[p]);
 				if (c != 0)
 					return c;
 			}
 			
-			return 0;
-		}
-		
-		private static const _1:ByteArray = new ByteArray();
-		private static const _2:ByteArray = new ByteArray();
-		
-		/**
-		 * This function writes two objects to two separate ByteArrays and compares the bytes.
-		 * This is much faster than using ObjectUtil.compare() but not guaranteed to give the same results.
-		 * @param object1
-		 * @param object2
-		 * @return A value of zero if the ByteArray serializations of the objects are equal, nonzero if not equal.
-		 */
-		public static function compareBytes(object1:Object, object2:Object):int
-		{
-			if (object1 === object2)
-				return 0;
-			
-			// prepare byte arrays
-			_1.length = 0;
-			_1.writeObject(object1);
-			_1.position = 0;
-			_2.length = 0;
-			_2.writeObject(object2);
-			_2.position = 0;
-			
-			var n:int = _1.length;
-			if (n != _2.length)
-				return n < _2.length ? 1 : -1;
-			
-			while (n-- > 0)
-			{
-				var b1:int = _1.readByte();
-				var b2:int = _2.readByte();
-				if (b1 != b2)
-					return b1 < b2 ? 1 : -1;
-			}
 			return 0;
 		}
 		
@@ -703,11 +676,7 @@ package weave.compiler
 			for (i = 0; i < 100; i++)
 				if (compareDynamicObjects(o1,o2) != 0)
 					throw "StandardLib.compareDynamicObjects fail";
-			DebugTimer.lap('StandardLib.compareDynamicObjects');
-			for (i = 0; i < 100; i++)
-				if (compareBytes(o1,o2) != 0)
-					throw "StandardLib.compareBytes fail";
-			DebugTimer.end('StandardLib.compareBytes');
+			DebugTimer.end('StandardLib.compareDynamicObjects');
 		}
 	}
 }
