@@ -24,8 +24,8 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableVariable;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -88,7 +88,7 @@ package weave.core
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			if (_sessionStateType == null) // if no type restriction...
-				return StandardLib.compareBytes(_sessionState, otherSessionState) == 0;
+				return StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
 			return _sessionState == otherSessionState;
 		}
 		
