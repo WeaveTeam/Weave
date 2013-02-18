@@ -117,8 +117,10 @@ package weave.ui.infomap.layout
 					thumbnail.y = nextY;			
 					thumbnail.x = nextX;
 					
-					thumbnail.xPos.value = nextX;
-					thumbnail.yPos.value = nextY;
+//					thumbnail.xPos.value = nextX;
+//					thumbnail.yPos.value = nextY;
+					
+					thumbnail.pos.setSessionState({x:nextX,y:nextY});
 					
 					nextX = nextX + thumbnailSpacing.value;
 				}

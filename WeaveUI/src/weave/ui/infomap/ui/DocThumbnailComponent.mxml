@@ -55,6 +55,7 @@ so that it can be moved, selected, handle filters.
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
 			import weave.core.SessionManager;
 			import weave.core.StageUtils;
 			import weave.data.DataSources.InfoMapsDataSource;
@@ -75,32 +76,32 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the width of this image.
 			 * */
-			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
+//			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
 			/**
 			 * @public
 			 * This variable sets the height of this image.
 			 * */
-			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
+//			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
 			/**
 			 * @public
 			 * This variable sets the alpha/transparency of this image.
 			 * */
-			public const imageAlpha:LinkableNumber = registerLinkableChild(this,new LinkableNumber(1.0));
+//			public const imageAlpha:LinkableNumber = registerLinkableChild(this,new LinkableNumber(1.0));
 			/**
 			 * @public
 			 * This variable sets default border color of this image when it is not selected. Not currently Used.
 			 * */
-			public const defaultBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00000000));
+//			public const defaultBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00000000));
 			/**
 			 * @public
 			 * This variable sets the color of the border of this image when the document is selected.
 			 * */
-			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+//			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
 			/**
 			 * @public
 			 * This variable sets the color of the glow filter for highlighting new documents.
 			 * */
-			public const glowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+//			public const glowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
 			
 			/**
 			 * @public
@@ -118,12 +119,14 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the x position of this image.
 			 * */
-			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+//			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			/**
 			 * @public
 			 * This variable sets the y position of this image.
 			 * */
-			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+//			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			
+			public const pos:LinkableVariable = newLinkableChild(this,LinkableVariable);
 			
 			/**
 			 * @public
@@ -131,7 +134,7 @@ so that it can be moved, selected, handle filters.
 			 * This helps an IInfoMapNodeLayout to decide if it 
 			 * needs to re-compute the position of this image.
 			 * */
-			public const hasBeenMoved:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
+//			public const hasBeenMoved:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 			
 			public const docURL:LinkableString = newLinkableChild(this,LinkableString);
 			
@@ -140,27 +143,28 @@ so that it can be moved, selected, handle filters.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				linkBindableProperty(imageWidth,this,"width");
-				linkBindableProperty(imageHeight,this,"height");	
-				linkBindableProperty(imageAlpha,img,"alpha");
+//				linkBindableProperty(imageWidth,this,"width");
+//				linkBindableProperty(imageHeight,this,"height");	
+//				linkBindableProperty(imageAlpha,img,"alpha");
 				
 				
-				selectedBorderColor.addGroupedCallback(this,setMode);
-				defaultBorderColor.addGroupedCallback(this,setMode);
+//				selectedBorderColor.addGroupedCallback(this,setMode);
+//				defaultBorderColor.addGroupedCallback(this,setMode);
 				
-				hasBeenMoved.addGroupedCallback(this,handleMode,true);//set to true so that it is called if set from session state
+				pos.addGroupedCallback(this,handleMode,true);//set to true so that it is called if set from session state
 				
 				point.addChild(titleLabel);
 				
 				setStyle("borderThickness", 1.5);
-				setStyle("borderColor",defaultBorderColor.value);
+//				setStyle("borderColor",defaultBorderColor.value);
 				
 				
 			}
 			
 			private function handleMode():void
 			{
-				if(hasBeenMoved.value)
+				var p:Object = pos.getSessionState();
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
 				{
 					if(!parent)
 					{
@@ -195,8 +199,8 @@ so that it can be moved, selected, handle filters.
 				setStyle("borderStyle","solid");
 				setStyle("borderThickness", 1.5);
 				
-				imageHeight.value = 55;
-				imageWidth.value = 55;
+				height = 55;
+				width= 55;
 				
 				img.width = 50;
 				img.height = 50;
@@ -209,8 +213,8 @@ so that it can be moved, selected, handle filters.
 				img.visible = false;
 				img.width = 0;
 				img.height = 0;
-				imageHeight.value = 6;
-				imageWidth.value = 6;
+				height= 6;
+				width= 6;
 //				setStyle("borderThickness", 0);
 				
 				point.visible = true; 
@@ -284,8 +288,8 @@ so that it can be moved, selected, handle filters.
 				if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
 					return;
 				try{
-					if(isFinite(imageHeight.value) && isFinite(imageWidth.value))
-						img.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,imageWidth.value,imageHeight.value));
+					if(isFinite(height) && isFinite(width))
+						img.source = new Bitmap(BitmapUtils.resizeBitmapData((event.result as Bitmap).bitmapData,width,height));
 				}catch(e:Error){
 					reportError(e);
 				}
@@ -306,8 +310,11 @@ so that it can be moved, selected, handle filters.
 				_mouseOver = true;
 				if(!event.buttonDown)
 				{
-					if(hasBeenMoved.value)
+					var p:Object = pos.getSessionState();
+					if(p && (!isNaN(p.x) && !isNaN(p.y)))
+					{
 						setStyle("borderStyle","none");
+					}
 //					this.invalidateDisplayList();
 					showDocSummary(event);
 				}
@@ -397,8 +404,10 @@ so that it can be moved, selected, handle filters.
 			/* Made this function public. So that when this component is dragged from a list it is added to the movedThumbnails  */
 			public function handleMove():void
 			{
-				xPos.value = x;
-				yPos.value = y;
+//				xPos.value = x;
+//				yPos.value = y;
+				
+				pos.setSessionState({x:x,y:y});
 				
 				var parentNH:NodeHandler = null;
 				var mtp:MovedThumbnailPosition = null;
@@ -473,9 +482,11 @@ so that it can be moved, selected, handle filters.
 				}
 
 				
-				if(hasBeenMoved.value)
+				var p:Object = pos.getSessionState();
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
+				{
 					setStyle("borderStyle","solid");
-				
+				}
 				removeDocSummary();
  				toggleSelection();
 			}
@@ -514,8 +525,11 @@ so that it can be moved, selected, handle filters.
 				//fix for buggy drag-drop
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				
-				if(hasBeenMoved.value)
+				var p:Object = pos.getSessionState();
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
+				{
 					setStyle("borderStyle","solid");
+				}
 //				this.invalidateDisplayList();
 				
 				removeDocSummary();
@@ -552,10 +566,18 @@ so that it can be moved, selected, handle filters.
 					filters = [shadow];
 				}else if(mode=="unselected")
 				{
+					_selected = false;
 					filters = [selectionBlur];
+					/* if it is highlighted we stop the glowing to make sure only selected documents have higher alpha*/
+					if(highlighted.value)
+						timer.stop();
 				}else if(mode=="default")
 				{
+					_selected = false;
 					filters=[];
+					/* In case timer was stopped to show  selected/unselected we restart timer to back to its default glow mode */
+					if(highlighted.value)
+						timer.start();
 				}
 				
 							
@@ -563,7 +585,7 @@ so that it can be moved, selected, handle filters.
 				this.invalidateDisplayList();
 			}
 			
-			private var glowFilter:GlowFilter = new GlowFilter(glowColor.value);
+			private var glowFilter:GlowFilter = new GlowFilter(10092492);
 			private var timer:Timer = new Timer(125);
 			private function startGlow():void
 			{
@@ -583,8 +605,15 @@ so that it can be moved, selected, handle filters.
 			private function changeGlow(event:TimerEvent):void
 			{
 				glowFilter.alpha = 0.125 + (event.target.currentCount % 8) *0.125;
-				glowFilter.color = glowColor.value;
-				filters=[glowFilter];
+				glowFilter.color = 10092492;
+				if(_selected)
+				{
+					filters=[shadow,glowFilter];
+				}
+				else
+				{
+					filters=[glowFilter];
+				}
 			}
 		]]>
 	</mx:Script>

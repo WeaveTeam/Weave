@@ -130,7 +130,8 @@
 				{
 					_currentURLSToPlot = _urlsOfEachTopic[_currentTopic];
 					var t:DocThumbnailComponent = _parentNode.thumbnails.getObject(_currentURLSToPlot[_currentIteration]) as DocThumbnailComponent;
-					if(!t.hasBeenMoved.value)
+					var pos:Object = t.pos.getSessionState();
+					if(!pos || isNaN(pos.x) || isNaN(pos.y))
 					{
 						//Read http://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
 						var theta:Number = 2*Math.PI*Math.random();

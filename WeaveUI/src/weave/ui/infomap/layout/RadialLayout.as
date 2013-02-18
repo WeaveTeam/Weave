@@ -112,8 +112,8 @@ package weave.ui.infomap.layout
 //				thumbnail.imageWidth.value = thumbnailSize;
 //				thumbnail.imageHeight.value = thumbnailSize;
 				var imgPosition:Point = location[j] as Point;
-				thumbnail.y = imgPosition.y-(thumbnail.imageWidth.value/2);			
-				thumbnail.x = imgPosition.x-(thumbnail.imageHeight.value/2);
+				thumbnail.y = imgPosition.y-(thumbnail.width/2);			
+				thumbnail.x = imgPosition.x-(thumbnail.height/2);
 			}	
 		}
 		

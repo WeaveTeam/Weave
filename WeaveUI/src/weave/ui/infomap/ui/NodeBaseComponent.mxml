@@ -14,18 +14,18 @@ It has 4 icons to:
 	  mouseOut="handleMouseOut()"
 	  autoLayout="false" 
 	  width="100%" minWidth="220">
-	<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
-		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
+	<!--<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
+		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
 		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
 		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/cloud.png')"/>
-		<!--<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>--><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
+		<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png
 		<mx:Image id="distributionImg" source="@Embed(source='/weave/resources/images/bar_chart.png')"/>
 		<mx:Image id="topicsImg" source="@Embed(source='/weave/resources/images/topics.png')"/>
-		<mx:Image id="gridImg" source="@Embed(source='/weave/resources/images/grid.png')"/><!--http://findicons.com/icon/267689/3x3_grid?width=16-->
+		<mx:Image id="gridImg" source="@Embed(source='/weave/resources/images/grid.png')"/>http://findicons.com/icon/267689/3x3_grid?width=16
 		<mx:Image id="pointsImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>
-	</mx:HBox>	
+	</mx:HBox>-->
 	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
 				 focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
 	<!--<mx:Canvas id="keywordCanvas" horizontalScrollPolicy="off" verticalScrollPolicy="off"  width="100%">
@@ -51,47 +51,47 @@ It has 4 icons to:
 //			tickImg.height = 12;
 //			tickImg.buttonMode = true; //you need this for click event to work on an image!
 			
-			closeImg.toolTip = "Remove this node";
-			closeImg.width = 16;
-			closeImg.height = 16;
-			closeImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			listImg.toolTip = "Show List";
-			listImg.width = 16;
-			listImg.height = 16;
-			listImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			pointsImg.toolTip = "Show points";
-			pointsImg.width = 16;
-			pointsImg.height = 16;
-			pointsImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			filterImg.toolTip = "Show Word Cloud";
-			filterImg.width = 16;
-			filterImg.height = 16;
-			filterImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			
-			settingsImg.toolTip = "Settings";
-			settingsImg.width = 12;
-			settingsImg.height = 12;
-			settingsImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			distributionImg.toolTip = "Show Entity Distribution";
-			distributionImg.width = 12;
-			distributionImg.height = 12;
-			distributionImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			topicsImg.toolTip = "Classify Documents";
-			topicsImg.width = 12;
-			topicsImg.height = 12;
-			topicsImg.buttonMode = true; //you need this for click event to work on an image!
-			
-			
-			gridImg.toolTip = "Show Grid View";
-			gridImg.width = 12;
-			gridImg.height = 12;
-			gridImg.buttonMode = true; //you need this for click event to work on an image!
+//			closeImg.toolTip = "Remove this node";
+//			closeImg.width = 16;
+//			closeImg.height = 16;
+//			closeImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			listImg.toolTip = "Show List";
+//			listImg.width = 16;
+//			listImg.height = 16;
+//			listImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			pointsImg.toolTip = "Show points";
+//			pointsImg.width = 16;
+//			pointsImg.height = 16;
+//			pointsImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			filterImg.toolTip = "Show Word Cloud";
+//			filterImg.width = 16;
+//			filterImg.height = 16;
+//			filterImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			
+//			settingsImg.toolTip = "Settings";
+//			settingsImg.width = 12;
+//			settingsImg.height = 12;
+//			settingsImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			distributionImg.toolTip = "Show Entity Distribution";
+//			distributionImg.width = 12;
+//			distributionImg.height = 12;
+//			distributionImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			topicsImg.toolTip = "Classify Documents";
+//			topicsImg.width = 12;
+//			topicsImg.height = 12;
+//			topicsImg.buttonMode = true; //you need this for click event to work on an image!
+//			
+//			
+//			gridImg.toolTip = "Show Grid View";
+//			gridImg.width = 12;
+//			gridImg.height = 12;
+//			gridImg.buttonMode = true; //you need this for click event to work on an image!
 			//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
 			//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
 			//sphere icon: http://www.iconfinder.com/icondetails/29260/16/

@@ -263,18 +263,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!(t.parent == this.map))
 				{
 					map.addChild(t);
-					t.hasBeenMoved.value = true;	
+//					t.hasBeenMoved.value = true;	
 				}
 				
 				//move the thumbnail to the new location
 				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 				t.move(localPoint.x,localPoint.y);
 				
-				t.xPos.value = t.x;
-				t.yPos.value = t.y;
+//				t.xPos.value = t.x;
+//				t.yPos.value = t.y;
 				
-				t.imageHeight.value = 50;
-				t.imageWidth.value = 50;
+				t.pos.setSessionState({x:t.x,y:t.y});
+				
+				t.height = 50;
+				t.width= 50;
 				
 			}
 			

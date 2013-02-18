@@ -129,6 +129,7 @@
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
 			import weave.ui.infomap.ui.PointsLayout;
+			import weave.ui.infomap.ui.RadialMenu;
 			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
 			import weave.ui.infomap.ui.TagCloudSettingComponent;
@@ -153,7 +154,7 @@
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			
-			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
+//			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
@@ -244,6 +245,39 @@
 			/* We will use this variable to send a query to data sources on first load of the node */
 			private var _firstLoad:Boolean = true;
 			
+			[Embed( source="/weave/resources/images/cancel.png")]
+			private var CloseImgClass:Class;
+			private var _closeImgText:String ="Remove node";
+			
+			[Embed( source="/weave/resources/images/tinyWrench.png")]
+			private var SettingsImgClass:Class;
+			private var _settingsImgText:String = "Settings Panel" ;
+			
+			[Embed( source="/weave/resources/images/list.png")]
+			private var ListImgClass:Class;
+			private var _listImgText:String = "List View";
+			
+			[Embed( source="/weave/resources/images/cloud.png")]
+			private var WordCloudImgClass:Class;
+			private var _wordCloudText:String = "Word Cloud";
+			
+			[Embed( source="/weave/resources/images/bar_chart.png")]
+			private var EntityDistributionImgClass:Class;
+			private var _entityDistributionImgText:String = "Entity Distribution";
+			
+			[Embed( source="/weave/resources/images/topics.png")]
+			private var TopicsImgClass:Class;
+			private var _topicsImgText:String = "Topics View";
+			
+			[Embed( source="/weave/resources/images/grid.png")]
+			private var GridImgClass:Class;
+			private var _gridImgText:String = "Grid View";
+			
+			[Embed( source="/weave/resources/images/sphere.png")]
+			private var PointsImgClass:Class;
+			private var _pointsImgText:String = "Points View"
+			
+			private var _radialMenu:RadialMenu = new RadialMenu();
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -255,35 +289,28 @@
 				//				node.selected.addGroupedCallback(this,highlightNode);
 				
 				//for now defaulting to Random Layout
-				if(layout.internalObject == null)
-					layout.requestLocalObject(RandomLayout,false);
-				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
+//				if(layout.internalObject == null)
+//					layout.requestLocalObject(RandomLayout,false);
+//				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				//opens the settings panel
-				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
+				
+				addChild(_radialMenu);
+				
+				_radialMenu.move(10,10);
+				addEventListener(MouseEvent.CLICK,function(event:Event):void{
+						_radialMenu.showMenu();
+				});
+					
+				
+				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
+				_radialMenu.addMenuItem(closeImg,_closeImgText,settings);
 				
 //				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
 				
 				//removes the node from the panel after confirmation
-				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
-				
-				nodeBase.filterImg.visible = false;
-				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, toggleTagCloud);
-				
-				nodeBase.listImg.visible = false;
-				nodeBase.listImg.addEventListener(MouseEvent.CLICK,toggleList);
-				
-				nodeBase.distributionImg.visible = false;
-				nodeBase.distributionImg.addEventListener(MouseEvent.CLICK,showDistributionChart);
-				
-				nodeBase.topicsImg.visible = false;
-				nodeBase.topicsImg.addEventListener(MouseEvent.CLICK,showClassificationResults);
-				
-				nodeBase.pointsImg.visible = false;
-				nodeBase.pointsImg.addEventListener(MouseEvent.CLICK,showPoints);
-				
-				nodeBase.gridImg.visible = false;
-				nodeBase.gridImg.addEventListener(MouseEvent.CLICK,showGridView);
+				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
+				_radialMenu.addMenuItem(settingsImg,_settingsImgText,close);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -291,7 +318,7 @@
 				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,keywordTextAreaKeyDownHandler);
 				
 				//drawing the base which is the node with keywords and icons
-				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
+//				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
 				
 				//sessioning the x and y positions of this node
 				linkBindableProperty(xPos,this,"x");
@@ -373,6 +400,8 @@
 				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
 				
 				parentPanel.entityColumnsHashmap.addGroupedCallback(this,getEntityDistribution);
+				
+				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 			}
 			
 			private var _nodeName:String = "";
@@ -439,8 +468,6 @@
 				
 				if(isQueryDifferent || _firstLoad)
 				{
-					_firstLoad = false;
-
 					InfoMapAdminInterface.instance.queryDataSources(currentQuery.keywords.value.split(','),
 						relatedKeywords);
 				}
@@ -494,11 +521,13 @@
 					return;						
 				}
 				
-				if(numOfMatchedDocuments.value == numOfDocs)
+				if(!_firstLoad && numOfMatchedDocuments.value == numOfDocs)
 				{
 					status.text = "";					
 					return;
 				}
+				
+				_firstLoad = false;
 				
 				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
 				numOfMatchedDocuments.value = numOfDocs;
@@ -640,7 +669,7 @@
 						_currentNewDocsCount++;
 				}
 				
-				thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
+				thumbnail.setStyle("borderColor",thumbnailsDefaultColor.value);
 				
 				/* first check to see if the thumbnail is present in movedThumbnails */
 				var position:MovedThumbnailPosition = movedThumbNails.getObject(thumbnail.docURL.value) as MovedThumbnailPosition;
@@ -648,15 +677,17 @@
 				/* if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true; */
 				if(position)
 				{
-					thumbnail.hasBeenMoved.value = true;
+//					thumbnail.hasBeenMoved.value = true;
 					
-					copySessionState(position.xPos,thumbnail.xPos);
-					copySessionState(position.yPos,thumbnail.yPos);
+//					copySessionState(position.xPos,thumbnail.xPos);
+//					copySessionState(position.yPos,thumbnail.yPos);
+					
+					thumbnail.pos.setSessionState({x:position.xPos.value,y:position.yPos.value});
 				}
 				
-				
+				var p:Object = thumbnail.pos.getSessionState();
 				/* if thumbnail has been moved make sure to add it as a child to Panel else make sure to add it as child to node. */
-				if(thumbnail.hasBeenMoved.value)
+				if(p && (!isNaN(p.x) && !isNaN(p.y)))
 				{
 					if(thumbnail.parent != _parentPanel.map)
 					{
@@ -664,7 +695,7 @@
 						
 					}
 					//xPos and yPos are not linked
-					thumbnail.move(thumbnail.xPos.value,thumbnail.yPos.value);
+					thumbnail.move(thumbnail.pos.getSessionState().x,thumbnail.pos.getSessionState().y);
 					
 				}else
 				{
@@ -684,9 +715,9 @@
 					
 					thumbnail.visible = false;
 				}
-				thumbnail.defaultBorderColor.value = thumbnailsDefaultColor.value;
-				linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
-				linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
+				thumbnail.setStyle("borderColor",thumbnailsDefaultColor.value);
+//				linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+//				linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
 				
 				_thumbnailCount++;
 				
@@ -699,8 +730,13 @@
 				//				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
-				nodeBase.listImg.visible = true;
-				nodeBase.gridImg.visible = true;
+				
+				var listImg:Bitmap = new ListImgClass() as Bitmap;
+				_radialMenu.addMenuItem(listImg,_listImgText,toggleList);
+				
+				var gridImg:Bitmap = new GridImgClass() as Bitmap;
+				_radialMenu.addMenuItem(gridImg,_gridImgText,showGridView);
+				
 				updateNodeTextOnNewDocuments();
 				positionThumbnails();
 				adjustNodeBase();
@@ -724,8 +760,10 @@
 					token.endDate != currentQuery.dateFilter.endDate.value)
 					return;
 				wordCount = event.result as Array;
-				nodeBase.filterImg.visible = true;
-//				toggleTagCloud(null,token.forceShow,token.forceHide);
+				
+				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
+				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleTagCloud);
+				
 			}
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
@@ -737,6 +775,7 @@
 			private function handleNumOfDocsQueryFault(event:FaultEvent,token:Object=null):void
 			{
 				Alert.show("Error getting number of documents");
+				status.text = "";
 			}
 			
 			
@@ -1096,8 +1135,9 @@
 					}
 				}
 				
-				nodeBase.distributionImg.visible = true;
-//				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
+				var entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
+				_radialMenu.addMenuItem(entityDistributionImg,_entityDistributionImgText,showDistributionChart);
+
 			}
 			
 			private function handleEntityQueryFault(event:FaultEvent,token:Object=null):void
@@ -1196,9 +1236,7 @@
 							keys = keys.concat(_entitiesToKeysHashMap[entity]);
 					}
 				}
-				_selection.delayCallbacks();
 				_selection.addKeys(keys);
-				_selection.resumeCallbacks();
 			}
 			
 			private function handleDocumentSelectedFromList(event:ListEvent):void
@@ -1276,59 +1314,33 @@
 			{
 				
 				var keys:Array = _selection.keys;
-				if(keys.length == 0)
+				var docs:Array = thumbnails.getNames();
+				
+				
+				var selectedDocs:Array = getSelectedDocumentKeys();
+				
+				//if none are selected set all to default mode
+				if(selectedDocs.length == 0)
 				{
-					handleClearFiltersButton();					
+					for each(var doc1:String in docs)
+					{
+						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
+						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
+					}
 					return;
 				}
-				var entities:Array = [];
 				
-				for each (var key:IQualifiedKey in keys)
+				
+				for each(var doc:String in docs)
 				{
-					if(key.keyType != InfoMapsDataSource.DOC_KEYTYPE)//add all keys except for document keys. We might do away with document keys completely
-					{
-						for each (var entityColumn:IAttributeColumn in _parentPanel.entityColumnsHashmap.getObjects())
-						{
-							entities.push(entityColumn.getValueFromKey(key));
-						}
-					}
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
+					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
+					var selected:Boolean =_selection.containsKey(qKey) 
+					if(selected)
+						t.setMode(DocThumbnailComponent.SELECTED_MODE);
+					else
+						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
 				}
-				
-				var filterURLs:Array = [];
-				
-				for each (var entity:String in entities)
-				{
-					var temp:Array = _entitiesToURLsHashMap[entity] as Array;
-					if(temp)
-						filterURLs = filterURLs.concat(temp);	
-				}
-				
-				filterDocumentsByURLS(filterURLs,"Selected Records");
-//				var docs:Array = thumbnails.getNames();
-//				
-//				var selectedDocs:Array = getSelectedDocumentKeys();
-//				
-//				//if none are selected set all to 
-//				if(selectedDocs.length == 0)
-//				{
-//					for each(var doc1:String in docs)
-//					{
-//						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
-//						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
-//					}
-//					return;
-//				}
-//				
-//				for each(var doc:String in docs)
-//				{
-//					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
-//					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
-//					var selected:Boolean =_selection.containsKey(qKey) 
-//					if(selected)
-//						t.setMode(DocThumbnailComponent.SELECTED_MODE);
-//					else
-//						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
-//				}
 			}
 			
 			
@@ -1349,20 +1361,20 @@
 			/**
 			 * redraw thumbnails to handle new layout selection
 			 **/
-			private function handleLayoutChange():void
-			{
-				if(layout.internalObject == null)
-					return;
-				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
-				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
-				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
-			}
-			
-			private function handleSpacingChange():void
-			{
-				if(layout.internalObject)
-					(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(_reusableThumbnailsToPlotArray,true);
-			}
+//			private function handleLayoutChange():void
+//			{
+//				if(layout.internalObject == null)
+//					return;
+//				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
+//				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
+//				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
+//			}
+//			
+//			private function handleSpacingChange():void
+//			{
+//				if(layout.internalObject)
+//					(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(_reusableThumbnailsToPlotArray,true);
+//			}
 			
 //			private var _searchKeySet:KeySet = new KeySet();
 			//sends a query to solr for the search keywords filtrered by document links belonging to this node
@@ -2051,14 +2063,16 @@
 				if (_topicsResult.keywords == null || _topicsResult.urls == null)
 				{
 					reportError(lang("Topic Models did not return an Array of results as expected."));
-					nodeBase.topicsImg.visible = false;
-					nodeBase.pointsImg.visible = false;
 					return;
 					
 				}
 				
-				nodeBase.topicsImg.visible = true;
-				nodeBase.pointsImg.visible = true;
+				var topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
+				_radialMenu.addMenuItem(topicsImg,_topicsImgText,showClassificationResults);
+				
+				var pointsImg:Bitmap = new PointsImgClass() as Bitmap;
+				_radialMenu.addMenuItem(pointsImg,_pointsImgText,showPoints);
+
 				if(flag_topicPropertiesChange){
 					showClassificationResults();
 					flag_topicPropertiesChange = false;
@@ -2266,8 +2280,8 @@
 			
 			private function hideIcons():void
 			{
-				nodeBase.gridImg.visible = nodeBase.listImg.visible = nodeBase.filterImg.visible = 
-					nodeBase.distributionImg.visible = nodeBase.topicsImg.visible = nodeBase.pointsImg.visible= false;
+				_radialMenu.removeAllMenuItems();
+				_radialMenu.hideMenu();
 			}
 			
 			private function handleEmptyResultSet():void

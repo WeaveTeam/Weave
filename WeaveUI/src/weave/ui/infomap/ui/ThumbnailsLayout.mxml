@@ -50,21 +50,22 @@
 							break;
 						doc = _docs[count];
 //						trace(debugId(doc));
-						if(!doc.hasBeenMoved.value)
+						var pos:Object = doc.pos.getSessionState();
+						if(!pos || isNaN(pos.x) || isNaN(pos.y))
 						{
 							gridCanvas.addChild(doc);
 							doc.positionThumbnail(nextX,nextY);
-							nextX += doc.imageWidth.value + _spacing;
+							nextX += doc.width + _spacing;
 						}
 						
 						count++;
 					}
 					nextX = 0;
-					nextY += doc.imageHeight.value;
+					nextY += doc.height;
 				}
 				
 				if(doc)
-					_imageSize = doc.imageWidth.value;
+					_imageSize = doc.width;
 				navBox.y = nextY + navBox.height;
 				
 				updateIndexText();

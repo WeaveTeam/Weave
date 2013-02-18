@@ -78,11 +78,12 @@ package weave.ui.infomap.layout
 			{
 				var thumbnail:DocThumbnailComponent = thumbnails[i];
 				//if the thumbnail already exists use previous x,y values
-				if(!thumbnail.hasBeenMoved.value)
+				var pos:Object = thumbnail.pos.getSessionState();
+				if(!pos || isNaN(pos.x) || isNaN(pos.y))
 				{
 					
-					thumbnail.imageWidth.value = thumbnailSize;
-					thumbnail.imageHeight.value = thumbnailSize;
+					thumbnail.width = thumbnailSize;
+					thumbnail.height= thumbnailSize;
 					thumbnail.y = startY;			
 					thumbnail.x = startX;
 					
