@@ -60,7 +60,7 @@ public class SQLUtils
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
 	
-	public static String ORACLE_SERIAL_TYPE = "ORACLE_SERIAL_TYPE"; // used internally in createTable(), not an actual valid type
+	public static String SQLUTILS_SERIAL_TRIGGER_TYPE = "SQLUTILS_SERIAL_TRIGGER_TYPE"; // used internally in createTable(), not an actual valid type
 	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
@@ -981,22 +981,22 @@ public class SQLUtils
 			return;
 		
 		StringBuilder columnClause = new StringBuilder();
-		int oraclePrimaryKeyColumn = -1;
+		int primaryKeyColumn = -1;
 		for (int i = 0; i < columnNames.size(); i++)
 		{
 			if( i > 0 )
 				columnClause.append(',');
 			String type = columnTypes.get(i);
-			if (ORACLE_SERIAL_TYPE.equals(type))
+			if (SQLUTILS_SERIAL_TRIGGER_TYPE.equals(type))
 			{
 				type = getBigIntTypeString(conn) + " NOT NULL";
-				oraclePrimaryKeyColumn = i;
+				primaryKeyColumn = i;
 			}
 			columnClause.append(String.format("%s %s", quoteSymbol(conn, columnNames.get(i)), type));
 		}
 		
-		if (primaryKeyColumns == null && oraclePrimaryKeyColumn >= 0)
-			primaryKeyColumns = Arrays.asList(columnNames.get(oraclePrimaryKeyColumn));
+		if (primaryKeyColumns == null && primaryKeyColumn >= 0)
+			primaryKeyColumns = Arrays.asList(columnNames.get(primaryKeyColumn));
 		
 		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
 		{
@@ -1026,38 +1026,61 @@ public class SQLUtils
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
 			
-			if (oraclePrimaryKeyColumn >= 0)
+			if (primaryKeyColumn >= 0)
 			{
-				String quotedSequenceName = getOracleQuotedSequenceName(schemaName, tableName);
-				String unquotedSequenceName = getOracleUnquotedSequenceName(schemaName, tableName);
+				String dbms = getDbmsFromConnection(conn);
 				
-				if (getSequences(conn, schemaName).indexOf(unquotedSequenceName) >= 0)
-					stmt.executeUpdate(query = String.format("drop sequence %s", quotedSequenceName));
+				String quotedSequenceName = getQuotedSequenceName(dbms, schemaName, tableName);
+				String unquotedSequenceName = getUnquotedSequenceName(schemaName, tableName);
 				
-				stmt.executeUpdate(query = String.format("create sequence %s start with 1 increment by 1", quotedSequenceName));
-				
-				String quotedTriggerName = quoteSchemaTable(ORACLE, schemaName, "trigger_" + unquotedSequenceName);
-				String quotedIdColumn = quoteSymbol(ORACLE, columnNames.get(oraclePrimaryKeyColumn));
-				// http://earlruby.org/2009/01/creating-auto-increment-columns-in-oracle/
-				query = String.format("create or replace trigger %s\n", quotedTriggerName) +
-					String.format("before insert on %s\n", quotedSchemaTable) +
-					              "for each row\n" +
-					              "declare\n" +
-					              "  max_id number;\n" +
-					              "  cur_seq number;\n" +
-					              "begin\n" +
-					String.format("  if :new.%s is null then\n", quotedIdColumn) +
-					String.format("    select %s.nextval into :new.%s from dual;\n", quotedSequenceName, quotedIdColumn) +
-					              "  else\n" +
-					String.format("    select greatest(nvl(max(%s),0), :new.%s) into max_id from %s;\n", quotedIdColumn, quotedIdColumn, quotedSchemaTable) +
-					String.format("    select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
-					              "    while cur_seq < max_id\n" +
-					              "    loop\n" +
-					String.format("      select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
-					              "    end loop;\n" +
-					              "  end if;\n" +
-					              "end;\n";
+				if (dbms.equals(ORACLE))
+				{
+					if (getSequences(conn, schemaName).indexOf(unquotedSequenceName) >= 0)
+						stmt.executeUpdate(query = String.format("drop sequence %s", quotedSequenceName));
 					
+					stmt.executeUpdate(query = String.format("create sequence %s start with 1 increment by 1", quotedSequenceName));
+					
+					String quotedTriggerName = quoteSchemaTable(ORACLE, schemaName, "trigger_" + unquotedSequenceName);
+					String quotedIdColumn = quoteSymbol(ORACLE, columnNames.get(primaryKeyColumn));
+					// http://earlruby.org/2009/01/creating-auto-increment-columns-in-oracle/
+					query = String.format("create or replace trigger %s\n", quotedTriggerName) +
+						String.format("before insert on %s\n", quotedSchemaTable) +
+						              "for each row\n" +
+						              "declare\n" +
+						              "  max_id number;\n" +
+						              "  cur_seq number;\n" +
+						              "begin\n" +
+						String.format("  if :new.%s is null then\n", quotedIdColumn) +
+						String.format("    select %s.nextval into :new.%s from dual;\n", quotedSequenceName, quotedIdColumn) +
+						              "  else\n" +
+						String.format("    select greatest(nvl(max(%s),0), :new.%s) into max_id from %s;\n", quotedIdColumn, quotedIdColumn, quotedSchemaTable) +
+						String.format("    select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
+						              "    while cur_seq < max_id\n" +
+						              "    loop\n" +
+						String.format("      select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
+						              "    end loop;\n" +
+						              "  end if;\n" +
+						              "end;\n";
+				}
+				else if (dbms.equals(POSTGRESQL))
+				{
+					// TODO http://stackoverflow.com/questions/3905378/manual-inserts-on-a-postgres-table-with-a-primary-key-sequence
+					throw new InvalidParameterException("PostGreSQL support not implemented for column type " + SQLUTILS_SERIAL_TRIGGER_TYPE);
+					/*
+					String quotedTriggerName = quoteSchemaTable(POSTGRESQL, schemaName, "trigger_" + unquotedSequenceName);
+					String quotedIdColumn = quoteSymbol(POSTGRESQL, columnNames.get(primaryKeyColumn));
+					String quotedFuncName = generateQuotedSymbolName("function", conn, schemaName, tableName);
+					query = String.format("create or replace function %s() returns trigger language plpgsql as\n", quotedFuncName) +
+					                      "$$ begin\n" +
+					        String.format("  if ( currval('test_id_seq')<NEW.id ) then\n" +
+					"    raise exception 'currval(test_id_seq)<id';\n" +
+					"  end if;\n" +
+					"  return NEW;\n" +
+					"end; $$;\n" +
+					"create trigger test_id_seq_check before insert or update of id on test\n" +
+					"  for each row execute procedure test_id_check();";
+					*/
+				}
 				stmt.executeUpdate(query);
 			}
 		}
@@ -1255,10 +1278,25 @@ public class SQLUtils
 		}
 		String column_string = StringUtils.join(",", columns);
 		String qmark_string = StringUtils.mult(",", "?", values.size());
-		query = String.format("INSERT INTO %s (%s)", quoteSchemaTable(conn, schemaName, tableName), column_string);
+		
+		String quotedIdField = quoteSymbol(conn, idField);
+		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
+		
+		if (isPostGreSQL)
+		{
+			column_string = String.format("%s,%s", quotedIdField, column_string);
+			qmark_string = String.format("(SELECT MAX(%s)+1 FROM %s),", quotedIdField, quotedTable) + qmark_string;
+		}
+		
+		query = String.format("INSERT INTO %s (%s)", quotedTable, column_string);
+		
 		if (isSQLServer)
-			query += String.format(" OUTPUT INSERTED.%s", quoteSymbol(conn, idField));
+			query += String.format(" OUTPUT INSERTED.%s", quotedIdField);
+		
 		query += String.format(" VALUES (%s)", qmark_string);
+		
+		if (isPostGreSQL)
+			query += String.format(" RETURNING %s", quotedIdField);
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -1268,7 +1306,7 @@ public class SQLUtils
 			stmt = prepareStatement(conn, query, values);
 			synchronized (conn)
 			{
-			    if (isSQLServer)
+			    if (isSQLServer || isPostGreSQL)
 			    {
 			    	rs = stmt.executeQuery();
 			    }
@@ -1279,16 +1317,12 @@ public class SQLUtils
 			    	
 			    	if (isOracle)
 			    	{
-			    		String quotedSequenceName = getOracleQuotedSequenceName(schemaName, tableName);
+			    		String quotedSequenceName = getQuotedSequenceName(dbms, schemaName, tableName);
 			    		query = String.format("select %s.currval from dual", quotedSequenceName);
 			    	}
 			    	else if (isMySQL)
 			    	{
 			    		query = "select last_insert_id()";
-			    	}
-			    	else if (isPostGreSQL)
-			    	{
-			    		query = "select lastval()";
 			    	}
 			    	else
 			    	{
@@ -1812,20 +1846,20 @@ public class SQLUtils
 			return "BIGINT PRIMARY KEY IDENTITY";
 		
 		if (dbms.equals(ORACLE))
-			return ORACLE_SERIAL_TYPE;
+			return SQLUTILS_SERIAL_TRIGGER_TYPE;
 		
-		// for mysql and postgresql, return the following.
+		// for mysql or postgresql, return the following.
 		return "SERIAL PRIMARY KEY";
 	}
 	
-	private static String getOracleUnquotedSequenceName(String schema, String table)
+	private static String getUnquotedSequenceName(String schema, String table)
 	{
 		return generateSymbolName("sequence", schema, table);
 	}
 	
-	private static String getOracleQuotedSequenceName(String schema, String table)
+	private static String getQuotedSequenceName(String dbms, String schema, String table)
 	{
-		return quoteSchemaTable(ORACLE, schema, getOracleUnquotedSequenceName(schema, table));
+		return quoteSchemaTable(dbms, schema, getUnquotedSequenceName(schema, table));
 	}
 
 	protected static String getCSVNullValue(Connection conn)

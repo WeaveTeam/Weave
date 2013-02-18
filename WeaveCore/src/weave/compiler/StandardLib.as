@@ -19,11 +19,14 @@
 
 package weave.compiler
 {
+	import flash.utils.getQualifiedClassName;
+	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 	
 	import weave.utils.AsyncSort;
+	import weave.utils.DebugTimer;
 
 	/**
 	 * This provides a set of useful static functions.
@@ -572,7 +575,108 @@ package weave.compiler
 		private static const _dateFormatter:DateFormatter = new DateFormatter();
 		/**
 		 * The number of milliseconds in one minute.
-		 */		
+		 */
 		private static const _timezoneMultiplier:Number = 60000;
+		
+		/**
+		 * This compares two dynamic objects or primitive values and is much faster than ObjectUtil.compare().
+		 * @param a First dynamic object or primitive value.
+		 * @param b Second dynamic object or primitive value.
+		 * @return A value of zero if the two objects are equal, nonzero if not equal.
+		 */
+		public static function compareDynamicObjects(a:Object, b:Object):int
+		{
+			if (a === b)
+				return 0;
+			if (a == null)
+				return 1;
+			if (b == null)
+				return -1;
+			var typeA:String = typeof(a);
+			var typeB:String = typeof(b);
+			if (typeA != typeB)
+				return ObjectUtil.stringCompare(typeA, typeB);
+			if (typeA == 'boolean')
+				return ObjectUtil.numericCompare(Number(a), Number(b));
+			if (typeA == 'number')
+				return ObjectUtil.numericCompare(a as Number, b as Number);
+			if (typeA == 'string')
+				return ObjectUtil.stringCompare(a as String, b as String);
+			if (typeA != 'object')
+				return 1;
+			if (a is Date && b is Date)
+				return ObjectUtil.dateCompare(a as Date, b as Date);
+			
+			var qna:String = getQualifiedClassName(a);
+			var qnb:String = getQualifiedClassName(b);
+			
+			if (qna != qnb)
+				return ObjectUtil.stringCompare(qna, qnb);
+			
+			var p:String;
+			
+			// test if objects are dynamic
+			try
+			{
+				a[''];
+				b[''];
+			}
+			catch (e:Error)
+			{
+				return 1; // not dynamic objects
+			}
+			
+			// if there are properties in a not found in b, return -1
+			for (p in a)
+			{
+				if (!b.hasOwnProperty(p))
+					return -1;
+			}
+			for (p in b)
+			{
+				// if there are properties in b not found in a, return 1
+				if (!a.hasOwnProperty(p))
+					return 1;
+				
+				var c:int = compareDynamicObjects(a[p], b[p]);
+				if (c != 0)
+					return c;
+			}
+			
+			return 0;
+		}
+		
+		private static function testCompare_generate(base:Object, depth:int):Object
+		{
+			for (var i:int = 0; i < 10; i++)
+			{
+				var child:Object = depth > 0 ? {} : Math.random();
+				base[Math.random()] = child;
+				if (depth > 0)
+					testCompare_generate(child, depth - 1);
+			}
+			return base;
+		}
+		
+		//WeaveAPI.StageUtils.callLater(null, testCompare);
+		private static function testCompare():void
+		{
+			var i:int;
+			var orig:Object = testCompare_generate({}, 2);
+			var o1:Object = ObjectUtil.copy(orig);
+			var o2:Object = ObjectUtil.copy(o1);
+			
+			trace(ObjectUtil.toString(o1));
+			
+			DebugTimer.begin();
+			for (i = 0; i < 100; i++)
+				if (ObjectUtil.compare(o1,o2) != 0)
+					throw "ObjectUtil.compare fail";
+			DebugTimer.lap('ObjectUtil.compare');
+			for (i = 0; i < 100; i++)
+				if (compareDynamicObjects(o1,o2) != 0)
+					throw "StandardLib.compareDynamicObjects fail";
+			DebugTimer.end('StandardLib.compareDynamicObjects');
+		}
 	}
 }

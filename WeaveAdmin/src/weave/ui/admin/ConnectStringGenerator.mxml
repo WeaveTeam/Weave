@@ -97,7 +97,7 @@
 			
 			private function triggerCallbacks():void
 			{
-				return getCallbackCollection(this).triggerCallbacks();
+				getCallbackCollection(this).triggerCallbacks();
 			}
 			private function _generate():void
 			{
