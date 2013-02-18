@@ -43,7 +43,10 @@
 				<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
 				<mx:CheckBox label="{lang('Overwrite')}" id="configOverwrite"/>
 			</ui:Indent>
-			<ui:IndentTextInput id="connectionPasswordInput" label="{lang('Password')}" change="{dataChanged=true}" displayAsPassword="false" inputWidth="130"/>
+			<ui:Indent label="{lang('Password')}">
+				<ui:TextInputWithPrompt id="connectionPasswordInput" displayAsPassword="{!showPassCheck.selected}" change="{dataChanged=true}" width="130"/>
+				<mx:CheckBox id="showPassCheck" label="{lang('Show')}" selected="false"/>
+			</ui:Indent>
 			<ui:Indent label="{lang('User Folder Name')}">
 				<mx:TextInput id="folderNameInput" width="130"/>
 				<ui:HelpComponent>Specify the folder in docroot to store user-created configurations</ui:HelpComponent>
@@ -64,9 +67,10 @@
 					
 					<mx:VBox width="100%" height="{basicInterface.height}" label="{lang('Advanced')}" id="advancedInterface">
 						<mx:Label text="{lang('Connect String')}"/>
-						<mx:Box paddingLeft="32" width="100%">
-							<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}"/>
-						</mx:Box>
+						<mx:VBox paddingLeft="32" width="100%">
+							<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}" displayAsPassword="{!showConnectStringCheck.selected}"/>
+							<mx:CheckBox id="showConnectStringCheck" label="{lang('Show')}" selected="false"/>
+						</mx:VBox>
 					</mx:VBox>
 				</mx:TabNavigator>
 			</mx:Box>
