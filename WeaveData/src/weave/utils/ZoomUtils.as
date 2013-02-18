@@ -32,8 +32,11 @@ package weave.utils
 	 */
 	public class ZoomUtils
 	{
-		
-		private static function originalSize(bounds:IBounds2D):Number{
+		/**
+		 * @return Width or height of bounds, whichever has the highest absolute value.
+		 */
+		private static function absoluteMaxWidthOrHeight(bounds:IBounds2D):Number
+		{
 			return bounds.getXCoverage() > bounds.getYCoverage()? bounds.getWidth(): bounds.getHeight();
 		}
 		
@@ -46,7 +49,7 @@ package weave.utils
 		 */		
 		public static function getZoomLevelFromScale(fullDataBounds:IBounds2D, minScreenSize:Number, scale:Number):Number
 		{
-			return Math.log((scale * originalSize(fullDataBounds)) / minScreenSize)/Math.LN2;
+			return Math.log((scale * absoluteMaxWidthOrHeight(fullDataBounds)) / minScreenSize)/Math.LN2;
 		}
 		
 		/**
@@ -57,7 +60,7 @@ package weave.utils
 		 */
 		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
 		{
-			return Math.pow(2, zoomLevel) * minScreenSize / originalSize(fullDataBounds);
+			return Math.pow(2, zoomLevel) * minScreenSize / absoluteMaxWidthOrHeight(fullDataBounds);
 		}
 		
 		/**

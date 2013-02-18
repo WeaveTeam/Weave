@@ -2,7 +2,7 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%">
-    <mx:DataGrid id="grid" editable="true" itemEditEnd="callLater(afterItemEditEnd)" width="100%" height="100%" minWidth="0">
+    <mx:DataGrid id="grid" editable="true" width="100%" height="100%" minWidth="0">
         <mx:columns>
             <mx:DataGridColumn headerText="Property" labelFunction="labelFunction" editable="false" width="{grid.width/3}"/>
             <mx:DataGridColumn id="valueCol" headerText="Value" dataField="value" editable="true" editorDataField="text">
@@ -95,18 +95,6 @@
 		{
 			return "*" + item.property;
 		}
-		
-        /* TODO: Pretty formatting to make it clear that these prefixes aren't part of the name.*/
-		
-//		if (!item.oldValue)
-//			return (item.value ? '[ADDED] ' : '[NEW] ') + item.property;
-//		
-//		if (!item.value)
-//			return '[DELETED] ' + item.property;
-//		
-//		if (item.oldValue != item.value)
-//			return '[CHANGED] ' + item.property;
-		
 		return item.property;
     }
     [Bindable(event="metaChanged")] public function get metadata():Object
@@ -193,26 +181,6 @@
 			rowIndex: indexOfItemWithProperty(rows.source, 'property', property),
 			columnIndex: indexOfItemWithProperty(grid.columns, 'dataField', 'value')
 		};
-	}
-	
-	private function afterItemEditEnd():void
-	{
-		/*
-		// if user has added a property but not entered a value, remove the property
-        var rows:ListCollectionView = grid.dataProvider as ListCollectionView;
-		var length:int = rows.length;
-		for (var i:int = length - 1; i >= 0; i--)
-		{
-			var item:MetadataGridItem = rows.getItemAt(i) as MetadataGridItem;
-			if (!item.oldValue && !item.value)
-				rows.removeItemAt(i);
-		}
-		if (rows.length != length)
-		{
-			rows.refresh();
-			updateMissingPropNames();
-		}
-		*/
 	}
 	
 	/**

@@ -32,7 +32,6 @@
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.EntityType;
 	
 	public function handleCreationComplete():void
 	{
