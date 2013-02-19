@@ -1542,7 +1542,7 @@ public class AdminService
 					{
 						String filteredQuery = buildFilteredQuery(conn, query, filteredValues.columnNames);
 						titles.add(buildFilteredColumnTitle(configColumnNames[iCol], filteredValues.rows[iRow]));
-						sqlFields.add(sqlColumn);
+						sqlFields.add(sqlColumnNames[iCol]);
 						queries.add(filteredQuery);
 						queryParamsList.add(filteredValues.rows[iRow]);
 						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery, filteredValues.rows[iRow]));
@@ -1551,7 +1551,7 @@ public class AdminService
 				else
 				{
 					titles.add(configColumnNames[iCol]);
-					sqlFields.add(sqlColumn);
+					sqlFields.add(sqlColumnNames[iCol]);
 					queries.add(query);
 					dataTypes.add(testQueryAndGetDataType(conn, query, null));
 				}
