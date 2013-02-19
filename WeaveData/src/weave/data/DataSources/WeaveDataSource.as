@@ -27,29 +27,30 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.disposeObjects;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
-	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.QKeyManager;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
 	import weave.services.beans.EntityType;
+	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
@@ -218,7 +219,8 @@ package weave.data.DataSources
 					var entityIds:Array = entityType_entityIds[1];
 					
 					var entities:Array = event.result as Array;
-					entities.sort(
+					AsyncSort.sortImmediately(
+						entities,
 						function(entity1:Object, entity2:Object):int
 						{
 							var i1:int = entityIds.indexOf(entity1.id);
@@ -360,7 +362,8 @@ package weave.data.DataSources
 			try
 			{
 				var entities:Array = event.result as Array;
-				entities.sort(
+				AsyncSort.sortImmediately(
+					entities,
 					function(entity1:Object, entity2:Object):int
 					{
 						var i1:int = entityIds.indexOf(entity1.id);

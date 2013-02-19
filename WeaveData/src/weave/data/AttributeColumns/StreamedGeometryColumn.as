@@ -39,6 +39,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
+	import weave.utils.AsyncSort;
 	import weave.utils.GeometryStreamDecoder;
 	
 	/**
@@ -168,10 +169,10 @@ package weave.data.AttributeColumns
 			}
 			// request metadata tiles
 			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance, true);
-			metadataTileIDs.sort(Array.NUMERIC);
+			AsyncSort.sortImmediately(metadataTileIDs);
 			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
 			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
-			geometryTileIDs.sort(Array.NUMERIC);
+			AsyncSort.sortImmediately(geometryTileIDs);
 
 			if (_debug)
 			{
