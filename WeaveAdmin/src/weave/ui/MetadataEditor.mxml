@@ -25,6 +25,7 @@
 <mx:Script>
 <![CDATA[
 	import mx.binding.utils.BindingUtils;
+	import mx.events.DataGridEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.getCallbackCollection;
@@ -40,11 +41,20 @@
 		BindingUtils.bindSetter(metaChanged, publicMetaGrid, 'metadata');
 		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
 		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
+		publicMetaGrid.grid.addEventListener(DataGridEvent.ITEM_EDIT_BEGIN, onItemEditBegin);
+		privateMetaGrid.grid.addEventListener(DataGridEvent.ITEM_EDIT_BEGIN, onItemEditBegin);
+	}
+	private function onItemEditBegin(event:Event = null):void
+	{
+		if (event)
+			callLater(onItemEditBegin);
+		else
+			isChanged = true;
 	}
 
 	[Bindable] private var publicPropertyCount:int = 0;
 	[Bindable] private var privatePropertyCount:int = 0;
-    [Bindable] public var isChanged:Boolean = false;
+	[Bindable] public var isChanged:Boolean = false;
 	
 	private var _targetItems:Array;
 	[Bindable] public function get targetItems():Array

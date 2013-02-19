@@ -5,65 +5,7 @@
     <mx:DataGrid id="grid" editable="true" width="100%" height="100%" minWidth="0">
         <mx:columns>
             <mx:DataGridColumn headerText="Property" labelFunction="labelFunction" editable="false" width="{grid.width/3}"/>
-            <mx:DataGridColumn id="valueCol" headerText="Value" dataField="value" editable="true" editorDataField="text">
-				<mx:itemEditor>
-					<mx:Component>
-						<mx:Canvas width="100%">
-							<mx:Script>
-								<![CDATA[
-									import weave.services.Admin;
-									
-									public function get text():String
-									{
-										if (comboBox.visible)
-											return comboBox.text;
-										return textInput.text;
-									}
-									
-									override public function set data(_item:Object):void
-									{
-										var item:MetadataGridItem = _item as MetadataGridItem;
-										var values:Array = Admin.instance.getSuggestedPropertyValues(item.property);
-										if (values && values.length > 0)
-										{
-											// if current value is in the list, remove it and put it at the front.
-											var index:int = values.indexOf(item.value);
-											if (index > 0)
-											{
-												// make a copy of the array and put the item up front
-												values = [item.value].concat(values);
-												// remove the existing value, which has now been shifted by 1
-												values.splice(index + 1, 1);
-												comboBox.dataProvider = values;
-											}
-											else
-												comboBox.dataProvider = values.concat();
-											
-											textInput.visible = false;
-											comboBox.selectedIndex = -1;
-											comboBox.text = item.value;
-											comboBox.visible = true;
-											comboBox.setFocus();
-										}
-										else
-										{
-											comboBox.dataProvider = null;
-											comboBox.visible = false;
-											
-											textInput.visible = true;
-											textInput.text = item.value;
-											textInput.setFocus();
-											textInput.setSelection(0, int.MAX_VALUE);
-										}
-									}
-								]]>
-							</mx:Script>
-							<mx:TextInput id="textInput" width="{width}" height="{height}"/>
-							<CustomComboBox id="comboBox" width="{width}" height="{height}" editable="true" fontWeight="normal"/>
-						</mx:Canvas>
-					</mx:Component>
-				</mx:itemEditor>
-			</mx:DataGridColumn>
+            <mx:DataGridColumn id="valueCol" headerText="Value" dataField="value" editable="true" editorDataField="text"/>
         </mx:columns>
     </mx:DataGrid>
 	<Indent label="Add property:">
@@ -72,20 +14,92 @@
 	</Indent>
 <mx:Script>
 <![CDATA[
-	import mx.utils.ObjectUtil;
 	import mx.collections.ArrayCollection;
 	import mx.collections.ListCollectionView;
+	import mx.controls.TextInput;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.events.CollectionEvent;
+	import mx.events.DataGridEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.core.UIUtils;
+	import weave.services.Admin;
 	
 	/**
 	 * Set this to the list of property names you want to display in the drop-down box for adding a new property. 
 	 */
 	[Bindable] public var selectablePropertyNames:Array = [];
 	
-    private function emitMetaChanged(o:Object = null):void
+	private var textEditFactory:ClassFactory;
+	private var comboEditFactory:ClassFactory;
+	
+	override protected function childrenCreated():void
+	{
+		super.childrenCreated();
+		
+		textEditFactory = new ClassFactory(TextInput);
+		comboEditFactory = new ClassFactory(CustomComboBox);
+		comboEditFactory.properties = {editable: true};
+		
+		grid.addEventListener(DataGridEvent.ITEM_EDIT_BEGIN, handleItemEditBegin);
+		grid.addEventListener(DataGridEvent.ITEM_EDIT_END, dispatchMetaChanged);
+	}
+	
+	private function handleItemEditBegin(event:DataGridEvent):void
+	{
+		event.preventDefault();
+		
+		if (grid.columns[event.columnIndex] != valueCol)
+			return;
+		
+		var lcv:ListCollectionView = grid.dataProvider as ListCollectionView;
+		if (!lcv)
+			return;
+		
+		var item:MetadataGridItem = lcv.getItemAt(event.rowIndex) as MetadataGridItem;
+		var values:Array = Admin.instance.getSuggestedPropertyValues(item.property);
+		if (values && values.length > 0)
+		{
+			valueCol.itemEditor = comboEditFactory;
+			grid.createItemEditor(event.columnIndex, event.rowIndex);
+			var comboBox:CustomComboBox = grid.itemEditorInstance as CustomComboBox;
+			comboBox.setStyle('fontWeight', 'normal');
+			
+			// if current value is in the list, remove it and put it at the front.
+			var index:int = values.indexOf(item.value);
+			if (index > 0)
+			{
+				// make a copy of the array and put the item up front
+				values = [item.value].concat(values);
+				// remove the existing value, which has now been shifted by 1
+				values.splice(index + 1, 1);
+				comboBox.dataProvider = values;
+			}
+			else
+				comboBox.dataProvider = values.concat();
+			
+			comboBox.selectedIndex = -1;
+			comboBox.text = item.value;
+			comboBox.setFocus();
+		}
+		else
+		{
+			valueCol.itemEditor = textEditFactory;
+			grid.createItemEditor(event.columnIndex, event.rowIndex);
+			var textInput:TextInput = grid.itemEditorInstance as TextInput;
+			textInput.text = item.value;
+			textInput.setFocus();
+			textInput.setSelection(0, int.MAX_VALUE);
+		}
+		
+		var event:DataGridEvent = new DataGridEvent(DataGridEvent.ITEM_FOCUS_IN);
+		event.columnIndex = event.columnIndex;
+		event.rowIndex = event.rowIndex;
+		event.itemRenderer = grid.itemEditorInstance;
+		dispatchEvent(event);
+	}
+	
+    private function dispatchMetaChanged(o:Object = null):void
     {
         dispatchEvent(new Event("metaChanged"));
     }
@@ -142,9 +156,9 @@
 			rows.push(new MetadataGridItem(prop, srcmeta[prop]));
 		rows.sort(propertySort);
         grid.dataProvider = rows;
-        (grid.dataProvider as ListCollectionView).addEventListener(CollectionEvent.COLLECTION_CHANGE, emitMetaChanged);
+        (grid.dataProvider as ListCollectionView).addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
 		updateMissingPropNames();
-        dispatchEvent(new Event("metaChanged"));
+        dispatchMetaChanged();
     }
     public function addProp():void
     {
@@ -161,7 +175,7 @@
 		{
             rows.addItem(new MetadataGridItem(prop));
 			updateMissingPropNames();
-	        dispatchEvent(new Event("metaChanged"));
+	        dispatchMetaChanged();
 		}
 		
 		openEditor(prop);
