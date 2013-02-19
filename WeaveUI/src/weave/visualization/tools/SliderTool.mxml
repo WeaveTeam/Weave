@@ -39,6 +39,7 @@
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IVisTool;
@@ -339,15 +340,13 @@
 	 * **/
 	private function moveSlider(evt:TimerEvent):void
 	{
+		if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
+			return;
+		
 		if (currentSliderPosition.value < dimensionSlider.maximum)
 			currentSliderPosition.value++;
 		else
 			currentSliderPosition.value = dimensionSlider.minimum;
-		if (_timer.currentCount == (_timer.repeatCount - 1))
-		{
-			playButton.label = lang("Play");
-			_timer.reset();
-		}
 	}
 	
 	
