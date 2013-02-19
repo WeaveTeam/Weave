@@ -15,7 +15,6 @@
 <mx:Script>
 <![CDATA[
 	import mx.collections.ArrayCollection;
-	import mx.collections.ListCollectionView;
 	import mx.controls.TextInput;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.events.CollectionEvent;
@@ -50,14 +49,10 @@
 	{
 		event.preventDefault();
 		
-		if (grid.columns[event.columnIndex] != valueCol)
+		if (!gridItems || grid.columns[event.columnIndex] != valueCol)
 			return;
 		
-		var lcv:ListCollectionView = grid.dataProvider as ListCollectionView;
-		if (!lcv)
-			return;
-		
-		var item:MetadataGridItem = lcv.getItemAt(event.rowIndex) as MetadataGridItem;
+		var item:MetadataGridItem = gridItems.getItemAt(event.rowIndex) as MetadataGridItem;
 		var values:Array = Admin.instance.getSuggestedPropertyValues(item.property);
 		if (values && values.length > 0)
 		{
@@ -66,21 +61,16 @@
 			var comboBox:CustomComboBox = grid.itemEditorInstance as CustomComboBox;
 			comboBox.setStyle('fontWeight', 'normal');
 			
-			// if current value is in the list, remove it and put it at the front.
-			var index:int = values.indexOf(item.value);
+			// make a copy of the array and put the old value up front
+			values = [item.oldValue].concat(values);
+			// if current value was already in the list, remove it from its old position
+			var index:int = values.indexOf(item.oldValue, 1);
 			if (index > 0)
-			{
-				// make a copy of the array and put the item up front
-				values = [item.value].concat(values);
-				// remove the existing value, which has now been shifted by 1
-				values.splice(index + 1, 1);
-				comboBox.dataProvider = values;
-			}
-			else
-				comboBox.dataProvider = values.concat();
+				values.splice(index, 1);
 			
+			comboBox.dataProvider = values;
 			comboBox.selectedIndex = -1;
-			comboBox.text = item.value;
+			comboBox.text = String(item.value);
 			comboBox.setFocus();
 		}
 		else
@@ -88,7 +78,7 @@
 			valueCol.itemEditor = textEditFactory;
 			grid.createItemEditor(event.columnIndex, event.rowIndex);
 			var textInput:TextInput = grid.itemEditorInstance as TextInput;
-			textInput.text = item.value;
+			textInput.text = String(item.value);
 			textInput.setFocus();
 			textInput.setSelection(0, int.MAX_VALUE);
 		}
@@ -100,64 +90,50 @@
 		dispatchEvent(event);
 	}
 	
+	/**
+	 * @return An Array of MetadataGridItem objects.
+	 */
+	private function get gridItems():ArrayCollection
+	{
+        return grid.dataProvider as ArrayCollection;
+	}
+	
     private function dispatchMetaChanged(o:Object = null):void
     {
         dispatchEvent(new Event("metaChanged"));
     }
     private static function labelFunction(item:MetadataGridItem, column:DataGridColumn):String
     {
-		if (item.oldValue != item.value && (item.oldValue || item.value))
-		{
-			return "*" + item.property;
-		}
+		if (item.changed)
+			return lang("*{0}", item.property);
 		return item.property;
     }
+	
+	public function get metadataChanged():Boolean
+	{
+		for each (var item:MetadataGridItem in gridItems)
+			if (item.changed)
+				return true;
+		return false;
+	}
+	
     [Bindable(event="metaChanged")] public function get metadata():Object
     {
-        /* Convert from the grid's dataProvider to an object that is expected. */
-        var lcv:ListCollectionView = grid.dataProvider as ListCollectionView;
-        if (lcv == null) return {};
-        var rows:Array = lcv.toArray();
-        var destmeta:Object = new Object();
-        for each (var row:MetadataGridItem in rows)
-        {
-            if (!row.value)
-            {
-                if (row.oldValue)
-                    destmeta[row.property] = null;
-                else
-                    continue; /* If a nonoriginal property was deleted 
-                                we don't need other components to hear about it. */
-            }
-            else
-                destmeta[row.property] = row.value;
-        }
-        return destmeta;
+        var result:Object = {};
+        for each (var item:MetadataGridItem in gridItems)
+			if (item.changed)
+                result[item.property] = item.value || null; // avoid empty strings
+		
+        return result;
     }
-	private function updateMissingPropNames():void
-	{
-		var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
-		var missingPropNames:Array = selectablePropertyNames.concat();
-		for each (var item:MetadataGridItem in rows)
-		{
-			// exclude this prop from missingPropNames
-			var index:int = missingPropNames.indexOf(item.property);
-			if (index >= 0)
-				missingPropNames.splice(index, 1);
-		}
-		AsyncSort.sortImmediately(missingPropNames, propertySort);
-		newPropCombo.dataProvider = missingPropNames;
-		newPropCombo.selectedIndex = -1;
-	}
     public function set metadata(srcmeta:Object):void
     {
-        /* Convert from an object to a format expected by the dataProvider */
-        var rows:Array = new Array();
+        var items:Array = new Array();
         for (var prop:String in srcmeta)
-			rows.push(new MetadataGridItem(prop, srcmeta[prop]));
-		AsyncSort.sortImmediately(rows, propertySort);
-        grid.dataProvider = rows;
-        (grid.dataProvider as ListCollectionView).addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
+			items.push(new MetadataGridItem(prop, srcmeta[prop]));
+		AsyncSort.sortImmediately(items, propertySort);
+        grid.dataProvider = items;
+        gridItems.addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
 		updateMissingPropNames();
         dispatchMetaChanged();
     }
@@ -171,16 +147,29 @@
 			return;
 		}
 		
-        var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
-		if (indexOfItemWithProperty(rows.source, 'property', prop) < 0)
+		if (indexOfItemWithProperty(gridItems.source, 'property', prop) < 0)
 		{
-            rows.addItem(new MetadataGridItem(prop));
+            gridItems.addItem(new MetadataGridItem(prop));
 			updateMissingPropNames();
 	        dispatchMetaChanged();
 		}
 		
 		openEditor(prop);
     }
+	private function updateMissingPropNames():void
+	{
+		var missingPropNames:Array = selectablePropertyNames.concat();
+		for each (var item:MetadataGridItem in gridItems)
+		{
+			// exclude this prop from missingPropNames
+			var index:int = missingPropNames.indexOf(item.property);
+			if (index >= 0)
+				missingPropNames.splice(index, 1);
+		}
+		AsyncSort.sortImmediately(missingPropNames, propertySort);
+		newPropCombo.dataProvider = missingPropNames;
+		newPropCombo.selectedIndex = -1;
+	}
 	
 	private function indexOfItemWithProperty(array:Array, property:String, value:String):int
 	{
@@ -191,10 +180,9 @@
 	}
 	private function openEditor(property:String):void
 	{
-        var rows:ArrayCollection = grid.dataProvider as ArrayCollection;
 		grid.editedItemPosition = {
-			rowIndex: indexOfItemWithProperty(rows.source, 'property', property),
-			columnIndex: indexOfItemWithProperty(grid.columns, 'dataField', 'value')
+			rowIndex: indexOfItemWithProperty(gridItems.source, 'property', property),
+			columnIndex: grid.columns.indexOf(valueCol)
 		};
 	}
 	
