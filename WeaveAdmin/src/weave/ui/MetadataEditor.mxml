@@ -11,9 +11,11 @@
 		<mx:Label id="idDisplay"/>
 	</mx:HBox>
     <mx:TabNavigator width="{width}" height="100%">
-        <ui:MetadataGrid id="publicMetaGrid" label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0})"
+        <ui:MetadataGrid id="publicMetaGrid"
+			label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0}){publicMetaGrid.metadataChanged?'*':''}"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
-        <ui:MetadataGrid id="privateMetaGrid" label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0})"
+        <ui:MetadataGrid id="privateMetaGrid"
+			label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0}){privateMetaGrid.metadataChanged?'*':''}"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
     <mx:HBox width="100%">
@@ -27,6 +29,7 @@
 	import mx.events.DataGridEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.data.ColumnMetadata;
 	import weave.api.getCallbackCollection;
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
@@ -34,6 +37,7 @@
 	
 	public function handleCreationComplete():void
 	{
+		publicMetaGrid.defaultPropertyName = ColumnMetadata.TITLE;
 		publicMetaGrid.selectablePropertyNames = EntityMetadata.getSuggestedPublicPropertyNames();
 		privateMetaGrid.selectablePropertyNames = EntityMetadata.getSuggestedPrivatePropertyNames();
 		BindingUtils.bindSetter(detectChange, publicMetaGrid, 'metadata');
