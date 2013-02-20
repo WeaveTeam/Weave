@@ -25,8 +25,11 @@ package weave.ui.infomap.ui
 	import flash.geom.Point;
 	
 	import mx.containers.Canvas;
+	import mx.containers.HBox;
 	import mx.controls.Image;
 	import mx.core.UIComponent;
+	import mx.effects.Fade;
+	import mx.events.EffectEvent;
 	
 	import weave.utils.BitmapUtils;
 	
@@ -40,18 +43,59 @@ package weave.ui.infomap.ui
 	 */
 	public class RadialMenu extends Canvas
 	{
+		/**
+		 * Creates a menu using images. The menus shows up when the eventType occurs on the uiParent.
+		 * Current works  
+		 * @param uiParent
+		 * @param eventType
+		 * @param style
+		 * 
+		 */		
+		public function RadialMenu(uiParent:UIComponent, openEventType:String,closeEventType:String, style:String)
+		{
+			if(uiParent == null)
+				return;
+			
+			_uiParent = uiParent;
+			
+			_uiParent.addEventListener(openEventType,showMenu);
+			_uiParent.addEventListener(closeEventType,hideMenu);
+			
+//			addEventListener(MouseEvent.ROLL_OVER,showMenu);
+//			addEventListener(MouseEvent.ROLL_OUT,hideMenu);
+			
+			_style = style;
+			
+		}
+		
+		private var _uiParent:UIComponent = null;
+		
+		private var _style:String = RADIAL_STYLE;
+		
 		override protected function childrenCreated():void
 		{
 			super.childrenCreated();
-			this.width = _radius;
-			this.height = _radius *2;
 			clipContent = false;
+			
+			_fadeIn.duration = 500;
+			_fadeOut.duration = 500;
+			
+			_fadeIn.alphaFrom = _fadeOut.alphaTo = 0.0;
+			_fadeIn.alphaTo = _fadeOut.alphaFrom = 1.0;
+			
+			_fadeIn.addEventListener(EffectEvent.EFFECT_END,handleEffectsEnd);
+			
 		}
+		
 		public var iconSize:int = 12;
 		
+		private var _fadeIn:Fade = new Fade(this);
+		private var _fadeOut:Fade = new Fade(this);
+		
 		private var _menuItems:Array = [];
-		public function addMenuItem(bitmap:Bitmap,label:String,listener:Function,params:Array=null):void
+		public function addMenuItem(bitmap:Bitmap,label:String,listener:Function,postion:Number=NaN):void
 		{
+			removeMenuitem(label);
 			var item:RadialMenuItem = new RadialMenuItem();
 			
 			item.img = new Image();
@@ -62,27 +106,58 @@ package weave.ui.infomap.ui
 			item.img.buttonMode = true;
 			item.img.addEventListener(MouseEvent.CLICK,listener);
 			
-			_menuItems.push(item);
-		}
-		
-		private var _radius:int = 50;
-		public function showMenu():void
-		{
-			var numOfItems:Number = _menuItems.length;
-			
-			var positions:Array = getNPointsOnSemiCircle(_radius,numOfItems);
-			
-			for (var i:int = 0; i<numOfItems; i++)
+			if(!isNaN(postion))
 			{
-				var item:RadialMenuItem = _menuItems[i];
-				addChild(item.img);
-				item.img.toolTip = item.label;
-				item.img.move(positions[i].x,positions[i].y);
+				_menuItems.splice(postion,0,item);
+			}
+			else
+			{
+				_menuItems.push(item);
 			}
 		}
 		
-		public function hideMenu():void
+		public static const RADIAL_STYLE:String = "radial";
+		public static const LINE_STYLE:String = "line";
+		
+		private var _radius:int = 50;
+		private function showMenu(event:Event):void
 		{
+			var numOfItems:Number = _menuItems.length;
+			
+			if(_style == RADIAL_STYLE)
+			{
+				this.width = _radius;
+				this.height = _radius *2;
+				var positions:Array = getNPointsOnSemiCircle(_radius,numOfItems);
+				var item:RadialMenuItem;
+				for (var i:int = 0; i<numOfItems; i++)
+				{
+					item = _menuItems[i];
+					addChild(item.img);
+					item.img.toolTip = item.label;
+					item.img.move(positions[i].x,positions[i].y);
+				}
+			}
+			else if(_style == LINE_STYLE)
+			{
+				this.width = iconSize * numOfItems;
+				this.height = iconSize;
+				var box:HBox = new HBox();
+				addChild(box);
+				for (var j:int = 0; j<numOfItems; j++)
+				{
+					item = _menuItems[j];
+					box.addChild(item.img);
+					item.img.toolTip = item.label;
+				}
+			}
+			
+			_fadeIn.play();
+		}
+		
+		private function hideMenu(event:Event):void
+		{
+			_fadeOut.play();
 			removeAllChildren();
 		}
 		
@@ -105,6 +180,18 @@ package weave.ui.infomap.ui
 			_menuItems = [];
 		}
 		
+		private function handleEffectsEnd(event:EffectEvent):void
+		{
+			if(event.target == _fadeIn)
+			{
+				enabled = true;
+			}
+			else
+			{
+				enabled = false;
+			}
+		}
+		
 		/**
 		 * @private
 		 * This function calculates the points on the circle to plot the thumbnails on 
@@ -124,7 +211,7 @@ package weave.ui.infomap.ui
 			var points:Array = new Array( n );				
 			var i:int = -1;
 			while( ++i < n )				{
-				var theta:Number = p * i;
+				var theta:Number = - p * i;
 				var pointOnCircle:Point = new Point( Math.cos( theta ) * radius, Math.sin( theta ) * radius );
 				points[ i ] = center.add( pointOnCircle );
 			}				

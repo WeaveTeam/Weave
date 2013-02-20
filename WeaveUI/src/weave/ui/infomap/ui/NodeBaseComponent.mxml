@@ -13,7 +13,7 @@ It has 4 icons to:
 	  mouseOver="handleMouseOver()"		   
 	  mouseOut="handleMouseOut()"
 	  autoLayout="false" 
-	  width="100%" minWidth="220">
+	  width="100%" minWidth="220" clipContent="false">
 	<!--<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>

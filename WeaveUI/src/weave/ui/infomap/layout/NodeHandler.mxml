@@ -277,7 +277,7 @@
 			private var PointsImgClass:Class;
 			private var _pointsImgText:String = "Points View"
 			
-			private var _radialMenu:RadialMenu = new RadialMenu();
+			private var _radialMenu:RadialMenu;
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -294,23 +294,17 @@
 //				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				//opens the settings panel
-				
-				addChild(_radialMenu);
-				
-				_radialMenu.move(10,10);
-				addEventListener(MouseEvent.CLICK,function(event:Event):void{
-						_radialMenu.showMenu();
-				});
-					
+				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
+				nodeBase.addChildAt(_radialMenu,0);
 				
 				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
-				_radialMenu.addMenuItem(closeImg,_closeImgText,settings);
+				_radialMenu.addMenuItem(closeImg,_closeImgText,close);
 				
 //				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
 				
 				//removes the node from the panel after confirmation
 				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(settingsImg,_settingsImgText,close);
+				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -863,7 +857,8 @@
 					nodeBase.width = 220;
 				nodeBase.keywordTextArea.width = nodeBase.width;
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
-				nodeBase.height = nodeBase.keywordTextArea.height+ 30;
+				nodeBase.height = nodeBase.keywordTextArea.height + _radialMenu.iconSize;
+				nodeBase.keywordTextArea.y = _radialMenu.iconSize;
 			}
 			
 			override public function validateDisplayList():void
@@ -2147,7 +2142,17 @@
 				
 				
 				if(diff)
+				{
 					copySessionState(previousQuery,currentQuery);
+					if(!_firstLoad)
+					{
+						thumbnails.removeAllObjects();
+						numOfMatchedDocuments.value = 0;
+						_currentNewDocsCount = 0;
+						prevNewDocsCount.value = 0;
+						docKeySet.replaceKeys([]);
+					}
+				}
 
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
@@ -2281,7 +2286,6 @@
 			private function hideIcons():void
 			{
 				_radialMenu.removeAllMenuItems();
-				_radialMenu.hideMenu();
 			}
 			
 			private function handleEmptyResultSet():void
