@@ -181,14 +181,18 @@ public class AdminService
 	
     private void tryModify(String user, String pass, int entityId) throws RemoteException
     {
-        // superuser can modify anything
-        if (!getConnectionInfo(user, pass).is_superuser)
-        {
-        	DataEntity entity = getDataConfig().getEntity(entityId);
+        if (getConnectionInfo(user, pass).is_superuser)
+        	return; // superuser can modify anything
+        
+    	DataEntity entity = getDataConfig().getEntity(entityId);
+    	
+    	// permissions only supported on data tables and columns
+    	if (entity.type == DataEntity.TYPE_DATATABLE || entity.type == DataEntity.TYPE_COLUMN)
+    	{
 	        String owner = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 	        if (!user.equals(owner))
 	        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entityId));
-        }
+    	}
     }
 	
 	//////////////////////////////
@@ -585,6 +589,9 @@ public class AdminService
 
 	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
 	{
+		if (parentId == DataConfig.NULL)
+			throw new RemoteException("removeParentChildRelationship() called with parentId=" + DataConfig.NULL);
+		
 		tryModify(user, password, parentId);
 		getDataConfig().removeChild(parentId, childId);
 	}
