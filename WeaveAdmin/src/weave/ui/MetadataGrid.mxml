@@ -110,7 +110,7 @@
 		return item.property;
     }
 	
-	public function get metadataChanged():Boolean
+	[Bindable(event="metaChanged")] public function get metadataChanged():Boolean
 	{
 		for each (var item:MetadataGridItem in gridItems)
 			if (item.changed)
