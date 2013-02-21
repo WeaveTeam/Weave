@@ -27,7 +27,7 @@
 	borderAlpha="1"
 	borderColor="#939178"
 	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
-	verticalScrollPolicy="off"
+	verticalScrollPolicy="auto"
 	horizontalScrollPolicy="off"
 	roundedBottomCorners="true"
 	height="564"

@@ -39,6 +39,7 @@
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IVisTool;
@@ -47,6 +48,7 @@
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.utils.AsyncSort;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.VectorUtils;
@@ -134,7 +136,8 @@
 	{
 		var sliders:Array = WeaveAPI.globalHashMap.getNames(SliderTool);
 		var lineCharts:Array = WeaveAPI.globalHashMap.getNames(LineChartTool);
-		var result:Array = WeaveAPI.globalHashMap.getNames(IVisTool).sort();
+		var result:Array = WeaveAPI.globalHashMap.getNames(IVisTool);
+		AsyncSort.sortImmediately(result);
 		for each (var names:Array in [sliders, lineCharts])
 			for each (var name:String in names)
 				result.splice(result.indexOf(name), 1);
@@ -339,15 +342,13 @@
 	 * **/
 	private function moveSlider(evt:TimerEvent):void
 	{
+		if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
+			return;
+		
 		if (currentSliderPosition.value < dimensionSlider.maximum)
 			currentSliderPosition.value++;
 		else
 			currentSliderPosition.value = dimensionSlider.minimum;
-		if (_timer.currentCount == (_timer.repeatCount - 1))
-		{
-			playButton.label = lang("Play");
-			_timer.reset();
-		}
 	}
 	
 	
@@ -419,6 +420,7 @@
 										<![CDATA[
 											import weave.api.WeaveAPI;
 											import weave.ui.DraggablePanel;
+											import weave.utils.AsyncSort;
 											override public function set data(value:Object):void
 											{
 												super.data = value;
@@ -435,7 +437,7 @@
 													_unlinkedTools.splice(i, 1);
 												if (!selected)
 													_unlinkedTools.push(data);
-												_unlinkedTools.sort();
+												AsyncSort.sortImmediately(_unlinkedTools);
 												outerDocument.unlinkedTools.setSessionState(_unlinkedTools);
 											}
 										]]>

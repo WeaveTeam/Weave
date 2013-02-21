@@ -57,6 +57,7 @@ package weave.visualization.layers
 	 */
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
 	{
+		public static var debugBusy:Boolean = false;
 		public static var debugMouseDownPause:Boolean = false;
 		public static var debugIgnoreSpatialIndex:Boolean = false;
 		
@@ -64,8 +65,6 @@ package weave.visualization.layers
 		
 		private function debugTrace(...args):void
 		{
-			return; // comment this out to enable debugging
-			
 			args.unshift(toString());
 			$debugTrace.apply(null, args);
 		}
@@ -78,7 +77,7 @@ package weave.visualization.layers
 				['subset','selection','probe'][_taskType]
 			].join('-');
 			
-			if (linkableObjectIsBusy(this))
+			if (debugBusy && linkableObjectIsBusy(this))
 				str += '(busy)';
 			
 			return str;
@@ -259,7 +258,7 @@ package weave.visualization.layers
 			if (shouldBeRendered())
 			{
 				asyncInit();
-				debugTrace('begin async rendering');
+				//debugTrace('begin async rendering');
 				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
 				
 				// assign secondary busy task in case async task gets cancelled due to busy dependencies
@@ -301,7 +300,7 @@ package weave.visualization.layers
 			// stop immediately if we shouldn't be rendering
 			if (shouldBeRendered())
 			{
-				debugTrace(this.toString(),'clear');
+				//debugTrace(this.toString(),'clear');
 				// clear bitmap and resize if necessary
 				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
 			}
@@ -325,7 +324,7 @@ package weave.visualization.layers
 			// if plotter is busy, stop immediately
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 			{
-				debugTrace('dependencies are busy');
+				//debugTrace('dependencies are busy');
 				if (!debugIgnoreSpatialIndex)
 					return 1;
 				
@@ -349,7 +348,7 @@ package weave.visualization.layers
 				// stop immediately if the bitmap is invalid
 				if (PlotterUtils.bitmapDataIsEmpty(bufferBitmap))
 				{
-					debugTrace('bitmap is empty');
+					//debugTrace('bitmap is empty');
 					return 1;
 				}
 				
@@ -389,7 +388,7 @@ package weave.visualization.layers
 						}
 					}
 				}
-				debugTrace(this.toString(),'recordKeys',_recordKeys.length);
+				//debugTrace(this.toString(),'recordKeys',_recordKeys.length);
 				
 				// done with keys
 				_pendingKeys = null;
@@ -406,7 +405,7 @@ package weave.visualization.layers
 				_delayInit = true;
 				
 				_progress = _plotter.drawPlotAsyncIteration(this);
-				debugTrace(this.toString(),'iteration',_iteration,'progress',_progress);
+				//debugTrace(this.toString(),'iteration',_iteration,'progress',_progress);
 				
 				_delayInit = false;
 				
@@ -421,7 +420,7 @@ package weave.visualization.layers
 		
 		private function asyncComplete():void
 		{
-			debugTrace('rendering completed');
+			//debugTrace('rendering completed');
 			_progress = 0;
 			// don't do anything else if dependencies are busy
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))

@@ -26,6 +26,7 @@ package weave.visualization.layers
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles mouse/keyboard interactions performed within InteractiveVisualizations
@@ -152,7 +153,7 @@ package weave.visualization.layers
 				for each (var row:Array in rows)
 				{
 					// sort row
-					row.sort();
+					AsyncSort.sortImmediately(row);
 					// save lookup from (modifier keys + mouse event) to action
 					var actionStr:String = row.join(DELIM);
 					if (!_interactionLookup.hasOwnProperty(actionStr))
@@ -209,7 +210,8 @@ package weave.visualization.layers
 			if (inputType)
 			{
 				array.push(inputType);
-				str = array.sort().join(DELIM);
+				AsyncSort.sortImmediately(array);
+				str = array.join(DELIM);
 				var action:String = _interactionLookup[str];
 				
 				//trace(defaultDragMode.value,'determineMouseAction',mouseEventType,'['+str+'] =>',action);
@@ -217,7 +219,8 @@ package weave.visualization.layers
 			}
 			else
 			{
-				str = array.sort().join(DELIM);
+				AsyncSort.sortImmediately(array);
+				str = array.join(DELIM);
 				var mode:String = _interactionModeLookup[str];
 				
 				//trace(defaultDragMode.value,'determineMouseMode','['+str+'] =>',mode);

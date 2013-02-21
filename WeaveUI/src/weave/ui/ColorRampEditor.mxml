@@ -122,6 +122,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.utils.AsyncSort;
 			import mx.events.DragEvent;
 			import mx.collections.ICollectionView;
 			import mx.collections.IList;
@@ -160,7 +161,7 @@
 					for each (var tag:String in String(xml.@tags).split(','))
 						if (!tagsLookup[tag])
 							tags.push(tagsLookup[tag] = tag);
-				tags.sort(Array.CASEINSENSITIVE);
+				AsyncSort.sortImmediately(tags, AsyncSort.compareCaseInsensitive);
 				tags.unshift(ALL);
 				filterCombo.dataProvider = tags;
 				colorRampList.dataProvider.filterFunction = filterColormaps;

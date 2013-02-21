@@ -27,6 +27,7 @@ package weave.data
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
 	import weave.api.getCallbackCollection;
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This is an all-static class containing functions to parse and generate valid CSV files.
@@ -365,7 +366,10 @@ package weave.data
 			var rows:Array = [];
 			
 			if (header == null)
-				header = getRecordFieldNames(records, allowBlankColumns).sort();
+			{
+				header = getRecordFieldNames(records, allowBlankColumns);
+				AsyncSort.sortImmediately(header);
+			}
 			
 			rows.push(header);
 			

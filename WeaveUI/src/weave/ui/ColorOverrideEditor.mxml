@@ -87,6 +87,7 @@
 		</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.utils.AsyncSort;
 			import mx.collections.ICollectionView;
 			import weave.data.KeySets.KeySet;
 			import weave.api.getCallbackCollection;
@@ -192,7 +193,7 @@
 			private function removeSelectedColors():void
 			{
 				var indices:Array = colorOverrideList.selectedIndices;
-				indices.sort(Array.NUMERIC);
+				AsyncSort.sortImmediately(indices);
 				for (var i:int = indices.length - 1; i >= 0; i--)
 					_recordColorTable.splice(indices[i], 1);
 				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
