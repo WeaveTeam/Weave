@@ -195,7 +195,7 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				trace("Error trying to decode node: "+dataNode.toString() + "\n" + e.getStackTrace());
+				trace("Error trying to decode node: " + dataNode + "\n" + e.getStackTrace());
 			}
 			return super.decodeXML(dataNode);
 		}

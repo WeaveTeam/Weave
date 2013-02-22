@@ -29,6 +29,7 @@
 	 * Set this to the list of property names you want to display in the drop-down box for adding a new property. 
 	 */
 	[Bindable] public var selectablePropertyNames:Array = [];
+	public var defaultPropertyName:String;
 	
 	private var textEditFactory:ClassFactory;
 	private var comboEditFactory:ClassFactory;
@@ -109,7 +110,7 @@
 		return item.property;
     }
 	
-	public function get metadataChanged():Boolean
+	[Bindable(event="metaChanged")] public function get metadataChanged():Boolean
 	{
 		for each (var item:MetadataGridItem in gridItems)
 			if (item.changed)
@@ -126,11 +127,13 @@
 		
         return result;
     }
-    public function set metadata(srcmeta:Object):void
+    public function set metadata(values:Object):void
     {
         var items:Array = new Array();
-        for (var prop:String in srcmeta)
-			items.push(new MetadataGridItem(prop, srcmeta[prop]));
+		if (values && defaultPropertyName && !values.hasOwnProperty(defaultPropertyName))
+			items.push(new MetadataGridItem(defaultPropertyName));
+        for (var prop:String in values)
+			items.push(new MetadataGridItem(prop, values[prop]));
 		AsyncSort.sortImmediately(items, propertySort);
         grid.dataProvider = items;
         gridItems.addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);

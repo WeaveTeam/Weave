@@ -9,29 +9,27 @@
 		<ui:IndentTextInput label="{lang('Data Tables')}" labelFontWeight="bold" prompt="{lang('Search')}" id="tableSearch" width="100%"/>
         <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}" nodeFilterFunction="{filterTables}"
 			entityCache="{Admin.entityCache}"
-            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
+            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
+			<mx:Button toggle="true" label="Edit tables" id="editTablesButton" visible="false" includeInLayout="false"/>
             <mx:Button id="deleteTableButton" label="{lang('Delete table')}" click="deleteTable()"/>
 			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
-    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
+    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
         <mx:HBox>
-			<mx:Label text="{lang('Custom hierarchies')}" fontWeight="bold"/>
+			<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
 			<ui:HelpComponent>
 				The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
 			</ui:HelpComponent>
 		</mx:HBox>
         <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
             width="100%" height="100%" entityCache="{Admin.entityCache}"
-            dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
+            dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
         <mx:HBox width="100%">
-			<mx:Spacer width="100%"/>
-			<mx:HBox enabled="{arrayLengthLessThanTwo(selectedItems)}">
-    	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', hierarchyTree.selectedItem ? 'category' : 'hierarchy')}" width="100%" enter="addCategory()"/>
-	            <mx:Button label="{lang('Add {0}', hierarchyTree.selectedItem ? 'category' : 'hierarchy')}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
-			</mx:HBox>
+	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
+            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
             <mx:Button label="{lang('Remove')}" click="remove()" enabled="{hierarchyTree.selectedItem}"/>
         </mx:HBox>
     </mx:VBox>
@@ -48,9 +46,9 @@
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
 	
-	private function arrayLengthLessThanTwo(array:Array):Boolean
+	private function categoryOrHierarchyLabel(hierarchyTreeSelectedItems:Array):String
 	{
-		return array.length < 2;
+		return hierarchyTreeSelectedItems.length == 1 ? 'category' : 'hierarchy';
 	}
 
     [Bindable] public var selectedItems:Array = [];
@@ -126,10 +124,10 @@
         }
 		
 		var node:EntityNode;
-		if (hierarchyTree.selectedItems.length == 0)
-			node = hierarchyTree.rootNode;
 		if (hierarchyTree.selectedItems.length == 1)
-			node = hierarchyTree.selectedItems[0];
+			node = hierarchyTree.selectedItem as EntityNode;
+		else
+			node = hierarchyTree.rootNode;
         
 		var index:int = -1;
 		// if user selected a column, use its parent node and insert at the column's position

@@ -576,18 +576,25 @@ public class DataService extends GenericServlet
 		Collection<Integer> ids = getDataConfig().getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
 		
 		if (ids.size() > 1)
-			throw new RemoteException(String.format(
-					"Multiple columns (%s) match metadata query: %s",
+		{
+			String message = String.format(
+					"WARNING: Multiple columns (%s) match metadata query: %s",
 					ids.size(),
 					metadata
-				));
+				);
+			System.err.println(message);
+			//throw new RemoteException(message);
+		}
 		
-		for (int id : ids)
+		List<Integer> sortedIds = new ArrayList<Integer>(ids);
+		Collections.sort(sortedIds);
+		for (int id : sortedIds)
 		{
 			double min = (Double)cast(minStr, double.class);
 			double max = (Double)cast(maxStr, double.class);
 			String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
 			
+			// return first column
 			return getColumn(id, min, max, sqlParams);
 		}
 		
