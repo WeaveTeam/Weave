@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -491,6 +492,17 @@ public class GenericServlet extends HttpServlet
 					if (type == List.class)
 						value = Arrays.asList((String[])value);
 				}
+				else if(type == InputStream.class)
+				{
+					try
+					{
+						String temp = (String) value;
+						value = (InputStream)new ByteArrayInputStream(temp.getBytes("UTF-8"));
+					}catch (Exception e) {
+						
+						return null;
+					}
+				}
 			}
 			catch (NumberFormatException e)
 			{
@@ -625,25 +637,22 @@ public class GenericServlet extends HttpServlet
 		{
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, methodParameters);
 			
-			if (exposedMethod.method.getReturnType() != void.class)
+			if(getServletRequestInfo().jsonObj != null)
 			{
-				if(getServletRequestInfo().jsonObj != null)
-				{
-					Gson gson = new Gson();
-					String jsonResult = gson.toJson(result);
-					response.setContentType("application/json");
-					response.setCharacterEncoding("UTF-8");
-					response.setHeader("jsonrpc", "2.0");
-					response.setHeader("result", jsonResult);
-					String id = getServletRequestInfo().request.getHeader("id");
-					if(id==null)
-						id = "null";
-					response.setHeader("id", id);
-				}
-				else
-				{
-					seriaizeCompressedAmf3(result, servletOutputStream);
-				}
+				Gson gson = new Gson();
+				String jsonResult = gson.toJson(result);
+				response.setContentType("application/json");
+				response.setCharacterEncoding("UTF-8");
+				response.setHeader("jsonrpc", "2.0");
+				response.setHeader("result", jsonResult);
+				String id = getServletRequestInfo().request.getHeader("id");
+				if(id==null)
+					id = "null";
+				response.setHeader("id", id);
+			}
+			else if (exposedMethod.method.getReturnType() != void.class)
+			{
+				seriaizeCompressedAmf3(result, servletOutputStream);
 			}
 		}
 		catch (InvocationTargetException e)
