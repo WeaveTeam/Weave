@@ -54,11 +54,10 @@ package weave.core
 		public function getObject(objectPath:Array):ILinkableObject
 		{
 			var object:ILinkableObject = _rootObject;
-			for (var i:int = 0; i < objectPath.length; i++)
+			for each (var propertyName:String in objectPath)
 			{
 				if (object == null)
 					return null;
-				var propertyName:String = objectPath[i];
 				if (object is ILinkableHashMap)
 				{
 					object = (object as ILinkableHashMap).getObject(propertyName);
@@ -180,7 +179,7 @@ package weave.core
 		public function setChildNameOrder(hashMapPath:Array, orderedChildNames:Array):Boolean
 		{
 			var hashMap:ILinkableHashMap = getObject(hashMapPath) as ILinkableHashMap;
-			if (hashMap == null)
+			if (!hashMap || !orderedChildNames)
 				return false;
 			hashMap.setNameOrder(orderedChildNames);
 			return true;
@@ -224,17 +223,18 @@ package weave.core
 		 */
 		public function removeObject(objectPath:Array):Boolean
 		{
+			if (!objectPath || !objectPath.length)
+				return false;
 			var childName:String = objectPath.pop();
 			var object:ILinkableObject = getObject(objectPath);
 			var hashMap:ILinkableHashMap = object as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = object as ILinkableDynamicObject;
-			if (!hashMap && !dynamicObject)
-				return false;
-			
 			if (hashMap)
 				hashMap.removeObject(childName);
-			if (dynamicObject)
+			else if (dynamicObject)
 				dynamicObject.removeObject();
+			else
+				return false;
 			return true;
 		}
 		
@@ -244,9 +244,9 @@ package weave.core
 		 * @param tagName The name to use for the root XML tag that gets generated from the session state.
 		 * @return An XML serialization of the session state.
 		 */
-		public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String
+		public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = null):String
 		{
-			var result:XML = WeaveXMLEncoder.encode(sessionState, tagName);
+			var result:XML = WeaveXMLEncoder.encode(sessionState, tagName || "sessionState");
 			return result.toXMLString();
 		}
 
