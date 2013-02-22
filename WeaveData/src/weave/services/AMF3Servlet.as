@@ -37,7 +37,7 @@ package weave.services
 		public function AMF3Servlet(servletURL:String)
 		{
 			// params get sent as a compressed AMF3-serialized object
-			super(servletURL, "methodName", REQUEST_FORMAT_BINARY);
+			super(servletURL, "method", REQUEST_FORMAT_BINARY);
 		}
 		
 		/**

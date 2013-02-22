@@ -276,7 +276,7 @@ package weave.services
             var req:URLRequest = new URLRequest(admin_url);
             req.data = new URLVariables();
             req.method = URLRequestMethod.GET;
-            req.data["methodName"] = "initializeAdminService";
+            req.data["method"] = "initializeAdminService";
             var loader:URLStream = new URLStream();
             loader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
             loader.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);

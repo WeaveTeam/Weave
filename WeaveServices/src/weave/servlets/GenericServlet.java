@@ -19,11 +19,18 @@
 
 package weave.servlets;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,9 +45,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+
+import weave.beans.JsonRpcErrorModel;
+import weave.beans.JsonRpcRequestModel;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 
+import com.google.gson.Gson;
+import com.heatonresearch.httprecipes.html.PeekableInputStream;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
 
@@ -95,8 +109,8 @@ public class GenericServlet extends HttpServlet
 	/**
 	 * This is the name of the URL parameter corresponding to the method name.
 	 */
-	protected final String METHOD_NAME = "methodName";
-	protected final String METHOD_PARAMETERS = "methodParameters";
+	protected final String METHOD_NAME = "method";
+	protected final String METHOD_PARAMETERS = "params";
 	protected final String STREAM_PARAMETER_INDEX = "streamParameterIndex";
 	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName
@@ -242,14 +256,17 @@ public class GenericServlet extends HttpServlet
     
     protected class ServletRequestInfo
     {
-    	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response)
+    	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response,JsonRpcRequestModel jsonObj)
     	{
     		this.request = request;
     		this.response = response;
+    		this.jsonObj = jsonObj;
+    		
     	}
     	
     	HttpServletRequest request;
     	HttpServletResponse response;
+    	JsonRpcRequestModel jsonObj;
     }
     
     /**
@@ -272,26 +289,28 @@ public class GenericServlet extends HttpServlet
 	@SuppressWarnings({ "rawtypes", "unchecked" })
     private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
+		Gson gson = new Gson(); 
     	try
     	{
-    		synchronized (servletRequestInfo)
-    		{
-    			servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response));
-    		}
-    		
     		if (request.getMethod().equals("GET"))
     		{
         		List<String> urlParamNames = Collections.list(request.getParameterNames());
-
-    			// Read Method Name from URL
-    			String methodName = request.getParameter(METHOD_NAME);
-    			
+        		
     			HashMap<String, String> params = new HashMap();
     			
     			for (String paramName : urlParamNames)
     				params.put(paramName, request.getParameter(paramName));
+    			JsonRpcRequestModel jsonObj = new JsonRpcRequestModel();
+    			jsonObj.id = null;
+    			jsonObj.method = params.remove(METHOD_NAME);
+    			jsonObj.params = params;
     			
-    			invokeMethod(methodName, params);
+    			synchronized (servletRequestInfo)
+    			{
+    				servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response,jsonObj));
+    			}
+    			
+    			invokeMethod(jsonObj.method, params);
     		}
     		else if (request.getMethod().equals("POST"))
     		{
@@ -299,25 +318,57 @@ public class GenericServlet extends HttpServlet
 	    		{
 	    			//InputStream inputStream = new InflaterInputStream(request.getInputStream()); // read compressed data
 	    			InputStream inputStream = request.getInputStream(); // read uncompressed data
+	    			
+	    			PeekableInputStream peekStream = new PeekableInputStream(inputStream);
+	    			if(peekStream.peek(0) == '{')
+	    			{
+	    				
+	    				
+	    				
+	    				String streamString  = IOUtils.toString(peekStream,"UTF-8");
+	    				JsonRpcRequestModel m = gson.fromJson(streamString,JsonRpcRequestModel.class);
+	    				String methodName = m.method;
+	    				Object methodParameters = m.params;
+	    				synchronized (servletRequestInfo)
+	    				{
+	    					servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response,m));
+	    				}
 
-	    			// read AMF3-encoded object
-	    			Object obj = deseriaizeAmf3(inputStream);
-		    		String methodName = (String) ((ASObject)obj).get(METHOD_NAME);
-		    		Object methodParameters = ((ASObject)obj).get(METHOD_PARAMETERS);
-		    		Number streamParameterIndex = (Number) ((ASObject)obj).get(STREAM_PARAMETER_INDEX);
-		    		
-		    		if (methodParameters instanceof Object[]) // Array of parameters
-		    		{
-		    			// if there is a stream index, 
-		    			int index = streamParameterIndex.intValue();
-		    			if (index >= 0)
-		    				((Object[])methodParameters)[index] = inputStream;
-		    			invokeMethod(methodName, (Object[])methodParameters);
-		    		}
-		    		else // Map of parameters
-		    		{
-		    			invokeMethod(methodName, (Map)methodParameters);
-		    		}
+	    				if (methodParameters instanceof ArrayList<?>) // Array of parameters
+	    				{
+	    					Object[] params = ((ArrayList)methodParameters).toArray();
+	    					invokeMethod(methodName, params);
+	    				}
+	    				else // Map of parameters
+	    				{
+	    					invokeMethod(methodName, (Map)methodParameters);
+	    				}
+	    			}
+	    			else
+	    			{
+	    				synchronized (servletRequestInfo)
+	    	    		{
+	    	    			servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response,null));
+	    	    		}
+	    				// read AMF3-encoded object
+	    				Object obj = deseriaizeAmf3(peekStream);
+	    				String methodName = (String) ((ASObject)obj).get(METHOD_NAME);
+	    				Object methodParameters = ((ASObject)obj).get(METHOD_PARAMETERS);
+	    				Number streamParameterIndex = (Number) ((ASObject)obj).get(STREAM_PARAMETER_INDEX);
+	    				
+	    				if (methodParameters instanceof Object[]) // Array of parameters
+	    				{
+	    					// if there is a stream index, 
+	    					int index = streamParameterIndex.intValue();
+	    					if (index >= 0)
+	    						((Object[])methodParameters)[index] = peekStream;
+	    					invokeMethod(methodName, (Object[])methodParameters);
+	    				}
+	    				else // Map of parameters
+	    				{
+	    					invokeMethod(methodName, (Map)methodParameters);
+	    				}
+	    			}
 		    	}
 	    		catch (IOException e)
 	    		{
@@ -351,7 +402,6 @@ public class GenericServlet extends HttpServlet
 			sendError(response, new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)));
 			return;
 		}
-		
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		String[] argNames = exposedMethod.paramNames;
 		Class[] argTypes = exposedMethod.method.getParameterTypes();
@@ -523,6 +573,19 @@ public class GenericServlet extends HttpServlet
 					value = ListUtils.copyIntegerArray(valueArray, new int[valueArray.length]);
 				}
 			}
+			else if ((type == int.class || type == Integer.class) && value instanceof Number)
+			{
+				value = ((Number)value).intValue();
+			}
+			else if ((type == Double.class || type == double.class) && value instanceof Number)
+			{
+				value = ((Number)value).doubleValue();
+			}
+			else if ((type == float.class || type== Float.class) && value instanceof Number)
+			{
+				value = ((Number)value).floatValue();
+			}
+			
 		}
 		return value;
 	}
@@ -535,9 +598,6 @@ public class GenericServlet extends HttpServlet
 	private void invokeMethod(String methodName, Object[] methodParameters) throws IOException
 	{
 		HttpServletResponse response = getServletRequestInfo().response;
-		
-		// debug
-		//System.out.println(methodName + Arrays.deepToString(methodParameters));
 		
 		// get method by name
 		ExposedMethod exposedMethod = methodMap.get(methodName);
@@ -566,7 +626,25 @@ public class GenericServlet extends HttpServlet
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, methodParameters);
 			
 			if (exposedMethod.method.getReturnType() != void.class)
-				seriaizeCompressedAmf3(result, servletOutputStream);
+			{
+				if(getServletRequestInfo().jsonObj != null)
+				{
+					Gson gson = new Gson();
+					String jsonResult = gson.toJson(result);
+					response.setContentType("application/json");
+					response.setCharacterEncoding("UTF-8");
+					response.setHeader("jsonrpc", "2.0");
+					response.setHeader("result", jsonResult);
+					String id = getServletRequestInfo().request.getHeader("id");
+					if(id==null)
+						id = "null";
+					response.setHeader("id", id);
+				}
+				else
+				{
+					seriaizeCompressedAmf3(result, servletOutputStream);
+				}
+			}
 		}
 		catch (InvocationTargetException e)
 		{
@@ -677,10 +755,45 @@ public class GenericServlet extends HttpServlet
     		System.err.println(moreInfo);
     	System.err.println("Serializing ErrorMessage: "+message);
     	
-    	ServletOutputStream servletOutputStream = response.getOutputStream();
-    	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
-    	errorMessage.faultCode = exception.getClass().getSimpleName();
-    	seriaizeCompressedAmf3(errorMessage, servletOutputStream);
+    	if(getServletRequestInfo().jsonObj !=null)
+    	{
+    		JsonRpcErrorModel jsonErrorObject = new JsonRpcErrorModel();
+    		String methodName = getServletRequestInfo().jsonObj.method;
+    		if(!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
+    		{
+    			jsonErrorObject.code = "-32601";
+    			jsonErrorObject.message = "Method not found";
+    			jsonErrorObject.data = moreInfo;
+    		}
+    		else if(exception instanceof IllegalArgumentException)
+    		{
+    			jsonErrorObject.code = "-32602";
+    			jsonErrorObject.message = "Invalid params";
+    			jsonErrorObject.data = moreInfo;
+    		}
+    		else //TODO: Add more error messages based on exception type
+    		{
+    			jsonErrorObject.code = "-32603";
+    			jsonErrorObject.message = "Internal error";
+    			jsonErrorObject.data = moreInfo;
+    		}
+    		Gson gson = new Gson();
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			response.setHeader("jsonrpc", "2.0");
+			response.setHeader("error", gson.toJson(jsonErrorObject));
+			String id = getServletRequestInfo().request.getHeader("id");
+			if(id==null)
+				id = "null";
+			response.setHeader("id", id);
+    	}
+    	else
+    	{
+    		ServletOutputStream servletOutputStream = response.getOutputStream();
+        	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
+        	errorMessage.faultCode = exception.getClass().getSimpleName();
+        	seriaizeCompressedAmf3(errorMessage, servletOutputStream);	
+    	}
 	}
     
     protected static SerializationContext getSerializationContext()
