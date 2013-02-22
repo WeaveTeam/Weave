@@ -455,7 +455,7 @@ package weave.services
 				var chunk:ByteArray = new ByteArray();
 				content.readBytes(chunk, 0, Math.min(content.bytesAvailable, chunkSize));
 				
-				token = invokeAdmin(uploadFile, [fileName, chunk, append], true); // queued
+				token = invokeAdminWithLogin(uploadFile, [fileName, chunk, append], true); // queued -- important!
 				append = true;
 			}
 			while (content.bytesAvailable > 0);

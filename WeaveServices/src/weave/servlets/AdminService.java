@@ -710,9 +710,11 @@ public class AdminService
 	 * @param content The file content.
 	 * @param append Set to true to append to an existing file.
 	 */
-	public void uploadFile(String fileName, InputStream content, boolean append)
+	public void uploadFile(String user, String password, String fileName, InputStream content, boolean append)
 		throws RemoteException
 	{
+		authenticate(user, password);
+		
 		// make sure the upload folder exists
 		(new File(getUploadPath())).mkdirs();
 
