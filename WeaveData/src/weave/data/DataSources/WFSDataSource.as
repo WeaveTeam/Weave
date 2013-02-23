@@ -25,7 +25,6 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -396,37 +395,34 @@ package weave.data.DataSources
 						newColumn,
 						function():void
 						{
-							if (detectLinkableObjectChange(newColumn, swapXY))
+							for (var geometryIndex:int = 0; geometryIndex < keysVector.length; geometryIndex++)
 							{
-								for (var geometryIndex:int = 0; geometryIndex < keysVector.length; geometryIndex++)
+								var gmlPosXMLList:XMLList = dataList[geometryIndex].descendants(gmlPos);
+								var coordStr:String = '';
+								for (i = 0; i < gmlPosXMLList.length(); i++)
 								{
-									var gmlPosXMLList:XMLList = dataList[geometryIndex].descendants(gmlPos);
-									var coordStr:String = '';
-									for (i = 0; i < gmlPosXMLList.length(); i++)
-									{
-										if (i > 0)
-											coordStr += ' ';
-										coordStr += gmlPosXMLList[i].toString();
-									}
-									var coordinates:Array = coordStr.split(' ');
-									
-									if (swapXY.value)
-									{
-										// swap order (y,x to x,y)
-										for (i = 0; i < coordinates.length; i += 2)
-										{
-											var temp:Number = coordinates[i+1];
-											coordinates[i+1] = coordinates[i];
-											coordinates[i] = temp;
-										}
-									}
-									var geometry:GeneralizedGeometry = new GeneralizedGeometry(geomType);
-									
-									geometry.setCoordinates(coordinates, BLGTreeUtils.METHOD_SAMPLE);
-									geomVector[geometryIndex] = geometry;
+									if (i > 0)
+										coordStr += ' ';
+									coordStr += gmlPosXMLList[i].toString();
 								}
-								(newColumn as GeometryColumn).setGeometries(keysVector, geomVector);
+								var coordinates:Array = coordStr.split(' ');
+								
+								if (swapXY.value)
+								{
+									// swap order (y,x to x,y)
+									for (i = 0; i < coordinates.length; i += 2)
+									{
+										var temp:Number = coordinates[i+1];
+										coordinates[i+1] = coordinates[i];
+										coordinates[i] = temp;
+									}
+								}
+								var geometry:GeneralizedGeometry = new GeneralizedGeometry(geomType);
+								
+								geometry.setCoordinates(coordinates, BLGTreeUtils.METHOD_SAMPLE);
+								geomVector[geometryIndex] = geometry;
 							}
+							(newColumn as GeometryColumn).setGeometries(keysVector, geomVector);
 						},
 						true
 					);
