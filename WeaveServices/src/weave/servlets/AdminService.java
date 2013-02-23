@@ -171,7 +171,7 @@ public class AdminService
 	{
 		ConnectionConfig connConfig = getConnectionConfig();
 		ConnectionInfo info = connConfig.getConnectionInfo(user);
-		if (info == null || !password.equals(info.pass))
+		if (info == null || password == null || !password.equals(info.pass))
 		{
 			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, password));
 			throw new RemoteException("Incorrect username or password.");
