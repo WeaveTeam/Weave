@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,8 +102,8 @@ public class GenericServlet extends HttpServlet
 	/**
 	 * This is the name of the URL parameter corresponding to the method name.
 	 */
-	protected final String METHOD_NAME = "method";
-	protected final String METHOD_PARAMETERS = "params";
+	protected final String METHOD = "method";
+	protected final String PARAMS = "params";
 	protected final String STREAM_PARAMETER_INDEX = "streamParameterIndex";
 	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName
@@ -255,7 +254,6 @@ public class GenericServlet extends HttpServlet
     		this.request = request;
     		this.response = response;
     		this.jsonObj = jsonObj;
-    		
     	}
     	
     	HttpServletRequest request;
@@ -288,7 +286,6 @@ public class GenericServlet extends HttpServlet
     	}
     }
     
-	@SuppressWarnings({ "rawtypes", "unchecked" })
     private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
 		Gson gson = new Gson(); 
@@ -298,13 +295,13 @@ public class GenericServlet extends HttpServlet
     		{
         		List<String> urlParamNames = Collections.list(request.getParameterNames());
         		
-    			HashMap<String, String> params = new HashMap();
+    			HashMap<String, String> params = new HashMap<String,String>();
     			
     			for (String paramName : urlParamNames)
     				params.put(paramName, request.getParameter(paramName));
     			JsonRpcRequestModel jsonObj = new JsonRpcRequestModel();
     			jsonObj.id = null;
-    			jsonObj.method = params.remove(METHOD_NAME);
+    			jsonObj.method = params.remove(METHOD);
     			jsonObj.params = params;
     			
     			setServletRequestInfo(request, response, jsonObj);
@@ -315,46 +312,47 @@ public class GenericServlet extends HttpServlet
     		{
 	    		try
 	    		{
-	    			PeekableInputStream peekStream = new PeekableInputStream(request.getInputStream());
-	    			if (peekStream.peek(0) == '{')
+	    			String methodName;
+	    			Object methodParams;
+	    			Number streamParameterIndex = null;
+	    			
+	    			PeekableInputStream inputStream = new PeekableInputStream(request.getInputStream());
+	    			if (inputStream.peek() == '{') // json
 	    			{
-	    				String streamString  = IOUtils.toString(peekStream,"UTF-8");
-	    				JsonRpcRequestModel m = gson.fromJson(streamString, JsonRpcRequestModel.class);
-	    				String methodName = m.method;
-	    				Object methodParameters = m.params;
-	    				setServletRequestInfo(request, response,m);
-
-	    				if (methodParameters instanceof ArrayList<?>) // Array of parameters
-	    				{
-	    					Object[] params = ((ArrayList)methodParameters).toArray();
-	    					invokeMethod(methodName, params);
-	    				}
-	    				else // Map of parameters
-	    				{
-	    					invokeMethod(methodName, (Map)methodParameters);
-	    				}
-	    			}
-	    			else
-	    			{
-	    				setServletRequestInfo(request, response, null);
-	    				// read AMF3-encoded object
-	    				Object obj = deseriaizeAmf3(peekStream);
-	    				String methodName = (String) ((ASObject)obj).get(METHOD_NAME);
-	    				Object methodParameters = ((ASObject)obj).get(METHOD_PARAMETERS);
-	    				Number streamParameterIndex = (Number) ((ASObject)obj).get(STREAM_PARAMETER_INDEX);
+	    				String streamString  = IOUtils.toString(inputStream, "UTF-8");
+	    				JsonRpcRequestModel json = gson.fromJson(streamString, JsonRpcRequestModel.class);
+	    				methodName = json.method;
+	    				methodParams = json.params;
 	    				
-	    				if (methodParameters instanceof Object[]) // Array of parameters
+	    				setServletRequestInfo(request, response, json);
+	    			}
+	    			else // AMF3
+	    			{
+	    				ASObject obj = (ASObject)deseriaizeAmf3(inputStream);
+	    				methodName = (String) obj.get(METHOD);
+	    				methodParams = obj.get(PARAMS);
+	    				streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
+	    				
+	    				setServletRequestInfo(request, response, null);
+	    			}
+	    			
+	    			if (methodParams instanceof List<?>)
+	    				methodParams = ((List<?>)methodParams).toArray();
+	    			
+	    			if (methodParams instanceof Object[]) // Array of parameters
+	    			{
+	    				if (streamParameterIndex != null)
 	    				{
-	    					// if there is a stream index, 
-	    					int index = streamParameterIndex.intValue();
-	    					if (index >= 0)
-	    						((Object[])methodParameters)[index] = peekStream;
-	    					invokeMethod(methodName, (Object[])methodParameters);
+		    				int index = streamParameterIndex.intValue();
+		    				if (index >= 0)
+		    					((Object[])methodParams)[index] = inputStream;
 	    				}
-	    				else // Map of parameters
-	    				{
-	    					invokeMethod(methodName, (Map)methodParameters);
-	    				}
+	    				
+	    				invokeMethod(methodName, (Object[])methodParams);
+	    			}
+	    			else // Map of parameters
+	    			{
+	    				invokeMethod(methodName, (Map<?,?>)methodParams);
 	    			}
 		    	}
 	    		catch (IOException e)
@@ -408,7 +406,7 @@ public class GenericServlet extends HttpServlet
 				{
 					argValues[index] = parameterValue;
 				}
-				else if (!parameterName.equals(METHOD_NAME))
+				else if (!parameterName.equals(METHOD))
 				{
 					if (extraParameters == null)
 						extraParameters = new HashMap();
@@ -835,15 +833,15 @@ public class GenericServlet extends HttpServlet
     }
 
     //  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-    protected Object deseriaizeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+    protected ASObject deseriaizeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
     {
-    	Object deSerializedObj = null;
+    	ASObject deSerializedObj = null;
 
     	SerializationContext context = getSerializationContext();
 		
     	Amf3Input amf3Input = new Amf3Input(context);
 		amf3Input.setInputStream(inputStream); // uncompress
-		deSerializedObj = amf3Input.readObject();
+		deSerializedObj = (ASObject) amf3Input.readObject();
 		//amf3Input.close();
     	
 		return deSerializedObj;
