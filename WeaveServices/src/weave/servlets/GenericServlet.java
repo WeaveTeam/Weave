@@ -249,16 +249,15 @@ public class GenericServlet extends HttpServlet
     
     protected class ServletRequestInfo
     {
-    	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response, JsonRpcRequestModel jsonObj)
+    	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response)
     	{
     		this.request = request;
     		this.response = response;
-    		this.jsonObj = jsonObj;
     	}
     	
     	HttpServletRequest request;
     	HttpServletResponse response;
-    	JsonRpcRequestModel jsonObj;
+    	JsonRpcRequestModel jsonRequest;
     }
     
     /**
@@ -278,19 +277,21 @@ public class GenericServlet extends HttpServlet
     	}
     }
     
-    private void setServletRequestInfo(HttpServletRequest request, HttpServletResponse response, JsonRpcRequestModel jsonObj)
+    private void setServletRequestInfo(HttpServletRequest request, HttpServletResponse response)
     {
     	synchronized (servletRequestInfo)
     	{
-    		servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response, jsonObj));
+    		servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response));
     	}
     }
     
     private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-		Gson gson = new Gson(); 
     	try
     	{
+    		setServletRequestInfo(request, response);
+    		
+    		/*
     		if (request.getMethod().equals("GET"))
     		{
         		List<String> urlParamNames = Collections.list(request.getParameterNames());
@@ -299,16 +300,17 @@ public class GenericServlet extends HttpServlet
     			
     			for (String paramName : urlParamNames)
     				params.put(paramName, request.getParameter(paramName));
-    			JsonRpcRequestModel jsonObj = new JsonRpcRequestModel();
-    			jsonObj.id = null;
-    			jsonObj.method = params.remove(METHOD);
-    			jsonObj.params = params;
+    			JsonRpcRequestModel json = new JsonRpcRequestModel();
+    			json.id = params.containsKey("id") ? params.remove("id") : null;
+    			json.method = params.remove(METHOD);
+    			json.params = params;
     			
-    			setServletRequestInfo(request, response, jsonObj);
+	    		getServletRequestInfo().jsonRequest = json;
     			
-    			invokeMethod(jsonObj.method, params);
+    			invokeMethod(json.method, params);
     		}
-    		else if (request.getMethod().equals("POST"))
+    		else // post
+    		*/
     		{
 	    		try
 	    		{
@@ -319,12 +321,15 @@ public class GenericServlet extends HttpServlet
 	    			PeekableInputStream inputStream = new PeekableInputStream(request.getInputStream());
 	    			if (inputStream.peek() == '{') // json
 	    			{
+	    				// set jsonRequest first in case parsing fails, so we send the appropriate error
+	    				getServletRequestInfo().jsonRequest = new JsonRpcRequestModel();
+	    				
 	    				String streamString  = IOUtils.toString(inputStream, "UTF-8");
-	    				JsonRpcRequestModel json = gson.fromJson(streamString, JsonRpcRequestModel.class);
+	    				JsonRpcRequestModel json = (new Gson()).fromJson(streamString, JsonRpcRequestModel.class);
 	    				methodName = json.method;
 	    				methodParams = json.params;
 	    				
-	    				setServletRequestInfo(request, response, json);
+	    				getServletRequestInfo().jsonRequest = json;
 	    			}
 	    			else // AMF3
 	    			{
@@ -332,8 +337,6 @@ public class GenericServlet extends HttpServlet
 	    				methodName = (String) obj.get(METHOD);
 	    				methodParams = obj.get(PARAMS);
 	    				streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
-	    				
-	    				setServletRequestInfo(request, response, null);
 	    			}
 	    			
 	    			if (methodParams instanceof List<?>)
@@ -363,10 +366,6 @@ public class GenericServlet extends HttpServlet
 		    	{
 		    		sendError(response, e);
 		    	}
-    		}
-    		else
-    		{
-    			throw new ServletException("HTTP Request method not supported: " + request.getMethod());
     		}
     	}
     	finally
@@ -621,7 +620,7 @@ public class GenericServlet extends HttpServlet
 		{
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, methodParameters);
 			
-			if(getServletRequestInfo().jsonObj != null)
+			if(getServletRequestInfo().jsonRequest != null)
 			{
 				Gson gson = new Gson();
 				String jsonResult = gson.toJson(result);
@@ -630,7 +629,7 @@ public class GenericServlet extends HttpServlet
 				response.setHeader("jsonrpc", "2.0");
 				response.setHeader("result", jsonResult);
 				String id = getServletRequestInfo().request.getHeader("id");
-				if(id==null)
+				if (id == null)
 					id = "null";
 				response.setHeader("id", id);
 			}
@@ -746,10 +745,10 @@ public class GenericServlet extends HttpServlet
     	exception.printStackTrace();
     	System.err.println("Serializing ErrorMessage: "+message);
     	
-    	if(getServletRequestInfo().jsonObj !=null)
+    	if (getServletRequestInfo().jsonRequest != null)
     	{
     		JsonRpcErrorModel jsonErrorObject = new JsonRpcErrorModel();
-    		String methodName = getServletRequestInfo().jsonObj.method;
+    		String methodName = getServletRequestInfo().jsonRequest.method;
     		if(!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
     		{
     			jsonErrorObject.code = "-32601";
@@ -824,7 +823,12 @@ public class GenericServlet extends HttpServlet
 			
 			deflaterOutputStream.close(); // this is necessary to finish the compression
 			
-			//amf3Output.close(); //not closing output stream -- see http://viveklakhanpal.wordpress.com/2010/07/01/error-2032ioerror/
+			/*
+			 * Do not call amf3Output.close() because that will
+			 * send a 'reset' packet and cause the response to fail.
+			 * 
+			 * http://viveklakhanpal.wordpress.com/2010/07/01/error-2032ioerror/
+			 */
     	}
     	catch (Exception e)
     	{
