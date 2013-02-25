@@ -21,28 +21,19 @@ package weave.services
 {
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
-	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
-	import flash.events.ProgressEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
-	import mx.rpc.AsyncResponder;
-	import mx.rpc.AsyncToken;
 	import mx.rpc.Fault;
-	import mx.rpc.IResponder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 
@@ -266,8 +257,6 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
 import mx.utils.StringUtil;
-
-import spark.components.Application;
 
 import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;

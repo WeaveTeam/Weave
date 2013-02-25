@@ -51,16 +51,19 @@ package weave.services
 		 * @param methodParamName This is the name of the URL parameter that specifies the method to be called on the servlet.
 		 * @param urlRequestDataFormat This is the format to use when sending parameters to the servlet.
 		 */
-		public function Servlet(servletURL:String, methodURLParam:String, urlRequestDataFormat:String)
+		public function Servlet(servletURL:String, methodVariableName:String, urlRequestDataFormat:String)
 		{
 			if (urlRequestDataFormat != REQUEST_FORMAT_BINARY && urlRequestDataFormat != REQUEST_FORMAT_VARIABLES)
 				throw new Error(getQualifiedClassName(Servlet) + ': urlRequestDataFormat not supported: "' + urlRequestDataFormat + '"');
 			
 			var urlParts:Array = servletURL.split('?');
 			_servletURL = urlParts[0];
-			_methodURLParam = methodURLParam;
 			_urlRequestDataFormat = urlRequestDataFormat;
+			METHOD = methodVariableName;
 		}
+		
+		private var METHOD:String = "method";
+		private var PARAMS:String = "params";
 		
 		/**
 		 * This is the base URL of the servlet.
@@ -73,11 +76,6 @@ package weave.services
 		}
 		protected var _servletURL:String;
 
-		/**
-		 * This is the name of the URL parameter that specifies the method to be called on the servlet.
-		 */
-		protected var _methodURLParam:String;
-		
 		/**
 		 * This is the data format of the results from HTTP GET requests.
 		 */
@@ -132,8 +130,8 @@ package weave.services
 				request.data = new URLVariables();
 				
 				// set url variable for the method name
-				if (_methodURLParam != null && methodName != null)
-					request.data[_methodURLParam] = methodName;
+				if(methodName)
+					request.data[METHOD] = methodName;
 				
 				if (methodParameters != null)
 				{
@@ -152,9 +150,9 @@ package weave.services
 				request.method = URLRequestMethod.POST;
 				// create object containing method name and parameters
 				var obj:Object = new Object();
-				obj.methodName = methodName;
-				obj.methodParameters = methodParameters;
-				obj.streamParameterIndex = -1; // index of stream parameter
+				obj[METHOD] = methodName;
+				obj[PARAMS] = methodParameters;
+				obj["streamParameterIndex"] = -1; // index of stream parameter
 				
 				var streamContent:ByteArray = null;
 				var params:Array = methodParameters as Array;

@@ -34,6 +34,7 @@
 	<ui:Indent label="{lang('Source URL *')}">
 		<mx:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
 	</ui:Indent>
+	<mx:CheckBox label="Swap X and Y coordinate order" id="swapXY"/>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -43,7 +44,6 @@
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.WFSDataSource;
-			import weave.utils.EditorManager;
 			
 			override protected function createChildren():void
 			{
@@ -66,6 +66,7 @@
 				{
 					sourceName.text = Weave.root.getName(_wfsDataSource);
 					url.text = _wfsDataSource.url.value;
+					swapXY.selected = _wfsDataSource.swapXY.value;
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
@@ -76,6 +77,7 @@
 				try
 				{
 					_wfsDataSource.url.value = url.text;
+					_wfsDataSource.swapXY.value = swapXY.selected;
 					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)

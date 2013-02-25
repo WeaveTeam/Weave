@@ -171,7 +171,7 @@ public class AdminService
 	{
 		ConnectionConfig connConfig = getConnectionConfig();
 		ConnectionInfo info = connConfig.getConnectionInfo(user);
-		if (info == null || !password.equals(info.pass))
+		if (info == null || password == null || !password.equals(info.pass))
 		{
 			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, password));
 			throw new RemoteException("Incorrect username or password.");
@@ -710,9 +710,11 @@ public class AdminService
 	 * @param content The file content.
 	 * @param append Set to true to append to an existing file.
 	 */
-	public void uploadFile(String fileName, InputStream content, boolean append)
+	public void uploadFile(String user, String password, String fileName, InputStream content, boolean append)
 		throws RemoteException
 	{
+		authenticate(user, password);
+		
 		// make sure the upload folder exists
 		(new File(getUploadPath())).mkdirs();
 
