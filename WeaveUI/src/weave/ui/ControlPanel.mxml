@@ -26,6 +26,7 @@
 				width="640"
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
+				keyDown="handleKeyDown(event);"
 				layout="vertical"
 				>
 	<mx:Metadata>
@@ -37,19 +38,16 @@
 			import flash.utils.getQualifiedClassName;
 			
 			import mx.containers.TabNavigator;
-			import mx.controls.Alert;
-			import mx.core.Container;
-			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.setSessionState;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
@@ -294,6 +292,16 @@
 					constrainAndSaveCoordinates();
 				
 				save();
+			}
+			
+			private function handleKeyDown(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.ESCAPE)
+				{
+					if (event.shiftKey)
+						revert();
+					removePanel();
+				}
 			}
 			
 			public static function openEditor(linkableObject:ILinkableObject):ILinkableObjectEditor
