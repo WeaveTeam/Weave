@@ -357,7 +357,7 @@ package weave.data.DataSources
 				var keyQName:QName = getQName(result, featureTypeName);
 				if (keyQName == null)
 				{
-					trace('handleColumnDownload(): Unable to continue because featureTypeName does not have a namespace: "'+featureTypeName+'"');
+					trace('handleColumnDownload(): Unable to continue because featureTypeName does not have a valid namespace: "'+featureTypeName+'"');
 					return;
 				}
 				var dataQName:QName = new QName(keyQName.uri, propertyName); // use same namespace as keyQName
