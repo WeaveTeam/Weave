@@ -25,14 +25,14 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.disposeObjects;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -68,7 +68,7 @@ package weave.data.DataSources
 		{
 			if (url.value == null)
 				url.value = '/geoserver/wfs';
-			disposeObjects(WFSDataSource);
+			disposeObjects(wfsDataService);
 			
 			//TODO: dispose of all old columns, too
 			
@@ -307,8 +307,10 @@ package weave.data.DataSources
 				return null;
 			var prefix:String = array[0];
 			var localName:String = array[1];
-			var uri:String = xmlContainingNamespaceInfo.namespace(prefix).uri;
-			return new QName(uri, localName);
+			var ns:* = xmlContainingNamespaceInfo.namespace(prefix);
+			if (ns)
+				return new QName(ns.uri, localName);
+			return null;
 		}
 
 		private function handleColumnDownload(event:ResultEvent, request:ColumnRequestToken):void
@@ -357,7 +359,7 @@ package weave.data.DataSources
 				var keyQName:QName = getQName(result, featureTypeName);
 				if (keyQName == null)
 				{
-					trace('handleColumnDownload(): Unable to continue because featureTypeName does not have a valid namespace: "'+featureTypeName+'"');
+					reportError('WFS response did not contain namespace of featureTypeName: ' + hierarchyNode.toXMLString());
 					return;
 				}
 				var dataQName:QName = new QName(keyQName.uri, propertyName); // use same namespace as keyQName
