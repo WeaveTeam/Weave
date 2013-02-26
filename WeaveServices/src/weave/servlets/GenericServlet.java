@@ -291,6 +291,22 @@ public class GenericServlet extends HttpServlet
     	{
     		setServletRequestInfo(request, response);
     		
+    		if (request.getMethod().equals("GET"))
+    		{
+        		@SuppressWarnings("unchecked")
+				List<String> urlParamNames = Collections.list(request.getParameterNames());
+
+    			// Read Method Name from URL
+    			String methodName = request.getParameter(METHOD);
+    			
+    			@SuppressWarnings({ "unchecked", "rawtypes" })
+				HashMap<String, String> params = new HashMap();
+    			
+    			for (String paramName : urlParamNames)
+    				params.put(paramName, request.getParameter(paramName));
+    			
+    			invokeMethod(methodName, params);
+    		}
     		/*
     		if (request.getMethod().equals("GET"))
     		{
@@ -309,8 +325,8 @@ public class GenericServlet extends HttpServlet
     			
     			invokeMethod(json.method, params);
     		}
-    		else // post
     		*/
+    		else // post
     		{
 	    		try
 	    		{
