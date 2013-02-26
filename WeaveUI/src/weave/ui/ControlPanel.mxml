@@ -26,7 +26,6 @@
 				width="640"
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
-				keyDown="handleKeyDown(event);"
 				layout="vertical"
 				>
 	<mx:Metadata>
@@ -35,19 +34,17 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.containers.TabNavigator;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.setSessionState;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableObject;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
@@ -269,6 +266,12 @@
 				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
 			}
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyDown);
+			}
+			
 			private function handleControlsCreated(e:FlexEvent):void
 			{
 				controlPanelControls.revertBtn.addEventListener(MouseEvent.CLICK,function (e:MouseEvent):void { revert() });
@@ -294,13 +297,24 @@
 				save();
 			}
 			
-			private function handleKeyDown(event:KeyboardEvent):void
+			private function handleKeyDown():void
 			{
-				if (event.keyCode == Keyboard.ESCAPE)
+				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if (parent && event && event.keyCode == Keyboard.ESCAPE)
 				{
-					if (event.shiftKey)
-						revert();
-					removePanel();
+					for (var i:int = parent.numChildren - 1; i >= 0; i--)
+					{
+						var panel:ControlPanel = parent.getChildAt(i) as ControlPanel;
+						if (panel == this)
+						{
+							if (event.shiftKey)
+								revert();
+							stage.focus = parent;
+							callLater(removePanel);
+						}
+						if (panel)
+							return;
+					}
 				}
 			}
 			
