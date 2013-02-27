@@ -387,22 +387,17 @@ package weave.graphs
 			
 			try
 			{
-				var vertexNames:Array = layoutResult["V(weaveGraph)$name"];
+				var localKeyNames:Array = layoutResult["V(weaveGraph)$name"];
 				var vertexes:Array = layoutResult["vertexes"];
-				var raw_layout:Array = layoutResult["weaveGraphLayout"];
-				var resultKeys:Array = new Array();
-				for (var keyName:String in layoutResult)
-				{
-					resultKeys.push(keyName);
-				}
+				var resultLocations:Array = layoutResult["weaveGraphLayout"];
 
-				debugTrace(raw_layout);
+				//debugTrace(raw_layout);
 				// this is an array of arrays.
 				// resultLocations[0] is the first object, where resultLocations[0][0] is x and resultLocations[0][1] for y
-				var resultLocations:Array = array[1].value as Array;
+				
 				// this is an array of key.localName values. 
 				// localKeyNames[i] is the localName of the QKey for the corresponding node of resultLocations[i]
-				var localKeyNames:Array = array[2].value as Array;
+				
 				for (var i:int = 0; i < resultLocations.length; ++i)
 				{
 					// get the key and node

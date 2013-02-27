@@ -365,6 +365,9 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="{lang('Edge Colors')}"/>
+			<mx:CheckBox id="directedGraphCheckBox" label="{lang('Assume directed edges')}"
+						 toolTip="{lang('Checking this box causes the tool to interpret each edge as only going one direction.')}"
+						 creationComplete="linkBindableProperty(_plotter.graphIsDirected, event.target, 'selected')"/>
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
