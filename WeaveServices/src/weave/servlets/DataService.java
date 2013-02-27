@@ -584,22 +584,21 @@ public class DataService extends GenericServlet
 			final String NAME = "name";
 			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
 			{
-				// try to find a table with a title the same as the dataTable metadata.
-				DataEntityMetadata tableQuery = new DataEntityMetadata();
-				tableQuery.setPublicMetadata(PublicMetadata.TITLE, metadata.get(DATATABLE));
-				ids = dataConfig.getEntityIdsByMetadata(tableQuery, DataEntity.TYPE_DATATABLE);
-				if (ids.size() == 1)
+				// try to find columns sqlTable==dataTable and sqlColumn=name
+				DataEntityMetadata sqlInfoQuery = new DataEntityMetadata();
+				String sqlTable = metadata.get(DATATABLE);
+				String sqlColumn = metadata.get(NAME);
+				for (int i = 0; i < 2; i++)
 				{
-					// found a single matching table - get children
-					ids = dataConfig.getChildIds(ids.iterator().next());
-					Collection<DataEntity> columns = dataConfig.getEntitiesById(ids);
-					// retain only columns with matching title
-					for (DataEntity column : columns)
-					{
-						String title = column.publicMetadata.get(PublicMetadata.TITLE);
-						if (title == null || !title.equals(metadata.get(NAME)) || column.type != DataEntity.TYPE_COLUMN)
-							ids.remove(column.id);
-					}
+					if (i == 1)
+						sqlTable = sqlTable.toLowerCase();
+					sqlInfoQuery.setPrivateMetadata(
+						PrivateMetadata.SQLTABLE, sqlTable,
+						PrivateMetadata.SQLCOLUMN, sqlColumn
+					);
+					ids = dataConfig.getEntityIdsByMetadata(sqlInfoQuery, DataEntity.TYPE_COLUMN);
+					if (ids.size() > 0)
+						break;
 				}
 			}
 			if (ids.size() == 0)
