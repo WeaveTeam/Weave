@@ -26,6 +26,7 @@ package
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
+	import weave.data.DataSources.BNetDataSource;
 	import weave.data.DataSources.XLSDataSource;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CSVDataSourceEditor;
@@ -39,6 +40,7 @@ package
 	import weave.editors.WFSDataSourceEditor;
 	import weave.editors.WMSPlotterEditor;
 	import weave.editors.WeaveDataSourceEditor;
+	import weave.editors.BNetDataSourceEditor;
 	import weave.editors.XLSDataSourceEditor;
 	import weave.primitives.ColorRamp;
 	import weave.ui.AttributeMenuTool;
@@ -56,7 +58,6 @@ package
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
-	import weave.visualization.tools.BNetTool;
 	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
@@ -98,6 +99,7 @@ package
 		EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
 		EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
 		EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
+		EditorManager.registerEditor(BNetDataSource, BNetDataSourceEditor);
 		
 		EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
 		EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
@@ -119,7 +121,6 @@ package
 			CompoundBarChartTool,
 			ColorBinLegendTool,
 			ColormapHistogramTool,
-			BNetTool,
 			CompoundRadVizTool,
 			CustomTool,
 			SchafersMissingDataTool,

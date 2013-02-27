@@ -42,6 +42,7 @@
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
+			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
@@ -52,6 +53,7 @@
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;
+			WeaveAPI.registerImplementation(IVisTool, GraphTool, lang("Graph Tool"));
 			override protected function constructor():void
 			{
 				super.constructor();

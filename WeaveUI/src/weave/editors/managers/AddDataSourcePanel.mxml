@@ -41,6 +41,7 @@
 			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
+			<mx:RadioButton groupName="dataSourceType" id="bnetSource" value="{BNetDataSource}" label="{lang('BNet Data Source')}"/>
 		</mx:VBox>
 		<mx:Canvas backgroundColor="#939178" width="5" height="100%"/>
 		<mx:Box width="100%" height="100%" id="container" paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5"/>
@@ -65,11 +66,13 @@
 			import weave.data.DataSources.DBFDataSource;
 			import weave.data.DataSources.WFSDataSource;
 			import weave.data.DataSources.WeaveDataSource;
+			import weave.data.DataSources.BNetDataSource;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.CSVDataSourceEditor;
 			import weave.editors.DBFDataSourceEditor;
 			import weave.editors.WFSDataSourceEditor;
 			import weave.editors.WeaveDataSourceEditor;
+			import weave.editors.BNetDataSourceEditor;
 			import weave.editors.XLSDataSourceEditor;
 			import weave.utils.EditorManager;
 
@@ -217,6 +220,25 @@
 					if (weaveDataSource != null)
 						Alert.show(lang("Data Source added successfully"));
 					weaveDataSource.url.value = weaveDataSourceEditor.url.text;
+				}
+				var bnetDataSourceEditor:BNetDataSourceEditor = _editor as BNetDataSourceEditor;
+				if (bnetDataSourceEditor)
+				{
+					if (bnetDataSourceEditor.sourceName.text == "")
+					{
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
+						return;
+					}
+					checkObj = Weave.root.getObject(bnetDataSourceEditor.sourceName.text);
+					if (checkObj != null)
+					{
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+						return;
+					}
+					var bnetDataSource:BNetDataSource = Weave.root.requestObject(bnetDataSourceEditor.sourceName.text, BNetDataSource, false);
+					if (bnetDataSource != null)
+						Alert.show(lang("Data Source added successfully"));
+					bnetDataSource.url.value = bnetDataSourceEditor.url.text;
 				}
 			}
 			

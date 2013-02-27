@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
@@ -55,58 +56,91 @@ import com.cra.bnet.io.XbnFormat;
 public class BNetService extends GenericServlet
 {
     private Map<String,BayesianNetwork> networks;
-	public BNetService() throws RemoteException
-	{
+	public BNetService() throws RemoteException 
+    {
         BayesianNetwork.setDefaultInferenceEngine("com.cra.bnet.engine.HuginInferenceEngine");
         networks = new HashMap<String,BayesianNetwork>();
         return;
 	}
-    public List<String> listNetworks()
+    public List<String> listNetworks() 
     {
-        return new ArrayList<String>(networks.keySet());
+        List<String> result = new ArrayList<String>(networks.keySet());
+        return result;
     }
-    public String listNodes(String netName)
+    public List<String> listNodes(String netName)
     {
 
-        StringBuilder result = new StringBuilder();
+        
         BayesianNetwork net = networks.get(netName);
-        result.append("nodeName,nodeBelief");
+        List<String> result = new ArrayList<String>();
         for (DiscreteNode node : net.discreteNodeSet())
         {
             String nodeName = node.getName();
-            String nodeBelief = "" + node.getBelief("true");
-            String nodeDescription = node.getDescription();
-            result.append(nodeName + "," + nodeBelief + "\n");
+            result.add(nodeName);
         }
-        return result.toString();
+        return result;
     }
-    public String listEdges(String netName)
+    public List<String> listStates(String netName)
     {
-        StringBuilder result = new StringBuilder();
+        /* Compute the union of all the states of all the nodes in network netName */
+        Set<String> states = new HashSet<String>();
         BayesianNetwork net = networks.get(netName);
-        result.append("edgeId,edgeSource,edgeTarget\n");
-        for (Node node : net.discreteNodeSet())
+        for (DiscreteNode node : net.discreteNodeSet())
         {
-            List<Node> parents = new LinkedList<Node>(node.getParents());
-            for (Node parent : parents)
-            {
-                String edgeSource = parent.getName();
-                String edgeTarget = node.getName();
-                String edgeId = edgeSource+edgeTarget;
-                result.append(edgeId + "," + edgeSource + "," + edgeId + "\n");
-            }
+            states.addAll(node.getStates());
         }
-        return result.toString();
+        return new ArrayList<String>(states);
     }
-    public void postEvidence(String netName, String nodeName, double value)
+    public Map<String,Double> getNodeBeliefs(String netName, String nodeName)
+    {
+        Map<String,Double> beliefs = new HashMap<String,Double>();
+        BayesianNetwork net = networks.get(netName);
+        DiscreteNode node = net.getDiscreteNode(nodeName);
+        String[] states = (String[])node.getStates().toArray(new String[0]);
+        double[] raw_beliefs = node.getBeliefs();
+        assert states.length == raw_beliefs.length;
+        for (int i = 0; i < states.length; i++)
+        {
+            beliefs.put(states[i], new Double(raw_beliefs[i]));
+        }
+        return beliefs;
+    }
+    public Map<String,Double> getNodeEvidence(String netName, String nodeName)
+    {
+        Map<String,Double> evidence = new HashMap<String,Double>();
+        BayesianNetwork net = networks.get(netName);
+        DiscreteNode node = net.getDiscreteNode(nodeName);
+        List<String> states = node.getStates();
+        for (String state : states)
+        {
+            evidence.put(state, node.getEvidence(state));
+        }
+        return evidence;
+    }
+    public void setNodeEvidence(String netName, String nodeName, Map<String,Double> evidence)
     {
         BayesianNetwork net = networks.get(netName);
         DiscreteNode node = net.getDiscreteNode(nodeName);
-        node.setEvidence("true", value);
-        node.setEvidence("false", 1.0-value);
+        for (Entry<String,Double> datum : evidence.entrySet())
+        {
+            node.setEvidence(datum.getKey(), datum.getValue());
+        }
         return;
     }
-    /* Takes an XML string in XBN format describing the Bayesian network, and returns the network id */
+    public List<String> getNodeParents(String netName, String nodeName)
+    {
+        List<String> result = new ArrayList<String>();
+
+        BayesianNetwork net = networks.get(netName);
+        DiscreteNode node = net.getDiscreteNode(nodeName);
+        List<DiscreteNode> parents = node.getParents();
+        for (DiscreteNode parent : parents)
+        {
+            result.add(parent.getName());
+        }
+        
+        return result;
+    }
     public void loadNetwork(String path, String withName) throws RemoteException
     {
         if (withName == null || withName.equals(""))

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="weave.editors.*"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	creationPolicy="all"
+	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
+	>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_bnetDataSource ? 'Edit' : 'Add') + ' BNet Data Source' )}"/>
+	<ui:Indent label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" width="100%"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Source URL')}">
+		<mx:TextInput id="url" width="100%"/>
+	</ui:Indent>
+	<mx:Spacer height="20"/>
+	<mx:Label text="{lang('* = required')}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import weave.Weave;
+			import weave.api.core.ILinkableObject;
+			import weave.data.DataSources.BNetDataSource;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				sourceName.text = Weave.root.generateUniqueName("BNetDataSource");
+			}
+			
+			[Bindable] private var _bnetDataSource:BNetDataSource = null;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				if (!parent)
+				{
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_bnetDataSource = object as BNetDataSource;
+				if (_bnetDataSource)
+				{
+					sourceName.text = Weave.root.getName(_bnetDataSource);
+					url.text = _bnetDataSource.url.value;
+					sourceName.editable = false;
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
+				}
+			}
+			
+			public function applyChanges():void
+			{
+				_bnetDataSource.url.value = url.text;
+				Alert.show(lang("Changes saved."));
+			}
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

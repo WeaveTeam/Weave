@@ -26,7 +26,6 @@ package weave.services
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.utils.HierarchyUtils;
 	import weave.services.DelayedAsyncInvocation;
