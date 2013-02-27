@@ -23,7 +23,7 @@
 		xmlns="weave.ui.*" 
 		borderColor="#939178"
 		title="Error Log"
-		keyDown="if (event.keyCode == Keyboard.ESCAPE) removePanel();"
+		escapeKeyClosesPanel="true"
 		>
 	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
 <!--
