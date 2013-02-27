@@ -23,53 +23,44 @@
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
 				xmlns:ui="weave.ui.*"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="{lang('Data Filter')}"
 				>
 	
 	<mx:Canvas  width="100%" height="100%" >
-		<mx:HSlider id="filterSlider" thumbCount="2" liveDragging="true"
-					change="sliderChangeTwo(event);"/>
 		<mx:Script>
 			<![CDATA[
-				import mx.controls.sliderClasses.Slider;
-				import mx.events.SliderEvent;
-				
-				import weave.api.WeaveAPI;
+				import weave.api.data.ColumnMetadata;
+				import weave.api.data.IKeyFilter;
 				import weave.api.registerLinkableChild;
 				import weave.core.LinkableDynamicObject;
-				import weave.data.KeySets.NumericDataFilter;
+				import weave.data.AttributeColumns.DynamicColumn;
+				import weave.data.KeySets.NumberDataFilter;
+				import weave.data.KeySets.StringDataFilter;
 				
-				private function getNumericDataFilter():NumericDataFilter
+				override protected function get defaultPanelTitle():String
 				{
-					if (dynamicNumericDataFilter.internalObject == null)
-						dynamicNumericDataFilter.requestGlobalObject(this.name + " NumericDataFilter", NumericDataFilter, false);
-					return dynamicNumericDataFilter.internalObject as NumericDataFilter;
+					var column:DynamicColumn;
+					if (numberFilter)
+						column = numberFilter.column;
+					if (stringFilter)
+						column = stringFilter.column;
+					if (column)
+						return lang('Filter for {0}', column.getMetadata(ColumnMetadata.TITLE));
+					return lang('Filter');
 				}
 				
-				public const dynamicNumericDataFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(NumericDataFilter), columnUpdateSlider, true);
+				public const dynamicKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 				
-				private function columnUpdateSlider():void
+				public function get keyFilter():IKeyFilter
 				{
-					if (!parent)
-						return callLater(columnUpdateSlider);
-					
-					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
-					if (!numericDataFilter)
-						return;
-					//numericDataFilter.column.internalColumn=Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as DynamicColumn;
-					filterSlider.minimum = WeaveAPI.StatisticsCache.getColumnStatistics(numericDataFilter.column).getMin();
-					filterSlider.maximum = WeaveAPI.StatisticsCache.getColumnStatistics(numericDataFilter.column).getMax();
-					filterSlider.values[0] = numericDataFilter.min.value;
-					filterSlider.values[1] = numericDataFilter.max.value ;
+					return dynamicKeyFilter.internalObject as IKeyFilter;
 				}
-				
-				private function sliderChangeTwo(event:SliderEvent):void {
-					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
-					if (!numericDataFilter)
-						return;
-					var ct:Slider = Slider(event.currentTarget);
-					numericDataFilter.min.value = ct.values[0];
-					numericDataFilter.max.value = ct.values[1];
+				private function get numberFilter():NumberDataFilter
+				{
+					return keyFilter as NumberDataFilter;
+				}
+				private function get stringFilter():StringDataFilter
+				{
+					return keyFilter as StringDataFilter;
 				}
 			]]>
 		</mx:Script>

@@ -47,7 +47,7 @@
 			<ui:CustomComboBox id="keyTypeCombo" width="100%" change="handleKeyTypeComboChange();"/>
 		</mx:HBox>
 	</mx:HBox>
-	<mx:HBox verticalAlign="middle" visible="{enableFilteringTest}" includeInLayout="{enableFilteringTest}">
+	<mx:HBox verticalAlign="middle" visible="{enableFilterControls}" includeInLayout="{enableFilterControls}">
 		<mx:CheckBox label="{lang('Filter by')}" id="filterEnable" click="toggleFilterColumn()"/>
 		<mx:Label id="filterTitle"/>
 		<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="toggleFilterColumn();"/>
@@ -94,7 +94,7 @@
 			import weave.utils.HierarchyUtils;
 			import weave.utils.VectorUtils;
 			
-			[Bindable] public static var enableFilteringTest:Boolean = false;
+			[Bindable] public static var enableFilterControls:Boolean = false;
 			
 			override protected function createChildren():void
 			{
@@ -126,8 +126,8 @@
 			private function get selectedPath():LinkableXML { return hierarchySelector.selectedPath; }
 			public const dynamicColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleDynamicColumnChange);
 			
-			private static const DATA_VARIABLE:String = 'data' // the name of the HierarchyColumnReference variable in equation columns
-			private static const LOOKUP_VARIABLE:String = 'lookup' // the name of the HierarchyColumnReference variable in equation columns
+			private static const DATA_VARIABLE:String = 'data'; // the name of the HierarchyColumnReference variable in equation columns
+			private static const LOOKUP_VARIABLE:String = 'lookup'; // the name of the HierarchyColumnReference variable in equation columns
 				
 			private function handleSelectedPathChange():void
 			{

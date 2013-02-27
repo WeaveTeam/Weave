@@ -18,25 +18,25 @@
 */
 package weave.data.KeySets
 {
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 
-	public class NumericDataFilter implements IKeyFilter, ILinkableObject
+	public class NumberDataFilter implements IKeyFilter
 	{
-		public function NumericDataFilter()
-		{
-		}
-		
+		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const min:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const max:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
+			if (!enabled.value)
+				return true;
 			var value:Number = column.getValueFromKey(key, Number);
 			return (value <= max.value) && (value >= min.value);
 		}

@@ -27,6 +27,8 @@ package
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
+	import weave.data.KeySets.NumberDataFilter;
+	import weave.data.KeySets.StringDataFilter;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
@@ -35,7 +37,9 @@ package
 	import weave.editors.GeometryPlotterEditor;
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
+	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.SessionHistorySlider;
+	import weave.editors.StringDataFilterEditor;
 	import weave.editors.WFSDataSourceEditor;
 	import weave.editors.WMSPlotterEditor;
 	import weave.editors.WeaveDataSourceEditor;
@@ -84,75 +88,80 @@ package
 	 */
 	public class _InitializeWeaveUI
 	{
-		
-		/**
-		 * Register all ILinkableObjectEditor implementations.
-		 */
-		//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
-		
-		EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
-		
-		EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
-		EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
-		EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
-		EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
-		EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
-		
-		EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
-		EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
-		EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
-		EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
-		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
-		EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
-		
-		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
-//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
-        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
-		EditorManager.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
-		
-		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
-		
-		// reference these tools so they will run their static initialization code
-		([
-			AttributeMenuTool,
-			CompoundBarChartTool,
-			ColorBinLegendTool,
-			ColormapHistogramTool,
-			CompoundRadVizTool,
-			CustomTool,
-			SchafersMissingDataTool,
-			DataTableTool,
-			GaugeTool,
-			HistogramTool,
-			Histogram2DTool,
-			GraphTool,
-			LineChartTool,
-			DimensionSliderTool,
-			MapTool,
-			PieChartTool,
-			PieChartHistogramTool,
-			RadVizTool,
-			RTextEditor,
-			ScatterPlotTool,
-			ThermometerTool,
-			TimeSliderTool,
-			TransposedTableTool,
-			RamachandranPlotTool,
-			DataStatisticsTool
-		]).toString();
-		
-		/**
-		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
-		 */
-		WeaveXMLDecoder.includePackages(
-			"weave.editors",
-			"weave.ui",
-			"weave.utils",
-			"weave.visualization",
-			"weave.visualization.tools",
-			"weave.visualization.layers",
-			"weave.visualization.plotters",
-			"weave.visualization.plotters.styles"
-		);
+		private static var _:* = function():void
+		{
+			/**
+			 * Register all ILinkableObjectEditor implementations.
+			 */
+			//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+			
+			EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
+			
+			EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
+			EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
+			EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
+			EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
+			EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			
+			EditorManager.registerEditor(StringDataFilter, StringDataFilterEditor);
+			EditorManager.registerEditor(NumberDataFilter, NumberDataFilterEditor);
+			
+			EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
+			EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
+			EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
+			EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
+			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
+			
+			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
+	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
+	        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
+			EditorManager.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
+			
+			EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
+			
+			// reference these tools so they will run their static initialization code
+			([
+				AttributeMenuTool,
+				CompoundBarChartTool,
+				ColorBinLegendTool,
+				ColormapHistogramTool,
+				CompoundRadVizTool,
+				CustomTool,
+				SchafersMissingDataTool,
+				DataTableTool,
+				GaugeTool,
+				HistogramTool,
+				Histogram2DTool,
+				GraphTool,
+				LineChartTool,
+				DimensionSliderTool,
+				MapTool,
+				PieChartTool,
+				PieChartHistogramTool,
+				RadVizTool,
+				RTextEditor,
+				ScatterPlotTool,
+				ThermometerTool,
+				TimeSliderTool,
+				TransposedTableTool,
+				RamachandranPlotTool,
+				DataStatisticsTool
+			]).toString();
+			
+			/**
+			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
+			 */
+			WeaveXMLDecoder.includePackages(
+				"weave.editors",
+				"weave.ui",
+				"weave.utils",
+				"weave.visualization",
+				"weave.visualization.tools",
+				"weave.visualization.layers",
+				"weave.visualization.plotters",
+				"weave.visualization.plotters.styles"
+			);
+		}();
 	}
 }
