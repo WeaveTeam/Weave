@@ -83,7 +83,7 @@
 						unlinkBindableProperty(_linkedFilter.stringValue, filterValue, 'selectedItem');
 					_linkedFilter = stringFilter;
 					if (_linkedFilter)
-						linkBindableProperty(_linkedFilter.stringValue, filterValue, 'selectedItem', 0, true);
+						linkBindableProperty(_linkedFilter.stringValue, filterValue, 'selectedItem', 200, true);
 				}
 				handleFilter();
 			}
