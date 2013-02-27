@@ -276,7 +276,7 @@ package weave.services
             var req:URLRequest = new URLRequest(admin_url);
             req.data = new URLVariables();
             req.method = URLRequestMethod.GET;
-            req.data["methodName"] = "initializeAdminService";
+            req.data["method"] = "initializeAdminService";
             var loader:URLStream = new URLStream();
             loader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
             loader.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);
@@ -455,7 +455,7 @@ package weave.services
 				var chunk:ByteArray = new ByteArray();
 				content.readBytes(chunk, 0, Math.min(content.bytesAvailable, chunkSize));
 				
-				token = invokeAdmin(uploadFile, [fileName, chunk, append], true); // queued
+				token = invokeAdminWithLogin(uploadFile, [fileName, chunk, append], true); // queued -- important!
 				append = true;
 			}
 			while (content.bytesAvailable > 0);
@@ -547,6 +547,9 @@ package weave.services
 		{
 			return invokeAdmin(getKeyTypes, arguments);
 		}
+		
+		// this function is for verifying the local connection between Weave and the AdminConsole.
+		public function ping():String { return "pong"; }
 		
 		//////////////////////////
 		// DataService functions

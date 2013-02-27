@@ -22,6 +22,7 @@ package weave.primitives
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.utils.BLGTreeUtils;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * GeneralizedGeometry
@@ -36,38 +37,33 @@ package weave.primitives
 	public class GeneralizedGeometry 
 	{
 		/**
-		 * GeneralizedGeometry
 		 * Create an empty geometry.
-		 * @param geomType The type of the geometry (GEOM_TYPE_LINE, GEOM_TYPE_POINT, or GEOM_TYPE_POLYGON).
+		 * @param geomType The type of the geometry (GeometryType.LINE, GeometryType.POINT, or GeometryType.POLYGON).
 		 */
-		public function GeneralizedGeometry(geomType:String = GEOM_TYPE_POLYGON)
+		public function GeneralizedGeometry(geomType:String = GeometryType.POLYGON)
 		{
 			this.geomType = geomType;
 			this.parts[0] = new BLGTree();
 		}
 
 		/**
-		 * partMarkers
 		 * Each of these integers corresponds to a vertexID that separates the current part from the next part.
 		 * For example, partMarkers[0] is the vertexID that marks the end of part 0 and the start of part 1.
 		 */
 		private const partMarkers:Vector.<int> = new Vector.<int>();
 		/**
-		 * parts
 		 * These are the coordinates associated with the geometry.
 		 * Each element in this vector is a separate part of the geometry.
 		 * Each could be either a new polygon or a hole in a previous polygon.
 		 */
 		private const parts:Vector.<BLGTree> = new Vector.<BLGTree>();
 		/**
-		 * bounds
 		 * This is a bounding box for the geometry.
 		 * It is useful for spatial indexing when not all the points are available yet.
 		 */
 		public const bounds:IBounds2D = new Bounds2D();
 		
 		/**
-		 * geomType
 		 * This is the type of the geometry.  Value should be one of the static geometry types listed in this class.
 		 */
 		public var geomType:String;
@@ -75,15 +71,11 @@ package weave.primitives
 		/**
 		 * geometry types
 		 */
-		public static const GEOM_TYPE_POINT:String = "Point";
-		public static const GEOM_TYPE_LINE:String = "Arc";
-		public static const GEOM_TYPE_POLYGON:String = "Polygon";
-		public function isLine():Boolean { return geomType == GEOM_TYPE_LINE; }
-		public function isPoint():Boolean { return geomType == GEOM_TYPE_POINT; }
-		public function isPolygon():Boolean { return geomType == GEOM_TYPE_POLYGON; }
+		public function isLine():Boolean { return geomType == GeometryType.LINE; }
+		public function isPoint():Boolean { return geomType == GeometryType.POINT; }
+		public function isPolygon():Boolean { return geomType == GeometryType.POLYGON; }
 
 		/**
-		 * isEmpty
 		 * @return true if the geometry has no information on its individual coordinates.
 		 */
 		public function get isEmpty():Boolean
@@ -92,9 +84,28 @@ package weave.primitives
 				return false;
 			return (parts[0] as BLGTree).isEmpty;
 		}
+		
+		/**
+		 * @param minImportance No points with importance less than this value will be returned.
+		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
+		 * @return An Array of ISimpleGeometry objects 
+		 * @see weave.api.data.ISimpleGeometry
+		 */		
+		public function getSimpleGeometries(minImportance:Number = 0, visibleBounds:IBounds2D = null, output:Array = null):Array
+		{
+			var result:Array = output || [];
+			var parts:Vector.<Vector.<BLGNode>> = getSimplifiedGeometry(minImportance, visibleBounds);
+			for (var i:int = 0; i < parts.length; i++)
+			{
+				var part:Vector.<BLGNode> = parts[i] as Vector.<BLGNode>;
+				var geom:ISimpleGeometry = result[i] as ISimpleGeometry || new SimpleGeometry(geomType); // re-use existing or create new
+				geom.setVertices(VectorUtils.copy(part, []));
+				result[i] = geom;
+			}
+			return result;
+		}
 
 		/**
-		 * getSimplifiedGeometry
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
 		 * @return A vector of results from BLGTree.getPointVector(minImportance, visibleBounds) from each part.
@@ -118,7 +129,6 @@ package weave.primitives
 		private const _simplifiedParts:Vector.<Vector.<BLGNode>> = new Vector.<Vector.<BLGNode>>();
 
 		/**
-		 * addPoint
 		 * Inserts a new point into the appropriate part of the geometry.
 		 */
 		public function addPoint(vertexID:int, importance:Number, x:Number, y:Number):void
@@ -131,7 +141,6 @@ package weave.primitives
 		}
 
 		/**
-		 * addPartMarker
 		 * Adds a part marker at the given vertexID and a corresponding geometry part.
 		 * This function does not do any error checking, so part markers should be added in ascending order.
 		 * @param vertexID The vertexID that serves as a marker for separating the next geometry part.
@@ -145,7 +154,6 @@ package weave.primitives
 		}
 		
 		/**
-		 * setCoordinates
 		 * This function assigns importance values to a list of coordinates and replaces the contents of the BLGTree.
 		 * @param xyCoordinates An array of Numbers, even index values being x coordinates and odd index values being y coordinates.
 		 */
@@ -164,7 +172,7 @@ package weave.primitives
 			var firstVertexID:int = 0;
 			var ix:int = 0; // index of current x coordinate in xyCoordinates
 			// point data doesn't apply to the generalization algorithm
-			if (geomType == GEOM_TYPE_POINT)
+			if (geomType == GeometryType.POINT)
 			{
 				for (; ix + 1 < xyCoordinates.length; ix += 2)
 				{
@@ -228,7 +236,7 @@ package weave.primitives
 					numPoints++;
 				}
 				// ARC: end points of a part are required points
-				if (geomType == GEOM_TYPE_LINE && numPoints > 0)
+				if (geomType == GeometryType.LINE && numPoints > 0)
 				{
 					firstVertex.importance = Infinity;
 					firstVertex.prev.importance = Infinity;

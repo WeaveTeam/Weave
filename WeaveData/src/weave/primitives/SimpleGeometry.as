@@ -31,7 +31,7 @@ package weave.primitives
 	 */
 	public class SimpleGeometry implements ISimpleGeometry
 	{
-		public function SimpleGeometry(type:String = CLOSED_POLYGON)
+		public function SimpleGeometry(type:String = GeometryType.POLYGON)
 		{
 			_type = type;
 		}
@@ -46,17 +46,14 @@ package weave.primitives
 				bounds.includeCoords(obj.x, obj.y);
 		}
 
-		public function isPolygon():Boolean { return _type == CLOSED_POLYGON; }
-		public function isLine():Boolean { return _type == LINE; }
-		public function isPoint():Boolean { return _type == POINT; }
+		public function isPolygon():Boolean { return _type == GeometryType.POLYGON; }
+		public function isLine():Boolean { return _type == GeometryType.LINE; }
+		public function isPoint():Boolean { return _type == GeometryType.POINT; }
 		
 		public const bounds:IBounds2D = new Bounds2D(); 
 		
 		private var _vertices:Array = null; // [object with x and y fields, another object with x and y fields, ...]
 		private var _type:String = '';
-		public static const CLOSED_POLYGON:String = "CLOSED_POLYGON";
-		public static const LINE:String = "LINE";
-		public static const POINT:String = "POINT";
 		
 		
 		/**
@@ -76,7 +73,7 @@ package weave.primitives
 			var p2:Point = new Point(xMax, yMin);
 			var p3:Point = new Point(xMax, yMax);
 			var p4:Point = new Point(xMin, yMax);
-			var simpleGeometry:ISimpleGeometry = new SimpleGeometry(SimpleGeometry.CLOSED_POLYGON);
+			var simpleGeometry:ISimpleGeometry = new SimpleGeometry(GeometryType.POLYGON);
 			(simpleGeometry as SimpleGeometry).setVertices([p1, p2, p3, p4]);
 			
 			return simpleGeometry;

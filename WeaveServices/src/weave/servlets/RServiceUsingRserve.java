@@ -29,6 +29,7 @@ import javax.script.ScriptException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
+import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
@@ -144,7 +145,21 @@ public class RServiceUsingRserve
 		if (object instanceof Object[])
 		{
 			Object[] array = (Object[])object;
-			if (array.length == 0 || array[0] instanceof Object[]) // 2-d matrix
+			if (array.length == 0)
+			{
+				return new REXPList(new RList());
+			}
+			else if (array[0] instanceof String)
+			{
+				String[] strings = ListUtils.copyStringArray(array, new String[array.length]);
+				return new REXPString(strings);
+			}
+			else if (array[0] instanceof Number)
+			{
+				double[] doubles = ListUtils.copyDoubleArray(array, new double[array.length]);
+				return new REXPDouble(doubles);
+			}
+			else if (array[0] instanceof Object[]) // 2-d matrix
 			{
 				// handle 2-d matrix
 				RList rList = new RList();
@@ -156,18 +171,6 @@ public class RServiceUsingRserve
 				} catch (REXPMismatchException e) {
 					throw new RemoteException("Failed to Create Dataframe",e);
 				}
-
-		
-			}
-			else if (array[0] instanceof String)
-			{
-				String[] strings = ListUtils.copyStringArray(array, new String[array.length]);
-				return new REXPString(strings);
-			}
-			else if (array[0] instanceof Number)
-			{
-				double[] doubles = ListUtils.copyDoubleArray(array, new double[array.length]);
-				return new REXPDouble(doubles);
 			}
 			else
 				throw new RemoteException("Unsupported value type");

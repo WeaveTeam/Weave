@@ -27,11 +27,12 @@
 	borderAlpha="1"
 	borderColor="#939178"
 	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
-	verticalScrollPolicy="off"
+	verticalScrollPolicy="auto"
 	horizontalScrollPolicy="off"
 	roundedBottomCorners="true"
 	height="564"
 	width="184"
+	escapeKeyClosesPanel="true"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
 	<mx:HBox height="100%" width="100%" horizontalGap="0">
 		<mx:VBox paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" height="100%">

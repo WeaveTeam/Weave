@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HBox xmlns="weave.editors.*" 
+		xmlns:mx="http://www.adobe.com/2006/mxml"
+		implements="weave.api.ui.ILinkableObjectEditor"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ui="weave.ui.*">
+	<mx:CheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter()"/>
+	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="ControlPanel.openEditor(stringFilter.column);"/>
+	<ui:CustomComboBox id="filterValue" enabled="{filterEnable.selected}" prompt="{lang('Select filter value...')}" toolTip="{lang('Select a value used to filter the data.')}"/>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
+			import weave.api.unlinkBindableProperty;
+			import weave.core.CallbackJuggler;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.StringDataFilter;
+			import weave.ui.ControlPanel;
+			import weave.utils.AsyncSort;
+			import weave.utils.ColumnUtils;
+
+			[Bindable] private var columnTitle:String;
+			private function getEnableLabel(columnTitle:String):String
+			{
+				return lang('Filter by {0}', columnTitle || '...');
+			}
+			
+			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, handleFilter, true);
+			private const columnJuggler:CallbackJuggler = new CallbackJuggler(this, handleColumn, true);
+			private var _linkedFilter:StringDataFilter;
+			
+			public function get stringFilter():StringDataFilter
+			{
+				return filterJuggler.target as StringDataFilter;
+			}
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				filterJuggler.target = object as StringDataFilter;
+				
+				if (stringFilter)
+				{
+					columnJuggler.target = stringFilter.column;
+					this.enabled = true;
+				}
+				else
+				{
+					this.enabled = false;
+				}
+				
+				linkNewFilter();
+			}
+			private function linkNewFilter():void
+			{
+				if (!parent)
+				{
+					callLater(linkNewFilter);
+					return;
+				}
+				if (_linkedFilter != stringFilter)
+				{
+					if (_linkedFilter)
+						unlinkBindableProperty(_linkedFilter.stringValue, filterValue, 'selectedItem');
+					_linkedFilter = stringFilter;
+					if (_linkedFilter)
+						linkBindableProperty(_linkedFilter.stringValue, filterValue, 'selectedItem', 0, true);
+				}
+				handleFilter();
+			}
+			public function applyChanges():void
+			{
+				// changes are applied immediately
+			}
+
+			private function toggleFilter():void
+			{
+				if (stringFilter)
+					stringFilter.enabled.value = filterEnable.selected;
+			}
+			
+			private function handleFilter():void
+			{
+				if (!parent)
+				{
+					callLater(handleFilter);
+					return;
+				}
+				
+				if (stringFilter)
+				{
+					enabled = true;
+					filterEnable.selected = stringFilter.enabled.value;
+					filterValue.selectedItem = stringFilter.stringValue.value;
+				}
+				else
+				{
+					enabled = false;
+					filterEnable.selected = false;
+					filterValue.selectedItem = null;
+				}
+			}
+			
+			private function handleColumn():void
+			{
+				if (!parent)
+				{
+					callLater(handleColumn);
+					return;
+				}
+				if (!stringFilter)
+					return;
+				
+				var column:DynamicColumn = stringFilter.column;
+				if (column)
+				{
+					columnTitle = ColumnUtils.getTitle(column);
+					
+					//TODO - make this asynchronous
+					var valueMap:Object = {};
+					for each (var key:IQualifiedKey in column.keys)
+						valueMap[column.getValueFromKey(key, String)] = true;
+					
+					var valueList:Array = [];
+					for (var string:String in valueMap)
+						valueList.push(string);
+					
+					AsyncSort.sortImmediately(valueList, AsyncSort.compareCaseInsensitive);
+					
+					filterValue.dataProvider = valueList;
+				}
+				else
+				{
+					columnTitle = null;
+					filterValue.dataProvider = null;
+				}
+				handleFilter();
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

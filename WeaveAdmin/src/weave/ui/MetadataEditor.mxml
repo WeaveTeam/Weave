@@ -11,41 +11,52 @@
 		<mx:Label id="idDisplay"/>
 	</mx:HBox>
     <mx:TabNavigator width="{width}" height="100%">
-        <ui:MetadataGrid id="publicMetaGrid" label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0})"
+        <ui:MetadataGrid id="publicMetaGrid"
+			label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0}){publicMetaGrid.metadataChanged?'*':''}"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
-        <ui:MetadataGrid id="privateMetaGrid" label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0})"
+        <ui:MetadataGrid id="privateMetaGrid"
+			label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0}){privateMetaGrid.metadataChanged?'*':''}"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
     <mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
-        <!--<mx:Button label="Debug Meta" click="printpubMeta()"/>-->
         <mx:Button label="Save" enabled="{isChanged}" click="saveChanges()"/>
         <mx:Button label="Cancel" enabled="{isChanged}" click="refresh()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
 	import mx.binding.utils.BindingUtils;
+	import mx.events.DataGridEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.data.ColumnMetadata;
 	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.EntityType;
 	
 	public function handleCreationComplete():void
 	{
+		publicMetaGrid.defaultPropertyName = ColumnMetadata.TITLE;
 		publicMetaGrid.selectablePropertyNames = EntityMetadata.getSuggestedPublicPropertyNames();
 		privateMetaGrid.selectablePropertyNames = EntityMetadata.getSuggestedPrivatePropertyNames();
-		BindingUtils.bindSetter(metaChanged, publicMetaGrid, 'metadata');
-		BindingUtils.bindSetter(metaChanged, privateMetaGrid, 'metadata');
+		BindingUtils.bindSetter(detectChange, publicMetaGrid, 'metadata');
+		BindingUtils.bindSetter(detectChange, privateMetaGrid, 'metadata');
 		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
+		publicMetaGrid.grid.addEventListener(DataGridEvent.ITEM_EDIT_BEGIN, onItemEditBegin);
+		privateMetaGrid.grid.addEventListener(DataGridEvent.ITEM_EDIT_BEGIN, onItemEditBegin);
+	}
+	private function onItemEditBegin(event:Event = null):void
+	{
+		if (event)
+			callLater(onItemEditBegin);
+		else
+			isChanged = true;
 	}
 
 	[Bindable] private var publicPropertyCount:int = 0;
 	[Bindable] private var privatePropertyCount:int = 0;
-    [Bindable] public var isChanged:Boolean = false;
+	[Bindable] public var isChanged:Boolean = false;
 	
 	private var _targetItems:Array;
 	[Bindable] public function get targetItems():Array
@@ -60,29 +71,60 @@
 	
 	private function refresh():void
 	{
-		//TODO: support editing multiple items at a time
-		
-		if (_targetItems == null || _targetItems.length == 0 || _targetItems.length > 1)
+		if (_targetItems == null || _targetItems.length == 0)
 		{
 			this.enabled = false;
-			title.text = "Metadata for selected item";
-			idDisplay.text = "";
+			title.text = lang('Metadata for selected item(s)');
+			idDisplay.text = '';
 			publicMetaGrid.metadata = null;
 			privateMetaGrid.metadata = null;
 			return;
 		}
 		this.enabled = true;
 		
-		var item:Object = _targetItems[0];
+		var publicMetadata:Object;
+		var privateMetadata:Object;
 		
-		var entity:Entity = getEntityFromSelectedItem(item);
+		for (var i:int = 0; i < _targetItems.length; i++)
+		{
+			var entity:Entity = getEntityFromSelectedItem(_targetItems[i]);
 			
-		var typeStr:String = entity.getTypeString() || 'item';
-		title.text = "Metadata for selected " + typeStr.toLowerCase();
-		idDisplay.text = "id=" + entity.id;
+			if (i == 0)
+			{
+				if (_targetItems.length == 1)
+				{
+					var type:String = entity.getTypeString() || lang('item');
+					title.text = lang('Metadata for selected {0}', type.toLowerCase());
+					idDisplay.text = lang('id={0}', entity.id);
+				}
+				else
+				{
+					title.text = lang('Metadata for selected {0} items', _targetItems.length);
+					idDisplay.text = '';
+				}
+				
+				publicMetadata = ObjectUtil.copy(entity.publicMetadata);
+				privateMetadata = ObjectUtil.copy(entity.privateMetadata);
+			}
+			else
+			{
+				combineMetadata(entity.publicMetadata, publicMetadata);
+				combineMetadata(entity.privateMetadata, privateMetadata);
+			}
+		}
 		
-        publicMetaGrid.metadata = entity.publicMetadata;
-        privateMetaGrid.metadata = entity.privateMetadata;
+        publicMetaGrid.metadata = publicMetadata;
+        privateMetaGrid.metadata = privateMetadata;
+		
+		detectChange();
+	}
+	
+	private function combineMetadata(newValuesInput:Object, combinedValuesOutput:Object):void
+	{
+		for each (var arg:Object in arguments)
+			for (var name:String in arg)
+				if (newValuesInput[name] != combinedValuesOutput[name])
+					combinedValuesOutput[name] = MetadataGridItem.MULTIPLE_VALUES_PLACEHOLDER;
 	}
 	
 	private function getEntityFromSelectedItem(node_or_id:Object):Entity
@@ -96,67 +138,30 @@
 		return entity;
 	}
 
-    private function metaChanged(..._):void
+    private function detectChange(..._):void
     {
-		if (_targetItems == null || _targetItems.length != 1)
-			return;
-		
-		var item:Object = _targetItems[0];
-		
-		var entity:Entity = getEntityFromSelectedItem(item);
-		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
-        var prop:String;
-        for (prop in diff.privateMetadata)
-        {
-            isChanged = true;
-            return;
-        }
-        for (prop in diff.publicMetadata)
-        {
-            isChanged = true;
-            return;
-        }
-        isChanged = false;
+		isChanged = publicMetaGrid.metadataChanged || privateMetaGrid.metadataChanged;
     }
     private function saveChanges():void
     {
-		if (_targetItems == null || _targetItems.length > 1)
+		if (_targetItems == null || _targetItems.length == 0)
 			return;
 		
-		var item:EntityNode = _targetItems[0];
+		var diff:EntityMetadata = new EntityMetadata();
+		diff.privateMetadata = privateMetaGrid.metadata;
+		diff.publicMetadata = publicMetaGrid.metadata;
 		
-		var entity:Entity = item.getEntity();
-		var diff:EntityMetadata = entity.getDiff(privateMetaGrid.metadata, publicMetaGrid.metadata);
-		
-        Admin.entityCache.update_metadata(entity.id, diff);
-		checkIsChanged = true;
+		for each (var item:Object in _targetItems)
+		{
+			var entity:Entity = getEntityFromSelectedItem(item);
+	        Admin.entityCache.update_metadata(entity.id, diff);
+		}
     }
-	private var checkIsChanged:Boolean = false;
-	private function handleEntityCache(..._):void
-	{
-		if (checkIsChanged)
-		{
-			checkIsChanged = false;
-			
-            metaChanged();
-			
-            if (isChanged)
-			{
-                reportError('handleEntityCache(): isChanged is true');
-			}
-		}
-		
-		if (!isChanged)
-		{
-			refresh();
-		}
-	}
 	
-    public function printpubMeta():void
-    {
-        weaveTrace(ObjectUtil.toString(publicMetaGrid.metadata));
-    }
-
+	private function handleEntityCache():void
+	{
+		refresh();
+	}
 ]]>
 </mx:Script>
 </mx:VBox>

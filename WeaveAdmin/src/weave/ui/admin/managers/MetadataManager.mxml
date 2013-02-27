@@ -3,52 +3,68 @@
                 xmlns:ui="weave.ui.*"
                 xmlns:aci="weave.services.beans.*"
                 xmlns="weave.ui.admin.managers.*"
-                label="Data Hierarchies{metadataEditor.isChanged?'*':''}"
+                label="{lang('Data Hierarchies')}{metadataEditor.isChanged?'*':''}"
                 creationComplete="handleCreated()">
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
-		<ui:IndentTextInput label="Tables" labelFontWeight="bold" prompt="Search" id="tableSearch" width="100%"/>
+		<ui:IndentTextInput label="{lang('Data Tables')}" labelFontWeight="bold" prompt="{lang('Search')}" id="tableSearch" width="100%"/>
         <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}" nodeFilterFunction="{filterTables}"
 			entityCache="{Admin.entityCache}"
-            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
+            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-            <mx:Button id="deleteTableButton" label="Delete table" click="deleteTable()"/>
-			<mx:Button label="Refresh" click="Admin.entityCache.clearCache();"/>
+			<mx:Button toggle="true" label="Edit tables" id="editTablesButton" visible="false" includeInLayout="false"/>
+            <mx:Button id="deleteTableButton" label="{lang('Delete table')}" click="deleteTable()"/>
+			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
-    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
-        <mx:HBox>
-			<mx:Label text="Custom hierarchies" fontWeight="bold"/>
-			<ui:HelpComponent>
-				The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
-			</ui:HelpComponent>
-		</mx:HBox>
-        <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
-            width="100%" height="100%" entityCache="{Admin.entityCache}"
-            dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
-        <mx:HBox width="100%">
-			<mx:Spacer width="100%"/>
-			<mx:HBox enabled="{selectedItems.length &lt; 2}">
-    	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="New {hierarchyTree.selectedItem ? 'category' : 'hierarchy'} name" width="100%" enter="addCategory()"/>
-	            <mx:Button label="Add {hierarchyTree.selectedItem ? 'category' : 'hierarchy'}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
+    <mx:VBox id="hierarchyDiv" minWidth="{plusButton.width}" height="100%" width="100%"
+			 resize="minusButton.includeInLayout = minusButton.visible = !(plusButton.includeInLayout = plusButton.visible = (hierarchyDiv.width == plusButton.height));"
+			 enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
+        <mx:HBox width="100%" horizontalGap="0">
+			<mx:HBox width="100%" minWidth="0" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}" horizontalScrollPolicy="off">
+				<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
+				<ui:HelpComponent>
+					The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
+				</ui:HelpComponent>
+				<mx:Spacer width="100%"/>
 			</mx:HBox>
-            <mx:Button label="Remove" click="remove()" enabled="{hierarchyTree.selectedItems.length > 0}"/>
-        </mx:HBox>
+			<mx:Button id="minusButton" width="{minusButton.height}"
+					   toolTip="{lang('Hide Custom Hierarchies')}"
+					   click="hierarchyDiv.width = plusButton.height;"
+					   icon="@Embed(source='/weave/resources/images/minus.png')"/>
+			<mx:Button id="plusButton" width="{plusButton.height}"
+					   toolTip="{lang('Show Custom Hierarchies')}"
+					   click="hierarchyDiv.width = hierarchyDiv.parent.width / 3"
+					   icon="@Embed(source='/weave/resources/images/plus.png')"/>
+		</mx:HBox>
+		<mx:VBox height="100%" width="100%" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}">
+	        <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
+	            width="100%" height="100%" entityCache="{Admin.entityCache}"
+	            dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
+	        <mx:HBox width="100%">
+		        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
+	            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
+	            <mx:Button label="{lang('Remove')}" click="remove()" enabled="{hierarchyTree.selectedItem}"/>
+	        </mx:HBox>
+		</mx:VBox>
     </mx:VBox>
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
-	import mx.controls.Alert;
 	import mx.events.ListEvent;
 	
 	import weave.core.UIUtils;
 	import weave.services.Admin;
-	import weave.services.WeaveAdminService;
 	import weave.services.beans.Entity;
 	import weave.ui.EntityNode;
 	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
+	
+	private function categoryOrHierarchyLabel(hierarchyTreeSelectedItems:Array):String
+	{
+		return hierarchyTreeSelectedItems.length == 1 ? 'category' : 'hierarchy';
+	}
 
     [Bindable] public var selectedItems:Array = [];
 	
@@ -103,7 +119,7 @@
 		//TODO: ask for password to confirm?
 		
         /* Pop up confirmation, then delete tables. */
-        PopUpUtils.confirm(this, "Delete Table", "Delete selected tables? All data columns will also be deleted from all associated categories.", deleteTableFunction, null, "Delete", "Cancel")
+        PopUpUtils.confirm(this, lang("Delete Table"), lang("Delete selected tables? All data columns will also be deleted from all associated categories."), deleteTableFunction, null, lang("Delete"), lang("Cancel"))
         function deleteTableFunction():void
         {
 			for each (var item:EntityNode in tableTree.selectedItems)
@@ -123,10 +139,10 @@
         }
 		
 		var node:EntityNode;
-		if (hierarchyTree.selectedItems.length == 0)
-			node = hierarchyTree.rootNode;
 		if (hierarchyTree.selectedItems.length == 1)
-			node = hierarchyTree.selectedItems[0];
+			node = hierarchyTree.selectedItem as EntityNode;
+		else
+			node = hierarchyTree.rootNode;
         
 		var index:int = -1;
 		// if user selected a column, use its parent node and insert at the column's position
@@ -161,7 +177,15 @@
 		{
 			if (item.getEntity().type == Entity.TYPE_HIERARCHY)
 			{
-	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root hierarchies.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
+	            PopUpUtils.confirm(
+					this,
+					lang("Remove hierarchy items"),
+					lang('You have selected some root hierarchies.  Remove all selected items?'),
+					removeImmediately,
+					null,
+					lang("Remove"),
+					lang("Cancel")
+				);
 				return;
 			}
 		}

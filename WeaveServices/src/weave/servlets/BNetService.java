@@ -62,12 +62,11 @@ public class BNetService extends GenericServlet
         networks = new HashMap<String,BayesianNetwork>();
         return;
 	}
-    public List<String> listNetworks() 
+    public String[] listNetworks() 
     {
-        List<String> result = new ArrayList<String>(networks.keySet());
-        return result;
+        return (String[])networks.keySet().toArray(new String[0]);
     }
-    public List<String> listNodes(String netName)
+    public String[] listNodes(String netName)
     {
 
         
@@ -78,9 +77,23 @@ public class BNetService extends GenericServlet
             String nodeName = node.getName();
             result.add(nodeName);
         }
-        return result;
+        return (String[])result.toArray(new String[0]);
     }
-    public List<String> listStates(String netName)
+    public String[] getNodeParents(String netName, String nodeName)
+    {
+        List<String> result = new ArrayList<String>();
+
+        BayesianNetwork net = networks.get(netName);
+        DiscreteNode node = net.getDiscreteNode(nodeName);
+        List<DiscreteNode> parents = node.getParents();
+        for (DiscreteNode parent : parents)
+        {
+            result.add(parent.getName());
+        }
+        
+        return (String[])result.toArray(new String[0]);
+    }
+    public String[] listStates(String netName)
     {
         /* Compute the union of all the states of all the nodes in network netName */
         Set<String> states = new HashSet<String>();
@@ -89,7 +102,7 @@ public class BNetService extends GenericServlet
         {
             states.addAll(node.getStates());
         }
-        return new ArrayList<String>(states);
+        return (String[])states.toArray(new String[0]);
     }
     public Map<String,Double> getNodeBeliefs(String netName, String nodeName)
     {
@@ -127,20 +140,7 @@ public class BNetService extends GenericServlet
         }
         return;
     }
-    public List<String> getNodeParents(String netName, String nodeName)
-    {
-        List<String> result = new ArrayList<String>();
-
-        BayesianNetwork net = networks.get(netName);
-        DiscreteNode node = net.getDiscreteNode(nodeName);
-        List<DiscreteNode> parents = node.getParents();
-        for (DiscreteNode parent : parents)
-        {
-            result.add(parent.getName());
-        }
-        
-        return result;
-    }
+    
     public void loadNetwork(String path, String withName) throws RemoteException
     {
         if (withName == null || withName.equals(""))

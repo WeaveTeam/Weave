@@ -69,7 +69,7 @@ public class RService extends GenericServlet
 	private String docrootPath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
-	private static ServiceType serviceType = ServiceType.JRI;
+	private static ServiceType serviceType = ServiceType.RSERVE;
 	
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{

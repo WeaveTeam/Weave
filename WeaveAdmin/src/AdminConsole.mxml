@@ -20,7 +20,9 @@
 */
 -->
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
-	<!--  cornerRadius="0" -->
+	<mx:Style>
+		{ fillAlphas: 1, 1, 1, 1; }
+	</mx:Style>
 	<mx:Panel
 		headerHeight="25"
 		title="Administration Console for Weave {version}"
@@ -83,21 +85,9 @@
 			</mx:ViewStack>
 			<mx:TextArea id="messageTextArea" editable="false"
 						 width="100%" height="0%" visible="{messageTextArea.height > 0}"
-						 keyDown="if (event.keyCode == Keyboard.DELETE) WeaveAdminService.clearMessageLog();"/>
+						 keyDown="if (event.keyCode == Keyboard.DELETE) WeaveAdminService.clearMessageLog(); messageTextArea.height = 0;"/>
 		</mx:VDividedBox>
 	</mx:Panel>
-	
-	<!--
-	<mx:VRule width="25" height="17"/>
-	<mx:Button label="Import Connection(s)..." click="openImportDialog()" toolTip="open dialog with wizard to import  existing connections say to data commons, other servers, etc"/>
-	<mx:VRule width="25" height="17"/>
-	<mx:Button label="Load Configuration..." toolTip="would open dialog to load saved settings for the admin console (preferences)"/>
-	<mx:Button label="Save Configuration..." toolTip="would open dialog to save settings for the admin console (preferences)"/>
-	<mx:HBox width="100%" verticalAlign="middle">
-	<mx:Button label="Add" toolTip="would add a item of type (whatever the tab selected is) to the same level as a selected item, or root if nothing selected."/>
-	<mx:Button label="Remove" toolTip="would delete a selected item - with confirm dialog"/>
-	</mx:HBox>
-	-->					
 	
 	<mx:Script>
 		<![CDATA[

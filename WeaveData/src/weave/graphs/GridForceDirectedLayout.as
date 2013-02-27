@@ -82,6 +82,7 @@ package weave.graphs
 				layoutString + '\n';
 
 			var constrainingBounds:IBounds2D = (keys.length == _numNodes) ? null : bounds;
+			
 			callRServe(rScript, [weaveGraphLayout, graphNodes], constrainingBounds);
 		}
 	}

@@ -32,15 +32,14 @@
 
 <mx:Script>
 		<![CDATA[
-			import weave.data.DataSources.WeaveDataSource;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
 			import weave.api.ui.IVisTool;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.data.DataSources.WeaveDataSource;
 			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
-			import weave.utils.VectorUtils;
 
 			WeaveAPI.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
 			

@@ -50,6 +50,7 @@ package weave.core
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.utils.AsyncSort;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -577,10 +578,10 @@ package weave.core
 				}
 			}
 			
-			propertyNames.sort();
+			AsyncSort.sortImmediately(propertyNames);
 			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
 			
-			deprecatedSetters.sort();
+			AsyncSort.sortImmediately(deprecatedSetters);
 			classNameToDeprecatedSetterNamesMap[classQName] = deprecatedSetters;
 		}
 		

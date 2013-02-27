@@ -47,7 +47,7 @@
 			<ui:CustomComboBox id="keyTypeCombo" width="100%" change="handleKeyTypeComboChange();"/>
 		</mx:HBox>
 	</mx:HBox>
-	<mx:HBox verticalAlign="middle" visible="false" includeInLayout="false">
+	<mx:HBox verticalAlign="middle" visible="{enableFilterControls}" includeInLayout="{enableFilterControls}">
 		<mx:CheckBox label="{lang('Filter by')}" id="filterEnable" click="toggleFilterColumn()"/>
 		<mx:Label id="filterTitle"/>
 		<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="toggleFilterColumn();"/>
@@ -56,7 +56,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Label;
 			import mx.controls.List;
 			import mx.core.DragSource;
 			import mx.core.IUIComponent;
@@ -66,22 +65,20 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
+			import weave.api.linkSessionState;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.setSessionState;
+			import weave.api.unlinkSessionState;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IDataSource;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.detectLinkableObjectChange;
-			import weave.api.getCallbackCollection;
-			import weave.api.getLinkableDescendants;
-			import weave.api.getSessionState;
-			import weave.api.linkSessionState;
-			import weave.api.newLinkableChild;
-			import weave.api.objectWasDisposed;
-			import weave.api.registerLinkableChild;
-			import weave.api.reportError;
-			import weave.api.setSessionState;
-			import weave.api.unlinkSessionState;
 			import weave.core.LinkableXML;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -96,6 +93,8 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
 			import weave.utils.VectorUtils;
+			
+			[Bindable] public static var enableFilterControls:Boolean = false;
 			
 			override protected function createChildren():void
 			{
@@ -127,8 +126,8 @@
 			private function get selectedPath():LinkableXML { return hierarchySelector.selectedPath; }
 			public const dynamicColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleDynamicColumnChange);
 			
-			private static const DATA_VARIABLE:String = 'data' // the name of the HierarchyColumnReference variable in equation columns
-			private static const LOOKUP_VARIABLE:String = 'lookup' // the name of the HierarchyColumnReference variable in equation columns
+			private static const DATA_VARIABLE:String = 'data'; // the name of the HierarchyColumnReference variable in equation columns
+			private static const LOOKUP_VARIABLE:String = 'lookup'; // the name of the HierarchyColumnReference variable in equation columns
 				
 			private function handleSelectedPathChange():void
 			{

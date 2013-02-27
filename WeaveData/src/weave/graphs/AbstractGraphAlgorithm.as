@@ -56,6 +56,8 @@ package weave.graphs
 
 		protected function callRServe(script:String, outputParams:Array, bounds:IBounds2D):void
 		{
+			debugTrace("Calling R:" + script);
+			reportError("Calling R:" + script);
 			if (outputParams.length != 2)
 				throw new Error("Invalid output parameters provided to R.");
 
@@ -89,7 +91,7 @@ package weave.graphs
 				{
 					var key:IQualifiedKey = nodesKeys[i];
 					var newNode:IGraphNode = new GraphNode();
-					newNode.id = nodesColumn.getValueFromKey(key, Number) as Number;
+					newNode.id = nodesColumn.getValueFromKey(key, String);
 					newNode.key = key;
 					_keyToNode[key] = newNode;
 					idToNodeKey[newNode.id] = key;
@@ -104,8 +106,8 @@ package weave.graphs
 				for (i = 0; i < edgesKeys.length; ++i)
 				{
 					var edgeKey:IQualifiedKey = edgesKeys[i];
-					var idSource:int = Number(edgeSources.getValueFromKey(edgeKey));
-					var idTarget:int = Number(edgeTargets.getValueFromKey(edgeKey));
+					var idSource:String = edgeSources.getValueFromKey(edgeKey, String);
+					var idTarget:String = edgeTargets.getValueFromKey(edgeKey, String);
 					var newEdge:GraphEdge = new GraphEdge();
 					var source:IGraphNode = _keyToNode[ idToNodeKey[idSource] ];
 					var target:IGraphNode = _keyToNode[ idToNodeKey[idTarget] ];
@@ -303,7 +305,7 @@ package weave.graphs
 		
 		protected function generateVertexesString(keys:Array):String
 		{
-			var vectorVerticesString:String = 'vertexes <- c(';
+			var vectorVerticesString:String = 'vertexes <- data.frame(c(';
 			var vertices:Array = [];
 			for (var iKey:int = 0; iKey < keys.length; ++iKey)
 			{
@@ -314,7 +316,7 @@ package weave.graphs
 				vertices.push("'" + node.key.localName + "'");
 				lastUsedNodes.push(node);
 			}
-			vectorVerticesString += vertices.join(',') + ')';
+			vectorVerticesString += vertices.join(',') + '))';
 			return vectorVerticesString;
 		}
 		
@@ -326,7 +328,7 @@ package weave.graphs
 
 		protected function generateGraphString(graphName:String, edges:String, vertexes:String):String
 		{
-			return graphName + ' <- graph.data.frame(' + edges + ', directed=FALSE, vertices=' + vertexes + ')';
+			return graphName + ' <- graph.data.frame(' + edges + ', vertices=' + vertexes + ') ';
 		}
 		protected function generateEdgesString(keys:Array):String
 		{
@@ -361,7 +363,6 @@ package weave.graphs
 		protected function handleLayoutResult(event:ResultEvent, token:Object = null):void
 		{
 			// do nothing if this wasn't the last R call
-			debugTrace(arguments);
 			var rId:int = (token as RToken).id;
 			if (rId != _rId)
 				return;
@@ -375,11 +376,27 @@ package weave.graphs
 				reportError("Invalid or insufficient results from RService:" + ObjectUtil.toString(event.result));
 				return;
 			}
-			
+			/* Convert the result's name/value pair objects to a flat object. */
+			var layoutResult:Object = {};
+			for (var i:int = 0; i < array.length; i++)
+			{
+				var subResult:Object = array[i] as Object;
+				layoutResult[subResult.name] = subResult.value as Array;
+			}
 			outputBounds.reset();
 			
 			try
 			{
+				var vertexNames:Array = layoutResult["V(weaveGraph)$name"];
+				var vertexes:Array = layoutResult["vertexes"];
+				var raw_layout:Array = layoutResult["weaveGraphLayout"];
+				var resultKeys:Array = new Array();
+				for (var keyName:String in layoutResult)
+				{
+					resultKeys.push(keyName);
+				}
+
+				debugTrace(raw_layout);
 				// this is an array of arrays.
 				// resultLocations[0] is the first object, where resultLocations[0][0] is x and resultLocations[0][1] for y
 				var resultLocations:Array = array[1].value as Array;

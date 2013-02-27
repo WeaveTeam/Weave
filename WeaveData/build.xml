@@ -13,7 +13,7 @@
 	<taskdef name="compc" classname="flex.ant.CompcTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 
-	<property name="DEBUG" value="false"/>
+	<property name="DEBUG" value="true"/>
 	<property name="PROJECT_DIR" value="${basedir}"/>
 	<property name="SOURCE_DIR" value="${PROJECT_DIR}/src"/>
 	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>

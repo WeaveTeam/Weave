@@ -140,6 +140,7 @@ import nochump.util.zip.ZipFile;
 import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
 import weave.core.ClassUtils;
+import weave.utils.AsyncSort;
 
 /**
  * @private
@@ -301,7 +302,7 @@ internal class Library implements IDisposableObject
 		{
 			_classQNames.push(id.split(':').join('.'));
 		}
-		_classQNames.sort();
+		AsyncSort.sortImmediately(_classQNames);
 		
 		// iterate over all the classes, initializing them
 		var index:int = 0;

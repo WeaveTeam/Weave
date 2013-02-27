@@ -171,7 +171,7 @@ public class AdminService
 	{
 		ConnectionConfig connConfig = getConnectionConfig();
 		ConnectionInfo info = connConfig.getConnectionInfo(user);
-		if (info == null || !password.equals(info.pass))
+		if (info == null || password == null || !password.equals(info.pass))
 		{
 			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, password));
 			throw new RemoteException("Incorrect username or password.");
@@ -181,14 +181,18 @@ public class AdminService
 	
     private void tryModify(String user, String pass, int entityId) throws RemoteException
     {
-        // superuser can modify anything
-        if (!getConnectionInfo(user, pass).is_superuser)
-        {
-        	DataEntity entity = getDataConfig().getEntity(entityId);
+        if (getConnectionInfo(user, pass).is_superuser)
+        	return; // superuser can modify anything
+        
+    	DataEntity entity = getDataConfig().getEntity(entityId);
+    	
+    	// permissions only supported on data tables and columns
+    	if (entity.type == DataEntity.TYPE_DATATABLE || entity.type == DataEntity.TYPE_COLUMN)
+    	{
 	        String owner = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 	        if (!user.equals(owner))
 	        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entityId));
-        }
+    	}
     }
 	
 	//////////////////////////////
@@ -366,7 +370,7 @@ public class AdminService
 		throws RemoteException
 	{
 		authenticate(user, password);
-		return new WeaveFileInfo(getDocrootPath() + fileName);
+		return new WeaveFileInfo(getDocrootPath(), fileName);
 	}
 
 	//////////////////////////////
@@ -561,7 +565,7 @@ public class AdminService
 		if (!getConnectionInfo(user, password).is_superuser)
 			throw new RemoteException("Unable to store configuration information without superuser privileges.");
 		
-		//TODO: migrate data from old db to new db?
+		//TODO: option to migrate all data from old db to new db?
 		
 		// create info object
 		DatabaseConfigInfo info = new DatabaseConfigInfo();
@@ -585,6 +589,9 @@ public class AdminService
 
 	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
 	{
+		if (parentId == DataConfig.NULL)
+			throw new RemoteException("removeParentChildRelationship() called with parentId=" + DataConfig.NULL);
+		
 		tryModify(user, password, parentId);
 		getDataConfig().removeChild(parentId, childId);
 	}
@@ -703,9 +710,11 @@ public class AdminService
 	 * @param content The file content.
 	 * @param append Set to true to append to an existing file.
 	 */
-	public void uploadFile(String fileName, InputStream content, boolean append)
+	public void uploadFile(String user, String password, String fileName, InputStream content, boolean append)
 		throws RemoteException
 	{
+		authenticate(user, password);
+		
 		// make sure the upload folder exists
 		(new File(getUploadPath())).mkdirs();
 
@@ -1131,7 +1140,9 @@ public class AdminService
 		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
 		
 		if (isEmpty(sqlSchema))
-			throw new RemoteException("Schema must be specified.");
+			throw new RemoteException("SQL schema must be specified.");
+		if (isEmpty(sqlTable))
+			throw new RemoteException("SQL table must be specified.");
 		
 		final int StringType = 0;
 		final int IntType = 1;
@@ -1425,7 +1436,9 @@ public class AdminService
 		authenticate(connectionName, password);
 		
 		if (isEmpty(schemaName))
-			throw new RemoteException("Schema must be specified.");
+			throw new RemoteException("SQL schema must be specified.");
+		if (isEmpty(tableName))
+			throw new RemoteException("SQL table must be specified.");
 		
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
         DataEntityMetadata tableInfo = new DataEntityMetadata();
@@ -1486,6 +1499,7 @@ public class AdminService
 			
 			// generate and test each query before modifying config file
 			List<String> titles = new LinkedList<String>();
+			List<String> sqlFields = new LinkedList<String>();
 			List<String> queries = new Vector<String>();
 			List<Object[]> queryParamsList = new Vector<Object[]>();
 			List<String> dataTypes = new Vector<String>();
@@ -1501,6 +1515,7 @@ public class AdminService
 						columnList += ",";
 					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
 				}
+				
 				query = String.format("select distinct %s from %s order by %s", columnList, SQLUtils.quoteSchemaTable(
 						conn, sqlSchema, sqlTable), columnList);
 				filteredValues = SQLUtils.getResultFromQuery(conn, query, null, true);
@@ -1536,6 +1551,7 @@ public class AdminService
 					{
 						String filteredQuery = buildFilteredQuery(conn, query, filteredValues.columnNames);
 						titles.add(buildFilteredColumnTitle(configColumnNames[iCol], filteredValues.rows[iRow]));
+						sqlFields.add(sqlColumnNames[iCol]);
 						queries.add(filteredQuery);
 						queryParamsList.add(filteredValues.rows[iRow]);
 						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery, filteredValues.rows[iRow]));
@@ -1544,6 +1560,7 @@ public class AdminService
 				else
 				{
 					titles.add(configColumnNames[iCol]);
+					sqlFields.add(sqlColumnNames[iCol]);
 					queries.add(query);
 					dataTypes.add(testQueryAndGetDataType(conn, query, null));
 				}
@@ -1563,24 +1580,28 @@ public class AdminService
 			for (int i = 0; i < titles.size(); i++)
 			{
 				DataEntityMetadata newMeta = new DataEntityMetadata();
+				newMeta.setPublicMetadata(
+					PublicMetadata.TITLE, titles.get(i),
+					PublicMetadata.KEYTYPE, keyType,
+					PublicMetadata.DATATYPE, dataTypes.get(i)
+				);
 				newMeta.setPrivateMetadata(
 					PrivateMetadata.CONNECTION, connectionName,
 					PrivateMetadata.SQLQUERY, queries.get(i),
 					PrivateMetadata.SQLSCHEMA, sqlSchema,
 					PrivateMetadata.SQLTABLE, sqlTable,
 					PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn,
-					PrivateMetadata.SQLCOLUMN, sqlColumnNames[i]
+					PrivateMetadata.SQLCOLUMN, sqlFields.get(i)
 				);
 				if (filteredValues != null)
 				{
+					String filterStr = CSVParser.defaultParser.createCSVRow(filterColumnNames, true);
 					String paramsStr = CSVParser.defaultParser.createCSVRow(queryParamsList.get(i), true);
-					newMeta.setPrivateMetadata(PrivateMetadata.SQLPARAMS, paramsStr);
+					newMeta.setPrivateMetadata(
+						PrivateMetadata.SQLPARAMS, paramsStr,
+						PrivateMetadata.SQLFILTERCOLUMNS, filterStr
+					);
 				}
-				newMeta.setPublicMetadata(
-					PublicMetadata.TITLE, titles.get(i),
-					PublicMetadata.KEYTYPE, keyType,
-					PublicMetadata.DATATYPE, dataTypes.get(i)
-				);
 
 				dataConfig.newEntity(DataEntity.TYPE_COLUMN, newMeta, table_id, DataConfig.NULL);
 			}
@@ -1671,7 +1692,10 @@ public class AdminService
 		{
 			if (j > 0)
 				query += " and ";
-			query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
+			
+			// use case insensitive compare because that's what SELECT DISTINCT does.
+			query += SQLUtils.quoteSymbol(conn, columnNames[j]) + "=?";
+			//query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
 		}
 		return query;
 	}
@@ -1689,7 +1713,9 @@ public class AdminService
 		ConnectionInfo connInfo = getConnectionInfo(configConnectionName, password);
 		
 		if (isEmpty(sqlSchema))
-			throw new RemoteException("Schema must be specified.");
+			throw new RemoteException("SQL schema must be specified.");
+		if (isEmpty(sqlTablePrefix))
+			throw new RemoteException("SQL table prefix must be specified.");
 		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();

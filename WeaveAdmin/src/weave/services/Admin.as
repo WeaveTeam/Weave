@@ -168,10 +168,9 @@ package weave.services
 			service.addHook(
 				service.getWeaveFileNames,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, user_pass_showAllFiles:Array):void
 				{
-					// save list
-					var showAllFiles:Boolean = arguments[0];
+					var showAllFiles:Boolean = user_pass_showAllFiles[2];
 					if (showAllFiles)
 						weaveFileNames = event.result as Array || [];
 					else
@@ -217,10 +216,12 @@ package weave.services
 			service.addHook(
 				service.removeConnectionInfo,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, user_pass_connectionNameToRemove:Array):void
 				{
+					var activeUser:String = user_pass_connectionNameToRemove[0];
+					var removedUser:String = user_pass_connectionNameToRemove[2];
 					// if user removed self, log out
-					if (arguments[0] == arguments[2])
+					if (activeUser == removedUser)
 					{
 						activeConnectionName = '';
 						activePassword = '';
@@ -251,12 +252,16 @@ package weave.services
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
-					if (!userHasAuthenticated)
-						service.authenticate(activeConnectionName, activePassword);
+					if (activeConnectionName && activePassword)
+					{
+						if (!userHasAuthenticated)
+							service.authenticate(activeConnectionName, activePassword);
 					
-					// refresh
-					service.getDatabaseConfigInfo();
-					entityCache.clearCache();
+						// refresh
+						service.getDatabaseConfigInfo();
+					}
+					// purge cache
+					entityCache.invalidateAll(true);
 				}
 			);
 			/////////////////
@@ -385,9 +390,6 @@ package weave.services
 		//////////////////////////////////////////
 		// LocalConnection Code
 		
-		// this function is for verifying the local connection between Weave and the AdminConsole.
-		public function ping():String { return "pong"; }
-		
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
 			var url:String = 'weave.html?';
@@ -423,7 +425,7 @@ package weave.services
 			}
 			// create a new service with a new name
 			var connectionName:String = UIDUtil.createUID(); // NameUtil.createUniqueName(this);
-			weaveService = new LocalAsyncService(this, true, connectionName);
+			weaveService = new LocalAsyncService(service, true, connectionName);
 			return connectionName;
 		}
 

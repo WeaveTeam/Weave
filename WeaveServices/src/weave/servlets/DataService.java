@@ -212,7 +212,10 @@ public class DataService extends GenericServlet
 		
 		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
 		if (connInfo == null)
-			throw new RemoteException(String.format("Connection associated with column %s no longer exists", columnId));
+		{
+			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
+			throw new RemoteException(String.format("Connection named '%s' associated with column #%s (%s) no longer exists", connName, columnId, title));
+		}
 		
 		List<String> keys = new ArrayList<String>();
 		List<Double> numericData = null;
@@ -570,24 +573,57 @@ public class DataService extends GenericServlet
 		String maxStr = metadata.remove(PublicMetadata.MAX);
 		String paramsStr = metadata.remove(PrivateMetadata.SQLPARAMS);
 		
-		Collection<Integer> ids = getDataConfig().getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
+		DataConfig dataConfig = getDataConfig();
 		
-		if (ids.size() > 1)
-			throw new RemoteException(String.format(
-					"Multiple columns (%s) match metadata query: %s",
-					ids.size(),
-					metadata
-				));
+		Collection<Integer> ids = dataConfig.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
 		
-		for (int id : ids)
+		// attempt recovery for backwards compatibility
+		if (ids.size() == 0)
 		{
-			double min = (Double)cast(minStr, double.class);
-			double max = (Double)cast(maxStr, double.class);
-			String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
-			
-			return getColumn(id, min, max, sqlParams);
+			final String DATATABLE = "dataTable";
+			final String NAME = "name";
+			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
+			{
+				// try to find columns sqlTable==dataTable and sqlColumn=name
+				DataEntityMetadata sqlInfoQuery = new DataEntityMetadata();
+				String sqlTable = metadata.get(DATATABLE);
+				String sqlColumn = metadata.get(NAME);
+				for (int i = 0; i < 2; i++)
+				{
+					if (i == 1)
+						sqlTable = sqlTable.toLowerCase();
+					sqlInfoQuery.setPrivateMetadata(
+						PrivateMetadata.SQLTABLE, sqlTable,
+						PrivateMetadata.SQLCOLUMN, sqlColumn
+					);
+					ids = dataConfig.getEntityIdsByMetadata(sqlInfoQuery, DataEntity.TYPE_COLUMN);
+					if (ids.size() > 0)
+						break;
+				}
+			}
+			if (ids.size() == 0)
+				throw new RemoteException("No column matches metadata query: " + metadata);
 		}
 		
-		throw new RemoteException("No column matches metadata query: " + metadata);
+		// warning if more than one column
+		if (ids.size() > 1)
+		{
+			String message = String.format(
+					"WARNING: Multiple columns (%s) match metadata query: %s",
+					ids.size(),
+					metadata
+				);
+			System.err.println(message);
+			//throw new RemoteException(message);
+		}
+		
+		// return first column
+		List<Integer> sortedIds = new ArrayList<Integer>(ids);
+		Collections.sort(sortedIds);
+		int id = sortedIds.get(0);
+		double min = (Double)cast(minStr, double.class);
+		double max = (Double)cast(maxStr, double.class);
+		String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
+		return getColumn(id, min, max, sqlParams);
 	}
 }

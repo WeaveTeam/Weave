@@ -108,6 +108,4 @@ public class VertexMap
 		map.clear();
 		totalStreamSize = 0;
 	}
-	
-	private static final long serialVersionUID = -7612478986475504907L;
 }

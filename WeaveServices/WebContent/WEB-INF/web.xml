@@ -36,7 +36,7 @@
   <!-- This is the path of RServe.  Example value: C:/Program Files/R/R-2.15.1/library/Rserve/Rserve.exe -->
   <context-param>
   	<param-name>RServePath</param-name>
-  	<param-value></param-value>
+  	<param-value>//usr/lib/R/bin/Rserve</param-value>
   </context-param>
   
   <servlet>

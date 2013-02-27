@@ -19,9 +19,6 @@
 
 package weave.data.DataSources
 {
-	import flash.geom.Point;
-	import flash.net.URLRequest;
-	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -43,6 +40,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.GeometryType;
 	import weave.services.WFSServlet;
 	import weave.services.addAsyncResponder;
 	import weave.utils.BLGTreeUtils;
@@ -60,6 +58,8 @@ package weave.data.DataSources
 			url.addImmediateCallback(this, handleURLChange);
 		}
 		
+		public const swapXY:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		
 		public const useURLsInGetCapabilities:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handleURLChange);
 		
 		private var wfsDataService:WFSServlet = null;
@@ -68,7 +68,7 @@ package weave.data.DataSources
 		{
 			if (url.value == null)
 				url.value = '/geoserver/wfs';
-			disposeObjects(WFSDataSource);
+			disposeObjects(wfsDataService);
 			
 			//TODO: dispose of all old columns, too
 			
@@ -110,13 +110,13 @@ package weave.data.DataSources
 		 * @param queryPoint Point around which to perform radius query.
 		 * @param distance Value of radius
 		 */
-		public function radiusSearch(layerName:String, queryPoint:Point,distance:Number):AsyncToken
-		{
-			var filterQuery:String = "<Filter><DWithin><PropertyName>the_geom</PropertyName><Point><coordinates>" + queryPoint.y + "," + queryPoint.x + "</coordinates></Point><Distance>" + distance + "</Distance></DWithin></Filter>";
-			var asyncToken:AsyncToken = wfsDataService.getFilteredQueryResult(layerName, ["STATE_FIPS"], filterQuery);
-			
-			return asyncToken;
-		}
+//		public function radiusSearch(layerName:String, queryPoint:Point,distance:Number):AsyncToken
+//		{
+//			var filterQuery:String = "<Filter><DWithin><PropertyName>the_geom</PropertyName><Point><coordinates>" + queryPoint.y + "," + queryPoint.x + "</coordinates></Point><Distance>" + distance + "</Distance></DWithin></Filter>";
+//			var asyncToken:AsyncToken = wfsDataService.getFilteredQueryResult(layerName, ["STATE_FIPS"], filterQuery);
+//			
+//			return asyncToken;
+//		}
 
 		/**
 		 * @param subtreeNode Specifies a subtree in the hierarchy to download.
@@ -185,11 +185,19 @@ package weave.data.DataSources
 		
 		/**
 		 * @param event
-		 * @param token This is the subtreeNode XML.
+		 * @param node This is the subtreeNode XML.
 		 */
-		private function handleDescribeFeature(event:ResultEvent, token:Object = null):void
+		private function handleDescribeFeature(event:ResultEvent, node:XML):void
 		{
-			var result:XML = new XML(event.result);
+			try
+			{
+				var result:XML = new XML(event.result);
+			}
+			catch (e:Error)
+			{
+				reportError(e, null, event.result);
+				return;
+			}
 
 			var XMLSchema:String = "http://www.w3.org/2001/XMLSchema";
 			// get a list of feature properties
@@ -198,7 +206,6 @@ package weave.data.DataSources
 			var propertiesList:XMLList = result.descendants(rootQName).descendants(propertiesQName);
 			
 			// define the hierarchy
-			var node:XML = token as XML;
 
 			var featureTypeName:String = node.attribute("name").toString();
 
@@ -300,18 +307,14 @@ package weave.data.DataSources
 				return null;
 			var prefix:String = array[0];
 			var localName:String = array[1];
-			var uri:String = xmlContainingNamespaceInfo.namespace(prefix).uri;
-			return new QName(uri, localName);
+			var ns:* = xmlContainingNamespaceInfo.namespace(prefix);
+			if (ns)
+				return new QName(ns.uri, localName);
+			return null;
 		}
 
-		
-		/**
-		 * @param event
-		 * @param token
-		 */
-		private function handleColumnDownload(event:ResultEvent, token:Object = null):void
+		private function handleColumnDownload(event:ResultEvent, request:ColumnRequestToken):void
 		{
-			var request:ColumnRequestToken = token as ColumnRequestToken;
 			var hierarchyPath:XML = request.pathInHierarchy;
 			var proxyColumn:ProxyColumn = request.proxyColumn;
 			
@@ -356,7 +359,7 @@ package weave.data.DataSources
 				var keyQName:QName = getQName(result, featureTypeName);
 				if (keyQName == null)
 				{
-					trace('handleColumnDownload(): Unable to continue because featureTypeName does not have a namespace: "'+featureTypeName+'"');
+					reportError('WFS response did not contain namespace of featureTypeName: ' + hierarchyNode.toXMLString());
 					return;
 				}
 				var dataQName:QName = new QName(keyQName.uri, propertyName); // use same namespace as keyQName
@@ -383,39 +386,48 @@ package weave.data.DataSources
 					var firstFeatureData:XML = features[0].descendants(dataQName)[0];
 					var geomType:String = firstFeatureData.children()[0].name().toString();
 					if (geomType == (gmlURI + "::Point"))
-						geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
+						geomType = GeometryType.POINT;
 					else if (geomType.indexOf(gmlURI + "::") == 0 && (geomType.indexOf('LineString') >= 0 || geomType.indexOf('Curve') >= 0))
-						geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
+						geomType = GeometryType.LINE;
 					else
-						geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
-					var gmlPos:QName = new QName(gmlURI, geomType == GeneralizedGeometry.GEOM_TYPE_POINT ? 'pos' : 'posList');
-
-					for (var geometryIndex:int = 0; geometryIndex < keysVector.length; geometryIndex++)
-					{
-						var gmlPosXMLList:XMLList = dataList[geometryIndex].descendants(gmlPos);
-						var coordStr:String = '';
-						for (i = 0; i < gmlPosXMLList.length(); i++)
+						geomType = GeometryType.POLYGON;
+					var gmlPos:QName = new QName(gmlURI, geomType == GeometryType.POINT ? 'pos' : 'posList');
+					
+					swapXY.addGroupedCallback(
+						newColumn,
+						function():void
 						{
-							if (i > 0)
-								coordStr += ' ';
-							coordStr += gmlPosXMLList[i].toString();
-						}
-						var coordinates:Array = coordStr.split(' ');
-						
-						// swap order (y,x to x,y)
-						for (i = 0; i < coordinates.length; i += 2)
-						{
-							var temp:Number = coordinates[i+1];
-							coordinates[i+1] = coordinates[i];
-							coordinates[i] = temp;
-						}
-						
-						var geometry:GeneralizedGeometry = new GeneralizedGeometry(geomType);
-						
-						geometry.setCoordinates(coordinates, BLGTreeUtils.METHOD_SAMPLE);
-						geomVector[geometryIndex] = geometry;
-					}
-					(newColumn as GeometryColumn).setGeometries(keysVector, geomVector);
+							for (var geometryIndex:int = 0; geometryIndex < keysVector.length; geometryIndex++)
+							{
+								var gmlPosXMLList:XMLList = dataList[geometryIndex].descendants(gmlPos);
+								var coordStr:String = '';
+								for (i = 0; i < gmlPosXMLList.length(); i++)
+								{
+									if (i > 0)
+										coordStr += ' ';
+									coordStr += gmlPosXMLList[i].toString();
+								}
+								var coordinates:Array = coordStr.split(' ');
+								
+								if (swapXY.value)
+								{
+									// swap order (y,x to x,y)
+									for (i = 0; i < coordinates.length; i += 2)
+									{
+										var temp:Number = coordinates[i+1];
+										coordinates[i+1] = coordinates[i];
+										coordinates[i] = temp;
+									}
+								}
+								var geometry:GeneralizedGeometry = new GeneralizedGeometry(geomType);
+								
+								geometry.setCoordinates(coordinates, BLGTreeUtils.METHOD_SAMPLE);
+								geomVector[geometryIndex] = geometry;
+							}
+							(newColumn as GeometryColumn).setGeometries(keysVector, geomVector);
+						},
+						true
+					);
 				}
 				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
@@ -433,7 +445,7 @@ package weave.data.DataSources
 			catch (e:Error)
 			{
 				//var detail:String = ObjectUtil.toString(request.request) + '\n\nResult: ' + (result && result.toXMLString());
-				reportError(e);
+				reportError(e, null, result);
 			}
 		}
 		
@@ -451,10 +463,6 @@ package weave.data.DataSources
 			return vector;
 		}
 		
-		/**
-		 * handleColumnDownloadFail
-		 * 
-		 */
 		private function handleColumnDownloadFail(event:FaultEvent, token:Object = null):void
 		{
 			reportError(event);

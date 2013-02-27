@@ -59,7 +59,7 @@ package weave.graphs
 			var libraryString:String = libraryCall;
 			var vectorVerticesString:String = generateVertexesString(keys);
 			var edgesString:String = generateEdgesString(keys); 
-			var graphString:String = generateGraphString(graphName, edgesString, vectorVerticesString);
+			var graphString:String = generateGraphString(graphName, "edges", "vertexes");
 			
 			// the string to store the graph layout
 			var layoutString:String = 

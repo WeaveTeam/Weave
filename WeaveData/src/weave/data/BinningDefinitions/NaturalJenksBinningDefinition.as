@@ -19,23 +19,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.data.BinningDefinitions
 {
-	import com.hurlant.util.ArrayUtil;
-	
-	import mx.collections.errors.SortError;
-	import mx.utils.ArrayUtil;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
-	import weave.utils.ColumnUtils;
-	import weave.utils.NumberUtils;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -169,15 +163,8 @@ package weave.data.BinningDefinitions
 		
 		private function getJenksBreak(column:IAttributeColumn):Array
 		{	
-			if(_previousBreaks != null)
-			{
-				_previousBreaks = [];
-			}
-			
-			if(_previousSortedValues != null)
-			{
-				_previousSortedValues = [];
-			}
+			_previousBreaks.length = 0;
+			_previousSortedValues.length = 0;
 			
 			var sortedValues:Array = getSortedNumbersFromColumn(column);
 			
@@ -289,16 +276,17 @@ package weave.data.BinningDefinitions
 		private function getSumOfNumbers(list:Array):Number
 		{
 			var result:Number = 0;
-			try{
+			try
+			{
 				for each (var num:Number in list)
 				{
 					result += num;
 				}
-				
-			}catch(e:Error)
+			}
+			catch(e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e.message, "Error adding numbers in array");
-				return null;
+				reportError(e, "Error adding numbers in array");
+				return 0;
 			}
 			
 			return result;

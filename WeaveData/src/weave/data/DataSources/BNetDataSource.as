@@ -142,6 +142,11 @@ package weave.data.DataSources
 			var _tables:Array = new Array();
 
 			query = dataService.listNetworks();
+
+			function handleLoadInitialNetwork(event:ResultEvent, obj:Object = null):void
+			{
+
+			}
 			addAsyncResponder(query, handleNetworkNames, handleFault);
 
 			function handleNetworkNames(event:ResultEvent, obj:Object = null)

@@ -228,7 +228,11 @@ package weave.api
 		{
 			return function (...args):* {
 				var instance:Object = getSingletonInstance(theInterface);
-				return (instance[methodName] as Function).apply(null, args);
+				var method:Function = instance[methodName] as Function;
+				// append necessary number of parameters in an attempt to avoid an exception
+				while (args.length < method.length)
+					args.push(undefined);
+				return method.apply(null, args);
 			}
 		}
 		

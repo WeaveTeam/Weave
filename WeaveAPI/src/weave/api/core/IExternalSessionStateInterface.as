@@ -93,7 +93,7 @@ package weave.api.core
 		 * @param tagName The name to use for the root XML tag that gets generated from the session state.
 		 * @return An XML serialization of the session state.
 		 */
-		function convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String;
+		function convertSessionStateObjectToXML(sessionState:Object, tagName:String = null):String;
 
 		/**
 		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.

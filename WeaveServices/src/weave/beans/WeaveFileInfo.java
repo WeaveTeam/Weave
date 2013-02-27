@@ -35,11 +35,11 @@ public class WeaveFileInfo
 	public byte[] thumb 	 = null;
 	public String fileName 	 = null;
 
-	public WeaveFileInfo(String filePath)
+	public WeaveFileInfo(String startingPath, String relativeFilePath)
 	{
-		File weaveFile = new File(filePath);
+		File weaveFile = new File(startingPath, relativeFilePath);
 		
-		this.fileName 		= weaveFile.getName();
+		this.fileName 		= relativeFilePath;
 		this.lastModified 	= weaveFile.lastModified();
 		this.fileSize 		= weaveFile.length();
 		if( getExtension(fileName).equals("weave") )

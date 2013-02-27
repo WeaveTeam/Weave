@@ -51,7 +51,6 @@ import weave.utils.SQLUtils;
  */
 public class DataConfig
 {
-	/* Table name parts */
 	static private final String SUFFIX_META_PRIVATE = "_meta_private";
 	static private final String SUFFIX_META_PUBLIC = "_meta_public";
 	static private final String SUFFIX_MANIFEST = "_manifest";
@@ -122,6 +121,7 @@ public class DataConfig
 	
 	public boolean isEmpty() throws RemoteException
 	{
+		detectChange();
 		return manifest.getByType().size() == 0;
 	}
 
@@ -153,6 +153,7 @@ public class DataConfig
 	
     public void flushInserts() throws RemoteException
     {
+    	detectChange();
         try 
         {
         	manifest.flushInserts();
@@ -193,6 +194,7 @@ public class DataConfig
     }
     public Collection<Integer> removeEntities(Collection<Integer> ids) throws RemoteException
     {
+    	detectChange();
     	Collection<Integer> removed = new LinkedList<Integer>(ids);
     	detectChange();
     	for (int id : ids)
@@ -213,31 +215,31 @@ public class DataConfig
     	public_metadata.setProperties(id, diff.publicMetadata);
     	private_metadata.setProperties(id, diff.privateMetadata);
     }
-    public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata properties, int type_id) throws RemoteException
+    public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata query, int type_id) throws RemoteException
     {
     	detectChange();
-        Set<Integer> publicmatches = null;
-        Set<Integer> privatematches = null;
-        Collection<Integer> matches = null;
+        Set<Integer> idsMatchingPublicMetadata = null;
+        Set<Integer> idsMatchingPrivateMetadata = null;
+        Collection<Integer> idsMatchingAllMetadata = null;
 
-        if (properties != null && properties.publicMetadata != null && properties.publicMetadata.size() > 0)
-            publicmatches = public_metadata.filter(properties.publicMetadata);
-        if (properties != null && properties.privateMetadata != null && properties.privateMetadata.size() > 0)
-            privatematches = private_metadata.filter(properties.privateMetadata);
-        if ((publicmatches != null) && (privatematches != null))
+        if (query != null && query.publicMetadata != null && query.publicMetadata.size() > 0)
+            idsMatchingPublicMetadata = public_metadata.filter(query.publicMetadata);
+        if (query != null && query.privateMetadata != null && query.privateMetadata.size() > 0)
+            idsMatchingPrivateMetadata = private_metadata.filter(query.privateMetadata);
+        if ((idsMatchingPublicMetadata != null) && (idsMatchingPrivateMetadata != null))
         {
         	// intersection
-            publicmatches.retainAll(privatematches);
-            matches = publicmatches;
+            idsMatchingPublicMetadata.retainAll(idsMatchingPrivateMetadata);
+            idsMatchingAllMetadata = idsMatchingPublicMetadata;
         }
-        else if (publicmatches != null)
-            matches = publicmatches;
-        else if (privatematches != null)
-            matches = privatematches;
+        else if (idsMatchingPublicMetadata != null)
+            idsMatchingAllMetadata = idsMatchingPublicMetadata;
+        else if (idsMatchingPrivateMetadata != null)
+            idsMatchingAllMetadata = idsMatchingPrivateMetadata;
         else
-        	matches = manifest.getByType(type_id); // all
+        	idsMatchingAllMetadata = manifest.getByType(type_id); // all
 
-        if (matches == null || matches.size() < 1)
+        if (idsMatchingAllMetadata == null || idsMatchingAllMetadata.size() < 1)
         {
             return Collections.emptyList();
         }
@@ -245,8 +247,8 @@ public class DataConfig
         {
         	// filter by type
             if (type_id != NULL)
-                matches.retainAll(manifest.getByType(type_id));
-            return matches;
+                idsMatchingAllMetadata.retainAll(manifest.getByType(type_id));
+            return idsMatchingAllMetadata;
         }
     }
     
@@ -398,6 +400,7 @@ public class DataConfig
     }
     public DataEntityTableInfo[] getDataTableList() throws RemoteException
     {
+    	detectChange();
     	Collection<Integer> ids = manifest.getByType(DataEntity.TYPE_DATATABLE);
     	DataEntityTableInfo[] result = new DataEntityTableInfo[ids.size()];
     	if (result.length == 0)
@@ -445,6 +448,7 @@ public class DataConfig
 		static public final String SQLSCHEMA = "sqlSchema";
 		static public final String SQLTABLE = "sqlTable";
 		static public final String SQLCOLUMN = "sqlColumn";
+		static public final String SQLFILTERCOLUMNS = "sqlFilterColumns";
 		static public final String SQLQUERY = "sqlQuery"; // required to retrieve data from sql, not visible to client
 		static public final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
 		static public final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
