@@ -19,12 +19,15 @@
 
 package weave.visualization.layers
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -57,7 +60,7 @@ package weave.visualization.layers
 	 */
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
 	{
-		public static var debugBusy:Boolean = false;
+		public static var debug:Boolean = false;
 		public static var debugMouseDownPause:Boolean = false;
 		public static var debugIgnoreSpatialIndex:Boolean = false;
 		
@@ -65,22 +68,26 @@ package weave.visualization.layers
 		
 		private function debugTrace(...args):void
 		{
-			args.unshift(toString());
+			args.unshift(debugId(_plotter),debugId(this),toString());
 			$debugTrace.apply(null, args);
 		}
 		
 		public function toString():String
 		{
-			var str:String = [
-				debugId(_plotter),
-				debugId(this),
-				['subset','selection','probe'][_taskType]
-			].join('-');
-			
-			if (debugBusy && linkableObjectIsBusy(this))
-				str += '(busy)';
-			
-			return str;
+			var type:String = ['subset','selection','probe'][_taskType];
+			if (debug)
+			{
+				var str:String = [
+					debugId(_plotter),
+					debugId(this),
+					type
+				].join('-');
+				
+				if (debug && linkableObjectIsBusy(this))
+					str += '(busy)';
+				return str;
+			}
+			return StringUtil.substitute('PlotTask({0}, {1})', type, getQualifiedClassName(_plotter).split(':').pop());
 		}
 		
 		public static const TASK_TYPE_SUBSET:int = 0;
