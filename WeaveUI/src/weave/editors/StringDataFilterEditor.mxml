@@ -24,7 +24,7 @@
 		implements="weave.api.ui.ILinkableObjectEditor"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ui="weave.ui.*">
 	<mx:CheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter()"/>
-	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="ControlPanel.openEditor(stringFilter.column);"/>
+	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(stringFilter.column, lang('Filter'));"/>
 	<ui:CustomComboBox id="filterValue" enabled="{filterEnable.selected}" prompt="{lang('Select filter value...')}" toolTip="{lang('Select a value used to filter the data.')}"/>
 	<mx:Script>
 		<![CDATA[
@@ -35,6 +35,7 @@
 			import weave.core.CallbackJuggler;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.StringDataFilter;
+			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ControlPanel;
 			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;

@@ -47,6 +47,7 @@ package
 	import weave.primitives.ColorRamp;
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
+	import weave.ui.DataFilter;
 	import weave.ui.RTextEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
@@ -129,6 +130,7 @@ package
 				CompoundRadVizTool,
 				CustomTool,
 				SchafersMissingDataTool,
+				DataFilter,
 				DataTableTool,
 				GaugeTool,
 				HistogramTool,

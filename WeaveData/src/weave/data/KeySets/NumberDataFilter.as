@@ -18,6 +18,7 @@
 */
 package weave.data.KeySets
 {
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -30,15 +31,18 @@ package weave.data.KeySets
 	{
 		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const min:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const max:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const min:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity));
+		public const max:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity));
+		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
 			if (!enabled.value)
 				return true;
+			if (includeMissingKeyTypes.value && key.keyType != column.getMetadata(ColumnMetadata.KEY_TYPE))
+				return true;
 			var value:Number = column.getValueFromKey(key, Number);
-			return (value <= max.value) && (value >= min.value);
+			return (value >= min.value) && (value <= max.value);
 		}
 	}
 }

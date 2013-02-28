@@ -74,6 +74,13 @@
 		</mx:VBox>
 		
 		<mx:Button label="{lang('Edit Macros')}" width="100" click="openMacroEditor(event)" />
+		
+		<mx:HBox>
+			<mx:CheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
+			<ui:HelpComponent>
+				This will include "Add Data Filter" as a tool in the tools menu and enable experimental filtering controls in the attribute selector.
+			</ui:HelpComponent>
+		</mx:HBox>
 	</mx:VBox>
 	
 	<mx:Script>
@@ -85,6 +92,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.StreamedGeometryColumn;
+			import weave.ui.DataFilter;
 			
 			override protected function childrenCreated():void
 			{

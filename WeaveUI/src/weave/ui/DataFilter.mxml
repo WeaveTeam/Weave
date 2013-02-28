@@ -21,30 +21,48 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" 
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
+			import weave.api.getSessionState;
+			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.IVisTool;
+			import weave.core.CallbackJuggler;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.utils.ColumnUtils;
 			import weave.utils.EditorManager;
 			
+			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
+
 			private var _editor:ILinkableObjectEditor;
+			private var _globalName:String;
+			private const _filterJuggler:CallbackJuggler = new CallbackJuggler(this, handlePanelTitleChange, true);
 			
 			private function get globalName():String
 			{
-				return Weave.root.getName(this);
+				return _globalName || (_globalName = Weave.root.getName(this));
 			}
 			
 			private function get keyFilter():IKeyFilter
 			{
 				return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) as IKeyFilter;
+			}
+			
+			private function get filterColumn():IAttributeColumn
+			{
+				var kf:IKeyFilter = keyFilter;
+				var ndf:NumberDataFilter = kf as NumberDataFilter;
+				var sdf:StringDataFilter = kf as StringDataFilter;
+				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
 			}
 			
 			override protected function constructor():void
@@ -61,6 +79,8 @@
 				subMenu.addSubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter]);
 				
 				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
+				if (!keyFilter)
+					setFilterType(StringDataFilter);
 			}
 			
 			override public function dispose():void
@@ -71,7 +91,10 @@
 			
 			private function setFilterType(type:Class):void
 			{
+				var state:Object = filterColumn && getSessionState(filterColumn);
 				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false) as IKeyFilter;
+				if (filterColumn && state)
+					setSessionState(filterColumn, state);
 			}
 			
 			private function handleFilters():void
@@ -81,7 +104,6 @@
 					if (_editor && _editor.parent == this)
 						this.removeChild(_editor as DisplayObject);
 					_editor = null;
-					return;
 				}
 				
 				var filter:IKeyFilter = keyFilter;
@@ -90,24 +112,25 @@
 					_editor = EditorManager.getNewEditor(filter);
 					addChild(_editor as DisplayObject);
 				}
+				_filterJuggler.target = filter;
 			}
 			
 			override protected function get defaultPanelTitle():String
 			{
-				var column:DynamicColumn;
-				
-				var ndf:NumberDataFilter = keyFilter as NumberDataFilter;
-				if (ndf)
-					column = ndf.column;
-				
-				var sdf:StringDataFilter = keyFilter as StringDataFilter;
-				if (sdf)
-					column = sdf.column;
-				
-				if (column)
-					return lang('Filter for {0}', ColumnUtils.getTitle(column));
+				if (filterColumn)
+					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));
 				
 				return lang('Filter');
+			}
+			
+			public function getSelectableAttributeNames():Array
+			{
+				return filterColumn ? [lang('Filter')] : [];
+			}
+			
+			public function getSelectableAttributes():Array
+			{
+				return filterColumn ? [filterColumn] : [];
 			}
 		]]>
 	</mx:Script>
