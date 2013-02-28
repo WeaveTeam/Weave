@@ -24,45 +24,91 @@
 				xmlns:ui="weave.ui.*"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
-	
-	<mx:Canvas  width="100%" height="100%" >
-		<mx:Script>
-			<![CDATA[
-				import weave.api.data.ColumnMetadata;
-				import weave.api.data.IKeyFilter;
-				import weave.api.registerLinkableChild;
-				import weave.core.LinkableDynamicObject;
-				import weave.data.AttributeColumns.DynamicColumn;
-				import weave.data.KeySets.NumberDataFilter;
-				import weave.data.KeySets.StringDataFilter;
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.data.IKeyFilter;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.NumberDataFilter;
+			import weave.data.KeySets.StringDataFilter;
+			import weave.utils.ColumnUtils;
+			import weave.utils.EditorManager;
+			
+			private var _editor:ILinkableObjectEditor;
+			
+			private function get globalName():String
+			{
+				return Weave.root.getName(this);
+			}
+			
+			private function get keyFilter():IKeyFilter
+			{
+				return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) as IKeyFilter;
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				enableSubMenu.value = true;
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
 				
-				override protected function get defaultPanelTitle():String
+				subMenu.addSubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]);
+				subMenu.addSubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter]);
+				
+				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
+			}
+			
+			override public function dispose():void
+			{
+				Weave.defaultSubsetKeyFilter.filters.removeObject(globalName);
+				super.dispose()
+			}
+			
+			private function setFilterType(type:Class):void
+			{
+				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false) as IKeyFilter;
+			}
+			
+			private function handleFilters():void
+			{
+				if (Weave.defaultSubsetKeyFilter.filters.childListCallbacks.lastNameRemoved == globalName)
 				{
-					var column:DynamicColumn;
-					if (numberFilter)
-						column = numberFilter.column;
-					if (stringFilter)
-						column = stringFilter.column;
-					if (column)
-						return lang('Filter for {0}', column.getMetadata(ColumnMetadata.TITLE));
-					return lang('Filter');
+					if (_editor && _editor.parent == this)
+						this.removeChild(_editor as DisplayObject);
+					_editor = null;
+					return;
 				}
 				
-				public const dynamicKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
+				var filter:IKeyFilter = keyFilter;
+				if (filter && !_editor)
+				{
+					_editor = EditorManager.getNewEditor(filter);
+					addChild(_editor as DisplayObject);
+				}
+			}
+			
+			override protected function get defaultPanelTitle():String
+			{
+				var column:DynamicColumn;
 				
-				public function get keyFilter():IKeyFilter
-				{
-					return dynamicKeyFilter.internalObject as IKeyFilter;
-				}
-				private function get numberFilter():NumberDataFilter
-				{
-					return keyFilter as NumberDataFilter;
-				}
-				private function get stringFilter():StringDataFilter
-				{
-					return keyFilter as StringDataFilter;
-				}
-			]]>
-		</mx:Script>
-	</mx:Canvas>
+				var ndf:NumberDataFilter = keyFilter as NumberDataFilter;
+				if (ndf)
+					column = ndf.column;
+				
+				var sdf:StringDataFilter = keyFilter as StringDataFilter;
+				if (sdf)
+					column = sdf.column;
+				
+				if (column)
+					return lang('Filter for {0}', ColumnUtils.getTitle(column));
+				
+				return lang('Filter');
+			}
+		]]>
+	</mx:Script>
 </DraggablePanel>

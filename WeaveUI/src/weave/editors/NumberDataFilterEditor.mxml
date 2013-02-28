@@ -28,27 +28,16 @@
 	<mx:HSlider id="filterSlider" thumbCount="2" liveDragging="true" change="handleSliderChange(event);"/>
 	<mx:Script>
 		<![CDATA[
-			import weave.ui.ControlPanel;
-			import weave.utils.ColumnUtils;
-			import weave.core.UIUtils;
-			import weave.data.StatisticsCache;
-			import weave.data.StatisticsCache;
-			import weave.data.StatisticsCache;
-			import weave.api.WeaveAPI;
-			import weave.core.CallbackJuggler;
-			import weave.core.CallbackJuggler;
-			import weave.api.core.ILinkableObject;
-			import weave.data.KeySets.NumberDataFilter;
-			import mx.controls.sliderClasses.Slider;
 			import mx.events.SliderEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.api.registerLinkableChild;
-			import weave.api.data.ColumnMetadata;
-			import weave.api.data.IKeyFilter;
-			import weave.core.LinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
+			import weave.core.CallbackJuggler;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
+			import weave.ui.ControlPanel;
+			import weave.utils.ColumnUtils;
 			
 			[Bindable] private var columnTitle:String;
 			private function getEnableLabel(columnTitle:String):String
