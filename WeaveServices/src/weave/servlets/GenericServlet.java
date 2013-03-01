@@ -287,7 +287,9 @@ public class GenericServlet extends HttpServlet
     {
     	synchronized (_servletRequestInfo)
     	{
-    		return _servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response));
+    		ServletRequestInfo info = new ServletRequestInfo(request, response);
+    		_servletRequestInfo.put(Thread.currentThread(), info);
+    		return info;
     	}
     }
     
