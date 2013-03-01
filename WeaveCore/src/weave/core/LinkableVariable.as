@@ -52,7 +52,7 @@ package weave.core
 				reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 				_sessionStateType = String;
 			}
-			else
+			else if (sessionStateType != Object)
 			{
 				_sessionStateType = sessionStateType;
 			}
@@ -88,7 +88,24 @@ package weave.core
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			if (_sessionStateType == null) // if no type restriction...
-				return StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
+			{
+				var equal:Boolean = StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
+				
+				// BEGIN TEMPORARY SOLUTION
+				// special case if both are dynamic objects and pointers are equal - always assume they have been modified
+				// this is a temporary solution until detectChanges() is added
+				// (private copy of session state needs to be stored for comparison to public session state)
+				if (equal &&
+					typeof(_sessionState) == 'object' &&
+					typeof(otherSessionState) == 'object' &&
+					_sessionState !== null)
+				{
+					return false;
+				}
+				// END TEMPORARY SOLUTION
+				
+				return equal;
+			}
 			return _sessionState == otherSessionState;
 		}
 		

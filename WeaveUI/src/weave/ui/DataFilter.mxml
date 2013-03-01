@@ -21,48 +21,117 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" 
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
-	
-	<mx:Canvas  width="100%" height="100%" >
-		<mx:Script>
-			<![CDATA[
-				import weave.api.data.ColumnMetadata;
-				import weave.api.data.IKeyFilter;
-				import weave.api.registerLinkableChild;
-				import weave.core.LinkableDynamicObject;
-				import weave.data.AttributeColumns.DynamicColumn;
-				import weave.data.KeySets.NumberDataFilter;
-				import weave.data.KeySets.StringDataFilter;
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeyFilter;
+			import weave.api.getSessionState;
+			import weave.api.setSessionState;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.IVisTool;
+			import weave.core.CallbackJuggler;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.NumberDataFilter;
+			import weave.data.KeySets.StringDataFilter;
+			import weave.utils.ColumnUtils;
+			import weave.utils.EditorManager;
+			
+			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
+
+			private var _editor:ILinkableObjectEditor;
+			private var _globalName:String;
+			private const _filterJuggler:CallbackJuggler = new CallbackJuggler(this, handlePanelTitleChange, true);
+			
+			private function get globalName():String
+			{
+				return _globalName || (_globalName = Weave.root.getName(this));
+			}
+			
+			private function get keyFilter():IKeyFilter
+			{
+				return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) as IKeyFilter;
+			}
+			
+			private function get filterColumn():IAttributeColumn
+			{
+				var kf:IKeyFilter = keyFilter;
+				var ndf:NumberDataFilter = kf as NumberDataFilter;
+				var sdf:StringDataFilter = kf as StringDataFilter;
+				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				enableSubMenu.value = true;
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
 				
-				override protected function get defaultPanelTitle():String
+				subMenu.addSubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]);
+				subMenu.addSubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter]);
+				
+				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
+				if (!keyFilter)
+					setFilterType(StringDataFilter);
+			}
+			
+			override public function dispose():void
+			{
+				Weave.defaultSubsetKeyFilter.filters.removeObject(globalName);
+				super.dispose()
+			}
+			
+			private function setFilterType(type:Class):void
+			{
+				var state:Object = filterColumn && getSessionState(filterColumn);
+				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false) as IKeyFilter;
+				if (filterColumn && state)
+					setSessionState(filterColumn, state);
+			}
+			
+			private function handleFilters():void
+			{
+				if (Weave.defaultSubsetKeyFilter.filters.childListCallbacks.lastNameRemoved == globalName)
 				{
-					var column:DynamicColumn;
-					if (numberFilter)
-						column = numberFilter.column;
-					if (stringFilter)
-						column = stringFilter.column;
-					if (column)
-						return lang('Filter for {0}', column.getMetadata(ColumnMetadata.TITLE));
-					return lang('Filter');
+					if (_editor && _editor.parent == this)
+						this.removeChild(_editor as DisplayObject);
+					_editor = null;
 				}
 				
-				public const dynamicKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
+				var filter:IKeyFilter = keyFilter;
+				if (filter && !_editor)
+				{
+					_editor = EditorManager.getNewEditor(filter);
+					addChild(_editor as DisplayObject);
+				}
+				_filterJuggler.target = filter;
+			}
+			
+			override protected function get defaultPanelTitle():String
+			{
+				if (filterColumn)
+					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));
 				
-				public function get keyFilter():IKeyFilter
-				{
-					return dynamicKeyFilter.internalObject as IKeyFilter;
-				}
-				private function get numberFilter():NumberDataFilter
-				{
-					return keyFilter as NumberDataFilter;
-				}
-				private function get stringFilter():StringDataFilter
-				{
-					return keyFilter as StringDataFilter;
-				}
-			]]>
-		</mx:Script>
-	</mx:Canvas>
+				return lang('Filter');
+			}
+			
+			public function getSelectableAttributeNames():Array
+			{
+				return filterColumn ? [lang('Filter')] : [];
+			}
+			
+			public function getSelectableAttributes():Array
+			{
+				return filterColumn ? [filterColumn] : [];
+			}
+		]]>
+	</mx:Script>
 </DraggablePanel>

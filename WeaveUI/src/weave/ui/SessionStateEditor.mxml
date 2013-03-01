@@ -102,6 +102,7 @@ A text editor to change the Session State on the fly.
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
+			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
@@ -815,12 +816,11 @@ A text editor to change the Session State on the fly.
 					if (_showProfileData)
 						console.consoleTrace(ObjectUtil.toString(profileDump));
 
-					
 					if (console.stage)
 					{
 						var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
 						var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
-						while (top && !(top is ILinkableObject))
+						while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
 							top = top.parent;
 						if (top)
 							console.consoleTrace(debugId(top));

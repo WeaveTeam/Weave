@@ -24,31 +24,20 @@
 		implements="weave.api.ui.ILinkableObjectEditor"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	<mx:CheckBox label="{getEnableLabel(columnTitle)}" id="filterEnable" click="toggleFilter();"/>
-	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="ControlPanel.openEditor(numberFilter.column);"/>
-	<mx:HSlider id="filterSlider" thumbCount="2" liveDragging="true" change="handleSliderChange(event);"/>
+	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(numberFilter.column, lang('Filter'));"/>
+	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" thumbCount="2" liveDragging="true" change="handleSliderChange(event);"/>
 	<mx:Script>
 		<![CDATA[
-			import weave.ui.ControlPanel;
-			import weave.utils.ColumnUtils;
-			import weave.core.UIUtils;
-			import weave.data.StatisticsCache;
-			import weave.data.StatisticsCache;
-			import weave.data.StatisticsCache;
-			import weave.api.WeaveAPI;
-			import weave.core.CallbackJuggler;
-			import weave.core.CallbackJuggler;
-			import weave.api.core.ILinkableObject;
-			import weave.data.KeySets.NumberDataFilter;
-			import mx.controls.sliderClasses.Slider;
 			import mx.events.SliderEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.api.registerLinkableChild;
-			import weave.api.data.ColumnMetadata;
-			import weave.api.data.IKeyFilter;
-			import weave.core.LinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
+			import weave.core.CallbackJuggler;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.utils.ColumnUtils;
 			
 			[Bindable] private var columnTitle:String;
 			private function getEnableLabel(columnTitle:String):String
@@ -56,9 +45,8 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, handleFilter, true);
-			private const columnJuggler:CallbackJuggler = new CallbackJuggler(this, handleColumn, true);
-			private const statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleColumn, true);
+			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
+			private const statsJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
 			
 			public function get numberFilter():NumberDataFilter
 			{
@@ -67,13 +55,9 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				debugTrace(this);
 				filterJuggler.target = object as NumberDataFilter;
 				if (numberFilter)
-				{
-					columnJuggler.target = numberFilter.column;
 					statsJuggler.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
-				}
 			}
 			public function applyChanges():void
 			{
@@ -85,49 +69,6 @@
 				if (numberFilter)
 					numberFilter.enabled.value = filterEnable.selected;
 			}
-			private function handleFilter():void
-			{
-				if (!parent)
-				{
-					callLater(handleFilter);
-					return;
-				}
-				
-				if (numberFilter)
-				{
-					enabled = true;
-					filterEnable.selected = numberFilter.enabled.value;
-				}
-				else
-				{
-					enabled = false;
-					filterEnable.selected = false;
-				}
-			}
-			
-			private function handleColumn():void
-			{
-				if (!parent)
-				{
-					callLater(handleColumn);
-					return;
-				}
-				if (!numberFilter)
-					return;
-
-				var column:DynamicColumn = numberFilter.column;
-				if (column)
-				{
-					columnTitle = ColumnUtils.getTitle(column);
-
-					if (!numberFilter)
-						return;
-					filterSlider.minimum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMin();
-					filterSlider.maximum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMax();
-					filterSlider.values[0] = numberFilter.min.value;
-					filterSlider.values[1] = numberFilter.max.value;
-				}
-			}
 			
 			private function handleSliderChange(event:SliderEvent):void
 			{
@@ -135,6 +76,30 @@
 					return;
 				numberFilter.min.value = filterSlider.values[0];
 				numberFilter.max.value = filterSlider.values[1];
+			}
+
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				if (numberFilter)
+				{
+					enabled = true;
+					filterEnable.selected = numberFilter.enabled.value;
+					var column:DynamicColumn = numberFilter.column;
+					columnTitle = ColumnUtils.getTitle(column);
+					filterSlider.minimum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMin();
+					filterSlider.maximum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMax();
+					filterSlider.values = [numberFilter.min.value, numberFilter.max.value];
+				}
+				else
+				{
+					enabled = false;
+					filterEnable.selected = false;
+					filterSlider.minimum = 0;
+					filterSlider.maximum = 100;
+					filterSlider.values = [0, 100];
+				}
+				
+				super.updateDisplayList.apply(this, arguments);
 			}
 		]]>
 	</mx:Script>
