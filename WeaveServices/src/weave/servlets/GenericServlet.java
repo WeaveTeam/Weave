@@ -298,7 +298,8 @@ public class GenericServlet extends HttpServlet
     	}
     }
     
-    private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    @SuppressWarnings("unchecked")
+	private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
     	try
     	{
@@ -320,7 +321,6 @@ public class GenericServlet extends HttpServlet
     			
     			invokeMethod(methodName, params);
     		}*/
-    		
     		if (request.getMethod().equals("GET"))
     		{
         		List<String> urlParamNames = Collections.list(request.getParameterNames());
@@ -347,7 +347,6 @@ public class GenericServlet extends HttpServlet
 	    			if (info.inputStream.peek() == '[' || info.inputStream.peek() == '{') // json
 	    			{
 	    				handleArrayOfJsonRequests(info.inputStream,response);
-	    				return;
 	    			}
 	    			else // AMF3
 	    			{
@@ -355,9 +354,9 @@ public class GenericServlet extends HttpServlet
 	    				methodName = (String) obj.get(METHOD);
 	    				methodParams = obj.get(PARAMS);
 	    				getServletRequestInfo().streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
+	    				invokeMethod(methodName, methodParams);
 	    			}
 	    			
-	    			invokeMethod(methodName, methodParams);
 		    	}
 	    		catch (IOException e)
 	    		{
@@ -369,6 +368,7 @@ public class GenericServlet extends HttpServlet
 		    	}
 		    	
     		}
+    		handleJsonResponses();
     	}
     	finally
     	{
@@ -445,12 +445,15 @@ public class GenericServlet extends HttpServlet
     	{
     		sendError(e, JSON_RPC_PARSE_ERROR_MESSAGE);
     	}
-    	handleJsonResponses();
     }
     
     private void handleJsonResponses()
     {
     	ServletRequestInfo info = getServletRequestInfo();
+    	
+    	if(info.currentJsonRequest == null)
+    		return;
+    	
     	info.response.setContentType("application/json");
     	info.response.setCharacterEncoding("UTF-8");
 		String result;
@@ -679,10 +682,9 @@ public class GenericServlet extends HttpServlet
 				if (id != null)
 				{
 					Gson gson = new Gson();
-					String jsonResult = gson.toJson(result);
 					JsonRpcResponseModel responseObj = new JsonRpcResponseModel();
 					responseObj.jsonrpc = "2.0";
-					responseObj.result = jsonResult;
+					responseObj.result = result;
 					responseObj.id = id;
 					info.jsonResponses.add(responseObj);
 				}
