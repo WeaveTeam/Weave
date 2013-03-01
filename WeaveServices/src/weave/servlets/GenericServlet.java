@@ -242,7 +242,7 @@ public class GenericServlet extends HttpServlet
     	System.out.print(output);
     }
     
-    private class ServletRequestInfo
+    private static class ServletRequestInfo
     {
     	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
     	{
@@ -251,14 +251,22 @@ public class GenericServlet extends HttpServlet
     		this.inputStream = new PeekableInputStream(request.getInputStream());
     	}
     	
+    	private ServletOutputStream _servletOutputStream = null;
+    	public ServletOutputStream getOutputStream() throws IOException
+    	{
+    		if (_servletOutputStream == null)
+    			_servletOutputStream = response.getOutputStream();
+    		return _servletOutputStream;
+    	}
+    	
     	@SuppressWarnings("unused")
-		HttpServletRequest request;
-    	HttpServletResponse response;
-    	JsonRpcRequestModel currentJsonRequest;
-    	List<JsonRpcResponseModel> jsonResponses = new Vector<JsonRpcResponseModel>();
-    	Number streamParameterIndex = null;
-    	PeekableInputStream inputStream;
-    	Boolean isBatchRequest = false;
+		public HttpServletRequest request;
+    	public HttpServletResponse response;
+    	public JsonRpcRequestModel currentJsonRequest;
+    	public List<JsonRpcResponseModel> jsonResponses = new Vector<JsonRpcResponseModel>();
+    	public Number streamParameterIndex = null;
+    	public PeekableInputStream inputStream;
+    	public Boolean isBatchRequest = false;
     }
     
     /**
@@ -272,7 +280,7 @@ public class GenericServlet extends HttpServlet
      */
     protected ServletOutputStream getServletOutputStream() throws IOException
     {
-    	return getServletRequestInfo().response.getOutputStream();
+    	return getServletRequestInfo().getOutputStream();
     }
     
     private ServletRequestInfo getServletRequestInfo()
@@ -451,7 +459,7 @@ public class GenericServlet extends HttpServlet
     	{
     		if (info.jsonResponses.size() == 0)
     		{
-    			ServletOutputStream out = info.response.getOutputStream();
+    			ServletOutputStream out = info.getOutputStream();
     			out.close();
     			out.flush();
     			return;
@@ -465,7 +473,7 @@ public class GenericServlet extends HttpServlet
     			result = (new Gson()).toJson(info.jsonResponses);
     		}
     		
-    		PrintWriter writer = info.response.getWriter();
+    		PrintWriter writer = new PrintWriter(info.getOutputStream());
 			writer.print(result);
 			writer.close();
 			writer.flush();
@@ -655,7 +663,7 @@ public class GenericServlet extends HttpServlet
 			{
 				if (exposedMethod.method.getReturnType() != void.class)
 				{
-					ServletOutputStream servletOutputStream = getServletRequestInfo().response.getOutputStream();
+					ServletOutputStream servletOutputStream = info.getOutputStream();
 					seriaizeCompressedAmf3(result, servletOutputStream);
 				}
 			}
@@ -925,7 +933,7 @@ public class GenericServlet extends HttpServlet
         	exception.printStackTrace();
         	System.err.println("Serializing ErrorMessage: "+message);
         	
-    		ServletOutputStream servletOutputStream = info.response.getOutputStream();
+    		ServletOutputStream servletOutputStream = info.getOutputStream();
         	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
         	errorMessage.faultCode = exception.getClass().getSimpleName();
         	seriaizeCompressedAmf3(errorMessage, servletOutputStream);	
