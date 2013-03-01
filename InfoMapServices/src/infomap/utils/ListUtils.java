@@ -38,6 +38,25 @@ public class ListUtils
 		
 		return output;
 	}
+	
+	public static int[] copyIntegerArray(Object[] input, int[] output)
+	{
+		for (int i = 0; i < input.length; i++)
+		{
+			try
+			{
+				if (input[i] instanceof Number)
+					output[i] = ((Number)input[i]).intValue();
+				else
+					output[i] = Integer.MIN_VALUE;
+			}
+			catch (ClassCastException e)
+			{
+				output[i] = Integer.MIN_VALUE;
+			}
+		}
+		return output;
+	}
 
 	public static double[] copyDoubleArray(Object[] input, double[] output)
 	{

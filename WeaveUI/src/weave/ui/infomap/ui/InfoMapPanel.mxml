@@ -34,7 +34,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	dragEnter="dragEnterHandler(event)"
 	implements="weave.api.ui.IVisTool"
 	>
-	
+	<mx:Style>
+		.loadingTextStyle {
+			fontFamily:"GeosansLight";
+			fontSize: 24;
+		}
+	</mx:Style>
 	<mx:Script>
 		<![CDATA[
 			import com.as3xls.cdf.Directory;
@@ -47,6 +52,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.controls.List;
+			import mx.controls.Text;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.IUIComponent;
@@ -70,6 +76,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnReference;
+			import weave.api.data.IDataSource;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
@@ -80,6 +88,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
@@ -89,8 +98,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.data.DataSources.WeaveDataSource;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
@@ -99,6 +111,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
+			import weave.services.WeaveDataServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.jquery.JQueryCaller;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
@@ -111,6 +125,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DateUtils;
+			import weave.utils.NumberUtils;
 			import weave.utils.PopUpUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.WordProcessingUtils;
@@ -166,8 +181,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 			}
 			
-			
-						
 			private static var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			
 			override protected function childrenCreated():void
@@ -218,6 +231,147 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				entityColumnsList.reverseButton.visible = false;
 				
 				relatedColumnsHashmap.addGroupedCallback(this,handleRelatedColumnsChange,false);
+				
+				if(entityColumnsHashmap.getObjects().length == 0)
+					extractEntityColumns();
+				
+				_loadingText.setStyle("fontFamily","loadingTextStyle");
+				_loadingText.setStyle("fontSize","24");
+				
+			}
+				
+			private var _loadingText:Text = new Text();
+			private var _referencedColumns:Array = [];
+			private function extractEntityColumns():void
+			{
+				addChild(_loadingText);
+				_loadingText.text = "Selecting Entity Columns...";
+				_loadingText.move(this.width/2,this.height/2);
+				_loadingText.x = _loadingText.x - _loadingText.width/2;
+				
+				/* Get all the referenced Columns*/
+				_referencedColumns = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root,ReferencedColumn);
+				/* Iterate through each referenced column and get its parent */
+				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_PARSING);
+			}
+			
+			private function _iterateReferencedColumns():Number
+			{
+				if(_referencedColumns.length == 0)
+					return 1;
+				var col:ReferencedColumn = _referencedColumns.pop() as ReferencedColumn;
+				if(col.dynamicColumnReference.internalObject is IColumnReference)
+				{
+					var colRef:IColumnReference = col.dynamicColumnReference.internalObject as IColumnReference;
+					var dataSource:IDataSource = colRef.getDataSource();
+					
+					/* If it is a Weave Data Sourcfe get parents from Weave Data Server*/
+					if(dataSource is WeaveDataSource)
+					{
+						var colID:String = col.getMetadata('weaveEntityId');
+						var dataService:WeaveDataServlet = new WeaveDataServlet((dataSource as WeaveDataSource).url.value);
+						var token:AsyncToken = dataService.getParents(NumberUtils.getNumberFromNumberOrPercent(colID,0));
+						var sourceName:String  = Weave.root.getName(dataSource);
+						addAsyncResponder(token,handleGetParents,handleGetParentsFault,sourceName);
+					}
+				}
+				if(_referencedColumns.length == 0)
+					return 1;
+				else 
+					return 0;
+			}
+			
+			private var _parentCount:int = 0;
+			private var _refColsCount:int = 0;
+			private function handleGetParents(event:ResultEvent,token:Object=null):void
+			{
+				var parents:Array = (event.result as ArrayCollection).source;
+				/* We use this count to keep track of when all the parents' children have been iterated */
+				_parentCount += parents.length;
+				for each (var parent:Number in parents)
+				{
+					var source:WeaveDataSource = Weave.root.getObject(token as String) as WeaveDataSource;
+					var servlet:WeaveDataServlet = new WeaveDataServlet(source.url.value);
+					var asyncToken:AsyncToken = servlet.getEntityChildIds(parent);
+					addAsyncResponder(asyncToken,handleGetChildIds,handleGetChildIdsFault,token);
+				}
+			}
+			
+			private function handleGetParentsFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error getting parent ID");				
+			}
+			
+			private function handleGetChildIds(event:ResultEvent, token:Object = null):void
+			{
+				var cols:Array = (event.result as Array);
+				
+				var source:WeaveDataSource = Weave.root.getObject(token as String) as WeaveDataSource;
+				var servlet:WeaveDataServlet = new WeaveDataServlet(source.url.value);
+				var asyncToken:AsyncToken = servlet.getEntitiesById(cols);
+				addAsyncResponder(asyncToken,handleGetChildEntities,handleGetChildEntitiesFault,token);
+			}
+			
+			private function handleGetChildIdsFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error getting Child IDs");
+			}
+			
+			private var _childEntities:Array = [];
+			private function handleGetChildEntities(event:ResultEvent,token:Object = null):void
+			{
+				_parentCount--;
+				_childEntities = event.result as Array;
+				WeaveAPI.StageUtils.startTask(this,function():Number{
+					if(_childEntities.length == 0)
+					{
+						return 1;					
+					}
+					var obj:Object = _childEntities.pop();
+					if(obj.publicMetadata.dataType == 'string')
+					{
+						var objName:String = "";
+						if(obj.publicMetadata.name)
+						{
+							objName = obj.publicMetadata.name;
+						}else if (obj.publicMetadata.title)
+						{
+							objName = obj.publicMetadata.title;
+						}
+						objName += "-" + obj.id;
+						if(entityColumnsHashmap.getObject(objName) ==null)
+						{
+							var col:ReferencedColumn = entityColumnsHashmap.requestObject(objName,ReferencedColumn,false);
+							var attrCol:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference,false);
+							attrCol.dataSourceName.value = token as String;
+							var attrNode:XML = <attribute weaveEntityId={obj.id}/>;
+							attrCol.hierarchyPath.value = attrNode;
+						}
+					}
+					if(_childEntities.length == 0)
+					{
+						return 1;					
+					}
+					else
+					{
+						return 0;
+					}
+				},WeaveAPI.TASK_PRIORITY_PARSING,finishEntitySelection);
+			}
+			
+			private function finishEntitySelection():void
+			{
+				/* If all the children for all the parent IDs have been iterated we are done with Entity Selection */
+				if(_parentCount<=0)
+				{
+					_loadingText.text = "Finished Selecting Entity Columns!";
+					_loadingText.x = _loadingText.x - _loadingText.width/2; 
+				}
+			}
+			
+			private function handleGetChildEntitiesFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error getting Child Entities");				
 			}
 			
 			private function handleGlobalKeyInput(event:KeyboardEvent):void
