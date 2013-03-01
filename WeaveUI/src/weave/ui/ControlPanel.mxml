@@ -27,6 +27,7 @@
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
+				escapeKeyClosesPanel="true"
 				>
 	<mx:Metadata>
 		[DefaultProperty("children")]
@@ -34,12 +35,7 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.containers.TabNavigator;
-			import mx.controls.Alert;
-			import mx.core.Container;
-			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
@@ -271,6 +267,11 @@
 				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
 			}
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
 			private function handleControlsCreated(e:FlexEvent):void
 			{
 				controlPanelControls.revertBtn.addEventListener(MouseEvent.CLICK,function (e:MouseEvent):void { revert() });
@@ -294,6 +295,14 @@
 					constrainAndSaveCoordinates();
 				
 				save();
+			}
+			
+			override protected function handleEscapeKey():void
+			{
+				if (WeaveAPI.StageUtils.shiftKey)
+					revert();
+
+				super.handleEscapeKey();
 			}
 			
 			public static function openEditor(linkableObject:ILinkableObject):ILinkableObjectEditor

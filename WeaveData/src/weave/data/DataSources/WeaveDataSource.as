@@ -499,7 +499,7 @@ package weave.data.DataSources
 					if (metadataValue)
 						hierarchyNode['@' + metadataName] = metadataValue;
 				}
-				hierarchyNode['@id'] = result.id;
+				hierarchyNode['@'+ENTITY_ID] = result.id;
 				
 				// special case for geometry column
 				var dataType:String = ColumnUtils.getDataType(proxyColumn);

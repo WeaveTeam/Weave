@@ -82,6 +82,7 @@
 				
 				_plotter.setAnchorLocations();
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true);
+				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);
 				linkSessionState(_plotter.colorMap, _anchorPlotter.colorMap);
 				linkSessionState(_plotter.enableWedgeColoring, _anchorPlotter.enableWedgeColoring);

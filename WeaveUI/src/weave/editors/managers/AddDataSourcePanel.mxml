@@ -32,6 +32,7 @@
 	roundedBottomCorners="true"
 	height="564"
 	width="184"
+	escapeKeyClosesPanel="true"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
 	<mx:HBox height="100%" width="100%" horizontalGap="0">
 		<mx:VBox paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" height="100%">

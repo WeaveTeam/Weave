@@ -36,6 +36,7 @@
 		roundedBottomCorners="true"
 		percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
 		sessionPanelCoordsAsPercentages="false"
+		escapeKeyClosesPanel="true"
 		>
 
 	<mx:Box id="viewStackContainer"

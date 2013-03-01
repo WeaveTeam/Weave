@@ -21,18 +21,17 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectProxy;
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -42,7 +41,6 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
-	import weave.data.QKeyManager;
 	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
 	

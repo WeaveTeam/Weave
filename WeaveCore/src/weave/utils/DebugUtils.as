@@ -116,6 +116,16 @@ package weave.utils
 			_nextId = 0;
 		}
 		
+		/**
+		 * This will keep strong pointers to identified objects if enabled.
+		 */		
+		public static function keepDebugIds(enable:Boolean = true):void
+		{
+			var old:Dictionary = _objToId;
+			_objToId = new Dictionary(!enable);
+			for (var key:Object in old)
+				_objToId[key] = old[key];
+		}
 		
 		/*****************
 		 **  Profiling  **

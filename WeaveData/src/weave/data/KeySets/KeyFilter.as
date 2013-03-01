@@ -20,12 +20,16 @@
 package weave.data.KeySets
 {
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableHashMap;
+	import weave.core.LinkableVariable;
 	
 	/**
 	 * This class is used to include and exclude IQualifiedKeys from a set.
@@ -46,6 +50,8 @@ package weave.data.KeySets
 		
 		public const included:KeySet = newLinkableChild(this, KeySet, handleIncludeChange);
 		public const excluded:KeySet = newLinkableChild(this, KeySet, handleExcludeChange);
+		
+		public const filters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IKeyFilter));
 
 		/**
 		 * This replaces the included and excluded keys in the filter with the parameters specified.
@@ -113,6 +119,10 @@ package weave.data.KeySets
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
+			for each (var filter:IKeyFilter in filters.getObjects())
+				if (!filter.containsKey(key))
+					return false;
+			
 			if (includeMissingKeys.value || (includeMissingKeyTypes.value && !_includedKeyTypeMap[key.keyType]))
 			{
 				if (excluded.containsKey(key))

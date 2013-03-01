@@ -21,57 +21,117 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" 
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="{lang('Data Filter')}"
 				>
-	
-	<mx:Canvas  width="100%" height="100%" >
-		<mx:HSlider id="filterSlider" thumbCount="2" liveDragging="true"
-					change="sliderChangeTwo(event);"/>
-		<mx:Script>
-			<![CDATA[
-				import mx.controls.sliderClasses.Slider;
-				import mx.events.SliderEvent;
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeyFilter;
+			import weave.api.getSessionState;
+			import weave.api.setSessionState;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.IVisTool;
+			import weave.core.CallbackJuggler;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.NumberDataFilter;
+			import weave.data.KeySets.StringDataFilter;
+			import weave.utils.ColumnUtils;
+			import weave.utils.EditorManager;
+			
+			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
+
+			private var _editor:ILinkableObjectEditor;
+			private var _globalName:String;
+			private const _filterJuggler:CallbackJuggler = new CallbackJuggler(this, handlePanelTitleChange, true);
+			
+			private function get globalName():String
+			{
+				return _globalName || (_globalName = Weave.root.getName(this));
+			}
+			
+			private function get keyFilter():IKeyFilter
+			{
+				return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) as IKeyFilter;
+			}
+			
+			private function get filterColumn():IAttributeColumn
+			{
+				var kf:IKeyFilter = keyFilter;
+				var ndf:NumberDataFilter = kf as NumberDataFilter;
+				var sdf:StringDataFilter = kf as StringDataFilter;
+				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
+			}
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				enableSubMenu.value = true;
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
 				
-				import weave.api.WeaveAPI;
-				import weave.api.registerLinkableChild;
-				import weave.core.LinkableDynamicObject;
-				import weave.data.KeySets.NumericDataFilter;
+				subMenu.addSubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]);
+				subMenu.addSubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter]);
 				
-				private function getNumericDataFilter():NumericDataFilter
+				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
+				if (!keyFilter)
+					setFilterType(StringDataFilter);
+			}
+			
+			override public function dispose():void
+			{
+				Weave.defaultSubsetKeyFilter.filters.removeObject(globalName);
+				super.dispose()
+			}
+			
+			private function setFilterType(type:Class):void
+			{
+				var state:Object = filterColumn && getSessionState(filterColumn);
+				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false) as IKeyFilter;
+				if (filterColumn && state)
+					setSessionState(filterColumn, state);
+			}
+			
+			private function handleFilters():void
+			{
+				if (Weave.defaultSubsetKeyFilter.filters.childListCallbacks.lastNameRemoved == globalName)
 				{
-					if (dynamicNumericDataFilter.internalObject == null)
-						dynamicNumericDataFilter.requestGlobalObject(this.name + " NumericDataFilter", NumericDataFilter, false);
-					return dynamicNumericDataFilter.internalObject as NumericDataFilter;
+					if (_editor && _editor.parent == this)
+						this.removeChild(_editor as DisplayObject);
+					_editor = null;
 				}
 				
-				public const dynamicNumericDataFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(NumericDataFilter), columnUpdateSlider, true);
-				
-				private function columnUpdateSlider():void
+				var filter:IKeyFilter = keyFilter;
+				if (filter && !_editor)
 				{
-					if (!parent)
-						return callLater(columnUpdateSlider);
-					
-					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
-					if (!numericDataFilter)
-						return;
-					//numericDataFilter.column.internalColumn=Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as DynamicColumn;
-					filterSlider.minimum = WeaveAPI.StatisticsCache.getColumnStatistics(numericDataFilter.column).getMin();
-					filterSlider.maximum = WeaveAPI.StatisticsCache.getColumnStatistics(numericDataFilter.column).getMax();
-					filterSlider.values[0] = numericDataFilter.min.value;
-					filterSlider.values[1] = numericDataFilter.max.value ;
+					_editor = EditorManager.getNewEditor(filter);
+					addChild(_editor as DisplayObject);
 				}
+				_filterJuggler.target = filter;
+			}
+			
+			override protected function get defaultPanelTitle():String
+			{
+				if (filterColumn)
+					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));
 				
-				private function sliderChangeTwo(event:SliderEvent):void {
-					var numericDataFilter:NumericDataFilter = getNumericDataFilter();
-					if (!numericDataFilter)
-						return;
-					var ct:Slider = Slider(event.currentTarget);
-					numericDataFilter.min.value = ct.values[0];
-					numericDataFilter.max.value = ct.values[1];
-				}
-			]]>
-		</mx:Script>
-	</mx:Canvas>
+				return lang('Filter');
+			}
+			
+			public function getSelectableAttributeNames():Array
+			{
+				return filterColumn ? [lang('Filter')] : [];
+			}
+			
+			public function getSelectableAttributes():Array
+			{
+				return filterColumn ? [filterColumn] : [];
+			}
+		]]>
+	</mx:Script>
 </DraggablePanel>

@@ -40,12 +40,12 @@ package weave
 	import ru.etcs.utils.FontLoader;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.linkBindableProperty;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.linkBindableProperty;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -97,6 +97,7 @@ package weave
 			);
 
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
+			_toggleToolsMenuItem("DataFilter", false);
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;
@@ -238,12 +239,10 @@ package weave
 		public function getToolToggle(classDef:Class):LinkableBoolean
 		{
 			var className:String = getQualifiedClassName(classDef).split('::').pop();
-			var toggle:LinkableBoolean = toolToggles.getObject(className) as LinkableBoolean;
-			if (!toggle)
-			{
-				toggle = toolToggles.requestObject(className, LinkableBoolean, true);
+			var existsPreviously:Boolean = toolToggles.getObject(className) is LinkableBoolean;
+			var toggle:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, true); // lock
+			if (!existsPreviously)
 				toggle.value = true; // default value
-			}
 			return toggle;
 		}
 

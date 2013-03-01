@@ -56,8 +56,7 @@ package weave.services
 			if (urlRequestDataFormat != REQUEST_FORMAT_BINARY && urlRequestDataFormat != REQUEST_FORMAT_VARIABLES)
 				throw new Error(getQualifiedClassName(Servlet) + ': urlRequestDataFormat not supported: "' + urlRequestDataFormat + '"');
 			
-			var urlParts:Array = servletURL.split('?');
-			_servletURL = urlParts[0];
+			_servletURL = servletURL;
 			_urlRequestDataFormat = urlRequestDataFormat;
 			METHOD = methodVariableName;
 		}
