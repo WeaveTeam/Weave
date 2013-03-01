@@ -127,7 +127,7 @@ public class AdminService
 		{
 			try
 			{
-				PrintStream ps = new PrintStream(getServletRequestInfo().response.getOutputStream());
+				PrintStream ps = new PrintStream(getServletOutputStream());
 				ProgressPrinter pp = new ProgressPrinter(ps);
 				WeaveConfig.initializeAdminService(pp.getProgressManager());
 			}

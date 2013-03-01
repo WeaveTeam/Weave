@@ -242,17 +242,7 @@ public class GenericServlet extends HttpServlet
     	System.out.print(output);
     }
     
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-    	handleServletRequest(request, response);
-    }
-    
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-    	handleServletRequest(request, response);
-    }
-    
-    protected class ServletRequestInfo
+    private class ServletRequestInfo
     {
     	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
     	{
@@ -261,7 +251,8 @@ public class GenericServlet extends HttpServlet
     		this.inputStream = new PeekableInputStream(request.getInputStream());
     	}
     	
-    	HttpServletRequest request;
+    	@SuppressWarnings("unused")
+		HttpServletRequest request;
     	HttpServletResponse response;
     	JsonRpcRequestModel currentJsonRequest;
     	List<JsonRpcResponseModel> jsonResponses = new Vector<JsonRpcResponseModel>();
@@ -273,34 +264,58 @@ public class GenericServlet extends HttpServlet
     /**
      * This maps a thread to the corresponding RequestInfo for the doGet() or doPost() call that thread is handling.
      */
-    private Map<Thread,ServletRequestInfo> servletRequestInfo = new HashMap<Thread,ServletRequestInfo>();
+    private Map<Thread,ServletRequestInfo> _servletRequestInfo = new HashMap<Thread,ServletRequestInfo>();
     
     /**
-     * This function retrieves the HttpServletResponse associated with the current thread's doGet() or doPost() call.
+     * This function retrieves the ServletOutputStream associated with the current thread's doGet() or doPost() call.
      * In a public function with a void return type, you can use the ServletOutputStream for full control over the output.
      */
-    protected ServletRequestInfo getServletRequestInfo()
+    protected ServletOutputStream getServletOutputStream() throws IOException
     {
-    	synchronized (servletRequestInfo)
+    	return getServletRequestInfo().response.getOutputStream();
+    }
+    
+    private ServletRequestInfo getServletRequestInfo()
+    {
+    	synchronized (_servletRequestInfo)
     	{
-    		return servletRequestInfo.get(Thread.currentThread());
+    		return _servletRequestInfo.get(Thread.currentThread());
     	}
     }
     
-    private void setServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
+    private ServletRequestInfo setServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-    	synchronized (servletRequestInfo)
+    	synchronized (_servletRequestInfo)
     	{
-    		servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response));
+    		return _servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response));
     	}
     }
     
+    private void removeServletRequestInfo()
+    {
+		synchronized (_servletRequestInfo)
+		{
+			_servletRequestInfo.remove(Thread.currentThread());
+		}
+    }
+    
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+    	handleServletRequest(request, response);
+    }
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+    	handleServletRequest(request, response);
+    }
+
     @SuppressWarnings("unchecked")
 	private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
     	try
     	{
-    		setServletRequestInfo(request, response);
+    		ServletRequestInfo info = setServletRequestInfo(request, response);
+    		
     		if (request.getMethod().equals("GET"))
     		{
         		List<String> urlParamNames = Collections.list(request.getParameterNames());
@@ -310,11 +325,12 @@ public class GenericServlet extends HttpServlet
     			for (String paramName : urlParamNames)
     				params.put(paramName, request.getParameter(paramName));
     			JsonRpcRequestModel json = new JsonRpcRequestModel();
-    			json.id = params.containsKey("id") ? params.remove("id") : null;
+    			json.jsonrpc = JSONRPC_VERSION;
+    			json.id = "";
     			json.method = params.remove(METHOD);
     			json.params = params;
     			
-	    		getServletRequestInfo().currentJsonRequest = json;
+	    		info.currentJsonRequest = json;
 	    		invokeMethod(json.method, params);
     		}
     		else // post
@@ -323,7 +339,6 @@ public class GenericServlet extends HttpServlet
 	    		{
 	    			String methodName;
 	    			Object methodParams;
-	    			ServletRequestInfo info = getServletRequestInfo();
 	    			if (info.inputStream.peek() == '[' || info.inputStream.peek() == '{') // json
 	    			{
 	    				handleArrayOfJsonRequests(info.inputStream,response);
@@ -333,10 +348,9 @@ public class GenericServlet extends HttpServlet
 	    				ASObject obj = (ASObject)deseriaizeAmf3(info.inputStream);
 	    				methodName = (String) obj.get(METHOD);
 	    				methodParams = obj.get(PARAMS);
-	    				getServletRequestInfo().streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
+	    				info.streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
 	    				invokeMethod(methodName, methodParams);
 	    			}
-	    			
 		    	}
 	    		catch (IOException e)
 	    		{
@@ -352,13 +366,12 @@ public class GenericServlet extends HttpServlet
     	}
     	finally
     	{
-    		synchronized (servletRequestInfo)
-    		{
-    			servletRequestInfo.remove(Thread.currentThread());
-    		}
+    		removeServletRequestInfo();
     	}
 	}
 	
+	public static final String JSONRPC_VERSION = "2.0";
+
     private void handleArrayOfJsonRequests(PeekableInputStream inputStream,HttpServletResponse response) throws IOException
     {
     	try
@@ -388,7 +401,7 @@ public class GenericServlet extends HttpServlet
 				info.currentJsonRequest = jsonRequests[i];
 				
 				/* Check to see if JSON-RPC protocol is 2.0*/
-				if (info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals("2.0"))
+				if (info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals(JSONRPC_VERSION))
 				{
 					sendError(null, JSON_RPC_PROTOCOL_ERROR_MESSAGE);
 					continue;
@@ -584,17 +597,10 @@ public class GenericServlet extends HttpServlet
 	
 	/**
 	 * @param methodName The name of the function to invoke.
-	 * @param methodParameters A list of input parameters for the method.  Values will be cast to the appropriate types if necessary.
+	 * @param methodParams A Map, List, or Array of input parameters for the method.  Values will be cast to the appropriate types if necessary.
 	 */
-	/**
-	 * @param methodName
-	 * @param methodParams
-	 * @throws IOException
-	 */
-	@SuppressWarnings("rawtypes")
 	private void invokeMethod(String methodName, Object methodParams) throws IOException
 	{
-		
 		ServletRequestInfo info = getServletRequestInfo();
 		if (!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
 		{
@@ -602,13 +608,11 @@ public class GenericServlet extends HttpServlet
 			return;
 		}
 		
+		if (methodParams instanceof Map)
+			methodParams = getParamsFromMap(methodName, (Map<?,?>)methodParams);
+		
 		if (methodParams instanceof List<?>)
 			methodParams = ((List<?>)methodParams).toArray();
-		
-		if (methodParams instanceof Map)
-		{
-			methodParams = getParamsFromMap(methodName, (Map)methodParams);
-		}
 		
 		if (info.streamParameterIndex != null)
 		{
@@ -628,7 +632,7 @@ public class GenericServlet extends HttpServlet
 		}
 		
 		// cast input values to appropriate types if necessary
-		Class[] expectedArgTypes = exposedMethod.method.getParameterTypes();
+		Class<?>[] expectedArgTypes = exposedMethod.method.getParameterTypes();
 		if (expectedArgTypes.length == params.length)
 		{
 	    	for (int index = 0; index < params.length; index++)
@@ -645,7 +649,7 @@ public class GenericServlet extends HttpServlet
 		{
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, params);
 			
-			if (info.currentJsonRequest == null)
+			if (info.currentJsonRequest == null) // AMF3
 			{
 				if (exposedMethod.method.getReturnType() != void.class)
 				{
@@ -653,7 +657,7 @@ public class GenericServlet extends HttpServlet
 					seriaizeCompressedAmf3(result, servletOutputStream);
 				}
 			}
-			else
+			else // json
 			{
 				Object id = info.currentJsonRequest.id;
 				/* If ID is empty then it is a notification, we send nothing back */
