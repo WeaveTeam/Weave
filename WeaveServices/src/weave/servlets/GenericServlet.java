@@ -23,8 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.Writer;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -53,7 +51,6 @@ import weave.utils.ListUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonSyntaxException;
 import com.heatonresearch.httprecipes.html.PeekableInputStream;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
@@ -304,23 +301,6 @@ public class GenericServlet extends HttpServlet
     	try
     	{
     		setServletRequestInfo(request, response);
-    		/*
-    		if (request.getMethod().equals("GET"))
-    		{
-        		@SuppressWarnings("unchecked")
-				List<String> urlParamNames = Collections.list(request.getParameterNames());
-
-    			// Read Method Name from URL
-    			String methodName = request.getParameter(METHOD);
-    			
-    			@SuppressWarnings({ "unchecked", "rawtypes" })
-				HashMap<String, String> params = new HashMap();
-    			
-    			for (String paramName : urlParamNames)
-    				params.put(paramName, request.getParameter(paramName));
-    			
-    			invokeMethod(methodName, params);
-    		}*/
     		if (request.getMethod().equals("GET"))
     		{
         		List<String> urlParamNames = Collections.list(request.getParameterNames());
@@ -388,12 +368,11 @@ public class GenericServlet extends HttpServlet
     		
     		ServletRequestInfo info = getServletRequestInfo();
     		/*If first character is { then it is a single request. We add it to the array jsonRequests and continue*/
-    		if(streamString.charAt(0) == '{')
+    		if (streamString.charAt(0) == '{')
     		{
     			//TODO:CHeck parse error for this
     			JsonRpcRequestModel req = (new Gson()).fromJson(streamString, JsonRpcRequestModel.class);
-    			jsonRequests = new JsonRpcRequestModel[1];
-    			jsonRequests[0] = req;
+    			jsonRequests = new JsonRpcRequestModel[] { req };
     			info.isBatchRequest = false;
     		}
     		else
@@ -404,43 +383,39 @@ public class GenericServlet extends HttpServlet
     		
     		
     		/* we loop through each request, get results or check error and add repsonses to an array*/ 
-    		for (int i =0; i< jsonRequests.length; i++)
+    		for (int i = 0; i < jsonRequests.length; i++)
     		{
 				info.currentJsonRequest = jsonRequests[i];
 				
 				/* Check to see if JSON-RPC protocol is 2.0*/
-				if(info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals("2.0"))
+				if (info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals("2.0"))
 				{
-					sendError(null,JSON_RPC_PROTOCOL_ERROR_MESSAGE);
+					sendError(null, JSON_RPC_PROTOCOL_ERROR_MESSAGE);
 					continue;
 				}
 				/*Check if ID is a number and if so it has not fractional numbers*/
-				else if(info.currentJsonRequest.id instanceof Number)
+				else if (info.currentJsonRequest.id instanceof Number)
 				{
-					Double tempNum = (Double)info.currentJsonRequest.id;
-					if(!(tempNum == Math.ceil(tempNum)))
+					Number number = (Number) info.currentJsonRequest.id;
+					if (number.intValue() != number.doubleValue())
 					{
-						sendError(null,JSON_RPC_ID_ERROR_MESSAGE);
+						sendError(null, JSON_RPC_ID_ERROR_MESSAGE);
 						continue;
 					}
-					info.currentJsonRequest.id = tempNum.intValue();
+					info.currentJsonRequest.id = number.intValue();
 				}
 				
 				/*Check if Method exists*/
-				String methodName = info.currentJsonRequest.method;
-				if (!methodMap.containsKey(methodName))
+				if (!methodMap.containsKey(info.currentJsonRequest.method))
 				{
-					sendError(null,JSON_RPC_METHOD_ERROR_MESSAGE);
+					sendError(null, JSON_RPC_METHOD_ERROR_MESSAGE);
 					continue;
 				}
 				
-				invokeMethod(methodName, info.currentJsonRequest.params);
+				invokeMethod(info.currentJsonRequest.method, info.currentJsonRequest.params);
     		}
     		
     	}
-    	catch (IOException e) {
-			// TODO: handle IOException
-		}
     	catch (JsonParseException e)
     	{
     		sendError(e, JSON_RPC_PARSE_ERROR_MESSAGE);
@@ -451,7 +426,7 @@ public class GenericServlet extends HttpServlet
     {
     	ServletRequestInfo info = getServletRequestInfo();
     	
-    	if(info.currentJsonRequest == null)
+    	if (info.currentJsonRequest == null)
     		return;
     	
     	info.response.setContentType("application/json");
@@ -466,7 +441,7 @@ public class GenericServlet extends HttpServlet
     			out.flush();
     			return;
     		}
-    		if(!info.isBatchRequest)
+    		if (!info.isBatchRequest)
     		{
    				result = (new Gson()).toJson(info.jsonResponses.get(0));
     		}
@@ -480,7 +455,9 @@ public class GenericServlet extends HttpServlet
 			writer.close();
 			writer.flush();
 			
-    	}catch (Exception e) {
+    	}
+    	catch (Exception e)
+    	{
 			e.printStackTrace();
 		}
     }
@@ -489,11 +466,12 @@ public class GenericServlet extends HttpServlet
     private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
     private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
     private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Parse Error";
-    private void handleJsonError(JsonRpcRequestModel request,String errorMessage, Throwable e)
+    private void handleJsonError(Throwable e, String errorMessage)
     {
+    	ServletRequestInfo info = getServletRequestInfo();
     	JsonRpcResponseModel result = null;
     	
-    	Object id = request.id;
+    	Object id = info.currentJsonRequest.id;
 		/* If ID is empty then it is a notification, we send nothing back */
 		if (id != null)
 		{
@@ -503,26 +481,26 @@ public class GenericServlet extends HttpServlet
 			result.jsonrpc = "2.0";
 			JsonRpcErrorModel jsonErrorObject = new JsonRpcErrorModel();
 			
-			if(errorMessage.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE))
+			if (errorMessage.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32600";
 				jsonErrorObject.message = "Invalid Request";
 				jsonErrorObject.data = JSON_RPC_PROTOCOL_ERROR_MESSAGE;
 				
 			}
-			else if(errorMessage.equals(JSON_RPC_ID_ERROR_MESSAGE))
+			else if (errorMessage.equals(JSON_RPC_ID_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32600";
     			jsonErrorObject.message = "Invalid Request";
     			jsonErrorObject.data = JSON_RPC_ID_ERROR_MESSAGE ;
 			}
-			else if(errorMessage.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
+			else if (errorMessage.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32601";
     			jsonErrorObject.message = "Method not found";
     			jsonErrorObject.data = JSON_RPC_METHOD_ERROR_MESSAGE ;
 			}
-			else if(errorMessage.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
+			else if (errorMessage.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32700";
 				jsonErrorObject.message = "Parse error";
@@ -535,14 +513,14 @@ public class GenericServlet extends HttpServlet
     			jsonErrorObject.data = errorMessage;
 			}
 			
-			if(e !=null)
+			if (e != null)
 			{
 				jsonErrorObject.data = (String)jsonErrorObject.data + "\n" + e.getMessage();
 			}
 			
 			result.error = jsonErrorObject;
 			
-			getServletRequestInfo().jsonResponses.add(result);
+			info.jsonResponses.add(result);
 		}
     	
     }
@@ -618,7 +596,7 @@ public class GenericServlet extends HttpServlet
 	{
 		
 		ServletRequestInfo info = getServletRequestInfo();
-		if(!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
+		if (!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
 		{
 			sendError(new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)),null);
 			return;
@@ -627,7 +605,7 @@ public class GenericServlet extends HttpServlet
 		if (methodParams instanceof List<?>)
 			methodParams = ((List<?>)methodParams).toArray();
 		
-		if(methodParams instanceof Map)
+		if (methodParams instanceof Map)
 		{
 			methodParams = getParamsFromMap(methodName, (Map)methodParams);
 		}
@@ -667,7 +645,7 @@ public class GenericServlet extends HttpServlet
 		{
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, params);
 			
-			if(info.currentJsonRequest ==null)
+			if (info.currentJsonRequest == null)
 			{
 				if (exposedMethod.method.getReturnType() != void.class)
 				{
@@ -681,7 +659,6 @@ public class GenericServlet extends HttpServlet
 				/* If ID is empty then it is a notification, we send nothing back */
 				if (id != null)
 				{
-					Gson gson = new Gson();
 					JsonRpcResponseModel responseObj = new JsonRpcResponseModel();
 					responseObj.jsonrpc = "2.0";
 					responseObj.result = result;
@@ -751,14 +728,15 @@ public class GenericServlet extends HttpServlet
 					if (type == List.class)
 						value = Arrays.asList((String[])value);
 				}
-				else if(type == InputStream.class)
+				else if (type == InputStream.class)
 				{
 					try
 					{
 						String temp = (String) value;
 						value = (InputStream)new ByteArrayInputStream(temp.getBytes("UTF-8"));
-					}catch (Exception e) {
-						
+					}
+					catch (Exception e)
+					{
 						return null;
 					}
 				}
@@ -779,7 +757,7 @@ public class GenericServlet extends HttpServlet
 		{
 			value = (boolean)(Boolean)value;
 		}
-		else if(value.getClass() == ArrayList.class)
+		else if (value.getClass() == ArrayList.class)
 		{
 			value = cast(((ArrayList)value).toArray(), type);
 		}
@@ -923,18 +901,17 @@ public class GenericServlet extends HttpServlet
     
     private void sendError(Throwable exception, String moreInfo) throws IOException
 	{
-    	JsonRpcRequestModel jsonRequest = getServletRequestInfo().currentJsonRequest;
-    	if(jsonRequest == null)
+    	ServletRequestInfo info = getServletRequestInfo();
+    	if (info.currentJsonRequest == null)
     	{
     		String message;
         	if (exception instanceof RuntimeException)
         		message = exception.toString();
-        	else if(exception instanceof InvocationTargetException)
-        	{
+        	else if (exception instanceof InvocationTargetException)
         		message = exception.getCause().getMessage();
-        	}
         	else
         		message = exception.getMessage();
+        	
         	if (moreInfo != null)
         		message += "\n" + moreInfo;
         	
@@ -942,14 +919,14 @@ public class GenericServlet extends HttpServlet
         	exception.printStackTrace();
         	System.err.println("Serializing ErrorMessage: "+message);
         	
-    		ServletOutputStream servletOutputStream = getServletRequestInfo().response.getOutputStream();
+    		ServletOutputStream servletOutputStream = info.response.getOutputStream();
         	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
         	errorMessage.faultCode = exception.getClass().getSimpleName();
         	seriaizeCompressedAmf3(errorMessage, servletOutputStream);	
     	}
     	else
     	{
-    		handleJsonError(jsonRequest, moreInfo, exception);
+    		handleJsonError(exception, moreInfo);
     	}
 	}
     
