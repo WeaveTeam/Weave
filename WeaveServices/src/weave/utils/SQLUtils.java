@@ -333,6 +333,32 @@ public class SQLUtils
 		}
 		return conn;
 	}
+	
+	/**
+	 * @param colName
+	 * @return colName with special characters replaced and truncated to 64 characters.
+	 */
+	public static String fixColumnName(String colName)
+	{
+		// if the column name has "/", "\", ".", "<", ">".
+		colName = colName.replace("/", "");
+		colName = colName.replace("\\", "");
+		colName = colName.replace(".", "");
+		colName = colName.replace("<", "less than");
+		colName = colName.replace(">", "more than");
+		// if the length of the column name is longer than the 64-character limit
+		int maxColNameLength = 64 - 4; // leave space for "_123" if there end up being duplicate column names
+		// if name too long, remove spaces
+		if (colName.length() > maxColNameLength)
+			colName = colName.replace(" ", "");
+		// if still too long, truncate
+		if (colName.length() > maxColNameLength)
+		{
+			int half = maxColNameLength / 2 - 1;
+			colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
+		}
+		return colName;
+	}
 
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)

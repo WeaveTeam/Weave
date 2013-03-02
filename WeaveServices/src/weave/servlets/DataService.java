@@ -565,8 +565,8 @@ public class DataService extends GenericServlet
 	public AttributeColumnData getColumnFromMetadata(Map<String, String> metadata)
 		throws RemoteException
 	{
-		DataEntityMetadata params = new DataEntityMetadata();
-		params.publicMetadata = metadata;
+		DataEntityMetadata query = new DataEntityMetadata();
+		query.publicMetadata = metadata;
 		
 		// exclude these parameters from the query
 		String minStr = metadata.remove(PublicMetadata.MIN);
@@ -575,19 +575,20 @@ public class DataService extends GenericServlet
 		
 		DataConfig dataConfig = getDataConfig();
 		
-		Collection<Integer> ids = dataConfig.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
+		Collection<Integer> ids = dataConfig.getEntityIdsByMetadata(query, DataEntity.TYPE_COLUMN);
 		
 		// attempt recovery for backwards compatibility
 		if (ids.size() == 0)
 		{
 			final String DATATABLE = "dataTable";
 			final String NAME = "name";
+			String dataType = metadata.get(PublicMetadata.DATATYPE);
 			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
 			{
 				// try to find columns sqlTable==dataTable and sqlColumn=name
 				DataEntityMetadata sqlInfoQuery = new DataEntityMetadata();
 				String sqlTable = metadata.get(DATATABLE);
-				String sqlColumn = metadata.get(NAME);
+				String sqlColumn = SQLUtils.fixColumnName(metadata.get(NAME));
 				for (int i = 0; i < 2; i++)
 				{
 					if (i == 1)
@@ -600,6 +601,11 @@ public class DataService extends GenericServlet
 					if (ids.size() > 0)
 						break;
 				}
+			}
+			else if (metadata.containsKey(NAME) && dataType != null && dataType.equals(DataType.GEOMETRY))
+			{
+				metadata.put(PublicMetadata.TITLE, metadata.remove(NAME));
+				ids = dataConfig.getEntityIdsByMetadata(query, DataEntity.TYPE_COLUMN);
 			}
 			if (ids.size() == 0)
 				throw new RemoteException("No column matches metadata query: " + metadata);
