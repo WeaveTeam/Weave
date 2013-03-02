@@ -488,7 +488,7 @@ public class GenericServlet extends HttpServlet
     private static String JSON_RPC_PROTOCOL_ERROR_MESSAGE = "JSON-RPC protocol must be 2.0";
     private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
     private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
-    private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Parse Error";
+    private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
     private void handleJsonError(Throwable e, String errorMessage)
     {
     	ServletRequestInfo info = getServletRequestInfo();
@@ -503,43 +503,43 @@ public class GenericServlet extends HttpServlet
 			result.id = id;
 			result.jsonrpc = "2.0";
 			JsonRpcErrorModel jsonErrorObject = new JsonRpcErrorModel();
+			if (errorMessage == null)
+				errorMessage = "";
 			
 			if (errorMessage.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32600";
 				jsonErrorObject.message = "Invalid Request";
-				jsonErrorObject.data = JSON_RPC_PROTOCOL_ERROR_MESSAGE;
-				
 			}
 			else if (errorMessage.equals(JSON_RPC_ID_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32600";
     			jsonErrorObject.message = "Invalid Request";
-    			jsonErrorObject.data = JSON_RPC_ID_ERROR_MESSAGE ;
 			}
 			else if (errorMessage.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32601";
     			jsonErrorObject.message = "Method not found";
-    			jsonErrorObject.data = JSON_RPC_METHOD_ERROR_MESSAGE ;
 			}
 			else if (errorMessage.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
 			{
 				jsonErrorObject.code = "-32700";
 				jsonErrorObject.message = "Parse error";
-				jsonErrorObject.data = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
 			}
 			else
 			{
 				jsonErrorObject.code = "-32000";
     			jsonErrorObject.message = "Server error";
-    			jsonErrorObject.data = errorMessage;
 			}
 			
 			if (e != null)
 			{
-				jsonErrorObject.data = (String)jsonErrorObject.data + "\n" + e.getMessage();
+				if (errorMessage.length() > 0)
+					errorMessage += '\n';
+				errorMessage += e.getMessage();
 			}
+			
+			jsonErrorObject.data = errorMessage;
 			
 			result.error = jsonErrorObject;
 			
@@ -915,14 +915,14 @@ public class GenericServlet extends HttpServlet
     
     private void sendError(Throwable exception, String moreInfo) throws IOException
 	{
+    	if (exception instanceof InvocationTargetException)
+    		exception = exception.getCause();
     	ServletRequestInfo info = getServletRequestInfo();
     	if (info.currentJsonRequest == null)
     	{
     		String message;
         	if (exception instanceof RuntimeException)
         		message = exception.toString();
-        	else if (exception instanceof InvocationTargetException)
-        		message = exception.getCause().getMessage();
         	else
         		message = exception.getMessage();
         	
