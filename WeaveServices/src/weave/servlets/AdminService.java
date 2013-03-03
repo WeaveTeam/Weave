@@ -127,7 +127,7 @@ public class AdminService
 		{
 			try
 			{
-				PrintStream ps = new PrintStream(getServletRequestInfo().response.getOutputStream());
+				PrintStream ps = new PrintStream(getServletOutputStream());
 				ProgressPrinter pp = new ProgressPrinter(ps);
 				WeaveConfig.initializeAdminService(pp.getProgressManager());
 			}
@@ -1217,24 +1217,9 @@ public class AdminService
 					colName = "Column " + (iCol + 1);
 				// save original column name
 				originalColumnNames[iCol] = colName;
-				// if the column name has "/", "\", ".", "<", ">".
-				colName = colName.replace("/", "");
-				colName = colName.replace("\\", "");
-				colName = colName.replace(".", "");
-				colName = colName.replace("<", "less than");
-				colName = colName.replace(">", "more than");
-				// if the length of the column name is longer than the 64-character limit
-				int maxColNameLength = 64 - 4; // leave space for "_123" if there end up being duplicate column names
 				boolean isKeyCol = csvKeyColumn.equalsIgnoreCase(colName);
-				// if name too long, remove spaces
-				if (colName.length() > maxColNameLength)
-					colName = colName.replace(" ", "");
-				// if still too long, truncate
-				if (colName.length() > maxColNameLength)
-				{
-					int half = maxColNameLength / 2 - 1;
-					colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
-				}
+				
+				colName = SQLUtils.fixColumnName(colName);
 				// copy new name if key column changed
 				if (isKeyCol)
 					csvKeyColumn = colName;
