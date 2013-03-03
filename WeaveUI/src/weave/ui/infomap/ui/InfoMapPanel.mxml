@@ -56,6 +56,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
 			import mx.core.UITextField;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
@@ -195,14 +196,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
 				
-				stage.addEventListener(MouseEvent.MOUSE_UP,handleMouseUp);
+				map.addEventListener(MouseEvent.MOUSE_UP,handleMouseEvents);
 				
 				
 				_entityKeySet.addGroupedCallback(this,parseRecordsSelectionQueryResponse,false);
 				
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				
-				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDown);
+				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseEvents);
+				map.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseEvents);
 				
 				internalColorRamp.value = '<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>';
 				
@@ -232,14 +234,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				relatedColumnsHashmap.addGroupedCallback(this,handleRelatedColumnsChange,false);
 				
-				if(entityColumnsHashmap.getObjects().length == 0)
-					extractEntityColumns();
+				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap);
 				
 				_loadingText.setStyle("fontFamily","loadingTextStyle");
 				_loadingText.setStyle("fontSize","24");
 				
 			}
-				
+			
+			private var _firstLoad:Boolean = true;
+			private function handleEntityColumnHashmap():void
+			{
+				if(entityColumnsHashmap.getObjects().length == 0 && _firstLoad)
+					extractEntityColumns();
+				_firstLoad = false;
+			}
 			private var _loadingText:Text = new Text();
 			private var _referencedColumns:Array = [];
 			private function extractEntityColumns():void
@@ -251,6 +259,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				/* Get all the referenced Columns*/
 				_referencedColumns = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root,ReferencedColumn);
+				if(_referencedColumns.length == 0)
+					handleEmptyEntityExtraction();
 				/* Iterate through each referenced column and get its parent */
 				WeaveAPI.StageUtils.startTask(this,_iterateReferencedColumns,WeaveAPI.TASK_PRIORITY_PARSING);
 			}
@@ -288,6 +298,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var parents:Array = (event.result as ArrayCollection).source;
 				/* We use this count to keep track of when all the parents' children have been iterated */
 				_parentCount += parents.length;
+				if(_parentCount ==0)
+				{
+					handleEmptyEntityExtraction();
+				}
 				for each (var parent:Number in parents)
 				{
 					var source:WeaveDataSource = Weave.root.getObject(token as String) as WeaveDataSource;
@@ -302,10 +316,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				reportError("Error getting parent ID");				
 			}
 			
+			private function handleEmptyEntityExtraction():void
+			{
+				removeChild(_loadingText);
+			}
+			
+			
 			private function handleGetChildIds(event:ResultEvent, token:Object = null):void
 			{
 				var cols:Array = (event.result as Array);
-				
 				var source:WeaveDataSource = Weave.root.getObject(token as String) as WeaveDataSource;
 				var servlet:WeaveDataServlet = new WeaveDataServlet(source.url.value);
 				var asyncToken:AsyncToken = servlet.getEntitiesById(cols);
@@ -508,32 +527,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return selectedDocs;
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
-				
-//				//detect any changes in selectionKeySet and make query for matched entity values
-//				if(detectLinkableObjectChange(updateDisplayList,_selectedKeySet))
-//				{
-//					//selection happened outside of the panel then return
-//					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
-//						return;
-//					
-//					var selectedDocs:Array = getSelectedDocumentURLs();
-//					
-//					if(selectedDocs.length == 0)
-//					{
-//						_selectedKeySet.clearKeys();
-//						return;
-//					}
-//					
-//					var entities:Array = extractAllEntitiyValues();
-//					
-//					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
-//					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
-//				}
-			}
-			
 			private function handleMatchedEntities(event:ResultEvent,token:Object=null):void
 			{
 				var entities:Array = event.result as Array;
@@ -576,30 +569,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			private var selectionKeywords:LinkableString = new LinkableString("",null,false);
-			private function handleMouseUp(event:MouseEvent):void
-			{
-				//we should set the selection keywords only if the mouseup happened from outside of InfoMap panel
-				//This is still not the right way to do it. Need to find a more efficient solution
-				
-				removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseDrag);
-				
-				//clear any selection rectangle created on mouse drag
-				if(sprite)
-				{
-					sprite.graphics.clear();
-					if(map.rawChildren.contains(sprite))
-						map.rawChildren.removeChild(sprite);
-				}
-				
-				if((DraggablePanel.getTopPanel() is InfoMapPanel))
-					return;
-				
-				
-				var keywords:Array = InfoMapLoader.extractKeywordsFromSelection();
-				selectionKeywords.value = keywords.join(" ");
-				
-			}
-			
 			private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
 			private function validateDashedLine():void
 			{
@@ -609,76 +578,100 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 //			private var _selectionRectangleGraphicsCleared:Boolean = true;
 			private var dragStartX:Number;
 			private var dragStartY:Number;
-			private function handleMouseDown(event:MouseEvent):void
-			{
-				//if the mouse is down on an item in the list don't listen for selection
-				if(event.target is UITextField)
-					return;
-				
-				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
-				
-				dragStartX = localPoint.x;
-				dragStartY = localPoint.y;
-				
-				addEventListener(MouseEvent.MOUSE_MOVE,handleMouseDrag);
-			}
-			
 			private var sprite:Sprite =  new Sprite();
-			private function handleMouseDrag(event:MouseEvent):void
+			private var _startDrag:Boolean = false;
+			private function handleMouseEvents(event:MouseEvent):void
 			{
-				if(sprite)
-					sprite.graphics.clear();
-				
-				map.rawChildren.addChild(sprite);
-				
-				var g:Graphics = sprite.graphics;
-				
-				_dashedLine.graphics = g; 
-				
-				_dashedLine.lineStyle(2, 0x00ff00, .75);
-				
-				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
-								
-				var w:Number = localPoint.x - dragStartX;
-				var h:Number = localPoint.y - dragStartY;
-				
-				_dashedLine.drawRect(dragStartX, dragStartY, w, h);
-				
-				var selectionRect:Rectangle = sprite.getRect(map);
-				
-				map.graphics.clear();
-				
-				var currentNodes:Array = nodes.getObjects();
-				
-				var selectedKeys:Array = [];
-				
-				for (var i:int = 0; i<currentNodes.length; i++)
+				var localPoint:Point;
+				if(event.type == MouseEvent.MOUSE_DOWN)
 				{
-					if(currentNodes[i] is LinkToInfoMapComponent)
-						continue;
-					var node:NodeHandler = currentNodes[i];
-					var currentDocs:Array = node.thumbnails.getObjects();
+					/* Set the starting point of the Drag Coordinates */
+					localPoint= map.globalToLocal(new Point(event.stageX,event.stageY));
 					
-					
-					for each (var t:DocThumbnailComponent in currentDocs)
-					{
-						var r:Rectangle = t.getRect(map);
-						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
-						if(t.visible == true && selectionRect.intersects(r))
-						{
-//							map.graphics.lineStyle(1,0);
-//							map.graphics.drawRect(r.x,r.y,r.width,r.height);
-							selectedKeys.push(key);
-						}
-					}
+					dragStartX = localPoint.x;
+					dragStartY = localPoint.y;
+					_startDrag = true;
 				}
 				
-				_selectedKeySet.replaceKeys(selectedKeys);
+				/* If the Mouse is moving and primary button is down then draw the selection rectangle */
+				if(event.type == MouseEvent.MOUSE_MOVE && event.buttonDown && _startDrag)
+				{
+					if(sprite)
+						sprite.graphics.clear();
+					
+					map.rawChildren.addChild(sprite);
+					
+					var g:Graphics = sprite.graphics;
+					
+					_dashedLine.graphics = g; 
+					
+					_dashedLine.lineStyle(2, 0x00ff00, .75);
+					
+					localPoint = map.globalToLocal(new Point(event.stageX,event.stageY));
+					
+					var w:Number = localPoint.x - dragStartX;
+					var h:Number = localPoint.y - dragStartY;
+					
+					_dashedLine.drawRect(dragStartX, dragStartY, w, h);
+					
+					var selectionRect:Rectangle = sprite.getRect(map);
+					
+					map.graphics.clear();
+					
+					var currentNodes:Array = nodes.getObjects();
+					
+					var selectedKeys:Array = [];
+					
+					for (var i:int = 0; i<currentNodes.length; i++)
+					{
+						if(currentNodes[i] is LinkToInfoMapComponent)
+							continue;
+						var node:NodeHandler = currentNodes[i];
+						var currentDocs:Array = node.thumbnails.getObjects();
+						
+						
+						for each (var t:DocThumbnailComponent in currentDocs)
+						{
+							/* Only test for selection of document if it is moved, in which case it is somewhere on  the panel canvas OR
+							   if it belongs to the node and it is in Points view. Selection is enabled only in the points mode currently*/
+							if(node.movedThumbNails.getObject(t.docURL.value) || node.currentView is PointsLayout)
+							{
+								var r:Rectangle = t.getRect(map);
+								var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
+								if(t.visible == true && selectionRect.intersects(r))
+								{
+									//							map.graphics.lineStyle(1,0);
+									//							map.graphics.drawRect(r.x,r.y,r.width,r.height);
+									selectedKeys.push(key);
+								}
+							}
+						}
+					}
+					
+					_selectedKeySet.replaceKeys(selectedKeys);
+				}
 				
-				
+				if(event.type == MouseEvent.MOUSE_UP)
+				{
+					_startDrag = false;
+					//clear any selection rectangle created on mouse drag
+					if(sprite)
+					{
+						sprite.graphics.clear();
+						if(map.rawChildren.contains(sprite))
+							map.rawChildren.removeChild(sprite);
+					}
+					
+					/* if */
+					
+					if((DraggablePanel.getTopPanel() is InfoMapPanel))
+						return;
+					
+					
+					var keywords:Array = InfoMapLoader.extractKeywordsFromSelection();
+					selectionKeywords.value = keywords.join(" ");
+				}
 			}
-			
-			
 			
 			
 			private function getUniqueKeywordsFromArray(keywords:Array):Array
@@ -703,17 +696,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _selectionLoader:URLLoader = null;
 			private var _entityKeySet:KeySet = new KeySet();
-			private function handleRecordsSelection():void
-			{
-				if(!selectionKeywords.value)
-					return;
-				
-				var solrURL:String =  "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=2000&sort=date_published%20desc&indent=on&fl=link&q=" + 
-					selectionKeywords.value;
-				
-//				infoMapsDataSource.getDocumentsForQuery(_entityKeySet,selectionKeywords.value,"OR");
-				
-			}
 			
 			private function parseRecordsSelectionQueryResponse():void
 			{
@@ -1048,19 +1030,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				fileUploadCount++; //TODO Check for file index status.
 			} */
 			
-			private function handleSolrServerURLChange():void
-			{
-//				var l:String = solrServerComboBox.text;
-//				
-//				if(l=="Research_Core")
-//					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
-//				else if (l == "Summarize_Core")
-//					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/summarize_core/";
-//				else if (l == "Demo_Core")
-//					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/demo_core/";
-//				else
-//					infoMapsDataSource.solrURL.value = l;
-			}
 			[Bindable]
 			private var relatedKeywordsArrayCollection:ArrayCollection = new ArrayCollection();
 			private function handleRelatedColumnsChange():void
@@ -1154,10 +1123,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
 		<mx:VBox label="Basic Settings">
-			<mx:HBox>
-				<mx:Label text="Solr Server URL"/>
-				<!--<mx:ComboBox id="solrServerComboBox" editable="true" dataProvider="{['Research_Core','Summarize_Core','Demo_Core']}" change="handleSolrServerURLChange()"/>-->
-			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Set Background Image: "/>
 				<mx:TextInput editable="false" id="imageURL"/>

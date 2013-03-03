@@ -1315,35 +1315,35 @@
 				else
 				{
 					showRelatedDocuments();
+				}
 				
-					var keys:Array = _selection.keys;
-					var docs:Array = thumbnails.getNames();
-					
-					
-					var selectedDocs:Array = getSelectedDocumentKeys();
-					
-					//if none are selected set all to default mode
-					if(selectedDocs.length == 0)
+				var keys:Array = _selection.keys;
+				var docs:Array = thumbnails.getNames();
+				
+				
+				var selectedDocs:Array = getSelectedDocumentKeys();
+				
+				//if none are selected set all to default mode
+				if(selectedDocs.length == 0)
+				{
+					for each(var doc1:String in docs)
 					{
-						for each(var doc1:String in docs)
-						{
-							var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
-							t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
-						}
-						return;
+						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
+						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
 					}
-					
-					
-					for each(var doc:String in docs)
-					{
-						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
-						var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
-						var selected:Boolean =_selection.containsKey(qKey) 
-						if(selected)
-							t.setMode(DocThumbnailComponent.SELECTED_MODE);
-						else
-							t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
-					}
+					return;
+				}
+				
+				
+				for each(var doc:String in docs)
+				{
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
+					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
+					var selected:Boolean =_selection.containsKey(qKey) 
+					if(selected)
+						t.setMode(DocThumbnailComponent.SELECTED_MODE);
+					else
+						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
 				}
 			}
 			
@@ -2258,14 +2258,30 @@
 					redrawGrid();
 			}
 			
+			public var currentView:DisplayObject = null;
 			private function handleFadeInEffectsStart(event:EffectEvent):void
 			{
-				(event.effectInstance.target as DisplayObject).visible = true;
+				var displayObj:Object = event.effectInstance.target;
+				(displayObj as DisplayObject).visible = true;
+				
+				if(displayObj is UIComponent)
+					(displayObj as UIComponent).enabled = true;
+				
+				currentView  = displayObj as DisplayObject;
 			}
 			
 			private function handleFadeOutEffectsEnd(event:EffectEvent):void
 			{
-				(event.effectInstance.target as DisplayObject).visible = false;
+				var displayObj:Object = event.effectInstance.target;
+				(displayObj as DisplayObject).visible = false;
+				
+				if(displayObj is UIComponent)
+					(displayObj as UIComponent).enabled = false;
+				
+				/* We set current view to null, so that if it is not set in fadeIn that means there are no current views */
+				if(currentView == displayObj)
+					currentView = null;
+				
 //				if(event.effectInstance.target == listCanvas)
 //				{
 //					handleClearFiltersButton();
