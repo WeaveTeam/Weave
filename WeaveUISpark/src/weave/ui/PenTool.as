@@ -21,6 +21,7 @@ package weave.ui
 {
 	import flash.display.DisplayObject;
 	import flash.display.Graphics;
+	import flash.display.NativeMenu;
 	import flash.events.ContextMenuEvent;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
@@ -34,10 +35,11 @@ package weave.ui
 	import mx.events.ResizeEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILinkableContainer;
@@ -642,7 +644,7 @@ package weave.ui
 		
 		private static function handleChangeMode(e:ContextMenuEvent):void
 		{
-			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as UIComponent).contextMenu;
+			var contextMenu:NativeMenu = (WeaveAPI.topLevelApplication as UIComponent).contextMenu;
 			if (!contextMenu)
 				return;
 			
@@ -681,7 +683,7 @@ package weave.ui
 		 */
 		private static function handleContextMenuOpened(e:ContextMenuEvent):void
 		{
-			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as UIComponent).contextMenu;
+			var contextMenu:NativeMenu = (WeaveAPI.topLevelApplication as UIComponent).contextMenu;
 			if (!contextMenu)
 				return;
 

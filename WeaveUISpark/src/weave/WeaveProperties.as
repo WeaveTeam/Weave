@@ -40,12 +40,12 @@ package weave
 	import ru.etcs.utils.FontLoader;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -78,6 +78,7 @@ package weave
 		
 		public function WeaveProperties()
 		{
+			
 			version.value = StringUtil.trim((new WeaveVersion() as ByteArray).toString());
 			version.lock(); // don't allow changing the version
 			
