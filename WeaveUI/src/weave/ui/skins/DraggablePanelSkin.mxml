@@ -20,76 +20,94 @@ in accordance with the terms of the license agreement accompanying it.
 @playerversion AIR 1.5
 @productversion Flex 4
 -->
-<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
-		xmlns:fb="http://ns.adobe.com/flashbuilder/2009" alpha.disabled="0.5" mouseEnabled="false"
-		minWidth="{hostComponent.minWidth}" minHeight="{hostComponent.minHeight}" creationComplete="skin1_creationCompleteHandler(event)"
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:fb="http://ns.adobe.com/flashbuilder/2009" alpha.disabled="0.5" blendMode="normal"
+		minWidth="{hostComponent.minWidth}" minHeight="{hostComponent.minHeight}" creationComplete="skin1_creationCompleteHandler(event)" xmlns:ui="weave.ui.*"
 		>
-	<fx:Metadata>
+<!--	styleName="cs"-->
 	
+	<fx:Metadata>
+		
 		[HostComponent("weave.ui.DraggablePanel")]
 	</fx:Metadata>
 	
 	<fx:Script fb:purpose="styling">
 		<![CDATA[         
+			import mx.core.FlexVersion;
 			import mx.events.FlexEvent;
 			
 			import spark.components.Image;
 			
-			import weave.Weave;
 			import weave.api.getLinkableOwner;
-			import weave.api.newLinkableChild;
-			import weave.core.LinkableString;
 			import weave.ui.DraggablePanel;
-			import weave.ui.MinimizedComponent;
 			/**
 			 *  @private
 			 */
 			
+			/* Define the skin elements that should not be colorized. 
+			For panel, border and title background are skinned, but the content area, background, border, and title text are not. */
+			static private const exclusions:Array = ["background", "titleDisplay", "contentGroup", "controlBarGroup", "border"];
 			
+			/* exclusions before Flex 4.5 for backwards-compatibility purposes */
+			static private const exclusions_4_0:Array = ["background", "titleDisplay", "contentGroup", "controlBarGroup"];
 			
+			/**
+			 * @private
+			 */
+			override public function get colorizeExclusions():Array 
+			{
+				// Since border is styleable via borderColor, no need to allow chromeColor to affect
+				// the border.  This is wrapped in a compatibility flag since this change was added  
+				// in Flex 4.5
+				if (FlexVersion.compatibilityVersion < FlexVersion.VERSION_4_5)
+				{
+					return exclusions_4_0;
+				}
+				
+				return exclusions;
+			}
 			
 			override protected function initializationComplete():void
 			{
-				
+				useChromeColor = true;
 				super.initializationComplete();
 			}
 			
-		//	public const panelStyleList:LinkableString = newLinkableChild(hostComponent, LinkableString, handlePanelStyleListChange);
-				private function handlePanelStyleListChange():void
+			
+			private function handlePanelStyleListChange():void
+			{
+				_overriddenStyles = new Object();
+				
+				try
 				{
-					_overriddenStyles = new Object();
-					
-					try
+					var ss:StyleSheet = new StyleSheet();
+					var styleName:String = 'panel';
+					ss.parseCSS(styleName + '{' + hostComponent.panelStyleList.value + '}');
+					var style:Object = ss.getStyle(styleName);
+					for (var propName:String in style)
 					{
-						var ss:StyleSheet = new StyleSheet();
-						var styleName:String = 'panel';
-						ss.parseCSS(styleName + '{' + hostComponent.panelStyleList.value + '}');
-						var style:Object = ss.getStyle(styleName);
-						for (var propName:String in style)
-						{
-							var value:* = style[propName];
-							
-							// the only case that seems to cause problems is Numbers, which will not get parsed properly when 
-							// in String format by getStyle(...).  If it is a valid Number, cast it to one
-							try {
-								_overriddenStyles[propName] = Number(value);
-							} catch (e:Error) { } // ok if number parse fails
-							
-							if (isNaN(_overriddenStyles[propName]))
-								_overriddenStyles[propName] = String(value);
-						}
+						var value:* = style[propName];
+						
+						// the only case that seems to cause problems is Numbers, which will not get parsed properly when 
+						// in String format by getStyle(...).  If it is a valid Number, cast it to one
+						try {
+							_overriddenStyles[propName] = Number(value);
+						} catch (e:Error) { } // ok if number parse fails
+						
+						if (isNaN(_overriddenStyles[propName]))
+							_overriddenStyles[propName] = String(value);
 					}
-					catch(error:Error) { } // ok if style parse fails
-					
-					// notify style change, just a random style chosen here so we only call it once instead of in the loop above
-					// this causes the style changes above to take effect
-					styleChanged("headerHeight");
-					notifyStyleChangeInChildren("headerHeight", true);
 				}
+				catch(error:Error) { } // ok if style parse fails
+				
+				// notify style change, just a random style chosen here so we only call it once instead of in the loop above
+				// this causes the style changes above to take effect
+				styleChanged("borderVisible");
+				notifyStyleChangeInChildren("borderVisible", true);
+			}
 			
-			private var _overriddenStyles:Object = new Object();
-			
-			 override public function getStyle(styleProp:String):*
+			private var _overriddenStyles:Object = new Object();			
+			override public function getStyle(styleProp:String):*
 			{
 				var value:* = null;	
 				
@@ -100,13 +118,12 @@ in accordance with the terms of the license agreement accompanying it.
 					if (!hostComponent.borderIsVisible)
 					{
 						// override border styles to hide the borders
-						
+						// So all border realted values will return 0 here, when border is set not visible
 						var borderProps:Array = [
 							"borderThicknessTop",
 							"borderThicknessBottom",
 							"borderThicknessLeft",
 							"borderThicknessRight",
-							"headerHeight",
 							"cornerRadius"
 						];
 						if (borderProps.indexOf(styleProp) >= 0)
@@ -119,10 +136,12 @@ in accordance with the terms of the license agreement accompanying it.
 				
 				if (_overriddenStyles[styleProp] != undefined )
 					value = _overriddenStyles[styleProp];
-				else if (styleProp == 'backgroundColor' && isFinite(hostComponent.contentBackgroundColor.value))
-					value = hostComponent.contentBackgroundColor.value;
+				else if (styleProp == 'backgroundColor' && isFinite(hostComponent.panelBackgroundColor.value))
+					value = hostComponent.panelBackgroundColor.value;
 				else if (styleProp == 'borderColor' && isFinite(hostComponent.panelBorderColor.value))
 					value = hostComponent.panelBorderColor.value;
+				else if (styleProp == 'borderVisible' )
+					value = hostComponent.enableBorders.value;
 				else
 					value = super.getStyle(styleProp);
 				
@@ -138,13 +157,11 @@ in accordance with the terms of the license agreement accompanying it.
 				// of the cornerRadius, otherwise you get an odd looking panel
 				
 				// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
-				//if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
-				//return Math.max( cornerRadius, value );
+				if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
+					return Math.max( cornerRadius, value );
 				
 				// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
 				// outside the panel
-				if (styleProp == "headerHeight")
-					return Math.max( cornerRadius, value );
 				
 				return value;
 			} 
@@ -152,38 +169,97 @@ in accordance with the terms of the license agreement accompanying it.
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number) : void
 			{
 				
+				dragCanvas.graphics.clear();
 				
-				// Push backgroundColor and backgroundAlpha directly.
-				// Handle undefined backgroundColor by hiding the background object.
-				if (isNaN(getStyle("backgroundColor")))
-				{
-					background.visible = false;
-				}
-				else
-				{
-					background.visible = true;
-					bgFill.color = getStyle("backgroundColor");
-					bgFill.alpha = getStyle("backgroundAlpha");
-				}
+				if (isNaN(unscaledHeight))
+					return;
 				
-				if (isNaN(getStyle("borderColor")))
-				{
-					border.visible = false;
-				}
-				else
+				// draw invisible line around the inside of the window to prevent resize from also performing selection
+				var borderThickness:int = DraggablePanel.resizeBorderThickness;
+				// make sure borderThickness is even because when it is odd,
+				// flash offsets the line to the right and bottom of the coordinates you give.
+				if (borderThickness % 2 == 1)
+					borderThickness++;
+				dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, 1);
+				// x,y are at half border thickness because the line thickness will be centered at those coordinates
+				dragCanvas.graphics.drawRect(borderThickness/2 - 0.5,
+					borderThickness/2 - 1,
+					unscaledWidth - (borderThickness - 2),
+					unscaledHeight - (borderThickness - 2));
+				
+				
+				
+				if (getStyle("borderVisible") == true)
 				{
 					border.visible = true;
-					var colorCode:Number = getStyle("borderColor");
-					borderStroke.color = colorCode
-					titleBarColor.color = colorCode;
- 					//borderStroke.alpha = getStyle("borderAlpha");
+					topGroup.visible = true;
+					background.left = background.top = background.right = background.bottom = 1;
+					//contents.left = contents.top = contents.right = contents.bottom = 1;
+				}
+				else
+				{
+					border.visible = false;
+					topGroup.visible = false;
+					background.left = background.top = background.right = background.bottom = 0;
+					//contents.left = contents.top = contents.right = contents.bottom = 0;
 				}
 				
-				resizeBorder.depth = this.numElements;
+				//dropShadow.visible = getStyle("dropShadowVisible");
+				
+				var cr:Number = getStyle("cornerRadius");
+				var withControls:Boolean = 
+					(currentState == "disabledWithControlBar" || 
+						currentState == "normalWithControlBar");
+				
+				if (cornerRadius != cr)
+				{
+					cornerRadius = cr;
+					
+					//dropShadow.tlRadius = cornerRadius;
+					//dropShadow.trRadius = cornerRadius;
+					//dropShadow.blRadius = withControls ? cornerRadius : 0;
+					//dropShadow.brRadius = withControls ? cornerRadius : 0;
+					
+					//setPartCornerRadii(topMaskRect, withControls); 
+					setPartCornerRadii(border, withControls); 
+					setPartCornerRadii(background, withControls);                
+				}
+				
+			//	if (bottomMaskRect) setPartCornerRadii(bottomMaskRect, withControls); 
+				
+				borderStroke.color = getStyle("borderColor");
+				borderStroke.alpha = getStyle("borderAlpha");
+				titleBarColor.color = getStyle("borderColor");
+				titleBarColor.alpha = getStyle("borderAlpha");
+				backgroundFill.color = getStyle("backgroundColor");
+				backgroundFill.alpha = getStyle("backgroundAlpha");
+				
+				
+				// modifed from Panel.as code for the titleTextField
+				//getLeftIconAreaWidth... getRightIconAreaWidth should be getRightIconAreaWidth
+				var rightOffset:Number = 10;
+				// the text has to be set each time because truncateToFit() is destructive of the textField's text variable
+				
+				titleDisplay.width = Math.max(0, unscaledWidth - titleDisplay.x - rightOffset - hostComponent.getRightIconAreaWidth());
+				//titleTextField.truncateToFit();
 				
 				super.updateDisplayList(unscaledWidth, unscaledHeight);				
 			}
 			
+			
+			
+			/**
+			 * @private
+			 */  
+			private function setPartCornerRadii(target:Rect, includeBottom:Boolean):void
+			{            
+				target.topLeftRadiusX = cornerRadius;
+				target.topRightRadiusX = cornerRadius;
+				target.bottomLeftRadiusX = includeBottom ? cornerRadius : 0;
+				target.bottomRightRadiusX = includeBottom ? cornerRadius : 0;
+			}
+			
+			private var cornerRadius:Number;
 			
 			
 			protected function skin1_creationCompleteHandler(event:FlexEvent):void
@@ -196,51 +272,67 @@ in accordance with the terms of the license agreement accompanying it.
 	<fx:Declarations>
 		<fx:Component id="userControlButtonFactory">
 			<s:Button/>
-		</fx:Component>
+			
+		</fx:Component>  
 		
 		<fx:Component id="subMenuButtonFactory">
-			<s:Button/>
-		</fx:Component>
+			<s:Button />
+			
+		</fx:Component>  
 	</fx:Declarations>
 	
 	<s:states>
 		<s:State name="normal" />
 		<s:State name="disabled" />
+		<s:State name="normalWithControlBar" stateGroups="withControls" />
+		<s:State name="disabledWithControlBar" stateGroups="withControls" />
 	</s:states>
 	
 	
-	<!--<s:RectangularDropShadow id="dropShadow" blurX="10" blurY="10" 
-							 alpha="1" distance="3" angle="0" color="#222222" left="0" 
-							 top="3" right="3" bottom="0" />-->
-	<!-- drop shadow can't be hittable so all other graphics go in this group -->
-	<s:BitmapImage id="moveImage" source="@Embed('/weave/resources/images/panMode.png')" x="5" y="5" alpha="0.25">
+	<!-- drop shadow can't be hittable so it stays sibling of other graphics -->
+	<!--- @private -->
+	<!--<s:RectangularDropShadow id="dropShadow" blurX="20" blurY="20" alpha="0.32" distance="11" 
+							 angle="90" color="#000000" left="0" top="0" right="0" bottom="0"/>-->
+	
+	
+	<s:Group left="0" right="0" top="0" bottom="0">
+		<!-- top group mask -->
+		<!--- @private -->
+		<!--<s:Group left="1" top="1" right="1" bottom="1" id="topGroupMask" >			
+			<s:Rect id="topMaskRect" left="0" top="0" right="0" bottom="0">
+				<s:fill>
+					<s:SolidColor alpha="0"/>
+				</s:fill>
+			</s:Rect>
+		</s:Group>-->
 		
-	</s:BitmapImage>
-	<s:Group left="0" right="0" top="0" bottom="0" width="100%" height="100%"  >
-				
+		<!-- bottom group mask -->
+		<!--- @private -->
+		<!--<s:Group left="1" top="1" right="1" bottom="1" id="bottomGroupMask" 
+				 includeIn="normalWithControlBar, disabledWithControlBar">			
+			<s:Rect id="bottomMaskRect" left="0" top="0" right="0" bottom="0">
+				<s:fill>
+					<s:SolidColor alpha="0"/>
+				</s:fill>
+			</s:Rect>
+		</s:Group>-->
 		<!-- layer 1: border -->
 		<!--- @private -->
 		<s:Rect id="border" left="0" right="0" top="0" bottom="0" >
-			<s:stroke>
-				<!--- @private -->
-				<s:SolidColorStroke id="borderStroke" weight="2"  /> <!--color="#54585e" -->
+			<s:stroke>				
+				<s:SolidColorStroke id="borderStroke"  weight="2"  /> <!--color="#54585e" -->
 			</s:stroke>
 		</s:Rect>
 		
-		<s:Rect id="resizeBorder" left="0" right="0" top="0" bottom="0" >
-			<s:stroke>
-				<!--- @private -->
-				<s:SolidColorStroke id="resizeBorderStroke" weight="6"   alpha="0"  /> 
-			</s:stroke>
-		</s:Rect>
+		
 		
 		<!-- layer 2: background fill -->
 		<!--Background color and alpha are set from backgroundcolor property and updated in Update display list-->
 		<!--- Defines the appearance of the SkinnableContainer class's background. -->
 		<s:Rect id="background" left="1" right="1" top="1" bottom="1">
 			<s:fill>
-				<!--- @private -->
-				<s:SolidColor id="bgFill"/>
+				<!--- Defines the  PanelSkin class's background fill. The default color is 0xFFFFFF. -->
+				<s:SolidColor id="backgroundFill"/>
 			</s:fill>
 		</s:Rect>
 		
@@ -248,46 +340,59 @@ in accordance with the terms of the license agreement accompanying it.
 		<!--- Contains the vertical stack of titlebar content and controlbar. -->
 		<s:Group left="1" right="1" top="1" bottom="1" id="contents"  >
 			<s:layout >
-				<s:VerticalLayout  gap="0" horizontalAlign="justify"   />
+				<s:VerticalLayout  gap="0"   />
 			</s:layout>
 			
 			<!--- @private -->
-			<s:Group id="topGroup" minWidth="0"  >
+			<s:Group id="topGroup" minWidth="0" width="100%">
 				
 				<!-- layer 0: title bar fill -->
 				<!--- @private -->
-				<s:Rect id="tbFill" left="0" right="0" top="0" bottom="1">
+				<s:Rect id="tbFill" left="0" right="0" top="0" bottom="0">
 					<s:fill>
 						<s:SolidColor id="titleBarColor"/>
 					</s:fill>
 				</s:Rect>
 				
-						
-							
+				<!-- layer 1: title bar highlight -->
+				<!--- @private -->
+				<!--<s:Rect id="tbHilite" left="0" right="0" top="0" bottom="0">
+					<s:stroke>
+						<s:LinearGradientStroke rotation="90" weight="1">
+							<s:GradientEntry color="0xEAEAEA" />
+							<s:GradientEntry color="0xD9D9D9" />
+						</s:LinearGradientStroke>
+					</s:stroke>
+				</s:Rect>-->
+				<!-- layer 2: title bar divider -->
+				<!--- @private -->
+				<!--<s:Rect id="tbDiv" left="0" right="0" height="1" bottom="0">
+					<s:fill>
+						<s:SolidColor color="0xC0C0C0" />
+					</s:fill>
+				</s:Rect>-->
 				<!-- layer 3.3: titleBar -->
-				<s:Group id="titleBar" left="0" right="0" top="0" bottom="0"   >
+				<s:Group id="titleBar" minWidth="0"  width="100%" height="100%" >
 					<!-- layer 3.3.1: titleBar -->
-					<s:HGroup id="titleSettingsHolder" left="4" top="2" bottom="2" 
-							  horizontalAlign="left" verticalAlign="middle" gap="2" minWidth="0" clipAndEnableScrolling="true" >
-						<s:Label id="titleLabel" maxDisplayedLines="1" text="{this.hostComponent.title}"
-								 bottom="0" 
-								 verticalAlign="middle" textAlign="start" fontWeight="bold"
-								 fontSize="11" fontFamily="arial" kerning="off" >
-						</s:Label>
-						
+					<s:HGroup id="titleSettingsHolder" left="{hostComponent.buttonOffsetFromSide}" top="2" bottom="2" right="5"
+							  horizontalAlign="left" verticalAlign="middle" gap="2" minWidth="0"  >
+						<s:Label id="titleDisplay" maxDisplayedLines="1"  bottom="0"  width="100%"
+								 verticalAlign="middle" textAlign="start" 
+								 fontWeight="bold" fontSize="11" fontFamily="arial" />						
 					</s:HGroup> 
 					
 					
 					<!-- layer 3.3.2: controlsHolder -->
-					<s:HGroup id="titleBarControlsHolder" right="4" top="0" bottom="2" gap="2" horizontalAlign="right" verticalAlign="middle" >
-						<s:ToggleButton id="pinButton" skinClass="weave.ui.skins.PinButtonSkin" />
+					<s:HGroup id="titleBarControlsHolder" right="{hostComponent.buttonOffsetFromSide}" top="0" bottom="2" gap="{hostComponent.spaceBetweenButtons}" horizontalAlign="right" verticalAlign="middle" >
+						<s:Button id="pinToBackButton" skinClass="weave.ui.skins.PinToBackButtonSkin" />
+						<s:Button id="pinButton" skinClass="weave.ui.skins.PinButtonSkin"  />
 						<s:Button id="minimizeButton" skinClass="weave.ui.skins.MinimizeButtonSkin"  />
 						<s:ToggleButton id="maximizeButton" skinClass="weave.ui.skins.MaximizeButtonSkin" />
 						<s:Button id="closePanelButton" skinClass="weave.ui.skins.ClosePanelButtonSkin" />
 					</s:HGroup>  
 				</s:Group>
 				
-				                    
+				
 			</s:Group>
 			<!--
 			Note: setting the minimum size to 0 here so that changes to the host component's
@@ -301,7 +406,58 @@ in accordance with the terms of the license agreement accompanying it.
 				</s:layout>
 			</s:Group>
 			
+			<s:Group id="bottomGroup" minWidth="0" minHeight="0"
+					 includeIn="normalWithControlBar, disabledWithControlBar" >
+				
+				<s:Group left="0" right="0" top="0" bottom="0" ><!--mask="{bottomGroupMask}"-->
+					
+					<!-- layer 0: control bar divider line -->
+					<s:Rect left="0" right="0" top="0" height="1" alpha="0.22">
+						<s:fill>
+							<s:SolidColor color="0x000000" />
+						</s:fill>
+					</s:Rect>
+					
+					<!-- layer 1: control bar highlight -->
+					<!--<s:Rect left="0" right="0" top="1" bottom="0">
+						<s:stroke>
+							<s:LinearGradientStroke rotation="90" weight="1">
+								<s:GradientEntry color="0xE5E5E5" />
+								<s:GradientEntry color="0xD8D8D8" />
+							</s:LinearGradientStroke>
+						</s:stroke>
+					</s:Rect>-->
+					
+					<!-- layer 2: control bar fill -->
+					<!--<s:Rect left="1" right="1" top="2" bottom="1">
+						<s:fill>
+							<s:LinearGradient rotation="90">
+								<s:GradientEntry color="0xDADADA" />
+								<s:GradientEntry color="0xC5C5C5" />
+							</s:LinearGradient>
+						</s:fill>
+					</s:Rect>-->
+				</s:Group>
+				<!-- layer 3: control bar -->
+				<!--- @copy spark.components.Panel#controlBarGroup -->
+				<s:Group id="controlBarGroup" left="0" right="0" top="1" bottom="1" minWidth="0" minHeight="0">
+					<s:layout>
+						<s:HorizontalLayout paddingLeft="10" paddingRight="10" paddingTop="7" paddingBottom="7" gap="10" />
+					</s:layout>
+				</s:Group>
+			</s:Group>
+			
 		</s:Group>
+		
+		<s:Group id="dragCanvas" left="0" right="0" top="0" bottom="0" alpha="0">
+			
+		</s:Group>
+		<s:Image id="moveImage" source="@Embed('/weave/resources/images/panMode.png')" toolTip="Drag this icon to move the panel." doubleClickEnabled="true"
+				 x="{DraggablePanel.resizeBorderThickness}" y="{DraggablePanel.resizeBorderThickness}" alpha="0.25">
+			
+		</s:Image>
+		<ui:BusyIndicator id="busyIndicator" targets="{[hostComponent]}"/>
+		
 	</s:Group>	
 	
-</s:Skin>
+</s:SparkSkin>
