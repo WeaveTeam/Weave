@@ -17,21 +17,36 @@
 			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
-    <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
-        <mx:HBox>
-			<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
-			<ui:HelpComponent>
-				The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
-			</ui:HelpComponent>
+    <mx:VBox id="hierarchyDiv" minWidth="{plusButton.width}" height="100%" width="100%"
+			 resize="minusButton.includeInLayout = minusButton.visible = !(plusButton.includeInLayout = plusButton.visible = (hierarchyDiv.width == plusButton.height));"
+			 enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
+        <mx:HBox width="100%" horizontalGap="0">
+			<mx:HBox width="100%" minWidth="0" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}" horizontalScrollPolicy="off">
+				<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
+				<ui:HelpComponent>
+					The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
+				</ui:HelpComponent>
+				<mx:Spacer width="100%"/>
+			</mx:HBox>
+			<mx:Button id="minusButton" width="{minusButton.height}"
+					   toolTip="{lang('Hide Custom Hierarchies')}"
+					   click="hierarchyDiv.width = plusButton.height;"
+					   icon="@Embed(source='/weave/resources/images/minus.png')"/>
+			<mx:Button id="plusButton" width="{plusButton.height}"
+					   toolTip="{lang('Show Custom Hierarchies')}"
+					   click="hierarchyDiv.width = hierarchyDiv.parent.width / 3"
+					   icon="@Embed(source='/weave/resources/images/plus.png')"/>
 		</mx:HBox>
-        <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
-            width="100%" height="100%" entityCache="{Admin.entityCache}"
-            dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
-        <mx:HBox width="100%">
-	        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
-            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
-            <mx:Button label="{lang('Remove')}" click="remove()" enabled="{hierarchyTree.selectedItem}"/>
-        </mx:HBox>
+		<mx:VBox height="100%" width="100%" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}">
+	        <ui:EntityTree id="hierarchyTree" rootFilterType="{Entity.TYPE_HIERARCHY}"
+	            width="100%" height="100%" entityCache="{Admin.entityCache}"
+	            dragEnabled="{!editTablesButton.selected}" dragMoveEnabled="true" dropEnabled="true"/>
+	        <mx:HBox width="100%">
+		        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
+	            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
+	            <mx:Button label="{lang('Remove')}" click="remove()" enabled="{hierarchyTree.selectedItem}"/>
+	        </mx:HBox>
+		</mx:VBox>
     </mx:VBox>
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>

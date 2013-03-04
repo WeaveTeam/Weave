@@ -56,6 +56,7 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
 			use namespace mx_internal;
@@ -159,6 +160,7 @@
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
 				'$': debugHelper,
+				'$$': debugHelper2,
 				'_': {}
 			};
 			
@@ -168,6 +170,13 @@
 				if (arg == null || type != 'object' && type != 'function')
 					return debugLookup(arg);
 				return debugId(arg);
+			}
+			
+			private function debugHelper2(arg:* = null):*
+			{
+				if (isFinite(StandardLib.asNumber(arg)))
+					arg = debugLookup(arg);
+				return DebugUtils.debugDisplayList(arg || stage);
 			}
 			
 			private function getVisApp():Object

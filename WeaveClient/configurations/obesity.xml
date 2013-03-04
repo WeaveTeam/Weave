@@ -232,7 +232,7 @@ wheel</zoom>
             <hierarchy>
               <category title="Data Tables" name="Data Tables">
                 <category title="Obesity" name="Obesity">
-                  <attribute name="State" keyType="US State FIPS Code" dataTable="Obesity" id="174804" title="State" geometryCollection="States"/>
+                  <attribute name="State" keyType="US State FIPS Code" dataTable="obesity-2010" title="State" geometryCollection="States"/>
                 </category>
               </category>
             </hierarchy>
@@ -484,7 +484,7 @@ wheel</zoom>
                           <hierarchy>
                             <category title="Data Tables" name="Data Tables">
                               <category title="Obesity" name="Obesity">
-                                <attribute name="State" keyType="US State FIPS Code" dataTable="Obesity" id="174804" title="State" geometryCollection="States"/>
+                                <attribute name="State" keyType="US State FIPS Code" dataTable="obesity-2010" id="174804" title="State" geometryCollection="States"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1297,7 +1297,7 @@ wheel</zoom>
                           <hierarchy>
                             <category title="Data Tables" name="Data Tables">
                               <category title="Obesity" name="Obesity">
-                                <attribute name="State" keyType="US State FIPS Code" dataTable="Obesity" id="174804" title="State" geometryCollection="States"/>
+                                <attribute name="State" keyType="US State FIPS Code" dataTable="obesity-2010" id="174804" title="State" geometryCollection="States"/>
                               </category>
                             </category>
                           </hierarchy>

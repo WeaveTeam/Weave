@@ -113,6 +113,7 @@
 				
 				_plotter.setAnchorLocations();//normal layout
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true) ;
+				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
 				
 				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawProbeLines);

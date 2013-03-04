@@ -1,9 +1,9 @@
 package weave.beans;
 
-public class JsonRpcRequestModel {
-
-	public String jsonrpc = "2.0";
+public class JsonRpcRequestModel
+{
+	public String jsonrpc;
 	public String method;
-	public String id;
+	public Object id;
 	public Object params;
 }

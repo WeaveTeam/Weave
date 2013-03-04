@@ -19,44 +19,41 @@
 
 package weave.primitives
 {
-	import weave.api.core.ILinkableObject;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.setSessionState;
-	import weave.core.LinkableNumber;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableVariable;
 	
 	/**
 	 * This is a linkable version of a Bounds2D object.
 	 * 
 	 * @author adufilie
 	 */
-	public class LinkableBounds2D implements ILinkableObject
+	public class LinkableBounds2D extends LinkableVariable
 	{
-		public function LinkableBounds2D()
-		{
-		}
-		
-		public const xMin:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const yMin:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const xMax:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const yMax:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		
 		public function setBounds(xMin:Number, yMin:Number, xMax:Number, yMax:Number):void
 		{
 			tempBounds.setBounds(xMin, yMin, xMax, yMax);
-			copyFrom(tempBounds);
+			setSessionState(tempBounds);
 		}
-		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
+		private static const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
 		
 		public function copyFrom(sourceBounds:IBounds2D):void
 		{
-			//TODO: do this manually instead of calling setSessionState
-			setSessionState(this, sourceBounds, false);
+			tempBounds.copyFrom(sourceBounds);
+			setSessionState(tempBounds);
 		}
 		
 		public function copyTo(destinationBounds:IBounds2D):void
 		{
-			destinationBounds.setBounds(xMin.value, yMin.value, xMax.value, yMax.value);
+			tempBounds.reset();
+			if (_sessionState)
+			{
+				tempBounds.xMin = StandardLib.asNumber(_sessionState.xMin);
+				tempBounds.yMin = StandardLib.asNumber(_sessionState.yMin);
+				tempBounds.xMax = StandardLib.asNumber(_sessionState.xMax);
+				tempBounds.yMax = StandardLib.asNumber(_sessionState.yMax);
+			}
+			destinationBounds.copyFrom(tempBounds);
 		}
 	}
 }

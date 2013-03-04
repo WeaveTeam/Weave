@@ -18,25 +18,27 @@
 */
 package weave.data.KeySets
 {
-	import weave.api.core.ILinkableObject;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 
-	public class StringDataFilter implements IKeyFilter, ILinkableObject
+	public class StringDataFilter implements IKeyFilter
 	{
-		public function StringDataFilter()
-		{
-		}
-		
+		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const stringValue:LinkableString = newLinkableChild(this, LinkableString);
+		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return column.getValueFromKey(key, String) == stringValue.value;
+			if (includeMissingKeyTypes.value && key.keyType != column.getMetadata(ColumnMetadata.KEY_TYPE))
+				return true;
+			return !enabled.value || column.getValueFromKey(key, String) == stringValue.value;
 		}
 	}
 }

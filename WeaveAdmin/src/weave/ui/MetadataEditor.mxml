@@ -4,6 +4,7 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%"
+	keyDown="handleKeyDown(event);"
 	creationComplete="handleCreationComplete()">
 	<mx:HBox width="100%">
 		<mx:Label id="title" fontWeight="bold"/>
@@ -20,8 +21,8 @@
     </mx:TabNavigator>
     <mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
-        <mx:Button label="Save" enabled="{isChanged}" click="saveChanges()"/>
-        <mx:Button label="Cancel" enabled="{isChanged}" click="refresh()"/>
+        <mx:Button label="{lang('Save')}" toolTip="{lang('Shortcut: CTRL+Enter')}" enabled="{isChanged}" click="saveChanges()"/>
+        <mx:Button label="{lang('Cancel')}" enabled="{isChanged}" click="refresh()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
@@ -144,7 +145,8 @@
     }
     private function saveChanges():void
     {
-		if (_targetItems == null || _targetItems.length == 0)
+		detectChange();
+		if (!isChanged || _targetItems == null || _targetItems.length == 0)
 			return;
 		
 		var diff:EntityMetadata = new EntityMetadata();
@@ -161,6 +163,14 @@
 	private function handleEntityCache():void
 	{
 		refresh();
+	}
+	
+	private function handleKeyDown(event:KeyboardEvent):void
+	{
+		if (event.keyCode == Keyboard.ENTER && event.ctrlKey)
+		{
+			saveChanges();
+		}
 	}
 ]]>
 </mx:Script>

@@ -666,7 +666,10 @@ package weave.application
 			if (!historySlider)
 			{
 				historySlider = EditorManager.getNewEditor(Weave.history) as UIComponent;
-				this.addChildAt(historySlider, this.getChildIndex(visDesktop));
+				if (historySlider)
+					this.addChildAt(historySlider, this.getChildIndex(visDesktop));
+				else
+					reportError("Unable to get editor for SessionStateLog");
 			}
 			
 			DraggablePanel.adminMode = adminService || getFlashVarEditable();
@@ -688,12 +691,14 @@ package weave.application
 				}
 				
 				// always show menu bar when admin service is present
-				historySlider.alpha = _weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
+				if (historySlider)
+					historySlider.alpha = _weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
 			}
 			// otherwise there is no menu bar, (which normally includes the oiclogopane, so add one to replace it)
 			else
 			{
-				historySlider.visible = historySlider.includeInLayout = false;
+				if (historySlider)
+					historySlider.visible = historySlider.includeInLayout = false;
 				try
 				{
 		   			if (_weaveMenu && this == _weaveMenu.parent)
@@ -867,9 +872,9 @@ package weave.application
 							{
 								var collabTool:CollaborationTool = CollaborationTool.instance;
 								if (collabTool && collabTool.collabService.isConnected)
-									return lang("Open collaboration window")
+									return lang("Open collaboration window");
 								else
-									return lang("Connect to collaboration server (Beta)...")
+									return lang("Connect to collaboration server (Beta)...");
 							},
 							DraggablePanel.openStaticInstance,
 							[CollaborationTool]
@@ -892,7 +897,8 @@ package weave.application
 				
 				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
 			}
-			historySlider.visible = historySlider.includeInLayout = showHistorySlider;
+			if (historySlider)
+				historySlider.visible = historySlider.includeInLayout = showHistorySlider;
 			
 			if (Weave.properties.enableWindowMenu.value || adminService)
 			{
