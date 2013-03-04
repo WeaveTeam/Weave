@@ -19,10 +19,11 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		xmlns="weave.ui.*"
-		creationPolicy="all"
-		horizontalGap="4" verticalAlign="middle">
+		gap="4" verticalAlign="middle">
 	
 	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 	<FontFamilyCombo id="fontFamilyCombo" width="150"/>
@@ -34,9 +35,9 @@
 	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="{lang('Italic')}"/>
 	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="{lang('Underline')}"/>
 
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			public const fontSizeArray:Array = [8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72];
 		]]>
-	</mx:Script>
-</mx:HBox>
+	</fx:Script>
+</s:HGroup>

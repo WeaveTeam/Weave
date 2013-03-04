@@ -27,13 +27,15 @@ DragDropDimensions
 @skolman
 -->
 
-<mx:List xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:List xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 dragEnabled="true"
 		 dragMoveEnabled="true"
 		 initialize="init();"
 		 width="100%" implements="weave.api.core.ILinkableObject" dropEnabled="true">
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.List;
@@ -41,8 +43,8 @@ DragDropDimensions
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
+			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableHashMap;
 			import weave.data.AttributeColumns.DynamicColumn;
 			
@@ -55,7 +57,7 @@ DragDropDimensions
 			
 			private function updateDataProvider():void
 			{
-				this.dataProvider = hashMap.getObjects();
+				this.dataProvider = new ArrayCollection(hashMap.getObjects());
 			}
 			
 			override protected function dragDropHandler(event:DragEvent):void
@@ -89,5 +91,5 @@ DragDropDimensions
 				}
 			}
 		]]>
-	</mx:Script>
-</mx:List>
+	</fx:Script>
+</s:List>

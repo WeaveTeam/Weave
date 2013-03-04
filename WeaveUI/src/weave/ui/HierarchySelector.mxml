@@ -26,19 +26,21 @@ Displays catoegories in a tree view and the attributes in a list.
 -->
 <mx:HDividedBox
 	xmlns:ui ="weave.ui.*"
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	implements="weave.api.core.ILinkableObject"
 	width="100%" height="100%"
 	>
 
-	<mx:VBox width="100%" height="100%" id="categoryVBox" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<s:VGroup width="100%" height="100%" id="categoryVBox"  >
 		<ui:CustomTree width="100%" height="100%" id="categoriesView" showRoot="false" showDataTips="true" dataTipFunction="getCategoryLabel" change="handleCategoryClick(true)"/>
-	</mx:VBox>
-	<mx:VBox width="100%" height="100%" id="attributeVBox" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	</s:VGroup>
+	<s:VGroup width="100%" height="100%" id="attributeVBox"  >
 		<ui:CustomList width="100%" height="100%" id="attributesView" showDataTips="true" dataTipFunction="getLabelForNode" labelFunction="getLabelForNode" mouseDown="if (attributesView.mouseX &lt; attributesView.width - 16) handleAttributeClick(event)" change="handleAttributeClick(event)"/>
-	</mx:VBox>
+	</s:VGroup>
 
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
@@ -370,5 +372,5 @@ Displays catoegories in a tree view and the attributes in a list.
 				return categoriesView.getStyle(item.label);
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </mx:HDividedBox>

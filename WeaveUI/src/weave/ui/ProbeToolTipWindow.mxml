@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+<ui:DraggablePanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:editors="weave.editors.*"
-				   layout="absolute" width="25%" height="20%">
-	<mx:Script>
+				   layout="{new BasicLayout()}" width="25%" height="20%">
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Button;
 			import mx.core.UIComponent;
+			
+			import spark.layouts.BasicLayout;
 			
 			import weave.Weave;
 			import weave.api.getCallbackCollection;
@@ -36,7 +40,7 @@
 				var button:Button = new Button();
 				button.label = lang("Open probe tool tip editor");
 				button.addEventListener(MouseEvent.CLICK, openToolTipEditor);
-				settingsEditor.addChild(button); 
+				settingsEditor.addElement(button); 
 			}
 			
 			override protected function childrenCreated():void
@@ -60,8 +64,8 @@
 			}
 			
 		]]>
-	</mx:Script>
-	<mx:TextArea id="probeTextArea" height="100%" width="100%" editable="false"/>
+	</fx:Script>
+	<s:TextArea id="probeTextArea" height="100%" width="100%" editable="false"/>
 	<ui:ControlPanel>
 		<editors:WindowSettingsEditor id="settingsEditor" target="{this}" />
 	</ui:ControlPanel>

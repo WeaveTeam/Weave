@@ -1,6 +1,5 @@
 package weave.ui
 {
-	import flash.display.Bitmap;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -13,7 +12,6 @@ package weave.ui
 	import mx.controls.Alert;
 	import mx.core.BitmapAsset;
 	import mx.core.IFactory;
-	import mx.core.IFlexModuleFactory;
 	import mx.core.IVisualElementContainer;
 	import mx.core.SpriteAsset;
 	import mx.core.UIComponent;
@@ -23,18 +21,15 @@ package weave.ui
 	import mx.events.ResizeEvent;
 	import mx.managers.PopUpManager;
 	
+	import spark.components.BorderContainer;
 	import spark.components.Button;
 	import spark.components.Group;
 	import spark.components.HGroup;
+	import spark.components.Image;
 	import spark.components.Label;
-	import spark.components.SkinnableContainer;
+	import spark.components.Panel;
 	import spark.components.ToggleButton;
 	import spark.components.supportClasses.ButtonBase;
-	import spark.components.supportClasses.SkinnableComponent;
-	import spark.layouts.BasicLayout;
-	import spark.primitives.BitmapImage;
-	import spark.skins.spark.PanelSkin;
-	import spark.skins.spark.SkinnableContainerSkin;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -61,19 +56,21 @@ package weave.ui
 	
 	
 	
-	public class DraggablePanel extends SkinnableContainer implements ILinkableObject,IDisposableObject
+	public class DraggablePanel extends Panel implements ILinkableObject,IDisposableObject
 	{
 		public function DraggablePanel()
 		{
 			super();
-						
+			this.setStyle("skinClass" , Class(DraggablePanelSkin));
+			styleName="weave-panel-style";
+			
 			this.addEventListener(FlexEvent.PREINITIALIZE,preinitialize);
 			this.addEventListener(Event.ADDED_TO_STAGE,handleAddedToStage);
 			this.addEventListener(Event.REMOVED_FROM_STAGE,handleRemovedFromStage);			
 			this.addEventListener(MouseEvent.ROLL_OVER,handleMouseRollOver);
 			this.addEventListener(MouseEvent.ROLL_OUT,handleMouseRollOut);
 			this.addEventListener(ResizeEvent.RESIZE,handleResize);	
-			this.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
+			this.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);			
 		}
 		
 		
@@ -91,6 +88,8 @@ package weave.ui
 		[SkinPart(required="false")]
 		public var controlBar:Group;
 		
+		
+		
 		//A dynamic skin part that defines userControlButton button
 		[SkinPart(required="true",type="spark.components.Button")]
 		public var userControlButtonFactory:IFactory;
@@ -105,8 +104,7 @@ package weave.ui
 		private var subMenuButton:Button;
 		
 		
-		[SkinPart(required="true")]
-		public var pinButton:ToggleButton;
+		
 		
 		[SkinPart(required="true")]
 		public var minimizeButton:Button;
@@ -118,15 +116,24 @@ package weave.ui
 		public var closePanelButton:Button;
 		
 		[SkinPart(required="true")]
-		public var moveImage:BitmapImage;
+		public var pinButton:Button;
 		
 		[SkinPart(required="true")]
-		public var titleLabel:Label;
-		
-		[Bindable]
-		public var title:String = "";
+		public var pinToBackButton:Button;
 		
 		
+		
+		
+		
+		//raw children replacement
+		[SkinPart(required="true")]
+		public var dragCanvas:Group;
+		
+		[SkinPart(required="true")]
+		public var moveImage:Image;
+		
+		[SkinPart(required="true")]
+		public var busyIndicator:BusyIndicator;		
 		
 		
 		[Embed(source="/weave/resources/images/tinyWrench2.png")]
@@ -147,11 +154,9 @@ package weave.ui
 		private var _resizeTRBLCursor:Class;
 		private var _resizeTRBLBitmap:BitmapAsset = new _resizeTRBLCursor() as BitmapAsset;
 		
+		private var draggablePanelCursorID:int = -1;
+		
 		protected var subMenu:SubMenu;
-		
-		
-		
-		
 		
 		
 		
@@ -177,9 +182,9 @@ package weave.ui
 		public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
 		public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
 		
-		public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMaximized),handleMaximizedChange);
-		public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMinimized),handleMinimizedChange);
-		public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false),handlePinnedChange);
+		public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMaximized),handleMaximizedChange,true);
+		public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMinimized),handleMinimizedChange,true);
+		public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false),handlePinnedChange,true);
 		public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 		
 		public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
@@ -194,8 +199,9 @@ package weave.ui
 		public const enableBorders:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 		
 		public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
-		public const contentBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
+		public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 		public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
+		//callback moved to skin
 		public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString);
 		
 		private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
@@ -203,7 +209,6 @@ package weave.ui
 		
 		
 		
-		private var busyIndicator:BusyIndicator = new BusyIndicator(this as ILinkableObject);
 		
 		
 		
@@ -255,11 +260,13 @@ package weave.ui
 		 */
 		protected function preinitialize(e:FlexEvent = null):void{
 			// nothing here, just a placeholder
+			
 		} 
 		
-		
+				
 		override protected function createChildren():void
 		{
+			
 			
 			super.createChildren();
 			createDynamicSkinParts();
@@ -271,8 +278,9 @@ package weave.ui
 			setStyle("paddingBottom", pad);
 			setStyle("paddingTop", pad);
 			
-			//setupControlButton(subMenuButton, _subMenuIcon, null, "Click here to open menu items for this component.");
-			//setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
+			setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");			
+			setupControlButton(subMenuButton, _subMenuIcon, null, "Click here to open menu items for this component.");
+			setupControlButton(pinToBackButton, null, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 			setupControlButton(pinButton, null, togglePinned, "Click here to pin this window to the stage.") ;
 			setupControlButton(minimizeButton, null, handleMinimizeButtonClick, "Click here to minimize this component.");
 			setupControlButton(maximizeButton, null, toggleMaximized, "Click here to maximize or restore this component.");
@@ -297,7 +305,7 @@ package weave.ui
 				var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
 				addElement(_controlPanel);
 				removeElement(_controlPanel);
-				_controlPanel.tabNavigator.addChild(editor);
+				_controlPanel.tabNavigator.addElement(editor);
 			}
 			
 			if (_controlPanel)
@@ -306,7 +314,6 @@ package weave.ui
 			
 			
 			moveImage.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
-			//moveImage.doubleClickEnabled = true;
 			moveImage.addEventListener(MouseEvent.DOUBLE_CLICK, function(e:Event):void { toggleControlPanel(); });
 			
 			titleBar.doubleClickEnabled = true;
@@ -319,7 +326,7 @@ package weave.ui
 			addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 			addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 			
-			titleLabel.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
+			(titleDisplay as Label).setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 			
 			panelNeedsUpdate();
 			
@@ -348,6 +355,7 @@ package weave.ui
 		
 		
 		private function createDynamicSkinParts():void{
+		
 			userControlButton = createDynamicPartInstance("userControlButtonFactory") as Button;
 			subMenuButton = createDynamicPartInstance("subMenuButtonFactory") as Button;
 			subMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
@@ -399,8 +407,8 @@ package weave.ui
 		
 		private function handleTitleTextFormatChange():void
 		{
-			if (titleLabel)
-				Weave.properties.panelTitleTextFormat.copyToStyle(titleLabel);
+			if (titleDisplay)
+				Weave.properties.panelTitleTextFormat.copyToStyle(titleDisplay as Label);
 		}
 		
 		[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
@@ -655,8 +663,7 @@ package weave.ui
 			if (!parent)
 				return;
 			
-			/*styleChanged("headerHeight");
-			notifyStyleChangeInChildren("headerHeight", true);*/
+			
 			updateMoveIcon();
 			invalidateDisplayList();
 		}
@@ -672,69 +679,9 @@ package weave.ui
 			return enableBorders.value && !Weave.properties.dashboardMode.value;
 		}
 		
-		private var _overriddenStyles:Object = new Object();
-		override public function getStyle(styleProp:String):*
-		{
-			var value:* = null;	
-			
-			// if we override the borders before the window has been intialized, tools display nothing
-			if (initialized && getLinkableOwner(this))
-			{
-				// if we are hiding the borders, return style bogus values that cause the borders to hide
-				if (!borderIsVisible)
-				{
-					// override border styles to hide the borders
-					
-					var borderProps:Array = [
-						"borderThicknessTop",
-						"borderThicknessBottom",
-						"borderThicknessLeft",
-						"borderThicknessRight",
-						"headerHeight",
-						"cornerRadius"
-					];
-					if (borderProps.indexOf(styleProp) >= 0)
-						return 0;
-					
-					if (styleProp == "dropShadowEnabled")
-						return false;
-				}
-			}
-			
-			if (_overriddenStyles[styleProp] != undefined )
-				value = _overriddenStyles[styleProp];
-			else if (styleProp == 'backgroundColor' && isFinite(contentBackgroundColor.value))
-				value = contentBackgroundColor.value;
-			else if (styleProp == 'borderColor' && isFinite(panelBorderColor.value))
-				value = panelBorderColor.value;
-			else
-				value = super.getStyle(styleProp);
-			
-			var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
-				_overriddenStyles["cornerRadius"] :
-				super.getStyle("cornerRadius");
-			
-			var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
-				_overriddenStyles["roundedBottomCorners"] : 
-				super.getStyle("roundedBottomCorners");
-			
-			// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
-			// of the cornerRadius, otherwise you get an odd looking panel
-			
-			// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
-			/*if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
-			return Math.max( cornerRadius, value );*/
-			
-			// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
-			// outside the panel
-			if (styleProp == "headerHeight")
-				return Math.max( cornerRadius, value );
-			
-			return value;
-		}
 		
 		
-		private var draggablePanelCursorID:int = -1;
+		
 		
 		/**
 		 * The parameter to this function is a generic Event to avoid crashing when parent is systemManager.
@@ -774,9 +721,9 @@ package weave.ui
 			if (!pinnableToBack.value)
 				pinnedToBack.value = false;
 			if (pinnedToBack.value)
-				pinButton.selected = true;
+				pinButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
 			else
-				pinButton.selected = false;	
+				pinButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );	
 			updatePinnedPanelOrder();
 			
 			
@@ -788,9 +735,9 @@ package weave.ui
 			if (!pinnableToBack.value)
 				pinnedToBack.value = false;
 			if (pinnedToBack.value)
-				pinButton.selected = true;
+				pinToBackButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
 			else
-				pinButton.selected = false;
+				pinToBackButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 			updatePinnedPanelOrder();
 		}
 		
@@ -803,10 +750,7 @@ package weave.ui
 			maximized.value = !maximized.value;
 		}
 		
-		private function handleCloseButtonClick():void
-		{
-			close();
-		}
+		
 		
 		
 		
@@ -821,21 +765,17 @@ package weave.ui
 			
 			updateBorders();
 		}
-		/* private function handleCloseButtonClick():void
+		
+		private function handleCloseButtonClick():void
 		{
 		if (Weave.properties.showVisToolCloseDialog.value)
-		Alert.show("Are you sure you want to close this window?", "Closing this window...", 1|2, this, handleCloseAlertResult);
+			Alert.show("Are you sure you want to close this window?", "Closing this window...", 1|2, this, handleCloseAlertResult);
 		else
-		removePanel();
-		} */
+			removePanel();
+		} 
 		
 		
-		public function close():void{
-			if (Weave.properties.showVisToolCloseDialog.value)
-				Alert.show("Are you sure you want to close this window?", "Closing this window...", 1|2, this, handleCloseAlertResult);
-			else
-				removePanel();
-		}
+		
 		
 		public function removePanel():void
 		{
@@ -853,10 +793,9 @@ package weave.ui
 						if(panel.parent is IVisualElementContainer){
 							(panel.parent as IVisualElementContainer).removeElement(panel);
 						}
-						else{
+						else{							
 							panel.parent.removeChild(panel);
 						}
-						
 					}
 				}
 				catch (e:Error)
@@ -893,9 +832,18 @@ package weave.ui
 			_topSideResize = false;
 			_bottomResize = false;
 			
-			
+			var childIndex:Number;
+			var lastElementIndex:int;
+			if(parent is IVisualElementContainer){
+				childIndex = (parent as IVisualElementContainer).getElementIndex(this);
+				lastElementIndex = (parent as IVisualElementContainer).numElements -1;
+			}
+			else {
+				childIndex = parent.getChildIndex(this);
+				lastElementIndex = parent.numChildren-1;
+			}
 			// bring panel to front
-			if (parent.getChildIndex(this) < parent.numChildren-1)
+			if (childIndex< lastElementIndex)
 				sendWindowToForeground();
 			
 			
@@ -930,7 +878,7 @@ package weave.ui
 			}
 		}
 		
-		private static const resizeBorderThickness:int = 5;
+		public static const resizeBorderThickness:int = 5;
 		private var tempPoint:Point = new Point();
 		/**
 		 * getResizeStatus
@@ -1016,7 +964,8 @@ package weave.ui
 					hashMap.setNameOrder([hashMap.getName(this)]);
 				else if (parent){
 					if(parent is IVisualElementContainer ){
-						(parent as IVisualElementContainer).setElementIndex(this, parent.numChildren - 1);
+						var visualParent:IVisualElementContainer = parent as IVisualElementContainer;
+						visualParent.setElementIndex(this, visualParent.numElements - 1);
 					}
 					else{
 						parent.setChildIndex(this, parent.numChildren - 1);
@@ -1124,6 +1073,7 @@ package weave.ui
 		}
 		private function handleStageMouseMove(event:MouseEvent):void
 		{
+	
 			// make sure cursors dont keep changing while resizing:  !_resizing
 			if (parent && !_resizing && !minimized.value && !maximized.value)
 			{
@@ -1242,13 +1192,13 @@ package weave.ui
 			
 			buttonBase.setStyle("fontFamily",    "Arial");
 			buttonBase.setStyle("color", 0x000000);
-			buttonBase.setStyle("paddingBottom", 0);
-			buttonBase.setStyle("paddingLeft",   0);
-			buttonBase.setStyle("paddingRight",  0);
-			buttonBase.setStyle("paddingTop",    0);
+			buttonBase.setStyle("paddingBottom", 1);
+			buttonBase.setStyle("paddingLeft",   1);
+			buttonBase.setStyle("paddingRight",  1);
+			buttonBase.setStyle("paddingTop",    1);
 			buttonBase.setStyle("fontSize",      12);
 			buttonBase.setStyle("fontWeight",    "bold");
-			buttonBase.setStyle("cornerRadius",  0);
+			buttonBase.setStyle("cornerRadius",  1);
 			
 			buttonBase.setStyle("fillAlphas", [1,1] );
 			buttonBase.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
@@ -1267,44 +1217,48 @@ package weave.ui
 			buttonBase.height = buttonSize;
 			//buttonBase.buttonMode = true;
 		}
+		//need to be public to access in the skin
+		[Bindable]
+		public var buttonSize:int = 17;	
+		[Bindable]
+		public var buttonOffsetFromSide:int = 5;	
+		[Bindable]
+		public var spaceBetweenButtons:Number = 2;
 		
-		private var buttonSize:int = 17;
-		private var buttonOffsetFromSide:int = 5;
-		
-		private var spaceBetweenButtons:Number = 6;
-		
-		/* public function getTotalIconAreaWidth():int 
+		public function getRightIconAreaWidth():int
 		{
-		return getLeftIconAreaWidth() + getRightIconAreaWidth();
-		} */
-		
-		/* private function getButtonOffsetFromSide():int 
-		{
-		return Math.max(buttonOffsetFromSide, Number(this.getStyle("cornerRadius")/2) );
+			// by default, width of icons is the border only
+			var rightIconWidths:int = buttonOffsetFromSide;
+			for each (var lb:LinkableBoolean in [closeable, minimizable, maximizable, pinnable, pinnableToBack])
+			if (lb.value)
+				rightIconWidths += buttonSize + spaceBetweenButtons;
+			
+			return rightIconWidths;
 		}
-		*/
-		/* private function getLeftIconAreaWidth():int
+		
+		public function getTotalIconAreaWidth():int 
 		{
-		var leftIconWidths:int = getButtonOffsetFromSide();
+			return getLeftIconAreaWidth() + getRightIconAreaWidth();
+		} 
 		
-		if (Weave.properties.enableToolControls.value && _controlPanel)
-		leftIconWidths += buttonSize + spaceBetweenButtons;
-		if(subMenuButton.visible)
-		leftIconWidths += buttonSize + spaceBetweenButtons;
-		
-		return leftIconWidths;
-		} */
-		
-		/* private function getRightIconAreaWidth():int
+		private function getButtonOffsetFromSide():int 
 		{
-		// by default, width of icons is the border only
-		var rightIconWidths:int = buttonOffsetFromSide;
-		for each (var lb:LinkableBoolean in [closeable, minimizable, maximizable, pinnable, pinnableToBack])
-		if (lb.value)
-		rightIconWidths += buttonSize + spaceBetweenButtons;
+			return Math.max(buttonOffsetFromSide, Number(this.getStyle("cornerRadius")/2) );
+		}
 		
-		return rightIconWidths;
-		} */
+		private function getLeftIconAreaWidth():int
+		{
+			var leftIconWidths:int = getButtonOffsetFromSide();
+			
+			if (Weave.properties.enableToolControls.value && _controlPanel)
+			leftIconWidths += buttonSize + spaceBetweenButtons;
+			if(subMenuButton.visible)
+			leftIconWidths += buttonSize + spaceBetweenButtons;
+			
+			return leftIconWidths;
+		} 
+		
+		
 		
 		
 		
@@ -1318,6 +1272,19 @@ package weave.ui
 		
 		private function updateButtons():void
 		{
+			// don't do anything if not added to a parent to avoid errors like the following:
+			/*
+			ArgumentError: Error #2004: One of the parameters is invalid.
+			at flash.display::Graphics/drawRoundRect()
+			at mx.skins::ProgrammaticSkin/drawRoundRect()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\ProgrammaticSkin.as:763]
+			at mx.skins.halo::ButtonSkin/updateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\halo\ButtonSkin.as:217]
+			at mx.skins::ProgrammaticSkin/validateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\ProgrammaticSkin.as:421]
+			at mx.managers::LayoutManager/validateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\managers\LayoutManager.as:622]
+			at mx.managers::LayoutManager/doPhasedInstantiation()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\managers\LayoutManager.as:695]
+			at Function/http://adobe.com/AS3/2006/builtin::apply()
+			at mx.core::UIComponent/callLaterDispatcher2()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\core\UIComponent.as:8744]
+			at mx.core::UIComponent/callLaterDispatcher()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\core\UIComponent.as:8684]
+			*/
 			if(!parent)
 			{
 				callLater(updateButtons);
@@ -1325,7 +1292,7 @@ package weave.ui
 			}
 			
 			// we only need to update title, buttons if the height is > 0, otherwise do not show the buttons
-			/*if (getStyle("headerHeight") <= 0)
+			if (getStyle("headerHeight") <= 0)
 			{
 				userControlButton.visible = false;
 				minimizeButton.visible    = false; 
@@ -1334,7 +1301,7 @@ package weave.ui
 				subMenuButton.visible = false;
 			}
 			else
-			{*/
+			{
 				
 				if ( Weave.properties.enableToolControls.value && _controlPanel )
 				{
@@ -1348,8 +1315,9 @@ package weave.ui
 					userControlButton.visible = true;
 				}
 				else
-				{	if(userControlButton)					
-					userControlButton.visible = false;					
+				{	
+					if(userControlButton)					
+						userControlButton.visible = false;					
 				}
 				
 				if (closeable.value)
@@ -1383,6 +1351,26 @@ package weave.ui
 					minimizeButton.includeInLayout = false;
 					minimizeButton.visible = false;
 				}
+				if (pinnable.value)
+				{
+					pinButton.includeInLayout = true;
+					pinButton.visible = true;
+				}
+				else
+				{
+					pinButton.includeInLayout = false;
+					pinButton.visible = false;
+				}
+				if (pinnableToBack.value)
+				{
+					pinToBackButton.includeInLayout = true;
+					pinToBackButton.visible = true;
+				}
+				else
+				{
+					pinToBackButton.includeInLayout = false;
+					pinToBackButton.visible = false;
+				}
 				
 				if(enableSubMenu.value)
 				{
@@ -1408,7 +1396,7 @@ package weave.ui
 				}
 				
 				
-			//}
+			}
 		}
 		
 		
@@ -1424,23 +1412,7 @@ package weave.ui
 			if (controlBar)
 				controlBar.visible = !minimized.value;
 			
-		
 			
-			if (isNaN(unscaledHeight))
-				return;
-			
-			// draw invisible line around the inside of the window to prevent resize from also performing selection
-			//var borderThickness:int = resizeBorderThickness;
-			// make sure borderThickness is even because when it is odd,
-			// flash offsets the line to the right and bottom of the coordinates you give.
-			/*if (borderThickness % 2 == 1)
-				borderThickness++;
-			_dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, 1);
-			// x,y are at half border thickness because the line thickness will be centered at those coordinates
-			_dragCanvas.graphics.drawRect(borderThickness/2 - 0.5,
-				borderThickness/2 - 1,
-				unscaledWidth - (borderThickness - 2),
-				unscaledHeight - (borderThickness - 2));*/
 		}
 		
 		private var minimizedComponentVersion:MinimizedComponent = null;
@@ -1633,16 +1605,7 @@ package weave.ui
 		private static var resizeTRBLCursor:Class;
 		CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT, resizeTRBLCursor, NaN, NaN);
 		
-		// backwards compatibility
-		[Deprecated(replacement="contentBackgroundColor")] 
-		public function set panelBackgroundColor(value:Number):void
-		{ 
-			if(isNaN(value)){
-				value =0xFFFFFF;
-			}
-			contentBackgroundColor.value = value; 
-		}
-		
+	
 		[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void { panelTitle.value = value; }
 		[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void { enableBorders.value = !value; }
 		[Deprecated(replacement="enableMoveResize")] public function set draggable(value:Boolean):void { enableMoveResize.value = value; }

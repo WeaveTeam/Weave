@@ -24,43 +24,52 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
+				 
 				title="KMeans Clustering editor"
 				width="400" height="300"
-				backgroundColor="#EFF4BC" 
-				layout="horizontal"
+				
+				
 				autoLayout="true" implements="weave.api.ui.IVisTool"
-				paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
-	<mx:HBox>
-		<mx:VBox paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
-			<mx:Label text="(1) Assign variable names and check Attributes KMeans Clustering"/>
-			<mx:TextArea id = "assignForClusterTA" width="50%" height="50%" wordWrap="false"/>
-			<mx:HBox>
-				<mx:Label text=" (2) Number of Clusters:"/>
-				<mx:TextInput id="clusternumberTI"/>
-			</mx:HBox>
-			
-			<mx:HBox>
-				<mx:Label text=" (3) Number of Iterations:"/>
-				<mx:TextInput id="iterationnumberTI"/>
-			</mx:HBox>
-			
-			
-			<mx:Label text=" (4) Select an algorithm for KMeans"/>
-			<mx:CheckBox label="Hartigan-Wong" />
-			<mx:CheckBox label= "Lloyd" />
-			<mx:CheckBox label="Forgy"/>
-			<mx:CheckBox label="MacQueen"/>
-		</mx:VBox>
+				 >
+	<!--
+	Recomendation to use skin to set the appearance of a panel - sanjay
+	backgroundColor="#EFF4BC" -->
+	<layout>
+		<s:HorizontalLayout paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10"/>
 		
-		<mx:VBox>
-			<mx:Label text="KMeans Clustering Results"/>
+	</layout>
+	<s:HGroup>
+		<s:VGroup paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
+			<s:Label text="(1) Assign variable names and check Attributes KMeans Clustering"/>
+			<mx:TextArea id = "assignForClusterTA" width="50%" height="50%" wordWrap="false"/>
+			<s:HGroup>
+				<s:Label text=" (2) Number of Clusters:"/>
+				<s:TextInput id="clusternumberTI"/>
+			</s:HGroup>
+			
+			<s:HGroup>
+				<s:Label text=" (3) Number of Iterations:"/>
+				<s:TextInput id="iterationnumberTI"/>
+			</s:HGroup>
+			
+			
+			<s:Label text=" (4) Select an algorithm for KMeans"/>
+			<s:CheckBox label="Hartigan-Wong" />
+			<s:CheckBox label= "Lloyd" />
+			<s:CheckBox label="Forgy"/>
+			<s:CheckBox label="MacQueen"/>
+		</s:VGroup>
+		
+		<s:VGroup>
+			<s:Label text="KMeans Clustering Results"/>
 			<mx:TextArea width="100%" height="100%"/>
-		</mx:VBox>
+		</s:VGroup>
 	
-	</mx:HBox>
-	<mx:Script>
+	</s:HGroup>
+	<fx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
@@ -244,6 +253,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 
 </DraggablePanel>

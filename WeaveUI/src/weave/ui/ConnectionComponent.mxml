@@ -26,7 +26,9 @@ ConnectionComponent
 @skolman
 -->
 
-<mx:Image xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:Image xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		  xmlns="weave.ui.*"
 		  mouseDown="initDrag(event)"
 		  rollOver="handleMouseOver(event)"
@@ -39,7 +41,7 @@ ConnectionComponent
 		  source="{_notConnected}"
 		  >
 
-<mx:Script>
+<fx:Script>
 	<![CDATA[
 		import mx.core.Application;
 		import mx.core.DragSource;
@@ -220,7 +222,7 @@ ConnectionComponent
 		
 		
 	]]>
-</mx:Script>
+</fx:Script>
 	
 	
-</mx:Image>
+</s:Image>

@@ -23,12 +23,14 @@
 
 
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
-				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:userControls="weave.ui.userControls.*"
 				   title="{lang('Collaboration')}"
-				   creationPolicy="all" layout="absolute">
-	<mx:Script>
+				   creationPolicy="all" layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
@@ -40,12 +42,13 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
+			import spark.layouts.BasicLayout;
+			
 			import org.igniterealtime.xiff.events.OutgoingDataEvent;
 			import org.igniterealtime.xiff.events.RoomEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
@@ -53,6 +56,7 @@
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
+			import weave.api.core.ILinkableHashMap;
 			import weave.core.SessionManager;
 			import weave.core.SessionStateLog;
 			import weave.services.collaboration.CollaborationEvent;
@@ -158,12 +162,14 @@
 			//		went below the height of the log window. 
 			private function handleLogEvent(e:CollaborationEvent):void
 			{
-				log.text += e.getText() + '\n';
+				log.appendText(e.getText() + '\n');
+				//Sanjay - need to remove this once and commnet above once confirmed its working
+				/*log.text += e.getText() + '\n';
 				callLater(
 					function():void {
 						log.verticalScrollPosition = log.maxVerticalScrollPosition;
 					}
-				);
+				);*/
 			}
 			
 			//If the collabService is disconnected for some reason, this ensures the collabUI
@@ -190,50 +196,64 @@
 			
 			private static const REQUIRED:String = lang("Required");
 		]]>
-	</mx:Script>
+	</fx:Script>
 
 	<mx:TabNavigator width="100%" height="100%" id="tabs">
-		<mx:VBox label="Chat" width="100%" height="100%"
-				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
+		<s:NavigatorContent label="Chat" width="100%" height="100%"
+				
 				 id="chat">
+			<s:layout>
+				<s:VerticalLayout  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+			</s:layout>
 			<mx:HDividedBox width="100%" height="100%" enabled="{disconnectButton.enabled}">
-				<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
+				<s:TextArea id="log" width="80%" height="100%" editable="false"/>
 				<mx:List id="users" height="100%" width="20%" minWidth="100" editable="false" dataProvider="{collabService.userList}" />
 			</mx:HDividedBox>
-			<mx:HBox width="100%" enabled="{disconnectButton.enabled}">
-				<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
-				<mx:Button id="sendButton" label="{lang('Send')}" enabled="false" click="sendToRoomButton();"/>
-			</mx:HBox>
-		</mx:VBox>
+			<s:HGroup width="100%" enabled="{disconnectButton.enabled}">
+				<s:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
+				<s:Button id="sendButton" label="{lang('Send')}" enabled="false" click="sendToRoomButton();"/>
+			</s:HGroup>
+		</s:NavigatorContent>
 	
-		<mx:VBox label="{lang('Settings')}" width="100%" height="100%"
-				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
-				 id="settings" verticalScrollPolicy="auto" minHeight="0">
-			<mx:VBox id="serverSettings">
-				<ui:Indent label="{lang('IP:')}">
-					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':REQUIRED}"/>
-				</ui:Indent>
-				<ui:Indent label="{lang('ServerName:')}">
-					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':REQUIRED}"/>
-				</ui:Indent>
-				<ui:Indent label="{lang('Port:')}">
-					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':REQUIRED}"/>
-				</ui:Indent>
-				<ui:Indent label="{lang('Room Name:')}">
-					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':REQUIRED}"/>
-				</ui:Indent>
-				<ui:Indent label="{lang('Username:')}">
-					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':REQUIRED}"/>
-				</ui:Indent>
-			</mx:VBox>
-			<!--<ui:Indent label="{lang('Cursor color:')}">
-				<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
-			</ui:Indent>-->
-			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="{lang('Connect')}" click="connect();" />
-				<mx:Button id="disconnectButton" label="{lang('Disconnect')}" enabled="false" click="collabService.disconnect();"/>
-			</mx:HBox>
-		</mx:VBox>
+		<s:NavigatorContent label="{lang('Settings')}" width="100%" height="100%"
+				
+				 id="settings"  minHeight="0">
+			<s:layout>
+				<s:VerticalLayout  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+			</s:layout>
+			
+			<s:Scroller horizontalScrollPolicy="off" verticalScrollPolicy="auto">
+				<s:Group id="scrollableServerSettings">
+					<s:VGroup id="serverSettings"  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+						<ui:Indent label="{lang('IP:')}">
+							<s:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':REQUIRED}"/>
+						</ui:Indent>
+						<ui:Indent label="{lang('ServerName:')}">
+							<s:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':REQUIRED}"/>
+						</ui:Indent>
+						<ui:Indent label="{lang('Port:')}">
+							<s:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':REQUIRED}"/>
+						</ui:Indent>
+						<ui:Indent label="{lang('Room Name:')}">
+							<s:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':REQUIRED}"/>
+						</ui:Indent>
+						<ui:Indent label="{lang('Username:')}">
+							<s:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':REQUIRED}"/>
+						</ui:Indent>
+					</s:VGroup>
+					<!--<ui:Indent label="{lang('Cursor color:')}">
+					<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
+					</ui:Indent>-->
+					<s:HGroup width="100%">
+						<s:Button id="connectButton" label="{lang('Connect')}" click="connect();" />
+						<s:Button id="disconnectButton" label="{lang('Disconnect')}" enabled="false" click="collabService.disconnect();"/>
+					</s:HGroup>
+				</s:Group>
+			</s:Scroller>
+				
+			
+			
+		</s:NavigatorContent>
 	</mx:TabNavigator>
 	
 </ui:DraggablePanel>

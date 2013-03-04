@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.editors.*" width="500" height="300" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:HBox id="wmsPlotterControls" width="100%" horizontalAlign="center" paddingTop="3" verticalAlign="middle">
-		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" xmlns="weave.editors.*" width="500" height="300" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
+	<s:HGroup id="wmsPlotterControls" width="100%" horizontalAlign="center" paddingTop="3" verticalAlign="middle">
+		<s:BorderContainer borderStyle="solid" width="100%" >
+			<s:layout>
+				<s:VerticalLayout paddingTop="3" horizontalAlign="left"/>
+			</s:layout>
 			<mx:CheckBox id="wmsPreferLowerQuality"
 						 selected="false"
 						 label="{lang('Prefer Lower Quality')}"
@@ -16,8 +21,8 @@
 						 toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
 						 + 'the plotter will fill missing images with lower quality images which cover the same area.'}"
 						 creationComplete="linkBindableProperty(_plotter.displayMissingImage,event.target,'selected')"/>
-			<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
-				<mx:Label text="{lang('Service:')}"/>
+			<s:HGroup width="100%" horizontalAlign="center" verticalAlign="middle">
+				<s:Label text="{lang('Service:')}"/>
 				<!-- for each provider's name, append '(SRS_CODE)' to the end -->
 				<ui:CustomComboBox editable="false" id="wmsLayerService"
 								prompt="{lang('Select a service')}"
@@ -26,26 +31,37 @@
 								toolTip="{lang('Select the WMS provider to use.')}" 
 								creationComplete="setWMSLayerServiceOnPlotterChange()"
 								change="handleWMSProviderChange()"/>
-			</mx:HBox>
+			</s:HGroup>
 			<mx:Box id="customWMSSettings" visible="false" width="100%" height="100%" includeInLayout="false">
-				<ui:IndentTextInput id="wmsURLText" label="URL:"/>
-				<ui:IndentTextInput id="projSRSText" label="Projection SRS:"/>
-				<ui:IndentTextInput id="maxZoomText" label="Maximum Zoom:"/>
-				<ui:IndentTextInput id="creditInfoText" label="Copyright text:"/>
+				<ui:Indent label="URL: ">
+					<s:TextInput id="wmsURLText" />
+				</ui:Indent>
+				<ui:Indent label="Projection SRS: ">
+					<s:TextInput id="projSRSText" />
+				</ui:Indent>
+				<ui:Indent label="Maximum Zoom: ">
+					<s:TextInput id="maxZoomText"/>					
+				</ui:Indent>
+				<ui:Indent label="Copyright text: ">
+					<s:TextInput id="creditInfoText" />					
+				</ui:Indent>
 			</mx:Box>
-		</mx:VBox>
-		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
-			<mx:HBox width="100%" horizontalAlign="center">
-				<mx:Label text="{lang('Month:')}"/>
+		</s:BorderContainer>
+		<s:BorderContainer borderStyle="solid" width="100%" >
+			<s:layout>
+				<s:VerticalLayout  paddingTop="3" horizontalAlign="center" verticalAlign="middle"/>
+			</s:layout>
+			<s:HGroup width="100%" horizontalAlign="center">
+				<s:Label text="{lang('Month:')}"/>
 				<ui:CustomComboBox enabled="{(wmsLayerService.selectedItem as String) == WMSProviders.NASA}" visible="{enabled == true}" editable="false" 
 								dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
 								change="handleStyleInputChange()" id="requestStyles" width="80" 
 								toolTip="{lang('Enter the month of the NASA images.')}"/>
-			</mx:HBox>
-		</mx:VBox>
-	</mx:HBox>
+			</s:HGroup>
+		</s:BorderContainer>
+	</s:HGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import com.modestmaps.mapproviders.BlueMarbleMapProvider;
 			import com.modestmaps.mapproviders.IMapProvider;
@@ -146,5 +162,5 @@
 				}
 			}
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

@@ -1,54 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
-		xmlns="weave.ui.*" 
-		borderColor="#939178"
-		title="Error Log"
-		escapeKeyClosesPanel="true"
-		>
+<DraggablePanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				xmlns="weave.ui.*" 
+				title="Error Log"
+				styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			borderColor: #939178;
+		}
+	</fx:Style>
+	
 	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
-<!--
-	<mx:List id="list" variableRowHeight="true"  width="100%" height="100%">
-		<mx:itemRenderer>
-			<mx:Component>
-			<mx:Box dataChange="handleDataChange();">
-				<mx:TextArea id="textArea" width="100%"
-					editable="false"
-					verticalScrollPolicy="off"
-					/>
-			<mx:Script>
-				<![CDATA[
-					private function handleDataChange():void
-					{
-						textArea.text = (data as Error).name + ': ' + (data as Error).message;
-					}
-				]]>
-			</mx:Script>
-			</mx:Box>
-			</mx:Component>
-		</mx:itemRenderer>
-	</mx:List>
--->
-	<mx:Script>
+	<!--
+	<s:List id="list" variableRowHeight="true"  width="100%" height="100%">
+	<s:itemRenderer>
+	<fx:Component> 
+	<s:ItemRenderer>
+	<mx:Box dataChange="handleDataChange();">
+	<s:TextArea id="textArea" width="100%"
+	editable="false"
+	
+	/>
+	<fx:Script>
+	<![CDATA[
+	private function handleDataChange():void
+	{
+	textArea.text = (data as Error).name + ': ' + (data as Error).message;
+	}
+	]]>
+	</fx:Script>
+	</mx:Box>
+	</s:ItemRenderer> 
+	</fx:Component>  
+	</s:itemRenderer>
+	</s:List>
+	-->
+	<fx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
@@ -71,10 +82,10 @@
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
 					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
-					console.log.text += '\r\r' + ErrorManager.errorToString(error);
+					console.log.appendText( '\r\r' + ErrorManager.errorToString(error));
 				}
-				console.log.validateProperties();
-				console.log.verticalScrollPosition = console.log.maxVerticalScrollPosition;
+				//console.log.validateProperties();
+				//console.log.verticalScrollPosition = console.log.maxVerticalScrollPosition;
 			}
 			
 			private static var _instance:ErrorLogPanel;
@@ -104,5 +115,5 @@
 				instance.restorePanel();
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </DraggablePanel>

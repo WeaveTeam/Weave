@@ -1,42 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
 <!---
 @author adufilie
 -->
-<mx:VBox xmlns:ui ="weave.ui.*"
-	xmlns:mx="http://www.adobe.com/2006/mxml" 
-	xmlns="weave.ui.*"
-	implements="weave.api.core.ILinkableObject"
-	width="{NaN}" height="{NaN}"
-	>
-		<mx:Label text="{lang('Override colors for specific records')}" fontWeight="bold"/>
-		<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
-			<mx:itemRenderer>
-				<mx:Component>
-					<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off">
+<s:NavigatorContent xmlns:ui ="weave.ui.*"
+		  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns="weave.ui.*"
+		  implements="weave.api.core.ILinkableObject"
+		  width="{NaN}" height="{NaN}"
+		  >
+	<s:Label text="{lang('Override colors for specific records')}" fontWeight="bold"/>
+	<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
+		<mx:itemRenderer>
+			<fx:Component> 
+				<s:MXItemRenderer>
+					<s:HGroup verticalAlign="middle" >
 						<ui:CustomColorPicker id="colorPicker" change="handleColor()"/>
-						<mx:Label id="lbl" width="100%"/>
-						<mx:Script>
+						<s:Label id="lbl" width="100%"/>
+						<fx:Script>
 							<![CDATA[
 								import weave.api.data.IQualifiedKey;
 								import weave.utils.ProbeTextUtils;
@@ -62,7 +65,7 @@
 										
 										toolTip = probeText;
 										lbl.text = probeText.split('\n')[0]; // first line only
-											
+										
 										colorPicker.selectedColor = outerDocument.getColor(key);
 									}
 									else
@@ -72,20 +75,21 @@
 									}
 								}
 							]]>
-						</mx:Script>
-					</mx:HBox>
-				</mx:Component>
-			</mx:itemRenderer>
-		</mx:List>
-		<mx:HBox width="100%">
-			<ui:Indent label="{lang('Change color for selected records:')}">
-				<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
-				<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
-			</ui:Indent>
-			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Reset selected')}" click="removeSelectedColors()"/>
-		</mx:HBox>
-	<mx:Script>
+						</fx:Script>
+					</s:HGroup>
+				</s:MXItemRenderer> 
+			</fx:Component>  
+		</mx:itemRenderer>
+	</mx:List>
+	<s:HGroup width="100%">
+		<ui:Indent label="{lang('Change color for selected records:')}">
+			<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
+			<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
+		</ui:Indent>
+		<s:Spacer width="100%"/>
+		<s:Button label="{lang('Reset selected')}" click="removeSelectedColors()"/>
+	</s:HGroup>
+	<fx:Script>
 		<![CDATA[
 			import weave.utils.AsyncSort;
 			import mx.collections.ICollectionView;
@@ -139,9 +143,10 @@
 			 * The format for each row in the CSV is:  keyType,localName,color
 			 */
 			public const recordColors:LinkableString = newLinkableChild(this, LinkableString, handleRecordColors);
-
+			
 			private var _recordColorTable:Array = []; // parsed CSV
 			private var _keyToColorMap:Dictionary = new Dictionary(); // IQualifiedKey -> CSV row index
+
 			
 			// called when recordColors change
 			private function handleRecordColors():void
@@ -198,6 +203,7 @@
 					_recordColorTable.splice(indices[i], 1);
 				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
 			}
+
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:NavigatorContent>

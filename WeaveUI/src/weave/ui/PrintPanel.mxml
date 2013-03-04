@@ -26,7 +26,9 @@
 	
 <mx:TitleWindow 
     xmlns:ui ="weave.ui.*"
-    xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	layout="vertical" 
     title="{lang('Print / Export Image')}"
     showCloseButton="true"
@@ -34,10 +36,10 @@
     borderAlpha="0.95"
     borderThickness="2"
     
-    horizontalScrollPolicy="off" verticalScrollPolicy="off"
+     
     >
     
-    <mx:Script>
+    <fx:Script>
 	<![CDATA[
 		import mx.core.UIComponent;
 		import mx.graphics.ImageSnapshot;
@@ -217,24 +219,26 @@
 		private var delay:int = 2000;
 		
    		]]>
-	</mx:Script>
-	<mx:VBox id="printVbox"
-			 horizontalAlign="center"
-			 clipContent="true"
-			 mouseEnabled="false"
-			 backgroundColor="0xFFFFFF">
-		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
+	</fx:Script>
+	<s:BorderContainer id="printVbox" mouseEnabled="false">
+		<s:backgroundFill>
+			<s:SolidColor color="0xFFFFFF"/>
+		</s:backgroundFill>
+		<s:layout>
+			<s:VerticalLayout  horizontalAlign="center" clipAndEnableScrolling="true"/>
+		</s:layout>
+		<s:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
 				  visible="{showTitle.selected}" includeInLayout="{showTitle.selected}"/>
-		<mx:Image id="exportImage" source="{_imageSource}" complete="scalePrintVbox();"/>
+		<s:Image id="exportImage" source="{_imageSource}" complete="scalePrintVbox();"/>
 		<ui:OICLogoPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
-	</mx:VBox>
+	</s:BorderContainer>
 	
 	<mx:ControlBar horizontalAlign="center">
-		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true" change="scalePrintVbox()"/>
-		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');" change="scalePrintVbox()"/>
-		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
-		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>
-		<mx:Button id="saveButton" label="{lang('Save as Image')}" click="handleSaveAsImageClick(event)"/>
-		<mx:Button id="cancelButton" label="{lang('Cancel')}" click="PopUpManager.removePopUp(this)"/>
+		<s:CheckBox id="showTitle" label="{lang('Title')}" selected="true" change="scalePrintVbox()"/>
+		<s:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');" change="scalePrintVbox()"/>
+		<!--<s:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
+		<s:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>
+		<s:Button id="saveButton" label="{lang('Save as Image')}" click="handleSaveAsImageClick(event)"/>
+		<s:Button id="cancelButton" label="{lang('Cancel')}" click="PopUpManager.removePopUp(this)"/>
 	</mx:ControlBar>
 </mx:TitleWindow> 

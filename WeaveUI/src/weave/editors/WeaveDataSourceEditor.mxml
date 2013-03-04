@@ -1,42 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox 
-	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns="weave.editors.*"
-	verticalScrollPolicy="off"
-	horizontalScrollPolicy="off"
-	creationPolicy="all"
+<s:VGroup 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns="weave.editors.*"	
 	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_weaveDataSource ? 'Edit' : 'Add') + ' Weave Data Source' )}"/>
+	<s:Label id="editorTitle" fontWeight="bold" text="{lang( (_weaveDataSource ? 'Edit' : 'Add') + ' Weave Data Source' )}"/>
 	<ui:Indent label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" width="100%"/>
+		<s:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL')}">
-		<mx:TextInput id="url" width="100%"/>
+		<s:TextInput id="url" width="100%"/>
 	</ui:Indent>
-	<mx:Spacer height="20"/>
-	<mx:Label text="{lang('* = required')}"/>
-	<mx:Script>
+	<s:Spacer height="20"/>
+	<s:Label text="{lang('* = required')}"/>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			
@@ -78,5 +77,5 @@
 			}
 			
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

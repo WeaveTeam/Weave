@@ -1,41 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <ui:ControlPanel  xmlns="weave.ui.*"
-				  xmlns:mx="http://www.adobe.com/2006/mxml"
+				  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" 
+				  xmlns:mx="library://ns.adobe.com/flex/mx"
 				  xmlns:ui="weave.ui.*" 
-				  layout="absolute"
-				  title="{lang('Color Controller')}"
-				  backgroundColor="#EFF4BC"
-				  >
-	<mx:VBox id="VizControlsPanel" label="{lang('Binning')}">
+				  layout="{new BasicLayout()}"
+				  title="{lang('Color Controller')}"				  
+				  styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace ui "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundColor: #EFF4BC;
+		}
+	</fx:Style>
+	
+	<s:NavigatorContent id="VizControlsPanel" label="{lang('Binning')}">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
 		<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
-	</mx:VBox>
-	<mx:VBox id="advControlsPanel" label="{lang('Color scale')}">
+	</s:NavigatorContent>
+	<s:NavigatorContent id="advControlsPanel" label="{lang('Color scale')}">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
 		<ui:ColorRampEditor id="cRampEditor"/>
-	</mx:VBox>
+	</s:NavigatorContent>
 	<ui:ColorOverrideEditor id="colorOverrideEditor" label="{lang('Color specific records')}"/>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.linkSessionState;
 			import weave.data.AttributeColumns.BinnedColumn;
@@ -59,5 +78,5 @@
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:ControlPanel>

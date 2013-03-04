@@ -22,22 +22,23 @@ package weave.visualization.tools
 	import flash.events.Event;
 	
 	import mx.binding.utils.BindingUtils;
-	import mx.containers.Canvas;
-	import mx.containers.VBox;
 	import mx.core.UIComponent;
+	
+	import spark.components.Group;
+	import spark.components.VGroup;
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
-	import weave.api.ui.ILinkableContainer;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -55,6 +56,7 @@ package weave.visualization.tools
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
+	import weave.utils.SparkUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	import weave.visualization.plotters.SimpleAxisPlotter;
@@ -70,6 +72,7 @@ package weave.visualization.tools
 		{
 			// Don't put any code here.
 			// Put code in the constructor() function instead.
+			super();
 		}
 
 		override protected function constructor():void
@@ -90,9 +93,9 @@ package weave.visualization.tools
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
 		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 
-		private var toolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
+		private var toolVBox:VGroup; // simpleVisToolVBox contains titleLabel and visCanvas
 		private var visTitle:AutoResizingTextArea; // For display of title inside the window area
-		protected var visCanvas:Canvas; // For linkDisplayObjects
+		protected var visCanvas:Group; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
 		protected var layerListComponent:LayerListComponent;
 		protected var simpleAxisEditor:SimpleAxisEditor;
@@ -108,10 +111,10 @@ package weave.visualization.tools
 			
 			createdChildren = true;
 			
-			toolVBox = new VBox()
+			toolVBox = new VGroup()
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
-			toolVBox.setStyle("verticalGap", 0);
+			toolVBox.setStyle("gap", 0);
 			toolVBox.setStyle("horizontalAlign", "center");
 			
 			visTitle = new AutoResizingTextArea();
@@ -124,20 +127,20 @@ package weave.visualization.tools
 			visTitle.percentWidth = 100;
 			updateTitleLabel();
 			
-			visCanvas = new Canvas();
+			visCanvas = new Group();
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
-			toolVBox.addChild(visCanvas);
+			toolVBox.addElement(visCanvas);
 			
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
-			var flexChildren:Array = getChildren();
-			removeAllChildren();
+			var flexChildren:Array = SparkUtils.getAllElement(this);
+			removeAllElements();
 			
 			for ( var i:int = 0; i < flexChildren.length; i++ )
-				visCanvas.addChild(flexChildren[i]);
+				visCanvas.addElement(flexChildren[i]);
 			
-			this.addChild(toolVBox);
+			this.addElement(toolVBox);
 			
 			layerListComponent = new LayerListComponent();
 			layerListComponent.visualization = visualization;
@@ -197,8 +200,8 @@ package weave.visualization.tools
 		private function updateToolWindowSettings():void
 		{
 			creationPolicy = "all"; // this prevents ui components from being null in childrenCreated()
-			horizontalScrollPolicy = "off";
-			verticalScrollPolicy = "off";
+			/*horizontalScrollPolicy = "off";
+			verticalScrollPolicy = "off";*/
 		}
 		
 		private function handleTitleToggleChange():void
@@ -211,12 +214,12 @@ package weave.visualization.tools
 			if (!enableTitle.value)
 			{
 				if (toolVBox == visTitle.parent)
-					toolVBox.removeChild(visTitle);
+					toolVBox.removeElement(visTitle);
 			}
 			else
 			{
 				if (toolVBox != visTitle.parent)
-					toolVBox.addChildAt(visTitle,0);
+					toolVBox.addElementAt(visTitle,0);
 			}
 		}
 		
@@ -262,7 +265,7 @@ package weave.visualization.tools
 		private function calculateScale():Number
 		{
 			var childScale:Number = 1;
-			for each(var child:UIComponent in getChildren())
+			for each(var child:UIComponent in SparkUtils.getAllElement(this))
 			{
 				var widthScale:Number  = Math.min(1, (child.width  / child.scaleX) / MIN_TOOL_WIDTH);
 				var heightScale:Number = Math.min(1, (child.height / child.scaleY) / MIN_TOOL_HEIGHT);

@@ -1,38 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HBox
-    xmlns:mx="http://www.adobe.com/2006/mxml"
-    xmlns="weave.ui.*"
+<s:HGroup
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns="weave.ui.*"
 	verticalAlign="middle"
-    horizontalScrollPolicy="off"
-	verticalScrollPolicy="off"
-	creationPolicy="all"
 	width="100%"
 	addedToStage="handleAddedToStage()"
-    >
-    <mx:Script>
-    	<![CDATA[
+	>
+	<fx:Script>
+		<![CDATA[
 			import mx.controls.Label;
-
+			
 			private static const _groups:Dictionary = new Dictionary(true);
 			
 			/**
@@ -47,17 +46,17 @@
 			
 			private var _group:* = undefined;
 			private var _grouped:Boolean = true;
-    	
+			
 			/**
 			 * @inheritDoc
 			 */
-    		override protected function createChildren():void
-    		{
-    			super.createChildren();
+			override protected function createChildren():void
+			{
+				super.createChildren();
 				
 				labelTextAlign = "right";
-    			addChildAt(labelComponent, 0);
-    		}
+				addElementAt(labelComponent, 0);
+			}
 			
 			/**
 			 * @private
@@ -127,16 +126,16 @@
 					var max:Number = 0;
 					var item:Indent;
 					for each (item in array)
-						max = Math.max(max, item.labelComponent.measuredWidth);
+					max = Math.max(max, item.labelComponent.measuredWidth);
 					for each (item in array)
-						item.labelComponent.width = max;
+					item.labelComponent.width = max;
 					
 					if (_group is IndentGroup)
 						(_group as IndentGroup).measuredIndent = max;
 				}
 				super.validateSize(recursive);
 			}
-
+			
 			/**
 			 * This controls the textAlign style of the label component.
 			 */
@@ -148,21 +147,24 @@
 			/**
 			 * Set this to ungroup the Indent component and specify an explicit indentation.
 			 */
-    		[Bindable] public function get indent():int
+			[Bindable] public function get indent():int
 			{
 				return labelComponent.width;
 			}
-    		public function set indent(value:int):void
+			public function set indent(value:int):void
 			{
 				group = null; // remove from group
 				labelComponent.width = value;
 			}
-    		
+			
+			
+			//removed overirde as HGroup unlike Hbox doesnt support label - sanjay
+			
 			/**
 			 * This is the label that will appear to the left of the other children of the Indent component.
 			 */
-    		override public function get label():String { return labelComponent.text; }
-    		override public function set label(value:String):void { labelComponent.text = value; }
-    	]]>
-    </mx:Script>
-</mx:HBox>
+			public function get label():String { return labelComponent.text; }
+			public function set label(value:String):void { labelComponent.text = value; }
+		]]>
+	</fx:Script>
+</s:HGroup>

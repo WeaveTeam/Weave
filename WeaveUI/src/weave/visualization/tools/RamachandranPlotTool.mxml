@@ -21,11 +21,16 @@
 -->
 
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			   layout = "absolute" >
-	<mx:Script>
+			  >
+	<layout>
+		<s:BasicLayout/>
+	</layout>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
@@ -499,9 +504,9 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
-	<mx:Button  label="{lang('Histogram')}" click="popupHistogram()" bottom="10" right="5"/>
+	<s:Button  label="{lang('Histogram')}" click="popupHistogram()" bottom="10" right="5"/>
 	
 	<ui:ControlPanel>
 		<mx:Panel id="RamachandranControls" 
@@ -514,16 +519,16 @@
 				  width="100%" 
 				  borderAlpha="0.2" 
 				  borderStyle="none">
-			<mx:HBox right="35" bottom="5">
-				<mx:TextInput id="PDBid"/>
-				<mx:Button id="sendPDBidBtn" label="{lang('Send')}" click="sendPDBidBtn_clickHandler(event)"/>
+			<s:HGroup right="35" bottom="5">
+				<s:TextInput id="PDBid"/>
+				<s:Button id="sendPDBidBtn" label="{lang('Send')}" click="sendPDBidBtn_clickHandler(event)"/>
 				
-			</mx:HBox>
+			</s:HGroup>
 			<mx:TextArea editable="false" id="sequenceTA" text="{sequence}" width="100%" height="80%" mouseUp="sequenceTA_mouseUpHandler(event)"/>
-			<mx:HBox width="100%" height="20%">
-				<mx:TextInput id="motif" width="80%" height="100%"/>
-				<mx:Button id="motifSearchBtn" label="Go" click="motifSearchBtn_clickHandler(event)"/>
-			</mx:HBox>
+			<s:HGroup width="100%" height="20%">
+				<s:TextInput id="motif" width="80%" height="100%"/>
+				<s:Button id="motifSearchBtn" label="Go" click="motifSearchBtn_clickHandler(event)"/>
+			</s:HGroup>
 			
 			
 		</mx:Panel>
@@ -537,15 +542,20 @@
 				  width="100%" 
 				  borderAlpha="0.2" 
 				  borderStyle="none">
-			<mx:VBox width="100%" 
-					 verticalGap="0">
-				<mx:VBox width="100%" 
+			<s:VGroup width="100%" 
+					 gap="0">
+				<s:VGroup width="100%" 
 						 id="scatterplotControls">
-					<mx:HBox width="100%" 
+					<s:BorderContainer width="100%" 
 							 borderStyle="inset" 
-							 backgroundColor="0xFFFFFF" 
-							 backgroundAlpha="0.7">
-						<mx:Label text="{lang('Point Opacity:')}" 
+							 >
+						<s:backgroundFill>
+							<s:SolidColor color="0xFFFFFF" alpha="0.7"/>
+						</s:backgroundFill>
+						<s:layout>
+							<s:HorizontalLayout/>
+						</s:layout>
+						<s:Label text="{lang('Point Opacity:')}" 
 								  color="0x000000" fontSize="12" 
 								  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 						
@@ -555,12 +565,16 @@
 									dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 									minimum="0.3" maximum="1.0" value="1.0"
 									liveDragging="true"/>
-					</mx:HBox>
-					<mx:VBox borderStyle="inset"
-							 backgroundColor="0xFFFFFF" 
-							 backgroundAlpha="0.7"
-							 width="100%">
-						<mx:HBox width="100%"> 
+					</s:BorderContainer>
+					<s:BorderContainer borderStyle="inset"
+							 		   width="100%">
+						<s:backgroundFill>
+							<s:SolidColor color="0xFFFFFF" alpha="0.7"/>
+						</s:backgroundFill>
+						<s:layout>
+							<s:VerticalLayout/>
+						</s:layout>
+						<s:HGroup width="100%"> 
 							<mx:CheckBox id="sizeByCheck" 
 										 fontSize="12" 
 										 label="{lang('Size by: ENABLED')}" 
@@ -568,11 +582,11 @@
 										 textRollOverColor="0x339900"
 										 selected="true" 
 										 click="handleSizeByTextChange(event)"/>
-							<mx:Label id="sizeByColumnLabel" enabled="{sizeByCheck.selected}" color="0xffffff" width="100%"  fontSize="9"/>
-						</mx:HBox>
+							<s:Label id="sizeByColumnLabel" enabled="{sizeByCheck.selected}" color="0xffffff" width="100%"  fontSize="9"/>
+						</s:HGroup>
 						
-						<mx:HBox width="100%"> 
-							<mx:Label text="{lang('Point Size:')}" 
+						<s:HGroup width="100%"> 
+							<s:Label text="{lang('Point Size:')}" 
 									  color="0x000000" 
 									  fontSize="12"/>
 							<mx:HSlider id="sizeBySlider"
@@ -584,17 +598,17 @@
 										tickInterval="1"
 										change="handleSizeSliderChange(event)"
 										mouseDown="event.stopImmediatePropagation();"/>
-						</mx:HBox>
+						</s:HGroup>
 						<ui:DynamicColumnComponent label="{lang('x column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
 						<ui:DynamicColumnComponent label="{lang('y column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
 						<ui:DynamicColumnComponent label="{lang('color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 						<ui:DynamicColumnComponent label="{lang('size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.screenRadius"/>
 						<ui:DynamicColumnComponent label="{lang('Histogram Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
-					</mx:VBox>
-				</mx:VBox>
-				<mx:HBox width="100%">
-				</mx:HBox>
-			</mx:VBox>
+					</s:BorderContainer>
+				</s:VGroup>
+				<s:HGroup width="100%">
+				</s:HGroup>
+			</s:VGroup>
 		</mx:Panel>
 		
 	</ui:ControlPanel>

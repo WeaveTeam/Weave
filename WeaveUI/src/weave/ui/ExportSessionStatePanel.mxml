@@ -20,39 +20,41 @@
 */
 -->
 <ui:DraggablePanel xmlns="weave.ui.settings.*" 
-				   xmlns:mx="http://www.adobe.com/2006/mxml" 
+				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 				   xmlns:ui="weave.ui.*" 
 				   sessionPanelCoordsAsPercentages="false"
 				   minWidth="300"
 				   percentWidth="NaN" percentHeight="NaN"
 				   title="{lang('Export Session State')}"
 				   >
-	<mx:VBox paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
-		<mx:Label text="{lang('Choose Options')}"/>
-		<mx:CheckBox label="{lang('Dashboard mode')}" toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
+	<s:VGroup paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+		<s:Label text="{lang('Choose Options')}"/>
+		<s:CheckBox label="{lang('Dashboard mode')}" toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
-		<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
+		<s:CheckBox label="{lang('Enable control panels and attribute selection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
-		<mx:CheckBox label="{lang('Show menubar')}" toolTip="{lang('Check this box to show the top menu bar.')}"
+		<s:CheckBox label="{lang('Show menubar')}" toolTip="{lang('Check this box to show the top menu bar.')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
-		<mx:CheckBox label="{lang('Show copyright')}"
+		<s:CheckBox label="{lang('Show copyright')}"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-		<mx:CheckBox id="saveHistoryCheckBox"
+		<s:CheckBox id="saveHistoryCheckBox"
 					 label="{lang('Save history')}"
 					 selected="false"
 					 enabled="{!saveXMLCheckBox.selected}"
 					 visible="false"/>
-		<mx:CheckBox id="saveXMLCheckBox"
+		<s:CheckBox id="saveXMLCheckBox"
 					 label="{lang('Save as XML')}"
 					 selected="false"
 					 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
 					 />
-	</mx:VBox>
+	</s:VGroup>
 	<mx:ControlBar>
-		<mx:Button label="{lang('Export')}" click="export()" toolTip="{lang('Export session with these options')}"/>
-		<mx:Button label="{lang('Cancel')}" click="removePanel()"/>
+		<s:Button label="{lang('Export')}" click="export()" toolTip="{lang('Export session with these options')}"/>
+		<s:Button label="{lang('Cancel')}" click="removePanel()"/>
 	</mx:ControlBar>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.formatters.DateFormatter;
 			import mx.utils.StringUtil;
@@ -140,5 +142,5 @@
 					(lb as LinkableBoolean).value = oldValues[lb];
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:DraggablePanel>

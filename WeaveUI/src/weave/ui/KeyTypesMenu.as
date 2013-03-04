@@ -16,8 +16,8 @@ package weave.ui
 			menuLabel.text = lang("Select Keytype");
 			comboBox.toolTip=lang('The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.');
 			comboBox.editable= true; 
-			addChild(menuLabel);
-			addChild(comboBox);
+			addElement(menuLabel);
+			addElement(comboBox);
 			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange,true);
 		}
 		

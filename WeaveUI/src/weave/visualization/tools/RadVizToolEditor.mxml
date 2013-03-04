@@ -25,14 +25,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author spurushe
 -->
 <mx:TabNavigator xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   implements="weave.api.ui.ILinkableObjectEditor"
 			   label="RadViz settings"
 			   >
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.ListEvent;
@@ -274,16 +276,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
+	<fx:Declarations>
+		<s:RadioButtonGroup id="normalizationType"/>
+	</fx:Declarations>
 	
-	
-		<mx:VBox id="attributesPanel" label="Attributes">
+		<s:NavigatorContent id="attributesPanel" label="Attributes">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:DynamicColumnComponent  visTool="{_target}" id="colorComponent" label="Color" />
 			<ui:DynamicColumnComponent visTool="{_target}" id="size" label="Size" />
 			<ui:ColumnListComponent visTool="{_target}" id="columnList" label="Anchor Dimensions"/>
-		</mx:VBox>		
+		</s:NavigatorContent>		
 		
-		<mx:VBox id="VizControlsPanel" label="Appearance">
+		<s:NavigatorContent id="VizControlsPanel" label="Appearance">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:Indent label="Point opacity"
 					   width="100%"
 					   toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).">
@@ -296,7 +306,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>
-			<mx:Spacer/>
+			<s:Spacer/>
 			<ui:Indent label="Point radius"
 					   width="100%"
 					   toolTip="Use this control to adjust point radius">
@@ -307,43 +317,47 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							minimum="1" maximum="10" 
 							liveDragging="true"/>
 			</ui:Indent>
-			<mx:Spacer/>
+			<s:Spacer/>
 			<ui:Indent label="Label angle" width="100%">
 				<mx:HSlider id="labelAngleSlider" width="100%"
 					snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 					dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 					creationComplete="linkBindableProperty(_target._anchorPlotter.labelAngleRatio, event.target, 'value')"/>
 			</ui:Indent>
-		</mx:VBox>
+		</s:NavigatorContent>
 		
-		<mx:VBox id="advancedPanel" label="Advanced">			
-			<mx:VBox>
-				<mx:HBox
+		<s:NavigatorContent id="advancedPanel" label="Advanced">	
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:VGroup>
+				<s:HGroup
 					creationComplete="linkBindableProperty(_target._plotter.localNormalization,normalizationType,'selectedValue')">
-					<mx:Label text="Normalization method:"
+					<s:Label text="Normalization method:"
 							  toolTip="Select the type of normalization used to calculate record coordinates"/>
-					<mx:RadioButtonGroup id="normalizationType"/>
-					<mx:RadioButton groupName="normalizationType"
+					
+					
+					<s:RadioButton groupName="normalizationType"
 									id="localNorm"
 									value="true"
 									label="Local"
 									/>
-					<mx:RadioButton groupName="normalizationType"
+					<s:RadioButton groupName="normalizationType"
 									id="globalNorm"
 									value="false"
 									label="Global"
 									/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:HBox>
-					<mx:CheckBox id="jitterckbx" label="Apply Jitter:" 
+				</s:HGroup>
+			</s:VGroup>
+			<s:Spacer height="10"/>
+			<s:VGroup>
+				<s:HGroup>
+					<s:CheckBox id="jitterckbx" label="Apply Jitter:" 
 							  toolTip="Use this control to change record coordinates by a random number"/>
-					<mx:Button label="Randomize Jitter"
+					<s:Button label="Randomize Jitter"
 							   toolTip="Use this control to reseed jitter with new random values"
 							   click="_target._plotter.setNewRandomJitterColumn();"/>
-					<mx:Label text="Jitter Level:" 
+					<s:Label text="Jitter Level:" 
 							  enabled="{jitterckbx.selected}"
 							  toolTip="Use slider to adjust the jitter level"/>					
 					<mx:HSlider id="jitterSlider"
@@ -356,26 +370,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								showDataTip="false"
 								minimum="-19" maximum="-10"
 								liveDragging="true"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:Label text="Dimensional Anchor Reordering Algorithm:"
+				</s:HGroup>
+			</s:VGroup>
+			<s:Spacer height="10"/>
+			<s:VGroup>
+				<s:Label text="Dimensional Anchor Reordering Algorithm:"
 						  toolTip="Use this control to reorder the dimensional anchors"/>					
 				<mx:ComboBox id="algorithmComboBox" dataProvider="{_target._plotter.algorithms}"
 							 creationComplete="linkBindableProperty(_target._plotter.currentAlgorithm,event.target,'selectedItem')"/>
-				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
-					<mx:Label text="Number of Iterations"/>
-					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
+				<s:HGroup enabled="{algorithmComboBox.selectedIndex == 0}">
+					<s:Label text="Number of Iterations"/>
+					<s:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
 								  creationComplete="linkBindableProperty(_target._plotter.iterations, event.target, 'text')"/>
-				</mx:HBox>
-			</mx:VBox>
-		</mx:VBox>
-	<mx:VBox id="cdlayout" label="CDLayout" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-		<mx:HBox>
+				</s:HGroup>
+			</s:VGroup>
+		</s:NavigatorContent>
+	<s:NavigatorContent id="cdlayout" label="CDLayout"  >
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<s:HGroup>
 			
 		
-		<mx:VBox width="45%">
+		<s:VGroup width="45%">
 					<ui:Indent  width="10%" label="Class Discriminator">
 						<ui:DynamicColumnComponent  visTool="{_target}" id="classDis" />	
 					</ui:Indent>
@@ -385,78 +402,78 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					<mx:ComboBox id="layoutAlgoCB" change="layoutAlgoCB_changeHandler(event)">
 						<mx:ArrayCollection>
-							<mx:String>Select an option</mx:String>
-							<mx:String>t-statistic = variance</mx:String>
-							<mx:String>t-statistic != variance</mx:String>
-							<mx:String>Class Distinction</mx:String>
+							<fx:String>Select an option</fx:String>
+							<fx:String>t-statistic = variance</fx:String>
+							<fx:String>t-statistic != variance</fx:String>
+							<fx:String>Class Distinction</fx:String>
 						</mx:ArrayCollection>
 					</mx:ComboBox>
 					</ui:Indent>
 			
-			<mx:Spacer height="10"/>
+			<s:Spacer height="10"/>
 		
-				<mx:CheckBox label="Use Threshold" id="useThresholdCB"  click="useThresholdCB_clickHandler(event)" />
+				<s:CheckBox label="Use Threshold" id="useThresholdCB"  click="useThresholdCB_clickHandler(event)" />
 			<ui:Indent>
-				<mx:VBox>
-					<mx:CheckBox id = "tStatCB" label="t-statistic" enabled="false"/>
-					<mx:CheckBox id="pValCB" label="p-value" enabled="false"/>
+				<s:VGroup>
+					<s:CheckBox id = "tStatCB" label="t-statistic" enabled="false"/>
+					<s:CheckBox id="pValCB" label="p-value" enabled="false"/>
 					
-				</mx:VBox>
+				</s:VGroup>
 				
 			</ui:Indent>
-			<mx:HBox>
-				<mx:Label  id="thrValLabel" text="Threshold Value" enabled="false"/>
-				<mx:TextInput  width="20%" id="thresholdValue" enabled="false"/>
-				<mx:Button id="DOcd" label="Run Algorithm" click="DOcdButton_clickHandler(event)"/>
-			</mx:HBox>
+			<s:HGroup>
+				<s:Label  id="thrValLabel" text="Threshold Value" enabled="false"/>
+				<s:TextInput  width="20%" id="thresholdValue" enabled="false"/>
+				<s:Button id="DOcd" label="Run Algorithm" click="DOcdButton_clickHandler(event)"/>
+			</s:HGroup>
 			
-			<mx:CheckBox label="Use Bonferroni Correction" id="useBonferroniCB" />
+			<s:CheckBox label="Use Bonferroni Correction" id="useBonferroniCB" />
 			<ui:Indent>
-				<mx:VBox>
-					<mx:CheckBox label="Use the number of active columns"/>
-					<mx:CheckBox label="Custom Value"/>
-					<mx:TextInput id="customValue"/>
+				<s:VGroup>
+					<s:CheckBox label="Use the number of active columns"/>
+					<s:CheckBox label="Custom Value"/>
+					<s:TextInput id="customValue"/>
 					
-					<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
-				</mx:VBox>
+					<s:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
+				</s:VGroup>
 				
 			</ui:Indent>
-		</mx:VBox>
+		</s:VGroup>
 	
-		<mx:VBox >
+		<s:VGroup >
 			<ui:Indent label="Class Column">
 				<mx:ComboBox>
 					<mx:ArrayCollection>
-						<mx:String>Positive Influences only</mx:String>
-						<mx:String>Negative Influences only</mx:String>
-						<mx:String>Both influences</mx:String>
+						<fx:String>Positive Influences only</fx:String>
+						<fx:String>Negative Influences only</fx:String>
+						<fx:String>Both influences</fx:String>
 					</mx:ArrayCollection>
 				</mx:ComboBox>
 			</ui:Indent>
 			
-			<mx:CheckBox label="Limit Number of Columns Assigned"/>
-			<mx:HBox>
-				<mx:Label text= "Columns per class"/>
-				<mx:TextInput id="columninClassTI"/>
-			</mx:HBox>
+			<s:CheckBox label="Limit Number of Columns Assigned"/>
+			<s:HGroup>
+				<s:Label text= "Columns per class"/>
+				<s:TextInput id="columninClassTI"/>
+			</s:HGroup>
 			
-			<mx:Spacer height="20"/>
+			<s:Spacer height="20"/>
 			
-			<mx:CheckBox id="tInTableCB" label="Show t-statistic in table"/>
-			<mx:CheckBox  id="pInTableCB" label="Show p values in table"/>
+			<s:CheckBox id="tInTableCB" label="Show t-statistic in table"/>
+			<s:CheckBox  id="pInTableCB" label="Show p values in table"/>
 			
-			<mx:Spacer height="20"/>
-			<mx:Label text="Display with Axis Names"/>
+			<s:Spacer height="20"/>
+			<s:Label text="Display with Axis Names"/>
 			<ui:Indent>
-				<mx:CheckBox id="tInRadvizCB" label="t-statistic"/>
-				<mx:CheckBox id="pInRadvizCB" label="p-value"/>	
+				<s:CheckBox id="tInRadvizCB" label="t-statistic"/>
+				<s:CheckBox id="pInRadvizCB" label="p-value"/>	
 				
 			</ui:Indent>
 			
 			
-		</mx:VBox>
-		</mx:HBox>
-	</mx:VBox>
+		</s:VGroup>
+		</s:HGroup>
+	</s:NavigatorContent>
 		
 	
 </mx:TabNavigator>

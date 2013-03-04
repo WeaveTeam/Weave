@@ -35,59 +35,71 @@ JRITextEditor
 @spurushe
 @sanbalag
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 				 
 				title="JRI Script UI testing"
-				x="15%" width="80%" y="15%" height="80%"
-				backgroundColor="#EFF4BC" 
-				layout="horizontal"
+				x="15%" width="80%" y="15%" height="80%"				
+				layout="{new HorizontalLayout()}"
 				autoLayout="true" implements="weave.api.ui.IVisTool"
-				>
+				styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundColor: #EFF4BC;
+		}
+	</fx:Style>
 	
-	
-	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
-		<mx:HBox width="100%" height="100%">
-			<mx:VBox width="20%" height="100%" verticalGap="0">
-				<mx:Label text="{lang('(1) Select data to use in your script')}"/>
-				<mx:CheckBox id="columnAsList" label="{lang('Use Columns as R-List(HashMap)')}"/>
+	<s:HGroup width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+		<s:HGroup width="100%" height="100%">
+			<s:VGroup width="20%" height="100%" gap="0">
+				<s:Label text="{lang('(1) Select data to use in your script')}"/>
+				<s:CheckBox id="columnAsList" label="{lang('Use Columns as R-List(HashMap)')}"/>
 				<ColumnListComponent id="inputColumnList" label="{lang('Input columns')}" hashMap="{variables}" width="100%" height="100%"   />			
-			</mx:VBox>
-			<mx:VBox width="45%" height="100%">
+			</s:VGroup>
+			<s:VGroup width="45%" height="100%">
 				<mx:TabNavigator id="tn"  width="100%" height="100%">
-					<mx:VBox label="{lang('User Script')}" width="100%" height="100%" verticalGap="0">
+					<s:NavigatorContent label="{lang('User Script')}" width="100%" height="100%">
+						<s:layout>
+							<s:VerticalLayout  gap="0"/>
+						</s:layout>
 						<LabelWithWordWrap text="{lang('(2) Assign variables to your data (Separate by commas)')}"/>
 						<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
 						
-						<mx:Spacer height="{padding}"/>
+						<s:Spacer height="{padding}"/>
 						
 						<LabelWithWordWrap text="{lang('(3) Enter a script (type or paste in)')}"/>			
 						<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
 						
-						<mx:Spacer height="{padding}"/>
+						<s:Spacer height="{padding}"/>
 						
 						<LabelWithWordWrap text="{lang('(4) Input a plot script (Optional)')}"/>
 						<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
 						
-						<mx:Spacer height="{padding}"/>
+						<s:Spacer height="{padding}"/>
 						
 						<LabelWithWordWrap text="{lang('(5) Specify script outputs to display, separated by commas')}"/>
 						<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
 						
-						<mx:Spacer height="{padding}"/>
+						<s:Spacer height="{padding}"/>
 						
 						
 						
-						<mx:Spacer height="{padding}"/>
+						<s:Spacer height="{padding}"/>
 						
 						<LabelWithWordWrap text="{lang('(7) Export your script for later use')}"/>
-						<mx:HBox>
-							<mx:Button id="exportBtn" label="{lang('Export')}" buttonDown="export_buttonDownHandler(event)"/>
-							<mx:Button id="importBtn" label="{lang('Import')}" buttonDown="import_buttonDownHandler(event)"/>	
-						</mx:HBox>						
-					</mx:VBox>
+						<s:HGroup>
+							<s:Button id="exportBtn" label="{lang('Export')}" buttonDown="export_buttonDownHandler(event)"/>
+							<s:Button id="importBtn" label="{lang('Import')}" buttonDown="import_buttonDownHandler(event)"/>	
+						</s:HGroup>						
+					</s:NavigatorContent>
 					
-					<mx:VBox label="{lang('Built-in Script')}" width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}" >
-						
+					<s:NavigatorContent label="{lang('Built-in Script')}" width="100%" height="100%"  >
+						<s:layout>
+							<s:VerticalLayout paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"/>
+						</s:layout>
 						<mx:HDividedBox width="100%" height="100%">
 							<mx:Box backgroundColor="#000000" height="100%">
 								<mx:LinkBar direction="vertical" id="scriptMenu"  dataProvider="{scripSection}" itemClick="linkBar_itemClickHandler(event)"    
@@ -99,14 +111,14 @@ JRITextEditor
 											themeColor="#64B7BC" 
 											disabledColor="#00ffff"  verticalAlign="middle" textAlign="left" fontWeight="bold"    disabledOverlayAlpha="1"/>
 							</mx:Box>
-							<mx:Canvas width="100%" height="100%">
+							<s:Group width="100%" height="100%">
 								<mx:ViewStack  paddingTop="20" paddingLeft="20" paddingRight="20" id="scripSection" resizeToContent="true" backgroundColor="white" barColor="black">			
 									<mx:Form label="{lang('Clusters')}" width="100%" height="100%">
 										<mx:FormItem label="{lang('Number of Clusters')}">
-											<mx:TextInput id="clusterNumber"/>
+											<s:TextInput id="clusterNumber"/>
 										</mx:FormItem>				
 										<mx:FormItem label="{lang('Number of Iteration')}">
-											<mx:TextInput id="iterationNumber"/>
+											<s:TextInput id="iterationNumber"/>
 										</mx:FormItem>											
 									</mx:Form>
 									<mx:Form label="{lang('Correlation')}" width="100%" height="100%">
@@ -120,36 +132,36 @@ JRITextEditor
 										
 									</mx:Form>
 								</mx:ViewStack>
-							</mx:Canvas>
+							</s:Group>
 						</mx:HDividedBox>
 						
 						
-					</mx:VBox>
+					</s:NavigatorContent>
 				</mx:TabNavigator>
 				<LabelWithWordWrap text="{lang('(6) Run your script on the server')}"/>
-				<mx:HBox>
-					<mx:Button id="B2" label="{lang('Run script')}"  click="viewAndSendbuttonClickHandler(event)"/>
-					<mx:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
-					<mx:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:VBox width="35%" height="100%" verticalGap="0">
-				<mx:VBox width="100%" height="50%" verticalGap="0">
-					<mx:Label text="{lang('Result')}"/>
+				<s:HGroup>
+					<s:Button id="B2" label="{lang('Run script')}"  click="viewAndSendbuttonClickHandler(event)"/>
+					<s:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
+					<s:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup width="35%" height="100%" gap="0">
+				<s:VGroup width="100%" height="50%" gap="0">
+					<s:Label text="{lang('Result')}"/>
 					<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
-				</mx:VBox>
-				<mx:VBox width="100%" height="50%" verticalGap="0" id="resultDataGrid">
+				</s:VGroup>
+				<s:VGroup width="100%" height="50%" gap="0" id="resultDataGrid">
 					<mx:TabNavigator id="tableTabs" width="100%" height="100%"/>
-					<!--<mx:Label id="objName" text=""/>
+					<!--<s:Label id="objName" text=""/>
 					<mx:DataGrid id="dg" width="100%" height="100%"/>-->
-				</mx:VBox>
+				</s:VGroup>
 				
-			</mx:VBox>
+			</s:VGroup>
 			
-		</mx:HBox>
+		</s:HGroup>
 		
-	</mx:HBox>
-	<mx:Script>
+	</s:HGroup>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.controls.DataGrid;
@@ -161,13 +173,15 @@ JRITextEditor
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
+			import spark.layouts.HorizontalLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
@@ -381,7 +395,7 @@ JRITextEditor
 							var imagePanel:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
 							var image:Image = new Image();
 							image.source = RresultArray[index].value;
-							imagePanel.addChild(image);
+							imagePanel.addElement(image);
 							imagePanel.panelWidth.value = "500";
 							imagePanel.panelHeight.value = "500";
 						}						
@@ -411,7 +425,7 @@ JRITextEditor
 							var imagePanel2:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
 							var image2:Image = new Image();
 							image2.source = RresultArray[p].value;
-							imagePanel2.addChild(image2);
+							imagePanel2.addElement(image2);
 							imagePanel2.panelWidth.value = "500";
 							imagePanel2.panelHeight.value = "500";
 						}
@@ -436,7 +450,8 @@ JRITextEditor
 			private function displayResult(resultName:String,obj:Object,inGrid:Boolean = false):String{
 				var resultString:String = "";
 				if(inGrid){
-					var vbox:VBox = new VBox();
+					var vbox:NavigatorContent = new NavigatorContent();
+					vbox.layout = new VerticalLayout();
 					vbox.percentWidth =100;
 					vbox.percentHeight = 100;								
 					vbox.label = resultName;
@@ -444,8 +459,8 @@ JRITextEditor
 					dg.dataProvider = ResultUtils.resultAsArrayCollection(obj) ;
 					dg.percentWidth =100;
 					dg.percentHeight = 100;
-					vbox.addChild(dg);
-					tableTabs.addChild(vbox);
+					vbox.addElement(dg);
+					tableTabs.addElement(vbox);
 				}
 				else{
 					resultString = resultString + resultName + ":\n" + ObjectUtil.toString(obj) +"\n";							
@@ -505,6 +520,6 @@ JRITextEditor
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 </DraggablePanel>

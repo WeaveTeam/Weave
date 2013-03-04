@@ -19,11 +19,14 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*"
-			   layout="absolute">
-	<mx:Script>
+			   layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.linkSessionState;
@@ -218,7 +221,10 @@
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
+	<fx:Declarations>
+		<s:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
+	</fx:Declarations>
 	
 	<mx:TextArea id="marginLabel"
 				 visible="{marginLabel.height > 0}"
@@ -233,27 +239,35 @@
 				 toolTip="{lang('{0}\r\tClick here to select the attribute used for {1}.', marginLabelText, marginLabelMode)}"/>
 
 	<ui:ControlPanel>
-			<mx:VBox label="{lang('Tick Marks')}">
-				<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
-				<mx:HBox width="100%" verticalAlign="middle">
-					<mx:RadioButton id="simpleRadio" label="{lang('Equally Spaced')}" groupName="typeGroup" selected="true" width="100%"/>
-					<mx:Label text="{lang('Number of Radiuses:')}"/>
-					<mx:NumericStepper enabled="{simpleRadio.selected}" minimum="2" maximum="50" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
+			<s:NavigatorContent label="{lang('Tick Marks')}">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:RadioButton id="simpleRadio" label="{lang('Equally Spaced')}" groupName="typeGroup" selected="true" width="100%"/>
+					<s:Label text="{lang('Number of Radiuses:')}"/>
+					<s:NumericStepper enabled="{simpleRadio.selected}" minimum="2" maximum="50" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
 					<ui:HelpComponent label="{simpleRadio.label}">
 						Example: If your data is between 0 and 100 and you specify 3 radiuses, the following radiuses will be created: 0, 50, 100
 					</ui:HelpComponent>
-				</mx:HBox>
+				</s:HGroup>
 				
-				<mx:HRule width="100%"/>
+				<s:Line width="100%">
+					<s:stroke>
+						<s:SolidColor />
+					</s:stroke>
+				</s:Line>
 				
-				<mx:HBox width="100%" verticalAlign="middle">
-					<mx:RadioButton id="customRadio" label="{lang('Custom Radiuses')}" groupName="typeGroup" width="100%"/>
-					<mx:TextInput enabled="{customRadio.selected}" id="circleRadiusesTextInput" width="100%"/>
+				
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:RadioButton id="customRadio" label="{lang('Custom Radiuses')}" groupName="typeGroup" width="100%"/>
+					<s:TextInput enabled="{customRadio.selected}" id="circleRadiusesTextInput" width="100%"/>
 					<ui:HelpComponent label="{customRadio.label}">
 						Enter comma-separated custom break values.
 					</ui:HelpComponent>
-				</mx:HBox>
-			</mx:VBox>
+				</s:HGroup>
+			</s:NavigatorContent>
 		
 			<mx:Panel id="attributesPanel" 
 					  label="{lang('Display Preferences')}"
@@ -266,7 +280,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}"/>
+				<s:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}"/>
 			</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

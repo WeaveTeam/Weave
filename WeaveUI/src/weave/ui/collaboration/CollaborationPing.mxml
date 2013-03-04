@@ -17,15 +17,36 @@
 	You should have received a copy of the GNU General Public License
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off"
-		   width="50" height="25" backgroundAlpha="1" toolTip="{'Connection Speed: '+ strength}">
-	<mx:HBox width="100%" height="100%" horizontalGap="1" horizontalScrollPolicy="off" verticalAlign="bottom">
-		<mx:Canvas id="bar1" width="{width/5}" height="{1*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-		<mx:Canvas id="bar2" width="{width/5}" height="{2*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-		<mx:Canvas id="bar3" width="{width/5}" height="{3*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-		<mx:Canvas id="bar4" width="{width/5}" height="{4*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
-	</mx:HBox>
-	<mx:Script>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   width="50" height="25" toolTip="{'Connection Speed: '+ strength}">
+	<s:backgroundFill>
+		<s:SolidColor alpha="1"/>
+	</s:backgroundFill>
+	<s:HGroup width="100%" height="100%" gap="1"  verticalAlign="bottom">
+		<s:Line id="bar1" width="{width/5}" height="{1*height/4}">
+			<s:stroke>
+				<s:SolidColorStroke id="bar1Stroke"  color="0x000000" weight="1" />
+			</s:stroke>
+		</s:Line>
+		<s:Line id="bar2" width="{width/5}" height="{2*height/4}">
+			<s:stroke>
+				<s:SolidColorStroke id="bar2Stroke" color="0x000000" weight="1"/>
+			</s:stroke>
+		</s:Line>
+		<s:Line id="bar3" width="{width/5}" height="{3*height/4}" >
+			<s:stroke>
+				<s:SolidColorStroke id="bar3Stroke" color="0x000000" weight="1"/>
+			</s:stroke>
+		</s:Line>
+		<s:Line id="bar4" width="{width/5}" height="{4*height/4}"  >
+			<s:stroke>
+				<s:SolidColorStroke id="bar4Stroke" color="0x000000" weight="1"/>
+			</s:stroke>
+		</s:Line>
+	</s:HGroup>
+	<fx:Script>
 		<![CDATA[
 			
 			[Bindable] private var strength:String;
@@ -63,27 +84,27 @@
 				}
 				switch( bars )
 				{
-					case 4:	bar4.setStyle("backgroundAlpha", 1); bar4.setStyle("backgroundColor", color);
-					case 3: bar3.setStyle("backgroundAlpha", 1); bar3.setStyle("backgroundColor", color);
-					case 2: bar2.setStyle("backgroundAlpha", 1); bar2.setStyle("backgroundColor", color);
-					case 1: bar1.setStyle("backgroundAlpha", 1); bar1.setStyle("backgroundColor", color); break;
+					case 4:	bar4Stroke.alpha = 1; bar4Stroke.color = color;
+					case 3: bar3Stroke.alpha = 1; bar3Stroke.color = color;
+					case 2: bar2Stroke.alpha = 1; bar2Stroke.color = color;
+					case 1: bar1Stroke.alpha = 1; bar1Stroke.color = color; break;
 					default: 
 					{
-						bar4.setStyle("backgroundColor", color); bar4.setStyle("backgroundAlpha", 1);
-						bar3.setStyle("backgroundColor", color); bar3.setStyle("backgroundAlpha", 1);
-						bar2.setStyle("backgroundColor", color); bar2.setStyle("backgroundAlpha", 1);
-						bar1.setStyle("backgroundColor", color); bar1.setStyle("backgroundAlpha", 1);
+						bar4Stroke.color = color; bar4Stroke.alpha = 1;
+						bar3Stroke.color = color; bar3Stroke.alpha = 1;
+						bar2Stroke.color = color; bar2Stroke.alpha = 1;
+						bar1Stroke.color = color; bar1Stroke.alpha = 1;
 						break;
 					}
 				}
 			}
 			private function clearBars():void
 			{
-				bar4.setStyle("backgroundAlpha", 0);
-				bar3.setStyle("backgroundAlpha", 0);
-				bar2.setStyle("backgroundAlpha", 0);
-				bar1.setStyle("backgroundAlpha", 0);
+				bar4Stroke.alpha = 0;
+				bar3Stroke.alpha = 0;
+				bar2Stroke.alpha = 0;
+				bar1Stroke.alpha = 0;
 			}
 		]]>
-	</mx:Script>
-</mx:Canvas>
+	</fx:Script>
+</s:BorderContainer>

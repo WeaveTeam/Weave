@@ -1,32 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-	     layout="absolute"
-		 xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
-	<mx:Script>
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:ui="weave.ui.*" 
+			   layout="{new BasicLayout()}"
+			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.CursorManager;
+			
+			import spark.layouts.BasicLayout;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -39,7 +43,7 @@
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
-		
+			
 			WeaveAPI.registerImplementation(IVisTool, GaugeTool, lang("Gauge Tool"));
 			
 			private function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
@@ -57,7 +61,7 @@
 				super.constructor();
 				initializePlotters(GaugePlotter, false);
 				
-			
+				
 				//plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange);
 				
 				// by default this tool only displays the probed records.
@@ -66,7 +70,7 @@
 				//mainLayerSettings.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				mainLayerSettings.selectionFilter.removeObject();
 				mainLayerSettings.probeFilter.removeObject();
-
+				
 				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
@@ -131,13 +135,12 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<mx:TextArea id="marginLabel"
 				 fontWeight="bold" click="handleMarginLabelClick()" 
 				 paddingLeft="5" paddingRight="5"
 				 text="{marginLabelText}" width="100%"
-				 rollOver="showLinkCursor();"
-				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				 rollOver="showLinkCursor();"				 
 				 rollOut="CursorManager.removeAllCursors()"
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"
@@ -145,12 +148,18 @@
 				 textAlign="center"
 				 toolTip="{lang('{0}\n\tClick here to select a different attribute.', marginLabelText)}"/>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes for Gauge')}" >
+		<s:NavigatorContent id="attributesPanel" label="{lang('Attributes for Gauge')}" >
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
-		</mx:VBox>
-		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
-			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);" toolTip="{lang('Click to hide the title.')}"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="advControlsPanel" label="{lang('Advanced')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);" toolTip="{lang('Click to hide the title.')}"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
-		</mx:VBox>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
 </SimpleVisTool>

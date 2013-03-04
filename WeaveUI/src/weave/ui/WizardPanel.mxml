@@ -24,35 +24,36 @@
 	@author adufilie
 -->
 <DraggablePanel
-		xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		xmlns="weave.ui.*"
-		layout="absolute"
-		title="{viewStack.label}"
-		borderAlpha="1"
-		borderColor="#939178"
-		borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
-		verticalScrollPolicy="off"
-		horizontalScrollPolicy="off"
-		roundedBottomCorners="true"
+		layout="{new BasicLayout()}"
+		title="{viewStack.label}"		
 		percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
 		sessionPanelCoordsAsPercentages="false"
 		escapeKeyClosesPanel="true"
 		>
+	<!--recommendation use skin to set the appaerance of the tool
+	borderAlpha="1"
+	borderColor="#939178"
+	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+	roundedBottomCorners="true"-->
 
 	<mx:Box id="viewStackContainer"
-			verticalScrollPolicy="off"
-			horizontalScrollPolicy="off"/>
+			
+			/>
 	
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
-		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}"/>
-		<mx:Spacer width="100%"/>
-		<mx:Button id="backButton" label="{lang('Back')}" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
-		<mx:Button id="nextButton" label="{lang('Next')}" enabled="{viewStack.nextEnabled &amp;&amp; (viewStack.selectedIndex &lt; viewStackNumChildren - 1)}" click="viewStack.next()"/>
-		<mx:Button id="finishButton" label="{lang('Finish')}" visible="{viewStack.finishEnabled}" enabled="{viewStack.finishEnabled}" click="viewStack.finish()" emphasized="true"/>
-		<mx:Button id="cancelButton" label="{lang('Close')}" click="viewStack.cancel();"/>
+		<s:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}"/>
+		<s:Spacer width="100%"/>
+		<s:Button id="backButton" label="{lang('Back')}" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
+		<s:Button id="nextButton" label="{lang('Next')}" enabled="{viewStack.nextEnabled &amp;&amp; (viewStack.selectedIndex &lt; viewStackNumChildren - 1)}" click="viewStack.next()"/>
+		<s:Button id="finishButton" label="{lang('Finish')}" visible="{viewStack.finishEnabled}" enabled="{viewStack.finishEnabled}" click="viewStack.finish()" emphasized="true"/>
+		<s:Button id="cancelButton" label="{lang('Close')}" click="viewStack.cancel();"/>
 	</mx:ControlBar>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
 			
@@ -65,6 +66,8 @@
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
+			
+			import spark.layouts.BasicLayout;
 			
 			override protected function constructor():void
 			{
@@ -83,7 +86,7 @@
 			public function setWizardViewStack(viewStack:WizardViewStack):void
 			{
 				this.viewStack = viewStack;
-				viewStackContainer.addChild(viewStack);
+				viewStackContainer.addElement(viewStack);
 				viewStack.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):void { viewStackNumChildren = viewStack.numChildren; });
 				
 			}
@@ -103,8 +106,8 @@
 //				return wiz;
 			}
 		]]>
-	</mx:Script>
-	<mx:Style>
+	</fx:Script>
+	<fx:Style>
 		.weavePanelStyle, .weaveSystemStyle {
 			borderAlpha: 0.95;
 			alpha: 1.0;
@@ -139,5 +142,5 @@
 			fontWeight: normal;
 			color: white;
 		}
-	</mx:Style>
+	</fx:Style>
 </DraggablePanel>

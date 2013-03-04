@@ -20,15 +20,17 @@
 */
 -->
 <Indent
-    xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
     xmlns="weave.ui.*"
     >
     <TextInputWithPrompt id="input" prompt="{prompt}" text="{text}" change="handleInputChange()" displayAsPassword="{displayAsPassword}" width="100%"/>
 	
-	<mx:Metadata>
+	<fx:Metadata>
 		[Event(name="change", type="flash.events.Event")]
-	</mx:Metadata>
-    <mx:Script>
+	</fx:Metadata>
+    <fx:Script>
     	<![CDATA[
 			[Bindable] public var prompt:String = "";
     		[Bindable] public var text:String = "";
@@ -68,5 +70,5 @@
 					input[prop] = _pendingInputProperties[prop];
 			}
     	]]>
-    </mx:Script>
+    </fx:Script>
 </Indent>

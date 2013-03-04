@@ -1,45 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <mx:TitleWindow
-    xmlns:ui ="weave.ui.*"
-    xmlns:mx="http://www.adobe.com/2006/mxml"
-    showCloseButton="false"
-    close="handleClose()"
-    creationComplete="handleCreationComplete(event)"
-    borderAlpha="0.95"
-    borderThickness="2"
+	xmlns:ui ="weave.ui.*"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	showCloseButton="false"
+	close="handleClose()"
+	creationComplete="handleCreationComplete(event)"
+	borderAlpha="0.95"
+	borderThickness="2"
 	autoLayout="true"
-    horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
 	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
-	keyDown="if (event.keyCode == Keyboard.ESCAPE) handleCancelClick();"
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
-	<mx:Canvas id="inputCanvas" width="100%"
-			includeInLayout="{autoCompleteChoices == null}"
-			visible="{autoCompleteChoices == null}"
-			   >
+							 text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
+	<s:SkinnableContainer id="inputCanvas" width="100%"
+						  includeInLayout="{autoCompleteChoices == null}"
+						  visible="{autoCompleteChoices == null}"
+						  >
 		<mx:TextArea text="{_textInput}"
 					 id="textBox"
 					 change="_textInput = textBox.text;"
@@ -48,14 +49,14 @@
 					 height="{multiLineEdit ? 64 : 20}"
 					 verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
 		<mx:LinkButton
-					label="{multiLineEdit ? '-' : '+'}"
-					alpha="0.5" useHandCursor="true"
-					paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
-					width="20" height="20" top="0" right="{multiLineEdit ? 16 : 0}"
-					includeInLayout="false"
-					mouseDown="multiLineEdit = !multiLineEdit; callLater(textBox.setFocus);"
-					/>
-	</mx:Canvas>
+			label="{multiLineEdit ? '-' : '+'}"
+			alpha="0.5" useHandCursor="true"
+			paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
+			width="20" height="20" top="0" right="{multiLineEdit ? 16 : 0}"
+			includeInLayout="false"
+			mouseDown="multiLineEdit = !multiLineEdit; callLater(textBox.setFocus);"
+			/>
+	</s:SkinnableContainer>
 	<mx:List id="autoComplete"
 			 includeInLayout="{autoCompleteChoices != null}"
 			 visible="{autoCompleteChoices != null}"
@@ -64,164 +65,165 @@
 			 focusOut="/* autoComplete.visible = false; */"
 			 dataProvider="{autoCompleteChoices}"
 			 />
-	<mx:HBox id="alertButtons" width="100%">
-		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
-		<mx:Button label="{lang('Cancel')}" click="handleCancelClick()" minWidth="64"/>
-	</mx:HBox>
+	<s:HGroup id="alertButtons" width="100%">
+		<s:Spacer width="100%"/>
+		<s:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
+		<s:Button label="{lang('Cancel')}" click="handleCancelClick()" minWidth="64"/>
+	</s:HGroup>
 	
-    <mx:Metadata>
-    	[Event(name="buttonClicked", type="weave.ui.AlertTextBoxEvent")]
-    </mx:Metadata>
-    <mx:Script>
-	<![CDATA[
-		import mx.controls.Button;
-		import mx.managers.PopUpManager;
-		
-		import weave.api.WeaveAPI;
-		import weave.compiler.StandardLib;
-		
-		[Bindable] public var multiLineEdit:Boolean = false;
-		[Bindable] public var allowEmptyInput:Boolean = false;
-		[Bindable] public var autoCompleteChoices:Array = null;
-		
-		//Message before TextBox
-		[Bindable]
-		private var _message:String = null;
-		public function get message():String
-		{
-			return _message;
-		}
-	    public function set message(value:String):void
-		{
-			_message = value;
-		}
-		
-		//default text in TextBox
-		[Bindable]
-		private var _textInput:String = null;
-		public function get textInput():String
-		{
-			return _textInput;
-		}
-	    public function set textInput(value:String):void
-		{
-			_textInput = value || '';
+	<fx:Metadata>
+		[Event(name="buttonClicked", type="weave.ui.AlertTextBoxEvent")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Button;
+			import mx.managers.PopUpManager;
 			
-			if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
-				multiLineEdit = true;
-		}
-	
-		private function handleCreationComplete(event:Event):void
-		{
-			focusManager.setFocus(textBox);
-		}
-		
-		public static var lastInstance:Object;
-		
-		public static function show(title:String, message:String, defaultInput:String = ""):AlertTextBox 
-		{
-			var newAlert:AlertTextBox = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AlertTextBox, true) as AlertTextBox;
-			newAlert.title = title;
-			// disable moving of the popup
-			newAlert.isPopUp = false;
-			newAlert.message = message;
-			newAlert.textInput = defaultInput;
-			newAlert.validateNow();
+			import weave.api.WeaveAPI;
+			import weave.compiler.StandardLib;
 			
-			PopUpManager.centerPopUp(newAlert);
+			[Bindable] public var multiLineEdit:Boolean = false;
+			[Bindable] public var allowEmptyInput:Boolean = false;
+			[Bindable] public var autoCompleteChoices:Array = null;
 			
-			lastInstance = newAlert;
-			
-			return newAlert;
-		}
-		
-		private function closeAlertTextBox():void
-		{
-			PopUpManager.removePopUp(this);
-		}
-		
-		private function handleClose():void
-		{
-			closeAlertTextBox();
-		}		
-		
-		private function handleOKClick():void
-		{
-			var okClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
-			okClickEvent.textInput = _textInput;
-			okClickEvent.confirm = true;
-			var textclick:Boolean = this.dispatchEvent(okClickEvent);
-			closeAlertTextBox();
-		}
-		
-		private function handleCancelClick():void
-		{
-			var cancelClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
-			cancelClickEvent.textInput = _textInput;
-			cancelClickEvent.confirm = false;
-			this.dispatchEvent(cancelClickEvent);
-			closeAlertTextBox();
-		}
-		
-		private function handleKeyDown(event:KeyboardEvent):void
-		{
-			if (event.keyCode == Keyboard.ENTER && !multiLineEdit)
+			//Message before TextBox
+			[Bindable]
+			private var _message:String = null;
+			public function get message():String
 			{
-				if (textBox.text || allowEmptyInput)
-					handleOKClick();
+				return _message;
 			}
-			else if (autoCompleteChoices)
+			public function set message(value:String):void
 			{
-				textBox.validateProperties();
-				var text:String = textBox.text;
-				if (!text)
+				_message = value;
+			}
+			
+			//default text in TextBox
+			[Bindable]
+			private var _textInput:String = null;
+			public function get textInput():String
+			{
+				return _textInput;
+			}
+			public function set textInput(value:String):void
+			{
+				_textInput = value || '';
+				
+				if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
+					multiLineEdit = true;
+			}
+			
+			private function handleCreationComplete(event:Event):void
+			{
+				focusManager.setFocus(textBox);
+			}
+			
+			public static var lastInstance:Object;
+			
+			public static function show(title:String, message:String, defaultInput:String = ""):AlertTextBox 
+			{
+				var newAlert:AlertTextBox = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AlertTextBox, true) as AlertTextBox;
+				newAlert.title = title;
+				// disable moving of the popup
+				newAlert.isPopUp = false;
+				newAlert.message = message;
+				newAlert.textInput = defaultInput;
+				newAlert.validateNow();
+				
+				PopUpManager.centerPopUp(newAlert);
+				
+				lastInstance = newAlert;
+				
+				return newAlert;
+			}
+			
+			private function closeAlertTextBox():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function handleClose():void
+			{
+				closeAlertTextBox();
+			}		
+			
+			private function handleOKClick():void
+			{
+				var okClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
+				okClickEvent.textInput = _textInput;
+				okClickEvent.confirm = true;
+				var textclick:Boolean = this.dispatchEvent(okClickEvent);
+				closeAlertTextBox();
+			}
+			
+			private function handleCancelClick():void
+			{
+				var cancelClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
+				cancelClickEvent.textInput = _textInput;
+				cancelClickEvent.confirm = false;
+				this.dispatchEvent(cancelClickEvent);
+				closeAlertTextBox();
+			}
+			
+			private function handleKeyDown(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.ENTER && !multiLineEdit)
 				{
-					/* autoComplete.visible = false; */
-					return;
+					if (textBox.text || allowEmptyInput)
+						handleOKClick();
 				}
-				var found:int = 0;
-				for (var i:int = 0; i < autoCompleteChoices.length; i++)
+				else if (autoCompleteChoices)
 				{
-					var str:String = autoCompleteChoices[i] as String;
-					if (str.search("^" + text) >= 0)
+					textBox.validateProperties();
+					var text:String = textBox.text;
+					if (!text)
 					{
-						found++;
-						if (found == 1)
+						/* autoComplete.visible = false; */
+						return;
+					}
+					var found:int = 0;
+					for (var i:int = 0; i < autoCompleteChoices.length; i++)
+					{
+						var str:String = autoCompleteChoices[i] as String;
+						if (str.search("^" + text) >= 0)
 						{
-							autoComplete.selectedItem = str;
-							autoComplete.scrollToIndex(i);
-							textBox.text = str;
-							textBox.selectionBeginIndex = text.length;
-							textBox.selectionEndIndex = int.MAX_VALUE;
-						}
-						else
-						{
-							var p:Point = textBox.localToGlobal(new Point(0, textBox.height));
-							p = autoComplete.globalToLocal(p);
-							autoComplete.x = p.x;
-							autoComplete.y = p.y;
-							autoComplete.width = textBox.width;
-							//TODO: mouse down event that closes the list
-							/* autoComplete.visible = true; */
+							found++;
+							if (found == 1)
+							{
+								autoComplete.selectedItem = str;
+								autoComplete.scrollToIndex(i);
+								textBox.text = str;
+								textBox.selectionBeginIndex = text.length;
+								textBox.selectionEndIndex = int.MAX_VALUE;
+							}
+							else
+							{
+								var p:Point = textBox.localToGlobal(new Point(0, textBox.height));
+								p = autoComplete.globalToLocal(p);
+								autoComplete.x = p.x;
+								autoComplete.y = p.y;
+								autoComplete.width = textBox.width;
+								//TODO: mouse down event that closes the list
+								/* autoComplete.visible = true; */
+							}
 						}
 					}
-				}
-				if (found <= 1)
-				{
-					/* autoComplete.visible = false; */
+					if (found <= 1)
+					{
+						/* autoComplete.visible = false; */
+					}
 				}
 			}
-		}
-		
-		override public function move(x:Number, y:Number):void
-		{
-			x = StandardLib.constrain(x, 0, parent.width - this.width);
-			y = StandardLib.constrain(y, 0, parent.height - this.height);
 			
-			super.move(x, y);
-		}
-		
-   		]]>
-	</mx:Script>
+			override public function move(x:Number, y:Number):void
+			{
+				x = StandardLib.constrain(x, 0, parent.width - this.width);
+				y = StandardLib.constrain(y, 0, parent.height - this.height);
+				
+				super.move(x, y);
+			}
+			
+		]]>
+	</fx:Script>
 </mx:TitleWindow> 
+

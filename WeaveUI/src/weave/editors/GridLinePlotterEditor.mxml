@@ -23,17 +23,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 Editor for custom layers using GridLinePlotters
 @author kmanohar
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		 implements="weave.api.ui.ILinkableObjectEditor"
 		 xmlns="weave.editors.*"
 		 label="{lang('Grid Line Settings')}" xmlns:ui="weave.ui.*">
-	<mx:HBox>
-		<mx:RadioButtonGroup id="hv"/>
-		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
-		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<s:RadioButtonGroup id="hv"/>
+	</fx:Declarations>
+	<s:HGroup>
+		
+		<s:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
+		<s:RadioButton id="horizontalCheckBox" group="{hv}"
 					 label="{lang('Horizontal lines')}"
 					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
-	</mx:HBox>
+	</s:HGroup>
 	
 	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Start:')}"
 				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
@@ -41,7 +49,7 @@ Editor for custom layers using GridLinePlotters
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
 	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Interval:')}"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
-	<mx:Spacer/>
+	<s:Spacer/>
 	<ui:Indent indent="{indent}" label="{lang('Thickness:')}">
 		<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
 						   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, event.target, 'value')"/>
@@ -59,7 +67,7 @@ Editor for custom layers using GridLinePlotters
 					liveDragging="true"
 					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
 	</ui:Indent>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
@@ -90,5 +98,5 @@ Editor for custom layers using GridLinePlotters
 			}
 			
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:NavigatorContent>

@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---	
@@ -26,68 +26,79 @@ A text editor to change the Session State on the fly.
 @author kmonico
 -->
 <ui:DraggablePanel
-    xmlns:ui ="weave.ui.*"
-    xmlns:mx="http://www.adobe.com/2006/mxml"
-    width="800" height="600"
-    title="{lang('Session State Editor')}"
-	backgroundColor="#EFF4BC"
+	xmlns:ui ="weave.ui.*"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	width="800" height="600"
+	title="{lang('Session State Editor')}"
+	creationPolicy="all"
 	escapeKeyClosesPanel="true"
-    >
+	>
 	<mx:VDividedBox id="vDividedBox" width="100%" height="100%" liveDragging="true">
-	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
-				 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
-			<mx:HBox width="100%">
+		<s:VGroup   width="100%" height="100%"
+					paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
+			<s:HGroup width="100%">
 				<mx:Button label="{lang('Reload')}" toolTip="{lang('Reloads to previous save state')}" click="refresh()" paddingLeft="5" paddingRight="5"/>
 				<mx:Button label="{lang('Apply')}" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
 				<mx:Button label="{lang('Save &amp; Close')}" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
 				<mx:Button label="{lang('Cancel')}" click="removePanel()" paddingLeft="5" paddingRight="5"/>
-			</mx:HBox>
+			</s:HGroup>
 			<mx:HDividedBox width="100%" height="100%">
-				<mx:VBox id="listVBox" width="100%" height="100%">
-					<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
+				<s:VGroup id="listVBox" width="100%" height="100%">
+					<!--<s:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
 					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
-	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
+					<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
 										 focusIn="checkObjectWasDisposed()"/>
-					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
-	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
-	 					<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
-	 				</mx:HBox>
-				</mx:VBox>
-				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
-					<mx:HBox width="100%" horizontalAlign="right">
+					<s:BorderContainer width="100%" id="linkControls">
+						<s:layout>
+							<s:HorizontalLayout/>
+						</s:layout>
+						<s:backgroundFill>
+							<s:SolidColor alpha="0"/>
+						</s:backgroundFill>
+						<s:TextInput id="linkNameInput" width="100%"/>
+						<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
+						<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+					</s:BorderContainer>
+				</s:VGroup>
+				<s:VGroup width="100%" height="100%" >
+					<s:HGroup width="100%" horizontalAlign="right">
 						<ui:TextInputWithPrompt id="search" prompt="{lang('Enter search text')}" enter="highlightSearchText(false)" change="searchTermChanged()" width="100%" minWidth="100"/>
 						<mx:Button label="{lang('Search')}" click="highlightSearchText(true)" repeatDelay="1"/>
-					</mx:HBox>
+					</s:HGroup>
 					<mx:ViewStack id="editors" width="100%" height="100%">
-						<mx:VBox width="100%" height="100%">
-							<mx:HBox width="100%">
-								<mx:Label id="firstLine" fontFamily="_typewriter"/>
-								<mx:Spacer width="100%"/>
+						<s:NavigatorContent width="100%" height="100%">
+							<s:layout>
+								<s:VerticalLayout/>
+							</s:layout>
+							<s:HGroup width="100%">
+								<s:Label id="firstLine" fontFamily="_typewriter"/>
+								<s:Spacer width="100%"/>
 								<mx:Button label="Copy" click="copyToClipboard();"/>
-							</mx:HBox>
+							</s:HGroup>
 							<mx:TextArea id="textEditor" wordWrap="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%"/>
-							<mx:Label id="lastLine" fontFamily="_typewriter"/>
-						</mx:VBox>
-						<mx:Canvas width="100%" height="100%">
+							<s:Label id="lastLine" fontFamily="_typewriter"/>
+						</s:NavigatorContent>
+						<s:NavigatorContent width="100%" height="100%">
 							<mx:DataGrid id="gridEditor" wordWrap="false" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
 										 horizontalScrollPolicy="auto" variableRowHeight="false" rowHeight="24"/> 
-						</mx:Canvas>
+						</s:NavigatorContent>
 					</mx:ViewStack>
-					<mx:HBox width="100%">
-						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
-									 selected="true"/>
-						<mx:Spacer width="100%"/>
+					<s:HGroup width="100%">
+						<s:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
+									selected="true"/>
+						<s:Spacer width="100%"/>
 						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
-					</mx:HBox>
-				</mx:VBox>
+					</s:HGroup>
+				</s:VGroup>
 			</mx:HDividedBox>
-		</mx:VBox>
+		</s:VGroup>
 		<ui:Console id="console" height="0"/>
 	</mx:VDividedBox>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
@@ -129,11 +140,11 @@ A text editor to change the Session State on the fly.
 			import weave.utils.DebugUtils;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
-
-		    private var _needRefresh:Boolean = false;
-		    private const refreshTimer:Timer = new Timer(200, 0);
+			
+			private var _needRefresh:Boolean = false;
+			private const refreshTimer:Timer = new Timer(200, 0);
 			private var autoRefresh:Boolean = false;
-		    private var _textModified:Boolean = false;
+			private var _textModified:Boolean = false;
 			
 			private var _currentSelectedObject:ILinkableObject = null;
 			private var _currentSessionStateXML:XML = null;
@@ -158,6 +169,7 @@ A text editor to change the Session State on the fly.
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
+				setStyle("backgroundColor", 0xEFF4BC);
 			}
 			
 			override protected function createChildren():void
@@ -170,15 +182,15 @@ A text editor to change the Session State on the fly.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-
+				
 				refreshTimer.addEventListener(TimerEvent.TIMER, handleRefreshTimer);
 				refreshTimer.start();
 				
 				//handle keyboard event CTRL +F to Search Box
 				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
-
-		    	BindingUtils.bindSetter(handleSessionNavSelect, sessionNav, "selectedItem");
-		    	
+				
+				BindingUtils.bindSetter(handleSessionNavSelect, sessionNav, "selectedItem");
+				
 				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
 				
 				changeView(_editor);
@@ -187,7 +199,7 @@ A text editor to change the Session State on the fly.
 				loadSelectedSessionObjectInView();
 				
 				textEditor.getTextField().alwaysShowSelection = true;
-		    }
+			}
 			
 			private function checkObjectWasDisposed():void
 			{
@@ -202,7 +214,7 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			private function handleRefreshTimer(event:TimerEvent):void
-		    {
+			{
 				if (objectWasDisposed(this))
 					return;
 				
@@ -214,23 +226,23 @@ A text editor to change the Session State on the fly.
 						loadSelectedSessionObjectInView();
 					}
 				}
-		    }
-		    private function handleSelectedObjectGroupCallback():void
-		    {
-		    	_needRefresh = true;
-		    }
+			}
+			private function handleSelectedObjectGroupCallback():void
+			{
+				_needRefresh = true;
+			}
 			
 			private function handleEditorFocusIn():void
 			{
 				autoRefresh = true;
 				checkObjectWasDisposed();
 			}
-
+			
 			private function handleTextAreaChange():void
-		    {
-		    	_textModified = true;
-		    }
-		    
+			{
+				_textModified = true;
+			}
+			
 			public function refresh():void
 			{
 				if (_textModified == false || (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
@@ -266,7 +278,7 @@ A text editor to change the Session State on the fly.
 					lang('Save'), lang('Discard')
 				);
 			}
-
+			
 			private function loadSelectedSessionObjectInView(sessObj:ILinkableObject = null):void
 			{
 				// to avoid a flex error, make sure the dataGrid has no selected items
@@ -276,7 +288,7 @@ A text editor to change the Session State on the fly.
 				}
 				
 				_needRefresh = false;
-
+				
 				if (sessionNav.selectedItem == null && sessObj == null)
 				{
 					// clear and disable view
@@ -294,7 +306,7 @@ A text editor to change the Session State on the fly.
 					editors.enabled = false;
 					return;
 				}
-
+				
 				// enable view
 				editors.enabled = true;
 				
@@ -302,7 +314,7 @@ A text editor to change the Session State on the fly.
 					_currentSelectedObject = sessObj;
 				else
 					_currentSelectedObject = sessionNav.selectedItem.object;
-
+				
 				loadSessionStateInView();
 				_textModified = false;
 			}
@@ -310,7 +322,7 @@ A text editor to change the Session State on the fly.
 			private function unlinkNestedColumns():void
 			{
 				var selected:IColumnWrapper = sessionNav.getSelectedLinkableObject() as IColumnWrapper;
-		    	if (!selected)
+				if (!selected)
 				{
 					reportError('Please select a DynamicColumn.');
 					return;
@@ -349,16 +361,16 @@ A text editor to change the Session State on the fly.
 				}
 				refresh();
 			}
-
-		    private function linkSelectedObject():void
-		    {
+			
+			private function linkSelectedObject():void
+			{
 				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
-		    	if (dynamicObject)
-		    	{
-		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
-		    		refresh();
-		    	}
-		    }
+				if (dynamicObject)
+				{
+					dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
+					refresh();
+				}
+			}
 			private function handleSessionNavSelect(selectedItem:Object):void
 			{
 				var vsp:Number = gridEditor.verticalScrollPosition;
@@ -385,12 +397,12 @@ A text editor to change the Session State on the fly.
 				gridEditor.verticalScrollPosition = vsp;
 			}
 			
-		    private function handleApplyClick():void
-		    {
+			private function handleApplyClick():void
+			{
 				saveSessionState();
 				refresh();
-		    }
-
+			}
+			
 			private function highlightSearchText(switchFocus:Boolean):Boolean
 			{
 				var i:int;
@@ -503,7 +515,7 @@ A text editor to change the Session State on the fly.
 						Alert.show(lang("Object is locked and cannot be deleted."), lang("Delete Failed"));
 				}
 			}
-
+			
 			private function handleDataGridChange(event:DataGridEvent):void
 			{
 				var row:int = int(event.rowIndex);
@@ -512,11 +524,11 @@ A text editor to change the Session State on the fly.
 				var newValue:String = gridEditor.itemEditorInstance[gridEditor.columns[event.columnIndex].editorDataField];
 				newValue = newValue.replace(/(\r\n)|\r/gm, "\n");
 				gridEditor.itemEditorInstance[gridEditor.columns[event.columnIndex].editorDataField] = newValue;
-
+				
 				if ( oldValue != newValue ) 
 					_textModified = true;
 			}
-
+			
 			private function handlePreferDGChange():void
 			{
 				var newEditor:String = preferDataGrid.selected ? DATA_GRID : TEXT_EDITOR;
@@ -524,12 +536,13 @@ A text editor to change the Session State on the fly.
 				loadSelectedSessionObjectInView();
 			}
 			
+			//editor.owner will retuen the group, owner returns naviagtor content
 			private function changeView(newValue:String = null):void
 			{
 				if (newValue == null)
 					newValue = _editor == DATA_GRID ? TEXT_EDITOR : DATA_GRID;
 				_editor = newValue;
-				editors.selectedChild = (_editor == DATA_GRID ? gridEditor.parent : textEditor.parent) as INavigatorContent;
+				editors.selectedChild = (_editor == DATA_GRID ? gridEditor.owner : textEditor.owner) as INavigatorContent;
 				//loadSelectedSessionObjectInView();
 			}
 			
@@ -548,7 +561,7 @@ A text editor to change the Session State on the fly.
 					hsp = 0;
 					vsp = 0;
 				}
-
+				
 				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
 					changeView(TEXT_EDITOR);
 				else
@@ -558,7 +571,7 @@ A text editor to change the Session State on the fly.
 				{
 					vsp = textEditor.verticalScrollPosition;
 					hsp = textEditor.horizontalScrollPosition;
-
+					
 					if (_currentSelectedObject is LinkableString)
 					{
 						_currentSessionStateXML = null;
@@ -602,7 +615,7 @@ A text editor to change the Session State on the fly.
 							dataGridProvider.addItem(item);
 						}
 					}
-
+					
 					vsp = gridEditor.verticalScrollPosition;
 					_currentSessionStateDataProvider = dataGridProvider;
 					gridEditor.columns = [ _nameColumn, _valueColumn ];
@@ -616,7 +629,7 @@ A text editor to change the Session State on the fly.
 			}
 			
 			private function saveSessionState():void
-		    {
+			{
 				_textModified = false;
 				
 				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
@@ -704,10 +717,10 @@ A text editor to change the Session State on the fly.
 				{
 					reportError(e);
 				}
-		    }
-
+			}
+			
 			private function saveAndClosePanel():void
-		    {
+			{
 				try
 				{
 					saveSessionState();
@@ -717,7 +730,7 @@ A text editor to change the Session State on the fly.
 				{
 					reportError(e);
 				}
-		    }
+			}
 			
 			override public function removePanel():void
 			{
@@ -827,6 +840,7 @@ A text editor to change the Session State on the fly.
 					}
 				}
 			}
+
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:DraggablePanel>

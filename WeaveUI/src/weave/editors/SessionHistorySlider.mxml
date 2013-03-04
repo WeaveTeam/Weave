@@ -24,10 +24,12 @@
 
 	@author adufilie
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		 xmlns="weave.editors.*"
 		 click="handleAnyClick();"
-		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
+		 width="100%" gap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
 	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
 	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
@@ -40,13 +42,13 @@
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
 	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" styleName="clearButtonStyle"/>
-	<mx:Style>
+	<fx:Style>
 		.clearButtonStyle {
 			paddingLeft: 4;
 			paddingRight: 4;
 		}
-	</mx:Style>
-	<mx:Script>
+	</fx:Style>
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
@@ -222,5 +224,5 @@
 				PopUpManager.centerPopUp(exportSessionStatePanel);
 			}
 		]]>
-	</mx:Script>
-</mx:HBox> 
+	</fx:Script>
+</s:HGroup> 

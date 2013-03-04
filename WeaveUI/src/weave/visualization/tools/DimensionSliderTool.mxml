@@ -21,16 +21,18 @@
 -->
 <SliderTool
 	xmlns="weave.visualization.tools.*" 
-	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 	xmlns:ui="weave.ui.*"
 	xmlns:settings="weave.ui.settings.*"
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-	verticalScrollPolicy="off"
+	
 	width="400" 
 	title="{lang('Dimension Slider Tool')}"
 	height="40">
 
-<mx:Script>
+<fx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
@@ -152,6 +154,6 @@
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 </SliderTool>
 

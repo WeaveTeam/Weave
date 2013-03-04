@@ -1,53 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <ui:DraggablePanel xmlns="weave.ui.annotation.*"
-				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
 				   xmlns:ui="weave.ui.*"
-				   width="25%" height="25%" backgroundAlpha="0" borderThickness="0"
-				   horizontalScrollPolicy="off" layout="absolute" verticalScrollPolicy="off">
+				   width="25%" height="25%" 
+				   layout="{new BasicLayout()}" styleName="componentStyle" >
+	<fx:Style>
+		@namespace  "weave.ui.annotation.*";
+		@namespace ui "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundAlpha: 0;
+			borderThickness: 0;
+		}
+	</fx:Style>
+	
 	<mx:TextArea id="textArea" width="100%" height="100%" minWidth="5" minHeight="5"
 				 borderStyle="solid" editable="false" wordWrap="true"/>
 	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
 					 width="360" height="260"
 					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
 					 sessionPanelCoordsAsPercentages="false" title="{lang('Annotation Editor')}">
-		<mx:VBox id="toolbar" width="100%" height="100%" horizontalGap="7"
-				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
-				 paddingTop="2" verticalScrollPolicy="off">
-
-			<mx:HBox>
-				<mx:CheckBox id="borderCheckBox" label="{lang('Show window borders')}"/>
-				<mx:CheckBox id="moveResizeCheckBox" label="{lang('Allow moving and resizing')}"/>
-			</mx:HBox>
+		<s:VGroup id="toolbar" width="100%" height="100%" gap="7"
+				  paddingBottom="2" paddingLeft="2" paddingRight="2"
+				  paddingTop="2" >
 			
-			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
-					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
+			<s:HGroup>
+				<s:CheckBox id="borderCheckBox" label="{lang('Show window borders')}"/>
+				<s:CheckBox id="moveResizeCheckBox" label="{lang('Allow moving and resizing')}"/>
+			</s:HGroup>
+			
+			<s:HGroup width="100%"  paddingBottom="2" paddingLeft="2"
+					  paddingRight="2" paddingTop="2" >
 				<ui:FontControl id="fontControls" />
-			</mx:HBox>
+			</s:HGroup>
 			
 			<mx:Grid>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label text="{lang('Paragraph style:')}"/>
+						<s:Label text="{lang('Paragraph style:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<ui:CustomComboBox id="paragraphCombo" change="applyParagraphFormat(event);"
@@ -57,7 +70,7 @@
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="roundingLabel" text="{lang('Corner rounding:')}"/>
+						<s:Label id="roundingLabel" text="{lang('Corner rounding:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HSlider id="cornerRadiusSlider" width="100%" liveDragging="true"
@@ -68,7 +81,7 @@
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="paddingLabel" text="{lang('Padding around text:')}"/>
+						<s:Label id="paddingLabel" text="{lang('Padding around text:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HSlider id="paddingSlider" width="100%" liveDragging="true" maximum="25"
@@ -79,25 +92,25 @@
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="backgroundLabel" text="{lang('Background properties:')}"/>
+						<s:Label id="backgroundLabel" text="{lang('Background properties:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
-						<mx:HBox width="100%">
+						<s:HGroup width="100%">
 							<mx:ColorPicker id="backgroundColorPicker" selectedColor="white"
 											toolTip="{lang('Change the editing text area\'s background color.')}"/>
 							<mx:HSlider id="backgroundAlphaSlider" width="100%" liveDragging="true"
 										maximum="1" minimum="0"
 										toolTip="{lang('Change the editing text area\'s background transparency.  A value of 1 (slider to the right) is fully opaque, 0 (slider to the left) is fully transparent.')}"
 										value="1.0"/>
-						</mx:HBox>
+						</s:HGroup>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="borderLabel" text="{lang('Border properties:')}"/>
+						<s:Label id="borderLabel" text="{lang('Border properties:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
-						<mx:HBox width="100%">
+						<s:HGroup width="100%">
 							<mx:ColorPicker id="borderColorPicker"
 											enabled="{borderThicknessSlider.value &gt; 0}"
 											toolTip="{lang('Change the editing text area\'s border color.')}"/>
@@ -106,13 +119,13 @@
 										value="1" minimum="0" maximum="25" snapInterval="1" 
 										toolTip = "{lang('Change the editing text area\'s border thickness.')}"
 										width="100%" liveDragging="true"/>
-						</mx:HBox>
+						</s:HGroup>
 					</mx:GridItem>
 				</mx:GridRow>
 			</mx:Grid>
-		</mx:VBox>
+		</s:VGroup>
 	</ui:ControlPanel>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.core.IUITextField;
@@ -121,14 +134,16 @@
 			import mx.events.ListEvent;
 			import mx.events.StateChangeEvent;
 			
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
-			import weave.api.ui.ILinkableContainer;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.ILinkableContainer;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -169,7 +184,7 @@
 				linkBindableProperty(padding,         paddingSlider, "value");
 				BindingUtils.bindSetter(handleTextAreaChange, textArea, 'htmlText');
 				getCallbackCollection(Weave.root).addGroupedCallback(this, handleWeaveRootChange);
-
+				
 				getTextField().alwaysShowSelection = true;
 				textArea.setStyle("focusAlpha", 0);
 				getTextField().embedFonts = true;
@@ -186,7 +201,7 @@
 				
 				applyStyle();
 			}
-
+			
 			private function handleTextAreaChange(value:String):void
 			{
 				// we only want to save the session state if the control panel is open (the user is editing the text).
@@ -230,17 +245,17 @@
 						break;
 					
 					// make sure the text between begin & end only has a single format
-//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
-//					_tempTextField.setTextFormat(f, begin, end + 1);
-				 	_tempTextField.setSelection(begin, end + 1);
+					//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+					//					_tempTextField.setTextFormat(f, begin, end + 1);
+					_tempTextField.setSelection(begin, end + 1);
 					_tempTextField.replaceSelectedText(_tempTextField.text.substring(begin, end + 1));
 					
-//					// replace the text from { to }
-//					var script:String = _tempTextField.text.substring(begin + 1, end);
-//					htmlTextFunction.value = script;
-//					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
+					//					// replace the text from { to }
+					//					var script:String = _tempTextField.text.substring(begin + 1, end);
+					//					htmlTextFunction.value = script;
+					//					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
 				}
-			 	_tempTextField.setSelection(selBegin, selEnd);
+				_tempTextField.setSelection(selBegin, selEnd);
 				
 				var ht:String = _tempTextField.htmlText;
 				ht = ht.split('&apos;').join("'");
@@ -304,7 +319,7 @@
 				textArea.setStyle("borderColor", borderColor.value);
 				textArea.setStyle("borderThickness", borderThickness.value);
 			}
-
+			
 			/**
 			 * This function is called when the user presses the tool button.
 			 */
@@ -313,11 +328,11 @@
 				super.toggleControlPanel();
 			}
 			
- 			private function getTextField():TextField
+			private function getTextField():TextField
 			{
 				return textArea.mx_internal::getTextField();
 			}
- 			
+			
 			private function applyParagraphFormat(e:Event):void
 			{
 				if (false)
@@ -384,15 +399,15 @@
 				{
 					getTextField().setTextFormat(f, beginIndex, endIndex);
 				}
-/* 				if (beginIndex >= 0 && beginIndex < getTextField().length)
+				/* 				if (beginIndex >= 0 && beginIndex < getTextField().length)
 				{
-					// compute new htmlText using temporary text field
-					_tempTextField.htmlText = textArea.htmlText;
-					// extra newline may get removed from htmlText, so make sure endIndex <= length
-					endIndex = Math.min(endIndex, _tempTextField.length);
-					if (beginIndex < endIndex)
-						_tempTextField.setTextFormat(f, beginIndex, endIndex);
-					htmlText.value = _tempTextField.htmlText;
+				// compute new htmlText using temporary text field
+				_tempTextField.htmlText = textArea.htmlText;
+				// extra newline may get removed from htmlText, so make sure endIndex <= length
+				endIndex = Math.min(endIndex, _tempTextField.length);
+				if (beginIndex < endIndex)
+				_tempTextField.setTextFormat(f, beginIndex, endIndex);
+				htmlText.value = _tempTextField.htmlText;
 				} */
 				
 				textArea.setFocus();
@@ -412,8 +427,8 @@
 			 *                static section                 *
 			 *************************************************/
 			
-		
-		
+			
+			
 			/**
 			 * This function is called whenever the context menu is opened.
 			 * The function will change the caption displayed depending upon where the context menu was opened.
@@ -571,5 +586,5 @@
 				}
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:DraggablePanel>

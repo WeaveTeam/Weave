@@ -20,7 +20,9 @@
 */
 -->
 
-<mx:Button 	xmlns:mx="http://www.adobe.com/2006/mxml" 
+<mx:Button 	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 			label="(C) {(new Date()).getFullYear()} Open Indicators Consortium Weave "
 			
 			skin="{null}"
@@ -41,8 +43,8 @@
 >
 			       	<!--creationCompleteEffect="{logoGlow}"-->
 
-   <mx:Script>
+   <fx:Script>
    	<![CDATA[
    	]]>
-   </mx:Script>
+   </fx:Script>
 </mx:Button>

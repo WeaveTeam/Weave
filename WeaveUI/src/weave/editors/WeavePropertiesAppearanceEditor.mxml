@@ -1,33 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns="weave.editors.*" 
-		 xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 xmlns:ui="weave.ui.*" 
-		 width="100%" 
-		 height="100%"
-		 verticalGap="8"
-		 creationPolicy="all"
-		 creationComplete="handleCreationComplete()"
-		 >
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:ui="weave.ui.*" 
+		  xmlns="weave.editors.*" 
+		  width="100%" height="100%"
+		  gap="8"
+		  creationComplete="handleCreationComplete()">
 	<ui:Indent label="{lang('Window title font:')}" group="{g1}">
 		<ui:FontControl id="windowTitleFontControl"/>
 	</ui:Indent>
@@ -38,15 +37,15 @@
 	<ui:Indent label="{lang('Background color:')}" group="{g1}">
 		<mx:ColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<mx:CheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
-				 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
-	<mx:CheckBox label="{lang('Show copyright')}"
-				 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-	<mx:CheckBox label="{lang('Show revert and save buttons in control panels')}"
-				 creationComplete="linkBindableProperty(Weave.properties.showRevertButton, event.target, 'selected');"/>	
-	<mx:CheckBox label="{lang('Show add all button in the Attribute Selector')}"
-				 creationComplete="linkBindableProperty(Weave.properties.showAddAllButton, event.target, 'selected');"/>	
-
+	<s:CheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
+				creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+	<s:CheckBox label="{lang('Show copyright')}"
+				creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+	<s:CheckBox label="{lang('Show revert and save buttons in control panels')}"
+				creationComplete="linkBindableProperty(Weave.properties.showRevertButton, event.target, 'selected');"/>	
+	<s:CheckBox label="{lang('Show add all button in the Attribute Selector')}"
+				creationComplete="linkBindableProperty(Weave.properties.showAddAllButton, event.target, 'selected');"/>	
+	
 	<ui:Indent label="{lang('Window grid snapping:')}">
 		<ui:TextInputWithPrompt prompt="pixel or percent" width="100" creationComplete="linkBindableProperty(Weave.properties.windowSnapGridSize, event.target, 'text', 500);"/>
 	</ui:Indent>
@@ -63,36 +62,36 @@
 		</ui:HelpComponent>
 	</ui:Indent>
 	
-	<!--<mx:CheckBox toolTip="Show or Hide View TabBar"
+	<!--<s:CheckBox toolTip="Show or Hide View TabBar"
 	id="viewsTabBar"
 	label="Show View TabBar"
 	creationComplete="linkBindableProperty(Weave.properties.showViewBar,event.target,'selected')"/>
 	
-	<mx:CheckBox toolTip="Set Active Window Border"
+	<s:CheckBox toolTip="Set Active Window Border"
 	visible="{isActive}"
 	id="toggleActiveBorders"
 	label="Show Active Panel Border"
 	selected="true"
 	creationComplete="handleActiveWindowBorderCheckCreated(event)"/> 
 	
-	<mx:HBox visible="{isActive}">  
-	<mx:Label text="Tool Border:"/> 
+	<s:HGroup visible="{isActive}">  
+	<s:Label text="Tool Border:"/> 
 	
 	<ui:CustomComboBox id="list" dataProvider="{borderList}" maxWidth="96"
 	creationComplete="initCell();" labelField="{data.@name}"/>
 	
-	</mx:HBox>-->
-<!--
+	</s:HGroup>-->
+	<!--
 	<mx:Array id="borderList">
-		<mx:Object name="Solid" imageFile="@Embed(source='/weave/resources/images/borderImages/Border1.png')"/>
-		<mx:Object name="Dotted" imageFile="@Embed(source='/weave/resources/images/borderImages/Border2.png')"/>
-		<mx:Object name="Dash Small" imageFile="@Embed(source='/weave/resources/images/borderImages/Border3.png')"/>
-		<mx:Object name="Dash Wide" imageFile="@Embed(source='/weave/resources/images/borderImages/Border4.png')"/>
-		<mx:Object name="Dash-Dot-wide" imageFile="@Embed(source='/weave/resources/images/borderImages/Border5.png')"/>
-		<mx:Object name="Dash-Dot-small" imageFile="@Embed(source='/weave/resources/images/borderImages/Border6.png')"/>
+	<mx:Object name="Solid" imageFile="@Embed(source='/weave/resources/images/borderImages/Border1.png')"/>
+	<mx:Object name="Dotted" imageFile="@Embed(source='/weave/resources/images/borderImages/Border2.png')"/>
+	<mx:Object name="Dash Small" imageFile="@Embed(source='/weave/resources/images/borderImages/Border3.png')"/>
+	<mx:Object name="Dash Wide" imageFile="@Embed(source='/weave/resources/images/borderImages/Border4.png')"/>
+	<mx:Object name="Dash-Dot-wide" imageFile="@Embed(source='/weave/resources/images/borderImages/Border5.png')"/>
+	<mx:Object name="Dash-Dot-small" imageFile="@Embed(source='/weave/resources/images/borderImages/Border6.png')"/>
 	</mx:Array>
--->
-	<mx:Script>
+	-->
+	<fx:Script>
 		<![CDATA[
 			import mx.events.ListEvent;
 			
@@ -114,15 +113,15 @@
 				windowTitleFontControl.initialize();
 				windowTitleFontControl.fontFamilyCombo.selectedLabel = Weave.properties.panelTitleTextFormat.font.value;
 				windowTitleFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleFontListChange );
-
+				
 				toolFontControl.initialize();
 				toolFontControl.fontFamilyCombo.dataProvider = WeaveProperties.embeddedFonts;
 				toolFontControl.fontFamilyCombo.selectedLabel = LinkableTextFormat.defaultTextFormat.font.value;
 				toolFontControl.fontFamilyCombo.addEventListener(ListEvent.CHANGE, handleToolFontListChange );
 				
-				//toolFontControl.removeChild(toolFontControl.boldButton);
-				toolFontControl.removeChild(toolFontControl.italicButton);
-				toolFontControl.removeChild(toolFontControl.underlineButton);
+				//toolFontControl.removeElement(toolFontControl.boldButton);
+				toolFontControl.removeElement(toolFontControl.italicButton);
+				toolFontControl.removeElement(toolFontControl.underlineButton);
 			}			
 			
 			private function handleCreationComplete():void
@@ -152,5 +151,5 @@
 			}
 			
 		]]>
-	</mx:Script>
-</mx:VBox>	
+	</fx:Script>
+</s:VGroup>	

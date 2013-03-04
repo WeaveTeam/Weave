@@ -42,12 +42,11 @@ package weave.ui
 			// this is where the magic happens
 			UIUtils.linkDisplayObjects(visCanvas, children);
 
-			this.horizontalScrollPolicy = "off";
-			this.verticalScrollPolicy = "off";
+			
 
 			this.autoLayout = true;
 			
-			addChild(visCanvas);
+			addElement(visCanvas);
 			
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;

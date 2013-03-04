@@ -21,48 +21,52 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
-				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute"
+				   layout="{new BasicLayout()}"
 				   title="{lang('Transposed Data Table')}" xmlns:editors="weave.editors.*"
 				   implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				   >
 	
-	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
+	<s:VGroup width="100%" height="100%" id="tableArea" gap="0">
 		
 		
 		<mx:DataGrid id="table"  
-						   horizontalScrollPolicy="auto" verticalScrollPolicy="auto"
-						   width="100%" height="100%"
-						   allowMultipleSelection="true"
-						   dataProvider="{sourceArrayCollection}"
-						   paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
-						   fontWeight="normal"
-						   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
-						   rollOverColor="0xDADAFF"
-						   selectionColor="0xFFAAAA"
-						   lockedColumnCount="1"
-						   columnStretch="handlerHeaderRelease(event)"
-						   showDataTips="true"
-						   />
+					 horizontalScrollPolicy="auto" verticalScrollPolicy="auto"
+					 width="100%" height="100%"
+					 allowMultipleSelection="true"
+					 dataProvider="{sourceArrayCollection}"
+					 paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
+					 fontWeight="normal"
+					 alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
+					 rollOverColor="0xDADAFF"
+					 selectionColor="0xFFAAAA"
+					 lockedColumnCount="1"
+					 columnStretch="handlerHeaderRelease(event)"
+					 showDataTips="true"
+					 />
 		
-	</mx:VBox>
+	</s:VGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.DataGridEvent;
 			
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -85,7 +89,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Bindable]
 			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
-
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -118,7 +122,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [headerAttributeColumn,columns];
 			}
 			
- 			private function handleColumnsListChange():void
+			private function handleColumnsListChange():void
 			{
 				var columnObjects:Array = columns.getObjects();
 				sourceArrayCollection.removeAll();
@@ -260,16 +264,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				ks.setSessionState(value);
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Data')}">
-			<mx:HBox>
-				<mx:Label text="{lang('Corner header:')}" fontWeight="bold"/>
-				<mx:TextInput id="headerTextInput" width="300"/>
-			</mx:HBox>
+		<s:NavigatorContent id="attributesPanel" label="{lang('Data')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup>
+				<s:Label text="{lang('Corner header:')}" fontWeight="bold"/>
+				<s:TextInput id="headerTextInput" width="300"/>
+			</s:HGroup>
 			<ui:DynamicColumnComponent id="headerColumn" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
-			<ui:ColumnListComponent id="columnsList" visTool="{this}" backgroundAlpha="0.7" height="100%" width="100%"/>
-		</mx:VBox>
+			<s:BorderContainer height="100%" width="100%">
+				<s:backgroundFill>
+					<s:SolidColor alpha="0.7"/>
+				</s:backgroundFill>
+				<ui:ColumnListComponent id="columnsList" visTool="{this}"  height="100%" width="100%"/>
+			</s:BorderContainer>
+			
+		</s:NavigatorContent>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

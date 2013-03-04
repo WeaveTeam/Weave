@@ -19,35 +19,35 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox 
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:VGroup 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.editors.*"
-	verticalScrollPolicy="off"
-	horizontalScrollPolicy="off"
 	implements="weave.api.ui.ILinkableObjectEditor"
-	creationPolicy="all" xmlns:ui="weave.ui.*"
+	xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
+	<s:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
 	<ui:Indent label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
+		<s:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('DBF URL *')}">
-		<mx:TextInput id="dbfURL" width="100%" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
+		<s:TextInput id="dbfURL" width="100%" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('SHP URL')}">
-		<mx:TextInput id="shpURL" width="100%" toolTip="{lang('enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp')}"/>
+		<s:TextInput id="shpURL" width="100%" toolTip="{lang('enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+		<s:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
 	<ui:KeyTypesMenu id="keyTypeSelector" creationComplete="{if(_dbfDataSource)
 					 {
 					 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_dbfDataSource.keyType.value);
 					 	(event.target as KeyTypesMenu).selectedItem = _dbfDataSource.keyType.value;
 					 }}"/>
-	<mx:Spacer height="20"/>
-	<mx:Label text="{lang('* = required')}"/>
-	<mx:Script>
+	<s:Spacer height="20"/>
+	<s:Label text="{lang('* = required')}"/>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			
@@ -103,5 +103,5 @@
 			}
 			
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

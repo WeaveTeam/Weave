@@ -1,43 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			   xmlns:userControls="weave.ui.userControls.*"
-			   layout="absolute">
-	<mx:Script>
+			   xmlns:userControls="weave.ui.userControls.*" 
+			   layout="{new BasicLayout()}" >
+	<fx:Script>
 		<![CDATA[
+			import mx.core.IVisualElementContainer;
 			import mx.events.SliderEvent;
+			
+			import spark.layouts.BasicLayout;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
-			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.primitives.IBounds2D;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -54,9 +59,9 @@
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
-
+			
 			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, lang("Scatterplot"));
-
+			
 			public var plotter:ScatterPlotPlotter = null;
 			
 			override protected function constructor():void
@@ -112,7 +117,7 @@
 				var args:Array = [UNDEFINED_X_NAME, UNDEFINED_Y_NAME, UNDEFINED_XY_NAME];
 				// remove vis_undef_* names
 				for each (var name:String in args)
-					order.splice(order.indexOf(name), 1);
+				order.splice(order.indexOf(name), 1);
 				// replace the main vis name with the list of vis names
 				var visName:String = children.getName(visualization);
 				args.unshift(order.indexOf(visName), 1, visName);
@@ -144,7 +149,7 @@
 			
 			
 			/*BEGIN UNDEFINED LAYER CODE*/
-					
+			
 			private var vis_undef_x:SimpleInteractiveVisualization;
 			private var vis_undef_y:SimpleInteractiveVisualization;
 			private var vis_undef_xy:SimpleInteractiveVisualization;
@@ -160,7 +165,7 @@
 				vis_undef_x = children.requestObject(UNDEFINED_X_NAME, SimpleInteractiveVisualization, true);
 				vis_undef_y = children.requestObject(UNDEFINED_Y_NAME, SimpleInteractiveVisualization, true);
 				vis_undef_xy = children.requestObject(UNDEFINED_XY_NAME, SimpleInteractiveVisualization, true);
-
+				
 				vis_undef_x.toolTip = lang("Undefined X");
 				vis_undef_y.toolTip = lang("Undefined Y");
 				vis_undef_xy.toolTip = lang("Undefined X and Y");
@@ -301,7 +306,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-
+				
 				plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
 				linkBindableProperty(plotter.fill.alpha.defaultValue, alphaSlider, "value");
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
@@ -325,7 +330,7 @@
 				if ( _regressionPlotter.drawLine.value )
 				{
 					if (equationText.parent != visCanvas)
-						visCanvas.addChild(equationText);
+						visCanvas.addElement(equationText);
 					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
 					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
 					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
@@ -337,8 +342,13 @@
 				}
 				else
 				{ 
-					if (equationText.parent)
-						equationText.parent.removeChild(equationText);
+					if (equationText.parent){
+						if(equationText.parent is IVisualElementContainer){
+							(equationText.parent as IVisualElementContainer).removeElement(equationText);
+						}else{
+							equationText.parent.removeChild(equationText);
+						}
+					}
 					lineEquation.text = lang("Equation: y = mx + b");
 				}
 			}
@@ -413,7 +423,7 @@
 			
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-				
+			
 			private function enableAbsHandler(event:Event):void
 			{
 				if( colorOverrideCheckbox.selected ) colorOverrideCheckbox.selected = false;
@@ -468,26 +478,27 @@
 				}
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<mx:TextArea id="equationText"
-		editable="false"
-		verticalScrollPolicy="off"
-		horizontalScrollPolicy="off"
-		wordWrap="false"
-		backgroundAlpha="0"
-		borderThickness="0"
-		bottom="0"
-		left="0"/>
-	<ui:ControlPanel>
-		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+				 editable="false"
+				 wordWrap="false"
+				 backgroundAlpha="0"
+				 borderThickness="0"
+				 bottom="0"
+				 left="0"/>
+	<ui:ControlPanel >
+		<s:NavigatorContent id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('X')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
+			<s:CheckBox id="sizeByCheck" label="{lang('Size')}" fontWeight="bold" width="64" creationComplete="sizeSelector.addElementAt(sizeByCheck, 0);"/>
 			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}" showLabel="false" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.screenRadius"/>
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				
-				<mx:Label text="{lang('Point Size:')}"/>
+				<s:Label text="{lang('Point Size:')}"/>
 				<mx:HSlider id="sizeBySlider"
 							liveDragging="true"
 							width="100%"
@@ -498,10 +509,10 @@
 							tickInterval="5"
 							change="handleSizeSliderChange(event)"
 							mouseDown="event.stopImmediatePropagation();"/>
-			</mx:HBox>
-			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="{lang('Point Opacity:')}" 
-						  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
+			</s:HGroup>
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:Label text="{lang('Point Opacity:')}" 
+						 toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 				
 				<mx:HSlider id="alphaSlider" 
 							width="100%" 
@@ -509,54 +520,57 @@
 							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
-			</mx:HBox>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
-		</mx:VBox>
-		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
-			<mx:VBox>
-				<mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
-							 creationComplete="linkBindableProperty(_regressionPlotter.drawLine,event.target,'selected')"/>
+			</s:HGroup>
+			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
+						creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+			<s:Button label="{lang('Show legend')}" click="createLegend()"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="AdvancedPanel" label="{lang('Advanced')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:VGroup>
+				<s:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
+							creationComplete="linkBindableProperty(_regressionPlotter.drawLine,event.target,'selected')"/>
 				<ui:Indent>
-					<mx:VBox>
-						<mx:Label id="lineEquation" text="{lang('Equation: y = mx + b')}"/>
-						<mx:HBox>
-							<mx:Label text="{lang('Line Color')}" />
+					<s:VGroup>
+						<s:Label id="lineEquation" text="{lang('Equation: y = mx + b')}"/>
+						<s:HGroup>
+							<s:Label text="{lang('Line Color')}" />
 							<mx:ColorPicker id="regressionColorPicker" 
 											creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
 											enabled="{regressionLineCheckBox.selected}"/>
-						</mx:HBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Line Thickness')}" />
+						</s:HGroup>
+						<s:HGroup>
+							<s:Label text="{lang('Line Thickness')}" />
 							<mx:HSlider id="regressionThicknessSlider"
 										creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
 										enabled="{regressionLineCheckBox.selected}"
 										minimum="1" maximum="10" snapInterval="1" liveDragging="true"
 										tickInterval="1"/>
-						</mx:HBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Line Opacity')}" />
+						</s:HGroup>
+						<s:HGroup>
+							<s:Label text="{lang('Line Opacity')}" />
 							<mx:HSlider id="regressionAlphaSlider"
 										enabled="{regressionLineCheckBox.selected}"
 										minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
 										tickInterval="0.1"
 										creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
-						</mx:HBox>
-					</mx:VBox>
+						</s:HGroup>
+					</s:VGroup>
 				</ui:Indent>
-			</mx:VBox>
-			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="{lang('Override Global Color')}" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
-							 change="enableOverrideHandler(event)"/>
+			</s:VGroup>
+			<s:HGroup>
+				<s:CheckBox id="colorOverrideCheckbox" label="{lang('Override Global Color')}" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
+							change="enableOverrideHandler(event)"/>
 				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
-			</mx:HBox>
-			<mx:VBox>
-				<mx:HBox>
-					<mx:CheckBox id="absoluteValueColorEnabledCheckbox" label="{lang('Color by positive or negative \'size\' column values')}"
-								 creationComplete="linkBindableProperty(plotter.absoluteValueColorEnabled, event.target, 'selected')"
-								 change="enableAbsHandler(event)"/>
+			</s:HGroup>
+			<s:VGroup>
+				<s:HGroup>
+					<s:CheckBox id="absoluteValueColorEnabledCheckbox" label="{lang('Color by positive or negative \'size\' column values')}"
+								creationComplete="linkBindableProperty(plotter.absoluteValueColorEnabled, event.target, 'selected')"
+								change="enableAbsHandler(event)"/>
 					<ui:HelpComponent>
 						Select this option to highlight the differences in your 'size' column.
 						* All values greater than 0 radius will be one color.
@@ -565,24 +579,24 @@
 						
 						** If a size column is not specified, nothing will be drawn in this mode.
 					</ui:HelpComponent>
-				</mx:HBox>
+				</s:HGroup>
 				<ui:Indent>
-					<mx:VBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Color for values &lt; 0')}" />
+					<s:VGroup>
+						<s:HGroup>
+							<s:Label text="{lang('Color for values &lt; 0')}" />
 							<mx:ColorPicker id="absoluteValueMinColorPicker" 
 											creationComplete="linkBindableProperty(plotter.absoluteValueColorMin, event.target, 'selectedColor')"
 											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
-						</mx:HBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Color for values &gt; 0')}" />
+						</s:HGroup>
+						<s:HGroup>
+							<s:Label text="{lang('Color for values &gt; 0')}" />
 							<mx:ColorPicker id="absoluteValueMaxColorPicker" 
 											creationComplete="linkBindableProperty(plotter.absoluteValueColorMax, event.target, 'selectedColor')"
 											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
-						</mx:HBox>
-					</mx:VBox>
+						</s:HGroup>
+					</s:VGroup>
 				</ui:Indent>
-			</mx:VBox>
-		</mx:VBox>
+			</s:VGroup>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
 </SimpleVisTool>

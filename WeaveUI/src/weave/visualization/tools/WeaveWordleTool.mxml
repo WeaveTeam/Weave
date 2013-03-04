@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
-			   layout="absolute">
-	<mx:Script>
+			   layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.api.getCallbackCollection;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.plotters.WeaveWordlePlotter;
@@ -52,20 +56,20 @@
 				return lang("Wordle visualization");
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 	<ui:ControlPanel>
-			<mx:Panel id="VizControlsPanel" 
-					  label="{lang('Visualization Controls')}" 
-					  headerHeight="2"
-					  borderColor="0x000000" 
-					  backgroundColor="0xCCCCCC" 
-					  backgroundAlpha="0.0" 
-					  borderThickness="0.0" 
-					  height="100%" 
-					  width="100%" 
-					  borderAlpha="0.2" 
-					  borderStyle="none">
-			</mx:Panel>
+		<mx:Panel id="VizControlsPanel" 
+				  label="{lang('Visualization Controls')}" 
+				  headerHeight="2"
+				  borderColor="0x000000" 
+				  backgroundColor="0xCCCCCC" 
+				  backgroundAlpha="0.0" 
+				  borderThickness="0.0" 
+				  height="100%" 
+				  width="100%" 
+				  borderAlpha="0.2" 
+				  borderStyle="none">
+		</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

@@ -46,7 +46,7 @@ package weave.ui.CustomDataGrid
 		{
 			super.createChildren();
 			
-			addChild(lbl);
+			addElement(lbl);
 			lbl.percentWidth = 100;
 			horizontalScrollPolicy = "off";
 		}
@@ -78,7 +78,7 @@ package weave.ui.CustomDataGrid
 					img = new Image();
 					img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
 					img.source = new Bitmap(null, 'auto', true);
-					addChild(img);
+					addElement(img);
 				}
 				img.visible = true;
 				(img.source as Bitmap).bitmapData = attrColumn.getValueFromKey(key) as BitmapData;

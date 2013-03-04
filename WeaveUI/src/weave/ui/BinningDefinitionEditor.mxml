@@ -25,19 +25,28 @@
 @author adufilie
 @author skolman
 -->
-<mx:HBox xmlns:ui ="weave.ui.*"
-		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:HGroup xmlns:ui ="weave.ui.*"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 xmlns="weave.ui.*"
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject"
-		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
-		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
-				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
+		 gap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" >
+	<fx:Declarations>
+		<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
+	</fx:Declarations>
+		<s:BorderContainer borderStyle="solid" borderWeight="1" cornerRadius="10"
+				 >
+			<s:layout>
+				<s:VerticalLayout  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5"/>
+			</s:layout>
 			
-			<mx:Label fontWeight="bold" text="{lang('Binning type:')}"/>
-			<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
+			<s:Label fontWeight="bold" text="{lang('Binning type:')}"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			
+			
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="simpleRadio" label="{lang('Equally spaced')}" groupName="typeGroup" selected="true" width="100%" data="{_simple}"/>
 				<ui:Indent enabled="{simpleRadio.selected}" label="{lang('Number of bins:')}" indent="{indent}">
 					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfBins" width="{inputWidth}"/>
@@ -45,52 +54,52 @@
 				<ui:HelpComponent label="{simpleRadio.label}">
 					Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="customRadio" label="{lang('Custom breaks')}" groupName="typeGroup" width="100%" data="{_customSplit}"/>
-				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
+				<s:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
 				<ui:HelpComponent label="{customRadio.label}">
 					Enter comma-separated custom break values for dividing the data into bins.  Example: "0,50,100" will create two bins: [0,50] and [50,100]
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="quantileRadio" label="{lang('Quantile')}" groupName="typeGroup" width="100%" data="{_quantile}"/>
 				<ui:Indent enabled="{quantileRadio.selected}" label="{lang('Reference quantile:')}" indent="{indent}">
-					<mx:TextInput id="refQuantile" width="{inputWidth}"/>
+					<s:TextInput id="refQuantile" width="{inputWidth}"/>
 				</ui:Indent>
 				<ui:HelpComponent label="{quantileRadio.label}">
 					Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="equalIntervalRadio" label="{lang('Equal interval')}" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
 				<ui:IndentTextInput id="dataInterval" enabled="{equalIntervalRadio.selected}" label="{lang('Data interval:')}" indent="{indent}" inputWidth="{inputWidth}"/>
 				<ui:HelpComponent label="{equalIntervalRadio.label}">
 					Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="sdRadio" label="{lang('Standard deviations')}" groupName="typeGroup" width="100%" data="{_stdDev}"/>
 				<ui:HelpComponent label="{sdRadio.label}">
 					Six bins will be created for standard deviations above and below the mean value.
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 		
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="jenksRadio" label="{lang('Natural Jenks Classification')}" groupName="typeGroup" selected="true" width="100%" data="{_jenks}"/>
 				<ui:Indent enabled="{jenksRadio.selected}" label="{lang('Number of bins:')}" indent="{indent}">
 					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfJenksClass" width="{inputWidth}"/>
@@ -99,27 +108,27 @@
 					The Jenks optimization method, also called the Jenks natural breaks classification method, is a data classification method designed to determine the best arrangement of values into different classes.
 					... http://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 			
 			<mx:HRule width="100%"/>
 			
-			<mx:HBox width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle">
 				<mx:RadioButton id="catRadio" label="{lang('All categories (string values)')}" groupName="typeGroup" width="100%" data="{_category}"/>
 				<ui:HelpComponent label="{catRadio.label}">
 					One bin will be created for each unique string value in the column.
 				</ui:HelpComponent>
-			</mx:HBox>
-		</mx:VBox>
-		<mx:VBox width="100%" height="100%">
+			</s:HGroup>
+		</s:BorderContainer>
+		<s:VGroup width="100%" height="100%">
 			<mx:DataGrid id="binNameEditor" draggableColumns="false" sortableColumns="false" width="100%" height="100%" minWidth="0" selectable="{overrideNamesCheckBox.selected}" editable="{overrideNamesCheckBox.selected}" itemEditEnd="handleItemEdited(event)" dataProvider="{gridSource}">
 				<mx:columns>
 					<mx:DataGridColumn headerText="{lang('Bin Names')}"/>
 				</mx:columns>
 			</mx:DataGrid>
-			<mx:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
-		</mx:VBox>
+			<s:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
+		</s:VGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
@@ -259,5 +268,5 @@
 				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
 			}
 		]]>
-	</mx:Script>
-</mx:HBox>
+	</fx:Script>
+</s:HGroup>

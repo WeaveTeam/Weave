@@ -1,68 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				backgroundColor="0xCCCCCC"
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				skinClass="weave.ui.skins.DraggablePanelSkin"
 				addedToStage="handleAddedToStage();"
 				width="640"
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
-				layout="vertical"
-				escapeKeyClosesPanel="true"
-				>
-	<mx:Metadata>
+				creationPolicy="all"
+				styleName="componentStyle">
+	
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundColor: #cccccc;
+		}
+	</fx:Style>
+	
+	<layout>
+		<s:VerticalLayout/>
+	</layout>
+	<!--<fx:Metadata>
 		[DefaultProperty("children")]
-
-	</mx:Metadata>
-	<mx:Script>
+	</fx:Metadata>-->
+	<fx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.containers.TabNavigator;
+			import mx.core.INavigatorContent;
+			import mx.core.IVisualElement;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
+			import spark.components.NavigatorContent;
+			import spark.layouts.VerticalLayout;
+			import spark.layouts.supportClasses.LayoutBase;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.setSessionState;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
+			import weave.ui.skins.DraggablePanelSkin;
 			import weave.utils.EditorManager;
+			import weave.utils.SparkUtils;
 			
-
+			
 			private var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
 			private var _savedGlobalNames:Object;
 			private var createdChildren:Boolean = false;
 			
-			override protected function get borderIsVisible():Boolean
+			//sanjay commented - not sure we required this 
+			/*override protected function get borderIsVisible():Boolean
 			{
-				return true;
-			}
+			return true;
+			}*/
+			
+			
 			
 			override public function set width(value:Number):void
 			{
@@ -87,10 +112,13 @@
 			{
 				return controlPanelControls ? controlPanelControls.tabNavigator : null;
 			}
-			
-			override public function set layout(value:String):void
-			{
-				super.layout = "vertical";
+			// layout is no more string, its object, extended from layoutbase
+			// objects are vertical layout,Basic Layout, Horizontal layout
+			// we are seeting irrespective what user sets , it has to be vertical layout
+			//sanjay
+			override public function set layout(value:LayoutBase):void
+			{				
+				super.layout = new VerticalLayout();
 			}
 			
 			override protected function constructor():void
@@ -109,10 +137,19 @@
 			
 			public function set children(array:Array):void
 			{
+				//setStyle("skinClass", DraggablePanelSkin);
 				initialize();
 				for (var i:int = 0; i < array.length; i++)
 				{
-					controlPanelControls.tabNavigator.addChild(array[i]);
+					if(array[i] is INavigatorContent){
+						controlPanelControls.tabNavigator.addElement(array[i]);
+					}
+					else{
+						var navContent:NavigatorContent = new NavigatorContent();
+						navContent.addElement(array[i]);
+						controlPanelControls.tabNavigator.addElement(array[i]);
+					}
+					
 				}
 			}
 			
@@ -148,13 +185,13 @@
 				{
 					closeable.value = true;
 					if (controlPanelControls == controlPanelControls.buttons.parent)
-						controlPanelControls.removeChild(controlPanelControls.buttons);
+						controlPanelControls.removeElement(controlPanelControls.buttons);
 				}
 				else
 				{
 					closeable.value = false;
 					if (controlPanelControls != controlPanelControls.buttons.parent)
-						controlPanelControls.addChild(controlPanelControls.buttons);
+						controlPanelControls.addElement(controlPanelControls.buttons);
 				}
 			}
 			
@@ -203,8 +240,8 @@
 				}
 				if (tabNavigator)
 					for each (var child:Object in tabNavigator.getChildren())
-						if (child is ILinkableObjectEditor)
-							(child as ILinkableObjectEditor).applyChanges();
+					if (child is ILinkableObjectEditor)
+						(child as ILinkableObjectEditor).applyChanges();
 				
 				_savedGlobalNames = {};
 				_savedGlobalSessionStates = [];
@@ -251,25 +288,20 @@
 				if (createdChildren)
 					return;
 				createdChildren = true;
-
-				var children:Array = getChildren();
-				removeAllChildren();
 				
-				addChild(controlPanelControls);
+				var children:Array = SparkUtils.getAllElement(this);
+				removeAllElements();
+				
+				addElement(controlPanelControls);
 				controlPanelControls.addEventListener(FlexEvent.CREATION_COMPLETE, handleControlsCreated);
 				
 				controlPanelControls.initialize();
 				for ( var i:int = 0; i < children.length; i++ )
 				{
-					controlPanelControls.tabNavigator.addChild(children[i]);
+					controlPanelControls.tabNavigator.addElement(children[i]);
 				}
 				
 				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
-			}
-			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
 			}
 			
 			private function handleControlsCreated(e:FlexEvent):void
@@ -297,14 +329,6 @@
 				save();
 			}
 			
-			override protected function handleEscapeKey():void
-			{
-				if (WeaveAPI.StageUtils.shiftKey)
-					revert();
-
-				super.handleEscapeKey();
-			}
-			
 			public static function openEditor(linkableObject:ILinkableObject):ILinkableObjectEditor
 			{
 				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
@@ -314,11 +338,18 @@
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 					PopUpManager.centerPopUp(controlPanel);
 					controlPanel.targets = [linkableObject];
-					
-					controlPanel.tabNavigator.addChild(editor as DisplayObject);
+					if(editor is INavigatorContent){
+						controlPanel.tabNavigator.addElement(editor as IVisualElement);
+					}
+					else{
+						var navContent:NavigatorContent = new NavigatorContent();
+						navContent.addElement(editor as IVisualElement);
+						controlPanel.tabNavigator.addElement(navContent);
+					}
 				}
 				return editor;
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </DraggablePanel>
+

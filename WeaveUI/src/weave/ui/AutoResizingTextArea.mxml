@@ -19,13 +19,15 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:TextArea xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
-    verticalScrollPolicy="off" horizontalScrollPolicy="off"
+<mx:TextArea xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
+     
     resize="resetHeight()"
     change="resetHeight()"
     >
-
-    <mx:Script>
+	
+    <fx:Script>
         <![CDATA[
         	private function init():void
         	{
@@ -72,5 +74,5 @@
 				// the size until you type a new character, not sure why this happens...
             }
         ]]>
-    </mx:Script>
+    </fx:Script>
 </mx:TextArea>

@@ -1,54 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <ui:ControlPanel  xmlns="weave.ui.*"
-				  xmlns:mx="http://www.adobe.com/2006/mxml"
+				  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" 
+				  xmlns:mx="library://ns.adobe.com/flex/mx"
 				  xmlns:ui="weave.ui.*" 
-				  layout="absolute"
+				  layout="{new BasicLayout()}"
 				  width="338" height="210"
-				  title="{lang('Collaboration Settings')}"
-				  backgroundColor="#EFF4BC"
-				  creationComplete="creationComplete()">
-	<mx:VBox label="{lang('Server Settings')}" width="100%" height="100%">
-		<mx:HBox width="100%">
-			<mx:Label text="IP:" width="{labelWidth}" />
-			<mx:TextInput id="serverIP" width="{textAreaWidth}" change="trimInput(event);"/>
-		</mx:HBox>
-		<mx:HBox width="100%">
-			<mx:Label text="{lang('ServerName:')}" width="{labelWidth}" />
-			<mx:TextInput id="serverName" width="{textAreaWidth}" change="trimInput(event);"/>
-		</mx:HBox>
-		<mx:HBox width="100%">
-			<mx:Label text="Port:" width="{labelWidth}" />
-			<mx:TextInput id="port" width="{textAreaWidth}" change="trimInput(event);"/>
-		</mx:HBox>
-		<mx:HBox width="100%">
-			<mx:Label text="{lang('Room Name:')}" width="{labelWidth}" />
-			<mx:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
-		</mx:HBox>
-		<mx:CheckBox toolTip="{lang('Toggle access to Collaboration Toolbar')}"
-					 id="collabBar"
-					 label="{lang('Show Collaboration Menu Bar')}"/>
-	</mx:VBox>
-	<mx:Script>
+				  title="{lang('Collaboration Settings')}"				  
+				  creationComplete="creationComplete()" 
+				  styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace ui "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundColor: #EFF4BC;
+		}
+	</fx:Style>
+
+	<s:NavigatorContent label="{lang('Server Settings')}" width="100%" height="100%">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<s:HGroup width="100%">
+			<s:Label text="IP:" width="{labelWidth}" />
+			<s:TextInput id="serverIP" width="{textAreaWidth}" change="trimInput(event);"/>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:Label text="{lang('ServerName:')}" width="{labelWidth}" />
+			<s:TextInput id="serverName" width="{textAreaWidth}" change="trimInput(event);"/>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:Label text="Port:" width="{labelWidth}" />
+			<s:TextInput id="port" width="{textAreaWidth}" change="trimInput(event);"/>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:Label text="{lang('Room Name:')}" width="{labelWidth}" />
+			<s:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
+		</s:HGroup>
+		<s:CheckBox toolTip="{lang('Toggle access to Collaboration Toolbar')}"
+					id="collabBar"
+					label="{lang('Show Collaboration Menu Bar')}"/>
+	</s:NavigatorContent>
+	<fx:Script>
 		<![CDATA[
 			import mx.utils.StringUtil;
+			
+			import spark.layouts.BasicLayout;
 			
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
@@ -70,12 +87,12 @@
 				linkBindableProperty(Weave.properties.enableCollaborationBar, collabBar, 'selected');
 				
 				this.targets = [Weave.properties.collabServerIP, 
-								Weave.properties.collabServerName, 
-								Weave.properties.collabServerPort, 
-								Weave.properties.collabServerRoom,
-								Weave.properties.enableCollaborationBar];
+					Weave.properties.collabServerName, 
+					Weave.properties.collabServerPort, 
+					Weave.properties.collabServerRoom,
+					Weave.properties.enableCollaborationBar];
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:ControlPanel>

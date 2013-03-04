@@ -1,117 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
--->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
-		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
-		 backgroundAlpha="1" backgroundColor="#CCCCCC"
-		 showEffect="{moveIn}" hideEffect="{moveOut}" xmlns:collab="weave.ui.collaboration.*" xmlns:ui="weave.ui.*">
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-	<mx:Move id="moveIn" duration="1000"
-			 xFrom="{xFrom}" xTo="{xTo}"
-			 yFrom="{yFrom}" yTo="{yTo}"/>
-	<mx:Move id="moveOut" duration="1000"
-			 xFrom="{xTo}" xTo="{xFrom}"
-			 yFrom="{yTo}" yTo="{yFrom}"/>
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   borderStyle="solid"
+		   
+		   showEffect="{moveIn}" hideEffect="{moveOut}" xmlns:collab="weave.ui.collaboration.*" xmlns:ui="weave.ui.*">
+	<s:backgroundFill>
+		<s:SolidColor alpha="1" color="#CCCCCC"/>
+	</s:backgroundFill>
+	<s:borderStroke>
+		<s:SolidColorStroke weight="3" color="#54585E"/>
+	</s:borderStroke>
+	<fx:Declarations>
+		<s:Move id="moveIn" duration="1000"
+				 xFrom="{xFrom}" xTo="{xTo}"
+				 yFrom="{yFrom}" yTo="{yTo}"/>
+		<s:Move id="moveOut" duration="1000"
+				 xFrom="{xTo}" xTo="{xFrom}"
+				 yFrom="{yTo}" yTo="{yFrom}"/>
+		
+		<s:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
+		<s:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
+	</fx:Declarations>
 	
-	<mx:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
-	<mx:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
 	
-	<mx:VBox width="100%" height="100%"
-			 paddingBottom="{padding}" paddingLeft="{padding}"
-			 paddingRight="{padding}" paddingTop="{padding}">
-		<mx:VBox id="containerGlobal" width="100%" height="100%">
-			<mx:VBox id="containerAddons" width="100%" height="0" horizontalScrollPolicy="off">
-				<mx:Canvas width="100%" height="100%" clipContent="true"
-						   horizontalScrollPolicy="off" verticalScrollPolicy="off">
-					<mx:Canvas id="containerRemoteCams" width="100%" height="100%" autoLayout="false" />
-					<mx:HBox verticalAlign="bottom" horizontalAlign="right" bottom="0" right="0">
+	<s:VGroup width="100%" height="100%"
+			  paddingBottom="{padding}" paddingLeft="{padding}"
+			  paddingRight="{padding}" paddingTop="{padding}">
+		<s:VGroup id="containerGlobal" width="100%" height="100%">
+			<s:VGroup id="containerAddons" width="100%" height="0" >
+				<s:BorderContainer width="100%" height="100%" 
+						    >
+					<s:layout>
+						<s:BasicLayout clipAndEnableScrolling="true"/>
+					</s:layout>
+					<s:BorderContainer id="containerRemoteCams" width="100%" height="100%" autoLayout="false" />
+					<s:HGroup verticalAlign="bottom" horizontalAlign="right" bottom="0" right="0">
 						<mx:UIComponent id="containerLocalCam" width="80" height="60" />
-					</mx:HBox>
-				</mx:Canvas>
-				<mx:HBox id="addonControls" width="100%" horizontalAlign="center" horizontalScrollPolicy="off">
+					</s:HGroup>
+				</s:BorderContainer>
+				<s:HGroup id="addonControls" width="100%" horizontalAlign="center" >
 					<mx:Button id="button_mic" width="28" height="22" toggle="true" 
-							   enabled="{addOnsSaved}" click="toggleMic(event)"/>
+							  enabled="{addOnsSaved}" click="toggleMic(event)"/>
 					<mx:Button id="button_cam" width="28" height="22" toggle="true" 
-							   enabled="{addOnsSaved}" click="toggleCam(event)"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:VBox id="containerChat" width="100%" height="100%">
+							  enabled="{addOnsSaved}" click="toggleCam(event)"/>
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup id="containerChat" width="100%" height="100%">
 				<mx:TextArea id="rtmpErrorLabel" borderThickness="0" backgroundAlpha="0" editable="false"
-							 wordWrap="true" color="#FF0000" fontWeight="bold" width="100%" height="20"
-							 showEffect="{fadeIn}" hideEffect="{fadeOut}" visible="false" includeInLayout="false" />
-				<mx:HDividedBox width="100%" height="100%" horizontalScrollPolicy="off">
+							wordWrap="true" color="#FF0000" fontWeight="bold" width="100%" height="20"
+							showEffect="{fadeIn}" hideEffect="{fadeOut}" visible="false" includeInLayout="false" />
+				<mx:HDividedBox width="100%" height="100%" >
 					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
-					<mx:List id="userList" width="0%" height="100%" labelField="name" minWidth="130">
-						<mx:itemRenderer>
-							<mx:Component>
-								<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
-									<mx:Script>
-										<![CDATA[
-											import mx.controls.ToolTip;
-											
-											override public function set data(value:Object):void
-											{
-												if( outerDocument._userListInfo[value] != null )
+					<s:List id="userList" width="0%" height="100%" labelField="name" minWidth="130">
+						<s:itemRenderer>
+							<fx:Component> 
+								<s:ItemRenderer>
+									
+									<s:HGroup width="100%" height="100%"  paddingRight="4">
+										<fx:Script>
+											<![CDATA[
+												import mx.controls.ToolTip;
+												
+												override public function set data(value:Object):void
 												{
-													color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
-													micPic.visible 			= outerDocument._userListInfo[value].mic;
-													micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
-													camPic.visible			= outerDocument._userListInfo[value].cam;
-													camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
-													specPic.visible			= outerDocument._userListInfo[value].spec;
-													specPic.includeInLayout = outerDocument._userListInfo[value].spec;
-													collabPing.ping			= outerDocument._userListInfo[value].ping;
+													if( outerDocument._userListInfo[value] != null )
+													{
+														color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
+														micPic.visible 			= outerDocument._userListInfo[value].mic;
+														micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
+														camPic.visible			= outerDocument._userListInfo[value].cam;
+														camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
+														specPic.visible			= outerDocument._userListInfo[value].spec;
+														specPic.includeInLayout = outerDocument._userListInfo[value].spec;
+														collabPing.ping			= outerDocument._userListInfo[value].ping;
+													}
+													labelName.text = value as String;
+													if( (value as String) == outerDocument.nickname )
+														labelName.setStyle("fontWeight", "bold");
+													else
+														labelName.setStyle("fontWeight", "normal");
 												}
-												labelName.text = value as String;
-												if( (value as String) == outerDocument.nickname )
-													labelName.setStyle("fontWeight", "bold");
-												else
-													labelName.setStyle("fontWeight", "normal");
-											}
-											
-										]]>
-									</mx:Script>
-									<mx:Canvas id="color" width="16" height="16" borderStyle="solid" 
-											   cornerRadius="8" borderThickness="2"
-											   borderColor="0"/>
-									<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
-										<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
-									</mx:Canvas>
-									<mx:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
-									<mx:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
-									<mx:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
-									<collab:CollaborationPing id="collabPing" width="16" height="14" />
-								</mx:HBox>
-							</mx:Component>
-						</mx:itemRenderer>
-					</mx:List>
+												
+											]]>
+										</fx:Script>
+										<s:BorderContainer id="color" width="16" height="16" borderStyle="solid" 
+												   cornerRadius="8" 
+												   borderColor="0">
+											<s:borderStroke>
+												<s:SolidColorStroke weight="2"/>
+											</s:borderStroke>
+											</s:BorderContainer>
+										
+										<s:Group width="100%"  clipAndEnableScrolling="true">
+											<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
+										</s:Group>
+										<s:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
+										<s:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
+										<s:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
+										<collab:CollaborationPing id="collabPing" width="16" height="14" />
+									</s:HGroup>
+								</s:ItemRenderer> 
+							</fx:Component>  
+						</s:itemRenderer>
+					</s:List>
 				</mx:HDividedBox>
-				<mx:HBox width="100%">
-					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
+				<s:HGroup width="100%">
+					<s:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
 					<mx:Button id="button_send" label="{lang('Send')}" click="dispatchMessageEvent()" />
-				</mx:HBox>
-			</mx:VBox>
-		</mx:VBox>
-	</mx:VBox>
+				</s:HGroup>
+			</s:VGroup>
+		</s:VGroup>
+	</s:VGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.utils.ObjectUtil;
 			import mx.collections.ArrayCollection;
@@ -150,7 +170,7 @@
 			private var nsPublishCam:NetStream 					= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
 			private var nsPlayCamList:Dictionary				= new Dictionary();
-
+			
 			public var cam:Camera;
 			public var mic:Microphone;
 			
@@ -158,12 +178,12 @@
 			[Embed(source="/weave/resources/images/collab/cam.png")]     internal const iconCam:Class;
 			[Embed(source="/weave/resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
 			[Embed(source="/weave/resources/images/collab/eye.png")]     internal const iconEye:Class;
-
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-//				button_mic.setStyle("icon", iconMic);
-//				button_cam.setStyle("icon", iconCam);
+				//				button_mic.setStyle("icon", iconMic);
+				//				button_cam.setStyle("icon", iconCam);
 			}
 			public function logText(txt:String):void
 			{
@@ -240,7 +260,7 @@
 					{
 						localVideo.attachCamera(null);
 						localVideo.clear();
-						containerLocalCam.removeChild(localVideo);
+						containerLocalCam.addChild(localVideo);
 						localVideo = null;
 						
 						nsPublishCam.attachCamera(null);
@@ -356,15 +376,15 @@
 						remoteVideo.stream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 						remoteVideo.video = new Video(140, 105);
 						remoteVideo.play("v-"+roomName+"-"+name);
-//						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
+						//						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
 						remoteVideo.nickname = name;
-						containerRemoteCams.addChild(remoteVideo);
+						containerRemoteCams.addElement(remoteVideo);
 						nsPlayCamList[name] = remoteVideo;
 						
 						if( dictionaryLength(nsPlayCamList) > 0 )
 							showRemoteDisplay();
 						
-//						organizeRemoteVideos();
+						//						organizeRemoteVideos();
 					}
 				}
 				else
@@ -383,7 +403,7 @@
 						if( nsPlayCamList[name] )
 						{
 							nsPlayCamList[name].stream.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-							containerRemoteCams.removeChild(nsPlayCamList[name]);
+							containerRemoteCams.removeElement(nsPlayCamList[name]);
 							nsPlayCamList[name].close();
 							delete nsPlayCamList[name];
 							
@@ -392,7 +412,7 @@
 							else if( dictionaryLength(nsPlayCamList) == 0 && !enabledCam )
 								hideRemoteDisplay();
 							
-//							organizeRemoteVideos();
+							//							organizeRemoteVideos();
 						}
 					}
 				}
@@ -427,24 +447,24 @@
 					case 2:
 						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
 						vid1.setSize(camWidth);
-//						vid1.setPos(usable/3-vid1.width/2, 0);
+						//						vid1.setPos(usable/3-vid1.width/2, 0);
 						
 						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
 						vid2.setSize(camWidth);
-//						vid2.setPos(2*usable/3-vid2.width/2, 0);
+						//						vid2.setPos(2*usable/3-vid2.width/2, 0);
 						break;
 					case 3:
-//						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-//						vid1.setSize(camWidth);
-//						vid1.setPos(usable/6-vid1.width/2, 0);
+						//						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
+						//						vid1.setSize(camWidth);
+						//						vid1.setPos(usable/6-vid1.width/2, 0);
 						
-//						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-//						vid2.setSize(camWidth);
-//						vid2.setPos(2*usable/6-vid2.width/2, 0);
+						//						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
+						//						vid2.setSize(camWidth);
+						//						vid2.setPos(2*usable/6-vid2.width/2, 0);
 						
-//						var vid3:CollaborationVideo = nsPlayCamList[names[2]] as CollaborationVideo;
-//						vid3.setSize(camWidth);
-//						vid3.setPos(4*usable/6-vid3.width/2, 0);
+						//						var vid3:CollaborationVideo = nsPlayCamList[names[2]] as CollaborationVideo;
+						//						vid3.setSize(camWidth);
+						//						vid3.setPos(4*usable/6-vid3.width/2, 0);
 						break;
 					default:
 						
@@ -463,5 +483,5 @@
 				return dictionaryLength(nsPlayCamList);
 			}
 		]]>
-	</mx:Script>
-</mx:Canvas>
+	</fx:Script>
+</s:BorderContainer>

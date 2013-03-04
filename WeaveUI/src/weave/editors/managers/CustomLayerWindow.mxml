@@ -1,62 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
-	This component lists custom layers available 
-	@author kmanohar
+This component lists custom layers available 
+@author kmanohar
 -->
 <ui:DraggablePanel xmlns="weave.editors.managers.*" 
-				xmlns:mx="http://www.adobe.com/2006/mxml" title="Add a new layer"
-				creationPolicy="all"
-				backgroundColor="0xcccccc"
-				percentWidth="NaN" percentHeight="NaN"
-				sessionPanelCoordsAsPercentages="false"
-				layout="vertical" xmlns:ui="weave.ui.*">
-	<mx:VBox borderStyle="solid"
-			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
-			 backgroundAlpha="0.8" backgroundColor="white"
-			 width="100%" height="100%">
+				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" title="Add a new layer"
+				   
+				   
+				   percentWidth="NaN" percentHeight="NaN"
+				   sessionPanelCoordsAsPercentages="false"
+				   xmlns:ui="weave.ui.*">
+	<!--backgroundColor="0xcccccc"-->
+	<ui:layout>
+		<s:VerticalLayout/>
+	</ui:layout>
+	<s:BorderContainer borderStyle="solid" 
+			  width="100%" height="100%">
+		<s:backgroundFill>
+			<s:SolidColor color="0xffffff" alpha="0.8"/>
+		</s:backgroundFill>
+		<s:layout>
+			<s:VerticalLayout  paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"/>
+		</s:layout>
 		
-		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
+		<s:List id="layerSelector" width="100%" height="100%" minWidth="250" dataProvider="{layerSelectorDataProvider}">
 			<!-- For now, add new plotter editors here. later, there will be a way of listing them automatically. -->
 			
 			<!--<mx:Object label="{lang('Bars')}" plotterClass="{CompoundBarChartPlotter}" selectable="true"/>-->
-			<mx:Object label="{lang('Geometry Labels')}" plotterClass="{GeometryLabelPlotter}" selectable="true"/>
-			<mx:Object label="{lang('Geometry Plotter')}" plotterClass="{GeometryPlotter}" selectable="true"/>
-			<mx:Object label="{lang('WMS Plotter')}" plotterClass="{WMSPlotter}" selectable="true"/>
-			<mx:Object label="{lang('Grid lines')}" plotterClass="{GridLinePlotter}" selectable="false"/>
-			<mx:Object label="{lang('Labels')}" plotterClass="{AxisLabelPlotter}" selectable="false"/>
-			<mx:Object label="{lang('Rectangle Plotter')}" plotterClass="{RectanglePlotter}" selectable="true"/>
-			<mx:Object label="{lang('Image Plotter')}" plotterClass="{ImageGlyphPlotter}" selectable="true"/>
-		</mx:List>
-	
-		<mx:Button label="{lang('Add new layer')}" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
-	</mx:VBox>
-	<mx:Script>
+			
+		</s:List>
+		
+		<s:Button label="{lang('Add new layer')}" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
+	</s:BorderContainer>
+	<fx:Declarations>
+		<s:ArrayCollection id="layerSelectorDataProvider">
+			<fx:Object label="{lang('Geometry Labels')}" plotterClass="{GeometryLabelPlotter}" selectable="true"/>
+			<fx:Object label="{lang('Geometry Plotter')}" plotterClass="{GeometryPlotter}" selectable="true"/>
+			<fx:Object label="{lang('WMS Plotter')}" plotterClass="{WMSPlotter}" selectable="true"/>
+			<fx:Object label="{lang('Grid lines')}" plotterClass="{GridLinePlotter}" selectable="false"/>
+			<fx:Object label="{lang('Labels')}" plotterClass="{AxisLabelPlotter}" selectable="false"/>
+			<fx:Object label="{lang('Rectangle Plotter')}" plotterClass="{RectanglePlotter}" selectable="true"/>
+			<fx:Object label="{lang('Image Plotter')}" plotterClass="{ImageGlyphPlotter}" selectable="true"/>
+		</s:ArrayCollection>
+	</fx:Declarations>
+	<fx:Script>
 		<![CDATA[
+			import mx.core.INavigatorContent;
+			import mx.core.IVisualElement;
 			import mx.managers.PopUpManager;
 			
-			import weave.api.core.ILinkableHashMap;
+			import spark.components.NavigatorContent;
+			
 			import weave.api.disposeObjects;
 			import weave.api.registerDisposableChild;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotter;
 			import weave.ui.ControlPanel;
@@ -94,7 +113,7 @@
 				PopUpManager.addPopUp(controls, this);
 				PopUpManager.centerPopUp(controls);
 				controls.targets = [_visualization];
-
+				
 				var hm:ILinkableHashMap = _visualization.plotManager.plotters;
 				var name:String = hm.generateUniqueName(label);
 				var plotter:IPlotter = hm.requestObject(name, Plotter, false) as IPlotter;
@@ -110,7 +129,14 @@
 				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
 				if (editor)
 				{
-					controls.tabNavigator.addChild(editor as DisplayObject);
+					if(editor is INavigatorContent){
+						controls.tabNavigator.addElement(editor as IVisualElement);
+					}
+					else{
+						var navContent:NavigatorContent = new NavigatorContent();
+						navContent.addElement(editor as IVisualElement);
+						controls.tabNavigator.addElement(navContent);
+					}
 				}
 				else
 				{
@@ -121,5 +147,5 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:DraggablePanel>

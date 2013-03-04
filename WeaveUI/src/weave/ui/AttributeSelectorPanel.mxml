@@ -1,75 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
 <ControlPanel
 	xmlns="weave.ui.*"
-	xmlns:mx="http://www.adobe.com/2006/mxml"
-	title="Attribute Selector"
-	verticalScrollPolicy="off" horizontalScrollPolicy="off"
-	backgroundColor="#EFF4BC" xmlns:editors="weave.editors.*"
-	>
-	<mx:VBox width="100%" height="100%" id="outerVBox" verticalGap="5">
-		<mx:HBox id="paramSelector" verticalAlign="middle">
-			<mx:Label text="Parameter to modify:"/>
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	title="Attribute Selector"	 
+	xmlns:editors="weave.editors.*"
+	styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace editors "weave.editors.*";
+		.componentStyle{
+			backgroundColor:#EFF4BC;
+		}
+	</fx:Style>
+	
+	<s:NavigatorContent width="100%" height="100%" id="outerVBox">
+		<s:layout>
+			<s:VerticalLayout gap="5"/>
+		</s:layout>
+		<s:HGroup id="paramSelector" verticalAlign="middle">
+			<s:Label text="Parameter to modify:"/>
 			<CustomToggleButtonBar
 				id="dimensionTypeLinks"
 				width="100%"
 				useHandCursor="true"
 				dataProvider="{selectableAttributeNames}"
 				itemClick="linkToObject(selectableAttributes[event.index]);"/>
-		</mx:HBox>
+		</s:HGroup>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
-			<mx:HBox id="addColumnControls" width="100%">
-				<mx:Spacer width="100%"/>
-				<mx:Button id="addAllButton" label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
-				<mx:Button label="Add selected" click="addSelected()"/>
-			</mx:HBox>
+			<s:HGroup id="addColumnControls" width="100%">
+				<s:Spacer width="100%"/>
+				<s:Button id="addAllButton" label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
+				<s:Button label="Add selected" click="addSelected()"/>
+			</s:HGroup>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
 		</mx:VDividedBox>
-	</mx:VBox>
-	<mx:Script>
+	</s:NavigatorContent>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ListCollectionView;
 			import mx.controls.Label;
+			import mx.core.IVisualElement;
+			import mx.core.IVisualElementContainer;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.disposeObjects;
+			import weave.api.getCallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.disposeObjects;
-			import weave.api.getCallbackCollection;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.HierarchyUtils;
-
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -88,8 +104,8 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-
-				columnList.titleHBox.addChild(addColumnControls);
+				
+				columnList.titleHBox.addElement(addColumnControls);
 				
 				Weave.properties.showAddAllButton.addImmediateCallback(this, changeAddAllButton, true);
 			}
@@ -140,9 +156,9 @@
 			private function showOrHideParamSelector(show:Boolean):void
 			{
 				if (show && !paramSelector.parent)
-					outerVBox.addChildAt(paramSelector,0);
+					outerVBox.addElementAt(paramSelector,0);
 				if (!show && paramSelector.parent)
-					outerVBox.removeChild(paramSelector);
+					outerVBox.removeElement(paramSelector);
 			}
 			
 			/**
@@ -192,7 +208,7 @@
 				
 				if (columnOrHashMap is ILinkableHashMap)
 				{
-
+					
 					// set path to first column.
 					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);
 					if (columns.length > 0)
@@ -207,17 +223,23 @@
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;
-					if (child.parent)
-						child.parent.removeChild(child);
+					if (child.parent){
+						if(child.parent is IVisualElementContainer){
+							(child.parent as IVisualElementContainer).removeElement(child as IVisualElement);
+						}
+						else{
+							child.parent.removeChild(child);
+						}
+					}
 					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
 					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
-					verticalDividedBox.addChild(columnList);
+					verticalDividedBox.addElement(columnList);
 				}
 				else if (verticalDividedBox == columnList.parent)
 				{
-					verticalDividedBox.removeChild(columnList);
+					verticalDividedBox.removeElement(columnList);
 				}
-
+				
 				// set targets for ControlPanel to support session saving
 				if (selectableAttributes.indexOf(columnOrHashMap) < 0)
 					targets = selectableAttributes = [];
@@ -250,7 +272,7 @@
 				
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
-
+				
 				defaultSelector.editor.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);
@@ -266,5 +288,5 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ControlPanel>

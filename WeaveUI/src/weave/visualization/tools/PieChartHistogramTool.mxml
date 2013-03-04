@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-		 xmlns:ui="weave.ui.*"
-		 xmlns:userControls="weave.ui.userControls.*"
-	     layout="absolute">
-	<mx:Script>
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:ui="weave.ui.*"
+			   xmlns:userControls="weave.ui.userControls.*"
+			   layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -36,7 +40,7 @@
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
-
+			
 			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, lang("Pie Chart Histogram"));
 			
 			public var _plotter:PieChartHistogramPlotter = null;
@@ -109,16 +113,22 @@
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Binning')}">
+		<s:NavigatorContent label="{lang('Binning')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
-		</mx:VBox>
-		<mx:VBox id="attributesPanel" label="{lang('Labeling')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="attributesPanel" label="{lang('Labeling')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
+						creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:Indent label="{lang('Label angle')}">
 				<mx:HSlider id="labelAngleSlider"
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
@@ -126,6 +136,6 @@
 							creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
 			</ui:Indent>
 			<ui:ColorRampEditor id="cRampEditor"/>
-		</mx:VBox>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
 </SimpleVisTool>

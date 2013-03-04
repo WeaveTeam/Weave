@@ -25,20 +25,21 @@
 	@author adufilie
 -->
 
-<mx:Box xmlns:mx="http://www.adobe.com/2006/mxml"
-		direction="horizontal"
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		width="100%" height="100%"
 		implements="weave.api.core.ILinkableObject, weave.api.core.IDisposableObject">
-	<!--<mx:Label id="compiledObjectName" fontWeight="bold" text=""/>
-	<mx:TextInput id="compiledObjectParams" text=""/>
+	<!--<s:Label id="compiledObjectName" fontWeight="bold" text=""/>
+	<s:TextInput id="compiledObjectParams" text=""/>
 	-->
-	<mx:VBox verticalGap="0">
-		<mx:Image click="handleCloseButtonClick(event)" id="closeButton" source="@Embed(source='/weave/resources/images/cancel_small.png')" alpha="0.5" toolTip="{lang('Erase this part of the equation.')}"/>
-		<mx:Image mouseDown="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="{lang('Expand or collapse this part of the equation.')}"/>
-	</mx:VBox>
-	<mx:VBox id="equationStringContainer"/>
+	<s:VGroup gap="0">
+		<s:Image click="handleCloseButtonClick(event)" id="closeButton" source="@Embed(source='/weave/resources/images/cancel_small.png')" alpha="0.5" toolTip="{lang('Erase this part of the equation.')}"/>
+		<s:Image mouseDown="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="{lang('Expand or collapse this part of the equation.')}"/>
+	</s:VGroup>
+	<s:VGroup id="equationStringContainer"/>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Label;
 			import mx.controls.List;
@@ -47,13 +48,14 @@
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.api.core.ILinkableObject;
 			import weave.api.disposeObjects;
 			import weave.api.newLinkableChild;
+			import weave.api.core.ILinkableObject;
 			import weave.compiler.CompiledFunctionCall;
 			import weave.compiler.ICompiledObject;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.EquationColumn;
+			import weave.utils.SparkUtils;
 
 			private static const UNDEFINED:String = 'undefined';
 			
@@ -95,7 +97,7 @@
 			private function handleEditButtonClick(event:MouseEvent):void
 			{
 				equation.value = extractEquationString();
-				if (equationStringContainer.getChildren().length == 1)
+				if (equationStringContainer.numElements == 1)
 					loadEquationString(true);
 				else
 					loadEquationString(false);
@@ -131,7 +133,7 @@
 					var openCompiledObjectName:Label = new Label();
 					
 					openCompiledObjectName.text = EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod);
-					equationStringContainer.addChild(openCompiledObjectName);
+					equationStringContainer.addElement(openCompiledObjectName);
 					if (compiledFunctionCall.compiledParams.length > 0)
 					{
 						openCompiledObjectName.text += "(";
@@ -140,17 +142,17 @@
 							var compiledObjectParams:EquationUIComponent = new EquationUIComponent();
 							compiledObjectParams.equation.value = (EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledParams[i]));
 							compiledObjectParams.equation.addImmediateCallback(this, handleChildEquationChange); 
-							equationStringContainer.addChild(compiledObjectParams);
+							equationStringContainer.addElement(compiledObjectParams);
 							if (i < compiledFunctionCall.compiledParams.length - 1)
 							{
 								var comma:Label = new Label();
 								comma.text = ",";
-								equationStringContainer.addChild(comma);
+								equationStringContainer.addElement(comma);
 							}
 						}
 						var closeCompiledObjectName:Label = new Label();
 						closeCompiledObjectName.text = ")";
-						equationStringContainer.addChild(closeCompiledObjectName);
+						equationStringContainer.addElement(closeCompiledObjectName);
 					}
 					else
 					{
@@ -168,14 +170,14 @@
 					compiledConstant.addEventListener(KeyboardEvent.KEY_DOWN,handleReturnKeyPress);
 					if (compiledObject == null)
 						compiledConstant.errorString = errorString;
-					equationStringContainer.addChild(compiledConstant);
+					equationStringContainer.addElement(compiledConstant);
 				}
 				this.errorString = errorString;
 			}
 			
 			private function extractEquationString():String
 			{
-				var children:Array = equationStringContainer.getChildren();
+				var children:Array = SparkUtils.getAllElement(equationStringContainer);
 				
 				if (children.length == 0)
 					return equation.value;
@@ -203,7 +205,7 @@
 			
 			private function removeLastComma():void
 			{
-				var children:Array = equationStringContainer.getChildren();
+				var children:Array = SparkUtils.getAllElement(equationStringContainer);
 				
 				if(children[children.length-1] is Label)
 				{
@@ -348,14 +350,14 @@
 			// remove and dispose of all children
 			private function removeAllEquationChildren():void
 			{
-				var children:Array = equationStringContainer.getChildren();
+				var children:Array = SparkUtils.getAllElement(equationStringContainer);
 				for each (var child:UIComponent in children)
 					child.validateNow(); // prevents application from crashing inside call to callLaterDispatcher().
 				
 				if (children.length > 0)
 					(disposeObjects as Function).apply(null, children);
-				equationStringContainer.removeAllChildren();
+				equationStringContainer.removeAllElements();
 			}
 		]]>
-	</mx:Script>
-</mx:Box>
+	</fx:Script>
+</s:HGroup>

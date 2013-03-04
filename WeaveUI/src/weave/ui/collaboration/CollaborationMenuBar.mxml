@@ -18,23 +18,28 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 width="100%" height="25"
-		 backgroundAlpha="0"
-		 backgroundColor="0x8a8a8a"
 		 cornerRadius="7"
-		 bottom="0" horizontalGap="0"
-		 verticalAlign="middle"
+		 bottom="0"
 		 creationComplete="creationComplete(event)"
 		 resize="resizeHandler(event)"
-		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		  >
+	<s:backgroundFill>
+		<s:SolidColor color="0x8a8a8a" alpha="0"/>
+	</s:backgroundFill>
+	<s:layout> 
+		<s:HorizontalLayout gap="0"  verticalAlign="middle"/>
+	</s:layout>
 	
-	<mx:Spacer width="100%" />
+	<s:Spacer width="100%" />
 	<mx:Button id="button_connect"  label="{lang('Connect')}"  icon="{iCon}" cornerRadius="0" height="100%" />
 	<mx:Button id="button_settings" label="{lang('Settings')}" icon="{iSet}" cornerRadius="0" height="100%" />
 	<mx:Button id="button_chat"     label="{lang('Chat')}" 	 icon="{iChat}" cornerRadius="0" width="{this.width/2}" height="100%" />
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -607,5 +612,5 @@
 			private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
 
 		]]>
-	</mx:Script>
-</mx:HBox>
+	</fx:Script>
+</s:BorderContainer>

@@ -137,21 +137,21 @@ package weave.application
 						detailsButton.toggle = true;
 						detailsButton.label = "Show Details";
 						detailsButton.toolTip = "Click to display the URL used for this service"
-						urlAlert.removeChild(urlAlert.inputCanvas);
+						urlAlert.removeElement(urlAlert.inputCanvas);
 						detailsButton.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void {																	
 							if(detailsButton.selected) 
-								urlAlert.addChildAt(urlAlert.inputCanvas,2);
+								urlAlert.addElementAt(urlAlert.inputCanvas,2);
 							else 								
-								urlAlert.removeChild(urlAlert.inputCanvas);							
+								urlAlert.removeElement(urlAlert.inputCanvas);							
 						});
 						
 						hbox.toolTip = "Please select a service from the dropdown menu";
 						urlAlert.textBox.toolTip = "This is the URL used to search for the record";
 						label.text = "Select a service: ";
 						
-						hbox.addChild(label); hbox.addChild(combobox); hbox.addChild(detailsButton);
-						urlAlert.addChildAt(hbox,0 );
-						urlAlert.addChildAt(new Spacer(),0);
+						hbox.addElement(label); hbox.addElement(combobox); hbox.addElement(detailsButton);
+						urlAlert.addElementAt(hbox,0 );
+						urlAlert.addElementAt(new Spacer(),0);
 						
 						try { // don't throw error if string is empty
 							// replace any combinations of linefeeds and newlines with one newline character for consistency

@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" xmlns:tools="weave.visualization.tools.*" 
-	     layout="absolute"
-		 xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
-	<mx:Script>
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:ui="weave.ui.*" xmlns:tools="weave.visualization.tools.*" 
+			   layout="{new BasicLayout()}"
+			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
@@ -35,7 +39,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ThermometerPlotter;
-		
+			
 			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, lang("Thermometer Tool"));
 			
 			private function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
@@ -52,7 +56,7 @@
 				//mainLayerSettings.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				mainLayerSettings.selectionFilter.removeObject();
 				mainLayerSettings.probeFilter.removeObject();
-
+				
 				//BEGIN TEMPORARY SOLUTION
 				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
 				visualization.plotManager.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
@@ -67,7 +71,7 @@
 				yAxisPlotter.axisLabelRelativeAngle.value = 90;
 				var self:* = this;
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.meterColumn); })
-
+				
 				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
@@ -98,26 +102,26 @@
 			private function updateAxisLabels():void
 			{
 				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.meterColumn), 
-																-90, 
-																-visualization.plotManager.marginLeftNumber.value, 0,
-																BitmapText.VERTICAL_ALIGN_TOP);
+					-90, 
+					-visualization.plotManager.marginLeftNumber.value, 0,
+					BitmapText.VERTICAL_ALIGN_TOP);
 			}
-
+			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<ui:ControlPanel>
-			<mx:Panel id="attributesPanel" 
-					  label="{lang('Attributes for Thermometer')}" 
-					  headerHeight="2"
-					  borderColor="0x000000" 
-					  backgroundColor="0xCCCCCC" 
-					  backgroundAlpha="0.0" 
-					  borderThickness="0.0" 
-					  height="100%" 
-					  width="100%" 
-					  borderAlpha="0.2" 
-					  borderStyle="none">
-				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
-			</mx:Panel>
+		<mx:Panel id="attributesPanel" 
+				  label="{lang('Attributes for Thermometer')}" 
+				  headerHeight="2"
+				  borderColor="0x000000" 
+				  backgroundColor="0xCCCCCC" 
+				  backgroundAlpha="0.0" 
+				  borderThickness="0.0" 
+				  height="100%" 
+				  width="100%" 
+				  borderAlpha="0.2" 
+				  borderStyle="none">
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
+		</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

@@ -20,10 +20,15 @@
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*"
-			   layout="absolute">
-	<mx:Script>
+			  >
+	<layout>
+		<s:BasicLayout/>
+	</layout>
+	<fx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -190,14 +195,14 @@
 				visualization.plotManager.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 	<mx:TextArea id="marginLabel"
 			visible="{marginLabel.height > 0}"
 			mouseChildren="false" mouseEnabled="false"
 			fontWeight="bold" 
 			x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
-			horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			 
 			wordWrap="true" selectable="false" editable="false"
 			borderThickness="0" backgroundAlpha="0"/>
 	

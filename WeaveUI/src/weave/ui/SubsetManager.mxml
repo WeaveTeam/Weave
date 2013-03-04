@@ -1,37 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
 				width="312" height="300" 
 				initialize="init()" 
 				title="{lang('Saved Subsets')}"
-				layout="vertical">
-
-	
+				>
+	<layout>
+		<s:VerticalLayout/>
+	</layout>
 	<!--<LinkableObjectList id="savedSubsetsList"
-						width="100%" height="100%"
-						hashMap="{_hashMap}" 
-						labelFunction="subsetsListLabelFunction"
-						allowMultipleSelection="false">
-		
+	width="100%" height="100%"
+	hashMap="{_hashMap}" 
+	labelFunction="subsetsListLabelFunction"
+	allowMultipleSelection="false">
+	
 	</LinkableObjectList>
 	-->
 	<mx:List id="savedSubsetsList"
@@ -40,20 +43,20 @@
 			 labelFunction="subsetsListLabelFunction"
 			 allowMultipleSelection="false" />
 	
-	<mx:HBox>
+	<s:HGroup>
 		<mx:Button label="{lang('Delete')}" 
 				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
 				   click="deleteSubset()"/>
 		<mx:Button label="{lang('Rename')}" 
 				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
 				   click="renameSubset()"/>
-	</mx:HBox>
+	</s:HGroup>
 	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
-		<mx:Spacer width="100%"/>
+		<s:Spacer width="100%"/>
 		<mx:Button label="{lang('close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
 	</mx:ControlBar>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
@@ -245,11 +248,11 @@
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
 					if( !e.confirm )
 						return;
-						
+					
 					var oldSubset:KeyFilter = savedSubsetsList.selectedItem as KeyFilter;
 					var oldName:String = Weave.savedSubsetsKeyFilters.getName(oldSubset);
 					var newName:String = e.textInput;
-
+					
 					// we want to put the new subset in the same position the old subset was
 					var nameOrder:Array = Weave.savedSubsetsKeyFilters.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
@@ -257,7 +260,7 @@
 					Weave.savedSubsetsKeyFilters.requestObjectCopy(newName, oldSubset);
 					Weave.savedSubsetsKeyFilters.removeObject(oldName);
 					Weave.savedSubsetsKeyFilters.setNameOrder(nameOrder);
-
+					
 					// invalidate the list so we see it update
 					savedSubsetsList.invalidateList();
 				});
@@ -285,5 +288,5 @@
 				);
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </DraggablePanel>

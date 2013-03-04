@@ -24,27 +24,26 @@
 @author spurushe
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
-			   layout="absolute"
+			   layout="{new BasicLayout()}"
 			   mouseMove="handleMouseMove(event)"
 			   mouseDown="handleMouseDown(event)"
 			   mouseUp="handleMouseUp(event)">
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import spark.core.SpriteVisualElement;
+			import spark.layouts.BasicLayout;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ICallbackCollection;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IKeySet;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkSessionState;
@@ -52,6 +51,10 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ICallbackCollection;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.core.CallbackCollection;
 			import weave.core.LinkableString;
@@ -129,7 +132,7 @@
 				_plotter.columns.addGroupedCallback(this, normalizationInR);
 				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate);
 				
-				//visualization.rawChildren.addChild(probeSprite);
+				//visualization.rawChildren.addElement(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
 				sprCont.addChild(probeSprite)
 				visualization.addElement(sprCont);
@@ -359,5 +362,5 @@
 				_plotter.colorMap.value = ColorRamp.getColorRampXMLByName(colorRampName.value);				
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </SimpleVisTool>

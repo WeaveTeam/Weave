@@ -19,28 +19,27 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox 
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:VGroup 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.editors.*"
-	verticalScrollPolicy="off"
-	horizontalScrollPolicy="off"
-	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
+	<s:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
 	<ui:Indent label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="200"/>
+		<s:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="200"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+		<s:TextInput change="handleURLTextChange()" id="url" width="300" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
 	</ui:Indent>
 	
-	<mx:HBox visible="{uploadSection.visible}" horizontalAlign="center" width="100%">
-		<mx:Label fontWeight="bold" text="{lang('OR')}"/>
-	</mx:HBox>
+	<s:HGroup visible="{uploadSection.visible}" horizontalAlign="center" width="100%">
+		<s:Label fontWeight="bold" text="{lang('OR')}"/>
+	</s:HGroup>
 	<ui:Indent id="uploadSection" label="{lang('Open local XLS file *')}">
-		<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
-		<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
+		<s:Button label="{lang('Browse')}" click="browseForFiles()"/>
+		<s:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 	</ui:Indent>
 	
 	<ui:KeyTypesMenu indent="{uploadSection.labelComponent.width}"  id="keyTypeSelector"
@@ -50,11 +49,11 @@
 					 (event.target as KeyTypesMenu).selectedItem = _xlsDataSource.keyType.value;
 					 }}"/>
 	<ui:Indent label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+		<s:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<mx:Label text="{lang('* = required')}"/>
-	<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
-	<mx:Script>
+	<s:Label text="{lang('* = required')}"/>
+	<s:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
+	<fx:Script>
 		<![CDATA[
 			import com.as3xls.xls.Cell;
 			import com.as3xls.xls.ExcelFile;
@@ -227,5 +226,5 @@
 			}
 			
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

@@ -19,20 +19,25 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 				title="{lang('Saved Selections')}"
 				width="25%" height="10%"
-				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
+				 xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
+	<layout>
+		<s:VerticalLayout/>
+	</layout>
 	
-	<mx:Canvas width="100%" height="100%">
+	<s:Group width="100%" height="100%">
 		
 		<CustomComboBox id="selectionSelectorBox" prompt="{lang('Select a selection...')}"
 						width="100%" height="100%"
 						labelFunction="selectionsListLabelFunction"
 						valueCommit="itemSelected()"
 						/>
-	</mx:Canvas>
-	<mx:Script>
+	</s:Group>
+	<fx:Script>
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.copySessionState;
@@ -111,11 +116,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<ControlPanel>
-		<mx:VBox label="{lang('Settings')}">
-			<mx:CheckBox label='{lang("Include \"No selection\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
-		</mx:VBox>
+		<s:NavigatorContent label="{lang('Settings')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox label='{lang("Include \"No selection\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
+		</s:NavigatorContent>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>
 </DraggablePanel>

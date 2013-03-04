@@ -19,43 +19,45 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns="weave.editors.*" 
-		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:VGroup xmlns="weave.editors.*" 
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 xmlns:ui="weave.ui.*"
 		 width="100%" 
 		 height="100%">
-	<mx:HBox>
-		<mx:Label text="{lang('Selection Mode')}"/>
+	<s:HGroup>
+		<s:Label text="{lang('Selection Mode')}"/>
 		<mx:ComboBox 
 				 id="circularSelectionCheckbox"
 				 dataProvider="{InteractionController.enumSelectionMode()}"
 				 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:CheckBox label='{lang("Show \"Selected Records\" tooltip")}'
+	</s:HGroup>
+	<s:HGroup>
+		<s:CheckBox label='{lang("Show \"Selected Records\" tooltip")}'
 					 id="showSelectedRecordsText"
 					 selected="true"
 					 creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>
 		<ui:CustomComboBox id="recordsTooltip" enabled="{showSelectedRecordsText.selected}"
 						   toolTip="{lang('Select the location for the selected records tooltip')}"/>
-	</mx:HBox>
-	<mx:CheckBox toolTip="{lang('Check this box to enable bitmap filters used when probing or selecting')}"
+	</s:HGroup>
+	<s:CheckBox toolTip="{lang('Check this box to enable bitmap filters used when probing or selecting')}"
 				 id="enableBitmapFilters"
 				 label="{lang('Enable extra bitmap filters')}"
 				 selected="true"
 				 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
 				 />
-	<mx:VBox enabled="{enableBitmapFilters.selected}" paddingLeft="24">			
-		<mx:HBox>
-			<mx:Label text="{lang('Shadow Color')}" 
+	<s:VGroup enabled="{enableBitmapFilters.selected}" paddingLeft="24">			
+		<s:HGroup>
+			<s:Label text="{lang('Shadow Color')}" 
 					  textAlign="right"
 					  toolTip="{lang('Set the shadow color of selected points')}"/>
 			<mx:ColorPicker id="shadowColor"
 							creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
 							/>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label text="{lang('Shadow Alpha')}" 
+		</s:HGroup>
+		<s:HGroup>
+			<s:Label text="{lang('Shadow Alpha')}" 
 					  textAlign="right"
 					  toolTip="{lang('Set the opacity of selected points')}"/>
 			<mx:NumericStepper id="shadowAlpha"
@@ -63,10 +65,10 @@
 							   stepSize="0.1"
 							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
 							   />
-		</mx:HBox>
+		</s:HGroup>
 		
-		<mx:HBox>
-			<mx:Label text="Unselected Records"
+		<s:HGroup>
+			<s:Label text="Unselected Records"
 					  width = "200"
 					  textAlign="right"
 					  toolTip = "Set the opacity of the unselected points"/>
@@ -90,31 +92,31 @@
 							/>
 		
 			
-		</mx:HBox>
+		</s:HGroup>
 		
 		
-	</mx:VBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Selection background alpha')}"
+	</s:VGroup>
+	<s:HGroup>
+		<s:Label text="{lang('Selection background alpha')}"
 				  textAlign="right"/>
 		<mx:NumericStepper id="selectionAlpha"
 						   maximum="1"
 						   stepSize="0.1"
 						   creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount, event.target, 'value' );"
 						   />
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Dashed Lines Parameters')}"
+	</s:HGroup>
+	<s:HGroup>
+		<s:Label text="{lang('Dashed Lines Parameters')}"
 				  toolTip="{lang('Set the values the gaps and lines of the dashed lines')}"/>
-		<mx:TextInput id="dashedLinesString"
+		<s:TextInput id="dashedLinesString"
 					  creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text' );"
 					  />
-		<mx:Canvas id="dashedCanvas"
+		<s:SkinnableContainer id="dashedCanvas"
 				   width="200"
 				   height="{dashedLinesString.height}"
 				   />
-	</mx:HBox>
-	<mx:Script>
+	</s:HGroup>
+	<fx:Script>
 		<![CDATA[
 			import com.cartogrammar.drawing.DashedLine;
 			
@@ -148,5 +150,5 @@
 				_dashedLine.lineTo(xEnd, yEnd);
 			}
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

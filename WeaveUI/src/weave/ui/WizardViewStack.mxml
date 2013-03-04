@@ -24,13 +24,15 @@
 	@author adufilie
 -->
 <mx:ViewStack 
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.ui.*"
 	creationPolicy="all"
 	paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8"
 	width="100%" height="100%"
 	>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
@@ -69,5 +71,5 @@
 				// to be implemented by subclasses
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </mx:ViewStack>

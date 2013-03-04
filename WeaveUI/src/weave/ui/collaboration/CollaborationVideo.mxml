@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
-		   creationPolicy="all" creationComplete="creationCompleteHandler(event)"
-		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
-	<mx:VBox width="100%" height="100%" verticalGap="3" 
-			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
-		<mx:Canvas id="borderCanvas" borderColor="0x54585E" borderThickness="{_borderThickness}" borderStyle="solid" >
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:ui="weave.ui.*"
+		   creationComplete="creationCompleteHandler(event)"
+		    >
+	<s:VGroup width="100%" height="100%" gap="3" 
+			  >
+		<s:BorderContainer id="borderCanvas" borderColor="0x54585E"   borderStyle="solid" >
+			<s:borderStroke>
+				<s:SolidColorStroke weight="{_borderThickness}" />
+			</s:borderStroke>
 			<mx:UIComponent id="holder" width="100%" height="100%" />
-		</mx:Canvas>
+		</s:BorderContainer>
 		<ui:Center>
-			<mx:Label id="nameLabel" text="{nickname}" />
+			<s:Label id="nameLabel" text="{nickname}" />
 		</ui:Center>
-	</mx:VBox>
+	</s:VGroup>
+	<fx:Declarations>
+		<s:Move id="moveEffect" duration="600" />
+	</fx:Declarations>
 	
-	<mx:Move id="moveEffect" duration="600" />
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
 			
@@ -72,5 +79,5 @@
 //				this.height = height + 2*_borderThickness + nameLabel.height + 3;
 			}
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

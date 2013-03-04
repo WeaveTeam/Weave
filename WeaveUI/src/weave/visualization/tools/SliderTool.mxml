@@ -1,51 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool
 	xmlns="weave.visualization.tools.*" 
-	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx" 
 	xmlns:ui="weave.ui.*"
 	xmlns:settings="weave.ui.settings.*"
-	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-	verticalScrollPolicy="off"
+	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"	
 	width="400" 
 	title="{lang('Slider Tool')"
 	height="40">
 
-<mx:Script>
+
+<fx:Script>
 <![CDATA[
 	import mx.collections.ArrayCollection;
-	import mx.controls.listClasses.IListItemRenderer;
 	
 	import spark.collections.Sort;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.IColumnReference;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
-	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.IColumnReference;
 	import weave.api.ui.IVisTool;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -53,7 +53,6 @@
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.AsyncSort;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.VectorUtils;
 
@@ -317,154 +316,160 @@
 		
 		if (_timer.running)
 		{
-			if (playButton != null) 
-			{
-				playButton.label = ">";
-				playButton.toolTip = lang("Play");				
+			if (playButton != null) {
+				
+						playButton.label = ">";
+						playButton.toolTip = lang("Play");				
+					}
+					_timer.stop();
+				}
+				else
+				{
+					if (playButton != null) 
+					{
+						playButton.label = "||";
+						playButton.toolTip = lang("Stop");				
+					}
+					_timer.start();
+				}
 			}
-			_timer.stop();
-		}
-		else
-		{
-			if (playButton != null) 
+			private function getDelay():String
 			{
-				playButton.label = "||";
-				playButton.toolTip = lang("Stop");				
+				var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
+				return delayDescription;
 			}
-			_timer.start();
-		}
-	}
-	private function getDelay():String
-	{
-		var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
-		return delayDescription;
-	}
-	
-	/**
-	 * speedSliderChange - this is called when user moves the speed slider
-	 * */
-	public function speedSliderChange():void
-	{
-		timerDelay.value = MAX_TIMER_DELAY - speedSlider.value;
-		if (_timer && (timerDelay.value))
-			_timer.delay = timerDelay.value;
-	}
-
-	/**
-	 * moveSlider - This method is called everytime the timer triggers
-	 * it.  It forces the slider to move.  
-	 * **/
-	private function moveSlider(evt:TimerEvent):void
-	{
-		if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
-			return;
-		
-		if (currentSliderPosition.value < dimensionSlider.maximum)
-			currentSliderPosition.value++;
-		else
-			currentSliderPosition.value = dimensionSlider.minimum;
-	}
-	
-	
-	private function formatSpeedDataTip(item:Number):String
-	{
-		var delayDescription:String = getDelay();
-		if (item < speedSlider.value)
-		{
-			return lang("slower: {0}", delayDescription);
-		}
-		else
-		{
-			return lang("faster: {0}", delayDescription);
-		}
-	}
 			
-]]>
-</mx:Script>
-	<mx:HBox width="100%">
-		<mx:VBox width="5%">
+			/**
+			 * speedSliderChange - this is called when user moves the speed slider
+			 * */
+			public function speedSliderChange():void
+			{
+				timerDelay.value = MAX_TIMER_DELAY - speedSlider.value;
+				if (_timer && (timerDelay.value))
+					_timer.delay = timerDelay.value;
+			}
+			
+			/**
+			 * moveSlider - This method is called everytime the timer triggers
+			 * it.  It forces the slider to move.  
+			 * **/
+			private function moveSlider(evt:TimerEvent):void
+			{
+				if (currentSliderPosition.value < dimensionSlider.maximum)
+					currentSliderPosition.value++;
+				else
+					currentSliderPosition.value = dimensionSlider.minimum;
+				if (_timer.currentCount == (_timer.repeatCount - 1))
+				{
+					playButton.label = lang("Play");
+					_timer.reset();
+				}
+			}
+			
+			
+			private function formatSpeedDataTip(item:Number):String
+			{
+				var delayDescription:String = getDelay();
+				if (item < speedSlider.value)
+				{
+					return lang("slower: {0}", delayDescription);
+				}
+				else
+				{
+					return lang("faster: {0}", delayDescription);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%">
+		<s:VGroup width="5%">
 			<mx:Button
 				width="5%" id="playButton" label=">" alpha="1.0" 
 				fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
 				click="playButtonPushed()"/>
-		<mx:HSlider
-			height="90%"
-			id="speedSlider"
-			width="50"
-			liveDragging="true"
-			dataTipFormatFunction="formatSpeedDataTip"
-			change="speedSliderChange();"/>
-		</mx:VBox>
-		<mx:HSlider 
+			<mx:HSlider
 				height="90%"
-				id="dimensionSlider"
-				width="100%"
-				dataTipFormatFunction="formatDataTip"
-				snapInterval="1"
-				tickInterval="1"
+				id="speedSlider"
+				width="50"
 				liveDragging="true"
-				name="{lang('Time Slider Tool')}"
-				> 				
+				dataTipFormatFunction="formatSpeedDataTip"
+				change="speedSliderChange();"/>
+		</s:VGroup>
+		<mx:HSlider 
+			height="90%"
+			id="dimensionSlider"
+			width="100%"
+			dataTipFormatFunction="formatDataTip"
+			snapInterval="1"
+			tickInterval="1"
+			liveDragging="true"
+			name="{lang('Time Slider Tool')}"
+			> 				
 		</mx:HSlider>
-	</mx:HBox>
+	</s:HGroup>
 	<ui:ControlPanel>
-		<mx:VBox width="100%" id="timesliderControls"
-				label="{lang('Slider controls')}"
-				addedToStage="onUserControlsAddedToStage(event)">
+		<s:NavigatorContent width="100%" id="timesliderControls"
+				  label="{lang('Slider controls')}"
+				  addedToStage="onUserControlsAddedToStage(event)">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:Indent label="{lang('Time slider labels:')}">
-				<mx:TextInput id="labelsInput" 
+				<s:TextInput id="labelsInput" 
 							  width="90%"
 							  toolTip="{lang('Entering a title here will override the automatic title generated by the tool.')}"
 							  />
 			</ui:Indent>
-			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
-			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
+			<s:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange()"/>
 			<ui:Indent label="{lang('Max labels shown')}">
 				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
 			</ui:Indent>
-			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
-			<mx:VBox height="100%" width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
-				<mx:Label text="Linked visualization tools"/>
+			<s:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
+			<s:VGroup height="100%" width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
+				<s:Label text="Linked visualization tools"/>
 				<ui:Indent height="100%" width="100%">
 					<mx:List id="toolCheckboxList" height="100%" width="100%" borderStyle="none" selectable="false">
 						<mx:itemRenderer>
-							<mx:Component>
-								<mx:CheckBox change="onChange()">
-									<mx:Script>
-										<![CDATA[
-											import weave.api.WeaveAPI;
-											import weave.ui.DraggablePanel;
-											import weave.utils.AsyncSort;
-											override public function set data(value:Object):void
-											{
-												super.data = value;
-												var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
-												selected = _unlinkedTools.indexOf(value) < 0;
-												var tool:DraggablePanel = WeaveAPI.globalHashMap.getObject(String(value)) as DraggablePanel;
-												label = tool ? tool.title : String(value);
-											}
-											private function onChange():void
-											{
-												var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
-												var i:int = _unlinkedTools.indexOf(data);
-												if (i >= 0)
-													_unlinkedTools.splice(i, 1);
-												if (!selected)
-													_unlinkedTools.push(data);
-												AsyncSort.sortImmediately(_unlinkedTools);
-												outerDocument.unlinkedTools.setSessionState(_unlinkedTools);
-											}
-										]]>
-									</mx:Script>
-								</mx:CheckBox>
-							</mx:Component>
+							<fx:Component> 
+								<s:MXItemRenderer>
+									<s:CheckBox change="onChange()">
+										<fx:Script>
+											<![CDATA[
+												import weave.api.WeaveAPI;
+												import weave.ui.DraggablePanel;
+												override public function set data(value:Object):void
+												{
+													super.data = value;
+													var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
+													selected = _unlinkedTools.indexOf(value) < 0;
+													var tool:DraggablePanel = WeaveAPI.globalHashMap.getObject(String(value)) as DraggablePanel;
+													label = tool ? tool.title : String(value);
+												}
+												private function onChange():void
+												{
+													var _unlinkedTools:Array = outerDocument.getUnlinkedTools();
+													var i:int = _unlinkedTools.indexOf(data);
+													if (i >= 0)
+														_unlinkedTools.splice(i, 1);
+													if (!selected)
+														_unlinkedTools.push(data);
+													_unlinkedTools.sort();
+													outerDocument.unlinkedTools.setSessionState(_unlinkedTools);
+												}
+											]]>
+										</fx:Script>
+									</s:CheckBox>
+								</s:MXItemRenderer> 
+							</fx:Component>  
 						</mx:itemRenderer>
 					</mx:List>
 				</ui:Indent>
-			</mx:VBox>
-		</mx:VBox>
+			</s:VGroup>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
-
+	
 </SimpleVisTool>
 
 

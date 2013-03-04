@@ -25,36 +25,50 @@
 		This class creates a taskbar that sits at the bottom of a page to provide objects to access different options.  For example, tools could be
 		minimized to go into this taskbar like in windows or a mac.  
 -->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		   implements="weave.api.core.ILinkableObject"
-		   clipContent="false"
 		   width="100%" height="0">
-	<mx:HBox id="hbox"
+	<s:layout>
+		<s:BasicLayout clipAndEnableScrolling="true"/>
+	</s:layout>
+	<s:BorderContainer id="hbox"
 			 visible="false"
-			 verticalAlign="middle"
-			 cornerRadius="5"
-			 backgroundColor="0x808080" backgroundAlpha="0.8"
-			 borderColor="0x000000" borderStyle="solid" borderThickness="1" 
-			 paddingLeft="10" paddingRight="10" paddingTop="2" paddingBottom="2"
+			 cornerRadius="5" 
 			 filters="{[glow]}"
 			 x="{(width - hbox.width) / 2}"
 			 y="{-hbox.height}"
-			 />
+			 >
+		<s:backgroundFill>
+			<s:SolidColor color="0x808080" alpha="0.8"/>
+		</s:backgroundFill>
+		<s:borderStroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+ 		</s:borderStroke>
+		<s:layout>
+			<s:HorizontalLayout verticalAlign="middle"  paddingLeft="10" paddingRight="10" paddingTop="2" paddingBottom="2"/>
+		</s:layout>
+	</s:BorderContainer>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
+			import mx.core.IVisualElementContainer;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
 			
+			import spark.filters.GlowFilter;
+			
 			import weave.Weave;
-			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.AbstractAttributeColumn;
 			import weave.ui.MinimizedComponent;
+			import weave.utils.SparkUtils;
 
 			public const taskbarShrinkGrow:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 			public const taskbarLargeIconSize:LinkableNumber = newLinkableChild(this, LinkableNumber, updateIconSizes);
@@ -83,8 +97,10 @@
 				var removed:ILinkableObject = Weave.root.childListCallbacks.lastObjectRemoved;
 				if (!removed)
 					return;
+				
+				var toolChildren:Array = SparkUtils.getAllElement(hbox);
 				// go through each minimizedComponent in the taskbar
-				for each (var minimizedComponent:MinimizedComponent in hbox.getChildren())
+				for each (var minimizedComponent:MinimizedComponent in toolChildren)
 				{
 					// go through each component in the minimized component group (this will have to be modified later in case we start to group
 					// tools together
@@ -94,7 +110,7 @@
 						// then remove the minimized component from the taskbar so you cant restore something that doesn't exist anymore
 						if (component == removed)
 						{
-							hbox.removeChild(minimizedComponent);
+							hbox.removeElement(minimizedComponent);
 							continue;
 						}
 					}
@@ -103,7 +119,8 @@
 			
 			private function updateIconSizes():void
 			{
-				for each (var component:MinimizedComponent in hbox.getChildren())
+				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				for each (var component:MinimizedComponent in toolChildren)
 				{
 					component.scaleX = 1;
 					component.scaleY = 1;
@@ -123,8 +140,8 @@
 				
 				// limit the smallest size to 2 pixels, otherwise grow/shrink doesn't work
 				var scale:Number = Math.max(2, taskbarSmallIconSize.value) / taskbarLargeIconSize.value;
-
-				for each (var component:MinimizedComponent in hbox.getChildren())
+				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				for each (var component:MinimizedComponent in toolChildren)
 				{
 					component.scaleX = scale;
 					component.scaleY = scale;
@@ -136,8 +153,8 @@
 			{
 				if (taskbarShrinkGrow.value == false)
 					return;
-				
-				for each (var component:MinimizedComponent in hbox.getChildren())
+				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				for each (var component:MinimizedComponent in toolChildren)
 				{
 					component.scaleX = 1;
 					component.scaleY = 1;
@@ -158,10 +175,10 @@
 					clickListener
 				);
 				
-				hbox.addChild(minimizedComponent);
+				hbox.addElement(minimizedComponent);
 				hbox.validateNow();
 				validateNow();
-				hbox.visible = hbox.numChildren > 0;
+				hbox.visible = hbox.numElements > 0;
 				
 				if (taskbarShrinkGrow.value)
 					shrinkComponents();
@@ -173,9 +190,15 @@
 			{
 				try
 				{
-					if (minimizedComponent.parent)
-						minimizedComponent.parent.removeChild(minimizedComponent);
-					hbox.visible = hbox.numChildren > 0;
+					if (minimizedComponent.parent){
+						if(minimizedComponent.parent is IVisualElementContainer){
+							(minimizedComponent.parent as IVisualElementContainer).removeElement(minimizedComponent);
+						}
+						else{
+							minimizedComponent.parent.removeChild(minimizedComponent);
+						}
+					}
+					hbox.visible = hbox.numElements > 0;
 				}
 				catch (error:Error)
 				{
@@ -209,7 +232,7 @@
 					}
 				);
 						
-				hbox.addChild(minimizedComponent);
+				hbox.addElement(minimizedComponent);
 				hbox.validateNow();
 				validateNow();
 				hbox.visible = hbox.numChildren > 0;
@@ -222,7 +245,8 @@
 			
 			public function restoreAllComponents():void
 			{
-				for each (var component:MinimizedComponent in hbox.getChildren())
+				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				for each (var component:MinimizedComponent in toolChildren)
 					component.clickListener(null);
 			}
 			
@@ -237,5 +261,5 @@
 				return _instance;
 			}
 		]]>
-	</mx:Script>
-</mx:Canvas>
+	</fx:Script>
+</s:SkinnableContainer>

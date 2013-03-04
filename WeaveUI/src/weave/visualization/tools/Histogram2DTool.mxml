@@ -1,40 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"
 			   xmlns:settings="weave.ui.settings.*"
-			   layout="absolute">
-	<mx:Script>
+			   layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
@@ -76,7 +80,7 @@
 				var self:* = this;
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
-						
+				
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
 				
@@ -186,33 +190,44 @@
 				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
+	<fx:Declarations>
+		<s:RadioButtonGroup id="binColGroup" change="handleBinColRadioButtonChange()"/>
+	</fx:Declarations>
 	
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Visualization Controls')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+		<s:NavigatorContent label="{lang('Visualization Controls')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
+						creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="{lang('X Column')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="{lang('Y Column')}"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Binning Controls')}">
-				<mx:HBox>
-					<mx:Label text="{lang('Select Column:')}"/>
-					<mx:RadioButtonGroup id="binColGroup" change="handleBinColRadioButtonChange()"/>
-					<mx:RadioButton groupName="binColGroup" label="{lang('X Column')}" value="xBinCol" id="xBinColRadioButton" selected="true"/>
-					<mx:RadioButton groupName="binColGroup" label="{lang('Y Column')}" value="yBinCol" id="yBinColRadioButton"/>
-				</mx:HBox>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Binning Controls')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup>
+				<s:Label text="{lang('Select Column:')}"/>
+				<s:RadioButton groupName="binColGroup" label="{lang('X Column')}" value="xBinCol" id="xBinColRadioButton" selected="true"/>
+				<s:RadioButton groupName="binColGroup" label="{lang('Y Column')}" value="yBinCol" id="yBinColRadioButton"/>
+			</s:HGroup>
 			<ui:BinningDefinitionEditor id="binEditor"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Advanced')}">
-			<mx:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"
-						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
-			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Advanced')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"
+						creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
+			<s:HGroup width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
 				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="{lang('Color data')}"/>
-				<mx:Button label="{lang('Edit colors...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
-			</mx:HBox>
+				<s:Button label="{lang('Edit colors...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
+			</s:HGroup>
 			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>
-		</mx:VBox>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
 </SimpleVisTool>

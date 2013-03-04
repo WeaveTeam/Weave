@@ -19,7 +19,9 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<AutoResizingTextArea xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+<AutoResizingTextArea xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	width="100%"
 	borderThickness="0"
 	editable="false"

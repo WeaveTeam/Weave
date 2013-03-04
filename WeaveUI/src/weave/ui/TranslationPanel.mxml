@@ -23,26 +23,37 @@
  * @author adufilie
  */
 -->
-<DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+<DraggablePanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 		xmlns="weave.ui.*"
-		borderColor="#939178"
 		title="{lang('Translations')}"
 		addedToStage="refresh()"
+		styleName="componentStyle"
 		>
-	<mx:VBox width="100%" height="100%"
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			borderColor: #939178;
+		}
+	</fx:Style>
+	
+	<s:VGroup width="100%" height="100%"
 			paddingLeft="8"
 			paddingRight="8"
 			paddingTop="8"
 			paddingBottom="8">
-		<mx:HBox width="100%">
-			<mx:Button label="{lang('Import')}" click="importFile()" />
-			<mx:Button label="{lang('Export')}" click="exportFile()" />
-			<mx:Button label="{lang('Refresh')}" click="refresh()" />
-			<mx:Spacer width="100%" />
-			<mx:Label text="{lang('Active locale:')}"/>
+		<s:HGroup width="100%">
+			<s:Button label="{lang('Import')}" click="importFile()" />
+			<s:Button label="{lang('Export')}" click="exportFile()" />
+			<s:Button label="{lang('Refresh')}" click="refresh()" />
+			<s:Spacer width="100%" />
+			<s:Label text="{lang('Active locale:')}"/>
 			<mx:ComboBox id="localeComboBox" change="handleLocaleChange()" />
-			<mx:Button label="{lang('New locale...')}" click="createNewLocale()"/>
-		</mx:HBox>
+			<s:Button label="{lang('New locale...')}" click="createNewLocale()"/>
+		</s:HGroup>
 		<mx:DataGrid id="dataGrid" variableRowHeight="true"
 					 doubleClickEnabled="true" editable="true"
 					 doubleClick="openTranslationEditor()"
@@ -54,14 +65,14 @@
 				<mx:DataGridColumn dataField="{LOCALED}" headerText="{lang('Translated Text')}" editable="true" />
 			</mx:columns>
 		</mx:DataGrid>
-		<mx:HBox width="100%" verticalAlign="bottom">
+		<s:HGroup width="100%" verticalAlign="bottom">
 			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
 								  text="{lang('Double-click on an item to open a larger editor.\nModified translations are stored on your local machine.\nText will not appear here until you have opened a panel that uses it.\nSome GUI elements will not be updated until Weave is restarted.')}"
 								  wordWrap="true"/>
-			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload();"/>
-		</mx:HBox>
-	</mx:VBox>
-	<mx:Script>
+			<s:Button label="{lang('Restart Weave')}" click="Weave.externalReload();"/>
+		</s:HGroup>
+	</s:VGroup>
+	<fx:Script>
 		<![CDATA[
 			import flash.utils.getDefinitionByName;
 			
@@ -79,13 +90,14 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-				enableSubMenu.value = true;
-				subMenu.addSubMenuItem(lang("Switch to developer testing mode"), switchToDeveloperMode);
-				subMenu.addSubMenuItem(lang("Erase all translation data..."), resetAll);
+				
 			}
 			
 			override protected function childrenCreated():void
 			{
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(lang("Switch to developer testing mode"), switchToDeveloperMode);
+				subMenu.addSubMenuItem(lang("Erase all translation data..."), resetAll);
 				super.childrenCreated();
 				refresh();
 			}
@@ -188,7 +200,7 @@
 				button.addEventListener(MouseEvent.CLICK, function(..._):void {
 					navigateToURL(new URLRequest("http://unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers"), "_blank");
 				});
-				alertBox.alertButtons.addChildAt(button, 0);
+				alertBox.alertButtons.addElementAt(button, 0);
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 					function (e:AlertTextBoxEvent):void 
 					{
@@ -269,5 +281,5 @@
 				}
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </DraggablePanel>

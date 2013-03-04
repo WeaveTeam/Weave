@@ -19,16 +19,21 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 xmlns="weave.ui.controlBars.*"
 		 xmlns:ui="weave.ui.*"
 	     width="100%"
-    	 backgroundColor="0x8a8a8a" backgroundAlpha="1.0"
-    	 verticalAlign="middle"
 	     styleName="weave-menu-bar-style"
-	     horizontalScrollPolicy="off"
-		 verticalScrollPolicy="off"
 		 >
+	<s:backgroundFill>
+		<s:SolidColor color="0x8a8a8a" alpha="1"/>
+	</s:backgroundFill>
+	
+	<s:layout>
+		<s:HorizontalLayout verticalAlign="middle"/>
+	</s:layout>
 	<mx:MenuBar id="menubar"
 				change="handleMenuItemChosen(event)"
 				height="24"
@@ -42,7 +47,8 @@
 				menuStyleName="weave-menu-style"
 				styleName="weave-menu-bar-style"
 				/>
-	<mx:Style>
+	
+	<fx:Style>
 		.weave-menu-style {
 			color: #000000;
 			selectionColor: #F8A4FB;
@@ -87,21 +93,21 @@
 			fill-alphas: 1, 1;
 			fill-colors: #dadada, #dadada;
 		}
-	</mx:Style>
-	<!--<mx:HBox horizontalGap="3" backgroundAlpha="1" backgroundColor="white" paddingLeft="4" paddingRight="4" paddingTop="2" paddingBottom="2">
+	</fx:Style>
+	<!--<s:HGroup gap="3" backgroundAlpha="1" backgroundColor="white" paddingLeft="4" paddingRight="4" paddingTop="2" paddingBottom="2">
 		<controlBars:weavePopUpMenuButton icon="@Embed(source='weave/resources/images/menu_data.png')" 
 										  styleName="menu-button-style" width="24" 
 										  dataProvider="{['New Folder','Sent Items','Inbox']}"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_print.png')" styleName="menu-button-style" width="24"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_tools.png')" styleName="menu-button-style" width="24"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_selection.png')" styleName="menu-button-style" width="24"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_session.png')" styleName="menu-button-style" width="24"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_views.png')" styleName="menu-button-style" width="24"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_windows.png')" styleName="menu-button-style" width="24"/>
-		<mx:Button icon="@Embed(source='weave/resources/images/menu_help.png')" styleName="menu-button-style" width="24"/>
-	</mx:HBox>-->
+		<s:Button icon="@Embed(source='weave/resources/images/menu_print.png')" styleName="menu-button-style" width="24"/>
+		<s:Button icon="@Embed(source='weave/resources/images/menu_tools.png')" styleName="menu-button-style" width="24"/>
+		<s:Button icon="@Embed(source='weave/resources/images/menu_selection.png')" styleName="menu-button-style" width="24"/>
+		<s:Button icon="@Embed(source='weave/resources/images/menu_session.png')" styleName="menu-button-style" width="24"/>
+		<s:Button icon="@Embed(source='weave/resources/images/menu_views.png')" styleName="menu-button-style" width="24"/>
+		<s:Button icon="@Embed(source='weave/resources/images/menu_windows.png')" styleName="menu-button-style" width="24"/>
+		<s:Button icon="@Embed(source='weave/resources/images/menu_help.png')" styleName="menu-button-style" width="24"/>
+	</s:HGroup>-->
 	 <!-- backgroundColor="#CCCCCC" backgroundAlpha="0.5" cornerRadius="10" alpha="1.0" borderStyle="solid" paddingBottom="2" paddingLeft="5" paddingRight="5" paddingTop="2" borderColor="#6E6C6C" -->
-	<!-- <mx:HBox >
+	<!-- <s:HGroup >
 	 	<controlBars:WeavePopUpMenuButton popUpIcon="@Embed(source='weave/resources/images/menuBarViewsIcon.png')"
 	 						cornerRadius="0" hideLabel="true" paddingRight="5"
 	 						width="24" height="24" 
@@ -120,16 +126,20 @@
 	 						open="handlePopUpMenuOpen(event)"
 	 						/>
 	 	
-	 </mx:HBox>-->
+	 </s:HGroup>-->
 	 
-	 <mx:HBox  id="logoParentHBox" verticalAlign="middle" right="{menubar.getStyle('cornerRadius') + 3}" top="{(menubar.height) / 2}">
+	 <s:HGroup  id="logoParentHBox" verticalAlign="middle" right="{menubar.getStyle('cornerRadius') + 3}" top="{(menubar.height) / 2}">
 	 	<!--<controlBars:VisIconSet id="iconSet"/>-->
 	 	<ui:OICLogoPane id="oicLogo"/>
-	 </mx:HBox>       
+	 </s:HGroup>       
 	
 
-    <mx:Script>
+    <fx:Script>
     	<![CDATA[
+			import flash.filters.BitmapFilterQuality;
+			import flash.filters.BitmapFilterType;
+			import flash.filters.GradientGlowFilter;
+			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Menu;
 			import mx.core.mx_internal;
@@ -253,9 +263,9 @@
 					return callLater(addLogo);
 				
 				if (Weave.properties.showCopyright.value)
-					addChild(logoParentHBox);
+					addElement(logoParentHBox);
 				else if (this == logoParentHBox.parent)
-					removeChild(logoParentHBox);
+					removeElement(logoParentHBox);
 			}
 
     		// NOTE: for now NO submenus!!
@@ -332,5 +342,5 @@
     			} */
     		}
     	]]>
-    </mx:Script>
-</mx:HBox>
+    </fx:Script>
+</s:BorderContainer>

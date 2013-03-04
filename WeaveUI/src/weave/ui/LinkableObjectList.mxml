@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
@@ -26,18 +26,22 @@ LinkableObjectList
 @skolman
 -->
 
-<mx:List xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 dragEnabled="true"
-		 dropEnabled="true"
-		 dragMoveEnabled="true"
-		 allowMultipleSelection="true"
-		 showDataTips="false"
-		 width="100%" 
-		 labelFunction="getItemLabel"
-		 backgroundAlpha="0.5" borderStyle="inset"
-		 >
+<mx:List xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx" 
+		xmlns="weave.ui.*" 
+		dragEnabled="true"
+		dropEnabled="true"  
+		dragMoveEnabled="true"
+		allowMultipleSelection="true"
+		showDataTips="false"
+		width="100%" 
+		labelFunction="getItemLabel"
+		backgroundAlpha="0.5" borderStyle="inset"
+		>
 	
-	<mx:Script>
+	
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
@@ -88,7 +92,7 @@ LinkableObjectList
 			{
 				return _dynamicObjectJuggler.target as ILinkableDynamicObject;
 			}
-
+			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
 				_dynamicObjectJuggler.target = value;
@@ -123,7 +127,7 @@ LinkableObjectList
 					
 					dataProvider = hashMap.getObjects();
 				}
-
+				
 				var view:ICollectionView = dataProvider as ICollectionView;
 				if (view)
 					view.refresh();
@@ -136,7 +140,7 @@ LinkableObjectList
 				else if (dynamicObject)
 					dynamicObject.removeObject();
 			}
-				
+			
 			public function removeSelectedItem():void
 			{
 				if (hashMap && selectedIndex >= 0)
@@ -316,22 +320,22 @@ LinkableObjectList
 				}
 			}
 			
-//			private var _deleteShape:SpriteAsset = null;
-//			override protected function createChildren():void
-//			{
-//				super.createChildren();
-//				
-//				_deleteShape = new SpriteAsset();
-//				_deleteShape.addEventListener(MouseEvent.CLICK, minPanelSizeHandler);
-//				super.addChild(_deleteShape);
-//			}
-//			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-//			{
-//				super.updateDisplayList(unscaledWidth, unscaledHeight);
-//				
-//				_deleteShape.graphics.clear();
-//				_deleteShape.graphics.drawRect(0,0, 50, 50);
-//			}
+			//			private var _deleteShape:SpriteAsset = null;
+			//			override protected function createChildren():void
+			//			{
+			//				super.createChildren();
+			//				
+			//				_deleteShape = new SpriteAsset();
+			//				_deleteShape.addEventListener(MouseEvent.CLICK, minPanelSizeHandler);
+			//				super.addElement(_deleteShape);
+			//			}
+			//			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			//			{
+			//				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			//				
+			//				_deleteShape.graphics.clear();
+			//				_deleteShape.graphics.drawRect(0,0, 50, 50);
+			//			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </mx:List>

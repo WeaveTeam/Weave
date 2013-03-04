@@ -27,10 +27,12 @@ package weave.ui
 	import mx.containers.Canvas;
 	import mx.controls.TextInput;
 	
+	import spark.core.SpriteVisualElement;
+	
 	import weave.api.registerLinkableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
-	import weave.api.primitives.IBounds2D;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 
@@ -48,19 +50,22 @@ package weave.ui
 			// this is where the magic happens
 			UIUtils.linkDisplayObjects(visCanvas, children);
 
-			this.horizontalScrollPolicy = "off";
-			this.verticalScrollPolicy = "off";
+			/*this.horizontalScrollPolicy = "off";
+			this.verticalScrollPolicy = "off";*/
 
 			this.autoLayout = true;
 			
-			addChild(visCanvas);
+			addElement(visCanvas);
 			
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
 			
-			addChild(editor);
+			addElement(editor);
 			editor.addEventListener(Event.CHANGE, handleTextChange);
-			rawChildren.addChild(b);
+			var sve:SpriteVisualElement = new SpriteVisualElement();
+			sve.addChild(b);			
+			addElement(sve );
+			
 			b.x = 50;
 			b.y = 50;
 		}

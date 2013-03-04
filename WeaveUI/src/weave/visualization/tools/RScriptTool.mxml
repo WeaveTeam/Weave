@@ -19,8 +19,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
+				 
 				xmlns:ui="weave.ui.*" 
 				title="{lang('R Script Tool')}"
 				>
@@ -43,26 +45,26 @@
 			<mx:Panel id="RscriptPanel" label="{lang('KMeans Clustering')}">
 				<ui:DynamicColumnComponent label="{lang('R-Script Xcolumn')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = xRcolumn"/>
 				<ui:DynamicColumnComponent label="{lang('R-Script ycolumn')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = yRcolumn"/>
-				<mx:HBox>
-					<mx:VBox>
-						<mx:Label text="{lang('Number of Clusters:')}"/>
-						<mx:Label text="{lang('Number of Iterations:')}"/>
-					</mx:VBox>
-					<mx:VBox>
-						<mx:TextInput id="clusterNum" text="{clusterNumValue}"/>							
-						<mx:TextInput id="iterNum" text="{iterNumValue}"/>							
-					</mx:VBox>
+				<s:HGroup>
+					<s:VGroup>
+						<s:Label text="{lang('Number of Clusters:')}"/>
+						<s:Label text="{lang('Number of Iterations:')}"/>
+					</s:VGroup>
+					<s:VGroup>
+						<s:TextInput id="clusterNum" text="{clusterNumValue}"/>							
+						<s:TextInput id="iterNum" text="{iterNumValue}"/>							
+					</s:VGroup>
 					
-				</mx:HBox>
+				</s:HGroup>
 				
-				<mx:Button id="rScriptButton" label="{lang('Run Script')}" click="Kmeans_clickHandler(event)"/>						
+				<s:Button id="rScriptButton" label="{lang('Run Script')}" click="Kmeans_clickHandler(event)"/>						
 			</mx:Panel>	
 			<mx:Panel id="UserScript" label="{lang('User Script')}">
 				
 			</mx:Panel>
 		</mx:Accordion>		
 	</mx:Panel>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
@@ -291,6 +293,6 @@
 				return [result.shift(), result];
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 </DraggablePanel>

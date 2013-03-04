@@ -17,77 +17,103 @@
 	You should have received a copy of the GNU General Public License
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		   width="270" height="315" creationPolicy="all"
-		   backgroundAlpha="0" backgroundColor="#CCCCCC"
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   width="270" height="315" 		  
 		   showEffect="{fadeIn}" hideEffect="{fadeOut}" xmlns:ui="weave.ui.*">
+	<s:backgroundFill>
+		<s:SolidColor color="#CCCCCC" alpha="0"/>
+	</s:backgroundFill>
 	
-	<mx:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
-	<mx:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
 	
-	<mx:VBox width="100%" height="100%" verticalGap="0" horizontalGap="0">
-		<mx:Canvas id="SettingsWindow" width="270" height="300"
-				   borderColor="#54585E" borderThickness="3" borderStyle="solid"
-				   backgroundAlpha="1" backgroundColor="#CCCCCC">
+	
+	<s:VGroup width="100%" height="100%"  gap="0">
+		<s:BorderContainer id="SettingsWindow" width="270" height="300"
+				    borderStyle="solid"
+				   >
+			<s:borderStroke>
+				<s:SolidColorStroke color="#54585E" weight="3"/>
+			</s:borderStroke>
+			<s:backgroundFill>
+				<s:SolidColor color="#CCCCCC" alpha="0"/>
+			</s:backgroundFill>
 			<mx:TabNavigator id="nav" width="100%" height="100%" change="onTabChange(event)"
 							 backgroundAlpha="0" backgroundColor="#DDDDDD">
-				<mx:VBox width="100%" height="100%" label="{lang('Connection')}"
-						 paddingBottom="{padding}" paddingLeft="{padding}"
-						 paddingRight="{padding}" paddingTop="{padding}">
-					<mx:HBox width="100%">
-						<mx:Label text="{lang('Username:')}" width="{labelWidth}" />
-						<mx:TextInput id="nickname" width="{textAreaWidth}" change="trimInput(event);"/>	
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Label text="{lang('User Color:')}" width="{labelWidth}" />
+				<s:NavigatorContent width="100%" height="100%" label="{lang('Connection')}" >
+					<s:layout>
+						<s:VerticalLayout paddingBottom="{padding}" paddingLeft="{padding}"
+										  paddingRight="{padding}" paddingTop="{padding}"/>
+					</s:layout>
+					<s:HGroup width="100%">
+						<s:Label text="{lang('Username:')}" width="{labelWidth}" />
+						<s:TextInput id="nickname" width="{textAreaWidth}" change="trimInput(event);"/>	
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="{lang('User Color:')}" width="{labelWidth}" />
 						<mx:ColorPicker id="picker" selectedColor="{generateRandomColor()}" />
-					</mx:HBox>
-					<mx:Spacer height="10" />
+					</s:HGroup>
+					<s:Spacer height="10" />
 					<ui:Center>
-						<mx:Label text="{warningMsg}" visible="{warningVisible}" color="#FF0000" fontWeight="bold" />
+						<s:Label text="{warningMsg}" visible="{warningVisible}" color="#FF0000" fontWeight="bold" />
 					</ui:Center>
-					<mx:Spacer height="100%" />
+					<s:Spacer height="100%" />
 					<ui:Center>
-						<mx:Button id="saveConnectionButton" label="{lang('Save')}" click="saveSettings(event)" />
+						<s:Button id="saveConnectionButton" label="{lang('Save')}" click="saveSettings(event)" />
 					</ui:Center>
-				</mx:VBox>
-				<mx:VBox width="100%" height="100%" label="{lang('Add-ons')}" enabled="false"
-						 paddingBottom="{padding}" paddingLeft="{padding}"
-						 paddingRight="{padding}" paddingTop="{padding}">
-					<mx:HBox width="100%">
-						<mx:Label text="{lang('Microphone:')}" width="{labelWidth}" />
+				</s:NavigatorContent>
+				<s:NavigatorContent width="100%" height="100%" label="{lang('Add-ons')}" enabled="false">
+					<s:layout>
+						<s:VerticalLayout paddingBottom="{padding}" paddingLeft="{padding}"
+										  paddingRight="{padding}" paddingTop="{padding}"/>
+					</s:layout>
+					<s:HGroup width="100%">
+						<s:Label text="{lang('Microphone:')}" width="{labelWidth}" />
 						<mx:ComboBox id="micList" width="{textAreaWidth}" change="startMicActivityMonitor()" />
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Spacer width="{labelWidth}" />
-						<mx:Canvas width="{textAreaWidth}" height="16"
-								   borderColor="#54585E" borderThickness="2" borderStyle="solid">
-							<mx:Canvas id="micActivity" height="16" backgroundColor="#0000FF" />
-						</mx:Canvas>
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Label text="{lang('Camera:')}" width="{labelWidth}" />
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Spacer width="{labelWidth}" />
+						<s:BorderContainer width="{textAreaWidth}" height="16"
+								   borderStyle="solid">
+							<s:borderStroke>
+								<s:SolidColorStroke weight="2" color="#54585E" />
+							</s:borderStroke>
+							<s:BorderContainer  id="micActivity" height="16" >
+								<s:backgroundFill>
+									<s:SolidColor color="#0000FF"/>
+								</s:backgroundFill>
+							</s:BorderContainer>
+						</s:BorderContainer>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="{lang('Camera:')}" width="{labelWidth}" />
 						<mx:ComboBox id="camList" width="{textAreaWidth}" change="startCamActivityMonitor()" />
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Spacer width="{labelWidth}" />
-						<mx:Canvas width="{textAreaWidth}" height="{textAreaWidth*3/4}"
-								   borderColor="#54585E" borderThickness="3" borderStyle="solid">
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Spacer width="{labelWidth}" />
+						<s:BorderContainer width="{textAreaWidth}" height="{textAreaWidth*3/4}" borderStyle="solid">
+							<s:borderStroke>
+								<s:SolidColorStroke weight="2" color="#54585E" />
+							</s:borderStroke>							
 							<mx:UIComponent id="camActivity" width="100%" height="100%" />
-						</mx:Canvas>
-					</mx:HBox>
-					<mx:Spacer height="100%" />
+						</s:BorderContainer>
+					</s:HGroup>
+					<s:Spacer height="100%" />
 					<ui:Center>
-						<mx:Button id="saveAddonsButton" label="{lang('Save')}" click="saveAddons(event)" />
+						<s:Button id="saveAddonsButton" label="{lang('Save')}" click="saveAddons(event)" />
 					</ui:Center>
-				</mx:VBox>
+				</s:NavigatorContent>
 			</mx:TabNavigator>
-		</mx:Canvas>
+		</s:BorderContainer>
 		<ui:Center>
-			<mx:Canvas id="anchor" width="{2*anchorSize}" height="{anchorSize}" creationComplete="generateAnchor()" />
+			<s:SkinnableContainer id="anchor" width="{2*anchorSize}" height="{anchorSize}" creationComplete="generateAnchor()" />
 		</ui:Center>
-	</mx:VBox>
-	<mx:Script>
+	</s:VGroup>
+	<fx:Declarations>
+		<s:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
+		<s:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
+	</fx:Declarations>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.IndexChangedEvent;
@@ -217,7 +243,7 @@
 				{
 					testVid.attachCamera(null);
 					testVid.clear();
-					camActivity.removeChild(testVid);
+					camActivity.addChild(testVid);
 					testVid = null;
 				}
 			}
@@ -280,5 +306,5 @@
 			}
 			
 		]]>
-	</mx:Script>
-</mx:Canvas>
+	</fx:Script>
+</s:BorderContainer>

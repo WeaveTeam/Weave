@@ -26,10 +26,12 @@ package weave.ui
 	import mx.core.UIComponent;
 	import mx.utils.StringUtil;
 	
+	import spark.components.Group;
+	
 	import weave.api.reportError;
 	import weave.utils.BitmapUtils;
 	
-	public class MinimizedComponent extends Canvas
+	public class MinimizedComponent extends Group
 	{
 		public var clickListener:Function = null;
 		public var componentGroup:Array = null;

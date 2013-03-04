@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
@@ -280,6 +280,7 @@
 			
 			
 			/* Different Commands to be sent to R */
+
 			protected function scriptHandler(event:MouseEvent):void
 			{
 				if (script.length == 0)
@@ -320,7 +321,7 @@
 						outputNames.push("ColumnStdError");
 					}
 				}
-				
+					
 				else{
 					if(event.target == ColumnMax && ColumnMax.selected == true)
 					{
@@ -434,7 +435,7 @@
 					// now plot the bins 
 					columnResult.push(rResult);
 					//finalGridDisplayArray[i].push( rResult.value);
-				
+					
 				}	
 				
 				
@@ -448,7 +449,7 @@
 				
 			}
 			
-		//	private  var showDistrList:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
+			//	private  var showDistrList:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
 			//drawing binned Columns obtained from R
 			
 			[Bindable]
@@ -516,11 +517,11 @@
 						
 					} 
 					
-				
+					
 					distributionObj["icon"] = can;
 					distributionObjCanvasArray[k] = distributionObj;//pushing the respective distribution of the column
 				}
-				 
+				
 			}
 			
 			
@@ -565,12 +566,12 @@
 				//drawDistributionsFromR();
 				colNames.unshift("Statistics");
 				finalGridDisplayArray.unshift(colNames);
-  				var dg:DatagridDisplay = new DatagridDisplay();dg.initialize();
+				var dg:DatagridDisplay = new DatagridDisplay();dg.initialize();
 				/* var dgCol:Array = new Array();
 				for(var g:int = 0; g < colNames.length; g++)
 				{
-					dgCol[g] = new DataGridColumn();
-					(dgCol[g] as DataGridColumn).headerText = (colNames[g] as String);
+				dgCol[g] = new DataGridColumn();
+				(dgCol[g] as DataGridColumn).headerText = (colNames[g] as String);
 				}
 				
 				
@@ -589,7 +590,7 @@
 				var corScript:String = "";
 				if(event.target == PearsonsCorr)
 				{	 corScript = "Pearsons_Correlation_Coefficient <- cor(myMatrix, use = \"everything\", method = \"pearson\")"
-					 outputNames.push("Pearsons_Correlation_Coefficient");
+					outputNames.push("Pearsons_Correlation_Coefficient");
 				}
 				if(event.target == SpearmanCorr)
 				{	corScript = "Spearmans_Correlation_Coefficient <- cor(myMatrix, use = \"everything\", method = \"spearman\")"
@@ -599,7 +600,7 @@
 					outputNames.push("Kendalls_Correlation_Coefficient")};
 				
 				var inputNames:Array = ["myMatrix"];
-			
+				
 				var inputValues:Array = new Array();
 				inputValues.push(joinedColumns);
 				var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys,inputNames,inputValues,outputNames,corScript,"",false,false,false);

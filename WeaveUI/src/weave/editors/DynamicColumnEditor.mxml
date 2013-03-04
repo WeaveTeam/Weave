@@ -20,17 +20,22 @@
 */
 -->
 
-<mx:VBox width="100%" height="100%"
+<s:VGroup width="100%" height="100%"
 	xmlns="weave.editors.*"
 	xmlns:ui="weave.ui.*"
-	xmlns:mx="http://www.adobe.com/2006/mxml"
-	verticalScrollPolicy="off" horizontalScrollPolicy="off"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
+	 
 	implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
 	>
 	<ui:HierarchySelector height="100%" visible="true" id="hierarchySelector"/>
-	<mx:HBox id="dummyHBox" minWidth="0" width="100%"
+	<s:BorderContainer id="dummyHBox" minWidth="0" width="100%"
 			 borderColor="#000000" 
-			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			  >
+		<s:layout>
+			<s:HorizontalLayout/>
+		</s:layout>
 		<ui:TextInputWithPrompt id="searchCategoryTerms"
 					  prompt="{lang('Search categories')}"
 					  keyUp="loadFilteredCategories();"
@@ -41,20 +46,20 @@
 					  keyUp="loadFilteredAttributes();"
 					  clear="loadFilteredAttributes();"
 					  width="100%"/>
-		<mx:HBox id="keyTypeControls" width="100%">
+		<s:HGroup id="keyTypeControls" width="100%">
 			<!--  toolTip="Select a desired key type.  Use this feature when you want to match up this data to a key type other than its own." -->
-			<mx:Label text="{lang('Key type:')}"/>
+			<s:Label text="{lang('Key type:')}"/>
 			<ui:CustomComboBox id="keyTypeCombo" width="100%" change="handleKeyTypeComboChange();"/>
-		</mx:HBox>
-	</mx:HBox>
-	<mx:HBox id="filterControls" verticalAlign="middle" visible="false" includeInLayout="false">
-		<mx:CheckBox label="{lang('Filter by')}" id="filterEnable" click="toggleFilterColumn()"/>
-		<mx:Label id="filterTitle"/>
-		<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="toggleFilterColumn();"/>
+		</s:HGroup>
+	</s:BorderContainer>
+	<s:HGroup id="filterControls" verticalAlign="middle" visible="false" includeInLayout="false">
+		<s:CheckBox label="{lang('Filter by')}" id="filterEnable" click="toggleFilterColumn()"/>
+		<s:Label id="filterTitle"/>
+		<s:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="toggleFilterColumn();"/>
 		<mx:ComboBox enabled="{filterEnable.selected}" id="filterValue" prompt="Select filter value..." toolTip="{lang('Select a value used to filter the data.')}" change="initFilteredColumn();"/>
-	</mx:HBox>
+	</s:HGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.List;
 			import mx.core.DragSource;
@@ -101,12 +106,12 @@
 				super.createChildren();
 				
 				// remove the dummy because we don't want it on the screen
-				removeChild(dummyHBox);
+				removeElement(dummyHBox);
 				// alter the category selection interface
-				hierarchySelector.categoryVBox.addChildAt(searchCategoryTerms, 0);
+				hierarchySelector.categoryVBox.addElementAt(searchCategoryTerms, 0);
 				// alter the attribute selection interface
-				hierarchySelector.attributeVBox.addChildAt(searchAttrTerms, 0);
-				//dimensionTreeView.attributeVBox.addChild(keyTypeControls);
+				hierarchySelector.attributeVBox.addElementAt(searchAttrTerms, 0);
+				//dimensionTreeView.attributeVBox.addElement(keyTypeControls);
 				
 				// when the available key types change or the selectedPath changes, refresh the keyTypeCombo
 				getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this, updateKeyTypeCombo, true);
@@ -443,5 +448,5 @@
 			}
 			public function applyChanges():void { }
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

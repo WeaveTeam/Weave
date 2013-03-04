@@ -19,12 +19,16 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 				width="312" height="300" 
 				title="{lang('Saved Selections')}"
-				layout="vertical">
+				>
 
-	
+	<layout>
+		<s:VerticalLayout/>
+	</layout>
 	<LinkableObjectList id="savedSelectionsList"
 						width="100%" height="100%"
 						hashMap="{_hashMap}" 
@@ -33,20 +37,20 @@
 		
 	</LinkableObjectList>
 	
-	<mx:HBox>
+	<s:HGroup>
 		<mx:Button label="{lang('Delete')}" 
 				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
 				   click="deleteSelection()"/>
 		<mx:Button label="{lang('Rename')}" 
 				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
 				   click="renameSelection()"/>
-	</mx:HBox>
+	</s:HGroup>
 	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
-		<mx:Spacer width="100%"/>
+		<s:Spacer width="100%"/>
 		<mx:Button label="{lang('Close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
 	</mx:ControlBar>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
@@ -219,5 +223,5 @@
 				});
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </DraggablePanel>

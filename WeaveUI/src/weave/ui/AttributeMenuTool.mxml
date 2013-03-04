@@ -19,49 +19,56 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				width="300" height="200" implements="weave.api.ui.IVisTool"
-				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
-	
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				width="300" height="200" implements="weave.api.ui.IVisTool" creationPolicy="all"
+				xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
+	<layout>
+		<s:VerticalLayout/>
+	</layout>
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
-		<mx:Canvas label="{lang('Combo Box')}">
+		<s:NavigatorContent label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo" prompt="{lang('Select an attribute...')}"
 							width="100%" height="100%"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							/>
-		</mx:Canvas>
-		<mx:Canvas label="{lang('List')}">
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('List')}">
 			<mx:List id="choiceList" width="100%" height="100%"
 					 labelFunction="choiceLabelFunction"
 					 change="handleAttrSelected(choiceList.selectedIndex);"
 					 backgroundAlpha="0" borderStyle="none"
 					 />
-		</mx:Canvas>
-		<mx:Canvas label="{lang('Vertical Slider')}">
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 						change="handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
-		</mx:Canvas>
-		<mx:Canvas label="{lang('Horizontal Slider')}">
-			<mx:HBox verticalAlign="middle" width="100%" height="100%">
-				<mx:VBox visible="{showPlayButtonCheck.selected}" includeInLayout="{showPlayButtonCheck.selected}" horizontalAlign="center">
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Horizontal Slider')}">
+			<s:HGroup verticalAlign="middle" width="100%" height="100%">
+				<s:VGroup visible="{showPlayButtonCheck.selected}" includeInLayout="{showPlayButtonCheck.selected}" horizontalAlign="center">
 					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
 					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
-				</mx:VBox>
+				</s:VGroup>
 				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
 							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 							change="handleAttrSelected(choiceHSlider.value);"
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
-			</mx:HBox>
-		</mx:Canvas>
+			</s:HGroup>
+		</s:NavigatorContent>
 	</mx:ViewStack>
 	
 	<ControlPanel>
-		<mx:VBox width="100%" label="{lang('Settings')}">
-			<mx:HBox>
-				<mx:VBox>
+		<s:NavigatorContent width="100%" label="{lang('Settings')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup>
+				<s:VGroup>
 					<Indent label="{lang('Visualization tool:')}">
 						<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
@@ -76,25 +83,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
 										dataProvider="{layouts}"/>
 						<HelpComponent content="{lang('Select the layout for the attribute menu.')}"/>
-						<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
-								 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
-							<mx:CheckBox id="showPlayButtonCheck" label="Show play button"
-										 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
-							<mx:CheckBox id="autoPlayRepeatCheck" label="Loop"
-										 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
-						</mx:HBox>
+						<s:HGroup visible="{layoutCombo.selectedItem == 'HSlider'}"
+								  includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
+							<s:CheckBox id="showPlayButtonCheck" label="Show play button"
+										creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+							<s:CheckBox id="autoPlayRepeatCheck" label="Loop"
+										creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
+						</s:HGroup>
 					</Indent>
-				</mx:VBox>
-			</mx:HBox>
+				</s:VGroup>
+			</s:HGroup>
 			<ColumnListComponent id="choicesComponent" label="{lang('Attributes to appear in the menu')}" />
 			<Indent label="{lang('Label function')}">
-				<mx:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
+				<s:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
 				<mx:Button label="{lang('Reset')}" click="labelFunction.value = DEFAULT_LABEL_FUNCTION;"/>
 			</Indent>
-		</mx:VBox>
+		</s:NavigatorContent>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
@@ -123,9 +130,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
-
+			
 			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
-
+			
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			private function handlePlayClick():void
@@ -207,7 +214,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
 			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Vertical Slider'), lang('Horizontal Slider')];
 			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
-
+			
 			private function layoutLabelFunction(inputString:String):String
 			{
 				return layoutLabels[layouts.indexOf(inputString)];
@@ -450,5 +457,5 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				panelTitle.value = StandardLib.replace(panelTitle.value, "{hack_showPlayButton=true;''}", "");
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </DraggablePanel>

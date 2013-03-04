@@ -1,43 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
-	This is a component for setting legend attributes such as number of columns, item reversal, 
-	labeling and title functions.
+This is a component for setting legend attributes such as number of columns, item reversal, 
+labeling and title functions.
 
-	@author kmonico
+@author kmonico
 -->
 
-<mx:VBox xmlns="weave.ui.*"
-		 xmlns:mx="http://www.adobe.com/2006/mxml"
-		 creationPolicy="all" clipContent="false"
-		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-		 label="{lang('Legend settings')}" width="100%">
-
-		<mx:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
+<s:NavigatorContent xmlns="weave.ui.*"
+					xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					label="{lang('Legend settings')}" width="100%">
+	<s:layout>
+		<s:VerticalLayout clipAndEnableScrolling="false"/>
+	</s:layout>
+	
+	<s:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
 	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
 	
-	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
+	<s:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
 	<Indent id="columnsBox" label="{lang('Number of columns')}">
 		<mx:NumericStepper id="numColumns" minimum="1"/>
 	</Indent>
 	<IndentTextInput id="txtLegendValuesFunction" label="{lang('Item label function:')}" inputWidth="100%"/>
-</mx:VBox>
+</s:NavigatorContent>

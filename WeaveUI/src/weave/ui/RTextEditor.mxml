@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
@@ -36,63 +36,72 @@ RTextEditor
 @author spurushe
 @author sanbalag
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 				 
 				title="{lang('R Script Editor')}"
 				x="15%" width="70%" y="15%" height="70%"
-				backgroundColor="#EFF4BC" 
-				layout="horizontal"
+				layout="{new HorizontalLayout()}"
 				autoLayout="true"
 				implements="weave.api.ui.IVisTool"
-				>
-	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
-		<mx:VBox width="20%" height="100%" verticalGap="0">
-			<mx:Label text="{lang('(1) Select data to use in your script')}"/>
+				styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundColor: #EFF4BC;
+		}
+	</fx:Style>
+	
+	<s:HGroup width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+		<s:VGroup width="20%" height="100%" gap="0">
+			<s:Label text="{lang('(1) Select data to use in your script')}"/>
 			<ColumnListComponent id="inputColumnList" label="{lang('Input columns')}" hashMap="{variables}" width="100%" height="100%"   />			
-		</mx:VBox>
-		<mx:VBox width="55%" height="100%" verticalGap="0">
+		</s:VGroup>
+		<s:VGroup width="55%" height="100%" gap="0">
 			<LabelWithWordWrap text="{lang('(2) Assign variables to your data (Separate by commas)')}"/>
 			<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
-
-			<mx:Spacer height="{padding}"/>
-
+			
+			<s:Spacer height="{padding}"/>
+			
 			<LabelWithWordWrap text="{lang('(3) Enter a script (type or paste in)')}"/>			
 			<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
-
-			<mx:Spacer height="{padding}"/>
-
+			
+			<s:Spacer height="{padding}"/>
+			
 			<LabelWithWordWrap text="{lang('(4) Input a plot script (Optional)')}"/>
 			<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
-
-			<mx:Spacer height="{padding}"/>
-
+			
+			<s:Spacer height="{padding}"/>
+			
 			<LabelWithWordWrap text="{lang('(5) Specify script outputs to display, separated by commas')}"/>
 			<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
-
-			<mx:Spacer height="{padding}"/>
-
+			
+			<s:Spacer height="{padding}"/>
+			
 			<LabelWithWordWrap text="{lang('(6) Run your script on the server')}"/>
-			<mx:HBox>
-				<mx:Button id="B2" label="{lang('Run script')}"  click="viewAndSendbuttonClickHandler()"/>
-				<mx:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
-				<mx:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
-			</mx:HBox>
-
-			<mx:Spacer height="{padding}"/>
-
+			<s:HGroup>
+				<s:Button id="B2" label="{lang('Run script')}"  click="viewAndSendbuttonClickHandler()"/>
+				<s:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
+				<s:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
+			</s:HGroup>
+			
+			<s:Spacer height="{padding}"/>
+			
 			<LabelWithWordWrap text="{lang('(7) Export your script for later use')}"/>
-			<mx:HBox>
-				<mx:Button id="exportBtn" label="{lang('Export')}" click="export_clickHandler(event)"/>
-				<mx:Button id="importBtn" label="{lang('Import')}" click="import_clickHandler(event)"/>	
-			</mx:HBox>						
-		</mx:VBox>
-		<mx:VBox width="25%" height="100%" verticalGap="0">
-			<mx:Label text="{lang('Result')}"/>
+			<s:HGroup>
+				<s:Button id="exportBtn" label="{lang('Export')}" click="export_clickHandler(event)"/>
+				<s:Button id="importBtn" label="{lang('Import')}" click="import_clickHandler(event)"/>	
+			</s:HGroup>						
+		</s:VGroup>
+		<s:VGroup width="25%" height="100%" gap="0">
+			<s:Label text="{lang('Result')}"/>
 			<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
-		</mx:VBox>
-	</mx:HBox>
+		</s:VGroup>
+	</s:HGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Image;
 			import mx.rpc.AsyncToken;
@@ -100,14 +109,16 @@ RTextEditor
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
+			import spark.layouts.HorizontalLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
@@ -133,24 +144,24 @@ RTextEditor
 			public const assignTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			
 			
-		
+			
 			/*protected function checking_clickHandler(event:MouseEvent):void
 			{
-				var column:Array = variables.getObjects();
-				var refColumn:ReferencedColumn;
-				var columnName:String;
-				var columnNames:Array = new Array();
-				//trace(column);
-				for(var i:int = 0; i<column.length; i++){
-					 refColumn = column[i] as ReferencedColumn;
-					 columnName = refColumn.internalColumn.getMetadata('title');
-					 while(columnName.search(" ") > 0)
-					 {
-						 columnName = columnName.replace(" ","");
-					 }
-					 columnNames.push(columnName);					 
-				}
-				trace(columnNames);
+			var column:Array = variables.getObjects();
+			var refColumn:ReferencedColumn;
+			var columnName:String;
+			var columnNames:Array = new Array();
+			//trace(column);
+			for(var i:int = 0; i<column.length; i++){
+			refColumn = column[i] as ReferencedColumn;
+			columnName = refColumn.internalColumn.getMetadata('title');
+			while(columnName.search(" ") > 0)
+			{
+			columnName = columnName.replace(" ","");
+			}
+			columnNames.push(columnName);					 
+			}
+			trace(columnNames);
 			}*/
 			
 			override protected function constructor():void
@@ -207,7 +218,7 @@ RTextEditor
 				//	return;
 				if(selectedColumns.length >0)
 				{					
-				// get records for keys common to all columns 
+					// get records for keys common to all columns 
 					result = joinColumns(attributeColumns);
 					joinedColumnQKeys = result[0];
 					joinedColumns = result[1];
@@ -220,18 +231,18 @@ RTextEditor
 				/* var keyType:String = null;
 				for (var j:int = 0; j < joinedColumnKeys.length; j++)
 				{
-					var qkey:IQualifiedKey = joinedColumnKeys[j];
-					// sanity check
-					if (keyType && keyType != qkey.keyType)
-					{
-						// there are multiple key types in the list of keys..
-						Alert.show("This feature only works with keys having a common keyType.  Key types do not match: " + [keyType, qkey.keyType]);
-						return;
-					}
-					keyType = qkey.keyType;
-					joinedColumnKeys[j] = qkey.localName;
+				var qkey:IQualifiedKey = joinedColumnKeys[j];
+				// sanity check
+				if (keyType && keyType != qkey.keyType)
+				{
+				// there are multiple key types in the list of keys..
+				Alert.show("This feature only works with keys having a common keyType.  Key types do not match: " + [keyType, qkey.keyType]);
+				return;
+				}
+				keyType = qkey.keyType;
+				joinedColumnKeys[j] = qkey.localName;
 				} */
-						
+				
 				//Values need to assign for Column names in R
 				var assignValues:Array = joinedColumns;
 				//Names for Column that need to be used in R
@@ -247,7 +258,7 @@ RTextEditor
 				}				
 				//Script to get output from R
 				var outputNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
-
+				
 				//Query is created from runScript with same signature from Jave side
 				var showIntermediateResults:Boolean = intermediateResultCB.selected;
 				var showWarnings:Boolean = warningCB.selected;
@@ -308,7 +319,7 @@ RTextEditor
 						var imagePanel:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
 						var image:Image = new Image();
 						image.source = RresultArray[p].value;
-						imagePanel.addChild(image);
+						imagePanel.addElement(image);
 						imagePanel.panelWidth.value = "500";
 						imagePanel.panelHeight.value = "500";
 					}
@@ -349,41 +360,41 @@ RTextEditor
 			}
 			
 			//To get the name of selected Column from ColumnListComponent and add to respective TextArea(based on Focused Texarea)
-/* 			protected function inputColumnList_doubleClickHandler(event:MouseEvent):void
+			/* 			protected function inputColumnList_doubleClickHandler(event:MouseEvent):void
 			{
-				//trace(event.currentTarget.internalList.selectedIndex);
-				var columnName:String = variables.getName(event.currentTarget.internalList.selectedItem as ILinkableObject)
-				if(inputTA == focusedTA )
-				{	
-					var cursorPosBegin:int = focusedTA.selectionBeginIndex;
-					var cursorPosEnd:int = focusedTA.selectionEndIndex;
-					focusedTA.text = focusedTA.text.substr(0,cursorPosBegin) + columnName + focusedTA.text.substr(cursorPosEnd);
-				}
-				//Need to write code to remove Empty lines before sending to R-Side
-				if(outputTA == focusedTA)
-				{
-					if(outputTA.text ==""){
-						outputTA.text = outputTA.text + columnName;
-					}
-					else{
-						outputTA.text = outputTA.text +"\n"+columnName;
-					}					
-				}				
+			//trace(event.currentTarget.internalList.selectedIndex);
+			var columnName:String = variables.getName(event.currentTarget.internalList.selectedItem as ILinkableObject)
+			if(inputTA == focusedTA )
+			{	
+			var cursorPosBegin:int = focusedTA.selectionBeginIndex;
+			var cursorPosEnd:int = focusedTA.selectionEndIndex;
+			focusedTA.text = focusedTA.text.substr(0,cursorPosBegin) + columnName + focusedTA.text.substr(cursorPosEnd);
 			}
-
- 			//Saves the pointer to inputTA
+			//Need to write code to remove Empty lines before sending to R-Side
+			if(outputTA == focusedTA)
+			{
+			if(outputTA.text ==""){
+			outputTA.text = outputTA.text + columnName;
+			}
+			else{
+			outputTA.text = outputTA.text +"\n"+columnName;
+			}					
+			}				
+			}
+			
+			//Saves the pointer to inputTA
 			protected function inputTA_clickHandler(event:MouseEvent):void
 			{
-				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
-				focusedTA = selectedTA;
+			var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
+			focusedTA = selectedTA;
 			}
 			////Saves the pointer to outputTA
 			protected function outputTA_clickHandler(event:MouseEvent):void
 			{
-				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
-				focusedTA = selectedTA;
+			var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
+			focusedTA = selectedTA;
 			}
-*/
+			*/
 			
 			protected function assignTA_clickHandler(event:MouseEvent):void
 			{
@@ -402,9 +413,9 @@ RTextEditor
 						<plotScript>{plotTA.text}</plotScript>
 						<outputScript>{outputTA.text}</outputScript>
 					</RScriptEditor>;
-					
+				
 				trace(rScriptSessionState);
-					
+				
 				//WeaveXMLEncoder.encode(getSessionState(this)
 				if(_sessionFileSaver == null)
 				{
@@ -444,8 +455,8 @@ RTextEditor
 			private var focusedTA:TextArea = null;
 			
 			
-
+			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 </DraggablePanel>

@@ -21,8 +21,10 @@
 -->
 <mx:Box direction="horizontal"
     xmlns="weave.ui.*"
-    xmlns:mx="http://www.adobe.com/2006/mxml"
-    horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
+    xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
+      creationPolicy="all"
     width="100%" horizontalAlign="center"
     >
 </mx:Box>

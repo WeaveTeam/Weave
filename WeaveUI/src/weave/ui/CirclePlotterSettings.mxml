@@ -1,53 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
 @author skolman
 -->
-<ui:ControlPanel xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				 xmlns:ui="weave.ui.*"
-				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 layout="absolute"
+<ui:ControlPanel xmlns="weave.ui.annotation.*"
+				 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark" 
+				 xmlns:mx="library://ns.adobe.com/flex/mx" 
+				 xmlns:ui="weave.ui.*"				  
+				 layout="{new BasicLayout()}"
 				 title="{lang('Circle Settings')}"
 				 width="40%"
 				 height="40%"
 				 >
 	
-	<mx:VBox id="circlePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
+	<s:VGroup id="circlePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
 		<ui:IndentTextInput indent="100" label="{lang('X coordinate:')}" id="dataXText"/>
 		<ui:IndentTextInput indent="100" label="{lang('Y coordinate:')}" id="dataYText"/>
 		<ui:IndentTextInput indent="100" label="{lang('Radius:')}" id="radiusText"/>
-		<mx:Spacer/>
+		<s:Spacer/>
 		<ui:IndentTextInput indent="100" label="{lang('Thickness:')}" id="thicknessText"/>
 		<ui:Indent indent="100" label="{lang('Color:')}">
 			<mx:ColorPicker id="colorPicker"/>
 		</ui:Indent>
-	</mx:VBox>
-	<mx:Script>
+	</s:VGroup>
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
+			import spark.layouts.BasicLayout;
+			
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
+			import weave.api.core.ILinkableObject;
 			import weave.visualization.layers.PlotManager;
 			import weave.visualization.plotters.CirclePlotter;
 			import weave.visualization.tools.MapTool;
@@ -139,6 +143,6 @@
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 </ui:ControlPanel>

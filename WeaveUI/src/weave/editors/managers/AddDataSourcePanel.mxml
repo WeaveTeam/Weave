@@ -1,66 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <ui:DraggablePanel
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.editors.managers.*"
-	layout="absolute"
+	layout="{new BasicLayout()}"
 	title="{lang('Add New Data Source')}"
-	borderAlpha="1"
-	borderColor="#939178"
-	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
-	verticalScrollPolicy="auto"
-	horizontalScrollPolicy="off"
-	roundedBottomCorners="true"
 	height="564"
 	width="184"
-	escapeKeyClosesPanel="true"
-	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
-	<mx:HBox height="100%" width="100%" horizontalGap="0">
-		<mx:VBox paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" height="100%">
-			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
-			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
-			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
-			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
-			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
-			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
-		</mx:VBox>
-		<mx:Canvas backgroundColor="#939178" width="5" height="100%"/>
-		<mx:Box width="100%" height="100%" id="container" paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5"/>
-	</mx:HBox>
+	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*"
+	styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.editors.managers.*";
+		@namespace ui "weave.ui.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			borderAlpha: 1 ;
+			borderColor: #939178;
+			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
+			roundedBottomCorners: true;
+		}
+	</fx:Style>
+
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
+	</fx:Declarations>
+	<s:HGroup height="100%" width="100%" gap="0">
+		<s:VGroup paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" height="100%">
+			
+			<s:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
+			<s:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
+			<s:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
+			<s:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
+			<s:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
+		</s:VGroup>
+		<!-- sanjay need to ask Andy ( is it required )-->
+		<s:BorderContainer  width="5" height="100%">
+			<s:backgroundFill>
+				<s:SolidColor color="#939178"/>
+			</s:backgroundFill>
+		</s:BorderContainer>
+		<s:Group width="100%" height="100%" id="container" />
+	</s:HGroup>
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
-		<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
-		<mx:Button id="cancelButton" label="{lang('Close')}" click="removePanel()"/>
+		<s:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
+		<s:Button id="cancelButton" label="{lang('Close')}" click="removePanel()"/>
 	</mx:ControlBar>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.core.IVisualElement;
 			import mx.events.ItemClickEvent;
 			import mx.managers.PopUpManager;
 			
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableObject;
 			import weave.api.setSessionState;
+			import weave.api.core.ILinkableObject;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.DBFDataSource;
@@ -73,7 +94,7 @@
 			import weave.editors.WeaveDataSourceEditor;
 			import weave.editors.XLSDataSourceEditor;
 			import weave.utils.EditorManager;
-
+			
 			private static var _staticInstance:AddDataSourcePanel = null;
 			public static function showAsPopup():void
 			{
@@ -86,10 +107,10 @@
 			
 			private function handleDataSelect(event:ItemClickEvent=null):void
 			{
-				container.removeAllChildren();
+				container.removeAllElements();
 				var Editor:Class = EditorManager.getEditorClass(dataSourceType.selectedValue);
 				_editor = new Editor();
-				container.addChild(_editor as DisplayObject);
+				container.addElement(_editor as IVisualElement);
 				_editor.percentWidth = 100;
 				_editor.percentHeight = 100;
 			}
@@ -222,5 +243,5 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 </ui:DraggablePanel>

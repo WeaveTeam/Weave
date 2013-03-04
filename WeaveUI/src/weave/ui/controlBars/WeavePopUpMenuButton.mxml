@@ -19,8 +19,10 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Button xmlns:mx="http://www.adobe.com/2006/mxml" click="handleClick(event)">
-	<mx:Script>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" click="handleClick(event)">
+	<fx:Script>
 		<![CDATA[
 			import mx.utils.ObjectUtil;
 			import mx.core.IUIComponent;
@@ -64,5 +66,5 @@
 			    }
 		    }
 		]]>
-	</mx:Script>
-</mx:Button>
+	</fx:Script>
+</s:Button>

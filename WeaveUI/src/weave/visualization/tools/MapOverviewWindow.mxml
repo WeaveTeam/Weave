@@ -23,14 +23,21 @@
 @author kmanohar
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	     xmlns:ui="weave.ui.*"
-	     layout="absolute" xmlns:userControls="weave.ui.userControls.*"
+	      xmlns:userControls="weave.ui.userControls.*"
 	     xmlns:mapTool="weave.visualization.tools.*"		 
 	     >
-	<mx:Script>
+	<layout>
+		<s:BasicLayout clipAndEnableScrolling="true"/>
+	</layout>
+	<fx:Script>
 		<![CDATA[
-			import mx.containers.Canvas;
+			
+			import spark.components.Group;
+			import spark.layouts.BasicLayout;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
@@ -56,7 +63,7 @@
 				pinnable.value = false;
 				enableBorders.value = false;
 				
-				clipContent = true;
+				
 
 				visualization.plotManager.enableAutoZoomToExtent.value = true;
 				visualization.plotManager.enableAutoZoomToExtent.lock();
@@ -77,7 +84,7 @@
 				
 				canvas.percentHeight= canvas.percentWidth = 100;
 				canvas.useHandCursor = true;
-				UIUtils.spark_addChild(visualization,canvas);
+				visualization.addElement(canvas);
 				canvas.toolTip = lang("Click or drag this rectangle to change the displayed area in the map");
 				
 				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
@@ -100,7 +107,7 @@
 			private var overviewDataBounds:IBounds2D = new Bounds2D();
 			private var screenBounds:IBounds2D = new Bounds2D();
 			private var tempBounds:IBounds2D = new Bounds2D();
-			private var canvas:Canvas = new Canvas();
+			private var canvas:Group = new Group();
 			
 			/**
 			 * This function draws a rectangle around the area currently displayed in the parent MapTool.
@@ -192,7 +199,7 @@
 				}
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 
 
 </SimpleVisTool>

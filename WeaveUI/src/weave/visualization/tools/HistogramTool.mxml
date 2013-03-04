@@ -1,39 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-		 xmlns:userControls="weave.ui.userControls.*"
-		 xmlns:settings="weave.ui.settings.*"
-		 layout="absolute">
-	<mx:Script>
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:ui="weave.ui.*" 
+			   xmlns:userControls="weave.ui.userControls.*"
+			   xmlns:settings="weave.ui.settings.*"
+			   layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -42,7 +46,7 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.HistogramPlotter;
-		
+			
 			WeaveAPI.registerImplementation(IVisTool, HistogramTool, "Histogram");
 			
 			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
@@ -57,14 +61,14 @@
 				
 				xAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
-
+				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "10";
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "10";
 				
 				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
-
+				
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
@@ -93,12 +97,12 @@
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
-
+			
 			private function openAttributeSelector():void
 			{
 				AttributeSelectorPanel.openToolSelector(this,internalDataColumn);
 			}
-						
+			
 			private function updateProbeColumns():void
 			{
 				visualization.additionalProbeColumns = [];
@@ -113,7 +117,7 @@
 			{
 				return lang("Histogram of {0}", ColumnUtils.getTitle(plotter.dynamicColorColumn));
 			}
-
+			
 			private var _prevBinnedColumn:BinnedColumn = null;
 			private function handleDynamicColorColumnChange():void
 			{
@@ -169,21 +173,27 @@
 				yAxisPlotter.setSideAxisName(lang("Number of Records"), -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
-	</mx:Script>
-
+	</fx:Script>
+	
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Visualization Controls')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+		<s:NavigatorContent label="{lang('Visualization Controls')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
+						creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('bin data')}"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Advanced')}">
-			<mx:CheckBox id="drawPartialCheckBox"
-						 label="{lang('Draw partial histogram bars for selection and probe')}"
-						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Advanced')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="drawPartialCheckBox"
+						label="{lang('Draw partial histogram bars for selection and probe')}"
+						creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
-		</mx:VBox>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
 </SimpleVisTool>

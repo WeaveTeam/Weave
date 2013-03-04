@@ -41,8 +41,6 @@ package weave.application
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
-	import mx.containers.Canvas;
-	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Text;
 	import mx.core.UIComponent;
@@ -51,6 +49,9 @@ package weave.application
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	
+	import spark.components.Group;
+	import spark.components.VGroup;
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
@@ -112,7 +113,7 @@ package weave.application
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
 
-	internal class VisApplication extends VBox implements ILinkableObject
+	internal class VisApplication extends VGroup implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
@@ -133,19 +134,19 @@ package weave.application
 			setStyle("marginTop", 0);
 			setStyle("marginBottom", 0);
 			
-			setStyle("verticalGap", 0);
+			setStyle("gap", 0);
 			setStyle("horizingalGap", 0);
 			setStyle('backgroundAlpha', 1);
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
-			clipContent = false;
+			clipAndEnableScrolling = false;
 			autoLayout = true;
 			
 			// no scrolling
-			horizontalScrollPolicy = "off";
+			/*horizontalScrollPolicy = "off";
 			verticalScrollPolicy   = "off";
 			visDesktop.verticalScrollPolicy   = "off";
-			visDesktop.horizontalScrollPolicy = "off";
+			visDesktop.horizontalScrollPolicy = "off";*/
 			
 			percentWidth = 100;
 			percentHeight = 100;
@@ -426,7 +427,7 @@ package weave.application
 				if (show)
 				{
 					if (visDesktop != _selectionIndicatorText.parent)
-						visDesktop.addChild(_selectionIndicatorText);
+						visDesktop.addElement(_selectionIndicatorText);
 						
 					if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_LEFT ){
 						_selectionIndicatorText.setStyle( "left", 0 ) ;
@@ -440,7 +441,7 @@ package weave.application
 				else
 				{
 					if (visDesktop == _selectionIndicatorText.parent)
-						visDesktop.removeChild(_selectionIndicatorText);
+						visDesktop.removeElement(_selectionIndicatorText);
 				}
 			}
 			catch (e:Error)
@@ -458,7 +459,7 @@ package weave.application
 			//UIComponentGlobals.catchCallLaterExceptions = true;
 			//systemManager.addEventListener("callLaterError", reportError);
 
-			this.addChild(visDesktop);
+			this.addElement(visDesktop);
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
@@ -477,7 +478,7 @@ package weave.application
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
 
-			this.addChild(VisTaskbar.instance);
+			this.addElement(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
 		}
 		
@@ -510,7 +511,7 @@ package weave.application
 			else
 				this.height = this.parent.height;
 			
-			var workspace:Canvas = visDesktop.internalCanvas;
+			var workspace:Group = visDesktop.internalCanvas;
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			var scale:Number = 1 / multiplier;
 			workspace.scaleX = scale;
@@ -622,7 +623,7 @@ package weave.application
 				if( !_collabMenu.parent )
 				{
 					_collabMenu.percentWidth = 100;
-					this.addChild(_collabMenu);
+					this.addElement(_collabMenu);
 					_collabMenu.addedToStage();
 				}
 			} else {
@@ -630,7 +631,7 @@ package weave.application
 				{
 					if( this == _collabMenu.parent ) {
 						_collabMenu.dispose();
-						this.removeChild(_collabMenu);
+						this.removeElement(_collabMenu);
 					}
 					
 				} catch( error:Error ) {
@@ -666,10 +667,14 @@ package weave.application
 			if (!historySlider)
 			{
 				historySlider = EditorManager.getNewEditor(Weave.history) as UIComponent;
+
 				if (historySlider)
-					this.addChildAt(historySlider, this.getChildIndex(visDesktop));
+					this.addElementAt(historySlider, this.getElementIndex(visDesktop));
 				else
 					reportError("Unable to get editor for SessionStateLog");
+
+				
+
 			}
 			
 			DraggablePanel.adminMode = adminService || getFlashVarEditable();
@@ -684,10 +689,10 @@ package weave.application
 					callLater(setupVisMenuItems);
 					
 					//PopUpManager.addPopUp(_weaveMenu, this);
-					this.addChildAt(_weaveMenu, 0);
+					this.addElementAt(_weaveMenu, 0);
 					
 					if (this == _oicLogoPane.parent)
-						this.removeChild(_oicLogoPane);
+						this.removeElement(_oicLogoPane);
 				}
 				
 				// always show menu bar when admin service is present
@@ -702,16 +707,16 @@ package weave.application
 				try
 				{
 		   			if (_weaveMenu && this == _weaveMenu.parent)
-						removeChild(_weaveMenu);
+						removeElement(_weaveMenu);
 
 		   			_weaveMenu = null;
 					
 					if (Weave.properties.showCopyright.value)
 					{
-						addChild(_oicLogoPane);
+						addElement(_oicLogoPane);
 					}
 					else if (this == _oicLogoPane.parent)
-						removeChild(_oicLogoPane);
+						removeElement(_oicLogoPane);
 				}
 				catch(error:Error)
 				{
@@ -812,7 +817,7 @@ package weave.application
 //				if (Weave.properties.weaveAnalystMode.value)
 //				{
 //					var _analyst:WeaveAnalyst = new WeaveAnalyst();
-//					this.visDesktop.addChild(_analyst);
+//					this.visDesktop.addElement(_analyst);
 //				}
 				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);

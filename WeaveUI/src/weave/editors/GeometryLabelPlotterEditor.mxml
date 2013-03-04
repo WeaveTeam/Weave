@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" label="{lang('Geometry Labels')}" 
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" label="{lang('Geometry Labels')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
-	<mx:VBox width="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<s:VGroup width="100%">
 		<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
 		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
-	</mx:VBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
+	</s:VGroup>
+	<s:HGroup width="100%">
+		<s:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
 		<mx:HSlider id="labelSizeSlider"
 					width="100%"
 					alpha="1.0"
@@ -15,14 +20,14 @@
 					minimum="6" maximum="20" 
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.size.defaultValue,event.target,'value')"/>
-	</mx:HBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
+	</s:HGroup>
+	<s:HGroup width="100%">
+		<s:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
 		<mx:ColorPicker id="colorPicker" width="22" height="22"
 						creationComplete="linkBindableProperty(_plotter.color.defaultValue, event.target, 'selectedColor')"/>
-	</mx:HBox>
+	</s:HGroup>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
@@ -43,26 +48,13 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				linkGeometryProperties();
-			}
-			
-			private function linkGeometryProperties():void
-			{
 				labelComponent.dynamicObject = _plotter.text;
 				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
 			}
 			
 			
-			private function unlinkGeometryProperties():void
-			{
-				if (!data)
-					return;
-				
-				labelComponent.dynamicObject = null;
-				geometryComponent.dynamicObject = null;
-			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 		
-</mx:VBox>
+</s:NavigatorContent>

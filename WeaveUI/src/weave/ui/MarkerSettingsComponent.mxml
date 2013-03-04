@@ -1,49 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ui:ControlPanel xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				 xmlns:ui="weave.ui.*"
-				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 layout="absolute"
+<ui:ControlPanel xmlns="weave.ui.annotation.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark" 
+				 xmlns:mx="library://ns.adobe.com/flex/mx" 
+				 xmlns:ui="weave.ui.*"				  
+				 layout="{new BasicLayout()}"
 				 title="{lang('Edit Marker')}"
 				 width="40%"
-				 height="40%"
-				
+				 height="40%"				
 				 >
 	
-	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="{lang('Marker Settings')}">
-		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="{lang('Image URL:')}"/>
-			<mx:TextInput id="imageURLText" width="200"/>
+	<s:NavigatorContent id="singleImagePlotterControls" width="100%"  label="{lang('Marker Settings')}">
+		<s:layout>
+			<s:VerticalLayout paddingTop="3" horizontalAlign="left"/>
+		</s:layout>
+		<s:HGroup>
+			<s:Label width="100" fontWeight="bold" text="{lang('Image URL:')}"/>
+			<s:TextInput id="imageURLText" width="200"/>
 			<ui:HelpComponent>Enter a URL to an image. If the URL empty it defaults to a red circle.</ui:HelpComponent>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="{lang('X Coordinate: ')}"/>
-			<mx:TextInput id="dataXText" width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="{lang('Y Coordinate: ')}"/>
-			<mx:TextInput id="dataYText"  width="100"/>
-		</mx:HBox>
+		</s:HGroup>
+		<s:HGroup>
+			<s:Label width="100" fontWeight="bold" text="{lang('X Coordinate: ')}"/>
+			<s:TextInput id="dataXText" width="100"/>
+			<s:Label width="120" fontWeight="bold" text="{lang('Y Coordinate: ')}"/>
+			<s:TextInput id="dataYText"  width="100"/>
+		</s:HGroup>
 		
-		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="{lang('Vertical Align :')}" />
+		<s:HGroup>
+			<s:Label width="100" fontWeight="bold" text="{lang('Vertical Align :')}" />
 			<mx:ComboBox id="verticalAlignComboBox" width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="{lang('Horizontal Align :')}" />
+			<s:Label width="120" fontWeight="bold" text="{lang('Horizontal Align :')}" />
 			<mx:ComboBox id="horizonatalAlignComboBox" width="100"/>
-		</mx:HBox>
+		</s:HGroup>
 		
-		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="{lang('Data Width:')}"/>
-			<mx:TextInput id="dataWidthText"  width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="{lang('Data Height:')}"/>
-			<mx:TextInput id="dataHeightText"  width="100"/>
+		<s:HGroup>
+			<s:Label width="100" fontWeight="bold" text="{lang('Data Width:')}"/>
+			<s:TextInput id="dataWidthText"  width="100"/>
+			<s:Label width="120" fontWeight="bold" text="{lang('Data Height:')}"/>
+			<s:TextInput id="dataHeightText"  width="100"/>
 			<ui:HelpComponent>Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates.</ui:HelpComponent>
-		</mx:HBox>		
-	</mx:VBox>
-	<mx:Script>
+		</s:HGroup>		
+	</s:NavigatorContent>
+	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
+			import spark.layouts.BasicLayout;
+			
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
+			import weave.api.core.ILinkableObject;
 			import weave.visualization.layers.PlotManager;
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.tools.MapTool;
@@ -60,9 +65,9 @@
 			private static var _editContextMenuItem:ContextMenuItem 	= null;
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
 			private static const ADD_CAPTION:String           = "Add Marker"
-//			private static const REMOVE_CAPTION:String        = "Remove Remove Marker"
-//			private static const EDIT_TEXT_CAPTION:String     = "Edit Marker"
-				
+			//			private static const REMOVE_CAPTION:String        = "Remove Remove Marker"
+			//			private static const EDIT_TEXT_CAPTION:String     = "Edit Marker"
+			
 			public static function createContextMenuItems(destination:DisplayObject):Boolean
 			{
 				if(!destination.hasOwnProperty("contextMenu") )
@@ -75,7 +80,7 @@
 				
 				// Create a context menu item for printing of a single tool with title and logo
 				_addRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddMarker,"2.1 textBoxMenuItem");
-//				_editContextMenuItem  = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
+				//				_editContextMenuItem  = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
 				
 				return true;
 			}
@@ -128,7 +133,7 @@
 				settingsPanel.targets = [plotter.imageURL,plotter.dataX,plotter.dataY,plotter.dataWidth,plotter.dataHeight];
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
-			
+				
 				settingsPanel.title = lang("Edit {0}", markerName);
 				
 				linkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText, "text", 1000);
@@ -143,6 +148,6 @@
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 </ui:ControlPanel>

@@ -20,10 +20,15 @@
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	     xmlns:ui="weave.ui.*"
-	     layout="absolute" xmlns:userControls="weave.ui.userControls.*">
-	<mx:Script>
+	      xmlns:userControls="weave.ui.userControls.*">
+	<layout>
+		<s:BasicLayout/>
+	</layout>
+	<fx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
@@ -189,28 +194,34 @@
 				visualization.plotManager.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 	<mx:TextArea id="marginLabel"
 				 visible="{marginLabel.height > 0}"
 				 mouseChildren="false" mouseEnabled="false"
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
-				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				  
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Binning')}">
+		<s:NavigatorContent label="{lang('Binning')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Appearance')}">
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Appearance')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:LegendControls id="legendControls"/>
-			<mx:HBox>
-				<mx:Label text="{lang('Max bubble size')}"/>
+			<s:HGroup>
+				<s:Label text="{lang('Max bubble size')}"/>
 				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
-			</mx:HBox>
+			</s:HGroup>
 			<ui:ColorRampEditor id="cRampEditor"/>
-		</mx:VBox>
+		</s:NavigatorContent>
 	</ui:ControlPanel>
 
 </SimpleVisTool>

@@ -1,26 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <mx:List
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
 	width="100%" height="100%"
@@ -33,7 +35,7 @@
 	implements="weave.api.core.IDisposableObject"
 	allowMultipleSelection="false" xmlns:userControls="weave.ui.userControls.*"
 	>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.events.DragEvent;
@@ -61,7 +63,7 @@
 			{
 				dataProvider = null;
 			}
-
+			
 			private function updateDataProvider():void
 			{
 				if (visible)
@@ -74,7 +76,7 @@
 					verticalScrollPosition = vsp;
 				}
 			}
-
+			
 			private function handleDragStart(event:DragEvent):void
 			{
 				
@@ -87,632 +89,671 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<mx:itemRenderer>
-		<mx:Component>
-			<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
-					 horizontalScrollPolicy="off"
-					 width="100%" 
-					 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
-					 borderStyle="solid" borderThickness="1"
-					 verticalAlign="middle"
-					 verticalGap="0"
-					 >
-				<mx:HBox width="100%" horizontalGap="1" verticalAlign="middle" paddingBottom="0" paddingTop="0">
-					<mx:CheckBox id="visibleCheckbox" 
-								 label="{lang('visible')}" 
-								 toolTip="{lang('Check this box to set this layer visible.')}" 
-								 selected="{layerIsVisible}" 
-								 change="layerIsVisible = visibleCheckbox.selected"/>
-					<mx:CheckBox id="selectableCheckbox" 
-								 label="{lang('selectable')}"
-								 toolTip="{lang('Check this box to enable selection and probing on this layer.')}" 
-								 selected="{layerIsSelectable}"
-								 change="layerIsSelectable = selectableCheckbox.selected"/>
-								 
-					<mx:Spacer width="100%"/>
-
-					<mx:HBox backgroundColor="0xFFFFFF" 
-							 cornerRadius="5" 
-							 borderStyle="solid" borderThickness="1" borderColor="0x222222"
-							 horizontalGap="0"
-							 >
-						<mx:LinkButton 	width="100%" 
-										label="{_label}" labelPlacement="left" 
-										paddingLeft="7" paddingRight="7" paddingTop="1" paddingBottom="1"
-										useHandCursor="true" 
-										click="editLayer(event)" 
-										creationComplete="handleLinkButtonCreated()" 
-										id="layerName" 
-										rollOverColor="0xAAFF00" selectionColor="0x00FF00" />
-					</mx:HBox>
-					
-					
-					<mx:Spacer width="100%"/>
-					
-					
-					<mx:Button id="settingsButton"
-						   toggle="true" 
-						   label="{lang('settings')}" 
-						   paddingLeft="2" paddingRight="2"
-						   width="60"
-						   toolTip="{lang('Click here to view this layer\'s modifiable parameters.')}"
-						   click="handleEditButtonClicked(settingsButton, controlsStack,_label)"
-						   />
-					
-					
-					
-					<mx:Spacer width="10"/>
-					<mx:Image toolTip="{lang('Remove this layer')}" source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true" click="removeLayer(event)"/>
-				</mx:HBox>
+		<fx:Component> 
+			<s:MXItemRenderer>
 				
-				<!-- these are the controls that are shown when hitting the "Settings" button -->
-				<mx:ViewStack id="controlsStack" resizeToContent="true" 
-							  creationPolicy="all">
-					<mx:Canvas id="empty" width="0" height="0"/>
+				<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx"
+						  width="100%" 
+						  borderStyle="solid"
+						  >
+					<s:borderStroke>
+						<s:SolidColorStroke weight="1"/>
+					</s:borderStroke>
+					<s:layout>
+						<s:VerticalLayout gap="0" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5" verticalAlign="middle"/>
+					</s:layout>
+					<s:HGroup width="100%" gap="1" verticalAlign="middle" paddingBottom="0" paddingTop="0">
+						<mx:CheckBox id="visibleCheckbox" 
+									label="{lang('visible')}" 
+									toolTip="{lang('Check this box to set this layer visible.')}" 
+									selected="{layerIsVisible}" 
+									change="layerIsVisible = visibleCheckbox.selected"/>
+						<mx:CheckBox id="selectableCheckbox" 
+									label="{lang('selectable')}"
+									toolTip="{lang('Check this box to enable selection and probing on this layer.')}" 
+									selected="{layerIsSelectable}"
+									change="layerIsSelectable = selectableCheckbox.selected"/>
+						
+						<s:Spacer width="100%"/>
+						
+						<s:BorderContainer 
+								  cornerRadius="5" 
+								  borderStyle="solid" 
+								  >
+							<s:borderStroke>
+								<s:SolidColorStroke weight="1" color="0x222222"/>
+							</s:borderStroke>
+							<s:backgroundFill>
+								<s:SolidColor color="0xFFFFFF"/>
+							</s:backgroundFill>
+							
+							<mx:LinkButton 	width="100%" 
+											label="{_label}" labelPlacement="left" 
+											paddingLeft="7" paddingRight="7" paddingTop="1" paddingBottom="1"
+											useHandCursor="true" 
+											click="editLayer(event)" 
+											creationComplete="handleLinkButtonCreated()" 
+											id="layerName" 
+											rollOverColor="0xAAFF00" selectionColor="0x00FF00" />
+						</s:BorderContainer>
+						
+						
+						<s:Spacer width="100%"/>
+						
+						
+						<mx:Button id="settingsButton"
+								  toggle="true" 
+								  label="{lang('settings')}" 
+								  paddingLeft="2" paddingRight="2"
+								  width="60"
+								  toolTip="{lang('Click here to view this layer\'s modifiable parameters.')}"
+								  click="handleEditButtonClicked(settingsButton, controlsStack,_label)"
+								  />
+						
+						
+						
+						<s:Spacer width="10"/>
+						<s:Image toolTip="{lang('Remove this layer')}" source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true" click="removeLayer(event)"/>
+					</s:HGroup>
 					
-					<mx:HBox id="wmsPlotterControls" width="100%" horizontalAlign="center" paddingTop="3" verticalAlign="middle">
-						<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
-							<mx:CheckBox id="wmsPreferLowerQuality"
-											 selected="false"
-											 label="{lang('Prefer Lower Quality')}"
-											 labelPlacement="right" 
-											 toolTip="{'Check this box to download lower quality images from the WMS service. This option may be '
-											 	+ 'preferred when using the OpenStreetMap service.'}"/>
-							<mx:CheckBox id="wmsDisplayMissing"
-											 selected="true"
-											 label="{lang('Show Failed Downloads')}"
-											 labelPlacement="right" 
-											 toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
-											 	+ 'the plotter will fill missing images with lower quality images which cover the same area.'}"/>
-							<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
-								<mx:Label text="{lang('Service:')}"/>
-								<!-- for each provider's name, append '(SRS_CODE)' to the end -->
-								<ui:CustomComboBox editable="false" id="wmsLayerService"
-												 prompt="{lang('Select a service')}"
-												 dataProvider="{WMSProviders.providers}"
-												 width="200"
-												 toolTip="{lang('Select the WMS provider to use.')}" 
-												 creationComplete="{if(plotter is WMSPlotter){event.target.selectedItem  = (plotter as WMSPlotter).providerName;}}"
-												 change="handleWMSLayersServiceChange()"/>
-							</mx:HBox>
-						</mx:VBox>
-						<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
-							<mx:HBox width="100%" horizontalAlign="center">
-									<mx:Label text="{lang('Month:')}"/>
+					<!-- these are the controls that are shown when hitting the "Settings" button -->
+					<mx:ViewStack id="controlsStack" resizeToContent="true" 
+								  creationPolicy="all">
+						<s:NavigatorContent id="empty" width="0" height="0"/>
+						
+						<s:NavigatorContent id="wmsPlotterControls" width="100%"  >
+							<s:layout>
+								<s:VerticalLayout paddingTop="3"  verticalAlign="middle"  horizontalAlign="center"/>
+							</s:layout>
+							<s:BorderContainer borderStyle="solid" width="100%" >
+								<s:layout>
+									<s:HorizontalLayout  paddingTop="3" horizontalAlign="left"/>
+								</s:layout>
+								<mx:CheckBox id="wmsPreferLowerQuality"
+											selected="false"
+											label="{lang('Prefer Lower Quality')}"
+											labelPlacement="right" 
+											toolTip="{'Check this box to download lower quality images from the WMS service. This option may be '
+											+ 'preferred when using the OpenStreetMap service.'}"/>
+								<mx:CheckBox id="wmsDisplayMissing"
+											selected="true"
+											label="{lang('Show Failed Downloads')}"
+											labelPlacement="right" 
+											toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
+											+ 'the plotter will fill missing images with lower quality images which cover the same area.'}"/>
+								<s:HGroup width="100%" horizontalAlign="center" verticalAlign="middle">
+									<s:Label text="{lang('Service:')}"/>
+									<!-- for each provider's name, append '(SRS_CODE)' to the end -->
+									<ui:CustomComboBox editable="false" id="wmsLayerService"
+													   prompt="{lang('Select a service')}"
+													   dataProvider="{WMSProviders.providers}"
+													   width="200"
+													   toolTip="{lang('Select the WMS provider to use.')}" 
+													   creationComplete="{if(plotter is WMSPlotter){event.target.selectedItem  = (plotter as WMSPlotter).providerName;}}"
+													   change="handleWMSLayersServiceChange()"/>
+								</s:HGroup>
+							</s:BorderContainer>
+							<s:BorderContainer borderStyle="solid" width="100%" >
+								<s:layout>
+									<s:VerticalLayout paddingTop="3" horizontalAlign="center" verticalAlign="middle"/>
+								</s:layout>
+								<s:HGroup width="100%" horizontalAlign="center">
+									<s:Label text="{lang('Month:')}"/>
 									<ui:CustomComboBox enabled="{(wmsLayerService.selectedItem as String) == WMSProviders.NASA}" visible="{enabled == true}" editable="false" 
-													 dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
-													 change="handleStyleInputChange()" id="requestStyles" width="80" 
-													 toolTip="{lang('Enter the month of the NASA images.')}"/>
-							</mx:HBox>
-						</mx:VBox>
-					</mx:HBox>
-					
-					<mx:VBox id="labelPlotterControls" width="100%" >
-						<mx:VBox width="100%">
-							<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
-							<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
-						</mx:VBox>
-						<mx:HBox width="100%">
-							<mx:Label text="{lang('Label Text Size: ')}" fontWeight="bold"/>
-							<mx:HSlider id="labelSizeSlider"
-										width="100%"
-										alpha="1.0"
-										snapInterval="1"
-										tickInterval="2" labels="{['6','8','10','12','14','16','18','20']}"
-										minimum="6" maximum="20" 
-										liveDragging="true" mouseDown="event.stopPropagation()"/>
-						</mx:HBox>
-						<mx:HBox width="100%">
-							<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
-							<mx:ColorPicker id="colorPicker" width="22" height="22"/>
-						</mx:HBox>
-					</mx:VBox>
-					
-					<mx:VBox id="geometryPlotterControls" width="100%" paddingTop="3" horizontalAlign="center">
-						<mx:HBox  width="100%" horizontalAlign="center" verticalAlign="middle">												
-							<mx:VBox borderStyle="solid" verticalGap="0" 
-									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="fillEnabled" label="{lang('Enable Fill Color')}" fontWeight="bold"
-											 toolTip="{lang('Check this box to enable the color used inside each shape. \r This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities.')}"/>
-								
-								<mx:HBox verticalAlign="middle" >
-									<mx:VBox enabled="{fillEnabled.selected}" verticalGap="0">
-										<mx:Label text="{lang('alpha:')}"/>
-										<mx:NumericStepper 	id="fillAlpha" 
-															minimum="0" maximum="1" stepSize="0.1" 
-															value="0"
-															width="50"
-															toolTip="{lang('Set the alpha (0: transparent, 1: opaque) of the color inside each shape.')}"/>
-										
-									</mx:VBox>
+													   dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
+													   change="handleStyleInputChange()" id="requestStyles" width="80" 
+													   toolTip="{lang('Enter the month of the NASA images.')}"/>
+								</s:HGroup>
+							</s:BorderContainer>
+						</s:NavigatorContent>
+						
+						<s:NavigatorContent id="labelPlotterControls" width="100%" >
+							<s:layout>
+								<s:VerticalLayout />
+							</s:layout>
+							<s:VGroup width="100%">
+								<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
+								<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
+							</s:VGroup>
+							<s:HGroup width="100%">
+								<s:Label text="{lang('Label Text Size: ')}" fontWeight="bold"/>
+								<mx:HSlider id="labelSizeSlider"
+											width="100%"
+											alpha="1.0"
+											snapInterval="1"
+											tickInterval="2" labels="{['6','8','10','12','14','16','18','20']}"
+											minimum="6" maximum="20" 
+											liveDragging="true" mouseDown="event.stopPropagation()"/>
+							</s:HGroup>
+							<s:HGroup width="100%">
+								<s:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
+								<mx:ColorPicker id="colorPicker" width="22" height="22"/>
+							</s:HGroup>
+						</s:NavigatorContent>
+						
+						<s:NavigatorContent id="geometryPlotterControls" width="100%">
+							<s:layout>
+								<s:VerticalLayout  paddingTop="3" horizontalAlign="center"/>
+							</s:layout>
+							<s:HGroup  width="100%" horizontalAlign="center" verticalAlign="middle">												
+								<s:BorderContainer borderStyle="solid">
+									<s:layout>
+										<s:VerticalLayout gap="0"  paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1"/>
+									</s:layout>
+									<mx:CheckBox id="fillEnabled" label="{lang('Enable Fill Color')}" fontWeight="bold"
+												toolTip="{lang('Check this box to enable the color used inside each shape. \r This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities.')}"/>
 									
-								<mx:VBox enabled="{fillEnabled.selected}" verticalGap="0" horizontalAlign="center">
-										<mx:Label text="{lang('default color:')}"/>
-										<mx:HBox>
-											<mx:CheckBox id="enableDefaultColor" label="" 
-														 change="handleSolidFillColorCheck()"
-														 toolTip="{lang('Check this box to allow choosing a color that will be used either when there is missing data when data is mapped to the color, or as the color for all shapes when no data is mapped.  \rThis would typically be checked when a single color is desired for all shapes (no data mapped to color), or when the missing data is to be shown as a solid color rather than the default pattern.')}"/>
-											<mx:ColorPicker id="fillColor"
-															enabled="{enableDefaultColor.selected}"
-															change="handleFillColorSelected()"
-															selectedColor="0xFFFFFF"
-															toolTip="{lang('Set the color to fill in the shape when there is no data mapped to the shapes or when there is missing data when data is being mapped to the shapes.')}" />
-										</mx:HBox>
+									<s:HGroup verticalAlign="middle" >
+										<s:VGroup enabled="{fillEnabled.selected}" gap="0">
+											<s:Label text="{lang('alpha:')}"/>
+											<mx:NumericStepper 	id="fillAlpha" 
+																minimum="0" maximum="1" stepSize="0.1" 
+																value="0"
+																width="50"
+																toolTip="{lang('Set the alpha (0: transparent, 1: opaque) of the color inside each shape.')}"/>
+											
+										</s:VGroup>
 										
-									</mx:VBox>
-								</mx:HBox>
-							</mx:VBox>
-							
-							
-							
-							<mx:VBox borderStyle="solid" verticalGap="0" 
-									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="lineEnabled" label="{lang('Enable Borders')}" fontWeight="bold" 
-											 toolTip="Check this box to enable borders around each shape.  &#13;This would typically be unchecked to have a more subtle mesh of colors on a map, rather than distinguished by borders between areas."/>
+										<s:VGroup enabled="{fillEnabled.selected}" gap="0" horizontalAlign="center">
+											<s:Label text="{lang('default color:')}"/>
+											<s:HGroup>
+												<mx:CheckBox id="enableDefaultColor" label="" 
+															change="handleSolidFillColorCheck()"
+															toolTip="{lang('Check this box to allow choosing a color that will be used either when there is missing data when data is mapped to the color, or as the color for all shapes when no data is mapped.  \rThis would typically be checked when a single color is desired for all shapes (no data mapped to color), or when the missing data is to be shown as a solid color rather than the default pattern.')}"/>
+												<mx:ColorPicker id="fillColor"
+																enabled="{enableDefaultColor.selected}"
+																change="handleFillColorSelected()"
+																selectedColor="0xFFFFFF"
+																toolTip="{lang('Set the color to fill in the shape when there is no data mapped to the shapes or when there is missing data when data is being mapped to the shapes.')}" />
+											</s:HGroup>
+											
+										</s:VGroup>
+									</s:HGroup>
+								</s:BorderContainer>
 								
-								<mx:HBox verticalAlign="middle" >
-									<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
-										<mx:Label text="{lang('alpha:')}"/>
-										<mx:NumericStepper 	id="lineAlpha" 
-															minimum="0" maximum="1" stepSize="0.1"
-															width="50"
-															toolTip="{lang('Set the alpha (0: transparent, 1: opaque) of the borders around each shape.')}"/>
-									</mx:VBox>
+								
+								
+								<s:BorderContainer borderStyle="solid">
+									<s:layout>
+										<s:VerticalLayout   gap="0" paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1"/>
+									</s:layout>
 									
-									<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
-										<mx:Label text="{lang('weight:')}"/>
-										<mx:NumericStepper 	id="lineWeight" 
-															minimum="1" maximum="10"
-															width="50"
-															toolTip="{lang('Set the thickness of the borders around each shape.')}"/>
-									</mx:VBox>
-									<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
-										<mx:Label text="{lang('color:')}"/>
-										<mx:ColorPicker id="lineColor"
-														toolTip="{lang('Set the color used for the borders around each shape.')}" />
-									</mx:VBox>
-								</mx:HBox>
-							</mx:VBox>
+									<mx:CheckBox id="lineEnabled" label="{lang('Enable Borders')}" fontWeight="bold" 
+												toolTip="Check this box to enable borders around each shape.  &#13;This would typically be unchecked to have a more subtle mesh of colors on a map, rather than distinguished by borders between areas."/>
+									
+									<s:HGroup verticalAlign="middle" >
+										<s:VGroup enabled="{lineEnabled.selected}" gap="0">
+											<s:Label text="{lang('alpha:')}"/>
+											<mx:NumericStepper 	id="lineAlpha" 
+																minimum="0" maximum="1" stepSize="0.1"
+																width="50"
+																toolTip="{lang('Set the alpha (0: transparent, 1: opaque) of the borders around each shape.')}"/>
+										</s:VGroup>
+										
+										<s:VGroup enabled="{lineEnabled.selected}" gap="0">
+											<s:Label text="{lang('weight:')}"/>
+											<mx:NumericStepper 	id="lineWeight" 
+																minimum="1" maximum="10"
+																width="50"
+																toolTip="{lang('Set the thickness of the borders around each shape.')}"/>
+										</s:VGroup>
+										<s:VGroup enabled="{lineEnabled.selected}" gap="0">
+											<s:Label text="{lang('color:')}"/>
+											<mx:ColorPicker id="lineColor"
+															toolTip="{lang('Set the color used for the borders around each shape.')}" />
+										</s:VGroup>
+									</s:HGroup>
+								</s:BorderContainer>
+								
+								<s:BorderContainer borderStyle="solid" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
+										>
+									<s:layout>
+										<s:VerticalLayout   gap="0" paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" horizontalAlign="center"/>
+									</s:layout>
+									<s:Label text="{lang('Icon size:')}"/>
+									<mx:NumericStepper 	id="iconSize" 
+														toolTip="{lang('Set the default icon size when point-based geometries are used.')}"
+														minimum="0.2" maximum="60"
+														width="50"/>
+								</s:BorderContainer>
+								<s:BorderContainer borderStyle="solid" >
+									<s:layout>
+										<s:VerticalLayout   gap="0" paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" horizontalAlign="center"/>
+									</s:layout>
+									<mx:CheckBox id="useImagesCheck" label="{lang('Enable Images')}" click="handleGeomPlotterImageToggle()"/>
+									<s:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+									<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified size')}" enabled="{useImagesCheck.selected}" />
+								</s:BorderContainer>
+							</s:HGroup>
+							<s:HGroup>
+								<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore Subset')}" change="handleIgnoreSubsetCheck()"/>
+								<ui:HelpComponent>
+									Check this box to always display these geometries whether or not they are in the current subset.
+									Fill color will only be displayed on the geometries in the current subset.  Only the borders will be displayed for the rest.
+								</ui:HelpComponent>
+							</s:HGroup>
+						</s:NavigatorContent>
+					</mx:ViewStack>
+					
+					<fx:Script>
+						<![CDATA[
+							import mx.collections.ArrayCollection;
+							import mx.collections.ICollectionView;
+							import mx.events.CloseEvent;
+							import mx.rpc.mxml.Concurrency;
 							
-							<mx:VBox borderStyle="solid" horizontalAlign="center" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
-									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:Label text="{lang('Icon size:')}"/>
-								<mx:NumericStepper 	id="iconSize" 
-													toolTip="{lang('Set the default icon size when point-based geometries are used.')}"
-													minimum="0.2" maximum="60"
-													width="50"/>
-							</mx:VBox>
-							<mx:VBox borderStyle="solid" horizontalAlign="center" verticalGap="0"
-									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="useImagesCheck" label="{lang('Enable Images')}" click="handleGeomPlotterImageToggle()"/>
-								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
-								<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified size')}" enabled="{useImagesCheck.selected}" />
-							</mx:VBox>
-						</mx:HBox>
-						<mx:HBox>
-							<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore Subset')}" change="handleIgnoreSubsetCheck()"/>
-							<ui:HelpComponent>
-								Check this box to always display these geometries whether or not they are in the current subset.
-								Fill color will only be displayed on the geometries in the current subset.  Only the borders will be displayed for the rest.
-							</ui:HelpComponent>
-						</mx:HBox>
-					</mx:VBox>
-				</mx:ViewStack>
-				
-				<mx:Script>
-					<![CDATA[
-						import mx.collections.ArrayCollection;
-						import mx.collections.ICollectionView;
-						import mx.events.CloseEvent;
-						import mx.rpc.mxml.Concurrency;
-						
-						import weave.Weave;
-						import weave.api.core.ILinkableHashMap;
-						import weave.api.core.ILinkableObject;
-						import weave.api.data.ColumnMetadata;
-						import weave.api.getCallbackCollection;
-						import weave.api.linkBindableProperty;
-						import weave.api.ui.IPlotter;
-						import weave.api.unlinkBindableProperty;
-						import weave.compiler.StandardLib;
-						import weave.core.LinkableBoolean;
-						import weave.core.LinkableHashMap;
-						import weave.core.SessionManager;
-						import weave.data.AttributeColumns.AlwaysDefinedColumn;
-						import weave.data.AttributeColumns.GeometryColumn;
-						import weave.data.AttributeColumns.ReprojectedGeometryColumn;
-						import weave.primitives.Geometry;
-						import weave.services.wms.AbstractWMS;
-						import weave.services.wms.WMSProviders;
-						import weave.ui.AttributeSelectorPanel;
-						import weave.ui.CirclePlotterSettings;
-						import weave.ui.MarkerSettingsComponent;
-						import weave.ui.SessionStateEditor;
-						import weave.utils.ColumnUtils;
-						import weave.utils.EventUtils;
-						import weave.utils.NumberUtils;
-						import weave.visualization.layers.LayerSettings;
-						import weave.visualization.layers.PlotManager;
-						import weave.visualization.plotters.CirclePlotter;
-						import weave.visualization.plotters.GeometryLabelPlotter;
-						import weave.visualization.plotters.GeometryPlotter;
-						import weave.visualization.plotters.SingleImagePlotter;
-						import weave.visualization.plotters.WMSPlotter;
-						import weave.visualization.plotters.styles.SolidFillStyle;
-						import weave.visualization.plotters.styles.SolidLineStyle;
-						
-						private function get plotterName():String
-						{
-							return data as String;
-						}
-						private function get plotter():IPlotter
-						{
-							return outerDocument.visualization.plotManager.getPlotter(plotterName);
-						}
-						private function get layerSettings():LayerSettings
-						{
-							return outerDocument.visualization.plotManager.getLayerSettings(plotterName);
-						}
-						
-						private function handleStyleInputChange():void
-						{
-							var wmsp:WMSPlotter = plotter as WMSPlotter;
+							import weave.Weave;
+							import weave.api.core.ILinkableHashMap;
+							import weave.api.core.ILinkableObject;
+							import weave.api.data.ColumnMetadata;
+							import weave.api.getCallbackCollection;
+							import weave.api.linkBindableProperty;
+							import weave.api.ui.IPlotter;
+							import weave.api.unlinkBindableProperty;
+							import weave.compiler.StandardLib;
+							import weave.core.LinkableBoolean;
+							import weave.core.LinkableHashMap;
+							import weave.core.SessionManager;
+							import weave.data.AttributeColumns.AlwaysDefinedColumn;
+							import weave.data.AttributeColumns.GeometryColumn;
+							import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+							import weave.primitives.Geometry;
+							import weave.services.wms.AbstractWMS;
+							import weave.services.wms.WMSProviders;
+							import weave.ui.AttributeSelectorPanel;
+							import weave.ui.CirclePlotterSettings;
+							import weave.ui.MarkerSettingsComponent;
+							import weave.ui.SessionStateEditor;
+							import weave.utils.ColumnUtils;
+							import weave.utils.EventUtils;
+							import weave.utils.NumberUtils;
+							import weave.visualization.layers.LayerSettings;
+							import weave.visualization.layers.PlotManager;
+							import weave.visualization.plotters.CirclePlotter;
+							import weave.visualization.plotters.GeometryLabelPlotter;
+							import weave.visualization.plotters.GeometryPlotter;
+							import weave.visualization.plotters.SingleImagePlotter;
+							import weave.visualization.plotters.WMSPlotter;
+							import weave.visualization.plotters.styles.SolidFillStyle;
+							import weave.visualization.plotters.styles.SolidLineStyle;
 							
-							if (wmsp == null)
-								return;
+							private function get plotterName():String
+							{
+								return data as String;
+							}
+							private function get plotter():IPlotter
+							{
+								return outerDocument.visualization.plotManager.getPlotter(plotterName);
+							}
+							private function get layerSettings():LayerSettings
+							{
+								return outerDocument.visualization.plotManager.getLayerSettings(plotterName);
+							}
 							
-							if (requestStyles.selectedLabel == null || requestStyles.selectedLabel == '')
-								return;
+							private function handleStyleInputChange():void
+							{
+								var wmsp:WMSPlotter = plotter as WMSPlotter;
+								
+								if (wmsp == null)
+									return;
+								
+								if (requestStyles.selectedLabel == null || requestStyles.selectedLabel == '')
+									return;
+								
+								if (requestStyles.selectedLabel == 'Jan ')
+									requestStyles.selectedIndex = 1;
+								if (requestStyles.selectedLabel == 'Dec ')
+									requestStyles.selectedIndex = 12;
+								
+								requestStyles.text = requestStyles.text.replace(' ','');
+								
+								wmsp.styles.value = requestStyles.text;
+							}
 							
-							if (requestStyles.selectedLabel == 'Jan ')
-								requestStyles.selectedIndex = 1;
-							if (requestStyles.selectedLabel == 'Dec ')
-								requestStyles.selectedIndex = 12;
+							private function handleEditButtonClicked(button:Button, stack:ViewStack, layerName:String=null):void
+							{
+								if(!settingsButton.selected)
+									controlsStack.selectedChild = empty;
+								else
+								{
+									if (plotter is GeometryLabelPlotter)
+										controlsStack.selectedChild = labelPlotterControls;
+									if (plotter is GeometryPlotter)
+										controlsStack.selectedChild = geometryPlotterControls;
+									if (plotter is WMSPlotter)
+										controlsStack.selectedChild = wmsPlotterControls;
+									if (plotter is SingleImagePlotter)
+									{
+										settingsButton.selected = false;
+										
+										MarkerSettingsComponent.openInstance(plotter as SingleImagePlotter,layerName);
+									}
+									if (plotter is CirclePlotter)
+									{
+										settingsButton.selected = false;
+										
+										CirclePlotterSettings.openInstance(plotter as CirclePlotter,layerName);
+									}
+								} 
+							}
 							
-							requestStyles.text = requestStyles.text.replace(' ','');
-							
-							wmsp.styles.value = requestStyles.text;
-						}
-
-						private function handleEditButtonClicked(button:Button, stack:ViewStack, layerName:String=null):void
-						{
-							if(!settingsButton.selected)
-								controlsStack.selectedChild = empty;
-							else
+							private function handleLinkButtonCreated():void 
 							{
 								if (plotter is GeometryLabelPlotter)
-									controlsStack.selectedChild = labelPlotterControls;
+									layerName.toolTip = lang('Click here to set the label attribute') ;
 								if (plotter is GeometryPlotter)
-									controlsStack.selectedChild = geometryPlotterControls;
+									layerName.toolTip = lang('Click here to set the geometry') ;
 								if (plotter is WMSPlotter)
-									controlsStack.selectedChild = wmsPlotterControls;
-								if (plotter is SingleImagePlotter)
-								{
-									settingsButton.selected = false;
-
-									MarkerSettingsComponent.openInstance(plotter as SingleImagePlotter,layerName);
-								}
-								if (plotter is CirclePlotter)
-								{
-									settingsButton.selected = false;
-									
-									CirclePlotterSettings.openInstance(plotter as CirclePlotter,layerName);
-								}
-							} 
-						}
-						
-						private function handleLinkButtonCreated():void 
-						{
-							if (plotter is GeometryLabelPlotter)
-								layerName.toolTip = lang('Click here to set the label attribute') ;
-							if (plotter is GeometryPlotter)
-								layerName.toolTip = lang('Click here to set the geometry') ;
-							if (plotter is WMSPlotter)
-								layerName.toolTip = lang('Click here to set the WMS service') ;
-						}
-						
-						private function handleSolidFillColorCheck():void
-						{
-							// copy gui values to session state
-							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-							var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
-							if (enableDefaultColor.selected)
+									layerName.toolTip = lang('Click here to set the WMS service') ;
+							}
+							
+							private function handleSolidFillColorCheck():void
 							{
+								// copy gui values to session state
+								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+								var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
+								if (enableDefaultColor.selected)
+								{
+									geomPlotter.fill.color.defaultValue.value = fillColor.selectedColor;
+								}
+								else
+								{
+									geomPlotter.fill.color.defaultValue.value = NaN;
+								}
+							}
+							private function handleFillColorSelected():void
+							{
+								// copy gui values to session state
+								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								geomPlotter.fill.color.defaultValue.value = fillColor.selectedColor;
 							}
-							else
-							{
-								geomPlotter.fill.color.defaultValue.value = NaN;
-							}
-						}
-						private function handleFillColorSelected():void
-						{
-							// copy gui values to session state
-							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-							geomPlotter.fill.color.defaultValue.value = fillColor.selectedColor;
-						}
-						
-						private function handleFillColorSessionStateChange():void
-						{
-							// copy session state values to gui
-							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-							var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
-							if (isNaN(defaultColor))
-							{
-								enableDefaultColor.selected = false;
-							}
-							else
-							{
-								enableDefaultColor.selected = true;
-								fillColor.selectedColor = defaultColor;
-							}
-						}
-						
-						private function linkGeometryProperties(callLaterData:Object):void
-						{
-							if (data != callLaterData)
-								return;
-								
-							settingsButton.visible = false;
 							
-							if (plotter is GeometryLabelPlotter)
+							private function handleFillColorSessionStateChange():void
 							{
-								settingsButton.visible = true;
-								var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
-								linkBindableProperty(labelPlotter.size.defaultValue, labelSizeSlider, "value" );
-								linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor" );
-								labelComponent.dynamicObject = labelPlotter.text;
-								geometryComponent.dynamicObject = labelPlotter.geometryColumn.internalDynamicColumn;
-							}
-							else if (plotter is GeometryPlotter)
-							{
-								settingsButton.visible = true;
+								// copy session state values to gui
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+								var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
+								if (isNaN(defaultColor))
+								{
+									enableDefaultColor.selected = false;
+								}
+								else
+								{
+									enableDefaultColor.selected = true;
+									fillColor.selectedColor = defaultColor;
+								}
+							}
+							
+							private function linkGeometryProperties(callLaterData:Object):void
+							{
+								if (data != callLaterData)
+									return;
 								
-								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
-								getCallbackCollection(geomPlotter.filteredKeySet).addImmediateCallback(null, handleSubsetChange, true);
-								linkBindableProperty(geomPlotter.iconSize, iconSize, "value");
-								linkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
+								settingsButton.visible = false;
 								
-								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
-								linkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
-								geomPlotter.fill.color.defaultValue.addImmediateCallback(outerDocument, handleFillColorSessionStateChange, true);
+								if (plotter is GeometryLabelPlotter)
+								{
+									settingsButton.visible = true;
+									var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
+									linkBindableProperty(labelPlotter.size.defaultValue, labelSizeSlider, "value" );
+									linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor" );
+									labelComponent.dynamicObject = labelPlotter.text;
+									geometryComponent.dynamicObject = labelPlotter.geometryColumn.internalDynamicColumn;
+								}
+								else if (plotter is GeometryPlotter)
+								{
+									settingsButton.visible = true;
+									var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 									
-								linkBindableProperty(geomPlotter.line.enabled.defaultValue, lineEnabled, "selected");
-								linkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");
-								linkBindableProperty(geomPlotter.line.alpha.defaultValue, lineAlpha, "value");
-								linkBindableProperty(geomPlotter.line.weight.defaultValue, lineWeight, "value");
-							}
-							else if(plotter is WMSPlotter)
-							{
-								settingsButton.visible = true;
-								var wmsPlotter:WMSPlotter = plotter as WMSPlotter;
-								
-								linkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
-								linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
-							}
-							else if (plotter is SingleImagePlotter)
-							{
-								settingsButton.visible = true;
-							}
-							else if (plotter is CirclePlotter)
-							{
-								settingsButton.visible = true;
-							}
-						}
-						
-						private function handleWMSLayersServiceChange():void
-						{
-							(plotter as WMSPlotter).setProvider(wmsLayerService.selectedItem as String);
-						}
-						
-						private function unlinkGeometryProperties():void
-						{
-							if (!data)
-								return;
-								
-							if (plotter is GeometryLabelPlotter)
-							{
-								var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
-								unlinkBindableProperty(labelPlotter.size.defaultValue, labelSizeSlider, "value" );
-								unlinkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor" );
-								labelComponent.dynamicObject = null;
-								geometryComponent.dynamicObject = null;
-							}
-							else if (plotter is GeometryPlotter)
-							{
-								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-								
-								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
-								getCallbackCollection(geomPlotter.filteredKeySet).removeCallback(handleSubsetChange);
-								unlinkBindableProperty(geomPlotter.iconSize, iconSize, "value");
-								unlinkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
+									geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
+									getCallbackCollection(geomPlotter.filteredKeySet).addImmediateCallback(null, handleSubsetChange, true);
+									linkBindableProperty(geomPlotter.iconSize, iconSize, "value");
+									linkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 									
-								unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
-								unlinkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
-								unlinkBindableProperty(geomPlotter.fill.color.defaultValue, fillColor, "selectedColor");
-								geomPlotter.fill.color.defaultValue.removeCallback(handleFillColorSessionStateChange);
-								
-								unlinkBindableProperty(geomPlotter.line.enabled.defaultValue, lineEnabled, "selected");
-								unlinkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");
-								unlinkBindableProperty(geomPlotter.line.alpha.defaultValue, lineAlpha, "value");
-								unlinkBindableProperty(geomPlotter.line.weight.defaultValue, lineWeight, "value");
+									linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
+									linkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
+									geomPlotter.fill.color.defaultValue.addImmediateCallback(outerDocument, handleFillColorSessionStateChange, true);
+									
+									linkBindableProperty(geomPlotter.line.enabled.defaultValue, lineEnabled, "selected");
+									linkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");
+									linkBindableProperty(geomPlotter.line.alpha.defaultValue, lineAlpha, "value");
+									linkBindableProperty(geomPlotter.line.weight.defaultValue, lineWeight, "value");
+								}
+								else if(plotter is WMSPlotter)
+								{
+									settingsButton.visible = true;
+									var wmsPlotter:WMSPlotter = plotter as WMSPlotter;
+									
+									linkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
+									linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
+								}
+								else if (plotter is SingleImagePlotter)
+								{
+									settingsButton.visible = true;
+								}
+								else if (plotter is CirclePlotter)
+								{
+									settingsButton.visible = true;
+								}
 							}
-							else if (plotter is WMSPlotter)
+							
+							private function handleWMSLayersServiceChange():void
 							{
-								var wmsPlotter:WMSPlotter = plotter as WMSPlotter;
-								
-								unlinkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
-								unlinkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
+								(plotter as WMSPlotter).setProvider(wmsLayerService.selectedItem as String);
 							}
-						}
-						
-						private function updateLabel():void
-						{
-							_label = '';
 							
-							if (!plotter)
-								return;
-							
-							if (plotter is GeometryPlotter)
-								_label = ColumnUtils.getTitle((plotter as GeometryPlotter).geometryColumn);
-							else if (plotter is WMSPlotter)
+							private function unlinkGeometryProperties():void
 							{
-								_label = (plotter as WMSPlotter).providerName;
-								wmsLayerService.selectedItem  = (plotter as WMSPlotter).providerName;
+								if (!data)
+									return;
+								
+								if (plotter is GeometryLabelPlotter)
+								{
+									var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
+									unlinkBindableProperty(labelPlotter.size.defaultValue, labelSizeSlider, "value" );
+									unlinkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor" );
+									labelComponent.dynamicObject = null;
+									geometryComponent.dynamicObject = null;
+								}
+								else if (plotter is GeometryPlotter)
+								{
+									var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+									
+									geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
+									getCallbackCollection(geomPlotter.filteredKeySet).removeCallback(handleSubsetChange);
+									unlinkBindableProperty(geomPlotter.iconSize, iconSize, "value");
+									unlinkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
+									
+									unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
+									unlinkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
+									unlinkBindableProperty(geomPlotter.fill.color.defaultValue, fillColor, "selectedColor");
+									geomPlotter.fill.color.defaultValue.removeCallback(handleFillColorSessionStateChange);
+									
+									unlinkBindableProperty(geomPlotter.line.enabled.defaultValue, lineEnabled, "selected");
+									unlinkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");
+									unlinkBindableProperty(geomPlotter.line.alpha.defaultValue, lineAlpha, "value");
+									unlinkBindableProperty(geomPlotter.line.weight.defaultValue, lineWeight, "value");
+								}
+								else if (plotter is WMSPlotter)
+								{
+									var wmsPlotter:WMSPlotter = plotter as WMSPlotter;
+									
+									unlinkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
+									unlinkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
+								}
 							}
-							else
-								_label = plotterName;
 							
-							var projLabel:String = '';
-							var projString:String;
-							if (plotter is GeometryPlotter)
+							private function updateLabel():void
 							{
-								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+								_label = '';
 								
-								// get the source projection to be used in the label
-								projString = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
-								if (projString != null)
-									projLabel = ' (' + projString + ')';
+								if (!plotter)
+									return;
 								
-								useImagesCheck.selected = (geomPlotter.pointDataImageColumn.getInternalColumn() != null);
-								var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
+								if (plotter is GeometryPlotter)
+									_label = ColumnUtils.getTitle((plotter as GeometryPlotter).geometryColumn);
+								else if (plotter is WMSPlotter)
+								{
+									_label = (plotter as WMSPlotter).providerName;
+									wmsLayerService.selectedItem  = (plotter as WMSPlotter).providerName;
+								}
+								else
+									_label = plotterName;
+								
+								var projLabel:String = '';
+								var projString:String;
+								if (plotter is GeometryPlotter)
+								{
+									var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+									
+									// get the source projection to be used in the label
+									projString = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
+									if (projString != null)
+										projLabel = ' (' + projString + ')';
+									
+									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.getInternalColumn() != null);
+									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
+									if (adc)
+										imageURL.text = adc.defaultValue.value as String;
+								}
+								else if (plotter is WMSPlotter)
+								{
+									projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).providerName) + ')'; 
+								}
+								_label += projLabel;
+							}
+							
+							[Bindable] private var _label:String = "";
+							[Bindable] public var layerIsVisible:Boolean = true;
+							[Bindable] public var layerIsSelectable:Boolean = true;
+							override public function set data(value:Object):void
+							{
+								if (value == data)
+								{
+									updateLabel();
+									return;
+								}
+								
+								// unlink button label from old layer
+								if (data is ILinkableObject)
+								{
+									getCallbackCollection(plotter).removeCallback(updateLabel);
+								}
+								// unlink checkbox from old layer
+								if (layerSettings)
+								{
+									unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+									unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+								}
+								// unlink the edit controls
+								unlinkGeometryProperties();
+								
+								// this becomes an issue when dragging layers -- when it starts to drag it tries to set data on an item in the
+								// list that has just been removed, so we check if the controlsStack is null before we try to set properties inside
+								// it that are also null
+								if (!controlsStack)
+									value = null;
+								else
+									controlsStack.selectedChild = empty;
+								
+								settingsButton.selected = false;
+								
+								// save pointer to new layer
+								super.data = value;
+								
+								updateLabel();
+								
+								// link button label to new layer
+								if (data is ILinkableObject)
+								{
+									getCallbackCollection(data as ILinkableObject).addGroupedCallback(this, updateLabel);
+								}
+								// link checkbox to new layer
+								if (layerSettings)
+								{
+									linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+									linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+									//selectableCheckbox.visible = true;
+								}
+								
+								// link the edit controls	
+								callLater(linkGeometryProperties, [data]);
+							}
+							
+							private function editLayer(event:MouseEvent = null):void
+							{
+								if (plotter is GeometryPlotter)
+								{
+									AttributeSelectorPanel.openDefaultSelector((plotter as GeometryPlotter).geometryColumn, "Geometry");
+								}
+								else if (plotter is WMSPlotter)
+								{
+									SessionStateEditor.openDefaultEditor(plotter);
+								}
+								else if (plotter is SingleImagePlotter || plotter is CirclePlotter)
+								{
+									return;
+								}
+								else
+								{
+									SessionStateEditor.openDefaultEditor(plotter);
+								}
+							}
+							
+							private function removeLayer(event:MouseEvent):void
+							{
+								var hashMap:ILinkableHashMap = outerDocument.visualization.plotManager.plotters;
+								hashMap.removeObject(plotterName);
+								
+								unlinkGeometryProperties();
+							}
+							
+							private function handleGeomPlotterImageToggle():void
+							{
+								var plotter:GeometryPlotter = plotter as GeometryPlotter;
+								if (!useImagesCheck.selected)
+									plotter.pointDataImageColumn.removeObject();
+								else
+									handleGeomPlotterImageInput();
+							}
+							private function handleGeomPlotterImageInput():void
+							{
+								var url:String = imageURL.text;
+								var gp:GeometryPlotter = plotter as GeometryPlotter;
+								var adc:AlwaysDefinedColumn = gp.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
+								adc.defaultValue.value = url;
+							}
+							private function handleGeomPlotterImageURLChange():void
+							{
+								var gp:GeometryPlotter = plotter as GeometryPlotter;
+								var adc:AlwaysDefinedColumn = gp.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 								if (adc)
 									imageURL.text = adc.defaultValue.value as String;
 							}
-							else if (plotter is WMSPlotter)
+							private function handleIgnoreSubsetCheck():void
 							{
-								projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).providerName) + ')'; 
+								if (ignoreSubsetCheck.selected)
+								{
+									plotter.filteredKeySet.keyFilter.removeObject();
+								}
+								else
+								{
+									plotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+								}
 							}
-							_label += projLabel;
-						}
-						
-						[Bindable] private var _label:String = "";
-						[Bindable] public var layerIsVisible:Boolean = true;
-						[Bindable] public var layerIsSelectable:Boolean = true;
-						override public function set data(value:Object):void
-						{
-							if (value == data)
+							private function handleSubsetChange():void
 							{
-								updateLabel();
-								return;
+								ignoreSubsetCheck.selected = plotter.filteredKeySet.keyFilter.globalName ? false : true;
 							}
-							
-							// unlink button label from old layer
-							if (data is ILinkableObject)
-							{
-								getCallbackCollection(plotter).removeCallback(updateLabel);
-							}
-							// unlink checkbox from old layer
-							if (layerSettings)
-							{
-								unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
-								unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
-							}
-							// unlink the edit controls
-							unlinkGeometryProperties();
-
-							// this becomes an issue when dragging layers -- when it starts to drag it tries to set data on an item in the
-							// list that has just been removed, so we check if the controlsStack is null before we try to set properties inside
-							// it that are also null
-							if (!controlsStack)
-								value = null;
-							else
-								controlsStack.selectedChild = empty;
-							
-							settingsButton.selected = false;
-
-							// save pointer to new layer
-							super.data = value;
-							
-							updateLabel();
-							
-							// link button label to new layer
-							if (data is ILinkableObject)
-							{
-								getCallbackCollection(data as ILinkableObject).addGroupedCallback(this, updateLabel);
-							}
-							// link checkbox to new layer
-							if (layerSettings)
-							{
-								linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
-								linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
-								//selectableCheckbox.visible = true;
-							}
-							
-							// link the edit controls	
-							callLater(linkGeometryProperties, [data]);
-						}
-
-						private function editLayer(event:MouseEvent = null):void
-						{
-							if (plotter is GeometryPlotter)
-							{
-								AttributeSelectorPanel.openDefaultSelector((plotter as GeometryPlotter).geometryColumn, "Geometry");
-							}
-							else if (plotter is WMSPlotter)
-							{
-								SessionStateEditor.openDefaultEditor(plotter);
-							}
-							else if (plotter is SingleImagePlotter || plotter is CirclePlotter)
-							{
-								return;
-							}
-							else
-							{
-								SessionStateEditor.openDefaultEditor(plotter);
-							}
-						}
-						
-						private function removeLayer(event:MouseEvent):void
-						{
-							var hashMap:ILinkableHashMap = outerDocument.visualization.plotManager.plotters;
-							hashMap.removeObject(plotterName);
-							
-							unlinkGeometryProperties();
-						}
-						
-						private function handleGeomPlotterImageToggle():void
-						{
-							var plotter:GeometryPlotter = plotter as GeometryPlotter;
-							if (!useImagesCheck.selected)
-								plotter.pointDataImageColumn.removeObject();
-							else
-								handleGeomPlotterImageInput();
-						}
-						private function handleGeomPlotterImageInput():void
-						{
-							var url:String = imageURL.text;
-							var gp:GeometryPlotter = plotter as GeometryPlotter;
-							var adc:AlwaysDefinedColumn = gp.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
-							adc.defaultValue.value = url;
-						}
-						private function handleGeomPlotterImageURLChange():void
-						{
-							var gp:GeometryPlotter = plotter as GeometryPlotter;
-							var adc:AlwaysDefinedColumn = gp.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
-							if (adc)
-								imageURL.text = adc.defaultValue.value as String;
-						}
-						private function handleIgnoreSubsetCheck():void
-						{
-							if (ignoreSubsetCheck.selected)
-							{
-								plotter.filteredKeySet.keyFilter.removeObject();
-							}
-							else
-							{
-								plotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-							}
-						}
-						private function handleSubsetChange():void
-						{
-							ignoreSubsetCheck.selected = plotter.filteredKeySet.keyFilter.globalName ? false : true;
-						}
-					]]>
-				</mx:Script>
-			</mx:VBox>
-		</mx:Component>
+						]]>
+					</fx:Script>
+				</s:BorderContainer>
+				
+			</s:MXItemRenderer> 
+		</fx:Component>  
 	</mx:itemRenderer>	
 </mx:List>

@@ -1,54 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox 
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+<s:VGroup 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.editors.*"
-	verticalScrollPolicy="off"
-	horizontalScrollPolicy="off"
 	implements="weave.api.ui.ILinkableObjectEditor"
-	creationPolicy="all" xmlns:ui="weave.ui.*"
+	xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_wfsDataSource ? 'Edit' : 'Add') + ' WFS Data Source')}"/>
+	<s:Label id="editorTitle" fontWeight="bold" text="{lang((_wfsDataSource ? 'Edit' : 'Add') + ' WFS Data Source')}"/>
 	<ui:Indent label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" width="100%"/>
+		<s:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
+		<s:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
 	</ui:Indent>
-	<mx:CheckBox label="Swap X and Y coordinate order" id="swapXY"/>
-	<mx:Spacer height="20"/>
-	<mx:Label text="{lang('* = required')}"/>
-	<mx:Script>
+	<s:CheckBox label="Swap X and Y coordinate order" id="swapXY"/>
+	<s:Spacer height="20"/>
+	<s:Label text="{lang('* = required')}"/>
+	<fx:Script>	
 		<![CDATA[
 			import mx.controls.Alert;
-			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.WFSDataSource;
 			
 			override protected function createChildren():void
 			{
-				super.createChildren();
-				
+				super.createChildren();				
 				sourceName.text = Weave.root.generateUniqueName("WFSDataSource");
 			}
 			
@@ -87,5 +85,5 @@
 			}
 			
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:VGroup>

@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!--- 
@@ -26,23 +26,27 @@
 -->
 
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-		 xmlns:userControls="weave.ui.userControls.*"
-		 layout="absolute">
-	<mx:Script>
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:ui="weave.ui.*" 
+			   xmlns:userControls="weave.ui.userControls.*"
+			   layout="{new BasicLayout()}">
+	<fx:Script>
 		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IKeySet;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.api.graphs.IGraphAlgorithm;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
-			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.graphs.IGraphAlgorithm;
+			import weave.api.primitives.IBounds2D;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -50,7 +54,7 @@
 			import weave.primitives.Bounds2D;
 			import weave.visualization.plotters.GraphLabelPlotter;
 			import weave.visualization.plotters.GraphPlotter;
-
+			
 			WeaveAPI.registerImplementation(IVisTool, GraphTool, lang("Graph Tool"));
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
@@ -68,7 +72,7 @@
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				visualization.enableSelection.value = false;
-
+				
 				_plotter.nodesColumn.addImmediateCallback(this, updateProbeColumns);
 				_plotter.algorithmRunning.addGroupedCallback(this, handleAlgorithmRunning, false);
 				
@@ -105,15 +109,15 @@
 				linkBindableProperty(_plotter.edgeStyle, edgeStyleChoice, 'selectedItem');
 
 				this.contextMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
-//				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
-//				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
-//				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
-							
+				//				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
+				//				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
+				//				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);
+				
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 			}
-
+			
 			/***********************************************************
 			 * the event listeners for MouseEvents                     *
 			 ***********************************************************/
@@ -125,7 +129,7 @@
 			{
 				if (!_isDragging)
 					return;
-
+				
 				var screenPoint:Point = projectGlobalToScreen(event.stageX, event.stageY);
 				var dataPoint:Point = projectScreenPointToData(screenPoint);
 				var dx:Number = dataPoint.x - _dragSourcePoint.x;
@@ -142,7 +146,7 @@
 				visualization.enableSelection.value = ctrlKey || shiftKey;
 				if (ctrlKey || shiftKey)
 					return;	
-
+				
 				var probedKey:IQualifiedKey = visualization.lastProbedKey;
 				if (!probedKey)
 					return;
@@ -161,7 +165,7 @@
 				_probedKey = probedKey;
 				_isDragging = true;
 				
-//				_plotter.setDraggableLayerKeys(_probedKeys);
+				//				_plotter.setDraggableLayerKeys(_probedKeys);
 			}
 			private function handleMouseUp(event:MouseEvent):void
 			{
@@ -209,7 +213,7 @@
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
-//			public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleShowLabels);
+			//			public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(), handleShowLabels);
 			private function updateProbeColumns():void
 			{
 				if (!_plotter)
@@ -224,7 +228,7 @@
 				else 
 					visualization.additionalProbeColumns = null;
 			}
-
+			
 			public function get colorColumn():DynamicColumn
 			{
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
@@ -248,30 +252,30 @@
 				_plotter.shouldStop.value = false;
 				_plotter.recomputePositions();
 			}
-//			private function handleStopComputation(event:ContextMenuEvent = null):void
-//			{
-//				if (!algorithmRunning)
-//					return;
-//				
-//				shouldStop = true;
-//				algorithmRunning = false;
-//				_plotter.algorithmRunning.value = false;
-//				_plotter.shouldStop.value = true;
-//			}
-//			private function handleContinueComputation():void
-//			{
-//				algorithmRunning = true;
-//				shouldStop = false;
-//				_plotter.algorithmRunning.value = true;
-//				_plotter.shouldStop.value = false;
-//				_plotter.continueComputation(null);
-//			}
+			//			private function handleStopComputation(event:ContextMenuEvent = null):void
+			//			{
+			//				if (!algorithmRunning)
+			//					return;
+			//				
+			//				shouldStop = true;
+			//				algorithmRunning = false;
+			//				_plotter.algorithmRunning.value = false;
+			//				_plotter.shouldStop.value = true;
+			//			}
+			//			private function handleContinueComputation():void
+			//			{
+			//				algorithmRunning = true;
+			//				shouldStop = false;
+			//				_plotter.algorithmRunning.value = true;
+			//				_plotter.shouldStop.value = false;
+			//				_plotter.continueComputation(null);
+			//			}
 			private function handleAlgorithmRunning():void
 			{
 				algorithmRunning = _plotter.algorithmRunning.value;
 				shouldStop = !algorithmRunning;					
 			}
-
+			
 			
 			
 			/********************************************
@@ -308,30 +312,73 @@
 				screenBounds.projectCoordsTo(b, dataBounds);
 				return _tempBounds;
 			}
-
+			
 			private const _screenBounds:IBounds2D = new Bounds2D();
 			private const _dataBounds:IBounds2D = new Bounds2D();
 			private const _tempBounds:IBounds2D = new Bounds2D();
 			private const _tempPoint:Point = new Point();
 			
-//			private function handleShowLabels():void
-//			{
-//				setSessionState(_labelPlotter.labelColumn, labelColumn);
-//				setSessionState(_labelPlotter.nodesColumn, nodesColumn);
-//				setSessionState(_labelPlotter.colorColumn, colorColumn);
-//				setSessionState(_labelPlotter.radius, _plotter.radius);
-//				_labelPlotter.setBaseKeySource(_plotter.keySet);
-//				var newNameOrder:Array = [visualization.layers.getName(_plotter)];
-//				if (showLabels.value)
-//					newNameOrder.unshift(visualization.layers.getName(_labelPlotter));
-//				visualization.layers.setNameOrder(newNameOrder);				
-//			}
+			//			private function handleShowLabels():void
+			//			{
+			//				setSessionState(_labelPlotter.labelColumn, labelColumn);
+			//				setSessionState(_labelPlotter.nodesColumn, nodesColumn);
+			//				setSessionState(_labelPlotter.colorColumn, colorColumn);
+			//				setSessionState(_labelPlotter.radius, _plotter.radius);
+			//				_labelPlotter.setBaseKeySource(_plotter.keySet);
+			//				var newNameOrder:Array = [visualization.layers.getName(_plotter)];
+			//				if (showLabels.value)
+			//					newNameOrder.unshift(visualization.layers.getName(_labelPlotter));
+			//				visualization.layers.setNameOrder(newNameOrder);				
+			//			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
+		<s:NavigatorContent id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<!--<s:CheckBox label="('Show Labels:" id="chkShowLabels"
+			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
+			<!--<s:HGroup width="100%" 
+			borderStyle="inset" 
+			backgroundColor="0xFFFFFF" 
+			backgroundAlpha="0.7">
+			<s:Label text="Point Opacity:" 
+			color="0x000000" fontSize="12" 
+			toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+			
+			<mx:HSlider id="alphaSlider"
+			width="100%"
+			alpha="1.0"
+			snapInterval="0.1"
+			tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
+			dataTipFormatFunction="alphaSliderFormatFunction"
+			minimum="0.1" maximum="1.0" value="1.0"
+			liveDragging="true"
+			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
+			</s:HGroup>-->
+			<s:HGroup>
+				<s:Label text="{lang('Radius Size:')}"
+						 color="0x0" fontSize="12"
+						 toolTip="{lang('Use this option to control the size of the each node in the graph.')}"/>
+				<mx:NumericStepper id="numRadiusSize" minimum="1"
+								   creationComplete="linkBindableProperty(_plotter.radius, event.target, 'value')"/>
+			</s:HGroup>
+			<s:HGroup>
+				<s:Label text="{lang('Curved Lines:')}"
+						 color="0x0" fontSize="12"
+						 toolTip="{lang('Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes.')}"/>
+				<s:CheckBox id="drawCurvedLines"
+							creationComplete="linkBindableProperty(_plotter.drawCurvedLines, event.target, 'selected')"/>
+			</s:HGroup>
+		</s:NavigatorContent>
+		
+		<s:NavigatorContent id="attributesPanel" label="{lang('Attributes for Graph')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>			
 			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Node Color')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="nodeRadiusComponent" label="{lang('Node Size')}"/>
@@ -340,53 +387,18 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="{lang('Edge Colors')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
-		</mx:VBox>
-		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-			<!--<mx:CheckBox label="('Show Labels:" id="chkShowLabels"
-			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
-			<!--<mx:HBox width="100%" 
-					 borderStyle="inset">
-				<mx:Label text="Point Opacity:" 
-						  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
-				
-				<mx:HSlider id="alphaSlider"
-							width="100%"
-							alpha="1.0"
-							snapInterval="0.1"
-							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
-							minimum="0.1" maximum="1.0" value="1.0"
-							liveDragging="true"
-			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
-			</mx:HBox>-->
-			<mx:HBox>
-				<mx:Label text="{lang('Radius Size')}"
-						  toolTip="{lang('Use this option to control the default size of the each node in the graph.')}"/>
-				<mx:NumericStepper id="numRadiusSize" minimum="1"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="{lang('Curved Lines')}"
-						  toolTip="{lang('Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes.')}"/>
-				<mx:CheckBox id="drawCurvedLines"/>
-			</mx:HBox>
-			<mx:CheckBox id="undirectedCheckBox" label="{lang('Undirected edges.')}" 
-				toolTip="{lang('Use this option if you want your graph data to be assumed as undirected.')}"/>
-			<mx:HBox>
-				<mx:Label text="{lang('Edge Style:')}"
-					toolTip="{lang('Use this option to specify which edge style (arrowheads, gradients, or wedges) to use to indicate edge directions.')}"/>
-				<mx:ComboBox id="edgeStyleChoice" dataProvider="{_plotter.edgeStyles}"/>
-			</mx:HBox>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"/>
-			<mx:HBox>
-				<mx:Label text="{lang('Layout Algorithm')}"/>
-				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"/>
-			</mx:HBox>
-			<mx:VBox>
-				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="{lang('Recalculate Node Positions')}" click="handleStartComputation()"/> 
-			</mx:VBox>
-		</mx:VBox>
-		
-		
+			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
+						creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
+			<s:HGroup>
+				<s:Label text="{lang('Algorithm')}"/>
+				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
+							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm, event.target, 'selectedItem')"/>
+			</s:HGroup>
+			<s:VGroup>
+				<s:Button id="recomputePositions" enabled="{!algorithmRunning}" label="{lang('Recalculate Node Positions')}" click="handleStartComputation()"/> 
+			</s:VGroup>
+		</s:NavigatorContent>
+>>>>>>> halo to spark components changes - still testing going on
 	</ui:ControlPanel>
 </SimpleVisTool>

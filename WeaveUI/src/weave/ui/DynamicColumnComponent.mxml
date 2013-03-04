@@ -24,12 +24,17 @@
 @author skolman
 @author adufilie
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 xmlns="weave.ui.*"
-		 width="100%" height="30" creationPolicy="all"
-		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
-		 horizontalGap="4">
-	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
+		 width="100%" height="30" 
+		 implements="weave.api.core.ILinkableObject" creationPolicy="all"
+		 >
+	<s:layout>
+		<s:HorizontalLayout gap="4"  verticalAlign="middle" />
+	</s:layout>
+	<s:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
 	<LinkableObjectList id="internalList" 
 						variableRowHeight="false"
 			 			dynamicObject="{_dynamicObject}"
@@ -56,25 +61,27 @@
 					backgroundColor="0xCCCCCC" headerHeight="20"
 					horizontalAlign="right" borderStyle="outset" backgroundAlpha="1"
 					close="toggleLinkDropDown();">
-		<mx:HBox horizontalGap="{linkControlsPadding}">
+		<s:HGroup gap="{linkControlsPadding}">
 			<HelpComponent>You can link two or more attributes together so that changing one will change the rest.  Click on the name of an existing linked group or type the name of a new one.</HelpComponent>
 			<TextInputWithPrompt id="linkName" prompt="{lang('Enter a new group name')}"
 								 enter="linkTo(StringUtil.trim(linkName.text));"/>
-			<mx:Button label="{lang('Link')}" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
-			<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkTo(null);"/>
-		</mx:HBox>
-		<mx:List id="linkList" width="100%"
+			<s:Button label="{lang('Link')}" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
+			<s:Button id="unlinkButton" label="{lang('Unlink')}" click="linkTo(null);"/>
+		</s:HGroup>
+		<s:List id="linkList" width="100%"
 				 change="if (linkDropDown.parent) linkTo(linkList.selectedItem as String);"/>
 	</mx:TitleWindow>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.IVisualElementContainer;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
+			import weave.api.getCallbackCollection;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.getCallbackCollection;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			
@@ -91,7 +98,11 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				linkDropDown.parent.removeChild(linkDropDown);
+				// sanjay - for navigator content parent returning null
+				if(linkDropDown.parent)
+					(linkDropDown.parent as IVisualElementContainer).removeElement(linkDropDown);
+				else if(linkDropDown.parentDocument)
+					(linkDropDown.parentDocument as IVisualElementContainer).removeElement(linkDropDown);
 			}
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
@@ -175,7 +186,7 @@
 					linkDropDown.x = localPoint.x - linkDropDown.width;
 					linkDropDown.y = localPoint.y;
 					
-					linkList.dataProvider = Weave.root.getNames(IAttributeColumn);
+					linkList.dataProvider = new ArrayCollection(Weave.root.getNames(IAttributeColumn));
 					linkList.selectedItem = globalName;
 					linkName.text = globalName;
 					linkName.setFocus();
@@ -193,5 +204,5 @@
 				toggleLinkDropDown();
 			}
 		]]>
-	</mx:Script>
-</mx:HBox>
+	</fx:Script>
+</s:NavigatorContent>

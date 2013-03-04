@@ -1,44 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
-			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
-			   layout="absolute"
+			   layout="{new BasicLayout()}"
 			   mouseMove="handleMouseMove(event)"
 			   mouseDown="handleMouseDown(event)"
 			   mouseUp="handleMouseUp(event)">
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import spark.core.SpriteVisualElement;
+			import spark.layouts.BasicLayout;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IKeySet;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.primitives.Bounds2D;
@@ -106,7 +109,7 @@
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
 				
-				//visualization.rawChildren.addChild(probeSprite);
+				//visualization.rawChildren.addElement(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
 				sprCont.addChild(probeSprite)
 				visualization.addElement(sprCont);
@@ -213,15 +216,24 @@
 				return lang("Compound RadViz of {0}", columns.join(lang(', ')));
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
+	<fx:Declarations>
+		<s:RadioButtonGroup id="normalizationType"/>
+	</fx:Declarations>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes')}">
+		<s:NavigatorContent id="attributesPanel" label="{lang('Attributes')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" />
 			<ui:DynamicColumnComponent visTool="{this}" id="size" label="{lang('Size')}" />
 			<ui:ColumnListComponent visTool="{this}" id="columnList" label="{lang('Anchor Dimensions')}"/>
-		</mx:VBox>		
+		</s:NavigatorContent>		
 		
-		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
+		<s:NavigatorContent id="VizControlsPanel" label="{lang('Appearance')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
 			<ui:Indent label="{lang('Point opacity')}"
 					   width="100%"
 					   toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}">
@@ -234,7 +246,7 @@
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>
-			<mx:Spacer/>
+			<s:Spacer/>
 			<ui:Indent label="{lang('Point radius')}"
 					   width="100%"
 					   toolTip="{lang('Use this control to adjust point radius')}">
@@ -245,56 +257,59 @@
 							minimum="1" maximum="10" 
 							liveDragging="true"/>
 			</ui:Indent>
-			<mx:Spacer/>
+			<s:Spacer/>
 			<ui:Indent label="{lang('Label angle')}" width="100%">
 				<mx:HSlider id="labelAngleSlider" width="100%"
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 							creationComplete="linkBindableProperty(_anchorPlotter.labelAngleRatio, event.target, 'value')"/>
 			</ui:Indent>
-		</mx:VBox>
+		</s:NavigatorContent>
 		
-		<mx:VBox id="advancedPanel" label="{lang('Advanced')}">			
-			<mx:VBox>
-				<mx:HBox
+		<s:NavigatorContent id="advancedPanel" label="{lang('Advanced')}">	
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:VGroup>
+				<s:HGroup
 					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
-					<mx:Label text="{lang('Normalization method:')}"
-							  color="0x000000" fontSize="12"
-							  toolTip="{lang('Select the type of normalization used to calculate record coordinates')}"/>
-					<mx:RadioButtonGroup id="normalizationType"/>
-					<mx:RadioButton groupName="normalizationType"
-									id="localNorm"
-									value="true"
-									label="{lang('Local')}"
-									/>
-					<mx:RadioButton groupName="normalizationType"
-									id="globalNorm"
-									value="false"
-									label="{lang('Global')}"
-									/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:VBox>
+					<s:Label text="{lang('Normalization method:')}"
+							 color="0x000000" fontSize="12"
+							 toolTip="{lang('Select the type of normalization used to calculate record coordinates')}"/>
+					
+					<s:RadioButton groupName="normalizationType"
+								   id="localNorm"
+								   value="true"
+								   label="{lang('Local')}"
+								   />
+					<s:RadioButton groupName="normalizationType"
+								   id="globalNorm"
+								   value="false"
+								   label="{lang('Global')}"
+								   />
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup>
 				
-				<mx:CheckBox id="enableWedgeColoringCkbx"
-							 label="{lang('Enable Wedge Coloring')}"
-							 toolTip="{lang('Enable different wedge colors for the pi-chart glyphs')}"
-							 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, event.target, 'selected')"/>
-				<mx:Label text="{lang('Color scale used in pie-chart glyphs:')}" enabled="{enableWedgeColoringCkbx.selected}"/>
+				<s:CheckBox id="enableWedgeColoringCkbx"
+							label="{lang('Enable Wedge Coloring')}"
+							toolTip="{lang('Enable different wedge colors for the pi-chart glyphs')}"
+							creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, event.target, 'selected')"/>
+				<s:Label text="{lang('Color scale used in pie-chart glyphs:')}" enabled="{enableWedgeColoringCkbx.selected}"/>
 				<ui:ColorRampList id="colormapGrid" colorRamp="{_plotter.colorMap}"/>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:HBox>
-					<mx:CheckBox id="jitterckbx" label="{lang('Apply Jitter')}" 
-							  toolTip="{lang('Use this control to change record coordinates by a random number')}"/>					
-					<mx:Button click="_plotter.setNewRandomJitterColumn();" 
-								   toolTip="{lang('Use this control to reseed jitter with new random values')}"
-								   label="{lang('Randomize Jitter')}"/>
-					<mx:Label text="{lang('Jitter Level:')}" 
-							  color="0x000000" fontSize="12" 
-							  enabled="{jitterckbx.selected}"
-							  toolTip="{lang('Use slider to adjust the jitter level')}"/>					
+			</s:VGroup>
+			<s:Spacer height="10"/>
+			<s:VGroup>
+				<s:HGroup>
+					<s:CheckBox id="jitterckbx" label="{lang('Apply Jitter')}" 
+								toolTip="{lang('Use this control to change record coordinates by a random number')}"/>					
+					<s:Button click="_plotter.setNewRandomJitterColumn();" 
+							  toolTip="{lang('Use this control to reseed jitter with new random values')}"
+							  label="{lang('Randomize Jitter')}"/>
+					<s:Label text="{lang('Jitter Level:')}" 
+							 color="0x000000" fontSize="12" 
+							 enabled="{jitterckbx.selected}"
+							 toolTip="{lang('Use slider to adjust the jitter level')}"/>					
 					<mx:HSlider id="jitterSlider"
 								enabled="{jitterckbx.selected}"
 								width="100%"
@@ -305,24 +320,24 @@
 								showDataTip="false"
 								minimum="-19" maximum="-10"
 								liveDragging="true"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:Label text="{lang('Dimensional Anchor Reordering Algorithm:')}" 
-						  color="0x000000" fontSize="12" 
-						  toolTip="{lang('Use this control to reorder the dimensional anchors')}"/>					
-				<mx:HBox>
+				</s:HGroup>
+			</s:VGroup>
+			<s:Spacer height="10"/>
+			<s:VGroup>
+				<s:Label text="{lang('Dimensional Anchor Reordering Algorithm:')}" 
+						 color="0x000000" fontSize="12" 
+						 toolTip="{lang('Use this control to reorder the dimensional anchors')}"/>					
+				<s:HGroup>
 					<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
 								 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
-					<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
-						<mx:Label text="{lang('Number of Iterations')}"/>
-						<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
-									  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
-					</mx:HBox>
-				</mx:HBox>
-			</mx:VBox>
-		</mx:VBox>
+					<s:HGroup enabled="{algorithmComboBox.selectedIndex == 0}">
+						<s:Label text="{lang('Number of Iterations')}"/>
+						<s:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
+									 creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
+					</s:HGroup>
+				</s:HGroup>
+			</s:VGroup>
+		</s:NavigatorContent>
 		
 	</ui:ControlPanel>
 </SimpleVisTool>

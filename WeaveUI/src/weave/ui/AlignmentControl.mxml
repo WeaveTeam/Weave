@@ -1,54 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
-	This is a control for setting two text alignment values:  horizontalAlign and verticalAlign.
+This is a control for setting two text alignment values:  horizontalAlign and verticalAlign.
 
-	@author adufilie
+@author adufilie
 -->
-<mx:Canvas xmlns="weave.ui.*"
-		xmlns:mx="http://www.adobe.com/2006/mxml"
-		creationPolicy="all" clipContent="false"
-		horizontalScrollPolicy="off" verticalScrollPolicy="off" toolTip="Alignment">
-	<mx:VBox verticalGap="0">
-		<mx:HBox horizontalGap="0">
+<s:Group xmlns="weave.ui.*"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 clipAndEnableScrolling="false"
+		 toolTip="Alignment">
+	<s:VGroup gap="0">
+		<s:HGroup gap="0">
 			<mx:Button id="bottom_right"/>
 			<mx:Button id="bottom_center"/>
 			<mx:Button id="bottom_left"/>
-		</mx:HBox>
-		<mx:HBox horizontalGap="0">
+		</s:HGroup>
+		<s:HGroup gap="0">
 			<mx:Button id="middle_right"/>
 			<mx:Button id="middle_center"/>
 			<mx:Button id="middle_left"/>
-		</mx:HBox>
-		<mx:HBox horizontalGap="0">
+		</s:HGroup>
+		<s:HGroup gap="0">
 			<mx:Button id="top_right"/>
 			<mx:Button id="top_center"/>
 			<mx:Button id="top_left"/>
-		</mx:HBox>
-	</mx:VBox>
-	<mx:Image source="@Embed(source='/weave/resources/images/alignment-control.png')"
-			  x="0" y="0" includeInLayout="false" mouseChildren="false" mouseEnabled="false"/>
+		</s:HGroup>
+	</s:VGroup>
+	<s:Image source="@Embed(source='/weave/resources/images/alignment-control.png')"
+			 x="0" y="0" includeInLayout="false" mouseChildren="false" mouseEnabled="false"/>
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			
@@ -114,5 +116,5 @@
 				}
 			}
 		]]>
-	</mx:Script>
-</mx:Canvas>
+	</fx:Script>
+</s:Group>

@@ -25,12 +25,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author spurushe
 -->
 <mx:TabNavigator xmlns="weave.visualization.tools.*" 
-				 xmlns:mx="http://www.adobe.com/2006/mxml"
+				 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 				 xmlns:ui="weave.ui.*" 
 				 xmlns:userControls="weave.ui.userControls.*"		 
 				 implements="weave.api.ui.ILinkableObjectEditor">
 	
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			
@@ -49,9 +51,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 	]]>
-	</mx:Script>
+	</fx:Script>
 	
-	<mx:VBox id="StatsPanel" label="Column Statistics">
+	<s:NavigatorContent id="StatsPanel" label="Column Statistics">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
 		
-	</mx:VBox>	
+	</s:NavigatorContent>	
 </mx:TabNavigator>		

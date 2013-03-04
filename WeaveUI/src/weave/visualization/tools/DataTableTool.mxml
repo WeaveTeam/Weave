@@ -26,21 +26,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author sanbalag
 -->
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
-				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisTool,weave.api.data.ICSVExportable"
+				   layout="{new BasicLayout()}" implements="weave.api.ui.IVisTool,weave.api.data.ICSVExportable"
 				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
-	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
-		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
-			<mx:Label text="{lang('Key type:')}"/>
+	<s:VGroup width="100%" height="100%" id="tableArea" gap="0" >
+		<s:HGroup id="topControls" horizontalAlign="left" width="100%">
+			<s:Label text="{lang('Key type:')}"/>
 			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
-			<mx:Button label="{lang('Edit columns...')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
-		</mx:HBox>
-		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
-			<mx:Spacer width="{dataGrid.width}"/>
-		</mx:HBox>
+			<s:Button label="{lang('Edit columns...')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
+		</s:HGroup>
+		<s:BorderContainer minWidth="0"  borderStyle="solid"  id="filterControls" width="100%" >
+			<s:layout>
+				<s:HorizontalLayout gap="0" verticalAlign="middle"/>
+			</s:layout>
+			<s:Spacer width="{dataGrid.width}"/>
+		</s:BorderContainer>
 		<CustomDataGrid:CustomDataGrid id="dataGrid" updateComplete="dataGrid_updateCompleteHandler(event)"
 									   horizontalScrollPolicy="auto"
 									   verticalScrollPolicy="auto"
@@ -61,24 +66,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   mouseDown="handleMouseDown()"
 									   click="handleMouseClick()"
 									   />
-		<mx:HBox id="tooManyRecordsIndicator" visible="false" includeInLayout="false" width="100%" horizontalGap="0">
-			<mx:Spacer width="100%"/>
-			<mx:Label id="maxRowsLabel"/>
-			<ui:HelpComponent>
-				The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
-			</ui:HelpComponent>
-		</mx:HBox>
 		
-		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
-			<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
-			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
-			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
-		</mx:HBox>
-	</mx:VBox>
+		<s:HGroup id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
+			<s:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
+			<s:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
+			<s:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
+		</s:HGroup>
+		<ui:HelpComponent id="tooManyRecordsIndicator" visible="false" >
+			The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
+		</ui:HelpComponent>
+	</s:VGroup>
 	
-	<mx:Number id="columnWidthScale">1</mx:Number>
 	
-	<mx:Script>
+	<fx:Declarations>
+		<fx:Number id="columnWidthScale">1</fx:Number>
+	</fx:Declarations>
+	<fx:Script>
 		<![CDATA[
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
@@ -95,15 +98,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.IndexChangedEvent;
 			import mx.events.ResizeEvent;
 			
+			import spark.layouts.BasicLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
-			import weave.api.data.DataTypes;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnWrapper;
-			import weave.api.data.IPrimitiveColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
@@ -111,8 +110,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.DataTypes;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.data.IPrimitiveColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
-			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
@@ -126,13 +130,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
-			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.DraggablePanel;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
 			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
-			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
@@ -141,7 +144,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
-			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));	
@@ -230,7 +232,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					dataGrid.headerHeight = 50;
 				}
-
+				
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
@@ -324,8 +326,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// needed for Export CSV option in Application Right Click
 			public function exportCSV():String
 			{
+				var keys:* = getExportDataProvider();
 				// each record has a property named after the column title equal to the value in that column for the current key
-				return ColumnUtils.generateTableCSV(columns.getObjects());
+				var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; 
+				var dataTableColumns:Array = columns.getObjects();
+				var generatedCSVstring:String = ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType);
+				return generatedCSVstring;
 			}
 			//needed for export CSV Button click in the control panel
 			private var fr:FileReference = new FileReference();	// CSV download file reference
@@ -412,10 +418,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_selection.replaceKeys(selectedKeys);
 			}
 			
-//			private function clearSelection():void
-//			{
-//				_selection.clearKeys();
-//			}
+			//			private function clearSelection():void
+			//			{
+			//				_selection.clearKeys();
+			//			}
 			
 			private function updateGlobalSelectionChange():void
 			{
@@ -428,7 +434,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var item:Object;
 				var isSelected:Dictionary = new Dictionary(true);
 				for each (item in dataGrid.selectedItems)
-					isSelected[item] = true;
+				isSelected[item] = true;
 				
 				var changeDetected:Boolean = false;
 				var selectedItems:Array = [];
@@ -512,17 +518,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var tempArray:Array = ColumnUtils.getAllKeys(includedColumns);
 				if( tempArray.length > maxRows.value)
 				{	
-					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(tempArray.length));
-					tooManyRecordsIndicator.visible = true;
-					tooManyRecordsIndicator.includeInLayout = true;
 					tempArray.length = maxRows.value;
+					if(!tooManyRecordsIndicator.parent)
+						tableArea.addElement(tooManyRecordsIndicator);
+					tooManyRecordsIndicator.visible = true;
 				}
 				else
 				{
 					tooManyRecordsIndicator.visible = false;
-					tooManyRecordsIndicator.includeInLayout = false;
+					if(tooManyRecordsIndicator.parent)
+						tableArea.removeElement(tooManyRecordsIndicator);
 				}
-					
+				
 				dataRowKeys.source = tempArray;
 				updateGlobalSelectionChange();
 			}
@@ -551,6 +558,33 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				keyTypeCombo.dataProvider = keyTypeList;				
 				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
 			}
+			
+			public function getExportDataProvider():*
+			{
+				for each (var column:IAttributeColumn in columns.getObjects())
+				{
+					while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
+						column = (column as IColumnWrapper).getInternalColumn();
+					
+					if (column is SecondaryKeyNumColumn)
+					{
+						// dimension slider hack -- relies on previously set SecondaryKeyNumColumn.allKeysHack = true;
+						var key:IQualifiedKey;
+						var keyLookup:Dictionary = new Dictionary(true);
+						for each (column in columns.getObjects())
+						for each (key in column.keys)
+						keyLookup[key] = true;
+						
+						var keys:Array = [];
+						for (var keyObj:* in keyLookup)
+							keys.push(keyObj);
+						
+						return keys;
+					}
+				}
+				return dataGrid.dataProvider;
+			}
+			
 			
 			private function handleDataCopy(event:Event):void
 			{											
@@ -629,7 +663,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (columns.childListCallbacks.lastObjectAdded)
 				{
 				}  			
-				//if column is removed , we need to remove respective sessioned FilterComponent and ColumnWidth
+					//if column is removed , we need to remove respective sessioned FilterComponent and ColumnWidth
 				else if (columns.childListCallbacks.lastObjectRemoved)
 				{						
 					filterComponents.removeObject(columns.childListCallbacks.lastNameRemoved);					
@@ -686,19 +720,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
 					var tempWidth:Number;
 					// when we reset width, we need all columns to have default value
-					 if (sessionedWidth == null){
-						 tempWidth = defaultValue;
-					 }
-					 else{
-						 if(sessionedWidth.value ){	
-							 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
-							 tempWidth = sessionedValue;
-						 }
-						 else{
-							 tempWidth = defaultValue;					
-							 sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
-						 } 
-					 }
+					if (sessionedWidth == null){
+						tempWidth = defaultValue;
+					}
+					else{
+						if(sessionedWidth.value ){	
+							var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
+							tempWidth = sessionedValue;
+						}
+						else{
+							tempWidth = defaultValue;					
+							sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
+						} 
+					}
 					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
 					if(j == _currentDataGridColumns.length -1) 
@@ -737,7 +771,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					hsp += (_currentDataGridColumns[i] as WeaveCustomDataGridColumn).width;
 				}					
-				filterControls.horizontalScrollPosition = hsp;
+				filterControls.layout.horizontalScrollPosition = hsp;
 				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;
 				
 				if(maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue)
@@ -781,16 +815,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (showControls.value)
 					{
 						if (!topControls.parent)
-							tableArea.addChildAt(topControls, 0);
+							tableArea.addElementAt(topControls, 0);
 						if (!bottomControls.parent)
-							tableArea.addChild(bottomControls);
+							tableArea.addElement(bottomControls);
 					}
 					else
 					{
 						if (topControls.parent)
-							tableArea.removeChild(topControls);
+							tableArea.removeElement(topControls);
 						if (bottomControls.parent)
-							tableArea.removeChild(bottomControls);
+							tableArea.removeElement(bottomControls);
 					}
 				}
 				catch (e:Error) 
@@ -811,13 +845,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							lockedColumns.value = 0;
 							
 							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
-							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);							
+							tableArea.addElementAt(filterControls, topControls.parent ? 1 : 0);							
 							dataGrid.enableFilters = true;
 						}
 					}
 					else{						
 						if (filterControls.parent){							
-							tableArea.removeChild(filterControls);
+							tableArea.removeElement(filterControls);
 							dataGrid.enableFilters = false;
 						}
 					}
@@ -830,7 +864,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = "defaultCellColorFunction(column, key, cell)";
-			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = "_norm = Class('weave.utils.ColumnUtils').getNorm(column, key);\ncolorRamp.getColorFromNorm(_norm)";
 			private var _lastCellColorError:Error = null;
 			/**
 			 * This defines how cells will be colored.
@@ -918,64 +951,75 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
 		]]>
-	</mx:Script>
+	</fx:Script>
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Columns')}">
-			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show Key Column')}" change="handleKeyColumnCheckBox()"/>
-			<mx:HBox>
-				<mx:Label text="{lang('Number of Locked Columns')}"/>
+		
+		<s:NavigatorContent label="{lang('Columns')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:CheckBox id="showKeyColumnCheckBox" label="{lang('Show Key Column')}" change="handleKeyColumnCheckBox()"/>
+			<s:HGroup>
+				<s:Label text="{lang('Number of Locked Columns')}"/>
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
-			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
-			<mx:HBox>
-				<mx:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
+			</s:HGroup>
+			<s:BorderContainer>
+				<s:backgroundFill>
+					<s:SolidColor alpha="0.7"/>
+				</s:backgroundFill>
+				<ui:ColumnListComponent id="dimensionsList"  height="100%" width="100%" label="{lang('Columns')}"/>
+			</s:BorderContainer>
+			
+			<s:HGroup>
+				<s:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>Select a column that contains image URLs. The images will be displayed in the data table.</ui:HelpComponent>
-			</mx:HBox>
-
-			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
-
-		</mx:VBox>
-		<mx:VBox label="{lang('Advanced')}">
-			<mx:HBox>
-				<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
-				<mx:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
-			</mx:HBox>
-			<mx:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
-			<mx:HBox>
-				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
+			</s:HGroup>
+			
+			<s:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
+			
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Advanced')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup>
+				<s:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
+				<s:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
+			</s:HGroup>
+			<s:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
+			<s:HGroup>
+				<s:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
 				<ui:HelpComponent>
 					This allows data to be filtered based on the data values. Filtered records are highlighted by selection in the other tools.
 					If a column contains text data, a search box will be displayed which supports wildcards ('?' = any Character; '*' = any String).
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
-			</mx:HBox>
+			</s:HGroup>
 			<ui:Indent label="{lang('Background colors')}">
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
-				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
+				<s:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
-			<mx:HBox verticalAlign="top" width="100%" height="100%">
-				<mx:VBox horizontalAlign="right">
-					<mx:HBox verticalAlign="middle">
-						<mx:CheckBox id="showColorsCheckBox" label="{lang('Enable cell coloring')}"/>
+			<s:HGroup verticalAlign="top" width="100%" height="100%">
+				<s:VGroup horizontalAlign="right">
+					<s:HGroup verticalAlign="middle">
+						<s:CheckBox id="showColorsCheckBox" label="{lang('Enable cell coloring')}"/>
 						<ui:HelpComponent>
 							<ui:htmlText>
 								<![CDATA[
-									The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
-									-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
+								The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
+								-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
 								]]>
 							</ui:htmlText>
 						</ui:HelpComponent>
-					</mx:HBox>
-					<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
-					<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
-					<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
-				</mx:VBox>
-				<mx:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
-							 creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
-			</mx:HBox>
-		</mx:VBox>
+					</s:HGroup>
+					<s:Button label="{lang('Reset')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+				</s:VGroup>
+				<s:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
+							creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
+			</s:HGroup>
+		</s:NavigatorContent>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

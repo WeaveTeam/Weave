@@ -19,9 +19,11 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HBox  xmlns:mx="http://www.adobe.com/2006/mxml" implements="weave.ui.CustomDataGrid.IFilterComponent"
-		 verticalScrollPolicy="off" horizontalScrollPolicy="off">
-	<mx:Script>
+<s:HGroup  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" implements="weave.ui.CustomDataGrid.IFilterComponent"
+		  >
+	<fx:Script>
 		<![CDATA[	
 			import mx.events.FlexEvent;
 			
@@ -82,9 +84,9 @@
 			
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
-	<mx:TextInput id="strToSrchInput"  width="100%" height="100%" minWidth="0" initialize="strToSrchInput_initializeHandler(event)"
+	<s:TextInput id="strToSrchInput"  width="100%" height="100%" minWidth="0" initialize="strToSrchInput_initializeHandler(event)"
 				 />
 		
-</mx:HBox >
+</s:HGroup >

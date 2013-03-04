@@ -19,33 +19,38 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 xmlns="weave.ui.*"
-		 verticalGap="0" creationPolicy="all"
+		  
 		 width="100%" height="100%" >
-	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
-		<mx:Label text="{label}" fontWeight="bold"/>
-		<mx:HBox width="100%" id="selectorControls">
-			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Reverse')}" click="_hashMap.setNameOrder(_hashMap.getNames().reverse());" toolTip="{lang('Reverse the order of the attributes')}"/>
-			<mx:Button label="{lang('Open selector...')}" click="openSelector()"/>
-		</mx:HBox>
-	</mx:HBox>
+	<s:layout>
+		<s:VerticalLayout gap="0"/>
+	</s:layout>
+	<s:HGroup width="100%" id="titleHBox" gap="0">
+		<s:Label text="{label}" fontWeight="bold"/>
+		<s:HGroup width="100%" id="selectorControls">
+			<s:Spacer width="100%"/>
+			<s:Button label="{lang('Reverse')}" click="_hashMap.setNameOrder(_hashMap.getNames().reverse());" toolTip="{lang('Reverse the order of the attributes')}"/>
+			<s:Button label="{lang('Open selector...')}" click="openSelector()"/>
+		</s:HGroup>
+	</s:HGroup>
 	<LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}"/>
-	<mx:HBox width="100%">
-		<mx:Spacer width="100%"/>
-		<mx:Button
+	<s:HGroup width="100%">
+		<s:Spacer width="100%"/>
+		<s:Button
 			label="{lang('Remove all')}"
 			toolTip="{lang('Click here to remove all attributes from the list.')}"
 			click="internalList.removeAllItems()"
 			enabled="{internalList.dataProvider.length > 0}"/>
-		<mx:Button
+		<s:Button
 			label="{lang('Remove selected')}"
 			toolTip="{lang('Click here to remove one or more selected attributes in the list above.')}"
 			click="internalList.removeSelectedItem()"
 			enabled="{internalList.selectedIndex >= 0}"/>
-	</mx:HBox>
-	<mx:Script>
+	</s:HGroup>
+	<fx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -104,5 +109,5 @@
 				return internalList.hashMap;
 			}
 		]]>
-	</mx:Script>
-</mx:VBox>
+	</fx:Script>
+</s:NavigatorContent>

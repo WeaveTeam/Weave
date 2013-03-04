@@ -25,18 +25,22 @@
 -->
 
 <mx:Box label="{lang('Help')}"
-	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns:ui ="weave.ui.*"
 	width="18" height="18"
 	verticalAlign="middle" horizontalAlign="center">
-	<mx:Metadata>
+	<fx:Metadata>
 		[DefaultProperty("content")]
-	</mx:Metadata>
-	<mx:Script>
+	</fx:Metadata>
+	<fx:Script>
 		<![CDATA[
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
+			import mx.core.IVisualElement;
+			import mx.core.IVisualElementContainer;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
@@ -71,7 +75,7 @@
 				_button.setStyle('cornerRadius', _button.width / 2);
 				_button.setStyle('icon', InfoImage);
 				_button.buttonMode = true;
-				addChild(_button);
+				addElement(_button);
 				
 				// add event listeners
 				addEventListener(
@@ -189,8 +193,13 @@
 				else if (value is DisplayObject)
 				{
 					var displayObject:DisplayObject = value as DisplayObject;
-					if (displayObject.parent)
-						displayObject.parent.removeChild(displayObject);
+					if (displayObject.parent){
+						if(displayObject.parent is IVisualElementContainer)
+						 	(displayObject.parent as IVisualElementContainer).removeElement(displayObject as IVisualElement);
+						else 
+							displayObject.parent.removeChild(displayObject);
+						
+					}
 					value = [value];
 				}
 				_helpChildren = value as Array;
@@ -251,7 +260,7 @@
 					var component:UIComponent = helpChildren[i] as UIComponent;
 					if (component)
 					{
-						window.addChild(component);
+						window.addElement(component);
 						component.validateNow();
 					}
 				}
@@ -299,5 +308,5 @@
 				return helpComponent;
 			}
 		]]>
-	</mx:Script>
+	</fx:Script>
 </mx:Box>

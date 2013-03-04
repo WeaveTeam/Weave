@@ -1,91 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
 -->
 <!---
-	@author skolman
-	@author adufilie
+@author skolman
+@author adufilie
 -->
-<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				backgroundColor="#EFF4BC"
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-				title="{lang('Equation Editor')}"
-				>
-	
+<ControlPanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			  xmlns:s="library://ns.adobe.com/flex/spark" 
+			  xmlns:mx="library://ns.adobe.com/flex/mx" 
+			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+			  title="{lang('Equation Editor')}"
+			  styleName="componentStyle">
+	<fx:Style>
+		@namespace  "weave.ui.*";
+		@namespace LinkableObjectList "weave.ui.LinkableObjectList.*";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		.componentStyle{
+			backgroundColor: #EFF4BC;
+		}
+	</fx:Style>
+		
 	<mx:HDividedBox id="equationContainer" width="100%" height="100%"
-			paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}"
-		>
-		<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Active equation"/>
+					paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}"
+					>
+		<s:VGroup width="100%" height="100%"  >
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:Label text="Active equation"/>
 				<CustomComboBox id="activeEquationCombo" prompt="{lang('Select an equation')}" labelFunction="{getActiveEquationLabel}" change="handleActiveEquationSelect()" width="100%"/>
-			</mx:HBox>
-			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Title"/>
-				<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
-			</mx:HBox>
+			</s:HGroup>
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:Label text="Title"/>
+				<s:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
+			</s:HGroup>
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<mx:Canvas label="{lang('Equation Text')}">
-					<mx:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
-				</mx:Canvas>
-				<mx:Canvas label="{lang('Equation Tree')}" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
-					<EquationUIComponent id="baseEquationUIComp"/>
-				</mx:Canvas>
+				<s:NavigatorContent label="{lang('Equation Text')}">
+					<s:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{lang('Equation Tree')}" id="equationBox" width="100%"   height="100%" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
+					<s:BorderContainer borderWeight="1"  borderStyle="solid"  width="100%"   height="100%">
+						<s:backgroundFill>
+							<s:SolidColor color="#F2F2F2"/>
+						</s:backgroundFill>
+						<EquationUIComponent id="baseEquationUIComp"/>
+					</s:BorderContainer>	
+					
+				</s:NavigatorContent>
 			</mx:TabNavigator>
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<ColumnListComponent label="{lang('Edit Variables')}" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				<mx:Canvas label="{lang('Edit Variable Names')}" width="100%" height="100%">
+				<s:NavigatorContent label="{lang('Edit Variables')}" width="100%" height="100%">
+					<ColumnListComponent  hashMap="{equationColumn.variables}" width="100%" height="100%"/>
+				</s:NavigatorContent>
+				
+				<s:NavigatorContent label="{lang('Edit Variable Names')}" width="100%" height="100%">
 					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				</mx:Canvas>
+				</s:NavigatorContent>
 			</mx:TabNavigator>
-		</mx:VBox>
-		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<mx:Label text="{lang('Available functions')}"/>
-			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
-		</mx:VBox>
-	</mx:HDividedBox>
-	<mx:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>
-	<mx:Fade id="fadeOut" duration="800" alphaFrom="1.0" alphaTo="0.0"/>
-	
-	<mx:Script>
-		<![CDATA[
-			import avmplus.DescribeType;
+		</s:VGroup>
+		<s:VGroup height="100%"  >
+			<s:Label text="{lang('Available functions')}"/>
 			
+			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
+		</s:VGroup>
+	</mx:HDividedBox>
+	<fx:Declarations>
+		<s:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>
+		<s:Fade id="fadeOut" duration="800" alphaFrom="1.0" alphaTo="0.0"/>
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
 			import mx.controls.List;
 			import mx.controls.TextInput;
 			import mx.core.IUIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
+			import spark.core.NavigationUnit;
+			import spark.layouts.VerticalLayout;
+			
+			import avmplus.DescribeType;
+			
 			import weave.Weave;
-			import weave.api.core.ILinkableObject;
-			import weave.api.data.ColumnMetadata;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
 			import weave.utils.EventUtils;
@@ -111,7 +136,8 @@
 			{
 				super.childrenCreated();
 				
-				var constantVBox:VBox = new VBox();
+				var constantVBox:NavigatorContent = new NavigatorContent();
+				constantVBox.layout = new VerticalLayout();
 				constantVBox.percentWidth = 100;
 				constantVBox.percentHeight = 100;
 				constantVBox.label = lang('Constants');
@@ -143,7 +169,8 @@
 					
 					functions.sortOn("name",Array.CASEINSENSITIVE);
 					
-					var listVBox:VBox = new VBox();
+					var listVBox:NavigatorContent = new NavigatorContent();
+					listVBox.layout = new VerticalLayout();
 					listVBox.percentWidth = 100;
 					listVBox.percentHeight = 100;
 					listVBox.label = classInfo.name;
@@ -160,11 +187,11 @@
 					functionList.rowCount = functionList.dataProvider.length;
 					functionList.setStyle("borderStyle","none");
 					functionList.addEventListener(MouseEvent.DOUBLE_CLICK,handleListItemDoubleClick);
-					listVBox.addChild(functionList);
+					listVBox.addElement(functionList);
 					
-					functionLists.addChild(listVBox);
+					functionLists.addElement(listVBox);
 				}
-			
+				
 				constants.sortOn("name",Array.CASEINSENSITIVE);
 				
 				var constantsList:List = new List();
@@ -175,15 +202,15 @@
 				constantsList.dragEnabled = true;
 				constantsList.rowCount = constantsList.dataProvider.length;
 				constantsList.setStyle("borderStyle", "none");
-				constantVBox.addChild(constantsList);
+				constantVBox.addElement(constantsList);
 				
-				functionLists.addChild(constantVBox);
+				functionLists.addElement(constantVBox);
 				
 				equationBox.addEventListener(DragEvent.DRAG_DROP, captureDragDrop, true);
-
+				
 				linkSessionState(equationColumn.equation, baseEquationUIComp.equation);
-//				linkBindableProperty(equationColumn.equation, textEditor, "text");
-//				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
+				//				linkBindableProperty(equationColumn.equation, textEditor, "text");
+				//				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
 				titleInput.text = equationColumn.getMetadata(ColumnMetadata.TITLE);
 				EventUtils.addDelayedEventCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
@@ -248,7 +275,7 @@
 			private function handleListItemDoubleClick(event:MouseEvent):void
 			{
 				baseEquationUIComp.replaceEquation(((event.currentTarget as List).selectedItem));
-					
+				
 			}
 			private function handleDragEnter(event:DragEvent):void
 			{
@@ -267,7 +294,7 @@
 				if (items[0] is ILinkableObject)
 				{
 					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
-				
+					
 					eqName = "get(" + EquationColumn.compiler.encodeString(eqName) + ")";
 					
 					event.draggedItem = eqName;
@@ -313,6 +340,6 @@
 			}
 			
 		]]>
-	</mx:Script>
+	</fx:Script>
 	
 </ControlPanel>

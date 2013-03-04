@@ -19,30 +19,35 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox xmlns="weave.editors.*" 
-		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+<s:VGroup xmlns="weave.editors.*" 
+		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
+ xmlns:s="library://ns.adobe.com/flex/spark" 
+ xmlns:mx="library://ns.adobe.com/flex/mx" 
 		 width="100%" 
 		 height="100%" xmlns:ui="weave.ui.*"
 		 >
-		<mx:CheckBox id="enableMenuBar"
+		<s:CheckBox id="enableMenuBar"
 					 label="{lang('Show menu bar')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
 					/>
 	
 		<mx:TabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
-			<mx:VBox label="{lang('Right-click')}" verticalGap="{verticalGap}">
-				<mx:CheckBox label="{lang('Right-click Menu')}" id="rightClick"
+			<s:NavigatorContent label="{lang('Right-click')}" >
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox label="{lang('Right-click Menu')}" id="rightClick"
 							 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
-				<mx:VBox enabled="{rightClick.selected}" paddingLeft="10" verticalGap="{verticalGap}" width="100%">
-					<mx:CheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
+				<s:VGroup enabled="{rightClick.selected}" paddingLeft="10" gap="{_gap}" width="100%">
+					<s:CheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
+					<s:CheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
 					
 					<ui:Indent label="{lang('Data Info URL')}" width="100%">
 						<ui:HelpComponent>
@@ -50,127 +55,148 @@
 						</ui:HelpComponent>
 						<ui:TextInputWithPrompt width="100%" prompt="http://www.example.com/example.html" creationComplete="linkBindableProperty(Weave.properties.dataInfoURL, event.target, 'text');"/>
 					</ui:Indent>
-				</mx:VBox>
-			</mx:VBox>
+				</s:VGroup>
+			</s:NavigatorContent>
 			
-			<mx:VBox  label="{lang('Data')}" verticalGap="{verticalGap}">
-				<mx:CheckBox id="dataMenu"
+			<s:NavigatorContent  label="{lang('Data')}" >
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox id="dataMenu"
 							 label="{lang('Data Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu, event.target, 'selected')"/>
-				<mx:VBox enabled="{dataMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
+				<s:VGroup enabled="{dataMenu.selected}" paddingLeft="10" gap="{_gap}">
 					
-					<mx:CheckBox label="{lang('Load my data')}"
+					<s:CheckBox label="{lang('Load my data')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
-					<mx:CheckBox id="refreshDataCheckBox"
+					<s:CheckBox id="refreshDataCheckBox"
 								 label="{lang('Refresh data source hierarchies')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
 					
-					<mx:CheckBox label="{lang('New Datasource')}"
+					<s:CheckBox label="{lang('New Datasource')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableAddNewDatasource, event.target, 'selected')"/> 
 					
-					<mx:CheckBox label="{lang('Edit Datasources')}"
+					<s:CheckBox label="{lang('Edit Datasources')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
 					
-				</mx:VBox>
-			</mx:VBox>
-			<mx:VBox label="{lang('Tools')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox id="toolsMenu"
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{lang('Tools')}" >	
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox id="toolsMenu"
 							 label="{lang('Tools Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools, event.target, 'selected')"/>
 				
-				<mx:HBox enabled="{toolsMenu.selected}" paddingLeft="10" horizontalGap="10">
-					<mx:VBox verticalGap="{verticalGap}">
-						<mx:CheckBox label="{lang('Color Controller')}"
+				<s:HGroup enabled="{toolsMenu.selected}" paddingLeft="10" gap="10">
+					<s:VGroup gap="{_gap}">
+						<s:CheckBox label="{lang('Color Controller')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
-						<mx:CheckBox label="{lang('Probe Info Editor')}"
+						<s:CheckBox label="{lang('Probe Info Editor')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
-						<mx:CheckBox label="{lang('Probe Info Window')}"
+						<s:CheckBox label="{lang('Probe Info Window')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeWindow, event.target, 'selected')"/>
-						<mx:CheckBox label="{lang('Equation Editor')}"
+						<s:CheckBox label="{lang('Equation Editor')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
-						<mx:CheckBox id="collabSettings"
+						<s:CheckBox id="collabSettings"
 									 label="{lang('Collaboration Settings')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
 									 />
-					</mx:VBox>
-					<mx:VBox verticalGap="{verticalGap}" id="menuToggleVBox"/>
-				</mx:HBox>	
-			</mx:VBox>	
+					</s:VGroup>
+					<s:VGroup gap="{_gap}" id="menuToggleVBox"/>
+				</s:HGroup>	
+			</s:NavigatorContent>	
 			
-			<mx:VBox width="100%" label="{lang('Selections')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox
+			<s:NavigatorContent width="100%" label="{lang('Selections')}" >	 	
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox
 							 id="selectionsMenu"
 							 label="{lang('Selections Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu, event.target, 'selected')"/> 
-				<mx:VBox enabled="{selectionsMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
-					<mx:CheckBox label="{lang('Save current Selection')}"
+				<s:VGroup enabled="{selectionsMenu.selected}" paddingLeft="10" gap="{_gap}">
+					<s:CheckBox label="{lang('Save current Selection')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Clear current Selection')}"
+					<s:CheckBox label="{lang('Clear current Selection')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Manage saved selections')}"
+					<s:CheckBox label="{lang('Manage saved selections')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections, event.target, 'selected')"/>
-				</mx:VBox>
-			</mx:VBox>	
+				</s:VGroup>
+			</s:NavigatorContent>	
 			
-			<mx:VBox width="100%" label="{lang('Subsets')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox
+			<s:NavigatorContent width="100%" label="{lang('Subsets')}" >	 
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox
 							 id="subsetsMenu"
 							 label="{lang('Subsets Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu, event.target, 'selected')"/> 
-				<mx:VBox enabled="{subsetsMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
-					<mx:CheckBox label="{lang('Create subset from selected records')}"
+				<s:VGroup enabled="{subsetsMenu.selected}" paddingLeft="10" gap="{_gap}">
+					<s:CheckBox label="{lang('Create subset from selected records')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Remove selected records from subset')}"
+					<s:CheckBox label="{lang('Remove selected records from subset')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Show all records')}"
+					<s:CheckBox label="{lang('Show all records')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Save current subset')}"
+					<s:CheckBox label="{lang('Save current subset')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Manage saved subsets')}"
+					<s:CheckBox label="{lang('Manage saved subsets')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets, event.target, 'selected')"/>
-				</mx:VBox>
-			</mx:VBox>	
+				</s:VGroup>
+			</s:NavigatorContent>	
 			
-			<mx:VBox label="{lang('Session')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox label="{lang('Session Menu')}"
+			<s:NavigatorContent label="{lang('Session')}" >	 
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox label="{lang('Session Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
-				<mx:CheckBox id="collabPanel"
+				<s:CheckBox id="collabPanel"
 							 label="{lang('Connect to Collaboration Server')}"
 							 creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
 							 />
-			</mx:VBox>	
+			</s:NavigatorContent>	
 			
-			<mx:VBox width="100%" label="{lang('Window')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox id="windowMenu"
+			<s:NavigatorContent width="100%" label="{lang('Window')}" >	
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox id="windowMenu"
 							 label="{lang('Window Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu, event.target, 'selected')"/> 
-				<mx:VBox enabled="{windowMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
-					<mx:CheckBox label="{lang('Preferences')}"
+				<s:VGroup enabled="{windowMenu.selected}" paddingLeft="10" gap="{_gap}">
+					<s:CheckBox label="{lang('Preferences')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences, event.target, 'selected')"/>  
-					<mx:CheckBox toolTip="{lang('This option must also be enabled in the embed tag of the surrounding webpage.')}"
+					<s:CheckBox toolTip="{lang('This option must also be enabled in the embed tag of the surrounding webpage.')}"
 								 label="{lang('Full-screen')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableFullScreen, event.target, 'selected')"/>  
-					<mx:CheckBox label="{lang('Minimize All Windows')}"
+					<s:CheckBox label="{lang('Minimize All Windows')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Restore All Minimized Windows')}"
+					<s:CheckBox label="{lang('Restore All Minimized Windows')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Close All Windows')}"
+					<s:CheckBox label="{lang('Close All Windows')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Cascade All Windows')}"
+					<s:CheckBox label="{lang('Cascade All Windows')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Tile All Windows')}"
+					<s:CheckBox label="{lang('Tile All Windows')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows, event.target, 'selected')"/>
-				</mx:VBox>
-			</mx:VBox>	
+				</s:VGroup>
+			</s:NavigatorContent>	
 			
-			<mx:VBox label="{lang('About')}" verticalGap="{verticalGap}">
-				<mx:CheckBox
+			<s:NavigatorContent label="{lang('About')}" >
+				<s:layout>
+					<s:VerticalLayout gap="{_gap}"/>
+				</s:layout>
+				<s:CheckBox
 						 label="{lang('About Menu')}"
 						 width="120" 
 						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
-			</mx:VBox>
+			</s:NavigatorContent>
 		</mx:TabNavigator>
-	<mx:Script>
+	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -198,7 +224,7 @@
 				}
 				cbArray.sortOn('label');
 				for each (cb in cbArray)
-					menuToggleVBox.addChild(cb);
+					menuToggleVBox.addElement(cb);
 			}
 			
 			override protected function childrenCreated():void
@@ -231,7 +257,7 @@
 						   });
 				}
 			}
-			private const verticalGap:int = 0;
+			private const _gap:int = 0;
 		]]>
-	</mx:Script>
-</mx:VBox>	
+	</fx:Script>
+</s:VGroup>	
