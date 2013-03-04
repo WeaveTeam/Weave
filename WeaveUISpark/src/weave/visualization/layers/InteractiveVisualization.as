@@ -23,13 +23,13 @@ package weave.visualization.layers
 	
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
+	import flash.display.NativeMenu;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
-	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
@@ -40,10 +40,10 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -110,7 +110,7 @@ package weave.visualization.layers
 				callLater(addContextMenuEventListener);
 				return;
 			}
-			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
+			var contextMenu:NativeMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
 			if (!contextMenu)
 				return callLater(addContextMenuEventListener);
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, removeCursor);
