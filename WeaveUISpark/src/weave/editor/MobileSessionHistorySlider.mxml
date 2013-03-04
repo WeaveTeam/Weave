@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+This is a GUI for SessionStateLog undo and redo.
+
+@author adufilie
+-->
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns="weave.editors.*"
+		  click="handleAnyClick();"
+		  width="100%" gap="{padding + 4}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
+		  implements="weave.api.ui.ILinkableObjectEditor">
+	
+	
+	
+	<s:Button width="64" height="54" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')" />
+	
+	<s:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true"  snapInterval="1" minimum="0" change="handleSlider();"/>
+	<s:Button width="64" height="54" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
+	<s:Button id="clearButton" height="54" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" styleName="clearButtonStyle"/>
+		<fx:Style>
+		.clearButtonStyle {
+			paddingLeft: 4;
+			paddingRight: 4;
+		}
+	</fx:Style>
+	<fx:Script>
+		<![CDATA[
+			import mx.managers.PopUpManager;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
+			import weave.core.CallbackJuggler;
+			import weave.core.SessionStateLog;
+			
+			private const padding:Number = 4;
+			
+			private var _stateLog:SessionStateLog = null; // this is the object we are editing
+			private const _stateLogJuggler:CallbackJuggler = new CallbackJuggler(this, handleStateLogChange, false);
+			
+			
+			
+			[Bindable] private var _playSpeed:uint = 1;
+			private var _lastReplayTime:int = 0;
+			private var _maxStepDelay:int = 1000;
+			
+			
+			
+			
+			/**
+			 * @inheritDoc
+			 */
+			public function setTarget(object:ILinkableObject):void
+			{
+				_stateLogJuggler.target = _stateLog = object as SessionStateLog;
+			}
+			
+			/**
+			 * @inheritDoc
+			 */
+			public function applyChanges():void
+			{
+				// do nothing because changes are applied immediately.
+			}
+			
+			// called when anything is clicked
+			private function handleAnyClick():void
+			{
+				// hack so slider doesn't disappear
+				Weave.properties.showSessionHistoryControls.value = true;
+			}
+			
+			// called when slider value changes
+			private function handleSlider():void
+			{
+				var delta:int = slider.value - _stateLog.undoHistory.length;
+				if (delta < 0)
+					_stateLog.undo(-delta);
+				else
+					_stateLog.redo(delta);
+				
+				// hack so slider doesn't disappear
+				handleAnyClick();
+			}
+			
+			// called when state log changes
+			private function handleStateLogChange():void
+			{
+				if (!parent)
+				{
+					callLater(handleStateLogChange);
+					return;
+				}
+				
+				slider.maximum = _stateLog.undoHistory.length + _stateLog.redoHistory.length;
+				slider.value = _stateLog.undoHistory.length;
+				slider.enabled = slider.maximum > slider.minimum;
+				undoButton.enabled = _stateLog.undoHistory.length > 0;
+				redoButton.enabled = _stateLog.redoHistory.length > 0;
+				// save current time as reference point
+				_lastReplayTime = getTimer();
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+</s:HGroup> 
