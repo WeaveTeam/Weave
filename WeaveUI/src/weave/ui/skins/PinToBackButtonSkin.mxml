@@ -42,8 +42,8 @@
             For button, the graphics are colorized but the label is not. */
             static private const exclusions:Array = ["labelDisplay"];
 			
-			[Bindable][Embed(source="/weave/resources/images/pushpin.png")]
-			private var _pinToBackIcon:Class;
+			[Bindable][Embed(source="/weave/resources/images/pushpinback.png")]
+			private var _pinIcon:Class;
 			
             
             /** 
@@ -215,11 +215,11 @@
     </s:Rect>
 	<!-- UP and DOWN ICON -->
 	<s:BitmapImage includeIn="up, down"    horizontalCenter="0" bottom="3"
-				   source="{_pinToBackIcon}"/>
+				   source="{_pinIcon}"/>
 	
 	<!-- OVER ICON -->
 	<s:BitmapImage includeIn="over" verticalAlign="middle"    horizontalCenter="0"
 				   verticalCenter="0"
-				   source="{_pinToBackIcon}"/>    
+				   source="{_pinIcon}"/>    
     
 </s:SparkButtonSkin>
