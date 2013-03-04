@@ -1,9 +1,20 @@
 package
 {
-	import flash.utils.getQualifiedClassName;
+	import weave.api.WeaveAPI;
+	import weave.ui.Console;
 
 	public function weaveTraceImpl(...args):void
 	{
-		MobileConsole.mobileTrace.apply(null, args);
+		if(WeaveAPI.topLevelApplication.console){
+			(WeaveAPI.topLevelApplication.console as Console).consoleTrace.apply(null, args);
+		}else{
+			
+			//log.push(args);
+			WeaveAPI.StageUtils.callLater(this,weaveTraceImpl,args);
+		}
+		
 	}
 }
+
+
+

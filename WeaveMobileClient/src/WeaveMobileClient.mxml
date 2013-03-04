@@ -1,72 +1,1247 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
-			   interactionMode="touch"
+			   interactionMode="mouse"
 			   resizeForSoftKeyboard="false"
 			   applicationComplete="init(event)"
 			   backgroundColor="0x000000" 
 			   >
+	<!--	applicationComplete="init(event)"-->
 	<s:Label id="logo" text="Weave" color="0x808080" width="100%" height="100%" textAlign="center" verticalAlign="middle" fontSize="64"/>
-<!--	<s:Button id="consoleButton"
-			  right="0" bottom="0" width="48" height="48"
-			  label="..." fontFamily="_typewriter" fontSize="12" alpha="0.2"
-			  click="console.visible = !console.visible;"/> -->
+	<!--	<s:Button id="consoleButton"
+	right="0" bottom="0" width="48" height="48"
+	label="..." fontFamily="_typewriter" fontSize="12" alpha="0.2"
+	click="console.visible = !console.visible;"/> -->
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.devnet.events.PodStateChangeEvent;
+			import com.adobe.devnet.managers.PodLayoutManager;
+			import com.adobe.devnet.skins.CustomCloseButtonSkin;
+			import com.adobe.devnet.skins.CustomCloseButtonSkin__embed_mxml__com_adobe_devnet_assets_close_up_png_2111261400;
+			import com.adobe.devnet.skins.CustomLeftButtonSkin;
+			import com.adobe.devnet.skins.CustomLeftButtonSkin__embed_mxml__com_adobe_devnet_assets_left_arrow_disabled_gif_533118268;
+			import com.adobe.devnet.skins.CustomLeftButtonSkin__embed_mxml__com_adobe_devnet_assets_left_arrow_over_gif_1308255180;
+			import com.adobe.devnet.skins.CustomLeftButtonSkin__embed_mxml__com_adobe_devnet_assets_left_arrow_up_gif_1101722874;
+			import com.adobe.devnet.skins.CustomMaximizeButtonSkin;
+			import com.adobe.devnet.skins.CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_maximize_over_png_1591379768;
+			import com.adobe.devnet.skins.CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_maximize_up_png_1518867850;
+			import com.adobe.devnet.skins.CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_restore_over_png_456371482;
+			import com.adobe.devnet.skins.CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_restore_up_png_580757012;
+			import com.adobe.devnet.skins.CustomMinimizeButtonSkin;
+			import com.adobe.devnet.skins.CustomMinimizeButtonSkin__embed_mxml__com_adobe_devnet_assets_minimize_over_png_1993001316;
+			import com.adobe.devnet.skins.CustomMinimizeButtonSkin__embed_mxml__com_adobe_devnet_assets_minimize_up_png_569894326;
+			import com.adobe.devnet.skins.CustomRightButtonSkin;
+			import com.adobe.devnet.skins.CustomRightButtonSkin__embed_mxml__com_adobe_devnet_assets_right_arrow_disabled_gif_1297367644;
+			import com.adobe.devnet.skins.CustomRightButtonSkin__embed_mxml__com_adobe_devnet_assets_right_arrow_over_gif_1450760284;
+			import com.adobe.devnet.skins.CustomRightButtonSkin__embed_mxml__com_adobe_devnet_assets_right_arrow_up_gif_1590759522;
+			import com.adobe.devnet.skins.CustomSkinnableContainer;
+			import com.adobe.devnet.view.DragHighlight;
+			import com.adobe.devnet.view.Pod;
+			import com.as3xls.biff.BIFFReader;
+			import com.as3xls.biff.BIFFVersion;
+			import com.as3xls.biff.BIFFWriter;
+			import com.as3xls.biff.Record;
+			import com.as3xls.cdf.CDFReader;
+			import com.as3xls.cdf.Directory;
+			import com.as3xls.xls.Cell;
+			import com.as3xls.xls.ExcelFile;
+			import com.as3xls.xls.Formatter;
+			import com.as3xls.xls.Sheet;
+			import com.as3xls.xls.Type;
+			import com.as3xls.xls.formula.Formula;
+			import com.as3xls.xls.formula.Functions;
+			import com.as3xls.xls.formula.Tokens;
+			import com.as3xls.xls.style.XFormat;
+			import com.cartogrammar.drawing.DashedLine;
+			import com.hurlant.crypto.hash.IHash;
+			import com.hurlant.crypto.hash.MD5;
+			import com.hurlant.util.Base64;
+			import com.hurlant.util.Hex;
+			import com.modestmaps.core.Coordinate;
+			import com.modestmaps.geo.AbstractProjection;
+			import com.modestmaps.geo.IProjection;
+			import com.modestmaps.geo.Location;
+			import com.modestmaps.geo.MercatorProjection;
+			import com.modestmaps.geo.Transformation;
+			import com.modestmaps.mapproviders.AbstractMapProvider;
+			import com.modestmaps.mapproviders.BlueMarbleMapProvider;
+			import com.modestmaps.mapproviders.IMapProvider;
+			import com.modestmaps.mapproviders.OpenStreetMapProvider;
+			import com.modestmaps.mapproviders.microsoft.MicrosoftProvider;
+			import com.modestmaps.mapproviders.yahoo.YahooAerialMapProvider;
+			import com.modestmaps.mapproviders.yahoo.YahooHybridMapProvider;
+			import com.modestmaps.mapproviders.yahoo.YahooOverlayMapProvider;
+			import com.modestmaps.mapproviders.yahoo.YahooRoadMapProvider;
+			import com.modestmaps.util.BinaryUtil;
+			
+			import flash.utils.ByteArray;
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
+			import spark.components.Button;
+			import spark.components.ToggleSwitch;
 			import spark.layouts.TileLayout;
 			
+			import avmplus.DescribeType;
+			
+			import nochump.util.zip.CRC32;
+			import nochump.util.zip.Deflater;
+			import nochump.util.zip.Inflater;
+			import nochump.util.zip.ZipEntry;
+			import nochump.util.zip.ZipError;
+			import nochump.util.zip.ZipFile;
+			import nochump.util.zip.ZipOutput;
+			
+			import org.igniterealtime.xiff.auth.Anonymous;
+			import org.igniterealtime.xiff.auth.DigestMD5;
+			import org.igniterealtime.xiff.auth.External;
+			import org.igniterealtime.xiff.auth.Plain;
+			import org.igniterealtime.xiff.auth.SASLAuth;
+			import org.igniterealtime.xiff.collections.ArrayCollection;
+			import org.igniterealtime.xiff.collections.events.CollectionEvent;
+			import org.igniterealtime.xiff.collections.events.CollectionEventKind;
+			import org.igniterealtime.xiff.conference.Room;
+			import org.igniterealtime.xiff.conference.RoomOccupant;
+			import org.igniterealtime.xiff.core.AbstractJID;
+			import org.igniterealtime.xiff.core.EscapedJID;
+			import org.igniterealtime.xiff.core.UnescapedJID;
+			import org.igniterealtime.xiff.core.XMPPConnection;
+			import org.igniterealtime.xiff.data.Extension;
+			import org.igniterealtime.xiff.data.ExtensionClassRegistry;
+			import org.igniterealtime.xiff.data.ExtensionContainer;
+			import org.igniterealtime.xiff.data.IExtendable;
+			import org.igniterealtime.xiff.data.IExtension;
+			import org.igniterealtime.xiff.data.INodeProxy;
+			import org.igniterealtime.xiff.data.IQ;
+			import org.igniterealtime.xiff.data.ISerializable;
+			import org.igniterealtime.xiff.data.Message;
+			import org.igniterealtime.xiff.data.Presence;
+			import org.igniterealtime.xiff.data.XMLStanza;
+			import org.igniterealtime.xiff.data.XMPPStanza;
+			import org.igniterealtime.xiff.data.auth.AuthExtension;
+			import org.igniterealtime.xiff.data.bind.BindExtension;
+			import org.igniterealtime.xiff.data.forms.FormExtension;
+			import org.igniterealtime.xiff.data.forms.FormField;
+			import org.igniterealtime.xiff.data.id.IIDGenerator;
+			import org.igniterealtime.xiff.data.id.IncrementalGenerator;
+			import org.igniterealtime.xiff.data.im.Contact;
+			import org.igniterealtime.xiff.data.im.RosterExtension;
+			import org.igniterealtime.xiff.data.im.RosterItem;
+			import org.igniterealtime.xiff.data.im.RosterItemVO;
+			import org.igniterealtime.xiff.data.muc.MUC;
+			import org.igniterealtime.xiff.data.muc.MUCAdminExtension;
+			import org.igniterealtime.xiff.data.muc.MUCBaseExtension;
+			import org.igniterealtime.xiff.data.muc.MUCExtension;
+			import org.igniterealtime.xiff.data.muc.MUCItem;
+			import org.igniterealtime.xiff.data.muc.MUCOwnerExtension;
+			import org.igniterealtime.xiff.data.muc.MUCStatus;
+			import org.igniterealtime.xiff.data.muc.MUCUserExtension;
+			import org.igniterealtime.xiff.data.ping.PingExtension;
+			import org.igniterealtime.xiff.data.register.RegisterExtension;
+			import org.igniterealtime.xiff.data.session.SessionExtension;
+			import org.igniterealtime.xiff.data.xhtml.XHTMLExtension;
+			import org.igniterealtime.xiff.events.ChangePasswordSuccessEvent;
+			import org.igniterealtime.xiff.events.ConnectionSuccessEvent;
+			import org.igniterealtime.xiff.events.DisconnectionEvent;
+			import org.igniterealtime.xiff.events.IQEvent;
+			import org.igniterealtime.xiff.events.IncomingDataEvent;
+			import org.igniterealtime.xiff.events.LoginEvent;
+			import org.igniterealtime.xiff.events.MessageEvent;
+			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			import org.igniterealtime.xiff.events.PresenceEvent;
+			import org.igniterealtime.xiff.events.PropertyChangeEvent;
+			import org.igniterealtime.xiff.events.RegistrationFieldsEvent;
+			import org.igniterealtime.xiff.events.RegistrationSuccessEvent;
+			import org.igniterealtime.xiff.events.RoomEvent;
+			import org.igniterealtime.xiff.events.XIFFErrorEvent;
+			import org.igniterealtime.xiff.exception.SerializationException;
+			import org.igniterealtime.xiff.util.SHA1;
+			import org.openscales.proj4as.Datum;
+			import org.openscales.proj4as.Proj4as;
+			import org.openscales.proj4as.ProjConstants;
+			import org.openscales.proj4as.ProjPoint;
+			import org.openscales.proj4as.ProjProjection;
+			import org.openscales.proj4as.proj.AbstractProjProjection;
+			import org.openscales.proj4as.proj.ProjAea;
+			import org.openscales.proj4as.proj.ProjAeqd;
+			import org.openscales.proj4as.proj.ProjEqc;
+			import org.openscales.proj4as.proj.ProjEqdc;
+			import org.openscales.proj4as.proj.ProjEqui;
+			import org.openscales.proj4as.proj.ProjGauss;
+			import org.openscales.proj4as.proj.ProjGstmerc;
+			import org.openscales.proj4as.proj.ProjLaea;
+			import org.openscales.proj4as.proj.ProjLcc;
+			import org.openscales.proj4as.proj.ProjLonglat;
+			import org.openscales.proj4as.proj.ProjMerc;
+			import org.openscales.proj4as.proj.ProjMill;
+			import org.openscales.proj4as.proj.ProjMoll;
+			import org.openscales.proj4as.proj.ProjNzmg;
+			import org.openscales.proj4as.proj.ProjOmerc;
+			import org.openscales.proj4as.proj.ProjOrtho;
+			import org.openscales.proj4as.proj.ProjParams;
+			import org.openscales.proj4as.proj.ProjSinu;
+			import org.openscales.proj4as.proj.ProjSoMerc;
+			import org.openscales.proj4as.proj.ProjStere;
+			import org.openscales.proj4as.proj.ProjSterea;
+			import org.openscales.proj4as.proj.ProjTmerc;
+			import org.openscales.proj4as.proj.ProjUtm;
+			import org.openscales.proj4as.proj.ProjVandg;
+			import org.vanrijkom.dbf.DbfError;
+			import org.vanrijkom.dbf.DbfField;
+			import org.vanrijkom.dbf.DbfFilter;
+			import org.vanrijkom.dbf.DbfHeader;
+			import org.vanrijkom.dbf.DbfRecord;
+			import org.vanrijkom.dbf.DbfTools;
+			import org.vanrijkom.far.FarEvent;
+			import org.vanrijkom.far.FarItem;
+			import org.vanrijkom.far.FarStream;
+			import org.vanrijkom.shp.ShpError;
+			import org.vanrijkom.shp.ShpHeader;
+			import org.vanrijkom.shp.ShpObject;
+			import org.vanrijkom.shp.ShpPoint;
+			import org.vanrijkom.shp.ShpPointZ;
+			import org.vanrijkom.shp.ShpPolygon;
+			import org.vanrijkom.shp.ShpPolyline;
+			import org.vanrijkom.shp.ShpRecord;
+			import org.vanrijkom.shp.ShpTools;
+			import org.vanrijkom.shp.ShpType;
+			
+			import ru.etcs.utils.FontLoader;
+			
 			import weave.Weave;
+			import weave.WeaveProperties;
+			import weave.WeaveProperties_WeaveVersion;
 			import weave.api.WeaveAPI;
+			import weave.api.WeaveArchive;
 			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ICallbackCollection;
+			import weave.api.core.IChildListCallbackInterface;
+			import weave.api.core.IDisposableObject;
+			import weave.api.core.IErrorManager;
+			import weave.api.core.IExternalSessionStateInterface;
+			import weave.api.core.ILinkableCompositeObject;
+			import weave.api.core.ILinkableDisplayObject;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.core.ILinkableObjectWithBusyStatus;
+			import weave.api.core.ILinkableVariable;
+			import weave.api.core.ILocaleManager;
+			import weave.api.core.IProgressIndicator;
+			import weave.api.core.ISessionManager;
+			import weave.api.core.IStageUtils;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataTypes;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IAttributeColumnCache;
+			import weave.api.data.IAttributeHierarchy;
+			import weave.api.data.IBinClassifier;
+			import weave.api.data.IBinningDefinition;
+			import weave.api.data.ICSVExportable;
+			import weave.api.data.ICSVParser;
+			import weave.api.data.IColumnReference;
+			import weave.api.data.IColumnStatistics;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.data.IDataRowSource;
+			import weave.api.data.IDataSource;
+			import weave.api.data.IDynamicKeyFilter;
+			import weave.api.data.IFilteredKeySet;
+			import weave.api.data.IKeyFilter;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IPrimitiveColumn;
+			import weave.api.data.IProjectionManager;
+			import weave.api.data.IProjector;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.data.IQualifiedKeyManager;
+			import weave.api.data.ISimpleGeometry;
+			import weave.api.data.IStatisticsCache;
+			import weave.api.graphs.IGraphAlgorithm;
+			import weave.api.graphs.IGraphNode;
+			import weave.api.primitives.IBounds2D;
+			import weave.api.primitives.IMatrix;
+			import weave.api.radviz.ILayoutAlgorithm;
+			import weave.api.services.IAsyncService;
+			import weave.api.services.IURLRequestToken;
+			import weave.api.services.IURLRequestUtils;
+			import weave.api.services.IWMSService;
+			import weave.api.services.IWeaveGeometryTileService;
+			import weave.api.ui.ICollabCursorManager;
+			import weave.api.ui.IFillStyle;
+			import weave.api.ui.ILineStyle;
+			import weave.api.ui.ILinkableContainer;
+			import weave.api.ui.ILinkableLayoutManager;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.IPlotTask;
+			import weave.api.ui.IPlotter;
+			import weave.api.ui.IPlotterWithGeometries;
+			import weave.api.ui.IProbeDisplay;
+			import weave.api.ui.ISpatialIndex;
+			import weave.api.ui.ITextPlotter;
+			import weave.api.ui.IVisTool;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.compiler.CompiledConstant;
+			import weave.compiler.CompiledFunctionCall;
+			import weave.compiler.Compiler;
+			import weave.compiler.GlobalLib;
+			import weave.compiler.ICompiledObject;
+			import weave.compiler.ProxyObject;
+			import weave.compiler.StandardLib;
+			import weave.core.CallbackCollection;
+			import weave.core.CallbackJuggler;
+			import weave.core.ChildListCallbackInterface;
+			import weave.core.ClassUtils;
+			import weave.core.DynamicState;
 			import weave.core.ErrorManager;
+			import weave.core.ExternalSessionStateInterface;
+			import weave.core.GlobalObjectReference;
+			import weave.core.LibraryUtils;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableDisplayObject;
+			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableProxyObject;
+			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
+			import weave.core.LinkableWrapper;
+			import weave.core.LinkableXML;
+			import weave.core.LocaleManager;
+			import weave.core.ProgressIndicator;
+			import weave.core.SessionManager;
+			import weave.core.SessionStateLog;
+			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.core.UntypedLinkableVariable;
+			import weave.core.WeaveXMLDecoder;
+			import weave.core.WeaveXMLEncoder;
+			import weave.data.AttributeColumnCache;
+			import weave.data.CSVParser;
+			import weave.data.ProjectionManager;
+			import weave.data.ProjectionManager_ProjDatabase;
+			import weave.data.QKeyManager;
+			import weave.data.StatisticsCache;
+			import weave.data.AttributeColumns.AbstractAttributeColumn;
+			import weave.data.AttributeColumns.AggregatedColumn;
+			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.BinnedColumn;
+			import weave.data.AttributeColumns.CSVColumn;
+			import weave.data.AttributeColumns.ColorColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.EquationColumn;
+			import weave.data.AttributeColumns.ExtendedDynamicColumn;
+			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.data.AttributeColumns.GeometryColumn;
+			import weave.data.AttributeColumns.ImageColumn;
+			import weave.data.AttributeColumns.ImageColumn__missingImageClass;
+			import weave.data.AttributeColumns.KeyColumn;
+			import weave.data.AttributeColumns.NormalizedColumn;
+			import weave.data.AttributeColumns.NumberColumn;
+			import weave.data.AttributeColumns.ProxyColumn;
+			import weave.data.AttributeColumns.ReferencedColumn;
+			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+			import weave.data.AttributeColumns.SortedColumn;
+			import weave.data.AttributeColumns.SortedIndexColumn;
+			import weave.data.AttributeColumns.StreamedGeometryColumn;
+			import weave.data.AttributeColumns.StringColumn;
+			import weave.data.AttributeColumns.StringLookup;
+			import weave.data.AttributeColumns.StringLookupColumn;
+			import weave.data.AttributeColumns.WordCountColumn;
+			import weave.data.BinClassifiers.BinClassifierCollection;
+			import weave.data.BinClassifiers.NumberClassifier;
+			import weave.data.BinClassifiers.SingleValueClassifier;
+			import weave.data.BinClassifiers.StringClassifier;
+			import weave.data.BinningDefinitions.AbstractBinningDefinition;
+			import weave.data.BinningDefinitions.CategoryBinningDefinition;
+			import weave.data.BinningDefinitions.CustomSplitBinningDefinition;
+			import weave.data.BinningDefinitions.DynamicBinningDefinition;
+			import weave.data.BinningDefinitions.EqualIntervalBinningDefinition;
+			import weave.data.BinningDefinitions.ExplicitBinningDefinition;
+			import weave.data.BinningDefinitions.QuantileBinningDefinition;
+			import weave.data.BinningDefinitions.SimpleBinningDefinition;
+			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
+			import weave.data.ColumnReferences.AbstractColumnReference;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.data.DataSources.AbstractDataSource;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.DBFDataSource;
+			import weave.data.DataSources.MultiDataSource;
+			import weave.data.DataSources.WFSDataSource;
+			import weave.data.DataSources.WeaveDataSource;
+			import weave.data.DataSources.XLSDataSource;
+			import weave.data.KeySets.DynamicKeyFilter;
+			import weave.data.KeySets.DynamicKeySet;
+			import weave.data.KeySets.FilteredKeySet;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.KeySetUnion;
+			import weave.data.KeySets.NumericDataFilter;
+			import weave.data.KeySets.SortedKeySet;
+			import weave.data.KeySets.StringDataFilter;
+			import weave.editor.MobileSessionHistorySlider;
+			import weave.graphs.AbstractGraphAlgorithm;
+			import weave.graphs.DynamicGraphAlgorithm;
+			import weave.graphs.ForceDirectedLayout;
+			import weave.graphs.GraphEdge;
+			import weave.graphs.GraphNode;
+			import weave.graphs.GridForceDirectedLayout;
+			import weave.graphs.KamadaKawaiLayout;
+			import weave.graphs.LargeGraphLayout;
+			import weave.primitives.AttributeHierarchy;
+			import weave.primitives.BLGNode;
+			import weave.primitives.BLGTree;
+			import weave.primitives.Bounds2D;
+			import weave.primitives.Bounds2DIndex;
+			import weave.primitives.ColorRamp;
+			import weave.primitives.ColorRamp_ColorRampPresetsXML;
+			import weave.primitives.GeneralizedGeometry;
+			import weave.primitives.Geometry;
+			import weave.primitives.ImageFactory;
+			import weave.primitives.KDNode;
+			import weave.primitives.KDTree;
+			import weave.primitives.LinkableBounds2D;
+			import weave.primitives.LinkableNumberFormatter;
+			import weave.primitives.LooseAxisDescription;
+			import weave.primitives.Range;
+			import weave.primitives.SimpleGeometry;
+			import weave.primitives.VertexChainLink;
+			import weave.primitives.WeaveMatrix;
+			import weave.primitives.ZoomBounds;
+			import weave.radviz.AbstractLayoutAlgorithm;
+			import weave.radviz.BruteForceLayoutAlgorithm;
+			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
+			import weave.radviz.ClassInfoObject;
+			import weave.radviz.GreedyLayoutAlgorithm;
+			import weave.radviz.IncrementalLayoutAlgorithm;
+			import weave.radviz.MatrixEntry;
+			import weave.radviz.NearestNeighborLayoutAlgorithm;
+			import weave.radviz.RandomLayoutAlgorithm;
+			import weave.services.AMF3Servlet;
+			import weave.services.AsyncInvocationQueue;
+			import weave.services.AsyncServiceQueue;
+			import weave.services.DelayedAsyncInvocation;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.LocalAsyncService;
+			import weave.services.Servlet;
+			import weave.services.URLRequestUtils;
+			import weave.services.WFSServlet;
+			import weave.services.WeaveDataServlet;
+			import weave.services.WeavePDBServlet;
+			import weave.services.WeaveRServlet;
+			import weave.services.WebServiceWrapper;
+			import weave.services.beans.DensityBasedClusteringResult;
+			import weave.services.beans.GeometryStreamMetadata;
+			import weave.services.beans.HierarchicalClusteringResult;
+			import weave.services.beans.KMeansClusteringResult;
+			import weave.services.beans.LinearRegressionResult;
+			import weave.services.beans.RResult;
+			import weave.services.collaboration.CollaborationEvent;
+			import weave.services.collaboration.CollaborationService;
+			import weave.services.jquery.JQueryCaller;
+			import weave.services.jquery.JQueryCaller_JQ;
+			import weave.services.jquery.JQueryCaller_JQCaller;
+			import weave.services.wms.AbstractWMS;
+			import weave.services.wms.CustomWMS;
+			import weave.services.wms.ModestMapsWMS;
+			import weave.services.wms.OnEarthProvider;
+			import weave.services.wms.OnEarthProvider__tileRequestClass;
+			import weave.services.wms.OpenMapQuestAerialProvider;
+			import weave.services.wms.OpenMapQuestProvider;
+			import weave.services.wms.StamenProvider;
+			import weave.services.wms.WMSProviders;
+			import weave.services.wms.WMSTile;
+			import weave.services.wms.WMSTileIndex;
+			import weave.ui.BasicLinkableLayoutManager;
+			import weave.ui.BusyIndicator;
+			import weave.ui.Console;
+			import weave.ui.CustomContextMenuManager;
+			import weave.ui.PenTool;
+			import weave.ui.PenTool_penCursor;
 			import weave.ui.WeavePodLayoutManager;
 			import weave.ui.WeaveProgressBar;
+			import weave.utils.AsyncSort;
+			import weave.utils.BLGTreeUtils;
+			import weave.utils.BitmapText;
+			import weave.utils.BitmapUtils;
+			import weave.utils.CSSUtils;
+			import weave.utils.ColumnUtils;
+			import weave.utils.ComputationalGeometryUtils;
+			import weave.utils.CustomCursorManager;
+			import weave.utils.DebugTimer;
+			import weave.utils.DebugUtils;
+			import weave.utils.Dictionary2D;
+			import weave.utils.DrawUtils;
+			import weave.utils.EditorManager;
+			import weave.utils.EquationColumnLib;
+			import weave.utils.EventUtils;
+			import weave.utils.GeometryStreamDecoder;
+			import weave.utils.HierarchyUtils;
+			import weave.utils.LegendUtils;
+			import weave.utils.LinkableTextFormat;
+			import weave.utils.NumberUtils;
+			import weave.utils.ObjectPool;
+			import weave.utils.OrderedHashMap;
+			import weave.utils.PlotUtils;
+			import weave.utils.PlotterUtils;
+			import weave.utils.ProbeTextUtils;
+			import weave.utils.RadVizUtils;
+			import weave.utils.RadialAxis;
+			import weave.utils.ResultUtils;
+			import weave.utils.ShpFileReader;
+			import weave.utils.SparkUtils;
+			import weave.utils.SpatialIndex;
+			import weave.utils.TickMarkUtils;
+			import weave.utils.VectorUtils;
+			import weave.utils.VisToolGroup;
+			import weave.utils.WeakReference;
+			import weave.utils.WordProcessingUtils;
+			import weave.utils.ZoomUtils;
 			import weave.visualization.layers.InteractionController;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.layers.InteractiveVisualization_handCursor;
+			import weave.visualization.layers.InteractiveVisualization_handGrabCursor;
+			import weave.visualization.layers.InteractiveVisualization_linkCursor;
+			import weave.visualization.layers.InteractiveVisualization_selectAddCursor;
+			import weave.visualization.layers.InteractiveVisualization_selectReplaceCursor;
+			import weave.visualization.layers.InteractiveVisualization_selectSubtractCursor;
+			import weave.visualization.layers.InteractiveVisualization_zoomCursor;
+			import weave.visualization.layers.LayerSettings;
+			import weave.visualization.layers.LinkableEventListener;
+			import weave.visualization.layers.PlotManager;
+			import weave.visualization.layers.PlotTask;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
+			import weave.visualization.layers.Visualization;
+			import weave.visualization.layers.filters.LinkableDropShadowFilter;
+			import weave.visualization.layers.filters.LinkableGlowFilter;
+			import weave.visualization.plotters.AbstractGlyphPlotter;
+			import weave.visualization.plotters.AbstractPlotter;
+			import weave.visualization.plotters.AnchorPlotter;
+			import weave.visualization.plotters.AnchorPoint;
+			import weave.visualization.plotters.AxisLabelPlotter;
+			import weave.visualization.plotters.AxisPlotter;
+			import weave.visualization.plotters.BarChartLegendPlotter;
+			import weave.visualization.plotters.BoundsPlotter;
+			import weave.visualization.plotters.CircleGlyphPlotter;
+			import weave.visualization.plotters.CirclePlotter;
+			import weave.visualization.plotters.ColorBinLegendPlotter;
+			import weave.visualization.plotters.CompoundBarChartPlotter;
+			import weave.visualization.plotters.CompoundRadVizPlotter;
+			import weave.visualization.plotters.GaugePlotter;
+			import weave.visualization.plotters.GeometryLabelPlotter;
+			import weave.visualization.plotters.GeometryPlotter;
+			import weave.visualization.plotters.GeometryPlotter__missingImageClass;
+			import weave.visualization.plotters.GraphLabelPlotter;
+			import weave.visualization.plotters.GraphPlotter;
+			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.plotters.Histogram2DPlotter;
+			import weave.visualization.plotters.HistogramPlotter;
+			import weave.visualization.plotters.ImageGlyphPlotter;
+			import weave.visualization.plotters.ImageGlyphPlotter__missingImageClass;
+			import weave.visualization.plotters.LinePlotter;
+			import weave.visualization.plotters.MeterPlotter;
+			import weave.visualization.plotters.ParallelCoordinatesPlotter;
+			import weave.visualization.plotters.PieChartHistogramPlotter;
+			import weave.visualization.plotters.PieChartPlotter;
+			import weave.visualization.plotters.ProbeLinePlotter;
+			import weave.visualization.plotters.RadVizPlotter;
+			import weave.visualization.plotters.RamachandranBackgroundPlotter;
+			import weave.visualization.plotters.RamachandranBackgroundPlotter__missingImageClass;
+			import weave.visualization.plotters.RectanglePlotter;
+			import weave.visualization.plotters.RegressionLinePlotter;
+			import weave.visualization.plotters.ScatterPlotPlotter;
+			import weave.visualization.plotters.SimpleAxisPlotter;
+			import weave.visualization.plotters.SimpleGlyphPlotter;
+			import weave.visualization.plotters.SingleImagePlotter;
+			import weave.visualization.plotters.SingleImagePlotter_defaultImageSource;
+			import weave.visualization.plotters.SizeBinLegendPlotter;
+			import weave.visualization.plotters.StickFigureGlyphPlotter;
+			import weave.visualization.plotters.TextGlyphPlotter;
+			import weave.visualization.plotters.ThermometerPlotter;
+			import weave.visualization.plotters.WMSPlotter;
+			import weave.visualization.plotters.WMSPlotter__missingImageClass;
+			import weave.visualization.plotters.WeaveWordlePlotter;
+			import weave.visualization.plotters.WedgePlotter;
+			import weave.visualization.plotters.styles.DynamicFillStyle;
+			import weave.visualization.plotters.styles.DynamicLineStyle;
+			import weave.visualization.plotters.styles.ExtendedFillStyle;
+			import weave.visualization.plotters.styles.ExtendedLineStyle;
+			import weave.visualization.plotters.styles.SolidFillStyle;
+			import weave.visualization.plotters.styles.SolidLineStyle;
+			
+			
+			private function text():void{
+				var funct:Function = weaveTraceImpl;
+				ILinkableObject;
+				ICallbackCollection;
+				IKeyFilter;
+				IKeySet;
+				IAttributeColumn;
+				ZipError;
+				//	import weave.api.juggleGroupedCallback; juggleGroupedCallback;
+				IColumnWrapper;
+				ICollabCursorManager;
+				DataTypes;
+				 
+				//	import weave.api.unlinkSessionState; unlinkSessionState;
+				ILinkableCompositeObject;
+				//import weave.api.getLinkableDescendants; getLinkableDescendants;
+				Deflater;
+				IColumnReference;
+				IChildListCallbackInterface;
+				IBinningDefinition;
+				//import weave.api.getCallbackCollection; getCallbackCollection;
+				ICSVParser;
+				IWMSService;
+				IBounds2D;
+				//import weave.api.getLinkableOwner; getLinkableOwner;
+				OrderedHashMap;
+				IMatrix;
+				IQualifiedKey;
+				IAsyncService;
+				//import weave.api.reportError; reportError;
+				CRC32;
+				DescribeType;
+				ILinkableHashMap;
+				IQualifiedKeyManager;
+				//import weave.api.newDisposableChild; newDisposableChild;
+				ILineStyle;
+				//import weave.api.copySessionState; copySessionState;
+				IErrorManager;
+				WeaveArchive;
+				ICSVExportable;
+				IProjectionManager;
+				IStatisticsCache;
+				//import weave.api.objectWasDisposed; objectWasDisposed;
+				IProgressIndicator;
+				ILocaleManager;
+				//import weave.api.detectLinkableObjectChange; detectLinkableObjectChange;
+				IVisTool;
+				IPrimitiveColumn;
+				ILayoutAlgorithm;
+				//import weave.api.linkBindableProperty; linkBindableProperty;
+				//import weave.api.disposeObjects; disposeObjects;
+				ZipOutput;
+				//IWeaveDataService;
+				ISpatialIndex;
+				//import weave.api.getSessionState; getSessionState;
+				ZipFile;
+				ILinkableDynamicObject;
+				IDynamicKeyFilter;
+				IProjector;
+				IURLRequestToken;
+				ISimpleGeometry;
+				IAttributeColumnCache;
+				ILinkableLayoutManager;
+				//import weave.api.registerDisposableChild; registerDisposableChild;
+				IAttributeHierarchy;
+				IURLRequestUtils;
+				IGraphAlgorithm;
+				IPlotter;
+				IPlotterWithGeometries;
+				//import weave.api.juggleImmediateCallback; juggleImmediateCallback;
+				ColumnMetadata;
+				WeaveAPI;
+				//import lang; lang;
+				IProbeDisplay;
+				//import weave.api.setSessionState; setSessionState;
+				//import weave.api.linkableObjectIsBusy; linkableObjectIsBusy;
+				ILinkableObjectWithBusyStatus;
+				Inflater;
+				IStageUtils;
+				ITextPlotter;
+				IExternalSessionStateInterface;
+				ZipEntry;
+				//import nochump.util.zip.ZipConstants; ZipConstants;
+				IBinClassifier;
+				IDisposableObject;
+				ISessionManager;
+				IColumnStatistics;
+				//import weave.api.registerLinkableChild; registerLinkableChild;
+				//import weave.api.linkSessionState; linkSessionState;
+				IFilteredKeySet;
+				//import weave.api.getLinkableRoot; getLinkableRoot;
+				IWeaveGeometryTileService;
+				IDataSource;
+				IDataRowSource;
+				//import weave.api.unlinkBindableProperty; unlinkBindableProperty;
+				IGraphNode;
+				ILinkableContainer;
+				ILinkableDisplayObject;
+				IPlotTask;
+				IFillStyle;
+				ILinkableObjectEditor;
+				IVisToolWithSelectableAttributes;
+				ILinkableVariable;
+				ClassUtils;
+				//import debugId; debugId;
+				CallbackCollection;
+				LinkableVariable;
+				ICompiledObject;
+				LocaleManager;
+				SessionStateLog;
+				LibraryUtils;
+				_InitializeWeaveCore;
+				LinkableWrapper;
+				GlobalLib;
+				//import debugLookup; debugLookup;
+				DebugTimer;
+				LinkableDisplayObject;
+				StandardLib;
+				LinkableXML;
+				LinkableBoolean;
+				//import weaveTrace; weaveTrace;
+				AsyncSort;
+				//import debugTrace; debugTrace;
+				DebugUtils;
+				CallbackJuggler;
+				CompiledConstant;
+				Dictionary2D;
+				WeaveXMLEncoder;
+				StageUtils;
+				GlobalObjectReference;
+				ProxyObject;
+				DynamicState;
+				LinkableString;
+				LinkableHashMap;
+				LinkableProxyObject;
+				LinkableFunction;
+				ChildListCallbackInterface;
+				UntypedLinkableVariable;
+				ProgressIndicator;
+				UIUtils;
+				SessionManager;
+				LinkableDynamicObject;
+				WeakReference;
+				LinkableNumber;
+				CompiledFunctionCall;
+				ExternalSessionStateInterface;
+				ErrorManager;
+				Compiler;
+				WeaveXMLDecoder;
+				ChangePasswordSuccessEvent;
+				AbstractBinningDefinition;
+				SimpleBinningDefinition;
+				_InitializeWeaveData;
+				ExtensionClassRegistry;
+				AbstractGraphAlgorithm;
+				KamadaKawaiLayout;
+				//import weave.utils.debug_trace; debug_trace;
+				DynamicColumn;
+				ArrayCollection;
+				IExtension;
+				INodeProxy;
+				IExtendable;
+				ExtensionContainer;
+				XMLStanza;
+				Extension;
+				ISerializable;
+				MUCBaseExtension;
+				MUCAdminExtension;
+				AbstractLayoutAlgorithm;
+				RandomLayoutAlgorithm;
+				SASLAuth;
+				AbstractWMS;
+				IMapProvider;
+				AbstractMapProvider;
+				YahooOverlayMapProvider;
+				IHash;
+				AbstractJID;
+				UnescapedJID;
+				ProjParams;
+				//import org.openscales.proj4as.proj.IProjection; IProjection;
+				AbstractProjProjection;
+				NumericDataFilter;
+				MatrixEntry;
+				XHTMLExtension;
+				CDFReader;
+				AbstractAttributeColumn;
+				StreamedGeometryColumn;
+				DbfHeader;
+				ColorRamp;
+				XMPPStanza;
+				Message;
+				WMSTileIndex;
+				ShpHeader;
+				JQueryCaller_JQCaller;
+				ProjOmerc;
+				ClassDiscriminationLayoutAlgorithm;
+				IProjection;
+				OpenStreetMapProvider;
+				EquationColumnLib;
+				MUCUserExtension;
+				CollectionEvent;
+				BruteForceLayoutAlgorithm;
+				KMeansClusteringResult;
+				DelayedAsyncResponder;
+				BIFFReader;
+				ProjPoint;
+				GeneralizedGeometry;
+				ProjAea;
+				PresenceEvent;
+				Geometry;
+				IIDGenerator;
+				DensityBasedClusteringResult;
+				BinClassifierCollection;
+				ExplicitBinningDefinition;
+				ExtendedDynamicColumn;
+				ColorColumn;
+				DelayedAsyncInvocation;
+				ZoomBounds;
+				Contact;
+				RosterItemVO;
+				KDNode;
+				SHA1;
+				LargeGraphLayout;
+				KeySetUnion;
+				ProxyColumn;
+				RosterExtension;
+				DynamicBinningDefinition;
+				SortedKeySet;
+				ConnectionSuccessEvent;
+				CollaborationService;
+				ProjEqdc;
+				SingleValueClassifier;
+				ShpError;
+			//	ImageLoaderUtils;
+				PropertyChangeEvent;
+				NumberUtils;
+				SimpleGeometry;
+				ShpObject;
+				ShpPoint;
+				AbstractDataSource;
+				DBFDataSource;
+				NumberClassifier;
+				ProjNzmg;
+				Formatter;
+				DynamicGraphAlgorithm;
+				DynamicKeyFilter;
+				CategoryBinningDefinition;
+				FarEvent;
+				ShpTools;
+				Servlet;
+				WFSServlet;
+				ShpType;
+				IncomingDataEvent;
+				WeaveRServlet;
+				ReprojectedGeometryColumn;
+				ProjLaea;
+				HierarchyUtils;
+				CustomSplitBinningDefinition;
+				MicrosoftProvider;
+				Record;
+				RoomEvent;
+				FormExtension;
+				GraphNode;
+				OutgoingDataEvent;
+				BLGTree;
+				LinkableNumberFormatter;
+				LooseAxisDescription;
+				MUCStatus;
+				Tokens;
+				SerializationException;
+				DbfFilter;
+				WordCountColumn;
+				ExcelFile;
+				StringClassifier;
+				Bounds2D;
+				IncrementalGenerator;
+				Plain;
+				MessageEvent;
+				AbstractProjection;
+				CollaborationEvent;
+				WordProcessingUtils;
+				VertexChainLink;
+				LinearRegressionResult;
+				EscapedJID;
+				ProjectionManager_ProjDatabase;
+				Directory;
+				AggregatedColumn;
+				JQueryCaller_JQ;
+				GeometryStreamMetadata;
+				AsyncInvocationQueue;
+				WebServiceWrapper;
+				StamenProvider;
+				RoomOccupant;
+				ProjProjection;
+				YahooRoadMapProvider;
+				ProjEqui;
+				Coordinate;
+				SortedIndexColumn;
+				Datum;
+				WeaveMatrix;
+				StringColumn;
+				FormField;
+				MultiDataSource;
+				CollectionEventKind;
+				AuthExtension;
+				EquationColumn;
+				CustomWMS;
+				XLSDataSource;
+				ProjSinu;
+				KeyColumn;
+				ProjAeqd;
+				ProjectionManager;
+				Range;
+				ProjMill;
+				RadVizUtils;
+				ProjTmerc;
+				CSVDataSource;
+				ProjMoll;
+				Location;
+				Anonymous;
+				AlwaysDefinedColumn;
+				//AttributeColumnDataWithKeys;
+				RResult;
+				MUCExtension;
+				IQEvent;
+				ProjLonglat;
+				OpenMapQuestAerialProvider;
+				AbstractColumnReference;
+				BindExtension;
+				MUCItem;
+				WeaveDataSource;
+			//	ImageLoaderUtilsEvent;
+				MUCOwnerExtension;
+				Room;
+				NormalizedColumn;
+				ProjGauss;
+				ProjSterea;
+				GeometryColumn;
+				DbfRecord;
+				ZoomUtils;
+				XMPPConnection;
+				MUC;
+				GreedyLayoutAlgorithm;
+				ReferencedColumn;
+				IQ;
+				DigestMD5;
+				FilteredKeySet;
+				KeyFilter;
+				ProjConstants;
+			//	DataServiceMetadata;
+				QKeyManager;
+				Type;
+				OnEarthProvider;
+				OpenMapQuestProvider;
+				SecondaryKeyNumColumn;
+				NumberColumn;
+			//	DataTableMetadata;
+				Base64;
+				Bounds2DIndex;
+				ShpPolygon;
+				Transformation;
+				External;
+				BIFFVersion;
+				RegistrationFieldsEvent;
+				ShpPolyline;
+				URLRequestUtils;
+				XFormat;
+				RegisterExtension;
+				AttributeColumnCache;
+				YahooHybridMapProvider;
+				ShpPointZ;
+				ImageColumn__missingImageClass;
+				LocalAsyncService;
+				IncrementalLayoutAlgorithm;
+				GridForceDirectedLayout;
+				WMSProviders;
+				ProjVandg;
+				StatisticsCache;
+				ProjGstmerc;
+				Sheet;
+				WMSTile;
+				MD5;
+				WeaveDataServlet;
+				SessionExtension;
+				EqualIntervalBinningDefinition;
+				DisconnectionEvent;
+				Proj4as;
+				GeometryStreamDecoder;
+				NearestNeighborLayoutAlgorithm;
+				BinaryUtil;
+				Cell;
+				KeySet;
+				BLGTreeUtils;
+				ImageFactory;
+				ComputationalGeometryUtils;
+				WFSDataSource;
+				//	import weave.data.ColumnReferences.UntypedColumnReference; UntypedColumnReference;
+				AsyncServiceQueue;
+				BLGNode;
+				//WeaveReport;
+				ProjMerc;
+				AMF3Servlet;
+				ForceDirectedLayout;
+				HierarchyColumnReference;
+				EventUtils;
+				ModestMapsWMS;
+				DbfField;
+				StringLookup;
+				ProjEqc;
+				ShpFileReader;
+				ProjOrtho;
+				ObjectPool;
+				XIFFErrorEvent;
+				Hex;
+				FarStream;
+				BlueMarbleMapProvider;
+				GraphEdge;
+				ColorRamp_ColorRampPresetsXML;
+				SortedColumn;
+				VectorUtils;
+				DbfTools;
+				BinnedColumn;
+				Formula;
+				HierarchicalClusteringResult;
+				FilteredColumn;
+				ProjStere;
+				ShpRecord;
+				LoginEvent;
+				YahooAerialMapProvider;
+				RosterItem;
+				ClassInfoObject;
+				ProjSoMerc;
+				KDTree;
+				FarItem;
+				BIFFWriter;
+				PingExtension;
+				WeavePDBServlet;
+				CSVParser;
+				JQueryCaller;
+				CSSUtils;
+				MercatorProjection;
+				ColumnUtils;
+				Presence;
+				ProjLcc;
+				ImageColumn;
+				DbfError;
+				RegistrationSuccessEvent;
+				Functions;
+				StringDataFilter;
+				CSVColumn;
+				DynamicKeySet;
+				QuantileBinningDefinition;
+				AttributeHierarchy;
+				StringLookupColumn;
+				LinkableBounds2D;
+				ProjUtm;
+				OnEarthProvider__tileRequestClass;
+				StandardDeviationBinningDefinition;
+				CustomSkinnableContainer;
+				AbstractPlotter;
+				AbstractGlyphPlotter;
+				SimpleGlyphPlotter;
+				_InitializeWeaveUISpark;
+				_com_adobe_devnet_skins_CustomSkinnableContainerWatcherSetupUtil;
+				VisToolGroup;
+				CustomRightButtonSkin__embed_mxml__com_adobe_devnet_assets_right_arrow_over_gif_1450760284;
+				CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_restore_over_png_456371482;
+				AnchorPlotter;
+				CircleGlyphPlotter;
+				WMSPlotter__missingImageClass;
+				CompoundBarChartPlotter;
+				BusyIndicator;
+				CustomContextMenuManager;
+				LinkableDropShadowFilter;
+				InteractionController;
+				MeterPlotter;
+				GaugePlotter;
+				PodStateChangeEvent;
+				CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_restore_up_png_580757012;
+				InteractiveVisualization_selectSubtractCursor;
+				RadialAxis;
+				//import weave.ui.CustomSparkComponents.CustomTabBarNavigator; CustomTabBarNavigator;
+				//import weave.ui.CustomTabNavigator; CustomTabNavigator;
+				CustomRightButtonSkin;
+				DragHighlight;
+				CustomMinimizeButtonSkin__embed_mxml__com_adobe_devnet_assets_minimize_up_png_569894326;
+				BoundsPlotter;
+				WeavePodLayoutManager;
+				LinePlotter;
+				RegressionLinePlotter;
+				WMSPlotter;
+				TextGlyphPlotter;
+				CustomMinimizeButtonSkin__embed_mxml__com_adobe_devnet_assets_minimize_over_png_1993001316;
+				LinkableTextFormat;
+				PieChartHistogramPlotter;
+				InteractiveVisualization_selectAddCursor;
+				Visualization;
+				ImageGlyphPlotter;
+				GridLinePlotter;
+				TickMarkUtils;
+				CustomCloseButtonSkin;
+				CustomLeftButtonSkin__embed_mxml__com_adobe_devnet_assets_left_arrow_over_gif_1308255180;
+				PlotTask;
+				BasicLinkableLayoutManager;
+				SimpleAxisPlotter;
+				LayerSettings;
+				ResultUtils;
+				SolidFillStyle;
+				ExtendedFillStyle;
+				AxisLabelPlotter;
+				CustomLeftButtonSkin__embed_mxml__com_adobe_devnet_assets_left_arrow_up_gif_1101722874;
+				EditorManager;
+				CustomMinimizeButtonSkin;
+				ImageGlyphPlotter__missingImageClass;
+				BitmapText;
+				InteractiveVisualization_handCursor;
+				LinkableEventListener;
+				CirclePlotter;
+				ParallelCoordinatesPlotter;
+				PlotUtils;
+				Weave;
+				CompoundRadVizPlotter;
+				CustomRightButtonSkin__embed_mxml__com_adobe_devnet_assets_right_arrow_disabled_gif_1297367644;
+				RamachandranBackgroundPlotter;
+				FontLoader;
+				InteractiveVisualization;
+				SingleImagePlotter;
+				BitmapUtils;
+				Pod;
+				LinkableGlowFilter;
+				InteractiveVisualization_zoomCursor;
+				CustomCloseButtonSkin__embed_mxml__com_adobe_devnet_assets_close_up_png_2111261400;
+				ColorBinLegendPlotter;
+				RadVizPlotter;
+				Histogram2DPlotter;
+				RectanglePlotter;
+				SimpleInteractiveVisualization;
+				SizeBinLegendPlotter;
+				DynamicFillStyle;
+				DrawUtils;
+				DynamicLineStyle;
+				SolidLineStyle;
+				ProbeLinePlotter;
+				SpatialIndex;
+				InteractiveVisualization_selectReplaceCursor;
+				GeometryPlotter;
+				GraphPlotter;
+				PenTool_penCursor;
+				CustomRightButtonSkin__embed_mxml__com_adobe_devnet_assets_right_arrow_up_gif_1590759522;
+				ExtendedLineStyle;
+				ThermometerPlotter;
+				PieChartPlotter;
+				AxisPlotter;
+				CustomMaximizeButtonSkin;
+				HistogramPlotter;
+				InteractiveVisualization_handGrabCursor;
+				RamachandranBackgroundPlotter__missingImageClass;
+				WeaveProperties_WeaveVersion;
+				PlotterUtils;
+				PodLayoutManager;
+				WedgePlotter;
+				CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_maximize_up_png_1518867850;
+				SingleImagePlotter_defaultImageSource;
+				CustomLeftButtonSkin__embed_mxml__com_adobe_devnet_assets_left_arrow_disabled_gif_533118268;
+				SparkUtils;
+				AnchorPoint;
+				InteractiveVisualization_linkCursor;
+				PlotManager;
+				CustomMaximizeButtonSkin__embed_mxml__com_adobe_devnet_assets_maximize_over_png_1591379768;
+				GraphLabelPlotter;
+				WeaveProperties;
+				StickFigureGlyphPlotter;
+				CustomCursorManager;
+				ProbeTextUtils;
+				DashedLine;
+				PenTool;
+				GeometryPlotter__missingImageClass;
+				CustomLeftButtonSkin;
+				ScatterPlotPlotter;
+				GeometryLabelPlotter;
+				LegendUtils;
+				BarChartLegendPlotter;
+				WeaveWordlePlotter;
+				
+				
+			}
+			
+			//
 			
 			// reference classes here so they get included in the app build
-			WeaveFonts;
+			[Embed(source="/weave/resources/fonts/SophiaNubian/SNR.ttf", fontName="Sophia Nubian", mimeType="application/x-font-truetype", embedAsCFF="false")]
+			private static const SophiaNubianFont:Class;
+			
+			
+			
+			
 			
 			public var main:WeavePodLayoutManager;
-			public var console:MobileConsole;
+			public var console:Console;
 			public var tileLayout:TileLayout;
 			public var alert:Boolean = false;
+			
+			
+			
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				var dp:* = Font.enumerateFonts(false).sortOn("fontName");
+			}
+			
+			
+			
+			private var btnSwitch:ToggleSwitch =new ToggleSwitch();
+			
+			
+			private var historyTool:MobileSessionHistorySlider = new MobileSessionHistorySlider();
+			
+			private function updateConsoleVisibility(e:Event):void{
+				console.visible = (e.currentTarget as ToggleSwitch).selected;
+			}
+			
+			
 			
 			private function init(event:Event):void
 			{
 				if (event.type != Event.ENTER_FRAME) // first frame
 				{
-					//layout = new VerticalLayout();
-					
 					this.addElement(main = new WeavePodLayoutManager());
-					this.addElement(console = new MobileConsole());
+					main.top =72;
+					
+					//36
+					this.addElement(console = new Console());
+					console.top = 72;
+					console.percentHeight = 50;
 					this.addElement(new WeaveProgressBar());
-					//this.setElementIndex(consoleButton, this.numElements - 1);
+					
+					historyTool.left = 0;
+					historyTool.top = 0;
+					historyTool.setTarget(Weave.history);
+					this.addElement(historyTool);
+					
+					btnSwitch.addEventListener(Event.CHANGE,updateConsoleVisibility);
+					btnSwitch.right = 0 ;
+					btnSwitch.bottom = 0;
+					this.addElement(btnSwitch);
+					
+					
+					
 					this.addEventListener(Event.RESIZE,stage_resizeHandler);
 					main.scale.value = 2;
 					
@@ -79,6 +1254,7 @@
 					{
 						na.addEventListener(InvokeEvent.INVOKE, handleInvoke);
 						na.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
+						
 					}
 					
 					addEventListener(Event.ENTER_FRAME, init);
@@ -90,14 +1266,8 @@
 					logo = null;
 				}
 				
-				// begin tile layout demo
-				/* tileLayout = new TileLayout();
-				this.addElement(main = new BasicLinkableLayoutManager());
-				tileLayout.orientation = TileOrientation.ROWS;
-				tileLayout.columnWidth = 220;
-				tileLayout.rowHeight = 220;
-				main.layout = tileLayout; */
-				// end tile layout demo
+				
+				
 			}
 			
 			private function handleError():void
@@ -106,7 +1276,7 @@
 				if (errors.length)
 				{
 					var error:Error = errors[errors.length - 1] as Error;
-					var str:String = ErrorManager.errorToString(error);
+					var str:String = ErrorManager.errorToString(error);					
 					if (alert)
 						SparkAlert.show(str, 'Error ('+errors.length+')');
 					else
@@ -128,18 +1298,25 @@
 			private function handleInvoke(event:InvokeEvent):void
 			{
 				console.visible = true;
+				btnSwitch.selected = true;
 				
 				//weaveTrace(ObjectUtil.toString(event));
 				if (event.arguments.length > 0)
 				{
 					load(event.arguments[0] as String);
 				}
-				else
+				else if(event.reason == InvokeEventReason.STANDARD)
 				{
+					
 					weaveTrace('No URL');
+					
 					demo();
 				}
+				
+				
 			}
+			
+			
 			
 			public function load(configURL:String):void
 			{
@@ -158,17 +1335,18 @@
 				try
 				{
 					Weave.loadWeaveFileContent(event.result as ByteArray);
-				
+					
 					// temporary hack to make sure gestures are enabled
 					Weave.properties.toolInteractions.pan.value = WeaveAPI.CSVParser.createCSV([[InteractionController.ALT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_PAN]]);
 					Weave.properties.toolInteractions.zoom.value = WeaveAPI.CSVParser.createCSV([[InteractionController.SHIFT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_WHEEL], [InteractionController.INPUT_ZOOM]]);
 					
 					weaveTrace(ObjectUtil.toString(WeaveAPI.globalHashMap.getNames()));
 					console.visible = false;
+					btnSwitch.selected = false;
 				}
 				catch (e:Error)
 				{
-					reportError(e);
+					reportError(e,"ConfigFileDownloaded");
 				}
 			}
 			private function handleConfigFileFault(event:FaultEvent, configURL:String = null):void
@@ -176,9 +1354,35 @@
 				if (this.configURL != configURL)
 					return;
 				
-				reportError(event);
+				reportError(event,"ConfigFileFault");
 				weaveTrace('Error loading URL, showing demo');
 				demo();
+			}
+			
+			
+			
+			
+			public function test_func(value:Object):void
+			{
+				weaveTrace('('+value+' ? true : false) evaluates to ' + (value ? true : false));
+				weaveTrace('A calling test_func2 with value='+(value?true:false));
+				test_func2(value?true:false);
+				
+				if(value) 
+					value = true;
+				else 
+					value = false;				
+				weaveTrace('B calling test_func2 with value after If Statement'+(value));
+				test_func2(value);
+				
+				value = (value?true:false);
+				weaveTrace('C calling test_func2 with value after replacing'+(value));
+				test_func2(value);
+				
+			}
+			public function test_func2(value:Object):void
+			{
+				weaveTrace('test_func2 called with value='+value);
 			}
 			
 			public var configURL:String;
@@ -189,9 +1393,14 @@
 				if (id == 1)
 					load('app:/demoRemote.weave');
 				if (id == 2)
-					load('http://demo.oicweave.org/obesity.weave');
+					load('app:/WeaveSP.weave');
 				if (id == 3)
+					load('app:/WeaveHT.weave');
+				if (id == 4)
+					load('http://demo.oicweave.org/obesity.weave');
+				if (id == 5)
 					load('http://demo.oicweave.org/reprojection-demo.weave');
+				
 			}
 			
 			private function handleKeyDown(event:KeyboardEvent):void
@@ -212,7 +1421,9 @@
 					case Keyboard.SEARCH:
 						// search doesn't support holding down for key repeat
 						console.visible = !console.visible
+						btnSwitch.visible = console.visible;
 						break;
+					
 				}
 			}
 			
@@ -227,7 +1438,7 @@
 				var redos:Array = Weave.history.redoHistory;
 				weaveTrace('Session History ' + undos.length + '/' + (undos.length + redos.length));
 			}
-
+			
 			hack_init();
 			private static function hack_init():void
 			{
@@ -254,10 +1465,10 @@
 					'ThermometerTool'
 				];
 				for each (var oldToolName:String in oldToolNames)
-					LinkableHashMap.registerDeprecatedClassReplacement(
-						'weave.visualization.tools::' + oldToolName,
-						getQualifiedClassName(SimpleInteractiveVisualization)
-					);
+				LinkableHashMap.registerDeprecatedClassReplacement(
+					'weave.visualization.tools::' + oldToolName,
+					getQualifiedClassName(SimpleInteractiveVisualization)
+				);
 			}
 		]]>
 	</fx:Script>

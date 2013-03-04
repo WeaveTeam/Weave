@@ -25,13 +25,13 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<s:TextInput id="input" width="100%" fontSize="18"
+	<s:TextInput id="input" width="100%" fontSize="18" 
 				 enter="runCommand()"
 				 softKeyboardActivate="percentHeight = 50;"
 				 softKeyboardDeactivate="percentHeight = 100;"
 				 keyDown="handleConsoleKeyDown(event)"
 				 />
-	<s:TextArea id="log" fontSize="18"
+	<s:TextArea id="log" fontSize="18" text="i am text area"
 				change="if (log.text.length > LOG_MAX_LENGTH) log.text = log.text.substr(-LOG_MAX_LENGTH);"
 				click="handleConsoleLogClick()"
 				mouseDown="handleConsoleLogClick()"
@@ -44,13 +44,12 @@
 			import mx.utils.StringUtil;
 			
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
+			import weave.api.core.ILinkableObject;
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.ProxyObject;
-			import weave.core.ErrorManager;
 			import weave.core.ExternalSessionStateInterface;
 			
 			private var LOG_MAX_LENGTH:int = 10000;
@@ -147,8 +146,8 @@
 			{
 				log.text += '\r\r' + args.join('\r');
 				log.validateNow();
-				log.scroller.verticalScrollBar.value = log.scroller.verticalScrollBar.maximum - log.height;
-				log.scroller.verticalScrollBar.validateNow();
+				//log.scroller.verticalScrollBar.value = log.scroller.verticalScrollBar.maximum - log.height;
+				//log.scroller.verticalScrollBar.validateNow();
 			}
 			private function consoleClear():String
 			{
@@ -238,8 +237,8 @@
 				// append result to log
 				log.text += '\r' + result;
 				log.validateNow();
-				log.scroller.verticalScrollBar.value = log.scroller.verticalScrollBar.maximum - log.height;
-				log.scroller.verticalScrollBar.validateNow();
+				//log.scroller.verticalScrollBar.value = log.scroller.verticalScrollBar.maximum - log.height;
+				//log.scroller.verticalScrollBar.validateNow();
 			}
 			private function handleConsoleLogClick():void
 			{

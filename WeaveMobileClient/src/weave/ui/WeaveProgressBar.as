@@ -21,6 +21,8 @@ package weave.ui
 {
 	import flash.events.Event;
 	
+	import mx.core.IVisualElementContainer;
+	
 	import spark.components.Label;
 	
 	import weave.api.WeaveAPI;
@@ -67,7 +69,14 @@ package weave.ui
 			if (parent && visible)
 			{
 				y = parent.height - height;
-				UIUtils.spark_setChildIndex(parent, this, parent.numChildren - 1);
+				var index:int;
+				if(parent is IVisualElementContainer){
+					index = (parent as IVisualElementContainer).numElements - 1;
+				}
+				else{
+					index = parent.numChildren-1;
+				}
+				UIUtils.spark_setChildIndex(parent, this,index );
 			}
 		}
 		
