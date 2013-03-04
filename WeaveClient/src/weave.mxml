@@ -19,15 +19,18 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Application
-		xmlns:mx="http://www.adobe.com/2006/mxml"
-		horizontalScrollPolicy="off"
-		verticalScrollPolicy="off"
-		paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
-		horizontalAlign="left" xmlns:application="weave.application.*"
+<s:Application
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"	
+		 xmlns:application="weave.application.*"
 		>
+	<s:layout>
+		<s:VerticalLayout paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0" horizontalAlign="left"/>
+	</s:layout>
 	<application:VisApp id="visApp"/>
-	<mx:Script>
+	
+	<fx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
 			
@@ -38,5 +41,5 @@
 			[Deprecated] public function get flashVars():Object { return visApp.flashVars; }
 			[Deprecated] public function printOrExportImage(component:UIComponent):void { visApp.printOrExportImage(component); }
 		]]>
-	</mx:Script>
-</mx:Application>
+	</fx:Script>
+</s:Application>
