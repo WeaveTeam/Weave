@@ -43,26 +43,10 @@
 			{
 				setStyle("borderColor", 0x999999);
 				setStyle("borderAlpha", 1);
-				setStyle("cornerRadius", 6);
+				//setStyle("cornerRadius", 6);
 				super.initializationComplete();
 			}
-           /*  override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number) : void
-            {
-                // Push backgroundColor and backgroundAlpha directly.
-                // Handle undefined backgroundColor by hiding the background object.
-                if (isNaN(getStyle("backgroundColor")))
-                {
-                    background.visible = false;
-                }
-                else
-                {
-                    background.visible = true;
-                    bgFill.color = getStyle("backgroundColor");
-                    bgFill.alpha = getStyle("backgroundAlpha");
-                }
-                
-                super.updateDisplayList(unscaledWidth, unscaledHeight);
-            } */
+          
 			
 			override protected function updateDisplayList(unscaledWidth:Number,
 														  unscaledHeight:Number):void
@@ -90,26 +74,7 @@
 					dropShadow.visible = getStyle("dropShadowVisible");
 				}
 				
-				var cr:Number = getStyle("cornerRadius");
-				/* var withControls:Boolean = (currentState == "disabledWithControlBar" 
-					|| currentState == "normalWithControlBar"); */
-				
-				if (cornerRadius != cr)
-				{
-					cornerRadius = cr;
-					if(dropShadow != null){
-						dropShadow.tlRadius = cornerRadius;
-						dropShadow.trRadius = cornerRadius;
-						/* dropShadow.blRadius = withControls ? cornerRadius : 0;
-						dropShadow.brRadius = withControls ? cornerRadius : 0; */
-					}
-					
-					/* setPartCornerRadii(topMaskRect, withControls); 
-					setPartCornerRadii(border, withControls); 
-					if(background != null){                
-						setPartCornerRadii(background, withControls);
-					} */
-				}
+			
 				
 				//if (bottomMaskRect) setPartCornerRadii(bottomMaskRect, withControls); 
 				borderStroke.color = getStyle("borderColor");
@@ -126,13 +91,13 @@
 			 */  
 			private function setPartCornerRadii(target:Rect, includeBottom:Boolean):void
 			{            
-				target.topLeftRadiusX = cornerRadius;
+				/*target.topLeftRadiusX = cornerRadius;
 				target.topRightRadiusX = cornerRadius;
 				target.bottomLeftRadiusX = includeBottom ? cornerRadius : 0;
-				target.bottomRightRadiusX = includeBottom ? cornerRadius : 0;
+				target.bottomRightRadiusX = includeBottom ? cornerRadius : 0;*/
 			}
 			
-			private var cornerRadius:Number;
+			//private var cornerRadius:Number;
         ]]>        
     </fx:Script>
     
@@ -243,8 +208,8 @@
               
                 <s:Group id="titleBar" left="0" right="0" top="0" bottom="0"/>
               
-                <s:HGroup id="controlsHolder" right="9" top="4"
-                    horizontalAlign="right" verticalAlign="middle" gap="3">
+                <s:HGroup id="controlsHolder" right="9" top="4" bottom="4" 
+                    horizontalAlign="right" verticalAlign="middle" gap="4">
 					<!-- Weave: Width and height takes its value set in Pod -->
                     <s:Button id="minimizeButton" width="{this.hostComponent.button_width}" height="{this.hostComponent.button_height}"
                         skinClass="com.adobe.devnet.skins.CustomMinimizeButtonSkin"/>
