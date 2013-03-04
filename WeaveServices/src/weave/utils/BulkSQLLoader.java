@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 
 import org.postgresql.PGConnection;
 
@@ -113,7 +114,6 @@ public abstract class BulkSQLLoader
 			
 			try
 			{
-				//System.out.println(query + " " + Arrays.deepToString(values));
 				SQLUtils.setPreparedStatementParams(stmt, values);
 				stmt.execute();
 			}
@@ -130,6 +130,7 @@ public abstract class BulkSQLLoader
 				stmt = null;
 				conn = null;
 				
+				System.err.println("Values: " + Arrays.deepToString(values));
 				e = new SQLExceptionWithQuery(query, e);
 				throw new RemoteException("Unable to insert record", e);
 			}
