@@ -251,6 +251,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				for (var i:int = 0; i<joinColsRArray.length; i++){
 					inputValues.push(joinColsRArray[i][0].valueOf());
+					
+					//reportError(joinColsRArray);
 				}
 				
 				/* for(var j:int = 0; j <     joinColsRArray.length; j++)
@@ -333,9 +335,71 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					automaticToolDescTextBox.text = finalTextMessages[0];
 				}
-				
-				
 			}
+				
+				private var splitCount:int = 0;
+			
+				public function shouldSplit(segment:Array):Boolean
+				{
+					
+					if(splitCount >2)
+					{
+						splitCount++;
+						return true;
+					}
+					return false;
+				}
+				
+				
+				private function split(segment:Array):Array // takes the whole segment as input, and splits the segment recursively
+				{
+					var result:Array = new Array(); // the resulting splitted graphs
+					var splittedSegments:Array = new Array();
+					
+					if(!shouldSplit(segment))
+					{
+						return segment;
+					}
+					else
+					{
+						splittedSegments = splitSegment(segment);
+						result.push(split(splittedSegments[0]));
+						result.push(split(splittedSegments[1]));
+					}
+					
+					return result; //has resulted segment pieces
+				}
+				
+				private function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
+				{
+					return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
+				}
+				
+				private function splitSegment(segment:Array):Array
+				{
+					var startPoint:Array = new Array(0,segment[0]);
+					var endPoint:Array = new Array(segment.length - 1,segment[segment.length -1]);
+					var result:Array = new Array();
+					var maxVD:Number = -1;
+					var maxVDIndex:int = 0;
+					var currVD:Number = -1;
+					
+					for(var i:int = 0; i < segment.length - 1 ; i++)
+					{
+						currVD = verticalDistance(startPoint, endPoint, new Array(i, segment[i]));
+						if(currVD > maxVD)
+						{
+							maxVD = currVD;
+							maxVDIndex = i;
+						}
+					}
+					
+					
+					result.push(new Array(0, i), new Array(i, segment.length - 1));
+					return result;
+				}
+				
+			
 			
 		]]>
 	</mx:Script>
