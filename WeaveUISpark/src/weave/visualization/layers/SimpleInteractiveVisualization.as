@@ -28,17 +28,16 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;

@@ -20,11 +20,10 @@
 package weave.visualization.layers
 {
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.core.ILinkableObject;
 	import weave.core.LinkableString;
 	import weave.utils.AsyncSort;
 
