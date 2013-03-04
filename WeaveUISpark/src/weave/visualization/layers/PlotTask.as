@@ -19,8 +19,6 @@
 
 package weave.visualization.layers
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.utils.Dictionary;
@@ -29,19 +27,21 @@ package weave.visualization.layers
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
+	import avmplus.getQualifiedClassName;
+	
 	import weave.api.WeaveAPI;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IKeyFilter;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IKeyFilter;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
@@ -246,7 +246,7 @@ package weave.visualization.layers
 					&& min <= yScale && yScale <= max;
 			}
 			
-			if (!visible)
+			if (!visible && linkableObjectIsBusy(this))
 			{
 				WeaveAPI.SessionManager.unassignBusyTask(_dependencies);
 				
