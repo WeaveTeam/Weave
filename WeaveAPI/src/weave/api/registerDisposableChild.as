@@ -15,8 +15,6 @@
 
 package weave.api
 {
-	import weave.api.core.ILinkableObject;
-	
 	/**
 	 * @see weave.api.core.ISessionManager
 	 */

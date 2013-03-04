@@ -19,8 +19,6 @@
 
 package weave.core
 {
-	import avmplus.DescribeType;
-	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
@@ -38,7 +36,10 @@ package weave.core
 	import mx.rpc.AsyncToken;
 	import mx.utils.ObjectUtil;
 	
+	import avmplus.DescribeType;
+	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -48,7 +49,6 @@ package weave.core
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.AsyncSort;
 	import weave.utils.Dictionary2D;
@@ -128,7 +128,7 @@ package weave.core
 			
 			// if the child doesn't have an owner yet, this parent is the owner of the child
 			// and the child should be disposed when the parent is disposed.
-			// registerDisposedChild() also initializes the required Dictionaries.
+			// registerDisposableChild() also initializes the required Dictionaries.
 			registerDisposableChild(linkableParent, linkableChild);
 
 			// only continue if the child is not already registered with the parent
@@ -340,6 +340,17 @@ package weave.core
 			var sessionState:Object = getSessionState(source);
 			setSessionState(destination, sessionState, true);
 		}
+		
+		private function applyDiff(base:Object, diff:Object):Object
+		{
+			if (typeof(base) != 'object')
+				return diff;
+			
+			for (var key:String in diff)
+				base[key] = applyDiff(base[key], diff[key]);
+			
+			return base;
+		}
 
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
@@ -360,17 +371,7 @@ package weave.core
 				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
 				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
 				{
-					// apply diff
-					var oldState:Object = lv.getSessionState();
-					for (var key:String in newState)
-					{
-						var value:Object = newState[key];
-						//if (typeof(value) == 'object')
-						//	todo: recursive call
-						//else
-						oldState[key] = value;
-					}
-					lv.setSessionState(oldState);
+					lv.setSessionState(applyDiff(lv.getSessionState(), newState));
 				}
 				else
 				{
@@ -1060,8 +1061,8 @@ package weave.core
 			}
 			
 			// dispose of the remaining specified objects
-			for (var i:int = 0; i < moreObjects.length; i++)
-				disposeObjects(moreObjects[i]);
+			for each (object in moreObjects)
+				disposeObjects(object);
 		}
 		
 		// FOR DEBUGGING PURPOSES
