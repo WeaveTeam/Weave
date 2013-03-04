@@ -7,8 +7,6 @@ package com.adobe.devnet.view
 import com.adobe.devnet.events.PodStateChangeEvent;
 import com.adobe.devnet.skins.CustomSkinnableContainer;
 
-import flash.display.Graphics;
-import flash.display.Sprite;
 import flash.events.Event;
 import flash.events.MouseEvent;
 
@@ -17,7 +15,6 @@ import mx.events.DragEvent;
 import spark.components.Button;
 import spark.components.Group;
 import spark.components.HGroup;
-import spark.components.Panel;
 import spark.components.SkinnableContainer;
 import spark.components.ToggleButton;
 import spark.primitives.Rect;
@@ -38,8 +35,8 @@ public class Pod extends SkinnableContainer
 	public static const WINDOW_STATE_MINIMIZED:Number = 1;
 	public static const WINDOW_STATE_MAXIMIZED:Number = 2;
 	
-	[Bindable]public var button_width:Number = 18;
-	[Bindable]public var button_height:Number = 18;
+	[Bindable]public var button_width:Number = 24;
+	[Bindable]public var button_height:Number = 24;
 	
 	[Bindable]public var title:String = "";
 	
@@ -108,12 +105,14 @@ public class Pod extends SkinnableContainer
 	{
 		// Moves the pod to the top of the z-index.
     Group(parent).setElementIndex(this, Group(parent).numElements - 1);
+
 	}
 	
 	private function onClickMinimizeButton(event:MouseEvent):void
 	{
 		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.MINIMIZE));
 		// Set the state after the event is dispatched so the old state is still available.
+		
 		minimize();
 	}
 	
