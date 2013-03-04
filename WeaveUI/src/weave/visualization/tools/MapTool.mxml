@@ -33,15 +33,14 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.data.ColumnMetadata;
-			import weave.api.data.DataTypes;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
-			import weave.api.newLinkableChild;
-			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataTypes;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.primitives.IBounds2D;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
@@ -846,16 +845,15 @@
 								   paddingLeft="0">
 				<ui:itemRenderer>
 					<mx:Component>
-						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}">
+						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
 							<mx:Script>
 								<![CDATA[
+									import weave.compiler.StandardLib;
 									import mx.events.SliderEvent;
 									
-									import weave.api.core.ILinkableObject;
-									import weave.api.primitives.IBounds2D;
+									import weave.api.getCallbackCollection;
 									import weave.core.CallbackJuggler;
 									import weave.core.UIUtils;
-									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.LayerSettings;
 									import weave.visualization.layers.PlotManager;
@@ -863,8 +861,14 @@
 									[Bindable] private var layerName:String;
 									
 									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
-																		
-									private function get vm():PlotManager { return outerDocument.visualization.plotManager; }
+									
+									private function handleCreationComplete():void
+									{
+										getCallbackCollection(pm.zoomBounds).addGroupedCallback(outerDocument, handleSettingsChange);
+										getCallbackCollection(pm.minScreenSize).addGroupedCallback(outerDocument, handleSettingsChange);
+									}
+									
+									private function get pm():PlotManager { return outerDocument.visualization.plotManager; }
 									private function get settings():LayerSettings { return data as LayerSettings; }
 									
 									override public function set data(value:Object):void
@@ -872,26 +876,29 @@
 										super.data = settingsJuggler.target = value as LayerSettings;
 									}
 									
-									private const settingsJuggler:CallbackJuggler = new CallbackJuggler(this, handleSettingsChange, true);
+									private const settingsJuggler:CallbackJuggler = new CallbackJuggler(outerDocument, handleSettingsChange, true);
 									private function handleSettingsChange():void
 									{
 										if (!settings)
 											return;
 										
-										layerName = vm.layerSettings.getName(settings);
-										var area:Number = vm.fullDataBounds.getArea();
+										layerName = pm.layerSettings.getName(settings);
+										var area:Number = pm.fullDataBounds.getArea();
 										if (!isNaN(area))
 										{
 											var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
-												vm.fullDataBounds, vm.minScreenSize.value, settings.minVisibleScale.value
+												pm.fullDataBounds, pm.minScreenSize.value, settings.minVisibleScale.value
 											);
 											
 											var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
-												vm.fullDataBounds, vm.minScreenSize.value, settings.maxVisibleScale.value
+												pm.fullDataBounds, pm.minScreenSize.value, settings.maxVisibleScale.value
 											);
 											
 											currentlyUpdatingLayerZoomRangeSlider = true;
-											layerZoomRangeSlider.values = [minZoomLevel, maxZoomLevel];
+											var newValues:Array = [minZoomLevel, maxZoomLevel];
+											if (StandardLib.arrayCompare(layerZoomRangeSlider.values, newValues) == 0)
+												layerZoomRangeSlider.values = [NaN, NaN];
+											layerZoomRangeSlider.values = newValues;
 											currentlyUpdatingLayerZoomRangeSlider = false;
 										}
 									}
@@ -900,16 +907,16 @@
 									{
 										if (data && !currentlyUpdatingLayerZoomRangeSlider && UIUtils.hasFocus(layerZoomRangeSlider))
 										{
-											var minScreenSize:Number = vm.minScreenSize.value;
+											var minScreenSize:Number = pm.minScreenSize.value;
 											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
 											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
 											
 											data.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
-												vm.fullDataBounds, minScreenSize, minVisibleZoomLevel
+												pm.fullDataBounds, minScreenSize, minVisibleZoomLevel
 											);
 											
 											data.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
-												vm.fullDataBounds, minScreenSize, maxVisibleZoomLevel
+												pm.fullDataBounds, minScreenSize, maxVisibleZoomLevel
 											);
 										}
 									}
