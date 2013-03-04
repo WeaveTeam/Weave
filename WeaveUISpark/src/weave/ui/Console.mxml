@@ -43,7 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				/>
 	<s:TextInput id="input" width="100%" 				 
 				 enter="runCommand()" fontSize="12"
-				 keyDown="handleConsoleKeyDown(event)" needsSoftKeyboard="true" softKeyboardType="default"/>
+				 keyDown="handleConsoleKeyDown(event)"/>
 				  
 	<fx:Script>
 		<![CDATA[
