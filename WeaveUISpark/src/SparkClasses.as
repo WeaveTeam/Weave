@@ -184,7 +184,7 @@ package
 		StringTools; import spark.globalization.StringTools;
 		StrokedElement; import spark.primitives.supportClasses.StrokedElement;
 		SWFLoader; import mx.controls.SWFLoader;
-		TabBar; import spark.components.TabBar;
+		//TabBar; import spark.components.TabBar;
 		TextArea; import spark.components.TextArea;
 		DefaultGridItemEditor; import spark.components.gridClasses.DefaultGridItemEditor;
 		TextBase; import spark.components.supportClasses.TextBase;

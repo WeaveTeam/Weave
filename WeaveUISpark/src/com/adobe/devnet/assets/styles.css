@@ -29,13 +29,13 @@ DataTip
 	down-skin:      Embed("/assets/minimize_up.png");
 }
 
-TabBar
+/*TabBar
 {
 	selected-tab-text-style-name: 	tabBarButtonSelected;
 	tab-style-name: 				tabBarButton;
-}
+}*/
 
-.tabBarButton
+/*.tabBarButton
 {
 	up-skin:        		Embed("/assets/tab_up.png", scaleGridTop="11", scaleGridBottom="30", scaleGridLeft="10", scaleGridRight="92");
 	over-skin:        		Embed("/assets/tab_up.png", scaleGridTop="11", scaleGridBottom="30", scaleGridLeft="10", scaleGridRight="92");
@@ -51,13 +51,13 @@ TabBar
 	padding-left:			10px;
 	padding-right:			20px;
 	padding-top:			-4px;
-}
+}*/
 
-.tabBarButtonSelected
+/*.tabBarButtonSelected
 {
 	text-roll-over-color:	#003399;
 	color:					#003399;
-}
+}*/
 
 Pod
 {

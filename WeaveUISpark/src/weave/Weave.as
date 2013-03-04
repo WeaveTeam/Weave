@@ -60,7 +60,7 @@ package weave
 	 */
 	public class Weave
 	{
-		SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		//SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
 		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
 

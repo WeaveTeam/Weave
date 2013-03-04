@@ -30,14 +30,12 @@ package weave.ui
 	
 	import spark.components.Group;
 	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
-	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	import weave.api.ui.ILinkableLayoutManager;
-	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	
 	/**
@@ -85,7 +83,7 @@ package weave.ui
 				weaveTrace('addComponent ' + id);
 				var pod:Pod = new Pod();
 				pod.id = id;
-				
+				manager.addItem(pod, false);
 				_idToComponent[id] = component;
 				_componentToId[component] = id;
 				_idToPod[id] = pod;
@@ -99,7 +97,7 @@ package weave.ui
 				busyIndicator.x = 0;
 				busyIndicator.y = 0;
 				
-				manager.addItem(pod, false);
+				
 				callLater(manager.updateLayout);
 					
 				getCallbackCollection(this).triggerCallbacks();

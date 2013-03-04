@@ -9,7 +9,6 @@ import com.adobe.devnet.events.PodStateChangeEvent;
 import com.adobe.devnet.view.DragHighlight;
 import com.adobe.devnet.view.Pod;
 
-import flash.display.DisplayObjectContainer;
 import flash.events.EventDispatcher;
 import flash.events.MouseEvent;
 import flash.geom.Point;
@@ -23,7 +22,6 @@ import mx.events.DragEvent;
 import mx.events.ResizeEvent;
 
 import spark.components.Group;
-import spark.components.NavigatorContent;
 import spark.effects.Resize;
 
 // Dispatched whenever the layout changes.
@@ -538,13 +536,15 @@ public class PodLayoutManager extends EventDispatcher
 		var resize:Resize = new Resize(target);
 		resize.widthTo = widthTo;
 		resize.heightTo = heightTo;
+		//weave - to improve performance
 		//resize. = Exponential.easeOut;
 		parallel.addChild(resize);
 		
 		var move:Move = new Move(target);
 		move.xTo = xTo;
 		move.yTo = yTo;
-		move.easingFunction = Exponential.easeOut;
+		//weave - to improve performance
+		//move.easingFunction = Exponential.easeOut;
 		parallel.addChild(move);
 	}
 	

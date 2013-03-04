@@ -3,6 +3,7 @@
   <includeClasses>
     <classEntry path="com.adobe.devnet.skins.CustomSkinnableContainer"/>
     <classEntry path="com.adobe.devnet.skins.CustomCloseButtonSkin"/>
+    <classEntry path="weave.editor.MobileSessionHistorySlider"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

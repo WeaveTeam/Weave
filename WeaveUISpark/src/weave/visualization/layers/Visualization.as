@@ -26,7 +26,9 @@ package weave.visualization.layers
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
+
 	import weave.api.WeaveAPI;
+
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.setSessionState;
@@ -44,8 +46,6 @@ package weave.visualization.layers
 		{
 			super();
 			
-			/*this.horizontalScrollPolicy = "off";
-			this.verticalScrollPolicy = "off";*/
 
 			autoLayout = true;
 			percentHeight = 100;
@@ -55,10 +55,11 @@ package weave.visualization.layers
 		override protected function createChildren():void
 		{
 			super.createChildren();
+			
 			var sprCont:SpriteVisualElement = new SpriteVisualElement();
 			sprCont.addChild(plotManager.bitmap);
 			addElement(sprCont);
-			//rawChildren.addChild(plotManager.bitmap);
+			
 			addEventListener(ResizeEvent.RESIZE, handleResize);
 		}
 		
