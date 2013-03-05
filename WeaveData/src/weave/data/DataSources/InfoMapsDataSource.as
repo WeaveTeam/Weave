@@ -242,7 +242,8 @@ package weave.data.DataSources
 			//applying date filters if set
 			if(dateFilter)
 			{
-				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '')
+				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '' &&
+					dateFilter.startDate.value != null && dateFilter.endDate.value != null)
 				{
 					
 					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
