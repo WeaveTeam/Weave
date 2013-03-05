@@ -257,7 +257,7 @@ package weave.visualization.plotters
 		public const shouldStop:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // should the algorithm halt on the next iteration? 
 		public const algorithmRunning:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // is an algorithm running?
 		public const drawCurvedLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true)); // should we draw curved lines instead of a gradient?
-		public const graphIsDirected:DynamicColumn = registerLinkableChild(this, new LinkableBoolean(false)); // should we assume that the graph is directed for the purposes of layout and rendering?
+		public const graphIsDirected:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // should we assume that the graph is directed for the purposes of layout and rendering?
 		// dragged layer properties
 //		private var _draggedKeysLookup:Dictionary = new Dictionary(); 
 //		private var _draggedKeysArray:Array = []; 

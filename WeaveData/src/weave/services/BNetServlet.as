@@ -52,7 +52,7 @@ package weave.services
 		{
 			return servlet.invokeAsyncMethod("loadNetwork", arguments) as DelayedAsyncInvocation;
 		}
-		public function listEdges(networkName:String):DelayedAsyncInvocation
+		public function getNodeParents(networkName:String, nodeName:String):DelayedAsyncInvocation
 		{
 			return servlet.invokeAsyncMethod("listEdges", arguments) as DelayedAsyncInvocation;
 		}
@@ -60,9 +60,21 @@ package weave.services
 		{
 			return servlet.invokeAsyncMethod("listNodes", arguments) as DelayedAsyncInvocation;
 		}
-		public function postEvidence(netName:String, nodeName:String, value:Number):DelayedAsyncInvocation
+		public function listStates(netName:String):DelayedAsyncInvocation
 		{
-			return servlet.invokeAsyncMethod("setEvidence", arguments) as DelayedAsyncInvocation;
+			return servlet.invokeAsyncMethod("listStates", arguments) as DelayedAsyncInvocation;
+		}
+		public function getNodeBeliefs(netName:String, nodeName:String):DelayedAsyncInvocation
+		{
+			return servlet.invokeAsyncMethod("getNodeBeliefs", arguments) as DelayedAsyncInvocation;
+		}
+		public function getNodeEvidence(netName:String, nodeName:String):DelayedAsyncInvocation
+		{
+			return servlet.invokeAsyncMethod("getNodeEvidence", arguments) as DelayedAsyncInvocation;
+		}
+		public function setNodeEvidence(netName:String, nodeName:String, evidence:Object):DelayedAsyncInvocation
+		{
+			return servlet.invokeAsyncMethod("setNodeEvidence", arguments) as DelayedAsyncInvocation;
 		}
 	}
 }

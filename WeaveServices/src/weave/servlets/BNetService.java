@@ -60,11 +60,13 @@ public class BNetService extends GenericServlet
     {
         BayesianNetwork.setDefaultInferenceEngine("com.cra.bnet.engine.HuginInferenceEngine");
         networks = new HashMap<String,BayesianNetwork>();
+        /* Load in some networks to start with */
         return;
 	}
     public String[] listNetworks() 
     {
-        return (String[])networks.keySet().toArray(new String[0]);
+        String[] result = (String[])networks.keySet().toArray(new String[0]);
+        return result;
     }
     public String[] listNodes(String netName)
     {
@@ -140,7 +142,6 @@ public class BNetService extends GenericServlet
         }
         return;
     }
-    
     public void loadNetwork(String path, String withName) throws RemoteException
     {
         if (withName == null || withName.equals(""))
@@ -168,6 +169,4 @@ public class BNetService extends GenericServlet
         }
         networks.put(withName, net);
     }
-    
-
 }
