@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		private var yInterval:Number;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			
+			var i:int;
 			valueMax = radiusColumnStats.getMax();
 			valueMin = radiusColumnStats.getMin();
 			
@@ -103,7 +103,7 @@ package weave.visualization.plotters
 			if (typeRadio.value == simpleRadio)
 			{
 				circleRadiuses = new Array();
-				for (var i:int = 0; i < numberOfCircles.value; i++)
+				for (i = 0; i < numberOfCircles.value; i++)
 					circleRadiuses.push(StandardLib.roundSignificant(valueMin + i * (valueMax - valueMin) / (numberOfCircles.value - 1), 4));
 				
 				yInterval = screenBounds.getYCoverage() / numberOfCircles.value;
@@ -112,7 +112,7 @@ package weave.visualization.plotters
 			{
 				circleRadiuses = customCircleRadiuses.value.split(',');
 				// remove bad values
-				for (var i:int = circleRadiuses.length - 1; i >= 0; i--)
+				for (i = circleRadiuses.length - 1; i >= 0; i--)
 				{
 					var number:Number = StandardLib.asNumber(circleRadiuses[i]);
 					if (!isFinite(number) || circleRadiuses[i] < valueMin || circleRadiuses[i] > valueMax)
@@ -132,12 +132,12 @@ package weave.visualization.plotters
 			if (absoluteValueColorEnabled.value)
 			{
 				var absMax:Number = Math.max(Math.abs(valueMin), Math.abs(valueMax));
-				for (var i:int = 0; i < circleRadiuses.length; i++)
+				for (i = 0; i < circleRadiuses.length; i++)
 					normalizedCircleRadiuses.push(StandardLib.normalize(Math.abs(circleRadiuses[i]), 0, absMax) * maxScreenRadius.value);
 			}
 			else
 			{
-				for (var i:int = 0; i < circleRadiuses.length; i++)
+				for (i = 0; i < circleRadiuses.length; i++)
 					normalizedCircleRadiuses.push(minScreenRadius.value + (StandardLib.normalize(circleRadiuses[i], valueMin, valueMax) * (maxScreenRadius.value - minScreenRadius.value)));
 			}
 			
@@ -149,7 +149,7 @@ package weave.visualization.plotters
 			g.clear();
 			lineStyle.beginLineStyle(null, g);
 			
-			for (var i:int = 0; i < normalizedCircleRadiuses.length; i++)
+			for (i = 0; i < normalizedCircleRadiuses.length; i++)
 			{
 				tempPoint.y = yPosition;				
 				
