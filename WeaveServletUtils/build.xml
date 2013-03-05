@@ -4,12 +4,12 @@
         <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>
     </path>
     <target name="clean">
-        <delete dir="build"/>
+        <delete dir="bin"/>
     </target>
-    <target name="build">
+    <target name="build" depends="clean">
 		<echo message="Compiling ${ant.project.name}..."/>
-                <mkdir dir="build/classes"/>
-                <javac srcdir="src" destdir="build/classes" classpathref="classpath"
+                <mkdir dir="bin/classes"/>
+                <javac srcdir="src" destdir="bin/classes" classpathref="classpath"
                     debug="true"
                     debuglevel="lines,vars,source"/>
     </target>
