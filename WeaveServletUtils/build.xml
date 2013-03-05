@@ -1,0 +1,16 @@
+<project name="WeaveServletUtils" basedir=".">
+    <path id="classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    <target name="build">
+		<echo message="Compiling ${ant.project.name}..."/>
+                <mkdir dir="build/classes"/>
+                <javac srcdir="src" destdir="build/classes" classpathref="classpath"
+                    debug="true"
+                    debuglevel="lines,vars,source"/>
+    </target>
+</project>

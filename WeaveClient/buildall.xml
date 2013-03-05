@@ -48,6 +48,7 @@
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
 	<property name="SERVICES" value="WeaveServices"/>
+        <property name="SERVLETUTILS" value="WeaveServletUtils"/>
 
 	<target name="dist" depends="build">
 		<zip destfile="weave.zip">
@@ -123,8 +124,11 @@
 	<target name="admin" depends="ui">
 		<buildproject targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
-	<target name="services">
-	    <ant dir="${basedir}/WeaveServices" target="dist"/>
+        <target name="servletutils">
+                <ant dir="${basedir}/${SERVLETUTILS}" target="build"/>
+        </target>
+	<target name="services" depends="servletutils">
+                <ant dir="${basedir}/WeaveServices" target="dist"/>
 	</target>
 
 	<!-- This target calls the clean targets of each project's build file -->
@@ -142,6 +146,7 @@
 		<ant dir="${basedir}/${UISPARK}" target="clean" />
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
+		<ant dir="${basedir}/${SERVLETUTILS}" target="clean" />
 	</target>
 
 	<target name="admin_wrapper">
