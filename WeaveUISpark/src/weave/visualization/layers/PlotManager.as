@@ -30,20 +30,23 @@ package weave.visualization.layers
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.StringUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ITextPlotter;
@@ -447,7 +450,11 @@ package weave.visualization.layers
 			
 			// get plotter from sourceLayer
 			var plotterFromSourceLayer:IPlotterWithGeometries = plotters.getObject(sourceLayer) as IPlotterWithGeometries;
-			
+			if (!plotterFromSourceLayer)
+			{
+				reportError(StringUtil.substitute('Plotter named "{0}" does not exist.', sourceLayer));
+				return null;
+			}
 				
 			// use the source keys to get a list of overlapping geometries on the destination layer.
 			// Iterate over all the keys
