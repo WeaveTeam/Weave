@@ -515,10 +515,6 @@ package weave.compiler
 			// next step: handle operators "..[]{}()"
 			compileBracketsAndProperties(tokens);
 
-			// next step: compile lone operators (extension to allow getting pointers to operator functions)
-			if (tokens.length == 1 && tokens[0] is String && operators[tokens[0]] is Function)
-				tokens[0] = new CompiledConstant(OPERATOR_PREFIX + tokens[0] + OPERATOR_SUFFIX, operators[tokens[0]]);
-			
 			// next step: handle stray operators "..[](){}"
 			for each (token in tokens)
 				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
@@ -622,7 +618,7 @@ package weave.compiler
 				if (!lhs || !rhs)
 					throw new Error("Invalid " + (!lhs ? 'left' : 'right') + "-hand-side of '" + tokens[i] + "'");
 				
-				// lhs should either be a constant or a call to operator.()
+				// lhs should either be a constant or a call to operator (.)
 				
 				if (lhs.evaluatedMethod is String) // lhs is a variable lookup
 				{
@@ -630,7 +626,7 @@ package weave.compiler
 					continue;
 				}
 				
-				// verify that lhs.compiledMethod.name is 'operator.'
+				// verify that lhs.compiledMethod.name is '(.)'
 				var lhsMethod:CompiledConstant = lhs.compiledMethod as CompiledConstant;
 				if (lhsMethod && lhsMethod.name == OPERATOR_PREFIX + '.' + OPERATOR_SUFFIX)
 				{
@@ -885,7 +881,11 @@ package weave.compiler
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
 					trace("compiling tokens", leftBracket, subArray.join(' '), rightBracket);
-				compiledParams = compileArray(subArray, leftBracket == '{' ? ';' : ',');
+				// allow getting a pointer to an operator's function by surrounding it in parentheses
+				if (leftBracket == OPERATOR_PREFIX && !compiledToken && subArray.length == 1 && subArray[0] is String && operators[subArray[0]] is Function)
+					compiledParams = [new CompiledConstant(OPERATOR_PREFIX + subArray[0] + OPERATOR_SUFFIX, operators[subArray[0]])];
+				else
+					compiledParams = compileArray(subArray, leftBracket == '{' ? ';' : ',');
 
 				if (leftBracket == '[') // this is either an array or a property access
 				{
@@ -1101,10 +1101,7 @@ package weave.compiler
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
 			*/
-			if (operatorName == ',')
-				operatorName = '{,}';
-			else
-				operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
+			operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
 			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 
