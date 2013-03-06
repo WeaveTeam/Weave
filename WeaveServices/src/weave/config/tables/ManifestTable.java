@@ -132,8 +132,8 @@ public class ManifestTable extends AbstractTable
 	}
 	public int getEntryType(int id) throws RemoteException
 	{
-		Integer type = getEntryTypes(Arrays.asList(id)).get(id);
-		return type == null ? DataEntity.TYPE_UNSPECIFIED: type;
+		Map<Integer,Integer> types = getEntryTypes(Arrays.asList(id));
+		return types.containsKey(id) ? types.get(id) : DataEntity.TYPE_UNSPECIFIED;
 	}
 	public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
 	{
@@ -147,18 +147,16 @@ public class ManifestTable extends AbstractTable
 			{
 				whereParams.put(FIELD_ID, id);
 				SQLResult result = SQLUtils.getResultFromQuery(conn, Arrays.asList(FIELD_TYPE), schemaName, tableName, whereParams, null);
-				// either zero or one records
 				
+				// either zero or one records
 				if (result.rows.length == 1)
 				{
 					Number type = (Number) result.rows[0][0];
 					idToTypeMap.put(id, type.intValue());
 				}
-				else if (result.rows.length == 0)
-				{
-					idToTypeMap.put(id, DataEntity.TYPE_UNSPECIFIED);
-				}
-				else
+				
+				// should never return more than one record
+				if (result.rows.length > 1)
 					throw new RemoteException(String.format("Multiple rows in manifest table with %s=%s", FIELD_ID, id));
 			}
 			return idToTypeMap;

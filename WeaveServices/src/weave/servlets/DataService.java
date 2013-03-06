@@ -48,9 +48,9 @@ import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityTableInfo;
 import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
+import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveContextParams;
@@ -149,9 +149,9 @@ public class DataService extends GenericServlet
 	////////////////////
 	// DataEntity info
 	
-	public DataEntityTableInfo[] getDataTableList() throws RemoteException
+	public EntityHierarchyInfo[] getDataTableList() throws RemoteException
 	{
-		return getDataConfig().getDataTableList();
+		return getDataConfig().getEntityHierarchyInfo(DataEntity.TYPE_DATATABLE);
 	}
 
 	public int[] getEntityChildIds(int parentId) throws RemoteException

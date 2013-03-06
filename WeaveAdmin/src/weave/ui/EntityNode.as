@@ -3,15 +3,13 @@ package weave.ui
 {
     import mx.collections.ArrayCollection;
     import mx.collections.ICollectionView;
-    import mx.utils.StringUtil;
     
     import weave.api.data.ColumnMetadata;
     import weave.api.reportError;
     import weave.services.Admin;
     import weave.services.EntityCache;
     import weave.services.beans.Entity;
-    import weave.services.beans.EntityMetadata;
-    import weave.services.beans.EntityTableInfo;
+    import weave.services.beans.EntityHierarchyInfo;
     import weave.services.beans.EntityType;
 
 	[RemoteClass]
@@ -49,19 +47,9 @@ package weave.ui
 			if (!Admin.instance.userHasAuthenticated)
 				return lang('Not logged in');
 			
-			var tableInfo:EntityTableInfo = Admin.entityCache.getDataTableInfo(id);
-			if (tableInfo != null)
-			{
-				var tableTitle:String = tableInfo.title || lang("Untitled Table#{0}", tableInfo.id);
-				
-				// this is a table node, so avoid calling getEntity()
-				var str:String = lang("{0} ({1})", tableTitle, tableInfo.numChildren);
-				
-				if (debug)
-					str = lang("(Table#{0}) {1}", tableInfo.id, str);
-				
-				return str;
-			}
+			var branchInfo:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(id);
+			if (branchInfo != null)
+				return branchInfo.getLabel(debug);
 			
 			var entity:Entity = getEntity();
 			
@@ -88,7 +76,7 @@ package weave.ui
 				
 				var typeStr:String = entity.getTypeString();
 				var childrenStr:String = '';
-				if (entity.type != Entity.TYPE_COLUMN)
+				if (entity.type != EntityType.COLUMN)
 					childrenStr = '; ' + children.length + ' children';
 				var idStr:String = '(' + typeStr + "#" + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
@@ -103,14 +91,13 @@ package weave.ui
 			if (_rootFilterType >= 0)
 				return true;
 			
-			// tables are branches
-			if (Admin.entityCache.getDataTableInfo(id))
+			if (Admin.entityCache.getBranchInfo(id))
 				return true;
 			
 			var entity:Entity = Admin.entityCache.getEntity(id);
 			
 			// columns are leaf nodes
-			if (entity.type == Entity.TYPE_COLUMN)
+			if (entity.type == EntityType.COLUMN)
 				return false;
 			
 			// treat entities that haven't downloaded yet as leaf nodes
@@ -120,15 +107,15 @@ package weave.ui
 		public function get children():ICollectionView
 		{
 			var childIds:Array;
-			if (_rootFilterType == Entity.TYPE_TABLE)
+			if (_rootFilterType >= 0)
 			{
-				childIds = Admin.entityCache.getDataTableIds();
+				childIds = Admin.entityCache.getIdsByType(_rootFilterType);
 			}
 			else
 			{
 				var entity:Entity = Admin.entityCache.getEntity(id);
 				childIds = entity.childIds;
-				if (entity.type == Entity.TYPE_COLUMN)
+				if (entity.type == EntityType.COLUMN)
 					return null; // leaf node
 			}
 			
@@ -142,18 +129,6 @@ package weave.ui
 			for (var i:int = 0; i < childIds.length; i++)
 			{
 				var childId:int = childIds[i];
-				
-				// if there is a filter type, filter out non-column entities that do not have that type
-				if (_rootFilterType >= 0 && _rootFilterType != Entity.TYPE_TABLE)
-				{
-					var childEntity:Entity = Admin.entityCache.getEntity(childId);
-					if (childEntity.type != _rootFilterType && childEntity.type != Entity.TYPE_COLUMN)
-					{
-						//trace('filter',_rootFilterType,'removed',childEntity.id,'(type',childEntity.entity_type,')');
-						continue;
-					}
-				}
-				
 				var child:EntityNode = _childNodeCache[childId] as EntityNode;
 				if (!child)
 				{
