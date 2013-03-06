@@ -32,7 +32,6 @@
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
 				autoLayout="true"
-				implements="weave.api.ui.IVisTool"
 				>
 	
 	<mx:HBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
@@ -116,7 +115,6 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeySet;
 			import weave.services.WeaveRServlet;
@@ -124,7 +122,6 @@
 			import weave.services.beans.RResult;
 			import weave.ui.userControls.DatagridDisplay;
 			import weave.utils.ColumnUtils;
-			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));

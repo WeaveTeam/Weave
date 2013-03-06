@@ -96,7 +96,9 @@ package weave
 				}
 			);
 
+			_toggleToolsMenuItem("DataStatisticsTool", false);
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
+			_toggleToolsMenuItem("SchafersMissingDataTool", false);
 			_toggleToolsMenuItem("DataFilter", false);
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
