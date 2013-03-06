@@ -28,14 +28,10 @@
 	title="{lang('Edit Data Sources')}"
 	height="564"
 	creationComplete="handleCreationComplete()" width="184" xmlns:ui="weave.ui.*" 
-	styleName="componentStyle">
+	>
 	<fx:Style>
-		@namespace  "weave.editors.managers.*";
-		@namespace ui "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		
-		.componentStyle{
+		@namespace "weave.ui.*"; 
+ .weave-panel-style{
 			borderAlpha: 1 ;
 			borderColor: #939178;
 			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	

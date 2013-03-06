@@ -129,25 +129,19 @@ package weave.application
 			setStyle("paddingTop", 0);
 			setStyle("paddingBottom", 0);
 			
-			setStyle("marginLeft", 0);
-			setStyle("marginRight", 0);
-			setStyle("marginTop", 0);
-			setStyle("marginBottom", 0);
+			setStyle("left", 0);
+			setStyle("right", 0);
+			setStyle("top", 0);
+			setStyle("bottom", 0);
 			
 			setStyle("gap", 0);
-			setStyle("horizingalGap", 0);
 			setStyle('backgroundAlpha', 1);
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
 			clipAndEnableScrolling = false;
 			autoLayout = true;
 			
-			// no scrolling
-			/*horizontalScrollPolicy = "off";
-			verticalScrollPolicy   = "off";
-			visDesktop.verticalScrollPolicy   = "off";
-			visDesktop.horizontalScrollPolicy = "off";*/
-			
+						
 			percentWidth = 100;
 			percentHeight = 100;
 
@@ -667,13 +661,10 @@ package weave.application
 			if (!historySlider)
 			{
 				historySlider = EditorManager.getNewEditor(Weave.history) as UIComponent;
-
 				if (historySlider)
 					this.addElementAt(historySlider, this.getElementIndex(visDesktop));
 				else
 					reportError("Unable to get editor for SessionStateLog");
-
-				
 
 			}
 			

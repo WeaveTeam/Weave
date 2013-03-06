@@ -44,12 +44,11 @@ RTextEditor
 				layout="{new HorizontalLayout()}"
 				autoLayout="true"
 				implements="weave.api.ui.IVisTool"
-				styleName="componentStyle">
+				>
 	<fx:Style>
-		@namespace  "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
+		
+		@namespace "weave.ui.*"; 
+ .weave-panel-style{
 			backgroundColor: #EFF4BC;
 		}
 	</fx:Style>

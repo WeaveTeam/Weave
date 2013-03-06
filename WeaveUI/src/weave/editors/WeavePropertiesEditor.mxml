@@ -27,13 +27,10 @@
 			xmlns:ui="weave.ui.*"
 			title="{lang('Preferences')}"
 			targets="{[Weave.properties]}"
-			styleName="componentStyle">
+			>
 	<fx:Style>
-		@namespace  "weave.editors.*";
-		@namespace ui "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
+		@namespace "weave.ui.*"; 
+ .weave-panel-style{
 			backgroundColor: #EFF4BC;
 		}
 	</fx:Style>

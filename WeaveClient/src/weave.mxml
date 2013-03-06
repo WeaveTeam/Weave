@@ -25,9 +25,9 @@
 	xmlns:mx="library://ns.adobe.com/flex/mx"	
 		 xmlns:application="weave.application.*"
 		>
-	<s:layout>
+	<!--<s:layout>
 		<s:VerticalLayout paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0" horizontalAlign="left"/>
-	</s:layout>
+	</s:layout>-->
 	<application:VisApp id="visApp"/>
 	
 	<fx:Script>

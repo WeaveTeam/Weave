@@ -27,13 +27,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	xmlns:mx="library://ns.adobe.com/flex/mx"
 	title="Attribute Selector"	 
 	xmlns:editors="weave.editors.*"
-	styleName="componentStyle">
-	<fx:Style>
-		@namespace  "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		@namespace editors "weave.editors.*";
-		.componentStyle{
+	>
+	<fx:Style>		
+		
+ .weave-panel-style{
 			backgroundColor:#EFF4BC;
 		}
 	</fx:Style>

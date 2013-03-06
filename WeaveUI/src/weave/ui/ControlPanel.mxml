@@ -21,23 +21,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
-				xmlns:mx="library://ns.adobe.com/flex/mx" 
-				skinClass="weave.ui.skins.DraggablePanelSkin"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
 				addedToStage="handleAddedToStage();"
 				width="640"
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
-				creationPolicy="all"
-				styleName="componentStyle">
-	
+				creationPolicy="all" 
+				>
 	<fx:Style>
-		@namespace  "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
-			backgroundColor: #cccccc;
-		}
+		
+		
+		/*.weave-panel-style{
+			
+		}*/
 	</fx:Style>
+	
 	
 	<layout>
 		<s:VerticalLayout/>
@@ -343,6 +341,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					else{
 						var navContent:NavigatorContent = new NavigatorContent();
+						navContent.creationPolicy = "all";
 						navContent.addElement(editor as IVisualElement);
 						controlPanel.tabNavigator.addElement(navContent);
 					}

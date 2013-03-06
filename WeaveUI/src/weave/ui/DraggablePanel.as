@@ -21,7 +21,6 @@ package weave.ui
 	import mx.events.ResizeEvent;
 	import mx.managers.PopUpManager;
 	
-	import spark.components.BorderContainer;
 	import spark.components.Button;
 	import spark.components.Group;
 	import spark.components.HGroup;
@@ -201,15 +200,11 @@ package weave.ui
 		public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
 		public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 		public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
-		//callback moved to skin
+		//callback function moved to skin
 		public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString);
 		
 		private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
 		private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
-		
-		
-		
-		
 		
 		
 		/**

@@ -24,12 +24,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				xmlns="weave.ui.*" 
 				title="Error Log"
-				styleName="componentStyle">
+				>
 	<fx:Style>
-		@namespace  "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
+		
+		@namespace "weave.ui.*"; 
+ .weave-panel-style{
 			borderColor: #939178;
 		}
 	</fx:Style>

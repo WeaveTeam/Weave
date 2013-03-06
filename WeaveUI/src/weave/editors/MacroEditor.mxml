@@ -28,12 +28,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 xmlns:mx="library://ns.adobe.com/flex/mx"
 				 xmlns:ui="weave.ui.*"
 				 width="400" height="300" layout="{new BasicLayout()}"
-				 title="{lang('Macro Editor')}" styleName="componentStyle">
+				 title="{lang('Macro Editor')}" >
 	<fx:Style>
-		@namespace ui "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
+		@namespace "weave.ui.*"; 
+ .weave-panel-style{
 			backgroundColor: #EFF4BC;
 		}
 	</fx:Style>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties analytics="false" mainApplicationPath="WeaveAPI.as" projectUUID="6e282bd6-f9ce-4648-a3d3-f84b05ff945f" version="10">
-  <compiler additionalCompilerArguments="-locale en_US -target-player=10.2.0 -compiler.debug=true -incremental=true" autoRSLOrdering="true" copyDependentFiles="false" flex3CompatMode="true" flexSDK="Flex 4.5.1A" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="10.2.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+<actionScriptProperties analytics="false" mainApplicationPath="WeaveAPI.as" projectUUID="6e282bd6-f9ce-4648-a3d3-f84b05ff945f" version="11">
+  <compiler additionalCompilerArguments="-locale=en_US -target-player=10.2.0 -compiler.debug=true -incremental=true" autoRSLOrdering="true" copyDependentFiles="false" flex3CompatMode="true" flexSDK="Flex 4.5.1A" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="10.2.0" useApolloConfig="false" useDebugRSLSwfs="true" useFlashSDK="false" verifyDigests="true" warn="true">
     <compilerSourcePath/>
     <libraryPath defaultLinkType="0">
       <libraryPathEntry kind="4" path="">
@@ -42,6 +42,7 @@
     <application path="WeaveAPI.as"/>
   </applications>
   <modules/>
+  <workers/>
   <buildCSSFiles/>
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
 </actionScriptProperties>

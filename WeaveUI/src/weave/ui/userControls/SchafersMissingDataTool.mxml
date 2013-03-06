@@ -42,9 +42,10 @@ SchafersMissingDataImputation
 				x="15%" y="15%" width="70%" height="70%" autoLayout="true" 
 				implements="weave.api.ui.IVisTool" layout="{new HorizontalLayout()}"
 				title="Schafers Missing Data Imputation"
-				styleName="componentStyle">
+				>
 	<fx:Style>
-		.componentStyle{
+		@namespace "weave.ui.*"; 
+ .weave-panel-style{
 			backgroundColor: #EFF4BC;
 		}
 	</fx:Style>

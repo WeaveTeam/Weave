@@ -1,45 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!--
-	This is a generic panel for a wizard interface, containing back/next/finish/cancel buttons.
-	@author adufilie
+This is a generic panel for a wizard interface, containing back/next/finish/cancel buttons.
+@author adufilie
 -->
 <DraggablePanel
-		xmlns:fx="http://ns.adobe.com/mxml/2009" 
- xmlns:s="library://ns.adobe.com/flex/spark" 
- xmlns:mx="library://ns.adobe.com/flex/mx"
-		xmlns="weave.ui.*"
-		layout="{new BasicLayout()}"
-		title="{viewStack.label}"		
-		percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
-		sessionPanelCoordsAsPercentages="false"
-		escapeKeyClosesPanel="true"
-		>
-	<!--recommendation use skin to set the appaerance of the tool
-	borderAlpha="1"
-	borderColor="#939178"
-	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
-	roundedBottomCorners="true"-->
-
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns="weave.ui.*"
+	layout="{new BasicLayout()}"
+	title="{viewStack.label}"		
+	percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
+	sessionPanelCoordsAsPercentages="false"
+	>
+		<fx:Style>
+		
+ .weave-panel-style{
+			borderAlpha: 1 ;
+			borderColor: #939178;
+			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
+			roundedBottomCorners: true;
+		}
+		
+	</fx:Style>
+	
+	
 	<mx:Box id="viewStackContainer"
 			
 			/>
@@ -78,7 +83,7 @@
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
 			[Bindable] private var viewStackNumChildren:int = 0; // this is used because numChildren is not bindable
-
+			
 			/**
 			 * This function must be called to initialize the WizardViewStack used by the WizardPanel.
 			 * @param viewStack A WizardViewStack that the WizardPanel will control.
@@ -103,11 +108,11 @@
 				PopUpManager.centerPopUp(wiz);
 				wiz.cancelButton.addEventListener(MouseEvent.CLICK, function(..._):void{ PopUpManager.removePopUp(wiz); });
 				wizardViewStack.addEventListener(CloseEvent.CLOSE,function(..._):void{ PopUpManager.removePopUp(wiz); });
-//				return wiz;
+				//				return wiz;
 			}
 		]]>
 	</fx:Script>
-	<fx:Style>
+		<fx:Style>
 		.weavePanelStyle, .weaveSystemStyle {
 			borderAlpha: 0.95;
 			alpha: 1.0;

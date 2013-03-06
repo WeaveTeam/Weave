@@ -30,13 +30,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			  xmlns:mx="library://ns.adobe.com/flex/mx" 
 			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 			  title="{lang('Equation Editor')}"
-			  styleName="componentStyle">
+			   >
 	<fx:Style>
-		@namespace  "weave.ui.*";
-		@namespace LinkableObjectList "weave.ui.LinkableObjectList.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
+		
+		.weave-panel-style{
 			backgroundColor: #EFF4BC;
 		}
 	</fx:Style>

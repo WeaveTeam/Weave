@@ -29,13 +29,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	height="564"
 	width="184"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*"
-	styleName="componentStyle">
+	>
 	<fx:Style>
-		@namespace  "weave.editors.managers.*";
-		@namespace ui "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		.componentStyle{
+		
+ .weave-panel-style{
 			borderAlpha: 1 ;
 			borderColor: #939178;
 			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
