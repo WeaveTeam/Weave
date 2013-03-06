@@ -212,9 +212,8 @@
 				<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
 				<mx:HBox width="100%" verticalAlign="middle">
 					<mx:RadioButton id="simpleRadio" label="{lang('Equally Spaced')}" groupName="typeGroup" selected="true" width="100%"/>
-					<ui:Indent enabled="{simpleRadio.selected}" label="{lang('Number of Radiuses:')}" indent="{indent}">
-						<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
-					</ui:Indent>
+					<mx:Label text="{lang('Number of Radiuses:')}"/>
+					<mx:NumericStepper enabled="{simpleRadio.selected}" minimum="2" maximum="50" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
 					<ui:HelpComponent label="{simpleRadio.label}">
 						Example: If your data is between 0 and 100 and you specify 3 radiuses, the following radiuses will be created: 0, 50, 100
 					</ui:HelpComponent>
@@ -226,7 +225,7 @@
 					<mx:RadioButton id="customRadio" label="{lang('Custom Radiuses')}" groupName="typeGroup" width="100%"/>
 					<mx:TextInput enabled="{customRadio.selected}" id="circleRadiusesTextInput" width="100%"/>
 					<ui:HelpComponent label="{customRadio.label}">
-						Enter comma-separated custom break values between min and max value of the size data for radiuses.
+						Enter comma-separated custom break values.
 					</ui:HelpComponent>
 				</mx:HBox>
 			</mx:VBox>

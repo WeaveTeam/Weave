@@ -74,12 +74,19 @@ package weave.visualization.plotters
 		
 		public static const simpleRadio:String = "simple";
 		public static const customRadio:String = "custom";
-		public const numberOfCircles:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10));
+		public const numberOfCircles:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, verifyNumberOfCircles));
 		public const customCircleRadiuses:LinkableString = newLinkableChild(this, LinkableString);
 		public const typeRadio:LinkableString = registerLinkableChild(this, new LinkableString(simpleRadio));
 		
 		private const bitmapText:BitmapText = new BitmapText(); // This is used to draw text on bitmaps
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle); // This is the line style used to draw the outline of the shape.
+		
+		private function verifyNumberOfCircles(value:Number):Boolean {
+			if (value < 2)
+				return false;
+			else
+				return true;
+		}
 		
 		private var XMIN:Number = 0, YMIN:Number = 0, XMAX:Number = 1, YMAX:Number = 1;		
 		override public function getBackgroundDataBounds():IBounds2D
@@ -98,15 +105,13 @@ package weave.visualization.plotters
 			valueMax = radiusColumnStats.getMax();
 			valueMin = radiusColumnStats.getMin();
 			
-			if (isNaN(valueMax) ||  isNaN(valueMax)) return; // ToDo
+			if (isNaN(valueMin) ||  isNaN(valueMax)) return; // ToDo
 			
 			if (typeRadio.value == simpleRadio)
 			{
 				circleRadiuses = new Array();
 				for (i = 0; i < numberOfCircles.value; i++)
 					circleRadiuses.push(StandardLib.roundSignificant(valueMin + i * (valueMax - valueMin) / (numberOfCircles.value - 1), 4));
-				
-				yInterval = screenBounds.getYCoverage() / numberOfCircles.value;
 			}
 			else if (typeRadio.value == customRadio)
 			{
@@ -115,34 +120,32 @@ package weave.visualization.plotters
 				for (i = circleRadiuses.length - 1; i >= 0; i--)
 				{
 					var number:Number = StandardLib.asNumber(circleRadiuses[i]);
-					if (!isFinite(number) || circleRadiuses[i] < valueMin || circleRadiuses[i] > valueMax)
+					if (!isFinite(number))
 						circleRadiuses.splice(i, 1);
 					else
 						circleRadiuses[i] = number;
 				}
 				// sort numerically
 				AsyncSort.sortImmediately(circleRadiuses, ObjectUtil.numericCompare);
-				
-				// ToDo
-				if (circleRadiuses.length != 0)
-					yInterval = screenBounds.getYCoverage() / circleRadiuses.length;
 			}
-			
+
 			normalizedCircleRadiuses = new Array();
 			if (absoluteValueColorEnabled.value)
 			{
 				var absMax:Number = Math.max(Math.abs(valueMin), Math.abs(valueMax));
 				for (i = 0; i < circleRadiuses.length; i++)
-					normalizedCircleRadiuses.push(StandardLib.normalize(Math.abs(circleRadiuses[i]), 0, absMax) * maxScreenRadius.value);
+					normalizedCircleRadiuses.push(StandardLib.scale(Math.abs(circleRadiuses[i]), 0, absMax, 0, maxScreenRadius.value));
 			}
 			else
 			{
 				for (i = 0; i < circleRadiuses.length; i++)
-					normalizedCircleRadiuses.push(minScreenRadius.value + (StandardLib.normalize(circleRadiuses[i], valueMin, valueMax) * (maxScreenRadius.value - minScreenRadius.value)));
+					normalizedCircleRadiuses.push(StandardLib.scale(circleRadiuses[i], valueMin, valueMax, minScreenRadius.value, maxScreenRadius.value));
 			}
 			
+			if (normalizedCircleRadiuses.length != 0) yInterval = screenBounds.getYCoverage() / normalizedCircleRadiuses.length;
+			
 			// Draw size legend
-			var xMargin:int = 5;
+			var xMargin:int = 10;
 			var xMin:Number = screenBounds.getXNumericMin();
 			var yPosition:Number = screenBounds.getYNumericMin() + yInterval / 2; // First y position
 			var g:Graphics = tempShape.graphics;
@@ -151,6 +154,8 @@ package weave.visualization.plotters
 			
 			for (i = 0; i < normalizedCircleRadiuses.length; i++)
 			{
+				if (normalizedCircleRadiuses[i] < 0) continue;
+				
 				tempPoint.y = yPosition;				
 				
 				if (absoluteValueColorEnabled.value)
