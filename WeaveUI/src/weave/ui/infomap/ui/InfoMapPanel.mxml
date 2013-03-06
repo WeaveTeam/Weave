@@ -743,22 +743,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function showAllTagClouds():void
-			{
-				for each(var n:NodeHandler in nodes.getObjects())
-				{
-					n.showTagCloud();
-				}
-			}
-			
-			private function hideAllTagClouds():void
-			{
-				for each(var n:NodeHandler in nodes.getObjects())
-				{
-					n.hideTagCloud();
-				}
-			}
-			
 			private var internalColorRamp:ColorRamp = new ColorRamp();
 			private var internalMin:Number = 0;
 			private var internalMax:Number = 13;

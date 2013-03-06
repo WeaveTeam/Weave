@@ -3,8 +3,8 @@
 		   implements="weave.api.core.ILinkableObject"
 		   cacheAsBitmap="false"
 		   clipContent="false"
-		   autoLayout="false"
-		   >
+		   autoLayout="false" xmlns:ui="weave.ui.infomap.ui.*"
+		   creationPolicy="all">
 	<!--Show this status box only when list is visible-->
 	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}" width="300"/>
 	<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
@@ -13,8 +13,8 @@
 		<!--HTML encoding is requried when writing code in binding tag-->
 		<!--<mx:Button enabled="false" label="Mark All as Read" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>-->
 	</mx:HBox>
-	<mx:Canvas id="pointsCanvas" enabled="false" visible="false" clipContent="false" width="400" height="300"/>
-	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300"/>
+	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300" includeInLayout="false"/>
+	<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
@@ -340,8 +340,6 @@
 				//adding listener to Click event to toggle node selection
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
-				//adding callback to subset. Thumbnails will be re-drawn to plot only included thumbnails
-				getCallbackCollection(_subset).addGroupedCallback(this,positionThumbnails);
 				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,handleTagWordSubsetChange);
 				
 				//calling function to highlight the node based on node.selected.value
@@ -359,14 +357,6 @@
 //				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
 				
 				filteredWords.addGroupedCallback(this,filterListByKeywords,false);
-				
-				thumbnails.addGroupedCallback(this,positionThumbnails);
-				
-				//				nodeBase.editImage.addEventListener(MouseEvent.CLICK,handleEditCommentsClick);
-				//				
-				//				delayedCommentKeyUp = EventUtils.generateDelayedCallback(nodeBase.commentTextArea,handleCommentKeyUp,500,true);
-				//				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
-				//				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
 //				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
 				prevNewDocsCount.addGroupedCallback(this,updateTextArea);
@@ -397,6 +387,8 @@
 				parentPanel.entityColumnsHashmap.addGroupedCallback(this,getEntityDistribution);
 				
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
+				
+				views =[listCanvas,gridView,topicComponent,_pointCanvas];
 			}
 			
 			private var _nodeName:String = "";
@@ -451,9 +443,7 @@
 					handleEmptyResultSet();
 					
 					/* Hide any views */
-					hideList();
-					if(tagCanvas)
-						hideTagCloud();
+					hideAllViews();
 					
 					hideIcons();
 					
@@ -466,9 +456,6 @@
 					InfoMapAdminInterface.instance.queryDataSources(currentQuery.keywords.value.split(','),
 						relatedKeywords);
 				}
-				
-				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
-				wordCount = [];
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
 					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
@@ -523,6 +510,9 @@
 				}
 				
 				_firstLoad = false;
+				
+				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
+				wordCount = [];
 				
 				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
 				numOfMatchedDocuments.value = numOfDocs;
@@ -730,10 +720,9 @@
 				_radialMenu.addMenuItem(listImg,_listImgText,toggleList);
 				
 				var gridImg:Bitmap = new GridImgClass() as Bitmap;
-				_radialMenu.addMenuItem(gridImg,_gridImgText,showGridView);
+				_radialMenu.addMenuItem(gridImg,_gridImgText,toggleGridView);
 				
 				updateNodeTextOnNewDocuments();
-				positionThumbnails();
 				adjustNodeBase();
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
 					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
@@ -757,7 +746,7 @@
 				wordCount = event.result as Array;
 				
 				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
-				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleTagCloud);
+				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleWordCloud);
 				
 			}
 			
@@ -871,97 +860,35 @@
 			
 			public var _reusableThumbnailsToPlotArray:Array = [];
 			
-			/**
-			 * This function goes through the list of thumbnails and adds the ones included in the subset to an array.
-			 * This array is then sent to a Layout Algorithm to plot the thumbnails. 
-			 * After the thumbnails are plotted we call the functions to highlight selected documents and set visiblity based on search keywords.
-			 **/
-			private function positionThumbnails():void
+			
+			private var views:Array = [];
+			private function toggleView(view:DisplayObject):void
 			{
-				//				nodeBase.keywordTextArea.text = query.keywords.value;
-//				trace("in positionThumbnails");
-//				if(!previousQuery.keywords.value)
-//					return;
-//				pointsCanvas.y = nodeBase.height;
-//				
-//				_reusableThumbnailsToPlotArray = [];
-//				var tNails:Array = thumbnails.getObjects()
-//				
-////				if(nodeBase.keywordTextArea.htmlText.indexOf("Total Documents") >-1)
-////					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/Total Documents Found:<\/B> [0-9]*/g,"Total Documents Found:<\/B> " + tNails.length);
-////				else
-////					nodeBase.keywordTextArea.htmlText +="<br/><b>Total Documents Found:</b> " +  tNails.length;
-//				
-//				if(nodeBase.keywordTextArea.text && nodeBase.keywordTextArea.text.indexOf("/") >-1)//we test the text because htmlText has tags with '/'
-//					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" + numOfMatchedDocuments.value);
-//				else
-//					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" + numOfMatchedDocuments.value);
-//				
-//				adjustNodeBase();	
-//				thumbnails.delayCallbacks();
-//				for (var i:int = 0; i<tNails.length; i++)
-//				{
-//					var t:DocThumbnailComponent = tNails[i];
-//					
-//					t.defaultBorderColor.value = thumbnailsDefaultColor.value;
-//					
-//					//first check to see if the thumbnail is present in movedThumbnails
-//					var position:MovedThumbnailPosition = movedThumbNails.getObject(t.docURL.value) as MovedThumbnailPosition;
-//					
-//					//if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true;
-//					if(position)
-//					{
-//						t.hasBeenMoved.value = true;
-//						
-//						copySessionState(position.xPos,t.xPos);
-//						copySessionState(position.yPos,t.yPos);
-//					}
-//					
-//					
-//					//if thumbnail has been moved make sure to add it as a child to Panel else make sure to add it as child to node.
-//					if(t.hasBeenMoved.value)
-//					{
-//						if(t.parent != _parentPanel.map)
-//						{
-//							_parentPanel.map.addChild(t);
-//							
-//						}
-//						//xPos and yPos are not linked
-//						t.move(t.xPos.value,t.yPos.value);
-//						
-//					}else
-//					{
-//						if(t.parent != this)
-//						{
-//							t.visible = false;
-//							//							pointsCanvas.addChild(t);
-//						}
-//					}
-//					
-//					
-//					var docURL:String = thumbnails.getName(t);
-//					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
-//					
-//					//TODO: Handle subsets
-//					
-//					
-//					if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
-//					{
-//						_reusableThumbnailsToPlotArray.push(qKey);
-//						t.visible = true;
-//					}else{
-//						
-//						t.visible = false;
-//					}
-//					
-//				}
-//				thumbnails.resumeCallbacks();
-//				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
-//				docListComponent.docKeys = _reusableThumbnailsToPlotArray;
-//				adjustNodeBase();
-//				toggleList(null,true);
+				if(view == null)
+					return;
 				
-//				handleGlobalSearch();
+				if(view.alpha == 1)
+				{
+					fadeOut.play([view]);
+				}
+				else
+				{
+					var viewsToHide:Array = [];
+					for each(var v:DisplayObject in views)
+					{
+						if(v != null && v != view)
+						{
+							viewsToHide.push(v);
+						}
+					}
+					fadeOut.play(viewsToHide);
+					fadeIn.play([view]);
+				}
+			}
+			
+			private function hideAllViews():void
+			{
+				fadeOut.play(views);
 			}
 			
 			private function handleTagWordSubsetChange():void
@@ -982,7 +909,7 @@
 					}
 					
 					addAllDocumentsToList();
-					if(_gridView && _gridView.alpha ==1)
+					if(gridView && gridView.alpha ==1)
 						redrawGrid();
 						
 				}else
@@ -1110,7 +1037,8 @@
 				for(var i:int = 0; i<entities.length; i++)
 				{
 					_entitiesToURLsHashMap[entities[i]] = urls[i];
-					entityCSVData.push([entities[i],(urls[i] as Array).length]);
+					if(urls[i] != null)
+						entityCSVData.push([entities[i],(urls[i] as Array).length]);
 
 				}
 				
@@ -1641,19 +1569,12 @@
 				);
 			}
 			
-			private var tagCanvas:TagCloud = null;
+			private var wordCloud:TagCloud = null;
 			private var colorRamp:ColorRamp = new ColorRamp();
 			private var wordCount:Array = [];
-			private function toggleTagCloud(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
+			private function toggleWordCloud(event:Event=null):void
 			{
-				if(!forceHide|| forceShow || !tagCanvas ||tagCanvas.alpha ==0)//!tagCanvas happens when user clicks the button for the first time 
-					status.text = "Loading Word Cloud...";
-				fadeOut.play(topicComponents);
-				flag_click = true;
-				fadeOut.play([pointsCanvas,listCanvas,_pointCanvas]);
-				if(_gridView)
-					fadeOut.play([_gridView]);
-				
+				status.text = "Loading Word Cloud...";
 				if(wordCount.length == 0)
 				{
 					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
@@ -1661,83 +1582,48 @@
 					
 					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,
-							endDate:currentQuery.dateFilter.endDate.value,operator:currentQuery.operator.value,
-							forceHide:forceHide,forceShow:forceShow});
+							endDate:currentQuery.dateFilter.endDate.value,operator:currentQuery.operator.value});
 					
 					return;
 				}
 				handleClearFiltersButton();
 				
 				//				statusBox.y = nodeBase.height + statusBox.height;
-				if(tagCanvas == null)
+				if(wordCloud == null)
 				{
-					tagCanvas = new TagCloud();
-					tagCanvas.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
-					tagCanvas.visible = false;
-					tagCanvas.includeInLayout = false;
-					addChild(tagCanvas);
-					tagCanvas.alpha = 0;
-					tagCanvas.visible = true;
+					wordCloud = new TagCloud();
+					wordCloud.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
+					wordCloud.visible = false;
+					wordCloud.includeInLayout = false;
+					addChild(wordCloud);
+					views.push(wordCloud);
+					wordCloud.alpha = 0;
+					wordCloud.visible = true;
 				}
-				tagCanvas.y= nodeBase.height;
-				if(StandardLib.arrayCompare(tagCanvas.dataProvider,wordCount) != 0)
+				wordCloud.y= nodeBase.height;
+				if(StandardLib.arrayCompare(wordCloud.dataProvider,wordCount) != 0)
 				{
-					tagCanvas.dataProvider = wordCount;
-					tagCanvas.draw(numOfWordsInCloud.value);
+					wordCloud.dataProvider = wordCount;
+					wordCloud.draw(numOfWordsInCloud.value);
 				}
 				
 				status.text = "";
 				
-				if(forceShow)
-				{
-					if(tagCanvas.alpha == 1)
-						return;
-					fadeIn.play([tagCanvas]);
-					return;
-				}
-				
-				if(forceHide)
-				{
-					if(tagCanvas.alpha ==0)
-						return;
-					fadeOut.play([tagCanvas]);
-					return;
-				}
-				
-				//toggle
-				if(tagCanvas.alpha ==0)
-					fadeIn.play([tagCanvas]);
-				else
-					fadeOut.play([tagCanvas]);
+				toggleView(wordCloud);
 			}
 			
 			private function redrawWordCloud():void
 			{
-				if(tagCanvas != null)
+				if(wordCloud != null)
 				{
-					tagCanvas.dataProvider = [];//clearing word cloud
-					removeChild(tagCanvas);
-					tagCanvas = null;
-					showTagCloud();
+					removeWordCloud();
+					toggleWordCloud();
 				}
 			}
 			
-			public function showTagCloud():void
-			{
-				toggleTagCloud(null,true);
-			}
-			
-			public function hideTagCloud():void
-			{
-				toggleTagCloud(null,false,true);
-			}
-			
 			private var docListComponent:DocumentList = new DocumentList();
-			private function toggleList(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
+			private function toggleList(event:Event=null):void
 			{
-				fadeOut.play(topicComponents);
-				flag_click = true;
-				
 				//if the list is not added yet
 				if(!listCanvas.contains(docListComponent))
 				{
@@ -1748,99 +1634,29 @@
 					docListComponent.y = nodeBase.height + statusBox.height;
 					statusBox.y = docListComponent.y-statusBox.height;
 					
-					if(forceHide)
-						return;
-					
-					fadeIn.play([listCanvas]);
-					//hide other canvases 
-					if(tagCanvas)
-						fadeOut.play([tagCanvas,pointsCanvas,_pointCanvas]);
-					else 
-						fadeOut.play([pointsCanvas]);
+					toggleView(listCanvas);
 					return;
 				}
 				
 				docListComponent.y = nodeBase.height + statusBox.height;
 				statusBox.y = docListComponent.y-statusBox.height;
 				
-				//hide other canvases 
-				if(tagCanvas)
-					fadeOut.play([tagCanvas,pointsCanvas,_pointCanvas]);
-				else 
-					fadeOut.play([pointsCanvas,_pointCanvas]);
-				
-				if(_gridView)
-					fadeOut.play([_gridView]);
-				
-				
-				if(forceShow)
-				{
-					if(listCanvas.alpha == 1)
-						return;
-					fadeIn.play([listCanvas]);
-					return;
-				}
-				
-				if(forceHide)
-				{
-					if(listCanvas.alpha == 0)
-						return;
-					fadeOut.play([listCanvas]);
-					return;
-				}	
-				
-				//toggle list
-				if(listCanvas.alpha == 0)
-				{
-					fadeIn.play([listCanvas]);
-				}
-					
-				else
-				{
-					fadeOut.play([listCanvas]);
-				}
+				toggleView(listCanvas);
 			}
 			
-			public function showList():void
+			private function toggleGridView(event:MouseEvent):void
 			{
-				toggleList(null,true,false);
-			}
-			
-			public function hideList():void
-			{
-				toggleList(null,false,true);
-			}
-			
-			private var _gridView:ThumbnailsLayout = null;
-			private function showGridView(event:MouseEvent):void
-			{
-				if(!_gridView)
-				{
-					_gridView = new ThumbnailsLayout();
-					_gridView.alpha = 0;
-					_gridView.includeInLayout = false;
-					addChild(_gridView);
-					_gridView.y = nodeBase.height + statusBox.height;
-				}
+				gridView.y = nodeBase.height + statusBox.height;
 				
-				_gridView.plotThumbnails(includedThumbnails());
+				gridView.plotThumbnails(includedThumbnails());
 				
-				if(_gridView.alpha == 1)
-				{
-					fadeOut.play([_gridView]);
-				}else
-				{
-					fadeOut.play([pointsCanvas,listCanvas,topicComponent,_pointCanvas]);
-					if(tagCanvas)
-						fadeOut.play([tagCanvas]);
-					fadeIn.play([_gridView]);
-				}
+				toggleView(gridView);
 			}
 			
 			private function redrawGrid():void
 			{
-				_gridView.y = nodeBase.height + statusBox.height;
-				_gridView.plotThumbnails(includedThumbnails());
+				gridView.y = nodeBase.height + statusBox.height;
+				gridView.plotThumbnails(includedThumbnails());
 			}
 			
 			/* TODO: if _subset and _tagWordSubset is empty just plot all */
@@ -1864,9 +1680,9 @@
 			private var _pointCanvas:PointsLayout = new PointsLayout();
 			private function showPoints(event:Event=null):void
 			{
-				if(_pointCanvas.alpha == 1)
+				if(contains(_pointCanvas) && _pointCanvas.alpha == 1)
 				{
-					fadeOut.play([_pointCanvas]);
+					toggleView(_pointCanvas);
 					return;
 				}
 				handleClearFiltersButton();
@@ -1882,26 +1698,9 @@
 				_pointCanvas.y = nodeBase.height + statusBox.height;
 				_pointCanvas.drawPoints(urls, keywords, this);
 				
-				fadeOut.play([pointsCanvas,listCanvas,topicComponent]);
-				if(_gridView)
-					fadeOut.play([_gridView]);
-				if(tagCanvas)
-					fadeOut.play([tagCanvas]);
-				fadeIn.play([_pointCanvas]);
+				toggleView(_pointCanvas);
 				status.text = "";
 			}
-			
-			
-//			private function showPointCanvas(event:Event):void
-//			{
-//				
-//				if(!(tagCanvas == null))
-//					fadeOut.play([tagCanvas,listCanvas,clearNewDocuments]);
-//				else
-//					fadeOut.play([listCanvas,clearNewDocuments]);
-//				(layout.internalObject as RandomLayout).updateTitleLabel();
-//				fadeIn.play([pointsCanvas]);
-//			}
 			
 //			private var clickedWordKeySet:KeySet = new KeySet();
 			private var filteredWords:LinkableString = new LinkableString("",null,false);
@@ -1956,7 +1755,7 @@
 				
 				_tagWordSubset.replaceKeys(false,true,keys);
 				
-				showList();
+				toggleView(listCanvas);
 				status.text = "";
 				filterStatus.htmlText= "<b>Filtered by: </b>" + filterMessage;
 				clearFiltersButton.visible = true;
@@ -2012,12 +1811,6 @@
 			{   
 				if(_topicsResult == null)
 					return;
-				fadeOut.play([pointsCanvas,listCanvas,_pointCanvas]);
-				if(tagCanvas)
-					fadeOut.play([tagCanvas]);
-				if(_gridView)
-					fadeOut.play([_gridView]);
-				
 				if(flag_init){
 					
 					// ToDo This will not update automatically when new documents come in.
@@ -2042,18 +1835,10 @@
 					//addChild(topicComponent);
 					
 					flag_init = false;
+					topicComponent.alpha = 0;
 				}
 				
-				if (flag_click)
-				{
-					fadeIn.play(topicComponents);
-					flag_click = false;
-				}
-				else
-				{
-					fadeOut.play(topicComponents);
-					flag_click = true;
-				}
+				toggleView(topicComponent);
 			}
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
@@ -2117,19 +1902,15 @@
 					nodeBase.keywordTextArea.setSelection(0,0);
 					nodeBase.keywordTextArea.htmlText = "";
 					newDocumentHighlight.stop();//in case node is blinking
-					stopGlow()
+					stopGlow();
+					hideAllViews();
 					if(listCanvas.contains(docListComponent))
 					{
 						docListComponent.docKeys = [];//clearing items in list
-						hideList();
 					}
-					if(tagCanvas)
+					if(wordCloud)
 					{
-						hideTagCloud();
-						tagCanvas.clearCloud();
-						tagCanvas.dataProvider = [];//clearing word cloud
-						removeChild(tagCanvas);
-						tagCanvas = null;
+						removeWordCloud();
 					}
 					if(diff)
 						copySessionState(previousQuery,currentQuery);
@@ -2165,6 +1946,16 @@
 
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
+			}
+			
+			private function removeWordCloud():void
+			{
+				wordCloud.clearCloud();
+				wordCloud.dataProvider = [];//clearing word cloud
+				var index:int = views.indexOf(wordCloud);
+				views.splice(index,1);
+				removeChild(wordCloud);
+				wordCloud = null;
 			}
 			
 			private function updateNodeTextOnNewDocuments():void
@@ -2254,9 +2045,10 @@
 				_tagWordSubset.replaceKeys(false,true,[]);
 //				addAllDocumentsToList(); // we don't change the _tagWordSubset so that it's callbacks aren't called.
 				
-				if(_gridView && _gridView.alpha == 1)
+				if(gridView && gridView.alpha == 1)
 					redrawGrid();
 			}
+			
 			
 			public var currentView:DisplayObject = null;
 			private function handleFadeInEffectsStart(event:EffectEvent):void
@@ -2321,6 +2113,9 @@
 				prevNewDocsCount.value = 0;
 				updateTextArea();
 				docKeySet.replaceKeys([]);
+				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
+				wordCount = [];
+				
 			}
 			
 			public function dispose():void

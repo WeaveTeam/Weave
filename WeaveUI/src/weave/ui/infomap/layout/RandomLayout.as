@@ -122,8 +122,11 @@ package weave.ui.infomap.layout
 			}
 			
 			
-			var maxWidth:Number = _parentNodeHandler.pointsCanvas.width;
-			var maxHeight:Number = _parentNodeHandler.pointsCanvas.height;
+//			var maxWidth:Number = _parentNodeHandler.pointsCanvas.width;
+//			var maxHeight:Number = _parentNodeHandler.pointsCanvas.height;
+			
+			var maxWidth:Number;
+			var maxHeight:Number;
 			
 			var nextX:int;
 			var nextY:int;

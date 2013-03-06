@@ -64,6 +64,7 @@
 						}
 					}
 				}
+//				trace("FINISHED SORTING TOPICS");
 				topicSortByNumOfUrl.removeItemAt(0);
 				topicSortByNumOfUrl.removeItemAt(topicSortByNumOfUrl.length - 1);
 				
@@ -97,6 +98,8 @@
 				var horizontalFlag:Boolean = true; // Flag for the first division
 				for (var m:int = 0; m < numberOfTopic; m++)
 				{
+//					trace("looping in topic ",m);
+					
 					colorNorm = ((topicSortByNumOfUrlDesc.getItemAt(0) as Array)[1] - minValue) / (maxValue- minValue);
 					//					if (reverseOrder) // ToDo
 					//						colorNorm = 1 - colorNorm;
@@ -119,6 +122,8 @@
 					
 					if ((m % 2) == 0)
 					{
+//						trace("Deal with even iteration (divide rectangle vertically)");
+						
 						// Deal with even iteration (divide rectangle vertically)
 						// For the first division only
 						if (verticalFlag) remainingWidth = remainingWidth - spaceWidth;
@@ -145,6 +150,7 @@
 					}
 					else
 					{
+//						trace("Deal with odd iteration (divide rectangle horizontally)");
 						// Deal with odd iteration (divide rectangle horizontally)
 						// For the first division only
 						if (horizontalFlag) remainingHeight = remainingHeight - spaceWidth;
@@ -191,6 +197,7 @@
 					var flag:Boolean = true;
 					while(flag)
 					{
+//						trace("in while flag loop");
 						textFormat.size = (textFormat.size as Number) + 1;
 						textField.setTextFormat(textFormat);
 						if (textField.numLines > textField.bottomScrollV)
@@ -198,6 +205,7 @@
 							textFormat.size = (textFormat.size as Number) - 2; // ToDo Reduce the font size by 2 instead of 1
 							textField.setTextFormat(textFormat);
 							flag = false;
+//							trace("flag is false");
 						}
 					}
 					
@@ -208,6 +216,7 @@
 					sprite.addEventListener(MouseEvent.CLICK, function(event:Event):void{(parent as NodeHandler).filterDocumentsByURLS((event.currentTarget as CustomSprite)._topicFilter, "Selected topic");});
 					
 					topicSortByNumOfUrlDesc.removeItemAt(0);
+//					trace("end of looping across topics");
 				}
 				
 				// ToDo Add label for mouse over and out event
@@ -220,6 +229,8 @@
 				spotLabel.setStyle("fontSize", 16);
 				spotLabel.setStyle("textAlign", "center");
 				parentComponent.addChild(spotLabel);
+				
+				trace("leaving draw tree map");
 			}
 		]]>
 	</mx:Script>
