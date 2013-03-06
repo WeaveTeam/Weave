@@ -31,14 +31,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			  title="Disability Options"
 			  sessionPanelCoordsAsPercentages="false"
 			  width="400"
-			  height="400">
-		<fx:Style>
+			  height="400"
+			  backgroundColor="0xEFF4BC">
 		
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			backgroundColor: #EFF4BC;
-		}
-	</fx:Style>
 	
 	<!--recommendation - use skin to set the appaerance of the tool
 	backgroundColor="#EFF4BC"-->

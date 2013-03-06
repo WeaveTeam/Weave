@@ -283,7 +283,9 @@ package weave.ui
 			
 			
 			
-			// try to find a ControlPanel
+			// if the draggable panel is simplevistool
+			// controlpanel will be part of MXML
+			// remove them and add as disposablechild to simplevistool
 			for (var i:int = 0; i < numElements; i++)
 			{
 				if (getElementAt(i) is ControlPanel)
@@ -658,7 +660,8 @@ package weave.ui
 			if (!parent)
 				return;
 			
-			
+			styleChanged("headerHeight");
+			notifyStyleChangeInChildren("headerHeight", true);
 			updateMoveIcon();
 			invalidateDisplayList();
 		}

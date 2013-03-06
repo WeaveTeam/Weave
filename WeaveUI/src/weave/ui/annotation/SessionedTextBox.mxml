@@ -25,15 +25,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:mx="library://ns.adobe.com/flex/mx"
 				   xmlns:ui="weave.ui.*"
 				   width="25%" height="25%" 
-				   layout="{new BasicLayout()}"  >
+				   layout="{new BasicLayout()}" backgroundAlpha="0"  >
+	
 	<fx:Style>
-		@namespace  "weave.ui.annotation.*";
-		@namespace ui "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		@namespace "weave.ui.*"; 
+		
  .weave-panel-style{
-			backgroundAlpha: 0;
+			
 			borderThickness: 0;
 		}
 	</fx:Style>

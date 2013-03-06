@@ -26,17 +26,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				  width="338" height="210"
 				  title="{lang('Collaboration Settings')}"				  
 				  creationComplete="creationComplete()" 
-				  >
-	<fx:Style>
-		@namespace  "weave.ui.*";
-		@namespace ui "weave.ui.*";
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			backgroundColor: #EFF4BC;
-		}
-	</fx:Style>
+				  backgroundColor="0xEFF4BC">
+	
 
 	<s:NavigatorContent label="{lang('Server Settings')}" width="100%" height="100%">
 		<s:layout>

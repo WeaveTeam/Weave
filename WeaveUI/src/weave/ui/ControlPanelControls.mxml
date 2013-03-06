@@ -37,15 +37,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</s:Group>
 	</s:Scroller>
 	<s:HGroup width="100%" id="buttons">
-		<s:Button id="revertBtn" label="{lang('Revert')}"  toolTip="{lang('Revert to last saved state')}" > 
-			
-			</s:Button>
-		<s:Button id="cancelBtn" label="{lang('Cancel')}" toolTip="{lang('Revert to last saved state and close this window')}" />
+		<s:Button id="revertBtn" label="{lang('Revert')}"  toolTip="{lang('Revert to last saved state')}" cornerRadius="2"/> 
+		<s:Button id="cancelBtn" label="{lang('Cancel')}" toolTip="{lang('Revert to last saved state and close this window')}" cornerRadius="2" />
 		<s:Spacer width="100%" minWidth="0"/>
 		<BusyIndicator id="busyIndicator" visible="true" includeInLayout="true" diameterRatio=".75" targets="{_busyIndicatorTargets}"/>
 		<s:Spacer width="100%" minWidth="0"/>
-		<s:Button id="saveBtn" label="{lang('Save')}"  toolTip="{lang('Create a save point you can revert to')}" />
-		<s:Button id="saveCloseBtn" label="{lang('Save &amp; Close')}"  toolTip="{lang('Commit all changes and close this window')}"/>
+		<s:Button id="saveBtn" label="{lang('Save')}"  toolTip="{lang('Create a save point you can revert to')}" cornerRadius="2"/>
+		<s:Button id="saveCloseBtn" label="{lang('Save &amp; Close')}"  toolTip="{lang('Commit all changes and close this window')}" cornerRadius="2"/>
 	</s:HGroup>
 	
 	<fx:Script>

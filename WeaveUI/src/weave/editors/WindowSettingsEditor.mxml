@@ -25,7 +25,7 @@
 		xmlns="weave.ui.editors.*"
 		label="{lang('Window')}"
 		enabled="{_panel != null}"
-		xmlns:ui="weave.ui.*">
+		xmlns:ui="weave.ui.*" creationPolicy="all">
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>

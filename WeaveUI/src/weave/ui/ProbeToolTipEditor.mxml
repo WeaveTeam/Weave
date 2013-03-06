@@ -25,14 +25,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			  xmlns:mx="library://ns.adobe.com/flex/mx"
 			  layout="{new BasicLayout()}"
 			  title="{lang('Probe ToolTip Editor')}" 
-			 >
-	<fx:Style>
-		
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			backgroundColor: #EFF4BC;
-		}
-	</fx:Style>
+			  backgroundColor="0xEFF4BC">
+	
 	
 	<s:NavigatorContent label="{lang('Header Columns')}">
 		<s:layout>

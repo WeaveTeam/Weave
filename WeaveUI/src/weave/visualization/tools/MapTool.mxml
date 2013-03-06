@@ -605,150 +605,160 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</fx:Script>
 	
-	<mx:VBox id="mapControls"
-			 visible="{enableZoomToggle.selected}"
-			 includeInLayout="{enableZoomToggle.selected}"
-			 horizontalAlign="center"
-			 verticalGap="{zoomControlsToggle.selected ? 2 : 0}"
-			 
-			 paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-			 backgroundColor="white" backgroundAlpha="0.01">
-		<s:VGroup paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				  includeInLayout="{zoomControlsToggle.selected}"
-				  visible="{zoomControlsToggle.selected}"
-				  gap="2">
-			
-			<s:VGroup id="panControls" horizontalAlign="center" gap="1" height="100%">
-				<mx:Button id="north"
-						   label="N"
-						   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-						   width="16" height="16"
-						   click="handlePanButtonClick(0,1)"
-						   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"
-						   />
+	<s:Group id="mapControls"
+			  visible="{enableZoomToggle.selected}"
+			  includeInLayout="{enableZoomToggle.selected}"
+			  >
+		<s:Rect left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="white" alpha="0.01"/>
+			</s:fill>
+		</s:Rect>
+		
+		<s:VGroup  paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
+				   gap="{zoomControlsToggle.selected ? 2 : 0}" horizontalAlign="center">
+			<s:VGroup paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
+					  includeInLayout="{zoomControlsToggle.selected}"
+					  visible="{zoomControlsToggle.selected}"
+					  gap="2">
 				
-				<s:HGroup gap="2">			
-					<mx:Button id="west"
-							   label="W" toolTip=""
+				<s:VGroup id="panControls" horizontalAlign="center" gap="1" height="100%">
+					<mx:Button id="north"
+							   label="N"
 							   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 							   width="16" height="16"
-							   click="handlePanButtonClick(-1,0)"
-							   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
-					<mx:Button id="zoomToExtentButton"
-							   toolTip="Click this button to zoom to map's full extent"
-							   icon="@Embed(source='/weave/resources/images/zoomToExtent.png')"
-							   fillAlphas="[1,1]" 
-							   width="16" height="16" 
-							   cornerRadius="0"
-							   click="visualization.zoomToSelection()"/>
-					<mx:Button id="east"
-							   label="E"
+							   click="handlePanButtonClick(0,1)"
+							   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"
+							   />
+					
+					<s:HGroup gap="2">			
+						<mx:Button id="west"
+								   label="W" toolTip=""
+								   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+								   width="16" height="16"
+								   click="handlePanButtonClick(-1,0)"
+								   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
+						<mx:Button id="zoomToExtentButton"
+								   toolTip="Click this button to zoom to map's full extent"
+								   icon="@Embed(source='/weave/resources/images/zoomToExtent.png')"
+								   fillAlphas="[1,1]" 
+								   width="16" height="16" 
+								   cornerRadius="0"
+								   click="visualization.zoomToSelection()"/>
+						<mx:Button id="east"
+								   label="E"
+								   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+								   width="16" height="16"
+								   click="handlePanButtonClick(1,0)"
+								   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
+					</s:HGroup>
+					
+					<mx:Button id="south"
+							   label="S"
 							   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 							   width="16" height="16"
-							   click="handlePanButtonClick(1,0)"
+							   click="handlePanButtonClick(0,-1)"
 							   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
-				</s:HGroup>
-				
-				<mx:Button id="south"
-						   label="S"
-						   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-						   width="16" height="16"
-						   click="handlePanButtonClick(0,-1)"
-						   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
+				</s:VGroup>
+
 			</s:VGroup>
+			
+			<s:Group  includeInLayout="{zoomControlsToggle.selected}"
+					  visible="{zoomControlsToggle.selected}"
+					  >
+				<s:Rect left="0" right="0" top="0" bottom="0">
+					<s:fill>
+						<s:SolidColor color="white" alpha="0.85"/>
+					</s:fill>
+				</s:Rect>
+				
+				<s:VGroup gap="2" paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2">
+					<mx:Button id="zoomIn"
+							   icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
+							   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+							   width="15" height="15"
+							   click="handleZoomInClick()"
+							   cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
+					
+					<mx:VSlider id="zoomSlider"
+								showDataTip="false"
+								allowTrackClick="true"
+								liveDragging="true"
+								tickInterval="1"
+								minimum="{zoomSliderMinimum}"
+								maximum="{zoomSliderMaximum}"
+								height="88"
+								change="handleZoomSliderChange(event);"/>
+					
+					<mx:Button id="zoomOut"
+							   icon="@Embed(source='/weave/resources/images/zoomMinus.png')"
+							   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
+							   width="15" height="15"
+							   click="handleZoomOutClick()"
+							   cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
+				</s:VGroup>
+				
+			</s:Group>
+			
+			<s:Spacer height="5" includeInLayout="{zoomControlsToggle.selected}"/>
+			
+			<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
+			<s:HGroup id="mouseModeBox" gap="1" right="2" bottom="2"  
+					  includeInLayout="{mouseModeControlsToggle.selected}"
+					  visible="{mouseModeControlsToggle.selected}"
+					  
+					  alpha="1"> 
+				<!--backgroundColor="white" backgroundAlpha="0.01"-->
+				<mx:Button id="panModeButton" 
+						   icon="@Embed(source='/weave/resources/images/cursor_hand.png')"
+						   fillAlphas="[1,1]"  fillColors="{panModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+						   alpha="{panModeButton.selected ? 1 : 0.5}"
+						   width="17" height="17" 
+						   toggle="true"
+						   toolTip="Select this mode to enable panning on the map using the mouse."
+						   click="handleMouseModeChange(event)" cornerRadius="0"/>
+				<mx:Button id="selectModeSubtractButton"
+						   icon="@Embed(source='/weave/resources/images/selectMode_subtract.png')"
+						   fillAlphas="[1,1]"  fillColors="{selectModeSubtractButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+						   alpha="{selectModeSubtractButton.selected ? 1 : 0.5}" 
+						   width="0" minWidth="0" height="17" 
+						   visible="false"
+						   toggle="true"
+						   toolTip="Select this mode to enable subtracting selections from existing selections of shapes on the map using the mouse."
+						   click="handleMouseModeChange(event)" cornerRadius="0"
+						   />
+				<mx:Button id="selectModeButton"
+						   icon="@Embed(source='/weave/resources/images/selectMode.png')"
+						   fillAlphas="[1,1]"  fillColors="{selectModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+						   alpha="{selectModeButton.selected ? 1 : 0.5}"
+						   width="17" height="17"
+						   toggle="true"
+						   toolTip="Select this mode to enable adding selections to existing selections of shapes on the map using the mouse."
+						   click="handleMouseModeChange(event)" cornerRadius="0"
+						   selected="true"/>
+				<mx:Button id="selectModeAddButton"
+						   icon="@Embed(source='/weave/resources/images/selectMode_add.png')"
+						   fillAlphas="[1,1]"  fillColors="{selectModeAddButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+						   alpha="{selectModeAddButton.selected ? 1 : 0.5}"
+						   width="0" minWidth="0" height="17"
+						   visible="false"
+						   toggle="true"
+						   toolTip="Select this mode to enable selection of shapes on the map using the mouse."
+						   click="handleMouseModeChange(event)" cornerRadius="0"
+						   />
+				<mx:Button id="zoomModeButton"
+						   icon="@Embed(source='/weave/resources/images/zoomMode.png')"
+						   fillAlphas="[1,1]" fillColors="{zoomModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
+						   alpha="{zoomModeButton.selected ? 1 : 0.5}"
+						   width="17" height="17" 
+						   toggle="true"
+						   toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
+						   click="handleMouseModeChange(event)" cornerRadius="0"/>
+			</s:HGroup>
 		</s:VGroup>
 		
-		<s:BorderContainer  
-			includeInLayout="{zoomControlsToggle.selected}"
-			visible="{zoomControlsToggle.selected}"
-			borderStyle="solid">
-			<s:backgroundFill>
-				<s:SolidColor color="white" alpha="0.85"/>
-			</s:backgroundFill>
-			<s:layout>
-				<s:VerticalLayout gap="2" paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"/>
-			</s:layout>
-			<mx:Button id="zoomIn"
-					   icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
-					   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-					   width="15" height="15"
-					   click="handleZoomInClick()"
-					   cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
-			
-			<mx:VSlider id="zoomSlider"
-						showDataTip="false"
-						allowTrackClick="true"
-						liveDragging="true"
-						tickInterval="1"
-						minimum="{zoomSliderMinimum}"
-						maximum="{zoomSliderMaximum}"
-						height="88"
-						change="handleZoomSliderChange(event);"/>
-			
-			<mx:Button id="zoomOut"
-					   icon="@Embed(source='/weave/resources/images/zoomMinus.png')"
-					   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-					   width="15" height="15"
-					   click="handleZoomOutClick()"
-					   cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
-		</s:BorderContainer>
-		
-		<s:Spacer height="5" includeInLayout="{zoomControlsToggle.selected}"/>
-		
-		<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
-		<s:HGroup id="mouseModeBox" gap="1" right="2" bottom="2"  
-				  includeInLayout="{mouseModeControlsToggle.selected}"
-				  visible="{mouseModeControlsToggle.selected}"
-				  
-				  alpha="1"> 
-			<!--backgroundColor="white" backgroundAlpha="0.01"-->
-			<mx:Button id="panModeButton" 
-					   icon="@Embed(source='/weave/resources/images/cursor_hand.png')"
-					   fillAlphas="[1,1]"  fillColors="{panModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
-					   alpha="{panModeButton.selected ? 1 : 0.5}"
-					   width="17" height="17" 
-					   toggle="true"
-					   toolTip="Select this mode to enable panning on the map using the mouse."
-					   click="handleMouseModeChange(event)" cornerRadius="0"/>
-			<mx:Button id="selectModeSubtractButton"
-					   icon="@Embed(source='/weave/resources/images/selectMode_subtract.png')"
-					   fillAlphas="[1,1]"  fillColors="{selectModeSubtractButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
-					   alpha="{selectModeSubtractButton.selected ? 1 : 0.5}" 
-					   width="0" minWidth="0" height="17" 
-					   visible="false"
-					   toggle="true"
-					   toolTip="Select this mode to enable subtracting selections from existing selections of shapes on the map using the mouse."
-					   click="handleMouseModeChange(event)" cornerRadius="0"
-					   />
-			<mx:Button id="selectModeButton"
-					   icon="@Embed(source='/weave/resources/images/selectMode.png')"
-					   fillAlphas="[1,1]"  fillColors="{selectModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
-					   alpha="{selectModeButton.selected ? 1 : 0.5}"
-					   width="17" height="17"
-					   toggle="true"
-					   toolTip="Select this mode to enable adding selections to existing selections of shapes on the map using the mouse."
-					   click="handleMouseModeChange(event)" cornerRadius="0"
-					   selected="true"/>
-			<mx:Button id="selectModeAddButton"
-					   icon="@Embed(source='/weave/resources/images/selectMode_add.png')"
-					   fillAlphas="[1,1]"  fillColors="{selectModeAddButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
-					   alpha="{selectModeAddButton.selected ? 1 : 0.5}"
-					   width="0" minWidth="0" height="17"
-					   visible="false"
-					   toggle="true"
-					   toolTip="Select this mode to enable selection of shapes on the map using the mouse."
-					   click="handleMouseModeChange(event)" cornerRadius="0"
-					   />
-			<mx:Button id="zoomModeButton"
-					   icon="@Embed(source='/weave/resources/images/zoomMode.png')"
-					   fillAlphas="[1,1]" fillColors="{zoomModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
-					   alpha="{zoomModeButton.selected ? 1 : 0.5}"
-					   width="17" height="17" 
-					   toggle="true"
-					   toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
-					   click="handleMouseModeChange(event)" cornerRadius="0"/>
-		</s:HGroup>
-	</mx:VBox>
+
+	</s:Group>
 	
 	
 	<ui:ControlPanel>

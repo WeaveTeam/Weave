@@ -27,14 +27,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
 				creationPolicy="all" 
-				>
-	<fx:Style>
-		
-		
-		/*.weave-panel-style{
-			
-		}*/
-	</fx:Style>
+				backgroundColor="0xcccccc">
+	
 	
 	
 	<layout>

@@ -27,14 +27,8 @@
 			xmlns:ui="weave.ui.*"
 			title="{lang('Preferences')}"
 			targets="{[Weave.properties]}"
-			>
-	<fx:Style>
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			backgroundColor: #EFF4BC;
-		}
-	</fx:Style>
-	
+			backgroundColor="0xEFF4BC">
+		
 	<s:NavigatorContent label="{lang('Appearance')}">
 		<WeavePropertiesAppearanceEditor />
 	</s:NavigatorContent>

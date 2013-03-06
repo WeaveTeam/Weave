@@ -32,12 +32,11 @@ This is a generic panel for a wizard interface, containing back/next/finish/canc
 	title="{viewStack.label}"		
 	percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
 	sessionPanelCoordsAsPercentages="false"
-	>
+	borderAlpha="1" borderColor="0x939178">
 		<fx:Style>
 		
  .weave-panel-style{
-			borderAlpha: 1 ;
-			borderColor: #939178;
+			
 			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
 			roundedBottomCorners: true;
 		}

@@ -27,13 +27,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	xmlns:mx="library://ns.adobe.com/flex/mx"
 	title="Attribute Selector"	 
 	xmlns:editors="weave.editors.*"
-	>
-	<fx:Style>		
-		
- .weave-panel-style{
-			backgroundColor:#EFF4BC;
-		}
-	</fx:Style>
+	backgroundColor="0xEFF4BC">
+	
 	
 	<s:NavigatorContent width="100%" height="100%" id="outerVBox">
 		<s:layout>

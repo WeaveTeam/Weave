@@ -26,13 +26,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				  xmlns:ui="weave.ui.*" 
 				  layout="{new BasicLayout()}"
 				  title="{lang('Color Controller')}"				  
-				 >
-	<fx:Style>
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			backgroundColor: #EFF4BC;
-		}
-	</fx:Style>
+				  backgroundColor="0xEFF4BC">
+	
 	
 	<s:NavigatorContent id="VizControlsPanel" label="{lang('Binning')}">
 		<s:layout>

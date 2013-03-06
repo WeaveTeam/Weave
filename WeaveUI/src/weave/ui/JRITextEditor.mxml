@@ -42,14 +42,8 @@ JRITextEditor
 				x="15%" width="80%" y="15%" height="80%"				
 				layout="{new HorizontalLayout()}"
 				autoLayout="true" implements="weave.api.ui.IVisTool"
-				>
-	<fx:Style>
-		
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			backgroundColor: #EFF4BC;
-		}
-	</fx:Style>
+				backgroundColor="0xEFF4BC">
+	
 	
 	<s:HGroup width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<s:HGroup width="100%" height="100%">

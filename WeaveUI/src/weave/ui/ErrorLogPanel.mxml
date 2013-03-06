@@ -24,14 +24,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				xmlns="weave.ui.*" 
 				title="Error Log"
-				>
-	<fx:Style>
-		
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			borderColor: #939178;
-		}
-	</fx:Style>
+				borderColor="0x939178">
+	
 	
 	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
 	<!--

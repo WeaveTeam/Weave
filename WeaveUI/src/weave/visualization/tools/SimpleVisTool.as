@@ -112,6 +112,7 @@ package weave.visualization.tools
 			createdChildren = true;
 			
 			toolVBox = new VGroup()
+			toolVBox.clipAndEnableScrolling = true;
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
 			toolVBox.setStyle("gap", 0);
@@ -130,17 +131,22 @@ package weave.visualization.tools
 			visCanvas = new Group();
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
-			toolVBox.addElement(visCanvas);
 			
+			//all children added in MXML except controlpanel are moved to viscanvas 
+			// controlpanel added in MXML is removed in DraggablePanel createChildren method and registered as simplevistool disposable child
+			var flexChildren:Array = SparkUtils.getAllElement(this);
+			removeAllElements();			
+			
+			this.addElement(toolVBox);
+			toolVBox.addElement(visCanvas);
+			//children hashmap gets filled in the constructor of respctive tool
 			UIUtils.linkDisplayObjects(visCanvas, children);
 			
-			var flexChildren:Array = SparkUtils.getAllElement(this);
-			removeAllElements();
-			
+			//all children added in MXML except controlpanel are moved to viscanvas here
 			for ( var i:int = 0; i < flexChildren.length; i++ )
 				visCanvas.addElement(flexChildren[i]);
 			
-			this.addElement(toolVBox);
+			
 			
 			layerListComponent = new LayerListComponent();
 			layerListComponent.visualization = visualization;

@@ -238,7 +238,6 @@ in accordance with the terms of the license agreement accompanying it.
 				titleBarColor.color = getStyle("borderColor");
 				titleBarColor.alpha = getStyle("borderAlpha");
 				backgroundFill.color = getStyle("backgroundColor");
-				trace(backgroundFill.color);
 				backgroundFill.alpha = getStyle("backgroundAlpha");
 				
 				

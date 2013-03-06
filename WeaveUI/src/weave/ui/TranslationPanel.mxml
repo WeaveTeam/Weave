@@ -29,15 +29,9 @@
 		xmlns="weave.ui.*"
 		title="{lang('Translations')}"
 		addedToStage="refresh()"
-		
+		borderColor="0x939178"
 		>
-	<fx:Style>
-		
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			borderColor: #939178;
-		}
-	</fx:Style>
+	
 	
 	<s:VGroup width="100%" height="100%"
 			paddingLeft="8"
