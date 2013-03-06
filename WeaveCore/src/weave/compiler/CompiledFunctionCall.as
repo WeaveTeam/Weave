@@ -28,14 +28,14 @@ package weave.compiler
 	 */
 	public class CompiledFunctionCall implements ICompiledObject
 	{
-		public function CompiledFunctionCall(compiledName:ICompiledObject, compiledParams:Array)
+		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array)
 		{
-			this.compiledMethod = compiledName;
+			this.compiledMethod = compiledMethod;
 			this.compiledParams = compiledParams;
 			
 			// if name is constant, evaluate it once now
-			if (compiledName is CompiledConstant)
-				evaluatedMethod = (compiledName as CompiledConstant).value;
+			if (compiledMethod is CompiledConstant)
+				evaluatedMethod = (compiledMethod as CompiledConstant).value;
 			
 			if (compiledParams)
 			{

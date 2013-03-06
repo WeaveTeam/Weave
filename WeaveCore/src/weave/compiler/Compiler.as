@@ -55,14 +55,9 @@ package weave.compiler
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
-		 * For example, the function notation for ( x + y ) is ( (+)(x,y) ).
+		 * For example, the function notation for ( x + y ) is ( \+(x,y) ).
 		 */
-		public static const OPERATOR_PREFIX:String = '(';
-		/**
-		 * This is the suffix used for the function notation of infix operators.
-		 * For example, the function notation for ( x + y ) is ( (+)(x,y) ).
-		 */
-		public static const OPERATOR_SUFFIX:String = ')';
+		public static const OPERATOR_ESCAPE:String = '\\';
 		
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
@@ -364,7 +359,7 @@ package weave.compiler
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
 				if (operators[op] is Function)
-					constants[OPERATOR_PREFIX + op + OPERATOR_SUFFIX] = operators[op];
+					constants[OPERATOR_ESCAPE + op] = operators[op];
 		}
 
 		/**
@@ -512,13 +507,20 @@ package weave.compiler
 				}
 			}
 			
+			// next step: compile escaped operators
+			for (i = 0; i < tokens.length - 1; i++)
+			{
+				token = tokens[i];
+				if (token == OPERATOR_ESCAPE && operators[tokens[i + 1]] is Function)
+				{
+					token = tokens[i + 1];
+					tokens.splice(i, 2, new CompiledConstant(OPERATOR_ESCAPE + token, operators[token]));
+				}
+			}
+			
 			// next step: handle operators "..[]{}()"
 			compileBracketsAndProperties(tokens);
 
-			// next step: compile lone operators (extension to allow getting pointers to operator functions)
-			if (tokens.length == 1 && tokens[0] is String && operators[tokens[0]] is Function)
-				tokens[0] = new CompiledConstant(OPERATOR_PREFIX + tokens[0] + OPERATOR_SUFFIX, operators[tokens[0]]);
-			
 			// next step: handle stray operators "..[](){}"
 			for each (token in tokens)
 				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
@@ -599,7 +601,7 @@ package weave.compiler
 				if (enableOptimizations && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
-					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:' + OPERATOR_SUFFIX, operators['?:']), [condition, trueBranch, falseBranch]);
+					result = compileFunctionCall(new CompiledConstant(OPERATOR_ESCAPE + '?:', operators['?:']), [condition, trueBranch, falseBranch]);
 				
 				tokens.splice(left - 1, end - left + 1, result);
 			}
@@ -622,7 +624,7 @@ package weave.compiler
 				if (!lhs || !rhs)
 					throw new Error("Invalid " + (!lhs ? 'left' : 'right') + "-hand-side of '" + tokens[i] + "'");
 				
-				// lhs should either be a constant or a call to operator.()
+				// lhs should either be a constant or a call to operator (.)
 				
 				if (lhs.evaluatedMethod is String) // lhs is a variable lookup
 				{
@@ -630,9 +632,9 @@ package weave.compiler
 					continue;
 				}
 				
-				// verify that lhs.compiledMethod.name is 'operator.'
+				// verify that lhs.compiledMethod.name is \.
 				var lhsMethod:CompiledConstant = lhs.compiledMethod as CompiledConstant;
-				if (lhsMethod && lhsMethod.name == OPERATOR_PREFIX + '.' + OPERATOR_SUFFIX)
+				if (lhsMethod && lhsMethod.name == OPERATOR_ESCAPE + '.')
 				{
 					// switch to the assignment operator
 					lhs.compiledParams.push(tokens[i + 1]);
@@ -865,13 +867,6 @@ package weave.compiler
 				{
 					var propertyToken:String = tokens[open + 1] as String;
 					
-					// special case for lone operator
-					if (open > 0 && token == OPERATOR_PREFIX && propertyToken == OPERATOR_SUFFIX)
-					{
-						tokens.splice(open - 1, 3, new CompiledConstant(OPERATOR_PREFIX + tokens[open] + OPERATOR_SUFFIX, operators[tokens[open]]));
-						continue;
-					}
-					
 					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
 						break; // error
 					
@@ -987,7 +982,7 @@ package weave.compiler
 			if (!enableOptimizations
 				|| !constantMethod
 				|| operators[constantMethod.name] == undefined
-				|| constantMethod.name == OPERATOR_PREFIX + '[' + OPERATOR_SUFFIX
+				|| constantMethod.name == OPERATOR_ESCAPE + '['
 				|| assignmentOperators[constantMethod.value] != undefined)
 			{
 				return compiledFunctionCall;
@@ -1101,10 +1096,7 @@ package weave.compiler
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
 			*/
-			if (operatorName == ',')
-				operatorName = '{,}';
-			else
-				operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
+			operatorName = OPERATOR_ESCAPE + operatorName;
 			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 
@@ -1143,10 +1135,9 @@ package weave.compiler
 				params[i] = decompileObject(call.compiledParams[i]);
 			
 			// replace infix operator function calls with the preferred infix syntax
-			if (name.indexOf(OPERATOR_PREFIX) == 0 || name == '{,}')
+			if (name.indexOf(OPERATOR_ESCAPE) == 0)
 			{
-				var op:String = name.substr(OPERATOR_PREFIX.length);
-				op = op.substr(0, -OPERATOR_SUFFIX.length);
+				var op:String = name.substr(OPERATOR_ESCAPE.length);
 				if (op == '.' && params.length >= 2)
 				{
 					var result:String = params[0];
@@ -1173,7 +1164,7 @@ package weave.compiler
 					return '[' + params.join(', ') + ']'
 				if (op == ';')
 					return '{' + params.join('; ') + '}';
-				if (op == ',')
+				if (op == ',' && params.length > 0)
 					return '(' + params.join(', ') + ')';
 				
 				if (call.compiledParams.length == 1) // unary op
@@ -1226,9 +1217,9 @@ package weave.compiler
 			const TRUE_INDEX:int = 1;
 			const FALSE_INDEX:int = 2;
 			const BRANCH_LOOKUP:Dictionary = new Dictionary();
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '?:' + OPERATOR_SUFFIX]] = true;
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '&&' + OPERATOR_SUFFIX]] = true;
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '||' + OPERATOR_SUFFIX]] = false;
+			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '?:']] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '&&']] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '||']] = false;
 			const ASSIGN_OP_LOOKUP:Object = new Dictionary();
 			for each (var assigOp:Function in assignmentOperators)
 				ASSIGN_OP_LOOKUP[assigOp] = true;

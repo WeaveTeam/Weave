@@ -58,7 +58,7 @@
 			 * When this is set to true, labels for all bars will be shown.
 			 */
 			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxisLabels, true);
-			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), updateAxisLabels, true);
+			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), sizeAxisTickCountRequestedChanged, true);
 			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 			
@@ -216,6 +216,14 @@
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
+			private var sizeAxisTickChange:Boolean = false;
+			
+			private function sizeAxisTickCountRequestedChanged():void
+			{
+				sizeAxisTickChange = true;
+				updateAxisLabels();
+			}
+			
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
@@ -275,8 +283,13 @@
 				heightAxis.tickMinValue.value = NaN;
 				heightAxis.tickMaxValue.value = NaN;
 				heightAxis.forceTickCount.value = false;
-				heightAxis.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				if( sizeAxisTickChange )
+					heightAxis.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				else
+					sizeAxisTickCountRequested.value = heightAxis.tickCountRequested.value;
 				heightAxis.showLabels.value = true;
+				
+				sizeAxisTickChange = false;
 
 				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
 				sortAxis.tickMinValue.value = 0;

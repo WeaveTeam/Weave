@@ -1089,45 +1089,26 @@ public class AdminService
 
 	private boolean valueIsInt(String value)
 	{
-		boolean retVal = true;
 		try
 		{
-			Integer.parseInt(value);
+			return Integer.toString(Integer.parseInt(value)).equals(value);
 		}
 		catch (Exception e)
 		{
-			retVal = false;
+			return false;
 		}
-		return retVal;
 	}
 
 	private boolean valueIsDouble(String value)
 	{
-		boolean retVal = true;
 		try
 		{
-			Double.parseDouble(value);
+			return Double.toString(Double.parseDouble(value)).equals(value);
 		}
 		catch (Exception e)
 		{
-			retVal = false;
+			return false;
 		}
-		return retVal;
-	}
-
-	private boolean valueHasLeadingZero(String value)
-	{
-		boolean temp = valueIsInt(value);
-		if (!temp)
-			return false;
-
-		if (value.length() < 2)
-			return false;
-
-		if (value.charAt(0) == '0' && value.charAt(1) != '.')
-			return true;
-
-		return false;
 	}
 
 	public int importCSV(
@@ -1252,12 +1233,10 @@ public class AdminService
 				// Format each line
 				for (int iCol = 0; iCol < columnNames.length && iCol < nextLine.length; iCol++)
 				{
-					// keep track of the longest String value found in this
-					// column
+					// keep track of the longest String value found in this column
 					fieldLengths[iCol] = Math.max(fieldLengths[iCol], nextLine[iCol].length());
 
-					// Change missing data into NULL, later add more cases to
-					// deal with missing data.
+					// Change missing data into NULL, later add more cases to deal with missing data.
 					String[] nullValuesStandard = new String[] {
 							"", ".", "..", " ", "-", "\"NULL\"", "NULL", "NaN" };
 					ALL_NULL_VALUES: for (String[] values : new String[][] {
@@ -1276,34 +1255,25 @@ public class AdminService
 					if (nextLine[iCol] == null)
 						continue;
 
-					// 04 is a string (but Integer.parseInt would not throw an exception)
 					try
 					{
-						String value = nextLine[iCol];
-						while (value.indexOf(',') > 0)
-							value = value.replace(",", ""); // valid input
-															// format
-
-						// if the value is an int or double with an extraneous
-						// leading zero, it's defined to be a string
-						if (valueHasLeadingZero(value))
-							types[iCol] = StringType;
-
-						// if the type was determined to be a string before (or
-						// just above), continue
+						// if the type was determined to be a string before, continue
 						if (types[iCol] == StringType)
 							continue;
+						
+						String value = nextLine[iCol];
+						while (value.indexOf(',') > 0)
+							value = value.replace(",", ""); // valid input format
 
-						// if the type is an int
+						// if the type is an int (the default)
 						if (types[iCol] == IntType)
 						{
-							// check that it's still an int
+							// check that int is still acceptable
 							if (valueIsInt(value))
 								continue;
 						}
 
-						// it either wasn't an int or is no longer an int, check
-						// for a double
+						// it either wasn't an int or is no longer an int, check for a double
 						if (valueIsDouble(value))
 						{
 							types[iCol] = DoubleType;
@@ -1321,8 +1291,7 @@ public class AdminService
 				}
 			}
 
-			// now we need to remove commas from any numeric values because the
-			// SQL drivers don't like it
+			// now we need to remove commas from any numeric values because the SQL drivers don't like it
 			for (int iRow = 1; iRow < rows.length; iRow++)
 			{
 				String[] nextLine = rows[iRow];

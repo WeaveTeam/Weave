@@ -1,44 +1,29 @@
 <project name="WeaveServices" basedir=".">
     <path id="classpath">
         <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="../WeaveServletUtils/lib/" includes="**/*.jar"/>
+        <pathelement path="../WeaveServletUtils/bin/classes"/>
         <fileset dir="/usr/share/java/" includes="junit4.jar"/>
         <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>
     </path>
     <target name="clean">
-        <delete dir="build"/>
+        <delete dir="bin"/>
     </target>
-    <target name="testbuild">
+    <target name="build" depends="clean">
 		<echo message="Compiling ${ant.project.name}..."/>
-        <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes" classpathref="classpath"
-                debug="true"
-                debuglevel="lines,vars,source">
-                <exclude name="weave/servlets/*"/>
-        </javac>
-        <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
-    </target>
-    <target name="build">
-		<echo message="Compiling ${ant.project.name}..."/>
-        <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes" classpathref="classpath"
+        <mkdir dir="bin/classes"/>
+        <javac srcdir="src" destdir="bin/classes" classpathref="classpath"
                 debug="true"
                 debuglevel="lines,vars,source"/>
-        <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
+        <copy file="src/weave/config/sqlconfig.dtd" tofile="bin/classes/weave/config/sqlconfig.dtd"/>
     </target>
     <target name="dist" depends="build">
-        <mkdir dir="build/jar"/>
-        <war destfile="build/jar/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
+        <mkdir dir="bin"/>
+        <war destfile="bin/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
             <lib dir="lib/"/>
-            <classes dir="build/classes"/>
-            <webinf dir="WebContent/WEB-INF"/>
-            <metainf dir="WebContent/META-INF"/>
-        </war>
-    </target>
-    <target name="deploy_war">
-        <mkdir dir="build/jar"/>
-        <war destfile="build/jar/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
-            <lib dir="lib/"/>
-            <classes dir="build/classes"/>
+            <lib dir="../WeaveServletUtils/lib"/>
+            <classes dir="bin/classes"/>
+            <classes dir="../WeaveServletUtils/bin/classes"/>
             <webinf dir="WebContent/WEB-INF"/>
             <metainf dir="WebContent/META-INF"/>
         </war>
