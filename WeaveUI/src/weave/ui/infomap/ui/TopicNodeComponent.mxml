@@ -198,6 +198,12 @@
 					while(flag)
 					{
 //						trace("in while flag loop");
+						if (tempWidth < 5 || tempHeight < 5)
+						{
+							flag = false;
+							textFormat.size = 0;
+							continue;
+						}
 						textFormat.size = (textFormat.size as Number) + 1;
 						textField.setTextFormat(textFormat);
 						if (textField.numLines > textField.bottomScrollV)
