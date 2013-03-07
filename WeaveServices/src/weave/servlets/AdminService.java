@@ -64,9 +64,9 @@ import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityTableInfo;
 import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
+import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveConfig;
@@ -187,7 +187,7 @@ public class AdminService
     	DataEntity entity = getDataConfig().getEntity(entityId);
     	
     	// permissions only supported on data tables and columns
-    	if (entity.type == DataEntity.TYPE_DATATABLE || entity.type == DataEntity.TYPE_COLUMN)
+    	if (entity != null && (entity.type == DataEntity.TYPE_DATATABLE || entity.type == DataEntity.TYPE_COLUMN))
     	{
 	        String owner = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 	        if (!user.equals(owner))
@@ -619,10 +619,10 @@ public class AdminService
 		getDataConfig().updateEntity(entityId, diff);
 	}
 	
-	public DataEntityTableInfo[] getDataTableList(String user, String password) throws RemoteException
+	public EntityHierarchyInfo[] getEntityHierarchyInfo(String user, String password, int entityType) throws RemoteException
 	{
 		authenticate(user, password);
-		return getDataConfig().getDataTableList();
+		return getDataConfig().getEntityHierarchyInfo(entityType);
 	}
 
 	public int[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta, int entityType) throws RemoteException

@@ -32,6 +32,7 @@
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
@@ -70,8 +71,21 @@
 		refresh();
 	}
 	
+	private var _pendingRefresh:Boolean = false;
+	
 	private function refresh():void
 	{
+		if (linkableObjectIsBusy(Admin.entityCache))
+		{
+			if (!_pendingRefresh)
+			{
+				_pendingRefresh = true;
+				callLater(refresh);
+			}
+			return;
+		}
+		_pendingRefresh = false;
+		
 		if (_targetItems == null || _targetItems.length == 0)
 		{
 			this.enabled = false;
@@ -135,7 +149,7 @@
 		if (node)
 			entity = node.getEntity();
 		else
-			entity = Admin.instance.entityCache.getEntity(int(node_or_id));
+			entity = Admin.entityCache.getEntity(int(node_or_id));
 		return entity;
 	}
 

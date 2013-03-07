@@ -129,16 +129,25 @@
     }
     public function set metadata(values:Object):void
     {
-        var items:Array = new Array();
-		if (values && defaultPropertyName && !values.hasOwnProperty(defaultPropertyName))
-			items.push(new MetadataGridItem(defaultPropertyName));
-        for (var prop:String in values)
-			items.push(new MetadataGridItem(prop, values[prop]));
-		AsyncSort.sortImmediately(items, propertySort);
-        grid.dataProvider = items;
-        gridItems.addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
-		updateMissingPropNames();
-        dispatchMetaChanged();
+		if (values)
+		{
+	        var items:Array = new Array();
+			if (values && defaultPropertyName && !values.hasOwnProperty(defaultPropertyName))
+				items.push(new MetadataGridItem(defaultPropertyName));
+	        for (var prop:String in values)
+				items.push(new MetadataGridItem(prop, values[prop]));
+			AsyncSort.sortImmediately(items, propertySort);
+	        grid.dataProvider = items;
+	        gridItems.addEventListener(CollectionEvent.COLLECTION_CHANGE, dispatchMetaChanged);
+			updateMissingPropNames();
+	        dispatchMetaChanged();
+		}
+		else if (gridItems && gridItems.length)
+		{
+			grid.dataProvider = null;
+			newPropCombo.dataProvider = null;
+			dispatchMetaChanged();
+		}
     }
     public function addProp():void
     {

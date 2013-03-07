@@ -26,5 +26,14 @@ package weave.services.beans
 		public static const COLUMN:int = 1;
 		public static const HIERARCHY:int = 2;
 		public static const CATEGORY:int = 3;
+		
+		public static function getTypeString(type:int):String
+		{
+			if (type == ANY)
+				return null;
+			var typeInts:Array = [TABLE, COLUMN, HIERARCHY, CATEGORY];
+			var typeStrs:Array = [lang('Table'), lang('Column'), lang('Hierarchy'), lang('Category')];
+			return typeStrs[typeInts.indexOf(type)];
+		}
 	}
 }
