@@ -186,6 +186,20 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
+	public Collection<Integer> getParents(int childId) throws RemoteException
+	{
+		Collection<Integer> result = null;
+		try
+		{
+			DataConfig config = getDataConfig();
+			result = config.getParentIds(childId);
+		}catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 	////////////
 	// Columns
 	
