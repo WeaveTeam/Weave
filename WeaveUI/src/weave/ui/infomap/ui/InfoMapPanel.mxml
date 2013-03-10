@@ -234,7 +234,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				relatedColumnsHashmap.addGroupedCallback(this,handleRelatedColumnsChange,false);
 				
-				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap);
+				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
 				
 				_loadingText.setStyle("fontFamily","loadingTextStyle");
 				_loadingText.setStyle("fontSize","24");
@@ -337,6 +337,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			private var _childEntities:Array = [];
+			private var _columnsText:String = "";
 			private function handleGetChildEntities(event:ResultEvent,token:Object = null):void
 			{
 				_parentCount--;
@@ -367,6 +368,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							attrCol.hierarchyPath.value = attrNode;
 						}
 					}
+					
+					if(obj.publicMetadata.name)
+					{
+						_columnsText += " " + obj.publicMetadata.name;
+					}else if (obj.publicMetadata.title)
+					{
+						_columnsText += " " +obj.publicMetadata.title;
+					}
+					
+					
 					if(_childEntities.length == 0)
 					{
 						return 1;					
@@ -385,6 +396,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					_loadingText.text = "Finished Selecting Entity Columns!";
 					_loadingText.x = _loadingText.x - _loadingText.width/2; 
+					addAsyncResponder(InfoMapAdminInterface.instance.extractKeywords(_columnsText),handleExtractKeywordsResult,handleExtractKeywordsFault);
 				}
 			}
 			
@@ -392,6 +404,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				reportError("Error getting Child Entities");				
 			}
+			
+			private function handleExtractKeywordsResult(event:ResultEvent,token:Object=null):void
+			{
+				relatedKeywords.value = (event.result as Array).join(",");
+			}
+			
+			private function handleExtractKeywordsFault(event:FaultEvent,token:Object=null):void
+			{
+				reportError("Error getting Extracted Keywords");	
+			}
+			
 			
 			private function handleGlobalKeyInput(event:KeyboardEvent):void
 			{

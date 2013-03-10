@@ -243,6 +243,11 @@ package weave.services
 				return query;
 			}
 			
+			public function extractKeywords(text:String):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("extractKeywords",[text]);
+				return query;
+			}
 			public function getDescriptionForURL(url:String,keywords:Array):AsyncToken
 			{
 				var query:AsyncToken = generateQueryAndRun("getDescriptionForURL",[url,keywords]);

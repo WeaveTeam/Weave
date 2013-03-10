@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.security.auth.callback.LanguageCallback;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,6 +72,9 @@ import com.dropbox.client2.session.RequestTokenPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.process.CoreLabelTokenFactory;
+import edu.stanford.nlp.process.PTBTokenizer;
 
 import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
@@ -131,14 +135,20 @@ public class AdminService extends GenericServlet {
 	public static void main(String[] args) {
 //		//testing
 		AdminService inst = new AdminService();
+		try {
+			inst.extractKeywords("Neither overweight nor obese (BMI <= 24.9) (2005) Percent Overweight (BMI 25.0 - 29.9)  Neither overweight nor obese (BMI <= 24.9) (2004) Percent Overweight (BMI 25.0 - 29.9)  Neither overweight nor obese (BMI <= 24.9) (2007)");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		 String [] requiredKeywords = new String[2];
-		 String [] relatedKeywords = new String[1];
-		
-		 requiredKeywords[0] = "Johnson County";
-		 requiredKeywords[1] = " Wyoming";
-		 relatedKeywords[0] = "divorced";
-	     inst.getNumOfDocumentsForQuery(requiredKeywords, relatedKeywords, null, "AND");
+//		 String [] requiredKeywords = new String[2];
+//		 String [] relatedKeywords = new String[1];
+//		
+//		 requiredKeywords[0] = "Johnson County";
+//		 requiredKeywords[1] = " Wyoming";
+//		 relatedKeywords[0] = "divorced";
+//	     inst.getNumOfDocumentsForQuery(requiredKeywords, relatedKeywords, null, "AND");
 	}
 
 	private static void deleteAllDocuments() {
@@ -1765,6 +1775,69 @@ public class AdminService extends GenericServlet {
 		return queryString;
 	}
 
+	public String[] extractKeywords(String text) throws IOException
+	{ 
+		String[] result =null;
+		
+		Reader r = new StringReader(text);
+		
+		PTBTokenizer ptbt = new PTBTokenizer(r, new CoreLabelTokenFactory(), "ptb3Escaping=false");
+		
+		List<Token> relatedWords = new ArrayList<Token>();
+		 for (CoreLabel label; ptbt.hasNext(); ) {
+		        label = (CoreLabel)ptbt.next();
+		        System.out.println(label.word());
+		        relatedWords.add(new Token(label.word()));
+		      }
+		
+		/*Create mallet type Tokens for processing*/
+		TokenSequence tokens = new TokenSequence(relatedWords);
+		Instance instance = new Instance(tokens, null, null, null);
+		
+		/*Remove non-alpha words*/
+		TokenSequenceRemoveNonAlpha nonAlphaRemover = new TokenSequenceRemoveNonAlpha();
+		nonAlphaRemover.pipe(instance);
+		
+		URL stoplistPath = getClass().getClassLoader().getResource("infomap/resources/stopwords.txt");
+		String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(),	"UTF-8");
+		TokenSequenceRemoveStopwords stopWordsRemover = new TokenSequenceRemoveStopwords(new File(stopListFilePath), 
+												"UTF-8", false, false, false);
+		stopWordsRemover.pipe(instance);
+		
+		/*Extract unique keywords*/
+		tokens = (TokenSequence)instance.getData();
+		result = new String[tokens.size()];
+		Iterator<Token> iter = tokens.iterator();
+		int count =0;
+		while(iter.hasNext())
+		{
+			result[count]= iter.next().getText();
+			count++;
+		}
+		result =getUniqueKeywords(result); 
+		
+		return result;
+	}
+	
+	private String[] getUniqueKeywords(String[] words)
+	{
+		HashMap<String, Boolean> uniqueWordChecker = new HashMap<String, Boolean>();
+		List<String> result = new ArrayList<String>();
+		for (int i = 0; i < words.length; i++) 
+		{
+			if(words[i] == null)
+				continue;
+			if(!uniqueWordChecker.containsKey(words[i].toLowerCase()))
+			{
+				String currWord = words[i].toLowerCase();
+				uniqueWordChecker.put(currWord, true);
+				result.add(words[i]);
+			}
+		}
+		
+		return (String[])result.toArray(new String[result.size()]);
+	}
+		
 	private static final String APP_KEY = "j8ffufccso68w4y";
 	private static final String APP_SECRET = "ww7tgcyeqr3ksmf";
 	private static final AccessType ACCESS_TYPE = AccessType.DROPBOX;
