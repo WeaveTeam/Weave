@@ -30,13 +30,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	width="184"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*"
 	borderAlpha="1" borderColor="0x939178">
-	<fx:Style>
-		
- .weave-panel-style{
-			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
-			roundedBottomCorners: true;
-		}
-	</fx:Style>
 
 	
 	<fx:Declarations>

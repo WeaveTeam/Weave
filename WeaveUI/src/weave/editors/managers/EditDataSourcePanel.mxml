@@ -29,14 +29,7 @@
 	height="564"
 	creationComplete="handleCreationComplete()" width="184" xmlns:ui="weave.ui.*" 
 	borderAlpha="1" borderColor="0x939178">
-	<fx:Style>
-		@namespace "weave.ui.*"; 
- .weave-panel-style{
-			
-			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
-			roundedBottomCorners: true;
-		}
-	</fx:Style>	
+
 	
 	<s:HGroup height="100%" width="100%" gap="0">
 		<mx:List id="sourceList" change="handleSourceSelect()" borderThickness="0"

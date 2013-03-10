@@ -33,16 +33,7 @@ This is a generic panel for a wizard interface, containing back/next/finish/canc
 	percentX="NaN" percentY="NaN" percentWidth="NaN" percentHeight="NaN"
 	sessionPanelCoordsAsPercentages="false"
 	borderAlpha="1" borderColor="0x939178">
-		<fx:Style>
 		
- .weave-panel-style{
-			
-			borderThicknessBottom: 0; borderThicknessLeft: 5; borderThicknessRight: 5; borderThicknessTop:0;	
-			roundedBottomCorners: true;
-		}
-		
-	</fx:Style>
-	
 	
 	<mx:Box id="viewStackContainer"
 			
