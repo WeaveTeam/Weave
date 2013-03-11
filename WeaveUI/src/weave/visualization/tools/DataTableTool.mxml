@@ -61,15 +61,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   mouseDown="handleMouseDown()"
 									   click="handleMouseClick()"
 									   />
+		<mx:HBox id="tooManyRecordsIndicator" visible="false" includeInLayout="false" width="100%" horizontalGap="0">
+			<mx:Spacer width="100%"/>
+			<mx:Label id="maxRowsLabel"/>
+			<ui:HelpComponent>
+				The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
+			</ui:HelpComponent>
+		</mx:HBox>
 		
 		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
 			<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
 			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
 			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
 		</mx:HBox>
-		<ui:HelpComponent id="tooManyRecordsIndicator" visible="false" >
-			The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
-		</ui:HelpComponent>
 	</mx:VBox>
 	
 	<mx:Number id="columnWidthScale">1</mx:Number>
@@ -108,6 +112,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
@@ -509,16 +514,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var tempArray:Array = ColumnUtils.getAllKeys(includedColumns);
 				if( tempArray.length > maxRows.value)
 				{	
-					tempArray.length = maxRows.value;
-					if(!tooManyRecordsIndicator.parent)
-						tableArea.addChild(tooManyRecordsIndicator);
+					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(tempArray.length));
 					tooManyRecordsIndicator.visible = true;
+					tooManyRecordsIndicator.includeInLayout = true;
+					tempArray.length = maxRows.value;
 				}
 				else
 				{
 					tooManyRecordsIndicator.visible = false;
-					if(tooManyRecordsIndicator.parent)
-						tableArea.removeChild(tooManyRecordsIndicator);
+					tooManyRecordsIndicator.includeInLayout = false;
 				}
 					
 				dataRowKeys.source = tempArray;
