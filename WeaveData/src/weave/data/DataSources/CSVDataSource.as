@@ -280,10 +280,10 @@ package weave.data.DataSources
 				{
 					if (!String(tag.@title))
 					{
-						var newTitle:String = String(tag.@name) || String(tag.@csvColumn);
-						if (String(tag.@year))
-							newTitle += ' (' + tag.@year + ')';
-						tag.@title = newTitle;
+						var newTitle:String = String(tag.@csvColumn);
+						if (!newTitle && String(tag.@name) && String(tag.@year))
+							newTitle = String(tag.@name) + ' (' + tag.@year + ')';
+						tag.@title = newTitle || 'untitled';
 					}
 				}
 			}

@@ -24,7 +24,7 @@
             <dataSourceName>obesity.csv</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <attribute csvColumn="Percent Obese 1995" title="Percent Obese" max="40" year="1995" min="0" keyType="US State FIPS Code"/>
+                <attribute string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1995" max="40" year="1995" min="0" keyType="US State FIPS Code"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -300,7 +300,7 @@ zoom</zoom>
           <dataSourceName>obesity.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="US State FIPS Code">
-              <attribute name="Percent Obese 1995" csvColumn="Percent Obese 1995" title="Percent Obese 1995" keyType="US State FIPS Code"/>
+              <attribute string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1995" keyType="US State FIPS Code"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -312,7 +312,7 @@ zoom</zoom>
           <dataSourceName>obesity.csv</dataSourceName>
           <hierarchyPath encoding="xml">
             <hierarchy keyType="US State FIPS Code">
-              <attribute name="Percent Obese 2007" csvColumn="Percent Obese 2007" title="Percent Obese 2007" keyType="US State FIPS Code"/>
+              <attribute string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2007" keyType="US State FIPS Code"/>
             </hierarchy>
           </hierarchyPath>
         </HierarchyColumnReference>
@@ -340,19 +340,19 @@ zoom</zoom>
       <hierarchy>
         <attribute name="US State FIPS Code" csvColumn="US State FIPS Code" title="US State FIPS Code" keyType="US State FIPS Code"/>
         <attribute name="State" csvColumn="State" title="State" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (1995)" name="Percent Obese" csvColumn="Percent Obese 1995" year="1995" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (1996)" name="Percent Obese" csvColumn="Percent Obese 1996" year="1996" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (1997)" name="Percent Obese" csvColumn="Percent Obese 1997" year="1997" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (1998)" name="Percent Obese" csvColumn="Percent Obese 1998" year="1998" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (1999)" name="Percent Obese" csvColumn="Percent Obese 1999" year="1999" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2000)" name="Percent Obese" csvColumn="Percent Obese 2000" year="2000" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2001)" name="Percent Obese" csvColumn="Percent Obese 2001" year="2001" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2002)" name="Percent Obese" csvColumn="Percent Obese 2002" year="2002" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2003)" name="Percent Obese" csvColumn="Percent Obese 2003" year="2003" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2004)" name="Percent Obese" csvColumn="Percent Obese 2004" year="2004" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2005)" name="Percent Obese" csvColumn="Percent Obese 2005" year="2005" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2006)" name="Percent Obese" csvColumn="Percent Obese 2006" year="2006" min="0" keyType="US State FIPS Code"/>
-        <attribute max="40" title="Percent Obese (2007)" name="Percent Obese" csvColumn="Percent Obese 2007" year="2007" min="0" keyType="US State FIPS Code"/>
+        <attribute max="40" title="Percent Obese (1995)" name="Percent Obese" csvColumn="Percent Obese 1995" year="1995" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (1996)" name="Percent Obese" csvColumn="Percent Obese 1996" year="1996" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (1997)" name="Percent Obese" csvColumn="Percent Obese 1997" year="1997" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (1998)" name="Percent Obese" csvColumn="Percent Obese 1998" year="1998" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (1999)" name="Percent Obese" csvColumn="Percent Obese 1999" year="1999" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2000)" name="Percent Obese" csvColumn="Percent Obese 2000" year="2000" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2001)" name="Percent Obese" csvColumn="Percent Obese 2001" year="2001" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2002)" name="Percent Obese" csvColumn="Percent Obese 2002" year="2002" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2003)" name="Percent Obese" csvColumn="Percent Obese 2003" year="2003" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2004)" name="Percent Obese" csvColumn="Percent Obese 2004" year="2004" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2005)" name="Percent Obese" csvColumn="Percent Obese 2005" year="2005" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2006)" name="Percent Obese" csvColumn="Percent Obese 2006" year="2006" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
+        <attribute max="40" title="Percent Obese (2007)" name="Percent Obese" csvColumn="Percent Obese 2007" year="2007" min="0" keyType="US State FIPS Code" string="formatNumber(number,1)+'%'"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString/>
@@ -638,7 +638,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1995" year="1995" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1995" year="1995" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -650,7 +650,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1996" year="1996" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1996" year="1996" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -662,7 +662,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1997" year="1997" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1997" year="1997" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -674,7 +674,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1998" year="1998" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1998" year="1998" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -686,7 +686,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1999" year="1999" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1999" year="1999" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -698,7 +698,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2000" year="2000" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2000" year="2000" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -710,7 +710,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2001" year="2001" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2001" year="2001" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -722,7 +722,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2002" year="2002" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2002" year="2002" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -734,7 +734,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2003" year="2003" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2003" year="2003" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -746,7 +746,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2004" year="2004" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2004" year="2004" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -758,7 +758,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2005" year="2005" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2005" year="2005" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -770,7 +770,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2006" year="2006" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2006" year="2006" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -782,7 +782,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" year="2007" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2007" year="2007" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -879,7 +879,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2007" title="Percent Obese" max="40" year="2007" min="0" keyType="US State FIPS Code"/>
+                          <attribute string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2007" max="40" year="2007" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -917,7 +917,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2007" title="Percent Obese" max="40" year="2007" min="0" keyType="US State FIPS Code"/>
+                          <attribute string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2007" max="40" year="2007" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -969,7 +969,7 @@ zoom</zoom>
     <enableMoveResize>true</enableMoveResize>
     <enableSubMenu>false</enableSubMenu>
     <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <includeToolAttributesInProbe>false</includeToolAttributesInProbe>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
@@ -1157,7 +1157,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1995" year="1995" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1995" year="1995" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1169,7 +1169,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1996" year="1996" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1996" year="1996" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1181,7 +1181,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1997" year="1997" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1997" year="1997" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1193,7 +1193,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1998" year="1998" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1998" year="1998" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1205,7 +1205,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 1999" year="1999" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 1999" year="1999" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1217,7 +1217,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2000" year="2000" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2000" year="2000" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1229,7 +1229,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2001" year="2001" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2001" year="2001" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1241,7 +1241,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2002" year="2002" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2002" year="2002" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1253,7 +1253,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2003" year="2003" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2003" year="2003" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1265,7 +1265,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2004" year="2004" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2004" year="2004" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1277,7 +1277,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2005" year="2005" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2005" year="2005" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1289,7 +1289,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2006" year="2006" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2006" year="2006" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1301,7 +1301,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute max="40" title="Percent Obese" csvColumn="Percent Obese 2007" year="2007" min="0" keyType="US State FIPS Code"/>
+                          <attribute max="40" string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2007" year="2007" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1317,16 +1317,18 @@ zoom</zoom>
               <labelColor>0</labelColor>
               <labelColumn encoding="dynamic">
                 <ReferencedColumn>
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>obesity.csv</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy keyType="US State FIPS Code">
-                          <attribute name="State" csvColumn="State" title="State" keyType="US State FIPS Code"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
+			      <dynamicColumnReference encoding="dynamic">
+			        <HierarchyColumnReference>
+			          <dataSourceName>DBFDataSource</dataSourceName>
+			          <hierarchyPath encoding="xml">
+			            <hierarchy>
+			              <category name="DBF Data" keyType="US State FIPS Code">
+			                <attribute name="NAME" title="NAME" keyType="US State FIPS Code"/>
+			              </category>
+			            </hierarchy>
+			          </hierarchyPath>
+			        </HierarchyColumnReference>
+			      </dynamicColumnReference>
                 </ReferencedColumn>
               </labelColumn>
               <labelDataCoordinate>NaN</labelDataCoordinate>
@@ -1394,7 +1396,7 @@ zoom</zoom>
                       <dataSourceName>obesity.csv</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2007" title="Percent Obese" max="40" year="2007" min="0" keyType="US State FIPS Code"/>
+                          <attribute string="formatNumber(number,1)+'%'" csvColumn="Percent Obese 2007" max="40" year="2007" min="0" keyType="US State FIPS Code"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1480,7 +1482,7 @@ zoom</zoom>
     <enableMoveResize>true</enableMoveResize>
     <enableSubMenu>false</enableSubMenu>
     <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <includeToolAttributesInProbe>false</includeToolAttributesInProbe>
     <linkHeightAndSortColumns>false</linkHeightAndSortColumns>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
