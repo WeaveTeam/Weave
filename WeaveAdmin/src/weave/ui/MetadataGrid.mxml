@@ -223,8 +223,7 @@
 		
 		return ObjectUtil.stringCompare(a as String, b as String, true);
 	}
-	private const preferredMetadataOrder:Array = "sqlResult,title,keyType,dataType,number,string,min,max,year,connection,sqlQuery,sqlParams".split(',');
-	
+	public var preferredMetadataOrder:Array = [];
 ]]>
 </mx:Script>
 </mx:VBox>
