@@ -21,6 +21,7 @@ package weave.data
 {
 	import flash.utils.getTimer;
 	
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
@@ -316,6 +317,8 @@ package weave.data
 		 */
 		public function convertRowsToRecords(rows:Array, headerDepth:int = 1):Array
 		{
+			if (rows.length < headerDepth)
+				throw new Error("headerDepth is greater than the number of rows");
 			assertHeaderDepth(headerDepth);
 			
 			var records:Array = new Array(rows.length - headerDepth);
@@ -331,7 +334,11 @@ package weave.data
 					{
 						var colName:String = rows[h][c];
 						if (h < headerDepth - 1)
-							output = output[colName] || (output[colName] = {});
+						{
+							if (!output[colName])
+								output[colName] = {};
+							output = output[colName];
+						}
 						else
 							output[colName] = cell;
 					}
@@ -367,9 +374,15 @@ package weave.data
 				if (includeNullFields || record[field] != null)
 				{
 					if (depth == 1)
+					{
 						output[field] = false;
+					}
 					else
-						_outputNestedFieldNames(record[field], includeNullFields, output[field] = {}, depth - 1);
+					{
+						if (!output[field])
+							output[field] = {};
+						_outputNestedFieldNames(record[field], includeNullFields, output[field], depth - 1);
+					}
 				}
 			}
 		}
@@ -449,7 +462,8 @@ package weave.data
 						var fieldChain:Array = fields[c];
 						var cell:Object = record;
 						for each (var field:String in fieldChain)
-							cell = cell[field];
+							if (cell)
+								cell = cell[field];
 						row[c] = cell;
 					}
 				}
@@ -464,27 +478,30 @@ package weave.data
 				throw new Error("headerDepth must be > 0");
 		}
 		
-		/*
-		
-		Console test code:
-		
-		clear();
-		_.parser = WeaveAPI.CSVParser;
-		_.csv=[
-			"internal,internal,public,public,public,private,private,test",
-			"id,type,title,keyType,dataType,connection,sqlQuery,empty",
-			"1,0,state data table,,,,,",
-			"2,1,state name,fips,string,resd,""select fips,name from myschema.state_data"",",
-			"3,1,population,fips,number,resd,""select fips,pop from myschema.state_data"","
-		].join('\n');
-		_.table = _.parser.parseCSV(_.csv);
-		_.records = _.parser.convertRowsToRecords(_.table, 2);
-		_.rows = _.parser.convertRecordsToRows(_.records, null, false, 2);
-		_.fields = _.parser.getRecordFieldNames(_.records, false, 2);
-		_.fieldOrder = _.parser.parseCSV('internal,id\ninternal,type\npublic,title\npublic,keyType\npublic,dataType\nprivate,connection\nprivate,sqlQuery');
-		_.rows2 = _.parser.convertRecordsToRows(_.records, _.fieldOrder, false, 2);
-		toString(_)
-		
-		*/
+		//test();
+		private static var _tested:Boolean = false;
+		private static function test():void
+		{
+			if (_tested)
+				return;
+			_tested = true;
+			
+			var _:Object = {};
+			_.parser = WeaveAPI.CSVParser;
+			_.csv=[
+				"internal,internal,public,public,public,private,private,test",
+				"id,type,title,keyType,dataType,connection,sqlQuery,empty",
+				"2,1,state name,fips,string,resd,\"select fips,name from myschema.state_data\",",
+				"3,1,population,fips,number,resd,\"select fips,pop from myschema.state_data\",",
+				"1,0,state data table"
+			].join('\n');
+			_.table = _.parser.parseCSV(_.csv);
+			_.records = _.parser.convertRowsToRecords(_.table, 2);
+			_.rows = _.parser.convertRecordsToRows(_.records, null, false, 2);
+			_.fields = _.parser.getRecordFieldNames(_.records, false, 2);
+			_.fieldOrder = _.parser.parseCSV('internal,id\ninternal,type\npublic,title\npublic,keyType\npublic,dataType\nprivate,connection\nprivate,sqlQuery');
+			_.rows2 = _.parser.convertRecordsToRows(_.records, _.fieldOrder, false, 2);
+			weaveTrace(ObjectUtil.toString(_));
+		}
 	}
 }
