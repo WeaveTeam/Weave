@@ -60,7 +60,9 @@ public class BNetService extends GenericServlet
     {
         BayesianNetwork.setDefaultInferenceEngine("com.cra.bnet.engine.HuginInferenceEngine");
         networks = new HashMap<String,BayesianNetwork>();
-        /* Load in some networks to start with */
+        /* Load in some networks to start with (for demo purposes only) */
+        /* Perhaps more semipermanently support a configurable source directory? */
+        loadNetwork("/home/pkovac/bin/bnet/wetgrass-basic.xbn", "Wet Grass");
         return;
 	}
     public String[] listNetworks() 

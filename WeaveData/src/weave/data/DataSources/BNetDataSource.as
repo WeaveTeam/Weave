@@ -130,16 +130,8 @@ package weave.data.DataSources
 		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
 		{
 			var query:AsyncToken;
-
-
-			if (_attributeHierarchy.value != null)
-			{
-				// stop if hierarchy is defined
-				return;
-			}
 			
 			var _graphNames:Array = null;
-			var _tables:Array = new Array();
 
 			query = dataService.listNetworks();
 			addAsyncResponder(query, handleNetworkNames, handleFault);
@@ -147,10 +139,6 @@ package weave.data.DataSources
 			function handleNetworkNames(event:ResultEvent, obj:Object = null)
 			{
 				_graphNames = event.result as Array;
-				for (var i=0; i< _graphNames.length; i++)
-				{
-					_tables.append(Array)
-				}
 				generateRootHierarchy(_graphNames);
 			}
 		}
@@ -177,27 +165,25 @@ package weave.data.DataSources
 		
 		private function generateRootHierarchy(graphs:Array):void
 		{
+
 			if (_attributeHierarchy.value == null)
 				_attributeHierarchy.value = <hierarchy name="BNet Data Service"/>;
-			var parent:XML = <category name="Graphs"/>;
-			_attributeHierarchy.value.appendChild(parent);
 
 			for (var i = 0; i < graphs.length; i++)
 			{
 				/* For each bayesian network, generate "Nodes" and "Edges" subtrees. */
 				var graph_tag:XML = <category/>;
-				graph_tag["@name"] = "Graph \'" + graphs[i] + "\'";
-				var node_tag:XML = <category name="Nodes"/>;
-				var edge_tag:XML = <category name="Edges"/>;
-				var label_attr:XML = <attribute name="Labels"/>;
-				parent.appendChild(graph_tag);
+				graph_tag["@title"] = "Network \'" + graphs[i] + "\'";
+				graph_tag["@name"] = graphs[i];
+				var node_tag:XML = <category title="Nodes" name="nodes"/>;
+				var edge_tag:XML = <category title="Edges" name="edges"/>;
+				_attributeHierarchy.value.appendChild(graph_tag);
 				graph_tag.appendChild(node_tag);
 				graph_tag.appendChild(edge_tag);
 			}
-			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
-				return;
 
 			_attributeHierarchy.detectChanges();
+
 		}
 
 		private function handleColumnEntities(event:ResultEvent, hierarchyNode_entityIds:Array):void
