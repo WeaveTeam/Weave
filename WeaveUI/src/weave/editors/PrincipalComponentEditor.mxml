@@ -176,7 +176,7 @@
 				prinCompCSVdata.keyType.value = (keys[0] as IQualifiedKey).keyType;
 				prinCompCSVdata.keyColName.value = "Key";
 				
-				//after collecting the PCs find distance of each from the original columns
+				//to do: after collecting the PCs find distance of each from the original columns
 				//computeComponentRelatedness(finalPrinComponents);
 				
 			}

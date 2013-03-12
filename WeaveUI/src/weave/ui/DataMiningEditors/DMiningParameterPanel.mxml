@@ -64,6 +64,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(algorithm == "Fuzzy KMeans Clustering")
 					createParameterInputForFuzzyKMeans(dmObject);
+				
+				if(algorithm == "Partition Around Medoids Clustering")
+					createParameterInputForPAM(dmObject);
+					
 				return uiComponents;
 			}
 			
@@ -74,13 +78,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var kmeansVBox:VBox = new VBox();
 				var s:Spacer = new Spacer(); s.width = 10; s.height = 10; kmeansVBox.addChild(s);
 				
-				//Input 1
-				//indent does not work
-				var kMeansClusterInput:NumberInputComponent = new NumberInputComponent("kClusterNumber","Enter the number of Clusters", "5");
-				var kMeansIterationsInput:NumberInputComponent = new NumberInputComponent("kIterationNumber","Enter the number of iterations", "500");
-				var kMeansAlgo:ChoiceInputComponent = new ChoiceInputComponent("kMeansAlgo","Select the algorithm", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
+				//Input 
+				var kMeansClusterInput:NumberInputComponent = new NumberInputComponent("kClusterNumber", "5");kMeansClusterInput.label = "Enter the number of clusters";
+				var kMeansIterationsInput:NumberInputComponent = new NumberInputComponent("kIterationNumber", "500");kMeansIterationsInput.label = "Enter the number of iterations";
+				var kMeansAlgo:ChoiceInputComponent = new ChoiceInputComponent("kMeansAlgo", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
+				kMeansAlgo.label = "Select an algorithm";
 				
-				//works
 				dmObject.parameters = [kMeansClusterInput, kMeansIterationsInput, kMeansAlgo];
 				
 				for ( var f:int = 0; f < dmObject.parameters.length; f++)
@@ -102,13 +105,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				uiComponents = [];
 				var fkmeansVBox:VBox = new VBox();
 				var s:Spacer = new Spacer(); s.width = 10; s.height = 10; fkmeansVBox.addChild(s);
-				//Input 1
-				//indent does not work
-				var fuzzkMeansClusterInput:NumberInputComponent = new NumberInputComponent("fkClusterNumber","Enter the number of Clusters", "5");
-				var fuzzkMeansIterationsInput:NumberInputComponent = new NumberInputComponent("fkIterationNumber","Enter the number of iterations", "500");
-				var fuzzkMeansAlgo:ChoiceInputComponent = new ChoiceInputComponent("fkMeansAlgo","Select the algorithm", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
+				//Input 
+				var fuzzkMeansClusterInput:NumberInputComponent = new NumberInputComponent("fkClusterNumber", "5");
+				fuzzkMeansClusterInput.label = "Enter the number of clusters";
+				var fuzzkMeansIterationsInput:NumberInputComponent = new NumberInputComponent("fkIterationNumber", "500");
+				fuzzkMeansIterationsInput.label = "Enter the number of iterations";
+				var fuzzkMeansMetric:ChoiceInputComponent = new ChoiceInputComponent("fkMeansmetric", ["Choose a metric","euclidean", "manhattan"]);
+				fuzzkMeansMetric.label = "Select a metric";
 				
-				dmObject.parameters = [fuzzkMeansClusterInput, fuzzkMeansIterationsInput, fuzzkMeansAlgo];
+				dmObject.parameters = [fuzzkMeansClusterInput, fuzzkMeansIterationsInput, fuzzkMeansMetric];
 				
 				for ( var f:int = 0; f < dmObject.parameters.length; f++)
 				{
@@ -121,6 +126,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				uiComponents.push(dmObject);
 			}
 			
+			/*----------------------------------------------creates Editor for PAM Clustering-----------------------------------------------------------*/
+			
+			private function createParameterInputForPAM(dmObject:DataMiningAlgorithmObject):void
+			{
+				uiComponents = [];
+				var pamVBox:VBox = new VBox();
+				var s:Spacer = new Spacer(); s.width = 10; s.height = 10; pamVBox.addChild(s);
+				//Input 
+				
+				var pamClusterInput:NumberInputComponent = new NumberInputComponent("pamClusternumber", "5");
+				pamClusterInput.label = "Enter the number of clusters";
+				var pamMetric:ChoiceInputComponent = new ChoiceInputComponent("pammetric", ["Choose a metric","euclidean", "manhattan"]);
+				pamMetric.label = "Select a metric";
+				
+				dmObject.parameters = [pamClusterInput, pamMetric];
+				
+				for(var d:int = 0; d < dmObject.parameters.length; d++)
+				{
+					pamVBox.addChild(dmObject.parameters[d]);
+				}
+				
+				//finally
+				uiComponents.push(pamVBox);
+				uiComponents.push(dmObject);
+			}
 			
 		]]>
 	</mx:Script>

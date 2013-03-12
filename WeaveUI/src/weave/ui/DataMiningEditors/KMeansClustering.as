@@ -33,27 +33,24 @@ package weave.ui.DataMiningEditors
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.KeySets.KeySet;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.KMeansClusteringResult;
 	import weave.services.beans.RResult;
-	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
 
 	public class KMeansClustering
 	{
+		public const identifier:String = "KMeansClustering";// helps in identifying this object in a dictionary
+		private var algoCaller:Object;//this identifies which UI component is calling the kMeans i.e. the Data Mining Platter or the KMeansClusteringEditor
+		
 		public const inputColumns:LinkableHashMap = null;
 		private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-		private var assignNames: Array = new Array();
 		public var finalResult:KMeansClusteringResult;
 		
 		public var checkingIfFilled:Function;
@@ -62,9 +59,10 @@ package weave.ui.DataMiningEditors
 				"kMeansResult <- kmeans(frame,number_of_clusters,number_of_Iterations, randomsets, algorithm)\n";
 		
 		//we're passing a pointer to a callback defined in the DataMiningChannelToR
-		public function KMeansClustering(foo:Function = null)
+		public function KMeansClustering(caller:Object, fillingResult:Function = null)
 		{
-			checkingIfFilled = foo;
+			checkingIfFilled = fillingResult;
+			this.algoCaller = caller;
 		}
 		
 		public function doKMeans(_columns:Array,token:Array,_numberOfClusters:Number, _numberOfIterations:Number, _algorithm:String, _randomSets:Number):void
@@ -80,7 +78,7 @@ package weave.ui.DataMiningEditors
 				inputValues.push(_algorithm);
 				inputNames.push("algorithm");
 			}
-			
+			// to do: whether to get the entire object back, or separate parameters
 			var outputNames:Array = ["kMeansResult$cluster","kMeansResult$centers", "kMeansResult$totss", "kMeansResult$withinss","kMeansResult$tot.withinss","kMeansResult$betweenss","kMeansResult$size"];
 			
 			var query:AsyncToken = Rservice.runScript(token,inputNames, inputValues,outputNames,kMeansScript,"",false, false, false);
@@ -94,7 +92,7 @@ package weave.ui.DataMiningEditors
 			var RresultArray:Array = new Array();//this collects only the cluster groupings vector
 			var clusterResult:Array = new Array();//this collects all iformation about the cluster object sent from R
 			var Robj:Array = event.result as Array;
-			trace('Robj:',ObjectUtil.toString(Robj));
+			//trace('Robj:',ObjectUtil.toString(Robj));
 			if (Robj == null)
 			{
 				reportError("R Servlet did not return an Array of results as expected.");
@@ -119,49 +117,60 @@ package weave.ui.DataMiningEditors
 			/*TO DO :What do we do with th rest of the object?
 			 Entire object
 			 this contains all the different metrics of a single Kmeans clustering object*/
-			 finalResult = new KMeansClusteringResult(clusterResult);
+			 if(algoCaller is DataMiningChannelToR)
+			 {
+				 finalResult = new KMeansClusteringResult(clusterResult, token);
+				 if(checkingIfFilled != null )
+					 checkingIfFilled(finalResult);
+			 }
 			 
-			 if(checkingIfFilled != null )
-			 checkingIfFilled();
-			 
+			 else 
+			 {
+				 //To make availabe for Weave -Mapping with key returned from Token
+				 var keys:Array = token as Array;
+				 
+				 //Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
+				 for (var p:int = 0;p < RresultArray.length; p++)
+				 {
+				 
+					 if(RresultArray[p].value is Array)
+					 {
+					 	if(keys)
+						{
+					 		if ((RresultArray[p].value).length == keys.length)
+							{
+								 if (RresultArray[p].value[0] is String)	
+								 {
+					 				var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
+									var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+					 				var dataVec:Vector.<String> = new Vector.<String>();
+									 VectorUtils.copy(keys, keyVec);
+									 VectorUtils.copy(Robj[p].value, dataVec);
+									 testStringColumn.setRecords(keyVec, dataVec);
+									 if (keys.length > 0)
+									 testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
+					 					testStringColumn.metadata.@name = RresultArray[p].name;
+				 				  }
+								 else
+								 {
+									 var table:Array = [];
+									 for (var k:int = 0; k < keys.length; k++)
+									 table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
+									 
+									 //testColumn are named after respective Objects Name (i.e) object{name: , value:}
+									 var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
+									 testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
+									 testColumn.numericMode.value = true;
+									 testColumn.data.setSessionState(table);
+									 testColumn.title.value = RresultArray[p].name;
+								  }
+							 }
+				 		}								
+					 }										
+				 }
+			 }
 			
-			//To make availabe for Weave -Mapping with key returned from Token
-			var keys:Array = token as Array;
 			
-			//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
-			for (var p:int = 0;p < RresultArray.length; p++)
-			{
-				
-				if(RresultArray[p].value is Array){
-					if(keys){
-						if ((RresultArray[p].value).length == keys.length){
-							if (RresultArray[p].value[0] is String)	{
-								var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
-								var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-								var dataVec:Vector.<String> = new Vector.<String>();
-								VectorUtils.copy(keys, keyVec);
-								VectorUtils.copy(Robj[p].value, dataVec);
-								testStringColumn.setRecords(keyVec, dataVec);
-								if (keys.length > 0)
-									testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
-								testStringColumn.metadata.@name = RresultArray[p].name;
-							}
-							else{
-								var table:Array = [];
-								for (var k:int = 0; k < keys.length; k++)
-									table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
-								
-								//testColumn are named after respective Objects Name (i.e) object{name: , value:}
-								var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
-								testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
-								testColumn.numericMode.value = true;
-								testColumn.data.setSessionState(table);
-								testColumn.title.value = RresultArray[p].name;
-							}
-						}
-					}						
-				}										
-			}
 		}
 		
 		public function handleRunScriptFault(event:FaultEvent, token:Object = null):void

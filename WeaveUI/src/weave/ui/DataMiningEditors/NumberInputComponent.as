@@ -23,24 +23,17 @@ package weave.ui.DataMiningEditors
 	 * Consists of a label and a textinput
 	 * @spurushe
 	 */
-	import mx.containers.HBox;
-	import mx.controls.Label;
-	import mx.core.UIComponent;
-	
 	import weave.ui.Indent;
 	import weave.ui.TextInputWithPrompt;
 
-	public class NumberInputComponent extends HBox
+	public class NumberInputComponent extends Indent
 	{
-		public var numberIndent:Indent = new Indent();
 		public var numberInput:TextInputWithPrompt = new TextInputWithPrompt();
-		public var numberInputLabel:Label = new Label();
 		public var identifier:String = new String();
 		
-		public function NumberInputComponent(_identifier:String,_myLabel:String, _inputPrompt:String)
+		public function NumberInputComponent(_identifier:String, _inputPrompt:String)
 		{
 			this.identifier = _identifier;
-			numberIndent.label = _myLabel;
 			numberInput.prompt = _inputPrompt;
 		}
 		
@@ -48,10 +41,7 @@ package weave.ui.DataMiningEditors
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			numberIndent.addChild(numberInput);
-			numberIndent.addChild(numberInputLabel);
-			
-			this.addChild(numberIndent);
+			this.addChild(numberInput);
 			
 		}
 	}

@@ -29,27 +29,22 @@ package weave.ui.DataMiningEditors
 	
 	import weave.ui.Indent;
 
-	public class ChoiceInputComponent extends HBox
+	public class ChoiceInputComponent extends Indent
 	{
-		public var choiceIndent:Indent = new Indent();
-		public var choiceLabel:Label = new Label();
 		public var choiceBox:ComboBox = new ComboBox();
 		public var identifier:String = new String();
 		
-		public function ChoiceInputComponent(_identifier:String, _choiceLabel:String, _objects:Array)
+		public function ChoiceInputComponent(_identifier:String, _objects:Array)
 		{
 			this.identifier = _identifier;
-			choiceLabel.text = _choiceLabel;
 			choiceBox.dataProvider = _objects;
 		}
 		
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			choiceIndent.addChild(choiceLabel);
-			choiceIndent.addChild(choiceBox);
+			this..addChild(choiceBox);
 			
-			this.addChild(choiceIndent);
 		}
 	}
 }

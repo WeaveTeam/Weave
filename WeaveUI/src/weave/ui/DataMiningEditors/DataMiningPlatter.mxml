@@ -76,7 +76,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private static var platterInstance : DataMiningPlatter = null;
 			private var currentDMObject:DataMiningAlgorithmObject;
-			private var collectionOfDataMinigObjects:Array;// collects all the data mining objects and then sends them to the DataminingChannelToR for comuptation in R
+			private var collectionOfDataMinigObjects:Dictionary = new Dictionary();// collects all the data mining objects and then sends them to the DataminingChannelToR for comuptation in R
 			
 			[Bindable]
 			public function get inputVariables():ILinkableHashMap
@@ -157,7 +157,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//handles columns when this tool is run on columns loaded through columns list component
 			private function handleRegularColumns(attributeColumns:Array):void
 			{
-				var joinedColumns:Array = ResultUtils.joinColumns(subsetFinalColumns);
+				var joinedColumns:Array = ResultUtils.joinColumns(attributeColumns);
 				latestColumnKeys = joinedColumns[0];
 				finalColumns = joinedColumns[1]; 
 			}
@@ -198,7 +198,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function checkifColumnsFilled():void
 			{
-				if (WeaveAPI.SessionManager.linkableObjectIsBusy(finalColumnsGroup))//do the next chunk of code only after _plotter.columns is filled
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(finalColumnsGroup))//do the next chunk of code only after columns have been generated and collected
 					return;
 				
 				 var joinedColumns:Array = ResultUtils.joinColumns(subsetFinalColumns);
@@ -214,11 +214,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					trace("status changed");
 					selectedAlgorithmList = listOfAlgo.filter(returnIfSelected);
 					trace(selectedAlgorithmList);
-					/* displayList.text = "";
-					for each (var obj:DataMiningAlgorithmObject in selectedAlgorithmList)
-					{
-						displayList.text += obj.label + "\n\n";
-					} */
 					selectedDisplayStatus.text = String(selectedAlgorithmList.length) + " algorithm(s) selected";
 					
 				} catch(err:Error){
@@ -300,7 +295,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				//finally
-				collectionOfDataMinigObjects.push(currentDMObject);
+				if(!collectionOfDataMinigObjects.hasOwnProperty(currentDMObject.label))
+					{
+						collectionOfDataMinigObjects[currentDMObject.label] = currentDMObject;
+					}
 			}
 			
 			/*------------------------------------------------SENDING DATAMING OBJECTS TO R---------------------------------------------------------------------*/
@@ -316,6 +314,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Array id="listOfAlgo">
 		<DataMiningEditors:DataMiningAlgorithmObject label ="KMeans Clustering" isSelectedInAlgorithmList="false"/>
 		<DataMiningEditors:DataMiningAlgorithmObject label ="Fuzzy KMeans Clustering" isSelectedInAlgorithmList="false"/>
+		<DataMiningEditors:DataMiningAlgorithmObject label="Partition Around Medoids Clustering" isSelectedInAlgorithmList="false"/>
 		<DataMiningEditors:DataMiningAlgorithmObject label ="Hierarchical Clustering" isSelectedInAlgorithmList="false"/>
 	</mx:Array>
 	

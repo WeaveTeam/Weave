@@ -16,13 +16,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
+/**
+ * Makes calls to R to carry out fuzzy kmeans clustering
+ * Takes columns as input
+ * returns clustering object 
+ * 
+ * 
+ * @spurushe
+ * */
+
 
 package weave.ui.DataMiningEditors
 {
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableObject;
@@ -33,92 +41,57 @@ package weave.ui.DataMiningEditors
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.KeySets.KeySet;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
+	import weave.services.beans.FuzzyKMeansClusteringResult;
 	import weave.services.beans.RResult;
-	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
 
 	public class FuzzyKMeansClustering implements ILinkableObject
 	{
+		public const identifier:String = "FuzzyKMeans";
+		private var algoCaller:Object;//this identifies which UI component is calling the kMeans i.e. the Data Mining Platter or the FuzzyKMeansClusteringEditor
+		
 		public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 		private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-		private var numberOfClusters:int;//user input number of clusters
-		private var distanceMetric:String;//user input distnace metric for clustering algorithm
-		private var assignNames: Array = new Array();
-		public var latestColumnKeys:Array = new Array();
-		public var finalColumns:Array = new Array();
+		public var finalResult:FuzzyKMeansClusteringResult;
 		
+		public var checkingIfFilled:Function;
 		
-		
-		public function FuzzyKMeansClustering()
+		public function FuzzyKMeansClustering(caller:Object, fillingResult:Function = null)
 		{
+			checkingIfFilled = fillingResult;
+			this.algoCaller = caller;
 		}
-		/*public var fuzzkMeansScript:String = "library(cluster)\n" +
-			"frame <- data.frame(inputColumns)\n"+
-		"fuzzkMeansResult <- fanny(frame,clusterNumber)\n";*/
-			//"fuzzkMeansResult <- fanny(frame,fnumberOfClusters, metric = dmetric, maxit = fnumberOfIterations)\n";
+		
 		
 		//sends the columns to R to do fuzzy k means
-		public function doFuzzyKMeans(_columns:Array,token:Array,_numberOfClusters:Number, _numberOfIterations:Number):void
+		public function doFuzzyKMeans(_columns:Array,token:Array,_numberOfClusters:Number, _numberOfIterations:Number, _metric:String):void
 		{
 			var inputValues:Array = new Array();
 			inputValues.push(_columns);
 			inputValues.push(_numberOfClusters);
-			inputValues.push("manhattan");
+			inputValues.push(_metric);
 			inputValues.push(_numberOfIterations);
 			var inputNames: Array = ["inputColumns","clusterNumber","check","iterationNumber"];
-			//inputValues.push(5);
-			/*inputValues.push("manhattan");
-			inputValues.push(500);*/
-			/*inputValues.push(_numberOfClusters);
-			var inputNames:Array = ["inputColumns", "fnumberOfClusters"];
-			if(_distanceMetric != null)
-			{
-				inputValues.push(_distanceMetric);
-				inputNames.push("dmetric");
-			}
 			
-			inputValues.push(_numberOfIterations);
-			inputNames.push("fnumberOfIterations");*/
-			var outputNames:Array = ["d$clustering"];
+			var outputNames:Array = ["fuzzResult$clustering"];
 			 var fuzzkMeansScript:String = "library(cluster)\n" +
 			"frame <- data.frame(inputColumns)\n"+
-			"d <- fanny(frame,clusterNumber, metric = check, maxit = iterationNumber)\n";
+			"fuzzResult <- fanny(frame,clusterNumber, metric = check, maxit = iterationNumber)\n";
 			
-			//var outputNames:Array = ["kMeansResult$cluster","kMeansResult$centers", "kMeansResult$totss", "kMeansResult$withinss","kMeansResult$tot.withinss","kMeansResult$betweenss","kMeansResult$size"];
 			
-			var query:AsyncToken = Rservice.runScript(token,inputNames, inputValues,outputNames,fuzzkMeansScript,"",true, true, false);
+			var query:AsyncToken = Rservice.runScript(token,inputNames, inputValues,outputNames,fuzzkMeansScript,"",false, false, false);
 			addAsyncResponder(query,handleRunScriptResult, handleRunScriptFault,token);
 			
 		}
 		
-		public static function get selection():KeySet
+		public function handleRunScriptResult(event:ResultEvent, token:Array = null):void
 		{
-			return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-		}
-		
-		/**
-		 * @return A multi-dimensional Array like [keys, [data1, data2, ...]] where keys implement IQualifiedKey
-		 */
-		public function joinColumns(columns:Array):Array
-		{
-			var keys:Array = selection.keys.length > 0 ? selection.keys : null;
-			//make dataype Null, so that columns will be sent as exact dataype to R
-			//if mentioned as String or NUmber ,will convert all columns to String or Number .
-			var result:Array = ColumnUtils.joinColumns(columns,null, true, keys);
-			return [result.shift(),result];
-		}
-		
-
-		
-		public function handleRunScriptResult(event:ResultEvent, token:Object = null):void
-		{
+			var clusterArray:Array = new Array();
 			//Object to stored returned result - Which is array of object{name: , value: }
 			var Robj:Array = event.result as Array;
-			trace('Robj:',ObjectUtil.toString(Robj));
+			//trace('Robj:',ObjectUtil.toString(Robj));
 			if (Robj == null)
 			{
 				reportError("R Servlet did not return an Array of results as expected.");
@@ -136,11 +109,19 @@ package weave.ui.DataMiningEditors
 					continue;
 				}
 				var rResult:RResult = new RResult(Robj[i]);
-				RresultArray.push(rResult);				
+				clusterArray.push(rResult.value);
 			}
 			
+			RresultArray.push(Robj[0]);
 			
+			if(algoCaller is DataMiningChannelToR)
+			{
+				finalResult = new FuzzyKMeansClusteringResult(clusterArray,token);
+				if(checkingIfFilled != null)
+					checkingIfFilled(finalResult);
+			}
 			
+			else{
 			//To make availabe for Weave -Mapping with key returned from Token
 			var keys:Array = token as Array;
 			
@@ -178,7 +159,8 @@ package weave.ui.DataMiningEditors
 					}						
 				}										
 			}
-		}
+		  }
+	    }
 		
 		public function handleRunScriptFault(event:FaultEvent, token:Object = null):void
 		{

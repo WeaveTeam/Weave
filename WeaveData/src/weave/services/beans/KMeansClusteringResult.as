@@ -23,8 +23,12 @@
  * */
 package weave.services.beans
 {
-	public class KMeansClusteringResult
+	public class KMeansClusteringResult implements IDataMiningResult
 	{
+		private var _keys:Array = new Array();
+		private const _identifier:String = "KMeansClustering";
+		
+		
 		public var clusterVector:Array = new Array();//A vector of integers (from 1:k) indicating the cluster to which each point is allocated
 		public var centers:Array = new Array();//A matrix of cluster centres. 
 		public var totSumOfSquares:Number; //The total sum of squares
@@ -34,10 +38,11 @@ package weave.services.beans
 		public var clusterSize:Array;// The number of points in each cluster.
 		
 		
-		public function KMeansClusteringResult(input:Array)
+		public function KMeansClusteringResult(input:Array, token:Array)
 		{
 			 //to do: find better way of collecting centers
 			this.clusterVector = input[0];
+			_keys = token;
 			var check:Array = new Array();
 			check = input[1][0];
 			this.centers.push(check);
@@ -51,6 +56,18 @@ package weave.services.beans
 			this.betweenSumOfSquares = input[5];
 			this.clusterSize = input[6];
 			
+		}
+		
+		
+
+		public function get identifier(): String
+		{
+			return _identifier;
+		}
+		
+		public function get keys():Array
+		{
+			return _keys;
 		}
 	}
 }

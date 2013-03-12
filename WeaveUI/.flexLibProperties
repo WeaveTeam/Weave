@@ -8,6 +8,7 @@
     <classEntry path="weave.ui.DataMiningEditors.DMiningParameterPanel"/>
     <classEntry path="weave.ui.DataMiningEditors.NumberInputComponent"/>
     <classEntry path="weave.ui.DataMiningEditors.DataMiningChannelToR"/>
+    <classEntry path="weave.ui.DataMiningEditors.PartitionAroundMedoidsClustering"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

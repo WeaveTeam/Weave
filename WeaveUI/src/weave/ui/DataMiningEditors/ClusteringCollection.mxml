@@ -112,7 +112,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public var inputColumns:LinkableHashMap = null;
-			public var selectedRecords:Array = new Array();
+			public var selectedRecords:Array = new Array();//keys of the selected records
 			public var latestColumnKeys:Array = new Array();
 			public var finalColumns:Array = new Array();
 			public var subsetFinalColumns:Array = new Array();
@@ -205,7 +205,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function checkifColumnsFilled():void
 			{
-				if (WeaveAPI.SessionManager.linkableObjectIsBusy(finalColumnsGroup))//do the next chunk of code only after _plotter.columns is filled
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(finalColumnsGroup))//do the next chunk of code only after finalColumnsGroup is filled
 					return;
 					
 						var joinedColumns:Array = joinColumns(subsetFinalColumns);

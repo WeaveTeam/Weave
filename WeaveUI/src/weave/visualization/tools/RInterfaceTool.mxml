@@ -52,6 +52,7 @@
 					<menuitem label= "KMeans" />
 					<menuitem label= "Fuzzy KMeans Clustering"/>
 					<menuitem label= "Hierarchical Clustering"/>
+					<menuitem label = "Partition Around Medoids Clustering"/>
 					<menuitem label = "Data mining Platter"/>
 				</menuitem>
 				<menuitem label="Classification">
@@ -101,6 +102,24 @@
 					<mx:GroupingCollection2 id="resultgc" source="{scriptResultValueExhibitCollection}">
 						<mx:grouping>
 							<mx:Grouping label="Columns">
+								<mx:GroupingField name="Columns"/>
+							</mx:Grouping>
+						</mx:grouping>
+					</mx:GroupingCollection2>	
+				</mx:dataProvider>
+				
+				<mx:columns>
+					<mx:AdvancedDataGridColumn dataField="GroupLabel" headerText="ScriptResults"/>
+					<mx:AdvancedDataGridColumn dataField="assignedVariable" headerText="Variable Name"/>
+					<mx:AdvancedDataGridColumn dataField="value" headerText="Value"/>
+				</mx:columns>
+				
+			</mx:AdvancedDataGrid>
+			<!--mx:AdvancedDataGrid id="resultDatagrid" width="100%" defaultLeafIcon="{null}" initialize="resultgc.refresh();" >
+				<mx:dataProvider>
+					<mx:GroupingCollection2 id="resultgc" source="{scriptResultValueExhibitCollection}">
+						<mx:grouping>
+							<mx:Grouping label="Columns">
 								<mx:GroupingField name = "Columns"/>
 							</mx:Grouping>
 						</mx:grouping>
@@ -113,7 +132,7 @@
 					<mx:AdvancedDataGridColumn dataField="assignedVariable" headerText="Variable Name"/>
 					<mx:AdvancedDataGridColumn dataField="value" headerText="Value" showDataTips="true"/>
 				</mx:columns>
-			</mx:AdvancedDataGrid>
+			</mx:AdvancedDataGrid-->
 						 
 						 			
 		</mx:VBox>
@@ -148,14 +167,14 @@
 			<!--4-->
 			<mx:HBox width="100%">
 				<mx:TextArea id="outputTA" width="75%" height="30%"/>
+			<mx:Button id="B2" label="{lang('Run script')}" click="runningScript()"/>
 				
-			<mx:HBox>
+			<!--mx:HBox>
 				<mx:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
 				<mx:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
-			</mx:HBox>
+			</mx:HBox-->
 			</mx:HBox>
 			<!--5-->
-			<mx:Button id="B2" label="{lang('Run script')}" click="runningScript()"/>
 			<mx:Spacer height="5"/>
 			<!--6-->
 			<mx:Label text="Results returned from R" fontWeight="bold"/>
@@ -175,10 +194,8 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
-			
-			import weave.services.addAsyncResponder;
-			
 			import mx.controls.Alert;
+			import mx.controls.Menu;
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
 			import mx.events.MenuEvent;
@@ -204,11 +221,14 @@
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.ui.DataMiningEditors.DataMiningPlatter;
 			import weave.ui.DataMiningEditors.FuzzyKMeansClusteringEditor;
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
+			import weave.ui.DataMiningEditors.PamClusteringEditor;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
 
 			WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, lang("RInterface"));
@@ -232,6 +252,9 @@
 			private const ALTERNATING_COLOR1:uint = 0xADFF2F;
 			private const ALTERNATING_COLOR2:uint = 0xA2CD5A;
 			
+			private var showWarnings:Boolean = false;
+			private var showIntermediateResults:Boolean = false;
+			
 			override protected function constructor():void
 			{
 				super.constructor();				
@@ -253,11 +276,20 @@
 			
 			private function menuItemClickHandler(e:Event):void
 			{
+				//series of checks to determine which menu item was clicked
 				if((e as MenuEvent).label == "New Script")
 				{
 					newScript_clickHandler();
 				}
-				//series of checks to determine which menu item was clicked
+				
+				if((e as MenuEvent).label == "On")showWarnings = true;
+				if((e as MenuEvent).label == "Off")showWarnings = false;
+				
+				
+				if((e as MenuEvent).label == "Include")showIntermediateResults = true;
+				if((e as MenuEvent).label == "Omit")showIntermediateResults = false;
+				
+				
 				if((e as MenuEvent).label == "KMeans")
 				{
 					//to do :   do we  allow more than one editor type??
@@ -272,24 +304,18 @@
 					FlexGlobals.topLevelApplication.visDesktop.addChild(fuzzyKmeansEditor); 
 				}
 				
+				if((e as MenuEvent).label == "Partition Around Medoids Clustering")
+				{
+					var pamEditor:PamClusteringEditor = new PamClusteringEditor();
+					FlexGlobals.topLevelApplication.visDesktop.addChild(pamEditor);
+				}
+				
 				if((e as MenuEvent).label == "Data mining Platter") 
 				{
 					var platterInstance:DataMiningPlatter = DataMiningPlatter.getPlatterInstance();
 					platterInstance.inputVariables = dataColumns;
 					FlexGlobals.topLevelApplication.visDesktop.addChild(platterInstance); 
 				}
-			}
-			/**
-			 * @return A multi-dimensional Array like [keys, [data1, data2, ...]] where keys implement IQualifiedKey
-			 */
-			private function joinColumns(columns:Array):Array
-			{
-				var selection:KeySet = Weave.defaultSelectionKeySet;
-				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
-				//make dataype Null, so that columns will be sent as exact dataype to R
-				//if mentioned as String or NUmber ,will convert all columns to String or Number .
-				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
-				return [result.shift(), result];
 			}
 			
 			
@@ -353,7 +379,7 @@
 				if(colObjects.length >0)
 				{					
 					// get records for keys common to all columns 
-					result = joinColumns(attributeColumns);
+					result = ResultUtils.joinColumns(attributeColumns);
 					joinedColumnQKeys = result[0];
 					joinedColumns = result[1];
 					//this is for JRI service
@@ -379,10 +405,7 @@
 				
 				//Values need to assign for Column names in R
 				var inputValues:Array = joinedColumns;
-				//Names for Column that need to be used in R
-				/* var RscriptAssignNames:String = assignTA.text;
-				var assignNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text)); */
-			
+				
 				//Script for R input
 				var script:String = RScriptTA.text;
 				var plotScript:String = RPlotscriptTA.text;
@@ -395,17 +418,17 @@
 				var outputNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
 				
 				//Query is created from runScript with same signature from Jave side
-				var showIntermediateResults:Boolean = intermediateResultCB.selected;
-				var showWarnings:Boolean = warningCB.selected;
+				
 				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,false);
 				
 				addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 			}
 			
 			public var scriptResultValueExhibitMap:Dictionary = new Dictionary();
-			
+			public var a:int = 0;//checks number of times asynchronous calls are made
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
 			{
+				a++;
 				//var valueExhibitMap:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
 				/* function():void { 
 					return (colorFlag.value ? ALTERNATING_COLOR1 : ALTERNATING_COLOR2)); 
@@ -437,19 +460,48 @@
 					}
 					var rResult:RResult = new RResult(Robj[i]);
 					RresultArray.push(rResult);	
+				}
+				
+				
+				for(var s:int = 0; s < RresultArray.length; s++)
+				{
+					var newObj:Object = new Object();
+					newObj.name = (RresultArray[s] as RResult).name;
+					newObj.Columns = scriptTitle.text;
+					newObj.columnName = scriptTitle.text;
+					newObj.assignedVariable = newObj.name;
+					newObj.value = (RresultArray[s] as RResult).value;
+					check.push(newObj);
+						
+				}
+				 if(!scriptResultValueExhibitMap.hasOwnProperty(scriptTitle.text))
+				 {
+					 scriptResultValueExhibitMap[scriptTitle.text] = check;
+				 }
+				
+				//	var newVar:String = rResult.name; //+ "(" + numberOfRCalls +")";
+					//var scriptResult:String;
+					
 					//testing
-					var newVar:String = rResult.name; //+ "(" + numberOfRCalls +")";
-					if(!scriptResultValueExhibitMap.hasOwnProperty(newVar))
+					/* if(scriptTitle.text != null)scriptResult = scriptTitle.text;
+					else scriptResult = "Run" + a; */
+					
+					/* if(!scriptResultValueExhibitMap.hasOwnProperty(newVar))
 						{
-						scriptResultValueExhibitMap[newVar] = new Object();
-							var newVarValue:Object = scriptResultValueExhibitMap[newVar];
-							newVarValue.Columns = "ScriptResult";
+						     scriptResultValueExhibitMap[newVar] = new Object();
+							var newVarValue:Object = scriptResultValueExhibitMap[newVar]; 
+							newVarValue.Columns = "Result"+scriptTitle.text;
 							newVarValue.columnName = scriptTitle.text;
 							newVarValue.assignedVariable = newVar;
 							newVarValue.value = rResult.value;
 							check.push(scriptResultValueExhibitMap[newVar]);
-						}
-				}
+							
+						//scriptResultValueExhibitMap[scriptTitle.text] = new Dictionary();
+							//var dc:Dictionary = scriptResultValueExhibitMap[scriptTitle.text];
+								//dc[newVar] = new Object();
+							//var	newVarValue:Object = dc[newVar];
+						} */
+				
 				
 				for(var f:int = 0; f < check.length; f++)
 				{
@@ -580,8 +632,7 @@
 			
 			protected function newScript_clickHandler():void
 			{
-				Alert.show("Do you want to save current script result?", "Deleting previous script" ,mx.controls.Alert.YES | mx.controls.Alert.NO,this,savingScriptResults, null,Alert.YES);
-				resultString = "";
+				Alert.show("Do you want to delete current script results?", "Deleting previous script" ,mx.controls.Alert.YES | mx.controls.Alert.NO,this,savingScriptResults, null,Alert.YES);
 				
 			}
 			
@@ -589,7 +640,20 @@
 			//To do :Check signature of result if column or if single number
 			private function savingScriptResults(event:CloseEvent):void
 			{
-				
+				if(event.detail == Alert.YES)
+				{
+					Alert.show("Results deleted", "Your previous script results are no longer available",mx.controls.Alert.OK);
+					scriptResultValueExhibitCollection.removeAll();
+					resultString = ""; outputTA.text = "";
+					RPlotscriptTA.text = "";
+					scriptTitle.text = "";
+					RScriptTA.text = "";
+					RResultConsole.text = "";
+				}
+				if(event.detail == Alert.NO)
+				{
+					
+				}
 			}
 			
 			

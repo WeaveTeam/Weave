@@ -31,82 +31,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				backgroundColor="#EFF4BC" width="300" height="400"
 				layout="horizontal"
 				autoLayout="true"
-				implements="weave.api.ui.IVisTool"
+				implements="weave.api.ui.IVisTool" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*"
 				>
-	<mx:HBox width="100%" height="100%">
+	<mx:HBox id="hb" width="100%" height="100%">
 		<mx:VBox width="50%" paddingLeft="5" paddingBottom="5" paddingRight="5" height="100%">
 		<mx:Label text="1.Select the input Columns" fontWeight="bold"/>	
 		<ColumnListComponent id="kMeansColumns" hashMap="{inputColumns}"/>
 		</mx:VBox>
-		<mx:VBox paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" height="100%">
-			<Indent label="2.Enter the number of clusters" fontWeight="bold" width="100%">
-				
-				<TextInputWithPrompt id="clusterNumber" prompt="5" toolTip="either the number of clusters, say k, or a set of initial (distinct) cluster centres. If a number, a random set of (distinct) rows in x is chosen as the initial centres."/>
-			</Indent>
+		
+		<mx:VBox id="inputUI" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" height="100%">
 			
-			<Indent label="3.Enter the number of iterations" fontWeight="bold" width="100%">
-				<TextInputWithPrompt id="iterations" prompt="100" toolTip="the maximum number of iterations allowed."/>
-					
-			</Indent>	
-			<Indent label="4.Enter the number of random sets to be chosen" fontWeight="bold" width="100%">
-				<TextInputWithPrompt id="randomSets" prompt="100" toolTip="if centers is a number, how many random sets should be chosen?"/>
-				
-			</Indent>
-			<Indent label="5.Select the algorithm" fontWeight="bold" width="100%">
-				<mx:ComboBox id="clustAlgo" >
-					<mx:String>Choose algorithm</mx:String>
-					<mx:String>Hartigan-Wong</mx:String>
-					<mx:String>Lloyd</mx:String>
-					<mx:String>Forgy</mx:String>
-					<mx:String>MacQueen</mx:String>
-				</mx:ComboBox>
-				</Indent>
-			<mx:Button id="editScript" label="View/Edit Script" click="editScript_clickHandler(event)"/>
-			<mx:TextArea id="displayScriptTA" width="100%">
-				
-			</mx:TextArea>
-			<mx:Button label="Run Script" id="doKMeansButton" click="doKMeansButton_clickHandler(event)"/>
+			
 		</mx:VBox>
 	
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.controls.DataGrid;
-			import mx.controls.Image;
-			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
-			import mx.rpc.AsyncToken;
-			import mx.rpc.events.FaultEvent;
-			import mx.rpc.events.ResultEvent;
-			import mx.utils.ObjectUtil;
+			import mx.controls.Button;
+			
+			import spark.components.TextArea;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
-			import weave.core.LinkableString;
-			import weave.data.AttributeColumns.CSVColumn;
-			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.DataSources.CSVDataSource;
-			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
-			import weave.services.beans.RResult;
+			import weave.services.beans.KMeansClusteringResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.utils.VectorUtils;
-			import weave.visualization.tools.DataTableTool;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			//to do: take input as columns and as subsets from vizs
@@ -117,7 +70,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var finalColumns:Array = new Array();
 			//private var _initialing:* = constructor();
 			 
-			private var kMeans:KMeansClustering = new KMeansClustering();
+			private var kMeans:KMeansClustering = new KMeansClustering(this);
+			public var kMeansResult:KMeansClusteringResult;
+			//initializing the input UI
+			private var kMeansClusterInput:NumberInputComponent;
+			private var kMeansIterationsInput:NumberInputComponent;
+			private var kMeansRandomSets:NumberInputComponent;
+			private var kMeansAlgo:ChoiceInputComponent;
 			
 			override protected function constructor():void
 			{
@@ -127,6 +86,36 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}
 			
+			private function fillingResult():void
+			{
+				kMeansResult = kMeans.finalResult;
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				kMeansClusterInput = new NumberInputComponent("kClusterNumber", "5");
+				kMeansClusterInput.label = "Enter the number of clusters";
+				kMeansIterationsInput = new NumberInputComponent("kIterationNumber", "500");
+				kMeansIterationsInput.label = "Enter the number of iterations";
+				kMeansRandomSets = new NumberInputComponent("kMeansrandomSets","100");
+				kMeansRandomSets.label = "Enter the number of random sets";
+				kMeansAlgo = new ChoiceInputComponent("kMeansAlgo", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
+				kMeansAlgo.label = "Select an algorithm";
+				//var displayScriptTA:TextArea = new TextArea();
+				//displayScriptTA.width = inputUI.width;
+				var doKMeansButton:Button = new Button();
+				doKMeansButton.label = "Run Script"; 
+				doKMeansButton.addEventListener(MouseEvent.CLICK, doKMeansButton_clickHandler);
+				
+				
+				inputUI.addChild(kMeansClusterInput);
+				inputUI.addChild(kMeansIterationsInput);
+			    inputUI.addChild(kMeansRandomSets);
+				inputUI.addChild(kMeansAlgo); 
+				//inputUI.addChild(displayScriptTA);
+				inputUI.addChild(doKMeansButton);
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -156,26 +145,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			} 
 		
 			
-			 protected function editScript_clickHandler(event:MouseEvent):void
+			/*  protected function editScript_clickHandler(event:MouseEvent):void
 			{
 				//to do: Make script change accoring to user inputs of parameters
 				displayScriptTA.text = "frame <- data.frame(inputColumns)\n" +
-				"kMeansResult <- kmeans(frame,"+ clusterNumber.text + "," + iterations.text + "," + randomSets.text +"," + clustAlgo.selectedLabel+")";
-			} 
+				"kMeansResult <- kmeans(frame,"+ kMeansClusterInput.numberInput.text + "," + kMeansIterationsInput.numberInput.text + "," + kMeansRandomSets.numberInput.text +"," + kMeansAlgo.choiceBox.selectedLabel+")";
+			}  */
 			
 			protected function doKMeansButton_clickHandler(event:MouseEvent):void
 			{
-				var clusternumber:Number = Number(clusterNumber.text);
-				var iterationNumber:Number = Number(iterations.text);
-				var randomSetNumber:Number = Number(randomSets.text);
-				if(!(clustAlgo.selectedLabel == "Choose algorithm"))
+				var clusterNumber:Number = Number(kMeansClusterInput.numberInput.text);
+				var iterationNumber:Number = Number(kMeansIterationsInput.numberInput.text);
+				var randomSetNumber:Number = Number(kMeansRandomSets.numberInput.text);
+				if(!(kMeansAlgo.choiceBox.selectedLabel == "Choose algorithm"))
 				{
-					kMeans.doKMeans(finalColumns,latestColumnKeys,clusternumber,iterationNumber,clustAlgo.selectedLabel,randomSetNumber );
+					kMeans.doKMeans(finalColumns,latestColumnKeys,clusterNumber,iterationNumber,kMeansAlgo.choiceBox.selectedLabel,randomSetNumber );
 					
 				}
 				else
 				{
-					kMeans.doKMeans(finalColumns,latestColumnKeys,clusternumber,iterationNumber,"euclidean",randomSetNumber );
+					kMeans.doKMeans(finalColumns,latestColumnKeys,clusterNumber,iterationNumber,"euclidean",randomSetNumber );
 				}
 				
 			}

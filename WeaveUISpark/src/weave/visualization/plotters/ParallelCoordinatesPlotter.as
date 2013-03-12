@@ -73,6 +73,7 @@ package weave.visualization.plotters
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			xAttributeColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
 			
 			updateFilterEquationColumns(); // sets key source
 		}
@@ -80,14 +81,24 @@ package weave.visualization.plotters
 		{
 			// When a new column is created, register the stats to trigger callbacks and affect busy status.
 			// This will be cleaned up automatically when the column is disposed.
-			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			    var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 			
+				var newtestColumn:IAttributeColumn = xAttributeColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newtestColumn)
+				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newtestColumn));
+			
 			_columns = columns.getObjects();
+			_xattrObjects = xAttributeColumns.getObjects();
+            if(_columns.length != _xattrObjects.length)
+				_xattrObjects.length = 0;
 			// if there is only one column, push a copy of it so lines will be drawn
 			if (_columns.length == 1)
 				_columns.push(_columns[0]);
+			
+			if (_xattrObjects.length == 1)
+				_xattrObjects.push(_xattrObjects[0]);
 			
 			updateFilterEquationColumns();
 		}
@@ -101,6 +112,8 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
+		public const xAttributeColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
 		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
@@ -110,6 +123,7 @@ package weave.visualization.plotters
 		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
 		
 		private var _columns:Array = [];
+		private var _xattrObjects:Array = [];
 		
 		public function getXValues():Array
 		{
@@ -165,6 +179,9 @@ package weave.visualization.plotters
 			{
 				if (groupBy.getInternalColumn())
 					columns.removeAllObjects();
+				
+				if(_xattrObjects.length > 0)
+					xAttributeColumns.removeAllObjects();
 				return;
 			}
 			
@@ -250,12 +267,15 @@ package weave.visualization.plotters
 			var results:Array = [];
 			var i:int;
 			var _normalize:Boolean = normalize.value;
+			
+			
 			for (i = 0; i < _columns.length; ++i)
 			{
 				var x:Number;
 				var y:Number;
+					
+				x = getXAttributeCoordinates(recordKey, i);
 				
-				x = i;
 				if (_normalize)
 					y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
 				else
@@ -296,9 +316,11 @@ package weave.visualization.plotters
 			// push three geometries between each column
 			var x:Number, y:Number;
 			var prevX:Number, prevY:Number;
-			for (var i:int = 0; i < _columns.length; ++i)
+			
+		  for (var i:int = 0; i < _columns.length; ++i)
 			{
-				x = i;
+				x = getXAttributeCoordinates(recordKey, i);
+				
 				if (_normalize)
 					y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
 				else
@@ -341,11 +363,19 @@ package weave.visualization.plotters
 			for (i = 0; i < _columns.length; i++)
 			{
 				// project data coordinates to screen coordinates and draw graphics
-				tempPoint.x = i;
+				
+				tempPoint.x = getXAttributeCoordinates(recordKey, i);
+				
 				if (_normalize)
 					tempPoint.y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
 				else
 					tempPoint.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
+				
+				if (isNaN(tempPoint.x))
+				{
+					continueLine = false;
+					continue;
+				}
 				
 				if (isNaN(tempPoint.y))
 				{
@@ -428,30 +458,93 @@ package weave.visualization.plotters
 			}
 		}
 		
+		public function yAxisLabelFunction(value:Number):String
+		{
+			var _columns:Array = columns.getObjects();
+			if (_columns.length > 0)
+				return ColumnUtils.deriveStringFromNumber(_columns[0], value); // always use the first column to format the axis labels
+			return null;
+		}
+		
+		
+		public function xAxisLabelFunction(value:Number):String
+		{
+			try{
+				
+			if(usingXAttributes)
+			{
+				var check:String =  ColumnUtils.deriveStringFromNumber(_xattrObjects[0], value);
+				return check;
+			}
+			else
+				return ColumnUtils.getTitle(_columns[value]);
+			}catch(e:Error){};
+			
+			return "";
+		}
+		
+		
+		public function get usingXAttributes():Boolean
+		{
+			if(_xattrObjects.length == _columns.length)
+				return true;
+			else
+				return false;
+		}
+		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			// normalized data coordinates
 			var bounds:IBounds2D = getReusableBounds();
 			if (!zoomToSubset.value)
 			{
+				
 				bounds.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
 				
 				if (!normalize.value)
 				{
 					// reset y coords
 					bounds.setYRange(NaN, NaN);
-					for each (var column:IAttributeColumn in columns.getObjects())
+					
+					for each (var column:IAttributeColumn in _columns)
 					{
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 						// expand y range to include all data coordinates
-						bounds.includeCoords(0, stats.getMin());
-						bounds.includeCoords(0, stats.getMax());
+						bounds.includeCoords(NaN, stats.getMin());
+						bounds.includeCoords(NaN, stats.getMax());
 					}
+					
+					if(_xattrObjects.length > 0)
+					{
+						bounds.setXRange(NaN,NaN);
+						for each (var col:IAttributeColumn in _xattrObjects)
+						{
+							var colStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(col);
+							// expand x range to include all data coordinates
+							bounds.includeCoords(colStats.getMin(),NaN);
+							bounds.includeCoords(colStats.getMax(),NaN);
+						}
+					}
+					
+					
 				}
 			}
 			return bounds;
 		}
 		
+		public function getXAttributeCoordinates(recordKey:IQualifiedKey, i:int):Number
+		{
+			var x:Number ;
+			
+				if(i < _xattrObjects.length)
+						x = _xattrObjects[i].getValueFromKey(recordKey, Number);
+				else if(_xattrObjects.length > 0)
+					x = NaN;
+				else x = i;
+				
+				return x;
+			
+		}
 		private static const tempPoint:Point = new Point(); // reusable object
 		
 		
