@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow width="400" height="400" title="Selected Entity Columns" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" >
+	<mx:VBox horizontalAlign="right" width="100%" height="100%">
+		<ui:ColumnListComponent width="100%" height="100%" id="entityColumnsList" hashMap="{entityColumnsHashmap}"/>
+		<mx:Button label="Continue" id="continueButton"/>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.core.LinkableHashMap;
+			[Bindable]
+			public var entityColumnsHashmap:LinkableHashMap;
+		]]>
+	</mx:Script>
+</mx:TitleWindow >

@@ -227,18 +227,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
 				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler);
 				
-				relatedKeywordsArrayCollection.addEventListener(CollectionEvent.COLLECTION_CHANGE,handleRelatedKeywordsChange);
-				
 				entityColumnsList.reverseButton.enabled = false;
 				entityColumnsList.reverseButton.visible = false;
 				
-				relatedColumnsHashmap.addGroupedCallback(this,handleRelatedColumnsChange,false);
-				
 				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
-				
-				_loadingText.setStyle("fontFamily","loadingTextStyle");
-				_loadingText.setStyle("fontSize","24");
-				
 			}
 			
 			private var _firstLoad:Boolean = true;
@@ -248,14 +240,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					extractEntityColumns();
 				_firstLoad = false;
 			}
-			private var _loadingText:Text = new Text();
+			private var _loadingText:InfoMapsProgressBar = null;
 			private var _referencedColumns:Array = [];
 			private function extractEntityColumns():void
 			{
+				_loadingText = new InfoMapsProgressBar();
 				addChild(_loadingText);
-				_loadingText.text = "Selecting Entity Columns...";
-				_loadingText.move(this.width/2,this.height/2);
-				_loadingText.x = _loadingText.x - _loadingText.width/2;
+				
+				_loadingText.label= "Selecting Entity Columns";
 				
 				/* Get all the referenced Columns*/
 				_referencedColumns = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root,ReferencedColumn);
@@ -269,6 +261,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if(_referencedColumns.length == 0)
 					return 1;
+				_parentCount= 0;
+				_totalParents= 0;
+				
 				var col:ReferencedColumn = _referencedColumns.pop() as ReferencedColumn;
 				if(col.dynamicColumnReference.internalObject is IColumnReference)
 				{
@@ -292,12 +287,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			private var _parentCount:int = 0;
+			private var _totalParents:int = 0;
 			private var _refColsCount:int = 0;
 			private function handleGetParents(event:ResultEvent,token:Object=null):void
 			{
 				var parents:Array = (event.result as ArrayCollection).source;
 				/* We use this count to keep track of when all the parents' children have been iterated */
 				_parentCount += parents.length;
+				_totalParents += _parentCount;
 				if(_parentCount ==0)
 				{
 					handleEmptyEntityExtraction();
@@ -368,15 +365,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							attrCol.hierarchyPath.value = attrNode;
 						}
 					}
-					
-					if(obj.publicMetadata.name)
+					if(obj.publicMetadata.dataType != null && obj.publicMetadata.dataType != 'geometry')
 					{
-						_columnsText += " " + obj.publicMetadata.name;
-					}else if (obj.publicMetadata.title)
-					{
-						_columnsText += " " +obj.publicMetadata.title;
+						if(obj.publicMetadata.name)
+						{
+							_columnsText += " " + obj.publicMetadata.name;
+						}else if (obj.publicMetadata.title)
+						{
+							_columnsText += " " +obj.publicMetadata.title;
+						}
 					}
-					
 					
 					if(_childEntities.length == 0)
 					{
@@ -389,15 +387,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				},WeaveAPI.TASK_PRIORITY_PARSING,finishEntitySelection);
 			}
 			
+			private var _entityColumnList:EntityColumnsList = null;
 			private function finishEntitySelection():void
 			{
 				/* If all the children for all the parent IDs have been iterated we are done with Entity Selection */
 				if(_parentCount<=0)
 				{
-					_loadingText.text = "Finished Selecting Entity Columns!";
-					_loadingText.x = _loadingText.x - _loadingText.width/2; 
-					addAsyncResponder(InfoMapAdminInterface.instance.extractKeywords(_columnsText),handleExtractKeywordsResult,handleExtractKeywordsFault);
+					_entityColumnList = PopUpManager.createPopUp(this,EntityColumnsList,true) as EntityColumnsList;					
+					_entityColumnList.entityColumnsHashmap = entityColumnsHashmap;
+					_entityColumnList.continueButton.addEventListener(MouseEvent.CLICK,handleContinueButtonClick);
+					PopUpManager.centerPopUp(_entityColumnList);
 				}
+				_loadingText.setProgress(_totalParents-_parentCount,_totalParents);
 			}
 			
 			private function handleGetChildEntitiesFault(event:FaultEvent,token:Object=null):void
@@ -405,9 +406,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				reportError("Error getting Child Entities");				
 			}
 			
+			private function handleContinueButtonClick(event:Event):void
+			{
+				PopUpManager.removePopUp(_entityColumnList);
+				addAsyncResponder(InfoMapAdminInterface.instance.extractKeywords(_columnsText),handleExtractKeywordsResult,handleExtractKeywordsFault);
+				_loadingText.label = "Extracting related keywords...";
+				_loadingText.setProgress(1,2); // setting progress to half
+				
+			}
+			
+			private var _relatedKeywordsList:RelatedKeywordsList = null
 			private function handleExtractKeywordsResult(event:ResultEvent,token:Object=null):void
 			{
+				_relatedKeywordsList = PopUpManager.createPopUp(this,RelatedKeywordsList,true) as RelatedKeywordsList;
 				relatedKeywords.value = (event.result as Array).join(",");
+				_relatedKeywordsList.keywords = relatedKeywords.value;
+				PopUpManager.centerPopUp(_relatedKeywordsList);
+				_loadingText.setProgress(2,2); // setting progress to half
+				_relatedKeywordsList.continueButton.addEventListener(MouseEvent.CLICK,handleRelatedKeywordsContinue);
+				
 			}
 			
 			private function handleExtractKeywordsFault(event:FaultEvent,token:Object=null):void
@@ -415,7 +432,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				reportError("Error getting Extracted Keywords");	
 			}
 			
-			
+			private function handleRelatedKeywordsContinue(event:Event):void
+			{
+				relatedKeywords.value = _relatedKeywordsList.keywords;
+				removeChild(_loadingText);
+				PopUpManager.removePopUp(_relatedKeywordsList);
+				if(_callQueryNodeLater)
+				{
+					addQueryNodeUsingSelectedRecords();
+				}
+			}
 			private function handleGlobalKeyInput(event:KeyboardEvent):void
 			{
 				if(event.keyCode == Keyboard.ENTER)
@@ -784,8 +810,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			private var _callQueryNodeLater:Boolean = false;
 			public function addQueryNodeUsingSelectedRecords():void
 			{
+				if(entityColumnsHashmap.getObjects().length == 0)
+				{
+					_callQueryNodeLater = true;
+					return;
+				}
 				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
 				var nodeName:String = nodes.generateUniqueName(className);
 				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
@@ -1037,37 +1069,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				fileUploadCount++; //TODO Check for file index status.
 			} */
 			
-			[Bindable]
-			private var relatedKeywordsArrayCollection:ArrayCollection = new ArrayCollection();
-			private function handleRelatedColumnsChange():void
-			{
-				var relatedKeywords:Dictionary = new Dictionary(); 
-				var relatedKeywordsArray:Array = [];
-				var cols:Array = relatedColumnsHashmap.getObjects();
-				for (var i:int=0; i<cols.length; i++)
-				{
-					var words:Array = (cols[i] as IAttributeColumn).getMetadata("title").split(' ');
-					for each(var word:String in words)
-					{
-						word = word.replace(/([(),<=%~!\/\\])/g,"");
-						if(relatedKeywords[word] == undefined)
-						{
-							if(!WordProcessingUtils.isStopWord(word) && isNaN(Number(word)))
-							{
-								relatedKeywords[word] = true;
-								var k:RelatedKeywordsListItemObject = new RelatedKeywordsListItemObject();
-								k.label = word;
-								k.selected = true;
-								relatedKeywordsArray.push(k);								
-							}
-						}
-					}
-				}
-				
-				relatedKeywordsArrayCollection.source = relatedKeywordsArray;
-			}
-			
-			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString(""),updatePanelTitle);
+			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString("",validateCSVString),updatePanelTitle);
 			
 			private function updatePanelTitle():void
 			{
@@ -1077,20 +1079,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					panelTitle.value = "InfoMapPanel with no keywords ";
 			}
 			
-			private function handleRelatedKeywordsChange(event:Event):void
+			private var _csvRegEx:RegExp = /^,|,$|(,,+)/;
+			private function validateCSVString(value:*):Boolean
 			{
-				var keywords:Array = relatedKeywordsArrayCollection.source as Array;
-				
-				var selectedKeywords:Array = [];
-				for each(var w:RelatedKeywordsListItemObject in keywords)
+				if(value)
 				{
-					if(w.selected)
-					{
-						selectedKeywords.push(w.label);
-					}
+					return !_csvRegEx.test(value as String);
 				}
-				
-				relatedKeywords.value = selectedKeywords.join(",");
+				return true;
 			}
 		]]>
 	</mx:Script>

@@ -72,6 +72,15 @@ import com.dropbox.client2.session.RequestTokenPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
+
+import edu.mit.jwi.Dictionary;
+import edu.mit.jwi.IDictionary;
+import edu.mit.jwi.item.IIndexWord;
+import edu.mit.jwi.item.ISynset;
+import edu.mit.jwi.item.IWord;
+import edu.mit.jwi.item.IWordID;
+import edu.mit.jwi.item.POS;
+import edu.mit.jwi.morph.WordnetStemmer;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.PTBTokenizer;
@@ -132,15 +141,16 @@ public class AdminService extends GenericServlet {
 		}
 	}
 
-	public static void main(String[] args) {
-//		//testing
-		AdminService inst = new AdminService();
-		try {
-			inst.extractKeywords("Neither overweight nor obese (BMI <= 24.9) (2005) Percent Overweight (BMI 25.0 - 29.9)  Neither overweight nor obese (BMI <= 24.9) (2004) Percent Overweight (BMI 25.0 - 29.9)  Neither overweight nor obese (BMI <= 24.9) (2007)");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//	public static void main(String[] args) {
+////		//testing
+//		AdminService inst = new AdminService();
+//		try {
+//			
+//			
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 //		 String [] requiredKeywords = new String[2];
 //		 String [] relatedKeywords = new String[1];
@@ -149,7 +159,7 @@ public class AdminService extends GenericServlet {
 //		 requiredKeywords[1] = " Wyoming";
 //		 relatedKeywords[0] = "divorced";
 //	     inst.getNumOfDocumentsForQuery(requiredKeywords, relatedKeywords, null, "AND");
-	}
+//	}
 
 	private static void deleteAllDocuments() {
 		try {
@@ -1777,7 +1787,7 @@ public class AdminService extends GenericServlet {
 
 	public String[] extractKeywords(String text) throws IOException
 	{ 
-		String[] result =null;
+		List<String> result = new ArrayList<String>();
 		
 		Reader r = new StringReader(text);
 		
@@ -1804,19 +1814,46 @@ public class AdminService extends GenericServlet {
 												"UTF-8", false, false, false);
 		stopWordsRemover.pipe(instance);
 		
-		/*Extract unique keywords*/
+		/*Get Lemma for each word from WordNet*/
+		URL wordNetDirectory = getClass().getClassLoader().getResource("infomap/resources/wordnet-dict");
+		IDictionary dict = new Dictionary(wordNetDirectory);
+		IIndexWord idxWord;
+		IWordID wordID;
+		IWord word;
+		dict.open();
+		
 		tokens = (TokenSequence)instance.getData();
-		result = new String[tokens.size()];
 		Iterator<Token> iter = tokens.iterator();
-		int count =0;
 		while(iter.hasNext())
 		{
-			result[count]= iter.next().getText();
-			count++;
+			String currWord = iter.next().getText();
+			WordnetStemmer stemmer = new WordnetStemmer(dict);
+			List<String> stems = stemmer.findStems(currWord, POS.NOUN);
+			if(stems.size() >0)
+			{
+				result.addAll(stems);
+				for(String stem:stems)
+				{
+					idxWord = dict.getIndexWord(stem,POS.NOUN);
+					wordID = idxWord.getWordIDs().get(0);
+					word = dict.getWord(wordID);
+					ISynset synset = word.getSynset();
+					List<IWord> synsetWords = synset.getWords();
+					for(IWord relatedWord:synsetWords)
+					{
+						result.add(dict.getWord(relatedWord.getID()).getLemma());
+					}
+				}
+			}
+			else
+			{
+				result.add(currWord);
+			}
+			
 		}
-		result =getUniqueKeywords(result); 
+		dict.close();
 		
-		return result;
+		return getUniqueKeywords(result.toArray(new String[result.size()])); 
 	}
 	
 	private String[] getUniqueKeywords(String[] words)

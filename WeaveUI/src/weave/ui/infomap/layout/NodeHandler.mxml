@@ -952,6 +952,16 @@
 				if(entityColumns.length == 0)
 					return;
 				
+				if(!currentQuery.keywords.value)
+					return;
+				
+				var requiredKeywords:Array = currentQuery.keywords.value.split(',');
+				
+				if(requiredKeywords.length == 0)
+				{
+					return;
+				}
+				
 				var keys:Array = [];
 				for each(var col:IAttributeColumn in entityColumns)
 				{
@@ -963,7 +973,6 @@
 					return;
 				}
 				
-				var requiredKeywords:Array = currentQuery.keywords.value.split(',');
 				
 				/* if there more than 1000 entities we will only show entity distribution for selected entities */
 				if(keys.length > 1000)

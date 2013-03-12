@@ -83,9 +83,6 @@ package weave.ui.infomap
 		
 		private static function handleMenutItemClick(event:ContextMenuEvent):void
 		{
-//			var titleOfClickedPanel:String = DraggablePanel.getTopPanel().title;
-//			
-//			var titleTerms:Array = titleOfClickedPanel.split(' ');
 			
 			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
@@ -94,12 +91,6 @@ package weave.ui.infomap
 			
 			panel.addQueryNodeUsingSelectedRecords();
 			
-//			var keywords:Array = extractKeywordsFromSelection();
-//			
-//			if(titleTerms.indexOf('Obese')>-1)
-//				keywords = keywords.concat('Obese');
-//			
-//			panel.addInfoMapNode(keywords.join(" "));
 		}
 		
 		/**
