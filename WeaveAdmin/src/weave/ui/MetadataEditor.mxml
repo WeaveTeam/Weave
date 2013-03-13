@@ -262,7 +262,7 @@
 		var str:String = obj ? obj[field] : null;
 		if (str)
 			return int(str);
-		return -1;
+		return EntityCache.ROOT_ID;
 	}
 	
 	private function saveCSV():void
@@ -288,7 +288,7 @@
 		for each (record in records)
 		{
 			id = getInternalField(record, INTERNAL_ID);
-			if (id >= 0)
+			if (id != EntityCache.ROOT_ID)
 				continue;
 			
 			type = getInternalField(record, INTERNAL_TYPE);
@@ -298,14 +298,25 @@
 				return;
 			}
 			
-			if (type == EntityType.COLUMN || type == EntityType.CATEGORY)
+			parent = getInternalField(record, INTERNAL_PARENT);
+			
+			if ((type == EntityType.HIERARCHY || type == EntityType.TABLE) && parent != EntityCache.ROOT_ID)
 			{
-				parent = getInternalField(record, INTERNAL_PARENT);
-				if (parent < 0)
-				{
-					Alert.show("Missing internal prent field for new item.", "Error");
-					return;
-				}
+				Alert.show("Parent field must be blank when creating new table or hierarchy items.", "Error");
+				return;
+			}
+			if (type == EntityType.CATEGORY && parent == EntityCache.ROOT_ID)
+			{
+				Alert.show("Missing internal parent field for new category item.", "Error");
+				return;
+			}
+			
+			var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(parent);
+			var parentType:int = info ? info.type : EntityType.ANY;
+			if (type == EntityType.COLUMN && parentType != EntityType.TABLE)
+			{
+				Alert.show("A new column must reference a table as its parent.", "Error");
+				return;
 			}
 		}
 		
@@ -334,7 +345,7 @@
 			}
 			catch (e:Error)
 			{
-				Alert.show("Unable to save.\n" + e.toString(), "Error");
+				Alert.show("Unable to save item.\n" + e.toString(), "Error");
 				reportError(e, "Unable to save item");
 				errorHappened = true;
 			}
@@ -361,7 +372,7 @@
 		"\n" +
 		"New items can be created by leaving the internal 'id' field blank.\n" +
 		"The internal 'type' field is required for new items.  Possible values are: 0=table, 1=column, 2=hierarchy, 3=category.\n" +
-		"The internal 'parent' field is required for new column and category items.";
+		"The internal 'parent' field is required for new column or category items, and must be blank for others.";
 	
     private function detectChange(..._):void
     {
