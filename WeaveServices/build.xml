@@ -28,4 +28,13 @@
             <metainf dir="WebContent/META-INF"/>
         </war>
     </target>
+    <target name="doc">
+        <echo message="Building docs for ${ant.project.name}..."/>
+        <mkdir dir="${basedir}/javadoc/"/>
+        <javadoc destdir="${basedir}/javadoc/"
+            classpathref="classpath">
+            <fileset dir="${basedir}/" includes="**/*.java"/>
+            <fileset dir="${basedir}/../WeaveServletUtils/" includes="**/*.java"/>
+        </javadoc>
+    </target>
 </project>

@@ -34,6 +34,15 @@ package weave.services
 			Admin.service.addHook(Admin.service.authenticate, null, fetchDirtyEntities);
         }
 		
+		public function getCachedParentIds(id:int):Array
+		{
+			var result:Array = [];
+			var d:Dictionary = d2d_child_parent.dictionary[id];
+			for (var pid:* in d)
+				result.push(int(pid));
+			return result;
+		}
+		
 		public function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
 		{
 			callbacks.delayCallbacks();

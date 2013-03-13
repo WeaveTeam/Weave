@@ -21,6 +21,7 @@ package weave.data
 {
 	import flash.utils.getTimer;
 	
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
@@ -311,21 +312,38 @@ package weave.data
 		/**
 		 * This function converts an Array of Arrays to an Array of Objects compatible with DataGrid.
 		 * @param rows An Array of Arrays, the first being a header line containing property names
+		 * @param headerDepth The number of header rows.  If the depth is greater than one, nested record objects will be created.
 		 * @return An Array of Objects containing String properties using the names in the header line.
 		 */
-		public function convertRowsToRecords(rows:Array):Array
+		public function convertRowsToRecords(rows:Array, headerDepth:int = 1):Array
 		{
-			var i:int;
-			var j:int;
-			var records:Array = [];
-			var header:Array = rows[0];
+			if (rows.length < headerDepth)
+				throw new Error("headerDepth is greater than the number of rows");
+			assertHeaderDepth(headerDepth);
 			
-			for (i = 1; i < rows.length; i++)
+			var records:Array = new Array(rows.length - headerDepth);
+			for (var r:int = headerDepth; r < rows.length; r++)
 			{
 				var record:Object = {};
-				for (j = 0; j < header.length; j++)
-					record[header[j]] = rows[i][j];	
-				records.push(record);
+				var row:Array = rows[r];
+				for (var c:int = 0; c < row.length; c++)
+				{
+					var output:Object = record;
+					var cell:Object = row[c];
+					for (var h:int = 0; h < headerDepth; h++)
+					{
+						var colName:String = rows[h][c];
+						if (h < headerDepth - 1)
+						{
+							if (!output[colName])
+								output[colName] = {};
+							output = output[colName];
+						}
+						else
+							output[colName] = cell;
+					}
+				}
+				records[r - headerDepth] = record;
 			}
 			return records;
 		}
@@ -334,53 +352,156 @@ package weave.data
 		 * This function returns a comprehensive list of all the field names defined by a list of record objects.
 		 * @param records An Array of record objects.
 		 * @param includeNullFields If this is true, fields that have null values will be included.
-		 * @return A comprehensive list of all the field names defined by the given record objects.
+		 * @param headerDepth The depth of record properties.  If depth is greater than one, the records will be treated as nested objects.
+		 * @return A comprehensive list of all the field names defined by the given record objects.  If headerDepth > 1, a two-dimensional array will be returned.
 		 */
-		public function getRecordFieldNames(records:Array, includeNullFields:Boolean = false):Array
+		public function getRecordFieldNames(records:Array, includeNullFields:Boolean = false, headerDepth:int = 1):Array
 		{
-			var hashmap:Object = {};
-			var field:String;
+			assertHeaderDepth(headerDepth);
+			
+			var nestedFieldNames:Object = {};
 			for each (var record:Object in records)
-				for (field in record)
-					if (includeNullFields || record[field] != null)
-						hashmap[field] = true;
+				_outputNestedFieldNames(record, includeNullFields, nestedFieldNames, headerDepth);
+			
 			var fields:Array = [];
-			for (field in hashmap)
-				fields.push(field);
+			_collapseNestedFieldNames(nestedFieldNames, fields);
 			return fields;
+		}
+		private function _outputNestedFieldNames(record:Object, includeNullFields:Boolean, output:Object, depth:int):void
+		{
+			for (var field:String in record)
+			{
+				if (includeNullFields || record[field] != null)
+				{
+					if (depth == 1)
+					{
+						output[field] = false;
+					}
+					else
+					{
+						if (!output[field])
+							output[field] = {};
+						_outputNestedFieldNames(record[field], includeNullFields, output[field], depth - 1);
+					}
+				}
+			}
+		}
+		private function _collapseNestedFieldNames(nestedFieldNames:Object, output:Array, prefix:Array = null):void
+		{
+			for (var field:String in nestedFieldNames)
+			{
+				if (nestedFieldNames[field]) // either an Object or false
+				{
+					_collapseNestedFieldNames(nestedFieldNames[field], output, prefix ? prefix.concat(field) : [field]);
+				}
+				else // false means reached full nesting depth
+				{
+					if (prefix) // is depth > 1?
+						output.push(prefix.concat(field)); // output the list of nested field names
+					else
+						output.push(field); // no array when max depth is 1
+				}
+			}
 		}
 		
 		/**
 		 * This function converts an Array of Objects (compatible with DataGrid) to an Array of Arrays
 		 * compatible with other functions in this class.
 		 * @param records An Array of Objects containing String properties.
-		 * @param columnOrder An optional list of column names to use in order.
+		 * @param columnOrder An optional list of column names to use in order.  Must be a two-dimensional Array if headerDepth > 1.
 		 * @param allowBlankColumns If this is set to true, then the function will include all columns even if they are blank.
+		 * @param headerDepth The depth of record properties.  If depth is greater than one, the records will be treated as nested objects.
 		 * @return An Array of Arrays, the first being a header line containing all the property names.
 		 */
-		public function convertRecordsToRows(records:Array, columnOrder:Array = null, allowBlankColumns:Boolean = false):Array
+		public function convertRecordsToRows(records:Array, columnOrder:Array = null, allowBlankColumns:Boolean = false, headerDepth:int = 1):Array
 		{
-			var i:int;
-			var j:int;
-			var header:Array = columnOrder;
-			var rows:Array = [];
+			assertHeaderDepth(headerDepth);
 			
-			if (header == null)
+			var fields:Array = columnOrder;
+			if (fields == null)
 			{
-				header = getRecordFieldNames(records, allowBlankColumns);
-				AsyncSort.sortImmediately(header);
+				fields = getRecordFieldNames(records, allowBlankColumns, headerDepth);
+				AsyncSort.sortImmediately(fields);
 			}
 			
-			rows.push(header);
+			var r:int;
+			var c:int;
+			var row:Array;
+			var rows:Array = new Array(records.length + headerDepth);
 			
-			for (i = 0; i < records.length; i++)
+			if (headerDepth == 1)
 			{
-				var row:Array = [];
-				for (j = 0; j < header.length; j++)
-					row.push(records[i][header[j]]);
-				rows.push(row);
+				rows.push(fields);
+			}
+			else
+			{
+				// construct multiple header rows from field name chains
+				for (r = 0; r < headerDepth; r++)
+				{
+					row = new Array(fields.length);
+					for (c = 0; c < fields.length; c++)
+						row[c] = fields[c][r];
+					rows[r] = row;
+				}
+			}
+			
+			for (r = 0; r < records.length; r++)
+			{
+				var record:Object = records[r];
+				row = new Array(fields.length);
+				for (c = 0; c < fields.length; c++)
+				{
+					if (headerDepth == 1)
+					{
+						// fields is an Array of Strings
+						row[c] = record[fields[c]];
+					}
+					else
+					{
+						// fields is an Array of Arrays
+						var fieldChain:Array = fields[c];
+						var cell:Object = record;
+						for each (var field:String in fieldChain)
+							if (cell)
+								cell = cell[field];
+						row[c] = cell;
+					}
+				}
+				rows[headerDepth + r] = row;
 			}
 			return rows;
+		}
+		
+		private static function assertHeaderDepth(headerDepth:int):void
+		{
+			if (headerDepth < 1)
+				throw new Error("headerDepth must be > 0");
+		}
+		
+		//test();
+		private static var _tested:Boolean = false;
+		private static function test():void
+		{
+			if (_tested)
+				return;
+			_tested = true;
+			
+			var _:Object = {};
+			_.parser = WeaveAPI.CSVParser;
+			_.csv=[
+				"internal,internal,public,public,public,private,private,test",
+				"id,type,title,keyType,dataType,connection,sqlQuery,empty",
+				"2,1,state name,fips,string,resd,\"select fips,name from myschema.state_data\",",
+				"3,1,population,fips,number,resd,\"select fips,pop from myschema.state_data\",",
+				"1,0,state data table"
+			].join('\n');
+			_.table = _.parser.parseCSV(_.csv);
+			_.records = _.parser.convertRowsToRecords(_.table, 2);
+			_.rows = _.parser.convertRecordsToRows(_.records, null, false, 2);
+			_.fields = _.parser.getRecordFieldNames(_.records, false, 2);
+			_.fieldOrder = _.parser.parseCSV('internal,id\ninternal,type\npublic,title\npublic,keyType\npublic,dataType\nprivate,connection\nprivate,sqlQuery');
+			_.rows2 = _.parser.convertRecordsToRows(_.records, _.fieldOrder, false, 2);
+			weaveTrace(ObjectUtil.toString(_));
 		}
 	}
 }

@@ -168,7 +168,7 @@
 			otherTree.selectedItems = [];
 		
 		if (tree.selectedItem)
-			this.selectedItems = tree.selectedItems;
+			this.selectedItems = tree.selectedItems.concat().reverse(); // use reverse order because shift+click produces reverse order
 		else if (!otherTree.selectedItem)
 			this.selectedItems = []; // neither tree has selection
     }

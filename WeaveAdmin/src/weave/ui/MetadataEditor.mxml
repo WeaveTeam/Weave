@@ -4,8 +4,14 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%"
+	enabled="false"
 	keyDown="handleKeyDown(event);"
 	creationComplete="handleCreationComplete()">
+	<mx:Script>
+		<![CDATA[
+			import flash.desktop.ClipboardFormats;
+		]]>
+	</mx:Script>
 	<mx:HBox width="100%">
 		<mx:Label id="title" fontWeight="bold"/>
 		<mx:Spacer width="100%"/>
@@ -14,18 +20,43 @@
     <mx:TabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid"
 			label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0}){publicMetaGrid.metadataChanged?'*':''}"
+			preferredMetadataOrder="{preferredMetadataOrder}"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
         <ui:MetadataGrid id="privateMetaGrid"
 			label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0}){privateMetaGrid.metadataChanged?'*':''}"
+			preferredMetadataOrder="{preferredMetadataOrder}"
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
     </mx:TabNavigator>
     <mx:HBox width="100%">
+		<mx:Button label="{lang('Edit as CSV')}" enabled="{!isChanged}" click="editCSV()"/>
 		<mx:Spacer width="100%"/>
         <mx:Button label="{lang('Save')}" toolTip="{lang('Shortcut: CTRL+Enter')}" enabled="{isChanged}" click="saveChanges()"/>
         <mx:Button label="{lang('Cancel')}" enabled="{isChanged}" click="refresh()"/>
     </mx:HBox>
+	<ui:DraggablePanel id="csvWindow" title="{lang('Metadata for selected items')}" escapeKeyClosesPanel="true">
+		<mx:VBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
+			<ui:AutoResizingTextArea width="100%" borderStyle="none" editable="false" selectable="false" text="{lang(csvEditorExplanation)}"/>
+			<mx:TextArea id="csvTextArea" fontFamily="_typewriter" fontSize="11" width="100%" height="100%" wordWrap="false" change="_csvChanged = true;"/>
+			<mx:HBox width="100%">
+				<mx:Button label="{lang('Copy to clipboard')}" click="Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, csvTextArea.text);"/>
+				<mx:Spacer width="100%"/>
+		        <mx:Button label="{lang('Save')}" enabled="{_csvChanged}" click="saveCSV()"/>
+		        <mx:Button label="{lang('Cancel')}" click="cancelCSV()"/>
+			</mx:HBox>
+		</mx:VBox>
+	</ui:DraggablePanel>
 <mx:Script>
 <![CDATA[
+	import mx.controls.Alert;
+	import weave.services.beans.EntityHierarchyInfo;
+	import weave.services.beans.EntityType;
+	import weave.services.EntityCache;
+	import weave.api.reportError;
+	import weave.utils.AsyncSort;
+	import weave.api.WeaveAPI;
+	import mx.managers.PopUpManager;
+	import flash.desktop.Clipboard;
+	
 	import mx.binding.utils.BindingUtils;
 	import mx.events.DataGridEvent;
 	import mx.utils.ObjectUtil;
@@ -36,6 +67,33 @@
 	import weave.services.Admin;
 	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
+	
+	override protected function createChildren():void
+	{
+		super.createChildren();
+		
+		removeChild(csvWindow);
+		csvWindow.pinnable.value = false;
+		csvWindow.minimizable.value = false;
+		csvWindow.closeable.value = true;
+		csvWindow.maximizable.value = true;
+	}
+	
+	// namespaces, public metadata names, and private metadata names are all in this same Array because it's convenient and it doesn't matter much.
+	private const preferredMetadataOrder:Array = 'internal,public,private,id,type,parent,title,keyType,dataType,number,string,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
+	private function sortFieldChains(chain1:Array, chain2:Array):int
+	{
+		var level:int = (chain1[0] != chain2[0]) ? 0 : 1;
+		var i1:int = preferredMetadataOrder.indexOf(chain1[level]);
+		var i2:int = preferredMetadataOrder.indexOf(chain2[level]);
+		if (i1 >= 0 && i2 >= 0)
+			return ObjectUtil.numericCompare(i1, i2);
+		if (i1 >= 0)
+			return -1;
+		if (i2 >= 0)
+			return 1;
+		return ObjectUtil.stringCompare(chain1[level], chain2[level], true);
+	}
 	
 	public function handleCreationComplete():void
 	{
@@ -152,7 +210,159 @@
 			entity = Admin.entityCache.getEntity(int(node_or_id));
 		return entity;
 	}
-
+	
+	[Bindable] private var _csvChanged:Boolean = false;
+	private function editCSV():void
+	{
+		var records:Array = [];
+		for each (var item:Object in _targetItems)
+		{
+			var entity:Entity = getEntityFromSelectedItem(item);
+			var record:Object = {};
+			record[INTERNAL] = {};
+			record[INTERNAL][INTERNAL_ID] = entity.id;
+			record[INTERNAL][INTERNAL_TYPE] = entity.type;
+			record[INTERNAL][INTERNAL_PARENT] = '';
+			var parents:Array = Admin.entityCache.getCachedParentIds(entity.id);
+			for each (var pid:int in parents)
+			{
+				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(pid);
+				if (info && info.type == EntityType.TABLE)
+				{
+					record[INTERNAL][INTERNAL_PARENT] = pid;
+					break;
+				}
+			}
+			
+			record[INTERNAL][INTERNAL_PARENT]
+			record[PUBLIC] = entity.publicMetadata;
+			record[PRIVATE] = entity.privateMetadata;
+			records.push(record);
+		}
+		var columnOrder:Array = WeaveAPI.CSVParser.getRecordFieldNames(records, true, 2);
+		AsyncSort.sortImmediately(columnOrder, sortFieldChains);
+		var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnOrder, true, 2);
+		var csv:String = WeaveAPI.CSVParser.createCSV(rows);
+		
+		csvTextArea.text = csv;
+		_csvChanged = false;
+		PopUpManager.addPopUp(csvWindow, WeaveAPI.topLevelApplication as DisplayObject, true);
+	}
+	private function cancelCSV():void
+	{
+		_csvChanged = false;
+		PopUpManager.removePopUp(csvWindow);
+		
+		csvTextArea.text = '';
+	}
+	
+	private function getInternalField(record:Object, field:String):int
+	{
+		var obj:Object = record[INTERNAL];
+		var str:String = obj ? obj[field] : null;
+		if (str)
+			return int(str);
+		return -1;
+	}
+	
+	private function saveCSV():void
+	{
+		if (!_csvChanged)
+			return;
+		
+		var csv:String = csvTextArea.text;
+		var rows:Array = WeaveAPI.CSVParser.parseCSV(csv);
+		if (rows.length < 2)
+		{
+			Alert.show("Nothing to save.", "Error");
+			return;
+		}
+		
+		var records:Array = WeaveAPI.CSVParser.convertRowsToRecords(rows, 2);
+		var record:Object;
+		var id:int;
+		var type:int;
+		var parent:int;
+		
+		// error checking - stop when error occurs
+		for each (record in records)
+		{
+			id = getInternalField(record, INTERNAL_ID);
+			if (id >= 0)
+				continue;
+			
+			type = getInternalField(record, INTERNAL_TYPE);
+			if (!EntityType.getTypeString(type))
+			{
+				Alert.show("Missing internal type field for new item.", "Error");
+				return;
+			}
+			
+			if (type == EntityType.COLUMN || type == EntityType.CATEGORY)
+			{
+				parent = getInternalField(record, INTERNAL_PARENT);
+				if (parent < 0)
+				{
+					Alert.show("Missing internal prent field for new item.", "Error");
+					return;
+				}
+			}
+		}
+		
+		// save
+		var errorHappened:Boolean = false;
+		for each (record in records)
+		{
+			try
+			{
+				id = getInternalField(record, INTERNAL_ID);
+				
+				var diff:EntityMetadata = new EntityMetadata();
+				diff.publicMetadata = record[PUBLIC];
+				diff.privateMetadata = record[PRIVATE];
+				
+				if (id < 0)
+				{
+					type = getInternalField(record, INTERNAL_TYPE);
+					parent = getInternalField(record, INTERNAL_PARENT);
+					Admin.service.newEntity(type, diff, parent, -1);
+				}
+				else
+				{
+					Admin.entityCache.update_metadata(id, diff);
+				}
+			}
+			catch (e:Error)
+			{
+				Alert.show("Unable to save.\n" + e.toString(), "Error");
+				reportError(e, "Unable to save item");
+				errorHappened = true;
+			}
+		}
+		
+		if (!errorHappened)
+		{
+			_csvChanged = false;
+			PopUpManager.removePopUp(csvWindow);
+		}
+	}
+	private static const INTERNAL:String = 'internal';
+	private static const PUBLIC:String = 'public';
+	private static const PRIVATE:String = 'private';
+	
+	private static const INTERNAL_ID:String = 'id';
+	private static const INTERNAL_TYPE:String = 'type';
+	private static const INTERNAL_PARENT:String = 'parent';
+	
+	private static const csvEditorExplanation:String = "" +
+		"The first header row specifies the namespace, and the second header row specifies the metadata field names.\n" +
+		"The internal 'id' field specifies which item the row corresponds to, and if you save your changes it will overwrite metadata for the listed items.\n" +
+		"Changes to the internal 'type' and 'parent' field will be ignored for existing items.\n" +
+		"\n" +
+		"New items can be created by leaving the internal 'id' field blank.\n" +
+		"The internal 'type' field is required for new items.  Possible values are: 0=table, 1=column, 2=hierarchy, 3=category.\n" +
+		"The internal 'parent' field is required for new column and category items.";
+	
     private function detectChange(..._):void
     {
 		isChanged = publicMetaGrid.metadataChanged || privateMetaGrid.metadataChanged;

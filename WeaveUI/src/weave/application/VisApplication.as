@@ -1043,11 +1043,14 @@ package weave.application
 					{
 						for each (tag in hierarchy.descendants("attribute"))
 						{
-							if (!String(tag.@title) && tag.@name)
+							if (!String(tag.@title))
 							{
-								tag.@title = tag.@name;
-								if (String(tag.@year))
-									tag.@title += ' (' + tag.@year + ')';
+								var newTitle:String = String(tag.@csvColumn);
+								if (!newTitle && String(tag.@name) && String(tag.@year))
+									newTitle = String(tag.@name) + ' (' + tag.@year + ')';
+								else if (String(tag.@name))
+									newTitle = String(tag.@name);
+								tag.@title = newTitle || 'untitled';
 							}
 						}
 					}
