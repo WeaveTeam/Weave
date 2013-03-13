@@ -205,7 +205,7 @@ public class CSVParser
 	}
 	/**
 	 * This function parses a String as a CSV-encoded table.
-	 * @param csvData The CSV file to parse.
+	 * @param csvFile The CSV file to parse.
 	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 	 * @return The result of parsing the CSV string.
 	 */
@@ -215,7 +215,7 @@ public class CSVParser
 	}
 	/**
 	 * This function parses a String as a CSV-encoded table.
-	 * @param csvData The CSV input to parse.
+	 * @param csvInput The CSV input to parse.
 	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 	 * @return The result of parsing the CSV string.
 	 */
@@ -342,7 +342,7 @@ public class CSVParser
 	
 	/**
 	 * This function encodes an Array of objects into a CSV row.
-	 * @param rows An array of row values.  If the row values are not Strings, toString() will be called on each value.
+	 * @param row An array of values for a single row.  If the row values are not Strings, toString() will be called on each value.
 	 * @return The row encoded as a CSV String.
 	 */
 	public String createCSVRow(Object[] row, boolean quoteEmptyStrings)

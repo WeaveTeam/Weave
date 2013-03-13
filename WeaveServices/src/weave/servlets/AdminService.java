@@ -276,7 +276,7 @@ public class AdminService
 	 * @param fileContent
 	 * @param fileName
 	 * @param overwriteFile
-	 * @return
+	 * @return A description of the success or failure of this function.
 	 * @throws RemoteException
 	 */
 	public String saveWeaveFile(
@@ -794,7 +794,7 @@ public class AdminService
 	/**
 	 * Read a list of csv files and return common header columns.
 	 * 
-	 * @param A list of csv file names.
+	 * @param csvFile A CSV file name
 	 * @return A list of common header files or null if none exist encoded using
 	 * 
 	 */

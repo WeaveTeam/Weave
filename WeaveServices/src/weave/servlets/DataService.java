@@ -571,7 +571,7 @@ public class DataService extends GenericServlet
 	// backwards compatibility
 	
 	/**
-	 * @param publicMetadata The metadata query.
+	 * @param metadata The metadata query.
 	 * @return The id of the matching column.
 	 * @throws RemoteException Thrown if the metadata query does not match exactly one column.
 	 */
