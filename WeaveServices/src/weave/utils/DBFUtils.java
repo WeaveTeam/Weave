@@ -156,7 +156,6 @@ public class DBFUtils
 	 * @param sqlTable table name to store data
 	 * @param overwriteTables Set this to true to overwrite an existing SQL table.
 	 * @param nullValues A list of Strings to interpret as null values.
-	 * @return The number of rows affected after sql INSERT queries
 	 * @throws IOException,SQLException
 	 */
 	public static void storeAttributes(File[] dbfFiles, Connection conn, String sqlSchema, String sqlTable, boolean overwriteTables, String[] nullValues) throws IOException,SQLException
