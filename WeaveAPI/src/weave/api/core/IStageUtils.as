@@ -71,7 +71,8 @@ package weave.api.core
 		 *   When the task is completed, iterativeTask() should return 1.0.
 		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
 		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
-		 *   Example:
+		 *   Example (for loop replaced by if):
+		 *   <code>
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
 		 *       function iterativeTask():Number // this may be called repeatedly in succession
@@ -84,7 +85,9 @@ package weave.api.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
-		 *   Example 2:
+		 *   </code>
+		 *   <code>
+		 *   Example 2 (resumable for loop):
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
 		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
@@ -96,8 +99,39 @@ package weave.api.core
 		 * 
 		 *               trace(array[index]);
 		 *           }
-		 *           return 1;
+		 *           return 1; // loop finished
 		 *       }
+		 *   </code>
+		 *   <code>
+		 *   Example 3 (nested resumable for loops):
+		 * 	     var outerArray:Array = [['a','b','c'], ['aa','bb','cc'], ['x','y','z'], ['xx','yy','zz']];
+		 *       var outerIndex:int = 0;
+		 *       var innerArray:Array = null;
+		 *       var innerIndex:int = 0;
+		 *       function iterativeNestedTaskWithTimer(returnTime:int):Number // this will be called only once in succession
+		 *       {
+		 *           for (; outerIndex &lt; outerArray.length; outerIndex++)
+		 *           {
+		 *               if (innerArray == null)
+		 *               {
+		 *                   // time to initialize inner loop
+		 *                   innerArray = outerArray[outerIndex] as Array;
+		 *                   innerIndex = 0;
+		 *               }
+		 *               
+		 *               for (; innerIndex &lt; innerArray.length; innerIndex++)
+		 *               {
+		 *                   if (getTimer() &gt; returnTime)
+		 *                       return (outerIndex + (innerIndex / innerArray.length)) / outerArray.length; // progress so far
+		 *                   
+		 *                   trace('item', outerIndex, innerIndex, 'is', innerArray[innerIndex]);
+		 *               }
+		 *               
+		 *               innerArray = null; // inner loop finished
+		 *           }
+		 *           return 1; // outer loop finished
+		 *       }
+		 *   </code>
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
