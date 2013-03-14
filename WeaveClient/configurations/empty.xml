@@ -1,11 +1,11 @@
 <Weave encoding="dynamic">
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
           <dataSourceName>CSVDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
-            <attribute csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
@@ -15,7 +15,7 @@
         <HierarchyColumnReference>
           <dataSourceName>CSVDataSource</dataSourceName>
           <hierarchyPath encoding="xml">
-            <attribute csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
+            <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
           </hierarchyPath>
         </HierarchyColumnReference>
       </dynamicColumnReference>
@@ -41,16 +41,17 @@
       <size>11</size>
       <underline>false</underline>
     </defaultTextFormat>
-    <disabilityAltText>Flash Object: empty instance of Weave</disabilityAltText>
+    <disabilityAltText>An empty instance of Weave.</disabilityAltText>
     <disabilityHashMap encoding="dynamic">
       <LinkableString name="Line Chart of Country, %Communist"/>
       <LinkableString name="Scatter Plot of US State FIPS Code -vs- Percent Obese (BMI >= 30) (2010)"/>
       <LinkableString name="Scatter Plot of Percent Obese (BMI >= 30) (2010) -vs- Percent Obese (BMI >= 30) (1995)"/>
       <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2000), Percent Obese (BMI >= 30) (2005)"/>
       <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2010)"/>
+      <LinkableString name="Line Chart of Percent Obese 1995, Percent Obese 2000, Percent Obese 2005, Percent Obese 2010"/>
     </disabilityHashMap>
     <disabilityLongAltText/>
-    <disabilitySystemText>This line chart has a decreasing trend</disabilitySystemText>
+    <disabilitySystemText>This line chart has an increasing trend</disabilitySystemText>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddNewDatasource>true</enableAddNewDatasource>
@@ -254,7 +255,7 @@ wheel</zoom>
             <dataSourceName>CSVDataSource</dataSourceName>
             <hierarchyPath encoding="xml">
               <hierarchy>
-                <attribute csvColumn="US State FIPS Code" keyType="CSVDataSource" title="US State FIPS Code"/>
+                <attribute keyType="CSVDataSource" title="US State FIPS Code" csvColumn="US State FIPS Code"/>
               </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
@@ -268,19 +269,19 @@ wheel</zoom>
     <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
-  <KeySet name="defaultSelectionKeySet" encoding="csv">CSVDataSource,10</KeySet>
-  <KeySet name="defaultProbeKeySet" encoding="dynamic"/>
+  <KeySet encoding="dynamic" name="defaultSelectionKeySet"/>
+  <KeySet encoding="dynamic" name="defaultProbeKeySet"/>
   <KeySet name="alwaysHighlightKeySet"/>
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
   <CSVDataSource name="CSVDataSource2">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute csvColumn="US State FIPS Code" keyType="CSVDataSource2" title="US State FIPS Code"/>
-        <attribute csvColumn="State" keyType="CSVDataSource2" title="State"/>
-        <attribute csvColumn="Percent Obese (BMI >= 30) (1995)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (1995)"/>
-        <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)"/>
+        <attribute keyType="CSVDataSource2" title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource2" title="State" csvColumn="State"/>
+        <attribute keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (1995)" csvColumn="Percent Obese (BMI >= 30) (1995)"/>
+        <attribute keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)" csvColumn="Percent Obese (BMI >= 30) (2010)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese (BMI &gt;= 30) (1995),Percent Obese (BMI &gt;= 30) (2010)
@@ -292,12 +293,12 @@ wheel</zoom>
   <CSVDataSource name="CSVDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute csvColumn="US State FIPS Code" keyType="CSVDataSource" title="US State FIPS Code"/>
-        <attribute csvColumn="State" keyType="CSVDataSource" title="State"/>
-        <attribute csvColumn="Percent Obese 2010" keyType="CSVDataSource" title="Percent Obese 2010"/>
-        <attribute csvColumn="Percent Obese 2005" keyType="CSVDataSource" title="Percent Obese 2005"/>
-        <attribute csvColumn="Percent Obese 2000" keyType="CSVDataSource" title="Percent Obese 2000"/>
-        <attribute csvColumn="Percent Obese 1995" keyType="CSVDataSource" title="Percent Obese 1995"/>
+        <attribute keyType="CSVDataSource" title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource" title="State" csvColumn="State"/>
+        <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource" title="Percent Obese 2005" csvColumn="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource" title="Percent Obese 2000" csvColumn="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource" title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese 2010,Percent Obese 2005,Percent Obese 2000,Percent Obese 1995
@@ -360,9 +361,9 @@ wheel</zoom>
           <minScreenSize>128</minScreenSize>
           <minZoomLevel>0</minZoomLevel>
           <overrideXMax>NaN</overrideXMax>
-          <overrideXMin>NaN</overrideXMin>
-          <overrideYMax>NaN</overrideYMax>
-          <overrideYMin>NaN</overrideYMin>
+          <overrideXMin>0</overrideXMin>
+          <overrideYMax>40</overrideYMax>
+          <overrideYMin>0</overrideYMin>
           <plotters encoding="dynamic">
             <SimpleAxisPlotter name="yAxis">
               <axisLabelDistance>-10</axisLabelDistance>
@@ -370,11 +371,11 @@ wheel</zoom>
               <axisLineDataBounds>
                 <xMax>0</xMax>
                 <xMin>0</xMin>
-                <yMax>28.7</yMax>
-                <yMin>16.6</yMin>
+                <yMax>40</yMax>
+                <yMin>0</yMin>
               </axisLineDataBounds>
-              <axisLineMaxValue>28.7</axisLineMaxValue>
-              <axisLineMinValue>16.6</axisLineMinValue>
+              <axisLineMaxValue>40</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
               <forceTickCount>false</forceTickCount>
               <keySet>
                 <keyFilter encoding="dynamic">
@@ -408,12 +409,12 @@ wheel</zoom>
               <axisLabelDistance>-10</axisLabelDistance>
               <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
               <axisLineDataBounds>
-                <xMax>3</xMax>
+                <xMax>2</xMax>
                 <xMin>0</xMin>
-                <yMax>16.6</yMax>
-                <yMin>16.6</yMin>
+                <yMax>0</yMax>
+                <yMin>0</yMin>
               </axisLineDataBounds>
-              <axisLineMaxValue>3</axisLineMaxValue>
+              <axisLineMaxValue>2</axisLineMaxValue>
               <axisLineMinValue>0</axisLineMinValue>
               <forceTickCount>true</forceTickCount>
               <keySet>
@@ -440,31 +441,19 @@ wheel</zoom>
               <overrideAxisName/>
               <showAxisName>true</showAxisName>
               <showLabels>true</showLabels>
-              <tickCountRequested>4</tickCountRequested>
+              <tickCountRequested>3</tickCountRequested>
               <tickMaxValue>NaN</tickMaxValue>
               <tickMinValue>NaN</tickMinValue>
             </SimpleAxisPlotter>
             <ParallelCoordinatesPlotter name="plot">
               <columns encoding="dynamic">
-                <ReferencedColumn name="ReferencedColumn13">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute csvColumn="Percent Obese 1995" keyType="CSVDataSource" title="Percent Obese 1995"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
                 <ReferencedColumn name="ReferencedColumn12">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
                       <dataSourceName>CSVDataSource</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2000" keyType="CSVDataSource" title="Percent Obese 2000"/>
+                          <attribute keyType="CSVDataSource" title="Percent Obese 2000" csvColumn="Percent Obese 2000"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -476,7 +465,7 @@ wheel</zoom>
                       <dataSourceName>CSVDataSource</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2005" keyType="CSVDataSource" title="Percent Obese 2005"/>
+                          <attribute keyType="CSVDataSource" title="Percent Obese 2005" csvColumn="Percent Obese 2005"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -488,7 +477,7 @@ wheel</zoom>
                       <dataSourceName>CSVDataSource</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2010" keyType="CSVDataSource" title="Percent Obese 2010"/>
+                          <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -539,7 +528,7 @@ wheel</zoom>
                   <internalDynamicColumn encoding="dynamic"/>
                 </scaleMode>
                 <weight>
-                  <defaultValue>2</defaultValue>
+                  <defaultValue>3</defaultValue>
                   <internalDynamicColumn encoding="dynamic">
                     <NormalizedColumn>
                       <internalDynamicColumn encoding="dynamic"/>
@@ -574,7 +563,7 @@ wheel</zoom>
               </color>
               <dataX encoding="dynamic">
                 <AlwaysDefinedColumn>
-                  <defaultValue>3</defaultValue>
+                  <defaultValue>2</defaultValue>
                   <internalDynamicColumn encoding="dynamic"/>
                 </AlwaysDefinedColumn>
               </dataX>
@@ -585,7 +574,7 @@ wheel</zoom>
                       <dataSourceName>CSVDataSource</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2010" keyType="CSVDataSource" title="Percent Obese 2010"/>
+                          <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -623,7 +612,7 @@ wheel</zoom>
                       <dataSourceName>CSVDataSource</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="Percent Obese 2010" keyType="CSVDataSource" title="Percent Obese 2010"/>
+                          <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -638,7 +627,7 @@ wheel</zoom>
                       <dataSourceName>CSVDataSource</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute csvColumn="State" keyType="CSVDataSource" title="State"/>
+                          <attribute keyType="CSVDataSource" title="State" csvColumn="State"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -659,10 +648,10 @@ wheel</zoom>
             </TextGlyphPlotter>
           </plotters>
           <zoomBounds>
-            <xMax>3</xMax>
+            <xMax>2</xMax>
             <xMin>0</xMin>
-            <yMax>28.7</yMax>
-            <yMin>16.6</yMin>
+            <yMax>40</yMax>
+            <yMin>0</yMin>
           </zoomBounds>
         </plotManager>
         <zoomFactor>2</zoomFactor>
@@ -680,10 +669,10 @@ wheel</zoom>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>86%</panelHeight>
+    <panelHeight>67%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>89%</panelWidth>
+    <panelWidth>60%</panelWidth>
     <panelX>5%</panelX>
     <panelY>4%</panelY>
     <pinnable>true</pinnable>
