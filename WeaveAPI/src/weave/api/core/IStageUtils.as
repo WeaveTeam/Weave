@@ -71,7 +71,7 @@ package weave.api.core
 		 *   When the task is completed, iterativeTask() should return 1.0.
 		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
 		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
-		 *   Example (for loop replaced by if):
+		 *   Example 1 (for loop replaced by if):
 		 *   <code>
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
@@ -94,9 +94,11 @@ package weave.api.core
 		 *       {
 		 *           for (; index &lt; array.length; index++)
 		 *           {
+		 *               // return time check should be at the beginning of the loop
 		 *               if (getTimer() &gt; returnTime)
 		 *                   return index / array.length; // progress so far
 		 * 
+		 *               // process the current item
 		 *               trace(array[index]);
 		 *           }
 		 *           return 1; // loop finished
@@ -112,22 +114,28 @@ package weave.api.core
 		 *       {
 		 *           for (; outerIndex &lt; outerArray.length; outerIndex++)
 		 *           {
+		 *               // return time check can go here at the beginning of the loop, but we already have one in the inner loop
+		 *               
 		 *               if (innerArray == null)
 		 *               {
 		 *                   // time to initialize inner loop
 		 *                   innerArray = outerArray[outerIndex] as Array;
 		 *                   innerIndex = 0;
+		 *                   // more code can go inside this if-block that would normally go right before the inner loop
 		 *               }
 		 *               
 		 *               for (; innerIndex &lt; innerArray.length; innerIndex++)
 		 *               {
+		 *                   // return time check should be at the beginning of the loop
 		 *                   if (getTimer() &gt; returnTime)
 		 *                       return (outerIndex + (innerIndex / innerArray.length)) / outerArray.length; // progress so far
 		 *                   
+		 *                   // process the current item
 		 *                   trace('item', outerIndex, innerIndex, 'is', innerArray[innerIndex]);
 		 *               }
 		 *               
 		 *               innerArray = null; // inner loop finished
+		 *               // more code can go here to be executed after the nested loop
 		 *           }
 		 *           return 1; // outer loop finished
 		 *       }
