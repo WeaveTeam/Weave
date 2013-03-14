@@ -86,8 +86,8 @@ package weave.api.core
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
 		 *   </code>
-		 *   <code>
 		 *   Example 2 (resumable for loop):
+		 *   <code>
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
 		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
@@ -102,8 +102,8 @@ package weave.api.core
 		 *           return 1; // loop finished
 		 *       }
 		 *   </code>
-		 *   <code>
 		 *   Example 3 (nested resumable for loops):
+		 *   <code>
 		 * 	     var outerArray:Array = [['a','b','c'], ['aa','bb','cc'], ['x','y','z'], ['xx','yy','zz']];
 		 *       var outerIndex:int = 0;
 		 *       var innerArray:Array = null;
