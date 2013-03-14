@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:TitleWindow width="400" height="400" title="Selected Keywords" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" >
-	<mx:VBox width="100%" height="100%">
+<mx:TitleWindow width="400" height="400" title="Selected Keywords" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" xmlns:ui1="weave.ui.infomap.ui.*" >
+	<mx:VBox width="100%" height="100%" horizontalAlign="right">
 		<mx:List width="100%" borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
 			<mx:itemRenderer>
 				<mx:Component>
@@ -18,16 +18,13 @@
 				</mx:Component>
 			</mx:itemRenderer>
 		</mx:List>
-		<mx:HBox horizontalAlign="left" width="100%">
+		<mx:HBox width="100%">
 			<mx:Label text="Add keywords: "/>
 			<ui:HelpComponent content="If you would like to add more keywords not present in the list,type them in the text area below and separate the keywords by commas"/> 
 		</mx:HBox>
-		<!--VBOX added to have different allignments-->
-		<mx:VBox horizontalAlign="right" width="100%">
-			<mx:TextArea keyUp="handleKeyUp()" editable="true" id="additionalKeywords" width="100%" cornerRadius="5"/>
-			<mx:Button id="continueButton" label="Continue"/>
-		</mx:VBox>
-		<mx:TextArea borderThickness="0" editable="false" width="80%" id="errorMessage" color="0XFF0000" fontSize="10" visible="false" text="Invalid string. Separate the keywords by commas and remove duplicate/unwanted commas"/>
+		<ui1:CommaSeparatedTextInput width="100%" id="additionalKeywords"/>
+
+		<mx:Button enabled="{!additionalKeywords.isError}" id="continueButton" label="Continue"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -69,27 +66,14 @@
 				value = temp.join(",");
 				
 				
-				if(additionalKeywords.text)
+				if(additionalKeywords.commaSeparatedString)
 				{
-					value = value + "," + additionalKeywords.text;
+					value = value + "," + additionalKeywords.commaSeparatedString;
 				}
 				
 				return value;
 			}
 			
-			private function handleKeyUp():void
-			{
-				if(_csvRegEx.test(additionalKeywords.text))
-				{
-					errorMessage.visible = true;
-					continueButton.enabled = false;
-				}
-				else
-				{
-					errorMessage.visible = false;
-					continueButton.enabled = true;
-				}
-			}
 		]]>
 	</mx:Script>
 </mx:TitleWindow>

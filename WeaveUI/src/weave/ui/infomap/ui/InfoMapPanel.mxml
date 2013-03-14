@@ -32,7 +32,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	backgroundSize="100%"
 	dragDrop="dragDropHandler(event)"
 	dragEnter="dragEnterHandler(event)"
-	implements="weave.api.ui.IVisTool"
+	implements="weave.api.ui.IVisTool" xmlns:ui1="weave.ui.infomap.ui.*"
 	>
 	<mx:Style>
 		.loadingTextStyle {
@@ -1166,32 +1166,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:VBox>
 		<mx:VBox label="Entity Selection">
 			<mx:Accordion width="100%" height="100%">
-				<mx:VBox label="Set Entity Columns" paddingLeft="10" paddingTop="10">
+				<mx:VBox label="Set Entity Columns" width="100%" height="100%" paddingLeft="10" paddingTop="10">
 					<ui:ColumnListComponent width="100%" id="entityColumnsList" hashMap="{entityColumnsHashmap}"/>
 				</mx:VBox>
-				<mx:VBox label="Set Keywords">
+				<mx:VBox width="100%" height="100%" label="Set Keywords">
 					<mx:HBox>
 						<mx:Label fontWeight="bold" text="Current Keywords: "/>
-						<mx:TextInput creationComplete='{linkBindableProperty(relatedKeywords,event.currentTarget,"text")}'/>
 						<ui:HelpComponent content="Add keywords to use as a part of the queries. Separate the keywords by commas"/>
  					</mx:HBox>
-					<!--<mx:List borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
-						<mx:itemRenderer>
-							<mx:Component>
-								<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
-									
-									<mx:Script>
-										<![CDATA[
-											private function handleSelectionChange():void
-											{
-												data.selected = this.selected;
-											}
-										]]>
-									</mx:Script>
-								</mx:CheckBox>
-							</mx:Component>
-						</mx:itemRenderer>
-					</mx:List>-->
+					<mx:TextArea width="100%" cornerRadius="5" creationComplete='{linkBindableProperty(relatedKeywords,event.currentTarget,"text")}'/>
 					<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>
 				</mx:VBox>
 			</mx:Accordion>

@@ -233,7 +233,7 @@
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			
 			//We create a private key filter for tag word click
-			private var _tagWordSubset:KeyFilter = new KeyFilter();
+//			private var _tagWordSubset:KeyFilter = new KeyFilter();
 			
 			
 			override protected function createChildren():void
@@ -340,7 +340,7 @@
 				//adding listener to Click event to toggle node selection
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
-				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,handleTagWordSubsetChange);
+//				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,handleTagWordSubsetChange);
 				
 				//calling function to highlight the node based on node.selected.value
 				//				highlightNode();
@@ -389,6 +389,7 @@
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
 				views =[listCanvas,gridView,topicComponent,_pointCanvas];
+				docListComponent.parentNode = this;
 			}
 			
 			private var _nodeName:String = "";
@@ -692,7 +693,7 @@
 				
 				var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,link);
 				
-				if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
+				if(_subset.containsKey(qKey))
 				{
 					_reusableThumbnailsToPlotArray.push(qKey);
 					thumbnail.visible = true;
@@ -733,7 +734,7 @@
 				
 				getEntityDistribution();
 				getTopicsClassification();
-				docListComponent.docKeys = _reusableThumbnailsToPlotArray;
+				docListComponent.listKeyFilter.replaceKeys(false,false,_reusableThumbnailsToPlotArray);
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
@@ -891,32 +892,32 @@
 				fadeOut.play(views);
 			}
 			
-			private function handleTagWordSubsetChange():void
-			{
-				if(_tagWordSubset.included.keys.length == 0)
-				{
-					//unsetting visible property for filtered DocThumbnailComponents
-					var thumbs:Array = thumbnails.getObjects();
-					for (var i:int = 0; i < thumbs.length; i++)
-					{
-						var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
-						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
-						
-						if(_subset.containsKey(qKey))
-						{
-							(thumbs[i] as DocThumbnailComponent).visible = true;
-						}
-					}
-					
-					addAllDocumentsToList();
-					if(gridView && gridView.alpha ==1)
-						redrawGrid();
-						
-				}else
-				{
-					docListComponent.docKeys = _tagWordSubset.included.keys;
-				}
-			}
+//			private function handleTagWordSubsetChange():void
+//			{
+//				if(_tagWordSubset.included.keys.length == 0)
+//				{
+//					//unsetting visible property for filtered DocThumbnailComponents
+//					var thumbs:Array = thumbnails.getObjects();
+//					for (var i:int = 0; i < thumbs.length; i++)
+//					{
+//						var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
+//						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+//						
+//						if(_subset.containsKey(qKey))
+//						{
+//							(thumbs[i] as DocThumbnailComponent).visible = true;
+//						}
+//					}
+//					
+//					addAllDocumentsToList();
+//					if(gridView && gridView.alpha ==1)
+//						redrawGrid();
+//						
+//				}else
+//				{
+//					docListComponent.listKeyFilter.replaceKeys(false,false,_tagWordSubset.included.keys);
+//				}
+//			}
 			
 			private function addAllDocumentsToList():void
 			{
@@ -934,7 +935,7 @@
 						_reusableThumbnailsToPlotArray.push(qKey);
 					}
 				}
-				docListComponent.docKeys = _reusableThumbnailsToPlotArray;
+				docListComponent.listKeyFilter.replaceKeys(false,false,_reusableThumbnailsToPlotArray);
 			}
 			
 			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
@@ -1177,9 +1178,9 @@
 				var items:Array = (event.currentTarget as List).selectedItems;
 				
 				var urls:Array = [];
-				for each (var doc:DocThumbnailComponent in items)
+				for each (var doc:IQualifiedKey in items)
 				{
-					urls.push(doc.docURL.value);
+					urls.push(doc.localName);
 				}
 				handleDocumentSelection(urls);
 			}
@@ -1214,30 +1215,6 @@
 				
 				return requriedKeywords;
 			}
-			
-			//			private function positionMovedthumbNails():void
-			//			{
-			//				var thumbnailNames:Array = movedThumbNails.getNames();	
-			//				
-			//				for each (var url:String in thumbnailNames)
-			//				{
-			//					var t:DocThumbnailComponent = thumbnails.getObject(url) as DocThumbnailComponent;
-			//					
-			//					if(!t)
-			//						continue;
-			//					
-			//					if(t.parent != _parentPanel.map)
-			//					{
-			//						_parentPanel.map.addChild(t);
-			//					}
-			//					
-			//					var position:MovedThumbnailPosition = movedThumbNails.getObject(url) as MovedThumbnailPosition;
-			//					
-			//					copySessionState(position.xPos,t.xPos);
-			//					copySessionState(position.yPos,t.yPos);
-			//					
-			//				}
-			//			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			/**
@@ -1282,9 +1259,34 @@
 					else
 						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
 				}
+				
+				handleSelectionChangeInViews();
 			}
 			
-			
+			private function handleSelectionChangeInViews():void
+			{
+				if(listCanvas.alpha == 1)
+				{
+					var keys:Array = _selection.keys;
+					if(keys.length == 0)
+					{
+						addAllDocumentsToList();						
+					}
+					else
+					{
+						var filterByURLs:Array = [];
+						for each(var key:IQualifiedKey in keys)
+						{
+							if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+							{
+								filterByURLs.push(key);
+							}
+						}
+						
+						docListComponent.listKeyFilter.replaceKeys(false,false,filterByURLs);
+					}
+				}
+			}
 			private function getSelectedDocumentKeys():Array
 			{
 				var selectedKeys:Array = _selection.keys;
@@ -1298,24 +1300,6 @@
 				
 				return selectedDocs;
 			}
-			
-			/**
-			 * redraw thumbnails to handle new layout selection
-			 **/
-//			private function handleLayoutChange():void
-//			{
-//				if(layout.internalObject == null)
-//					return;
-//				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
-//				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
-//				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
-//			}
-//			
-//			private function handleSpacingChange():void
-//			{
-//				if(layout.internalObject)
-//					(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(_reusableThumbnailsToPlotArray,true);
-//			}
 			
 //			private var _searchKeySet:KeySet = new KeySet();
 			//sends a query to solr for the search keywords filtrered by document links belonging to this node
@@ -1678,7 +1662,7 @@
 					var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
 					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
 					
-					if(_subset.containsKey(qKey) && _tagWordSubset.containsKey(qKey))
+					if(_subset.containsKey(qKey))
 					{
 						requiredThumbs.push(thumbs[i]);
 					}
@@ -1727,7 +1711,7 @@
 			{
 				if(!filteredWords.value)
 				{
-					_tagWordSubset.replaceKeys(false,true,[]);					
+//					_tagWordSubset.replaceKeys(false,true,[]);					
 					return;
 				}
 				
@@ -1762,7 +1746,10 @@
 					keys.push(key);
 				}
 				
-				_tagWordSubset.replaceKeys(false,true,keys);
+				var keyFilter:KeyFilter = docListComponent.listKeyFilter.filters.requestObject("\""+ filterMessage +"\"",KeyFilter,false);
+				
+				keyFilter.replaceKeys(false,true,keys);
+//				_tagWordSubset.replaceKeys(false,true,keys);
 				
 				toggleView(listCanvas);
 				status.text = "";
@@ -1915,7 +1902,7 @@
 					hideAllViews();
 					if(listCanvas.contains(docListComponent))
 					{
-						docListComponent.docKeys = [];//clearing items in list
+						docListComponent.listKeyFilter.replaceKeys(false,false,[]);//clearing items in list
 					}
 					if(wordCloud)
 					{
@@ -2051,7 +2038,7 @@
 				filterStatus.text = "";
 				clearFiltersButton.visible = false;
 				filteredWords.value = "";
-				_tagWordSubset.replaceKeys(false,true,[]);
+//				_tagWordSubset.replaceKeys(false,true,[]);
 //				addAllDocumentsToList(); // we don't change the _tagWordSubset so that it's callbacks aren't called.
 				
 				if(gridView && gridView.alpha == 1)

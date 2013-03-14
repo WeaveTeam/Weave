@@ -10,7 +10,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 
 -->
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
+width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 	<mx:List allowMultipleSelection="true"
 		doubleClickEnabled="true" mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%" dragComplete="handleItemDragComplete(event)">
 		<mx:itemRenderer>
@@ -52,10 +52,10 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 							override public function set data(value:Object):void
 							{
 								super.data = value;
-								if(value == null)
+								if(value == null || outerDocument.parentNode == null)
 									return;
 								
-								var t:DocThumbnailComponent = (value as DocThumbnailComponent);
+								var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
 								
 								//changing background color if document is new/highlighted
 								t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
@@ -68,7 +68,8 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 							
 							private function changeBackgroundColor():void
 							{
-								if((data as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent) is NodeHandler)
+								var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(data.localName) as DocThumbnailComponent;
+								if((t as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent) is NodeHandler)
 								{
 									(this as CustomLabelTextField).getTextField().background = true;
 									(this as CustomLabelTextField).getTextField().backgroundColor = 10092492;
@@ -87,24 +88,17 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 							{
 								cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 								
-								var d:DocThumbnailComponent = data as DocThumbnailComponent;
-								
-								if(d == null)
-									return;
 								if(!stageUtils.mouseButtonDown)
-									DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,d.docURL.value,event.currentTarget as DisplayObject,(outerDocument.parent.parent as NodeHandler));
+									DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
 							}
 							private function handleItemRollOut(event:MouseEvent):void
 							{
-								var d:DocThumbnailComponent = data as DocThumbnailComponent;
 								CustomCursorManager.removeCursor(cursorID);
 								DocumentSummaryComponent.hide();
 							}
 							private function handleItemDoubleClick(event:MouseEvent):void
 							{
-								var t:DocThumbnailComponent = data as DocThumbnailComponent;
-								
-								var link:String = t.docURL.value;
+								var link:String = data.localName;
 								navigateToURL(new URLRequest(link));
 							}
 							
@@ -122,7 +116,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 								if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
 									return;
 								if(data != null)
-									this.text = infomapDataSource.getTitleForURL((data as DocThumbnailComponent).docURL.value);
+									this.text = infomapDataSource.getTitleForURL(data.localName);
 							}
 						]]>
 					</mx:Script>
@@ -162,24 +156,37 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			
-			private var _docKeys:Array = new Array();
-			public function set docKeys(value:Array):void
+//			private var _docKeys:Array = new Array();
+//			public function set docKeys(value:Array):void
+//			{
+//				_docKeys = [];
+//				VectorUtils.copy(value,_docKeys);
+//				handleKeysChange();
+//			}
+			
+//			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			public var parentNode:NodeHandler = null;
+			private var _listKeyFilter:KeyFilter = null;
+			
+			public function get listKeyFilter():KeyFilter
 			{
-				_docKeys = [];
-				VectorUtils.copy(value,_docKeys);
-				handleKeysChange();
+				if(_listKeyFilter == null)
+				{
+					_listKeyFilter = new KeyFilter();
+					getCallbackCollection(_listKeyFilter).addGroupedCallback(this,updateDocumentSource);	
+				}
+				return _listKeyFilter;
 			}
-			
-			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			
 			public var startIndex:LinkableNumber = new LinkableNumber(0);
 			
 			private var resultsRowCount:int = 10;
+			
 			override protected function childrenCreated():void
 			{
-				startIndex.addGroupedCallback(this,updateDocumentList,true);
-				getCallbackCollection(_subset).addGroupedCallback(this,updateDocumentList);
+				super.childrenCreated();
+				startIndex.addGroupedCallback(this,updateListView,true);
 			}
+			
 			
 			private function handleKeysChange():void
 			{
@@ -194,13 +201,14 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 					startIndex.value = 0;
 					return;
 				}
+				_lastIndex = startIndex.value;
 				startIndex.value -= resultsRowCount;
 				
 			}
 			
 			private function next():void
 			{
-				if(startIndex.value + resultsRowCount > _docKeys.length)
+				if(startIndex.value + resultsRowCount > _listKeyFilter.included.keys.length)
 				{
 					return;//nothing more to show
 				}
@@ -210,37 +218,42 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 			
 			//updates the list of documents to show based on the starting index
 			//checks to see if data is less than rows to display and updates list's dataprovider accordingly
-			private function updateDocumentList():void
+			private var _includedKeys:Array = [];
+			private function updateDocumentSource():void
 			{
-				if(!_docKeys || _docKeys.length == 0)
+				_lastIndex = 0;
+				if(_listKeyFilter.included.keys.length== 0)
 				{
 					docList.dataProvider = [];
-					updateIndexText([]); 
+					updateIndexText(); 
 					return;
 				}
-				
-				var includedKeys:Array = [];
-				
-				for (var i:int = 0; i < _docKeys.length; i++)
-				{
-//					var k:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,(_docKeys[i] as DocThumbnailComponent).docURL.value);
-					
-					if(_subset.containsKey(_docKeys[i]))
-						includedKeys.push((this.parent.parent as NodeHandler).thumbnails.getObject(_docKeys[i].localName)); 
-				}
-				
-				var listMaxLength:int = 10;
+				_includedKeys = _listKeyFilter.included.keys;
+				updateListView();
+			}
+			
+			private var _listMaxLength:int = 10;
+			private var _lastIndex:int = 0;
+			private function updateListView():void
+			{
+				if(docList == null)
+					return;
 				
 				var temp:Array = [];
 				
+				if(getNumberOfIncludedKeys() < startIndex.value + _listMaxLength)
+					_listMaxLength = getNumberOfIncludedKeys() - startIndex.value;
 				
-				
-				if(includedKeys.length < startIndex.value + listMaxLength)
-					listMaxLength = includedKeys.length - startIndex.value;
-				
-				for(var j:int=0+startIndex.value; j<startIndex.value+listMaxLength; j++)
+				/* Get the next _listMaxLength keys included in the listKeyFilter */
+				var count:int = startIndex.value;
+				while(count < ((startIndex.value+_listMaxLength)-1) && _lastIndex < _includedKeys.length)
 				{
-					temp.push(includedKeys[j]);
+					if(_listKeyFilter.containsKey(_includedKeys[_lastIndex]))
+					{
+						temp.push(_includedKeys[_lastIndex]);
+						count++;						
+					}
+					_lastIndex++;
 				}
 				
 				if(docList.dataProvider == null || (StandardLib.arrayCompare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
@@ -251,7 +264,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 					return;
 				}
 				//disable nextButton if showing the last set of documents
-				if(startIndex.value + resultsRowCount >= includedKeys.length)
+				if(startIndex.value + resultsRowCount >= getNumberOfIncludedKeys())
 				{
 					nextButton.enabled = false;
 				}else
@@ -269,12 +282,12 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 					prevButton.enabled = true;
 				}
 				
-				updateIndexText(includedKeys); 
+				updateIndexText(); 
 			}
 			
-			private function updateIndexText(keysToShow:Array):void
+			private function updateIndexText():void
 			{
-				if(keysToShow.length == 0)
+				if(getNumberOfIncludedKeys() == 0)
 				{
 					indexText.text = "No documents found.";
 					return;
@@ -283,16 +296,39 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 				
 				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
 				
-				if((startIndex.value + resultsRowCount) < keysToShow.length)
+				if((startIndex.value + resultsRowCount) < getNumberOfIncludedKeys())
 				{
 					var et:int = startIndex.value + resultsRowCount; 					
 					indexText.text += et.toString();
 				}
 				else
-					indexText.text += keysToShow.length;
+					indexText.text += getNumberOfIncludedKeys();
 				
-				indexText.text += " of " + keysToShow.length;
+				indexText.text += " of " + getNumberOfIncludedKeys();
 					
+			}
+			
+			/* If there are no filters in the listKeyFilter then we return a count of all the keys, else we return the minimum value of 
+			the count of included keys in the filters of listKeyFilter*/
+			private function getNumberOfIncludedKeys():int
+			{
+				var result:int = Number.POSITIVE_INFINITY;
+				var filters:Array = _listKeyFilter.filters.getObjects();
+				if(filters.length == 0)
+				{
+					return _includedKeys.length;
+				}
+				else
+				{
+					for each (var f:KeyFilter in filters)
+					{
+						if(result < f.included.keys.length)
+						{
+							result = f.included.keys.length;
+						}
+					}
+					return result;
+				}
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void

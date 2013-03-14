@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script>
+		<![CDATA[
+			private var _csvRegEx:RegExp = /^,|,$|(,,+)/;
+			private function handleKeyUp():void
+			{
+				if(_csvRegEx.test(additionalKeywords.text))
+				{
+					errorMessage.visible = isError = true;
+				}
+				else
+				{
+					errorMessage.visible = isError = false;
+				}
+			}
+			
+			[Bindable]
+			public function set commaSeparatedString(value:String):	void
+			{
+				additionalKeywords.text = value;
+				handleKeyUp();
+			}
+			public function get commaSeparatedString():String
+			{
+				return additionalKeywords.text;
+			}
+			
+			[Bindable]
+			public var isError:Boolean = false;
+		]]>
+	</mx:Script>
+	<mx:TextArea keyUp="handleKeyUp()" editable="true" id="additionalKeywords" width="100%" cornerRadius="5"/>
+	<mx:TextArea borderThickness="0" editable="false" width="80%" id="errorMessage" color="0XFF0000" fontSize="10" visible="false" text="Invalid string. Separate the keywords by commas and remove duplicate/unwanted commas"/>
+</mx:VBox>
