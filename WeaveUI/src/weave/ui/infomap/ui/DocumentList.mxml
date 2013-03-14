@@ -132,6 +132,8 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.FilteredKeySet;
 			import mx.controls.listClasses.IListItemRenderer;
 			import mx.core.mx_internal;
 			import weave.visualization.layers.InteractiveVisualization;
@@ -156,104 +158,60 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			
-//			private var _docKeys:Array = new Array();
-//			public function set docKeys(value:Array):void
-//			{
-//				_docKeys = [];
-//				VectorUtils.copy(value,_docKeys);
-//				handleKeysChange();
-//			}
-			
-//			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			public var parentNode:NodeHandler = null;
-			private var _listKeyFilter:KeyFilter = null;
-			
-			public function get listKeyFilter():KeyFilter
+			override protected function childrenCreated():void
 			{
-				if(_listKeyFilter == null)
-				{
-					_listKeyFilter = new KeyFilter();
-					getCallbackCollection(_listKeyFilter).addGroupedCallback(this,updateDocumentSource);	
-				}
-				return _listKeyFilter;
+				super.childrenCreated();
+				startIndex.addGroupedCallback(this,updateList,true);
 			}
+			
+			public var parentNode:NodeHandler = null;
+			
+			private var _filters:KeyFilter = new KeyFilter();
+			private var _filteredKeySet:FilteredKeySet = new FilteredKeySet();
+			
+			public function set keys(value:Array):void
+			{
+				var k:KeySet = new KeySet();
+				k.replaceKeys(value);
+				_filteredKeySet.setSingleKeySource(k);
+				_filters = (_filteredKeySet.keyFilter).requestLocalObject(KeyFilter,false);
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			public function applyFilter(name:String,keys:Array):void
+			{
+				var f:KeyFilter = _filters.filters.requestObject(name,KeyFilter,false);
+				f.replaceKeys(false,true,keys);
+				startIndex.value = 0;
+			}
+			
 			public var startIndex:LinkableNumber = new LinkableNumber(0);
 			
 			private var resultsRowCount:int = 10;
 			
-			override protected function childrenCreated():void
+			private function updateList():void
 			{
-				super.childrenCreated();
-				startIndex.addGroupedCallback(this,updateListView,true);
-			}
-			
-			
-			private function handleKeysChange():void
-			{
-				startIndex.triggerCallbacks();
-			}
-			
-			private function prev():void
-			{
-				//if startIndex is less than row count we don't want index to go below 0
-				if(startIndex.value <resultsRowCount)
-				{
-					startIndex.value = 0;
-					return;
-				}
-				_lastIndex = startIndex.value;
-				startIndex.value -= resultsRowCount;
-				
-			}
-			
-			private function next():void
-			{
-				if(startIndex.value + resultsRowCount > _listKeyFilter.included.keys.length)
-				{
-					return;//nothing more to show
-				}
-				
-				startIndex.value += resultsRowCount;
-			}
-			
-			//updates the list of documents to show based on the starting index
-			//checks to see if data is less than rows to display and updates list's dataprovider accordingly
-			private var _includedKeys:Array = [];
-			private function updateDocumentSource():void
-			{
-				_lastIndex = 0;
-				if(_listKeyFilter.included.keys.length== 0)
+				if(_filteredKeySet.keys.length == 0)
 				{
 					docList.dataProvider = [];
 					updateIndexText(); 
 					return;
 				}
-				_includedKeys = _listKeyFilter.included.keys;
-				updateListView();
-			}
-			
-			private var _listMaxLength:int = 10;
-			private var _lastIndex:int = 0;
-			private function updateListView():void
-			{
-				if(docList == null)
-					return;
+				var includedKeys:Array = _filteredKeySet.keys;
+				
+				var listMaxLength:int = 10;
 				
 				var temp:Array = [];
 				
-				if(getNumberOfIncludedKeys() < startIndex.value + _listMaxLength)
-					_listMaxLength = getNumberOfIncludedKeys() - startIndex.value;
 				
-				/* Get the next _listMaxLength keys included in the listKeyFilter */
-				var count:int = startIndex.value;
-				while(count < ((startIndex.value+_listMaxLength)-1) && _lastIndex < _includedKeys.length)
+				
+				if(includedKeys.length < startIndex.value + listMaxLength)
+					listMaxLength = includedKeys.length - startIndex.value;
+				
+				for(var j:int=0+startIndex.value; j<startIndex.value+listMaxLength; j++)
 				{
-					if(_listKeyFilter.containsKey(_includedKeys[_lastIndex]))
-					{
-						temp.push(_includedKeys[_lastIndex]);
-						count++;						
-					}
-					_lastIndex++;
+					temp.push(includedKeys[j]);
 				}
 				
 				if(docList.dataProvider == null || (StandardLib.arrayCompare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
@@ -264,7 +222,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 					return;
 				}
 				//disable nextButton if showing the last set of documents
-				if(startIndex.value + resultsRowCount >= getNumberOfIncludedKeys())
+				if(startIndex.value + resultsRowCount >= includedKeys.length)
 				{
 					nextButton.enabled = false;
 				}else
@@ -285,9 +243,36 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 				updateIndexText(); 
 			}
 			
+			
+			private function prev():void
+			{
+				//if startIndex is less than row count we don't want index to go below 0
+				if(startIndex.value <resultsRowCount)
+				{
+					startIndex.value = 0;
+					return;
+				}
+				startIndex.value -= resultsRowCount;
+				
+			}
+			
+			private function next():void
+			{
+				if(startIndex.value + resultsRowCount > _filteredKeySet.keys.length)
+				{
+					return;//nothing more to show
+				}
+				
+				startIndex.value += resultsRowCount;
+			}
+			
+			private var _listMaxLength:int = 10;
+			
+			
 			private function updateIndexText():void
 			{
-				if(getNumberOfIncludedKeys() == 0)
+				var includedKeys:Array = _filteredKeySet.keys;
+				if(includedKeys.length == 0)
 				{
 					indexText.text = "No documents found.";
 					return;
@@ -296,39 +281,16 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 				
 				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
 				
-				if((startIndex.value + resultsRowCount) < getNumberOfIncludedKeys())
+				if((startIndex.value + resultsRowCount) < includedKeys.length)
 				{
 					var et:int = startIndex.value + resultsRowCount; 					
 					indexText.text += et.toString();
 				}
 				else
-					indexText.text += getNumberOfIncludedKeys();
+					indexText.text += includedKeys.length;
 				
-				indexText.text += " of " + getNumberOfIncludedKeys();
+				indexText.text += " of " + includedKeys.length;
 					
-			}
-			
-			/* If there are no filters in the listKeyFilter then we return a count of all the keys, else we return the minimum value of 
-			the count of included keys in the filters of listKeyFilter*/
-			private function getNumberOfIncludedKeys():int
-			{
-				var result:int = Number.POSITIVE_INFINITY;
-				var filters:Array = _listKeyFilter.filters.getObjects();
-				if(filters.length == 0)
-				{
-					return _includedKeys.length;
-				}
-				else
-				{
-					for each (var f:KeyFilter in filters)
-					{
-						if(result < f.included.keys.length)
-						{
-							result = f.included.keys.length;
-						}
-					}
-					return result;
-				}
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void

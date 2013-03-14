@@ -13,7 +13,7 @@
 		<!--HTML encoding is requried when writing code in binding tag-->
 		<!--<mx:Button enabled="false" label="Mark All as Read" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>-->
 	</mx:HBox>
-	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300" includeInLayout="false"/>
+	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>
 	<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
@@ -734,7 +734,7 @@
 				
 				getEntityDistribution();
 				getTopicsClassification();
-				docListComponent.listKeyFilter.replaceKeys(false,false,_reusableThumbnailsToPlotArray);
+				docListComponent.keys =_reusableThumbnailsToPlotArray;
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
@@ -935,7 +935,7 @@
 						_reusableThumbnailsToPlotArray.push(qKey);
 					}
 				}
-				docListComponent.listKeyFilter.replaceKeys(false,false,_reusableThumbnailsToPlotArray);
+				docListComponent.keys = _reusableThumbnailsToPlotArray;
 			}
 			
 			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
@@ -1274,16 +1274,16 @@
 					}
 					else
 					{
-						var filterByURLs:Array = [];
+						var filterByKeys:Array = [];
 						for each(var key:IQualifiedKey in keys)
 						{
 							if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
 							{
-								filterByURLs.push(key);
+								filterByKeys.push(key);
 							}
 						}
 						
-						docListComponent.listKeyFilter.replaceKeys(false,false,filterByURLs);
+						docListComponent.keys = filterByKeys;
 					}
 				}
 			}
@@ -1746,10 +1746,7 @@
 					keys.push(key);
 				}
 				
-				var keyFilter:KeyFilter = docListComponent.listKeyFilter.filters.requestObject("\""+ filterMessage +"\"",KeyFilter,false);
-				
-				keyFilter.replaceKeys(false,true,keys);
-//				_tagWordSubset.replaceKeys(false,true,keys);
+				docListComponent.applyFilter(filterMessage,keys);
 				
 				toggleView(listCanvas);
 				status.text = "";
@@ -1902,7 +1899,7 @@
 					hideAllViews();
 					if(listCanvas.contains(docListComponent))
 					{
-						docListComponent.listKeyFilter.replaceKeys(false,false,[]);//clearing items in list
+						docListComponent.keys = [];//clearing items in list
 					}
 					if(wordCloud)
 					{
