@@ -218,23 +218,24 @@
 		for each (var item:Object in _targetItems)
 		{
 			var entity:Entity = getEntityFromSelectedItem(item);
-			var record:Object = {};
-			record[INTERNAL] = {};
-			record[INTERNAL][INTERNAL_ID] = entity.id;
-			record[INTERNAL][INTERNAL_TYPE] = entity.type;
-			record[INTERNAL][INTERNAL_PARENT] = '';
+			
+			var internalMetadata:Object = {};
+			internalMetadata[INTERNAL_ID] = entity.id;
+			internalMetadata[INTERNAL_TYPE] = entity.type;
+			internalMetadata[INTERNAL_PARENT] = '';
 			var parents:Array = Admin.entityCache.getCachedParentIds(entity.id);
 			for each (var pid:int in parents)
 			{
 				var info:EntityHierarchyInfo = Admin.entityCache.getBranchInfo(pid);
 				if (info && info.type == EntityType.TABLE)
 				{
-					record[INTERNAL][INTERNAL_PARENT] = pid;
+					internalMetadata[INTERNAL_PARENT] = pid;
 					break;
 				}
 			}
 			
-			record[INTERNAL][INTERNAL_PARENT]
+			var record:Object = {};
+			record[INTERNAL] = internalMetadata;
 			record[PUBLIC] = entity.publicMetadata;
 			record[PRIVATE] = entity.privateMetadata;
 			records.push(record);
