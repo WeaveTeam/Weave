@@ -77,8 +77,13 @@
 			{
 				super.childrenCreated();
 				
-				tableSelector.schemaInput.addEventListener(Event.CHANGE,function():void{finishEnabled=false;});
-				tableSelector._tableCombo.addEventListener(Event.CHANGE,function():void{finishEnabled=false;});
+				tableSelector.schemaInput.addEventListener(Event.CHANGE, handleTableSelectorChange);
+				tableSelector._tableCombo.addEventListener(Event.CHANGE, handleTableSelectorChange);
+			}
+			
+			private function handleTableSelectorChange(event:Event):void
+			{
+				finishEnabled = false;
 			}
 			
 			private function handleKeyColumnChange():void
@@ -105,14 +110,16 @@
 				
 				function handleCheckResult(event:ResultEvent,token:Object=null):void
 				{
-					if(!event.result as Boolean)
+					if (!event.result as Boolean)
 					{
 						var err:String = lang("Key values are not unique");
 						sqlSecondaryKeyColumnCombo.errorString = err;
 						keyColumnComboBox.errorString = err;
 						
 						finishEnabled = false;
-					}else{
+					}
+					else
+					{
 						keyColumnComboBox.errorString = '';
 						sqlSecondaryKeyColumnCombo.errorString = '';
 						
