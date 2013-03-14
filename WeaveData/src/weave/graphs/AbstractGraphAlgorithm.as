@@ -368,6 +368,7 @@ package weave.graphs
 			if (rId != _rId)
 				return;
 			
+			var i:int;
 			var node:IGraphNode;
 			var constrainingBounds:IBounds2D = (token as RToken).bounds;
 			
@@ -378,7 +379,7 @@ package weave.graphs
 				return;
 			}
 			var layoutResult:Object = {};
-			for (var i:int = 0; i<array.length; i++)
+			for (i = 0; i<array.length; i++)
 			{
 				var subResult:Object = array[i] as Object;
 				layoutResult[subResult.name] = subResult.value as Array;
@@ -391,7 +392,7 @@ package weave.graphs
 				var localKeyNames:Array = layoutResult["V(weaveGraph)$name"];
 				var resultLocations:Array = layoutResult["weaveGraphLayout"];
 				var vertexes:Array = layoutResult["vertexes"];
-				for (var i:int = 0; i < resultLocations.length; ++i)
+				for (i = 0; i < resultLocations.length; ++i)
 				{
 					// get the key and node
 					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(_nodeKeyType, localKeyNames[i]);
