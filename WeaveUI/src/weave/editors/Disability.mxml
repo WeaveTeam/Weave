@@ -75,6 +75,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import disabilityDictionary.DisabilityMessageProperties;
 			import disabilityDictionary.DisabilityObject;
 			
+			import disabilityPack.LineChartDecisionTree;
+			
 			import mx.accessibility.CheckBoxAccImpl;
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
@@ -115,6 +117,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
+			
+			
 			
 			// creationComplete="automaticToolDescTextBoxInitialize(event);"
 			
@@ -249,12 +253,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var inputValues:Array = new Array();
 				var tempArray:Array = new Array();
 				
+
+				
+				
 				for (var i:int = 0; i<joinColsRArray.length; i++){
 					inputValues.push(joinColsRArray[i][0].valueOf());
 					
 					//reportError(joinColsRArray);
 				}
 				
+				split(inputValues);
 				/* for(var j:int = 0; j <     joinColsRArray.length; j++)
 				{
 				for(var i :int = 0; i < joinColsRArray[j].length; i++)
@@ -337,12 +345,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 				
+				public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
+			
 				private var splitCount:int = 0;
 			
 				public function shouldSplit(segment:Array):Boolean
 				{
 					
-					if(splitCount >2)
+				/*	if(lineDecisionTree == true)
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}*/
+					
+					
+					if(splitCount <2)
 					{
 						splitCount++;
 						return true;

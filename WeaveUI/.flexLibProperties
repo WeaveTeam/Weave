@@ -2,6 +2,7 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="disabilityDictionary.DisabilityMessageCategoryDictionary"/>
+    <classEntry path="disabilityPack.LineChartDecisionTree"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
