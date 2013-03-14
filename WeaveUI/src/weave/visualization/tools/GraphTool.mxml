@@ -22,6 +22,7 @@
 <!--- 
 	I apologize to those who must maintain or modify this code... 
 	@author kmonico
+	@author pkovac
 -->
 
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
@@ -86,13 +87,21 @@
 			{
 				super.childrenCreated();
 
-				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
-				(nodeComponent as DynamicColumnComponent).dynamicObject = nodesColumn;
-				(labelComponent as DynamicColumnComponent).dynamicObject = labelColumn;
-				(edgeSourceComponent as DynamicColumnComponent).dynamicObject = edgeSourceColumn;
-				(edgeTargetComponent as DynamicColumnComponent).dynamicObject = edgeTargetColumn;
-				(edgeColorComponent as DynamicColumnComponent).dynamicObject = edgeColorColumn.internalDynamicColumn;
-								
+				colorComponent.dynamicObject = colorColumn;
+				nodeComponent.dynamicObject = nodesColumn;
+				labelComponent.dynamicObject = labelColumn;
+				edgeSourceComponent.dynamicObject = edgeSourceColumn;
+				edgeTargetComponent.dynamicObject = edgeTargetColumn;
+				edgeColorComponent.dynamicObject = edgeColorColumn.internalDynamicColumn;
+				edgeThicknessComponent.dynamicObject = edgeThicknessColumn;
+				nodeRadiusComponent.dynamicObject = nodeRadiusColumn;
+
+				linkBindableProperty(_plotter.drawCurvedLines, drawCurvedLines, 'selected');
+				linkBindableProperty(_plotter.radius, numRadiusSize, 'value');
+				linkBindableProperty(includeToolAttributesInProbe, probeColumnsCheckBox, 'selected');
+				linkBindableProperty(_plotter.currentAlgorithm, algorithmChoice, 'selectedItem');
+				linkBindableProperty(_plotter.edgeStyle, edgeStyleChoice, 'selectedItem');
+
 				this.contextMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
 //				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
 //				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
@@ -219,12 +228,13 @@
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
-			//public function get colorColumn():AlwaysDefinedColumn { return _plotter.colorColumn; }
 			public function get nodesColumn():DynamicColumn { return _plotter.nodesColumn; }
+			public function get nodeRadiusColumn():DynamicColumn { return _plotter.nodeRadiusColumn; }
 			public function get labelColumn():DynamicColumn { return _labelPlotter.labelColumn; }
 			public function get edgeSourceColumn():DynamicColumn { return _plotter.edgeSourceColumn; }
 			public function get edgeTargetColumn():DynamicColumn { return _plotter.edgeTargetColumn; }
 			public function get edgeColorColumn():AlwaysDefinedColumn { return _plotter.edgeColorColumn; }
+			public function get edgeThicknessColumn():DynamicColumn { return _plotter.edgeThicknessColumn; }
 			
 			[Bindable] private var algorithmRunning:Boolean = false;
 			[Bindable] private var shouldStop:Boolean = false; 
@@ -319,15 +329,22 @@
 	</mx:Script>
 	
 	<ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Node Color')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeRadiusComponent" label="{lang('Node Size')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="{lang('Labels')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="{lang('Edge Colors')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
+		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 			<!--<mx:CheckBox label="('Show Labels:" id="chkShowLabels"
 			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
 			<!--<mx:HBox width="100%" 
-					 borderStyle="inset" 
-					 backgroundColor="0xFFFFFF" 
-					 backgroundAlpha="0.7">
+					 borderStyle="inset">
 				<mx:Label text="Point Opacity:" 
-						  color="0x000000" fontSize="12" 
 						  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
 				
 				<mx:HSlider id="alphaSlider"
@@ -341,39 +358,33 @@
 			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
 			</mx:HBox>-->
 			<mx:HBox>
-				<mx:Label text="{lang('Radius Size:')}"
-						  color="0x0" fontSize="12"
-						  toolTip="{lang('Use this option to control the size of the each node in the graph.')}"/>
-				<mx:NumericStepper id="numRadiusSize" minimum="1"
-								   creationComplete="linkBindableProperty(_plotter.radius, event.target, 'value')"/>
+				<mx:Label text="{lang('Radius Size')}"
+						  toolTip="{lang('Use this option to control the default size of the each node in the graph.')}"/>
+				<mx:NumericStepper id="numRadiusSize" minimum="1"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="{lang('Curved Lines:')}"
-						  color="0x0" fontSize="12"
+				<mx:Label text="{lang('Curved Lines')}"
 						  toolTip="{lang('Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes.')}"/>
-				<mx:CheckBox id="drawCurvedLines"
-							 creationComplete="linkBindableProperty(_plotter.drawCurvedLines, event.target, 'selected')"/>
+				<mx:CheckBox id="drawCurvedLines"/>
 			</mx:HBox>
-		</mx:VBox>
-		
-		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="{lang('Labels')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="{lang('Edge Colors')}"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
+			<mx:CheckBox id="undirectedCheckBox" label="{lang('Undirected edges.')}" 
+				toolTip="{lang('Use this option if you want your graph data to be assumed as undirected.')}"/>
 			<mx:HBox>
-				<mx:Label text="{lang('Algorithm')}"/>
-				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
-							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm, event.target, 'selectedItem')"/>
+				<mx:Label text="{lang('Edge Style:')}"
+					toolTip="{lang('Use this option to specify which edge style (arrowheads, gradients, or wedges) to use to indicate edge directions.')}"/>
+				<mx:ComboBox id="edgeStyleChoice" dataProvider="{_plotter.edgeStyles}"/>
+			</mx:HBox>
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"/>
+			<mx:HBox>
+				<mx:Label text="{lang('Layout Algorithm')}"/>
+				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"/>
 			</mx:HBox>
 			<mx:VBox>
 				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="{lang('Recalculate Node Positions')}" click="handleStartComputation()"/> 
 			</mx:VBox>
 		</mx:VBox>
+		
+		
 	</ui:ControlPanel>
 </SimpleVisTool>

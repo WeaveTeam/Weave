@@ -48,8 +48,8 @@ package weave.graphs
 			_position.y = y;
 		}
 		
-		public function get id():int { return _id; }
-		public function set id(val:int):void { _id = val; }
+		public function get id():String { return _id; }
+		public function set id(val:String):void { _id = val; }
 		
 		public function get key():IQualifiedKey { return _key; }
 		public function set key(q:IQualifiedKey):void { _key = q; }
@@ -67,7 +67,7 @@ package weave.graphs
 		}
 		
 		private var _key:IQualifiedKey; // needed for fast lookups or something
-		private var _id:int;
+		private var _id:String;
 		private var _value:Object;
 		private var _label:String;
 		private const _isDrawn:Boolean = false;

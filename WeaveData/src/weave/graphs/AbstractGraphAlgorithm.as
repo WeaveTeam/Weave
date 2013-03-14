@@ -23,9 +23,12 @@ package weave.graphs
 	import flash.net.URLLoader;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.StringUtil;
+
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
@@ -39,6 +42,7 @@ package weave.graphs
 	import weave.primitives.Bounds2D;
 	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
+
 
 	/**
 	 * An abstract class with a callback collection which implements IGraphAlgorithm.
@@ -86,7 +90,7 @@ package weave.graphs
 				{
 					var key:IQualifiedKey = nodesKeys[i];
 					var newNode:IGraphNode = new GraphNode();
-					newNode.id = nodesColumn.getValueFromKey(key, Number) as Number;
+					newNode.id = nodesColumn.getValueFromKey(key);
 					newNode.key = key;
 					_keyToNode[key] = newNode;
 					idToNodeKey[newNode.id] = key;
@@ -101,8 +105,8 @@ package weave.graphs
 				for (i = 0; i < edgesKeys.length; ++i)
 				{
 					var edgeKey:IQualifiedKey = edgesKeys[i];
-					var idSource:int = Number(edgeSources.getValueFromKey(edgeKey));
-					var idTarget:int = Number(edgeTargets.getValueFromKey(edgeKey));
+					var idSource:String = edgeSources.getValueFromKey(edgeKey);
+					var idTarget:String = edgeTargets.getValueFromKey(edgeKey);
 					var newEdge:GraphEdge = new GraphEdge();
 					var source:IGraphNode = _keyToNode[ idToNodeKey[idSource] ];
 					var target:IGraphNode = _keyToNode[ idToNodeKey[idTarget] ];
@@ -300,7 +304,7 @@ package weave.graphs
 		
 		protected function generateVertexesString(keys:Array):String
 		{
-			var vectorVerticesString:String = 'vertexes <- c(';
+			var vectorVerticesString:String = 'vertexes <- data.frame(c(';
 			var vertices:Array = [];
 			for (var iKey:int = 0; iKey < keys.length; ++iKey)
 			{
@@ -311,7 +315,7 @@ package weave.graphs
 				vertices.push("'" + node.key.localName + "'");
 				lastUsedNodes.push(node);
 			}
-			vectorVerticesString += vertices.join(',') + ')';
+			vectorVerticesString += vertices.join(',') + '))';
 			return vectorVerticesString;
 		}
 		
@@ -321,9 +325,11 @@ package weave.graphs
 			getCallbackCollection(this).triggerCallbacks();
 		}
 
-		protected function generateGraphString(graphName:String, edges:String, vertexes:String):String
+		private function rBoolString(bool:Boolean):String {return bool ? "TRUE" : "FALSE"; }
+
+		protected function generateGraphString(graphName:String, edges:String, vertexes:String, directed:Boolean=false):String
 		{
-			return graphName + ' <- graph.data.frame(' + edges + ', directed=FALSE, vertices=' + vertexes + ')';
+			return graphName + ' <- graph.data.frame(' + edges + ', directed=' + rBoolString(directed) + ', vertices=' + vertexes + ')';
 		}
 		protected function generateEdgesString(keys:Array):String
 		{
@@ -371,17 +377,20 @@ package weave.graphs
 				reportError("Invalid or insufficient results from RService.");
 				return;
 			}
-			
+			var layoutResult:Object = {};
+			for (var i:int = 0; i<array.length; i++)
+			{
+				var subResult:Object = array[i] as Object;
+				layoutResult[subResult.name] = subResult.value as Array;
+			}
+
 			outputBounds.reset();
 			
 			try
 			{
-				// this is an array of arrays.
-				// resultLocations[0] is the first object, where resultLocations[0][0] is x and resultLocations[0][1] for y
-				var resultLocations:Array = array[1].value as Array;
-				// this is an array of key.localName values. 
-				// localKeyNames[i] is the localName of the QKey for the corresponding node of resultLocations[i]
-				var localKeyNames:Array = array[2].value as Array;
+				var localKeyNames:Array = layoutResult["V(weaveGraph)$name"];
+				var resultLocations:Array = layoutResult["weaveGraphLayout"];
+				var vertexes:Array = layoutResult["vertexes"];
 				for (var i:int = 0; i < resultLocations.length; ++i)
 				{
 					// get the key and node
