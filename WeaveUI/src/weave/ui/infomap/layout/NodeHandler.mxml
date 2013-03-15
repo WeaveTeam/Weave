@@ -7,13 +7,11 @@
 		   creationPolicy="all">
 	<!--Show this status box only when list is visible-->
 	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}" width="300"/>
-	<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
+	<!--<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
 		<mx:Label id="filterStatus"/>
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
-		<!--HTML encoding is requried when writing code in binding tag-->
-		<!--<mx:Button enabled="false" label="Mark All as Read" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>-->
-	</mx:HBox>
-	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>
+	</mx:HBox>-->
+	<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>
 	<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
@@ -877,13 +875,31 @@
 					var viewsToHide:Array = [];
 					for each(var v:DisplayObject in views)
 					{
-						if(v != null && v != view)
+						if(v != null && v != view && v.alpha !=0)
 						{
 							viewsToHide.push(v);
 						}
 					}
 					fadeOut.play(viewsToHide);
 					fadeIn.play([view]);
+					
+					if(view == listCanvas)
+					{
+						//if the list is not added yet
+						if(!listCanvas.contains(docListComponent))
+						{
+							listCanvas.alpha = 0;
+							listCanvas.addChild(docListComponent);
+							docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
+							
+							docListComponent.y = nodeBase.height;
+							
+							toggleView(listCanvas);
+							return;
+						}
+						
+						docListComponent.y = nodeBase.height;
+					}
 				}
 			}
 			
@@ -891,33 +907,6 @@
 			{
 				fadeOut.play(views);
 			}
-			
-//			private function handleTagWordSubsetChange():void
-//			{
-//				if(_tagWordSubset.included.keys.length == 0)
-//				{
-//					//unsetting visible property for filtered DocThumbnailComponents
-//					var thumbs:Array = thumbnails.getObjects();
-//					for (var i:int = 0; i < thumbs.length; i++)
-//					{
-//						var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
-//						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
-//						
-//						if(_subset.containsKey(qKey))
-//						{
-//							(thumbs[i] as DocThumbnailComponent).visible = true;
-//						}
-//					}
-//					
-//					addAllDocumentsToList();
-//					if(gridView && gridView.alpha ==1)
-//						redrawGrid();
-//						
-//				}else
-//				{
-//					docListComponent.listKeyFilter.replaceKeys(false,false,_tagWordSubset.included.keys);
-//				}
-//			}
 			
 			private function addAllDocumentsToList():void
 			{
@@ -1270,7 +1259,7 @@
 					var keys:Array = _selection.keys;
 					if(keys.length == 0)
 					{
-						addAllDocumentsToList();						
+						docListComponent.removeFilter(DocumentList.SELECTION_TEXT);						
 					}
 					else
 					{
@@ -1283,7 +1272,7 @@
 							}
 						}
 						
-						docListComponent.keys = filterByKeys;
+						docListComponent.applyFilter(DocumentList.SELECTION_TEXT,filterByKeys);
 					}
 				}
 			}
@@ -1579,7 +1568,6 @@
 					
 					return;
 				}
-				handleClearFiltersButton();
 				
 				//				statusBox.y = nodeBase.height + statusBox.height;
 				if(wordCloud == null)
@@ -1615,41 +1603,48 @@
 			}
 			
 			private var docListComponent:DocumentList = new DocumentList();
+			private var _showListFlag:Boolean = false;
 			private function toggleList(event:Event=null):void
 			{
-				//if the list is not added yet
-				if(!listCanvas.contains(docListComponent))
+				_showListFlag = ! _showListFlag;
+				_showGridFlag = false;
+				if(_showListFlag)
 				{
-					listCanvas.alpha = 0;
-					listCanvas.addChild(docListComponent);
-					docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
-					
-					docListComponent.y = nodeBase.height + statusBox.height;
-					statusBox.y = docListComponent.y-statusBox.height;
-					
-					toggleView(listCanvas);
-					return;
+					if(listCanvas.alpha == 0)
+					{
+						toggleView(listCanvas);
+					}
+					docListComponent.showList();
 				}
-				
-				docListComponent.y = nodeBase.height + statusBox.height;
-				statusBox.y = docListComponent.y-statusBox.height;
-				
-				toggleView(listCanvas);
+				else
+				{
+					toggleView(listCanvas);
+				}
 			}
 			
+			private var _showGridFlag:Boolean = false;
 			private function toggleGridView(event:MouseEvent):void
 			{
-				gridView.y = nodeBase.height + statusBox.height;
+				gridView.y = nodeBase.height;
 				
 				gridView.plotThumbnails(includedThumbnails());
 				
-				toggleView(gridView);
-			}
-			
-			private function redrawGrid():void
-			{
-				gridView.y = nodeBase.height + statusBox.height;
-				gridView.plotThumbnails(includedThumbnails());
+				_showGridFlag = !_showGridFlag;
+				_showListFlag= false;
+				
+				if(_showGridFlag)
+				{
+					if(listCanvas.alpha == 0)
+					{
+						toggleView(listCanvas);
+					}
+					
+					docListComponent.showThumbnails();
+				}
+				else
+				{
+					toggleView(listCanvas);
+				}
 			}
 			
 			/* TODO: if _subset and _tagWordSubset is empty just plot all */
@@ -1678,7 +1673,6 @@
 					toggleView(_pointCanvas);
 					return;
 				}
-				handleClearFiltersButton();
 				status.text = "Drawing points...";
 				var urls:Array = [];
 				VectorUtils.copy(_topicsResult.urls,urls);
@@ -1688,7 +1682,7 @@
 				{
 					addChild(_pointCanvas);
 				}
-				_pointCanvas.y = nodeBase.height + statusBox.height;
+				_pointCanvas.y = nodeBase.height;
 				_pointCanvas.drawPoints(urls, keywords, this);
 				
 				toggleView(_pointCanvas);
@@ -1715,10 +1709,6 @@
 					return;
 				}
 				
-				//TODO: should I send token?				
-				status.htmlText= "Filtering list...";
-				clearFiltersButton.visible = false;
-				
 				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(currentQuery.keywords.value.split(','),
 					relatedKeywords,currentQuery.dateFilter,filteredWords.value.split(','),2000,currentQuery.operator.value);
 				
@@ -1728,7 +1718,7 @@
 			private function handleFilterQueryResult(event:ResultEvent,token:Object=null):void
 			{
 				var urls:Array = event.result as Array;
-				filterDocumentsByURLS(urls,filteredWords.value);
+				filterDocumentsByURLS(urls,"'" + filteredWords.value + "'");
 			}
 				
 			private function handleFilterQueryFault(event:FaultEvent,token:Object=null):void
@@ -1739,6 +1729,7 @@
 			
 			public function filterDocumentsByURLS(urls:Array,filterMessage:String=""):void
 			{
+				toggleView(listCanvas);
 				var keys:Array = [];
 				for (var i:int = 0; i < urls.length; i++)
 				{
@@ -1748,10 +1739,7 @@
 				
 				docListComponent.applyFilter(filterMessage,keys);
 				
-				toggleView(listCanvas);
 				status.text = "";
-				filterStatus.htmlText= "<b>Filtered by: </b>" + filterMessage;
-				clearFiltersButton.visible = true;
 			}
 			
 			private function getTopicsClassification():void
@@ -2028,20 +2016,6 @@
 //				clearFiltersButton.visible = true;
 //				
 //			}
-			
-			private function handleClearFiltersButton():void
-			{
-//				_tagWordSubset.replaceKeys(true,true);
-				filterStatus.text = "";
-				clearFiltersButton.visible = false;
-				filteredWords.value = "";
-//				_tagWordSubset.replaceKeys(false,true,[]);
-//				addAllDocumentsToList(); // we don't change the _tagWordSubset so that it's callbacks aren't called.
-				
-				if(gridView && gridView.alpha == 1)
-					redrawGrid();
-			}
-			
 			
 			public var currentView:DisplayObject = null;
 			private function handleFadeInEffectsStart(event:EffectEvent):void

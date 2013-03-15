@@ -219,7 +219,7 @@
 					sprite.addEventListener(MouseEvent.ROLL_OVER,function(event:Event):void{_cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND); spotLabel.visible = true; spotLabel.text = ((event.target as CustomSprite).getChildAt(0) as TextField).text;});
 					sprite.addEventListener(MouseEvent.ROLL_OUT,function(event:Event):void{CustomCursorManager.removeCursor(_cursorID); spotLabel.visible = false;});
 					sprite._topicFilter = urlsOfEachTopic[tempTopicSortByNumOfUrlDesc.getItemAt(m)]; // Set filter for each topic
-					sprite.addEventListener(MouseEvent.CLICK, function(event:Event):void{(parent as NodeHandler).filterDocumentsByURLS((event.currentTarget as CustomSprite)._topicFilter, "Selected topic");});
+					sprite.addEventListener(MouseEvent.CLICK, function(event:Event):void{(parent as NodeHandler).filterDocumentsByURLS((event.currentTarget as CustomSprite)._topicFilter, "TOPIC");});
 					
 					topicSortByNumOfUrlDesc.removeItemAt(0);
 //					trace("end of looping across topics");

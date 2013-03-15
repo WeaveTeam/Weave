@@ -9,125 +9,130 @@ Filter by Date
 Info to provide a tooltip describing the node (like number of documents found)
 
 -->
-<mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
-	<mx:List allowMultipleSelection="true"
-		doubleClickEnabled="true" mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%" dragComplete="handleItemDragComplete(event)">
-		<mx:itemRenderer>
-			<mx:Component>
-				<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.
-				Setting it to null does not work.-->
-				<ui:CustomLabelTextField doubleClick="handleItemDoubleClick(event)" rollOut="handleItemRollOut(event)" rollOver="handleItemRollOver(event)" 
-										 toolTip="" width="100%"> 
-					<mx:Script>
-						<![CDATA[
-							import com.modestmaps.core.Coordinate;
-							
-							import mx.controls.ColorPicker;
-							import mx.core.UITextField;
-							import mx.core.mx_internal;
-							import mx.events.DragEvent;
-							import mx.managers.CursorManager;
-							
-							import weave.api.WeaveAPI;
-							import weave.core.StageUtils;
-							import weave.data.DataSources.InfoMapsDataSource;
-							import weave.ui.infomap.layout.NodeHandler;
-							import weave.utils.CustomCursorManager;
-							import weave.visualization.layers.InteractiveVisualization;
-							
-							private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
-							
-							override protected function childrenCreated():void
-							{
-								infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument,updateLabelText);
-							}
-							
-							private var _mouseDown:Boolean = false;
-							
-							private var stageUtils:StageUtils = new StageUtils();
-							
-							
-							
-							override public function set data(value:Object):void
-							{
-								super.data = value;
-								if(value == null || outerDocument.parentNode == null)
-									return;
+<mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
+	<mx:HBox id="filterStatus" width="100%"/>
+	<mx:Canvas id="view" width="100%" height="100%">
+		<mx:List allowMultipleSelection="true"
+			doubleClickEnabled="true" mouseDown="handleMouseDown(event)" mouseMove="handleMouseMove(event)" toolTip="" 
+			dragEnabled="true" id="docList" width="100%" dragComplete="handleItemDragComplete(event)">
+			<mx:itemRenderer>
+				<mx:Component>
+					<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.
+					Setting it to null does not work.-->
+					<ui:CustomLabelTextField doubleClick="handleItemDoubleClick(event)" rollOut="handleItemRollOut(event)" rollOver="handleItemRollOver(event)" 
+											 toolTip="" width="100%"> 
+						<mx:Script>
+							<![CDATA[
+								import com.modestmaps.core.Coordinate;
 								
-								var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
+								import mx.controls.ColorPicker;
+								import mx.core.UITextField;
+								import mx.core.mx_internal;
+								import mx.events.DragEvent;
+								import mx.managers.CursorManager;
 								
-								//changing background color if document is new/highlighted
-								t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
+								import weave.api.WeaveAPI;
+								import weave.core.StageUtils;
+								import weave.data.DataSources.InfoMapsDataSource;
+								import weave.ui.infomap.layout.NodeHandler;
+								import weave.utils.CustomCursorManager;
+								import weave.visualization.layers.InteractiveVisualization;
 								
-								//removing highlighted background color if any when user clicks on the list item
-								this.addEventListener(MouseEvent.CLICK,handleMouseClick);
+								private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
 								
-								this.text = infomapDataSource.getTitleForURL(t.docURL.value);
-							}
-							
-							private function changeBackgroundColor():void
-							{
-								var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(data.localName) as DocThumbnailComponent;
-								if((t as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent) is NodeHandler)
+								override protected function childrenCreated():void
 								{
-									(this as CustomLabelTextField).getTextField().background = true;
-									(this as CustomLabelTextField).getTextField().backgroundColor = 10092492;
-										//TODO:Change this to use sessioned color
-//										(outerDocument.parent.parent.parent.parent as InfoMapPanel).newThumbnailGlowColor.value;
-//									(this as CustomLabelTextField).validateDisplayList();
-								}else{
-									//the item renderer will retain the background and only replace the content for the rows. 
-									//So it is necessary to clear the background color 
-									(this as CustomLabelTextField).getTextField().background = false;		
+									infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument,updateLabelText);
 								}
-							}
-							
-							private var cursorID:int = -1;
-							private function handleItemRollOver(event:MouseEvent):void
-							{
-								cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 								
-								if(!stageUtils.mouseButtonDown)
-									DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
-							}
-							private function handleItemRollOut(event:MouseEvent):void
-							{
-								CustomCursorManager.removeCursor(cursorID);
-								DocumentSummaryComponent.hide();
-							}
-							private function handleItemDoubleClick(event:MouseEvent):void
-							{
-								var link:String = data.localName;
-								navigateToURL(new URLRequest(link));
-							}
-							
-							//remove background color if any because of new document highlighting
-							private function handleMouseClick(event:MouseEvent):void
-							{
-								(this as CustomLabelTextField).getTextField().background = false;
-							}
-							
-							private function updateLabelText():void
-							{
-								//the list was blinking because the label used to be set from empty to the text again because
-								//the column is busy still getting the data
-								//so we test it to only update the labels when it has the data. 
-								if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
-									return;
-								if(data != null)
-									this.text = infomapDataSource.getTitleForURL(data.localName);
-							}
-						]]>
-					</mx:Script>
-				</ui:CustomLabelTextField>
-			</mx:Component>
-		</mx:itemRenderer>
-	</mx:List>
-	<mx:HBox id="navBox" width="{this.width}" clipContent="false">
-		<mx:Button id="prevButton" width="10%" label="Prev" click="prev()"/>
-		<mx:Label id="indexText" textAlign="center" width="80%"/>
-		<mx:Button id="nextButton" width="10%" label="Next" click="next()"/>
+								private var _mouseDown:Boolean = false;
+								
+								private var stageUtils:StageUtils = new StageUtils();
+								
+								
+								
+								override public function set data(value:Object):void
+								{
+									super.data = value;
+									if(value == null || outerDocument.parentNode == null)
+										return;
+									
+									var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
+									
+									//changing background color if document is new/highlighted
+									t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
+									
+									//removing highlighted background color if any when user clicks on the list item
+									this.addEventListener(MouseEvent.CLICK,handleMouseClick);
+									
+									this.text = infomapDataSource.getTitleForURL(t.docURL.value);
+								}
+								
+								private function changeBackgroundColor():void
+								{
+									var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(data.localName) as DocThumbnailComponent;
+									if((t as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent) is NodeHandler)
+									{
+										(this as CustomLabelTextField).getTextField().background = true;
+										(this as CustomLabelTextField).getTextField().backgroundColor = 10092492;
+											//TODO:Change this to use sessioned color
+	//										(outerDocument.parent.parent.parent.parent as InfoMapPanel).newThumbnailGlowColor.value;
+	//									(this as CustomLabelTextField).validateDisplayList();
+									}else{
+										//the item renderer will retain the background and only replace the content for the rows. 
+										//So it is necessary to clear the background color 
+										(this as CustomLabelTextField).getTextField().background = false;		
+									}
+								}
+								
+								private var cursorID:int = -1;
+								private function handleItemRollOver(event:MouseEvent):void
+								{
+									cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
+									
+									if(!stageUtils.mouseButtonDown)
+										DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
+								}
+								private function handleItemRollOut(event:MouseEvent):void
+								{
+									CustomCursorManager.removeCursor(cursorID);
+									DocumentSummaryComponent.hide();
+								}
+								private function handleItemDoubleClick(event:MouseEvent):void
+								{
+									var link:String = data.localName;
+									navigateToURL(new URLRequest(link));
+								}
+								
+								//remove background color if any because of new document highlighting
+								private function handleMouseClick(event:MouseEvent):void
+								{
+									(this as CustomLabelTextField).getTextField().background = false;
+								}
+								
+								private function updateLabelText():void
+								{
+									//the list was blinking because the label used to be set from empty to the text again because
+									//the column is busy still getting the data
+									//so we test it to only update the labels when it has the data. 
+									if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
+										return;
+									if(data != null)
+										this.text = infomapDataSource.getTitleForURL(data.localName);
+								}
+							]]>
+						</mx:Script>
+					</ui:CustomLabelTextField>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:List>
+	</mx:Canvas>
+	<mx:HBox id="navBox" clipContent="true" horizontalAlign="center" verticalAlign="middle" borderThickness="1" borderStyle="solid">
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowLeft.png')" id="prevButton" toolTip="Prev" click="prev()"/>
+		<mx:Label id="indexText" textAlign="center"/>
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowRight.png')"  id="nextButton" toolTip="Next" click="next()"/>
 	</mx:HBox>
 	
 	<mx:Script>
@@ -164,6 +169,7 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 				startIndex.addGroupedCallback(this,updateList,true);
 			}
 			
+			public static var SELECTION_TEXT:String = "SELECTION";
 			public var parentNode:NodeHandler = null;
 			
 			private var _filters:KeyFilter = new KeyFilter();
@@ -181,14 +187,52 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 			
 			public function applyFilter(name:String,keys:Array):void
 			{
-				var f:KeyFilter = _filters.filters.requestObject(name,KeyFilter,false);
-				f.replaceKeys(false,true,keys);
+				var f:KeyFilter = _filters.filters.getObject(name) as KeyFilter;
+				if(f)
+				{
+					f.replaceKeys(false,true,keys);
+				}
+				else
+				{
+					f= _filters.filters.requestObject(name,KeyFilter,false) as KeyFilter;
+					f.replaceKeys(false,true,keys);
+					var filterLabel:FilterLabelUI = filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
+					filterLabel.filterName.text = name;
+					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,function(event:Event):void{
+						removeFilter(name);
+						filterStatus.removeChild(filterLabel);
+						startIndex.value = 0;
+						startIndex.triggerCallbacks();
+					});
+				}
 				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			public function removeFilter(name:String):void
+			{
+				_filters.filters.removeObject(name);
+			}
+			
+			public var enableList:Boolean = true;
+			public function showList():void
+			{
+				enableList = true;
+				updateList();
+			}
+			
+			public function showThumbnails():void
+			{
+				enableList = false;
+				updateList();
 			}
 			
 			public var startIndex:LinkableNumber = new LinkableNumber(0);
 			
 			private var resultsRowCount:int = 10;
+			private var _gridSize:int = 3;
+			private var _spacing:int = 2;
+			private var _imageSize:int = 50;
 			
 			private function updateList():void
 			{
@@ -206,17 +250,65 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 				
 				
 				
-				if(includedKeys.length < startIndex.value + listMaxLength)
-					listMaxLength = includedKeys.length - startIndex.value;
 				
-				for(var j:int=0+startIndex.value; j<startIndex.value+listMaxLength; j++)
+				if(enableList)
 				{
-					temp.push(includedKeys[j]);
+					if(includedKeys.length < startIndex.value + listMaxLength)
+						listMaxLength = includedKeys.length - startIndex.value;
+					
+					for(var idx:int=0+startIndex.value; idx<startIndex.value+listMaxLength; idx++)
+					{
+						temp.push(includedKeys[idx]);
+					}
+					if(!view.contains(docList))
+					{
+						view.removeAllChildren();
+						view.addChild(docList);
+					}
+					if(docList.dataProvider == null || (StandardLib.arrayCompare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
+					{
+						docList.dataProvider = temp;
+					}
+					navBox.percentWidth = 100;
+				}
+				else
+				{
+					view.removeAllChildren();
+					var nextX:Number = 0;
+					var nextY:Number = 0;
+					var count:int = startIndex.value;
+					var doc:DocThumbnailComponent = null;
+					for (var i:int = 0; i<_gridSize; i++)
+					{
+						if(count >= includedKeys.length)
+							break;
+						
+						for(var j:int = 0; j< _gridSize; j++)
+						{
+							if(count >= includedKeys.length)
+								break;
+							doc = parentNode.thumbnails.getObject((includedKeys[count] as IQualifiedKey).localName) as DocThumbnailComponent;
+							//						trace(debugId(doc));
+							var pos:Object = doc.pos.getSessionState();
+							if(!pos || isNaN(pos.x) || isNaN(pos.y))
+							{
+								view.addChild(doc);
+								doc.positionThumbnail(nextX,nextY);
+								nextX += doc.width + _spacing;
+							}
+							
+							count++;
+						}
+						nextX = 0;
+						nextY += doc.height;
+					}
+					
+//					if(doc)
+//						_imageSize = doc.width;
+					navBox.width = _imageSize * _gridSize * _spacing;
 				}
 				
-				if(docList.dataProvider == null || (StandardLib.arrayCompare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
-					docList.dataProvider = temp;
-				
+				navBox.y = view.height + filterStatus.height;
 				if(!nextButton || !prevButton)
 				{
 					return;
@@ -291,6 +383,12 @@ width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
 				
 				indexText.text += " of " + includedKeys.length;
 					
+			}
+			
+			private function handleMouseDown(event:MouseEvent):void
+			{
+				//we don't want selection rectangle to be drawn when mouse is down on list.
+				event.stopPropagation();
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void

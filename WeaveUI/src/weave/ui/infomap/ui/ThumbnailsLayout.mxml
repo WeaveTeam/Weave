@@ -122,7 +122,7 @@
 	<mx:Canvas id="gridCanvas" height="100%" width="90%"/>
 	<mx:HBox id="navBox" width="{_gridSize *(_imageSize + _spacing) + indexText.textWidth}" clipContent="false">
 		<mx:Button id="prevButton" width="10%" label="Prev" click="prev()"/>
-		<mx:Label id="indexText" text="GRID VIEW" textAlign="center" width="80%"/>
+		<mx:Label id="indexText" textAlign="center" width="80%"/>
 		<mx:Button id="nextButton" width="10%" label="Next" click="next()"/>
 	</mx:HBox>
 </mx:Canvas>

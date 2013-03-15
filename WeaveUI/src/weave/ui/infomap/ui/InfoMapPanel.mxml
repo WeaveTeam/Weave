@@ -475,7 +475,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(event.dragInitiator is List)
 				{
-					t = (event.dragInitiator as List).selectedItem as DocThumbnailComponent; 
+					var list:List = (event.dragInitiator as List);
+					var node:NodeHandler = (list.parent as DocumentList).parentNode;
+					t = node.thumbnails.getObject((list.selectedItem as IQualifiedKey).localName) as DocThumbnailComponent; 
 				}
 				else{
 					t =	event.dragInitiator as DocThumbnailComponent; 
