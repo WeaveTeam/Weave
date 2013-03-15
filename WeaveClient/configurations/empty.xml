@@ -20,6 +20,26 @@
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn3">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource3</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn4">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource3</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
   </LinkableHashMap>
   <WeaveProperties name="WeaveProperties">
     <backgroundColor>13421772</backgroundColor>
@@ -49,9 +69,10 @@
       <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2000), Percent Obese (BMI >= 30) (2005)"/>
       <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2010)"/>
       <LinkableString name="Line Chart of Percent Obese 1995, Percent Obese 2000, Percent Obese 2005, Percent Obese 2010"/>
+      <LinkableString name="Line Chart of Percent Obese 2000, Percent Obese 2005, Percent Obese 2010"/>
     </disabilityHashMap>
     <disabilityLongAltText/>
-    <disabilitySystemText>This line chart has an increasing trend</disabilitySystemText>
+    <disabilitySystemText>This line chart has a decreasing trend</disabilitySystemText>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddNewDatasource>true</enableAddNewDatasource>
@@ -252,11 +273,9 @@ wheel</zoom>
       <ReferencedColumn>
         <dynamicColumnReference encoding="dynamic">
           <HierarchyColumnReference>
-            <dataSourceName>CSVDataSource</dataSourceName>
+            <dataSourceName>CSVDataSource3</dataSourceName>
             <hierarchyPath encoding="xml">
-              <hierarchy>
-                <attribute keyType="CSVDataSource" title="US State FIPS Code" csvColumn="US State FIPS Code"/>
-              </hierarchy>
+              <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
             </hierarchyPath>
           </HierarchyColumnReference>
         </dynamicColumnReference>
@@ -305,6 +324,23 @@ wheel</zoom>
 10,Delaware,28.7,23.5,16.6,17.1</csvDataString>
     <keyColName>US State FIPS Code</keyColName>
     <keyType>CSVDataSource</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource3">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource3" title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource3" title="State" csvColumn="State"/>
+        <attribute keyType="CSVDataSource3" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource3" title="Percent Obese 2005" csvColumn="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource3" title="Percent Obese 2000" csvColumn="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource3" title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese 2010,Percent Obese 2005,Percent Obese 2000,Percent Obese 1995
+10,Delaware,28.7,23.5,16.6,17.1</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource3</keyType>
     <url/>
   </CSVDataSource>
   <LineChartTool name="LineChartTool">
@@ -409,12 +445,12 @@ wheel</zoom>
               <axisLabelDistance>-10</axisLabelDistance>
               <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
               <axisLineDataBounds>
-                <xMax>2</xMax>
+                <xMax>3</xMax>
                 <xMin>0</xMin>
                 <yMax>0</yMax>
                 <yMin>0</yMin>
               </axisLineDataBounds>
-              <axisLineMaxValue>2</axisLineMaxValue>
+              <axisLineMaxValue>3</axisLineMaxValue>
               <axisLineMinValue>0</axisLineMinValue>
               <forceTickCount>true</forceTickCount>
               <keySet>
@@ -441,43 +477,55 @@ wheel</zoom>
               <overrideAxisName/>
               <showAxisName>true</showAxisName>
               <showLabels>true</showLabels>
-              <tickCountRequested>3</tickCountRequested>
+              <tickCountRequested>4</tickCountRequested>
               <tickMaxValue>NaN</tickMaxValue>
               <tickMinValue>NaN</tickMinValue>
             </SimpleAxisPlotter>
             <ParallelCoordinatesPlotter name="plot">
               <columns encoding="dynamic">
-                <ReferencedColumn name="ReferencedColumn12">
+                <ReferencedColumn name="ReferencedColumn6">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute keyType="CSVDataSource" title="Percent Obese 2000" csvColumn="Percent Obese 2000"/>
+                          <attribute keyType="CSVDataSource3" title="Percent Obese 1995" csvColumn="Percent Obese 1995"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
                   </dynamicColumnReference>
                 </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn11">
+                <ReferencedColumn name="ReferencedColumn5">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute keyType="CSVDataSource" title="Percent Obese 2005" csvColumn="Percent Obese 2005"/>
+                          <attribute keyType="CSVDataSource3" title="Percent Obese 2000" csvColumn="Percent Obese 2000"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
                   </dynamicColumnReference>
                 </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn10">
+                <ReferencedColumn name="ReferencedColumn4">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
+                          <attribute keyType="CSVDataSource3" title="Percent Obese 2005" csvColumn="Percent Obese 2005"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+                <ReferencedColumn name="ReferencedColumn3">
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute keyType="CSVDataSource3" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -563,7 +611,7 @@ wheel</zoom>
               </color>
               <dataX encoding="dynamic">
                 <AlwaysDefinedColumn>
-                  <defaultValue>2</defaultValue>
+                  <defaultValue>3</defaultValue>
                   <internalDynamicColumn encoding="dynamic"/>
                 </AlwaysDefinedColumn>
               </dataX>
@@ -571,10 +619,10 @@ wheel</zoom>
                 <ReferencedColumn>
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
+                          <attribute keyType="CSVDataSource3" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -609,10 +657,10 @@ wheel</zoom>
                 <ReferencedColumn>
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute keyType="CSVDataSource" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
+                          <attribute keyType="CSVDataSource3" title="Percent Obese 2010" csvColumn="Percent Obese 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -624,10 +672,10 @@ wheel</zoom>
                 <ReferencedColumn>
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource</dataSourceName>
+                      <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute keyType="CSVDataSource" title="State" csvColumn="State"/>
+                          <attribute keyType="CSVDataSource3" title="State" csvColumn="State"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -648,7 +696,7 @@ wheel</zoom>
             </TextGlyphPlotter>
           </plotters>
           <zoomBounds>
-            <xMax>2</xMax>
+            <xMax>3</xMax>
             <xMin>0</xMin>
             <yMax>40</yMax>
             <yMin>0</yMin>

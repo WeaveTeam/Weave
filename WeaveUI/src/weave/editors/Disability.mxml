@@ -150,15 +150,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function childrenCreated():void
 			{
-				super.childrenCreated();
-				
-				
+				super.childrenCreated();		
 			}
 			
 			public function getSystemGeneratedText():void
 			{
 			}
-			
 			
 			private function handleCreationComplete(event:Event) : void
 			{
@@ -173,10 +170,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( HashDisabilityText == null)
 					reportError("Error Creating request object from Disability Options");
 				else
-					linkBindableProperty(HashDisabilityText, event.target, "text");
-				
-				
-				
+					linkBindableProperty(HashDisabilityText, event.target, "text");	
 			}
 			
 			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
@@ -186,8 +180,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var vizType:String;
 				var rResult:Array;
 				//        rResult = getInfoForR(/*columns???*/);
-				vizType = "lineChart";
-				
+				vizType = "lineChart";	
 			}
 			
 			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
@@ -204,35 +197,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//we have the columns in columnObjects
 				var numericCols:Array = new Array();
 				//below whatever cols are plotted it picks them up as individual objects
-				
 				var colObjects:Array = variables.getObjects(IAttributeColumn)
-				
 				//pick only numeric columns to be sent to R
 				for(var i:int =0 ; i < colObjects.length; i++)
 				{
 					var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
-					var dataType:String = ColumnUtils.getDataType(col);
-					
+					var dataType:String = ColumnUtils.getDataType(col);			
 					if (dataType == "number")
 					{
 						numericCols.push(col);
 						columnNames.push(ColumnUtils.getTitle(col));
 					}
-				}
-				
-				
+				}				
 				//joining columns returns columns only complete records (no incomplete records)
-				var joinedColumns:Array = joinColumns(numericCols);
-				
+				var joinedColumns:Array = joinColumns(numericCols);				
 				joinKeysRArray = joinedColumns[0];
-				joinColsRArray = joinedColumns[1];
-				
+				joinColsRArray = joinedColumns[1];				
 				//todo: getting axis, title, color, scale, etc
-				sendColumnsToR();
-				
-				
-				
+				sendColumnsToR();	
 			}
+			
 			private function joinColumns(columns:Array):Array
 			{
 				var selection:KeySet = Weave.defaultSelectionKeySet;
@@ -245,38 +229,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function sendColumnsToR():void
 			{
-				//send the columns and variables returned from getInfoForR to R using this function
+				//send the columns and variables returned from getInfoForR to R using this function			
+				var computeScript:String = "mySlope <- y2 -y1";		
+				var inputValues:Array = new Array(); //inputValues is a matrix of all of the columns that are to be sent to R
+				var tempArray:Array = new Array();			
 				
-				var computeScript:String = "mySlope <- y2 -y1";
-				//inputValues is a matrix of all of the columns that are to be sent to R
-				
-				var inputValues:Array = new Array();
-				var tempArray:Array = new Array();
-				
-
-				
-				
-				for (var i:int = 0; i<joinColsRArray.length; i++){
+				for (var i:int = 0; i<joinColsRArray.length; i++)
+				{
 					inputValues.push(joinColsRArray[i][0].valueOf());
-					
 					//reportError(joinColsRArray);
 				}
 				
 				split(inputValues);
-				/* for(var j:int = 0; j <     joinColsRArray.length; j++)
-				{
-				for(var i :int = 0; i < joinColsRArray[j].length; i++)
-				{
-				inputValues.push(joinColsRArray[j][1]);
-				}
-				
-				} */
 				
 				//inputValues = joinColsRArray; //use this
-				var outputNames:Array = ["mySlope"];
-				//default name to be used in R
-				var inputName:Array = ["y1", "y2"];
-				
+				var outputNames:Array = ["mySlope"];	
+				var inputName:Array = ["y1", "y2"]; // //default name to be used in R	
 				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);   
 				
@@ -289,28 +257,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rObject = event.result as Array;
 				var finalRObject:Array = new Array();//collects all the RResult objects after being returned from R
 				
-				if (rObject == null){
+				if (rObject == null)
+				{
 					reportError("R Servlet did not return an Array of results as expected.");
 					return;
-				}
-				
+				}				
 				for (var i:int=0; i < rObject.length; i++)
-				{
-					
+				{					
 					if (rObject[i] == null)
 					{
 						trace("WARNING! R Service returned null in results array at index "+i);
 						continue;
-					}
-					
+					}					
 					var rResult:RResult = new RResult(rObject[i]);
-					finalRObject[i] = rResult.value;
-					
-				}
-				
-				processingRResult(finalRObject);
-				
+					finalRObject[i] = rResult.value;					
+				}				
+				processingRResult(finalRObject);				
 			}
+			
 			private function handleRunScriptFault(event:FaultEvent, token:Object):void
 			{
 				trace(["fault", token, event.message].join("\n"));
@@ -321,22 +285,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function processingRResult(_sentpropertiesValues:Array):void
 			{
-				//var mockSlope : Number = 1;
 				var tempProperties:Array = new Array();
 				//var mockpropertiesValues:Array = new Array();//array of values of properties returned from R
-				tempProperties.push(_sentpropertiesValues);//returned from R
-				
+				tempProperties.push(_sentpropertiesValues);//returned from R				
 				//one DisabilityObject is made for every tool is one Weave instance
 				var tempDisabilityObject :DisabilityObject = new DisabilityObject();
 				tempDisabilityObject.properties = _sentpropertiesValues;
-				/* structure for vizDetails                 title
-				Attributes */
 				tempDisabilityObject.vizDetails.push(_target.title);
-				tempDisabilityObject.vizDetails.push(columnNames);
-				
+				tempDisabilityObject.vizDetails.push(columnNames);				
 				//this gives us the final array of text messages
 				var finalTextMessages:Array = checkLookUpDict.collectMessageCategoryID(tempDisabilityObject);
-				
 				Weave.properties.disabilitySystemText.value = finalTextMessages[0];
 				
 				if(_panel.title.substring(0,4)=='Line')
@@ -352,22 +310,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				public function shouldSplit(segment:Array):Boolean
 				{
 					
-				/*	if(lineDecisionTree == true)
+					if(lineDecisionTree.lineChartDT == true)
 					{
 						return true;
 					}
 					else
 					{
 						return false;
-					}*/
+					}
 					
-					
+				/*	
 					if(splitCount <2)
 					{
 						splitCount++;
 						return true;
 					}
-					return false;
+					return false;*/
 				}
 				
 				

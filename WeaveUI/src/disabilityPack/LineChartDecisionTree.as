@@ -18,6 +18,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 package disabilityPack
 {
+	import mx.rpc.AsyncToken;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	
+	import weave.Weave;
+	import weave.api.core.ILinkableObject;
+//	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
+	import weave.editors.Disability;
+	import weave.services.DelayedAsyncResponder;
+	import weave.services.WeaveRServlet;
+	import weave.services.beans.RResult;
+	
 	public class LineChartDecisionTree
 	{
 		public function LineChartDecisionTree()
@@ -199,49 +213,79 @@ package disabilityPack
 			}
 		}
 		
+		 
+/*		private var rService:WeaveRServlet = null;
+		private var dtDisability:Disability = new Disability();
 		
-		public function totalNumberOfPoints():Number
+		private function resetRService():void
 		{
-			return 5;
-		}
-		
-		public function numberOfPointsinCurrentSegment():Number
-		{
-			return 5;
-		}
-		public function correlationCoefficient():Number
-		{ 
-			return 0.82;
-		}
-		public function percentageOfTotalPoints():Number
-		{
-			return 0.62;
-		}
-		public function fTest():Boolean
-		{
-			return false;
-			
-		}
-		public function changingPointsFtest():Number
-		{
-			return 5;
-		}
-		public function runsTest():Boolean
-		{
-			return false;	
-		}
-		public function actualRuns():Number
-		{
-			return 5;
-		
+		rService = new WeaveRServlet(Weave.properties.rServiceURL.value);
 		}
 		
-		public function meanRuns():Number
+		private function Rcalculations():void
 		{
-			var runsMean:Number = new Number();
-			return runsMean;
+		var computeCorrelationCoeff:String = "coefficient <- cor(var1, var2)";
+		var inputValues:Array = new Array();
+		
+		for (var i:int = 0; i<dtDisability.joinColsRArray.length; i++)
+		{
+		inputValues.push(dtDisability.joinColsRArray[i][0].valueOf());
+		//reportError(joinColsRArray);
 		}
-		public function standardDevOfRuns():Number
+		
+		var query:AsyncToken = rService.runScript(dtDisability.joinKeysRArray,["var1","var2"],inputValues,["coefficient"],computeCorrelationCoeff,"",false,false,false);
+		DelayedAsyncResponder.addResponder(query, handleRResult, handleRFault, dtDisability.joinKeysRArray)
+		}
+		private function handleRResult(event:ResultEvent, token:Object=null):void
+		{
+		var Robj:Array = event.result as Array;
+		if (Robj == null)
+		reportError("R Servlet did not return an Array of results as expected.");
+		return;
+		
+		var RresultArray:Array = new Array();
+		
+		//collecting Objects of type RResult(Should Match result object from Java side)
+		for(var i:int = 0; i<Robj.length; i++)
+		{
+		var rResult:RResult = new RResult(Robj[i]);
+		RresultArray.push(rResult);               
+		}
+		if (RresultArray.length > 1)
+		{
+		corrCoefficient = Number((RresultArray[0] as RResult).value);           
+		//    getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		}
+		
+		private var corrCoefficient:Number = new Number();
+		
+		private function handleRFault(event:FaultEvent, token:Object = null):void
+		{
+		trace(["fault", token, event.message].join("\n"));
+		//corrCoefficient = NaN;
+		reportError(event);
+		}
+		*/
+		
+		public function totalNumberOfPoints():Number {	return 5;}
+		
+		public function numberOfPointsinCurrentSegment():Number {		return 5;	}
+		
+		public function correlationCoefficient():Number {return 0.82;}
+		
+		public function percentageOfTotalPoints():Number {return 0.62;}
+		
+		public function fTest():Boolean {return false;}
+		
+		public function changingPointsFtest():Number {return 5;}
+		
+		public function runsTest():Boolean {	return false;	}
+		public function actualRuns():Number {	return 5;}
+		
+		public function meanRuns():Number {	var runsMean:Number = new Number(); 	return runsMean; }
+	    public function standardDevOfRuns():Number
 		{
 			
 			var sdRunsTest:Number = new Number();
@@ -253,11 +297,7 @@ package disabilityPack
 			// (r-rmean)/rmean
 			return 5;
 		}
-		public function outlierDetection():Boolean
-		{
-			return false;
-			
-		}
+		public function outlierDetection():Boolean {	return false;	}
 		
 		public function numberOfOutliers():Number
 		{
