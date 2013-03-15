@@ -30,6 +30,8 @@ package weave.core
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
+	import mx.core.IVisualElement;
+	import mx.core.IVisualElementContainer;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncResponder;
@@ -1035,16 +1037,33 @@ package weave.core
 					var parentContainer:DisplayObjectContainer = displayObject.parent;
 					try
 					{
-						if (parentContainer && parentContainer == displayObject.parent)
-							parentContainer.removeChild(displayObject);
+						if (parentContainer && parentContainer == displayObject.parent){
+							if(parentContainer is IVisualElementContainer)
+								(parentContainer as IVisualElementContainer).removeElement(displayObject as IVisualElement);
+							else
+								parentContainer.removeChild(displayObject);
+						}
+							
 					}
 					catch (e:Error)
 					{
 						// an error may occur if removeChild() is called twice.
 					}
 					parentContainer = displayObject as DisplayObjectContainer;
-					if (parentContainer)
+					if (parentContainer && parentContainer is IVisualElementContainer)
 					{
+						// Removing all children fixes errors that may occur in the next
+						// frame related to callLaterDispatcher and validateDisplayList.
+						var eleCount:int = (parentContainer as IVisualElementContainer).numElements;
+						while (eleCount > 0)
+						{
+							try {
+								(parentContainer as IVisualElementContainer).removeElementAt(eleCount--);
+							} catch (e:Error) { }
+						}
+						
+					}
+					else{
 						// Removing all children fixes errors that may occur in the next
 						// frame related to callLaterDispatcher and validateDisplayList.
 						var n:int = parentContainer.numChildren;
