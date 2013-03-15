@@ -163,7 +163,9 @@ package weave.data.AttributeColumns
 			if (_prevTriggerCounter == triggerCounter)
 				_prevTriggerCounter++; // increase by 1 now to account for _derivedBins trigger
 			_derivedBins.triggerCallbacks();
-			_derivedBins.resumeCallbacks(true); // allow callbacks to run now
+			// allow callbacks to run now
+			while (_derivedBins.callbacksAreDelayed)
+				_derivedBins.resumeCallbacks();
 		}
 
 		/**

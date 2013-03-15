@@ -620,7 +620,6 @@ package weave.core
 				var cc:ICallbackCollection = _callbackCollections[POINT_CLICK_EVENT] as ICallbackCollection;
 				_pointClicked = true;
 				cc.triggerCallbacks();
-				cc.resumeCallbacks(true);
 			}
 			else
 			{
