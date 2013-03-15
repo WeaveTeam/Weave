@@ -58,5 +58,5 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="output" path="bin/classes"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
