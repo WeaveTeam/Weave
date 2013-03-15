@@ -488,11 +488,22 @@ public class DataConfig
 		/**
 		 * This function determines the corresponding DataType constant for a SQL type defined in java.sql.Types.
 		 * @param sqlType A SQL data type defined in java.sql.Types.
-		 * @return The corresponding constant NUMBER or STRING.
+		 * @return The corresponding constant NUMBER or STRING or GEOMETRY.
 		 */
 		static public String fromSQLType(int sqlType)
 		{
-			return SQLUtils.sqlTypeIsNumeric(sqlType) ? NUMBER : STRING;
+			String type;
+			if(SQLUtils.sqlTypeIsNumeric(sqlType)){
+				type = NUMBER;
+			}else{
+				if(SQLUtils.sqlTypeIsGeometry(sqlType)){
+					type = GEOMETRY;
+				}else{
+					type = STRING;
+				}
+			}
+				
+			return type;
 		}
 	}
 	

@@ -42,6 +42,7 @@ import javax.servlet.ServletException;
 
 import weave.beans.AttributeColumnData;
 import weave.beans.GeometryStreamMetadata;
+import weave.beans.PGGeom;
 import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
@@ -60,6 +61,9 @@ import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
+import org.postgis.PGgeometry;
+import org.postgis.Geometry;
+import org.postgis.Point;
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -235,6 +239,7 @@ public class DataService extends GenericServlet
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
+		List<Object> geometricData = null;
 		
 		// use config min,max or param min,max to filter the data
 		double minValue = Double.NaN;
@@ -289,9 +294,17 @@ public class DataService extends GenericServlet
 				entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
 			}
 			if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
+			{
 				numericData = new ArrayList<Double>();
-			else // for every other dataType, use String
+			}
+			else if(dataType.equalsIgnoreCase(DataType.GEOMETRY))
+			{
+				geometricData = new LinkedList<Object>();
+			}
+			else
+			{// for every other dataType, use String ?? DOES THIS MAKE SENSE FOR GEOMETRY ??
 				stringData = new ArrayList<String>();
+			}
 			
 			// hack for dimension slider format
 			if (result.columnTypes.length == 3)
@@ -327,8 +340,23 @@ public class DataService extends GenericServlet
 					else
 						continue;
 				}
-				else
+				else if(geometricData != null) // Use a bool var determined earlier to see if this is a PGgeometry obj
 				{
+					// The dataObj must be case to PGgeometry before an individual Geometry can be extracted.
+					Geometry geom = ((PGgeometry) dataObj).getGeometry();
+					int numPoints = geom.numPoints();
+					// Create PGGeom Bean here and fill it up!
+					PGGeom shape = new PGGeom(numPoints, geom.getType());;
+					Point pt;
+					for (int j = 0; j < numPoints; j++)
+					{
+						pt = geom.getPoint(j);
+						shape.points[j*2] =pt.x;
+						shape.points[j*2+1] =pt.y;
+					}
+					geometricData.add(shape);
+				}
+				else{
 					stringData.add(dataObj.toString());
 				}
 				keys.add(keyObj.toString());
@@ -356,7 +384,10 @@ public class DataService extends GenericServlet
 		result.keys = keys.toArray(new String[keys.size()]);
 		if (numericData != null)
 			result.data = numericData.toArray();
-		else
+		else if (geometricData != null)
+		{
+			result.data = geometricData.toArray();
+		}else
 			result.data = stringData.toArray();
 		// hack for dimension slider
 		if (thirdColumn != null)
