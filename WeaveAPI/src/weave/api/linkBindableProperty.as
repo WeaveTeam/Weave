@@ -18,7 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableVariable;
 	
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * @copy weave.api.core.ISessionManager#linkBindableProperty()
 	 */
 	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
 	{

@@ -16,7 +16,7 @@
 package weave.api
 {
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * @copy weave.api.core.ISessionManager#registerDisposableChild()
 	 */
 	public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 	{
