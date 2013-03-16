@@ -44,11 +44,16 @@ package weave.utils
 				return key;
 			return null;
 		}
-		public function set value(value:Object):void
+		public function set value(newValue:Object):void
 		{
 			for (var key:* in dictionary)
+			{
+				// do nothing if value didn't change
+				if (key === newValue)
+					return;
 				delete dictionary[key];
-			if (value != null)
+			}
+			if (newValue != null)
 			{
 				/*
 					TEMPORARY SOLUTION for garbage-collection bug:
@@ -56,10 +61,10 @@ package weave.utils
 					https://bugs.adobe.com/jira/browse/FP-5860
 					Until this bug is fixed, Functions must have strong references.
 				*/
-				if (value is Function && getQualifiedClassName(value) != 'Function')
-					dictionary[value] = value; // change to null when flash player bug is fixed
+				if (newValue is Function && getQualifiedClassName(newValue) != 'Function')
+					dictionary[newValue] = newValue; // change to null when flash player bug is fixed
 				else
-					dictionary[value] = null;
+					dictionary[newValue] = null;
 			}
 		}
 
