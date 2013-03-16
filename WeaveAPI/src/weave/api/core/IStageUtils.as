@@ -71,8 +71,9 @@ package weave.api.core
 		 *   When the task is completed, iterativeTask() should return 1.0.
 		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
 		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
-		 *   Example 1 (for loop replaced by if):
-		 *   <code>
+		 * 
+		 * @example Example 1 (for loop replaced by if):
+		 * <listing version="3.0">
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
 		 *       function iterativeTask():Number // this may be called repeatedly in succession
@@ -85,9 +86,10 @@ package weave.api.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
-		 *   </code>
-		 *   Example 2 (resumable for loop):
-		 *   <code>
+		 * </listing>
+		 * 
+		 * @example Example 2 (resumable for loop):
+		 * <listing version="3.0">
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
 		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
@@ -103,9 +105,10 @@ package weave.api.core
 		 *           }
 		 *           return 1; // loop finished
 		 *       }
-		 *   </code>
-		 *   Example 3 (nested resumable for loops):
-		 *   <code>
+		 * </listing>
+		 * 
+		 * @example Example 3 (nested resumable for loops):
+		 * <listing version="3.0">
 		 * 	     var outerArray:Array = [['a','b','c'], ['aa','bb','cc'], ['x','y','z'], ['xx','yy','zz']];
 		 *       var outerIndex:int = 0;
 		 *       var innerArray:Array = null;
@@ -139,7 +142,7 @@ package weave.api.core
 		 *           }
 		 *           return 1; // outer loop finished
 		 *       }
-		 *   </code>
+		 * </listing>
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
