@@ -66,21 +66,16 @@
 			
 		<mx:Script>
 			<![CDATA[
-				import weave.api.copySessionState;
-				import mx.controls.TextInput;
-				import mx.collections.ArrayCollection;
 				import mx.controls.Label;
+				import mx.controls.TextInput;
 				import mx.events.ListEvent;
 				
-				import weave.core.LinkableDynamicObject;
-				import weave.core.LinkableNumber;
-				import weave.core.SessionManager;
-				import weave.api.core.ILinkableObject;
+				import weave.api.copySessionState;
 				import weave.api.getCallbackCollection;
 				import weave.api.newLinkableChild;
-				import weave.data.BinClassifiers.BinClassifierCollection;
-				import weave.api.data.IBinClassifier;
+				import weave.api.core.ILinkableObject;
 				import weave.data.BinClassifiers.NumberClassifier;
+				import weave.data.BinningDefinitions.ExplicitBinningDefinition;
 				
 				[Bindable] private var dataMin:Number = 0;
 				[Bindable] private var dataMax:Number = 1;
@@ -163,7 +158,7 @@
 				
 				
 				private var _previouslySelectedNC:NumberClassifier = null;
-				public const binClassifiers:BinClassifierCollection = newLinkableChild(this, BinClassifierCollection, handleBinClassifiersChange);
+				public const binClassifiers:ExplicitBinningDefinition = newLinkableChild(this, ExplicitBinningDefinition, handleBinClassifiersChange);
 				private const numClassifier:NumberClassifier = newLinkableChild(this, NumberClassifier);
 			]]>
 		</mx:Script>

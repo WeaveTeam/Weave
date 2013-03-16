@@ -23,71 +23,56 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
-	import weave.data.BinClassifiers.BinClassifierCollection;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
 	import weave.primitives.ColorRamp;
 	import weave.utils.PlotUtils;
 	import weave.utils.RadialAxis;
-	
-
 
 	/**
 	 * This is the plotter for the semi-circular Gauge tool.
 	 */
-	public class GaugePlotter extends MeterPlotter{
+	public class GaugePlotter extends MeterPlotter
+	{
 		
 		//the radius of the Gauge (from 0 to 1)
 		//TODO make this part of the session state
-		//TODO create UI for editing this
 		private const outerRadius:Number = 0.8;
 		
 		//the radius of the Gauge (from 0 to 1)
 		//TODO make this part of the session state
-		//TODO create UI for editing this
 		private const innerRadius:Number = 0.3;
 		
 		//the radius at which the tick mark labels are drawn
 		//TODO make this part of the session state
-		//TODO create UI for editing this
 		private const tickMarkLabelsRadius:Number = outerRadius+0.08;
 
 		//the angle offset determining the size of the gauge wedge.
 		//Range is 0 to PI/2. 0 means full semicircle, PI/2 means 1 pixel wide vertical wedge.
 		//TODO make this part of the session state
-		//TODO create UI for editing this 
 		private const theta:Number = Math.PI/4;
 		
 		//the thickness and color of the outer line
 		//TODO make this part of the session state
-		//TODO create UI for editing this
 		private const outlineThickness:Number = 2;
 		private const outlineColor:Number = 0x000000;
 		
 		//the thickness and color of the outer line
 		//TODO make this part of the session state
-		//TODO create UI for editing this
 		private const needleThickness:Number = 2;
 		private const needleColor:Number = 0x000000;
 		
 		//wrapper for a SimpleBinningDefinition, which creates equally spaced bins
-		//TODO create UI for editing the number of bins
-		public const binningDefinition:DynamicBinningDefinition = newLinkableChild(this, DynamicBinningDefinition, updateBins);
+		public const binningDefinition:DynamicBinningDefinition = registerLinkableChild(this, new DynamicBinningDefinition(true));
 		
 		//the approximate desired number of tick marks
 		//TODO make this part of the session state
-		//TODO create UI for editing this
 		public const numberOfTickMarks:Number = 10;
-		
-		//reusable object for storing the output (the actual bins) of binningDefinition 
-		private const bins:BinClassifierCollection = newDisposableChild(this, BinClassifierCollection);
 		
 		//the color ramp mapping bins to colors
 		public const colorRamp:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Traffic Light")));
@@ -101,37 +86,30 @@ package weave.visualization.plotters
 		/**
 		 * Creates a new gauge plotter with default settings
 		 */
-		public function GaugePlotter(){
+		public function GaugePlotter()
+		{
 			//initializes the binning definition which defines a number of evenly spaced bins
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
 			(binningDefinition.internalObject as SimpleBinningDefinition).numberOfBins.value = 3;
 			
-			//update bins when column changes
-			meterColumn.addImmediateCallback(this, updateBins);
 			meterColumn.addImmediateCallback(this, updateAxis);
-		}
-		
-		/**
-		 * Updates the contents of the 'bins' object with the latest bins computed 
-		 * from 'binningDefinition'. This should be called when the column changes, 
-		 * or when the number of bins changes.
-		 */
-		private function updateBins():void{
-			//writes up-to-date bins into "bins"
-			binningDefinition.getBinClassifiersForColumn(meterColumn,bins);
+			binningDefinition.generateBinClassifiersForColumn(meterColumn);
+			registerLinkableChild(this, binningDefinition.asyncResultCallbacks);
 		}
 		
 		/**
 		 * Updates the internal axis representation with the latest min, max, and 
 		 * numberOfTickMarks. This should be called whenever any one of those changes.
 		 */ 
-		private function updateAxis():void{
+		private function updateAxis():void
+		{
 			var max:Number = meterColumnStats.getMax();
 			var min:Number = meterColumnStats.getMin();
 			axis.setParams(min,max,numberOfTickMarks);
 		}
 		
-		private function getMeterValue(recordKeys:Array):Number{
+		private function getMeterValue(recordKeys:Array):Number
+		{
 			var n:Number = recordKeys.length;
 			if(n == 1)
 				return meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number)
@@ -204,9 +182,10 @@ package weave.visualization.plotters
 			destination.draw(tempShape);
 		}
 		
-		private function fillSectors(dataBounds:IBounds2D, screenBounds:IBounds2D,g:Graphics):void{
-			var binObjects:Array = bins.getObjects();
-			var numSectors:Number = binObjects.length;
+		private function fillSectors(dataBounds:IBounds2D, screenBounds:IBounds2D,g:Graphics):void
+		{
+			var binNames:Array = binningDefinition.getBinNames();
+			var numSectors:Number = binNames.length;
 			var sectorSize:Number = (Math.PI-2*theta)/numSectors;
 			for(var i:Number = 0;i<numSectors;i++){
 				var color:uint = colorRamp.getColorFromNorm(i/(numSectors-1));
@@ -214,7 +193,8 @@ package weave.visualization.plotters
 			}
 		}
 		
-		private function drawMeterOutline(dataBounds:IBounds2D, screenBounds:IBounds2D,g:Graphics):void{
+		private function drawMeterOutline(dataBounds:IBounds2D, screenBounds:IBounds2D,g:Graphics):void
+		{
 			g.lineStyle(outlineThickness,outlineColor,1.0);
 			var minAngle:Number = theta;
 			var maxAngle:Number = Math.PI-theta;

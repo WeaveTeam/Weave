@@ -21,12 +21,11 @@ package weave.data.BinningDefinitions
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
@@ -53,7 +52,7 @@ package weave.data.BinningDefinitions
 		private static const _tempNumberClassifier:NumberClassifier = new NumberClassifier();
 		
 		
-		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -102,6 +101,8 @@ package weave.data.BinningDefinitions
 				output.requestObjectCopy(name, _tempNumberClassifier);
 			}
 				
+			// trigger callbacks now because we're done updating the output
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		/* This function returns the Good Fit Value for the breaks. Not used but just in case*/
