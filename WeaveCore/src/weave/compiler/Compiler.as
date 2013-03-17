@@ -252,9 +252,6 @@ package weave.compiler
 			if (debug)
 				constants['trace'] = function(...args):void { trace.apply(null, args); };
 			
-			// add constants
-			constants['isNaN'] = isNaN;
-			constants['isFinite'] = isFinite;
 			// global symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
 				constants[String(_const)] = _const;
@@ -1245,7 +1242,7 @@ package weave.compiler
 			var i:int;
 
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
-			var wrapperFunction:Function = function(...args):*
+			var wrapperFunction:Function = function():*
 			{
 				builtInSymbolTable['this'] = this;
 				
@@ -1254,10 +1251,10 @@ package weave.compiler
 					delete localSymbolTable[symbolName];
 				
 				// make function parameters available under the specified parameter names
-				localSymbolTable['arguments'] = args;
+				localSymbolTable['arguments'] = arguments;
 				if (paramNames)
 					for (i = 0; i < paramNames.length; i++)
-						localSymbolTable[paramNames[i] as String] = i < args.length ? args[i] : paramDefaults[i];
+						localSymbolTable[paramNames[i] as String] = i < arguments.length ? arguments[i] : paramDefaults[i];
 				
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
@@ -1394,7 +1391,6 @@ package weave.compiler
 				}
 				throw new Error("unreachable");
 			};
-			builtInSymbolTable['__self__'] = wrapperFunction;
 			
 			return wrapperFunction;
 		}
