@@ -19,6 +19,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.getCallbackCollection()
 	 * @copy weave.api.core.ISessionManager#getCallbackCollection()
 	 */
 	public function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection

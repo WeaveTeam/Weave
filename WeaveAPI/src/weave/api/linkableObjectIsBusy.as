@@ -18,6 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.linkableObjectIsBusy()
 	 * @copy weave.api.core.ISessionManager#linkableObjectIsBusy()
 	 */
 	public function linkableObjectIsBusy(object:ILinkableObject):Boolean

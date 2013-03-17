@@ -18,6 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.getLinkableOwner()
 	 * @copy weave.api.core.ISessionManager#getLinkableOwner()
 	 */
 	public function getLinkableOwner(child:ILinkableObject):ILinkableObject

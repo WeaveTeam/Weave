@@ -16,6 +16,7 @@
 package weave.api
 {
 	/**
+	 * Shortcut for WeaveAPI.ErrorManager.reportError()
 	 * @copy weave.api.core.IErrorManager#reportError()
 	 */
 	public function reportError(error:Object, faultMessage:String = null, faultContent:Object = null):void

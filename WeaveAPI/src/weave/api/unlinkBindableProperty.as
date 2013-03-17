@@ -18,6 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableVariable;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.unlinkBindableProperty()
 	 * @copy weave.api.core.ISessionManager#unlinkBindableProperty()
 	 */
 	public function unlinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String):void

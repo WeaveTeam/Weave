@@ -18,6 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.setSessionState()
 	 * @copy weave.api.core.ISessionManager#setSessionState()
 	 */
 	public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void

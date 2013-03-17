@@ -18,6 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.registerLinkableChild()
 	 * @copy weave.api.core.ISessionManager#registerLinkableChild()
 	 */
 	public function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*

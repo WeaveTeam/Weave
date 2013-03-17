@@ -18,6 +18,7 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
+	 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
 	 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
 	 */
 	public function getLinkableDescendants(object:ILinkableObject, filter:Class = null):Array
