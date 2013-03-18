@@ -422,7 +422,7 @@ package weave.data.DataSources
 		 */		
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):void
 		{
-			outputArrayOrVector.length = rows.length;
+			outputArrayOrVector.length = rows.length - 1;
 			var i:int;
 			if (columnIndex < 0)
 			{
