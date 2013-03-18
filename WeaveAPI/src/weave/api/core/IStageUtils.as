@@ -55,7 +55,7 @@ package weave.api.core
 		/**
 		 * This calls a function in a future ENTER_FRAME event.  The function call will be delayed
 		 * further frames if the maxComputationTimePerFrame time limit is reached in a given frame.
-		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the specified method will not be called.
+		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed, the specified method will not be called.
 		 * @param method The function to call later.
 		 * @param parameters The parameters to pass to the function.
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
@@ -63,8 +63,8 @@ package weave.api.core
 		function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void;
 		
 		/**
-		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
-		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
+		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed.
+		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
 		 *   This function must take zero or one parameter and return a number from 0.0 to 1.0 indicating the overall progress of the task.
 		 *   A return value below 1.0 indicates that the function should be called again to continue the task.
@@ -72,76 +72,76 @@ package weave.api.core
 		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
 		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
 		 * 
-		 * @example Example 1 (for loop replaced by if):
+		 * @example Example iteraveTask #1 (for loop replaced by if):
 		 * <listing version="3.0">
-		 *       var array:Array = ['a','b','c','d'];
-		 *       var index:int = 0;
-		 *       function iterativeTask():Number // this may be called repeatedly in succession
-		 *       {
-		 *           if (index &gt;= array.length) // in case the length is zero
-		 *               return 1;
-		 * 
-		 *           trace(array[index]);
-		 * 
-		 *           index++;
-		 *           return index / array.length;  // this will return 1.0 on the last iteration.
-		 *       }
+		 * var array:Array = ['a','b','c','d'];
+		 * var index:int = 0;
+		 * function iterativeTask():Number // this may be called repeatedly in succession
+		 * {
+		 *     if (index &gt;= array.length) // in case the length is zero
+		 *         return 1;
+		 *     
+		 *     trace(array[index]);
+		 *     
+		 *     index++;
+		 *     return index / array.length;  // this will return 1.0 on the last iteration.
+		 * }
 		 * </listing>
 		 * 
-		 * @example Example 2 (resumable for loop):
+		 * @example Example iteraveTask #2 (resumable for loop):
 		 * <listing version="3.0">
-		 *       var array:Array = ['a','b','c','d'];
-		 *       var index:int = 0;
-		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
-		 *       {
-		 *           for (; index &lt; array.length; index++)
-		 *           {
-		 *               // return time check should be at the beginning of the loop
-		 *               if (getTimer() &gt; returnTime)
-		 *                   return index / array.length; // progress so far
-		 * 
-		 *               // process the current item
-		 *               trace(array[index]);
-		 *           }
-		 *           return 1; // loop finished
-		 *       }
+		 * var array:Array = ['a','b','c','d'];
+		 * var index:int = 0;
+		 * function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
+		 * {
+		 *     for (; index &lt; array.length; index++)
+		 *     {
+		 *         // return time check should be at the beginning of the loop
+		 *         if (getTimer() &gt; returnTime)
+		 *             return index / array.length; // progress so far
+		 *         
+		 *         // process the current item
+		 *         trace(array[index]);
+		 *     }
+		 *     return 1; // loop finished
+		 * }
 		 * </listing>
 		 * 
-		 * @example Example 3 (nested resumable for loops):
+		 * @example Example iteraveTask #3 (nested resumable for loops):
 		 * <listing version="3.0">
-		 * 	     var outerArray:Array = [['a','b','c'], ['aa','bb','cc'], ['x','y','z'], ['xx','yy','zz']];
-		 *       var outerIndex:int = 0;
-		 *       var innerArray:Array = null;
-		 *       var innerIndex:int = 0;
-		 *       function iterativeNestedTaskWithTimer(returnTime:int):Number // this will be called only once in succession
-		 *       {
-		 *           for (; outerIndex &lt; outerArray.length; outerIndex++)
-		 *           {
-		 *               // return time check can go here at the beginning of the loop, but we already have one in the inner loop
-		 *               
-		 *               if (innerArray == null)
-		 *               {
-		 *                   // time to initialize inner loop
-		 *                   innerArray = outerArray[outerIndex] as Array;
-		 *                   innerIndex = 0;
-		 *                   // more code can go inside this if-block that would normally go right before the inner loop
-		 *               }
-		 *               
-		 *               for (; innerIndex &lt; innerArray.length; innerIndex++)
-		 *               {
-		 *                   // return time check should be at the beginning of the loop
-		 *                   if (getTimer() &gt; returnTime)
-		 *                       return (outerIndex + (innerIndex / innerArray.length)) / outerArray.length; // progress so far
-		 *                   
-		 *                   // process the current item
-		 *                   trace('item', outerIndex, innerIndex, 'is', innerArray[innerIndex]);
-		 *               }
-		 *               
-		 *               innerArray = null; // inner loop finished
-		 *               // more code can go here to be executed after the nested loop
-		 *           }
-		 *           return 1; // outer loop finished
-		 *       }
+		 * var outerArray:Array = [['a','b','c'], ['aa','bb','cc'], ['x','y','z'], ['xx','yy','zz']];
+		 * var outerIndex:int = 0;
+		 * var innerArray:Array = null;
+		 * var innerIndex:int = 0;
+		 * function iterativeNestedTaskWithTimer(returnTime:int):Number // this will be called only once in succession
+		 * {
+		 *     for (; outerIndex &lt; outerArray.length; outerIndex++)
+		 *     {
+		 *         // return time check can go here at the beginning of the loop, but we already have one in the inner loop
+		 *         
+		 *         if (innerArray == null)
+		 *         {
+		 *             // time to initialize inner loop
+		 *             innerArray = outerArray[outerIndex] as Array;
+		 *             innerIndex = 0;
+		 *             // more code can go inside this if-block that would normally go right before the inner loop
+		 *         }
+		 *         
+		 *         for (; innerIndex &lt; innerArray.length; innerIndex++)
+		 *         {
+		 *             // return time check should be at the beginning of the loop
+		 *             if (getTimer() &gt; returnTime)
+		 *                 return (outerIndex + (innerIndex / innerArray.length)) / outerArray.length; // progress so far
+		 *             
+		 *             // process the current item
+		 *             trace('item', outerIndex, innerIndex, 'is', innerArray[innerIndex]);
+		 *         }
+		 *         
+		 *         innerArray = null; // inner loop finished
+		 *         // more code can go here to be executed after the nested loop
+		 *     }
+		 *     return 1; // outer loop finished
+		 * }
 		 * </listing>
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
