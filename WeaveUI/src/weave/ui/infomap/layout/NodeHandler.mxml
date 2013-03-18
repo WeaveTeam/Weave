@@ -12,7 +12,7 @@
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
 	</mx:HBox>-->
 	<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>
-	<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>
+	<!--<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>-->
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
@@ -386,7 +386,7 @@
 				
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
-				views =[listCanvas,gridView,topicComponent,_pointCanvas];
+				views =[listCanvas,topicComponent,_pointCanvas];
 				docListComponent.parentNode = this;
 			}
 			
@@ -1234,6 +1234,7 @@
 						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
 						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
 					}
+					handleSelectionChangeInViews();
 					return;
 				}
 				
@@ -1625,10 +1626,6 @@
 			private var _showGridFlag:Boolean = false;
 			private function toggleGridView(event:MouseEvent):void
 			{
-				gridView.y = nodeBase.height;
-				
-				gridView.plotThumbnails(includedThumbnails());
-				
 				_showGridFlag = !_showGridFlag;
 				_showListFlag= false;
 				

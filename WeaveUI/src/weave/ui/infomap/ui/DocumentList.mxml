@@ -129,14 +129,15 @@ Info to provide a tooltip describing the node (like number of documents found)
 			</mx:itemRenderer>
 		</mx:List>
 	</mx:Canvas>
-	<mx:HBox id="navBox" clipContent="true" horizontalAlign="center" verticalAlign="middle" borderThickness="1" borderStyle="solid">
-		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowLeft.png')" id="prevButton" toolTip="Prev" click="prev()"/>
+	<mx:HBox id="navBox" horizontalScrollPolicy="off" clipContent="false" horizontalAlign="center" verticalAlign="middle">
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowLeft.png')"  id="prevButton" toolTip="Prev" click="prev()"/>
 		<mx:Label id="indexText" textAlign="center"/>
 		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowRight.png')"  id="nextButton" toolTip="Next" click="next()"/>
 	</mx:HBox>
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getTimer;
 			import weave.data.KeySets.KeySet;
 			import weave.data.KeySets.FilteredKeySet;
 			import mx.controls.listClasses.IListItemRenderer;
@@ -294,7 +295,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 							{
 								view.addChild(doc);
 								doc.positionThumbnail(nextX,nextY);
-								nextX += doc.width + _spacing;
+								nextX += doc.width;
 							}
 							
 							count++;
@@ -305,31 +306,13 @@ Info to provide a tooltip describing the node (like number of documents found)
 					
 //					if(doc)
 //						_imageSize = doc.width;
-					navBox.width = _imageSize * _gridSize * _spacing;
+					navBox.width = _imageSize * (_gridSize);
 				}
 				
-				navBox.y = view.height + filterStatus.height;
+				navBox.y = view.y + view.height + filterStatus.y + filterStatus.height;
 				if(!nextButton || !prevButton)
 				{
 					return;
-				}
-				//disable nextButton if showing the last set of documents
-				if(startIndex.value + resultsRowCount >= includedKeys.length)
-				{
-					nextButton.enabled = false;
-				}else
-				{
-					nextButton.enabled = true;	
-				}
-				
-				//disable prevButton if showing the first set of documents
-				if(startIndex.value < resultsRowCount)
-				{
-					prevButton.enabled = false;
-				}
-				else
-				{
-					prevButton.enabled = true;
 				}
 				
 				updateIndexText(); 
@@ -382,7 +365,6 @@ Info to provide a tooltip describing the node (like number of documents found)
 					indexText.text += includedKeys.length;
 				
 				indexText.text += " of " + includedKeys.length;
-					
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void
