@@ -24,12 +24,13 @@ package weave.data.BinningDefinitions
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
@@ -57,6 +58,7 @@ package weave.data.BinningDefinitions
 		
 		private var _output:ILinkableHashMap = null;
 		private var _column:IAttributeColumn = null;
+		private var asyncSort:AsyncSort = new AsyncSort();
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			_output = output;
@@ -66,8 +68,36 @@ package weave.data.BinningDefinitions
 			
 			_previousSortedValues.length = 0;
 			
-			_sortedValues = getSortedNumbersFromColumn(_column);
+			_keys = column ? column.keys : [];
+			_sortedValues = new Array(_keys.length);
+			_keyCount = 0;
 			
+			WeaveAPI.StageUtils.startTask(this,_getValueFromKeys,WeaveAPI.TASK_PRIORITY_PARSING,_handleValuesFromKeys);
+			
+		}
+		
+		private var _keyCount:int = 0;
+		private var _keys:Array = []; 
+		private function _getValueFromKeys():Number
+		{
+			if(_keyCount>=_keys.length)
+				return 1;
+			_sortedValues[_keyCount] = _column.getValueFromKey(_keys[_keyCount],Number);
+			_keyCount ++;
+			if(_keyCount>=_keys.length)
+				return 1;
+			else
+				return _keyCount/_keys.length;
+		}
+		
+		private function _handleValuesFromKeys():void
+		{
+			getCallbackCollection(asyncSort).addImmediateCallback(this,_handleSortedKeys);
+			asyncSort.beginSort(_sortedValues,ObjectUtil.numericCompare);
+		}
+		
+		private function _handleSortedKeys():void
+		{
 			VectorUtils.copy(_sortedValues,_previousSortedValues);
 			
 			_mat1 = [];
@@ -101,7 +131,6 @@ package weave.data.BinningDefinitions
 			_count = 2;
 			
 			WeaveAPI.StageUtils.startTask(this,_iterateJenksBreaks,WeaveAPI.TASK_PRIORITY_PARSING,_handleJenksBreaks);
-			
 		}
 		
 		private var _previousSortedValues:Array = [];
@@ -109,12 +138,13 @@ package weave.data.BinningDefinitions
 		private var _mat1:Array = [];
 		private var _mat2:Array = [];
 		private var _count:int = 2;
-		private var _m:int = 1;
+		private var _m:Number = 0;
 		private var _v:Number = 0;
 		private var _s1:Number = 0;
 		private var _s2:Number = 0;
-		
 		private var _w:Number = 0;
+		private var _p:Number = 2;
+		
 		private function _iterateJenksBreaks(returnTime:int):Number
 		{
 			for (; _count < _sortedValues.length + 1; _count++)
@@ -122,13 +152,15 @@ package weave.data.BinningDefinitions
 				_s1= 0;
 				_s2= 0;
 				_w= 0;
-				_m =1;			
-				
+				if(_m==0)
+				{
+					_m =1;			
+				}
 				for(; _m < _count + 1; _m++)
 				{
 					if(getTimer()>returnTime)
 					{
-						return 0;
+						return _count/(_sortedValues.length+1);
 					}
 					var i3:Number = _count - _m +1;
 					var val:Number = _sortedValues[i3-1];
@@ -141,16 +173,19 @@ package weave.data.BinningDefinitions
 					var i4:Number= i3 -1;
 					if(i4 !=0)
 					{
-						for (var p:Number = 2; p < numOfBins.value + 1; p++)
+						_p = 2;
+						for (; _p < numOfBins.value + 1; _p++)
 						{
-							if((_mat2[_count][p]) >= (_v + _mat2[i4][p-1]))
+							
+							if((_mat2[_count][_p]) >= (_v + _mat2[i4][_p-1]))
 							{
-								_mat1[_count][p] = i3;
-								_mat2[_count][p] = _v +_mat2[i4][p-1];
+								_mat1[_count][_p] = i3;
+								_mat2[_count][_p] = _v +_mat2[i4][_p-1];
 							}
 						}
 					}
 				}
+				_m = 0;
 				_mat1[_count][1] = 1;
 				_mat2[_count][1] = _v;
 			}
@@ -159,22 +194,22 @@ package weave.data.BinningDefinitions
 		
 		private function _handleJenksBreaks():void
 		{
+			var countNum:Number = numOfBins.value;
 			var kClassCount:Number =  _sortedValues.length;
 			var kClass:Array = [];
 			
-			for(var i:int = 0; i < numOfBins.value +1; i++)
+			for(var i:int = 0; i < countNum +1; i++)
 			{
 				kClass.push(0);
 			}
 			
 			//this is the last number in the array
-			kClass[numOfBins.value] = _sortedValues[_sortedValues.length -1];
+			kClass[countNum] = _sortedValues[_sortedValues.length -1];
 			
 			//this is the first numer in the array 
 			kClass[0] = _sortedValues[0];
 			
 			
-			var countNum:Number = numOfBins.value;
 			
 			while (countNum >=2)
 			{
