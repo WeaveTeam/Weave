@@ -61,7 +61,7 @@
 				toolTip="Specify flag values to treat as missing data, separated by commas"/>
 		
 		<ui:Indent id="projectionCode" label="Projection SRS" group="{indentGroup}">
-			<mx:TextInput id="srsProjectionTxtInput" text="{projectionMem.data.srsProjectionTxtInput}" change="validateProjectionSRS()"/>
+			<mx:TextInput id="srsProjectionTxtInput" change="validateProjectionSRS()"/>
 		</ui:Indent>
 		
 		<ui:Indent id="dbfColumnNames" label="DBF Key column(s)" group="{indentGroup}">
@@ -77,6 +77,8 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
@@ -116,7 +118,8 @@
 				finishEnabled = step1 && step2;
 			}
 			
-			private var projectionMem:SharedObject = SharedObject.getLocal("srsProjectionTxtInput");
+			private static const DEFAULT_PROJECTION:String = 'defaultProjectionSRS';
+			private const sharedObject:SharedObject = SharedObject.getLocal(getQualifiedClassName(this));
 			private function handleCreationComplete():void
 			{
 				shapeFileReferenceList.addEventListener(Event.SELECT, shapeFileSelectedHandler);
@@ -128,20 +131,7 @@
 							delayedHandleShpNameChange();
 					}
 				);
-				if(!validateProjectionSRS())
-				{
-					projectionMem.setProperty("srsProjectionTxtInput","EPSG:4326");
-					srsProjectionTxtInput.text = "EPSG:4326";
-					validateProjectionSRS();
-				}
-				srsProjectionTxtInput.addEventListener(
-					KeyboardEvent.KEY_UP,
-					function(e:KeyboardEvent):void
-					{
-						projectionMem.setProperty("srsProjectionTxtInput",srsProjectionTxtInput.text);
-					}
-				);
-						
+				srsProjectionTxtInput.text = sharedObject.data[DEFAULT_PROJECTION] || "EPSG:4326";
 				toggleButtons();
 			}
 			
@@ -354,17 +344,16 @@
 				dbfKeyColumnsCombo.invalidateDisplayList();
 			}
 			
-			private function validateProjectionSRS():Boolean
+			private function validateProjectionSRS():void
 			{
 				if (WeaveAPI.ProjectionManager.projectionExists(srsProjectionTxtInput.text))
 				{
 					srsProjectionTxtInput.errorString = '';
-					return true;
+					sharedObject.setProperty(DEFAULT_PROJECTION, srsProjectionTxtInput.text);
 				}
 				else
 				{
 					srsProjectionTxtInput.errorString = 'Projection code is not recognized.';
-					return false;
 				}
 			}
 		]]>
