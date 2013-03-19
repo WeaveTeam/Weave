@@ -119,7 +119,7 @@
 			}
 			
 			private static const DEFAULT_PROJECTION:String = 'defaultProjectionSRS';
-			private const sharedObject:SharedObject = SharedObject.getLocal(getQualifiedClassName(this));
+			private const sharedObject:SharedObject = SharedObject.getLocal(getQualifiedClassName(this).split('::').join('.'));
 			private function handleCreationComplete():void
 			{
 				shapeFileReferenceList.addEventListener(Event.SELECT, shapeFileSelectedHandler);
