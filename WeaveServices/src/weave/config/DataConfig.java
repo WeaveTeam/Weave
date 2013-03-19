@@ -492,18 +492,12 @@ public class DataConfig
 		 */
 		static public String fromSQLType(int sqlType)
 		{
-			String type;
-			if(SQLUtils.sqlTypeIsNumeric(sqlType)){
-				type = NUMBER;
-			}else{
-				if(SQLUtils.sqlTypeIsGeometry(sqlType)){
-					type = GEOMETRY;
-				}else{
-					type = STRING;
-				}
-			}
-				
-			return type;
+			if (SQLUtils.sqlTypeIsGeometry(sqlType))
+				return GEOMETRY;
+			else if (SQLUtils.sqlTypeIsNumeric(sqlType))
+				return NUMBER;
+			else
+				return STRING;
 		}
 	}
 	

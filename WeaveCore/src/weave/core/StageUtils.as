@@ -460,7 +460,7 @@ package weave.core
 		 *         reset the task counter to zero so the compound task will start from the first task again.
 		 * @see #startTask
 		 */
-		public static function generateCompoundIterativeTask(iterativeTasks:Array):Function
+		public static function generateCompoundIterativeTask(...iterativeTasks):Function
 		{
 			var iTask:int = 0;
 			return function(param:* = undefined):Number

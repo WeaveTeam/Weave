@@ -157,7 +157,7 @@ package weave.data.AttributeColumns
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
 		}
 		
-		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask([_iterate1, _iterate2, _iterate3, _iterate4]);
+		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2, _iterate3, _iterate4);
 		
 		// temp variables for async task
 		private var _i1:int;

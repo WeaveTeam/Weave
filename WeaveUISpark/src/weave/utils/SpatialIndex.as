@@ -167,7 +167,7 @@ package weave.utils
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
 		}
 		
-		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask([_iterate1, _iterate2]);
+		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);
 		
 		private function _iterate1():Number
 		{

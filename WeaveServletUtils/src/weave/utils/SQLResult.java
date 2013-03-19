@@ -57,13 +57,23 @@ public class SQLResult
 			columnTypes[i] = metadata.getColumnType(i + 1);
 		}
 		
+		boolean[] asString = new boolean[n];
+		for (int i = 0; i < n; i++)
+		{
+			int type = columnTypes[i];
+			if (SQLUtils.sqlTypeIsNumeric(type) || SQLUtils.sqlTypeIsGeometry(type))
+				asString[i] = convertToStrings;
+			else
+				asString[i] = true;
+		}
+		
 		LinkedList<Object[]> linkedRows = new LinkedList<Object[]>();
 		while (rs.next())
 		{
 			Object[] row = new Object[n];
 			for (int i = 0; i < n; i++)
 			{
-				if (convertToStrings || (!SQLUtils.sqlTypeIsNumeric(columnTypes[i]) && !SQLUtils.sqlTypeIsGeometry(columnTypes[i])))
+				if (asString[i])
 					row[i] = rs.getString(i + 1);
 				else
 					row[i] = rs.getObject(i + 1);

@@ -25,13 +25,13 @@ package weave.primitives
 		public static const LINE:String = "Arc";
 		public static const POLYGON:String = "Polygon";
 		
-		public static function getPostGISGeomTypeFromInt(geomType:int):String
+		public static function fromPostGISType(postGISType:int):String
 		{
 			/*
 			PostGIS Specific geometry types. 
 			*/
 
-			switch (geomType) // read shapeType
+			switch (postGISType) // read shapeType
 			{
 				case 1: //POINT
 				case 4: //MULTIPOINT
