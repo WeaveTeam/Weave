@@ -39,6 +39,8 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrResponse;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -51,6 +53,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.GroupParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -72,6 +75,7 @@ import com.dropbox.client2.session.RequestTokenPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
+import com.google.gson.Gson;
 
 import edu.mit.jwi.Dictionary;
 import edu.mit.jwi.IDictionary;
@@ -87,6 +91,8 @@ import edu.stanford.nlp.process.PTBTokenizer;
 
 import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
+import infomap.beans.SolrClusterObject;
+import infomap.beans.SolrClusterResponseModel;
 import infomap.beans.TopicClassificationResults;
 import infomap.servlets.GenericServlet;
 import infomap.utils.DebugTimer;
@@ -141,25 +147,23 @@ public class AdminService extends GenericServlet {
 		}
 	}
 
-//	public static void main(String[] args) {
-////		//testing
-//		AdminService inst = new AdminService();
-//		try {
-//			
-//			
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		 String [] requiredKeywords = new String[2];
-//		 String [] relatedKeywords = new String[1];
-//		
-//		 requiredKeywords[0] = "Johnson County";
-//		 requiredKeywords[1] = " Wyoming";
-//		 relatedKeywords[0] = "divorced";
-//	     inst.getNumOfDocumentsForQuery(requiredKeywords, relatedKeywords, null, "AND");
-//	}
+	public static void main(String[] args) {
+		//testing
+		AdminService inst = new AdminService();
+	
+		 String [] requiredKeywords = new String[1];
+		 String [] relatedKeywords = new String[1];
+
+		 requiredKeywords[0] = "Montana";
+		 relatedKeywords[0] = " obesity";
+		 try{
+			 
+			 inst.getClustersForQueryWithRelatedKeywords(requiredKeywords, relatedKeywords,null,5000,"AND");
+		 }catch (Exception e) {
+			// TODO: handle exception
+			 e.printStackTrace();
+		}
+	}
 
 	private static void deleteAllDocuments() {
 		try {
@@ -673,7 +677,7 @@ public class AdminService extends GenericServlet {
 
 		return result;
 	}
-
+	
 	public String[][] getWordCount(String[] requiredKeywords,
 			String[] relatedKeywords, String dateFilter, String operator) {
 		setSolrServer(solrServerUrl);
@@ -1049,7 +1053,46 @@ public class AdminService extends GenericServlet {
 
 		return topicModelingResutls;
 	}
+	
+	public SolrClusterObject[] getClustersForQueryWithRelatedKeywords(
+			String[] requiredKeywords, String[] relatedKeywords,
+			String dateFilter, int rows,String operator) throws IOException, SolrServerException
+	{
+		SolrClusterObject[] result = null;
+		
+		setSolrServer(solrServerUrl);
+		
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
+		if (queryString == null)
+			return null;
+		try{
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+			if (dateFilter != null)
+				if (!dateFilter.isEmpty())
+					q.setFilterQueries(dateFilter);
 
+			// set number of rows
+			q.setRows(rows);
+
+			// set field to hasSummary. Just a field with low content. Since we are only interested in the clusters
+			q.setFields("hasSummary");
+			
+			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json");
+			
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(url.openStream(),writer,"UTF-8");
+			Gson gson = new Gson();
+			SolrClusterResponseModel j = gson.fromJson(writer.toString(), SolrClusterResponseModel.class);
+			result = j.clusters;
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
 	public Object[] getResultsForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows,String operator) throws NullPointerException {
@@ -1076,15 +1119,6 @@ public class AdminService extends GenericServlet {
 			// set fields to title,date and summary only
 			q.setFields("link,title,date_added,date_published,imgName");
 
-			// set highlighting
-//			q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount)
-//					.setHighlightFragsize(highlightFragmentSize);
-//
-//			q.setParam("hl.fl", "description");
-//
-//			q.setParam("hl.simple.pre", "<b>");
-//			q.setParam("hl.simple.post", "</b>");
-
 			QueryResponse response = solrInstance.query(q);
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 
@@ -1097,29 +1131,6 @@ public class AdminService extends GenericServlet {
 				docArray[0] = (String) doc.getFieldValue("link");
 				docArray[1] = (String) doc.getFieldValue("title");
 
-				// Show text summary if exists
-//				docArray[2] = "";
-//				String docSummary = (String) doc
-//						.getFieldValue("attr_text_summary");
-//				if (docSummary != null) {
-//					docArray[2] += "<b>Summary: </b>" + docSummary;
-//				}
-//				// Show sentences with containing query words
-//				if (response.getHighlighting().get(docArray[0])
-//						.get("description") != null) {
-//					List<String> highlightsList = response.getHighlighting()
-//							.get(docArray[0]).get("description");
-//
-//					Iterator<String> highlightsIter = highlightsList.iterator();
-//
-//					docArray[2] += "<br/><br/><b>Matches: </b>";
-//
-//					while (highlightsIter.hasNext()) {
-//						docArray[2] += " '" + highlightsIter.next()
-//								+ "'...<br/><br/>";
-//					}
-//
-//				}
 				if (doc.getFieldValue("imgName") != null)
 					docArray[2] = serverURL + "thumbnails/"
 							+ (String) doc.getFieldValue("imgName");
