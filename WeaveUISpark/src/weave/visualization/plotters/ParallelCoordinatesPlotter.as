@@ -296,6 +296,7 @@ package weave.visualization.plotters
 			// push three geometries between each column
 			var x:Number, y:Number;
 			var prevX:Number, prevY:Number;
+			var geometry:ISimpleGeometry;
 			for (var i:int = 0; i < _columns.length; ++i)
 			{
 				x = i;
@@ -306,9 +307,29 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:ISimpleGeometry = new SimpleGeometry(GeometryType.LINE);
-					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
-					results.push(geometry);
+					if (isFinite(y) && isFinite(prevY))
+					{
+						geometry = new SimpleGeometry(GeometryType.LINE);
+						geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
+						results.push(geometry);
+					}
+					else
+					{
+						// case where current coord is defined and previous coord is missing
+						if (isFinite(y))
+						{
+							geometry = new SimpleGeometry(GeometryType.POINT);
+							geometry.setVertices([new Point(x, y)]);
+							results.push(geometry);
+						}
+						// special case where i == 1 and y0 (prev) is defined and y1 (current) is missing
+						if (i == 1 && isFinite(prevY))
+						{
+							geometry = new SimpleGeometry(GeometryType.POINT);
+							geometry.setVertices([new Point(prevX, prevY)]);
+							results.push(geometry);
+						}
+					}
 				}
 				
 				prevX = x;

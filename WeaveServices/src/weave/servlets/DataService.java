@@ -42,15 +42,16 @@ import javax.servlet.ServletException;
 
 import weave.beans.AttributeColumnData;
 import weave.beans.GeometryStreamMetadata;
+import weave.beans.PGGeom;
 import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityTableInfo;
 import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
+import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveContextParams;
@@ -60,6 +61,9 @@ import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
+import org.postgis.PGgeometry;
+import org.postgis.Geometry;
+import org.postgis.Point;
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -149,9 +153,9 @@ public class DataService extends GenericServlet
 	////////////////////
 	// DataEntity info
 	
-	public DataEntityTableInfo[] getDataTableList() throws RemoteException
+	public EntityHierarchyInfo[] getDataTableList() throws RemoteException
 	{
-		return getDataConfig().getDataTableList();
+		return getDataConfig().getEntityHierarchyInfo(DataEntity.TYPE_DATATABLE);
 	}
 
 	public int[] getEntityChildIds(int parentId) throws RemoteException
@@ -182,6 +186,20 @@ public class DataService extends GenericServlet
 			
 			// prevent user from receiving private metadata
 			result[i].privateMetadata = Collections.emptyMap();
+		}
+		return result;
+	}
+	
+	public Collection<Integer> getParents(int childId) throws RemoteException
+	{
+		Collection<Integer> result = null;
+		try
+		{
+			DataConfig config = getDataConfig();
+			result = config.getParentIds(childId);
+		}catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 		return result;
 	}
@@ -221,6 +239,7 @@ public class DataService extends GenericServlet
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
+		List<PGGeom> geometricData = null;
 		
 		// use config min,max or param min,max to filter the data
 		double minValue = Double.NaN;
@@ -275,9 +294,17 @@ public class DataService extends GenericServlet
 				entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
 			}
 			if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
-				numericData = new ArrayList<Double>();
-			else // for every other dataType, use String
-				stringData = new ArrayList<String>();
+			{
+				numericData = new LinkedList<Double>();
+			}
+			else if (dataType.equalsIgnoreCase(DataType.GEOMETRY))
+			{
+				geometricData = new LinkedList<PGGeom>();
+			}
+			else
+			{
+				stringData = new LinkedList<String>();
+			}
 			
 			// hack for dimension slider format
 			if (result.columnTypes.length == 3)
@@ -313,6 +340,23 @@ public class DataService extends GenericServlet
 					else
 						continue;
 				}
+				else if (geometricData != null)
+				{
+					// The dataObj must be cast to PGgeometry before an individual Geometry can be extracted.
+					Geometry geom = ((PGgeometry) dataObj).getGeometry();
+					int numPoints = geom.numPoints();
+					// Create PGGeom Bean here and fill it up!
+					PGGeom bean = new PGGeom();
+					bean.type = geom.getType();
+					bean.xyCoords = new double[numPoints * 2];
+					for (int j = 0; j < numPoints; j++)
+					{
+						Point pt = geom.getPoint(j);
+						bean.xyCoords[j * 2] = pt.x;
+						bean.xyCoords[j * 2 + 1] = pt.y;
+					}
+					geometricData.add(bean);
+				}
 				else
 				{
 					stringData.add(dataObj.toString());
@@ -342,6 +386,8 @@ public class DataService extends GenericServlet
 		result.keys = keys.toArray(new String[keys.size()]);
 		if (numericData != null)
 			result.data = numericData.toArray();
+		else if (geometricData != null)
+			result.data = geometricData.toArray();
 		else
 			result.data = stringData.toArray();
 		// hack for dimension slider
@@ -557,7 +603,7 @@ public class DataService extends GenericServlet
 	// backwards compatibility
 	
 	/**
-	 * @param publicMetadata The metadata query.
+	 * @param metadata The metadata query.
 	 * @return The id of the matching column.
 	 * @throws RemoteException Thrown if the metadata query does not match exactly one column.
 	 */

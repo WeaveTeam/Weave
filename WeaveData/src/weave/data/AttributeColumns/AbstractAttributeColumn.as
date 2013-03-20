@@ -19,8 +19,6 @@
 
 package weave.data.AttributeColumns
 {
-	import flash.utils.getQualifiedClassName;
-	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.CallbackCollection;

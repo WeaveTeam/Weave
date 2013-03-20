@@ -48,6 +48,7 @@
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
 	<property name="SERVICES" value="WeaveServices"/>
+        <property name="SERVLETUTILS" value="WeaveServletUtils"/>
 
 	<target name="dist" depends="build">
 		<zip destfile="weave.zip">
@@ -91,7 +92,7 @@
                 <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
-		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
+		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
                 <copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
@@ -123,15 +124,18 @@
 	<target name="admin" depends="ui">
 		<buildproject targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
-	<target name="services">
-	    <ant dir="${basedir}/WeaveServices" target="dist"/>
+	<target name="servletutils">
+		<ant dir="${basedir}/${SERVLETUTILS}" target="build"/>
+	</target>
+	<target name="services" depends="servletutils">
+		<ant dir="${basedir}/${SERVICES}" target="dist"/>
 	</target>
 
 	<!-- This target calls the clean targets of each project's build file -->
 	<target name="clean">
 		<echo message="Cleaning all projects..."/>
 		<delete quiet="false" includeemptydirs="true" dir="${WEAVE_DESTROOT}">
-		    <fileset file="${basedir}/WeaveServices.war"/>
+		    <fileset file="${basedir}/${SERVICES}.war"/>
 		    <fileset file="${basedir}/weave.zip"/>
 		</delete>
 		<ant dir="${basedir}/${CLIENT}" target="clean" />
@@ -142,6 +146,7 @@
 		<ant dir="${basedir}/${UISPARK}" target="clean" />
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
+		<ant dir="${basedir}/${SERVLETUTILS}" target="clean" />
 	</target>
 
 	<target name="admin_wrapper">

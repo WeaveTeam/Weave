@@ -53,6 +53,7 @@ package weave.visualization.layers
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
+	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
 	
 	/**
@@ -720,7 +721,7 @@ package weave.visualization.layers
 		private function clearSelection():void
 		{
 			for each (var name:String in plotManager.plotters.getNames())
-				setSelectionKeys(name, []);
+				setSelectionKeys(name, null);
 		}
 		
 		/**
@@ -791,7 +792,7 @@ package weave.visualization.layers
 			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 
 			// loop from bottom layer to top layer
-			for each (var name:String in plotManager.plotters.getNames())
+			layerLoop: for each (var name:String in plotManager.plotters.getNames())
 			{
 				var plotter:IPlotter = plotManager.plotters.getObject(name) as IPlotter;
 				var settings:LayerSettings = plotManager.getLayerSettings(name);
@@ -799,8 +800,10 @@ package weave.visualization.layers
 				if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
-				if (_lastProbedQKey && !plotter.filteredKeySet.containsKey(_lastProbedQKey))
-					continue;
+				if (_lastProbedQKeys)
+					for each (var key:IQualifiedKey in _lastProbedQKeys)
+						if (!plotter.filteredKeySet.containsKey(key))
+							continue layerLoop;
 				
 				// when using the selection layer, clear the probe
 				setProbeKeys(name, []);
@@ -814,10 +817,12 @@ package weave.visualization.layers
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
-				var keys:Array = [];
+				var keys:Array = null;
 				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 				{
-					keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
+					// if user has probed something and not dragged the mouse during selection, select only the probed shapes 
+					if (!_lastProbedQKeys || !queryBounds.isEmpty())
+						keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
 				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 				{
@@ -844,8 +849,8 @@ package weave.visualization.layers
 					keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlapGeometry(_selectionGeometry, minImportance, false);
 				}
 				
-				
-				setSelectionKeys(name, keys, true);
+				keys = VectorUtils.flatten(_lastProbedQKeys, keys);
+				setSelectionKeys(name, keys);
 				
 				break; // select only one layer at a time
 			}
@@ -864,8 +869,9 @@ package weave.visualization.layers
 		/**
 		 * This is the last IQualifiedKey (record identifier) that was probed.
 		 */
-		public function get lastProbedKey():IQualifiedKey { return _lastProbedQKey; }
-		private var _lastProbedQKey:IQualifiedKey = null;
+		public function get lastProbedKey():IQualifiedKey { return _lastProbedQKeys ? _lastProbedQKeys[0] : null; }
+		public function get lastProbedKeys():Array { return _lastProbedQKeys; }
+		private var _lastProbedQKeys:Array = null;
 		
 		protected function handleProbe(allowCallLater:Boolean = true):void
 		{
@@ -919,7 +925,7 @@ package weave.visualization.layers
 					if (keys.length > 0)
 					{
 						setProbeKeys(name, keys);
-						_lastProbedQKey = keys[0] as IQualifiedKey;
+						_lastProbedQKeys = keys;
 						
 						return;
 					}
@@ -930,26 +936,25 @@ package weave.visualization.layers
 					setProbeKeys(lastActiveLayer, []);
 			}
 			// either not rolled over or nothing was probed
-			_lastProbedQKey = null;
+			_lastProbedQKeys = null;
 		}
 		
-		protected function setSelectionKeys(layerName:String, keys:Array, useMouseMode:Boolean = false):void
-		{	
+		protected function setSelectionKeys(layerName:String, keys:Array):void
+		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
 			
 			// set the probe filter to a new set of keys
 			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
 			var keySet:KeySet = settings.selectionFilter.internalObject as KeySet;
-			if (keySet != null)
-			{	
-				if (useMouseMode && _mouseMode == InteractionController.SELECT_ADD)
-					keySet.addKeys(keys);
-				else if (useMouseMode && _mouseMode == InteractionController.SELECT_REMOVE)
-					keySet.removeKeys(keys);
-				else
-					keySet.replaceKeys(keys);
-			}
+			if (!keys)
+				keySet.clearKeys();
+			else if (_mouseMode == InteractionController.SELECT_ADD)
+				keySet.addKeys(keys);
+			else if (_mouseMode == InteractionController.SELECT_REMOVE)
+				keySet.removeKeys(keys);
+			else
+				keySet.replaceKeys(keys);
 		}
 		
 		protected function setProbeKeys(layerName:String, keys:Array):void

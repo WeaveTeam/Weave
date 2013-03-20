@@ -53,16 +53,21 @@ package weave.compiler
 		 */
 		public var debug:Boolean = false;
 		
+		private static const BRANCH_IF:String = 'if';
+		private static const BRANCH_ELSE:String = 'else';
+		private static const BRANCH_FOR:String = 'for';
+		private static const BRANCH_WHILE:String = 'while';
+		private static const BRANCH_RETURN:String = 'return';
+		private static const METHOD_INDEX:int = -1;
+		private static const CONDITION_INDEX:int = 0;
+		private static const TRUE_INDEX:int = 1;
+		private static const FALSE_INDEX:int = 2;
+		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
-		 * For example, the function notation for ( x + y ) is ( (+)(x,y) ).
+		 * For example, the function notation for ( x + y ) is ( \+(x,y) ).
 		 */
-		public static const OPERATOR_PREFIX:String = '(';
-		/**
-		 * This is the suffix used for the function notation of infix operators.
-		 * For example, the function notation for ( x + y ) is ( (+)(x,y) ).
-		 */
-		public static const OPERATOR_SUFFIX:String = ')';
+		public static const OPERATOR_ESCAPE:String = '\\';
 		
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
@@ -186,6 +191,9 @@ package weave.compiler
 			return libraries.concat(); // make a copy
 		}
 		
+		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function or String -> true
+		private const ASSIGN_OP_LOOKUP:Object = new Dictionary(); // Function -> true
+		
 		/**
 		 * While this is set to true, compiler optimizations are enabled.
 		 */		
@@ -257,9 +265,6 @@ package weave.compiler
 			if (debug)
 				constants['trace'] = function(...args):void { trace.apply(null, args); };
 			
-			// add constants
-			constants['isNaN'] = isNaN;
-			constants['isFinite'] = isFinite;
 			// global symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
 				constants[String(_const)] = _const;
@@ -364,7 +369,19 @@ package weave.compiler
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
 				if (operators[op] is Function)
-					constants[OPERATOR_PREFIX + op + OPERATOR_SUFFIX] = operators[op];
+					constants[OPERATOR_ESCAPE + op] = operators[op];
+			
+			// fill branch reverse-lookup dictionary
+			BRANCH_LOOKUP[BRANCH_IF] = true;
+			BRANCH_LOOKUP[BRANCH_FOR] = true;
+			BRANCH_LOOKUP[BRANCH_WHILE] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '?:']] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '&&']] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '||']] = false;
+			
+			// fill assignment operator reverse-lookup dictionary
+			for each (var assigOp:Function in assignmentOperators)
+				ASSIGN_OP_LOOKUP[assigOp] = true;
 		}
 
 		/**
@@ -512,13 +529,20 @@ package weave.compiler
 				}
 			}
 			
+			// next step: compile escaped operators
+			for (i = 0; i < tokens.length - 1; i++)
+			{
+				token = tokens[i];
+				if (token == OPERATOR_ESCAPE && operators[tokens[i + 1]] is Function)
+				{
+					token = tokens[i + 1];
+					tokens.splice(i, 2, new CompiledConstant(OPERATOR_ESCAPE + token, operators[token]));
+				}
+			}
+			
 			// next step: handle operators "..[]{}()"
 			compileBracketsAndProperties(tokens);
 
-			// next step: compile lone operators (extension to allow getting pointers to operator functions)
-			if (tokens.length == 1 && tokens[0] is String && operators[tokens[0]] is Function)
-				tokens[0] = new CompiledConstant(OPERATOR_PREFIX + tokens[0] + OPERATOR_SUFFIX, operators[tokens[0]]);
-			
 			// next step: handle stray operators "..[](){}"
 			for each (token in tokens)
 				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
@@ -599,7 +623,7 @@ package weave.compiler
 				if (enableOptimizations && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
-					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:' + OPERATOR_SUFFIX, operators['?:']), [condition, trueBranch, falseBranch]);
+					result = compileFunctionCall(new CompiledConstant(OPERATOR_ESCAPE + '?:', operators['?:']), [condition, trueBranch, falseBranch]);
 				
 				tokens.splice(left - 1, end - left + 1, result);
 			}
@@ -622,7 +646,7 @@ package weave.compiler
 				if (!lhs || !rhs)
 					throw new Error("Invalid " + (!lhs ? 'left' : 'right') + "-hand-side of '" + tokens[i] + "'");
 				
-				// lhs should either be a constant or a call to operator.()
+				// lhs should either be a constant or a call to operator (.)
 				
 				if (lhs.evaluatedMethod is String) // lhs is a variable lookup
 				{
@@ -630,9 +654,9 @@ package weave.compiler
 					continue;
 				}
 				
-				// verify that lhs.compiledMethod.name is 'operator.'
+				// verify that lhs.compiledMethod.name is \.
 				var lhsMethod:CompiledConstant = lhs.compiledMethod as CompiledConstant;
-				if (lhsMethod && lhsMethod.name == OPERATOR_PREFIX + '.' + OPERATOR_SUFFIX)
+				if (lhsMethod && lhsMethod.name == OPERATOR_ESCAPE + '.')
 				{
 					// switch to the assignment operator
 					lhs.compiledParams.push(tokens[i + 1]);
@@ -865,13 +889,6 @@ package weave.compiler
 				{
 					var propertyToken:String = tokens[open + 1] as String;
 					
-					// special case for lone operator
-					if (open > 0 && token == OPERATOR_PREFIX && propertyToken == OPERATOR_SUFFIX)
-					{
-						tokens.splice(open - 1, 3, new CompiledConstant(OPERATOR_PREFIX + tokens[open] + OPERATOR_SUFFIX, operators[tokens[open]]));
-						continue;
-					}
-					
 					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
 						break; // error
 					
@@ -905,6 +922,11 @@ package weave.compiler
 						tokens.splice(open, 2, compileOperator('[', compiledParams));
 					}
 					continue;
+				}
+				
+				if (leftBracket == '(' && token == BRANCH_IF)
+				{
+					
 				}
 				
 				if (leftBracket == '(' && compiledToken) // if there is a compiled token to the left, this is a function call
@@ -987,7 +1009,7 @@ package weave.compiler
 			if (!enableOptimizations
 				|| !constantMethod
 				|| operators[constantMethod.name] == undefined
-				|| constantMethod.name == OPERATOR_PREFIX + '[' + OPERATOR_SUFFIX
+				|| constantMethod.name == OPERATOR_ESCAPE + '['
 				|| assignmentOperators[constantMethod.value] != undefined)
 			{
 				return compiledFunctionCall;
@@ -1101,10 +1123,7 @@ package weave.compiler
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
 			*/
-			if (operatorName == ',')
-				operatorName = '{,}';
-			else
-				operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
+			operatorName = OPERATOR_ESCAPE + operatorName;
 			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 
@@ -1143,10 +1162,9 @@ package weave.compiler
 				params[i] = decompileObject(call.compiledParams[i]);
 			
 			// replace infix operator function calls with the preferred infix syntax
-			if (name.indexOf(OPERATOR_PREFIX) == 0 || name == '{,}')
+			if (name.indexOf(OPERATOR_ESCAPE) == 0)
 			{
-				var op:String = name.substr(OPERATOR_PREFIX.length);
-				op = op.substr(0, -OPERATOR_SUFFIX.length);
+				var op:String = name.substr(OPERATOR_ESCAPE.length);
 				if (op == '.' && params.length >= 2)
 				{
 					var result:String = params[0];
@@ -1173,7 +1191,7 @@ package weave.compiler
 					return '[' + params.join(', ') + ']'
 				if (op == ';')
 					return '{' + params.join('; ') + '}';
-				if (op == ',')
+				if (op == ',' && params.length > 0)
 					return '(' + params.join(', ') + ')';
 				
 				if (call.compiledParams.length == 1) // unary op
@@ -1221,19 +1239,18 @@ package weave.compiler
 			}
 			
 			// create the variables that will be used inside the wrapper function
-			const METHOD_INDEX:int = -1;
-			const CONDITION_INDEX:int = 0;
-			const TRUE_INDEX:int = 1;
-			const FALSE_INDEX:int = 2;
-			const BRANCH_LOOKUP:Dictionary = new Dictionary();
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '?:' + OPERATOR_SUFFIX]] = true;
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '&&' + OPERATOR_SUFFIX]] = true;
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '||' + OPERATOR_SUFFIX]] = false;
-			const ASSIGN_OP_LOOKUP:Object = new Dictionary();
-			for each (var assigOp:Function in assignmentOperators)
-				ASSIGN_OP_LOOKUP[assigOp] = true;
+
+			const stack:Array = []; // used as a queue of function calls
+			var call:CompiledFunctionCall;
+			var subCall:CompiledFunctionCall;
+			var compiledParams:Array;
+			var result:*;
+			var symbolName:String;
+			var i:int;
 
 			const builtInSymbolTable:Object = {};
+			for (symbolName in [BRANCH_IF, BRANCH_ELSE, BRANCH_FOR, BRANCH_WHILE, BRANCH_RETURN])
+				builtInSymbolTable[symbolName] = symbolName;
 			const localSymbolTable:Object = {};
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [
@@ -1245,16 +1262,8 @@ package weave.compiler
 			];
 			const THIS_SYMBOL_TABLE_INDEX:int = 3;
 			
-			const stack:Array = []; // used as a queue of function calls
-			var call:CompiledFunctionCall;
-			var subCall:CompiledFunctionCall;
-			var compiledParams:Array;
-			var result:*;
-			var symbolName:String;
-			var i:int;
-
-			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
-			var wrapperFunction:Function = function(...args):*
+			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
+			var wrapperFunction:Function = function():*
 			{
 				builtInSymbolTable['this'] = this;
 				
@@ -1263,10 +1272,10 @@ package weave.compiler
 					delete localSymbolTable[symbolName];
 				
 				// make function parameters available under the specified parameter names
-				localSymbolTable['arguments'] = args;
+				localSymbolTable['arguments'] = arguments;
 				if (paramNames)
 					for (i = 0; i < paramNames.length; i++)
-						localSymbolTable[paramNames[i] as String] = i < args.length ? args[i] : paramDefaults[i];
+						localSymbolTable[paramNames[i] as String] = i < arguments.length ? arguments[i] : paramDefaults[i];
 				
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
@@ -1320,7 +1329,7 @@ package weave.compiler
 							{
 								symbolName = call.evaluatedParams[0];
 								if (builtInSymbolTable.hasOwnProperty(symbolName))
-									throw new Error("Cannot assign built-in variable: " + symbolName);
+									throw new Error("Cannot assign built-in symbol: " + symbolName);
 								
 								// assignment operator expects parameters like (host, ...chain, value)
 								// if there is no matching local variable and 'this' has a matching one, assign the property of 'this'
@@ -1332,12 +1341,25 @@ package weave.compiler
 							else if (call.evaluatedMethod is Class)
 							{
 								// type casting
-								if (call.evaluatedParams.length != 1)
-									throw new Error("Incorrect number of arguments for type casting.  Expected 1.");
+								if (call.evaluatedMethod == Array) // special case for Array
+									result = call.evaluatedParams.concat();
+								else if (call.evaluatedParams.length != 1)
+								{
+									// special case for Object('prop1', value1, ...)
+									if (call.evaluatedMethod === Object)
+									{
+										var params:Array = call.evaluatedParams;
+										result = {}
+										for (var i:int = 0; i < params.length - 1; i += 2)
+											result[params[i]] = params[i + 1];
+									}
+									else
+										throw new Error("Incorrect number of arguments for type casting.  Expected 1.");
+								}
 								// special case for Class('some.qualified.ClassName')
-								if (call.evaluatedMethod === Class && call.evaluatedParams[0] is String)
+								else if (call.evaluatedMethod === Class && call.evaluatedParams[0] is String)
 									result = getDefinitionByName(call.evaluatedParams[0]);
-								else
+								else // all other single-parameter type casting operations
 									result = call.evaluatedMethod(call.evaluatedParams[0]);
 							}
 							else
@@ -1392,7 +1414,6 @@ package weave.compiler
 				}
 				throw new Error("unreachable");
 			};
-			builtInSymbolTable['__self__'] = wrapperFunction;
 			
 			return wrapperFunction;
 		}

@@ -32,6 +32,7 @@
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
 	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
+	keyDown="if (event.keyCode == Keyboard.ESCAPE) handleCancelClick();"
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
 						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>

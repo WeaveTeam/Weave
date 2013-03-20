@@ -8,9 +8,11 @@ package weave.services
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.getCallbackCollection;
+    import weave.api.registerLinkableChild;
     import weave.services.beans.Entity;
+    import weave.services.beans.EntityHierarchyInfo;
     import weave.services.beans.EntityMetadata;
-    import weave.services.beans.EntityTableInfo;
+    import weave.services.beans.EntityType;
     import weave.utils.Dictionary2D;
 
     public class EntityCache implements ILinkableObject
@@ -21,15 +23,25 @@ package weave.services
         private var cache_entity:Object = {}; // id -> Array <Entity>
 		private var d2d_child_parent:Dictionary2D = new Dictionary2D(); // <child_id,parent_id> -> Boolean
 		private var delete_later:Object = {}; // id -> Boolean
-		private var _dataTableIds:Array = []; // array of EntityTableInfo
-		private var _dataTableLookup:Object = {}; // id -> EntityTableInfo
+		private var _idsByType:Object = {}; // entityType -> Array of id
+		private var _infoLookup:Object = {}; // id -> EntityHierarchyInfo
 		private var pending_invalidate:Object = {}; // id -> Boolean; used to remember which ids to invalidate the next time the entity is requested
 		
         public function EntityCache()
         {
 			callbacks.addGroupedCallback(this, fetchDirtyEntities);
+			registerLinkableChild(this, Admin.service);
 			Admin.service.addHook(Admin.service.authenticate, null, fetchDirtyEntities);
         }
+		
+		public function getCachedParentIds(id:int):Array
+		{
+			var result:Array = [];
+			var d:Dictionary = d2d_child_parent.dictionary[id];
+			for (var pid:* in d)
+				result.push(int(pid));
+			return result;
+		}
 		
 		public function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
 		{
@@ -43,7 +55,7 @@ package weave.services
 			
 			if (!cache_entity[id])
 			{
-				var entity:Entity = new Entity(id);
+				var entity:Entity = new Entity();
 				cache_entity[id] = entity;
 			}
 			
@@ -102,13 +114,18 @@ package weave.services
 			{
 				// when requesting root, also request data table list
 				if (id == ROOT_ID)
-					addAsyncResponder(Admin.service.getDataTableList(), handleDataTableList);
-				ids.push(int(id));
+				{
+					delete cache_dirty[id];
+					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.TABLE), handleEntityHierarchyInfo, null, EntityType.TABLE);
+					addAsyncResponder(Admin.service.getEntityHierarchyInfo(EntityType.HIERARCHY), handleEntityHierarchyInfo, null, EntityType.HIERARCHY);
+				}
+				else
+					ids.push(int(id));
 			}
 			if (ids.length > 0)
 			{
 				cache_dirty = {};
-				addAsyncResponder(Admin.service.getEntitiesById(ids), getEntityHandler);
+				addAsyncResponder(Admin.service.getEntitiesById(ids), getEntityHandler, null, ids);
 			}
         }
 		
@@ -122,20 +139,28 @@ package weave.services
 			callbacks.resumeCallbacks();
 		}
 		
-        private function getEntityHandler(event:ResultEvent, token:Object):void
+        private function getEntityHandler(event:ResultEvent, requestedIds:Array):void
         {
+			var id:int;
+			
+			// mark all requested ids as pending_invalidate in case they do not appear in the results
+			for each (id in requestedIds)
+				pending_invalidate[id] = true;
+				
 			for each (var result:Object in event.result)
 			{
-				var id:int = Entity.getEntityIdFromResult(result);
-				var entity:Entity = cache_entity[id] || new Entity(id);
+				id = Entity.getEntityIdFromResult(result);
+				var entity:Entity = cache_entity[id] || new Entity();
 				entity.copyFromResult(result);
 	            cache_entity[id] = entity;
+				pending_invalidate[id] = false;
 				
-				var tableInfo:EntityTableInfo = _dataTableLookup[id];
-				if (tableInfo)
+				var info:EntityHierarchyInfo = _infoLookup[id];
+				if (info)
 				{
-					tableInfo.title = entity.publicMetadata['title'];
-					tableInfo.numChildren = entity.childIds.length;
+					info.type = entity.type;
+					info.title = entity.publicMetadata[ColumnMetadata.TITLE];
+					info.numChildren = entity.childIds.length;
 				}
 				
 				// cache child-to-parent mappings
@@ -146,30 +171,30 @@ package weave.services
 			callbacks.triggerCallbacks();
         }
 		
-		private function handleDataTableList(event:ResultEvent, token:Object = null):void
+		private function handleEntityHierarchyInfo(event:ResultEvent, entityType:int):void
 		{
 			var items:Array = event.result as Array;
 			for (var i:int = 0; i < items.length; i++)
 			{
-				var item:EntityTableInfo = new EntityTableInfo(items[i]);
-				_dataTableLookup[item.id] = item;
-				items[i] = item.id;
+				var item:EntityHierarchyInfo = new EntityHierarchyInfo(items[i], entityType);
+				_infoLookup[item.id] = item;
+				items[i] = item.id; // overwrite item with its id
 			}
-			_dataTableIds = items;
+			_idsByType[entityType] = items; // now an array of ids
 			
 			callbacks.triggerCallbacks();
 		}
 		
-		public function getDataTableIds():Array
+		public function getIdsByType(entityType:int):Array
 		{
 			getEntity(ROOT_ID);
-			return _dataTableIds;
+			return _idsByType[entityType] = (_idsByType[entityType] || []);
 		}
 		
-		public function getDataTableInfo(id:int):EntityTableInfo
+		public function getBranchInfo(id:int):EntityHierarchyInfo
 		{
 			getEntity(ROOT_ID);
-			return _dataTableLookup[id];
+			return _infoLookup[id];
 		}
         
 		public function invalidateAll(purge:Boolean = false):void
@@ -182,8 +207,8 @@ package weave.services
 				cache_entity = {};
 				d2d_child_parent = new Dictionary2D();
 				delete_later = {};
-				_dataTableIds = [];
-				_dataTableLookup = {};
+				_idsByType = {};
+				_infoLookup = {};
 				pending_invalidate = {};
 			}
 			else
@@ -204,7 +229,7 @@ package weave.services
         }
         public function add_category(label:String, parentId:int, index:int):void
         {
-			var type:int = parentId == ROOT_ID ? Entity.TYPE_HIERARCHY : Entity.TYPE_CATEGORY;
+			var type:int = parentId == ROOT_ID ? EntityType.HIERARCHY : EntityType.CATEGORY;
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata[ColumnMetadata.TITLE] = label;
 			Admin.service.newEntity(type, em, parentId, index);

@@ -183,7 +183,7 @@
 				histo.width = 300;
 				histo.title = lang("{0}(SubSelection)", histo.title);
 				copySessionState(histogramColumn, histo.internalDataColumn);
-				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalBinningDefinition as SimpleBinningDefinition;
+				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalObject as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
 				// TEMPORARY SOLUTION until we start using VisToolGroup
 				var keySet:KeySet = histo.visualization.getMainPlotter().filteredKeySet.keyFilter.requestLocalObject(KeySet, false)

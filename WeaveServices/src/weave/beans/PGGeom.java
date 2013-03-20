@@ -17,19 +17,27 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services.beans
+package weave.beans;
+
+/**
+ * Bean class for storing coordinates from a PostGIS geometry. 
+ */
+public class PGGeom
 {
-	public class EntityTableInfo
+	/**
+	 * Stores PostGIS geometry type id.
+	 */
+	public int type;
+
+	/**
+	 * Stores X coordinates at even numbered indices and Y coords are at odd numbered indices.
+	 */
+	public double[] xyCoords;
+
+	/**
+	 * Default constructor, does not initialize anything.
+	 */
+	public PGGeom()
 	{
-		public var id:int;
-		public var title:String;
-		public var numChildren:int;
-		
-		public function EntityTableInfo(obj:Object)
-		{
-			for (var name:String in obj)
-				if (this.hasOwnProperty(name))
-					this[name] = obj[name];
-		}
 	}
 }

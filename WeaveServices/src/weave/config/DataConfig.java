@@ -259,11 +259,20 @@ public class DataConfig
     		return result;
     	return null;
     }
+    
+    /**
+     * @param ids A collection of entity ids.
+     * @return A collection of DataEntity objects for the entities in the supplied list of ids that actually exist.
+     */
     public Collection<DataEntity> getEntitiesById(Collection<Integer> ids) throws RemoteException
     {
     	detectChange();
         List<DataEntity> results = new LinkedList<DataEntity>();
         Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
+        
+        // only proceed with the ids that actually exist
+        ids = typeresults.keySet();
+        
         Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
         Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
         for (int id : ids)
@@ -281,7 +290,7 @@ public class DataConfig
     /**
      * @param parentId An existing parent to add a child hierarchy to.
      * @param childId An existing child to copy the hierarchy of.
-     * @param insertBeforeId Identifies a child of the parent to insert the new child before.
+     * @param insertAtIndex Identifies a child of the parent to insert the new child before.
      * @throws RemoteException
      */
     public void buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
@@ -289,10 +298,9 @@ public class DataConfig
 		detectChange();
 		
 		int newChildId;
-		Map<Integer,Integer> entityTypes = manifest.getEntryTypes(Arrays.asList(parentId, childId));
-		int parentType = entityTypes.get(parentId);
-		int childType = entityTypes.get(childId);
-		
+		Map<Integer,Integer> types = manifest.getEntryTypes(Arrays.asList(parentId, childId));
+		int parentType = types.containsKey(parentId) ? types.get(parentId) : DataEntity.TYPE_UNSPECIFIED;
+		int childType = types.containsKey(childId) ? types.get(childId) : DataEntity.TYPE_UNSPECIFIED;
 
 		if (parentId == NULL) // parent is root
 		{
@@ -398,11 +406,11 @@ public class DataConfig
     	detectChange();
     	return new HashSet<String>(public_metadata.getPropertyMap(null, property).values());
     }
-    public DataEntityTableInfo[] getDataTableList() throws RemoteException
+    public EntityHierarchyInfo[] getEntityHierarchyInfo(int entityType) throws RemoteException
     {
     	detectChange();
-    	Collection<Integer> ids = manifest.getByType(DataEntity.TYPE_DATATABLE);
-    	DataEntityTableInfo[] result = new DataEntityTableInfo[ids.size()];
+    	Collection<Integer> ids = manifest.getByType(entityType);
+    	EntityHierarchyInfo[] result = new EntityHierarchyInfo[ids.size()];
     	if (result.length == 0)
     		return result;
     	
@@ -411,13 +419,13 @@ public class DataConfig
     	int i = 0;
     	for (Integer id : ids)
     	{
-    		DataEntityTableInfo info = new DataEntityTableInfo();
+    		EntityHierarchyInfo info = new EntityHierarchyInfo();
     		info.id = id;
     		info.title = titles.get(id);
     		info.numChildren = childCounts.containsKey(id) ? childCounts.get(id) : 0;
     		result[i++] = info;
     	}
-    	Arrays.sort(result, DataEntityTableInfo.SORT_BY_TITLE);
+    	Arrays.sort(result, EntityHierarchyInfo.SORT_BY_TITLE);
     	return result;
     }
     
@@ -480,11 +488,16 @@ public class DataConfig
 		/**
 		 * This function determines the corresponding DataType constant for a SQL type defined in java.sql.Types.
 		 * @param sqlType A SQL data type defined in java.sql.Types.
-		 * @return The corresponding constant NUMBER or STRING.
+		 * @return The corresponding constant NUMBER or STRING or GEOMETRY.
 		 */
 		static public String fromSQLType(int sqlType)
 		{
-			return SQLUtils.sqlTypeIsNumeric(sqlType) ? NUMBER : STRING;
+			if (SQLUtils.sqlTypeIsGeometry(sqlType))
+				return GEOMETRY;
+			else if (SQLUtils.sqlTypeIsNumeric(sqlType))
+				return NUMBER;
+			else
+				return STRING;
 		}
 	}
 	
@@ -627,15 +640,15 @@ public class DataConfig
 		}
 	}
 	
-	static public class DataEntityTableInfo
+	static public class EntityHierarchyInfo
 	{
 		public int id;
 		public String title;
 		public int numChildren;
 		
-		public static Comparator<DataEntityTableInfo> SORT_BY_TITLE = new Comparator<DataEntityTableInfo>()
+		public static Comparator<EntityHierarchyInfo> SORT_BY_TITLE = new Comparator<EntityHierarchyInfo>()
 		{
-			public int compare(DataEntityTableInfo o1, DataEntityTableInfo o2)
+			public int compare(EntityHierarchyInfo o1, EntityHierarchyInfo o2)
 			{
 				// special cases for null values to prevent null pointer errors
 				if (o1.title == null)

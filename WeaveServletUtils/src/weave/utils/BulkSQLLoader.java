@@ -29,6 +29,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Vector;
 
 import org.postgresql.PGConnection;
 
@@ -73,14 +75,22 @@ public abstract class BulkSQLLoader
 	
 	public static class BulkSQLLoader_Direct extends BulkSQLLoader
 	{
-		private String query = null;
-		private PreparedStatement stmt = null;
+		public static int BUFFER_SIZE = 100;
+		
+		private String baseQuery;
+		private String rowQuery;
+		private PreparedStatement stmt;
 		private boolean prevAutoCommit;
+		private Vector<Object[]> rowBuffer;
+		private int _queryRowCount = 0;
 		
 		public BulkSQLLoader_Direct(Connection conn, String schema, String table, String[] fieldNames) throws RemoteException
 		{
 			super(conn, schema, table, fieldNames);
 			
+			if (BUFFER_SIZE < 1)
+				BUFFER_SIZE = 1;
+			rowBuffer = new Vector<Object[]>(BUFFER_SIZE);
 			try
 			{
 				prevAutoCommit = conn.getAutoCommit();
@@ -92,16 +102,28 @@ public abstract class BulkSQLLoader
 				String[] columns = new String[fieldNames.length];
 				for (int i = 0; i < fieldNames.length; i++)
 					columns[i] = SQLUtils.quoteSymbol(conn, fieldNames[i]);
-				
-			    String column_string = StringUtils.join(",", columns);
-			    String qmark_string = StringUtils.mult(",", "?", fieldNames.length);
 			    
-			    query = String.format("INSERT INTO %s(%s) VALUES (%s)", quotedTable, column_string, qmark_string);
-				stmt = conn.prepareStatement(query);
+				baseQuery = String.format("INSERT INTO %s(%s) VALUES ", quotedTable, StringUtils.join(",", columns));
+			    
+			    rowQuery = "(" + StringUtils.mult(",", "?", fieldNames.length) + ")";
+			    
+			    setQueryRowCount(BUFFER_SIZE);
 			}
 			catch (SQLException e)
 			{
 				throw new RemoteException("Error initializing SQLBulkLoader_Direct", e);
+			}
+		}
+		
+		private void setQueryRowCount(int rowCount) throws SQLException
+		{
+			// only update query if required
+			if (_queryRowCount != rowCount)
+			{
+				_queryRowCount = 0;
+				String query = baseQuery + StringUtils.mult(",", rowQuery, rowCount);
+				stmt = conn.prepareStatement(query);
+				_queryRowCount = rowCount;
 			}
 		}
 		
@@ -110,11 +132,38 @@ public abstract class BulkSQLLoader
 		{
 			if (stmt == null)
 				throw new RemoteException("Bulk loader unable to continue after failure");
+			if (values.length != fieldNames.length)
+				throw new RemoteException(String.format("Number of values does not match number of fields (Expected %s, received %s)", fieldNames.length, values.length));
 			
 			try
 			{
-				//System.out.println(query + " " + Arrays.deepToString(values));
-				SQLUtils.setPreparedStatementParams(stmt, values);
+				rowBuffer.add(values);
+				if (rowBuffer.size() == rowBuffer.capacity())
+					flushBuffer();
+			}
+			catch (SQLException e)
+			{
+				throw new RemoteException("Unable to insert record", e);
+			}
+		}
+		
+		private void flushBuffer() throws SQLException
+		{
+			if (rowBuffer.size() == 0)
+				return;
+			
+			// flatten rows into a single params list
+			Object[] queryParams = new Object[rowBuffer.size() * fieldNames.length];
+			int i = 0;
+			for (Object[] row : rowBuffer)
+				for (Object value : row)
+					queryParams[i++] = value;
+			
+			setQueryRowCount(rowBuffer.size());
+			
+			try
+			{
+				SQLUtils.setPreparedStatementParams(stmt, queryParams);
 				stmt.execute();
 			}
 			catch (SQLException e)
@@ -130,8 +179,13 @@ public abstract class BulkSQLLoader
 				stmt = null;
 				conn = null;
 				
-				e = new SQLExceptionWithQuery(query, e);
-				throw new RemoteException("Unable to insert record", e);
+				System.err.println("Failed to insert values: " + Arrays.deepToString(rowBuffer.toArray()));
+				e = new SQLExceptionWithQuery(baseQuery + "(...)", e);
+				throw e;
+			}
+			finally
+			{
+				rowBuffer.removeAllElements();
 			}
 		}
 		
@@ -140,6 +194,7 @@ public abstract class BulkSQLLoader
 		{
 			try
 			{
+				flushBuffer();
 				conn.commit();
 			}
 			catch (SQLException e)

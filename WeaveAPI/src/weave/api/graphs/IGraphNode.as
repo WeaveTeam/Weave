@@ -29,8 +29,8 @@ package weave.api.graphs
 		function get position():Point;
 		function setPosition(x:Number, y:Number):void;
 			
-		function get id():int;
-		function set id(val:int):void;
+		function get id():String;
+		function set id(val:String):void;
 			
 		function get key():IQualifiedKey;
 		function set key(q:IQualifiedKey):void;

@@ -109,6 +109,12 @@ package weave.services
 			return invoke(getEntitiesById, arguments);
 		}
 		
+		
+		public function getParents(id:int):AsyncToken // returns DataEntity[]
+		{
+			return invoke(getParents, arguments);
+		}
+		
 		////////////////////////////////////
 		// string and numeric data columns
 		
