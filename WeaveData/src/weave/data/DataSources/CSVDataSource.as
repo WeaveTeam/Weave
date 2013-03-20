@@ -23,6 +23,7 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
+	import mx.core.DesignLayer;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -46,6 +47,7 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.core.UntypedLinkableVariable;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
