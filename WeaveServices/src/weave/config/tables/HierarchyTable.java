@@ -178,24 +178,47 @@ public class HierarchyTable extends AbstractTable
 		}
 	}
 
-	public Collection<Integer> getParents(int child_id) throws RemoteException
+	/**
+	 * @param child_ids A collection of child entity ids.
+	 * @return A collection of parent ids associated with the given child ids.
+	 */
+	public Collection<Integer> getParents(Collection<Integer> child_ids) throws RemoteException
 	{
+		ResultSet rs = null;
+		PreparedStatement stmt = null;
+		String query = null;
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Set<Integer> parents = new HashSet<Integer>();
-			Map<String,Object> conditions = MapUtils.fromPairs(FIELD_CHILD, child_id);
-			WhereClause<Object> where = new WhereClause<Object>(conn, conditions, null, true);
-			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, where, null, Object.class))
-			{
-				Number parent = (Number)row.get(FIELD_PARENT);
-				parents.add(parent.intValue());
-			}
-			return parents;
+			Set<Integer> parent_ids = new HashSet<Integer>();
+			if (child_ids.size() == 0)
+				return parent_ids;
+			
+			// build query
+			query = String.format(
+					"SELECT * FROM %s WHERE %s IN (%s)",
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					SQLUtils.quoteSymbol(conn, FIELD_CHILD),
+					StringUtils.join(",", child_ids)
+				);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
+			rs.setFetchSize(SQLResult.FETCH_SIZE);
+			while (rs.next())
+				parent_ids.add(rs.getInt(FIELD_PARENT));
+			
+			return parent_ids;
 		}
 		catch (SQLException e)
 		{
+			if (query != null)
+				e = new SQLExceptionWithQuery(query, e);
 			throw new RemoteException("Unable to retrieve parents.", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(rs);
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	/* getChildren(null) will return all ids that appear in the 'child' column */

@@ -28,6 +28,7 @@ import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -192,16 +193,7 @@ public class DataService extends GenericServlet
 	
 	public Collection<Integer> getParents(int childId) throws RemoteException
 	{
-		Collection<Integer> result = null;
-		try
-		{
-			DataConfig config = getDataConfig();
-			result = config.getParentIds(childId);
-		}catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		return result;
+		return getDataConfig().getParentIds(Arrays.asList(childId));
 	}
 	
 	////////////
@@ -670,9 +662,7 @@ public class DataService extends GenericServlet
 		}
 		
 		// return first column
-		List<Integer> sortedIds = new ArrayList<Integer>(ids);
-		Collections.sort(sortedIds);
-		int id = sortedIds.get(0);
+		int id = ListUtils.getFirstSortedItem(ids, DataConfig.NULL);
 		double min = (Double)cast(minStr, double.class);
 		double max = (Double)cast(maxStr, double.class);
 		String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);

@@ -19,8 +19,10 @@
 
 package weave.utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -157,7 +159,6 @@ public class ListUtils
 		return array;
 	}
 	/**
-	 * findString
 	 * @param needle A String to find with String.equals().
 	 * @param haystack A list of String objects to search.
 	 * @return The index of the first matching String, or -1 if it did not match anything in the List.
@@ -173,7 +174,6 @@ public class ListUtils
 		return -1;
 	}
 	/**
-	 * findString
 	 * @param needle A String to find with String.equals().
 	 * @param haystack A list of String objects to search.
 	 * @return The index of the first matching String, or -1 if it did not match anything in the List.
@@ -193,7 +193,6 @@ public class ListUtils
 		return findIgnoreCase(needle, Arrays.asList(haystack));
 	}
 	/**
-	 * findIgnoreCase
 	 * @param needle A String to find with String.equalsIgnoreCase().
 	 * @param haystack A list of String objects to search.
 	 * @return The index of the first matching String, or -1 if it did not match anything in the List.
@@ -209,7 +208,6 @@ public class ListUtils
 		return -1;
 	}
 	/**
-	 * removeIgnoreCase
 	 * @param needle A String to find with findIgnoreCase().
 	 * @param haystack A list of String objects to search.
 	 * @return The list with the first matching element removed, if it was found with findIgnoreCase().
@@ -220,5 +218,14 @@ public class ListUtils
 		if (index >= 0)
 			haystack.remove(index);
 		return haystack;
+	}
+	
+	public static <T extends Comparable<? super T>> T getFirstSortedItem(Collection<T> items, T defaultValue)
+	{
+		List<T> sortedItems = new ArrayList<T>(items);
+		Collections.sort(sortedItems);
+		for (T item : sortedItems)
+			return item;
+		return defaultValue;
 	}
 }
