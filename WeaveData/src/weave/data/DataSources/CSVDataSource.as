@@ -23,29 +23,30 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
-	import mx.core.DesignLayer;
+	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableOwner;
+	import weave.api.getSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
-	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.core.UntypedLinkableVariable;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -53,9 +54,10 @@ package weave.data.DataSources
 	import weave.data.CSVParser;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.QKeyManager;
+	import weave.services.AMF3Servlet;
+	import weave.services.addAsyncResponder;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * 
@@ -66,22 +68,6 @@ package weave.data.DataSources
 	{
 		public function CSVDataSource()
 		{
-			url.addImmediateCallback(this, handleURLChange);
-		}
-
-		/**
-		 * Called when url session state changes
-		 */		
-		private function handleURLChange():void
-		{
-			if (url.value == '')
-				url.value = null;
-			if (url.value != null)
-			{
-				// if url is specified, do not use csvDataString
-				csvData.setSessionState(null);
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
-			}
 		}
 
 		private const asyncParser:CSVParser = registerLinkableChild(this, new CSVParser(true), handleCSVParser);
@@ -267,10 +253,85 @@ package weave.data.DataSources
 		}
 		
 		/**
+		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
+		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
+		 */		
+		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
+		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
+		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
+		private var _servlet:AMF3Servlet = null;
+		private function verifyServletParams(value:Object):Boolean
+		{
+			return value != null
+				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_METHOD)
+				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_PARAMS);
+		}
+		
+		/**
+		 * Called when url session state changes
+		 */		
+		private function handleURLChange():void
+		{
+			var urlChanged:Boolean = detectLinkableObjectChange(handleURLChange, url);
+			var servletParamsChanged:Boolean = detectLinkableObjectChange(handleURLChange, servletParams);
+			if (urlChanged || servletParamsChanged)
+			{
+				if (url.value == '')
+					url.value = null;
+				if (url.value != null)
+				{
+					// if url is specified, do not use csvDataString
+					csvData.setSessionState(null);
+					if (servletParams.value)
+					{
+						if (urlChanged)
+						{
+							disposeObjects(_servlet);
+							_servlet = registerLinkableChild(this, new AMF3Servlet(url.value));
+						}
+						var token:AsyncToken = _servlet.invokeAsyncMethod(
+							servletParams.value[SERVLETPARAMS_PROPERTY_METHOD],
+							servletParams.value[SERVLETPARAMS_PROPERTY_PARAMS]
+						);
+						addAsyncResponder(token, handleServletResponse, handleServletError, getSessionState(this));
+					}
+					else
+					{
+						disposeObjects(_servlet);
+						_servlet = null;
+						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
+					}
+				}
+			}
+		}
+		
+		private function handleServletResponse(event:ResultEvent, sessionState:Object):void
+		{
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+				return;
+			var data:Array = event.result as Array;
+			if (!data || (data.length && !(data[0] is Array)))
+			{
+				reportError('Result from servlet is not a two-dimensional Array');
+				return;
+			}
+			parsedRows = data;
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		private function handleServletError(event:FaultEvent, sessionState:Object):void
+		{
+			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)))
+				return;
+			reportError(event);
+		}
+		
+		/**
 		 * This gets called when callbacks are triggered.
 		 */		
 		override protected function initialize():void
 		{
+			handleURLChange();
+			
 			if (_attributeHierarchy.value == null && parsedRows)
 			{
 				// loop through column names, adding indicators to hierarchy
