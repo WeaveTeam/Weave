@@ -1775,7 +1775,7 @@ wheel</zoom>
     <enableBorders>true</enableBorders>
     <enableMoveResize>true</enableMoveResize>
     <enableSubMenu>false</enableSubMenu>
-    <labelFunction>column.getMetadata("title").substr(-5,4)</labelFunction>
+    <labelFunction>column.getMetadata("year")</labelFunction>
     <layoutMode>HSlider</layoutMode>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
