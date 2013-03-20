@@ -284,8 +284,8 @@
 					sortAxis.tickCountRequested.value = _plotter.maxTickMarks;
 				else
 					sortAxis.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
-				sortAxis.showLabels.value = !_plotter.showLabels.value || showAllLabels.value;
-				
+				sortAxis.showLabels.value = !_plotter.showLabels.value || !showAllLabels.value;
+
 				// END handling of horizontal/vertical mode --------------------------------
 				
 				xAxisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);

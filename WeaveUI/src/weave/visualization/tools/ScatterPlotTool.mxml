@@ -56,8 +56,26 @@
 			import weave.visualization.plotters.ScatterPlotPlotter;
 
 			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, lang("Scatterplot"));
-
+			
+			[Bindable]
 			public var plotter:ScatterPlotPlotter = null;
+						
+			
+			public const REGRESSION_LAYER_NAME:String = "regressionLine";
+				
+			private function enableEquationTextEditing ():void 
+			{
+				if (editTextArea.value) 
+				{
+					equationText.editable = true;
+				}
+				else
+				{
+					equationText.editable = false;
+				}				
+			}
+			
+			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), enableEquationTextEditing);
 			
 			override protected function constructor():void
 			{
@@ -65,6 +83,9 @@
 				
 				// lock dynamic objects into place
 				plotter = initializePlotters(ScatterPlotPlotter, true);
+				
+				
+				
 				visualization.enableProbeLine(true, true);
 				
 				//BEGIN TEMPORARY SOLUTION
@@ -129,17 +150,18 @@
 			{
 				return [plotter.dataX, plotter.dataY, colorColumn, plotter.screenRadius];
 			}
-			
-			private const REGRESSION_LAYER_NAME:String = "regressionLine";
-			private var _regressionPlotter:RegressionLinePlotter = null;
+		
+			[Bindable]
+			public var regressionPlotter:RegressionLinePlotter = null;
 			
 			private function initRegressionLayer():void
 			{
-				_regressionPlotter = visualization.plotManager.plotters.requestObject(REGRESSION_LAYER_NAME, RegressionLinePlotter, true);
+				regressionPlotter = visualization.plotManager.plotters.requestObject(REGRESSION_LAYER_NAME, RegressionLinePlotter, true);
 				visualization.plotManager.getLayerSettings(REGRESSION_LAYER_NAME).selectable.value = false;
-				linkSessionState(plotter.dataX, _regressionPlotter.xColumn);
-				linkSessionState(plotter.dataY, _regressionPlotter.yColumn);
-				_regressionPlotter.drawLine.value = false;				
+				linkSessionState(plotter.dataX, regressionPlotter.xColumn);
+				linkSessionState(plotter.dataY, regressionPlotter.yColumn);
+				//regressionPlotter.currentTrendline.value = null;
+				//regressionPlotter.drawLine.value = false;				
 			}
 			
 			
@@ -307,7 +329,7 @@
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateEquation);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateEquation);
-				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
+				getCallbackCollection(regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				showColorPicker.addGroupedCallback(this, updateColorPicker);
 				overrideColor.addGroupedCallback(this, updateColorPicker);
 				
@@ -322,12 +344,13 @@
 			
 			private function updateEquation():void
 			{
-				if ( _regressionPlotter.drawLine.value )
+				// add switch block here
+				if ( regressionPlotter.drawLine.value )
 				{
 					if (equationText.parent != visCanvas)
 						visCanvas.addChild(equationText);
-					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
-					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
+					var slope:Number = StandardLib.roundSignificant(regressionPlotter.getSlope(), 4);
+					var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getIntercept(), 4);
 					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
 					equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
 					equationText.validateNow();
@@ -470,7 +493,7 @@
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
-		editable="false"
+		editable="true"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
 		wordWrap="false"
@@ -516,33 +539,53 @@
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
+			
+			<!-- @author fkamayou 
+				 Beginning of trendline option 
+			-->
 			<mx:VBox>
-				<mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
-							 creationComplete="linkBindableProperty(_regressionPlotter.drawLine,event.target,'selected')"/>
+				<mx:CheckBox id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
+						  	 toolTip="Use the dropdown menu to choose a trendline."/>					
+				<ui:Indent>
+					<mx:HBox>
+						<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
+									 id="trendlineComboBox" dataProvider="{regressionPlotter.trendlines}"
+									 creationComplete="linkBindableProperty(regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
+						<mx:Label text = "{lang('Degree')}" />
+						<mx:HSlider id=	"polynomialDegreeSlider"
+									creationComplete="linkBindableProperty(regressionPlotter.polynomialDegree, event.target, 'value')"									
+									enabled="{trendlineComboBox.selectedItem == 'Polynomial'}"
+									minimum = "2" maximum ="6" snapInterval="1" liveDragging="false"
+									tickInterval="1"/>
+					</mx:HBox>
+				</ui:Indent>				
+				<!-- <mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
+							 creationComplete="linkBindableProperty(regressionPlotter.drawLine,event.target,'selected')"/>
+				-->
 				<ui:Indent>
 					<mx:VBox>
-						<mx:Label id="lineEquation" text="{lang('Equation: y = mx + b')}"/>
+						<mx:Label id="lineEquation" text="{lang('Equation:')}"/>
 						<mx:HBox>
 							<mx:Label text="{lang('Line Color')}" />
 							<mx:ColorPicker id="regressionColorPicker" 
-											creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
-											enabled="{regressionLineCheckBox.selected}"/>
+											creationComplete="linkBindableProperty(regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
+											enabled="{trendlineCheckBox.selected}"/>
 						</mx:HBox>
 						<mx:HBox>
 							<mx:Label text="{lang('Line Thickness')}" />
 							<mx:HSlider id="regressionThicknessSlider"
-										creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
-										enabled="{regressionLineCheckBox.selected}"
+										creationComplete="linkBindableProperty(regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
+										enabled="{trendlineCheckBox.selected}"
 										minimum="1" maximum="10" snapInterval="1" liveDragging="true"
 										tickInterval="1"/>
 						</mx:HBox>
 						<mx:HBox>
 							<mx:Label text="{lang('Line Opacity')}" />
 							<mx:HSlider id="regressionAlphaSlider"
-										enabled="{regressionLineCheckBox.selected}"
+										enabled="{trendlineCheckBox.selected}"
 										minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
 										tickInterval="0.1"
-										creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
+										creationComplete="linkBindableProperty(regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
 						</mx:HBox>
 					</mx:VBox>
 				</ui:Indent>

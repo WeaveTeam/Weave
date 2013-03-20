@@ -28,11 +28,15 @@ package weave.visualization.plotters
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
+	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableString;
+	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Range;
 	import weave.services.WeaveRServlet;
@@ -84,20 +88,52 @@ package weave.visualization.plotters
 		}
 		private function calculateRRegression():void
 		{
-			//trace( "calculateRegression() " + xColumn.toString() );
-			if( drawLine.value )
-			{
-				var Rstring:String = "fit <- lm(y~x)\n"
+				var Rstring:String = null;
+				var dataXY:Array = null;
+				var token:AsyncToken = null;
+				
+			if (currentTrendline.value == LINEAR) {
+				//trace( "calculateRegression() " + xColumn.toString() );
+				Rstring = "fit <- lm(y~x)\n"
 					+"intercept <- coefficients(fit)[1]\n"
 					+"slope <- coefficients(fit)[2]\n"
-					+"rSquared <- summary(fit)$r.squared\n";
+					+"rSquared <- summary(fit)$r.squared\n";			
+				dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
 				
-				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
-				
+			
 				// sends a request to Rserve to calculate the slope and intercept of a regression line fitted to xColumn and yColumn 
-				var token:AsyncToken = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["intercept","slope","rSquared"],Rstring,"",false,false,false);
+				token = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["intercept","slope","rSquared"],Rstring,"",false,false,false);
 				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 			}
+			
+			if (currentTrendline.value == POLYNOMIAL) {
+				//trace( "calculateRegression() " + xColumn.toString() );
+				Rstring = "fit <- lm(y ~ poly(x, 2, raw = TRUE))\n"
+					+"c <- coefficients(fit)[1]\n"
+					+"b <- coefficients(fit)[2]\n"
+					+"a <- coefficients(fit)[3]\n"
+					+"rSquared <- summary(fit)$r.squared\n";			
+				dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
+				
+				
+				// sends a request to Rserve to calculate the coefficients of the regression polynomial fitted to xColumn and yColumn 
+				token = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["c","b","a", "rSquared"],Rstring,"",false,false,false);
+				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
+			}
+			
+			if (currentTrendline.value == LOGARITHMIC) {
+				
+			}
+			
+			if (currentTrendline.value == EXPONENTIAL) {
+				
+			}
+			
+			if (currentTrendline.value == POWER) {
+				
+			}
+			
+			
 		}
 		private var requestID:int = 0; // ID of the latest request, used to ignore old results
 		
@@ -124,12 +160,62 @@ package weave.visualization.plotters
 			
 			if (RresultArray.length > 1)
 			{
-				intercept = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
-				slope = Number((RresultArray[1] as RResult).value);
-				rSquared = Number((RresultArray[2] as RResult).value);
-				//trace( "R" + " " + intercept + " " + slope) ;
-				getCallbackCollection(this).triggerCallbacks();
+				if (currentTrendline.value == LINEAR) {
+					intercept = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
+					slope = Number((RresultArray[1] as RResult).value);
+					rSquared = Number((RresultArray[2] as RResult).value);	
+					//trace( "R" + " " + intercept + " " + slope) ;
+					getCallbackCollection(this).triggerCallbacks();
+				}
+				
+				if (currentTrendline.value == POLYNOMIAL) {
+					
+					if (polynomialDegree.value == 2) {
+						c = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
+						b = Number((RresultArray[1] as RResult).value);
+						a = Number((RresultArray[2] as RResult).value);
+						rSquared = Number((RresultArray[3] as RResult).value);	
+						//trace( "R" + " " + intercept + " " + slope) ;
+						getCallbackCollection(this).triggerCallbacks();	
+						
+					}
+					
+					if (polynomialDegree.value == 3) {
+						
+						
+					}
+					
+					if (polynomialDegree.value == 4) {
+						
+						
+					}
+					
+					if (polynomialDegree.value == 5) {
+						
+						
+					}
+					
+					if (polynomialDegree.value == 5) {
+						
+						
+					}
+					
+				}
+				
+				if (currentTrendline.value == EXPONENTIAL) {
+					
+				}
+				
+				if (currentTrendline.value == POWER) {
+					
+				}
+				
+				if (currentTrendline.value == LOGARITHMIC) {
+					
+					
+				}
 			}
+			
 		}
 		
 		private function handleLinearRegressionFault(event:FaultEvent, token:Object = null):void
@@ -152,13 +238,20 @@ package weave.visualization.plotters
 		private var intercept:Number = NaN;
 		private var slope:Number = NaN;
 		private var rSquared:Number = NaN;
+		private var a:Number = NaN;
+		private var b:Number = NaN;
+		private var c:Number = NaN;
+		private var d:Number = NaN;
+		private var e:Number = NaN;
+		private var f:Number = NaN;
+		private var g:Number = NaN;
 		private var tempRange:Range = new Range();
 		private var tempPoint:Point = new Point();
 		private var tempPoint2:Point = new Point();
 
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if(drawLine.value)
+			if(currentTrendline.value)
 			{
 				var g:Graphics = tempShape.graphics; 
 				g.clear();
@@ -197,5 +290,17 @@ package weave.visualization.plotters
 			super.dispose();
 			requestID = 0; // forces all results from previous requests to be ignored
 		}
+		
+
+		// Trendlines
+		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), calculateRRegression);
+		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(LINEAR), calculateRRegression);
+
+		[Bindable] public var trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
+		public static const LINEAR:String = "Linear";
+		public static const POLYNOMIAL:String = "Polynomial";
+		public static const LOGARITHMIC:String = "Logarithmic";
+		public static const EXPONENTIAL:String = "Exponential";
+		public static const POWER:String = "Power";
 	}
 }
