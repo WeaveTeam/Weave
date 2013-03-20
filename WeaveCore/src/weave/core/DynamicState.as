@@ -31,8 +31,9 @@ package weave.core
 	{
 		public function DynamicState(objectName:String = null, className:String = null, sessionState:* = null)
 		{
-			this.objectName = objectName;
-			this.className = className;
+			// convert empty string to null
+			this.objectName = objectName || null;
+			this.className = className || null;
 			this.sessionState = sessionState;
 		}
 		

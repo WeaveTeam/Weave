@@ -54,7 +54,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * XMLUtils
  * This class contains functions to convert between String and XML Document objects.
  *
  * @author Andy Dufilie
@@ -76,7 +75,6 @@ public class XMLUtils
 	}
 	
 	/**
-	 * getStringFromXPath
 	 * Gets a string from an xml.
 	 * @param expression The XPath expression to evaluate, returns a string
 	 * @return The result of evaluating the given XPath expression.
@@ -99,7 +97,6 @@ public class XMLUtils
 	}
 	
 	/**
-	 * getStringListFromXPath
 	 * Gets a list of strings from an xml.
 	 * @param rootNodeExpression Evaluated on the root of the sqlconfig document to get a single Node.
 	 * @param listExpression Evaluated on the Node returned by rootNodeExpression, gets a NodeList.
@@ -126,7 +123,6 @@ public class XMLUtils
 	}
 
 	/**
-	 * getStringListFromXPath
 	 * Gets a list of strings from an xml.
 	 * @param rootNode The root node to perform the listExpression on. 
 	 * @param listExpression Evaluated on the rootNode, gets a NodeList.

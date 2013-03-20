@@ -290,7 +290,7 @@ public class DataConfig
     /**
      * @param parentId An existing parent to add a child hierarchy to.
      * @param childId An existing child to copy the hierarchy of.
-     * @param insertBeforeId Identifies a child of the parent to insert the new child before.
+     * @param insertAtIndex Identifies a child of the parent to insert the new child before.
      * @throws RemoteException
      */
     public void buildHierarchy(int parentId, int childId, int insertAtIndex) throws RemoteException
@@ -488,11 +488,16 @@ public class DataConfig
 		/**
 		 * This function determines the corresponding DataType constant for a SQL type defined in java.sql.Types.
 		 * @param sqlType A SQL data type defined in java.sql.Types.
-		 * @return The corresponding constant NUMBER or STRING.
+		 * @return The corresponding constant NUMBER or STRING or GEOMETRY.
 		 */
 		static public String fromSQLType(int sqlType)
 		{
-			return SQLUtils.sqlTypeIsNumeric(sqlType) ? NUMBER : STRING;
+			if (SQLUtils.sqlTypeIsGeometry(sqlType))
+				return GEOMETRY;
+			else if (SQLUtils.sqlTypeIsNumeric(sqlType))
+				return NUMBER;
+			else
+				return STRING;
 		}
 	}
 	

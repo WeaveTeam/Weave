@@ -20,28 +20,72 @@
 package weave.data.BinningDefinitions
 {
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IBinClassifier;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newDisposableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.core.CallbackJuggler;
+	import weave.core.CallbackCollection;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.utils.VectorUtils;
 
+	/**
+	 * Extend this class and implement <code>generateBinClassifiersForColumn()</code>, which should store its results in the
+	 * protected <code>output</code> variable and trigger <code>asyncResultCallbacks</code> when the task completes.
+	 * 
+	 * @author adufilie
+	 */
 	public class AbstractBinningDefinition implements IBinningDefinition
 	{
-		public function AbstractBinningDefinition()
+		/**
+		 * Implementations that extend this class should use this as an output buffer.
+		 */		
+		protected var output:ILinkableHashMap = registerDisposableChild(this, new LinkableHashMap(IBinClassifier));
+		private const _asyncResultCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
+			throw new Error("Not implemented");
 		}
 		
-		protected const _statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleStatsChange, false);
-		protected function handleStatsChange():void
+		/**
+		 * @inheritDoc
+		 */		
+		public function get asyncResultCallbacks():ICallbackCollection
 		{
-			// hack -- trigger callbacks so bins will be recalculated
-			getCallbackCollection(this).triggerCallbacks();
+			return _asyncResultCallbacks;
 		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getBinNames():Array
+		{
+			if (linkableObjectIsBusy(this))
+				return null;
+			return output.getNames();
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getBinClassifiers():Array
+		{
+			if (linkableObjectIsBusy(this))
+				return null;
+			return output.getObjects();
+		}
+		
+		//-------------------
 		
 		public const overrideBinNames:LinkableString = registerLinkableChild(this, new LinkableString(''));
 		
@@ -51,11 +95,6 @@ package weave.data.BinningDefinitions
 			if (detectLinkableObjectChange(getOverrideNames, overrideBinNames))
 				names = VectorUtils.flatten( WeaveAPI.CSVParser.parseCSV(overrideBinNames.value) );
 			return names;
-		}
-		
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
-		{
-			throw new Error("Not implemented");
 		}
 	}
 }

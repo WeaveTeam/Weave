@@ -18,7 +18,8 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * Shortcut for WeaveAPI.SessionManager.getSessionState()
+	 * @copy weave.api.core.ISessionManager#getSessionState()
 	 */
 	public function getSessionState(linkableObject:ILinkableObject):Object
 	{

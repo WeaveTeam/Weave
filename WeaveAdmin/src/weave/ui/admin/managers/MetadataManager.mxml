@@ -13,7 +13,7 @@
         <mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
 			<mx:Button toggle="true" label="Edit tables" id="editTablesButton" visible="false" includeInLayout="false"/>
-            <mx:Button id="deleteTableButton" label="{lang('Delete table')}" click="deleteTable()"/>
+            <mx:Button label="{lang('Delete')}" click="deleteTable()" enabled="{tableTree.selectedItem}"/>
 			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
@@ -44,7 +44,7 @@
 	        <mx:HBox width="100%">
 		        <ui:TextInputWithPrompt id="categoryNameInput" prompt="{lang('New {0} name', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" width="100%" enter="addCategory()"/>
 	            <mx:Button label="{lang('Add {0}', categoryOrHierarchyLabel(hierarchyTree.selectedItems))}" click="addCategory()" enabled="{Boolean(categoryNameInput.text)}"/>
-	            <mx:Button label="{lang('Remove')}" click="remove()" enabled="{hierarchyTree.selectedItem}"/>
+	            <mx:Button label="{lang('Remove')}" click="removeHierarchy()" enabled="{hierarchyTree.selectedItem}"/>
 	        </mx:HBox>
 		</mx:VBox>
     </mx:VBox>
@@ -73,17 +73,12 @@
     {
 		debugId(this);
 		
-        tableTree.addEventListener(ListEvent.CHANGE, handleTableTreeChange);
+        tableTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
         hierarchyTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
 		
 		EventUtils.addDelayedEventCallback(tableSearch, Event.CHANGE, tableTree.refresh, 100);
     }
 	
-	private function handleTableTreeChange(event:ListEvent):void
-	{
-		deleteTableButton.enabled = tableTree.selectedItem && (tableTree.selectedItem as EntityNode).getEntity().type == EntityType.TABLE;
-		handleTreeChange(event);
-	}
 	private function handleTreeChange(event:ListEvent):void
 	{
 		var tree:EntityTree = event.currentTarget as EntityTree;
@@ -117,10 +112,29 @@
 	
     public function deleteTable():void
     {
-		//TODO: ask for password to confirm?
-		
-        /* Pop up confirmation, then delete tables. */
-        PopUpUtils.confirm(this, lang("Delete Table"), lang("Delete selected tables? All data columns will also be deleted from all associated categories."), deleteTableFunction, null, lang("Delete"), lang("Cancel"))
+		var foundTable:Boolean = false;
+		var foundColumn:Boolean = false;
+		for each (var item:Object in tableTree.selectedItems)
+		{
+			var entity:Entity = (item as EntityNode).getEntity();
+			if (entity.type == EntityType.TABLE)
+				foundTable = true;
+			else if (entity.type == EntityType.COLUMN)
+				foundColumn = true;
+		}
+		var typeStr:String = lang("tables and columns");
+		if (foundTable != foundColumn)
+			typeStr = foundTable ? lang("tables") : lang("columns");
+			
+        PopUpUtils.confirm(
+			this,
+			lang("Delete {0}", typeStr),
+			lang("Delete selected {0}?\nExisting visualizations using this data will stop working.", typeStr),
+			deleteTableFunction,
+			null,
+			lang("Delete"),
+			lang("Cancel")
+		);
         function deleteTableFunction():void
         {
 			for each (var item:EntityNode in tableTree.selectedItems)
@@ -172,7 +186,7 @@
 		else if (!otherTree.selectedItem)
 			this.selectedItems = []; // neither tree has selection
     }
-    public function remove():void
+    public function removeHierarchy():void
     {
 		for each (var item:EntityNode in hierarchyTree.selectedItems)
 		{

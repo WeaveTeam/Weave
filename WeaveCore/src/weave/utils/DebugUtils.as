@@ -39,6 +39,64 @@ package weave.utils
 	 */
 	public class DebugUtils
 	{
+		public static function _testVariableLengthEncoding(random:Boolean = true, count:uint = 10000, max:uint = int.MAX_VALUE):void
+		{
+			var i:uint;
+			var b:uint;
+			var value:uint;
+			var array:Array = new Array(count);
+			var bytes1:ByteArray = new ByteArray();
+			var bytes2:ByteArray = new ByteArray();
+			for (i = 0; i < array.length; i++)
+			{
+				value = random ? uint(Math.random() * max) : i;
+				array[i] = value;
+				bytes1.writeUnsignedInt(value);
+				
+				do {
+					b = value & 0x7F;
+					value = (value >> 7) & 0x01FFFFFF;
+					if (value == 0)
+					{
+						bytes2.writeByte(b);
+						break;
+					}
+					
+					bytes2.writeByte(b | 0x80);
+				} while (true);
+			}
+			bytes1.position = 0;
+			bytes2.position = 0;
+			
+			weaveTrace(StringUtil.substitute('array.length {0}, bytes1.length {1}, bytes2.length {2}',array.length,bytes1.length, bytes2.length));
+			
+			DebugTimer.begin();
+			
+			i = 0;
+			while (bytes1.bytesAvailable)
+			{
+				value = bytes1.readUnsignedInt();
+				if (array[i++] != value)
+					throw "bytes1 fail";
+			}
+			
+			DebugTimer.lap('bytes1');
+			
+			i = 0;
+			while (bytes2.bytesAvailable)
+			{
+				value = (b = bytes2.readUnsignedByte()) & 0x7F;
+				for (var s:uint = 7; b & 0x80; s += 7)
+					value |= ((b = bytes2.readUnsignedByte()) & 0x7F) << s;
+				
+				if (array[i++] != value)
+					throw "bytes2 fail";
+			}
+			
+			DebugTimer.end('bytes2');
+		}
+		
+		
 		/****************************
 		 **  Object id and lookup  **
 		 ****************************/

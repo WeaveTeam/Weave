@@ -44,7 +44,7 @@ package weave.services.beans
 			var str:String = tableTitle;
 			
 			if (type == EntityType.TABLE)
-				lang("{0} ({1})", str, branchInfo.numChildren);
+				str = lang("{0} ({1})", str, branchInfo.numChildren);
 			
 			if (debug)
 				str = lang("({0}#{1}) {2}", typeStr, branchInfo.id, str);

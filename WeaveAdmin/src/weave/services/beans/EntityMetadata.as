@@ -42,17 +42,16 @@ package weave.services.beans
 		{
 			return [
 				"connection",
-				"sqlSchema",
-				"sqlTable",
-				"sqlColumn",
 				"sqlQuery",
 				"sqlParams",
-				"sqlResult",
-				"importMethod",
-				"sqlKeyColumn",
 				"sqlTablePrefix",
+				"importMethod",
 				"fileName",
-				"keyColumn"
+				"keyColumn",
+				"sqlSchema",
+				"sqlTable",
+				"sqlKeyColumn",
+				"sqlColumn"
 			];
 		}
 		

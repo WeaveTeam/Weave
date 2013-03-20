@@ -35,8 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.rmi.RemoteException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -276,7 +276,7 @@ public class AdminService
 	 * @param fileContent
 	 * @param fileName
 	 * @param overwriteFile
-	 * @return
+	 * @return A description of the success or failure of this function.
 	 * @throws RemoteException
 	 */
 	public String saveWeaveFile(
@@ -794,7 +794,7 @@ public class AdminService
 	/**
 	 * Read a list of csv files and return common header columns.
 	 * 
-	 * @param A list of csv file names.
+	 * @param csvFile A CSV file name
 	 * @return A list of common header files or null if none exist encoded using
 	 * 
 	 */
@@ -1456,7 +1456,7 @@ public class AdminService
 			List<String> sqlFields = new LinkedList<String>();
 			List<String> queries = new Vector<String>();
 			List<Object[]> queryParamsList = new Vector<Object[]>();
-			List<String> dataTypes = new Vector<String>();
+			List<DataTypeStruct> dataTypes = new Vector<DataTypeStruct>();
 			
 			SQLResult filteredValues = null;
 			if (filterColumnNames != null && filterColumnNames.length > 0)
@@ -1508,7 +1508,7 @@ public class AdminService
 						sqlFields.add(sqlColumnNames[iCol]);
 						queries.add(filteredQuery);
 						queryParamsList.add(filteredValues.rows[iRow]);
-						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery, filteredValues.rows[iRow]));
+						dataTypes.add(testQueryAndGetDataType(conn, filteredQuery, filteredValues.rows[iRow], sqlSchema, sqlTable, sqlColumnNames[iCol]));
 					}
 				}
 				else
@@ -1516,7 +1516,7 @@ public class AdminService
 					titles.add(configColumnNames[iCol]);
 					sqlFields.add(sqlColumnNames[iCol]);
 					queries.add(query);
-					dataTypes.add(testQueryAndGetDataType(conn, query, null));
+					dataTypes.add(testQueryAndGetDataType(conn, query, null, sqlSchema, sqlTable, sqlColumnNames[iCol]));
 				}
 			}
 			// done generating queries
@@ -1537,7 +1537,8 @@ public class AdminService
 				newMeta.setPublicMetadata(
 					PublicMetadata.TITLE, titles.get(i),
 					PublicMetadata.KEYTYPE, keyType,
-					PublicMetadata.DATATYPE, dataTypes.get(i)
+					PublicMetadata.DATATYPE, dataTypes.get(i).dataType,
+					PublicMetadata.PROJECTION, dataTypes.get(i).projection
 				);
 				newMeta.setPrivateMetadata(
 					PrivateMetadata.CONNECTION, connectionName,
@@ -1571,6 +1572,12 @@ public class AdminService
 
         return table_id;
 	}
+	
+	private class DataTypeStruct
+	{
+		public String dataType;
+		public String projection;
+	}
 
 	/**
 	 * @param conn An active SQL connection used to test the query.
@@ -1578,13 +1585,13 @@ public class AdminService
 	 * @param params Optional list of parameters to pass to the SQL query. May be null.
 	 * @return The Weave dataType metadata value to use, based on the result of the SQL query.
 	 */
-	private String testQueryAndGetDataType(Connection conn, String query, Object[] params)
+	private DataTypeStruct testQueryAndGetDataType(Connection conn, String query, Object[] params, String schema, String table, String column)
 		throws RemoteException
 	{
-		CallableStatement cstmt = null;
+		boolean shouldThrow = true;
 		Statement stmt = null;
 		ResultSet rs = null;
-		String dataType = null;
+		DataTypeStruct result = new DataTypeStruct();
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
@@ -1602,26 +1609,44 @@ public class AdminService
 			}
 			else
 			{
-				cstmt = conn.prepareCall(query);
-				for (int i = 0; i < params.length; i++)
-					cstmt.setObject(i + 1, params[i]);
-				rs = cstmt.executeQuery();
+				stmt = SQLUtils.prepareStatement(conn, query, params);
+				rs = ((PreparedStatement)stmt).executeQuery();
 			}
-
-			dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
+			result.dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
+			
+			if (result.dataType.equals(DataType.GEOMETRY))
+			{
+				SQLUtils.cleanup(rs);
+				SQLUtils.cleanup(stmt);
+				
+				// http://postgis.refractions.net/documentation/manual-1.5/ch04.html#spatial_ref_sys
+				shouldThrow = false;
+				query = "SELECT CONCAT(auth_name,':',auth_srid) FROM public.spatial_ref_sys WHERE srid=(SELECT Find_SRID(?,?,?))";
+				stmt = SQLUtils.prepareStatement(conn, query, new String[]{ schema, table, column });
+				rs = ((PreparedStatement)stmt).executeQuery();
+		        if (rs.next())
+		        	result.projection = rs.getString(1);
+			}
 		}
 		catch (SQLException e)
 		{
-			throw new RemoteException("Unable to execute generated query:\n" + query, e);
+			if (shouldThrow)
+			{
+				throw new RemoteException("Unable to execute generated query:\n" + query, e);
+			}
+			else
+			{
+				System.err.println("Query failed: " + query);
+				e.printStackTrace();
+			}
 		}
 		finally
 		{
 			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(cstmt);
 			SQLUtils.cleanup(stmt);
 		}
 
-		return dataType;
+		return result;
 	}
 
 	private String buildFilteredColumnTitle(String columnName, Object[] filterValues)

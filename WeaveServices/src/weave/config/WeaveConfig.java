@@ -66,7 +66,7 @@ public class WeaveConfig
 	/**
 	 * This function should be the first thing called by the Admin Console to initialize the servlet.
 	 * If SQL config data migration is required, it will be done and periodic status updates will be written to the output stream.
-	 * @param out A stream used to output SQL config data migration status updates.
+	 * @param progress Used to output SQL config data migration status updates.
 	 * @throws RemoteException Thrown when the DataConfig could not be initialized.
 	 */
 	synchronized public static void initializeAdminService(ProgressManager progress) throws RemoteException

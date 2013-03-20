@@ -96,6 +96,7 @@ package weave
 				}
 			);
 
+			_toggleToolsMenuItem("GraphTool", false);
 			_toggleToolsMenuItem("DataStatisticsTool", false);
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
 			_toggleToolsMenuItem("SchafersMissingDataTool", false);
@@ -592,7 +593,6 @@ package weave
 		[Deprecated(replacement="getToolToggle")] public function set enableAddGaugeTool(value:Boolean):void { _toggleToolsMenuItem("GaugeTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddHistogram(value:Boolean):void { _toggleToolsMenuItem("HistogramTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAdd2DHistogram(value:Boolean):void { _toggleToolsMenuItem("Histogram2DTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddGraphTool(value:Boolean):void { _toggleToolsMenuItem("GraphTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddLineChart(value:Boolean):void { _toggleToolsMenuItem("LineChartTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddDimensionSliderTool(value:Boolean):void { _toggleToolsMenuItem("DimensionSliderTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddMap(value:Boolean):void { _toggleToolsMenuItem("MapTool", value); }

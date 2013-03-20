@@ -20,7 +20,6 @@
 package weave.data.BinningDefinitions
 {
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
@@ -48,16 +47,14 @@ package weave.data.BinningDefinitions
 		}
 		
 		/**
-		 * numberOfBins
 		 * The number of bins to generate when calling deriveExplicitBinningDefinition().
 		 */
 		public const numberOfBins:LinkableNumber = newLinkableChild(this, LinkableNumber);
 
 		/**
-		 * deriveExplicitBinningDefinition
 		 * From this simple definition, derive an explicit definition.
 		 */
-		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -83,13 +80,15 @@ package weave.data.BinningDefinitions
 			
 			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataTypes.NUMBER;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			_statsJuggler.target = stats;
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
 			
 			// stop if there is no data
 			if (isNaN(dataMin))
+			{
+				asyncResultCallbacks.triggerCallbacks();
 				return;
+			}
 		
 			var binMin:Number;
 			var binMax:Number = dataMin;
@@ -144,13 +143,16 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
 				//first get name from overrideBinNames
-				name = getOverrideNames()[iBin] || '';
+				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
-				if(!name)
+				if (!name)
 					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
 
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
+			
+			// trigger callbacks now because we're done updating the output
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		// reusable temporary object

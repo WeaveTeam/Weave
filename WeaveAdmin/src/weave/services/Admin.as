@@ -354,11 +354,13 @@ package weave.services
 			service.addHook(
 				service.newEntity,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, user0_pass1_type2_meta3_parent4_index5:Array):void
 				{
 					var id:int = int(event.result);
 					focusEntityId = id;
 					entityCache.invalidate(id);
+					var parentId:int = user0_pass1_type2_meta3_parent4_index5[4];
+					entityCache.invalidate(parentId);
 				}
 			);
 			

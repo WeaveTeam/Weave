@@ -229,6 +229,11 @@ package weave.visualization.plotters
 			getCallbackCollection(this).triggerCallbacks();
 		}
 
+		private function changeStyle():void
+		{
+			return;
+		}
+
 		// the styles
 		public const lineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const fillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
@@ -241,9 +246,20 @@ package weave.visualization.plotters
 		public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
 		public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
 		public const labelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+		public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+		public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 		public function get edgeColorColumn():AlwaysDefinedColumn { return lineStyle.color; }
 		
+		// the edge styles
+		[Bindable] public var edgeStyles:Array = [ EDGE_GRADIENT, EDGE_ARROW, EDGE_WEDGE, EDGE_LINE ];
+		public const edgeStyle:LinkableString = registerLinkableChild(this, new LinkableString(EDGE_LINE), changeStyle);
+		private static const EDGE_GRADIENT:String = "Gradient";
+		private static const EDGE_ARROW:String = "Arrow";
+		private static const EDGE_WEDGE:String = "Wedge";
+		private static const EDGE_LINE:String = "Line";
+
 		// the algorithms
+		
 		[Bindable] public var algorithms:Array = [ FORCE_DIRECTED, GRID_FORCE_DIRECTED, LARGE_GRAPH_LAYOUT, KAMADA_KAWAI ];
 		public const layoutAlgorithm:LinkableDynamicObject = registerSpatialProperty( new LinkableDynamicObject(IGraphAlgorithm));
 		public const currentAlgorithm:LinkableString = registerLinkableChild(this, new LinkableString(FORCE_DIRECTED), changeAlgorithm); // the algorithm
@@ -251,6 +267,7 @@ package weave.visualization.plotters
 		private static const LARGE_GRAPH_LAYOUT:String = "Large Graph Layout";
 		private static const GRID_FORCE_DIRECTED:String = "Grid Force Directed";
 		private static const KAMADA_KAWAI:String = "Kamada Kawai";
+
 		// properties
 		public const radius:LinkableNumber = registerSpatialProperty(new LinkableNumber(2)); // radius of the circles
 		public const shouldStop:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // should the algorithm halt on the next iteration? 

@@ -19,19 +19,17 @@
 
 package weave.core
 {
-	import flash.debugger.enterDebugger;
 	import flash.events.ErrorEvent;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.system.Capabilities;
 	
 	import mx.events.DynamicEvent;
-	import mx.messaging.messages.ErrorMessage;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
-	import weave.api.core.IErrorManager;
 	import weave.api.getCallbackCollection;
+	import weave.api.core.IErrorManager;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugUtils;
 	

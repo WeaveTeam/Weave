@@ -16,7 +16,8 @@
 package weave.api
 {
 	/**
-	 * @see weave.api.core.ISessionManager#objectWasDisposed
+	 * Shortcut for WeaveAPI.SessionManager.objectWasDisposed()
+	 * @copy weave.api.core.ISessionManager#objectWasDisposed()
 	 */
 	public function objectWasDisposed(object:Object):Boolean
 	{

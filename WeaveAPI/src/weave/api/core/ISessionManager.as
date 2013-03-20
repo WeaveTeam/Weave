@@ -163,7 +163,7 @@ package weave.api.core
 		 * This function will copy the session state from one sessioned object to another.
 		 * If the two objects are of different types, the behavior of this function is undefined.
 		 * @param source A sessioned object to copy the session state from.
-		 * @param source A sessioned object to copy the session state to.
+		 * @param destination A sessioned object to copy the session state to.
 		 */
 		function copySessionState(source:ILinkableObject, destination:ILinkableObject):void;
 

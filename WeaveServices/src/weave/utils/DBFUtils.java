@@ -66,7 +66,7 @@ public class DBFUtils
 	 * Tests a combined column for uniqueness across several files
 	 * @param dbfFiles
 	 * @param columnNames
-	 * @return 
+	 * @return A value of true if the columns contain values that uniquely identify rows in all the dbf files.
 	 * @throws IOException
 	 */
 	public static boolean isColumnUnique(File[] dbfFiles, String[] columnNames) throws IOException
@@ -150,11 +150,12 @@ public class DBFUtils
 	}
 	
 	/**
-	 * @param dbfFile a list of DBF files to merge
+	 * @param dbfFiles A list of DBF files to merge
 	 * @param conn a database connection
 	 * @param sqlSchema schema to store table
 	 * @param sqlTable table name to store data
-	 * @return The number of rows affected after sql INSERT queries
+	 * @param overwriteTables Set this to true to overwrite an existing SQL table.
+	 * @param nullValues A list of Strings to interpret as null values.
 	 * @throws IOException,SQLException
 	 */
 	public static void storeAttributes(File[] dbfFiles, Connection conn, String sqlSchema, String sqlTable, boolean overwriteTables, String[] nullValues) throws IOException,SQLException
