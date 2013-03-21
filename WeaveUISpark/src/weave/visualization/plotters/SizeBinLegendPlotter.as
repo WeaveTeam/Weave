@@ -100,6 +100,10 @@ package weave.visualization.plotters
 		private var normalizedCircleRadiuses:Array;
 		private var yInterval:Number;
 		private var maxCustomRadius:Number;
+		private var xMargin:int = 5;
+		private var xMin:Number;
+		private var yPosition:Number;
+		private var g:Graphics;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var i:int;
@@ -165,10 +169,9 @@ package weave.visualization.plotters
 			}
 			
 			// Draw size legend
-			var xMargin:int = 5;
-			var xMin:Number = screenBounds.getXNumericMin();
-			var yPosition:Number = screenBounds.getYNumericMin() + yInterval / 2; // First y position
-			var g:Graphics = tempShape.graphics;
+			xMin = screenBounds.getXNumericMin();
+			yPosition = screenBounds.getYNumericMin() + yInterval / 2; // First y position
+			g = tempShape.graphics;
 			g.clear();
 			lineStyle.beginLineStyle(null, g);
 			
@@ -190,36 +193,30 @@ package weave.visualization.plotters
 						for (j = normalizedCircleRadiuses.length - 1; j >= i; j--)
 						{
 							tempPoint.y = yPosition;
-							tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[j]);
-							destination.draw(tempShape);
-							
-							// set up BitmapText
-							LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
-							bitmapText.text = circleRadiuses[j].toString();
-							bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
-							bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
-							bitmapText.y = tempPoint.y;
-							bitmapText.draw(destination);
-							
+							drawLegend(destination, j);
 							yPosition = yPosition - yInterval;
 						}
 						break;
 					}
 				}
 				
-				tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[i]);
-				destination.draw(tempShape);
-				
-				// set up BitmapText
-				LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
-				bitmapText.text = circleRadiuses[i].toString();
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
-				bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
-				bitmapText.y = tempPoint.y;
-				bitmapText.draw(destination);
-				
+				drawLegend(destination, i);
 				yPosition = yPosition + yInterval;
 			}
+		}
+		
+		private function drawLegend(destination:BitmapData, index:int):void
+		{
+			tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[index]);
+			destination.draw(tempShape);
+			
+			// set up BitmapText
+			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
+			bitmapText.text = circleRadiuses[index].toString();
+			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
+			bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
+			bitmapText.y = tempPoint.y;
+			bitmapText.draw(destination);
 		}
 	}
 }
