@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * @author adufilie
@@ -49,5 +51,23 @@ public class FileUtils
 			out.write(buffer, 0, length);
 		in.close();
 		out.close();
+	}
+	public static void copyFileFromURL(String url, String destination)
+	{
+		try{
+			URL l = new URL(url);
+			URLConnection c = l.openConnection();
+			c.connect();
+
+			InputStream in = c.getInputStream();
+
+			FileOutputStream out =new FileOutputStream(destination);
+
+			copy(in, out);
+
+		}catch(Exception e)
+		{
+			System.out.println("Error copying file from URL: " + url);
+		}
 	}
 }

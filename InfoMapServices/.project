@@ -3,6 +3,7 @@
 	<name>InfoMapServices</name>
 	<comment></comment>
 	<projects>
+		<project>WeaveServletUtils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -23,6 +24,16 @@
 		<buildCommand>
 			<name>org.eclipse.wst.validation.validationbuilder</name>
 			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/Auto Build.launch</value>
+				</dictionary>
 			</arguments>
 		</buildCommand>
 	</buildSpec>

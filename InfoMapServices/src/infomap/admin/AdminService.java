@@ -94,11 +94,12 @@ import infomap.beans.QueryResultWithWordCount;
 import infomap.beans.SolrClusterObject;
 import infomap.beans.SolrClusterResponseModel;
 import infomap.beans.TopicClassificationResults;
-import infomap.servlets.GenericServlet;
-import infomap.utils.DebugTimer;
-import infomap.utils.SQLResult;
-import infomap.utils.SQLUtils;
-import infomap.utils.XMLUtils;
+import weave.servlets.GenericServlet;
+import weave.utils.CSVParser;
+import weave.utils.DebugTimer;
+import weave.utils.SQLResult;
+import weave.utils.SQLUtils;
+import weave.utils.XMLUtils;
 
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -147,23 +148,23 @@ public class AdminService extends GenericServlet {
 		}
 	}
 
-	public static void main(String[] args) {
-		//testing
-		AdminService inst = new AdminService();
-	
-		 String [] requiredKeywords = new String[1];
-		 String [] relatedKeywords = new String[1];
-
-		 requiredKeywords[0] = "Montana";
-		 relatedKeywords[0] = " obesity";
-		 try{
-			 
-			 inst.getClustersForQueryWithRelatedKeywords(requiredKeywords, relatedKeywords,null,5000,"AND");
-		 }catch (Exception e) {
-			// TODO: handle exception
-			 e.printStackTrace();
-		}
-	}
+//	public static void main(String[] args) {
+//		//testing
+//		AdminService inst = new AdminService();
+//	
+//		 String [] requiredKeywords = new String[1];
+//		 String [] relatedKeywords = new String[1];
+//
+//		 requiredKeywords[0] = "Montana";
+//		 relatedKeywords[0] = " obesity";
+//		 try{
+//			 
+//			 inst.getClustersForQueryWithRelatedKeywords(requiredKeywords, relatedKeywords,null,5000,"AND");
+//		 }catch (Exception e) {
+//			// TODO: handle exception
+//			 e.printStackTrace();
+//		}
+//	}
 
 	private static void deleteAllDocuments() {
 		try {
@@ -265,19 +266,19 @@ public class AdminService extends GenericServlet {
 		}
 	}
 
-	private void getConnection() {
-		try {
-			Class.forName("com.mysql.jdbc.Driver").newInstance();
-
-			String url = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
+//	private void getConnection() {
+//		try {
+//			Class.forName("com.mysql.jdbc.Driver").newInstance();
+//
+//			String url = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
 
 	@Override
 	protected void doGet(HttpServletRequest request,
@@ -296,233 +297,233 @@ public class AdminService extends GenericServlet {
 		super.destroy();
 	}
 
-	synchronized public Object[][] getRssFeeds() {
-		String query = "SELECT title,url FROM rss_feeds";
-		SQLResult result = null;
-		Connection connection = null;
-		try {
-			String url = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"),
-					url);
-			result = SQLUtils.getRowSetFromQuery(connection, query);
-
-		} catch (Exception e) {
-			System.out.println(query);
-			e.printStackTrace();
-		} finally {
-			SQLUtils.cleanup(connection);
-		}
-		return result.rows;
-	}
-
-	public String addRssFeed(String title, String url) throws RemoteException {
-		try {
-
-			String connURL = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-
-			String query = "SELECT * FROM rss_feeds WHERE url = '" + url + "'";
-
-			SQLResult checkResult = SQLUtils.getRowSetFromQuery(conn, query);
-
-			if (checkResult.rows.length != 0) {
-				return "RSS Feed already exists";
-			}
-
-			String titleQuery = "SELECT * FROM rss_feeds WHERE title = '"
-					+ title + "'";
-
-			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
-					titleQuery);
-
-			if (checkTitleQueryResult.rows.length != 0) {
-				return "There is already a feed with the same title. Please give a different title.";
-			}
-
-			Map<String, Object> valueMap = new HashMap<String, Object>();
-
-			valueMap.put("title", title);
-			valueMap.put("url", url);
-
-			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
-
-			return "RSS Feed added successfully";
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
-
-	}
-
-	public String deleteRssFeed(String url) throws RemoteException {
-		try {
-
-			String connURL = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-
-			String query = "DELETE FROM rss_feeds WHERE url = '" + url + "'";
-
-			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
-
-			return "RSS Feed was deleted";
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
-
-	}
-
-	public String addAtomFeed(String url, String title) throws RemoteException {
-		try {
-
-			String connURL = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-
-			Statement stat = conn.createStatement();
-
-			String query = "SELECT * FROM atom_feeds WHERE url = '" + url + "'";
-
-			ResultSet checkIfExists = stat.executeQuery(query);
-
-			// if url already exists then return
-			if (!checkIfExists.next())
-				return "Atom Feed alreadt exists";
-
-			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"
-					+ title + "'";
-
-			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
-					titleQuery);
-
-			if (checkTitleQueryResult.rows.length != 0)
-				return "There is already a feed with the same title. Please give a different title.";
-
-			Map<String, Object> valueMap = new HashMap<String, Object>();
-
-			valueMap.put("title", title);
-			valueMap.put("url", url);
-
-			SQLUtils.insertRow(conn, database, "atom_feeds", valueMap);
-
-			return "Atom Feed added successfully";
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
-
-	}
-
-	public void deleteAtomFeed(String title) {
-		try {
-
-			String url = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-
-			String deleteFileSource = "DELETE FROM atom_feeds WHERE titile ='"
-					+ title + "')";
-
-			Statement stat = conn.createStatement();
-			int result = stat.executeUpdate(deleteFileSource);
-
-			System.out.println("deleting atom feed: " + result);
-
-			stat.close();
-			conn.close();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void addFilePath(String url, String title) {
-		try {
-
-			String connURL = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-
-			String insertFileSource = "INSERT INTO file_sources (url,title) VALUE ('"
-					+ url + "','" + title + "')";
-
-			Statement stat = conn.createStatement();
-			int result = stat.executeUpdate(insertFileSource);
-
-			System.out.println("adding file path : " + result);
-
-			recursivelyAddFiles(url);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void recursivelyAddFiles(String path) {
-
-		File file = new File(path);
-
-		if (file.isFile()) {
-			try {
-
-				String url = SQLUtils.getConnectString("MySQL", host, port,
-						database, username, password);
-				conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-
-				String insertFileSource = "INSERT INTO file_paths (url,title) VALUE ('"
-						+ path + "')";
-
-				Statement stat = conn.createStatement();
-				int result = stat.executeUpdate(insertFileSource);
-
-				System.out.println("adding file path : " + result);
-
-				stat.close();
-				conn.close();
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else if (file.isDirectory()) {
-			String[] fileList = file.list();
-
-			for (int i = 0; i < fileList.length; i++) {
-				recursivelyAddFiles(path + "/" + fileList[i]);
-			}
-
-		}
-
-	}
-
-	public void deleteFilePath(String title) {
-		try {
-
-			String url = SQLUtils.getConnectString("MySQL", host, port,
-					database, username, password);
-			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
-
-			String deleteFileSource = "DELETE FROM file_sources WHERE titile ='"
-					+ title + "')";
-
-			Statement stat = conn.createStatement();
-			int result = stat.executeUpdate(deleteFileSource);
-
-			System.out.println("deleting file path : " + result);
-
-			stat.close();
-			conn.close();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
+//	synchronized public Object[][] getRssFeeds() {
+//		String query = "SELECT title,url FROM rss_feeds";
+//		SQLResult result = null;
+//		Connection connection = null;
+//		try {
+//			String url = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"),
+//					url);
+//			result = SQLUtils.getRowSetFromQuery(connection, query);
+//
+//		} catch (Exception e) {
+//			System.out.println(query);
+//			e.printStackTrace();
+//		} finally {
+//			SQLUtils.cleanup(connection);
+//		}
+//		return result.rows;
+//	}
+//
+//	public String addRssFeed(String title, String url) throws RemoteException {
+//		try {
+//
+//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+//
+//			String query = "SELECT * FROM rss_feeds WHERE url = '" + url + "'";
+//
+//			SQLResult checkResult = SQLUtils.getRowSetFromQuery(conn, query);
+//
+//			if (checkResult.rows.length != 0) {
+//				return "RSS Feed already exists";
+//			}
+//
+//			String titleQuery = "SELECT * FROM rss_feeds WHERE title = '"
+//					+ title + "'";
+//
+//			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
+//					titleQuery);
+//
+//			if (checkTitleQueryResult.rows.length != 0) {
+//				return "There is already a feed with the same title. Please give a different title.";
+//			}
+//
+//			Map<String, Object> valueMap = new HashMap<String, Object>();
+//
+//			valueMap.put("title", title);
+//			valueMap.put("url", url);
+//
+//			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
+//
+//			return "RSS Feed added successfully";
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			throw new RemoteException(e.getMessage());
+//		}
+//
+//	}
+//
+//	public String deleteRssFeed(String url) throws RemoteException {
+//		try {
+//
+//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+//
+//			String query = "DELETE FROM rss_feeds WHERE url = '" + url + "'";
+//
+//			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
+//
+//			return "RSS Feed was deleted";
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			throw new RemoteException(e.getMessage());
+//		}
+//
+//	}
+
+//	public String addAtomFeed(String url, String title) throws RemoteException {
+//		try {
+//
+//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+//
+//			Statement stat = conn.createStatement();
+//
+//			String query = "SELECT * FROM atom_feeds WHERE url = '" + url + "'";
+//
+//			ResultSet checkIfExists = stat.executeQuery(query);
+//
+//			// if url already exists then return
+//			if (!checkIfExists.next())
+//				return "Atom Feed alreadt exists";
+//
+//			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"
+//					+ title + "'";
+//
+//			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
+//					titleQuery);
+//
+//			if (checkTitleQueryResult.rows.length != 0)
+//				return "There is already a feed with the same title. Please give a different title.";
+//
+//			Map<String, Object> valueMap = new HashMap<String, Object>();
+//
+//			valueMap.put("title", title);
+//			valueMap.put("url", url);
+//
+//			SQLUtils.insertRow(conn, database, "atom_feeds", valueMap);
+//
+//			return "Atom Feed added successfully";
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			throw new RemoteException(e.getMessage());
+//		}
+//
+//	}
+//
+//	public void deleteAtomFeed(String title) {
+//		try {
+//
+//			String url = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+//
+//			String deleteFileSource = "DELETE FROM atom_feeds WHERE titile ='"
+//					+ title + "')";
+//
+//			Statement stat = conn.createStatement();
+//			int result = stat.executeUpdate(deleteFileSource);
+//
+//			System.out.println("deleting atom feed: " + result);
+//
+//			stat.close();
+//			conn.close();
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
+//
+//	public void addFilePath(String url, String title) {
+//		try {
+//
+//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+//
+//			String insertFileSource = "INSERT INTO file_sources (url,title) VALUE ('"
+//					+ url + "','" + title + "')";
+//
+//			Statement stat = conn.createStatement();
+//			int result = stat.executeUpdate(insertFileSource);
+//
+//			System.out.println("adding file path : " + result);
+//
+//			recursivelyAddFiles(url);
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
+//
+//	public void recursivelyAddFiles(String path) {
+//
+//		File file = new File(path);
+//
+//		if (file.isFile()) {
+//			try {
+//
+//				String url = SQLUtils.getConnectString("MySQL", host, port,
+//						database, username, password);
+//				conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+//
+//				String insertFileSource = "INSERT INTO file_paths (url,title) VALUE ('"
+//						+ path + "')";
+//
+//				Statement stat = conn.createStatement();
+//				int result = stat.executeUpdate(insertFileSource);
+//
+//				System.out.println("adding file path : " + result);
+//
+//				stat.close();
+//				conn.close();
+//
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		} else if (file.isDirectory()) {
+//			String[] fileList = file.list();
+//
+//			for (int i = 0; i < fileList.length; i++) {
+//				recursivelyAddFiles(path + "/" + fileList[i]);
+//			}
+//
+//		}
+//
+//	}
+//
+//	public void deleteFilePath(String title) {
+//		try {
+//
+//			String url = SQLUtils.getConnectString("MySQL", host, port,
+//					database, username, password);
+//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+//
+//			String deleteFileSource = "DELETE FROM file_sources WHERE titile ='"
+//					+ title + "')";
+//
+//			Statement stat = conn.createStatement();
+//			int result = stat.executeUpdate(deleteFileSource);
+//
+//			System.out.println("deleting file path : " + result);
+//
+//			stat.close();
+//			conn.close();
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
 
 	public String renameFile(String filePath, String newName, Boolean overwrite) {
 		File file = new File(filePath);
@@ -1054,11 +1055,11 @@ public class AdminService extends GenericServlet {
 		return topicModelingResutls;
 	}
 	
-	public SolrClusterObject[] getClustersForQueryWithRelatedKeywords(
+	public String[][] getClustersForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows,String operator) throws IOException, SolrServerException
 	{
-		SolrClusterObject[] result = null;
+		String[][] result = null;
 		
 		setSolrServer(solrServerUrl);
 		
@@ -1076,15 +1077,57 @@ public class AdminService extends GenericServlet {
 			q.setRows(rows);
 
 			// set field to hasSummary. Just a field with low content. Since we are only interested in the clusters
-			q.setFields("hasSummary");
+			q.setFields("link");
 			
 			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json");
 			
 			StringWriter writer = new StringWriter();
 			IOUtils.copy(url.openStream(),writer,"UTF-8");
 			Gson gson = new Gson();
-			SolrClusterResponseModel j = gson.fromJson(writer.toString(), SolrClusterResponseModel.class);
-			result = j.clusters;
+			SolrClusterResponseModel clusterResponse = gson.fromJson(writer.toString(), SolrClusterResponseModel.class);
+			
+			int numOfDocs = clusterResponse.response.docs.length;
+			int numOfLabels = clusterResponse.clusters.length;
+			
+			Map<String,Object> docsToLabel = new HashMap<String, Object>();
+			
+			for (int i=0; i < numOfDocs; i++)
+			{
+				String link = (String)clusterResponse.response.docs[i].link;
+				Map<String, String> lScore = new HashMap<String, String>(numOfLabels);
+				for (int j=0; j < numOfLabels; j++)
+				{
+					String label = clusterResponse.clusters[j].labels[0];
+					
+					if(clusterResponse.clusters[j].docs.contains(link))
+					{
+						lScore.put(label, String.valueOf(clusterResponse.clusters[j].score));
+					}
+					else
+					{
+						lScore.put(label, "0.0");
+					}
+				}
+				docsToLabel.put(link, lScore);
+			}
+			Set<String> docs = docsToLabel.keySet();
+			
+			Iterator<String> docIterator = docs.iterator();
+			List<Map<String, String>> records = new ArrayList<Map<String,String>>();
+			
+			while(docIterator.hasNext())
+			{
+				String doc = docIterator.next();
+				Map<String, String> recordObject = new HashMap<String, String>();
+				recordObject.put("document", doc);
+				recordObject.putAll((Map<String, String>)docsToLabel.get(doc));
+				records.add(recordObject);
+			}
+			
+			Map<String, String>[] rs = records.toArray(new HashMap[records.size()]);
+			
+			result = new CSVParser().convertRecordsToRows(rs);
+			
 		}catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -1358,7 +1401,7 @@ public class AdminService extends GenericServlet {
 			int count = 0;
 			for (int i = 0; i < entities.length; i++) 
 			{
-				System.out.println("RUNNING QUERY FOR ENTITY" + entities[i]);
+//				System.out.println("RUNNING QUERY FOR ENTITY" + entities[i]);
 				String groupQuery = "title:(\"" + entities[i]
 						+ "\") OR description:(\"" + entities[i] + "\")";
 				q.set(GroupParams.GROUP_QUERY, groupQuery);

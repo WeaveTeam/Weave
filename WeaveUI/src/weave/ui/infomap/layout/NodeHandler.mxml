@@ -63,6 +63,7 @@
 			import mx.managers.PopUpManager;
 			import mx.managers.PopUpManagerChildList;
 			import mx.rpc.AsyncToken;
+			import mx.rpc.Fault;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
@@ -110,6 +111,7 @@
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
 			import weave.services.addAsyncResponder;
+			import weave.services.beans.SolrClusterObject;
 			import weave.services.beans.TopicClassificationResults;
 			import weave.ui.ControlPanel;
 			import weave.ui.CustomLabel;
@@ -732,6 +734,7 @@
 				
 				getEntityDistribution();
 				getTopicsClassification();
+//				getClusters();
 				docListComponent.keys =_reusableThumbnailsToPlotArray;
 			}
 			
@@ -1771,6 +1774,41 @@
 						//showClassificationResults();
 					}  
 				}
+			}
+			
+			private function getClusters():void
+			{
+				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
+				clusterCSVDataSource.csvData.addGroupedCallback(this,handleClustersResult);
+				var servletParam:Object = new Object();
+				servletParam.method = "getClustersForQueryWithRelatedKeywords";
+				servletParam.params = [currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,2000,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter)];
+				clusterCSVDataSource.servletParams.value = servletParam;
+//				var clustersQuery:AsyncToken = _parentPanel.infoMapsDataSource.getClustersForQueryWithRelatedKeywords(
+//					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000);
+//				
+//				addAsyncResponder(clustersQuery,handleClustersResult,handleClustersFault,
+//					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
+//						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+			}
+			
+			private var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
+			private function handleClustersResult():void
+			{
+//				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
+//					token.startDate != currentQuery.dateFilter.startDate.value ||
+//					token.endDate != currentQuery.dateFilter.endDate.value)
+//					return;	
+//				
+//				var result:Array = event.result as Array;
+				trace(clusterCSVDataSource.csvData.getSessionState());
+//				
+				
+			}
+			
+			private function handleClustersFault(event:FaultEvent, token:Object=null):void
+			{
+				reportError("Error getting clusters",event.fault.faultDetail);	
 			}
 			
 			private var topicComponents:Array = new Array();

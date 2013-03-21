@@ -5,6 +5,8 @@ package weave.utils
 	import mx.formatters.DateFormatter;
 	
 	import org.igniterealtime.xiff.events.BookmarkChangedEvent;
+	
+	import weave.primitives.DateRangeFilter;
 
 	public class DateUtils
 	{
@@ -161,6 +163,40 @@ package weave.utils
 			else
 				return false;
 			
+		}
+		
+		public static function getDateFilterStringForSolr(dateFilter:DateRangeFilter):String
+		{
+			var dateFilterString:String = null;
+			
+			//applying date filters if set
+			if(dateFilter)
+			{
+				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '' &&
+					dateFilter.startDate.value != null && dateFilter.endDate.value != null)
+				{
+					
+					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
+					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
+					
+					
+					//Solr requires the date format to be ISO 8601 Standard Compliant
+					//It should be in the form: 1995-12-31T23:59:59Z 
+					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+					
+					//For start date we append 00:00:00 to set time to start of the day
+					sStr = sStr + 'T00:00:00Z';
+					
+					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+					
+					//For end date we append 23:59:59 to set time to end of day
+					eStr = eStr + 'T23:59:59Z';
+					
+					dateFilterString = "date_added:["+sStr+" TO "+eStr + "]";
+				}
+			}
+			
+			return dateFilterString;
 		}
 		
 		private static function getDateKeywordInMS(key:String):uint

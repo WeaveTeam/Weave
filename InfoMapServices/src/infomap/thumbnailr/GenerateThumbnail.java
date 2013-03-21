@@ -1,6 +1,6 @@
 package infomap.thumbnailr;
 
-import infomap.utils.CommandUtils;
+import weave.utils.CommandUtils;
 
 
 import java.io.*;

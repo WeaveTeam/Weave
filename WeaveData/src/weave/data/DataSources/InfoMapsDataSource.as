@@ -152,7 +152,7 @@ package weave.data.DataSources
 									 dateFilter:DateRangeFilter=null):AsyncToken
 		{
 			trace("CALLING WORD COUNT" + DateUtils.getCurrentDate().toUTCString());
-			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getWordCount(requiredKeywords,relatedKeywords,dateFilterString,operator);
 			
@@ -182,7 +182,7 @@ package weave.data.DataSources
 		public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,operator:String,
 												  dateFilter:DateRangeFilter=null):AsyncToken
 		{
-			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getNumOfDocumentsForQuery(requiredKeywords,relatedKeywords,dateFilterString,operator);
 			
@@ -193,7 +193,7 @@ package weave.data.DataSources
 																dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
 		{
 			
-			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getResultsForQueryWithRelatedKeywords(requiredKeywords,relatedKeywords,dateFilterString,
 																			numberOfRequestedDocuments,operator);
@@ -201,10 +201,22 @@ package weave.data.DataSources
 			
 		}
 		
+		public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,operator:String,
+																dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
+		{
+			
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
+			
+			var q:AsyncToken = InfoMapAdminInterface.instance.getClustersForQueryWithRelatedKeywords(requiredKeywords,relatedKeywords,dateFilterString,
+				numberOfRequestedDocuments,operator);
+			return q;
+			
+		}
+		
 		public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,operator:String,
 												 dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,numOfTopics:int=5, numOfKeywords:int=5):AsyncToken
 		{
-			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.classifyDocumentsForQuery(requiredKeywords,relatedKeywords,
 				dateFilterString,numberOfRequestedDocuments,operator,numOfTopics,numOfKeywords);
@@ -215,7 +227,7 @@ package weave.data.DataSources
 		public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:DateRangeFilter,
 												 filterTerms:Array,rows:int,operator:String):AsyncToken
 		{
-			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getLinksForFilteredQuery(requiredKeywords,relatedKeywords,dateFilterString,
 				filterTerms,rows,operator);
@@ -226,7 +238,7 @@ package weave.data.DataSources
 		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,operator:String,
 													  dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
 		{
-			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,
 				dateFilterString,entities,numberOfRequestedDocuments,operator);
@@ -234,41 +246,6 @@ package weave.data.DataSources
 			return q;
 			
 		}
-		
-		private function getDateFilterStringForSolr(dateFilter:DateRangeFilter):String
-		{
-			var dateFilterString:String = null;
-			
-			//applying date filters if set
-			if(dateFilter)
-			{
-				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '' &&
-					dateFilter.startDate.value != null && dateFilter.endDate.value != null)
-				{
-					
-					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
-					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
-					
-					
-					//Solr requires the date format to be ISO 8601 Standard Compliant
-					//It should be in the form: 1995-12-31T23:59:59Z 
-					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
-					
-					//For start date we append 00:00:00 to set time to start of the day
-					sStr = sStr + 'T00:00:00Z';
-					
-					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
-					
-					//For end date we append 23:59:59 to set time to end of day
-					eStr = eStr + 'T23:59:59Z';
-					
-					dateFilterString = "date_added:["+sStr+" TO "+eStr + "]";
-				}
-			}
-			
-			return dateFilterString;
-		}
-		
 		
 		/**
 		 * This function takes a query and adds a filter to restrict by field values 

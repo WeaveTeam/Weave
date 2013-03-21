@@ -213,6 +213,15 @@ Info to provide a tooltip describing the node (like number of documents found)
 			public function removeFilter(name:String):void
 			{
 				_filters.filters.removeObject(name);
+				var filterLabels:Array = filterStatus.getChildren();
+				for each(var d:FilterLabelUI in filterLabels)
+				{
+					if(d.filterName.text == name)
+					{
+						filterStatus.removeChild(d);
+						return;
+					}
+				}
 			}
 			
 			public var enableList:Boolean = true;

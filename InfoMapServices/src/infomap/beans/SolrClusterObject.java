@@ -1,7 +1,9 @@
 package infomap.beans;
 
+import java.util.ArrayList;
+
 public class SolrClusterObject {
-	String[] labels;
-	double score;
-	String[] docs;
+	public String[] labels;
+	public double score;
+	public ArrayList<String> docs;
 }

@@ -182,6 +182,12 @@ package weave.services
 //				return query;
 //			}
 			
+			public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("getClustersForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator]);
+				return query;
+			}
+			
 			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String):AsyncToken
 			{
 				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator]);
@@ -253,6 +259,7 @@ package weave.services
 				var query:AsyncToken = generateQueryAndRun("getDescriptionForURL",[url,keywords]);
 				return query;
 			}
+			
 			
 		}
 }

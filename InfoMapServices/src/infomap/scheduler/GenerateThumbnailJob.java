@@ -10,8 +10,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 
-import infomap.utils.CommandUtils;
-import infomap.utils.FileUtils;
+import weave.utils.CommandUtils;
+import weave.utils.FileUtils;
 
 import java.io.*;
 import java.math.BigInteger;
