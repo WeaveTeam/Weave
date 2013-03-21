@@ -111,7 +111,7 @@ package weave.data.KeySets
 		private function asyncStart():void
 		{
 			// remove disposed key sets
-			for (var i:int = _keySets.length - 1; i >= 0; i--)
+			for (var i:int = _keySets.length; i--;)
 				if (objectWasDisposed(_keySets[i]))
 					_keySets.splice(i, 1);
 			

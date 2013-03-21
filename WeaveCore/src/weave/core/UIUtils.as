@@ -437,7 +437,7 @@ package weave.core
 			var uiChild:DisplayObject;
 			// get all child DisplayObjects we are interested in
 			var uiChildren:Array = hashMap.getObjects();
-			for (i = uiChildren.length - 1; i >= 0; i--)
+			for (i = uiChildren.length; i--;)
 			{
 				var wrapper:ILinkableDisplayObject = uiChildren[i] as ILinkableDisplayObject;
 				if (wrapper)
@@ -455,7 +455,7 @@ package weave.core
 			{
 				// set child index values in reverse order so all the sessioned children will appear on top
 				var indexOffset:int = uiParent.numChildren - uiChildren.length;
-				for (i = uiChildren.length - 1; i >= 0; i--)
+				for (i = uiChildren.length; i--;)
 				{
 					uiChild = uiChildren[i] as DisplayObject;
 					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != indexOffset + i)

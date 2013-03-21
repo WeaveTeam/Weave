@@ -123,7 +123,7 @@ package weave.visualization.plotters
 			{
 				circleRadiuses = customCircleRadiuses.value.split(',');
 				// remove bad values
-				for (i = circleRadiuses.length - 1; i >= 0; i--)
+				for (i = circleRadiuses.length; i--;)
 				{
 					var number:Number = StandardLib.asNumber(circleRadiuses[i]);
 					if (!isFinite(number))

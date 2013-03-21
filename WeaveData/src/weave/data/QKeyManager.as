@@ -106,7 +106,7 @@ package weave.data
 			
 			var i:int = keyStrings.length;
 			var keys:Array = new Array(i);
-			while (--i >= 0)
+			while (i--)
 				keys[i] = getQKey(keyType, keyStrings[i]);
 			
 			_callbackCollection.resumeCallbacks();
@@ -250,7 +250,7 @@ package weave.data
 			
 			var refList:Array = getCompatibleColumnReferences(sourceKeyType);
 			// remove incompatible refs from the list
-			for (var i:int = refList.length - 1; i >= 0; i--)
+			for (var i:int = refList.length; i--;)
 				if ((refList[i] as IColumnReference).getMetadata(ColumnMetadata.DATA_TYPE) != destinationKeyType)
 					refList.splice(i, 1);
 			return refList;
@@ -303,7 +303,7 @@ package weave.data
 			for each (var hash:String in hashList)
 			{
 				var refsForThisHash:Array = refHash_to_columnReference_Array[hash] as Array;
-				for (var i:int = refsForThisHash.length - 1; i >= 0; i--)
+				for (var i:int = refsForThisHash.length; i--;)
 				{
 					var ref:IColumnReference = refsForThisHash[i] as IColumnReference;
 					// if the ref is no longer valid, throw it away

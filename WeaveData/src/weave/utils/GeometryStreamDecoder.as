@@ -170,16 +170,16 @@ package weave.utils
 		{
 			var tileIDs:Array = getRequiredTileIDs(metadataTiles, bounds, minImportance);
 			if (removeTilesFromList)
-				for (var i:int = tileIDs.length - 1; i >= 0; i--)
-					metadataTiles.remove(metadataTileIDToKDNodeMapping[tileIDs[i]]);
+				for each (var id:int in tileIDs)
+					metadataTiles.remove(metadataTileIDToKDNodeMapping[id]);
 			return tileIDs;
 		}
 		public function getRequiredGeometryTileIDs(bounds:IBounds2D, minImportance:Number, removeTilesFromList:Boolean):Array
 		{
 			var tileIDs:Array = getRequiredTileIDs(geometryTiles, bounds, minImportance);
 			if (removeTilesFromList)
-				for (var i:int = tileIDs.length - 1; i >= 0; i--)
-					geometryTiles.remove(geometryTileIDToKDNodeMapping[tileIDs[i]]);
+				for each (var id:int in tileIDs)
+					geometryTiles.remove(geometryTileIDToKDNodeMapping[id]);
 			return tileIDs;
 		}
 		private function getRequiredTileIDs(tileTree:KDTree, bounds:IBounds2D, minImportance:Number):Array
@@ -248,7 +248,7 @@ package weave.utils
 			// insert tileDescriptors into tree
 			var node:KDNode;
 			var tileDescriptor:TileDescriptor;
-			for (var i:int = tileDescriptors.length - 1; i >= 0; i--)
+			for (var i:int = tileDescriptors.length; i--;)
 			{
 				tileDescriptor = tileDescriptors[i] as TileDescriptor;
 				// insert a new node in the tree, mapping kdKey to tileID
@@ -588,7 +588,7 @@ package weave.utils
 							importance = stream.readFloat();
 							//trace("X,Y,I",[x,y,importance]);
 							// save vertex in all corresponding geometries
-							for (i = geometryIDArray.length - 1; i >= 0; i--)
+							for (i = geometryIDArray.length; i--;)
 							{
 								//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
 								geometryID = geometryIDArray[i];

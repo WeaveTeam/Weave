@@ -199,7 +199,7 @@ package weave.data
 		{
 			// if there is more than one row and last row is empty,
 			// remove last row assuming it is there because of a newline at the end of the file.
-			for (var iRow:int = csvDataArray.length - 1; iRow >= 0; --iRow)
+			for (var iRow:int = csvDataArray.length; iRow--;)
 			{
 				var dataLine:Array = csvDataArray[iRow];
 				
@@ -216,11 +216,11 @@ package weave.data
 		 */
 		public function createCSV(rows:Array):String
 		{
-			var lines:Array = [];
-			for (var i:int = 0; i < rows.length; i++)
+			var lines:Array = new Array(rows.length);
+			for (var i:int = rows.length; i--;)
 			{
-				var tokens:Array = [];
-				for (var j:int = 0; j < rows[i].length; j++)
+				var tokens:Array = new Array(rows[i].length);
+				for (var j:int = tokens.length; j--;)
 					tokens[j] = createCSVToken(rows[i][j]);
 				
 				lines[i] = tokens.join(delimiter);
