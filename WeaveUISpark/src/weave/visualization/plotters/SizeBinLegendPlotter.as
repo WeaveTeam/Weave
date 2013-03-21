@@ -99,9 +99,11 @@ package weave.visualization.plotters
 		private var circleRadiuses:Array;
 		private var normalizedCircleRadiuses:Array;
 		private var yInterval:Number;
+		private var maxCustomRadius:Number;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var i:int;
+			var j:int;
 			valueMax = radiusColumnStats.getMax();
 			valueMin = radiusColumnStats.getMin();
 			
@@ -139,13 +141,31 @@ package weave.visualization.plotters
 			else
 			{
 				for (i = 0; i < circleRadiuses.length; i++)
-					normalizedCircleRadiuses.push(StandardLib.scale(circleRadiuses[i], valueMin, valueMax, minScreenRadius.value, maxScreenRadius.value));
+				{
+					// Remove invalid radius (less than 0)
+					if (StandardLib.scale(circleRadiuses[i], valueMin, valueMax, minScreenRadius.value, maxScreenRadius.value) < 0)
+					{
+						circleRadiuses.splice(i, 1);
+						i--;
+					}
+					else
+						normalizedCircleRadiuses.push(StandardLib.scale(circleRadiuses[i], valueMin, valueMax, minScreenRadius.value, maxScreenRadius.value));
+				}
 			}
 			
-			if (normalizedCircleRadiuses.length != 0) yInterval = screenBounds.getYCoverage() / normalizedCircleRadiuses.length;
+			if (normalizedCircleRadiuses.length != 0)
+			{
+				yInterval = screenBounds.getYCoverage() / normalizedCircleRadiuses.length;
+				
+				// Because of the custom circle radiuses, the real max radius needs to be determined.
+				if (normalizedCircleRadiuses[0] > normalizedCircleRadiuses[normalizedCircleRadiuses.length - 1])
+					maxCustomRadius = normalizedCircleRadiuses[0];
+				else
+					maxCustomRadius = normalizedCircleRadiuses[normalizedCircleRadiuses.length - 1];
+			}
 			
 			// Draw size legend
-			var xMargin:int = 10;
+			var xMargin:int = 5;
 			var xMin:Number = screenBounds.getXNumericMin();
 			var yPosition:Number = screenBounds.getYNumericMin() + yInterval / 2; // First y position
 			var g:Graphics = tempShape.graphics;
@@ -154,26 +174,47 @@ package weave.visualization.plotters
 			
 			for (i = 0; i < normalizedCircleRadiuses.length; i++)
 			{
-				if (normalizedCircleRadiuses[i] < 0) continue;
-				
-				tempPoint.y = yPosition;				
+				tempPoint.y = yPosition;
 				
 				if (absoluteValueColorEnabled.value)
 				{
-					if (circleRadiuses[i] >=0)
-						g.beginFill(absoluteValueColorMax.value, 1.0);
-					else
+					// Draw large circle befroe small circle for both negative (top down direction) and positive (bottom up direction)  
+					if (circleRadiuses[i] < 0)
+					{
 						g.beginFill(absoluteValueColorMin.value, 1.0);
+					}
+					else
+					{
+						g.beginFill(absoluteValueColorMax.value, 1.0);
+						yPosition = screenBounds.getYNumericMax() - yInterval / 2; // First y position from bottom
+						for (j = normalizedCircleRadiuses.length - 1; j >= i; j--)
+						{
+							tempPoint.y = yPosition;
+							tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[j]);
+							destination.draw(tempShape);
+							
+							// set up BitmapText
+							LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
+							bitmapText.text = circleRadiuses[j].toString();
+							bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
+							bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
+							bitmapText.y = tempPoint.y;
+							bitmapText.draw(destination);
+							
+							yPosition = yPosition - yInterval;
+						}
+						break;
+					}
 				}
 				
-				tempShape.graphics.drawCircle(xMin + xMargin + maxScreenRadius.value, tempPoint.y, normalizedCircleRadiuses[i]);
+				tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[i]);
 				destination.draw(tempShape);
 				
 				// set up BitmapText
 				LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 				bitmapText.text = circleRadiuses[i].toString();
 				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
-				bitmapText.x = xMin + xMargin + maxScreenRadius.value * 2 + xMargin;
+				bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
 				bitmapText.y = tempPoint.y;
 				bitmapText.draw(destination);
 				
