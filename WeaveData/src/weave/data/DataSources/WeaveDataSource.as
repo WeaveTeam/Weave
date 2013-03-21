@@ -629,7 +629,7 @@ internal class PGGeomUtil
 				output[i] = geometry;
 			}
 			return 1;
-		}
+		};
 	}
 	
 	/**
