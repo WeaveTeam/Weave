@@ -807,6 +807,8 @@ public class AdminService
 		{
 			BufferedReader in = new BufferedReader(new FileReader(new File(getUploadPath(), csvFile)));
 			String header = in.readLine();
+			if (header == null)
+				throw new RemoteException("File is empty: " + csvFile);
 			String[][] rows = CSVParser.defaultParser.parseCSV(header, true);
 			headerLine = rows[0];
 		}
