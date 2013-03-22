@@ -20,16 +20,15 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.display.Graphics;
 	import flash.geom.Point;
 	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -39,8 +38,8 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
-	import weave.utils.TickMarkUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -103,7 +102,7 @@ package weave.visualization.plotters
 		private var xMargin:int = 5;
 		private var xMin:Number;
 		private var yPosition:Number;
-		private var g:Graphics;
+		private var fillColor:Number;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var i:int;
@@ -171,9 +170,7 @@ package weave.visualization.plotters
 			// Draw size legend
 			xMin = screenBounds.getXNumericMin();
 			yPosition = screenBounds.getYNumericMin() + yInterval / 2; // First y position
-			g = tempShape.graphics;
-			g.clear();
-			lineStyle.beginLineStyle(null, g);
+			fillColor = NaN;
 			
 			for (i = 0; i < normalizedCircleRadiuses.length; i++)
 			{
@@ -184,11 +181,11 @@ package weave.visualization.plotters
 					// Draw large circle befroe small circle for both negative (top down direction) and positive (bottom up direction)  
 					if (circleRadiuses[i] < 0)
 					{
-						g.beginFill(absoluteValueColorMin.value, 1.0);
+						fillColor = absoluteValueColorMin.value;
 					}
 					else
 					{
-						g.beginFill(absoluteValueColorMax.value, 1.0);
+						fillColor = absoluteValueColorMax.value;
 						yPosition = screenBounds.getYNumericMax() - yInterval / 2; // First y position from bottom
 						for (j = normalizedCircleRadiuses.length - 1; j >= i; j--)
 						{
@@ -207,12 +204,24 @@ package weave.visualization.plotters
 		
 		private function drawLegend(destination:BitmapData, index:int):void
 		{
+			// draw circle
+			tempShape.graphics.clear();
+			lineStyle.beginLineStyle(null, tempShape.graphics);
+			if (isFinite(fillColor))
+				tempShape.graphics.beginFill(fillColor);
+			else
+				tempShape.graphics.endFill();
+			
 			tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[index]);
+			
+			tempShape.graphics.endFill();
 			destination.draw(tempShape);
 			
 			// set up BitmapText
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
-			bitmapText.text = circleRadiuses[index].toString();
+			bitmapText.text = ColumnUtils.deriveStringFromNumber(radiusColumn, circleRadiuses[index]);
+			if (bitmapText.text == null)
+				bitmapText.text = StandardLib.formatNumber(circleRadiuses[index]);
 			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
 			bitmapText.y = tempPoint.y;
