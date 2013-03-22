@@ -219,9 +219,11 @@ Info to provide a tooltip describing the node (like number of documents found)
 					if(d.filterName.text == name)
 					{
 						filterStatus.removeChild(d);
-						return;
+						break;
 					}
 				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
 			}
 			
 			public var enableList:Boolean = true;

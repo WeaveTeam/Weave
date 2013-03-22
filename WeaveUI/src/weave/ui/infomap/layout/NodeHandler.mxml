@@ -147,6 +147,7 @@
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.tools.CompoundBarChartTool;
+			import weave.visualization.tools.RadVizTool;
 			
 			private const currentQuery:QueryObject = newLinkableChild(this,QueryObject);
 			
@@ -266,6 +267,11 @@
 			private var EntityDistributionImgClass:Class;
 			private var _entityDistributionImgText:String = "Entity Distribution";
 			
+			[Embed( source="/weave/resources/images/cluster.png")]
+			private var ClusterImgClass:Class;
+			private var _clusterImgText:String = "Clusters by LINGO";
+			
+			
 			[Embed( source="/weave/resources/images/topics.png")]
 			private var TopicsImgClass:Class;
 			private var _topicsImgText:String = "Topics View";
@@ -381,6 +387,10 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.csvData);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyColName);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
+
+				clusterCSVDataSource = Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
+				_clusterRadVizName = Weave.root.generateUniqueName(_nodeName + "Clusters");
+				
 				addChild(topicComponent);
 				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
 				
@@ -734,7 +744,7 @@
 				
 				getEntityDistribution();
 				getTopicsClassification();
-//				getClusters();
+				getClusters();
 				docListComponent.keys =_reusableThumbnailsToPlotArray;
 			}
 			
@@ -1776,41 +1786,47 @@
 				}
 			}
 			
+			private var _clusterRadVizName:String;
 			private function getClusters():void
 			{
 				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
-				clusterCSVDataSource.csvData.addGroupedCallback(this,handleClustersResult);
 				var servletParam:Object = new Object();
 				servletParam.method = "getClustersForQueryWithRelatedKeywords";
-				servletParam.params = [currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,2000,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter)];
+				servletParam.params = [currentQuery.keywords.value.split(','),relatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),2000,currentQuery.operator.value];
 				clusterCSVDataSource.servletParams.value = servletParam;
-//				var clustersQuery:AsyncToken = _parentPanel.infoMapsDataSource.getClustersForQueryWithRelatedKeywords(
-//					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000);
-//				
-//				addAsyncResponder(clustersQuery,handleClustersResult,handleClustersFault,
-//					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-//						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+				clusterCSVDataSource.keyColName.value = "document";
+				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
+				var clusterImg:Bitmap = new ClusterImgClass() as Bitmap;
+				_radialMenu.addMenuItem(clusterImg,_clusterImgText,showClusters);
 			}
 			
-			private var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
-			private function handleClustersResult():void
+			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
+			private function showClusters(event:Event=null):void
 			{
-//				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
-//					token.startDate != currentQuery.dateFilter.startDate.value ||
-//					token.endDate != currentQuery.dateFilter.endDate.value)
-//					return;	
-//				
-//				var result:Array = event.result as Array;
-				trace(clusterCSVDataSource.csvData.getSessionState());
-//				
+				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
+				var object:RadVizTool = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
+				object._plotter.columns.removeAllObjects();
+				object._anchorPlotter.anchors.removeAllObjects();
+				var count:int = 0;
+				for each(var columnName:String in columnNames)
+				{
+					if(count >30)
+						break;
+					if(columnName != "document" && columnName != "Other Topics")
+					{
+						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
+					}
+					count++;
+				}
+				object._anchorPlotter.labelAngleRatio.value = 0.25;
+				object.panelTitle.value = 'Document Clustered by Labels';
+				object.enableProbeLines.value = false;
+				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
+				if (object is DraggablePanel)
+					(object as DraggablePanel).restorePanel();
 			}
-			
-			private function handleClustersFault(event:FaultEvent, token:Object=null):void
-			{
-				reportError("Error getting clusters",event.fault.faultDetail);	
-			}
-			
+
 			private var topicComponents:Array = new Array();
 			private var flag_click:Boolean = true;
 			private var flag_init:Boolean =true;

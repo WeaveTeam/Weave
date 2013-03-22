@@ -54,6 +54,7 @@
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.CallbackCollection;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.NumberColumn;
@@ -87,7 +88,7 @@
 			
 			public var latestjoinedColumnKeys:Array = new Array();
 			
-			
+			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -262,7 +263,7 @@
 			
 			private function drawProbeLines():void
 			{ 
-				if(!Weave.properties.enableProbeLines.value) return;
+				if(!Weave.properties.enableProbeLines.value || !enableProbeLines.value) return;
 				
 				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if (!probeKeySet)
