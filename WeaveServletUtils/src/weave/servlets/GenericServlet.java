@@ -168,7 +168,7 @@ public class GenericServlet extends HttpServlet
 	{
 		Method[] genericServletMethods = GenericServlet.class.getMethods();
 		Method[] declaredMethods = serviceObject.getClass().getDeclaredMethods();
-		for (int i = declaredMethods.length - 1; i >= 0; i--)
+		for (int i = declaredMethods.length; i-- > 0;)
 		{
 			Method declaredMethod = declaredMethods[i];
 			boolean shouldIgnore = false;

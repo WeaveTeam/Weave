@@ -219,7 +219,7 @@ package weave.data.KeySets
 			}
 			
 			_filteredKeysMap = new Dictionary(true);
-			for (i = _filteredKeys.length - 1; i >= 0; i--)
+			for (i = _filteredKeys.length; i--;)
 				_filteredKeysMap[_filteredKeys[i]] = i;
 		}
 	}

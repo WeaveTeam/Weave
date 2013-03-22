@@ -208,7 +208,8 @@ package weave.utils
 				if (source != original) // if source isn't the original
 				{
 					// copy the sorted values to the original
-					for (var i:int = length - 1; i >= 0; i--)
+					var i:int = length;
+					while (i--)
 						original[i] = source[i];
 				}
 				

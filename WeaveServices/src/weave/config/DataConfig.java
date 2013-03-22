@@ -332,7 +332,7 @@ public class DataConfig
 				// columns can be added directly to new parents
 				newChildId = childId;
 			}
-			else if (childType == DataEntity.TYPE_CATEGORY && hierarchy.getParents(childId).size() == 0)
+			else if (childType == DataEntity.TYPE_CATEGORY && hierarchy.getParents(Arrays.asList(childId)).size() == 0)
 			{
 				// ok to use existing child category since it has no parents
 				newChildId = childId;
@@ -385,10 +385,15 @@ public class DataConfig
         hierarchy.removeChild(parent_id, child_id);
     }
     
-    public Collection<Integer> getParentIds(int id) throws RemoteException
+    public Map<Integer,Integer> getEntityTypes(Collection<Integer> ids) throws RemoteException
+    {
+    	return manifest.getEntryTypes(ids);
+    }
+    
+    public Collection<Integer> getParentIds(Collection<Integer> childIds) throws RemoteException
     {
     	detectChange();
-    	return hierarchy.getParents(id);
+    	return hierarchy.getParents(childIds);
     }
     
     public List<Integer> getChildIds(int id) throws RemoteException

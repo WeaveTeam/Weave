@@ -502,7 +502,7 @@ package weave.services
 				csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String,
 				sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String,
 				configKeyType:String, nullValues:String,
-				filterColumnNames:Array
+				filterColumnNames:Array, configAppend:Boolean
 			):AsyncToken
 		{
 		    return invokeAdminWithLogin(importCSV, arguments);
@@ -510,7 +510,7 @@ package weave.services
 		public function importSQL(
 				schemaName:String, tableName:String, keyColumnName:String,
 				secondaryKeyColumnName:String, configDataTableName:String,
-				keyType:String, filterColumns:Array
+				keyType:String, filterColumns:Array, configAppend:Boolean
 			):AsyncToken
 		{
 		    return invokeAdminWithLogin(importSQL, arguments);
@@ -518,7 +518,7 @@ package weave.services
 		public function importSHP(
 				configfileNameWithoutExtension:String, keyColumns:Array,
 				sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configTitle:String,
-				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean
+				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean, configAppend:Boolean
 			):AsyncToken
 		{
 		    return invokeAdminWithLogin(importSHP, arguments);

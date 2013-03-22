@@ -363,7 +363,7 @@ package weave.utils
 			var result:Array = [];
 			
 			// for each key, look up its geometries 
-			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
+			keyLoop: for (var i:int = keys.length; i--;)
 			{
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];
@@ -756,7 +756,7 @@ package weave.utils
 			var result:Array = [];
 			
 			// for each key, look up its geometries 
-			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
+			keyLoop: for (var i:int = keys.length; i--;)
 			{
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];

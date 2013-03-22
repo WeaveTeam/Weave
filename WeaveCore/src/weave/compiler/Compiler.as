@@ -634,7 +634,8 @@ package weave.compiler
 			// next step: variable assignment, right to left
 			while (true)
 			{
-				for (i = tokens.length - 1; i >= 0; i--)
+				i = tokens.length;
+				while (i--)
 					if (assignmentOperators.hasOwnProperty(tokens[i]))
 						break;
 				if (i < 0)
@@ -1042,8 +1043,8 @@ package weave.compiler
 		 */
 		private function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
-			var index:int;
-			for (index = compiledTokens.length - 1; index >= 0; index--)
+			var index:int = compiledTokens.length;
+			while (index--)
 			{
 				// skip tokens that are not unary operators
 				if (operatorSymbols.indexOf(compiledTokens[index]) < 0)

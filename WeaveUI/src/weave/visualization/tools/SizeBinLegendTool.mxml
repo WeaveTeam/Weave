@@ -25,8 +25,8 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.linkSessionState;
 			import weave.Weave;
+			import weave.api.linkSessionState;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -91,6 +91,8 @@
 				linkBindableProperty(_sizeBinLegendPlotter.customCircleRadiuses, circleRadiusesTextInput, 'text', delay);
 				
 				_sizeBinLegendPlotter.typeRadio.addImmediateCallback(this, updateTypeRadioUI);
+				
+				marginLabelCheckBox.addEventListener(Event.CHANGE, toggleShowAttributeName);
 			}
 			
 			private function updateTypeRadioUI():void
@@ -112,10 +114,32 @@
 					_sizeBinLegendPlotter.typeRadio.value = SizeBinLegendPlotter.customRadio;
 			}
 			
+			
+			// Get called in handleScatterPlotChange
+			override protected function get defaultPanelTitle():String
+			{				
+				if (scatterPlot == null || !scatterPlot.plotter.enabledSizeBy.value)
+					return lang("Color legend of " + ColumnUtils.getTitle(colorColumn));
+				else
+					return lang("Size legend of " + ColumnUtils.getTitle(_sizeBinLegendPlotter.radiusColumn));
+			}
+			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
+			private var _prevMarginTop:String = String(DEFAULT_MARGIN_TOP); // this stores the previous nonzero top margin setting
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.plotManager.marginTopNumber.value != 0;
+				if (visualization.plotManager.marginTopNumber.value != 0)
+				{
+					_prevMarginTop = visualization.plotManager.marginTop.value;
+					marginLabelCheckBox.selected = true;
+				}
+				else
+					marginLabelCheckBox.selected = false;
+			}
+			
+			private function toggleShowAttributeName(e:Event):void
+			{
+				visualization.plotManager.marginTop.value = marginLabelCheckBox.selected ? _prevMarginTop : '0';
 			}
 			
 			public const dynamicScatterPlotTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ScatterPlotTool), handleScatterPlotChange, true);
@@ -154,6 +178,7 @@
 				}
 				
 				updateMarginLabel();
+				handlePanelTitleChange();
 			}
 			
 			private function handleMarginLabelClick():void
@@ -241,7 +266,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}" change="visualization.plotManager.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="{lang('Click to hide the title of the Legend.')}"/>
+				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}"/>
 			</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

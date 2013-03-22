@@ -28,6 +28,7 @@ package weave.services
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.services.beans.DatabaseConfigInfo;
+	import weave.services.beans.EntityHierarchyInfo;
 
 	public class Admin
 	{
@@ -286,59 +287,9 @@ package weave.services
 			);
 			////////////////
 			// Data import
-			service.addHook(
-				service.importSQL,
-				null,
-				function(event:ResultEvent, token:Object):void
-				{
-					var id:int = int(event.result);
-					focusEntityId = id;
-					// request children
-					entityCache.invalidate(id, true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			service.addHook(
-				service.importCSV,
-				null,
-				function(event:ResultEvent, token:Object):void
-				{
-					var id:int = int(event.result);
-					focusEntityId = id;
-					// request children
-					entityCache.invalidate(id, true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			service.addHook(
-				service.importSHP,
-				null,
-				function(event:ResultEvent, token:Object):void
-				{
-					var id:int = int(event.result);
-					focusEntityId = id;
-					// request children
-					entityCache.invalidate(id, true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			/*
-			service.addHook(
-				service.importDBF,
-				null,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					focusEntityId = int(event.result);
-					// request children
-					entityCache.invalidate(int(event.result), true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			*/
+			service.addHook(service.importSQL, null, handleTableImportResult);
+			service.addHook(service.importCSV, null, handleTableImportResult);
+			service.addHook(service.importSHP, null, handleTableImportResult);
 			//////////////////
 			// Miscellaneous
 			service.addHook(
@@ -365,6 +316,24 @@ package weave.services
 			);
 			
 			service.checkDatabaseConfigExists();
+		}
+		
+		private function handleTableImportResult(event:ResultEvent, token:Object):void
+		{
+			var tableId:int = int(event.result);
+			var info:EntityHierarchyInfo = entityCache.getBranchInfo(tableId);
+			if (info)
+				weaveTrace(lang('Existing data table "{0}" was updated successfully.', info.title));
+			else
+				weaveTrace(lang("New data table created successfully."));
+			
+			focusEntityId = tableId;
+			// request children
+			entityCache.invalidate(tableId, true);
+			for each (var id:int in entityCache.getEntity(tableId).childIds)
+				entityCache.invalidate(id);
+			// refresh list
+			service.getKeyTypes();
 		}
 			
 		[Bindable] public function get activeConnectionName():String

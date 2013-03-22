@@ -207,7 +207,7 @@ package weave.visualization.layers
 			// this is very fast
 			_keyToSortIndex = new Dictionary(true);
 			var sorted:Array = _plotter.filteredKeySet.keys;
-			for (var i:int = sorted.length - 1; i >= 0; i--)
+			for (var i:int = sorted.length; i--;)
 				_keyToSortIndex[sorted[i]] = i;
 		}
 		private function cachedKeyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
