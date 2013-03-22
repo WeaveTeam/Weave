@@ -306,7 +306,7 @@ package weave.visualization.plotters
 
 			return;
 		}
-		private function lineEdge(srcX:Number, srcY:Number, destX:Number, destY:Number, isBidirectional:Boolean) /* Expects screen coords */
+		private function lineEdge(srcX:Number, srcY:Number, destX:Number, destY:Number, isBidirectional:Boolean):void /* Expects screen coords */
 		{
 			edgesShape.graphics.moveTo(srcX, srcY);
 
@@ -342,7 +342,6 @@ package weave.visualization.plotters
 					edgesShape.graphics.lineTo(xMid, yMid);
 				}
 			}
-			return;
 		}
 
 		private function drawEdge(srcNode:IGraphNode, destNode:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
