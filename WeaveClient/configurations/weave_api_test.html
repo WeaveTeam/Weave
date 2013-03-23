@@ -1,5 +1,3 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- saved from url=(0014)about:internet -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <!--
     Smart developers always View Source.
@@ -83,17 +81,19 @@
 	param2: <input id="input2" type="text" size="40" value="US State FIPS Code,01,28"/><br/>
 	<button id="b1" onclick="testWeaveAPI()">Test API Function</button><br/>
 	Weave Version: <span id="versionSpan">...</span><br/>
-	<button id="b2" onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br/>
-	<button id="b3" onclick="testSwap()">Swap x,y on ScatterPlot</button><br/>
+
+	<button id="b2" onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button>
+	<button id="b3" onclick="testSwap()">Swap x,y on ScatterPlot</button>
 	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br/>
+
 	<!-- <button id="b6" onclick="getImage()">Get Image</button><br/> -->
 	<!--
 	<input id="scriptInput" type="text" value="Hello, world."/>
 	<button id="b5" onclick="runStartupScript()">Run sessioned startup script again</button><br/>
 	-->
-
-	Find columns by keyType:
-	<input id="keyTypeInput" type="text" value="US State FIPS Code"/>
+	<br/>
+	JSON-RPC Find columns by keyType:
+	<input id="keyTypeInput" type="text" value="test"/>
 	<button onclick="testServerQuery('getEntitiesById')">Get Metadata</button>
 	<button onclick="testServerQuery('getDataSet')">Get DataSet</button>
 </td><td width="100%" height="100%">
