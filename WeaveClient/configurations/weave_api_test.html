@@ -51,11 +51,11 @@
             attributes.id = "weave";
             attributes.name = "weave";
             attributes.align = "middle";
-            /*swfobject.embedSWF(
+            swfobject.embedSWF(
                 "weave.swf", "flashContent",
                 "900", "650",
                 swfVersionStr, xiSwfUrlStr,
-                flashvars, params, attributes);*/
+                flashvars, params, attributes);
             // JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
             swfobject.createCSS("#flashContent", "display:block;text-align:left;");
         </script>
@@ -112,9 +112,6 @@ function queryDataService(method, params, callback, queryId)
 {
 	console.log('queryDataService',method,params);
 	var url = '/WeaveServices/DataService';
-
-	// cache problem workaround
-	url += "?r=" + Math.random();
 
 	var request = {
 		jsonrpc: "2.0",
