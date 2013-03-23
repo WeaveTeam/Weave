@@ -30,7 +30,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,9 +40,14 @@ import java.util.Set;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import org.postgis.Geometry;
+import org.postgis.PGgeometry;
+import org.postgis.Point;
+
 import weave.beans.AttributeColumnData;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.PGGeom;
+import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
@@ -61,10 +65,6 @@ import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-
-import org.postgis.PGgeometry;
-import org.postgis.Geometry;
-import org.postgis.Point;
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -164,13 +164,11 @@ public class DataService extends GenericServlet
 		return ListUtils.toIntArray( getDataConfig().getChildIds(parentId) );
 	}
 
-	public int[] getEntityIdsByMetadata(DataEntityMetadata meta, int entityType) throws RemoteException
+	public int[] getEntityIdsByMetadata(Map<String,String> publicMetadata, int entityType) throws RemoteException
 	{
-		// prevent user from querying private metadata
-		if (meta != null)
-			meta.privateMetadata = Collections.emptyMap();
-		
-		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(meta, entityType) );
+		DataEntityMetadata dem = new DataEntityMetadata();
+		dem.publicMetadata = publicMetadata;
+		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
 	}
 
 	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
@@ -186,7 +184,7 @@ public class DataService extends GenericServlet
 			result[i] = new DataEntityWithChildren(result[i], childIds);
 			
 			// prevent user from receiving private metadata
-			result[i].privateMetadata = Collections.emptyMap();
+			result[i].privateMetadata = null;
 		}
 		return result;
 	}
@@ -386,6 +384,30 @@ public class DataService extends GenericServlet
 		if (thirdColumn != null)
 			result.thirdColumn = thirdColumn.toArray();
 		
+		return result;
+	}
+	
+	/**
+	 * This function is intended for use with JsonRPC calls.
+	 * @param columnIds A list of column IDs.
+	 * @return A WeaveJsonDataSet containing all the data from the columns.
+	 * @throws RemoteException
+	 */
+	public WeaveJsonDataSet getDataSet(int[] columnIds) throws RemoteException
+	{
+		WeaveJsonDataSet result = new WeaveJsonDataSet();
+		for (Integer columnId : columnIds)
+		{
+			try
+			{
+				AttributeColumnData columnData = getColumn(columnId, Double.NaN, Double.NaN, null);
+				result.addColumnData(columnData);
+			}
+			catch (RemoteException e)
+			{
+				e.printStackTrace();
+			}
+		}
 		return result;
 	}
 	
