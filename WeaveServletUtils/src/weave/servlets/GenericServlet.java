@@ -584,7 +584,7 @@ public class GenericServlet extends HttpServlet
 		{
 			for (int i = 0; i < argTypes.length; i++)
 			{
-				if (argTypes[i] == Map.class)
+				if (argTypes[i] == Map.class && argValues[i] == null)
 				{
 					// avoid passing a null Map to the function
 					if (extraParameters == null)
@@ -644,9 +644,9 @@ public class GenericServlet extends HttpServlet
 		Class<?>[] expectedArgTypes = exposedMethod.method.getParameterTypes();
 		if (expectedArgTypes.length == params.length)
 		{
-	    	for (int index = 0; index < params.length; index++)
-	    	{
-	    		params[index] = cast(params[index], expectedArgTypes[index]);
+			for (int index = 0; index < params.length; index++)
+			{
+				params[index] = cast(params[index], expectedArgTypes[index]);
 			}
     	}
 
@@ -706,11 +706,23 @@ public class GenericServlet extends HttpServlet
 			System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(params)));
     }
     
+	/**
+	 * Tries to convert value to the given type
+	 * @param value
+	 * @param type
+	 * @return value which may have been cast as the new type
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object cast(Object value, Class<?> type)
 	{
-		// if given value is a String, check if the function is expecting a different type
-		if (value instanceof String)
+		if (value == null)
+		{
+			if (type == double.class || type == Double.class)
+				value = Double.NaN;
+			else if (type == float.class || type == Float.class)
+				value = Float.NaN;
+		}
+		else if (value instanceof String)
 		{
 			try
 			{
@@ -728,6 +740,7 @@ public class GenericServlet extends HttpServlet
 				}
 				else if (type == boolean.class || type == Boolean.class)
 				{
+					//value = Boolean.parseBoolean((String)value);
 					value = ((String)(value)).equalsIgnoreCase("true");
 				}
 				else if (type == String[].class || type == List.class)
@@ -758,13 +771,6 @@ public class GenericServlet extends HttpServlet
 			{
 				// if number parsing fails, leave the original value untouched
 			}
-		}
-		else if (value == null)
-		{
-			if (type == double.class || type == Double.class)
-				value = Double.NaN;
-			else if (type == float.class || type == Float.class)
-				value = Float.NaN;
 		}
 		else if (value instanceof Boolean && type == boolean.class)
 		{
@@ -836,17 +842,20 @@ public class GenericServlet extends HttpServlet
 				value = ListUtils.copyIntegerArray(valueArray, new int[valueArray.length]);
 			}
 		}
-		else if ((type == int.class || type == Integer.class) && value instanceof Number)
+		else if (value instanceof Number)
 		{
-			value = ((Number)value).intValue();
-		}
-		else if ((type == Double.class || type == double.class) && value instanceof Number)
-		{
-			value = ((Number)value).doubleValue();
-		}
-		else if ((type == float.class || type== Float.class) && value instanceof Number)
-		{
-			value = ((Number)value).floatValue();
+			if (type == int.class || type == Integer.class)
+			{
+				value = ((Number)value).intValue();
+			}
+			else if (type == double.class || type == Double.class)
+			{
+				value = ((Number)value).doubleValue();
+			}
+			else if (type == float.class || type == Float.class)
+			{
+				value = ((Number)value).floatValue();
+			}
 		}
 		return value;
 	}
@@ -916,6 +925,10 @@ public class GenericServlet extends HttpServlet
 	{
     	if (exception instanceof InvocationTargetException)
     		exception = exception.getCause();
+    	
+    	// log errors
+    	exception.printStackTrace();
+    	
     	ServletRequestInfo info = getServletRequestInfo();
     	if (info.currentJsonRequest == null)
     	{
@@ -928,8 +941,6 @@ public class GenericServlet extends HttpServlet
         	if (moreInfo != null)
         		message += "\n" + moreInfo;
         	
-        	// log errors
-        	exception.printStackTrace();
         	System.err.println("Serializing ErrorMessage: "+message);
         	
     		ServletOutputStream servletOutputStream = info.getOutputStream();
