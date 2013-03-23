@@ -103,7 +103,7 @@
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
-// Disable caching of AJAX responses ... doesn't seem to work
+// Disable caching of AJAX responses
 $.ajaxSetup({
     cache: false
 });
@@ -112,7 +112,6 @@ function queryDataService(method, params, callback, queryId)
 {
 	console.log('queryDataService',method,params);
 	var url = '/WeaveServices/DataService';
-
 	var request = {
 		jsonrpc: "2.0",
 		id: queryId || "no_id",
@@ -120,6 +119,7 @@ function queryDataService(method, params, callback, queryId)
 		params: params
 	};
 	$.post(url, JSON.stringify(request), callback, "json");
+	resultTextArea.value = 'Awaiting response for ' + method + ' request...';
 }
 
 function testServerQuery(secondMethodName)
@@ -131,44 +131,42 @@ function testServerQuery(secondMethodName)
 			publicMetadata: {keyType: keyType},
 			entityType: 1
 		},
-		handleColumnIds,
-		secondMethodName
+		handleColumnIds
 	);
-}
 
-function handleColumnIds(response)
-{
-	if (response.error)
+	function handleColumnIds(response)
 	{
-		resultTextArea.value = JSON.stringify(response, null, 3);
-		return;
+		if (response.error)
+		{
+			resultTextArea.value = JSON.stringify(response, null, 3);
+			return;
+		}
+		var ids = response.result;
+		console.log("Found " + ids.length + " column ids: " + ids);
+
+		// trim the list of ids to 10
+		if (ids.length > 10)
+			ids.length = 10;
+
+		queryDataService(
+			secondMethodName,
+			[ids],
+			handleDataSet
+		);
+
+		function handleDataSet(response)
+		{
+			if (response.error)
+			{
+				resultTextArea.value = JSON.stringify(response, null, 3);
+				return;
+			}
+			var data = response.result;
+			var dataStr = JSON.stringify(data, null, 3);
+			console.log(dataStr);
+			resultTextArea.value = dataStr;
+		}
 	}
-	var ids = response.result;
-	console.log("Found " + ids.length + " column ids: " + ids);
-
-	// trim the list of ids to 10
-	if (ids.length > 10)
-		ids.length = 10;
-
-	var secondMethodName = response.id;
-	queryDataService(
-		secondMethodName,
-		[ids],
-		handleDataSet
-	);
-}
-
-function handleDataSet(response)
-{
-	if (response.error)
-	{
-		resultTextArea.value = JSON.stringify(response, null, 3);
-		return;
-	}
-	var data = response.result;
-	var dataStr = JSON.stringify(data, null, 3);
-	console.log(dataStr);
-	resultTextArea.value = dataStr;
 }
 
 function getImage()
