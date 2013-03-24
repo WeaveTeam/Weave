@@ -354,7 +354,7 @@ public class GenericServlet extends HttpServlet
 	    			}
 	    			else // AMF3
 	    			{
-	    				ASObject obj = (ASObject)deseriaizeAmf3(info.inputStream);
+	    				ASObject obj = (ASObject)deserializeAmf3(info.inputStream);
 	    				methodName = (String) obj.get(METHOD);
 	    				methodParams = obj.get(PARAMS);
 	    				info.streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
@@ -663,7 +663,7 @@ public class GenericServlet extends HttpServlet
 				if (exposedMethod.method.getReturnType() != void.class)
 				{
 					ServletOutputStream servletOutputStream = info.getOutputStream();
-					seriaizeCompressedAmf3(result, servletOutputStream);
+					serializeCompressedAmf3(result, servletOutputStream);
 				}
 			}
 			else // json
@@ -946,7 +946,7 @@ public class GenericServlet extends HttpServlet
     		ServletOutputStream servletOutputStream = info.getOutputStream();
         	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
         	errorMessage.faultCode = exception.getClass().getSimpleName();
-        	seriaizeCompressedAmf3(errorMessage, servletOutputStream);	
+        	serializeCompressedAmf3(errorMessage, servletOutputStream);	
     	}
     	else
     	{
@@ -976,7 +976,7 @@ public class GenericServlet extends HttpServlet
     }
     
     // Serialize a Java Object to AMF3 ByteArray
-    protected void seriaizeCompressedAmf3(Object objToSerialize, ServletOutputStream servletOutputStream)
+    protected void serializeCompressedAmf3(Object objToSerialize, ServletOutputStream servletOutputStream)
     {
     	try
     	{
@@ -1005,7 +1005,7 @@ public class GenericServlet extends HttpServlet
     }
 
     //  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-    protected ASObject deseriaizeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+    protected ASObject deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
     {
     	ASObject deSerializedObj = null;
 
