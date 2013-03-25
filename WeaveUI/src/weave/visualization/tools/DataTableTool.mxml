@@ -126,6 +126,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
+			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
@@ -140,6 +141,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
+			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));	
@@ -859,6 +861,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = "defaultCellColorFunction(column, key, cell)";
+			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = "_norm = Class('weave.utils.ColumnUtils').getNorm(column, key);\ncolorRamp.getColorFromNorm(_norm)";
 			private var _lastCellColorError:Error = null;
 			/**
 			 * This defines how cells will be colored.
@@ -997,6 +1000,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						</ui:HelpComponent>
 					</mx:HBox>
 					<mx:Button label="{lang('Reset')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
 				</mx:VBox>
 				<mx:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
 							 creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
