@@ -1268,6 +1268,10 @@
 			
 			private function handleSelectionChangeInViews():void
 			{
+				if(parentPanel == DraggablePanel.getTopPanel())
+				{
+					return;
+				}
 				if(listCanvas.alpha == 1)
 				{
 					var keys:Array = _selection.keys;

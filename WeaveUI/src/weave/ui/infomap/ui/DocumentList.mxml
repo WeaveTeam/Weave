@@ -201,7 +201,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 					filterLabel.filterName.text = name;
 					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,function(event:Event):void{
 						removeFilter(name);
-						filterStatus.removeChild(filterLabel);
+						if(filterStatus.contains(filterLabel))
+							filterStatus.removeChild(filterLabel);
 						startIndex.value = 0;
 						startIndex.triggerCallbacks();
 					});
