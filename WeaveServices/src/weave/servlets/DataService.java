@@ -125,15 +125,7 @@ public class DataService extends GenericServlet
 		}
 	}
 	
-//	private void assertNonGeometryColumn(DataEntity entity) throws RemoteException
-//	{
-//		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
-//		if (dataType != null && dataType.equals(DataType.GEOMETRY))
-//			throw new RemoteException(String.format("Column %s dataType is %s", entity.id, dataType));
-//		assertColumnHasPrivateMetadata(entity, PrivateMetadata.CONNECTION, PrivateMetadata.SQLQUERY);
-//	}
-	
-	private boolean assertGeometryColumn(DataEntity entity, boolean throwException) throws RemoteException
+	private boolean assertStreamingGeometryColumn(DataEntity entity, boolean throwException) throws RemoteException
 	{
 		try
 		{
@@ -203,7 +195,7 @@ public class DataService extends GenericServlet
 		DataEntity entity = getColumnEntity(columnId);
 		
 		// if it's a geometry column, just return the metadata
-		if (assertGeometryColumn(entity, false))
+		if (assertStreamingGeometryColumn(entity, false))
 		{
 			GeometryStreamMetadata gsm = (GeometryStreamMetadata) getGeometryData(entity, GeomStreamComponent.TILE_DESCRIPTORS, null);
 			AttributeColumnData result = new AttributeColumnData();
@@ -333,6 +325,8 @@ public class DataService extends GenericServlet
 				else if (geometricData != null)
 				{
 					// The dataObj must be cast to PGgeometry before an individual Geometry can be extracted.
+					if (!(dataObj instanceof PGgeometry))
+						continue;
 					Geometry geom = ((PGgeometry) dataObj).getGeometry();
 					int numPoints = geom.numPoints();
 					// Create PGGeom Bean here and fill it up!
@@ -351,6 +345,8 @@ public class DataService extends GenericServlet
 				{
 					stringData.add(dataObj.toString());
 				}
+				
+				// if we got here, it means a data value was added, so add the corresponding key
 				keys.add(keyObj.toString());
 				
 				// hack for dimension slider format
@@ -430,7 +426,7 @@ public class DataService extends GenericServlet
 	
 	private Object getGeometryData(DataEntity entity, GeomStreamComponent component, List<Integer> tileIDs) throws RemoteException
 	{
-		assertGeometryColumn(entity, true);
+		assertStreamingGeometryColumn(entity, true);
 		
 		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 		String schema = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
