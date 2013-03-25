@@ -999,7 +999,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							</ui:htmlText>
 						</ui:HelpComponent>
 					</mx:HBox>
-					<mx:Button label="{lang('Reset')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
 					<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
 					<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
 				</mx:VBox>
