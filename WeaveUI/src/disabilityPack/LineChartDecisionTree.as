@@ -18,32 +18,48 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 package disabilityPack
 {
+	import flash.display.JointStyle;
+	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
-//	import weave.api.getCallbackCollection;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
+	import weave.core.LinkableHashMap;
+	import weave.data.KeySets.KeySet;
 	import weave.editors.Disability;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
 	import weave.services.beans.RResult;
+	import weave.utils.ColumnUtils;
+
+
 	
 	public class LineChartDecisionTree
 	{
+		private var InitialSegmentLength:int;
+		
+		
+		public function setSegmentLength(length:int):void
+		{
+			InitialSegmentLength = length;
+		}
+		
 		public function LineChartDecisionTree()
 		{ 			
 			//constructor
 		}
 		
-		public function lineChartDT():Boolean
+		public function lineChartDT(segment:Array):Boolean
 		{
 			// 1=true=split 0=false=no split
 			
-			if(correlationCoefficient()>0.815541)
+			if(correlationCoefficient(segment)>0.815541)
 			{
 				if(percentageOfTotalPoints() <= 0.62963)
 				{
@@ -51,7 +67,7 @@ package disabilityPack
 				}
 				else
 				{
-					if(correlationCoefficient() > 0.962782)
+					if(correlationCoefficient(segment) > 0.962782)
 					{
 						return false;
 					}
@@ -148,13 +164,13 @@ package disabilityPack
 								}
 								else
 								{
-									if(numberOfPointsinCurrentSegment() <=5 )
+									if(numberOfPointsinCurrentSegment(segment) <=5 )
 									{
 										return false;
 									}
 									else
 									{
-										if(correlationCoefficient() <= 0.538139)
+										if(correlationCoefficient(segment) <= 0.538139)
 										{
 											return true;
 										}
@@ -182,7 +198,7 @@ package disabilityPack
 									}
 									else
 									{
-										if(correlationCoefficient() > 0.725035)
+										if(correlationCoefficient(segment) > 0.725035)
 										{
 											return false;
 										}
@@ -213,69 +229,94 @@ package disabilityPack
 			}
 		}
 		
-		 
-/*		private var rService:WeaveRServlet = null;
-		private var dtDisability:Disability = new Disability();
+	
+
 		
-		private function resetRService():void
+		
+
+    	private var rService:WeaveRServlet = null;
+		
+		public function setRService(Rserv:WeaveRServlet):void
 		{
-		rService = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			rService = Rserv;
 		}
 		
-		private function Rcalculations():void
+		private var keysArray:Array = new Array;
+		public function getJoinKeysArray(joinKeysArray:Array):void
 		{
-		var computeCorrelationCoeff:String = "coefficient <- cor(var1, var2)";
-		var inputValues:Array = new Array();
+			keysArray.push(joinKeysArray);
+		}
+		private var a:int = 0;
+		private function Rcalculations(segment:Array):void
+		{
+			
+			var computeCorrelationCoeff:String = "coefficient <- cor(var1, var2)";
 		
-		for (var i:int = 0; i<dtDisability.joinColsRArray.length; i++)
-		{
-		inputValues.push(dtDisability.joinColsRArray[i][0].valueOf());
-		//reportError(joinColsRArray);
+			if(rService == null)
+				trace("NULL")
+			else
+				trace("not null");
+		
+			var query:AsyncToken = rService.runScript(keysArray,["var1","var2"],segment,["coefficient"],computeCorrelationCoeff,"",false,false,false);
+			
+			
+			DelayedAsyncResponder.addResponder(query, handleRResult, handleRFault, keysArray);
 		}
 		
-		var query:AsyncToken = rService.runScript(dtDisability.joinKeysRArray,["var1","var2"],inputValues,["coefficient"],computeCorrelationCoeff,"",false,false,false);
-		DelayedAsyncResponder.addResponder(query, handleRResult, handleRFault, dtDisability.joinKeysRArray)
-		}
+		private var requestID:int = 0
+			
 		private function handleRResult(event:ResultEvent, token:Object=null):void
 		{
-		var Robj:Array = event.result as Array;
-		if (Robj == null)
-		reportError("R Servlet did not return an Array of results as expected.");
-		return;
+			
+			trace("girdi result");
+	     	var Robj:Array = event.result as Array;
+			var RresultArray:Array = new Array();
+			
+			if (Robj == null)
+				reportError("R Servlet did not return an Array of results as expected.");
+				trace("no result");
+			return;
 		
-		var RresultArray:Array = new Array();
+			
 		
-		//collecting Objects of type RResult(Should Match result object from Java side)
-		for(var i:int = 0; i<Robj.length; i++)
-		{
-		var rResult:RResult = new RResult(Robj[i]);
-		RresultArray.push(rResult);               
+			//collecting Objects of type RResult(Should Match result object from Java side)
+			for(var i:int = 0; i<Robj.length; i++)
+			{
+				var rResult:RResult = new RResult(Robj[i]);
+				RresultArray.push(rResult);               
+			}
+			if (RresultArray.length > 1)
+			{
+				corrCoefficient = Number((RresultArray[0] as RResult).value);           
+			//    getCallbackCollection(this).triggerCallbacks();
+			}
+			
+			trace("geldi" + RresultArray);
 		}
-		if (RresultArray.length > 1)
-		{
-		corrCoefficient = Number((RresultArray[0] as RResult).value);           
-		//    getCallbackCollection(this).triggerCallbacks();
-		}
-		
-		}
-		
+
 		private var corrCoefficient:Number = new Number();
 		
 		private function handleRFault(event:FaultEvent, token:Object = null):void
 		{
+			
+		trace("fault");
 		trace(["fault", token, event.message].join("\n"));
 		//corrCoefficient = NaN;
 		reportError(event);
 		}
-		*/
 		
-		public function totalNumberOfPoints():Number {	return 5;}
 		
-		public function numberOfPointsinCurrentSegment():Number {		return 5;	}
+		public function totalNumberOfPoints():Number { 	return InitialSegmentLength;  }
 		
-		public function correlationCoefficient():Number {return 0.82;}
+		public function numberOfPointsinCurrentSegment(segment:Array):Number {		return segment.length;	}
 		
-		public function percentageOfTotalPoints():Number {return 0.62;}
+		public function correlationCoefficient(segment:Array):Number
+		{
+			Rcalculations(segment);
+			return 0.80;
+		}
+		
+		public function percentageOfTotalPoints():Number {return 0.92;}
 		
 		public function fTest():Boolean {return false;}
 		

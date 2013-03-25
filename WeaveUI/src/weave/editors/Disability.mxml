@@ -140,6 +140,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var joinColsRArray:Array = new Array();
 			public var columnNames:Array = new Array();
 			
+			private var RdecisionScript:String = "corr <- cor(dataX, dataY)\n" +
+												 "ftest <- var.test(dataX, dataY, conf.level=0.05)\n"+
+												// "runstest <- runs.test(dataY)\n"+
+												 "outlier_detection <- outliers::outlier(dataY)\n";
+				// +"runs <- rans()\n";
+			
 			public function set target(panel:DraggablePanel):void
 			{
 				if (_panel)
@@ -232,7 +238,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//send the columns and variables returned from getInfoForR to R using this function			
 				var computeScript:String = "mySlope <- y2 -y1";		
 				var inputValues:Array = new Array(); //inputValues is a matrix of all of the columns that are to be sent to R
-				var tempArray:Array = new Array();			
+				var tempArray:Array = new Array();	
+				var outputNames:Array = new Array();
+				var inputName:Array = new Array();
+				var query:AsyncToken;
+				var dataX:Array = new Array();
 				
 				for (var i:int = 0; i<joinColsRArray.length; i++)
 				{
@@ -240,15 +250,72 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					//reportError(joinColsRArray);
 				}
 				
-				split(inputValues);
+				/*//inputValues.push(100);
+				inputValues.push(16.2);
+				inputValues.push(16.2);
+				inputValues.push(16.2);
+				
+				inputValues.push(16.2);
+				inputValues.push(16.2);
+				inputValues.push(16.2);
+				*/
+				trace("INPUT VALUES = " + inputValues);
+				lineDecisionTree.setSegmentLength(inputValues.length);
+				lineDecisionTree.getJoinKeysArray(joinKeysRArray);
+				lineDecisionTree.setRService(Rservice);
+				
+				for(var index:int = 0; index < inputValues.length ; index++)
+				{
+					dataX.push(index);
+				}//, "runstest"
+				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "ftest", "outlier_detection"], RdecisionScript, "", false, true, false);
+				
+				DelayedAsyncResponder.addResponder(query, handleRunScriptDecision, handleRunScriptFault, null);
+				//split(inputValues);
 				
 				//inputValues = joinColsRArray; //use this
-				var outputNames:Array = ["mySlope"];	
-				var inputName:Array = ["y1", "y2"]; // //default name to be used in R	
-				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
+				outputNames = ["mySlope"];	
+				inputName = ["y1", "y2"]; // //default name to be used in R	
+				query = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);   
 				
 			}
+			
+			public function handleRunScriptDecision(event:ResultEvent, token:Object):void
+			{
+				// get needed decision values, execut split
+				
+				// split(inputValues)
+				trace("degerler geldi");
+				var Robj:Array = event.result as Array;
+				trace(Robj);
+				var RresultArray:Array = new Array();
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for(var i:int = 0; i<Robj.length; i++)
+				{
+					var rResult:RResult = new RResult(Robj[i]);
+					RresultArray.push(rResult);				
+				}
+				
+				
+				
+				
+				var corr:Number = Number((RresultArray[0] as RResult).value);
+				var ftest:Array = (RresultArray[1] as RResult).value as Array;//fourth value is the desired one.
+				//var runstest:Boolean =(RresultArray[2] as RResult).value as Boolean;
+				var outlier_detection:Number = (RresultArray[2] as RResult).value as Number;
+				
+				trace("bu corr " + corr);
+				trace("bu f " + ftest);
+				//trace("bu runs " + runstest);
+				
+				//if outlier > critical value
+				// r script tekrar cagir. Baska fonksyonda yap (handle runscript), gelenler cricital value
+				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 
+				trace("outlier " + outlier_detection);
+			}
+			
 			public function handleRunScriptResult(event:ResultEvent, token:Object):void
 			{
 				//if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
@@ -310,24 +377,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				public function shouldSplit(segment:Array):Boolean
 				{
 					
-					if(lineDecisionTree.lineChartDT == true)
-					{
-						return true;
-					}
-					else
-					{
-						return false;
-					}
 					
-				/*	
+					if(lineDecisionTree.lineChartDT(segment) == true)
+						{
+							return true;
+						}
+						else
+						{
+							return false;
+						}
+					
+					
+				/*
 					if(splitCount <2)
 					{
 						splitCount++;
 						return true;
 					}
-					return false;*/
+					return false;
 				}
-				
+				*/
+				}
 				
 				private function split(segment:Array):Array // takes the whole segment as input, and splits the segment recursively
 				{
@@ -357,10 +427,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					var startPoint:Array = new Array(0,segment[0]);
 					var endPoint:Array = new Array(segment.length - 1,segment[segment.length -1]);
-					var result:Array = new Array();
+					var resultSegment:Array = new Array();
 					var maxVD:Number = -1;
 					var maxVDIndex:int = 0;
 					var currVD:Number = -1;
+					var first:Array = new Array();
+					var secondSegment:Array = new Array();
 					
 					for(var i:int = 0; i < segment.length - 1 ; i++)
 					{
@@ -370,12 +442,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							maxVD = currVD;
 							maxVDIndex = i;
 						}
-					}
+					}		
 					
 					
-					result.push(new Array(0, i), new Array(i, segment.length - 1));
-					return result;
+					trace(" WANT TO SEE THE TRACE MESSAGE");
+					first.push(0);
+					trace(maxVDIndex);
+					first.push(maxVDIndex);
+					secondSegment.push(maxVDIndex);
+					secondSegment.push(segment.length - 1);
+					resultSegment.push(first);
+					resultSegment.push(secondSegment);
+					
+					return resultSegment;
+					
 				}
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+				
 				
 			
 			
