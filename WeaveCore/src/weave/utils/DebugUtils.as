@@ -28,6 +28,7 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.core.IVisualElementContainer;
 	import mx.utils.StringUtil;
 	
 	import weave.compiler.StandardLib;
@@ -249,9 +250,21 @@ package weave.utils
 				debugId(root)
 			);
 			var container:DisplayObjectContainer = root as DisplayObjectContainer;
-			if (container && currentDepth != maxDepth)
-				for (var i:int = 0; i < container.numChildren; i++)
-					str += debugDisplayList(container.getChildAt(i), maxDepth, currentDepth + 1);
+			if(container && currentDepth != maxDepth){
+				if(container is IVisualElementContainer){
+					for (var i:int = 0; i < (container as IVisualElementContainer).numElements; i++)
+							str += debugDisplayList((container as IVisualElementContainer).getElementAt(i) as DisplayObject, maxDepth, currentDepth + 1);
+					
+				}
+				else{
+					for (var i:int = 0; i < container.numChildren; i++)
+							str += debugDisplayList(container.getChildAt(i), maxDepth, currentDepth + 1);
+				}
+				
+			}
+			
+			
+			
 			if (currentDepth == 0)
 				debugTrace(str);
 			return str;

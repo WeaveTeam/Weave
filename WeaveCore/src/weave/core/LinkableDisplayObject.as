@@ -25,20 +25,22 @@ package weave.core
 	import flash.external.ExternalInterface;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.core.IVisualElement;
+	import mx.core.IVisualElementContainer;
 	import mx.core.UIComponent;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.IDisposableObject;
-	import weave.api.ui.ILinkableContainer;
-	import weave.api.core.ILinkableDisplayObject;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableDisplayObject;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+	import weave.api.ui.ILinkableContainer;
 	import weave.compiler.Compiler;
 
 	/**
@@ -85,10 +87,22 @@ package weave.core
 			if (_parent == parent)
 				return;
 			if (_parent && _displayObject && _parent == _displayObject.parent)
-				_parent.removeChild(_displayObject);
+				if(_parent is IVisualElementContainer){
+					(_parent as IVisualElementContainer).removeElement(_displayObject as IVisualElement) ;
+				}
+				else{
+					_parent.removeChild(_displayObject);
+				}
+				
 			_parent = parent;
 			if (_parent && _displayObject)
-				_parent.addChild(_displayObject);
+				if(_parent is IVisualElementContainer){
+					(_parent as IVisualElementContainer).addElement(_displayObject as IVisualElement) ;
+				}
+				else{
+					_parent.addChild(_displayObject);
+				}
+				
 		}
 		/**
 		 * @see weave.api.core.ILinkableDisplayObject
@@ -136,7 +150,10 @@ package weave.core
 					handlePropertiesChange();
 				}
 				if (_parent)
-					_parent.addChild(_displayObject);
+					if(_parent is IVisualElementContainer)
+						(_parent as IVisualElementContainer).addElement(_displayObject as IVisualElement);
+					else
+						_parent.addChild(_displayObject);
 				if (_displayObject is UIComponent)
 					UIUtils.linkDisplayObjects(_displayObject as UIComponent, children);
 			}

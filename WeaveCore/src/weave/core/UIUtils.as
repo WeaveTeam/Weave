@@ -32,14 +32,13 @@ package weave.core
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;
 	
+	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
-	import weave.api.objectWasDisposed;
-
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.utils.Dictionary2D;
 
@@ -212,11 +211,11 @@ package weave.core
 					return;
 				var newNameOrder:Array = [];
 				var wrappers:Array = hashMap.getObjects(ILinkableDisplayObject);
-				for (var i:int = 0; i < uiParent.numChildren; i++)
+				for (var i:int = 0; i < (uiParent as IVisualElementContainer).numElements; i++)
 				{
 					var name:String = null;
 					// case 1: check if child is a registered linkable child of the hash map
-					var child:DisplayObject = uiParent.getChildAt(i);
+					var child:DisplayObject = (uiParent as IVisualElementContainer).getElementAt(i) as DisplayObject;
 					if (child is ILinkableObject)
 						name = hashMap.getName(child as ILinkableObject);
 					if (name == null)
@@ -261,10 +260,10 @@ package weave.core
 					getCallbackCollection(child).removeCallback(linkFunctionCache.remove(uiParent, child) as Function);
 				
 				uiParent.removeEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, parentToListenerMap[uiParent]);
-				var numChildren:int = uiParent.numChildren;
-				for (var i:int = 0; i < numChildren; i++)
+				var numElements:int = (uiParent as IVisualElementContainer).numElements;
+				for (var i:int = 0; i < numElements; i++)
 				{
-					var uiChild:DisplayObject = uiParent.getChildAt(i);
+					var uiChild:DisplayObject = (uiParent as IVisualElementContainer).getElementAt(i) as DisplayObject;
 					var listener:Function = childToEventListenerMap[uiChild] as Function;
 					if (listener == null)
 						continue;
@@ -406,7 +405,7 @@ package weave.core
 				}
 				// removeChild() gives an error if called twice
 				try {
-					uiParent.removeChild(removedChild);
+					(uiParent as IVisualElementContainer).removeElement(removedChild as IVisualElement);
 				} catch (e:Error) { } // behavior still seems ok after twice-called removeChild()
 			}
 			else if (hashMap.childListCallbacks.lastObjectAdded)
@@ -453,13 +452,28 @@ package weave.core
 			parentToBusyFlagMap[uiParent] = true; // prevent sessioned name order from being set
 			if (keepLinkableChildrenOnTop)
 			{
+				var childCount:int;
+				if( uiParent is IVisualElementContainer)
+					childCount = ( uiParent as IVisualElementContainer).numElements;
+				else
+					childCount = uiParent.numChildren;
+				
 				// set child index values in reverse order so all the sessioned children will appear on top
-				var indexOffset:int = uiParent.numChildren - uiChildren.length;
-				for (i = uiChildren.length; i--;)
+				var indexOffset:int = childCount - uiChildren.length;
+				for (i = uiChildren.length - 1; i >= 0; i--)
 				{
 					uiChild = uiChildren[i] as DisplayObject;
-					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != indexOffset + i)
-						spark_setChildIndex(uiParent, uiChild, indexOffset + i);
+					if (uiChild && uiParent == uiChild.parent ){
+						var childIndex:int;
+						if( uiParent is IVisualElementContainer)
+							childIndex = ( uiParent as IVisualElementContainer).getElementIndex(uiChild as IVisualElement);
+						else
+							childIndex = uiParent.getChildIndex(uiChild);
+							
+						if(childIndex != indexOffset + i)
+							spark_setChildIndex(uiParent, uiChild, indexOffset + i);
+					}
+						
 				}
 			}
 			else
@@ -467,8 +481,16 @@ package weave.core
 				for (i = 0; i < uiChildren.length; i++)
 				{
 					uiChild = uiChildren[i] as DisplayObject;
-					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != i)
-						spark_setChildIndex(uiParent, uiChild, i);
+					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != i){
+						var childInd:int;
+						if( uiParent is IVisualElementContainer)
+							childInd = ( uiParent as IVisualElementContainer).getElementIndex(uiChild as IVisualElement);
+						else
+							childInd = uiParent.getChildIndex(uiChild);
+						if( childInd != i)
+							spark_setChildIndex(uiParent, uiChild, i);
+					}
+						
 				}
 			}
 			delete parentToBusyFlagMap[uiParent];
