@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.data.QKeyManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.ColumnUtils;
+	import weave.utils.DrawUtils;
 	import weave.visualization.layers.PlotTask;
 
 	// Refer to Feature #924 for detail description
@@ -214,10 +215,12 @@ package weave.visualization.plotters
 						tempShape.graphics.lineStyle(-Math.round((valueColumn.getValueFromKey(tempRowKeys[j], Number) / max) * lineWidth.value), negLineColor.value);
 					}
 					
-					tempShape.graphics.moveTo(tempSourcePoint.x, tempSourcePoint.y);
+//					tempShape.graphics.moveTo(tempSourcePoint.x, tempSourcePoint.y);
 					getCoordsFromRecordKey(destinationKeyColumn.getValueFromKey(tempRowKeys[j], IQualifiedKey), tempDestinationPoint); // Get destionation coordinate
 					task.dataBounds.projectPointTo(tempDestinationPoint, task.screenBounds);
-					tempShape.graphics.lineTo(tempDestinationPoint.x, tempDestinationPoint.y);
+//					tempShape.graphics.lineTo(tempDestinationPoint.x, tempDestinationPoint.y);
+
+					DrawUtils.drawCurvedLine(tempShape.graphics, tempSourcePoint.x, tempSourcePoint.y, tempDestinationPoint.x, tempDestinationPoint.y, 1);
 				}
 				
 				task.buffer.draw(tempShape);
