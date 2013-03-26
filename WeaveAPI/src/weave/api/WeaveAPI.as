@@ -187,14 +187,11 @@ package weave.api
 				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
 				for each (var theInterface:Class in interfaces)
 				{
+					var instance:Object = getSingletonInstance(theInterface);
 					var classInfo:Object = describeTypeJSON(theInterface, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
 					// add a callback for each external interface function
-					for each (var method:Object in classInfo.traits.methods)
-					{
-						var methodName:String = method.name;
-						var callback:Function = generateExternalInterfaceCallback(methodName, theInterface);
-						ExternalInterface.addCallback(methodName, callback);
-					}
+					for each (var methodInfo:Object in classInfo.traits.methods)
+						generateExternalInterfaceCallback(instance, methodInfo);
 				}
 				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = false;
@@ -222,18 +219,22 @@ package weave.api
 		}
 		
 		/**
-		 * @private 
+		 * @private
 		 */
-		private static function generateExternalInterfaceCallback(methodName:String, theInterface:Class):Function
+		private static function generateExternalInterfaceCallback(instance:Object, methodInfo:Object):void
 		{
-			return function (...args):* {
-				var instance:Object = getSingletonInstance(theInterface);
-				var method:Function = instance[methodName] as Function;
-				// append necessary number of parameters in an attempt to avoid an exception
-				while (args.length < method.length)
-					args.push(undefined);
+			var method:Function = instance[methodInfo.name] as Function;
+			// find the number of required parameters
+			var paramCount:int = 0;
+			while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
+				paramCount++;
+			function callback(...args):*
+			{
+				if (args.length < paramCount)
+					args.length = paramCount;
 				return method.apply(null, args);
 			}
+			ExternalInterface.addCallback(methodInfo.name, callback);
 		}
 		
 		
