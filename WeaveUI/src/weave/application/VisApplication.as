@@ -45,6 +45,7 @@ package weave.application
 	import mx.controls.Text;
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
+	import mx.events.ResizeEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -139,8 +140,8 @@ package weave.application
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
 			clipAndEnableScrolling = false;
-			autoLayout = true;			
-		
+			autoLayout = true;				
+			
 			initVisApp();
 			waitForApplicationComplete();
 		}
@@ -322,7 +323,6 @@ package weave.application
 			this.graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
-			trace(visDesktop.internalCanvas.width,visDesktop.internalCanvas.height);
 			
 			if(isUpdateWorkspaceSizeCalled){
 				var workspace:Group = visDesktop.internalCanvas;
@@ -499,6 +499,7 @@ package weave.application
 
 			this.addElement(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
+			this.parent.addEventListener(ResizeEvent.RESIZE,updateWorkspaceSize);
 		}
 		
 		private function handleKeyPress():void
@@ -511,6 +512,7 @@ package weave.application
 			}
 		}
 		
+		//private var isParentSizeChanged:Boolean = false;
 		private function updateWorkspaceSize(..._):void
 		{
 			if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
