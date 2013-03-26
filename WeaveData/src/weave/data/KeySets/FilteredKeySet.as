@@ -108,8 +108,13 @@ package weave.data.KeySets
 			{
 				// KeySetUnion should not trigger callbacks
 				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
-				for each (var column:IAttributeColumn in sortColumns)
-					union.addKeySetDependency(column);
+				for each (var column:Object in sortColumns)
+				{
+					if (column is IAttributeColumn)
+						union.addKeySetDependency(column as IKeySet);
+					else
+						throw new Error("sortColumns must be an Array of IAttributeColumn objects");
+				}
 				// SortedKeySet should trigger callbacks
 				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
 				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
