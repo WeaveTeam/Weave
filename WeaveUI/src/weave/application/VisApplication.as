@@ -123,29 +123,48 @@ package weave.application
 		public function VisApplication()
 		{
 			super();
-
+			
 			setStyle("paddingLeft", 0);
 			setStyle("paddingRight", 0);
 			setStyle("paddingTop", 0);
 			setStyle("paddingBottom", 0);
 			
-			setStyle("left", 0);
-			setStyle("right", 0);
-			setStyle("top", 0);
-			setStyle("bottom", 0);
+			setStyle("marginLeft", 0);
+			setStyle("marginRight", 0);
+			setStyle("marginTop", 0);
+			setStyle("marginBottom", 0);
 			
 			setStyle("gap", 0);
 			setStyle('backgroundAlpha', 1);
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
 			clipAndEnableScrolling = false;
-			autoLayout = true;
+			autoLayout = true;			
+		
+			initVisApp();
+			waitForApplicationComplete();
+		}
+		
+		// Reason for calling this in Constructor, 
+		// makes sure all elements are added before createChildren method
+		// this makes usre layout calculation happens once
+		private function initVisApp():void{
+			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
+			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
+			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
+			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar,true);
 			
-						
-			percentWidth = 100;
-			percentHeight = 100;
-
-			callLater(waitForApplicationComplete);
+			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
+			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize);
+			Weave.properties.workspaceMultiplier.addImmediateCallback(this, updateWorkspaceSize);
+			
+			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
+			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
+			
+			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
+			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
+			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
+			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 		}
 
 		/**
@@ -170,23 +189,13 @@ package weave.application
 			} catch (e:Error) { }
 			
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
-			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
+			//addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
 			
 			// special case - if an error occurred already
 			if (WeaveAPI.ErrorManager.errors.length > 0)
 				ErrorLogPanel.openErrorLog();
 			
-			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
-			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
-			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
-			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
-			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
-			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
-			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 			
 			getFlashVars();
 			handleFlashVarAllowDomain();
@@ -313,6 +322,18 @@ package weave.application
 			this.graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
+			trace(visDesktop.internalCanvas.width,visDesktop.internalCanvas.height);
+			
+			if(isUpdateWorkspaceSizeCalled){
+				var workspace:Group = visDesktop.internalCanvas;
+				var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+				var scale:Number = 1 / multiplier;
+				workspace.scaleX = scale;
+				workspace.scaleY = scale;
+				workspace.width = workspace.parent.width * multiplier;
+				workspace.height = workspace.parent.height * multiplier;
+				isUpdateWorkspaceSizeCalled = false;
+			}
 		}
 		
 		/**
@@ -446,19 +467,23 @@ package weave.application
 		
 		private var historySlider:UIComponent = null;
 		
+	
+		
+		override protected function measure():void{
+			super.measure();
+		}
+		
 		override protected function createChildren():void
 		{
 			super.createChildren();
 
 			//UIComponentGlobals.catchCallLaterExceptions = true;
 			//systemManager.addEventListener("callLaterError", reportError);
-
-			this.addElement(visDesktop);
-			visDesktop.percentWidth = 100;
-			visDesktop.percentHeight = 100;
-			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
-			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize);
-			Weave.properties.workspaceMultiplier.addImmediateCallback(this, updateWorkspaceSize);
+			
+			this.addElement(visDesktop);	
+			//visDesktop.percentWidth = 100;
+			//visDesktop.percentHeight = 100;			
+			
 			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
@@ -505,15 +530,19 @@ package weave.application
 			else
 				this.height = this.parent.height;
 			
-			var workspace:Group = visDesktop.internalCanvas;
+			/*var workspace:Group = visDesktop.internalCanvas;
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			var scale:Number = 1 / multiplier;
 			workspace.scaleX = scale;
 			workspace.scaleY = scale;
 			workspace.width = workspace.parent.width * multiplier;
-			workspace.height = workspace.parent.height * multiplier;
+			workspace.height = workspace.parent.height * multiplier;*/
+			
+			isUpdateWorkspaceSizeCalled = true;			
 		}
-
+		private var isUpdateWorkspaceSizeCalled:Boolean = false;
+		
+		
 		private var adminService:LocalAsyncService = null;
 		
 		private const saveTimer:Timer = new Timer( 10000 );
@@ -652,11 +681,11 @@ package weave.application
 		
 		private function toggleMenuBar():void
 		{
-			if (!enabled)
+			/*if (!enabled)
 			{
 				callLater(toggleMenuBar);
 				return;
-			}
+			}*/
 			
 			if (!historySlider)
 			{

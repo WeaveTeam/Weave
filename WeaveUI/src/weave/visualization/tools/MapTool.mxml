@@ -33,6 +33,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<fx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.core.IVisualElement;
 			import mx.core.IVisualElementContainer;
 			import mx.utils.ObjectUtil;
 			
@@ -225,9 +226,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
 				windowSettingsEditor.initialize();
 				windowSettingsEditor.addElement(backgroundImageCheck);
-				windowSettingsEditor.removeElement(windowSettingsEditor.titleControls);
 				
+				var winTitleControls:IVisualElement = windowSettingsEditor.titleControls;
+				windowSettingsEditor.removeElement(winTitleControls);				
 				windowSettingsEditor.addElementAt(simpleAxisEditor.titleControls, 0);
+				
 				if(simpleAxisEditor.parent is IVisualElementContainer){
 					(simpleAxisEditor.parent as IVisualElementContainer).removeElement(simpleAxisEditor);
 				}

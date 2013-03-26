@@ -210,7 +210,7 @@
 			{
 				super.createChildren();
 				
-				if (menuToggleVBox.numChildren > 0)
+				if (menuToggleVBox.numElements > 0)
 					return;
 				
 				var cbArray:Array = [];

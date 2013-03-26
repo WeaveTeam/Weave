@@ -82,7 +82,7 @@ This is a generic panel for a wizard interface, containing back/next/finish/canc
 			{
 				this.viewStack = viewStack;
 				viewStackContainer.addElement(viewStack);
-				viewStack.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):void { viewStackNumChildren = viewStack.numChildren; });
+				viewStack.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):void { viewStackNumChildren = viewStack.numElements; });
 				
 			}
 			

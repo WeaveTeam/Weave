@@ -41,13 +41,8 @@
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" styleName="clearButtonStyle"/>
-	<fx:Style>
-		.clearButtonStyle {
-			paddingLeft: 4;
-			paddingRight: 4;
-		}
-	</fx:Style>
+	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" paddingLeft="4" paddingRight="4" />
+	
 	<fx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;

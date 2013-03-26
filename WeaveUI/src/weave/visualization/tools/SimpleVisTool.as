@@ -73,6 +73,7 @@ package weave.visualization.tools
 			// Don't put any code here.
 			// Put code in the constructor() function instead.
 			super();
+			creationPolicy = "all";
 		}
 
 		override protected function constructor():void
@@ -113,6 +114,8 @@ package weave.visualization.tools
 			
 			toolVBox = new VGroup()
 			toolVBox.clipAndEnableScrolling = true;
+			toolVBox.minWidth = 0;
+			toolVBox.minHeight = 0;
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
 			toolVBox.setStyle("gap", 0);
@@ -131,6 +134,8 @@ package weave.visualization.tools
 			visCanvas = new Group();
 			visCanvas.percentHeight = 100;
 			visCanvas.percentWidth = 100;
+			visCanvas.minWidth = 0;
+			visCanvas.minHeight = 0;
 			
 			//all children added in MXML except controlpanel are moved to viscanvas 
 			// controlpanel added in MXML is removed in DraggablePanel createChildren method and registered as simplevistool disposable child

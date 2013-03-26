@@ -47,9 +47,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
+			import spark.components.Group;
 			import spark.components.NavigatorContent;
+			import spark.components.supportClasses.Skin;
 			import spark.layouts.VerticalLayout;
 			import spark.layouts.supportClasses.LayoutBase;
+			import spark.skins.SparkSkin;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -138,6 +141,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					else{
 						var navContent:NavigatorContent = new NavigatorContent();
+						navContent.creationPolicy ="all";
 						navContent.addElement(array[i]);
 						controlPanelControls.tabNavigator.addElement(array[i]);
 					}
@@ -158,6 +162,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				save();
 				
 				adjustControls();
+			}
+			
+			/**
+			 * setter for _targetObjects
+			 * @param Array an array of ILinkableObjects 
+			 */
+			public function get targets():Array
+			{
+				return _targetObjects;
+				
+				
 			}
 			
 			private function adjustControls():void
@@ -217,6 +232,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			//sanjay parent is not simplevistool instead its draggbleskin's contentGroup 
+			// thats the reason the targets remains null and visible in the screen ever 
+			
 			/**
 			 * This function saves the session state(s) of all ILinkableObjects in _targetObjects 
 			 * to a local Array <br/>
@@ -225,10 +243,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function save():void
 			{
-				if (_targetObjects == null && parent is ILinkableObject)
+				if( (_targetObjects == null) && (parentDocument is DraggablePanelSkin))
 				{
-					targets = [parent]; // this calls save() again
-					return;
+					if( (parentDocument as DraggablePanelSkin).skinOwner is ILinkableObject){
+						var realParent:ILinkableObject = (parentDocument as DraggablePanelSkin).skinOwner as ILinkableObject;
+						targets = [realParent]; // this calls save() again
+						return;
+					}
+					
 				}
 				if (tabNavigator)
 					for each (var child:Object in tabNavigator.getChildren())
@@ -286,8 +308,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				addElement(controlPanelControls);
 				controlPanelControls.addEventListener(FlexEvent.CREATION_COMPLETE, handleControlsCreated);
-				
+				//initilization of controlpanelcontrols and tabnavigator is required so that their childred wonr be  null, and available for acesss
 				controlPanelControls.initialize();
+				controlPanelControls.tabNavigator.initialize();
 				for ( var i:int = 0; i < children.length; i++ )
 				{
 					controlPanelControls.tabNavigator.addElement(children[i]);

@@ -745,7 +745,7 @@ A text editor to change the Session State on the fly.
 				if (console.height == 0)
 				{
 					// make sure the divider moves appropriately
-					vDividedBox.moveDivider(vDividedBox.getChildIndex(console) - 1, -vDividedBox.height / 2);
+					vDividedBox.moveDivider(vDividedBox.getElementIndex(console) - 1, -vDividedBox.height / 2);
 					console.percentHeight = 100;
 					console.input.setFocus();
 				}

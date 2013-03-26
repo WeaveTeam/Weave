@@ -32,7 +32,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   implements="weave.api.ui.ILinkableObjectEditor"
 			   label="RadViz settings"
-			   >
+			   creationPolicy="all">
 	
 	<fx:Script>
 		<![CDATA[
@@ -281,7 +281,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<s:RadioButtonGroup id="normalizationType"/>
 	</fx:Declarations>
 	
-		<s:NavigatorContent id="attributesPanel" label="Attributes">
+		<s:NavigatorContent id="attributesPanel" label="Attributes" creationPolicy="all">
 			<s:layout>
 				<s:VerticalLayout/>
 			</s:layout>
@@ -290,7 +290,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:ColumnListComponent visTool="{_target}" id="columnList" label="Anchor Dimensions"/>
 		</s:NavigatorContent>		
 		
-		<s:NavigatorContent id="VizControlsPanel" label="Appearance">
+		<s:NavigatorContent id="VizControlsPanel" label="Appearance" creationPolicy="all">
 			<s:layout>
 				<s:VerticalLayout/>
 			</s:layout>
@@ -326,7 +326,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</ui:Indent>
 		</s:NavigatorContent>
 		
-		<s:NavigatorContent id="advancedPanel" label="Advanced">	
+		<s:NavigatorContent id="advancedPanel" label="Advanced" creationPolicy="all">	
 			<s:layout>
 				<s:VerticalLayout/>
 			</s:layout>
@@ -385,7 +385,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				</s:HGroup>
 			</s:VGroup>
 		</s:NavigatorContent>
-	<s:NavigatorContent id="cdlayout" label="CDLayout"  >
+	<s:NavigatorContent id="cdlayout" label="CDLayout"  creationPolicy="all">
 		<s:layout>
 			<s:VerticalLayout/>
 		</s:layout>

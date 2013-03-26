@@ -30,7 +30,7 @@ package weave.ui
 	{
 		override protected function hiliteSelectedNavItem(index:int):void
 		{
-			if (index < numChildren)
+			if (index < numElements)
 				super.hiliteSelectedNavItem(index);
 		}
 	}

@@ -31,7 +31,7 @@ LayerListComponent
 		  xmlns:mx="library://ns.adobe.com/flex/mx" 
 		  xmlns="weave.editors.managers.*"
 		  width="100%" height="100%"
-		  label="{lang('Layers (Beta)')}" xmlns:ui="weave.ui.*">
+		  label="{lang('Layers (Beta)')}" xmlns:ui="weave.ui.*" creationPolicy="all">
 	<s:layout>
 		<s:VerticalLayout gap="0"/>
 	</s:layout>

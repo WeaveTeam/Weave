@@ -63,9 +63,9 @@
 				super.createChildren();
 				
 				// move any existing children to the _helpText variable
-				if (numChildren > 0)
+				if (numElements > 0)
 					_helpChildren = getChildren();
-				removeAllChildren();
+				removeAllElements();
 				
 				// create the image and add that as the only child
 				_button = new Button();

@@ -1,62 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
 
 <!--
-		This class creates a taskbar that sits at the bottom of a page to provide objects to access different options.  For example, tools could be
-		minimized to go into this taskbar like in windows or a mac.  
+This class creates a taskbar that sits at the bottom of a page to provide objects to access different options.  For example, tools could be
+minimized to go into this taskbar like in windows or a mac.  
+
+Important Settings
+1. Set  width="100%" height="0", which makes sure its not visible
+2. Set clipAndEnableScrolling="false" , which helps hBox to work normal way, if clipAndEnableScrolling="true" , then hbOX wont visble too as component height is Zero
 -->
-<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
- xmlns:s="library://ns.adobe.com/flex/spark" 
- xmlns:mx="library://ns.adobe.com/flex/mx"
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
 		   implements="weave.api.core.ILinkableObject"
-		   width="100%" height="0">
-	<s:layout>
-		<s:BasicLayout clipAndEnableScrolling="true"/>
-	</s:layout>
-	<s:BorderContainer id="hbox"
-			 visible="false"
-			 cornerRadius="5" 
-			 filters="{[glow]}"
-			 x="{(width - hbox.width) / 2}"
-			 y="{-hbox.height}"
-			 >
-		<s:backgroundFill>
-			<s:SolidColor color="0x808080" alpha="0.8"/>
-		</s:backgroundFill>
-		<s:borderStroke>
-			<s:SolidColorStroke color="0x000000" weight="1"/>
- 		</s:borderStroke>
+		   width="100%" height="0" clipAndEnableScrolling="false"  >		
+	
+	<s:BorderContainer id="hBox" 
+					   visible="false"
+					   cornerRadius="5"
+					   filters="{[glow]}"   
+					   minHeight="0" minWidth="0"
+					   x="{(width - hBox.width) / 2}"
+					   y="{-hBox.height}"
+					 >
+		
 		<s:layout>
-			<s:HorizontalLayout verticalAlign="middle"  paddingLeft="10" paddingRight="10" paddingTop="2" paddingBottom="2"/>
+			<s:HorizontalLayout   verticalAlign="middle"  paddingLeft="10" paddingRight="10" paddingTop="2" paddingBottom="2"  />
 		</s:layout>
+		
+		<s:backgroundFill>
+			<s:SolidColor color="0x808080" alpha="0.8" />
+		</s:backgroundFill>
+		<s:borderStroke >
+			<s:SolidColorStroke color="0x000000" weight="1"  />				
+		</s:borderStroke>			
+		
 	</s:BorderContainer>
 	
 	<fx:Script>
 		<![CDATA[
 			import mx.core.IVisualElementContainer;
 			import mx.core.UIComponent;
-			import mx.events.FlexEvent;
-			import mx.events.ResizeEvent;
 			
 			import spark.filters.GlowFilter;
 			
@@ -66,10 +70,9 @@
 			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
-			import weave.data.AttributeColumns.AbstractAttributeColumn;
 			import weave.ui.MinimizedComponent;
 			import weave.utils.SparkUtils;
-
+			
 			public const taskbarShrinkGrow:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 			public const taskbarLargeIconSize:LinkableNumber = newLinkableChild(this, LinkableNumber, updateIconSizes);
 			public const taskbarSmallIconSize:LinkableNumber = newLinkableChild(this, LinkableNumber, shrinkComponents);
@@ -98,7 +101,7 @@
 				if (!removed)
 					return;
 				
-				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				var toolChildren:Array = SparkUtils.getAllElement(hBox);
 				// go through each minimizedComponent in the taskbar
 				for each (var minimizedComponent:MinimizedComponent in toolChildren)
 				{
@@ -110,7 +113,7 @@
 						// then remove the minimized component from the taskbar so you cant restore something that doesn't exist anymore
 						if (component == removed)
 						{
-							hbox.removeElement(minimizedComponent);
+							hBox.removeElement(minimizedComponent);
 							continue;
 						}
 					}
@@ -119,7 +122,7 @@
 			
 			private function updateIconSizes():void
 			{
-				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				var toolChildren:Array = SparkUtils.getAllElement(hBox);
 				for each (var component:MinimizedComponent in toolChildren)
 				{
 					component.scaleX = 1;
@@ -130,17 +133,17 @@
 				
 				shrinkComponents();
 			}
-				
+			
 			public function shrinkComponents(event:MouseEvent = null):void
 			{
 				if (taskbarShrinkGrow.value == false)
 					return;
-					
+				
 				removeEventListener(MouseEvent.ROLL_OUT,  shrinkComponents);				
 				
 				// limit the smallest size to 2 pixels, otherwise grow/shrink doesn't work
 				var scale:Number = Math.max(2, taskbarSmallIconSize.value) / taskbarLargeIconSize.value;
-				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				var toolChildren:Array = SparkUtils.getAllElement(hBox);
 				for each (var component:MinimizedComponent in toolChildren)
 				{
 					component.scaleX = scale;
@@ -153,7 +156,7 @@
 			{
 				if (taskbarShrinkGrow.value == false)
 					return;
-				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				var toolChildren:Array = SparkUtils.getAllElement(hBox);
 				for each (var component:MinimizedComponent in toolChildren)
 				{
 					component.scaleX = 1;
@@ -174,11 +177,17 @@
 					taskbarLargeIconSize.value,
 					clickListener
 				);
+				//includeInLayout = true;
 				
-				hbox.addElement(minimizedComponent);
-				hbox.validateNow();
+				hBox.addElement(minimizedComponent);
+				
+				hBox.validateNow();
 				validateNow();
-				hbox.visible = hbox.numElements > 0;
+				/*validateNow();
+				width = measuredWidth;
+				height = measuredHeight;
+				includeInLayout = false;*/
+				hBox.visible = hBox.numElements > 0;
 				
 				if (taskbarShrinkGrow.value)
 					shrinkComponents();
@@ -198,7 +207,7 @@
 							minimizedComponent.parent.removeChild(minimizedComponent);
 						}
 					}
-					hbox.visible = hbox.numElements > 0;
+					hBox.visible = hBox.numElements > 0;
 				}
 				catch (error:Error)
 				{
@@ -231,23 +240,23 @@
 							restoreFunctions[i]();
 					}
 				);
-						
-				hbox.addElement(minimizedComponent);
-				hbox.validateNow();
+				
+				hBox.addElement(minimizedComponent);
+				hBox.validateNow();
 				validateNow();
-				hbox.visible = hbox.numChildren > 0;
+				hBox.visible = hBox.numElements > 0;
 				
 				if (taskbarShrinkGrow.value)
 					shrinkComponents();
-								
+				
 				return minimizedComponent;
 			}
 			
 			public function restoreAllComponents():void
 			{
-				var toolChildren:Array = SparkUtils.getAllElement(hbox);
+				var toolChildren:Array = SparkUtils.getAllElement(hBox);
 				for each (var component:MinimizedComponent in toolChildren)
-					component.clickListener(null);
+				component.clickListener(null);
 			}
 			
 			private static var _instance:VisTaskbar = null;
@@ -260,6 +269,8 @@
 				}
 				return _instance;
 			}
+			
+						
 		]]>
 	</fx:Script>
-</s:SkinnableContainer>
+</s:Group>

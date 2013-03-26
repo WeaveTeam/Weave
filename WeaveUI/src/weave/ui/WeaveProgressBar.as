@@ -23,6 +23,7 @@ package weave.ui
 	
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
+	import mx.core.IVisualElementContainer;
 	import mx.managers.PopUpManager;
 	
 	import weave.api.WeaveAPI;
@@ -68,7 +69,13 @@ package weave.ui
 			if (parent && visible)
 			{
 				y = parent.height - height;
-				parent.setChildIndex(this, parent.numChildren - 1);
+				if(parent is IVisualElementContainer){
+					(parent as IVisualElementContainer).setElementIndex(this, (parent as IVisualElementContainer).numElements - 1);
+				}
+				else{
+					parent.setChildIndex(this, parent.numChildren  - 1);
+				}
+				
 			}
 		}
 		

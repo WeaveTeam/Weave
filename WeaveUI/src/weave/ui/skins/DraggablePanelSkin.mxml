@@ -264,6 +264,10 @@ in accordance with the terms of the license agreement accompanying it.
 				target.bottomLeftRadiusX = includeBottom ? cornerRadius : 0;
 				target.bottomRightRadiusX = includeBottom ? cornerRadius : 0;
 			}
+			public function get skinOwner():DraggablePanel
+			{
+				return hostComponent;
+			}
 			
 			private var cornerRadius:Number;
 			[Bindable]
@@ -457,7 +461,7 @@ in accordance with the terms of the license agreement accompanying it.
 			
 		</s:Group>
 		
-		<s:Group id="dragCanvas" left="0" right="0" top="0" bottom="0" alpha="0">
+		<s:Group id="dragCanvas" left="0" right="0" top="0" bottom="0" alpha="0" minWidth="0" minHeight="0">
 			
 		</s:Group>
 		<s:Image id="moveImage" source="@Embed('/weave/resources/images/panMode.png')" toolTip="Drag this icon to move the panel." doubleClickEnabled="true"

@@ -1,5 +1,6 @@
 package weave.ui
 {
+	import flash.display.DisplayObject;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -86,6 +87,9 @@ package weave.ui
 		
 		[SkinPart(required="false")]
 		public var controlBar:Group;
+		
+		
+		
 		
 		
 		
@@ -268,6 +272,7 @@ package weave.ui
 			
 			// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
 			var pad:int = 0;
+			
 			setStyle("paddingLeft", pad);
 			setStyle("paddingRight", pad);
 			setStyle("paddingBottom", pad);
@@ -457,6 +462,15 @@ package weave.ui
 		}
 		
 		
+		private function get realParent():DisplayObject{
+			var realParent:DisplayObject;
+			if(parentDocument is DraggablePanelSkin)
+				realParent = (parentDocument as DraggablePanelSkin).skinOwner as DisplayObject;
+			else
+				realParent = parent as DisplayObject;
+			return realParent;
+		}
+		
 		private function handleAddedToStage(event:Event):void
 		{
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
@@ -481,22 +495,26 @@ package weave.ui
 		{
 			if (!parent)
 				return;
+			var originalParent:DisplayObject = realParent;
+			
 			if (!singleProperty || singleProperty == panelX)
-				copyCoordinateFromLinkableString(panelX, parent.width, "x");
+				copyCoordinateFromLinkableString(panelX, originalParent.width, "x");
 			if (!singleProperty || singleProperty == panelY)
-				copyCoordinateFromLinkableString(panelY, parent.height, "y");
+				copyCoordinateFromLinkableString(panelY, originalParent.height, "y");
 			if (!singleProperty || singleProperty == panelWidth)
-				copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
+				copyCoordinateFromLinkableString(panelWidth, originalParent.width, "width", minWidth);
 			if (!singleProperty || singleProperty == panelHeight)
-				copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
+				copyCoordinateFromLinkableString(panelHeight, originalParent.height, "height", minHeight);
 			callLater(fixHeight);
 		}
 		private function fixHeight():void
 		{
 			if (!parent)
 				return;
-			if (y + height > parent.height) // rounding error, reproduceable when parent height is 625
-				height = parent.height - y;
+			var originalParent:DisplayObject = realParent;
+			
+			if (y + height > originalParent.height) // rounding error, reproduceable when parent height is 625
+				height = originalParent.height - y;
 		}
 		// watch(this,"{ [panelX.value,panelY.value,panelWidth.value,panelHeight.value] }\r{ [x,y,width,height] }")
 		
@@ -576,12 +594,13 @@ package weave.ui
 				return;
 			
 			// init local vars
+			var originalParent:DisplayObject = realParent;
 			var _x:Number = x;
 			var _y:Number = y;
 			var _right:Number = x + width;
 			var _bottom:Number = y + height;
-			var _parentWidth:Number = parent.width;
-			var _parentHeight:Number = parent.height;
+			var _parentWidth:Number = originalParent.width;
+			var _parentHeight:Number = originalParent.height;
 			
 			// calculate snap size
 			var snapStr:String = Weave.properties.windowSnapGridSize.value;
@@ -1116,7 +1135,7 @@ package weave.ui
 			// don't do anything if this panel is not added to the stage.
 			if (!parent)
 				return;
-			
+			var originalParent:DisplayObject = realParent;
 			// delay this function while the mouse is still moving
 			if (WeaveAPI.StageUtils.mouseMoved)
 			{
@@ -1127,7 +1146,7 @@ package weave.ui
 			if (!_enableMoveResize)
 				return;
 			
-			var parentMousePoint:Point = new Point(parent.mouseX, parent.mouseY);
+			var parentMousePoint:Point = new Point(originalParent.mouseX, originalParent.mouseY);
 			
 			if (_dragging)
 			{
@@ -1142,7 +1161,7 @@ package weave.ui
 			{
 				if (_rightSideResize)
 				{
-					this.width = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (parent.width - this.x) );
+					this.width = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (originalParent.width - this.x) );
 				}
 				else if (_leftSideResize)
 				{
@@ -1151,7 +1170,7 @@ package weave.ui
 				}
 				if (_bottomResize)
 				{
-					this.height = StandardLib.constrain( (parentMousePoint.y - this.y), minHeight, (parent.height - this.y) );
+					this.height = StandardLib.constrain( (parentMousePoint.y - this.y), minHeight, (originalParent.height - this.y) );
 				}
 				else if (_topSideResize)
 				{

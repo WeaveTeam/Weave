@@ -55,7 +55,7 @@
 			// This function gets called when the "Next" button is clicked.
 			public function next():void
 			{
-				if (selectedIndex >= 0 && selectedIndex < numChildren - 1)
+				if (selectedIndex >= 0 && selectedIndex < numElements - 1)
 					selectedIndex++;
 			}
 			

@@ -26,7 +26,7 @@
 		 xmlns:ui="weave.ui.*"
 		 label=""
 		 enabled="{_panel != null}"
-		 >
+		 creationPolicy="all" >
 	<fx:Declarations>
 		<ui:IndentGroup id="g1"/>
 		<ui:IndentGroup id="g2"/>

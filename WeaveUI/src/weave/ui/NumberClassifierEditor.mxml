@@ -94,7 +94,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				vbox.setStyle("gap", 0);
 				
 				var label:Label = new Label();
-				label.text = "split " + (valuesModule.numChildren-1) + ":";
+				label.text = "split " + (valuesModule.numElements-1) + ":";
 				
 				var newTextInput:TextInput = new TextInput();
 				
@@ -107,7 +107,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// add the new text input to the end of module that holds them, if the module is empty, add it at 0, otherwise add it at the
 				// end of the module
-				valuesModule.addElementAt(vbox, Math.max(0, valuesModule.numChildren-1) );
+				valuesModule.addElementAt(vbox, Math.max(0, valuesModule.numElements-1) );
 			}
 			
 			override protected function childrenCreated():void
