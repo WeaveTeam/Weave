@@ -40,17 +40,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				click="handleConsoleLogClick()"
 				mouseDown="handleConsoleLogClick()"  fontSize="12"
 				width="100%" height="100%" minHeight="0" editable="false"  
-				/>
+				selectionHighlighting="always"/>
+	
 	<s:TextInput id="input" width="100%" 				 
 				 enter="runCommand()" fontSize="12"
 				 keyDown="handleConsoleKeyDown(event)"/>
 				  
 	<fx:Script>
 		<![CDATA[
-			
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
+			
+			import avmplus.DescribeType;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -59,6 +61,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
 			use namespace mx_internal;
@@ -81,9 +84,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
-				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
-				//input.getTextField().alwaysShowSelection = true;
-				
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
 			}
 			
 			private const compiler:Compiler = new Compiler();
@@ -95,7 +96,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
 				return ILinkableObject(target);
 			}
-			private const watchLookup:Dictionary = new Dictionary(false);
+			private const watchLookup:Dictionary = new Dictionary(true);
 			private function consoleWatch(target:Object = null, debugString:String = null):void
 			{
 				if (!target || !debugString)
@@ -104,18 +105,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				}
 				var linkableTarget:ILinkableObject = getObject(target);
-				//weaveTrace("linkableTarget - " , linkableTarget);
 				consoleUnwatch(linkableTarget);
 				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
 				watchLookup[linkableTarget] = callback;
-				//weaveTrace("watchLookup[linkableTarget] - " , watchLookup[linkableTarget]);
 				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 			}
 			private function consoleUnwatch(target:Object):void
 			{
 				var linkableTarget:ILinkableObject = getObject(target);
 				var callback:Function = watchLookup[linkableTarget];
-				//weaveTrace( " delete consoleUnwatch watchLookup[linkableTarget] - " , watchLookup[linkableTarget]);
 				delete watchLookup[linkableTarget];
 				getCallbackCollection(linkableTarget).removeCallback(callback);
 			}
@@ -124,10 +122,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				try
 				{
 					var script:String = '`' + script.split('`').join('\\`') + '`';
-					//weaveTrace("script " , script);
 					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
 					consoleTrace(result);
-					//weaveTrace("result " , result);
 				}
 				catch (e:Error)
 				{
@@ -137,17 +133,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function consoleTrace(...args):void
 			{
 				log.appendText('\n\n' + args.join('\n'));
-				
 			}
 			private function consoleClear():String
 			{
 				return log.text = '';
-			
 			}
 			
-			public function test1(a:*,b:*,c:*):*{
-				return a[b] = c;
-			}
 			private const symbolTable:Object = {
 				'call': function(...args):*
 				{
@@ -165,25 +156,40 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return result;
 				},
 				'application': WeaveAPI.topLevelApplication,
-					
-					'print': ObjectUtil.toString as Function,
+					'visApp': getVisApp(),
+					'toString': ObjectUtil.toString as Function,
 					'getObject': getObject,
 					'clear': consoleClear,
 					'watch': consoleWatch,
 					'unwatch': consoleUnwatch,
 					'trace': consoleTrace,
-					'debugId': debugId,
-					'debugLookup': debugLookup,
-					'debugTrace': debugTrace,
-					'debugDisplayList': DebugUtils.debugDisplayList,
-					'hashMap': WeaveAPI.globalHashMap,
-					'sesMan': WeaveAPI.SessionManager,
-					'stageUtils': WeaveAPI.StageUtils,
-					'statsCache': WeaveAPI.StatisticsCache,
-					'test':test1,
-					
-					'v': {}
+					'$': debugHelper,
+					'$$': debugHelper2,
+					'_': {}
 			};
+			
+			private function debugHelper(arg:* = null):*
+			{
+				var type:String = typeof(arg);
+				if (arg == null || type != 'object' && type != 'function')
+					return debugLookup(arg);
+				return debugId(arg);
+			}
+			
+			private function debugHelper2(arg:* = null):*
+			{
+				if (isFinite(StandardLib.asNumber(arg)))
+					arg = debugLookup(arg);
+				return DebugUtils.debugDisplayList(arg || stage);
+			}
+			
+			private function getVisApp():Object
+			{
+				var app:Object = WeaveAPI.topLevelApplication;
+				if (app.hasOwnProperty('visApp'))
+					return app.visApp
+				return null;
+			}
 			private function runCommand():void
 			{
 				if (!input.text)
