@@ -153,7 +153,7 @@ package weave.data.AttributeColumns
 				}
 			}
 			
-			_iterateAll(true); // restart from first task
+			_iterateAll(-1); // restart from first task
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
 		}
 		

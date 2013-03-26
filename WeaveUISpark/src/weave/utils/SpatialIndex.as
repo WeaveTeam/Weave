@@ -163,7 +163,7 @@ package weave.utils
 			
 			// insert bounds-to-key mappings in the kdtree
 			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
-			_iterateAll(true); // restart from first task
+			_iterateAll(-1); // restart from first task
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
 		}
 		
