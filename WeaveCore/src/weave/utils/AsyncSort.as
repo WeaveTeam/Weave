@@ -235,7 +235,7 @@ package weave.utils
 		 ** Testing **
 		 *************/
 		
-		//test(true); // Class('weave.utils.AsyncSort').test(false)
+		//test(false); // Class('weave.utils.AsyncSort').test(false)
 		/*
 			Array.sort 50 numbers; 0.002 seconds; 487 comparisons
 			Merge Sort 50 numbers; 0.001 seconds; 208 comparisons
@@ -252,7 +252,7 @@ package weave.utils
 		*/
 		public static function test(useDefaultSort:Boolean):void
 		{
-			for each (var n:uint in [0,1,50,3000,6000,12000,25000,50000])
+			for each (var n:uint in [0,1,2,3,4,5,50,3000,6000,12000,25000,50000])
 			{
 				var array:Array = [];
 				for (var i:int = 0; i < n; i++)

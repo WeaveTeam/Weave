@@ -22,6 +22,7 @@ package weave.data.AttributeColumns
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getTimer;
 	
 	import mx.utils.StringUtil;
 	
@@ -30,6 +31,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newDisposableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
@@ -183,89 +185,91 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 		
-		private function _iterate1():Number
+		private function _iterate1(stopTime:int):Number
 		{
 			// copy new records to dataMap, overwriting any existing records
-			if (_i1 >= _keys.length)
-				return 1;
-
-			// get values for this iteration
-			var key:IQualifiedKey = _keys[_i1];
-			var value:String = _stringData[_i1];
 			
-			// keep track of unique keys
-			if (_keyToStringMap[key] === undefined)
+			for (; _i1 < _keys.length; _i1++)
 			{
-				_uniqueKeys.push(key);
-				// save key-to-data mapping
-				_keyToStringMap[key] = value;
-			}
-			else if (!_reportedDuplicate)
-			{
-				_reportedDuplicate = true;
-				var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-				var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
-				if (Capabilities.isDebugger)
-					reportError(str);
-			}
-			// keep track of unique strings
-			if (_stringToIndexMap[value] === undefined)
-			{
-				_uniqueStrings.push(value);
-				// initialize mapping
-				_stringToIndexMap[value] = -1;
+				if (getTimer() > stopTime)
+					return _i1 / _keys.length;
+				
+				// get values for this iteration
+				var key:IQualifiedKey = _keys[_i1];
+				var value:String = _stringData[_i1];
+				
+				// keep track of unique keys
+				if (_keyToStringMap[key] === undefined)
+				{
+					_uniqueKeys.push(key);
+					// save key-to-data mapping
+					_keyToStringMap[key] = value;
+				}
+				else if (!_reportedDuplicate)
+				{
+					_reportedDuplicate = true;
+					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
+					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
+					if (Capabilities.isDebugger)
+						reportError(str);
+				}
+				// keep track of unique strings
+				if (_stringToIndexMap[value] === undefined)
+				{
+					_uniqueStrings.push(value);
+					// initialize mapping
+					_stringToIndexMap[value] = -1;
+				}
 			}
 			
-			// prepare for next iteration
-			_i1++;
+			// begin sorting unique strings previously listed
+			_asyncSort.beginSort(_uniqueStrings, AsyncSort.compareCaseInsensitive);
 			
-			return _i1 / _keys.length;
-		}
-		private function _iterate2():Number
-		{
-			// sort unique strings previously listed
-			AsyncSort.sortImmediately(_uniqueStrings, AsyncSort.compareCaseInsensitive);
 			return 1;
 		}
-		private function _iterate3():Number
+		private const _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
+		private function _iterate2(stopTime:int):Number
 		{
-			if (_i3 >= _uniqueStrings.length)
-				return 1;
-			
-			// save string-to-index mapping
-			_stringToIndexMap[_uniqueStrings[_i3] as String] = _i3;
-			
-			// prepare for next iteration
-			_i3++;
-			
-			return _i3 / _uniqueStrings.length;
+			// wait for async sort to finish
+			return _asyncSort.result ? 1 : 0;
 		}
-		private function _iterate4():Number
+		private function _iterate3(stopTime:int):Number
 		{
-			if (_i4 >= _uniqueKeys.length)
-				return 1;
-			
-			var key:IQualifiedKey = _uniqueKeys[_i4] as IQualifiedKey;
-			var string:String = _keyToStringMap[key] as String;
-			var index:int = int(_stringToIndexMap[string]);
-			_keyToUniqueStringIndexMapping[key] = index;
-			
-			if (_stringToNumberFunction != null)
+			for (; _i3 < _uniqueStrings.length; _i3++)
 			{
-				var number:Number = _stringToNumberFunction(string);
-				_keyToNumberMapping[key] = number;
-				// save reverse lookup
-				_numberToKeyMapping[number] = key;
+				if (getTimer() > stopTime)
+					return _i3 / _uniqueStrings.length;
+				
+				// save string-to-index mapping
+				_stringToIndexMap[_uniqueStrings[_i3] as String] = _i3;
 			}
-			else
+			return 1;
+		}
+		private function _iterate4(stopTime:int):Number
+		{
+			for (; _i4 < _uniqueKeys.length; _i4++)
 			{
-				_keyToNumberMapping[key] = index;
+				if (getTimer() > stopTime)
+					return _i4 / _uniqueKeys.length;
+				
+				var key:IQualifiedKey = _uniqueKeys[_i4] as IQualifiedKey;
+				var string:String = _keyToStringMap[key] as String;
+				var index:int = int(_stringToIndexMap[string]);
+				_keyToUniqueStringIndexMapping[key] = index;
+				
+				if (_stringToNumberFunction != null)
+				{
+					var number:Number = _stringToNumberFunction(string);
+					_keyToNumberMapping[key] = number;
+					// save reverse lookup
+					_numberToKeyMapping[number] = key;
+				}
+				else
+				{
+					_keyToNumberMapping[key] = index;
+				}
 			}
-			
-			// prepare for next iteration
-			_i4++;
-			
-			return _i4 / _uniqueKeys.length;
+			return 1;
 		}
 
 		// find the closest string value at a given normalized value

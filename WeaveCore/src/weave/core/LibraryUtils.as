@@ -126,6 +126,7 @@ import flash.net.URLRequest;
 import flash.system.ApplicationDomain;
 import flash.system.LoaderContext;
 import flash.utils.ByteArray;
+import flash.utils.getTimer;
 
 import mx.controls.SWFLoader;
 import mx.core.mx_internal;
@@ -306,36 +307,36 @@ internal class Library implements IDisposableObject
 		
 		// iterate over all the classes, initializing them
 		var index:int = 0;
-		function loadingTask():Number
+		function loadingTask(stopTime:int):Number
 		{
-			if (index >= _classQNames.length) // in case the length is zero
-				return 1;
-
-			var classQName:String = _classQNames[index] as String;
-			try
+			for (; index < _classQNames.length; index++)
 			{
-				// initialize the class
-				var classDef:Class = ClassUtils.getClassDefinition(classQName);
-				
-				// register this class as an implementation of every interface it implements.
-				var classInfo:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
-				for each (var interfaceQName:String in classInfo.traits.interfaces)
+				if (getTimer() > stopTime)
+					return index / _classQNames.length;  // this will be 1.0 after the last iteration.
+	
+				var classQName:String = _classQNames[index] as String;
+				try
 				{
-					var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
-					if (interfaceDef)
-						WeaveAPI.registerImplementation(interfaceDef, classDef);
+					// initialize the class
+					var classDef:Class = ClassUtils.getClassDefinition(classQName);
+					
+					// register this class as an implementation of every interface it implements.
+					var classInfo:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+					for each (var interfaceQName:String in classInfo.traits.interfaces)
+					{
+						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
+						if (interfaceDef)
+							WeaveAPI.registerImplementation(interfaceDef, classDef);
+					}
+				}
+				catch (e:Error)
+				{
+					var fault:Fault = new Fault(String(e.errorID), e.name, e.message);
+					_notifyResponders(fault);
+					return 1;
 				}
 			}
-			catch (e:Error)
-			{
-				var fault:Fault = new Fault(String(e.errorID), e.name, e.message);
-				_notifyResponders(fault);
-				return 1;
-			}
-			
-			index++;
-			
-			return index / _classQNames.length;  // this will be 1.0 after the last iteration.
+			return 1;
 		}
 		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_PARSING, _notifyResponders);
 	}

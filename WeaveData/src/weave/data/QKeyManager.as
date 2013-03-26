@@ -20,6 +20,7 @@
 package weave.data
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
 	
@@ -122,18 +123,16 @@ package weave.data
 		{
 			outputKeys.length = keyStrings.length;
 			var i:int = 0;
-			var iterate:Function = function():Number
+			function iterate(stopTime:int):Number
 			{
-				if (i >= keyStrings.length)
-					return 1;
-				
-				outputKeys[i] = getQKey(keyType, keyStrings[i]);
-				
-				i++;
-				
-				return i / keyStrings.length;
+				for (; i < keyStrings.length; i++)
+				{
+					if (getTimer() > stopTime)
+						return i / keyStrings.length;
+					outputKeys[i] = getQKey(keyType, keyStrings[i]);
+				}
+				return 1;
 			};
-			
 			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncCallback);
 		}
 

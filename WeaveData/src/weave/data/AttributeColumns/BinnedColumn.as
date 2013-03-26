@@ -20,14 +20,15 @@
 package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.registerLinkableChild;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerLinkableChild;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
@@ -117,30 +118,33 @@ package weave.data.AttributeColumns
 		private var _column:IAttributeColumn;
 		private var _i:int;
 		private var _keys:Array;
-		private function _asyncIterate():Number
+		private function _asyncIterate(stopTime:int):Number
 		{
-			// stop immediately if there are no more keys or result callbacks were triggered
-			if (_i >= _keys.length || _resultTriggerCount != binningDefinition.asyncResultCallbacks.triggerCounter)
+			// stop immediately if result callbacks were triggered
+			if (_resultTriggerCount != binningDefinition.asyncResultCallbacks.triggerCounter)
 				return 1;
 
-			var key:IQualifiedKey = _keys[_i];
-			var value:* = _column.getValueFromKey(key, _dataType);
-			var binIndex:int = 0;
-			for (; binIndex < _binClassifiers.length; binIndex++)
+			for (; _i < _keys.length; _i++)
 			{
-				if ((_binClassifiers[binIndex] as IBinClassifier).contains(value))
+				if (getTimer() > stopTime)
+					return _i / _keys.length;
+				
+				var key:IQualifiedKey = _keys[_i];
+				var value:* = _column.getValueFromKey(key, _dataType);
+				var binIndex:int = 0;
+				for (; binIndex < _binClassifiers.length; binIndex++)
 				{
-					_keyToBinIndexMap[key] = binIndex;
-					var array:Array = _binnedKeysArray[binIndex] as Array;
-					if (array.push(key) > _largestBinSize)
-						_largestBinSize = array.length;
-					break;
+					if ((_binClassifiers[binIndex] as IBinClassifier).contains(value))
+					{
+						_keyToBinIndexMap[key] = binIndex;
+						var array:Array = _binnedKeysArray[binIndex] as Array;
+						if (array.push(key) > _largestBinSize)
+							_largestBinSize = array.length;
+						break;
+					}
 				}
 			}
-			
-			_i++;
-			
-			return _i / _keys.length;
+			return 1;
 		}
 
 		/**

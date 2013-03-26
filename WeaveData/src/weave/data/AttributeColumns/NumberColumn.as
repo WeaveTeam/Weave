@@ -24,6 +24,7 @@ package weave.data.AttributeColumns
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getTimer;
 	
 	import mx.formatters.NumberFormatter;
 	import mx.utils.StringUtil;
@@ -129,36 +130,35 @@ package weave.data.AttributeColumns
 		private var _numericData:Vector.<Number>;
 		private var _reportedDuplicate:Boolean = false;
 		
-		private function _iterate():Number
+		private function _iterate(stopTime:int):Number
 		{
-			if (_i >= _keys.length)
-				return 1;
-			
-			// save a mapping from keys to data
-			var key:IQualifiedKey = _keys[_i] as IQualifiedKey;
-			var number:Number = _numericData[_i] as Number; // fast and safe because numericData is Vector.<Number>
-			if (!isNaN(number))
+			for (; _i < _keys.length; _i++)
 			{
-				if (_keyToNumericDataMapping[key] === undefined)
+				if (getTimer() > stopTime)
+					return _i / _keys.length;
+
+				// save a mapping from keys to data
+				var key:IQualifiedKey = _keys[_i] as IQualifiedKey;
+				var number:Number = _numericData[_i] as Number; // fast and safe because numericData is Vector.<Number>
+				if (!isNaN(number))
 				{
-					_uniqueKeys.push(key);
-					_keyToNumericDataMapping[key] = number;
-					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
-				}
-				else if (!_reportedDuplicate)
-				{
-					_reportedDuplicate = true;
-					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
-					if (Capabilities.isDebugger)
-						reportError(str);
+					if (_keyToNumericDataMapping[key] === undefined)
+					{
+						_uniqueKeys.push(key);
+						_keyToNumericDataMapping[key] = number;
+						_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
+					}
+					else if (!_reportedDuplicate)
+					{
+						_reportedDuplicate = true;
+						var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
+						var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
+						if (Capabilities.isDebugger)
+							reportError(str);
+					}
 				}
 			}
-			
-			// prepare for next iteration
-			_i++;
-			
-			return _i / _keys.length;
+			return 1;
 		}
 
 		private function _asyncComplete():void
