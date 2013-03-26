@@ -237,8 +237,14 @@ in accordance with the terms of the license agreement accompanying it.
 				borderStroke.alpha = getStyle("borderAlpha");
 				titleBarColor.color = getStyle("borderColor");
 				titleBarColor.alpha = getStyle("borderAlpha");
+				
 				backgroundFill.color = getStyle("backgroundColor");
 				backgroundFill.alpha = getStyle("backgroundAlpha");
+				
+				if(controlBarColor){
+					controlBarColor.color = getStyle("borderColor");
+					controlBarColor.alpha = getStyle("borderAlpha");
+				}
 				
 				
 				// modifed from Panel.as code for the titleTextField
@@ -418,17 +424,17 @@ in accordance with the terms of the license agreement accompanying it.
 				</s:layout>
 			</s:Group>
 			
-			<s:Group id="bottomGroup" minWidth="0" minHeight="0"
+			<s:Group id="bottomGroup" minWidth="0" minHeight="0" width="100%"
 					 includeIn="normalWithControlBar, disabledWithControlBar" >
 				
 				<s:Group left="0" right="0" top="0" bottom="0" ><!--mask="{bottomGroupMask}"-->
 					
 					<!-- layer 0: control bar divider line -->
-					<s:Rect left="0" right="0" top="0" height="1" alpha="0.22">
+					<!--<s:Rect left="0" right="0" top="0" height="1" alpha="0.22">
 						<s:fill>
 							<s:SolidColor color="0x000000" />
 						</s:fill>
-					</s:Rect>
+					</s:Rect>-->
 					
 					<!-- layer 1: control bar highlight -->
 					<!--<s:Rect left="0" right="0" top="1" bottom="0">
@@ -441,20 +447,17 @@ in accordance with the terms of the license agreement accompanying it.
 					</s:Rect>-->
 					
 					<!-- layer 2: control bar fill -->
-					<!--<s:Rect left="1" right="1" top="2" bottom="1">
+					<s:Rect left="0" right="0" top="0" bottom="0">
 						<s:fill>
-							<s:LinearGradient rotation="90">
-								<s:GradientEntry color="0xDADADA" />
-								<s:GradientEntry color="0xC5C5C5" />
-							</s:LinearGradient>
+							<s:SolidColor id="controlBarColor"/>
 						</s:fill>
-					</s:Rect>-->
+					</s:Rect>
 				</s:Group>
 				<!-- layer 3: control bar -->
 				<!--- @copy spark.components.Panel#controlBarGroup -->
-				<s:Group id="controlBarGroup" left="0" right="0" top="1" bottom="1" minWidth="0" minHeight="0">
+				<s:Group id="controlBarGroup" minWidth="0" minHeight="0" width="100%" clipAndEnableScrolling="true">
 					<s:layout>
-						<s:HorizontalLayout paddingLeft="10" paddingRight="10" paddingTop="7" paddingBottom="7" gap="10" />
+						<s:HorizontalLayout paddingLeft="10" paddingRight="10" paddingTop="5" paddingBottom="5" gap="10"  verticalAlign="middle"/>
 					</s:layout>
 				</s:Group>
 			</s:Group>
@@ -462,7 +465,7 @@ in accordance with the terms of the license agreement accompanying it.
 		</s:Group>
 		
 		<s:Group id="dragCanvas" left="0" right="0" top="0" bottom="0" alpha="0" minWidth="0" minHeight="0">
-			
+			 
 		</s:Group>
 		<s:Image id="moveImage" source="@Embed('/weave/resources/images/panMode.png')" toolTip="Drag this icon to move the panel." doubleClickEnabled="true"
 				 x="{DraggablePanel.resizeBorderThickness}" y="{DraggablePanel.resizeBorderThickness}" alpha="0.25">

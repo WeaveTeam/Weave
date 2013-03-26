@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!--
-	This is a ViewStack whose children are to be used as different steps in a WizardPanel.
-	@author adufilie
+This is a ViewStack whose children are to be used as different steps in a WizardPanel.
+@author adufilie
 -->
 <mx:ViewStack 
 	xmlns:fx="http://ns.adobe.com/mxml/2009" 
- xmlns:s="library://ns.adobe.com/flex/spark" 
- xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns="weave.ui.*"
 	creationPolicy="all"
 	paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8"
-	width="100%" height="100%"
+	width="100%" height="100%" clipContent="true" minHeight="0" minWidth="0"
 	>
 	<fx:Script>
 		<![CDATA[

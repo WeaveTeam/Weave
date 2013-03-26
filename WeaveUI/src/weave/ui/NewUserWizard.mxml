@@ -29,7 +29,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	finishEnabled="false"
 	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*"
 	>
-	<s:NavigatorContent id="upload" width="100%" height="100%">
+	<s:NavigatorContent id="upload" width="100%" height="100%"  >
+		
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
 		
 		<!--Image from http://www.iconeden.com/icon/milky-a-free-vector-iconset.html-->
 		<s:HGroup>
@@ -58,6 +62,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<s:TextArea id="dataTextArea" change="handleTextAreaChange()" width="400" height="250"/>
 	</s:NavigatorContent>
 	<s:NavigatorContent id="gridBox" width="100%" height="100%">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
 		<s:HGroup width="100%">
 			<mx:Text text="{lang('Check your data!')}"/>
 			<ui:HelpComponent>
@@ -86,6 +93,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		
 	</s:NavigatorContent>
 	<s:NavigatorContent id="visTools" width="100%">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
 		<mx:Text text="{lang('Your data is now ready to be visualized!')}"/>
 		<mx:Text text="{lang('* Click the image below to add a visual tool or')}"/>
 		<s:HGroup><mx:Text text="{lang('* Use the')}"/><mx:Text fontWeight="bold" text="'Tools'"/><mx:Text text="{lang(' menu to add more visual tools')}"/></s:HGroup>		

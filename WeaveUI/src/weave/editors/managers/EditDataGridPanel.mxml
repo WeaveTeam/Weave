@@ -34,11 +34,12 @@
 					 horizontalScrollPolicy="auto" verticalScrollPolicy="auto"/>
 	</s:VGroup>
 	
-	<mx:ControlBar>
+	<ui:controlBarContent>
 		<s:Spacer width="100%"/>
 		<s:Button id="saveButton" click="removePanel();" label="{lang('Save &amp; Close')}"/>
 		<s:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel();"/>
-	</mx:ControlBar>
+	</ui:controlBarContent>
+	
 	
 	<fx:Script>
 		<![CDATA[
