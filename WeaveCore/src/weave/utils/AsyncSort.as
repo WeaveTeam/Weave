@@ -203,22 +203,7 @@ package weave.utils
 			
 			// if one sub-array includes the entire array, we're done
 			if (subArraySize >= length)
-			{
-				// source array is completely sorted
-				if (source != original) // if source isn't the original
-				{
-					// copy the sorted values to the original
-					var i:int = length;
-					while (i--)
-						original[i] = source[i];
-				}
-				
-				// clean up so the "get result()" function knows we're done
-				source = null;
-				destination = null;
-				
 				return 1; // done
-			}
 			
 			//TODO: improve progress calculation
 			return subArraySize / length; // not exactly accurate, but returns a number < 1
@@ -226,6 +211,19 @@ package weave.utils
 		
 		private function done():void
 		{
+			// source array is completely sorted
+			if (source != original) // if source isn't the original
+			{
+				// copy the sorted values to the original
+				var i:int = length;
+				while (i--)
+					original[i] = source[i];
+			}
+			
+			// clean up so the "get result()" function knows we're done
+			source = null;
+			destination = null;
+			
 			if (debug && elapsed > 0)
 				debugTrace(this,result.length,'in',elapsed/1000,'seconds');
 			
