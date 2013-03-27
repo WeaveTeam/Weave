@@ -31,64 +31,67 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		  implements="weave.api.core.ILinkableObject"
 		  width="{NaN}" height="{NaN}"
 		  >
-	<s:Label text="{lang('Override colors for specific records')}" fontWeight="bold"/>
-	<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
-		<mx:itemRenderer>
-			<fx:Component> 
-				<s:MXItemRenderer>
-					<s:HGroup verticalAlign="middle" >
-						<ui:CustomColorPicker id="colorPicker" change="handleColor()"/>
-						<s:Label id="lbl" width="100%"/>
-						<fx:Script>
-							<![CDATA[
-								import weave.api.data.IQualifiedKey;
-								import weave.utils.ProbeTextUtils;
-								
-								private function handleColor():void
-								{
-									if (data)
-										outerDocument.overrideColor([data], colorPicker.selectedColor);
-								}
-								
-								override public function set data(value:Object):void
-								{
-									super.data = value;
+	<s:VGroup width="100%" height="100%" minHeight="0" minWidth="0">
+		<s:Label text="{lang('Override colors for specific records')}" fontWeight="bold"/>
+		<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
+			<mx:itemRenderer>
+				<fx:Component> 
+					<s:MXItemRenderer>
+						<s:HGroup verticalAlign="middle" >
+							<ui:CustomColorPicker id="colorPicker" change="handleColor()"/>
+							<s:Label id="lbl" width="100%"/>
+							<fx:Script>
+								<![CDATA[
+									import weave.api.data.IQualifiedKey;
+									import weave.utils.ProbeTextUtils;
 									
-									var key:IQualifiedKey = value as IQualifiedKey;
-									if (key)
+									private function handleColor():void
 									{
-										var probeText:String = ProbeTextUtils.getProbeText([key]);
-										if (!probeText)
-											probeText = key.keyType + '#' + key.localName;
-										else if (probeText.indexOf(lang('Record Identifier:')) == 0)
-											probeText = probeText.split('\n').join('');
-										
-										toolTip = probeText;
-										lbl.text = probeText.split('\n')[0]; // first line only
-										
-										colorPicker.selectedColor = outerDocument.getColor(key);
+										if (data)
+											outerDocument.overrideColor([data], colorPicker.selectedColor);
 									}
-									else
+									
+									override public function set data(value:Object):void
 									{
-										lbl.text = 'null';
-										colorPicker.selectedColor = 0;
+										super.data = value;
+										
+										var key:IQualifiedKey = value as IQualifiedKey;
+										if (key)
+										{
+											var probeText:String = ProbeTextUtils.getProbeText([key]);
+											if (!probeText)
+												probeText = key.keyType + '#' + key.localName;
+											else if (probeText.indexOf(lang('Record Identifier:')) == 0)
+												probeText = probeText.split('\n').join('');
+											
+											toolTip = probeText;
+											lbl.text = probeText.split('\n')[0]; // first line only
+											
+											colorPicker.selectedColor = outerDocument.getColor(key);
+										}
+										else
+										{
+											lbl.text = 'null';
+											colorPicker.selectedColor = 0;
+										}
 									}
-								}
-							]]>
-						</fx:Script>
-					</s:HGroup>
-				</s:MXItemRenderer> 
-			</fx:Component>  
-		</mx:itemRenderer>
-	</mx:List>
-	<s:HGroup width="100%">
-		<ui:Indent label="{lang('Change color for selected records:')}">
-			<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
-			<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
-		</ui:Indent>
-		<s:Spacer width="100%"/>
-		<s:Button label="{lang('Reset selected')}" click="removeSelectedColors()"/>
-	</s:HGroup>
+								]]>
+							</fx:Script>
+						</s:HGroup>
+					</s:MXItemRenderer> 
+				</fx:Component>  
+			</mx:itemRenderer>
+		</mx:List>
+		<s:HGroup width="100%">
+			<ui:Indent label="{lang('Change color for selected records:')}">
+				<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
+				<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
+			</ui:Indent>
+			<s:Spacer width="100%"/>
+			<s:Button label="{lang('Reset selected')}" click="removeSelectedColors()"/>
+		</s:HGroup>
+	</s:VGroup>
+	
 	<fx:Script>
 		<![CDATA[
 			import weave.utils.AsyncSort;

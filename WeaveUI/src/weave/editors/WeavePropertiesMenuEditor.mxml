@@ -1,201 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+
 <s:VGroup xmlns="weave.editors.*" 
-		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
- xmlns:s="library://ns.adobe.com/flex/spark" 
- xmlns:mx="library://ns.adobe.com/flex/mx" 
-		 width="100%" 
-		 height="100%" xmlns:ui="weave.ui.*"
-		 >
-		<s:CheckBox id="enableMenuBar"
-					 label="{lang('Show menu bar')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
-					/>
+		  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  width="100%" 
+		  height="100%" xmlns:ui="weave.ui.*"
+		  >
+	<s:CheckBox id="enableMenuBar"
+				label="{lang('Show menu bar')}"
+				creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
+				/>
 	
-		<mx:TabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
-			<s:NavigatorContent label="{lang('Right-click')}" >
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox label="{lang('Right-click Menu')}" id="rightClick"
-							 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
-				<s:VGroup enabled="{rightClick.selected}" paddingLeft="10" gap="{_gap}" width="100%">
-					<s:CheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
-					
-					<ui:Indent label="{lang('Data Info URL')}" width="100%">
-						<ui:HelpComponent>
-							If you enter a URL here, a right-click menu option will appear that opens the URL. ("Show information about this dataset...")
-						</ui:HelpComponent>
-						<ui:TextInputWithPrompt width="100%" prompt="http://www.example.com/example.html" creationComplete="linkBindableProperty(Weave.properties.dataInfoURL, event.target, 'text');"/>
-					</ui:Indent>
-				</s:VGroup>
-			</s:NavigatorContent>
+	<mx:TabNavigator resizeToContent="true" width="100%" height="100%" minWidth="0" minHeight="0" paddingLeft="10" paddingRight="10">		<s:NavigatorContent label="{lang('Right-click')}" >
 			
-			<s:NavigatorContent  label="{lang('Data')}" >
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox id="dataMenu"
-							 label="{lang('Data Menu')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu, event.target, 'selected')"/>
-				<s:VGroup enabled="{dataMenu.selected}" paddingLeft="10" gap="{_gap}">
-					
-					<s:CheckBox label="{lang('Load my data')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
-					<s:CheckBox id="refreshDataCheckBox"
-								 label="{lang('Refresh data source hierarchies')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
-					
-					<s:CheckBox label="{lang('New Datasource')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableAddNewDatasource, event.target, 'selected')"/> 
-					
-					<s:CheckBox label="{lang('Edit Datasources')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
-					
-				</s:VGroup>
-			</s:NavigatorContent>
-			<s:NavigatorContent label="{lang('Tools')}" >	
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox id="toolsMenu"
-							 label="{lang('Tools Menu')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools, event.target, 'selected')"/>
-				
-				<s:HGroup enabled="{toolsMenu.selected}" paddingLeft="10" gap="10">
-					<s:VGroup gap="{_gap}">
-						<s:CheckBox label="{lang('Color Controller')}"
-									 creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
-						<s:CheckBox label="{lang('Probe Info Editor')}"
-									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
-						<s:CheckBox label="{lang('Probe Info Window')}"
-									 creationComplete="linkBindableProperty(Weave.properties.showProbeWindow, event.target, 'selected')"/>
-						<s:CheckBox label="{lang('Equation Editor')}"
-									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
-						<s:CheckBox id="collabSettings"
-									 label="{lang('Collaboration Settings')}"
-									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
-									 />
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox label="{lang('Right-click Menu')}" id="rightClick"
+								creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
+					<s:VGroup enabled="{rightClick.selected}" paddingLeft="10" gap="{_gap}" width="100%">
+						<s:CheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
+						
+						<ui:Indent label="{lang('Data Info URL')}" width="100%">
+							<ui:HelpComponent>
+								If you enter a URL here, a right-click menu option will appear that opens the URL. ("Show information about this dataset...")
+							</ui:HelpComponent>
+							<ui:TextInputWithPrompt width="100%" prompt="http://www.example.com/example.html" creationComplete="linkBindableProperty(Weave.properties.dataInfoURL, event.target, 'text');"/>
+						</ui:Indent>
 					</s:VGroup>
-					<s:VGroup gap="{_gap}" id="menuToggleVBox"/>
-				</s:HGroup>	
-			</s:NavigatorContent>	
+				</s:VGroup>				
+			</s:Scroller>			
+		</s:NavigatorContent>
+		
+		<s:NavigatorContent  label="{lang('Data')}" >
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox id="dataMenu"
+								label="{lang('Data Menu')}"
+								creationComplete="linkBindableProperty(Weave.properties.enableDataMenu, event.target, 'selected')"/>
+					<s:VGroup enabled="{dataMenu.selected}" paddingLeft="10" gap="{_gap}">
+						
+						<s:CheckBox label="{lang('Load my data')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
+						<s:CheckBox id="refreshDataCheckBox"
+									label="{lang('Refresh data source hierarchies')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
+						
+						<s:CheckBox label="{lang('New Datasource')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableAddNewDatasource, event.target, 'selected')"/> 
+						
+						<s:CheckBox label="{lang('Edit Datasources')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
+						
+					</s:VGroup>
+				</s:VGroup>				
+			</s:Scroller>
 			
-			<s:NavigatorContent width="100%" label="{lang('Selections')}" >	 	
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox
-							 id="selectionsMenu"
-							 label="{lang('Selections Menu')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu, event.target, 'selected')"/> 
-				<s:VGroup enabled="{selectionsMenu.selected}" paddingLeft="10" gap="{_gap}">
-					<s:CheckBox label="{lang('Save current Selection')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Clear current Selection')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Manage saved selections')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections, event.target, 'selected')"/>
-				</s:VGroup>
-			</s:NavigatorContent>	
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{lang('Tools')}" >	
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox id="toolsMenu"
+								label="{lang('Tools Menu')}"
+								creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools, event.target, 'selected')"/>
+					
+					<s:HGroup enabled="{toolsMenu.selected}" paddingLeft="10" gap="10">
+						<s:VGroup gap="{_gap}">
+							<s:CheckBox label="{lang('Color Controller')}"
+										creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
+							<s:CheckBox label="{lang('Probe Info Editor')}"
+										creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
+							<s:CheckBox label="{lang('Probe Info Window')}"
+										creationComplete="linkBindableProperty(Weave.properties.showProbeWindow, event.target, 'selected')"/>
+							<s:CheckBox label="{lang('Equation Editor')}"
+										creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
+							<s:CheckBox id="collabSettings"
+										label="{lang('Collaboration Settings')}"
+										creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
+										/>
+						</s:VGroup>
+						<s:VGroup gap="{_gap}" id="menuToggleVBox"/>
+					</s:HGroup>	
+				</s:VGroup>				
+			</s:Scroller>
 			
-			<s:NavigatorContent width="100%" label="{lang('Subsets')}" >	 
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox
-							 id="subsetsMenu"
-							 label="{lang('Subsets Menu')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu, event.target, 'selected')"/> 
-				<s:VGroup enabled="{subsetsMenu.selected}" paddingLeft="10" gap="{_gap}">
-					<s:CheckBox label="{lang('Create subset from selected records')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Remove selected records from subset')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Show all records')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Save current subset')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Manage saved subsets')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets, event.target, 'selected')"/>
-				</s:VGroup>
-			</s:NavigatorContent>	
+		</s:NavigatorContent>	
+		
+		<s:NavigatorContent width="100%" label="{lang('Selections')}" >	 	
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox
+						id="selectionsMenu"
+						label="{lang('Selections Menu')}"
+						creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu, event.target, 'selected')"/> 
+					<s:VGroup enabled="{selectionsMenu.selected}" paddingLeft="10" gap="{_gap}">
+						<s:CheckBox label="{lang('Save current Selection')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Clear current Selection')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Manage saved selections')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections, event.target, 'selected')"/>
+					</s:VGroup>
+				</s:VGroup>				
+			</s:Scroller>
 			
-			<s:NavigatorContent label="{lang('Session')}" >	 
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox label="{lang('Session Menu')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
-				<s:CheckBox id="collabPanel"
-							 label="{lang('Connect to Collaboration Server')}"
-							 creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
-							 />
-			</s:NavigatorContent>	
+		</s:NavigatorContent>	
+		
+		<s:NavigatorContent width="100%" label="{lang('Subsets')}" >	 
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox
+						id="subsetsMenu"
+						label="{lang('Subsets Menu')}"
+						creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu, event.target, 'selected')"/> 
+					<s:VGroup enabled="{subsetsMenu.selected}" paddingLeft="10" gap="{_gap}">
+						<s:CheckBox label="{lang('Create subset from selected records')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Remove selected records from subset')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Show all records')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Save current subset')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Manage saved subsets')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets, event.target, 'selected')"/>
+					</s:VGroup>
+				</s:VGroup>				
+			</s:Scroller>
+		</s:NavigatorContent>	
+		
+		<s:NavigatorContent label="{lang('Session')}" >	 
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox label="{lang('Session Menu')}"
+								creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
+					<s:CheckBox id="collabPanel"
+								label="{lang('Connect to Collaboration Server')}"
+								creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
+								/>
+				</s:VGroup>				
+			</s:Scroller>			
+		</s:NavigatorContent>	
+		
+		<s:NavigatorContent width="100%" label="{lang('Window')}" >	
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox id="windowMenu"
+								label="{lang('Window Menu')}"
+								creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu, event.target, 'selected')"/> 
+					<s:VGroup enabled="{windowMenu.selected}" paddingLeft="10" gap="{_gap}">
+						<s:CheckBox label="{lang('Preferences')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences, event.target, 'selected')"/>  
+						<s:CheckBox toolTip="{lang('This option must also be enabled in the embed tag of the surrounding webpage.')}"
+									label="{lang('Full-screen')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableFullScreen, event.target, 'selected')"/>  
+						<s:CheckBox label="{lang('Minimize All Windows')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Restore All Minimized Windows')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Close All Windows')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Cascade All Windows')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows, event.target, 'selected')"/>
+						<s:CheckBox label="{lang('Tile All Windows')}"
+									creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows, event.target, 'selected')"/>
+					</s:VGroup>
+				</s:VGroup>				
+			</s:Scroller>
+		</s:NavigatorContent>	
+		
+		<s:NavigatorContent label="{lang('About')}" >
+			<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+				<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="{_gap}">
+					<s:CheckBox
+						label="{lang('About Menu')}"
+						width="120" 
+						creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
+				</s:VGroup>				
+			</s:Scroller>
 			
-			<s:NavigatorContent width="100%" label="{lang('Window')}" >	
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox id="windowMenu"
-							 label="{lang('Window Menu')}"
-							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu, event.target, 'selected')"/> 
-				<s:VGroup enabled="{windowMenu.selected}" paddingLeft="10" gap="{_gap}">
-					<s:CheckBox label="{lang('Preferences')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences, event.target, 'selected')"/>  
-					<s:CheckBox toolTip="{lang('This option must also be enabled in the embed tag of the surrounding webpage.')}"
-								 label="{lang('Full-screen')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableFullScreen, event.target, 'selected')"/>  
-					<s:CheckBox label="{lang('Minimize All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Restore All Minimized Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Close All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Cascade All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows, event.target, 'selected')"/>
-					<s:CheckBox label="{lang('Tile All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows, event.target, 'selected')"/>
-				</s:VGroup>
-			</s:NavigatorContent>	
-			
-			<s:NavigatorContent label="{lang('About')}" >
-				<s:layout>
-					<s:VerticalLayout gap="{_gap}"/>
-				</s:layout>
-				<s:CheckBox
-						 label="{lang('About Menu')}"
-						 width="120" 
-						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
-			</s:NavigatorContent>
-		</mx:TabNavigator>
+		</s:NavigatorContent>
+	</mx:TabNavigator>
 	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -224,7 +237,7 @@
 				}
 				cbArray.sortOn('label');
 				for each (cb in cbArray)
-					menuToggleVBox.addElement(cb);
+				menuToggleVBox.addElement(cb);
 			}
 			
 			override protected function childrenCreated():void
@@ -240,21 +253,21 @@
 				{
 					// put up an alert box so the user has to confirm removing the menu bar
 					Alert.show(lang("Are you sure you want to remove the menu bar?  \nOnce removed, the functions that are accessed through the menu will no longer be accessible."),
-						   lang("Remove menu bar?"),
-						   Alert.YES | Alert.NO,
-						   null,
-						   function(e:CloseEvent):void {
-						   		// if the user chose yes to removing the menu bar
-						   		if(e.detail == Alert.YES)
-						   		{
-						   			Weave.properties.enableMenuBar.value = false;
-						   		}
-						   		else if(e.detail == Alert.NO)
-						   		{
-						   			// if the user said no to removing the menu bar, reset the sessioned variable back to enabled
-						   			Weave.properties.enableMenuBar.value = true;
-						   		}
-						   });
+						lang("Remove menu bar?"),
+						Alert.YES | Alert.NO,
+						null,
+						function(e:CloseEvent):void {
+							// if the user chose yes to removing the menu bar
+							if(e.detail == Alert.YES)
+							{
+								Weave.properties.enableMenuBar.value = false;
+							}
+							else if(e.detail == Alert.NO)
+							{
+								// if the user said no to removing the menu bar, reset the sessioned variable back to enabled
+								Weave.properties.enableMenuBar.value = true;
+							}
+						});
 				}
 			}
 			private const _gap:int = 0;

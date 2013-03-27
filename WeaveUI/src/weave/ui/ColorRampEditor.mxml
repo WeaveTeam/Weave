@@ -44,7 +44,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<s:VGroup height="100%">
 			<s:Label text="{lang('Customize')}" fontWeight="bold"/>
 			<s:HGroup height="100%" gap="0">
-				<s:BorderContainer id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
+						
+				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
 						   borderStyle="solid" borderColor="0x000000"
 						   width="20" height="100%"/>
 				<mx:List id="colorsList"

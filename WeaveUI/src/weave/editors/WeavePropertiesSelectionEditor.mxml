@@ -1,121 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<s:VGroup xmlns="weave.editors.*" 
-		 xmlns:fx="http://ns.adobe.com/mxml/2009" 
- xmlns:s="library://ns.adobe.com/flex/spark" 
- xmlns:mx="library://ns.adobe.com/flex/mx" 
-		 xmlns:ui="weave.ui.*"
-		 width="100%" 
-		 height="100%">
-	<s:HGroup>
-		<s:Label text="{lang('Selection Mode')}"/>
-		<mx:ComboBox 
-				 id="circularSelectionCheckbox"
-				 dataProvider="{InteractionController.enumSelectionMode()}"
-				 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
-	</s:HGroup>
-	<s:HGroup>
-		<s:CheckBox label='{lang("Show \"Selected Records\" tooltip")}'
-					 id="showSelectedRecordsText"
-					 selected="true"
-					 creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>
-		<ui:CustomComboBox id="recordsTooltip" enabled="{showSelectedRecordsText.selected}"
-						   toolTip="{lang('Select the location for the selected records tooltip')}"/>
-	</s:HGroup>
-	<s:CheckBox toolTip="{lang('Check this box to enable bitmap filters used when probing or selecting')}"
-				 id="enableBitmapFilters"
-				 label="{lang('Enable extra bitmap filters')}"
-				 selected="true"
-				 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
-				 />
-	<s:VGroup enabled="{enableBitmapFilters.selected}" paddingLeft="24">			
-		<s:HGroup>
-			<s:Label text="{lang('Shadow Color')}" 
-					  textAlign="right"
-					  toolTip="{lang('Set the shadow color of selected points')}"/>
-			<mx:ColorPicker id="shadowColor"
-							creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
-							/>
-		</s:HGroup>
-		<s:HGroup>
-			<s:Label text="{lang('Shadow Alpha')}" 
-					  textAlign="right"
-					  toolTip="{lang('Set the opacity of selected points')}"/>
-			<mx:NumericStepper id="shadowAlpha"
-							   maximum="1"
-							   stepSize="0.1"
-							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
-							   />
-		</s:HGroup>
-		
-		<s:HGroup>
-			<s:Label text="Unselected Records"
-					  width = "200"
-					  textAlign="right"
-					  toolTip = "Set the opacity of the unselected points"/>
-			<mx:RadioButton groupName="unselected"
-							buttonMode="true"
-							id="graySelect"
-							label="Gray"
-							width="50"
-							creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount,event.target,'selected')"/>
-							
-			<mx:NumericStepper id="unselectedAlpha"
-							   maximum="1"
-							   stepSize="0.1"
-							   creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount, event.target, 'value' );"
-							   />
-			<mx:RadioButton groupName="unselected"
-							buttonMode="true"
-							id="noDisplySelect"
-							label="Not displayed"
-							width="100"
-							/>
-		
-			
-		</s:HGroup>
-		
-		
-	</s:VGroup>
-	<s:HGroup>
-		<s:Label text="{lang('Selection background alpha')}"
-				  textAlign="right"/>
-		<mx:NumericStepper id="selectionAlpha"
-						   maximum="1"
-						   stepSize="0.1"
-						   creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount, event.target, 'value' );"
-						   />
-	</s:HGroup>
-	<s:HGroup>
-		<s:Label text="{lang('Dashed Lines Parameters')}"
-				  toolTip="{lang('Set the values the gaps and lines of the dashed lines')}"/>
-		<s:TextInput id="dashedLinesString"
-					  creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text' );"
-					  />
-		<s:SkinnableContainer id="dashedCanvas"
-				   width="200"
-				   height="{dashedLinesString.height}"
-				   />
-	</s:HGroup>
+<s:Group xmlns="weave.editors.*" 
+		  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:ui="weave.ui.*"
+		  width="100%"  height="100%" minHeight="0" minWidth="0">
+	<s:Scroller width="100%"  height="100%" minHeight="0" minWidth="0">
+		<s:VGroup  width="100%"  height="100%" minHeight="0" minWidth="0">
+			<s:HGroup>
+				<s:Label text="{lang('Selection Mode')}"/>
+				<mx:ComboBox 
+					id="circularSelectionCheckbox"
+					dataProvider="{InteractionController.enumSelectionMode()}"
+					creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
+			</s:HGroup>
+			<s:HGroup>
+				<s:CheckBox label='{lang("Show \"Selected Records\" tooltip")}'
+							id="showSelectedRecordsText"
+							selected="true"
+							creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>
+				<ui:CustomComboBox id="recordsTooltip" enabled="{showSelectedRecordsText.selected}"
+								   toolTip="{lang('Select the location for the selected records tooltip')}"/>
+			</s:HGroup>
+			<s:CheckBox toolTip="{lang('Check this box to enable bitmap filters used when probing or selecting')}"
+						id="enableBitmapFilters"
+						label="{lang('Enable extra bitmap filters')}"
+						selected="true"
+						creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
+						/>
+			<s:VGroup enabled="{enableBitmapFilters.selected}" paddingLeft="24">			
+				<s:HGroup>
+					<s:Label text="{lang('Shadow Color')}" 
+							 textAlign="right"
+							 toolTip="{lang('Set the shadow color of selected points')}"/>
+					<mx:ColorPicker id="shadowColor"
+									creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
+									/>
+				</s:HGroup>
+				<s:HGroup>
+					<s:Label text="{lang('Shadow Alpha')}" 
+							 textAlign="right"
+							 toolTip="{lang('Set the opacity of selected points')}"/>
+					<mx:NumericStepper id="shadowAlpha"
+									   maximum="1"
+									   stepSize="0.1"
+									   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
+									   />
+				</s:HGroup>
+				
+				<s:HGroup>
+					<s:Label text="Unselected Records"
+							 width = "200"
+							 textAlign="right"
+							 toolTip = "Set the opacity of the unselected points"/>
+					<mx:RadioButton groupName="unselected"
+									buttonMode="true"
+									id="graySelect"
+									label="Gray"
+									width="50"
+									creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount,event.target,'selected')"/>
+					
+					<mx:NumericStepper id="unselectedAlpha"
+									   maximum="1"
+									   stepSize="0.1"
+									   creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount, event.target, 'value' );"
+									   />
+					<mx:RadioButton groupName="unselected"
+									buttonMode="true"
+									id="noDisplySelect"
+									label="Not displayed"
+									width="100"
+									/>
+					
+					
+				</s:HGroup>
+				
+				
+			</s:VGroup>
+			<s:HGroup>
+				<s:Label text="{lang('Selection background alpha')}"
+						 textAlign="right"/>
+				<mx:NumericStepper id="selectionAlpha"
+								   maximum="1"
+								   stepSize="0.1"
+								   creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount, event.target, 'value' );"
+								   />
+			</s:HGroup>
+			<s:HGroup>
+				<s:Label text="{lang('Dashed Lines Parameters')}"
+						 toolTip="{lang('Set the values the gaps and lines of the dashed lines')}"/>
+				<s:TextInput id="dashedLinesString"
+							 creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text' );"
+							 />
+				<s:SkinnableContainer id="dashedCanvas"
+									  width="200"
+									  height="{dashedLinesString.height}"
+									  />
+			</s:HGroup>
+		</s:VGroup>
+	</s:Scroller>
+	
 	<fx:Script>
 		<![CDATA[
 			import com.cartogrammar.drawing.DashedLine;
@@ -141,7 +145,7 @@
 				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 				_dashedLine.clear();
 				_dashedLine.lineStyle(4, 0x00ff00, 1);
-
+				
 				var xStart:Number = 5;
 				var yStart:Number = 10;
 				var xEnd:Number = dashedCanvas.width - 5;
@@ -151,4 +155,4 @@
 			}
 		]]>
 	</fx:Script>
-</s:VGroup>
+</s:Group>

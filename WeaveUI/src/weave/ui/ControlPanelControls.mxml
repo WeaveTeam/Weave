@@ -24,10 +24,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"  
 		  xmlns="weave.ui.*" 
-		  width="100%" height="100%"
+		  width="100%" height="100%" minHeight="0" minWidth="0"  clipAndEnableScrolling="true"
 		  paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 
-	<s:Scroller  verticalScrollPolicy="auto" width="100%" height="100%">
+	<s:Scroller  verticalScrollPolicy="auto" width="100%" height="100%"  minHeight="0" minWidth="0">
 		<s:Group>
 			<mx:TabNavigator id="tabNavigator"
 							 width="100%" height="100%" minHeight="25"
@@ -36,7 +36,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 		</s:Group>
 	</s:Scroller>
-	<s:HGroup width="100%" id="buttons">
+	<s:HGroup width="100%" id="buttons"  minHeight="0" minWidth="0" clipAndEnableScrolling="true">
 		<s:Button id="revertBtn" label="{lang('Revert')}"  toolTip="{lang('Revert to last saved state')}" cornerRadius="2"/> 
 		<s:Button id="cancelBtn" label="{lang('Cancel')}" toolTip="{lang('Revert to last saved state and close this window')}" cornerRadius="2" />
 		<s:Spacer width="100%" minWidth="0"/>

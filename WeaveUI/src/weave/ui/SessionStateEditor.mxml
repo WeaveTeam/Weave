@@ -35,8 +35,8 @@ A text editor to change the Session State on the fly.
 	creationPolicy="all"
 	escapeKeyClosesPanel="true"
 	>
-	<mx:VDividedBox id="vDividedBox" width="100%" height="100%" liveDragging="true">
-		<s:VGroup   width="100%" height="100%"
+	<mx:VDividedBox id="vDividedBox" width="100%" height="100%" liveDragging="true" minHeight="0" minWidth="0">
+		<s:VGroup   width="100%" height="100%" minWidth="0" minHeight="0"
 					paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
 			<s:HGroup width="100%">
 				<mx:Button label="{lang('Reload')}" toolTip="{lang('Reloads to previous save state')}" click="refresh()" paddingLeft="5" paddingRight="5"/>
@@ -44,23 +44,19 @@ A text editor to change the Session State on the fly.
 				<mx:Button label="{lang('Save &amp; Close')}" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
 				<mx:Button label="{lang('Cancel')}" click="removePanel()" paddingLeft="5" paddingRight="5"/>
 			</s:HGroup>
-			<mx:HDividedBox width="100%" height="100%">
-				<s:VGroup id="listVBox" width="100%" height="100%">
+			<mx:HDividedBox width="100%" height="100%"  minWidth="0" minHeight="0">
+				<s:VGroup id="listVBox" width="100%" height="100%"  minWidth="0" minHeight="0">
 					<!--<s:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
 					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
 					<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
 										 focusIn="checkObjectWasDisposed()"/>
-					<s:BorderContainer width="100%" id="linkControls">
-						<s:layout>
-							<s:HorizontalLayout/>
-						</s:layout>
-						<s:backgroundFill>
-							<s:SolidColor alpha="0"/>
-						</s:backgroundFill>
+					<s:HGroup width="100%" id="linkControls"  minWidth="0" minHeight="0">
+						
+						
 						<s:TextInput id="linkNameInput" width="100%"/>
 						<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
 						<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
-					</s:BorderContainer>
+					</s:HGroup>
 				</s:VGroup>
 				<s:VGroup width="100%" height="100%" >
 					<s:HGroup width="100%" horizontalAlign="right">

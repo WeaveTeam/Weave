@@ -33,9 +33,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<s:layout>
 			<s:VerticalLayout/>
 		</s:layout>
-		<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
-		<ui:BinningDefinitionEditor id="binEditor"/>
+		<s:Scroller width="100%" height="100%" minWidth="0" minHeight="0">
+			<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0">
+				<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
+				<ui:BinningDefinitionEditor id="binEditor"/>
+			</s:VGroup>
+		</s:Scroller>		
 	</s:NavigatorContent>
+	
 	<s:NavigatorContent id="advControlsPanel" label="{lang('Color scale')}">
 		<s:layout>
 			<s:VerticalLayout/>
