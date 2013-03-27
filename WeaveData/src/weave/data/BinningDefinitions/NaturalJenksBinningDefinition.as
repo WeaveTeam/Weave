@@ -72,7 +72,7 @@ package weave.data.BinningDefinitions
 			
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
-			_keys = column ? column.keys : [];
+			_keys = column ? column.keys.concat() : []; // make a copy so we know length won't change during async task
 			
 			SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
 			
@@ -143,6 +143,7 @@ package weave.data.BinningDefinitions
 			
 			_v = 0;
 			_count = 2;
+			_m = 0;
 			
 			return 1;
 		}
@@ -163,11 +164,11 @@ package weave.data.BinningDefinitions
 		{
 			for (; _count < _sortedValues.length + 1; _count++)
 			{
-				_s1= 0;
-				_s2= 0;
-				_w= 0;
 				if(_m==0)
 				{
+					_s1= 0;
+					_s2= 0;
+					_w= 0;
 					_m =1;			
 				}
 				for(; _m < _count + 1; _m++)
