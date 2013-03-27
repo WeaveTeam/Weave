@@ -25,7 +25,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:ui="weave.ui.*"
 			   xmlns:userControls="weave.ui.userControls.*" 
-			   xmlns:mapTool="weave.visualization.tools.*" xmlns:managers="weave.editors.managers.*"
+			   xmlns:mapTool="weave.visualization.tools.*"
+			   xmlns:managers="weave.editors.managers.*"
 			   >
 	<layout>
 		<s:BasicLayout/>
@@ -607,23 +608,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.plotManager.zoomToSelection; }
 		]]>
 	</fx:Script>
-	
-	<s:Group id="mapControls"
-			  visible="{enableZoomToggle.selected}"
-			  includeInLayout="{enableZoomToggle.selected}"
-			  >
+	<!--visible="{enableZoomToggle.selected}"
+	includeInLayout="{enableZoomToggle.selected}"-->
+	<s:Group id="mapControls"			 
+			 creationComplete="linkBindableProperty(visualization.enableZoomAndPan,event.target,'visible'); 
+			 linkBindableProperty(visualization.enableZoomAndPan,event.target,'includeInLayout');">
 		<s:Rect left="0" right="0" top="0" bottom="0">
 			<s:fill>
 				<s:SolidColor color="white" alpha="0.01"/>
 			</s:fill>
 		</s:Rect>
 		
+		<!--gap="{zoomControlsToggle.selected ? 2 : 0}"-->
 		<s:VGroup  paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				   gap="{zoomControlsToggle.selected ? 2 : 0}" horizontalAlign="center">
-			<s:VGroup paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-					  includeInLayout="{zoomControlsToggle.selected}"
-					  visible="{zoomControlsToggle.selected}"
-					  gap="2">
+				   gap="2" horizontalAlign="center"
+				  >
+			<!--includeInLayout="{zoomControlsToggle.selected}"
+			visible="{zoomControlsToggle.selected}"-->
+			<s:VGroup paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"  gap="2"
+					  creationComplete="linkBindableProperty(showZoomControls,event.target,'visible');
+					  linkBindableProperty(showZoomControls,event.target,'includeInLayout')">
 				
 				<s:VGroup id="panControls" horizontalAlign="center" gap="1" height="100%">
 					<mx:Button id="north"
@@ -666,9 +670,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			</s:VGroup>
 			
-			<s:Group  includeInLayout="{zoomControlsToggle.selected}"
-					  visible="{zoomControlsToggle.selected}"
-					  >
+			<!--includeInLayout="{zoomControlsToggle.selected}"
+			visible="{zoomControlsToggle.selected}"-->
+			<s:Group  creationComplete="linkBindableProperty(showZoomControls,event.target,'visible');
+					  linkBindableProperty(showZoomControls,event.target,'includeInLayout')">
 				<s:Rect left="0" right="0" top="0" bottom="0">
 					<s:fill>
 						<s:SolidColor color="white" alpha="0.85"/>
@@ -703,13 +708,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			</s:Group>
 			
-			<s:Spacer height="5" includeInLayout="{zoomControlsToggle.selected}"/>
+			<!--includeInLayout="{zoomControlsToggle.selected}"-->
+			<s:Spacer height="5" 
+					  creationComplete="linkBindableProperty(showZoomControls,event.target,'includeInLayout')"
+					/>
 			
 			<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
-			<s:HGroup id="mouseModeBox" gap="1" right="2" bottom="2"  
-					  includeInLayout="{mouseModeControlsToggle.selected}"
-					  visible="{mouseModeControlsToggle.selected}"
-					  
+			<!--includeInLayout="{mouseModeControlsToggle.selected}"
+			visible="{mouseModeControlsToggle.selected}"-->
+			<s:HGroup id="mouseModeBox" gap="1" right="2" bottom="2"					  
+					  creationComplete="linkBindableProperty(showMouseModeControls,event.target,'visible');
+					  linkBindableProperty(showMouseModeControls,event.target,'includeInLayout')"					  
 					  alpha="1"> 
 				<!--backgroundColor="white" backgroundAlpha="0.01"-->
 				<mx:Button id="panModeButton" 
