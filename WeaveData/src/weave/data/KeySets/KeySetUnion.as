@@ -20,6 +20,7 @@
 package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -125,15 +126,21 @@ package weave.data.KeySets
 			WeaveAPI.StageUtils.startTask(_asyncOwner, asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, asyncComplete);
 		}
 		
-		private function asyncIterate():Number
+		private function asyncIterate(stopTime:int):Number
 		{
-			if (_asyncKeySetIndex < _keySets.length)
+			for (; _asyncKeySetIndex < _keySets.length; _asyncKeySetIndex++)
 			{
 				if (_asyncKeys == null)
-					_asyncKeys = (_keySets[_asyncKeySetIndex] as IKeySet).keys;
-				
-				if (_asyncKeyIndex < _asyncKeys.length)
 				{
+					_asyncKeys = (_keySets[_asyncKeySetIndex] as IKeySet).keys;
+					_asyncKeyIndex = 0;
+				}
+				
+				for (; _asyncKeyIndex < _asyncKeys.length; _asyncKeyIndex++)
+				{
+					if (getTimer() > stopTime)
+						return (_asyncKeySetIndex + _asyncKeyIndex / _asyncKeys.length) / _keySets.length;
+					
 					var key:IQualifiedKey = _asyncKeys[_asyncKeyIndex] as IQualifiedKey;
 					if (_newKeyLookup[key] === undefined) // if we haven't seen this key yet
 					{
@@ -149,19 +156,9 @@ package weave.data.KeySets
 								_prevCompareCounter++;
 						}
 					}
-					
-					_asyncKeyIndex++;
-					
-					return (_asyncKeySetIndex + _asyncKeyIndex / _asyncKeys.length) / _keySets.length;
 				}
-				else
-				{
-					_asyncKeyIndex = 0;
-					_asyncKeySetIndex++;
-					_asyncKeys = null;
-					
-					return _asyncKeySetIndex / _keySets.length;
-				}
+
+				_asyncKeys = null;
 			}
 			return 1; // avoids division by zero
 		}

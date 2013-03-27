@@ -456,26 +456,33 @@ package weave.core
 		 * This will generate an iterative task function that is the combination of a list of tasks to be completed in order.
 		 * @param iterativeTasks An Array of iterative task functions.
 		 * @return A single iterative task function that invokes the other tasks to completion in order.
-		 *         The function will accept an optional <code>restart:Boolean</code> parameter, which when set to true will
+		 *         The function will accept a stopTime:int parameter which when set to -1 will
 		 *         reset the task counter to zero so the compound task will start from the first task again.
 		 * @see #startTask
 		 */
 		public static function generateCompoundIterativeTask(...iterativeTasks):Function
 		{
 			var iTask:int = 0;
-			return function(param:* = undefined):Number
+			return function(stopTime:int):Number
 			{
-				if (param === true) // restart
+				if (stopTime < 0) // restart
 				{
 					iTask = 0;
 					return 0;
 				}
-				
 				if (iTask >= iterativeTasks.length)
 					return 1;
 				
 				var iterate:Function = iterativeTasks[iTask] as Function;
-				var progress:Number = iterate.length ? iterate(param) : iterate();
+				var progress:Number;
+				if (iterate.length)
+				{
+					progress = iterate(stopTime);
+				}
+				else
+				{
+					while ((progress = iterate()) < 1 && getTimer() < stopTime) { }
+				}
 				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
 				if (progress == 1)
 					iTask++;

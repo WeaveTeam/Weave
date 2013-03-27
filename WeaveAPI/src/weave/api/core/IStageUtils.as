@@ -71,6 +71,7 @@ package weave.api.core
 		 *   When the task is completed, iterativeTask() should return 1.0.
 		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
 		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
+		 *   It is recommended to accept the returnTime parameter because code that utilizes it properly will have higher performance.
 		 * 
 		 * @example Example iteraveTask #1 (for loop replaced by if):
 		 * <listing version="3.0">

@@ -101,7 +101,7 @@ package weave.services
 		
 		public function getEntityIdsByMetadata(publicMetadata:Object, entityType:int):AsyncToken // returns int[]
 		{
-			return invoke(getEntityIdsByMetadata, [{"publicMetadata": publicMetadata}, entityType]);
+			return invoke(getEntityIdsByMetadata, arguments);
 		}
 		
 		public function getEntitiesById(ids:Array):AsyncToken // returns DataEntity[]

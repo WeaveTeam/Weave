@@ -28,10 +28,12 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableNumber;
+	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
@@ -58,7 +60,7 @@ package weave.data.BinningDefinitions
 		
 		private var _output:ILinkableHashMap = null;
 		private var _column:IAttributeColumn = null;
-		private var asyncSort:AsyncSort = new AsyncSort();
+		private var asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			_output = output;
@@ -68,36 +70,48 @@ package weave.data.BinningDefinitions
 			
 			_previousSortedValues.length = 0;
 			
-			_keys = column ? column.keys : [];
+			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
+			
+			_keys = column ? column.keys.concat() : []; // make a copy so we know length won't change during async task
+			
+			SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
+			
 			_sortedValues = new Array(_keys.length);
 			_keyCount = 0;
 			
-			WeaveAPI.StageUtils.startTask(this,_getValueFromKeys,WeaveAPI.TASK_PRIORITY_PARSING,_handleValuesFromKeys);
+			// stop any previous sort task by sorting an empty array
+			asyncSort.beginSort(_previousSortedValues);
 			
+			_compoundIterateAll(-1); // reset compound task
+			
+			WeaveAPI.StageUtils.startTask(this, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _handleJenksBreaks);
 		}
+		
+		private var _compoundIterateAll:Function = StageUtils.generateCompoundIterativeTask(_getValueFromKeys, _iterateSortedKeys, _iterateJenksBreaks);
 		
 		private var _keyCount:int = 0;
 		private var _keys:Array = []; 
-		private function _getValueFromKeys():Number
+		private function _getValueFromKeys(stopTime:int):Number
 		{
-			if(_keyCount>=_keys.length)
-				return 1;
-			_sortedValues[_keyCount] = _column.getValueFromKey(_keys[_keyCount],Number);
-			_keyCount ++;
-			if(_keyCount>=_keys.length)
-				return 1;
-			else
-				return _keyCount/_keys.length;
+			for (; _keyCount < _keys.length; _keyCount++)
+			{
+				if (getTimer() > stopTime)
+					return _keyCount/_keys.length;
+				_sortedValues[_keyCount] = _column.getValueFromKey(_keys[_keyCount],Number);
+			}
+			
+			// begin sorting now
+			asyncSort.beginSort(_sortedValues, ObjectUtil.numericCompare);
+			
+			return 1;
 		}
 		
-		private function _handleValuesFromKeys():void
+		private function _iterateSortedKeys(returnTime:int):Number
 		{
-			getCallbackCollection(asyncSort).addImmediateCallback(this,_handleSortedKeys);
-			asyncSort.beginSort(_sortedValues,ObjectUtil.numericCompare);
-		}
-		
-		private function _handleSortedKeys():void
-		{
+			// wait for sort to complete
+			if (asyncSort.result == null)
+				return 0;
+			
 			VectorUtils.copy(_sortedValues,_previousSortedValues);
 			
 			_mat1 = [];
@@ -129,8 +143,9 @@ package weave.data.BinningDefinitions
 			
 			_v = 0;
 			_count = 2;
+			_m = 0;
 			
-			WeaveAPI.StageUtils.startTask(this,_iterateJenksBreaks,WeaveAPI.TASK_PRIORITY_PARSING,_handleJenksBreaks);
+			return 1;
 		}
 		
 		private var _previousSortedValues:Array = [];
@@ -149,11 +164,11 @@ package weave.data.BinningDefinitions
 		{
 			for (; _count < _sortedValues.length + 1; _count++)
 			{
-				_s1= 0;
-				_s2= 0;
-				_w= 0;
 				if(_m==0)
 				{
+					_s1= 0;
+					_s2= 0;
+					_w= 0;
 					_m =1;			
 				}
 				for(; _m < _count + 1; _m++)

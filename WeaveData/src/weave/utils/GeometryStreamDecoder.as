@@ -22,6 +22,7 @@ package weave.utils
 	import flash.errors.EOFError;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import mx.utils.NameUtil;
 	
@@ -333,7 +334,7 @@ package weave.utils
 		 */
 		public function decodeMetadataStream(stream:ByteArray):void
 		{
-			var task:Function = function():Number
+			var task:Function = function(stopTime:int):Number
 			{
 				//trace("decodeMetadataStream",_queuedStreamDictionary[stream],hex(stream));
 			    try {
@@ -376,8 +377,9 @@ package weave.utils
 								break;
 							}
 							
-							// Resume later after finding a tileID.
-							return stream.position / stream.length;
+							// allow resuming later after finding a tileID.
+							if (getTimer() > stopTime)
+								return stream.position / stream.length;
 						}
 						else // flag is geometryID
 						{
@@ -514,7 +516,7 @@ package weave.utils
 		 */
 		public function decodeGeometryStream(stream:ByteArray):void
 		{
-			var task:Function = function():Number
+			var task:Function = function(stopTime:int):Number
 			{
 				//trace("decodeGeometryStream",_queuedStreamDictionary[stream],hex(stream));
 			    try {
@@ -557,8 +559,9 @@ package weave.utils
 								break;
 							}
 							
-							// resume later after finding a tileID.
-							return stream.position / stream.length;
+							// allow resuming later after finding a tileID.
+							if (getTimer() > stopTime)
+								return stream.position / stream.length;
 						}
 						else // flag is geometryID
 						{
