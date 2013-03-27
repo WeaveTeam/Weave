@@ -94,15 +94,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<fx:Component> 
 			<s:MXItemRenderer>
 				
-				<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						  xmlns:s="library://ns.adobe.com/flex/spark" 
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  width="100%" 
-						  borderStyle="solid"
+						 
 						  >
-					<s:borderStroke>
+					<!--<s:borderStroke>
 						<s:SolidColorStroke weight="1"/>
-					</s:borderStroke>
+					</s:borderStroke>-->
 					<s:layout>
 						<s:VerticalLayout gap="0" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5" verticalAlign="middle"/>
 					</s:layout>
@@ -122,7 +122,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 						<s:BorderContainer 
 								  cornerRadius="5" 
-								  borderStyle="solid" 
+								  borderStyle="solid" minHeight="0" minWidth="0" 
 								  >
 							<s:borderStroke>
 								<s:SolidColorStroke weight="1" color="0x222222"/>
@@ -751,7 +751,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 						]]>
 					</fx:Script>
-				</s:BorderContainer>
+				</s:Group>
 				
 			</s:MXItemRenderer> 
 		</fx:Component>  
