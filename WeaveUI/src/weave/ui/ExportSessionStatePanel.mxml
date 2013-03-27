@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <ui:DraggablePanel xmlns="weave.ui.settings.*" 
 				   xmlns:fx="http://ns.adobe.com/mxml/2009" 
- xmlns:s="library://ns.adobe.com/flex/spark" 
- xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
 				   xmlns:ui="weave.ui.*" 
 				   sessionPanelCoordsAsPercentages="false"
 				   minWidth="300"
@@ -32,28 +32,29 @@
 	<s:VGroup paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<s:Label text="{lang('Choose Options')}"/>
 		<s:CheckBox label="{lang('Dashboard mode')}" toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
-					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+					creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
 		<s:CheckBox label="{lang('Enable control panels and attribute selection')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+					creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
 		<s:CheckBox label="{lang('Show menubar')}" toolTip="{lang('Check this box to show the top menu bar.')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
+					creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<s:CheckBox label="{lang('Show copyright')}"
-					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+					creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
 		<s:CheckBox id="saveHistoryCheckBox"
-					 label="{lang('Save history')}"
-					 selected="false"
-					 enabled="{!saveXMLCheckBox.selected}"
-					 visible="false"/>
+					label="{lang('Save history')}"
+					selected="false"
+					enabled="{!saveXMLCheckBox.selected}"
+					visible="false"/>
 		<s:CheckBox id="saveXMLCheckBox"
-					 label="{lang('Save as XML')}"
-					 selected="false"
-					 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
-					 />
+					label="{lang('Save as XML')}"
+					selected="false"
+					change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
+					/>
 	</s:VGroup>
-	<mx:ControlBar>
+	<ui:controlBarContent>
 		<s:Button label="{lang('Export')}" click="export()" toolTip="{lang('Export session with these options')}"/>
 		<s:Button label="{lang('Cancel')}" click="removePanel()"/>
-	</mx:ControlBar>
+	</ui:controlBarContent>
+	
 	<fx:Script>
 		<![CDATA[
 			import mx.formatters.DateFormatter;
@@ -82,7 +83,7 @@
 					Weave.properties.enableMenuBar,
 					Weave.properties.showCopyright
 				])
-					oldValues[lb] = lb.value;
+				oldValues[lb] = lb.value;
 			}
 			
 			override protected function childrenCreated():void
@@ -105,7 +106,7 @@
 				
 				var format:DateFormatter = new DateFormatter();
 				format.formatString = "YYYY-MM-DD_HH.NN.SS";
-
+				
 				var fileName:String = 'Weave_' + format.format(date);
 				
 				var content:Object = null;

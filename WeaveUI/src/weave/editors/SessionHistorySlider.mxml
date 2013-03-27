@@ -214,8 +214,8 @@
 			private function save():void
 			{
 				// TEMPORARY SOLUTION
-				var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
-				exportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
+				//var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
+				var exportSessionStatePanel:ExportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
 				PopUpManager.centerPopUp(exportSessionStatePanel);
 			}
 		]]>
