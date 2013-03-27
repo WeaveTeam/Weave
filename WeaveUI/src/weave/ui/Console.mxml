@@ -78,6 +78,7 @@
 				super.childrenCreated();
 				
 				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
+				compiler.setHashOperator(debugHelper);
 				input.getTextField().alwaysShowSelection = true;
 		    }
 			
