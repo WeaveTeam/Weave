@@ -28,12 +28,12 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
@@ -70,7 +70,12 @@ package weave.data.BinningDefinitions
 			
 			_previousSortedValues.length = 0;
 			
+			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
+			
 			_keys = column ? column.keys : [];
+			
+			SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
+			
 			_sortedValues = new Array(_keys.length);
 			_keyCount = 0;
 			
