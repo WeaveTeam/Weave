@@ -317,6 +317,7 @@
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
 				stage.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
 				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,keywordTextAreaKeyDownHandler);
+				nodeBase.addEventListener(DragEvent.DRAG_ENTER,handleDragEnter);
 				
 				//drawing the base which is the node with keywords and icons
 //				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
@@ -400,6 +401,8 @@
 				
 				views =[listCanvas,topicComponent,_pointCanvas];
 				docListComponent.parentNode = this;
+				
+				getCallbackCollection(movedThumbNails).addGroupedCallback(this, handleMovedThumbnailsChangesInViews);
 			}
 			
 			private var _nodeName:String = "";
@@ -741,11 +744,19 @@
 				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,operator:currentQuery.operator.value,
 						endDate:currentQuery.dateFilter.endDate.value,forceHide:true,forceShow:false});
-				
+				showList();
 				getEntityDistribution();
 				getTopicsClassification();
 				getClusters();
 				docListComponent.keys =_reusableThumbnailsToPlotArray;
+			}
+			
+			private function showList():void
+			{
+				if(listCanvas.alpha == 1)
+					return;
+				else
+					toggleView(listCanvas);
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
@@ -978,10 +989,10 @@
 				
 				
 				/* if there more than 1000 entities we will only show entity distribution for selected entities */
-				if(keys.length > 1000)
-				{
-				 return;					
-				}
+//				if(keys.length > 1000)
+//				{
+//				 return;					
+//				}
 				
 				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
 				for each(var attrCol:IAttributeColumn in entityColumns)
@@ -1224,7 +1235,7 @@
 			 **/
 			private function handleSelectionKeySetChange():void
 			{
-				if(parentPanel == DraggablePanel.getTopPanel())
+				if(parentPanel == DraggablePanel.activePanel)
 				{
 					showRelatedRecords();	
 				}
@@ -1268,7 +1279,7 @@
 			
 			private function handleSelectionChangeInViews():void
 			{
-				if(parentPanel == DraggablePanel.getTopPanel())
+				if(parentPanel == DraggablePanel.activePanel)
 				{
 					return;
 				}
@@ -1292,6 +1303,15 @@
 						
 						docListComponent.applyFilter(DocumentList.SELECTION_TEXT,filterByKeys);
 					}
+				}
+			}
+			
+			/* If there is a change in the moved thumbnails then we redraw the list incase a document was added back to the node. */
+			private function handleMovedThumbnailsChangesInViews():void
+			{
+				if(listCanvas.alpha ==1)
+				{
+					docListComponent.redrawList();
 				}
 			}
 			private function getSelectedDocumentKeys():Array
@@ -2049,6 +2069,14 @@
 			}
 			
 			
+			private function handleDragEnter(event:DragEvent):void 
+			{
+				if(event.dragInitiator is DocThumbnailComponent)
+				{
+					if(thumbnails.getObject((event.dragInitiator as DocThumbnailComponent).docURL.value))
+						DragManager.acceptDragDrop(event.currentTarget as NodeBaseComponent);
+				}
+			}
 			
 			
 //			private function handleClickedWordKeySetChange():void

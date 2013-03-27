@@ -1888,14 +1888,19 @@ public class AdminService extends GenericServlet {
 				result.addAll(stems);
 				for(String stem:stems)
 				{
-					idxWord = dict.getIndexWord(stem,POS.NOUN);
-					wordID = idxWord.getWordIDs().get(0);
-					word = dict.getWord(wordID);
-					ISynset synset = word.getSynset();
-					List<IWord> synsetWords = synset.getWords();
-					for(IWord relatedWord:synsetWords)
+					try
 					{
-						result.add(dict.getWord(relatedWord.getID()).getLemma());
+						idxWord = dict.getIndexWord(stem,POS.NOUN);
+						wordID = idxWord.getWordIDs().get(0);
+						word = dict.getWord(wordID);
+						ISynset synset = word.getSynset();
+						List<IWord> synsetWords = synset.getWords();
+						for(IWord relatedWord:synsetWords)
+						{
+							result.add(dict.getWord(relatedWord.getID()).getLemma());
+						}
+					}catch (NullPointerException e) {
+						continue;
 					}
 				}
 			}

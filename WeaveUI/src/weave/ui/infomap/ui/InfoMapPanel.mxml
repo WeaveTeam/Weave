@@ -393,7 +393,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				/* If all the children for all the parent IDs have been iterated we are done with Entity Selection */
 				if(_parentCount<=0)
 				{
-					_entityColumnList = PopUpManager.createPopUp(this,EntityColumnsList,true) as EntityColumnsList;					
+					if(_entityColumnList == null)
+					{
+						_entityColumnList = PopUpManager.createPopUp(this,EntityColumnsList,true) as EntityColumnsList;					
+					}
 					_entityColumnList.entityColumnsHashmap = entityColumnsHashmap;
 					_entityColumnList.continueButton.addEventListener(MouseEvent.CLICK,handleContinueButtonClick);
 					PopUpManager.centerPopUp(_entityColumnList);
@@ -435,7 +438,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleRelatedKeywordsContinue(event:Event):void
 			{
 				relatedKeywords.value = _relatedKeywordsList.keywords;
-				removeChild(_loadingText);
+				if(contains(_loadingText))
+					removeChild(_loadingText);
 				PopUpManager.removePopUp(_relatedKeywordsList);
 				if(_callQueryNodeLater)
 				{
@@ -476,7 +480,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(event.dragInitiator is List)
 				{
 					var list:List = (event.dragInitiator as List);
-					var node:NodeHandler = (list.parent as DocumentList).parentNode;
+					var node:NodeHandler = (list.parent.parent as DocumentList).parentNode;
 					t = node.thumbnails.getObject((list.selectedItem as IQualifiedKey).localName) as DocThumbnailComponent; 
 				}
 				else{

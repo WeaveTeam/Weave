@@ -382,11 +382,12 @@ so that it can be moved, selected, handle filters.
 				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation
 				
 				var parentNH:NodeHandler = null;
-				if(this.parent is NodeHandler)
+				if(event.relatedObject is NodeBaseComponent)
 				{
-					parentNH = this.parent as NodeHandler;
-					
+					parentNH = event.relatedObject.parent as NodeHandler;
 					parentNH.movedThumbNails.removeObject(docURL.value) as MovedThumbnailPosition;
+					this.parent.removeChild(this);
+					pos.setSessionState({});
 					
 				}else
 				{
@@ -456,7 +457,7 @@ so that it can be moved, selected, handle filters.
 			
 			private function handleStageMouseUp(event:MouseEvent):void
 			{
-				if(_mouseDown)
+				if(_mouseDown && stage != null)
 				{
 					stage.removeEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
 					handleMouseUp();

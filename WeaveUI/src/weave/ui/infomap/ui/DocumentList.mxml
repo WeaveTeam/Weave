@@ -247,6 +247,11 @@ Info to provide a tooltip describing the node (like number of documents found)
 			private var _spacing:int = 2;
 			private var _imageSize:int = 50;
 			
+			public function redrawList():void
+			{
+				updateList();
+			}
+			
 			private function updateList():void
 			{
 				if(_filteredKeySet.keys.length == 0)
@@ -393,10 +398,13 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			private function handleItemDragComplete(event:DragEvent):void
 			{
-				var t:DocThumbnailComponent = ((event.currentTarget as List).selectedItem as DocThumbnailComponent);
+				var key:IQualifiedKey = (event.currentTarget as List).selectedItem as IQualifiedKey;
+				var t:DocThumbnailComponent = parentNode.thumbnails.getObject(key.localName) as DocThumbnailComponent;
 				
 				if(t)
+				{
 					t.handleMove();
+				}
 			}
 			
 		]]>
