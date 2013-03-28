@@ -108,8 +108,13 @@ package weave.data.KeySets
 			{
 				// KeySetUnion should not trigger callbacks
 				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
-				for each (var column:IAttributeColumn in sortColumns)
-					union.addKeySetDependency(column);
+				for each (var column:Object in sortColumns)
+				{
+					if (column is IAttributeColumn)
+						union.addKeySetDependency(column as IKeySet);
+					else
+						throw new Error("sortColumns must be an Array of IAttributeColumn objects");
+				}
 				// SortedKeySet should trigger callbacks
 				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
 				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
@@ -145,7 +150,7 @@ package weave.data.KeySets
 			
 			// link to new key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet).addImmediateCallback(this, triggerCallbacks);
+				getCallbackCollection(_baseKeySet).addImmediateCallback(this, triggerCallbacks, false, true);
 			
 			triggerCallbacks();
 		}
@@ -219,7 +224,7 @@ package weave.data.KeySets
 			}
 			
 			_filteredKeysMap = new Dictionary(true);
-			for (i = _filteredKeys.length - 1; i >= 0; i--)
+			for (i = _filteredKeys.length; i--;)
 				_filteredKeysMap[_filteredKeys[i]] = i;
 		}
 	}

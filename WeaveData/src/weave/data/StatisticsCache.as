@@ -220,6 +220,7 @@ import weave.api.data.IColumnStatistics;
 import weave.api.data.IQualifiedKey;
 import weave.api.getCallbackCollection;
 import weave.compiler.StandardLib;
+import flash.utils.getTimer;
 
 internal class ColumnStatistics implements IColumnStatistics
 {
@@ -380,7 +381,7 @@ internal class ColumnStatistics implements IColumnStatistics
 		WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_BUILDING, asyncComplete);
 	}
 
-	private function iterate():Number
+	private function iterate(stopTime:int):Number
 	{
 		// when the column is found to be busy or modified since last time, stop immediately
 		if (busy || prevTriggerCounter != column.triggerCounter)
@@ -390,30 +391,29 @@ internal class ColumnStatistics implements IColumnStatistics
 			return 1;
 		}
 		
-		if (i >= keys.length)
-			return 1;
-		
-		// iterate on this key
-		var key:IQualifiedKey = keys[i] as IQualifiedKey;
-		var value:Number = column.getValueFromKey(key, Number);
-		// skip keys that do not have an associated numeric value in the column.
-		if (isFinite(value))
+		for (; i < keys.length; i++)
 		{
-			count++;
-			sum += value;
-			runningTotals[key] = sum;
-			squareSum += value * value;
+			if (getTimer() > stopTime)
+				return i / keys.length;
 			
-			if (isNaN(min) || value < min)
-				min = value;
-			if (isNaN(max) || value > max)
-				max = value;
+			// iterate on this key
+			var key:IQualifiedKey = keys[i] as IQualifiedKey;
+			var value:Number = column.getValueFromKey(key, Number);
+			// skip keys that do not have an associated numeric value in the column.
+			if (isFinite(value))
+			{
+				count++;
+				sum += value;
+				runningTotals[key] = sum;
+				squareSum += value * value;
+				
+				if (isNaN(min) || value < min)
+					min = value;
+				if (isNaN(max) || value > max)
+					max = value;
+			}
 		}
-		
-		// prepare for next iteration
-		i++;
-		// report progress
-		return i / keys.length;
+		return 1;
 	}
 	
 	private function asyncComplete():void

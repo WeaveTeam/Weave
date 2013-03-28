@@ -126,6 +126,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
+			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
@@ -140,6 +141,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
+			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));	
@@ -322,12 +324,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// needed for Export CSV option in Application Right Click
 			public function exportCSV():String
 			{
-				var keys:* = getExportDataProvider();
 				// each record has a property named after the column title equal to the value in that column for the current key
-				var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; 
-				var dataTableColumns:Array = columns.getObjects();
-				var generatedCSVstring:String = ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType);
-				return generatedCSVstring;
+				return ColumnUtils.generateTableCSV(columns.getObjects());
 			}
 			//needed for export CSV Button click in the control panel
 			private var fr:FileReference = new FileReference();	// CSV download file reference
@@ -553,33 +551,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				keyTypeCombo.dataProvider = keyTypeList;				
 				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
 			}
-			
-			public function getExportDataProvider():*
-			{
-				for each (var column:IAttributeColumn in columns.getObjects())
-				{
-					while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-						column = (column as IColumnWrapper).getInternalColumn();
-					
-					if (column is SecondaryKeyNumColumn)
-					{
-						// dimension slider hack -- relies on previously set SecondaryKeyNumColumn.allKeysHack = true;
-						var key:IQualifiedKey;
-						var keyLookup:Dictionary = new Dictionary(true);
-						for each (column in columns.getObjects())
-							for each (key in column.keys)
-								keyLookup[key] = true;
-								
-						var keys:Array = [];
-						for (var keyObj:* in keyLookup)
-							keys.push(keyObj);
-						
-						return keys;
-					}
-				}
-				return dataGrid.dataProvider;
-			}
-			
 			
 			private function handleDataCopy(event:Event):void
 			{											
@@ -859,6 +830,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = "defaultCellColorFunction(column, key, cell)";
+			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = "_norm = Class('weave.utils.ColumnUtils').getNorm(column, key);\ncolorRamp.getColorFromNorm(_norm)";
 			private var _lastCellColorError:Error = null;
 			/**
 			 * This defines how cells will be colored.
@@ -996,7 +968,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							</ui:htmlText>
 						</ui:HelpComponent>
 					</mx:HBox>
-					<mx:Button label="{lang('Reset')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
 				</mx:VBox>
 				<mx:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
 							 creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>

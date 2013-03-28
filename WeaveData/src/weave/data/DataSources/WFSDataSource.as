@@ -458,7 +458,7 @@ package weave.data.DataSources
 		private function xmlToVector(xmlList:XMLList, vector:*):*
 		{
 			vector.length = xmlList.length();
-			for (var i:int = vector.length - 1; i >= 0; i--)
+			for (var i:int = vector.length; i--;)
 				vector[i] = xmlList[i];
 			return vector;
 		}

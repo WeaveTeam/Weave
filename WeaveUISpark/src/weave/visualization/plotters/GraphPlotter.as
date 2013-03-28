@@ -285,11 +285,91 @@ package weave.visualization.plotters
 			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			return 1;
 		}
-		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+
+		private function drawNode(node:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (recordKeys.length == 0)
-				return;
+			tempShape.graphics.clear();
+			lineStyle.beginLineStyle(node.key, tempShape.graphics);
+			tempShape.graphics.beginFill(fillStyle.color.getValueFromKey(node.key));
 			
+			screenPoint.x = node.position.x;
+			screenPoint.y = node.position.y;
+			dataBounds.projectPointTo(screenPoint, screenBounds);
+			var xNode:Number = screenPoint.x;
+			var yNode:Number = screenPoint.y;
+
+
+			node.key;
+			tempShape.graphics.drawCircle(xNode, yNode, radius.value);
+			tempShape.graphics.endFill();
+			destination.draw(tempShape, null, null, null, null, true);
+
+			return;
+		}
+		private function lineEdge(srcX:Number, srcY:Number, destX:Number, destY:Number, isBidirectional:Boolean):void /* Expects screen coords */
+		{
+			edgesShape.graphics.moveTo(srcX, srcY);
+
+			if (!isBidirectional)
+			{
+				edgesShape.graphics.lineTo(destX, destY);
+			}
+			else
+			{
+				var xMid:Number = (srcX + destX) / 2;
+				var yMid:Number = (srcY + destY) / 2;
+				
+				if (drawCurvedLines.value) // draw curved lines
+				{
+					var dx:Number = srcX - destX;
+					var dy:Number = srcY - destY;
+					var dx2:Number = dx * dx;
+					var dy2:Number = dy * dy;
+					var distance:Number = Math.sqrt(dx2 + dy2);
+					var radius2:Number = 0.5 * distance;
+					var anchorRadius:Number = Math.max(5, Math.min(0.2 * radius2, 12));
+					var angle:Number = Math.atan2(dy, dx);	
+
+					angle -= Math.PI / 2; // i forget why...
+					xAnchor = xMid + anchorRadius * Math.cos(angle);
+					yAnchor = yMid + anchorRadius * Math.sin(angle);
+					var xAnchor:Number;
+					var yAnchor:Number;
+					edgesShape.graphics.curveTo(xAnchor, yAnchor, screenPoint.x, screenPoint.y);
+				}
+				else // otherwise draw halfway
+				{
+					edgesShape.graphics.lineTo(xMid, yMid);
+				}
+			}
+		}
+
+		private function drawEdge(srcNode:IGraphNode, destNode:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			screenPoint.x = srcNode.position.x;
+			screenPoint.y = srcNode.position.y;
+			dataBounds.projectPointTo(screenPoint, screenBounds);
+			var xSrcNode:Number = screenPoint.x;
+			var ySrcNode:Number = screenPoint.y;
+
+			screenPoint.x = destNode.position.x;
+			screenPoint.y = destNode.position.y;
+			dataBounds.projectPointTo(screenPoint, screenBounds);
+			var xDestNode:Number = screenPoint.x;
+			var yDestNode:Number = screenPoint.y;
+
+			edgesShape.graphics.moveTo(xSrcNode, ySrcNode);
+
+			// TODO: Add support for different edge styles.
+			lineEdge(xSrcNode, ySrcNode, xDestNode, yDestNode, destNode.hasConnection(srcNode));
+
+			destination.draw(edgesShape, null, null, null, null, true);
+
+			return;
+		}
+
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{			
 			var count:int = 0;
 			var key:IQualifiedKey;
 			var x:Number;
@@ -312,24 +392,11 @@ package weave.visualization.plotters
 				var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(key);
 				if (!node)
 					continue;
-				var connections:Vector.<IGraphNode> = node.connections;
 				
-				// first draw the node
-				tempShape.graphics.clear();
-				lineStyle.beginLineStyle(key, tempShape.graphics);
-				tempShape.graphics.beginFill(fillStyle.color.getValueFromKey(key));
-				x = node.position.x;
-				y = node.position.y;
-				screenPoint.x = x;     
-				screenPoint.y = y;
-				dataBounds.projectPointTo(screenPoint, screenBounds);
-				var xNode:Number = screenPoint.x;
-				var yNode:Number = screenPoint.y;
-				tempShape.graphics.drawCircle(xNode, yNode, radius.value);
-				tempShape.graphics.endFill();
-				destination.draw(tempShape, null, null, null, null, true);
-				
+				drawNode(node, dataBounds, screenBounds, destination);
+
 				// now draw the edges
+				var connections:Vector.<IGraphNode> = node.connections;
 				edgesShape.graphics.clear();
 				lineStyle.beginLineStyle(key, edgesShape.graphics);				
 				for (var j:int = connections.length - 1; j >= 0; --j)
@@ -340,13 +407,7 @@ package weave.visualization.plotters
 					// don't draw connections to nodes which weren't in the record keys
 					if (recordKeyMap[key] == undefined && recordKeyMap[connectedNodeKey] == undefined)
 						continue;
-					
-					edgesShape.graphics.moveTo(xNode, yNode);
-					x = connectedNode.position.x;
-					y = connectedNode.position.y;
-					screenPoint.x = x;     
-					screenPoint.y = y;
-					dataBounds.projectPointTo(screenPoint, screenBounds);
+					drawEdge(node, connectedNode, dataBounds, screenBounds, destination);
 					
 					if (!connectedNode.hasConnection(node)) // single connection
 					{
@@ -354,32 +415,7 @@ package weave.visualization.plotters
 					}
 					else // double connection
 					{
-						x = screenPoint.x;
-						y = screenPoint.y;
-						var dx:Number = x - xNode;
-						var dy:Number = y - yNode;
-						var dx2:Number = dx * dx;
-						var dy2:Number = dy * dy;
-						var xMid:Number = (xNode + x) / 2;
-						var yMid:Number = (yNode + y) / 2;
-						var distance:Number = Math.sqrt(dx2 + dy2);
-						var radius2:Number = 0.5 * distance;
-						var anchorRadius:Number = Math.max(5, Math.min(0.2 * radius2, 12));
-						var angle:Number = Math.atan2(dy, dx);
-						if (drawCurvedLines.value) // draw curved lines
-						{
-							var xAnchor:Number;
-							var yAnchor:Number;
-							
-							angle -= Math.PI / 2; // i forget why...
-							xAnchor = xMid + anchorRadius * Math.cos(angle);
-							yAnchor = yMid + anchorRadius * Math.sin(angle);
-							edgesShape.graphics.curveTo(xAnchor, yAnchor, screenPoint.x, screenPoint.y);
-						}
-						else // otherwise draw halfway
-						{
-							edgesShape.graphics.lineTo(xMid, yMid);
-						}
+
 					}
 				} // end connections for loop
 				destination.draw(edgesShape, null, null, null, null, true);

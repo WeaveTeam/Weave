@@ -70,7 +70,7 @@ package weave.data.BinningDefinitions
 			var i:int;
 			var values:Array = splitValues.value.split(',');
 			// remove bad values
-			for (i = values.length - 1; i >= 0; i--)
+			for (i = values.length; i--;)
 			{
 				var number:Number = StandardLib.asNumber(values[i]);
 				if (!isFinite(number))

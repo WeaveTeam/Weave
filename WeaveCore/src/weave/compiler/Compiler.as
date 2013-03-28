@@ -19,6 +19,8 @@
 
 package weave.compiler
 {
+	import avmplus.DescribeType;
+	
 	import flash.utils.Dictionary;
 	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
@@ -26,8 +28,6 @@ package weave.compiler
 	
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
-	
-	import avmplus.DescribeType;
 	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
@@ -53,15 +53,33 @@ package weave.compiler
 		 */
 		public var debug:Boolean = false;
 		
+		private static const INDEX_METHOD:int = -1;
+		private static const INDEX_CONDITION:int = 0;
+		private static const INDEX_TRUE:int = 1;
+		private static const INDEX_FALSE:int = 2;
+		
 		private static const BRANCH_IF:String = 'if';
 		private static const BRANCH_ELSE:String = 'else';
 		private static const BRANCH_FOR:String = 'for';
+		private static const BRANCH_DO:String = 'do';
 		private static const BRANCH_WHILE:String = 'while';
 		private static const BRANCH_RETURN:String = 'return';
-		private static const METHOD_INDEX:int = -1;
-		private static const CONDITION_INDEX:int = 0;
-		private static const TRUE_INDEX:int = 1;
-		private static const FALSE_INDEX:int = 2;
+		private static const BRANCH_BREAK:String = 'break';
+		private static const BRANCH_CONTINUE:String = 'continue';
+		private static const BRANCH_SWITCH:String = 'switch';
+		private static const BRANCH_CASE:String = 'case';
+		private static const BRANCH_DEFAULT:String = 'default';
+		private static const BRANCH_IN:String = 'in';
+		private static const BRANCH_THROW:String = 'throw';
+		private static const BRANCH_TRY:String = 'try';
+		private static const BRANCH_CATCH:String = 'catch';
+		private static const BRANCH_FINALLY:String = 'finally';
+		
+		private static const BRANCHES_ALL:Array = [
+				BRANCH_IF, BRANCH_ELSE, BRANCH_FOR, BRANCH_DO, BRANCH_WHILE, BRANCH_RETURN, BRANCH_BREAK, BRANCH_CONTINUE,
+				BRANCH_SWITCH, BRANCH_CASE, BRANCH_DEFAULT, BRANCH_IN, BRANCH_THROW, BRANCH_TRY, BRANCH_CATCH, BRANCH_FINALLY
+			];
+		private static const BRANCHES_REQUIRING_PARENTHESES:Array = [BRANCH_IF, BRANCH_FOR, BRANCH_WHILE, BRANCH_SWITCH, BRANCH_CATCH];
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
@@ -364,7 +382,7 @@ package weave.compiler
 				['||']
 			];
 			// unary operators
-			unaryOperatorSymbols = ['-','~','!']; // '#'
+			unaryOperatorSymbols = ['-','~','!']; // '#' not listed because it has special evaluation order
 
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
@@ -372,9 +390,8 @@ package weave.compiler
 					constants[OPERATOR_ESCAPE + op] = operators[op];
 			
 			// fill branch reverse-lookup dictionary
-			BRANCH_LOOKUP[BRANCH_IF] = true;
-			BRANCH_LOOKUP[BRANCH_FOR] = true;
-			BRANCH_LOOKUP[BRANCH_WHILE] = true;
+			for each (var branch:String in BRANCHES_ALL)
+				BRANCH_LOOKUP[branch] = true;
 			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '?:']] = true;
 			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '&&']] = true;
 			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '||']] = false;
@@ -382,6 +399,15 @@ package weave.compiler
 			// fill assignment operator reverse-lookup dictionary
 			for each (var assigOp:Function in assignmentOperators)
 				ASSIGN_OP_LOOKUP[assigOp] = true;
+		}
+		
+		/**
+		 * This will set the behavior of the '#' operator.
+		 * @param hashFunction A function that takes one parameter for use as an infix operator.
+		 */		
+		public function setHashOperator(hashFunction:Function):void
+		{
+			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
 		}
 
 		/**
@@ -443,7 +469,6 @@ package weave.compiler
 					else if (c == '\\') // handle escape sequences
 					{
 						endIndex++; // skip the next character
-						// TODO: handle octal and hex escape sequences
 					}
 				}
 				// invalid quoted string
@@ -540,6 +565,10 @@ package weave.compiler
 				}
 			}
 			
+			// next step: compile unary '#' operators (except those immediately followed by other operators)
+			if (operators['#'])
+				compileUnaryOperators(tokens, ['#']);
+			
 			// next step: handle operators "..[]{}()"
 			compileBracketsAndProperties(tokens);
 
@@ -568,7 +597,8 @@ package weave.compiler
 			}
 			
 			// next step: compile unary '#' operators
-			//compileUnaryOperators(tokens, ['#']);
+			if (operators['#'])
+				compileUnaryOperators(tokens, ['#']);
 			
 			// next step: compile infix '**' operators
 			compileInfixOperators(tokens, ['**']);
@@ -634,7 +664,8 @@ package weave.compiler
 			// next step: variable assignment, right to left
 			while (true)
 			{
-				for (i = tokens.length - 1; i >= 0; i--)
+				i = tokens.length;
+				while (i--)
 					if (assignmentOperators.hasOwnProperty(tokens[i]))
 						break;
 				if (i < 0)
@@ -880,7 +911,7 @@ package weave.compiler
 					// The function token hasn't been compiled yet.
 					if (constants.hasOwnProperty(token))
 						compiledToken = new CompiledConstant(token as String, constants[token]);
-					else
+					else if (!BRANCH_LOOKUP.hasOwnProperty(token)) // branch will be handled below
 						compiledToken = compileVariable(token as String);
 				}
 
@@ -902,7 +933,8 @@ package weave.compiler
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
 					trace("compiling tokens", leftBracket, subArray.join(' '), rightBracket);
-				compiledParams = compileArray(subArray, leftBracket == '{' ? ';' : ',');
+				var separator:String = (leftBracket == '{' || token == BRANCH_FOR) ? ';' : ',';
+				compiledParams = compileArray(subArray, separator);
 
 				if (leftBracket == '[') // this is either an array or a property access
 				{
@@ -924,11 +956,6 @@ package weave.compiler
 					continue;
 				}
 				
-				if (leftBracket == '(' && token == BRANCH_IF)
-				{
-					
-				}
-				
 				if (leftBracket == '(' && compiledToken) // if there is a compiled token to the left, this is a function call
 				{
 					if (debug)
@@ -945,20 +972,22 @@ package weave.compiler
 				if (leftBracket == '(' && compiledParams.length == 0)
 					throw new Error("Missing expression inside parentheses");
 				
-				if (compiledParams.length == 1) // single command
+				// if appropriate, simplify
+				if (compiledParams.length == 1 && BRANCHES_REQUIRING_PARENTHESES.indexOf(token) < 0)
 				{
+					// simplify to single expression
 					tokens.splice(open, 2, compiledParams[0]);
 				}
-				else // multiple commands
+				else
 				{
-					var op:String = leftBracket == '{' ? ';' : ',';
-					tokens.splice(open, 2, compileOperator(op, compiledParams));
+					// multiple commands or branch construct
+					tokens.splice(open, 2, compileOperator(separator, compiledParams));
 				}
 			}
 		}
 		
 		/**
-		 * This function will compile a list of expressions separated by ',' tokens.
+		 * This function will compile a list of expressions separated by ',' or ';' tokens.
 		 * @param tokens
 		 * @return 
 		 */
@@ -1037,21 +1066,35 @@ package weave.compiler
 		/**
 		 * This function is for internal use only.
 		 * This will compile unary operators of the given type from right to left.
-		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array.
+		 * @param compiledTokens An Array of compiled tokens for an expression.  No '(' ')' or ',' tokens should appear in this Array except when compiling '#' operator.
 		 * @param operatorSymbols An Array containing all the infix operator symbols to compile.
 		 */
 		private function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
-			var index:int;
-			for (index = compiledTokens.length - 1; index >= 0; index--)
+			var index:int = compiledTokens.length;
+			while (index--) // right to left
 			{
-				// skip tokens that are not unary operators
-				if (operatorSymbols.indexOf(compiledTokens[index]) < 0)
+				var token:String = compiledTokens[index] as String;
+				
+				// skip tokens that are not listed unary operators
+				if (operatorSymbols.indexOf(token) < 0)
 					continue;
 				
-				// fail when next token is not a compiled object
-				if (index + 1 == compiledTokens.length || compiledTokens[index + 1] is String)
-					throw new Error("Misplaced unary operator '" + compiledTokens[index] + "'");
+				var nextToken:* = compiledTokens[index + 1];
+				
+				if (token == '#')
+				{
+					// do not compile unary '#' if immediately followed by an uncompiled operator
+					if (operators.hasOwnProperty(nextToken))
+						continue;
+					
+					if (nextToken !== undefined)
+						nextToken = compileTokens([nextToken], false);
+				}
+				
+				// fail when next token is not a compiled object, unless we're compiling '#'
+				if ((nextToken === undefined && token != '#') || nextToken is String)
+					throw new Error("Misplaced unary operator '" + token + "'");
 				
 				// skip infix operator
 				if (index > 0 && compiledTokens[index - 1] is ICompiledObject)
@@ -1060,7 +1103,7 @@ package weave.compiler
 				// compile unary operator
 				if (debug)
 					trace("compile unary operator", compiledTokens.slice(index, index + 2).join(' '));
-				compiledTokens.splice(index, 2, compileOperator(compiledTokens[index], [compiledTokens[index + 1]]));
+				compiledTokens.splice(index, 2, compileOperator(token, nextToken === undefined ? [] : [nextToken]));
 			}
 		}
 		
@@ -1110,11 +1153,9 @@ package weave.compiler
 		}
 		
 		/**
-		 * 
 		 * @param operatorName
 		 * @param compiledParams
 		 * @return 
-		 * 
 		 */
 		private function compileOperator(operatorName:String, compiledParams:Array):ICompiledObject
 		{
@@ -1249,8 +1290,7 @@ package weave.compiler
 			var i:int;
 
 			const builtInSymbolTable:Object = {};
-			for (symbolName in [BRANCH_IF, BRANCH_ELSE, BRANCH_FOR, BRANCH_WHILE, BRANCH_RETURN])
-				builtInSymbolTable[symbolName] = symbolName;
+			builtInSymbolTable['eval'] = undefined;
 			const localSymbolTable:Object = {};
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [
@@ -1266,13 +1306,13 @@ package weave.compiler
 			var wrapperFunction:Function = function():*
 			{
 				builtInSymbolTable['this'] = this;
+				builtInSymbolTable['arguments'] = arguments;
 				
 				// reset local symbol table each time the function is called so it behaves the same way each time.
 				for (symbolName in localSymbolTable)
 					delete localSymbolTable[symbolName];
 				
 				// make function parameters available under the specified parameter names
-				localSymbolTable['arguments'] = arguments;
 				if (paramNames)
 					for (i = 0; i < paramNames.length; i++)
 						localSymbolTable[paramNames[i] as String] = i < arguments.length ? arguments[i] : paramDefaults[i];
@@ -1281,7 +1321,7 @@ package weave.compiler
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
 				// initialize top-level function and push it onto the stack
 				call = compiledObject as CompiledFunctionCall;
-				call.evalIndex = METHOD_INDEX;
+				call.evalIndex = INDEX_METHOD;
 				stack.length = 1;
 				stack[0] = call;
 				while (true)
@@ -1297,12 +1337,12 @@ package weave.compiler
 							//trace(StringLib.lpad('', stack.length, '\t') + "[" + call.evalIndex + "] " + compiledParams[call.evalIndex].name);
 							
 							// handle branching and short-circuiting
-							result = BRANCH_LOOKUP[call.evaluatedMethod];
-							if (result !== undefined && call.evalIndex > CONDITION_INDEX)
-								if (result == (call.evalIndex != (call.evaluatedParams[CONDITION_INDEX] ? TRUE_INDEX : FALSE_INDEX)))
+							// skip evaluation of true or false branch depending on condition and branch operator
+							if (BRANCH_LOOKUP.hasOwnProperty(call.evaluatedMethod) && call.evalIndex > INDEX_CONDITION)
+								if (BRANCH_LOOKUP[call.evaluatedMethod] == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
 									continue;
 							
-							if (call.evalIndex == METHOD_INDEX)
+							if (call.evalIndex == INDEX_METHOD)
 								subCall = call.compiledMethod as CompiledFunctionCall;
 							else
 								subCall = compiledParams[call.evalIndex] as CompiledFunctionCall;
@@ -1310,7 +1350,7 @@ package weave.compiler
 							if (subCall != null)
 							{
 								// initialize subCall and push onto stack
-								subCall.evalIndex = METHOD_INDEX;
+								subCall.evalIndex = INDEX_METHOD;
 								stack.push(subCall);
 								break;
 							}
@@ -1373,7 +1413,7 @@ package weave.compiler
 							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
 							symbolName = call.evaluatedMethod as String;
 							// find the variable
-							for (i = 0; i < allSymbolTables.length - 1; i++) // don't bother checking the last one
+							for (i = 0; i < allSymbolTables.length - 1; i++) // max i after loop will be length-1
 								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
 									break;
 							result = allSymbolTables[i][symbolName];
@@ -1405,7 +1445,7 @@ package weave.compiler
 						return result;
 					// otherwise, store the result in the evaluatedParams array of the parent call
 					call = stack[stack.length - 1] as CompiledFunctionCall;
-					if (call.evalIndex == METHOD_INDEX)
+					if (call.evalIndex == INDEX_METHOD)
 						call.evaluatedMethod = result;
 					else
 						call.evaluatedParams[call.evalIndex] = result;

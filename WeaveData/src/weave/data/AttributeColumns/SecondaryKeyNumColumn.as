@@ -73,6 +73,8 @@ package weave.data.AttributeColumns
 					if (secondaryKeyFilter.value == null)
 						return value + TYPE_SUFFIX
 					break;
+				case ColumnMetadata.DATA_TYPE:
+					return _dataType == String ? DataTypes.STRING : DataTypes.NUMBER;
 			}
 			
 			return value;
@@ -126,11 +128,12 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (_keyToNumericDataMappingAB[key] !== undefined)
-				return true;
-			if (_keyToNumericDataMapping[key] === undefined)
-				return false;
-			return _keyToNumericDataMapping[key][secondaryKeyFilter.value] !== undefined;
+			var skfv:String = secondaryKeyFilter.value;
+			if (skfv == null || allKeysHack)
+				return _keyToNumericDataMappingAB[key] !== undefined;
+			
+			var d:Dictionary = _keyToNumericDataMapping[key] as Dictionary;
+			return d && d[skfv] !== undefined;
 		}
 
 		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array):void
@@ -178,6 +181,7 @@ package weave.data.AttributeColumns
 				_maxNumber = NaN;
 			}
 			_metadata.attribute(ColumnMetadata.DATA_TYPE).setChildren(dataType);
+			_dataType = dataType == DataTypes.STRING ? String : Number;
 			
 			// save a mapping from keys to data
 			for (index = 0; index < keysA.length; index++)
@@ -259,12 +263,16 @@ package weave.data.AttributeColumns
 		}
 		
 		private var _qkeyCache:Dictionary = new Dictionary(true);
+		private var _dataType:Class;
 
 		/**
 		 * get data from key value
 		 */
 		override public function getValueFromKey(qkey:IQualifiedKey, dataType:Class = null):*
 		{
+			if (!dataType)
+				dataType = _dataType;
+			
 			var value:Number = NaN;
 			if (_keyToNumericDataMappingAB[qkey] !== undefined)
 				value = _keyToNumericDataMappingAB[qkey];

@@ -38,7 +38,8 @@ package weave.utils
 		public static function copy(source:*, destination:*):*
 		{
 			destination.length = source.length;
-			for (var i:int = source.length - 1; i >= 0; i--)
+			var i:int = source.length;
+			while (i--)
 				destination[i] = source[i];
 			return destination;
 		}
@@ -66,18 +67,15 @@ package weave.utils
 		 */
 		public static function randomSort(vector:*):void
 		{
-			var ptr:*;
-			var j:int;
 			var length:int = vector.length;
-			// loop through all index values 0 <= i < length
-			for (var i:int = length - 1; i >= 0; i--)
+			for (var i:int = length; i--;)
 			{
 				// randomly choose index j
-				j = Math.floor(Math.random() * length);
+				var j:int = Math.floor(Math.random() * length);
 				// swap elements i and j
-				ptr = vector[i];
+				var temp:* = vector[i];
 				vector[i] = vector[j];
-				vector[j] = ptr;
+				vector[j] = temp;
 			}
 		}
 		

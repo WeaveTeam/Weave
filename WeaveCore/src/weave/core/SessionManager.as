@@ -1760,8 +1760,8 @@ package weave.core
 				else // not typed session state
 				{
 					// overwrite old Array with new Array's values
-					baseDiff.length = diffToAdd.length;
-					for (i = diffToAdd.length - 1; i >= 0; i--)
+					i = baseDiff.length = diffToAdd.length;
+					while (i--)
 					{
 						var value:Object = diffToAdd[i];
 						if (value is String)

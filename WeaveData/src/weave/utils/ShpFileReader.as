@@ -62,13 +62,10 @@ package weave.utils
 		
 		private function iterate(stopTime:int):Number
 		{
-			while (true)
+			for (; irecord < records.length; irecord++)
 			{
-				if (irecord >= records.length) // in case length is zero
-					return 1;
-				
-				if (getTimer() < stopTime)
-					break;
+				if (getTimer() > stopTime)
+					return irecord / records.length;
 	
 				var iring:int
 				var ipoint:int;
@@ -104,11 +101,8 @@ package weave.utils
 				}
 				geom.setCoordinates( points, BLGTreeUtils.METHOD_SAMPLE );
 				geoms.push(geom);
-				
-				irecord++
 			}
-			
-			return irecord / records.length;
+			return 1;
 		}
 		
 		private function asyncComplete():void

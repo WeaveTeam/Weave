@@ -27,7 +27,10 @@
 			label="Import shape data"
 			creationComplete="handleCreationComplete()"
 			>
+	
 	<mx:VBox width="100%" height="100%" label="{lang('Select files and destination')}">
+		<mx:CheckBox id="noAppendCheckBox" label="{lang('Create new Weave table entry even if a matching one already exists')}"/>
+		
 		<ui:Indent width="100%" label="Load Shape files" group="{tableSelector.indentGroup}">
 			<mx:TextInput id="shpFileNameInput" enabled="true" width="240"/>
 			<mx:Button label="Upload ..." click="browseAndUploadShapeFiles();"/>
@@ -43,6 +46,7 @@
 			activeTable="{shpFileNameInput.text}"
 			tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
+	
 	<mx:VBox width="100%" height="100%">
 		<ui:Indent label="{lang('Table display name')}" group="{indentGroup}">
 			<ui:TextInputWithPrompt id="tableTitleInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
@@ -75,6 +79,7 @@
 							 includeInLayout="{dbfKeyColumnsCombo.text &amp;&amp; !dbfKeyColumnsCombo.errorString}"
 							 visible="{dbfKeyColumnsCombo.text &amp;&amp; !dbfKeyColumnsCombo.errorString}"/>
 	</mx:VBox>
+	
 	<mx:Script>
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
@@ -285,13 +290,10 @@
 							keyTypeDialog.selectedKeyType,
 							srsProjectionTxtInput.text,
 							nullFlagInput.text,
-							dbfImportCheckBox.selected
+							dbfImportCheckBox.selected,
+							!noAppendCheckBox.selected
 						),
-						function(..._):void
-						{
-							weaveTrace(lang("Data table entry created successfully."));
-							close();
-						},
+						function(..._):void { close(); },
 						enable
 					);
 				}

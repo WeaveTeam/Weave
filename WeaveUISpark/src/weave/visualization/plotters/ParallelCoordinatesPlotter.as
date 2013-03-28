@@ -130,17 +130,24 @@ package weave.visualization.plotters
 			}
 		}
 		
+		private var _in_updateFilterEquationColumns:Boolean = false;
 		private function updateFilterEquationColumns():void
 		{
+			if (_in_updateFilterEquationColumns)
+				return;
+			_in_updateFilterEquationColumns = true;
+			
 			if (enableGroupBy.value)
 			{
-				setColumnKeySources([_keySet_groupBy]);
+				setSingleKeySource(_keySet_groupBy);
 			}
 			else
 			{
 				var list:Array = _columns.concat();
 				list.unshift(lineStyle.color);
 				setColumnKeySources(list);
+				
+				_in_updateFilterEquationColumns = false;
 				return;
 			}
 			
@@ -165,6 +172,8 @@ package weave.visualization.plotters
 			{
 				if (groupBy.getInternalColumn())
 					columns.removeAllObjects();
+				
+				_in_updateFilterEquationColumns = false;
 				return;
 			}
 			
@@ -172,6 +181,7 @@ package weave.visualization.plotters
 			var keyType:String = ColumnUtils.getKeyType(groupBy);
 			if (keyType != ColumnUtils.getKeyType(xData) || keyType != ColumnUtils.getKeyType(yData))
 			{
+				_in_updateFilterEquationColumns = false;
 				return;
 			}
 			
@@ -201,6 +211,7 @@ package weave.visualization.plotters
 			}				
 			
 			columns.resumeCallbacks();
+			_in_updateFilterEquationColumns = false;
 		}
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
