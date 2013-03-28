@@ -126,11 +126,12 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (_keyToNumericDataMappingAB[key] !== undefined)
-				return true;
-			if (_keyToNumericDataMapping[key] === undefined)
-				return false;
-			return _keyToNumericDataMapping[key][secondaryKeyFilter.value] !== undefined;
+			var skfv:String = secondaryKeyFilter.value;
+			if (skfv == null || allKeysHack)
+				return _keyToNumericDataMappingAB[key] !== undefined;
+			
+			var d:Dictionary = _keyToNumericDataMapping[key] as Dictionary;
+			return d && d[skfv] !== undefined;
 		}
 
 		public function updateRecords(keysA:Vector.<IQualifiedKey>, keysB:Vector.<String>, data:Array):void
