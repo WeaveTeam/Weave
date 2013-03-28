@@ -150,7 +150,7 @@ package weave.data.KeySets
 			
 			// link to new key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet).addImmediateCallback(this, triggerCallbacks);
+				getCallbackCollection(_baseKeySet).addImmediateCallback(this, triggerCallbacks, false, true);
 			
 			triggerCallbacks();
 		}
