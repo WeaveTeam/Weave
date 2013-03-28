@@ -48,7 +48,7 @@ This is a control for setting two text alignment values:  horizontalAlign and ve
 		</s:HGroup>
 	</s:VGroup>
 	<s:Image source="@Embed(source='/weave/resources/images/alignment-control.png')"
-			 x="0" y="0" includeInLayout="false" mouseChildren="false" mouseEnabled="false"/>
+			 x="0" y="0"  mouseChildren="false" mouseEnabled="false"/>
 	
 	<fx:Script>
 		<![CDATA[
