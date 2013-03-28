@@ -90,6 +90,7 @@ package weave.services
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
+		[Bindable] private var dataTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
 		// values the user has currently selected
@@ -299,7 +300,11 @@ package weave.services
 				{
 					// save list
 					if (userHasAuthenticated)
+					{
 						keyTypes = event.result as Array || [];
+						dataTypes = keyTypes.concat();
+						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY);
+					}
 				}
 			);
 			service.addHook(
@@ -353,6 +358,7 @@ package weave.services
 			weaveFileNames = [];
 			privateWeaveFileNames = [];
 			keyTypes = [];
+			dataTypes = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
@@ -420,7 +426,7 @@ package weave.services
 					return connectionNames;
 				
 				case ColumnMetadata.DATA_TYPE:
-					return [DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY];
+					return dataTypes;
 				
 				case ColumnMetadata.KEY_TYPE:
 					return keyTypes;
