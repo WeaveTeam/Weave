@@ -349,14 +349,31 @@
 				{
 					if (equationText.parent != visCanvas)
 						visCanvas.addChild(equationText);
-					var slope:Number = StandardLib.roundSignificant(regressionPlotter.getSlope(), 4);
-					var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getIntercept(), 4);
-					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
-					equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
-					equationText.validateNow();
-					// severely hacked
-					equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
-					equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
+					
+					if (regressionPlotter.currentTrendline.value == "Linear")
+					{
+						var slope:Number = StandardLib.roundSignificant(regressionPlotter.getSlope(), 4);
+						var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getIntercept(), 4);
+						lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
+						equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
+						equationText.validateNow();
+						// severely hacked
+						equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
+						equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
+						
+					}
+					
+					else if( regressionPlotter.currentTrendline.value == "Polynomial")
+					{
+						var a:Number = StandardLib.roundSignificant(regressionPlotter.geta(), 4);
+						var b:Number = StandardLib.roundSignificant(regressionPlotter.getb(), 4);
+						var c:Number = StandardLib.roundSignificant(regressionPlotter.getc(), 4);
+						lineEquation.text = lang("Equaiton: y = {0}x^2 + {1}x + {2}", a, b, c);
+						equationText.text = lang("Equaiton: y = {0}x^2 + {1}x + {2}", a, b, c);	
+						equationText.validateNow();
+						equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
+						equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
+					}
 				}
 				else
 				{ 
