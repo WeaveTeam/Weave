@@ -19,56 +19,28 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-
 <!---
 @author mervetuccar
 @author hgranz
 @spurushe
 -->
-
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"       
-		 xmlns="weave.editors.*"
-		 xmlns:ui="weave.ui.*"
-		 label="Disability"
+		 xmlns="weave.editors.*"  xmlns:ui="weave.ui.*" label="Disability"
 		 implements="weave.api.core.ILinkableObject"
-		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark"    >
-	
+		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark">	
 	<mx:Label text="User generated visualization description text:"
-			  textAlign="left"/>
-	
-	<mx:TextArea id="manualToolDescTextBox"
-				 width="100%"
-				 height="40%"
-				 minWidth="5"
-				 minHeight="5"
-				 borderStyle="solid"
-				 editable="true"
-				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
-				 toolTip="changeme"
-				 creationComplete="handleCreationComplete(event);"
-				 wordWrap="true"/>
-	
-	<mx:Label text="System generated visualization description text:"
-			  textAlign="left"/>
-	
-	<mx:TextArea id="automaticToolDescTextBox"
-				 width="100%"
-				 height="40%"
-				 minWidth="5"
-				 minHeight="5"
-				 borderStyle="solid"
-				 editable="false"
-				 
+			  textAlign="left"/>	
+	<mx:TextArea id="manualToolDescTextBox" width="100%" height="40%" minWidth="5" minHeight="5" borderStyle="solid"
+				 editable="true" keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
+				 toolTip="changeme" creationComplete="handleCreationComplete(event);" wordWrap="true"/>	
+	<mx:Label text="System generated visualization description text:" textAlign="left"/>	
+	<mx:TextArea id="automaticToolDescTextBox" width="100%" height="40%" minWidth="5" minHeight="5"
+				 borderStyle="solid" editable="false"
 				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
 				 toolTip="automatically generated text describing the trend of this line chart"
-				 wordWrap="true" text="before button clicked"/>
-	
-	<mx:Button label="Refresh Description"
-			   id="automaticDescRefreshButton"
+				 wordWrap="true" text="before button clicked"/>	
+	<mx:Button label="Refresh Description" id="automaticDescRefreshButton"
 			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
-	
-	
-	
 	<mx:Script>
 		<![CDATA[
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
@@ -117,34 +89,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
-			
-			
-			
+					
 			// creationComplete="automaticToolDescTextBoxInitialize(event);"
 			
-			[Bindable] private var _panel:DraggablePanel = null;
-			
+			[Bindable] private var _panel:DraggablePanel = null;			
 			
 			public var vizEntities:Array = WeaveAPI.globalHashMap.getObjects(LineChartTool);//collect all the visualization tools
-			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);
-			
-			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();
-			
-			public var variables:LinkableHashMap;
-			
-			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-			
-			//public var joinedColsforRArrayUnsplit:Array = new Array();
+			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);		
+			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();			
+			public var variables:LinkableHashMap;			
+			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);		
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
 			public var joinKeysRArray:Array = new Array();
 			public var joinColsRArray:Array = new Array();
 			public var columnNames:Array = new Array();
 			
 			private var RdecisionScript:String = "corr <- cor(dataX, dataY)\n" +
-												 "ftest <- var.test(dataX, dataY, conf.level=0.05)\n"+
-												// "runstest <- runs.test(dataY)\n"+
-												 "outlier_detection <- outliers::outlier(dataY)\n";
-				// +"runs <- rans()\n";
+												 "ftest <- var.test(dataX, dataY, conf.level=0.05)\n"+											
+												 "outlier_detection <- outliers::outlier(dataY)\n"+
+												 "fit <- lm(dataY~dataX)\n"+
+												 "intercept <- coefficients(fit)[1]\n"+
+												 "slope <- coefficients(fit)[2]\n"+
+												 "rSquared <- summary(fit)$r.squared\n";
 			
 			public function set target(panel:DraggablePanel):void
 			{
@@ -185,17 +151,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var dictionaryType:String;
 				var vizType:String;
 				var rResult:Array;
-				//        rResult = getInfoForR(/*columns???*/);
 				vizType = "lineChart";	
 			}
 			
 			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
-			public function checkingPlotterObjects():void{
-				
+			public function checkingPlotterObjects():void
+			{	
 				if(WeaveAPI.SessionManager.linkableObjectIsBusy(variables)) return;
 				columnPreprocessing();
-			}
-			
+			}		
 			//getting the columns ready for R
 			protected function columnPreprocessing():void
 			{
@@ -233,11 +197,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [result.shift(), result];
 			}
 			
+			private var inputValues:Array = new Array();
+			
 			protected function sendColumnsToR():void
 			{
 				//send the columns and variables returned from getInfoForR to R using this function			
 				var computeScript:String = "mySlope <- y2 -y1";		
-				var inputValues:Array = new Array(); //inputValues is a matrix of all of the columns that are to be sent to R
+				//var inputValues:Array = new Array(); //inputValues is a matrix of all of the columns that are to be sent to R
 				var tempArray:Array = new Array();	
 				var outputNames:Array = new Array();
 				var inputName:Array = new Array();
@@ -262,13 +228,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				trace("INPUT VALUES = " + inputValues);
 				lineDecisionTree.setSegmentLength(inputValues.length);
 				lineDecisionTree.getJoinKeysArray(joinKeysRArray);
-				lineDecisionTree.setRService(Rservice);
+				
 				
 				for(var index:int = 0; index < inputValues.length ; index++)
 				{
 					dataX.push(index);
-				}//, "runstest"
-				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "ftest", "outlier_detection"], RdecisionScript, "", false, true, false);
+				}
+				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "ftest", "outlier_detection", "intercept", "slope", "rSquared"], RdecisionScript, "", false, true, false);
 				
 				DelayedAsyncResponder.addResponder(query, handleRunScriptDecision, handleRunScriptFault, null);
 				//split(inputValues);
@@ -280,6 +246,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);   
 				
 			}
+			
+			private var corr:Number;
+			private var ftest:Array;
+			private var outlier_detection:Number;
+			private var intercept:Number = NaN;
+			private var slope:Number = NaN;
+			private var rSquared:Number = NaN;
 			
 			public function handleRunScriptDecision(event:ResultEvent, token:Object):void
 			{
@@ -297,23 +270,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var rResult:RResult = new RResult(Robj[i]);
 					RresultArray.push(rResult);				
 				}
+					
+				corr = Number((RresultArray[0] as RResult).value);
+				ftest = (RresultArray[1] as RResult).value as Array;//ilk deger ftest degeri
+				outlier_detection = (RresultArray[2] as RResult).value as Number;
+			    intercept = (RresultArray[3] as RResult).value as Number;
+				slope = (RresultArray[4] as RResult).value as Number;
+				rSquared = (RresultArray[5] as RResult).value as Number;
+
 				
-				
-				
-				
-				var corr:Number = Number((RresultArray[0] as RResult).value);
-				var ftest:Array = (RresultArray[1] as RResult).value as Array;//fourth value is the desired one.
-				//var runstest:Boolean =(RresultArray[2] as RResult).value as Boolean;
-				var outlier_detection:Number = (RresultArray[2] as RResult).value as Number;
+				runsTest(inputValues);
 				
 				trace("bu corr " + corr);
 				trace("bu f " + ftest);
-				//trace("bu runs " + runstest);
-				
+				trace("outlier " + outlier_detection);
+				trace("bu intercept " +intercept);
+				trace("bu slope " +slope);
+				trace("r squared " +rSquared);
 				//if outlier > critical value
 				// r script tekrar cagir. Baska fonksyonda yap (handle runscript), gelenler cricital value
-				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 
-				trace("outlier " + outlier_detection);
+				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 			
 			}
 			
 			public function handleRunScriptResult(event:ResultEvent, token:Object):void
@@ -342,13 +318,63 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				processingRResult(finalRObject);				
 			}
 			
+			
 			private function handleRunScriptFault(event:FaultEvent, token:Object):void
 			{
 				trace(["fault", token, event.message].join("\n"));
 				reportError(event);
 			}
 			
+			private var negResRun:Number = new Number(); //negative residual, this is the number of runs;
+			private var runsMean:Number =new Number();
+			private var differenceOfActualAndRuns:Number = new Number();
+			
+			private function runsTest(inputValues:Array):Boolean
+			{
+				var yRegValues:Array = new Array();
+				var residual:Array = new Array();
+				var posRes:int = new int(); //positive residual
+				var standardDV:Number = new Number();
+				
+				for(var i:int=0; i<inputValues.length; i++)
+				{
+					yRegValues[i] = intercept + (slope * i);
+				}
+				
+				for (var j:int=0; j<inputValues.length; j++)
+				{
+					residual[j] = inputValues[j] - yRegValues[j];
+					
+					if(residual[j] < 0) {negResRun++;}
+					
+					else {posRes++}
+											
+				}
+				
+				runsMean = ((2*negResRun*posRes)/(negResRun + posRes)) + 1;
+				standardDV = ((2*negResRun*posRes)*(2*negResRun*posRes - negResRun - posRes))/((negResRun+posRes)*(negResRun+posRes)*(negResRun+posRes-1));
+				
+				//lineDecisionTree.actualRuns(negResRun);
+				//lineDecisionTree.meanRuns(runsMean);
+				
+				trace("inputvalues "+inputValues);
+				trace("yreg "+yRegValues);
+				trace("res array" +residual);
+				trace("runs "+runsMean);
+				trace("sd " +standardDV);
+				
+				differenceOfActualAndRuns = negResRun - runsMean;
+				
+				if(negResRun > (runsMean-standardDV)) {return false;}
+				else {return true;}
+			
+			}
+			
+			
+			
 			public var checkLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
+			
+			
 			
 			public function processingRResult(_sentpropertiesValues:Array):void
 			{
@@ -370,22 +396,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 				
-				public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
+			public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
 			
-				private var splitCount:int = 0;
+			private var splitCount:int = 0;
 			
-				public function shouldSplit(segment:Array):Boolean
+			public function shouldSplit(segment:Array):Boolean
+			{
+					
+				if(lineDecisionTree.lineChartDT(segment) == true)
 				{
-					
-					
-					if(lineDecisionTree.lineChartDT(segment) == true)
-						{
-							return true;
-						}
-						else
-						{
-							return false;
-						}
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 					
 					
 				/*
@@ -397,79 +422,66 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return false;
 				}
 				*/
-				}
+			}
 				
-				private function split(segment:Array):Array // takes the whole segment as input, and splits the segment recursively
-				{
-					var result:Array = new Array(); // the resulting splitted graphs
-					var splittedSegments:Array = new Array();
+		    private function split(segment:Array):Array // takes the whole segment as input, and splits the segment recursively
+			{
+				var result:Array = new Array(); // the resulting splitted graphs
+				var splittedSegments:Array = new Array();
 					
-					if(!shouldSplit(segment))
+				if(!shouldSplit(segment))
+				{
+					return segment;
+				}
+				else
+				{
+					splittedSegments = splitSegment(segment);
+					result.push(split(splittedSegments[0]));
+					result.push(split(splittedSegments[1]));
+				}
+					
+				return result; //has resulted segment pieces
+			}
+				
+			private function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
+			{
+				return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
+			}
+				
+			private function splitSegment(segment:Array):Array
+			{
+				var startPoint:Array = new Array(0,segment[0]);
+				var endPoint:Array = new Array(segment.length - 1,segment[segment.length -1]);
+				var resultSegment:Array = new Array();
+				var maxVD:Number = -1;
+				var maxVDIndex:int = 0;
+				var currVD:Number = -1;
+				var first:Array = new Array();
+				var secondSegment:Array = new Array();
+					
+				for(var i:int = 0; i < segment.length - 1 ; i++)
+				{
+					currVD = verticalDistance(startPoint, endPoint, new Array(i, segment[i]));
+					if(currVD > maxVD)
 					{
-						return segment;
+						maxVD = currVD;
+						maxVDIndex = i;
 					}
-					else
-					{
-						splittedSegments = splitSegment(segment);
-						result.push(split(splittedSegments[0]));
-						result.push(split(splittedSegments[1]));
-					}
-					
-					return result; //has resulted segment pieces
-				}
-				
-				private function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
-				{
-					return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
-				}
-				
-				private function splitSegment(segment:Array):Array
-				{
-					var startPoint:Array = new Array(0,segment[0]);
-					var endPoint:Array = new Array(segment.length - 1,segment[segment.length -1]);
-					var resultSegment:Array = new Array();
-					var maxVD:Number = -1;
-					var maxVDIndex:int = 0;
-					var currVD:Number = -1;
-					var first:Array = new Array();
-					var secondSegment:Array = new Array();
-					
-					for(var i:int = 0; i < segment.length - 1 ; i++)
-					{
-						currVD = verticalDistance(startPoint, endPoint, new Array(i, segment[i]));
-						if(currVD > maxVD)
-						{
-							maxVD = currVD;
-							maxVDIndex = i;
-						}
-					}		
+				}		
 					
 					
-					trace(" WANT TO SEE THE TRACE MESSAGE");
-					first.push(0);
-					trace(maxVDIndex);
-					first.push(maxVDIndex);
-					secondSegment.push(maxVDIndex);
-					secondSegment.push(segment.length - 1);
-					resultSegment.push(first);
-					resultSegment.push(secondSegment);
+				trace(" WANT TO SEE THE TRACE MESSAGE");
+				first.push(0);
+				trace(maxVDIndex);
+				first.push(maxVDIndex);
+				secondSegment.push(maxVDIndex);
+				secondSegment.push(segment.length - 1);
+				resultSegment.push(first);
+				resultSegment.push(secondSegment);
 					
-					return resultSegment;
+				return resultSegment;
 					
-				}
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-				
-				
-			
+			}
 			
 		]]>
 	</mx:Script>

@@ -16,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+
 package disabilityPack
 {
 	import flash.display.JointStyle;
@@ -38,7 +40,9 @@ package disabilityPack
 	import weave.services.beans.RResult;
 	import weave.utils.ColumnUtils;
 
-
+	/**
+	 * @author mervetuccar
+	 **/
 	
 	public class LineChartDecisionTree
 	{
@@ -234,65 +238,16 @@ package disabilityPack
 		
 		
 
-    	private var rService:WeaveRServlet = null;
-		
-		public function setRService(Rserv:WeaveRServlet):void
-		{
-			rService = Rserv;
-		}
+    	
 		
 		private var keysArray:Array = new Array;
 		public function getJoinKeysArray(joinKeysArray:Array):void
 		{
 			keysArray.push(joinKeysArray);
 		}
-		private var a:int = 0;
-		private function Rcalculations(segment:Array):void
-		{
-			
-			var computeCorrelationCoeff:String = "coefficient <- cor(var1, var2)";
 		
-			if(rService == null)
-				trace("NULL")
-			else
-				trace("not null");
 		
-			var query:AsyncToken = rService.runScript(keysArray,["var1","var2"],segment,["coefficient"],computeCorrelationCoeff,"",false,false,false);
-			
-			
-			DelayedAsyncResponder.addResponder(query, handleRResult, handleRFault, keysArray);
-		}
-		
-		private var requestID:int = 0
-			
-		private function handleRResult(event:ResultEvent, token:Object=null):void
-		{
-			
-			trace("girdi result");
-	     	var Robj:Array = event.result as Array;
-			var RresultArray:Array = new Array();
-			
-			if (Robj == null)
-				reportError("R Servlet did not return an Array of results as expected.");
-				trace("no result");
-			return;
-		
-			
-		
-			//collecting Objects of type RResult(Should Match result object from Java side)
-			for(var i:int = 0; i<Robj.length; i++)
-			{
-				var rResult:RResult = new RResult(Robj[i]);
-				RresultArray.push(rResult);               
-			}
-			if (RresultArray.length > 1)
-			{
-				corrCoefficient = Number((RresultArray[0] as RResult).value);           
-			//    getCallbackCollection(this).triggerCallbacks();
-			}
-			
-			trace("geldi" + RresultArray);
-		}
+	
 
 		private var corrCoefficient:Number = new Number();
 		
@@ -308,11 +263,11 @@ package disabilityPack
 		
 		public function totalNumberOfPoints():Number { 	return InitialSegmentLength;  }
 		
-		public function numberOfPointsinCurrentSegment(segment:Array):Number {		return segment.length;	}
+		public function numberOfPointsinCurrentSegment(segment:Array):Number {	return segment.length;	}
 		
 		public function correlationCoefficient(segment:Array):Number
 		{
-			Rcalculations(segment);
+			
 			return 0.80;
 		}
 		
@@ -322,10 +277,11 @@ package disabilityPack
 		
 		public function changingPointsFtest():Number {return 5;}
 		
-		public function runsTest():Boolean {	return false;	}
-		public function actualRuns():Number {	return 5;}
+		public function runsTest():Boolean { return false; }
 		
-		public function meanRuns():Number {	var runsMean:Number = new Number(); 	return runsMean; }
+		public function actualRuns():Number {return 5;}
+		
+		public function meanRuns(runsMeanValue:Number):Number {return runsMeanValue;}
 	    public function standardDevOfRuns():Number
 		{
 			
