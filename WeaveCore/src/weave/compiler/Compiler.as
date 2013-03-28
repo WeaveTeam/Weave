@@ -58,28 +58,40 @@ package weave.compiler
 		private static const INDEX_TRUE:int = 1;
 		private static const INDEX_FALSE:int = 2;
 		
-		private static const BRANCH_IF:String = 'if';
-		private static const BRANCH_ELSE:String = 'else';
-		private static const BRANCH_FOR:String = 'for';
-		private static const BRANCH_DO:String = 'do';
-		private static const BRANCH_WHILE:String = 'while';
-		private static const BRANCH_RETURN:String = 'return';
-		private static const BRANCH_BREAK:String = 'break';
-		private static const BRANCH_CONTINUE:String = 'continue';
-		private static const BRANCH_SWITCH:String = 'switch';
-		private static const BRANCH_CASE:String = 'case';
-		private static const BRANCH_DEFAULT:String = 'default';
-		private static const BRANCH_IN:String = 'in';
-		private static const BRANCH_THROW:String = 'throw';
-		private static const BRANCH_TRY:String = 'try';
-		private static const BRANCH_CATCH:String = 'catch';
-		private static const BRANCH_FINALLY:String = 'finally';
+		private static const STATEMENT_IF:String = 'if';
+		private static const STATEMENT_ELSE:String = 'else';
+		private static const STATEMENT_FOR:String = 'for';
+		private static const STATEMENT_DO:String = 'do';
+		private static const STATEMENT_WHILE:String = 'while';
+		private static const STATEMENT_RETURN:String = 'return';
+		private static const STATEMENT_BREAK:String = 'break';
+		private static const STATEMENT_CONTINUE:String = 'continue';
+		private static const STATEMENT_SWITCH:String = 'switch';
+		private static const STATEMENT_CASE:String = 'case';
+		private static const STATEMENT_DEFAULT:String = 'default';
+		private static const STATEMENT_IN:String = 'in';
+		private static const STATEMENT_THROW:String = 'throw';
+		private static const STATEMENT_TRY:String = 'try';
+		private static const STATEMENT_CATCH:String = 'catch';
+		private static const STATEMENT_FINALLY:String = 'finally';
 		
-		private static const BRANCHES_ALL:Array = [
-				BRANCH_IF, BRANCH_ELSE, BRANCH_FOR, BRANCH_DO, BRANCH_WHILE, BRANCH_RETURN, BRANCH_BREAK, BRANCH_CONTINUE,
-				BRANCH_SWITCH, BRANCH_CASE, BRANCH_DEFAULT, BRANCH_IN, BRANCH_THROW, BRANCH_TRY, BRANCH_CATCH, BRANCH_FINALLY
-			];
-		private static const BRANCHES_REQUIRING_PARENTHESES:Array = [BRANCH_IF, BRANCH_FOR, BRANCH_WHILE, BRANCH_SWITCH, BRANCH_CATCH];
+		private static const _statementsWithoutParams:Array = [
+			STATEMENT_ELSE, STATEMENT_DO, STATEMENT_RETURN, STATEMENT_BREAK, STATEMENT_CONTINUE,
+			STATEMENT_CASE, STATEMENT_DEFAULT, STATEMENT_IN, STATEMENT_THROW, STATEMENT_TRY, STATEMENT_FINALLY
+		];
+		private static const _statementsWithParams:Array = [
+			STATEMENT_IF, STATEMENT_FOR, STATEMENT_WHILE, STATEMENT_SWITCH, STATEMENT_CATCH
+		];
+		
+		/**
+		 * (statement name):String -> (true if requires parentheses):Boolean
+		 */
+		private static var statements:Object = null;
+		
+		/**
+		 * String->Array.  Examples: "else"->["if"], "while"->["do"], "finally"->["try", "catch"], "catch"->["try"]
+		 */
+		private static var statementSiblingsLookup:Object = null;
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
@@ -209,7 +221,7 @@ package weave.compiler
 			return libraries.concat(); // make a copy
 		}
 		
-		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function or String -> true
+		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function -> true
 		private const ASSIGN_OP_LOOKUP:Object = new Dictionary(); // Function -> true
 		
 		/**
@@ -251,9 +263,26 @@ package weave.compiler
 		 */
 		private function initialize():void
 		{
-			constants = new Object();
-			operators = new Object();
-			assignmentOperators = new Object();
+			if (!statements)
+			{
+				statements = {};
+				var stmt:String;
+				for each (stmt in _statementsWithParams)
+					statements[stmt] = true;
+				for each (stmt in _statementsWithoutParams)
+					statements[stmt] = false;
+				
+				statementSiblingsLookup = {};
+				statementSiblingsLookup[STATEMENT_CASE] = [STATEMENT_SWITCH, STATEMENT_CASE, STATEMENT_DEFAULT];
+				statementSiblingsLookup[STATEMENT_DEFAULT] = [STATEMENT_SWITCH, STATEMENT_CASE];
+				statementSiblingsLookup[STATEMENT_WHILE] = [STATEMENT_DO];
+				statementSiblingsLookup[STATEMENT_ELSE] = [STATEMENT_IF];
+				statementSiblingsLookup[STATEMENT_CATCH] = [STATEMENT_TRY];
+				statementSiblingsLookup[STATEMENT_FINALLY] = [STATEMENT_TRY, STATEMENT_CATCH];
+			}
+			constants = {};
+			operators = {};
+			assignmentOperators = {};
 			
 			// add built-in functions
 			constants['new'] = function(classOrQName:Object, params:Array = null):Object
@@ -390,8 +419,6 @@ package weave.compiler
 					constants[OPERATOR_ESCAPE + op] = operators[op];
 			
 			// fill branch reverse-lookup dictionary
-			for each (var branch:String in BRANCHES_ALL)
-				BRANCH_LOOKUP[branch] = true;
 			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '?:']] = true;
 			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '&&']] = true;
 			BRANCH_LOOKUP[constants[OPERATOR_ESCAPE + '||']] = false;
@@ -600,6 +627,9 @@ package weave.compiler
 			if (operators['#'])
 				compileUnaryOperators(tokens, ['#']);
 			
+			// next step: compile statements
+			compileStatements(tokens);
+			
 			// next step: compile infix '**' operators
 			compileInfixOperators(tokens, ['**']);
 			
@@ -701,7 +731,7 @@ package weave.compiler
 			// next step: handle multiple comma- or semicolon-separated expressions
 			if (tokens.indexOf(',') >= 0)
 				return compileOperator(',', compileArray(tokens, ','));
-
+			
 			if (tokens.indexOf(';') >= 0)
 				return compileOperator(';', compileArray(tokens, ';'));
 
@@ -911,8 +941,8 @@ package weave.compiler
 					// The function token hasn't been compiled yet.
 					if (constants.hasOwnProperty(token))
 						compiledToken = new CompiledConstant(token as String, constants[token]);
-					else if (!BRANCH_LOOKUP.hasOwnProperty(token)) // branch will be handled below
-						compiledToken = compileVariable(token as String);
+					else
+						compiledToken = compileVariable(token as String) as ICompiledObject;
 				}
 
 				// handle access and descendants operators
@@ -933,7 +963,7 @@ package weave.compiler
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
 					trace("compiling tokens", leftBracket, subArray.join(' '), rightBracket);
-				var separator:String = (leftBracket == '{' || token == BRANCH_FOR) ? ';' : ',';
+				var separator:String = (leftBracket == '{' || token == STATEMENT_FOR) ? ';' : ',';
 				compiledParams = compileArray(subArray, separator);
 
 				if (leftBracket == '[') // this is either an array or a property access
@@ -972,16 +1002,15 @@ package weave.compiler
 				if (leftBracket == '(' && compiledParams.length == 0)
 					throw new Error("Missing expression inside parentheses");
 				
-				// if appropriate, simplify
-				if (compiledParams.length == 1 && BRANCHES_REQUIRING_PARENTHESES.indexOf(token) < 0)
+				if (compiledParams.length != 1 || (statements.hasOwnProperty(token) && statements[token]))
 				{
-					// simplify to single expression
-					tokens.splice(open, 2, compiledParams[0]);
+					// cannot be simplified -- multiple commands or statement params
+					tokens.splice(open, 2, compileOperator(separator, compiledParams));
 				}
 				else
 				{
-					// multiple commands or branch construct
-					tokens.splice(open, 2, compileOperator(separator, compiledParams));
+					// simplify to single expression
+					tokens.splice(open, 2, compiledParams[0]);
 				}
 			}
 		}
@@ -1051,15 +1080,101 @@ package weave.compiler
 			var callWrapper:Function = compileObjectToFunction(compiledFunctionCall, null, false, false, null, null); // no symbol table required for evaluating a constant
 			return new CompiledConstant(decompileObject(compiledFunctionCall), callWrapper());
 		}
+		
+		/**
+		 * This function assumes there are none of the following contained in the top-level of tokens:
+		 * 
+		 * @param tokens
+		 */
+		private function compileStatements(tokens:Array):void
+		{
+			var tokenIndex:int = tokens.length;
+			while (tokenIndex--) // right to left
+			{
+				var token:String = tokens[tokenIndex] as String;
+				if (!statements.hasOwnProperty(token))
+					continue;
+				
+				var firstSiblingIndex:int = tokenIndex;
+				var siblings:Array = statementSiblingsLookup[token] as Array;
+				var i:int = tokenIndex;
+				while (siblings && i--)
+				{
+					var sibTok:String = tokens[i] as String
+					// skip non-statement tokens
+					if (!statements.hasOwnProperty(sibTok))
+						continue;
+					if (siblings.indexOf(sibTok) >= 0)
+					{
+						// found sibling
+						firstSiblingIndex = i;
+						// now check for siblings of this sibling
+						siblings = statementSiblingsLookup[sibTok] as Array;
+						break;
+					}
+					// stop if we found the same type of token and it's not a valid sibling
+					if (sibTok == token)
+						break;
+				}
+				
+				assertValidStatementParams(tokens, firstSiblingIndex, tokenIndex);
+			}
+		}
+		
+		private function assertValidStatementParams(tokens:Array, firstIndex:int, lastIndex:int):void
+		{
+			if (firstIndex != lastIndex)
+				for (var i:int = firstIndex; i <= lastIndex; i++)
+					if (statements.hasOwnProperty(tokens[i]))
+						assertValidStatementParams(tokens, i, i);
+			
+			var statement:String = tokens[firstIndex] as String;
+			if (statements[statement]) // requires parameters?
+			{
+				var params:CompiledFunctionCall = tokens[firstIndex + 1] as CompiledFunctionCall;
+				if (!params)
+					throwInvalidSyntax(statement);
+				
+				var separator:String = statement == STATEMENT_FOR ? ';' : ',';
+				if (params.evaluatedMethod == operators[separator])
+				{
+					var paramCount:int = statement == STATEMENT_FOR ? 3 : 1;
+					if (params.compiledParams.length != paramCount)
+						throwInvalidSyntax(statement);
+				}
+				else if (statement == STATEMENT_FOR && params.evaluatedMethod != STATEMENT_IN)
+				{
+					throwInvalidSyntax(statement);
+				}
+				
+				if (firstIndex != lastIndex)
+				{
+					//TODO
+					
+					var distance:int = statements[statement] ? 3 : 2; // 3 if requires params, 2 if not
+					if (lastIndex - firstIndex != distance)
+						throwInvalidSyntax(statement);
+				}
+			}
+		}
+		
+		private function throwInvalidSyntax(statement:String):void
+		{
+			throw new Error("Invalid '" + statement + "' syntax");
+		}
 
 		/**
 		 * This function is for internal use only.
 		 * This function is necessary because variableName needs to be a new Flash variable each time a wrapper function is created.
 		 * @param variableName The name of the variable to get when the resulting wrapper function is evaluated.
 		 * @param A CompiledFunctionCall for getting the variable.
+		 * @return If the variable name is valid, returns an ICompiledObject.  If not valid, the same variableName String is returned.
 		 */
-		private function compileVariable(variableName:String):CompiledFunctionCall
+		private function compileVariable(variableName:String):Object
 		{
+			// do not treat statement keywords as variable names
+			if (statements.hasOwnProperty(variableName))
+				return variableName;
 			return new CompiledFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
 		}
 		
