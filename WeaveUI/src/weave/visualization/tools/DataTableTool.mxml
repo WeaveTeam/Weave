@@ -324,12 +324,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// needed for Export CSV option in Application Right Click
 			public function exportCSV():String
 			{
-				var keys:* = getExportDataProvider();
 				// each record has a property named after the column title equal to the value in that column for the current key
-				var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; 
-				var dataTableColumns:Array = columns.getObjects();
-				var generatedCSVstring:String = ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType);
-				return generatedCSVstring;
+				return ColumnUtils.generateTableCSV(columns.getObjects());
 			}
 			//needed for export CSV Button click in the control panel
 			private var fr:FileReference = new FileReference();	// CSV download file reference
@@ -555,33 +551,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				keyTypeCombo.dataProvider = keyTypeList;				
 				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
 			}
-			
-			public function getExportDataProvider():*
-			{
-				for each (var column:IAttributeColumn in columns.getObjects())
-				{
-					while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-						column = (column as IColumnWrapper).getInternalColumn();
-					
-					if (column is SecondaryKeyNumColumn)
-					{
-						// dimension slider hack -- relies on previously set SecondaryKeyNumColumn.allKeysHack = true;
-						var key:IQualifiedKey;
-						var keyLookup:Dictionary = new Dictionary(true);
-						for each (column in columns.getObjects())
-							for each (key in column.keys)
-								keyLookup[key] = true;
-								
-						var keys:Array = [];
-						for (var keyObj:* in keyLookup)
-							keys.push(keyObj);
-						
-						return keys;
-					}
-				}
-				return dataGrid.dataProvider;
-			}
-			
 			
 			private function handleDataCopy(event:Event):void
 			{											
