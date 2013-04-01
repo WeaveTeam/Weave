@@ -309,7 +309,6 @@ package weave.compiler
 				}
 			};
 			constants['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
-			constants['typeof'] = function(value:*):* { return typeof(value); };
 			// for trace debugging, debug must be set to true
 			if (debug)
 				constants['trace'] = function(...args):void { trace.apply(null, args); };
@@ -393,6 +392,12 @@ package weave.compiler
 			// multiple commands
 			operators[','] = function(...args):* { return args[args.length - 1]; };
 			operators[';'] = operators[',']; // equivalent functionality but must be remembered as a different operator
+			// operators with alphabetic names
+			operators['void'] = function(..._):void { };
+			operators['typeof'] = function(value:*):* { return typeof(value); };
+			operators['as'] = function(a:*, b:*):Object { return a as b; };
+			operators['in'] = function(a:*, b:*):Boolean { return a in b; };
+			operators['is'] = operators['instanceof'] = function(a:*, b:*):Boolean { return a is b; };
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -408,11 +413,12 @@ package weave.compiler
 			assignmentOperators['&=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] &=   a[i + 1]; };
 			assignmentOperators['|=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] |=   a[i + 1]; };
 			assignmentOperators['^=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] ^=   a[i + 1]; };
-			// special cases: -- and ++ unary operators ignore last parameter
-			assignmentOperators['--']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return --o[a[i]]; };
-			assignmentOperators['++']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return ++o[a[i]]; };
+			// special cases: delete, -- and ++ unary operators ignore last parameter
+			assignmentOperators['--']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return --o[a[i]]; };
+			assignmentOperators['++']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return ++o[a[i]]; };
 			assignmentOperators['#--']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]]--; };
 			assignmentOperators['#++']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]]++; };
+			assignmentOperators['delete'] = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return delete o[a[i]]; };
 			for (var aop:String in assignmentOperators)
 				operators[aop] = assignmentOperators[aop];
 			
@@ -421,7 +427,7 @@ package weave.compiler
 				['*','/','%'],
 				['+','-'],
 				['<<','>>','>>>'],
-				['<','<=','>','>='],
+				['<','<=','>','>=','as','in','instanceof','is'],
 				['==','!=','===','!=='],
 				['&'],
 				['^'],
@@ -430,7 +436,7 @@ package weave.compiler
 				['||']
 			];
 			// unary operators
-			unaryOperatorSymbols = ['--','++','+','-','~','!']; // '#' not listed because it has special evaluation order
+			unaryOperatorSymbols = ['++','--','+','-','~','!','delete','typeof','void']; // '#' not listed because it has special evaluation order
 
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
@@ -528,7 +534,7 @@ package weave.compiler
 
 			// handle operators (find the longest matching operator)
 			// this function assumes operators has already been initialized
-			if (operators.hasOwnProperty(c))
+			if (operators.hasOwnProperty(c)) // only handle operator if it begins with operator character (doesn't include as,in,instanceof,is)
 				for (var opLength:int = MAX_OPERATOR_LENGTH; opLength > 0; opLength--)
 					if (operators.hasOwnProperty(c = expression.substr(index, opLength)))
 						return c;
@@ -1433,6 +1439,8 @@ package weave.compiler
 					
 					if (op.charAt(0) == '#')
 						return result + op.substr(1);
+					if (op == 'delete')
+						return op + ' ' + result;
 					if (op == '--' || op == '++')
 						return op + result;
 					
@@ -1447,7 +1455,12 @@ package weave.compiler
 					return '(' + params.join(', ') + ')';
 				
 				if (call.compiledParams.length == 1) // unary op
-					return op + params[0];
+				{
+					var c:String = op.charAt(0);
+					if (operators.hasOwnProperty(c) && c != (params[0] as String).charAt(0))
+						return op + params[0];
+					return op + ' ' + params[0];
+				}
 				if (call.compiledParams.length == 2) // infix op
 					return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
 				if (call.compiledParams.length == 3 && op == '?:') // ternary op
