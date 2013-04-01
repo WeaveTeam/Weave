@@ -1444,7 +1444,7 @@ package weave.compiler
 					if (op == '--' || op == '++')
 						return op + result;
 					
-					return StringUtil.substitute("{0} {1} {2}", result, op, params[params.length - 1]);
+					return StringUtil.substitute("({0} {1} {2})", result, op, params[params.length - 1]);
 				}
 				// variable number of params
 				if (op == '[')
