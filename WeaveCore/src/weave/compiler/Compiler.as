@@ -70,7 +70,6 @@ package weave.compiler
 		private static const STATEMENT_SWITCH:String = 'switch';
 		private static const STATEMENT_CASE:String = 'case';
 		private static const STATEMENT_DEFAULT:String = 'default';
-		private static const STATEMENT_IN:String = 'in';
 		private static const STATEMENT_THROW:String = 'throw';
 		private static const STATEMENT_TRY:String = 'try';
 		private static const STATEMENT_CATCH:String = 'catch';
@@ -78,7 +77,7 @@ package weave.compiler
 		
 		private static const _statementsWithoutParams:Array = [
 			STATEMENT_ELSE, STATEMENT_DO, STATEMENT_RETURN, STATEMENT_BREAK, STATEMENT_CONTINUE,
-			STATEMENT_CASE, STATEMENT_DEFAULT, STATEMENT_IN, STATEMENT_THROW, STATEMENT_TRY, STATEMENT_FINALLY
+			STATEMENT_CASE, STATEMENT_DEFAULT, STATEMENT_THROW, STATEMENT_TRY, STATEMENT_FINALLY
 		];
 		private static const _statementsWithParams:Array = [
 			STATEMENT_IF, STATEMENT_FOR, STATEMENT_EACH, STATEMENT_WHILE, STATEMENT_SWITCH, STATEMENT_CATCH
@@ -645,9 +644,6 @@ package weave.compiler
 			if (operators.hasOwnProperty('#'))
 				compileUnaryOperators(tokens, ['#']);
 			
-			// next step: compile statements
-			//compileStatements(tokens);
-			
 			compilePostfixOperators(tokens, ['--', '++']);
 			
 			// next step: compile infix '**' operators
@@ -727,25 +723,20 @@ package weave.compiler
 				if (!lhs || !rhs)
 					throw new Error("Invalid " + (!lhs ? 'left' : 'right') + "-hand-side of '" + tokens[i] + "'");
 				
-				// lhs should either be a constant or a call to operator (.)
+				// lhs should either be a constant or a call to operator '.'
 				
 				if (lhs.evaluatedMethod is String) // lhs is a variable lookup
 				{
 					tokens.splice(i - 1, 3, compileOperator(tokens[i], [lhs.compiledMethod, tokens[i + 1]]));
-					continue;
 				}
-				
-				// verify that lhs.compiledMethod.name is \.
-				var lhsMethod:CompiledConstant = lhs.compiledMethod as CompiledConstant;
-				if (lhsMethod && lhsMethod.name == OPERATOR_ESCAPE + '.')
+				else if (lhs.evaluatedMethod == operators['.'])
 				{
 					// switch to the assignment operator
 					lhs.compiledParams.push(tokens[i + 1]);
 					tokens.splice(i - 1, 3, compileOperator(tokens[i], lhs.compiledParams));
-					continue;
 				}
-				
-				throw new Error("Invalid left-hand-side of '" + tokens[i] + "'");
+				else
+					throw new Error("Invalid left-hand-side of '" + tokens[i] + "'");
 			}
 
 			// next step: handle multiple comma- or semicolon-separated expressions
@@ -755,6 +746,9 @@ package weave.compiler
 			if (tokens.indexOf(';') >= 0)
 				return compileOperator(';', compileArray(tokens, ';'));
 
+			// next step: compile statements
+			compileStatements(tokens);
+			
 			// last step: verify there is only one token left
 			if (tokens.length == 1)
 				return tokens[0];
@@ -1087,7 +1081,7 @@ package weave.compiler
 			if (!enableOptimizations
 				|| !constantMethod
 				|| !operators.hasOwnProperty(constantMethod.name)
-				|| constantMethod.name == OPERATOR_ESCAPE + '['
+				|| constantMethod.value == operators['[']
 				|| assignmentOperators.hasOwnProperty(constantMethod.value))
 			{
 				return compiledFunctionCall;
@@ -1103,44 +1097,88 @@ package weave.compiler
 		
 		/**
 		 * @param tokens
-		 * @param start
+		 * @param start first index to check
 		 * @return index of next statement
 		 */		
 		private function findNextStatement(tokens:Array, start:int):int
 		{
-			while (++start < tokens.length)
+			for (; start < tokens.length; start++)
+			{
 				if (statements.hasOwnProperty(tokens[start]))
 					break;
+			}
 			return start;
 		}
 		
 		/**
-		 * This function assumes that bracket operators have already been compiled.
+		 * This function assumes that every token except statements have already been compiled.
+		 * @param tokens
+		 * @param startIndex The index of the first token to compile
 		 */
-		private function compileStatements(tokens:Array):void
+		private function compileStatements(tokens:Array, startIndex:int = 0):void
 		{
-			var i:int = -1;
+			var i:int;
 			var j:int;
-			while (true)
+			var stmt:String;
+			
+			if (startIndex == 0)
 			{
-				switch (tokens[i = findNextStatement(tokens, i)])
+				// verify that everything except statements have been compiled and that statements have the correct number of parameters
+				for (i = 0; i < tokens.length; i++)
 				{
-					case STATEMENT_IF:
+					if (tokens[i] is ICompiledObject)
+					{
+						// ok
+					}
+					else if (statements.hasOwnProperty(tokens[i]))
+					{
 						assertValidStatementParams(tokens, i);
-						switch (tokens[j = findNextStatement(tokens, i)])
-						{
-							case STATEMENT_ELSE:
-							default:
-						}
-						break;
-					default:
-						return;
+					}
+					else
+						throw new Error("Unexpected token: " + tokens[i]);
 				}
 			}
 			
+			i = findNextStatement(tokens, startIndex);
+			
+			// stop when there are no statements
+			if (i >= tokens.length)
+				return;
+			
+			if (statements[tokens[i]]) // requires params.  Example:  if () {}
+			{
+				compileStatements(tokens, i + 2);
+			}
+			else // no params.  Example:  else {}
+			{
+				compileStatements(tokens, i + 1);
+			}
+			
+			// now everything to the right of the current statement and its params have been taken care of.
 			
 			
 			
+			switch (tokens[i])
+			{
+				case STATEMENT_FOR: // for () {}
+				case STATEMENT_WHILE: // while () {}
+				case STATEMENT_IF: // if () {} else {}
+				case STATEMENT_ELSE: // else {}
+				case STATEMENT_EACH: // for each () {}
+				case STATEMENT_DO: // do {} while ()
+				case STATEMENT_RETURN: // return EXPR
+				case STATEMENT_BREAK: // break
+				case STATEMENT_CONTINUE: // continue
+				case STATEMENT_SWITCH: // switch () {}
+				case STATEMENT_CASE: // case EXPR :
+				case STATEMENT_DEFAULT: // default :
+				case STATEMENT_THROW: // throw EXPR
+				case STATEMENT_TRY: // try {} catch () {} finally {}
+				case STATEMENT_CATCH: // catch () {}
+				case STATEMENT_FINALLY: // finally {}
+				default:
+					return;
+			}
 		}
 		private function compileStatements1(tokens:Array):void
 		{
@@ -1189,11 +1227,25 @@ package weave.compiler
 				var separator:String = statement == STATEMENT_FOR ? ';' : ',';
 				if (params.evaluatedMethod == operators[separator])
 				{
-					var paramCount:int = statement == STATEMENT_FOR ? 3 : 1;
-					if (params.compiledParams.length != paramCount)
+					var cpl:int = params.compiledParams.length;
+					if (statement == STATEMENT_FOR)
+					{
+						if (cpl == 3)
+							return;
+						if (cpl == 1)
+						{
+							var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall;
+							if (cfc && cfc.evaluatedMethod == operators['in'])
+								return;
+						}
 						throwInvalidSyntax(statement);
+					}
+					else if (cpl != 1)
+					{
+						throwInvalidSyntax(statement);
+					}
 				}
-				else if (statement == STATEMENT_FOR && params.evaluatedMethod != STATEMENT_IN)
+				else
 				{
 					throwInvalidSyntax(statement);
 				}
@@ -1220,6 +1272,11 @@ package weave.compiler
 			return new CompiledFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
 		}
 		
+		private function newUndefinedConstant():CompiledConstant
+		{
+			return new CompiledConstant('undefined', undefined);
+		}
+		
 		private function compilePostfixOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
 			for (var i:int = 1; i < compiledTokens.length; i++)
@@ -1234,13 +1291,13 @@ package weave.compiler
 				
 				if (cfc.evaluatedMethod is String) // variable lookup
 				{
-					compiledTokens.splice(--i, 2, compileOperator('#' + op, [cfc.compiledMethod, new CompiledConstant("1", 1)]));
+					compiledTokens.splice(--i, 2, compileOperator('#' + op, [cfc.compiledMethod, newUndefinedConstant()]));
 					continue;
 				}
 				else if (cfc.evaluatedMethod == operators['.'])
 				{
 					// switch to the postfix operator
-					cfc.compiledParams.push(new CompiledConstant("1", 1));
+					cfc.compiledParams.push(newUndefinedConstant());
 					compiledTokens.splice(--i, 2, compileOperator('#' + op, cfc.compiledParams));
 					continue;
 				}
@@ -1293,12 +1350,12 @@ package weave.compiler
 					var cfc:CompiledFunctionCall = nextToken as CompiledFunctionCall;
 					if (cfc && cfc.evaluatedMethod is String) // variable lookup
 					{
-						compiledTokens.splice(index, 2, compileOperator(token, [cfc.compiledMethod, new CompiledConstant("1", 1)]));
+						compiledTokens.splice(index, 2, compileOperator(token, [cfc.compiledMethod, newUndefinedConstant()]));
 					}
 					else if (cfc && cfc.evaluatedMethod == operators['.'])
 					{
-						// switch to the unary operator
-						cfc.compiledParams.push(new CompiledConstant("1", 1));
+						// switch '.' to the unary operator
+						cfc.compiledParams.push(newUndefinedConstant());
 						compiledTokens.splice(index, 2, compileOperator(token, cfc.compiledParams));
 					}
 					else
