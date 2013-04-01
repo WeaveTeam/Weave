@@ -23,9 +23,11 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import mx.collections.ArrayCollection;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ArrayUtil;
 	
 	import weave.Weave;
 	import weave.api.disposeObjects;
@@ -85,6 +87,7 @@ package weave.visualization.plotters
 			// clear previous values
 			slope = NaN;
 			intercept = NaN;
+			coefficients = null;
 		}
 		private function calculateRRegression():void
 		{
@@ -92,7 +95,8 @@ package weave.visualization.plotters
 				var dataXY:Array = null;
 				var token:AsyncToken = null;
 				
-			if (currentTrendline.value == LINEAR) {
+			if (currentTrendline.value == LINEAR)
+			{
 				//trace( "calculateRegression() " + xColumn.toString() );
 				Rstring = "fit <- lm(y~x)\n"
 					+"intercept <- coefficients(fit)[1]\n"
@@ -106,51 +110,35 @@ package weave.visualization.plotters
 				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 			}
 			
-			if (currentTrendline.value == POLYNOMIAL) {
-				if (polynomialDegree.value == 2)
-				{
-					//trace( "calculateRegression() " + xColumn.toString() );
-					Rstring = "fit <- lm(y ~ poly(x, 2, raw = TRUE))\n"
-						+"c <- coefficients(fit)[1]\n"
-						+"b <- coefficients(fit)[2]\n"
-						+"a <- coefficients(fit)[3]\n"
-						+"rSquared <- summary(fit)$r.squared\n";			
-					dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
+			if (currentTrendline.value == POLYNOMIAL)
+			{
+				Rstring = "fit <- lm(y ~ poly(x, " + polynomialDegree.value.toString() + ", raw = TRUE))\n"
+					+"coef <- coefficients(fit)\n"			
+				dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
 				
-				
-					// sends a request to Rserve to calculate the coefficients of the regression polynomial fitted to xColumn and yColumn 
-					token = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["c","b","a", "rSquared"],Rstring,"",false,false,false);
-					addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
-				}
-				else if (polynomialDegree.value == 3)
-				{
-					//trace( "calculateRegression() " + xColumn.toString() );
-					Rstring = "";			
-					dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
-					
-					
-					// sends a request to Rserve to calculate the coefficients of the regression polynomial fitted to xColumn and yColumn 
-					token = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["d","c","b","a", "rSquared"],Rstring,"",false,false,false);
-					addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
-				}
+				// sends a request to Rserve to calculate the coefficients of the regression polynomial fitted to xColumn and yColumn 
+				token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef"], Rstring, "", false, false, false);
+				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 			}
 			
-			if (currentTrendline.value == LOGARITHMIC) {
+			if (currentTrendline.value == LOGARITHMIC)
+			{
 				
 			}
 			
-			if (currentTrendline.value == EXPONENTIAL) {
+			if (currentTrendline.value == EXPONENTIAL)
+			{
 				
 			}
 			
-			if (currentTrendline.value == POWER) {
+			if (currentTrendline.value == POWER)
+			{
 				
 			}
-			
-			
+
 		}
-		private var requestID:int = 0; // ID of the latest request, used to ignore old results
 		
+		private var requestID:int = 0; // ID of the latest request, used to ignore old results
 		private function handleLinearRegressionResult(event:ResultEvent, token:Object=null):void
 		{
 			if (this.requestID != int(token))
@@ -172,9 +160,11 @@ package weave.visualization.plotters
 				RresultArray.push(rResult);				
 			}
 			
-			if (RresultArray.length > 1)
+//			if (RresultArray.length > 1) // ToDo
+			if (RresultArray.length > 0)
 			{
-				if (currentTrendline.value == LINEAR) {
+				if (currentTrendline.value == LINEAR)
+				{
 					intercept = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
 					slope = Number((RresultArray[1] as RResult).value);
 					rSquared = Number((RresultArray[2] as RResult).value);	
@@ -182,54 +172,28 @@ package weave.visualization.plotters
 					getCallbackCollection(this).triggerCallbacks();
 				}
 				
-				if (currentTrendline.value == POLYNOMIAL) {
-					
-					if (polynomialDegree.value == 2) {
-						c = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
-						b = Number((RresultArray[1] as RResult).value);
-						a = Number((RresultArray[2] as RResult).value);
-						rSquared = Number((RresultArray[3] as RResult).value);	
-						//trace( "R" + " " + intercept + " " + slope) ;
-						getCallbackCollection(this).triggerCallbacks();	
-						
-					}
-					
-					if (polynomialDegree.value == 3) {
-						
-						
-					}
-					
-					if (polynomialDegree.value == 4) {
-						
-						
-					}
-					
-					if (polynomialDegree.value == 5) {
-						
-						
-					}
-					
-					if (polynomialDegree.value == 5) {
-						
-						
-					}
+				if (currentTrendline.value == POLYNOMIAL)
+				{
+					coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
+					getCallbackCollection(this).triggerCallbacks();	
+				}
+				
+				if (currentTrendline.value == EXPONENTIAL)
+				{
 					
 				}
 				
-				if (currentTrendline.value == EXPONENTIAL) {
+				if (currentTrendline.value == POWER)
+				{
 					
 				}
 				
-				if (currentTrendline.value == POWER) {
-					
-				}
-				
-				if (currentTrendline.value == LOGARITHMIC) {
+				if (currentTrendline.value == LOGARITHMIC)
+				{
 					
 					
 				}
 			}
-			
 		}
 		
 		private function handleLinearRegressionFault(event:FaultEvent, token:Object = null):void
@@ -243,100 +207,103 @@ package weave.visualization.plotters
 			reportError(event);
 			intercept = NaN;
 			slope = NaN;
+			coefficients = null;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function getSlope():Number { return slope; }
 		public function getIntercept():Number { return intercept; }
-		public function geta():Number { return a; }
-		public function getb():Number { return b; }
-		public function getc():Number { return c; }
-		public function getd():Number { return d; }
-		public function gete():Number { return e; }
-		public function getf():Number { return f; }
-		public function getg():Number { return g; }
-		
+		public function getCoefficients():Array { return coefficients; }
 		
 		private var intercept:Number = NaN;
 		private var slope:Number = NaN;
 		private var rSquared:Number = NaN;
-		private var a:Number = NaN;
-		private var b:Number = NaN;
-		private var c:Number = NaN;
-		private var d:Number = NaN;
-		private var e:Number = NaN;
-		private var f:Number = NaN;
-		private var g:Number = NaN;
+		private var coefficients:Array = null;
+		
 		private var tempRange:Range = new Range();
 		private var tempPoint:Point = new Point();
 		private var tempPoint2:Point = new Point();
 
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			
 			if(currentTrendline.value == LINEAR)
 			{
-				var g:Graphics = tempShape.graphics; 
-				g.clear();
-				
-				if(!isNaN(intercept))
-				{
-					tempPoint.x = dataBounds.getXMin();
-					tempPoint2.x = dataBounds.getXMax();
-					
-					tempPoint.y = (slope*tempPoint.x)+intercept;
-					tempPoint2.y = (slope*tempPoint2.x)+intercept;
-					
-					tempRange.setRange( dataBounds.getYMin(), dataBounds.getYMax() );
-					
-					// constrain yMin to be within y range and derive xMin from constrained yMin
-					tempPoint.x = tempPoint.x + (tempRange.constrain(tempPoint.y) - tempPoint.y) / slope;
-					tempPoint.y = tempRange.constrain(tempPoint.y);
-					
-					// constrain yMax to be within y range and derive xMax from constrained yMax
-					tempPoint2.x = tempPoint.x + (tempRange.constrain(tempPoint2.y) - tempPoint.y) / slope;
-					tempPoint2.y = tempRange.constrain(tempPoint2.y);
-					
-					dataBounds.projectPointTo(tempPoint,screenBounds);
-					dataBounds.projectPointTo(tempPoint2,screenBounds);
-					lineStyle.beginLineStyle(null,g);
-					//g.lineStyle(lineThickness.value, lineColor.value,lineAlpha.value,true,LineScaleMode.NONE);
-					g.moveTo(tempPoint.x,tempPoint.y);
-					g.lineTo(tempPoint2.x,tempPoint2.y);
-					
-					destination.draw(tempShape);
-				}
+//				g.clear();
+//				if(!isNaN(intercept))
+//				{
+//					tempPoint.x = dataBounds.getXMin();
+//					tempPoint2.x = dataBounds.getXMax();
+//					
+//					tempPoint.y = (slope*tempPoint.x)+intercept;
+//					tempPoint2.y = (slope*tempPoint2.x)+intercept;
+//					
+//					tempRange.setRange( dataBounds.getYMin(), dataBounds.getYMax() );
+//					
+//					// constrain yMin to be within y range and derive xMin from constrained yMin
+//					tempPoint.x = tempPoint.x + (tempRange.constrain(tempPoint.y) - tempPoint.y) / slope;
+//					tempPoint.y = tempRange.constrain(tempPoint.y);
+//					
+//					// constrain yMax to be within y range and derive xMax from constrained yMax
+//					tempPoint2.x = tempPoint.x + (tempRange.constrain(tempPoint2.y) - tempPoint.y) / slope;
+//					tempPoint2.y = tempRange.constrain(tempPoint2.y);
+//					
+//					dataBounds.projectPointTo(tempPoint,screenBounds);
+//					dataBounds.projectPointTo(tempPoint2,screenBounds);
+//					lineStyle.beginLineStyle(null,g);
+//					//g.lineStyle(lineThickness.value, lineColor.value,lineAlpha.value,true,LineScaleMode.NONE);
+//					g.moveTo(tempPoint.x,tempPoint.y);
+//					g.lineTo(tempPoint2.x,tempPoint2.y);
+//					
+//					destination.draw(tempShape);
+//				}
 			}	
 			else if (currentTrendline.value == POLYNOMIAL)
 			{
+				points = new Vector.<Number>;
+				drawCommand = new Vector.<int>;
 				
-				// ToDo
-				// for (var x:int = dataBounds.getXMin(); x < dataBounds.getXMax(); x++) {
-				var coefficients:Array = [];
-				if (polynomialDegree.value == 2)
+				if (coefficients != null)
 				{
-					coefficients.push(c);
-					coefficients.push(b);
-					coefficients.push(a);
-				}
-				
-				for (var x:int = 0; x < 40; x++) {
-					tempPoint.x = x;
-					tempPoint.y = polynomial(coefficients, x);
-					//						tempPoint.y = polynomial(x, -0.0093, 0.5608, -12.544, 123.68, -436.94);
-					//						mx.controls.Alert.show(tempPoint.x.toString() + " " + tempPoint.y.toString());
-					dataBounds.projectPointTo(tempPoint,screenBounds);
-					points[x * 2] = tempPoint.x;
-					points[x * 2 + 1] = tempPoint.y;
+					// ToDo Use screenBounds to determine how many points should be drawn
+					// Preprocess coefficients ==> It might return NaN in higher degree
+					for (var i:int = 0; i < coefficients.length; i++)
+					{
+						if (isNaN(coefficients[i]))
+						{
+							coefficients.splice(i, 1);
+							i--;
+						}
+					}
 					
-					if (x == 0) drawCommand[x] = 1;
-					else drawCommand[x] = 2;
+					coefficients.reverse();
+
+					var flag:Boolean = true;
+					 for (var x:int = dataBounds.getXMin(); x < dataBounds.getXMax(); x++)
+					 {
+						tempPoint.x = x;
+						tempPoint.y = polynomial(coefficients, x);
+						dataBounds.projectPointTo(tempPoint, screenBounds);
+						points.push(tempPoint.x);
+						points.push(tempPoint.y);
+						
+						if (flag == true)
+						{
+							drawCommand.push(1);
+							flag = false;
+						}
+//						else if (tempPoint.y > screenBounds.getYMax() || tempPoint.y < screenBounds.getYMin())
+//							drawCommand.push(1);
+						else drawCommand.push(2);
+					}
+
+					g.lineStyle(1);
+					g.drawPath(drawCommand, points);					
+					
+					destination.draw(tempShape);
 				}
-				g.clear();
-				g.lineStyle(1);
-				g.drawPath(drawCommand, points);
-				// ToDo					
-				
-				destination.draw(tempShape);
 			}
 		}
 		override public function dispose():void
@@ -346,8 +313,8 @@ package weave.visualization.plotters
 		}
 		
 		
-		private var points:Vector.<Number> = new Vector.<Number>;
-		private var drawCommand:Vector.<int> = new Vector.<int>;
+		private var points:Vector.<Number> = null;
+		private var drawCommand:Vector.<int> = null;
 		
 		private function polynomial(coefficients:Array, xValue:Number):Number
 		{
