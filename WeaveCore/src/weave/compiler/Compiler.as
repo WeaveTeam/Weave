@@ -58,40 +58,63 @@ package weave.compiler
 		private static const INDEX_TRUE:int = 1;
 		private static const INDEX_FALSE:int = 2;
 		
-		private static const STATEMENT_IF:String = 'if';
-		private static const STATEMENT_ELSE:String = 'else';
-		private static const STATEMENT_FOR:String = 'for';
-		private static const STATEMENT_EACH:String = 'each';
-		private static const STATEMENT_DO:String = 'do';
-		private static const STATEMENT_WHILE:String = 'while';
-		private static const STATEMENT_RETURN:String = 'return';
-		private static const STATEMENT_BREAK:String = 'break';
-		private static const STATEMENT_CONTINUE:String = 'continue';
-		private static const STATEMENT_SWITCH:String = 'switch';
-		private static const STATEMENT_CASE:String = 'case';
-		private static const STATEMENT_DEFAULT:String = 'default';
-		private static const STATEMENT_THROW:String = 'throw';
-		private static const STATEMENT_TRY:String = 'try';
-		private static const STATEMENT_CATCH:String = 'catch';
-		private static const STATEMENT_FINALLY:String = 'finally';
+		private static const ST_IF:String = 'if';
+		private static const ST_ELSE:String = 'else';
+		
+		private static const ST_FOR:String = 'for';
+		private static const ST_EACH:String = 'each';
+		private static const ST_FOR_EACH:String = 'for each';
+		
+		private static const ST_DO:String = 'do';
+		private static const ST_WHILE:String = 'while';
+		
+		private static const ST_SWITCH:String = 'switch';
+		private static const ST_CASE:String = 'case';
+		private static const ST_DEFAULT:String = 'default';
+		
+		private static const ST_TRY:String = 'try';
+		private static const ST_CATCH:String = 'catch';
+		private static const ST_FINALLY:String = 'finally';
+		
+		private static const ST_BREAK:String = 'break';
+		private static const ST_CONTINUE:String = 'continue';
+		
+		private static const ST_RETURN:String = 'return';
+		private static const ST_THROW:String = 'finally';
 		
 		private static const _statementsWithoutParams:Array = [
-			STATEMENT_ELSE, STATEMENT_DO, STATEMENT_RETURN, STATEMENT_BREAK, STATEMENT_CONTINUE,
-			STATEMENT_CASE, STATEMENT_DEFAULT, STATEMENT_THROW, STATEMENT_TRY, STATEMENT_FINALLY
+			ST_ELSE, ST_DO, ST_BREAK, ST_CONTINUE, ST_CASE, ST_DEFAULT,
+			ST_TRY, ST_FINALLY, ST_RETURN, ST_THROW
 		];
 		private static const _statementsWithParams:Array = [
-			STATEMENT_IF, STATEMENT_FOR, STATEMENT_EACH, STATEMENT_WHILE, STATEMENT_SWITCH, STATEMENT_CATCH
+			ST_IF, ST_FOR, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
 		];
-		
+
+		private static const _PARAMS:String = 'PARAMS'; // must be enclosed in ()
+		private static const _STMT:String = 'STMT'; // may contain multiple statements enclosed in {}
+		private static const _EXPR:String = 'EXPR'; // may only contain one expression, optionally enclosed in (), no statements
+		// longer patterns appear earlier so they will match before shorter patterns when checked in order
+		private static const _validStatementPatterns:Array = [
+			[ST_IF, _PARAMS, _STMT, ST_ELSE, _STMT],
+			[ST_IF, _PARAMS, _STMT],
+			[ST_FOR_EACH, _PARAMS, _STMT],
+			[ST_FOR, _PARAMS, _STMT],
+			[ST_DO, _STMT, ST_WHILE, _PARAMS],
+			[ST_WHILE, _PARAMS, _STMT],
+			[ST_TRY, _STMT, ST_CATCH, _PARAMS, _STMT, ST_FINALLY, _STMT],
+			[ST_TRY, _STMT, ST_FINALLY, _STMT],
+			[ST_TRY, _STMT, ST_CATCH, _PARAMS, _STMT],
+			[ST_BREAK],
+			[ST_CONTINUE],
+			[ST_RETURN, _EXPR],
+			[ST_RETURN],
+			[ST_THROW, _EXPR]
+		];
+
 		/**
 		 * (statement name):String -> (true if requires parentheses):Boolean
 		 */
 		private static var statements:Object = null;
-		
-		/**
-		 * String->Array.  Examples: "else"->["if"], "while"->["do"], "finally"->["try", "catch"], "catch"->["try"]
-		 */
-		private static var statementSiblingsLookup:Object = null;
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
@@ -272,14 +295,6 @@ package weave.compiler
 					statements[stmt] = true;
 				for each (stmt in _statementsWithoutParams)
 					statements[stmt] = false;
-				
-				statementSiblingsLookup = {};
-				statementSiblingsLookup[STATEMENT_CASE] = [STATEMENT_SWITCH, STATEMENT_CASE, STATEMENT_DEFAULT];
-				statementSiblingsLookup[STATEMENT_DEFAULT] = [STATEMENT_SWITCH, STATEMENT_CASE];
-				statementSiblingsLookup[STATEMENT_WHILE] = [STATEMENT_DO];
-				statementSiblingsLookup[STATEMENT_ELSE] = [STATEMENT_IF];
-				statementSiblingsLookup[STATEMENT_CATCH] = [STATEMENT_TRY];
-				statementSiblingsLookup[STATEMENT_FINALLY] = [STATEMENT_TRY, STATEMENT_CATCH];
 			}
 			constants = {};
 			operators = {};
@@ -563,10 +578,10 @@ package weave.compiler
 		 * This function will recursively compile a set of tokens into a compiled object representing a function that takes no parameters and returns a value.
 		 * Example set of input tokens:  pow ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
 		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
-		 * @param allowEmptyExpression If tokens is an empty Array, setting this to true will return an empty compiled object instead of throwing an error. 
+		 * @param allowSemicolons Set to true to allow multiple statements and empty expressions.
 		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
 		 */
-		private function compileTokens(tokens:Array, allowEmptyExpression:Boolean):ICompiledObject
+		private function compileTokens(tokens:Array, allowSemicolons:Boolean):ICompiledObject
 		{
 			// there are no more parentheses, so the remaining tokens are operators, constants, and variable names.
 			if (debug)
@@ -608,6 +623,13 @@ package weave.compiler
 					tokens.splice(i, 2, new CompiledConstant(OPERATOR_ESCAPE + token, operators[token]));
 				}
 			}
+			
+			// next step: combine 'for each' into a single token
+			if (tokens[0] == ST_EACH)
+				throw new Error("Invalid statement 'each'");
+			for (i = tokens.length; i > 0; i--)
+				if (tokens[i] == ST_EACH && tokens[i - 1] == ST_FOR)
+					tokens.splice(i - 1, 2, ST_FOR_EACH);
 			
 			// next step: compile unary '#' operators (except those immediately followed by other operators)
 			if (operators.hasOwnProperty('#'))
@@ -744,8 +766,17 @@ package weave.compiler
 				return compileOperator(',', compileArray(tokens, ','));
 			
 			if (tokens.indexOf(';') >= 0)
-				return compileOperator(';', compileArray(tokens, ';'));
-
+			{
+				if (allowSemicolons)
+					return compileOperator(';', compileArray(tokens, ';'));
+				
+				// decompile each token for the error message
+				var str:String = '';
+				for each (var tok:* in tokens)
+					str += (str ? ' ' : '') + (tok as String || decompileObject(tok));
+				throw new Error("Unexpected semicolon: " + str);
+			}
+			
 			// next step: compile statements
 			compileStatements(tokens);
 			
@@ -760,7 +791,7 @@ package weave.compiler
 				throw new Error("Missing operator between " + leftToken + ' and ' + rightToken);
 			}
 
-			if (allowEmptyExpression)
+			if (allowSemicolons)
 				return compileOperator(';', tokens);
 			
 			throw new Error("Empty expression");
@@ -903,7 +934,7 @@ package weave.compiler
 					//replace code between brackets with an int like {0} so the resulting string can be passed to StringUtil.substitute() with compiledObject as the next parameter
 					output += input.substring(searchIndex, bracketIndex) + '{' + compiledObjects.length + '}';
 					searchIndex = escapeIndex + 1;
-					compiledObjects.push(compileTokens(tokens, false));
+					compiledObjects.push(compileTokens(tokens, true));
 				}
 			}
 			throw new Error("unreachable");
@@ -977,7 +1008,7 @@ package weave.compiler
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
 					trace("compiling tokens", leftBracket, subArray.join(' '), rightBracket);
-				var separator:String = (leftBracket == '{' || token == STATEMENT_FOR) ? ';' : ',';
+				var separator:String = (leftBracket == '{' || statements.hasOwnProperty(token)) ? ';' : ',';
 				compiledParams = compileArray(subArray, separator);
 
 				if (leftBracket == '[') // this is either an array or a property access
@@ -1117,6 +1148,12 @@ package weave.compiler
 		 */
 		private function compileStatements(tokens:Array, startIndex:int = 0):void
 		{
+			return;
+			// TODO: use _validStatementPatterns
+			//TODO: if first token is a statement, then use _validStatementPatterns.  any leftover tokens means there is an error
+			// determine types of all tokens, then array compare on items in _validStatementParams.
+			
+			
 			var i:int;
 			var j:int;
 			var stmt:String;
@@ -1145,7 +1182,8 @@ package weave.compiler
 			if (i >= tokens.length)
 				return;
 			
-			if (statements[tokens[i]]) // requires params.  Example:  if () {}
+			stmt = tokens[i];
+			if (statements[stmt]) // requires params.  Example:  if () {}
 			{
 				compileStatements(tokens, i + 2);
 			}
@@ -1156,62 +1194,46 @@ package weave.compiler
 			
 			// now everything to the right of the current statement and its params have been taken care of.
 			
+			var cfc:CompiledFunctionCall;
+			var cc:CompiledConstant = new CompiledConstant(stmt, stmt);
 			
-			
-			switch (tokens[i])
+			if (stmt == ST_FOR || stmt == ST_FOR_EACH)
 			{
-				case STATEMENT_FOR: // for () {}
-				case STATEMENT_WHILE: // while () {}
-				case STATEMENT_IF: // if () {} else {}
-				case STATEMENT_ELSE: // else {}
-				case STATEMENT_EACH: // for each () {}
-				case STATEMENT_DO: // do {} while ()
-				case STATEMENT_RETURN: // return EXPR
-				case STATEMENT_BREAK: // break
-				case STATEMENT_CONTINUE: // continue
-				case STATEMENT_SWITCH: // switch () {}
-				case STATEMENT_CASE: // case EXPR :
-				case STATEMENT_DEFAULT: // default :
-				case STATEMENT_THROW: // throw EXPR
-				case STATEMENT_TRY: // try {} catch () {} finally {}
-				case STATEMENT_CATCH: // catch () {}
-				case STATEMENT_FINALLY: // finally {}
+				
+			}
+			
+			if (stmt == ST_IF) // if () {} else {}
+			{
+			}
+			switch (stmt)
+			{
+				case ST_WHILE: // while () {}
+					tokens.splice(i, 3, compileFunctionCall(cc, tokens.slice(i + 1, 2)));
+					return;
+				case ST_IF: // if () {} else {}
+					if (tokens[i + 3] == ST_ELSE)
+						tokens.splice(i, 5, compileFunctionCall(cc, [ tokens[i + 1], tokens[i + 2], tokens[i + 4] ]));
+				case ST_ELSE: // else {}
+					
+				case ST_BREAK: // break
+				case ST_CONTINUE: // continue
+					
+				case ST_RETURN: // return EXPR
+					
+				case ST_FOR: // for () {}
+				case ST_FOR_EACH: // "for each" () {}
+				case ST_DO: // do {} while ()
+					
+				case ST_TRY: // try {} catch () {} finally {}
+				case ST_CATCH: // catch () {}
+				case ST_FINALLY: // finally {}
+					
+				case ST_SWITCH: // switch () {}
+				case ST_CASE: // case EXPR :
+				case ST_DEFAULT: // default :
+					
 				default:
 					return;
-			}
-		}
-		private function compileStatements1(tokens:Array):void
-		{
-			var tokenIndex:int = tokens.length;
-			while (tokenIndex--) // right to left
-			{
-				var token:String = tokens[tokenIndex] as String;
-				if (!statements.hasOwnProperty(token))
-					continue;
-				
-				var firstSiblingIndex:int = tokenIndex;
-				var siblings:Array = statementSiblingsLookup[token] as Array;
-				var i:int = tokenIndex;
-				while (siblings && i--)
-				{
-					var sibTok:String = tokens[i] as String
-					// skip non-statement tokens
-					if (!statements.hasOwnProperty(sibTok))
-						continue;
-					if (siblings.indexOf(sibTok) >= 0)
-					{
-						// found sibling
-						firstSiblingIndex = i;
-						// now check for siblings of this sibling
-						siblings = statementSiblingsLookup[sibTok] as Array;
-						break;
-					}
-					// stop if we found the same type of token and it's not a valid sibling
-					if (sibTok == token)
-						break;
-				}
-				
-//				assertValidStatementParams(tokens, firstSiblingIndex, tokenIndex);
 			}
 		}
 		
@@ -1220,32 +1242,32 @@ package weave.compiler
 			var statement:String = tokens[index] as String;
 			if (statements[statement]) // requires parameters?
 			{
+				// statement parameters must be wrapped in operator ';' call
 				var params:CompiledFunctionCall = tokens[index + 1] as CompiledFunctionCall;
-				if (!params)
+				if (!params || params.evaluatedMethod != operators[';'])
 					throwInvalidSyntax(statement);
 				
-				var separator:String = statement == STATEMENT_FOR ? ';' : ',';
-				if (params.evaluatedMethod == operators[separator])
+				var cpl:int = params.compiledParams.length;
+				if (statement == ST_FOR || statement == ST_FOR_EACH)
 				{
-					var cpl:int = params.compiledParams.length;
-					if (statement == STATEMENT_FOR)
-					{
-						if (cpl == 3)
-							return;
-						if (cpl == 1)
-						{
-							var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall;
-							if (cfc && cfc.evaluatedMethod == operators['in'])
-								return;
-						}
+					// 'for' and 'for each' require either 3 or 1 statement params
+					if (cpl != 3 && cpl != 1)
 						throwInvalidSyntax(statement);
-					}
-					else if (cpl != 1)
+					
+					if (cpl == 1)
 					{
-						throwInvalidSyntax(statement);
+						// if 'for' or 'for each' has only one param, it must be the 'in' operator
+						var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall;
+						if (!cfc || cfc.evaluatedMethod != operators['in'])
+							throwInvalidSyntax(statement);
+						
+						// the 'in' operator must have a variable or property reference as its first parameter
+						cfc = cfc.compiledParams[0];
+						if (cfc.compiledParams != null || cfc.evaluatedMethod != operators['.']) // not a variable and not a property
+							throwInvalidSyntax(statement);
 					}
 				}
-				else
+				else if (cpl != 1)
 				{
 					throwInvalidSyntax(statement);
 				}
