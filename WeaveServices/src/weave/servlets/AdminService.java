@@ -1098,11 +1098,15 @@ public class AdminService
 		}
 	}
 
+	/**
+	 * @param value
+	 * @return true if the value can be parsed as an int or double without losing information including leading zeros or whitespace padding.
+	 */
 	private boolean valueIsDouble(String value)
 	{
 		try
 		{
-			return Double.toString(Double.parseDouble(value)).equals(value);
+			return Double.toString(Double.parseDouble(value)).equals(value) || valueIsInt(value);
 		}
 		catch (Exception e)
 		{
@@ -1153,21 +1157,18 @@ public class AdminService
 
 			if (rows.length == 0)
 				throw new RemoteException("CSV file is empty: " + csvFile);
+			
+			// make sure rows all have the same length
+			String[] firstRow = rows[0];
+			for (int i = 0; i < rows.length; i++)
+				if (rows[i].length != firstRow.length)
+					rows[i] = Arrays.copyOf(rows[i], firstRow.length);
 
 			// if there is no key column, we need to append a unique Row ID
 			// column
 			if ("".equals(csvKeyColumn))
 			{
 				ignoreKeyColumnQueries = true;
-				// get the maximum number of rows in a column
-				int maxNumRows = 0;
-				for (int iRow = 0; iRow < rows.length; ++iRow)
-				{
-					String[] column = rows[iRow];
-					int numRows = column.length; // this includes the column name in row 0
-					if (numRows > maxNumRows)
-						maxNumRows = numRows;
-				}
 
 				csvKeyColumn = "row_id";
 				for (int iRow = 0; iRow < rows.length; ++iRow)
