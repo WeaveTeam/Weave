@@ -179,18 +179,33 @@
 				
 				if (children.length == 0)
 					return equation.value;
-				var equationString:String = '';
-				for (var i:int = 0; i < children.length; i++)
+				var strings:Array = [];
+				var i:int;
+				for (i = 0; i < children.length; i++)
 				{
 					if (children[i] is Label || children[i] is TextInput)
 					{
-						equationString += children[i].text == '' ? UNDEFINED : children[i].text;
+						strings.push(children[i].text == '' ? UNDEFINED : children[i].text);
 					}
 					else if (children[i] is EquationUIComponent)
 					{
-						equationString += (children[i] as EquationUIComponent).extractEquationString();
+						strings.push((children[i] as EquationUIComponent).extractEquationString());
 					}
 				}
+				
+				var equationString:String;
+				if (strings[0] == "if else(")
+				{
+					// remove every other item (commas and parentheses)
+					for (i = 0; i < strings.length; i++)
+						strings.splice(i, 1);
+					strings[0] = '(' + strings[0] + ')';
+					if (strings.length > 2)
+						strings.splice(2,0,'else');
+					strings.splice(0,0,'if');
+					equationString = strings.join(' ');
+				}
+				equationString = strings.join('');
 				
 				// compile, then decompile so we will get the preferred syntax
 				try {
