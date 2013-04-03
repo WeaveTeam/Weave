@@ -312,8 +312,7 @@ package weave.visualization.layers
 				for each (var name:String in names)
 				{
 					var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
-					var boundsArray:Array = spatialIndex.getBoundsFromKey(key);
-					for each (var bounds:IBounds2D in boundsArray)
+					for each (var bounds:IBounds2D in spatialIndex.getBoundsFromKey(key))
 						tempBounds.includeBounds(bounds);
 				}
 			}
