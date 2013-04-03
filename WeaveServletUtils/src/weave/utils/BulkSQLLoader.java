@@ -113,33 +113,33 @@ public abstract class BulkSQLLoader
 		
 		private int setQueryRowCount(int rowCount) throws SQLException
 		{
-			// workaround for limitation in SQLServer driver
-            int[] attemptedLimits = new int[]{Integer.MAX_VALUE, 2000, 1000, 255, 1};
-			for (int i = 0; i < attemptedLimits.length; i++)
+			// only update query if required
+			if (_queryRowCount != rowCount)
 			{
-				if (rowCount * fieldNames.length > attemptedLimits[i])
-					rowCount = (int)Math.floor(attemptedLimits[i] / fieldNames.length);
-				if (rowCount < 1)
-					rowCount = 1;
-				
-				try
+				// workaround for limitation in SQLServer driver
+	            int[] attemptedLimits = new int[]{Integer.MAX_VALUE, 2000, 1000, 255, 1};
+				for (int i = 0; i < attemptedLimits.length; i++)
 				{
-					// only update query if required
-					if (_queryRowCount != rowCount)
+					if (rowCount * fieldNames.length > attemptedLimits[i])
+						rowCount = (int)Math.floor(attemptedLimits[i] / fieldNames.length);
+					if (rowCount < 1)
+						rowCount = 1;
+					
+					try
 					{
 						String query = baseQuery + StringUtils.mult(",", rowQuery, rowCount);
 						stmt = conn.prepareStatement(query);
 						_queryRowCount = rowCount;
 						break; // success
 					}
-				}
-				catch (SQLException e)
-				{
-					// fail only on last attempt or after rowBuffer has been created.
-					if (rowBuffer != null || i == attemptedLimits.length - 1 || rowCount == 1)
+					catch (SQLException e)
 					{
-						_queryRowCount = 0;
-						throw e;
+						// fail only on last attempt or after rowBuffer has been created.
+						if (rowBuffer != null || i == attemptedLimits.length - 1 || rowCount == 1)
+						{
+							_queryRowCount = 0;
+							throw e;
+						}
 					}
 				}
 			}
