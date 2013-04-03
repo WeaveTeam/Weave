@@ -90,10 +90,33 @@ package weave.compiler
 			ST_IF, ST_FOR, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
 		];
 
-		private static const _PARAMS:String = 'PARAMS'; // must be enclosed in ()
-		private static const _STMT:String = 'STMT'; // may contain multiple statements enclosed in {}
-		private static const _EXPR:String = 'EXPR'; // may only contain one expression, optionally enclosed in (), no statements
-		// longer patterns appear earlier so they will match before shorter patterns when checked in order
+		/**
+		 * must be enclosed in () with expressions separated by ;
+		 * Used in conjunction with _validStatementPatterns.
+		 */
+		private static const _PARAMS:String = 'PARAMS';
+		
+		/**
+		 * MUST be a {} code block.
+		 * Used in conjunction with _validStatementPatterns.
+		 */
+		private static const _BLOCK:String = 'BLOCK';
+		
+		/**
+		 * may contain either a single statement or a {} code block.
+		 * Used in conjunction with _validStatementPatterns.
+		 */
+		private static const _STMT:String = 'STMT';
+		
+		/**
+		 * may only contain one expression, optionally enclosed in (), no statements.
+		 * Used in conjunction with _validStatementPatterns.
+		 */
+		private static const _EXPR:String = 'EXPR';
+		
+		/**
+		 * longer patterns appear earlier so they will match before shorter patterns when checked in order
+		 */
 		private static const _validStatementPatterns:Array = [
 			[ST_IF, _PARAMS, _STMT, ST_ELSE, _STMT],
 			[ST_IF, _PARAMS, _STMT],
@@ -101,9 +124,9 @@ package weave.compiler
 			[ST_FOR, _PARAMS, _STMT],
 			[ST_DO, _STMT, ST_WHILE, _PARAMS],
 			[ST_WHILE, _PARAMS, _STMT],
-			[ST_TRY, _STMT, ST_CATCH, _PARAMS, _STMT, ST_FINALLY, _STMT],
-			[ST_TRY, _STMT, ST_FINALLY, _STMT],
-			[ST_TRY, _STMT, ST_CATCH, _PARAMS, _STMT],
+			[ST_TRY, _BLOCK, ST_CATCH, _PARAMS, _BLOCK, ST_FINALLY, _BLOCK],
+			[ST_TRY, _BLOCK, ST_FINALLY, _BLOCK],
+			[ST_TRY, _BLOCK, ST_CATCH, _PARAMS, _BLOCK],
 			[ST_BREAK],
 			[ST_CONTINUE],
 			[ST_RETURN, _EXPR],
@@ -589,11 +612,12 @@ package weave.compiler
 
 			var i:int;
 			var token:String;
+			var str:String;
 			
 			// first step: compile quoted Strings and Numbers
 			for (i = 0; i < tokens.length; i++)
 			{
-				var str:String = tokens[i] as String;
+				str = tokens[i] as String;
 				if (!str)
 					continue;
 				
@@ -771,7 +795,7 @@ package weave.compiler
 					return compileOperator(';', compileArray(tokens, ';'));
 				
 				// decompile each token for the error message
-				var str:String = '';
+				str = '';
 				for each (var tok:* in tokens)
 					str += (str ? ' ' : '') + (tok as String || decompileObject(tok));
 				throw new Error("Unexpected semicolon: " + str);
@@ -1149,49 +1173,60 @@ package weave.compiler
 		private function compileStatements(tokens:Array, startIndex:int = 0):void
 		{
 			return;
-			// TODO: use _validStatementPatterns
-			//TODO: if first token is a statement, then use _validStatementPatterns.  any leftover tokens means there is an error
-			// determine types of all tokens, then array compare on items in _validStatementParams.
+			//TOOD
 			
 			
-			var i:int;
-			var j:int;
-			var stmt:String;
-			
-			if (startIndex == 0)
-			{
-				// verify that everything except statements have been compiled and that statements have the correct number of parameters
-				for (i = 0; i < tokens.length; i++)
-				{
-					if (tokens[i] is ICompiledObject)
-					{
-						// ok
-					}
-					else if (statements.hasOwnProperty(tokens[i]))
-					{
-						assertValidStatementParams(tokens, i);
-					}
-					else
-						throw new Error("Unexpected token: " + tokens[i]);
-				}
-			}
-			
-			i = findNextStatement(tokens, startIndex);
-			
-			// stop when there are no statements
-			if (i >= tokens.length)
+			var stmt:String = tokens[startIndex];
+			if (!statements.hasOwnProperty(stmt))
 				return;
 			
-			stmt = tokens[i];
-			if (statements[stmt]) // requires params.  Example:  if () {}
+			if (startIndex == 0)
+				assertValidStatementParams(tokens);
+			
+			// find a matching statement pattern
+			nextPattern: for each (var pattern:Array in _validStatementPatterns)
 			{
-				compileStatements(tokens, i + 2);
-			}
-			else // no params.  Example:  else {}
-			{
-				compileStatements(tokens, i + 1);
+				for (var i:int = 0; i < pattern.length; i++)
+				{
+					var type:String = pattern[i];
+					var token:Object = tokens[startIndex + i];
+					var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+					
+					if (statements.hasOwnProperty(type) && token != type)
+						continue nextPattern;
+					
+					if (type == _PARAMS)
+						continue; // params have already been verified
+					
+					if (type == _EXPR) // non-statement
+					{
+						if (statements.hasOwnProperty(token))
+							throw new Error('Unexpected "' + token + '"');
+						if (cfc && cfc.evaluatedMethod == operators[';'])
+							throwInvalidSyntax(stmt);
+					}
+					
+					if (type == _STMT)
+					{
+						compileStatements(tokens, startIndex + i);
+					}
+					
+					if (type == _BLOCK)
+					{
+						if (!cfc || cfc.evaluatedMethod != operators[';'])
+							throwInvalidSyntax(stmt);
+					}
+				}
+				
+				// found matching pattern
+				//TODO: compile 
 			}
 			
+			// no matching pattern found
+			throwInvalidSyntax(stmt);
+		}
+		
+		/*
 			// now everything to the right of the current statement and its params have been taken care of.
 			
 			var cfc:CompiledFunctionCall;
@@ -1236,40 +1271,44 @@ package weave.compiler
 					return;
 			}
 		}
+		*/
 		
-		private function assertValidStatementParams(tokens:Array, index:int):void
+		private function assertValidStatementParams(tokens:Array):void
 		{
-			var statement:String = tokens[index] as String;
-			if (statements[statement]) // requires parameters?
+			for (var index:int = 0; index < tokens.length; index++)
 			{
-				// statement parameters must be wrapped in operator ';' call
-				var params:CompiledFunctionCall = tokens[index + 1] as CompiledFunctionCall;
-				if (!params || params.evaluatedMethod != operators[';'])
-					throwInvalidSyntax(statement);
-				
-				var cpl:int = params.compiledParams.length;
-				if (statement == ST_FOR || statement == ST_FOR_EACH)
+				var statement:String = tokens[index] as String;
+				if (statements[statement]) // requires parameters?
 				{
-					// 'for' and 'for each' require either 3 or 1 statement params
-					if (cpl != 3 && cpl != 1)
+					// statement parameters must be wrapped in operator ';' call
+					var params:CompiledFunctionCall = tokens[index + 1] as CompiledFunctionCall;
+					if (!params || params.evaluatedMethod != operators[';'])
 						throwInvalidSyntax(statement);
 					
-					if (cpl == 1)
+					var cpl:int = params.compiledParams.length;
+					if (statement == ST_FOR || statement == ST_FOR_EACH)
 					{
-						// if 'for' or 'for each' has only one param, it must be the 'in' operator
-						var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall;
-						if (!cfc || cfc.evaluatedMethod != operators['in'])
+						// 'for' and 'for each' require either 3 or 1 statement params
+						if (cpl != 3 && cpl != 1)
 							throwInvalidSyntax(statement);
 						
-						// the 'in' operator must have a variable or property reference as its first parameter
-						cfc = cfc.compiledParams[0];
-						if (cfc.compiledParams != null || cfc.evaluatedMethod != operators['.']) // not a variable and not a property
-							throwInvalidSyntax(statement);
+						if (cpl == 1)
+						{
+							// if 'for' or 'for each' has only one param, it must be the 'in' operator
+							var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall;
+							if (!cfc || cfc.evaluatedMethod != operators['in'])
+								throwInvalidSyntax(statement);
+							
+							// the 'in' operator must have a variable or property reference as its first parameter
+							cfc = cfc.compiledParams[0];
+							if (cfc.compiledParams != null || cfc.evaluatedMethod != operators['.']) // not a variable and not a property
+								throwInvalidSyntax(statement);
+						}
 					}
-				}
-				else if (cpl != 1)
-				{
-					throwInvalidSyntax(statement);
+					else if (cpl != 1)
+					{
+						throwInvalidSyntax(statement);
+					}
 				}
 			}
 		}
@@ -1725,21 +1764,9 @@ package weave.compiler
 					catch (e:Error)
 					{
 						if (ignoreRuntimeErrors)
-						{
 							result = undefined;
-						}
 						else
-						{
-							/*
-							if (compiledParams && call.evaluatedMethod == null)
-							{
-								while (call.compiledMethod is CompiledFunctionCall && call.evaluatedMethod == null)
-									call = call.compiledMethod as CompiledFunctionCall;
-								throw new Error("Undefined method: " + call.evaluatedMethod || (call.compiledMethod as CompiledConstant).value);
-							}
-							*/
 							throw e;
-						}
 					}
 					// remove this call from the stack
 					stack.pop();
