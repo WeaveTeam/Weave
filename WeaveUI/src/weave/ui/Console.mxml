@@ -239,6 +239,7 @@
 				catch (e:Error)
 				{
 					result = e;
+					trace(e.getStackTrace());
 				}
 				
 				// append result to log

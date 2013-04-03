@@ -93,16 +93,11 @@ package weave.utils
 		/**
 		 * This function gets a list of Bounds2D objects associated with a key.
 		 * @param key A record key.
-		 * @result An Array of Bounds2D objects associated with the key.
+		 * @result An Array of Bounds2D objects associated with the key, or null if there are none.
 		 */
 		public function getBoundsFromKey(key:IQualifiedKey):Array
 		{
-			var result:Array = _keyToBoundsMap[key] as Array;
-			
-			if (result == null)
-				result = [];
-			
-			return result;
+			return _keyToBoundsMap[key] as Array;
 		}
 		
 		/**
@@ -206,6 +201,10 @@ package weave.utils
 					//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
 					// begin outer loop iteration
 					_boundsArray = getBoundsFromKey(key);
+					
+					if (!_boundsArray)
+						continue;
+					
 					_boundsArrayIndex = 0;
 				}
 				for (; _boundsArrayIndex < _boundsArray.length; _boundsArrayIndex++) // iterate on nested array

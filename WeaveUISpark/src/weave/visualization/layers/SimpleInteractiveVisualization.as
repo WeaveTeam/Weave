@@ -475,11 +475,9 @@ package weave.visualization.layers
 			var y_yAxis:Number;
 			var x_xAxis:Number;
 			var y_xAxis:Number;
-			var bounds:IBounds2D = plotManager.hack_getSpatialIndex(MAIN_PLOT_LAYER_NAME).getBoundsFromKey(recordKeys[0])[0];
-			
-			// if there is a visualization with one set of data and the user drag selects over to it, the 
-			// spatial index will return an empty array for the key, which means bounds will be null. 
-			if (bounds == null) 
+			var boundsArray:Array = plotManager.hack_getSpatialIndex(MAIN_PLOT_LAYER_NAME).getBoundsFromKey(recordKeys[0]);
+			var bounds:IBounds2D = boundsArray ? boundsArray[0] : null;
+			if (bounds == null)
 				return; 
 			
 			var yExists:Boolean = isFinite(bounds.getYMin());

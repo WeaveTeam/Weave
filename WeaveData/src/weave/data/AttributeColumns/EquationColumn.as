@@ -54,17 +54,17 @@ package weave.data.AttributeColumns
 		public static var debug:Boolean = false;
 		
 		public static const compiler:Compiler = new Compiler();
-		{ /** begin static code block **/
-			compiler.includeLibraries(
-				WeaveAPI,
-				WeaveAPI.CSVParser,
-				WeaveAPI.StatisticsCache,
-				WeaveAPI.AttributeColumnCache,
-				WeaveAPI.QKeyManager,
-				EquationColumnLib
-			);
-			compiler.includeConstant("IQualifiedKey", IQualifiedKey);
-		} /** end static code block **/
+		/** begin static code block **/
+		compiler.includeLibraries(
+			WeaveAPI,
+			WeaveAPI.CSVParser,
+			WeaveAPI.StatisticsCache,
+			WeaveAPI.AttributeColumnCache,
+			WeaveAPI.QKeyManager,
+			EquationColumnLib
+		);
+		compiler.includeConstant("IQualifiedKey", IQualifiedKey);
+		/** end static code block **/
 		
 
 		public function EquationColumn()
