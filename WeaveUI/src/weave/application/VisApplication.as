@@ -55,6 +55,7 @@ package weave.application
 	import mx.events.EffectEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
+	import mx.managers.PopUpManagerChildList;
 	import mx.managers.ToolTipManager;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -618,10 +619,6 @@ package weave.application
 		{
 			ExternalInterface.call("window.close()");
 		}
-		public function getMenuItems():ArrayCollection
-		{
-			return _weaveMenu.menubar.dataProvider as ArrayCollection;
-		}
 
 		/**
 		 * Optional menu bar (side of screen) to control the collaboration service and interaction
@@ -634,23 +631,28 @@ package weave.application
 			if (!_collabBar && Weave.properties.enableCollaborationBar.value )
 				_collabBar = new CollaborationSideBar();
 			
-			if( Weave.properties.enableCollaborationBar.value )			
-					PopUpManager.addPopUp(_collabBar, this);
+			if( Weave.properties.enableCollaborationBar.value )	
+				PopUpManager.addPopUp(_collabBar, this, false, PopUpManagerChildList.POPUP);
 			else if( _collabBar != null )
 			{
 				try
 				{
-						_collabBar.removed();
-						PopUpManager.removePopUp(_collabBar);		
-						_collabBar = null;
-				} 
+					_collabBar.removed();
+					PopUpManager.removePopUp(_collabBar);	
+					_collabBar = null;
+				}
 				catch( error:Error )
 				{
 					reportError(error);
 				}
 			}
 		}
-		
+
+		public function getMenuItems():ArrayCollection
+		{
+			return _weaveMenu.menubar.dataProvider as ArrayCollection;
+		}
+
 		/**
 		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
 		 */
