@@ -48,6 +48,7 @@ package weave.application
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
+	import mx.managers.PopUpManagerChildList;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -55,11 +56,11 @@ package weave.application
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
+	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
@@ -619,7 +620,7 @@ package weave.application
 				_collabBar = new CollaborationSideBar();
 			
 			if( Weave.properties.enableCollaborationBar.value )	
-				PopUpManager.addPopUp(_collabBar, this);
+				PopUpManager.addPopUp(_collabBar, this, false, PopUpManagerChildList.POPUP);
 			else if( _collabBar != null )
 			{
 				try
