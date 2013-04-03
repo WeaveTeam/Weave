@@ -221,7 +221,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						var theStream:NetStream = new NetStream(rtmpService);
 						theStream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+						PARTICIPANTS.addToParticpantList(name);
 						PARTICIPANTS.addCameraStream(theStream, "v-"+roomName+"-"+name, name);
+						PARTICIPANTS.visible = true;
 					}
 				}
 				else
@@ -241,6 +243,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						var theCamStream:NetStream = PARTICIPANTS.removeCameraStream(name);
 						if( theCamStream != null )
 							theCamStream.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+						PARTICIPANTS.removeFromParticipantList(name);
+						if( PARTICIPANTS.idListLength() == 0 )
+						{
+							PARTICIPANTS.visible = false;
+						}
 					}
 				}
 				(userList.dataProvider as ICollectionView).refresh();
@@ -363,7 +370,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
 				connTimer.start();
 				
-				PARTICIPANTS.addToParticpantList(collabService.nickname);
+				//PARTICIPANTS.addToParticpantList(collabService.nickname);
 				
 				disConButtonPushed = false;
 			}
@@ -773,7 +780,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					WeaveAPI.CollaborationCursorManager.createCursor(e.getText());
 					WeaveAPI.CollaborationCursorManager.setVisible(e.getText(), true);
-					PARTICIPANTS.addToParticpantList(e.getText());
+					//PARTICIPANTS.addToParticpantList(e.getText());
 				}
 			}
 			
@@ -857,7 +864,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rtmpService.client = this;
 				rtmpService.connect(Weave.properties.collabRTMPServer.value);
 				
-				PARTICIPANTS.visible = true;
+				if( PARTICIPANTS.idListLength() > 0 )
+					PARTICIPANTS.visible = true;
 				
 				if( !rtmpPollingServer )
 				{
