@@ -315,7 +315,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleEmptyEntityExtraction():void
 			{
-				removeChild(_loadingText);
+				if(contains(_loadingText))
+					removeChild(_loadingText);
 			}
 			
 			

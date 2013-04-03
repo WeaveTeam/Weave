@@ -872,6 +872,7 @@
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
 				nodeBase.height = nodeBase.keywordTextArea.height + _radialMenu.iconSize;
 				nodeBase.keywordTextArea.y = _radialMenu.iconSize;
+				_radialMenu.y = nodeBase.keywordTextArea.y - _radialMenu.height; 
 			}
 			
 			override public function validateDisplayList():void
