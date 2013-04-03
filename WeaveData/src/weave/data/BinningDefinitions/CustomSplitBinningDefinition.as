@@ -21,7 +21,6 @@ package weave.data.BinningDefinitions
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
@@ -55,7 +54,7 @@ package weave.data.BinningDefinitions
 		 * @param column 
 		 * @param output
 		 */
-		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			// make sure callbacks only run once.
 			getCallbackCollection(output).delayCallbacks();
@@ -71,7 +70,7 @@ package weave.data.BinningDefinitions
 			var i:int;
 			var values:Array = splitValues.value.split(',');
 			// remove bad values
-			for (i = values.length - 1; i >= 0; i--)
+			for (i = values.length; i--;)
 			{
 				var number:Number = StandardLib.asNumber(values[i]);
 				if (!isFinite(number))
@@ -99,6 +98,9 @@ package weave.data.BinningDefinitions
 			
 			// allow callbacks to run now.
 			getCallbackCollection(output).resumeCallbacks();
+			
+			// trigger callbacks now because we're done updating the output
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		// reusable temporary object

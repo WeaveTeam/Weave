@@ -27,25 +27,27 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.disposeObjects;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
+	import weave.data.QKeyManager;
+	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.data.QKeyManager;
+	import weave.primitives.GeneralizedGeometry;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
@@ -478,6 +480,8 @@ package weave.data.DataSources
 			// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
 			if (hierarchyNode == null)
 				hierarchyNode = <attribute/>;
+			else
+				proxyColumn.setMetadata(hierarchyNode);
 
 			if (proxyColumn.wasDisposed)
 				return;
@@ -507,7 +511,7 @@ package weave.data.DataSources
 				// special case for geometry column
 				var dataType:String = ColumnUtils.getDataType(proxyColumn);
 				var isGeom:Boolean = ObjectUtil.stringCompare(dataType, DataTypes.GEOMETRY, true) == 0;
-				if (isGeom)
+				if (isGeom && result.data == null)
 				{
 					var tileService:IWeaveGeometryTileService = dataService.createTileService(result.id);
 					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, hierarchyNode));
@@ -521,13 +525,23 @@ package weave.data.DataSources
 					return;
 				}
 				
-				var keyType:String = hierarchyNode.attribute(ColumnMetadata.KEY_TYPE);
-				dataType = hierarchyNode.attribute(ColumnMetadata.DATA_TYPE);
-				
+				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
 				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 				var setRecords:Function = function():void
 				{
-					if (result.thirdColumn != null)
+					if (isGeom) // result.data is an array of PGGeom objects.
+					{
+						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
+						var createGeomColumn:Function = function():void
+						{
+							var newGeometricColumn:GeometryColumn = new GeometryColumn(hierarchyNode);
+							newGeometricColumn.setGeometries(keysVector, geometriesVector);
+							proxyColumn.setInternalColumn(newGeometricColumn);
+						};
+						var pgGeomTask:Function = PGGeomUtil.newParseTask(result.data, geometriesVector);
+						WeaveAPI.StageUtils.startTask(proxyColumn, pgGeomTask, WeaveAPI.TASK_PRIORITY_PARSING, createGeomColumn);
+					}
+					else if (result.thirdColumn != null)
 					{
 						// hack for dimension slider
 						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
@@ -547,11 +561,12 @@ package weave.data.DataSources
 						var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
 						newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
 						proxyColumn.setInternalColumn(newStringColumn);
-					}
+					} 
 					//trace("column downloaded: ",proxyColumn);
 					// run hierarchy callbacks because we just modified the hierarchy.
 					_attributeHierarchy.detectChanges();
 				};
+				
 				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType, result.keys, proxyColumn, setRecords, keysVector);
 			}
 			catch (e:Error)
@@ -562,7 +577,12 @@ package weave.data.DataSources
 	}
 }
 
+import flash.utils.getTimer;
+
 import weave.data.AttributeColumns.ProxyColumn;
+import weave.primitives.GeneralizedGeometry;
+import weave.primitives.GeometryType;
+import weave.utils.BLGTreeUtils;
 
 /**
  * This object is used as a token in an AsyncResponder.
@@ -576,4 +596,49 @@ internal class ColumnRequestToken
 	}
 	public var pathInHierarchy:XML;
 	public var proxyColumn:ProxyColumn;
+}
+
+/**
+ * Static functions for retrieving values from PGGeom objects coming from servlet.
+ */
+internal class PGGeomUtil
+{
+	/**
+	 * This will generate an asynchronous task function for use with IStageUtils.startTask().
+	 * @param pgGeoms An Array of PGGeom beans from a Weave data service.
+	 * @param output A vector to store GeneralizedGeometry objects created from the pgGeoms input.
+	 * @return A new Function.
+	 * @see weave.api.core.IStageUtils
+	 */
+	public static function newParseTask(pgGeoms:Array, output:Vector.<GeneralizedGeometry>):Function
+	{
+		var i:int = 0;
+		var n:int = pgGeoms.length;
+		output.length = n;
+		return function(returnTime:int):Number
+		{
+			for (; i < n; i++)
+			{
+				if (getTimer() > returnTime)
+					return i / n;
+				
+				var item:Object = pgGeoms[i];
+				var geomType:String = GeometryType.fromPostGISType(item[TYPE]);
+				var geometry:GeneralizedGeometry = new GeneralizedGeometry(geomType);
+				geometry.setCoordinates(item[XYCOORDS], BLGTreeUtils.METHOD_SAMPLE);
+				output[i] = geometry;
+			}
+			return 1;
+		};
+	}
+	
+	/**
+	 * The name of the type property in a PGGeom bean
+	 */
+	private static const TYPE:String = 'type';
+	
+	/**
+	 * The name of the xyCoords property in a PGGeom bean
+	 */
+	private static const XYCOORDS:String = 'xyCoords';
 }

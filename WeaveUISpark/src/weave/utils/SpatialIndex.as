@@ -21,6 +21,7 @@ package weave.utils
 {
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -163,26 +164,14 @@ package weave.utils
 			
 			// insert bounds-to-key mappings in the kdtree
 			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
-			_iterateAll(true); // restart from first task
+			_iterateAll(-1); // restart from first task
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
 		}
 		
-		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask([_iterate1, _iterate2]);
+		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);
 		
-		private function _iterate1():Number
+		private function _iterate1(stopTime:int):Number
 		{
-			if (_keysIndex >= _keysArray.length)
-				return 1;
-			
-			var key:IQualifiedKey = _keysArray[_keysIndex] as IQualifiedKey;
-			_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
-			
-			if (_keyToGeometriesMap != null)
-			{
-				var geoms:Array = (_plotter as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
-				_keyToGeometriesMap[key] = geoms;
-			}
-			
 			// stop if callbacks were triggered since the iterations started
 			if (triggerCounter != _prevTriggerCounter)
 			{
@@ -190,47 +179,54 @@ package weave.utils
 				return 0;
 			}
 			
-			_keysIndex++;
-			
-			return _keysIndex / _keysArray.length;
+			for (; _keysIndex < _keysArray.length; _keysIndex++)
+			{
+				if (getTimer() > stopTime)
+					return _keysIndex / _keysArray.length;
+				
+				var key:IQualifiedKey = _keysArray[_keysIndex] as IQualifiedKey;
+				_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
+				
+				if (_keyToGeometriesMap != null)
+				{
+					var geoms:Array = (_plotter as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+					_keyToGeometriesMap[key] = geoms;
+				}
+			}
+			return 1;
 		}
 			
-		private function _iterate2():Number
+		private function _iterate2(stopTime:int):Number
 		{
-			if (_keysArrayIndex >= _keysArray.length)
-				return 1;
-			
-			var key:IQualifiedKey = _keysArray[_keysArrayIndex] as IQualifiedKey;
-			if (!_boundsArray) // is there an existing nested array?
+			for (; _keysArrayIndex < _keysArray.length; _keysArrayIndex++)
 			{
-				//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
-				// begin outer loop iteration
-				_boundsArray = getBoundsFromKey(key);
-				_boundsArrayIndex = 0;
-			}
-			if (_boundsArrayIndex < _boundsArray.length) // iterate on nested array
-			{
-				//trace('bounds(',_boundsArrayIndex,'/',_boundsArray.length,')');
-				var bounds:IBounds2D = _boundsArray[_boundsArrayIndex] as IBounds2D;
-				// do not index shapes with undefined bounds
-				//TODO: index shapes with missing bounds values into a different index
-				// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
-				if (!bounds.isUndefined() || _queryMissingBounds)
-					_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
-				// always include bounds because it may have some coords defined while others aren't
-				collectiveBounds.includeBounds(bounds);
-				// increment inner index
-				_boundsArrayIndex++;
-			}
-			if (_boundsArrayIndex == _boundsArray.length)
-			{
+				var key:IQualifiedKey = _keysArray[_keysArrayIndex] as IQualifiedKey;
+				if (!_boundsArray) // is there an existing nested array?
+				{
+					//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
+					// begin outer loop iteration
+					_boundsArray = getBoundsFromKey(key);
+					_boundsArrayIndex = 0;
+				}
+				for (; _boundsArrayIndex < _boundsArray.length; _boundsArrayIndex++) // iterate on nested array
+				{
+					if (getTimer() > stopTime)
+						return _keysArrayIndex / _keysArray.length;
+					
+					//trace('bounds(',_boundsArrayIndex,'/',_boundsArray.length,')');
+					var bounds:IBounds2D = _boundsArray[_boundsArrayIndex] as IBounds2D;
+					// do not index shapes with undefined bounds
+					//TODO: index shapes with missing bounds values into a different index
+					// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
+					if (!bounds.isUndefined() || _queryMissingBounds)
+						_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
+					// always include bounds because it may have some coords defined while others aren't
+					collectiveBounds.includeBounds(bounds);
+				}
 				// all done with nested array
 				_boundsArray = null;
-				// increment outer index
-				_keysArrayIndex++;
 			}
-			
-			return _keysArrayIndex / _keysArray.length;
+			return 1;
 		}
 		
 		/**
@@ -363,7 +359,7 @@ package weave.utils
 			var result:Array = [];
 			
 			// for each key, look up its geometries 
-			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
+			keyLoop: for (var i:int = keys.length; i--;)
 			{
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];
@@ -756,7 +752,7 @@ package weave.utils
 			var result:Array = [];
 			
 			// for each key, look up its geometries 
-			keyLoop: for (var i:int = keys.length - 1; i >= 0; --i)
+			keyLoop: for (var i:int = keys.length; i--;)
 			{
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];

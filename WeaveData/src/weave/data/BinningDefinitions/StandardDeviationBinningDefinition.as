@@ -41,19 +41,21 @@ package weave.data.BinningDefinitions
 		/**
 		 * @inheritDoc
 		 */
-		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			_statsJuggler.target = stats;
 			var mean:Number = stats.getMean();
 			var stdDev:Number = stats.getStandardDeviation();
 			var binNumber:int = 0;
 			for (var i:int = -MAX_SD; i <= MAX_SD; i++)
 				if (i != 0)
 					addBin(output, Math.abs(i), i < 0, stdDev, mean, getOverrideNames()[binNumber++]);
+			
+			// trigger callbacks now because we're done updating the output
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		private static const MAX_SD:int = 3;

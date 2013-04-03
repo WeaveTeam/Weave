@@ -71,7 +71,7 @@ public class SQLUtils
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
-			return "org.postgresql.Driver";
+			return "org.postgis.DriverWrapper";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
 			return "net.sourceforge.jtds.jdbc.Driver";
 		if (dbms.equalsIgnoreCase(ORACLE))
@@ -564,6 +564,12 @@ public class SQLUtils
 			default:
 				return false;
 		}
+	}
+	
+	public static boolean sqlTypeIsGeometry(int sqlType)
+	{
+		// using 1111 as the literal value returned by postgis as a PGGeometry type.
+		return sqlType == 1111;
 	}
 	
 	/**

@@ -54,7 +54,7 @@
 								prompt="{lang('Enter a table name')}"
 								change="activeTable = _tableInput.text;"/>
 		<mx:CheckBox id="tableOverwriteCheck"
-					 label="{lang('Overwrite')}"
+					 label="{lang('Overwrite SQL table')}"
 					 selected="false"
 					 visible="{tableOverwriteCheckVisible}"
 					 includeInLayout="{tableOverwriteCheckVisible}"/>

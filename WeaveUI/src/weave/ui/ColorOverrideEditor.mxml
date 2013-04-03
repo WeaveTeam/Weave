@@ -150,7 +150,7 @@
 				_keyToColorMap = new Dictionary();
 				var keys:Array = new Array(_recordColorTable.length);
 				var duplicatesFound:Boolean = false;
-				for (var i:int = _recordColorTable.length - 1; i >= 0; i--)
+				for (var i:int = _recordColorTable.length; i--;)
 				{
 					var row:Array = _recordColorTable[i] as Array; // keyType,localName,color
 					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(row[0], row[1]);
@@ -194,7 +194,7 @@
 			{
 				var indices:Array = colorOverrideList.selectedIndices;
 				AsyncSort.sortImmediately(indices);
-				for (var i:int = indices.length - 1; i >= 0; i--)
+				for (var i:int = indices.length; i--;)
 					_recordColorTable.splice(indices[i], 1);
 				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
 			}

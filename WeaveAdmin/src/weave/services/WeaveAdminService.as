@@ -19,8 +19,6 @@
 
 package weave.services
 {
-	import avmplus.DescribeType;
-	
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
@@ -39,8 +37,10 @@ package weave.services
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.api.core.ILinkableObject;
+	import avmplus.DescribeType;
+	
 	import weave.api.registerLinkableChild;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.services.beans.ConnectionInfo;
@@ -85,7 +85,7 @@ package weave.services
 		{
 			adminService = registerLinkableChild(this, new AMF3Servlet(url + "/AdminService"));
 			dataService = registerLinkableChild(this, new AMF3Servlet(url + "/DataService"));
-			queue = registerLinkableChild(this, new AsyncInvocationQueue(true));
+			queue = registerLinkableChild(this, new AsyncInvocationQueue(true)); // paused
 			
 			var info:* = describeTypeJSON(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
@@ -109,6 +109,45 @@ package weave.services
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
 		private var methodHooks:Object = {}; // methodName -> Array (of MethodHook)
         [Bindable] public var initialized:Boolean = false;
+		[Bindable] public var migrationProgress:String = '';
+		
+		//////////////////////////////
+		// Initialization
+		
+		private function initializeAdminService():void
+		{
+			var req:URLRequest = new URLRequest(adminService.servletURL);
+			req.data = new URLVariables();
+			req.method = URLRequestMethod.GET;
+			req.data["method"] = "initializeAdminService";
+			var stream:URLStream = new URLStream();
+			stream.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+			stream.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);
+			stream.addEventListener(IOErrorEvent.IO_ERROR, initializeAdminServiceError);
+			stream.load(req);
+		}
+		private function progressHandler(event:ProgressEvent):void
+		{
+			var stream:URLStream = event.target as URLStream;
+			if (stream.bytesAvailable > 0)
+			{
+				var text:String = migrationProgress;
+				text += "\n" + stream.readMultiByte(stream.bytesAvailable, "iso-8859-01");
+				text = StandardLib.replace(text, "\r\n", "\n");
+				text = StringUtil.trim(text).split('\n').pop();
+				migrationProgress = text;
+			}
+		}
+		private function initializeAdminServiceComplete(event:Event):void
+		{
+			initialized = true;
+			queue.begin();
+		}
+		private function initializeAdminServiceError(event:IOErrorEvent):void
+		{
+			messageDisplay(event.type, event.text, true);
+		}
+		
 		/**
 		 * @param method A pointer to a function of this WeaveAdminService.
 		 * @param captureHandler Receives the parameters of the RPC call with the 'this' pointer set to the AsyncToken object.
@@ -266,45 +305,6 @@ package weave.services
 			messageDisplay(event.fault.name, msg, true);
 		}
 
-		//////////////////////////////
-		// Initialization
-         	
-		[Bindable] public var migrationProgress:String = '';
-		
-		private function initializeAdminService():void
-		{
-            var req:URLRequest = new URLRequest(adminService.servletURL);
-            req.data = new URLVariables();
-            req.method = URLRequestMethod.GET;
-            req.data["method"] = "initializeAdminService";
-            var loader:URLStream = new URLStream();
-            loader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
-            loader.addEventListener(Event.COMPLETE, initializeAdminServiceComplete);
-            loader.addEventListener(IOErrorEvent.IO_ERROR, initializeAdminServiceError);
-            loader.load(req);
-		}
-		private function progressHandler(event:ProgressEvent):void
-		{
-			var stream:URLStream = event.target as URLStream;
-			if (stream.bytesAvailable > 0)
-			{
-				var text:String = migrationProgress;
-				text += "\n" + stream.readMultiByte(stream.bytesAvailable, "iso-8859-01");
-				text = StandardLib.replace(text, "\r\n", "\n");
-				text = StringUtil.trim(text).split('\n').pop();
-				migrationProgress = text;
-			}
-		}
-        private function initializeAdminServiceComplete(event:Event):void
-        {
-            initialized=true;
-			queue.begin();
-        }
-        private function initializeAdminServiceError(event:IOErrorEvent):void
-        {
-            messageDisplay(event.type, event.text, true);
-        }
-		
 		public function checkDatabaseConfigExists():AsyncToken
 		{
 			return invokeAdmin(checkDatabaseConfigExists, arguments);
@@ -502,7 +502,7 @@ package weave.services
 				csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String,
 				sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String,
 				configKeyType:String, nullValues:String,
-				filterColumnNames:Array
+				filterColumnNames:Array, configAppend:Boolean
 			):AsyncToken
 		{
 		    return invokeAdminWithLogin(importCSV, arguments);
@@ -510,7 +510,7 @@ package weave.services
 		public function importSQL(
 				schemaName:String, tableName:String, keyColumnName:String,
 				secondaryKeyColumnName:String, configDataTableName:String,
-				keyType:String, filterColumns:Array
+				keyType:String, filterColumns:Array, configAppend:Boolean
 			):AsyncToken
 		{
 		    return invokeAdminWithLogin(importSQL, arguments);
@@ -518,7 +518,7 @@ package weave.services
 		public function importSHP(
 				configfileNameWithoutExtension:String, keyColumns:Array,
 				sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configTitle:String,
-				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean
+				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean, configAppend:Boolean
 			):AsyncToken
 		{
 		    return invokeAdminWithLogin(importSHP, arguments);

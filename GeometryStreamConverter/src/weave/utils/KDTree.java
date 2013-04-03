@@ -77,7 +77,7 @@ public class KDTree<T>
 		if (key1.length != key2.length)
 			return false;
 		double value1, value2;
-		for (int i = key1.length - 1; i >= 0; i--)
+		for (int i = key1.length; i-- > 0;)
 		{
 			value1 = key1[i];
 			value2 = key2[i];

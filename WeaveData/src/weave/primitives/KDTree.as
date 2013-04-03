@@ -248,7 +248,7 @@ package weave.primitives
 		public function clear():void
 		{
 			rootNode = null;
-			for (var i:int = allNodes.length - 1; i >= 0; i--)
+			for (var i:int = allNodes.length; i--;)
 				saveUnusedNode(allNodes[i] as KDNode);
 			allNodes.length = 0; // clear references to nodes
 		}
@@ -375,7 +375,7 @@ package weave.primitives
 				AsyncSort.sortImmediately(queryResult, KDTree.compareNodes);
 				
 				// replace nodes with objects in queryResult
-				for (i = queryResult.length - 1; i >= 0; i--)
+				for (i = queryResult.length; i--;)
 					queryResult[i] = (queryResult[i] as KDNode).object;
 			}
 			return queryResult;
@@ -426,8 +426,8 @@ package weave.primitives
 			else // get last unused node and remove from unusedNodes array
 				node = unusedNodes.pop() as KDNode;
 			// initialize node
-			node.key.length = key.length;
-			for (var i:int = key.length - 1; i >= 0; i--)
+			var i:int = node.key.length = key.length;
+			while (i--)
 				node.key[i] = key[i];
 			node.object = object;
 			node.clearChildrenAndSetSplitDimension(splitDimension);

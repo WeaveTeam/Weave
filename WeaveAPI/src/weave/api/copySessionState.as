@@ -18,7 +18,8 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * Shortcut for WeaveAPI.SessionManager.copySessionState()
+	 * @copy weave.api.core.ISessionManager#copySessionState()
 	 */
 	public function copySessionState(source:ILinkableObject, destination:ILinkableObject):void
 	{

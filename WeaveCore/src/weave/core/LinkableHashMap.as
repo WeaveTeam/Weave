@@ -151,7 +151,8 @@ package weave.core
 				_orderedNames[oldIndex] = null;
 			}
 			// remove array items that have been set to null
-			for (i = _orderedNames.length - 1; i >= 0; i--)
+			i = _orderedNames.length;
+			while (i--)
 				if (_orderedNames[i] == null)
 					_orderedNames.splice(i, 1);
 			// if the name order changed, run child list callbacks
@@ -477,7 +478,8 @@ package weave.core
 			if (removeMissingDynamicObjects)
 			{
 				// third pass: remove objects based on the Boolean flags in remainingObjects.
-				for (i = _orderedNames.length - 1; i >= 0; i--)
+				i = _orderedNames.length;
+				while (i--)
 				{
 					objectName = _orderedNames[i];
 					if (remainingObjects[objectName] !== true)

@@ -32,6 +32,7 @@ package weave.services
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.URLUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.services.IURLRequestToken;
@@ -56,15 +57,11 @@ package weave.services
 		 */
 		public function setBaseURL(baseURL:String):void
 		{
-			// get everything before first '/'
-			var beforeSlash:String = baseURL.split('/')[0];
-			// only set baseURL if there is a ':'
-			if (beforeSlash.indexOf(':') >= 0)
+			// only set baseURL if there is a ':' before first '/'
+			if (baseURL.split('/')[0].indexOf(':') >= 0)
 			{
 				// remove '?' and everything after
-				baseURL = baseURL.split('?')[0];
-				// remove last '/' and everything after
-				_baseURL = baseURL.substr(0, baseURL.lastIndexOf('/'));
+				_baseURL = baseURL.split('?')[0];
 			}
 		}
 		
@@ -75,24 +72,8 @@ package weave.services
 		 */
 		private function addBaseURL(request:URLRequest):void
 		{
-			if (!_baseURL)
-				return;
-			
-			if (request.url.substr(0, 1) == '/')
-			{
-				// url begins with '/'
-				request.url = _baseURL + request.url;
-			}
-			else
-			{
-				// get everything before first '/'
-				var beforeSlash:String = request.url.split('/')[0];
-				if (beforeSlash.indexOf(':') < 0)
-				{
-					// relative url, so prepend base url
-					request.url = _baseURL + '/' + request.url;
-				}
-			}
+			if (_baseURL)
+				request.url = URLUtil.getFullURL(_baseURL, request.url);
 		}
 		
 		/**

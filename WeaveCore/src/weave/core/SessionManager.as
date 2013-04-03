@@ -1604,7 +1604,7 @@ package weave.core
 					}
 					
 					// save in new array and remove from lookup
-					result.push(new DynamicState(objectName, className, sessionState));
+					result.push(new DynamicState(objectName || null, className, sessionState)); // convert empty string to null
 					changeDetected = true;
 				}
 				
@@ -1612,7 +1612,7 @@ package weave.core
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(objectName, DIFF_DELETE));
+					result.push(new DynamicState(objectName || null, DIFF_DELETE)); // convert empty string to null
 					changeDetected = true;
 				}
 				
@@ -1760,8 +1760,8 @@ package weave.core
 				else // not typed session state
 				{
 					// overwrite old Array with new Array's values
-					baseDiff.length = diffToAdd.length;
-					for (i = diffToAdd.length - 1; i >= 0; i--)
+					i = baseDiff.length = diffToAdd.length;
+					while (i--)
 					{
 						var value:Object = diffToAdd[i];
 						if (value is String)

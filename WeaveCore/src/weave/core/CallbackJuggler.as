@@ -24,19 +24,26 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.juggleGroupedCallback;
 	import weave.api.juggleImmediateCallback;
-	import weave.api.registerDisposableChild;
 	import weave.utils.WeakReference;
 	
 	/**
 	 * This is used to juggle a single callback between linkable object targets.
-	 * 
+	 * @see weave.api.#juggleImmediateCallback()
+	 * @see weave.api.#juggleGroupedCallback()
 	 * @author adufilie
 	 */
 	public class CallbackJuggler implements IDisposableObject
 	{
+		/**
+		 * @param relevantContext The owner of this CallbackJuggler.
+		 * @param callback The callback function.
+		 * @param useGroupedCallback If this is set to true, a grouped callback will be used instead of an immediate callback. 
+		 * @see weave.api.#juggleImmediateCallback()
+		 * @see weave.api.#juggleGroupedCallback()
+		 */
 		public function CallbackJuggler(relevantContext:Object, callback:Function, useGroupedCallback:Boolean)
 		{
-			registerDisposableChild(relevantContext, this);
+			WeaveAPI.SessionManager.registerDisposableChild(relevantContext, this);
 			this.callback = callback;
 			this.useGroupedCallback = useGroupedCallback;
 		}
@@ -50,14 +57,15 @@ package weave.core
 		 */		
 		public function get target():ILinkableObject
 		{
-			if (targetRef.value && WeaveAPI.SessionManager.objectWasDisposed(targetRef.value))
-				targetRef.value = null;
-			return targetRef.value as ILinkableObject;
+			var value:Object = targetRef.value;
+			if (value && WeaveAPI.SessionManager.objectWasDisposed(value))
+				targetRef.value = value = null;
+			return value as ILinkableObject;
 		}
 		
 		/**
 		 * This sets the new target to which the callback should be juggled.
-		 * The callback will be called if the new target is different from the old one.
+		 * The callback will be called immediately if the new target is different from the old one.
 		 */
 		public function set target(newTarget:ILinkableObject):void
 		{
@@ -65,15 +73,14 @@ package weave.core
 			
 			var change:Boolean;
 			if (useGroupedCallback)
-				change = juggleGroupedCallback(oldTarget, newTarget, this, callback, true);
+				change = juggleGroupedCallback(oldTarget, newTarget, this, callback);
 			else
 				change = juggleImmediateCallback(oldTarget, newTarget, this, callback);
 			
 			if (change)
 			{
 				targetRef.value = newTarget;
-				if (!useGroupedCallback)
-					callback();
+				callback(); // call immediately after target change whether or not we are using a grouped callback
 			}
 		}
 		

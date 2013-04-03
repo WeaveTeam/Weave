@@ -1622,7 +1622,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (parent && event && event.keyCode == Keyboard.ESCAPE)
 				{
 					// find the top-most draggable panel with escapeKeyClosesPanel=true
-					for (var i:int = parent.numChildren - 1; i >= 0; i--)
+					for (var i:int = parent.numChildren; i--;)
 					{
 						var panel:DraggablePanel = parent.getChildAt(i) as DraggablePanel;
 						if (panel && panel.escapeKeyClosesPanel)

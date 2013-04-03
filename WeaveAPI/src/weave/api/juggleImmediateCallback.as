@@ -15,7 +15,6 @@
 
 package weave.api
 {
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	
 	/**
@@ -28,7 +27,8 @@ package weave.api
 	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackCollection.addImmediateCallback().
 	 * @param callback Corresponds to the callback parameter of ICallbackCollection.addImmediateCallback().
 	 * @return A value of true if the new target is different from the old and the callback was juggled.
-	 * @see weave.api.core.ICallbackCollection#addImmediateCallback
+	 * @see weave.api.core.ICallbackCollection#addImmediateCallback()
+	 * @see weave.api.#juggleGroupedCallback()
 	 */
 	public function juggleImmediateCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, callback:Function):Boolean
 	{

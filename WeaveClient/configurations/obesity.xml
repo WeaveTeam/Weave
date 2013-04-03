@@ -202,7 +202,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1995)" name="Percent Obese (BMI &gt;= 30) (1995)" id="667700" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1995" id="667700" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -250,7 +250,7 @@ wheel</zoom>
             <hierarchy>
               <category title="Data Tables" name="Data Tables">
                 <category title="obesity-2010" name="obesity-2010">
-                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1995)" name="Percent Obese (BMI &gt;= 30) (1995)" id="667700" dataType="number" geometryCollection="States"/>
+                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1995" id="667700" dataType="number" geometryCollection="States"/>
                 </category>
               </category>
             </hierarchy>
@@ -266,7 +266,7 @@ wheel</zoom>
             <hierarchy>
               <category title="Data Tables" name="Data Tables">
                 <category title="obesity-2010" name="obesity-2010">
-                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2000)" name="Percent Obese (BMI &gt;= 30) (2000)" id="667705" dataType="number" geometryCollection="States"/>
+                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2000" id="667705" dataType="number" geometryCollection="States"/>
                 </category>
               </category>
             </hierarchy>
@@ -282,7 +282,7 @@ wheel</zoom>
             <hierarchy>
               <category title="Data Tables" name="Data Tables">
                 <category title="obesity-2010" name="obesity-2010">
-                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2005)" name="Percent Obese (BMI &gt;= 30) (2005)" id="667710" dataType="number" geometryCollection="States"/>
+                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2005" id="667710" dataType="number" geometryCollection="States"/>
                 </category>
               </category>
             </hierarchy>
@@ -298,7 +298,7 @@ wheel</zoom>
             <hierarchy>
               <category title="Data Tables" name="Data Tables">
                 <category title="obesity-2010" name="obesity-2010">
-                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2010)" name="Percent Obese (BMI &gt;= 30) (2010)" id="667715" dataType="number" geometryCollection="States"/>
+                  <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2010" id="667715" dataType="number" geometryCollection="States"/>
                 </category>
               </category>
             </hierarchy>
@@ -553,7 +553,7 @@ wheel</zoom>
                           <hierarchy>
                             <category title="Data Tables" name="Data Tables">
                               <category title="obesity-2010" name="obesity-2010">
-                                <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2010)" name="Percent Obese (BMI &gt;= 30) (2010)" id="667715" dataType="number" geometryCollection="States"/>
+                                <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2010" id="667715" dataType="number" geometryCollection="States"/>
                               </category>
                             </category>
                           </hierarchy>
@@ -1522,7 +1522,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1995)" name="Percent Obese (BMI &gt;= 30) (1995)" id="667700" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1995" id="667700" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1538,7 +1538,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1996)" name="Percent Obese (BMI &gt;= 30) (1996)" id="667701" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1996" id="667701" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1554,7 +1554,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1997)" name="Percent Obese (BMI &gt;= 30) (1997)" id="667702" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1997" id="667702" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1570,7 +1570,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1998)" name="Percent Obese (BMI &gt;= 30) (1998)" id="667703" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1998" id="667703" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1586,7 +1586,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (1999)" name="Percent Obese (BMI &gt;= 30) (1999)" id="667704" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="1999" id="667704" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1602,7 +1602,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2000)" name="Percent Obese (BMI &gt;= 30) (2000)" id="667705" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2000" id="667705" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1618,7 +1618,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2001)" name="Percent Obese (BMI &gt;= 30) (2001)" id="667706" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2001" id="667706" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1634,7 +1634,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2002)" name="Percent Obese (BMI &gt;= 30) (2002)" id="667707" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2002" id="667707" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1650,7 +1650,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2003)" name="Percent Obese (BMI &gt;= 30) (2003)" id="667708" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2003" id="667708" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1666,7 +1666,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2004)" name="Percent Obese (BMI &gt;= 30) (2004)" id="667709" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2004" id="667709" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1682,7 +1682,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2005)" name="Percent Obese (BMI &gt;= 30) (2005)" id="667710" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2005" id="667710" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1698,7 +1698,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2006)" name="Percent Obese (BMI &gt;= 30) (2006)" id="667711" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2006" id="667711" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1714,7 +1714,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2007)" name="Percent Obese (BMI &gt;= 30) (2007)" id="667712" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2007" id="667712" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1730,7 +1730,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2008)" name="Percent Obese (BMI &gt;= 30) (2008)" id="667713" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2008" id="667713" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1746,7 +1746,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2009)" name="Percent Obese (BMI &gt;= 30) (2009)" id="667714" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2009" id="667714" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1762,7 +1762,7 @@ wheel</zoom>
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
                   <category title="obesity-2010" name="obesity-2010">
-                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30) (2010)" name="Percent Obese (BMI &gt;= 30) (2010)" id="667715" dataType="number" geometryCollection="States"/>
+                    <attribute keyType="US State FIPS Code" dataTable="obesity-2010" title="Percent Obese (BMI &gt;= 30)" name="Percent Obese (BMI &gt;= 30)" year="2010" id="667715" dataType="number" geometryCollection="States"/>
                   </category>
                 </category>
               </hierarchy>
@@ -1775,7 +1775,7 @@ wheel</zoom>
     <enableBorders>true</enableBorders>
     <enableMoveResize>true</enableMoveResize>
     <enableSubMenu>false</enableSubMenu>
-    <labelFunction>column.getMetadata("title").substr(-5,4)</labelFunction>
+    <labelFunction>column.getMetadata("year")</labelFunction>
     <layoutMode>HSlider</layoutMode>
     <maximizable>true</maximizable>
     <maximized>false</maximized>

@@ -35,8 +35,12 @@
 	import mx.collections.ArrayCollection;
 	import mx.controls.listClasses.IListItemRenderer;
 	
+	import spark.collections.Sort;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.IColumnReference;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.linkableObjectIsBusy;
@@ -58,8 +62,6 @@
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
 	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
-	//dimensionsList is the dataprovider for the combo box
-	protected const dimensionsList:ArrayCollection = new ArrayCollection();
 	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
 	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
@@ -273,19 +275,31 @@
 	
 	protected function addToListOfDims(ref:HierarchyColumnReference):void
 	{
-		var path:XML = ref.hierarchyPath.value;
-		var attrXML:XML = HierarchyUtils.getNodeFromPath(path, path); // get leaf node
-		//February 17, 2011  Fixing bug below:  the xml has changed from dataTableName to dataTable
-		//var dataTableName:String = attrXML.@dataTableName;
-		var strToAdd:String = attrXML.@dataTable + "///" + attrXML.@name;
-		//if it isn't already in the list, add it
-		if (dimensionsList.getItemIndex(strToAdd) < 0)
+		// stop if already in list
+		for (var i:int = 0; i < dimensionsRefs.length; i++)
+			if ((dimensionsRefs.getItemAt(i) as HierarchyColumnReference).getHashCode() == ref.getHashCode())
+				return;
+		
+		// create sort function if not created yet
+		if (!dimensionsRefs.sort)
 		{
-			dimensionsList.addItem(strToAdd);
-			dimensionsRefs.addItem(ref);
-			if (!labelsLinkableString.value)
-				dimensionChange();
+			dimensionsRefs.sort = new Sort();
+			dimensionsRefs.sort.compareFunction = compareRefs;
+			function compareRefs(a:IColumnReference, b:IColumnReference):int
+			{
+				return AsyncSort.compareCaseInsensitive(getRefLabel(a), getRefLabel(b));
+			}
 		}
+		
+		// add to list
+		dimensionsRefs.addItem(ref);
+		if (!labelsLinkableString.value)
+			dimensionChange();
+	}
+	
+	private function getRefLabel(ref:IColumnReference):String
+	{
+		return WeaveAPI.AttributeColumnCache.getColumn(ref).getMetadata(ColumnMetadata.TITLE);
 	}
 	
 	/**
@@ -404,7 +418,7 @@
 							  />
 			</ui:Indent>
 			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
-			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange()"/>
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
 			<ui:Indent label="{lang('Max labels shown')}">
 				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
 			</ui:Indent>

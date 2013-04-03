@@ -19,27 +19,54 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.copySessionState;
-	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IBinClassifier;
 	import weave.api.data.IBinningDefinition;
-	import weave.data.BinClassifiers.BinClassifierCollection;
+	import weave.core.LinkableHashMap;
 	
 	/**
-	 * An ExplicitBinningDefinition defines all the bins explicitly rather than indirectly.
+	 * Defines bins explicitly and is not affected by what column is passed to generateBinClassifiersForColumn().
 	 * 
 	 * @author adufilie
 	 */
-	public class ExplicitBinningDefinition extends BinClassifierCollection implements IBinningDefinition
+	public class ExplicitBinningDefinition extends LinkableHashMap implements IBinningDefinition
 	{
 		public function ExplicitBinningDefinition()
 		{
-			super();
+			super(IBinClassifier);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get asyncResultCallbacks():ICallbackCollection
+		{
+			return this; // when our callbacks trigger, the results are immediately available
 		}
 
-		public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		/**
+		 * @inheritDoc
+		 */
+		public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
-			copySessionState(this, output);
+			// do nothing because our bins don't depend on any column.
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getBinClassifiers():Array
+		{
+			return getObjects();
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getBinNames():Array
+		{
+			return getNames();
 		}
 	}
 }

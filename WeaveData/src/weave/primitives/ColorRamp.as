@@ -199,7 +199,7 @@ package weave.primitives
 		{
 			validate();
 			
-			if (normValue < 0 || normValue > 1 || _colorNodes.length == 0)
+			if (isNaN(normValue) || normValue < 0 || normValue > 1 || _colorNodes.length == 0)
 				return NaN;
 			
 			// find index to the right of normValue

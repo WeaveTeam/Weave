@@ -16,7 +16,8 @@
 package weave.api
 {
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * Shortcut for WeaveAPI.SessionManager.newLinkableChild()
+	 * @copy weave.api.core.ISessionManager#newLinkableChild()
 	 */
 	public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 	{

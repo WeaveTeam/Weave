@@ -15,20 +15,21 @@
 
 package weave.api
 {
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * This function will remove a grouped callback from one ILinkableObject or ICallbackCollection and add it to another.
+	 * There is no option provided here to trigger the callback now because if the new target is null, we cannot trigger
+	 * a grouped callback for a null object.  It's best to check the return value of this function and then decide what to do.
 	 * @param oldTarget The old target, which may be null.
 	 * @param newTarget The new target, which may be null.
 	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackCollection.addGroupedCallback().
 	 * @param groupedCallback Corresponds to the groupedCallback parameter of ICallbackCollection.addGroupedCallback().
-	 * @param triggerCallbackNow Corresponds to the triggerCallbackNow parameter of ICallbackCollection.addGroupedCallback().
 	 * @return A value of true if the new target is different from the old and the callback was juggled.
-	 * @see weave.api.core.ICallbackCollection#addGroupedCallback
+	 * @see weave.api.core.ICallbackCollection#addGroupedCallback()
+	 * @see weave.api.#juggleImmediateCallback()
 	 */
-	public function juggleGroupedCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):Boolean
+	public function juggleGroupedCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, groupedCallback:Function):Boolean
 	{
 		// do nothing if the targets are the same.
 		if (oldTarget == newTarget)
@@ -40,7 +41,7 @@ package weave.api
 		
 		// add callback to new target
 		if (newTarget)
-			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
+			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addGroupedCallback(relevantContext, groupedCallback);
 		
 		return true;
 	}

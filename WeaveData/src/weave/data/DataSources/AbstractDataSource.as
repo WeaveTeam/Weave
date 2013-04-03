@@ -373,16 +373,18 @@ package weave.data.DataSources
 			
 			_initializeCalled = false;
 			_pendingColumnRequests.length = 0;
-			var proxyColumn:*;
-			for (proxyColumn in _proxyColumnToReferenceMap)
+			var key:*
+			for (key in _proxyColumnToReferenceMap)
 			{
+				var proxyColumn:ProxyColumn = key as ProxyColumn;
 				// clear the data and allow callbacks to run.
-				(proxyColumn as ProxyColumn).setInternalColumn(ProxyColumn.undefinedColumn);
-				(proxyColumn as ProxyColumn).resumeCallbacks(true);
+				proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+				while (proxyColumn.callbacksAreDelayed)
+					proxyColumn.resumeCallbacks();
 			}
 			// clean up pointers to columns
-			for (proxyColumn in _proxyColumnToReferenceMap)
-				delete _proxyColumnToReferenceMap[proxyColumn];
+			for (key in _proxyColumnToReferenceMap)
+				delete _proxyColumnToReferenceMap[key];
 		}
 	}
 }
