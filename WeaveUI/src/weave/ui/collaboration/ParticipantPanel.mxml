@@ -48,6 +48,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				adjustLayout();
 			}
 			
+			public function idListLength():int
+			{
+				return idList.length;
+			}
+			
 			public function removeFromParticipantList(id:String):void
 			{
 				if( canvasList == null ) return;
@@ -67,7 +72,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( canvasList[id] != null )
 					canvasList[id] = null;
 				var listLocation:int = idList.indexOf(id);
-				idList.splice(listLocation, 1);
+				if( listLocation != -1 )
+					idList.splice(listLocation, 1);
 				adjustLayout();
 			}
 			/*
