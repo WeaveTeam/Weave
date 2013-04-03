@@ -75,22 +75,18 @@ public abstract class BulkSQLLoader
 	
 	public static class BulkSQLLoader_Direct extends BulkSQLLoader
 	{
-		public static int BUFFER_SIZE = 100;
-		
+		public static int DEFAULT_BUFFER_SIZE = 100;
 		private String baseQuery;
 		private String rowQuery;
 		private PreparedStatement stmt;
 		private boolean prevAutoCommit;
-		private Vector<Object[]> rowBuffer;
+		private Vector<Object[]> rowBuffer = null;
 		private int _queryRowCount = 0;
 		
 		public BulkSQLLoader_Direct(Connection conn, String schema, String table, String[] fieldNames) throws RemoteException
 		{
 			super(conn, schema, table, fieldNames);
 			
-			if (BUFFER_SIZE < 1)
-				BUFFER_SIZE = 1;
-			rowBuffer = new Vector<Object[]>(BUFFER_SIZE);
 			try
 			{
 				prevAutoCommit = conn.getAutoCommit();
@@ -107,24 +103,47 @@ public abstract class BulkSQLLoader
 			    
 			    rowQuery = "(" + StringUtils.mult(",", "?", fieldNames.length) + ")";
 			    
-			    setQueryRowCount(BUFFER_SIZE);
+			    rowBuffer = new Vector<Object[]>(setQueryRowCount(DEFAULT_BUFFER_SIZE));
 			}
 			catch (SQLException e)
 			{
-				throw new RemoteException("Error initializing SQLBulkLoader_Direct", e);
+				throw new RemoteException("Error initializing BulkSQLLoader_Direct", e);
 			}
 		}
 		
-		private void setQueryRowCount(int rowCount) throws SQLException
+		private int setQueryRowCount(int rowCount) throws SQLException
 		{
-			// only update query if required
-			if (_queryRowCount != rowCount)
+			// workaround for limitation in SQLServer driver
+            int[] attemptedLimits = new int[]{Integer.MAX_VALUE, 2000, 1000, 255, 1};
+			for (int i = 0; i < attemptedLimits.length; i++)
 			{
-				_queryRowCount = 0;
-				String query = baseQuery + StringUtils.mult(",", rowQuery, rowCount);
-				stmt = conn.prepareStatement(query);
-				_queryRowCount = rowCount;
+				if (rowCount * fieldNames.length > attemptedLimits[i])
+					rowCount = (int)Math.floor(attemptedLimits[i] / fieldNames.length);
+				if (rowCount < 1)
+					rowCount = 1;
+				
+				try
+				{
+					// only update query if required
+					if (_queryRowCount != rowCount)
+					{
+						String query = baseQuery + StringUtils.mult(",", rowQuery, rowCount);
+						stmt = conn.prepareStatement(query);
+						_queryRowCount = rowCount;
+						break; // success
+					}
+				}
+				catch (SQLException e)
+				{
+					// fail only on last attempt or after rowBuffer has been created.
+					if (rowBuffer != null || i == attemptedLimits.length - 1 || rowCount == 1)
+					{
+						_queryRowCount = 0;
+						throw e;
+					}
+				}
 			}
+			return _queryRowCount;
 		}
 		
 		@Override
