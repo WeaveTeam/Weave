@@ -27,10 +27,7 @@
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
-			   layout="absolute"
-			   mouseMove="handleMouseMove(event)"
-			   mouseDown="handleMouseDown(event)"
-			   mouseUp="handleMouseUp(event)">
+			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
@@ -133,6 +130,10 @@
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
 				sprCont.addChild(probeSprite)
 				visualization.addElement(sprCont);
+				
+				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -283,14 +284,17 @@
 				tempPoint = visualization.globalToLocal(new Point(event.stageX,event.stageY));
 				tempBounds.reset();
 				tempBounds.setCenter(tempPoint.x, tempPoint.y);
-				tempBounds.centeredResize(10,10);
+				tempBounds.centeredResize(20,20);
 				
 				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
 				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				screenBounds.projectCoordsTo(tempBounds, dataBounds);
 				
 				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
-				if( !_probedKeys.length ) return;
+				if (!_probedKeys.length)
+					return;
+				
+				event.stopPropagation();
 				
 				var key:IQualifiedKey = _probedKeys[0];
 				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
@@ -301,21 +305,23 @@
 				isDragging = true;
 			}
 			
-			private function handleMouseUp(event:MouseEvent):void
+			private function handleMouseUp():void
 			{
-				if(!isDragging) return;				
-				handleMouseMove(event);
+				if (!isDragging)
+					return;
+				handleMouseMove();
 				_probedAnchor = null;
 				isDragging = false;
 				visualization.enableSelection.value = true;
 				visualization.plotManager.enableAutoZoomToExtent.value = enableAutoZoom;
 			}
 			
-			private function handleMouseMove(event:MouseEvent):void
+			private function handleMouseMove():void
 			{
-				if(!isDragging) return;
-				if(!_probedAnchor) return ;
+				if (!isDragging || !_probedAnchor)
+					return;
 				
+				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
 				
 				screenBounds.projectPointTo(tempPoint, dataBounds);
