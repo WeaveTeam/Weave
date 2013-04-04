@@ -68,7 +68,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<fx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
 			import mx.controls.TextInput;
 			import mx.events.ListEvent;
 			
@@ -76,11 +75,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.IBinClassifier;
-			import weave.core.LinkableDynamicObject;
-			import weave.core.LinkableNumber;
-			import weave.core.SessionManager;
-			import weave.data.BinClassifiers.BinClassifierCollection;
 			import weave.data.BinClassifiers.NumberClassifier;
 			import weave.data.BinningDefinitions.ExplicitBinningDefinition;
 			

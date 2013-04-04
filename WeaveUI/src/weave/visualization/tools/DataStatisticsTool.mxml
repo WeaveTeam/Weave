@@ -26,11 +26,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	@author spurushe
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				title="Data Statistics"
 				x="15%" width="70%" y="15%" height="70%"
 				backgroundColor="#EFF4BC" 
-				layout="horizontal"
+				layout="{new HorizontalLayout()}"
 				autoLayout="true"
 				>
 	
@@ -110,11 +109,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import spark.layouts.HorizontalLayout;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.data.IAttributeColumn;
 			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeySet;
 			import weave.services.WeaveRServlet;

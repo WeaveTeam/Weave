@@ -335,45 +335,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</fx:Script>
 	
 	<ui:ControlPanel>
-		<s:NavigatorContent id="VizControlsPanel" label="{lang('Visualization Controls')}">
-			<s:layout>
-				<s:VerticalLayout/>
-			</s:layout>
-			<!--<s:CheckBox label="('Show Labels:" id="chkShowLabels"
-			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
-			<!--<s:HGroup width="100%" 
-			borderStyle="inset" 
-			backgroundColor="0xFFFFFF" 
-			backgroundAlpha="0.7">
-			<s:Label text="Point Opacity:" 
-			color="0x000000" fontSize="12" 
-			toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
-			
-			<mx:HSlider id="alphaSlider"
-			width="100%"
-			alpha="1.0"
-			snapInterval="0.1"
-			tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-			dataTipFormatFunction="alphaSliderFormatFunction"
-			minimum="0.1" maximum="1.0" value="1.0"
-			liveDragging="true"
-			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
-			</s:HGroup>-->
-			<s:HGroup>
-				<s:Label text="{lang('Radius Size:')}"
-						 color="0x0" fontSize="12"
-						 toolTip="{lang('Use this option to control the size of the each node in the graph.')}"/>
-				<mx:NumericStepper id="numRadiusSize" minimum="1"
-								   creationComplete="linkBindableProperty(_plotter.radius, event.target, 'value')"/>
-			</s:HGroup>
-			<s:HGroup>
-				<s:Label text="{lang('Curved Lines:')}"
-						 color="0x0" fontSize="12"
-						 toolTip="{lang('Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes.')}"/>
-				<s:CheckBox id="drawCurvedLines"
-							creationComplete="linkBindableProperty(_plotter.drawCurvedLines, event.target, 'selected')"/>
-			</s:HGroup>
-		</s:NavigatorContent>
+		
 		
 		<s:NavigatorContent id="attributesPanel" label="{lang('Attributes for Graph')}">
 			<s:layout>
@@ -387,18 +349,56 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="{lang('Edge Colors')}"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
-			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<!--<mx:CheckBox label="('Show Labels:" id="chkShowLabels"
+			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
+			<!--<mx:HBox width="100%" 
+					 borderStyle="inset">
+				<mx:Label text="Point Opacity:" 
+						  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+				
+				<mx:HSlider id="alphaSlider"
+							width="100%"
+							alpha="1.0"
+							snapInterval="0.1"
+							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
+							dataTipFormatFunction="alphaSliderFormatFunction"
+							minimum="0.1" maximum="1.0" value="1.0"
+							liveDragging="true"
+			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
+			</mx:HBox>-->
 			<s:HGroup>
-				<s:Label text="{lang('Algorithm')}"/>
-				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
-							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm, event.target, 'selectedItem')"/>
+				<s:Label text="{lang('Radius Size')}"
+						  toolTip="{lang('Use this option to control the default size of the each node in the graph.')}"/>
+				<s:NumericStepper id="numRadiusSize" minimum="1"/>
+			</s:HGroup>
+			<s:HGroup>
+				<s:Label text="{lang('Curved Lines')}"
+						  toolTip="{lang('Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes.')}"/>
+				<mx:CheckBox id="drawCurvedLines"/>
+			</s:HGroup>
+			<s:CheckBox id="undirectedCheckBox" label="{lang('Undirected edges.')}" 
+				toolTip="{lang('Use this option if you want your graph data to be assumed as undirected.')}"/>
+			<s:HGroup>
+				<s:Label text="{lang('Edge Style:')}"
+					toolTip="{lang('Use this option to specify which edge style (arrowheads, gradients, or wedges) to use to indicate edge directions.')}"/>
+				<mx:ComboBox id="edgeStyleChoice" dataProvider="{_plotter.edgeStyles}"/>
+			</s:HGroup>
+			<s:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"/>
+			<s:HGroup>
+				<s:Label text="{lang('Layout Algorithm')}"/>
+				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"/>
 			</s:HGroup>
 			<s:VGroup>
 				<s:Button id="recomputePositions" enabled="{!algorithmRunning}" label="{lang('Recalculate Node Positions')}" click="handleStartComputation()"/> 
 			</s:VGroup>
 		</s:NavigatorContent>
->>>>>>> halo to spark components changes - still testing going on
+		
+		
 	</ui:ControlPanel>
 </SimpleVisTool>

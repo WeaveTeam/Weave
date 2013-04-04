@@ -42,6 +42,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.data.ColumnMetadata;
@@ -316,69 +317,67 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		
 		if (_timer.running)
 		{
-			if (playButton != null) {
-				
-						playButton.label = ">";
-						playButton.toolTip = lang("Play");				
-					}
-					_timer.stop();
-				}
-				else
-				{
-					if (playButton != null) 
-					{
-						playButton.label = "||";
-						playButton.toolTip = lang("Stop");				
-					}
-					_timer.start();
-				}
-			}
-			private function getDelay():String
+			if (playButton != null) 
 			{
-				var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
-				return delayDescription;
+				playButton.label = ">";
+				playButton.toolTip = lang("Play");				
 			}
-			
-			/**
-			 * speedSliderChange - this is called when user moves the speed slider
-			 * */
-			public function speedSliderChange():void
+			_timer.stop();
+		}
+		else
+		{
+			if (playButton != null) 
 			{
-				timerDelay.value = MAX_TIMER_DELAY - speedSlider.value;
-				if (_timer && (timerDelay.value))
-					_timer.delay = timerDelay.value;
+				playButton.label = "||";
+				playButton.toolTip = lang("Stop");				
 			}
-			
-			/**
-			 * moveSlider - This method is called everytime the timer triggers
-			 * it.  It forces the slider to move.  
-			 * **/
-			private function moveSlider(evt:TimerEvent):void
-			{
-				if (currentSliderPosition.value < dimensionSlider.maximum)
-					currentSliderPosition.value++;
-				else
-					currentSliderPosition.value = dimensionSlider.minimum;
-				if (_timer.currentCount == (_timer.repeatCount - 1))
-				{
-					playButton.label = lang("Play");
-					_timer.reset();
-				}
-			}
-			
-			
-			private function formatSpeedDataTip(item:Number):String
-			{
-				var delayDescription:String = getDelay();
-				if (item < speedSlider.value)
-				{
-					return lang("slower: {0}", delayDescription);
-				}
-				else
-				{
-					return lang("faster: {0}", delayDescription);
-				}
-			}
+			_timer.start();
+		}
+	}
+	private function getDelay():String
+	{
+		var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
+		return delayDescription;
+	}
+	
+	/**
+	 * speedSliderChange - this is called when user moves the speed slider
+	 * */
+	public function speedSliderChange():void
+	{
+		timerDelay.value = MAX_TIMER_DELAY - speedSlider.value;
+		if (_timer && (timerDelay.value))
+			_timer.delay = timerDelay.value;
+	}
+
+	/**
+	 * moveSlider - This method is called everytime the timer triggers
+	 * it.  It forces the slider to move.  
+	 * **/
+	private function moveSlider(evt:TimerEvent):void
+	{
+		if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
+			return;
+		
+		if (currentSliderPosition.value < dimensionSlider.maximum)
+			currentSliderPosition.value++;
+		else
+			currentSliderPosition.value = dimensionSlider.minimum;
+	}
+	
+	
+	private function formatSpeedDataTip(item:Number):String
+	{
+		var delayDescription:String = getDelay();
+		if (item < speedSlider.value)
+		{
+			return lang("slower: {0}", delayDescription);
+		}
+		else
+		{
+			return lang("faster: {0}", delayDescription);
+		}
+	}
 			
 		]]>
 	</fx:Script>
@@ -422,7 +421,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							  />
 			</ui:Indent>
 			<s:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
-			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange()"/>
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
 			<ui:Indent label="{lang('Max labels shown')}">
 				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
 			</ui:Indent>
