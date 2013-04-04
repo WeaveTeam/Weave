@@ -54,7 +54,6 @@ package weave.compiler
 
 		private static const ST_IF:String = 'if';
 		private static const ST_ELSE:String = 'else';
-		private static const ST_IF_ELSE:String = 'if else';
 		
 		private static const ST_FOR:String = 'for';
 		private static const ST_EACH:String = 'each';
@@ -341,10 +340,6 @@ package weave.compiler
 					default: throw new Error("Too many constructor parameters (maximum 10)");
 				}
 			};
-			constants['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
-			// for trace debugging, debug must be set to true
-			if (debug)
-				constants['trace'] = function(...args):void { trace.apply(null, args); };
 			
 			// global symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
@@ -421,7 +416,7 @@ package weave.compiler
 			operators["&&"] = function(x:*, y:*):* { return x && y; };
 			operators["||"] = function(x:*, y:*):* { return x || y; };
 			// branching
-			operators["?:"] = constants['iif'];
+			operators["?:"] = function(c:*, t:*, f:*):* { return c ? t : f; };
 			// multiple commands - equivalent functionality but must be remembered as different operators
 			operators[','] = function(...args):* { return args[args.length - 1]; };
 			operators[';'] = function(...args):* { return args[args.length - 1]; };
@@ -1430,7 +1425,7 @@ package weave.compiler
 				if (stmt == ST_IF)
 				{
 					params.splice(2, 1); // works whether or not else is present
-					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_IF_ELSE, operators['?:']), params);
+					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_IF, operators['?:']), params);
 				}
 				else
 				{
@@ -1583,7 +1578,7 @@ package weave.compiler
 					return StringUtil.substitute("({0} ? {1} : {2})", params);
 			}
 			
-			if (name == ST_IF_ELSE)
+			if (name == ST_IF)
 			{
 				if (params.length == 2)
 					return [ST_IF, params[0], params[1]].join(' ');
