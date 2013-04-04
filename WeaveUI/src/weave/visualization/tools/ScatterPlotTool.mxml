@@ -352,8 +352,8 @@
 					
 					if (regressionPlotter.currentTrendline.value == "Linear")
 					{
-						var slope:Number = StandardLib.roundSignificant(regressionPlotter.getSlope(), 4);
-						var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getIntercept(), 4);
+						var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+						var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
 						lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
 						equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
 						equationText.validateNow();

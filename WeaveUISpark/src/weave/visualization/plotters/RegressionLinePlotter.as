@@ -85,6 +85,7 @@ package weave.visualization.plotters
 		private function resetRegressionLine():void
 		{
 			coefficients = null;
+			rSquared = 0;
 		}
 		private function calculateRRegression():void
 		{
@@ -96,34 +97,37 @@ package weave.visualization.plotters
 			{
 				//trace( "calculateRegression() " + xColumn.toString() );
 				Rstring = "fit <- lm(y~x)\n"
-					+"coef <- coefficients(fit)\n" +
-						"+ ";
+					+"coef <- coefficients(fit)\n" 
+					+"rSquared <- summary(fit)$r.squared\n";
 			}
 				
 			if (currentTrendline.value == POLYNOMIAL)
 			{
 				Rstring = "fit <- lm(y ~ poly(x, " + polynomialDegree.value.toString() + ", raw = TRUE))\n"
-					+"coef <- coefficients(fit)\n";			
+					+"coef <- coefficients(fit)\n" 
+					+"rSquared <- summary(fit)$r.squared\n";			
 			}
 			
 			if (currentTrendline.value == LOGARITHMIC)
 			{
 				Rstring = "fit <- lm( y ~ log(x) )\n" 
-					+"coef <- coefficients(fit)\n";
+					+"coef <- coefficients(fit)\n" 
+					+"rSquared <- summary(fit)$r.squared\n";
 			}
 			
 			
 			if (currentTrendline.value == EXPONENTIAL)
 			{
 				Rstring = "fit <- lm( log(y) ~ x )\n" 
-					+"coef <- coefficients(fit)\n";
-						
+					+"coef <- coefficients(fit)\n" 
+					+"rSquared <- summary(fit)$r.squared\n";	
 			}
 			
 			if (currentTrendline.value == POWER)
 			{
 				Rstring = "fit <- lm( log(y) ~ x )\n" 
-					+"coef <- coefficients(fit)\n";
+					+"coef <- coefficients(fit)\n" 
+					+"rSquared <- summary(fit)$r.squared\n";
 			}
 			
 			dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
@@ -156,39 +160,12 @@ package weave.visualization.plotters
 				RresultArray.push(rResult);				
 			}
 			
-//			if (RresultArray.length > 1) // ToDo
-			if (RresultArray.length > 0)
+//			if (RresultArray.length > 1) // ToDo ??? why?
+			if (RresultArray.length > 1)
 			{
-				if (currentTrendline.value == LINEAR)
-				{
-					intercept = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
-					slope = Number((RresultArray[1] as RResult).value);
-					rSquared = Number((RresultArray[2] as RResult).value);	
-					//trace( "R" + " " + intercept + " " + slope) ;
-					getCallbackCollection(this).triggerCallbacks();
-				}
-				
-				if (currentTrendline.value == POLYNOMIAL)
-				{
-					coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
-					getCallbackCollection(this).triggerCallbacks();	
-				}
-				
-				if (currentTrendline.value == EXPONENTIAL)
-				{
-					
-				}
-				
-				if (currentTrendline.value == POWER)
-				{
-					
-				}
-				
-				if (currentTrendline.value == LOGARITHMIC)
-				{
-					
-					
-				}
+				coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
+				rSquared = Number((RresultArray[2] as RResult).value);
+				getCallbackCollection(this).triggerCallbacks();	
 			}
 		}
 		
@@ -201,18 +178,14 @@ package weave.visualization.plotters
 			}
 			
 			reportError(event);
-			intercept = NaN;
-			slope = NaN;
 			coefficients = null;
+			rSquared = NaN;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		public function getSlope():Number { return slope; }
-		public function getIntercept():Number { return intercept; }
-		public function getCoefficients():Array { return coefficients; }
+		public function getCoefficients():Array { return coefficients; }		
+		public function getrSquared():Number { return rSquared; }
 		
-		private var intercept:Number = NaN;
-		private var slope:Number = NaN;
 		private var rSquared:Number = NaN;
 		private var coefficients:Array = null;
 		
@@ -227,7 +200,11 @@ package weave.visualization.plotters
 			
 			if(currentTrendline.value == LINEAR)
 			{
-//				g.clear();
+				
+				points = new Vector.<Number>;
+				drawCommand = new Vector.<int>;
+
+				g.clear();
 //				if(!isNaN(intercept))
 //				{
 //					tempPoint.x = dataBounds.getXMin();
@@ -256,31 +233,34 @@ package weave.visualization.plotters
 //					destination.draw(tempShape);
 //				}
 			}	
-			else if (currentTrendline.value == POLYNOMIAL)
+			else 
 			{
-				points = new Vector.<Number>;
-				drawCommand = new Vector.<int>;
 				
 				if (coefficients != null)
 				{
 					// ToDo Use screenBounds to determine how many points should be drawn
 					// Preprocess coefficients ==> It might return NaN in higher degree
+					// where it should in fact be 0.
 					for (var i:int = 0; i < coefficients.length; i++)
 					{
 						if (isNaN(coefficients[i]))
 						{
-							coefficients.splice(i, 1);
-							i--;
+							coefficients[i] = 0;
 						}
 					}
-					
-					coefficients.reverse();
 
 					var flag:Boolean = true;
 					 for (var x:int = dataBounds.getXMin(); x < dataBounds.getXMax(); x++)
 					 {
 						tempPoint.x = x;
-						tempPoint.y = polynomial(coefficients, x);
+						
+						tempPoint.y = 
+						tempPoint.y = evalFunction(currentTrendline.value, coefficients, x);
+						if (isNaN(tempPoint.y))
+						{
+							// technically this is a problem
+						}
+						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						points.push(tempPoint.x);
 						points.push(tempPoint.y);
@@ -312,17 +292,45 @@ package weave.visualization.plotters
 		private var points:Vector.<Number> = null;
 		private var drawCommand:Vector.<int> = null;
 		
-		private function polynomial(coefficients:Array, xValue:Number):Number
+		
+		/**
+		 * 	@author Yen-Fu 
+		 *	This function evaluates a polynomial, given the coefficients (a, b, c,..) and the value x. 
+		 * 	ax^n-1+bx^n-2+...
+		 **/
+		private function evalFunction(type:String, coefficients:Array, xValue:Number):Number
 		{
-			var result:Number = 0;
-			var degree:int = coefficients.length - 1;
-			for (var i:int = 0; i <= degree; i++)
+			
+			if (type == POLYNOMIAL) 
 			{
-				result += coefficients[i] * Math.pow(xValue, degree - i);
+				var result:Number = 0;
+				var degree:int = coefficients.length - 1;
+				for (var i:int = 0; i <= degree; i++)
+				{
+					result += coefficients[i] * Math.pow(xValue, degree - i);
+				}
+			
+				return result;
+			}
+			else if (type == LOGARITHMIC) 
+			{				
+				return coefficients[0]*Math.log(xValue) + coefficients[1];
 			}
 			
-			return result;
+			else if (type == EXPONENTIAL) 
+			{
+				return coefficients[0]*Math.exp(xValue) + coefficients[1];
+			}
+			else if (type == POWER) 
+			{
+				return coefficients[0]*Math.pow(xValue, coefficients[1]);	
+			}
+			else
+			{
+				return NaN;
+			}
 		}
+			
 		// Trendlines
 		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), calculateRRegression);
 		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(""), calculateRRegression);
