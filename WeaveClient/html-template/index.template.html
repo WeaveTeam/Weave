@@ -46,6 +46,7 @@
             params.bgcolor = "${bgcolor}";
             params.allowscriptaccess = "sameDomain";
             params.allowfullscreen = "true";
+            params.wmode="transparent"
             var attributes = {};
             attributes.id = "${application}";
             attributes.name = "${application}";
@@ -83,12 +84,14 @@
                 <param name="bgcolor" value="${bgcolor}" />
                 <param name="allowScriptAccess" value="sameDomain" />
                 <param name="allowFullScreen" value="true" />
+                <param name="wmode" value="transparent" />
                 <!--[if !IE]>-->
                 <object type="application/x-shockwave-flash" data="${swf}.swf" width="${width}" height="${height}">
                     <param name="quality" value="high" />
                     <param name="bgcolor" value="${bgcolor}" />
                     <param name="allowScriptAccess" value="sameDomain" />
                     <param name="allowFullScreen" value="true" />
+                    <param name="wmode" value="transparent" />
                 <!--<![endif]-->
                 <!--[if gte IE 6]>-->
                     <p> 
