@@ -26,13 +26,19 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableNumber;
+	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
+	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -55,18 +61,80 @@ package weave.data.BinningDefinitions
 		// reusable temporary object
 		private static const _tempNumberClassifier:NumberClassifier = new NumberClassifier();
 		
-		private var _output:ILinkableHashMap = null;
 		private var _column:IAttributeColumn = null;
-		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		private var asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
-			_output = output;
 			_column = column;
-			// clear any existing bin classifiers
-			_output.removeAllObjects();
+			if (column)
+			{
+				// BEGIN DIMENSION SLIDER HACK
+				var nonWrapperColumn:IAttributeColumn = column;
+				while (nonWrapperColumn is IColumnWrapper)
+					nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
+				if (nonWrapperColumn is SecondaryKeyNumColumn)
+				{
+					SecondaryKeyNumColumn.allKeysHack = true;
+					var noChange:Boolean = (_keys === nonWrapperColumn.keys);
+					_keys = nonWrapperColumn.keys;
+					SecondaryKeyNumColumn.allKeysHack = false;
+					// stop if we already did this
+					if (noChange)
+					{
+						asyncResultCallbacks.triggerCallbacks();
+						return;
+					}
+				}
+				else
+				// END DIMENSION SLIDER HACK
+				{
+					_keys = column.keys.concat(); // make a copy so we know length won't change during async task
+				}
+			}
+			else
+			{
+				_keys = [];
+			}
 			
+			_sortedValues = new Array(_keys.length);
+			_keyCount = 0;
 			_previousSortedValues.length = 0;
 			
-			_sortedValues = getSortedNumbersFromColumn(_column);
+			// clear any existing bin classifiers
+			output.removeAllObjects();
+			
+			// stop any previous sort task by sorting an empty array
+			asyncSort.beginSort(_previousSortedValues);
+			
+			_compoundIterateAll(-1); // reset compound task
+			
+			WeaveAPI.StageUtils.startTask(this, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _handleJenksBreaks);
+		}
+		
+		private var _compoundIterateAll:Function = StageUtils.generateCompoundIterativeTask(_getValueFromKeys, _iterateSortedKeys, _iterateJenksBreaks);
+		
+		private var _keyCount:int = 0;
+		private var _keys:Array = []; 
+		private function _getValueFromKeys(stopTime:int):Number
+		{
+			for (; _keyCount < _keys.length; _keyCount++)
+			{
+				if (getTimer() > stopTime)
+					return _keyCount/_keys.length;
+				_sortedValues[_keyCount] = _column.getValueFromKey(_keys[_keyCount],Number);
+			}
+			
+			// begin sorting now
+			asyncSort.beginSort(_sortedValues, ObjectUtil.numericCompare);
+			
+			return 1;
+		}
+		
+		private function _iterateSortedKeys(returnTime:int):Number
+		{
+			// wait for sort to complete
+			if (asyncSort.result == null)
+				return 0;
 			
 			VectorUtils.copy(_sortedValues,_previousSortedValues);
 			
@@ -99,9 +167,9 @@ package weave.data.BinningDefinitions
 			
 			_v = 0;
 			_count = 2;
+			_m = 0;
 			
-			WeaveAPI.StageUtils.startTask(this,_iterateJenksBreaks,WeaveAPI.TASK_PRIORITY_PARSING,_handleJenksBreaks);
-			
+			return 1;
 		}
 		
 		private var _previousSortedValues:Array = [];
@@ -109,26 +177,29 @@ package weave.data.BinningDefinitions
 		private var _mat1:Array = [];
 		private var _mat2:Array = [];
 		private var _count:int = 2;
-		private var _m:int = 1;
+		private var _m:Number = 0;
 		private var _v:Number = 0;
 		private var _s1:Number = 0;
 		private var _s2:Number = 0;
-		
 		private var _w:Number = 0;
+		private var _p:Number = 2;
+		
 		private function _iterateJenksBreaks(returnTime:int):Number
 		{
 			for (; _count < _sortedValues.length + 1; _count++)
 			{
-				_s1= 0;
-				_s2= 0;
-				_w= 0;
-				_m =1;			
-				
+				if(_m==0)
+				{
+					_s1= 0;
+					_s2= 0;
+					_w= 0;
+					_m =1;			
+				}
 				for(; _m < _count + 1; _m++)
 				{
 					if(getTimer()>returnTime)
 					{
-						return 0;
+						return _count/(_sortedValues.length+1);
 					}
 					var i3:Number = _count - _m +1;
 					var val:Number = _sortedValues[i3-1];
@@ -141,16 +212,19 @@ package weave.data.BinningDefinitions
 					var i4:Number= i3 -1;
 					if(i4 !=0)
 					{
-						for (var p:Number = 2; p < numOfBins.value + 1; p++)
+						_p = 2;
+						for (; _p < numOfBins.value + 1; _p++)
 						{
-							if((_mat2[_count][p]) >= (_v + _mat2[i4][p-1]))
+							
+							if((_mat2[_count][_p]) >= (_v + _mat2[i4][_p-1]))
 							{
-								_mat1[_count][p] = i3;
-								_mat2[_count][p] = _v +_mat2[i4][p-1];
+								_mat1[_count][_p] = i3;
+								_mat2[_count][_p] = _v +_mat2[i4][_p-1];
 							}
 						}
 					}
 				}
+				_m = 0;
 				_mat1[_count][1] = 1;
 				_mat2[_count][1] = _v;
 			}
@@ -159,22 +233,22 @@ package weave.data.BinningDefinitions
 		
 		private function _handleJenksBreaks():void
 		{
+			var countNum:Number = numOfBins.value;
 			var kClassCount:Number =  _sortedValues.length;
 			var kClass:Array = [];
 			
-			for(var i:int = 0; i < numOfBins.value +1; i++)
+			for(var i:int = 0; i < countNum +1; i++)
 			{
 				kClass.push(0);
 			}
 			
 			//this is the last number in the array
-			kClass[numOfBins.value] = _sortedValues[_sortedValues.length -1];
+			kClass[countNum] = _sortedValues[_sortedValues.length -1];
 			
 			//this is the first numer in the array 
 			kClass[0] = _sortedValues[0];
 			
 			
-			var countNum:Number = numOfBins.value;
 			
 			while (countNum >=2)
 			{
@@ -233,8 +307,11 @@ package weave.data.BinningDefinitions
 				//if it is empty string set it from generateBinLabel
 				if(!name)
 					name = _tempNumberClassifier.generateBinLabel(_column as IPrimitiveColumn);
-				_output.requestObjectCopy(name, _tempNumberClassifier);
+				output.requestObjectCopy(name, _tempNumberClassifier);
 			}
+			
+			// trigger callbacks now because we're done updating the output
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		private function getSumOfNumbers(list:Array):Number
