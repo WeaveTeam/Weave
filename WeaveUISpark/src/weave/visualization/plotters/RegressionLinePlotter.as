@@ -133,7 +133,7 @@ package weave.visualization.plotters
 			dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
 			
 			// sends a request to Rserve to calculate the coefficients of the regression lograrithmic function to xColumn and yColumn
-			token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef"], Rstring, "", false, false, false);
+			token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef", "rSquared"], Rstring, "", false, false, false);
 			addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 
 		}
@@ -160,11 +160,21 @@ package weave.visualization.plotters
 				RresultArray.push(rResult);				
 			}
 			
-//			if (RresultArray.length > 1) // ToDo ??? why?
-			if (RresultArray.length > 1)
+			// R only returns coefficients and rSquared
+			if (RresultArray.length == 2)
 			{
 				coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
-				rSquared = Number((RresultArray[2] as RResult).value);
+				// Preprocess coefficients ==> It might return NaN in higher degree
+				// where it should in fact be 0.
+				for (var i:int = 0; i < coefficients.length; i++)
+				{
+					if (isNaN(coefficients[i]))
+					{
+						coefficients[i] = 0;
+					}
+				}
+				
+				rSquared = Number((RresultArray[1] as RResult).value);
 				getCallbackCollection(this).triggerCallbacks();	
 			}
 		}
@@ -200,67 +210,77 @@ package weave.visualization.plotters
 			
 			if(currentTrendline.value == LINEAR)
 			{
-				
-				points = new Vector.<Number>;
-				drawCommand = new Vector.<int>;
-
-				g.clear();
-//				if(!isNaN(intercept))
-//				{
-//					tempPoint.x = dataBounds.getXMin();
-//					tempPoint2.x = dataBounds.getXMax();
-//					
-//					tempPoint.y = (slope*tempPoint.x)+intercept;
-//					tempPoint2.y = (slope*tempPoint2.x)+intercept;
-//					
-//					tempRange.setRange( dataBounds.getYMin(), dataBounds.getYMax() );
-//					
-//					// constrain yMin to be within y range and derive xMin from constrained yMin
-//					tempPoint.x = tempPoint.x + (tempRange.constrain(tempPoint.y) - tempPoint.y) / slope;
-//					tempPoint.y = tempRange.constrain(tempPoint.y);
-//					
-//					// constrain yMax to be within y range and derive xMax from constrained yMax
-//					tempPoint2.x = tempPoint.x + (tempRange.constrain(tempPoint2.y) - tempPoint.y) / slope;
-//					tempPoint2.y = tempRange.constrain(tempPoint2.y);
-//					
-//					dataBounds.projectPointTo(tempPoint,screenBounds);
-//					dataBounds.projectPointTo(tempPoint2,screenBounds);
-//					lineStyle.beginLineStyle(null,g);
-//					//g.lineStyle(lineThickness.value, lineColor.value,lineAlpha.value,true,LineScaleMode.NONE);
-//					g.moveTo(tempPoint.x,tempPoint.y);
-//					g.lineTo(tempPoint2.x,tempPoint2.y);
-//					
-//					destination.draw(tempShape);
-//				}
+//				if(!isNaN(coefficients[0]))
+				if (coefficients != null)
+				{
+					tempPoint.x = dataBounds.getXMin();
+					tempPoint2.x = dataBounds.getXMax();
+					
+					tempPoint.y = (coefficients[1] * tempPoint.x) + coefficients[0];
+					tempPoint2.y = (coefficients[1] * tempPoint2.x) + coefficients[0];
+					
+					tempRange.setRange( dataBounds.getYMin(), dataBounds.getYMax() );
+					
+					// constrain yMin to be within y range and derive xMin from constrained yMin
+					tempPoint.x = tempPoint.x + (tempRange.constrain(tempPoint.y) - tempPoint.y) / coefficients[1];
+					tempPoint.y = tempRange.constrain(tempPoint.y);
+					
+					// constrain yMax to be within y range and derive xMax from constrained yMax
+					tempPoint2.x = tempPoint.x + (tempRange.constrain(tempPoint2.y) - tempPoint.y) / coefficients[1];
+					tempPoint2.y = tempRange.constrain(tempPoint2.y);
+					
+					dataBounds.projectPointTo(tempPoint,screenBounds);
+					dataBounds.projectPointTo(tempPoint2,screenBounds);
+					lineStyle.beginLineStyle(null,g);
+					//g.lineStyle(lineThickness.value, lineColor.value,lineAlpha.value,true,LineScaleMode.NONE);
+					g.moveTo(tempPoint.x,tempPoint.y);
+					g.lineTo(tempPoint2.x,tempPoint2.y);
+					
+					destination.draw(tempShape);
+				}
 			}	
 			else 
 			{
 				
 				if (coefficients != null)
 				{
-					// ToDo Use screenBounds to determine how many points should be drawn
-					// Preprocess coefficients ==> It might return NaN in higher degree
-					// where it should in fact be 0.
-					for (var i:int = 0; i < coefficients.length; i++)
-					{
-						if (isNaN(coefficients[i]))
-						{
-							coefficients[i] = 0;
-						}
-					}
-
+					points = new Vector.<Number>;
+					drawCommand = new Vector.<int>;
+					var previousPoint:Point = null;
+					
+					// Use dataBounds to determine how many points should be drawn
+//					var flag:Boolean = true;
+//					 for (var x:int = dataBounds.getXMin(); x < dataBounds.getXMax(); x++)
+//					 {
+//						tempPoint.x = x;
+//						
+//						tempPoint.y = 
+//						tempPoint.y = evalFunction(currentTrendline.value, coefficients, x);
+//						if (isNaN(tempPoint.y))
+//						{
+//							// technically this is a problem
+//						}
+//						
+//						dataBounds.projectPointTo(tempPoint, screenBounds);
+//						points.push(tempPoint.x);
+//						points.push(tempPoint.y);
+//						
+//						if (flag == true)
+//						{
+//							drawCommand.push(1);
+//							flag = false;
+//						}
+//						else drawCommand.push(2);
+//					}
+					 
+					// Use screenBounds to determine how many points should be drawn ==> Draw lines for every 3 pixels
+					var numberOfPoint:Number = Math.floor(screenBounds.getXCoverage() / 3);
+					var increment:Number = dataBounds.getXCoverage() / numberOfPoint;
 					var flag:Boolean = true;
-					 for (var x:int = dataBounds.getXMin(); x < dataBounds.getXMax(); x++)
-					 {
+					for (var x:Number = dataBounds.getXMin(); x <= dataBounds.getXMax(); x = x + increment)
+					{
 						tempPoint.x = x;
-						
-						tempPoint.y = 
 						tempPoint.y = evalFunction(currentTrendline.value, coefficients, x);
-						if (isNaN(tempPoint.y))
-						{
-							// technically this is a problem
-						}
-						
 						dataBounds.projectPointTo(tempPoint, screenBounds);
 						points.push(tempPoint.x);
 						points.push(tempPoint.y);
@@ -270,11 +290,14 @@ package weave.visualization.plotters
 							drawCommand.push(1);
 							flag = false;
 						}
-//						else if (tempPoint.y > screenBounds.getYMax() || tempPoint.y < screenBounds.getYMin())
-//							drawCommand.push(1);
-						else drawCommand.push(2);
+						else if (screenBounds.containsPoint(previousPoint) && screenBounds.containsPoint(tempPoint))
+							drawCommand.push(2);
+						else
+							drawCommand.push(1);
+						
+						previousPoint = tempPoint.clone();
 					}
-
+					
 					g.lineStyle(1);
 					g.drawPath(drawCommand, points);					
 					
@@ -282,16 +305,15 @@ package weave.visualization.plotters
 				}
 			}
 		}
+		
 		override public function dispose():void
 		{
 			super.dispose();
 			requestID = 0; // forces all results from previous requests to be ignored
 		}
 		
-		
 		private var points:Vector.<Number> = null;
 		private var drawCommand:Vector.<int> = null;
-		
 		
 		/**
 		 * 	@author Yen-Fu 
@@ -307,23 +329,25 @@ package weave.visualization.plotters
 				var degree:int = coefficients.length - 1;
 				for (var i:int = 0; i <= degree; i++)
 				{
-					result += coefficients[i] * Math.pow(xValue, degree - i);
+					result += coefficients[i] * Math.pow(xValue, i);
 				}
-			
+				
+				
 				return result;
 			}
 			else if (type == LOGARITHMIC) 
-			{				
+			{	
 				return coefficients[0]*Math.log(xValue) + coefficients[1];
 			}
-			
+				
+				
 			else if (type == EXPONENTIAL) 
 			{
-				return coefficients[0]*Math.exp(xValue) + coefficients[1];
+				return Math.exp(coefficients[0])*Math.exp(xValue*coefficients[1]);
 			}
 			else if (type == POWER) 
 			{
-				return coefficients[0]*Math.pow(xValue, coefficients[1]);	
+				return Math.exp(coefficients[0])*Math.pow(xValue, coefficients[1]);	
 			}
 			else
 			{
@@ -333,7 +357,7 @@ package weave.visualization.plotters
 			
 		// Trendlines
 		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), calculateRRegression);
-		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(""), calculateRRegression);
+		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(LINEAR), calculateRRegression);
 
 		[Bindable] public var trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
 		public static const LINEAR:String = "Linear";
