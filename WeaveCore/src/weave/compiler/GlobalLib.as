@@ -59,17 +59,20 @@ package weave.compiler
 	 */
 	public class GlobalLib
 	{
-		public static const decodeURI:Function = decodeURI;
-		public static const decodeURIComponent:Function = decodeURIComponent;
-		public static const encodeURI:Function = encodeURI;
-		public static const encodeURIComponent:Function = encodeURIComponent;
-		public static const escape:Function = escape;
-		public static const isFinite:Function = isFinite;
-		public static const isNaN:Function = isNaN;
-		public static const isXMLName:Function = isXMLName;
-		public static const parseFloat:Function = parseFloat;
-		public static const parseInt:Function = parseInt;
-		public static const unescape:Function = unescape;
+		private static function $(str:String):Function { return flash.utils.getDefinitionByName(str) as Function; }
+		
+		public static const trace:Function = $('trace');
+		public static const decodeURI:Function = $('decodeURI');
+		public static const decodeURIComponent:Function = $('decodeURIComponent');
+		public static const encodeURI:Function = $('encodeURI');
+		public static const encodeURIComponent:Function = $('encodeURIComponent');
+		public static const escape:Function = $('escape');
+		public static const isFinite:Function = $('isFinite');
+		public static const isNaN:Function = $('isNaN');
+		public static const isXMLName:Function = $('isXMLName');
+		public static const parseFloat:Function = $('parseFloat');
+		public static const parseInt:Function = $('parseInt');
+		public static const unescape:Function = $('unescape');
 		
 		public static const enterDebugger:Function = flash.debugger.enterDebugger;
 		

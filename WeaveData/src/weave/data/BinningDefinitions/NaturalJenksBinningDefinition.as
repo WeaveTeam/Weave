@@ -26,6 +26,7 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
@@ -33,9 +34,11 @@ package weave.data.BinningDefinitions
 	import weave.api.reportError;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
+	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -58,26 +61,47 @@ package weave.data.BinningDefinitions
 		// reusable temporary object
 		private static const _tempNumberClassifier:NumberClassifier = new NumberClassifier();
 		
-		private var _output:ILinkableHashMap = null;
 		private var _column:IAttributeColumn = null;
 		private var asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
-			_output = output;
 			_column = column;
-			// clear any existing bin classifiers
-			_output.removeAllObjects();
-			
-			_previousSortedValues.length = 0;
-			
-			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
-			
-			_keys = column ? column.keys.concat() : []; // make a copy so we know length won't change during async task
-			
-			SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
+			if (column)
+			{
+				// BEGIN DIMENSION SLIDER HACK
+				var nonWrapperColumn:IAttributeColumn = column;
+				while (nonWrapperColumn is IColumnWrapper)
+					nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
+				if (nonWrapperColumn is SecondaryKeyNumColumn)
+				{
+					SecondaryKeyNumColumn.allKeysHack = true;
+					var noChange:Boolean = (_keys === nonWrapperColumn.keys);
+					_keys = nonWrapperColumn.keys;
+					SecondaryKeyNumColumn.allKeysHack = false;
+					// stop if we already did this
+					if (noChange)
+					{
+						asyncResultCallbacks.triggerCallbacks();
+						return;
+					}
+				}
+				else
+				// END DIMENSION SLIDER HACK
+				{
+					_keys = column.keys.concat(); // make a copy so we know length won't change during async task
+				}
+			}
+			else
+			{
+				_keys = [];
+			}
 			
 			_sortedValues = new Array(_keys.length);
 			_keyCount = 0;
+			_previousSortedValues.length = 0;
+			
+			// clear any existing bin classifiers
+			output.removeAllObjects();
 			
 			// stop any previous sort task by sorting an empty array
 			asyncSort.beginSort(_previousSortedValues);
@@ -283,7 +307,7 @@ package weave.data.BinningDefinitions
 				//if it is empty string set it from generateBinLabel
 				if(!name)
 					name = _tempNumberClassifier.generateBinLabel(_column as IPrimitiveColumn);
-				_output.requestObjectCopy(name, _tempNumberClassifier);
+				output.requestObjectCopy(name, _tempNumberClassifier);
 			}
 			
 			// trigger callbacks now because we're done updating the output
