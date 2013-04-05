@@ -31,7 +31,7 @@ package weave.ui.DataMiningEditors
 		public var numberInput:TextInputWithPrompt = new TextInputWithPrompt();
 		public var identifier:String = new String();
 		
-		public function NumberInputComponent(_identifier:String, _inputPrompt:String)
+		public function NumberInputComponent(_identifier:String = null, _inputPrompt:String = null)
 		{
 			this.identifier = _identifier;
 			numberInput.prompt = _inputPrompt;

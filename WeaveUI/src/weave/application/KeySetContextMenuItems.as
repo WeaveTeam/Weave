@@ -33,7 +33,9 @@ package weave.application
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IDataRowSource;
+	import weave.api.ui.IVisTool;
 	import weave.core.LinkableHashMap;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
@@ -42,6 +44,7 @@ package weave.application
 	import weave.ui.DataMiningEditors.DataMiningPlatter;
 	import weave.ui.DraggablePanel;
 	import weave.ui.RecordDataTable;
+	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
@@ -60,6 +63,7 @@ package weave.application
 		private static var _showAllRecordsCMI:ContextMenuItem = null;
 		private static var _viewRecordCMI:ContextMenuItem = null;
 		private static var _runClusteringonSubsetCMI:ContextMenuItem = null;
+		private static var _doStatisticsonSubsetCMI:ContextMenuItem = null;
 		
 		//todo: get these from the active visualization instead?
 		private static var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -76,6 +80,7 @@ package weave.application
 		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove probed record(s) from subset");
 		
 		private static const SUBSET_RUN_CLUSTERING_CAPTION:String           = lang("Run clustering on subset");
+		private static const SUBSET_DO_STATISTICS_CAPTION:String = lang("Compute Statistics on subset");
 		
 		/**
 		 * @param context Any object created as a descendant of a Weave instance.
@@ -108,6 +113,7 @@ package weave.application
 						// create subset only if we have something selected
 						_createSubsetCMI.enabled   		= usingSelection;
 						_runClusteringonSubsetCMI.enabled       = usingSelection;
+						_doStatisticsonSubsetCMI.enabled  = usingSelection;
 
 						// first check to see if there is a selection - if so make subset from selection
 						if(selection.keys.length > 0)
@@ -115,6 +121,7 @@ package weave.application
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_SELECTION_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_SELECTION_CAPTION;
 							_runClusteringonSubsetCMI.caption = SUBSET_RUN_CLUSTERING_CAPTION;
+							_doStatisticsonSubsetCMI.caption = SUBSET_DO_STATISTICS_CAPTION;
 						}
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
@@ -172,13 +179,7 @@ package weave.application
 							if(attrs[i] is LinkableHashMap)//picking up only the hashmap of the current opened tool
 								input = attrs[i];
 						}
-						//works
-						/*var clusterTray:ClusteringCollection = new ClusteringCollection();
-						clusterTray.selectedRecords = selection.keys;
-						clusterTray.inputColumns = input;
-						FlexGlobals.topLevelApplication.visDesktop.addChild(clusterTray);*/
 						
-						//testing
 						var dmTool:DataMiningPlatter = DataMiningPlatter.getPlatterInstance();
 						dmTool.selectedRecords = selection.keys;
 						dmTool.inputVariables = input;
@@ -188,6 +189,36 @@ package weave.application
 					},
 					groupName
 				);
+			
+			_doStatisticsonSubsetCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
+				SUBSET_DO_STATISTICS_CAPTION,
+				destination,
+				function(e:Event):void
+				{
+					trace("computing statistics");
+					//collect selected records and send to R
+					//needed to collect the tool on which the context menu is opened
+					var activeTool:DraggablePanel = CustomContextMenuManager.activePanel;
+					var attrs:Array = (activeTool as SimpleVisTool).getSelectableAttributes();
+					var input:LinkableHashMap;
+					
+					for(var d:int = 0; d < attrs.length; d++)
+					{
+						if(attrs[d] is ILinkableHashMap)
+						input = attrs[d];
+					}
+					
+					var statTool:DataStatisticsTool = DataStatisticsTool.getStatToolInstance();
+					statTool.selectedRecords = selection.keys;
+					statTool.inputVariables = input;
+					FlexGlobals.topLevelApplication.visDesktop.addChild(statTool);
+					
+				},
+				groupName
+				
+		    	);
+				
+				
 				
 				
 			// create and add the add to subset context menu item

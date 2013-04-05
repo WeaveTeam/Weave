@@ -23,11 +23,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 /Editors are generated dynamically depending on the identity of the datamining algorithm object
 @spurushe-->
 
-<mx:Panel title="Algorithm Parameter Input Panel" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
-		  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop = "10" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-	<!--mx:ControlBar  horizontalAlign="right" width = "400" height="50">
-		<mx:Button label="Save" click="savingParameters(event)"/>
-	</mx:ControlBar-->
+<mx:Panel title="Algorithm Parameter Input Panel" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" minHeight="0" minWidth="0"
+		  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop = "10" horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all">
+	<mx:Canvas id="uichildrenContainer">
+		
+	</mx:Canvas>
+	
+	<mx:ControlBar id="cb" horizontalAlign="right" width="400" height="80">
+		<mx:Button label="Save" id="saveB"/>
+	</mx:ControlBar>
+		
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;

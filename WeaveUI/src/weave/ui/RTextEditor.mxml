@@ -446,6 +446,11 @@ RTextEditor
 			
 			
 
+			/* protected function draggablepanel1_addedToStageHandler(event:Event):void
+			{
+				addAsyncResponder(query, checkForJRIService, 
+			} */
+			
 		]]>
 	</mx:Script>
 	

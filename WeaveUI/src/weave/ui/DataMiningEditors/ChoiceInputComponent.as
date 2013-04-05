@@ -34,7 +34,7 @@ package weave.ui.DataMiningEditors
 		public var choiceBox:ComboBox = new ComboBox();
 		public var identifier:String = new String();
 		
-		public function ChoiceInputComponent(_identifier:String, _objects:Array)
+		public function ChoiceInputComponent(_identifier:String = null, _objects:Array = null)
 		{
 			this.identifier = _identifier;
 			choiceBox.dataProvider = _objects;
@@ -43,7 +43,7 @@ package weave.ui.DataMiningEditors
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			this..addChild(choiceBox);
+			this.addChild(choiceBox);
 			
 		}
 	}

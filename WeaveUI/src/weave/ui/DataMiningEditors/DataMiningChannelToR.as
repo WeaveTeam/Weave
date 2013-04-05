@@ -58,7 +58,7 @@ package weave.ui.DataMiningEditors
 		public function DataMiningChannelToR(incomingDataMiningObjects:Dictionary, _inputColumns:Array, _inputKeys:Array)
 		{
 			sortingDMObjects(incomingDataMiningObjects, _inputColumns,_inputKeys);
-			sendingAsyncCallCounter = 0;
+			//sendingAsyncCallCounter = 0;
 			receivedAsyncCallCounter = 0;
 		}
 		
@@ -72,22 +72,22 @@ package weave.ui.DataMiningEditors
 				if(tempObject.label == "KMeans Clustering")
 				{
 					var kMeans:KMeansClustering = new KMeansClustering(this,fillingRResults);
-					kMeans.doKMeans(inputColumns,inputKeys,tempObject.parameterMapping["kClusterNumber"], tempObject.parameterMapping["kIterationNumber"],tempObject.parameterMapping["kMeansAlgo"],7);
 					sendingAsyncCallCounter++;
+					kMeans.doKMeans(inputColumns,inputKeys,tempObject.parameterMapping["kClusterNumber"], tempObject.parameterMapping["kIterationNumber"],tempObject.parameterMapping["kMeansAlgo"],7);
 				}
 				
 				if(tempObject.label == "Fuzzy KMeans Clustering")
 				{
 					var fuzzKMeans:FuzzyKMeansClustering = new FuzzyKMeansClustering(this,fillingRResults);
-					fuzzKMeans.doFuzzyKMeans(inputColumns,inputKeys,tempObject.parameterMapping["fkClusterNumber"], tempObject.parameterMapping["fkIterationNumber"],tempObject.parameterMapping["fkMeansmetric"]);
 					sendingAsyncCallCounter++;  
+					fuzzKMeans.doFuzzyKMeans(inputColumns,inputKeys,tempObject.parameterMapping["fkClusterNumber"], tempObject.parameterMapping["fkIterationNumber"],tempObject.parameterMapping["fkMeansmetric"]);
 				}
 				
 				if(tempObject.label == "Partition Around Medoids Clustering")
 				{
 					var pam:PartitionAroundMedoidsClustering = new PartitionAroundMedoidsClustering(this,fillingRResults);
-				    pam.doPAM(inputColumns,inputKeys,tempObject.parameterMapping["pamClusternumber"], tempObject.parameterMapping["pammetric"]);
 					sendingAsyncCallCounter++;
+				    pam.doPAM(inputColumns,inputKeys,tempObject.parameterMapping["pamClusternumber"], tempObject.parameterMapping["pammetric"]);
 				}
 				
 			}

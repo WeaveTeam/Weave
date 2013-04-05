@@ -28,7 +28,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				title="Data Mining Algorithm Toolbox"
 				
-				backgroundColor="0x87CEFF" width="300" height="400"
+				backgroundColor="0x87CEFF" minWidth="0" minHeight="0"
 				layout="horizontal"
 				autoLayout="true"
 				implements="weave.api.ui.IVisTool" creationComplete="init();" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*" xmlns:s="library://ns.adobe.com/flex/spark"
@@ -43,6 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.core.UIComponent;
 			import mx.events.CollectionEvent;
 			import mx.events.ListEvent;
+			import mx.events.ResizeEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -69,13 +70,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var finalColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
 			public var subsetFinalColumns:Array = new Array();
 			public var selectedRecords:Array = new Array();//when a subset selected from a visualization is the input for Dm algos
-			public var subsetSelectedOn:Boolean = false;// if this tool is used for ubset selection, will be changed to true
+			public var subsetSelectedOn:Boolean = false;// if this tool is used for subset selection, will be changed to true
 			public var latestColumnKeys:Array = new Array();
 			public var finalColumns:Array = new Array();
 			
 			
 			private static var platterInstance : DataMiningPlatter = null;
-			private var currentDMObject:DataMiningAlgorithmObject;
+			private var currentDMObject:DataMiningAlgorithmObject;//recyclable dataminingAlgoObject
 			private var collectionOfDataMinigObjects:Dictionary = new Dictionary();// collects all the data mining objects and then sends them to the DataminingChannelToR for comuptation in R
 			
 			[Bindable]
@@ -109,7 +110,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function init():void
 			{
 				algoListFiller.dispatchEvent(new CollectionEvent(CollectionEvent.COLLECTION_CHANGE));
+				originalBox.addEventListener(ResizeEvent.RESIZE,updatePanelSize);
 				trace("arrayCollection dispatched event"); 
+			}
+			
+			private function updatePanelSize(e:Event = null):void
+			{
+				if(parameterInputPanel)
+				{
+					parameterInputPanel.width = 0.35 * originalBox.width;
+					parameterInputPanel.height = 0.8 * originalBox.height;
+				}
 			}
 			
 			override protected function constructor():void
@@ -232,43 +243,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//this constructs the respective UI components depending on which algorithm is selected
 		    public function constructParameterInput(data:DataMiningAlgorithmObject):void
 			{
-					var cb:ControlBar = new ControlBar();
+					//var cb:ControlBar = new ControlBar();
 				//check if already exists; creating only one instance of the platter
 				if(parameterInputPanel == null) 
 				{
-					parameterInputPanel = new DMiningParameterPanel;
-					parameterInputPanel.width = 0.35 * originalBox.width; 
-					parameterInputPanel.height = 0.8 * originalBox.height;
-					var saveB:Button = new Button(); 
-					saveB.label = "Save"; 
-					saveB.addEventListener(MouseEvent.CLICK, savingParameters);
-					cb.addChild(saveB);
+					parameterInputPanel = new DMiningParameterPanel();
 				}
 				originalBox.addChild(parameterInputPanel);
+				updatePanelSize(); //when constructor runs first time
+				parameterInputPanel.saveB.addEventListener(MouseEvent.CLICK,savingParameters);
 				
 				if(data.isSelectedInAlgorithmList == false)
 				{
-					parameterInputPanel.removeAllChildren();
+					parameterInputPanel.uichildrenContainer.removeAllChildren();
 					
 				}
 				
 				//clear the panel before any new dispay of input UI
 				if(data.isSelectedInAlgorithmList == true)
 				{
-					parameterInputPanel.removeAllChildren();
-					var objectsReturned:Array = parameterInputPanel.generateUIComponents(data);//returns an array [uicomponents, dmObject]
+					parameterInputPanel.uichildrenContainer.removeAllChildren();
+					//returns an array [uicomponents, dmObject]
+					//For every dataminingAlgoObjects(provides the context) an array of corresponding UI elements is returned
+					var objectsReturned:Array = parameterInputPanel.generateUIComponents(data);
 					
 					for( var r:int = 0; r < objectsReturned.length; r++)
 					{
 						if(objectsReturned[r] is VBox)
-						var uiComponentList:VBox = objectsReturned[r];
+							var uiComponentList:VBox = objectsReturned[r];
+						parameterInputPanel.uichildrenContainer.addChild(uiComponentList);
 						if(objectsReturned[r] is DataMiningAlgorithmObject)
-				   	    currentDMObject = objectsReturned[r] as DataMiningAlgorithmObject;
+				   	   		currentDMObject = objectsReturned[r] as DataMiningAlgorithmObject;
 					}
 					
 					
-					parameterInputPanel.addChild(uiComponentList);
-					parameterInputPanel.addChild(cb);//always keep the Save button
+					
+					//parameterInputPanel.addChild(cb);//always keep the Save button
 					
 				}
 			}	
@@ -321,64 +331,61 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:ArrayCollection id="algoListFiller" 
 						source="{listOfAlgo}" 
 						collectionChange="algoListFiller_collectionChange(event);"/>
-	<mx:VBox width="100%" height="100%">
-	<mx:HBox id="originalBox" width="100%" height="95%">
+	<mx:VBox width="100%" height="100%" minWidth="0" minHeight="0">
+	<mx:HBox id="originalBox" width="100%" height="95%" minHeight="0" minWidth="0">
 		<!--1-->
 		<ColumnListComponent width="20%" height="80%" id="columns" hashMap="{inputVariables}"/>
 		<!--2-->
-			<mx:Panel width="20%" height="80%"
-					  id="pan1" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
-					  title="Choose the data mining algorithms"
-					  styleName="opaquePanel">
-				<mx:List id="dmAlgoList" width="100%" height="100%" dataProvider="{algoListFiller}"
-						 alternatingItemColors="[#EEEEEE, white]" 
-						 toolTip="Select the checkbox to enter parameter input">
-					
-					<mx:itemRenderer>
-						<mx:Component>
-								<mx:CheckBox  selectedField ="isSelectedInAlgorithmList"
-											 change="cb_changeHandler(event)">
-								<mx:Script>
-									<![CDATA[
-										
-										private function cb_changeHandler(event:Event):void
-										{
-											(data as DataMiningAlgorithmObject).isSelectedInAlgorithmList = !(data as DataMiningAlgorithmObject).isSelectedInAlgorithmList;
-											outerDocument.constructParameterInput(data as DataMiningAlgorithmObject);
-										}
-									]]>
-								</mx:Script>
-								</mx:CheckBox>
-						</mx:Component>
-					</mx:itemRenderer>
-				</mx:List>	
-			<mx:ControlBar horizontalAlign="right">
-				<mx:Label id="selectedDisplayStatus"/>
-			</mx:ControlBar>
-   			</mx:Panel>	
+		<mx:Panel width="30%" height="80%"  minWidth="0" minHeight="0"
+				  id="pan1" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
+				  title="Choose the data mining algorithms"
+				  styleName="opaquePanel">
+			<mx:List id="dmAlgoList" width="100%" height="100%" dataProvider="{algoListFiller}"
+					 alternatingItemColors="[#EEEEEE, white]" 
+					 toolTip="Select the checkbox to enter parameter input">
+				
+				<mx:itemRenderer>
+					<mx:Component>
+							<mx:CheckBox  selectedField ="isSelectedInAlgorithmList"
+										 change="cb_changeHandler(event)">
+							<mx:Script>
+								<![CDATA[
+									
+									private function cb_changeHandler(event:Event):void
+									{
+										(data as DataMiningAlgorithmObject).isSelectedInAlgorithmList = !(data as DataMiningAlgorithmObject).isSelectedInAlgorithmList;
+										outerDocument.constructParameterInput(data as DataMiningAlgorithmObject);
+									}
+								]]>
+							</mx:Script>
+							</mx:CheckBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>	
+		<mx:ControlBar horizontalAlign="right">
+			<mx:Label id="selectedDisplayStatus"/>
+		</mx:ControlBar>
+   		</mx:Panel>	
 	
 		
 		<!--3-->
-			<mx:Panel width="25%" height="80%" title="Algorithm Cart" fontWeight="bold" styleName="opaquePanel"
-					  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
-				<mx:List width = "100%" height="100%" id="secondList" dataProvider="{selectedAlgorithmList}"
-						  alternatingItemColors="[#FFA2FF, white]" toolTip="Click on algorithm to view parameter input">
-				</mx:List>
-				<mx:ControlBar horizontalAlign="right">
-					<mx:Button label="Save List"/>
-					<mx:Button label="Import List"/>
-				</mx:ControlBar>
-			<!--mx:TextArea  width = "100%" height="100%" id="displayList" text="" color="0x635BAA" fontWeight="bold">
-				
-			</mx:TextArea-->
-		  </mx:Panel>
-		
-</mx:HBox>
-	
-	<mx:HBox width="100%" height="5%">
-		
-	<s:Spacer height="10" width="90%"/>
-   <mx:Button id="sendToRButton" height="20" label="Run" click="sendToRButton_clickHandler(event)"/>
+		<mx:Panel width="30%" height="80%"  minWidth="0" minHeight="0" title="Algorithm Cart" fontWeight="bold" styleName="opaquePanel"
+				  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+			<mx:List width = "100%" height="100%" id="secondList" dataProvider="{selectedAlgorithmList}"
+					  alternatingItemColors="[#FFA2FF, white]" toolTip="Click on algorithm to view parameter input">
+			</mx:List>
+			<mx:ControlBar horizontalAlign="right">
+				<mx:Button label="Save List" enabled="false"/>
+				<mx:Button label="Import List" enabled="false"/>
+			</mx:ControlBar>
+		<!--mx:TextArea  width = "100%" height="100%" id="displayList" text="" color="0x635BAA" fontWeight="bold">
+			
+		</mx:TextArea-->
+	  </mx:Panel>		
+	</mx:HBox>	
+	<mx:HBox width="100%" height="5%"  minWidth="0" minHeight="0">	
+		<s:Spacer height="10" width="90%"/>
+	   <mx:Button id="sendToRButton" height="20" label="Run" click="sendToRButton_clickHandler(event)"/>
 	</mx:HBox>
 </mx:VBox>
 </DraggablePanel> 

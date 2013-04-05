@@ -27,7 +27,8 @@
 				title="{lang('R Interface Tool')}"
 				layout="horizontal"
 				autoLayout="true"
-				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*">
+				creationComplete="draggablepanel1_creationCompleteHandler(event)"
+				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
 	<mx:VBox paddingLeft="10" paddingRight="5" paddingTop="5" paddingBottom="20" width="100%" height="100%">
 		<mx:MenuBar id="ROptions" labelField="@label" fontWeight="bold" cornerRadius="8" itemClick="menuItemClickHandler(event)"
 					change="onTopSelection(event)">
@@ -71,7 +72,76 @@
 		<!-- Data manipulation and value exhibit-->
 		<mx:VBox id="dataBox" width="50%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
 			<mx:Label text="(1) Select data to send to R" fontWeight="bold"/>
-			<ColumnListComponent id="data" width="100%" height="50%" hashMap="{dataColumns}" />
+			<mx:TabNavigator width="100%" height="100%">
+				<mx:VBox label="Columns">
+					<mx:HBox paddingLeft="5" paddingRight="5">
+						<mx:CheckBox id="columnsasVectorCB" label="Send Columns to R as Vectors" enabled="false"/>
+						<mx:CheckBox id="columnsasHashmapCB" label="Send Columns to R as Key - Value pairs" enabled="false"/>
+					</mx:HBox>
+				<ColumnListComponent id="data" width="100%" hashMap="{variables}" label="Columns" />
+					
+				</mx:VBox>
+				<mx:VBox id="columndistribution" label="Distribution" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
+					<mx:Label text="Distribution of column data"/>
+					<mx:List rowHeight="100" width="100%" height="100%" id="distrList" dataProvider = "{distributionObjCanvasArray}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox height="50%" verticalScrollPolicy="off" horizontalScrollPolicy="off" >
+									<mx:Label id="lb"  fontWeight="bold"/>
+									<mx:Image  id="img"  />
+									<mx:Script>
+										<![CDATA[
+											override public function set data(value:Object):void{
+												
+												//super.data = value;
+												if(value != null)
+												{
+													lb.text = value.label;
+													img.source = value.icon;
+												}
+											}
+										]]>
+									</mx:Script>
+									
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:List>
+					
+				</mx:VBox>
+				<mx:VBox id="statisticsBox" label="Statistics" paddingLeft="5" paddingRight="5">
+					
+				</mx:VBox>
+				
+				<mx:VBox id="missingDataBox" label="Missing Data">
+					
+				</mx:VBox>
+				
+				<mx:VBox id="misc" label="Miscellaneous">
+					<mx:TabNavigator width="100%" height="100%">
+						<mx:VBox id="sampling" label="Sampling">
+							
+							<mx:HBox width="100%" height="80%">
+								<!-- Sampling Data records-->
+								<mx:VBox width="50%" paddingRight= "5" paddingLeft="5" paddingTop="5">
+									<mx:Label text="1. Sampling Records" fontWeight="bold"/>
+									<DataMiningEditors:NumberInputComponent id="samplingRecordsTA" label="Enter the sample size" identifier="samplingRecords" />
+										
+								</mx:VBox>
+								
+								<!-- Sampling Data Columns-->
+								<mx:VBox>
+									<mx:Label text="2. Sampling Columns" fontWeight="bold"/>
+									<DataMiningEditors:ChoiceInputComponent id="samplingColumnsCB" label="Choose constant columns" toolTip="These columns will always remain in the sample"/>
+								</mx:VBox>
+							</mx:HBox>
+								<mx:Button id="runSampleBUtton" label="Sample" />
+							
+						</mx:VBox>
+					</mx:TabNavigator>
+					
+				</mx:VBox>
+			</mx:TabNavigator>
 			<mx:Button id="assignmentButton" label="(2) Generate and assign Variables" click="updateVariableAssignment(event)"/>
 			
 			<mx:Label text="Orginal Columns" fontWeight="bold"/>
@@ -154,9 +224,11 @@
 											prompt="{lang('foo = attr0 + attr1')}"
 											/-->
 				</mx:VBox>
+				
 				<mx:VBox id="plotScriptTab" label="R plotscript">
 					<mx:TextArea id="RPlotscriptTA" width="100%" height="100%"/>
 				</mx:VBox>
+				
 			</mx:TabNavigator>
 			<mx:HBox>
 			<mx:Spacer width="75%"	/>
@@ -195,9 +267,10 @@
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
-			import mx.controls.Menu;
+			import mx.controls.DataGrid;
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
@@ -218,12 +291,11 @@
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.ui.DataMiningEditors.DataMiningPlatter;
+			import weave.ui.DataMiningEditors.DataPreloadInR;
 			import weave.ui.DataMiningEditors.FuzzyKMeansClusteringEditor;
 			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.ui.DataMiningEditors.PamClusteringEditor;
@@ -237,7 +309,7 @@
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();
 			[Bindable]
 			public var scriptResultValueExhibitCollection:ArrayCollection = new ArrayCollection();
-			public const dataColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const RScriptTAtext:LinkableString = newLinkableChild(this, LinkableString);
 			public const RPlotscriptTALinkabletext:LinkableString = newLinkableChild(this, LinkableString);
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
@@ -255,9 +327,27 @@
 			private var showWarnings:Boolean = false;
 			private var showIntermediateResults:Boolean = false;
 			
+			
+			private var joinedColumns:Array ;
+			private var outputNames:Array = new Array();
+			private var finalGridDisplayArray:Array = new Array();
+			public var colNames:Array = new Array();//
+			private var latestjoinedColumnKeys:Array = new Array();
+			//drawing binned Columns obtained from R
+			[Bindable]
+			public var distributionObjCanvasArray:Array = new Array();//collects all the canvases for all the columns (one canvas per column)
+			private var statDataGrid:DataGrid = null;
+			private var columnObjectCollection:ArrayCollection = new ArrayCollection();
+			
+			private var rPreload:DataPreloadInR = DataPreloadInR.getDataPreloadInRinstance(fillingResult);//used for calculating certain statistics as soon as data is loaded
+			private var normBinAndStatResult:Array = new Array();//object returned from R which contains stats, distributions 
+			
 			override protected function constructor():void
 			{
 				super.constructor();				
+				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				for (var i:int = 0; i < columns.length; i++)
+					variables.requestObjectCopy(null, columns[i]);
 				
 			}
 			
@@ -266,7 +356,43 @@
 				super.childrenCreated();
 				linkBindableProperty(RScriptTAtext,RScriptTA,"text");
 				linkBindableProperty(RPlotscriptTALinkabletext,RPlotscriptTA,"text");
+				
+				variables.addImmediateCallback(this, normaBinAndStatR, true);
 			}
+			
+			private function fillingResult(_incomingObject:Array):void
+			{
+				normBinAndStatResult = _incomingObject;
+				//drawing the column distributions
+				distributionObjCanvasArray = rPreload.drawingColumnDistribution(normBinAndStatResult[0]);
+				//displaying the statistics in a data grid
+				var dg:DataGrid = rPreload.displayStatistics(normBinAndStatResult[1]);
+				statisticsBox.addChild(dg);
+			}
+			
+			//this function sneds the dataset to R, where the data is normalized, binned and statistics of each numerical column are calculated
+			private function normaBinAndStatR():void 
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(variables))//do the next chunk of code only after _plotter.columns is filled
+					return;
+				
+				var colObjects:Array = variables.getObjects(IAttributeColumn);
+				
+				//TO:Do figure out UI for choosing more than one column
+				//in order to show column Names for sampling Column options
+				/* for(var d:int = 0; d < colObjects.length; d++)
+				{
+					colNames.push(ColumnUtils.getTitle((colObjects[d] as IAttributeColumn)));
+				}
+				
+				samplingColumnsCB.choiceBox.dataProvider = colNames; */
+				
+				rPreload.normaBinAndStatR(variables);
+				if(normBinAndStatResult.length == 0)
+					return;
+			}
+			
+			
 			
 			protected function onTopSelection(event:MenuEvent):void
 			{
@@ -313,16 +439,15 @@
 				if((e as MenuEvent).label == "Data mining Platter") 
 				{
 					var platterInstance:DataMiningPlatter = DataMiningPlatter.getPlatterInstance();
-					platterInstance.inputVariables = dataColumns;
+					platterInstance.inputVariables = variables;
 					FlexGlobals.topLevelApplication.visDesktop.addChild(platterInstance); 
 				}
 			}
 			
-			
 			protected function updateVariableAssignment(event:MouseEvent):void
 			{
 				//valueExhibitCollection.removeAll();//cleans the data grid entries before every selection
-			    var colObjects:Array = dataColumns.getObjects(IAttributeColumn);
+			    var colObjects:Array = variables.getObjects(IAttributeColumn);
 				
 				//collecting Column Titles
 				for(var i:int = 0; i < colObjects.length; i++)
@@ -367,7 +492,7 @@
 				var joinedColumnKeys:Array;
 				var joinedColumns:Array;
 				//Columns from ColumnListComponent 
-				var colObjects:Array = dataColumns.getObjects(IAttributeColumn);
+				var colObjects:Array = variables.getObjects(IAttributeColumn);
 				
 				var attributeColumns:Array = new Array();
 				//Use as Attribute column as joinColumns takes mebers of IAttributeColumn
@@ -653,6 +778,34 @@
 				if(event.detail == Alert.NO)
 				{
 					
+				}
+			}
+			
+			//to do check if custom type enumeration should be created
+			private static const servicesAvailable:Array = ["JRI","Rserve"];
+			
+			// this is the default value used
+			private static var currentService:String = "Rserve";
+			
+			//checks if the system posseses JRI or Rserve to update column sending options
+			protected function draggablepanel1_creationCompleteHandler(event:FlexEvent):void
+			{
+				var query:AsyncToken = Rservice.checkforJRIService();
+				addAsyncResponder(query, handleJRIPresent, handleRunScriptFault ,null);
+			}
+			
+			private function handleJRIPresent(event:ResultEvent, token:Object = null):void
+			{
+				if(event.result == false)// if JRI absent no options; columns have to be sent as vectors
+				{
+					columnsasVectorCB.enabled = false;
+					columnsasHashmapCB.enabled = false;
+				}
+					
+				if(event.result == true)//if JRI present then option available whether to send columns as vectors or (key-value) pairs
+				{
+					columnsasHashmapCB.enabled = true;
+					columnsasVectorCB.enabled = true;
 				}
 			}
 			

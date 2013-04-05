@@ -71,6 +71,28 @@ public class RService extends GenericServlet
 	enum ServiceType { JRI, RSERVE; }
 	private static ServiceType serviceType = ServiceType.JRI;
 	
+	public boolean checkforJRIService()throws Exception
+	{
+	    boolean jriStatus;
+	
+	    try
+			{
+				if(RServiceUsingJRI.getREngine() != null)
+						jriStatus = true;
+					else
+						jriStatus = false;
+				
+			}
+			//if JRI not present
+			catch (RServiceUsingJRI.JRIConnectionException e) {
+				e.printStackTrace();
+				jriStatus = false;
+			}
+	//	}
+		
+		return jriStatus;
+	}
+	
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
 		Exception exception = null;
