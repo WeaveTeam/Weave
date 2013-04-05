@@ -22,7 +22,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		  width="185" height="{(WeaveAPI.topLevelApplication as DisplayObject).height / 1.5}"
 		  creationComplete="creationCompleteHandler(event)" horizontalScrollPolicy="off"
 		  layout="absolute" move="repositionWindowsHandler(event)" title="Collaboration Group"
-		  verticalScrollPolicy="off">
+		  enterFrame="microphoneActivityCheck(event)" verticalScrollPolicy="off">
 	<mx:List id="userList" width="100%" height="100%" minWidth="130" labelField="name">
 		<mx:itemRenderer>
 			<mx:Component>
@@ -283,6 +283,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
 				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue);
 				collabService.addEventListener(CollaborationEvent.USER_REQUEST_PROFILE_PIC_LINK, requestPicLink);
+				collabService.addEventListener(CollaborationEvent.MICROPHONE_ACTIVITY, microphoneActivityBorder);
 				
 				if( stage != null )
 					stage.addEventListener(Event.RESIZE, handleResize);
@@ -1011,6 +1012,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					default:
 						break;
 				}
+			}
+			
+			protected function microphoneActivityCheck(event:Event):void
+			{
+				if( CHAT == null )
+					return;
+				if( !CHAT.enabledMic )
+					return;
+				collabService.sendMicrophoneActivity(collabService.nickname, CHAT.mic.activityLevel);
+			}
+			
+			private function microphoneActivityBorder(e:CollaborationEvent):void
+			{
+				if( PARTICIPANTS != null && e.getText() )
+					PARTICIPANTS.appplyBorder(e.getText(), e.getX());
 			}
 			
 		]]>

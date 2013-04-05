@@ -18,9 +18,9 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
-		   width="100" height="80" borderColor="#54585E" borderStyle="solid" borderThickness="3"
-		   creationComplete="creationComplete(event)" creationPolicy="all" verticalScrollPolicy="off" horizontalScrollPolicy="off">
-	<mx:VBox width="100%" height="100%">
+		   width="100" height="80" creationComplete="creationComplete(event)" creationPolicy="all" 
+		   verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:VBox width="100%" height="100%" id="borderBox" borderThickness="3" borderStyle="solid">
 		<mx:UIComponent id="videoArea" width="100%" height="100%"/>
 		<mx:Label id="nameLabel" width="100%" height="3%"/>
 	</mx:VBox>	
@@ -104,6 +104,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				video.height = videoArea.height;
 				video.width = videoArea.width;
 				videoArea.addChild(video);
+				cooldownTimer.addEventListener(TimerEvent.TIMER_COMPLETE, resetBorder);
 			}
 			
 			/*
@@ -117,6 +118,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					video.width = videoArea.width;
 					applyImage();
 				}
+			}
+			
+			private var cooldownTimer:Timer = new Timer(1000, 1);
+			
+			public function setTalking(vol:int):void
+			{
+				if( vol > 25 )
+				{
+					borderBox.setStyle("borderColor", "0x00F5FF");
+					cooldownTimer.reset();
+					cooldownTimer.start();
+				}
+				else
+				{
+					if( !cooldownTimer.running )
+						borderBox.setStyle("borderColor", "0x000000");
+				}
+			}
+			
+			private function resetBorder(e:TimerEvent):void
+			{
+				trace("hi");
+				borderBox.setStyle("borderColor", "0x000000");
 			}
 			
 			//Temporary object to store a user's picture.

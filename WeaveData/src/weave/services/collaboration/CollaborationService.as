@@ -97,7 +97,7 @@ package weave.services.collaboration
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, ProfilePicMessage, RequestProfilePic])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, MicrophoneActivity, ProfilePicMessage, RequestProfilePic])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -207,6 +207,11 @@ package weave.services.collaboration
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
 			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
+			sendEncodedObject(message, null);
+		}
+		public function sendMicrophoneActivity( id:String, vol:int ):void
+		{
+			var message:MicrophoneActivity = new MicrophoneActivity(id, vol);
 			sendEncodedObject(message, null);
 		}
 		public function requestMouseMessage( id:String ):void
@@ -540,6 +545,11 @@ package weave.services.collaboration
 					else
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info, status.queueArray));
 				}
+				else if( o is MicrophoneActivity )
+				{
+					var ma:MicrophoneActivity = o as MicrophoneActivity;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.MICROPHONE_ACTIVITY, ma.id, 0, ma.volume));
+				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
@@ -817,4 +827,14 @@ internal class AddonStatus
 	public var id:String;
 	public var info:Dictionary;
 	public var queueArray:Array;
+}
+internal class MicrophoneActivity
+{
+	public function MicrophoneActivity(id:String = null, volume:int = 0)
+	{
+		this.id = id;
+		this.volume = volume;
+	}
+	public var id:String;
+	public var volume:int;
 }

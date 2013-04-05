@@ -285,6 +285,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				return canvasList[name] as CollaborationVideoComponent;
 			}
+			
+			public function appplyBorder(id:String, vol:int):void
+			{
+				var vidComp:CollaborationVideoComponent = findVideoComponent(id);
+				if( vidComp == null )
+					return;
+				vidComp.setTalking(vol);
+			}
 		]]>
 	</mx:Script>
 </mx:Panel>

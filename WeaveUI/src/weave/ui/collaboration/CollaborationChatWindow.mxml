@@ -78,7 +78,7 @@
 			[Bindable] public var rtmpService:NetConnection		= null;
 			[Bindable] public var ping:Number 					= 0;			
 			private const padding:Number 						= 10;
-			private var enabledMic:Boolean 						= false;
+			public var enabledMic:Boolean 						= false;
 			private var enabledCam:Boolean 						= false;
 			private var localVideo:Video   						= null;
 			private var nsPublishMic:NetStream 					= null;
