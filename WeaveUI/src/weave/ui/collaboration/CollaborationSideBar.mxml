@@ -26,15 +26,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:List id="userList" width="100%" height="100%" minWidth="130" labelField="name">
 		<mx:itemRenderer>
 			<mx:Component>
-				<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
+				<mx:Canvas width="100%" height="100%" horizontalScrollPolicy="off">
+				<mx:HBox id="profile" width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4" borderStyle="solid" borderThickness="1" borderColor="0x000000">
 					<mx:Script>
 						<![CDATA[
 							import mx.controls.ToolTip;
+							
+							private var cooldownTimer:Timer = new Timer(500, 1);
+							private var first:Boolean = false;
 														
 							override public function set data(value:Object):void
 							{
+								if( !first )
+								{
+									cooldownTimer.addEventListener(TimerEvent.TIMER_COMPLETE, timerEnd);
+									first = true;
+								}
 								if( outerDocument._userListInfo[value] != null )
 								{
+									profilePic.load(outerDocument._userListInfo[value].pic);
+									trace( outerDocument._userListInfo[value].pic );
 									color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
 									micPic.visible 			= outerDocument._userListInfo[value].mic;
 									micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
@@ -43,22 +54,41 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									specPic.visible			= outerDocument._userListInfo[value].spec;
 									specPic.includeInLayout = outerDocument._userListInfo[value].spec;
 									collabPing.ping			= outerDocument._userListInfo[value].ping;
+									if( outerDocument._userListInfo[value].talking != null )
+									{
+										if( outerDocument._userListInfo[value].talking > 25 )
+										{
+											profile.setStyle("borderColor", "0x00F5FF");
+											cooldownTimer.reset();
+											cooldownTimer.start();
+										}
+										else
+										{
+											if( !cooldownTimer.running )
+												profile.setStyle("borderColor", "0x000000");
+										}
+									}
 								}
 								labelName.text = value as String;
 								if( (value as String) == outerDocument.nickname )
 									labelName.setStyle("fontWeight", "bold");
 								else
 									labelName.setStyle("fontWeight", "normal");
-							}
+							}		
 							
+							private function timerEnd(e:TimerEvent):void
+							{
+								profile.setStyle("borderColor", "0x000000");
+							}
 						]]>
 					</mx:Script>
-					<mx:Canvas id="color" width="16" height="16" borderColor="0" borderStyle="solid"
-							   borderThickness="2" cornerRadius="8"/>
+					<mx:Image id="profilePic" width="16" height="16" />
 					<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
 						<mx:Label id="labelName" width="100%" fontSize="12"
 								  toolTip="{labelName.text}"/>
 					</mx:Canvas>
+					<mx:Canvas id="color" width="16" height="16" borderColor="0" borderStyle="solid"
+							   borderThickness="2" cornerRadius="8"/>
 					<mx:Image id="micPic" width="15" height="15"
 							  source="@Embed(source='/weave/resources/images/collab/mic.png')"/>
 					<mx:Image id="camPic" width="15" height="15"
@@ -67,6 +97,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							  source="@Embed(source='/weave/resources/images/collab/eye.png')"/>
 					<collaboration:CollaborationPing id="collabPing" width="16" height="14"/>
 				</mx:HBox>
+				</mx:Canvas>
 			</mx:Component>
 		</mx:itemRenderer>
 	</mx:List>
@@ -107,6 +138,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const TYPE_SPEC:String					= "SPEC";
 			public const TYPE_PING:String					= "PING";
 			public const TYPE_COLOR:String					= "COLOR";
+			public const TYPE_TALKING:String                = "TALKING";
+			public const TYPE_PIC:String                    = "PICTURE";
 			
 			//Variables that deal with video and voice chat.
 			public var rtmpService:NetConnection 				= null;
@@ -171,7 +204,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/*
 			* Used for changing the status of a user's color, microphone, camera, or ping in the sidebar's userlist.
 			*/
-			public function setUserAttribute(type:String, name:String, val:Number):void
+			public function setUserAttribute(type:String, name:String, val:Number, str:String = null):void
 			{
 				var o:Object = null;
 				
@@ -196,6 +229,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						break;
 					case TYPE_SPEC:
 						_userListInfo[name].spec = val;
+						break;
+					case TYPE_TALKING:
+						_userListInfo[name].talking = val;
+						break;
+					case TYPE_PIC:
+						_userListInfo[name].pic = str;
 						break;
 				}
 				(userList.dataProvider as ICollectionView).refresh();
@@ -570,7 +609,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updatePing(e:CollaborationEvent):void 	   { setUserAttribute(TYPE_PING, e.getText(), e.getX()); }
 			private function userMicUpdated(e:CollaborationEvent):void { setUserAttribute(TYPE_MIC, e.getText(), Number(e.getColor())); }
 			private function userCamUpdated(e:CollaborationEvent):void { setUserAttribute(TYPE_CAM, e.getText(), Number(e.getColor())); }
-			private function updateUserPic(e:CollaborationEvent):void  { PARTICIPANTS.createUserProfilePic(e.getInfo() as String, e.getText()); }
+			private function updateUserPic(e:CollaborationEvent):void  { PARTICIPANTS.createUserProfilePic(e.getInfo() as String, e.getText()); setUserAttribute(TYPE_PIC, e.getInfo() as String, 0, e.getText());}
 				
 			//Make the chat button turn orange if a chat message is sent and the chat window isn't open.
 			private function handleLogEvent(e:CollaborationEvent):void
@@ -964,11 +1003,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var info:Dictionary = e.getInfo() as Dictionary;
 				for( var name:String in info )
 				{
-					setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
+					setUserAttribute(CHAT.TYPE_CAM,	    name, info[name].cam);
 					setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
 					setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
 					setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
 					setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
+					setUserAttribute(CHAT.TYPE_PIC, 	name, info[name].pic);
 				}
 				var queueArray:Array = e.getQueue() as Array;
 				for( var i:int = 0; i < queueArray.length; i++ )
@@ -1027,6 +1067,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( PARTICIPANTS != null && e.getText() )
 					PARTICIPANTS.appplyBorder(e.getText(), e.getX());
+				setUserAttribute(CHAT.TYPE_TALKING, e.getText(), e.getX());
 			}
 			
 		]]>

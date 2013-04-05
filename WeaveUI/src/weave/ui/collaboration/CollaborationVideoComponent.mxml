@@ -120,7 +120,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private var cooldownTimer:Timer = new Timer(1000, 1);
+			private var cooldownTimer:Timer = new Timer(500, 1);
 			
 			public function setTalking(vol:int):void
 			{
@@ -139,7 +139,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function resetBorder(e:TimerEvent):void
 			{
-				trace("hi");
 				borderBox.setStyle("borderColor", "0x000000");
 			}
 			
