@@ -62,6 +62,7 @@ package weave.services.collaboration
 		public static const UPDATE_CAM:String						= "collab_update_cam";
 		public static const SEND_MOUSE_CONTROL_REQUEST:String		= "collab_send_mouse_control_request";
 		public static const SEND_RELINQUISH_MOUSE_CONTROL:String 	= "collab_send_relinquish_mouse_control";
+		public static const MICROPHONE_ACTIVITY:String              = "collab_microphone_activity";
 		
 		private var text:String;
 		private var color:uint;
