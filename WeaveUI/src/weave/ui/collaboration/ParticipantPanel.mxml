@@ -283,6 +283,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function findVideoComponent(name:String):CollaborationVideoComponent
 			{
+				if( canvasList[name] == null )
+					return null;
 				return canvasList[name] as CollaborationVideoComponent;
 			}
 			

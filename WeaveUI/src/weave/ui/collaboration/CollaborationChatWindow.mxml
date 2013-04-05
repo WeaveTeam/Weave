@@ -65,6 +65,8 @@
 			public const TYPE_SPEC:String						= "SPEC";
 			public const TYPE_PING:String						= "PING";
 			public const TYPE_COLOR:String						= "COLOR";
+			public const TYPE_TALKING:String                    = "TALKING";
+			public const TYPE_PIC:String                        = "PICTURE";
 			
 			[Bindable] public var unreadMessages:Number 		= 0;
 			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
