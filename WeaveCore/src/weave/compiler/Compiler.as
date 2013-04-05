@@ -57,7 +57,6 @@ package weave.compiler
 		
 		private static const ST_FOR:String = 'for';
 		private static const ST_EACH:String = 'each';
-		private static const ST_FOR_EACH:String = 'for each';
 		
 		private static const ST_DO:String = 'do';
 		private static const ST_WHILE:String = 'while';
@@ -84,49 +83,60 @@ package weave.compiler
 		private static const _statementsWithParams:Array = [
 			ST_IF, ST_FOR, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
 		];
+		private static const _loopStatements:Array = [ST_DO, ST_WHILE, ST_FOR, ST_FOR_IN, ST_FOR_EACH];
 
+		/**
+		 * Only used during evaluation and decompiling.
+		 */
+		private static const ST_FOR_IN:String = 'for in';
+		
+		/**
+		 * Used as a single token for simplicity.
+		 */
+		private static const ST_FOR_EACH:String = 'for each';
+		
 		/**
 		 * must be enclosed in () with expressions separated by ;
 		 * Used in conjunction with _validStatementPatterns.
 		 */
-		private static const _PARAMS:String = 'PARAMS';
+		private static const PN_PARAMS:String = 'PARAMS';
 		
 		/**
 		 * MUST be a {} code block.
 		 * Used in conjunction with _validStatementPatterns.
 		 */
-		private static const _BLOCK:String = 'BLOCK';
+		private static const PN_BLOCK:String = 'BLOCK';
 		
 		/**
 		 * may contain either a single statement or a {} code block.
 		 * Used in conjunction with _validStatementPatterns.
 		 */
-		private static const _STMT:String = 'STMT';
+		private static const PN_STMT:String = 'STMT';
 		
 		/**
 		 * may only contain one expression, optionally enclosed in (), no statements.
 		 * Used in conjunction with _validStatementPatterns.
 		 */
-		private static const _EXPR:String = 'EXPR';
+		private static const PN_EXPR:String = 'EXPR';
 		
 		/**
 		 * longer patterns appear earlier so they will match before shorter patterns when checked in order
 		 */
 		private static const _validStatementPatterns:Array = [
-			[ST_IF, _PARAMS, _STMT, ST_ELSE, _STMT], // params ? stmt : stmt
-			[ST_IF, _PARAMS, _STMT], // params && stmt
-			[ST_FOR_EACH, _PARAMS, _STMT], // params[cond] && {assign;stmt;params[inc]}
-			[ST_FOR, _PARAMS, _STMT], // params[cond] && {assign;stmt;params[inc]}
-			[ST_DO, _STMT, ST_WHILE, _PARAMS], // stmt && params
-			[ST_WHILE, _PARAMS, _STMT], // params && stmt
-			[ST_TRY, _BLOCK, ST_CATCH, _PARAMS, _BLOCK, ST_FINALLY, _BLOCK],
-			[ST_TRY, _BLOCK, ST_FINALLY, _BLOCK],
-			[ST_TRY, _BLOCK, ST_CATCH, _PARAMS, _BLOCK],
+			[ST_IF, PN_PARAMS, PN_STMT, ST_ELSE, PN_STMT],
+			[ST_IF, PN_PARAMS, PN_STMT],
+			[ST_FOR_EACH, PN_PARAMS, PN_STMT],
+			[ST_FOR, PN_PARAMS, PN_STMT],
+			[ST_DO, PN_STMT, ST_WHILE, PN_PARAMS],
+			[ST_WHILE, PN_PARAMS, PN_STMT],
+			[ST_TRY, PN_BLOCK, ST_CATCH, PN_PARAMS, PN_BLOCK, ST_FINALLY, PN_BLOCK],
+			[ST_TRY, PN_BLOCK, ST_FINALLY, PN_BLOCK],
+			[ST_TRY, PN_BLOCK, ST_CATCH, PN_PARAMS, PN_BLOCK],
 			[ST_BREAK],
 			[ST_CONTINUE],
-			[ST_RETURN, _EXPR],
+			[ST_RETURN, PN_EXPR],
 			[ST_RETURN],
-			[ST_THROW, _EXPR]
+			[ST_THROW, PN_EXPR]
 		];
 
 		/**
@@ -793,8 +803,17 @@ package weave.compiler
 					if (tokens[i] == ';')
 					{
 						cfc = tokens[i - 1] as CompiledFunctionCall;
-						if (tokens[i - 1] is CompiledConstant || (cfc && cfc.evaluatedMethod != operators[';']))
+						
+						if (cfc && cfc.evaluatedMethod == operators['('])
+						{
+							// support for "while (cond);"
+							tokens[i] = compileOperator(';', []);
+						}
+						else if (tokens[i - 1] is CompiledConstant || (cfc && cfc.evaluatedMethod != operators[';']))
+						{
+							// support for "while (cond) expr;"
 							tokens.splice(i - 1, 2, compileOperator(';', [tokens[i - 1]]));
+						}
 					}
 				}
 				
@@ -1366,7 +1385,7 @@ package weave.compiler
 				if (startIndex < tokens.length - 1)
 				{
 					cfc = tokens[startIndex] as CompiledFunctionCall;
-					if (!cfc || cfc.evaluatedMethod != operators[';'])
+					if (!cfc || (cfc.evaluatedMethod != operators[';'] && !statements.hasOwnProperty(cfc.evaluatedMethod)))
 					{
 						if (stmt)
 							throw new Error("Unexpected " + stmt);
@@ -1394,12 +1413,12 @@ package weave.compiler
 					if (statements.hasOwnProperty(type) && token != type)
 						continue nextPattern;
 					
-					if (type == _PARAMS)
+					if (type == PN_PARAMS)
 						continue; // params have already been verified
 					
 					// if we get past a statement and its params, if compiling something fails we don't need to check any more patterns
 					
-					if (type == _EXPR) // non-statement
+					if (type == PN_EXPR) // non-statement
 					{
 						if (statements.hasOwnProperty(token))
 							throw new Error('Unexpected ' + token);
@@ -1407,12 +1426,12 @@ package weave.compiler
 							throwInvalidSyntax(stmt);
 					}
 					
-					if (type == _STMT)
+					if (type == PN_STMT)
 					{
 						compileStatement(tokens, startIndex + i);
 					}
 					
-					if (type == _BLOCK)
+					if (type == PN_BLOCK)
 					{
 						if (!cfc || cfc.evaluatedMethod != operators[';'])
 							throwInvalidSyntax(stmt);
@@ -1424,12 +1443,51 @@ package weave.compiler
 				
 				if (stmt == ST_IF)
 				{
+					// implemented as "cond ? true_stmt : false_stmt"
 					params.splice(2, 1); // works whether or not else is present
 					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_IF, operators['?:']), params);
 				}
-				else
+				else if (stmt == ST_DO) // do {stmt} while (cond);
 				{
-					tokens[startIndex] = compileFunctionCall(new CompiledConstant(stmt, stmt), params);
+					// implemented as "while (cond && (stmt, true))" with first evaluation of 'cond' skipped
+					params = [params[2], compileOperator(',', [params[0], new CompiledConstant("true", true)])];
+					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_DO, operators['&&']), params);
+				}
+				else if (stmt == ST_WHILE) // while (cond) {stmt}
+				{
+					// implemented as "while (cond && (stmt, true));"
+					params[1] = compileOperator(',', [params[1], new CompiledConstant("true", true)]);
+					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_WHILE, operators['&&']), params);
+				}
+				else if (stmt == ST_FOR || stmt == ST_FOR_EACH) // for (params) {stmt}
+				{
+					var forParams:CompiledFunctionCall = params[0]; // statement params wrapper
+					if (forParams.compiledParams.length == 3) // for (init; cond; inc) {stmt}
+					{
+						// implemented as "(init, cond) && while((inc, cond) && (stmt, true))"
+						
+						var _for:CompiledConstant = new CompiledConstant(ST_FOR, operators['&&']);
+						var _init:ICompiledObject = forParams.compiledParams[0];
+						var _cond:ICompiledObject = forParams.compiledParams[1];
+						var _inc:ICompiledObject = forParams.compiledParams[2];
+						
+						var _init_cond:ICompiledObject = compileOperator(',', [_init, _cond]);
+						var _inc_cond:ICompiledObject = compileOperator(',', [_inc, _cond]);
+						var _stmt_true:ICompiledObject = compileOperator(',', [params[1], new CompiledConstant("true", true)]);
+						var _while:ICompiledObject = compileFunctionCall(new CompiledConstant(ST_WHILE, operators['&&']), [_inc_cond, _stmt_true]);
+						
+						tokens[startIndex] = compileFunctionCall(_for, [_init_cond, _while]);
+					}
+					else // for [each] (x in y) {stmt}
+					{
+						var _in:CompiledFunctionCall = forParams.compiledParams[0] as CompiledFunctionCall;
+						
+						// differentiate from 'for' with 3 statement params
+						if (stmt == ST_FOR)
+							stmt = ST_FOR_IN;
+						
+						//TODO
+					}
 				}
 				return;
 			}
@@ -1451,29 +1509,28 @@ package weave.compiler
 						throwInvalidSyntax(statement);
 					
 					var cpl:int = params.compiledParams.length;
+					
+					// 'for' can have 3 statement params
+					if (statement == ST_FOR && cpl == 3)
+						continue;
+					
+					// all other statements must have only one param
+					if (cpl != 1)
+						throwInvalidSyntax(statement);
+					
 					if (statement == ST_FOR || statement == ST_FOR_EACH)
 					{
-						// 'for' and 'for each' require either 3 or 1 statement params
-						if (cpl != 3 && cpl != 1)
+						// if 'for' or 'for each' has only one param, it must be the 'in' operator
+						var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall; // the first statement param
+						if (!cfc || cfc.evaluatedMethod != operators['in'])
 							throwInvalidSyntax(statement);
-						
-						if (cpl == 1)
-						{
-							// if 'for' or 'for each' has only one param, it must be the 'in' operator
-							var cfc:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall;
-							if (!cfc || cfc.evaluatedMethod != operators['in'])
-								throwInvalidSyntax(statement);
 							
-							// the 'in' operator must have a variable or property reference as its first parameter
-							cfc = cfc.compiledParams[0];
-							if (cfc.compiledParams != null || cfc.evaluatedMethod != operators['.']) // not a variable and not a property
-								throwInvalidSyntax(statement);
-						}
+						// the 'in' operator must have a variable or property reference as its first parameter
+						cfc = cfc.compiledParams[0] as CompiledFunctionCall; // the 'in' operator
+						if (!(cfc.compiledParams == null || cfc.evaluatedMethod == operators['.'])) // not a variable and not a property
+							throwInvalidSyntax(statement);
 					}
-					else if (cpl != 1)
-					{
-						throwInvalidSyntax(statement);
-					}
+					
 				}
 			}
 		}
@@ -1500,6 +1557,7 @@ package weave.compiler
 			// decompile the function name
 			var name:String = decompileObject(call.compiledMethod);
 			var constant:CompiledConstant;
+			var i:int;
 			
 			// special case for variable lookup
 			if (call.compiledParams == null)
@@ -1511,8 +1569,18 @@ package weave.compiler
 				//return "(#" + name + ")";
 			}
 			
+			if (name == ST_DO || name == ST_WHILE)
+			{
+				// implemented as "while (cond && (stmt, true));"
+				var _cond:String = decompileObject(call.compiledParams[0]);
+				var _stmtWrapper:CompiledFunctionCall = call.compiledParams[1];
+				var _stmt:String = decompileObject(_stmtWrapper.compiledParams[0]);
+				if (name == ST_DO)
+					return [ST_DO, _stmt, ST_WHILE, _cond].join(' ') + ';';
+				return [ST_WHILE, _cond, _stmt].join(' ');
+			}
+			
 			// decompile each paramter
-			var i:int;
 			var params:Array = [];
 			for (i = 0; i < call.compiledParams.length; i++)
 				params[i] = decompileObject(call.compiledParams[i]);
@@ -1623,14 +1691,6 @@ package weave.compiler
 			
 			// create the variables that will be used inside the wrapper function
 
-			const stack:Array = []; // used as a queue of function calls
-			var call:CompiledFunctionCall;
-			var subCall:CompiledFunctionCall;
-			var compiledParams:Array;
-			var result:*;
-			var symbolName:String;
-			var i:int;
-
 			const builtInSymbolTable:Object = {};
 			builtInSymbolTable['eval'] = undefined;
 			const localSymbolTable:Object = {};
@@ -1647,6 +1707,15 @@ package weave.compiler
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
+				const stack:Array = []; // used as a queue of function calls
+				var call:CompiledFunctionCall;
+				var subCall:CompiledFunctionCall;
+				var constant:CompiledConstant;
+				var compiledParams:Array;
+				var result:*;
+				var symbolName:String;
+				var i:int;
+				
 				builtInSymbolTable['this'] = this;
 				builtInSymbolTable['arguments'] = arguments;
 				
@@ -1673,6 +1742,20 @@ package weave.compiler
 					compiledParams = call.compiledParams;
 					if (compiledParams)
 					{
+						if (call.evalIndex == INDEX_METHOD)
+						{
+							constant = call.compiledMethod as CompiledConstant;
+							if (constant)
+							{
+								if (constant.name == ST_DO)
+								{
+									// skip first evaluation of loop condition
+									call.evaluatedParams[INDEX_CONDITION] = true;
+									call.evalIndex = INDEX_TRUE;
+								}
+							}
+						}
+						
 						// check which parameters should be evaluated
 						for (; call.evalIndex < compiledParams.length; call.evalIndex++)
 						{
@@ -1768,6 +1851,20 @@ package weave.compiler
 						else
 							throw e;
 					}
+					
+					// handle while and for loops
+					constant = call.compiledMethod as CompiledConstant;
+					if (constant && _loopStatements.indexOf(constant.name) >= 0)
+					{
+						// loop
+						if (result)
+						{
+							// skip evaluation of method to avoid infinite 'do' loop
+							call.evalIndex = INDEX_METHOD + 1;
+							continue;
+						}
+					}
+					
 					// remove this call from the stack
 					stack.pop();
 					// if there is no parent function call, return the result
@@ -1787,6 +1884,23 @@ package weave.compiler
 			
 			return wrapperFunction;
 		}
+
+		public static const _do_test:String = <![CDATA[
+			var test = true;
+			do
+			{
+				if (test)
+				{
+					trace('do');
+					test = false;
+					continue;
+				}
+				trace('done');
+				break;
+			}
+			while (trace('condition'), true);
+		]]>;
+
 		
 		//-----------------------------------------------------------------
 		// Class('weave.compiler.Compiler').test()
@@ -1817,7 +1931,12 @@ package weave.compiler
 				'asString(random()).length',
 				'"(0x" + numberToBase(0xFF00FF,16).toUpperCase() + ") " + lpad(numberToBase(v*20, 2, 4), 9) + ", base10: " + rpad(numberToBase(sign(v) * (v+10),10,3), 6) + ", base16: " + numberToBase(v+10,16)',
 				'if (false) { trace(3) } else trace(4)',
-				'do {} while (1);'
+				'do {} while (random());',
+				'if (random()) while (random()); if (random()) 1',
+				"x = 10; while (x--) trace('x =',x);",
+				"for (y = 0; y < 10; y++) trace('y =',y);",
+				"x = 0; do { trace('do',x++); } while (trace('cond'), x < 10);",
+				_do_test
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
