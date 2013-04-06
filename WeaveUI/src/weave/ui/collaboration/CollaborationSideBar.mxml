@@ -726,7 +726,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			*/
 			private function createParticipantPanel():void
 			{
-				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel) as ParticipantPanel;
+				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel, false, PopUpManagerChildList.POPUP) as ParticipantPanel;
 				PARTICIPANTS.visible = false;
 				PARTICIPANTS.y = WeaveAPI.topLevelApplication.visDesktop.y;
 				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - PARTICIPANTS.width / 2;

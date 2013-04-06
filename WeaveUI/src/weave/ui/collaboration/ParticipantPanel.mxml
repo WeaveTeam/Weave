@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
-		  width="120" height="97" headerHeight="5" layout="absolute">
+		  width="126" height="103" headerHeight="5" layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
@@ -84,7 +84,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				canvasList = null;
 				controlList = new Array();
 				idList = new Array();
-				this.height = 97;
+				this.height = CollaborationVideoComponent.defaultHeight + 17;
 				adjustLayout();
 			}
 			
@@ -111,7 +111,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						(canvasList[controlList[k]] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
 						(canvasList[controlList[k]] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
-						this.height = (canvasList[controlList[k]] as CollaborationVideoComponent).height + 18;
+						this.height = (canvasList[controlList[k]] as CollaborationVideoComponent).height + 17;
 						//Need to use callLater here, as the height and width changes don't take effect immediately.
 					}
 				}
@@ -124,7 +124,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					(canvasList[id] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
 					(canvasList[id] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
-					this.height = 97;
+					this.height = CollaborationVideoComponent.defaultHeight + 17;
 					//Need to use callLater here, as the height and width changes don't take effect immediately.
 				}
 				adjustLayout();
@@ -155,6 +155,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				return false;
 			}
+			
+			private var calledOnce:Boolean = false;
 			/*
 			* This function is called whenever there is a change in the components to resize the participant panel. And lay out the components.
 			*/
@@ -177,7 +179,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							if( (canvasList[idList[j]] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
 								counted++;
 							else
-								this.height = (canvasList[idList[j]] as CollaborationVideoComponent).height + 18;
+								this.height = (canvasList[idList[j]] as CollaborationVideoComponent).height + 20;
 						}
 					}
 					this.width += 20;
@@ -242,6 +244,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( canvasList != null )
 					for( var z:int = 0; z < idList.length; z++ )
 						(canvasList[idList[z]] as CollaborationVideoComponent).adjustCamera();
+				callLater(invalidateDisplayList);
+				if( calledOnce = false )
+				{
+					callLater(adjustLayout);
+					calledOnce = true;
+				}
 			}
 			
 			//Camera streaming functions.
