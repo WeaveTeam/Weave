@@ -53,27 +53,11 @@ package weave.compiler
 
 	/**
 	 * This provides a set of static functions for use with the Weave Compiler.
-	 * This set of functions allows access to almost any object, so it should be used with care when exposing these functions to users.
 	 * 
 	 * @author adufilie
 	 */
 	public class GlobalLib
 	{
-		private static function $(str:String):Function { return flash.utils.getDefinitionByName(str) as Function; }
-		
-		public static const trace:Function = $('trace');
-		public static const decodeURI:Function = $('decodeURI');
-		public static const decodeURIComponent:Function = $('decodeURIComponent');
-		public static const encodeURI:Function = $('encodeURI');
-		public static const encodeURIComponent:Function = $('encodeURIComponent');
-		public static const escape:Function = $('escape');
-		public static const isFinite:Function = $('isFinite');
-		public static const isNaN:Function = $('isNaN');
-		public static const isXMLName:Function = $('isXMLName');
-		public static const parseFloat:Function = $('parseFloat');
-		public static const parseInt:Function = $('parseInt');
-		public static const unescape:Function = $('unescape');
-		
 		public static const enterDebugger:Function = flash.debugger.enterDebugger;
 		
 		public static const getClassByAlias:Function = flash.net.getClassByAlias;

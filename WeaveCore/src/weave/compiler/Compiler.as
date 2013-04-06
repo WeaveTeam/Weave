@@ -36,10 +36,11 @@ package weave.compiler
 	 */
 	public class Compiler
 	{
-		public function Compiler()
+		public function Compiler(includeDefaultLibraries:Boolean = true)
 		{
 			initialize();
-			includeLibraries(Math, StringUtil, StandardLib);
+			if (includeDefaultLibraries)
+				includeLibraries(Math, StringUtil, StandardLib);
 		}
 		
 		/**
@@ -368,6 +369,10 @@ package weave.compiler
 			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
 			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
 				constants[getQualifiedClassName(_class)] = _class;
+			// global functions
+			for each (var _funcName:String in 'decodeURI,decodeURIComponent,encodeURI,encodeURIComponent,escape,isFinite,isNaN,isXMLName,parseFloat,parseInt,trace,unescape'.split(','))
+				constants[_funcName] = getDefinitionByName(_funcName);
+			
 
 			/** operators **/
 			// first, make sure all special characters are defined as operators whether or not they have functions associated with them
@@ -1205,6 +1210,11 @@ package weave.compiler
 			return new CompiledFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
 		}
 		
+		private function newTrueConstant():CompiledConstant
+		{
+			return new CompiledConstant('true', true);
+		}
+		
 		private function newUndefinedConstant():CompiledConstant
 		{
 			return new CompiledConstant('undefined', undefined);
@@ -1459,13 +1469,13 @@ package weave.compiler
 				else if (stmt == ST_DO) // do {stmt} while (cond);
 				{
 					// implemented as "while (cond && (stmt, true))" with first evaluation of 'cond' skipped
-					params = [params[2], compileOperator(',', [params[0], new CompiledConstant("true", true)])];
+					params = [params[2], compileOperator(',', [params[0], newTrueConstant()])];
 					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_DO, operators['&&']), params);
 				}
 				else if (stmt == ST_WHILE) // while (cond) {stmt}
 				{
 					// implemented as "while (cond && (stmt, true));"
-					params[1] = compileOperator(',', [params[1], new CompiledConstant("true", true)]);
+					params[1] = compileOperator(',', [params[1], newTrueConstant()]);
 					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_WHILE, operators['&&']), params);
 				}
 				else if (stmt == ST_FOR || stmt == ST_FOR_EACH) // for (params) {stmt}
@@ -1482,7 +1492,7 @@ package weave.compiler
 						
 						var _init_cond:ICompiledObject = compileOperator(',', [_init, _cond]);
 						var _inc_cond:ICompiledObject = compileOperator(',', [_inc, _cond]);
-						var _stmt_true:ICompiledObject = compileOperator(',', [params[1], new CompiledConstant("true", true)]);
+						var _stmt_true:ICompiledObject = compileOperator(',', [params[1], newTrueConstant()]);
 						var _forDo:ICompiledObject = compileFunctionCall(new CompiledConstant(ST_FOR_DO, operators['&&']), [_inc_cond, _stmt_true]);
 						
 						tokens[startIndex] = compileFunctionCall(_for, [_init_cond, _forDo]);
@@ -1495,7 +1505,7 @@ package weave.compiler
 						if (stmt == ST_FOR)
 							stmt = ST_FOR_IN;
 						
-						//TODO
+						// TODO 
 					}
 				}
 				return;
@@ -1824,7 +1834,7 @@ package weave.compiler
 									{
 										var params:Array = call.evaluatedParams;
 										result = {}
-										for (var i:int = 0; i < params.length - 1; i += 2)
+										for (i = 0; i < params.length - 1; i += 2)
 											result[params[i]] = params[i + 1];
 									}
 									else
@@ -1916,7 +1926,6 @@ package weave.compiler
 		public static function test():void
 		{
 			var compiler:Compiler = new Compiler();
-			compiler.includeLibraries(GlobalLib);
 			var eqs:Array = [
 				"(a = 1, 0) ? (a = 2, a + 1) : (4, a + 100), a",
 				"1 + '\"abc ' + \"'x\\\"y\\\\\\'z\"",
