@@ -20,32 +20,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
 		  xmlns:collaboration="weave.ui.collaboration.*"
 		  width="185" height="{(WeaveAPI.topLevelApplication as DisplayObject).height / 1.5}"
-		  creationComplete="creationCompleteHandler(event)" horizontalScrollPolicy="off"
-		  layout="absolute" move="repositionWindowsHandler(event)" title="Collaboration Group"
-		  enterFrame="microphoneActivityCheck(event)" verticalScrollPolicy="off">
+		  creationComplete="creationCompleteHandler(event)"
+		  enterFrame="microphoneActivityCheck(event)" horizontalScrollPolicy="off" layout="absolute"
+		  move="repositionWindowsHandler(event)" title="Collaboration Group"
+		  verticalScrollPolicy="off">
 	<mx:List id="userList" width="100%" height="100%" minWidth="130" labelField="name">
 		<mx:itemRenderer>
 			<mx:Component>
-				<mx:Canvas width="100%" height="100%" horizontalScrollPolicy="off">
-				<mx:HBox id="profile" width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4" borderStyle="solid" borderThickness="1" borderColor="0x000000">
+				<mx:HBox width="100%" height="100%" borderColor="0x000000" borderStyle="solid"
+						 borderThickness="1" horizontalScrollPolicy="off" paddingRight="4">
 					<mx:Script>
 						<![CDATA[
 							import mx.controls.ToolTip;
 							
-							private var cooldownTimer:Timer = new Timer(500, 1);
+							private var cooldownTimer:Timer = new Timer(100, 5);
 							private var first:Boolean = false;
+							private var urlString:Dictionary = new Dictionary();
 														
 							override public function set data(value:Object):void
 							{
 								if( !first )
 								{
 									cooldownTimer.addEventListener(TimerEvent.TIMER_COMPLETE, timerEnd);
+									cooldownTimer.addEventListener(TimerEvent.TIMER, hideMic);
 									first = true;
 								}
 								if( outerDocument._userListInfo[value] != null )
 								{
-									profilePic.load(outerDocument._userListInfo[value].pic);
-									trace( outerDocument._userListInfo[value].pic );
+									if( urlString[value] == undefined )
+									{
+										urlString[value] = new Object();
+										urlString[value].url = null;
+										urlString[value].image = new Image();
+										urlString[value].image.width = 16;
+										urlString[value].image.height = 16;
+										urlString[value].loaded = new Boolean(false);
+									}
 									color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
 									micPic.visible 			= outerDocument._userListInfo[value].mic;
 									micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
@@ -54,35 +64,87 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									specPic.visible			= outerDocument._userListInfo[value].spec;
 									specPic.includeInLayout = outerDocument._userListInfo[value].spec;
 									collabPing.ping			= outerDocument._userListInfo[value].ping;
-									if( outerDocument._userListInfo[value].talking != null )
-									{
-										if( outerDocument._userListInfo[value].talking > 25 )
-										{
-											profile.setStyle("borderColor", "0x00F5FF");
-											cooldownTimer.reset();
-											cooldownTimer.start();
-										}
-										else
-										{
-											if( !cooldownTimer.running )
-												profile.setStyle("borderColor", "0x000000");
-										}
-									}
 								}
 								labelName.text = value as String;
 								if( (value as String) == outerDocument.nickname )
 									labelName.setStyle("fontWeight", "bold");
 								else
 									labelName.setStyle("fontWeight", "normal");
+								if( outerDocument._userListInfo[value] != null )
+								{
+									//Microphone blink stuff
+									if( outerDocument._userListInfo[value].talking != null )
+									{
+										if( outerDocument._userListInfo[value].talking > 25 && (labelName.text == (value as String)) )
+										{
+											blinkMic(value as String);
+										}
+										else
+										{
+											//micPic.visible = outerDocument._userListInfo[value].mic;
+										}
+									}
+									//Profile pic stuff
+									//urlString[value].url != outerDocument._userListInfo[value].pic
+									if(( outerDocument._userListInfo[value].pic != null || outerDocument._userListInfo[value].pic != undefined ) && (labelName.text == (value as String)))
+									{
+										profilePic.removeAllChildren();
+										if( urlString[value].loaded == false )
+										{
+											(urlString[value].image as Image).load(outerDocument._userListInfo[value].pic);
+											urlString[value].loaded = true;
+										}
+										profilePic.addChild(this.urlString[value].image as Image);
+										urlString[value].url = outerDocument._userListInfo[value].pic;
+									}
+									else
+										profilePic.removeAllChildren();
+								}
 							}		
+							
+							private function blinkMic(mes:String):void
+							{
+								if( !micPic.includeInLayout )
+									return;
+								nameComp = mes;
+								cooldownTimer.reset();
+								cooldownTimer.start();
+							}
+							
+							private var time:Timer = new Timer(50, 1);
+							private var nameComp:String;
+							
+							private function hideMic(e:TimerEvent):void
+							{
+								if( labelName.text != nameComp || !micPic.includeInLayout )
+								{	
+									cooldownTimer.reset();
+									micPic.visible = micPic.includeInLayout;
+									time.reset();
+								}
+								micPic.visible = false;
+								time.addEventListener(TimerEvent.TIMER_COMPLETE, function inlineTimer(e:TimerEvent):void{ if( labelName.text != nameComp || !micPic.includeInLayout )
+								{	
+									cooldownTimer.reset();
+									micPic.visible = micPic.includeInLayout;
+									time.reset();
+								}
+									micPic.visible = true; } );
+								time.start();
+							}
 							
 							private function timerEnd(e:TimerEvent):void
 							{
-								profile.setStyle("borderColor", "0x000000");
+								if( !micPic.includeInLayout )
+								{
+									micPic.visible = false;
+									return;
+								}
+								micPic.visible = true;
 							}
 						]]>
 					</mx:Script>
-					<mx:Image id="profilePic" width="16" height="16" />
+					<mx:Canvas id="profilePic" width="16" height="16"/>
 					<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
 						<mx:Label id="labelName" width="100%" fontSize="12"
 								  toolTip="{labelName.text}"/>
@@ -90,14 +152,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<mx:Canvas id="color" width="16" height="16" borderColor="0" borderStyle="solid"
 							   borderThickness="2" cornerRadius="8"/>
 					<mx:Image id="micPic" width="15" height="15"
-							  source="@Embed(source='/weave/resources/images/collab/mic.png')"/>
+							  source="@Embed(source='/weave/resources/images/collab/mic.png')" visible="{micPic.includeInLayout}"/>
 					<mx:Image id="camPic" width="15" height="15"
 							  source="@Embed(source='/weave/resources/images/collab/cam.png')"/>
 					<mx:Image id="specPic" width="22" height="12"
 							  source="@Embed(source='/weave/resources/images/collab/eye.png')"/>
-					<collaboration:CollaborationPing id="collabPing" width="16" height="14"/>
+					<collaboration:CollaborationPing id="collabPing" width="16" height="14" />
 				</mx:HBox>
-				</mx:Canvas>
 			</mx:Component>
 		</mx:itemRenderer>
 	</mx:List>
