@@ -83,8 +83,17 @@ package weave.compiler
 		private static const _statementsWithParams:Array = [
 			ST_IF, ST_FOR, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
 		];
-		private static const _loopStatements:Array = [ST_DO, ST_WHILE, ST_FOR, ST_FOR_IN, ST_FOR_EACH];
+		
+		/**
+		 * Used during evaluation.
+		 */		
+		private static const _loopStatements:Array = [ST_DO, ST_WHILE, ST_FOR_DO, ST_FOR_IN, ST_FOR_EACH];
 
+		/**
+		 * Only used during evaluation and decompiling.
+		 */
+		private static const ST_FOR_DO:String = 'for do';
+		
 		/**
 		 * Only used during evaluation and decompiling.
 		 */
@@ -1464,7 +1473,7 @@ package weave.compiler
 					var forParams:CompiledFunctionCall = params[0]; // statement params wrapper
 					if (forParams.compiledParams.length == 3) // for (init; cond; inc) {stmt}
 					{
-						// implemented as "(init, cond) && while((inc, cond) && (stmt, true))"
+						// implemented as "(init, cond) && while((inc, cond) && (stmt, true))" with first evaluation of "(inc, cond)" skipped
 						
 						var _for:CompiledConstant = new CompiledConstant(ST_FOR, operators['&&']);
 						var _init:ICompiledObject = forParams.compiledParams[0];
@@ -1474,9 +1483,9 @@ package weave.compiler
 						var _init_cond:ICompiledObject = compileOperator(',', [_init, _cond]);
 						var _inc_cond:ICompiledObject = compileOperator(',', [_inc, _cond]);
 						var _stmt_true:ICompiledObject = compileOperator(',', [params[1], new CompiledConstant("true", true)]);
-						var _while:ICompiledObject = compileFunctionCall(new CompiledConstant(ST_WHILE, operators['&&']), [_inc_cond, _stmt_true]);
+						var _forDo:ICompiledObject = compileFunctionCall(new CompiledConstant(ST_FOR_DO, operators['&&']), [_inc_cond, _stmt_true]);
 						
-						tokens[startIndex] = compileFunctionCall(_for, [_init_cond, _while]);
+						tokens[startIndex] = compileFunctionCall(_for, [_init_cond, _forDo]);
 					}
 					else // for [each] (x in y) {stmt}
 					{
@@ -1747,7 +1756,7 @@ package weave.compiler
 							constant = call.compiledMethod as CompiledConstant;
 							if (constant)
 							{
-								if (constant.name == ST_DO)
+								if (constant.name == ST_DO || constant.name == ST_FOR_DO)
 								{
 									// skip first evaluation of loop condition
 									call.evaluatedParams[INDEX_CONDITION] = true;
@@ -1936,7 +1945,8 @@ package weave.compiler
 				"x = 10; while (x--) trace('x =',x);",
 				"for (y = 0; y < 10; y++) trace('y =',y);",
 				"x = 0; do { trace('do',x++); } while (trace('cond'), x < 10);",
-				_do_test
+				_do_test,
+				"for (trace('y =',0), y = 0; trace(y,'<',10), y < 10; trace('y++'), y++) { trace('loop y =',y); }"
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
