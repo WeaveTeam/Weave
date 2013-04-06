@@ -189,6 +189,11 @@ package weave.ui.collaboration
 			return checkPeoplePosition(self);
 		}
 		
+		public function getUserQueue(self:String):Array
+		{
+			return checkPeoplePosition(self);
+		}
+		
 		/*
 		* This will return 0 if the id is an active mouse, return a number above 0 to indicate
 		* position in the line to become an active mouse, or return -1 if the id is not in the queue.

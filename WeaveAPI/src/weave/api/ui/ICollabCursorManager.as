@@ -101,5 +101,12 @@ package weave.api.ui
 		 * @return Returns an array of which the first index indicates your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue. The following indexes of the array are the usernames of the users who have control of the session.
 		 */
 		function removeFromQueue(id:String, self:String):Array;
+		
+		/**
+		 * Get an update on the mouse queue returned by addToQueue.
+		 * @param self The id of yourself to check if your mouse should be displayed for others.
+		 * @return Returns an array of which the first index indicates your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue. The following indexes of the array are the usernames of the users who have control of the session.
+		 **/
+		function getUserQueue(self:String):Array;
 	}
 }

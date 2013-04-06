@@ -54,7 +54,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.height = value;
 				if( videoArea != null )
-					videoArea.height = value - nameLabel.height - 12 - (this.borderMetrics.bottom * 2);  
+					videoArea.height = value - nameLabel.height - 14 - (this.borderMetrics.bottom * 2);  
 			}
 			
 			/*
