@@ -40,7 +40,7 @@ package weave.compiler
 		{
 			initialize();
 			if (includeDefaultLibraries)
-				includeLibraries(Math, StringUtil, StandardLib);
+				includeLibraries(Math, StringUtil, StandardLib, Dictionary);
 		}
 		
 		/**
@@ -153,6 +153,8 @@ package weave.compiler
 		 * (statement name):String -> (true if requires parentheses):Boolean
 		 */
 		private static var statements:Object = null;
+		
+		private static const OPERATOR_NEW:String = 'new';
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
@@ -338,29 +340,6 @@ package weave.compiler
 			operators = {};
 			assignmentOperators = {};
 			
-			// add built-in functions
-			constants['new'] = function(classOrQName:Object, params:Array = null):Object
-			{
-				var classDef:Class = classOrQName as Class || getDefinitionByName(String(classOrQName)) as Class;
-				if (!params)
-					return new classDef();
-				switch (params.length)
-				{
-					case 0: return new classDef();
-					case 1: return new classDef(params[0]);
-					case 2: return new classDef(params[0], params[1]);
-					case 3: return new classDef(params[0], params[1], params[2]);
-					case 4: return new classDef(params[0], params[1], params[2], params[3]);
-					case 5: return new classDef(params[0], params[1], params[2], params[3], params[4]);
-					case 6: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5]);
-					case 7: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
-					case 8: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
-					case 9: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]);
-					case 10: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9]);
-					default: throw new Error("Too many constructor parameters (maximum 10)");
-				}
-			};
-			
 			// global symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
 				constants[String(_const)] = _const;
@@ -451,6 +430,27 @@ package weave.compiler
 			operators['as'] = function(a:*, b:*):Object { return a as b; };
 			operators['in'] = function(a:*, b:*):Boolean { return a in b; };
 			operators['is'] = operators['instanceof'] = function(a:*, b:*):Boolean { return a is b; };
+			operators[OPERATOR_NEW] = function(classOrQName:Object, ...params):Object
+			{
+				var classDef:Class = classOrQName as Class;
+				if (!classDef && classOrQName)
+					classDef = getDefinitionByName(String(classOrQName)) as Class;
+				switch (params.length)
+				{
+					case 0: return new classDef();
+					case 1: return new classDef(params[0]);
+					case 2: return new classDef(params[0], params[1]);
+					case 3: return new classDef(params[0], params[1], params[2]);
+					case 4: return new classDef(params[0], params[1], params[2], params[3]);
+					case 5: return new classDef(params[0], params[1], params[2], params[3], params[4]);
+					case 6: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5]);
+					case 7: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
+					case 8: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
+					case 9: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]);
+					case 10: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9]);
+					default: throw new Error("Too many constructor parameters (maximum 10)");
+				}
+			};
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -701,6 +701,9 @@ package weave.compiler
 				// compile the token as a call to variableGetter.
 				tokens[i] = compileVariable(token);
 			}
+			
+			// next step: compile new operator used as a unary operator (missing parentheses)
+			compileUnaryOperators(tokens, [OPERATOR_NEW]);
 			
 			// next step: compile unary '#' operators
 			if (operators.hasOwnProperty('#'))
@@ -1100,6 +1103,16 @@ package weave.compiler
 				
 				if (leftBracket == '(' && compiledToken) // if there is a compiled token to the left, this is a function call
 				{
+					if (open >= 2)
+					{
+						var prevToken:Object = tokens[open - 2];
+						if (prevToken == OPERATOR_NEW)
+						{
+							compiledParams.unshift(compiledToken);
+							tokens.splice(open - 2, 4, compileOperator(OPERATOR_NEW, compiledParams));
+							continue;
+						}
+					}
 					if (debug)
 						trace("compiling function call", decompileObject(compiledToken));
 					
