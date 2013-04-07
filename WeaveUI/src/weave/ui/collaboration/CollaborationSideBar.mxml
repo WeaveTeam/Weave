@@ -33,18 +33,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<![CDATA[
 							import mx.controls.ToolTip;
 							
-							private var cooldownTimer:Timer = new Timer(100, 5);
-							private var first:Boolean = false;
+							[Embed (source="/weave/resources/images/collab/mic.png" )] 
+							public static const micPicture:Class;
+							[Embed (source="/weave/resources/images/collab/mic_blue.png" )] 
+							public static const micBluePicture:Class;
+							
+							
 							private var urlString:Dictionary = new Dictionary();
 														
 							override public function set data(value:Object):void
 							{
-								if( !first )
-								{
-									cooldownTimer.addEventListener(TimerEvent.TIMER_COMPLETE, timerEnd);
-									cooldownTimer.addEventListener(TimerEvent.TIMER, hideMic);
-									first = true;
-								}
 								if( outerDocument._userListInfo[value] != null )
 								{
 									if( urlString[value] == undefined )
@@ -75,13 +73,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									//Microphone blink stuff
 									if( outerDocument._userListInfo[value].talking != null )
 									{
-										if( outerDocument._userListInfo[value].talking > 25 && (labelName.text == (value as String)) )
+										if( outerDocument._userListInfo[value].talking > 25 && (labelName.text == (value as String)) && ( micPic.source != micBluePicture) )
 										{
-											blinkMic(value as String);
+											micPic.source = micBluePicture;
 										}
-										else
+										else if( micPic.source != micPicture )
 										{
-											//micPic.visible = outerDocument._userListInfo[value].mic;
+											micPic.source = micPicture;
+											micPic.visible = outerDocument._userListInfo[value].mic;
 										}
 									}
 									//Profile pic stuff
@@ -101,47 +100,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 										profilePic.removeAllChildren();
 								}
 							}		
-							
-							private function blinkMic(mes:String):void
-							{
-								if( !micPic.includeInLayout )
-									return;
-								nameComp = mes;
-								cooldownTimer.reset();
-								cooldownTimer.start();
-							}
-							
-							private var time:Timer = new Timer(50, 1);
-							private var nameComp:String;
-							
-							private function hideMic(e:TimerEvent):void
-							{
-								if( labelName.text != nameComp || !micPic.includeInLayout )
-								{	
-									cooldownTimer.reset();
-									micPic.visible = micPic.includeInLayout;
-									time.reset();
-								}
-								micPic.visible = false;
-								time.addEventListener(TimerEvent.TIMER_COMPLETE, function inlineTimer(e:TimerEvent):void{ if( labelName.text != nameComp || !micPic.includeInLayout )
-								{	
-									cooldownTimer.reset();
-									micPic.visible = micPic.includeInLayout;
-									time.reset();
-								}
-									micPic.visible = true; } );
-								time.start();
-							}
-							
-							private function timerEnd(e:TimerEvent):void
-							{
-								if( !micPic.includeInLayout )
-								{
-									micPic.visible = false;
-									return;
-								}
-								micPic.visible = true;
-							}
+						
 						]]>
 					</mx:Script>
 					<mx:Canvas id="profilePic" width="16" height="16"/>
@@ -152,7 +111,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<mx:Canvas id="color" width="16" height="16" borderColor="0" borderStyle="solid"
 							   borderThickness="2" cornerRadius="8"/>
 					<mx:Image id="micPic" width="15" height="15"
-							  source="@Embed(source='/weave/resources/images/collab/mic.png')" visible="{micPic.includeInLayout}"/>
+							  source="@Embed(source='/weave/resources/images/collab/mic.png')" visible="{micPic.includeInLayout}" cacheAsBitmap="true"/>
 					<mx:Image id="camPic" width="15" height="15"
 							  source="@Embed(source='/weave/resources/images/collab/cam.png')"/>
 					<mx:Image id="specPic" width="22" height="12"
