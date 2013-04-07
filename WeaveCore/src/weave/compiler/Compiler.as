@@ -85,6 +85,8 @@ package weave.compiler
 			ST_IF, ST_FOR, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
 		];
 		
+		private static const _jumpStatements:Array = [ST_BREAK, ST_CONTINUE, ST_RETURN];
+		
 		/**
 		 * Used during evaluation.
 		 */		
@@ -451,6 +453,10 @@ package weave.compiler
 					default: throw new Error("Too many constructor parameters (maximum 10)");
 				}
 			};
+			// special case operators for jump statements
+			operators[ST_BREAK] = function():*{};
+			operators[ST_CONTINUE] = function():*{};
+			operators[ST_RETURN] = function():*{};
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -821,9 +827,9 @@ package weave.compiler
 					{
 						cfc = tokens[i - 1] as CompiledFunctionCall;
 						
-						if (cfc && cfc.evaluatedMethod == operators['('])
+						if (_jumpStatements.indexOf(tokens[i - 1]) >= 0 || (cfc && cfc.evaluatedMethod == operators['(']))
 						{
-							// support for "while (cond);"
+							// support for "return;" and "while (cond);"
 							tokens[i] = compileOperator(';', []);
 						}
 						else if (tokens[i - 1] is CompiledConstant || (cfc && cfc.evaluatedMethod != operators[';']))
@@ -1454,7 +1460,7 @@ package weave.compiler
 					{
 						if (statements.hasOwnProperty(token))
 							throw new Error('Unexpected ' + token);
-						if (cfc && cfc.evaluatedMethod == operators[';'])
+						if (cfc && cfc.evaluatedMethod == operators[';'] && cfc.compiledParams.length > 1)
 							throwInvalidSyntax(stmt);
 					}
 					
@@ -1520,6 +1526,10 @@ package weave.compiler
 						
 						// TODO 
 					}
+				}
+				else if (_jumpStatements.indexOf(stmt) >= 0)
+				{
+					tokens[startIndex] = compileOperator(stmt, params);
 				}
 				return;
 			}
@@ -1744,6 +1754,7 @@ package weave.compiler
 				var subCall:CompiledFunctionCall;
 				var constant:CompiledConstant;
 				var compiledParams:Array;
+				var method:Object;
 				var result:*;
 				var symbolName:String;
 				var i:int;
@@ -1767,10 +1778,16 @@ package weave.compiler
 				call.evalIndex = INDEX_METHOD;
 				stack.length = 1;
 				stack[0] = call;
-				while (true)
+				stackLoop: while (true)
 				{
 					// evaluate the CompiledFunctionCall on top of the stack
 					call = stack[stack.length - 1] as CompiledFunctionCall;
+					
+					// if we got here because of a break, advance evalIndex
+					if (method == operators[ST_BREAK])
+						call.evalIndex++;
+					
+					method = call.evaluatedMethod;
 					compiledParams = call.compiledParams;
 					if (compiledParams)
 					{
@@ -1795,8 +1812,8 @@ package weave.compiler
 							
 							// handle branching and short-circuiting
 							// skip evaluation of true or false branch depending on condition and branch operator
-							if (BRANCH_LOOKUP[call.evaluatedMethod] && call.evalIndex > INDEX_CONDITION)
-								if (BRANCH_LOOKUP[call.evaluatedMethod] == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
+							if (BRANCH_LOOKUP[method] && call.evalIndex > INDEX_CONDITION)
+								if (BRANCH_LOOKUP[method] == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
 									continue;
 							
 							if (call.evalIndex == INDEX_METHOD)
@@ -1809,21 +1826,50 @@ package weave.compiler
 								// initialize subCall and push onto stack
 								subCall.evalIndex = INDEX_METHOD;
 								stack.push(subCall);
-								break;
+								continue stackLoop;
 							}
 						}
-						// if more parameters need to be evaluated, evaluate the new top of the stack
-						if (call.evalIndex < compiledParams.length)
-							continue;
 					}
 					// no parameters need to be evaluated, so make the function call now
 					try
 					{
 						if (compiledParams) // function call
 						{
-							// special case for local assignment
-							if (ASSIGN_OP_LOOKUP[call.evaluatedMethod] && compiledParams.length == 2) // two params means local assignment
+							if (method == operators[ST_RETURN])
 							{
+								return compiledParams.length ? call.evaluatedParams[0] : undefined;
+							}
+							else if (method == operators[ST_CONTINUE])
+							{
+								while (stack.length > 0)
+								{
+									call = stack.pop() as CompiledFunctionCall;
+									constant = call.compiledMethod as CompiledConstant;
+									if (constant && _loopStatements.indexOf(constant.name) >= 0)
+									{
+										stack.push(call); // continue loop
+										call.evalIndex = INDEX_METHOD + 1;
+										continue stackLoop;
+									}
+								}
+								return result; // continue at top level
+							}
+							else if (method == operators[ST_BREAK])
+							{
+								while (stack.length > 0)
+								{
+									call = stack.pop() as CompiledFunctionCall;
+									constant = call.compiledMethod as CompiledConstant;
+									if (constant.name == ST_FOR)
+										continue stackLoop;
+									if (constant && _loopStatements.indexOf(constant.name) >= 0 && constant.name != ST_FOR_DO)
+										continue stackLoop;
+								}
+								return result; // break at top level
+							}
+							else if (ASSIGN_OP_LOOKUP[method] && compiledParams.length == 2) // two params means local assignment
+							{
+								// local assignment
 								symbolName = call.evaluatedParams[0];
 								if (builtInSymbolTable.hasOwnProperty(symbolName))
 									throw new Error("Cannot assign built-in symbol: " + symbolName);
@@ -1831,19 +1877,19 @@ package weave.compiler
 								// assignment operator expects parameters like (host, ...chain, value)
 								// if there is no matching local variable and 'this' has a matching one, assign the property of 'this'
 								if (useThisScope && this && this.hasOwnProperty(symbolName) && !localSymbolTable.hasOwnProperty(symbolName))
-									result = call.evaluatedMethod(this, symbolName, call.evaluatedParams[1]);
+									result = method(this, symbolName, call.evaluatedParams[1]);
 								else // otherwise, assign local variable
-									result = call.evaluatedMethod(localSymbolTable, symbolName, call.evaluatedParams[1]);
+									result = method(localSymbolTable, symbolName, call.evaluatedParams[1]);
 							}
-							else if (call.evaluatedMethod is Class)
+							else if (method is Class)
 							{
 								// type casting
-								if (call.evaluatedMethod == Array) // special case for Array
+								if (method == Array) // special case for Array
 									result = call.evaluatedParams.concat();
 								else if (call.evaluatedParams.length != 1)
 								{
 									// special case for Object('prop1', value1, ...)
-									if (call.evaluatedMethod === Object)
+									if (method === Object)
 									{
 										var params:Array = call.evaluatedParams;
 										result = {}
@@ -1854,21 +1900,21 @@ package weave.compiler
 										throw new Error("Incorrect number of arguments for type casting.  Expected 1.");
 								}
 								// special case for Class('some.qualified.ClassName')
-								else if (call.evaluatedMethod === Class && call.evaluatedParams[0] is String)
+								else if (method === Class && call.evaluatedParams[0] is String)
 									result = getDefinitionByName(call.evaluatedParams[0]);
 								else // all other single-parameter type casting operations
-									result = call.evaluatedMethod(call.evaluatedParams[0]);
+									result = method(call.evaluatedParams[0]);
 							}
 							else
 							{
 								// function call
-								result = call.evaluatedMethod.apply(null, call.evaluatedParams);
+								result = method.apply(null, call.evaluatedParams);
 							}
 						}
 						else // no compiled params means it's a variable lookup
 						{
 							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
-							symbolName = call.evaluatedMethod as String;
+							symbolName = method as String;
 							// find the variable
 							for (i = 0; i < allSymbolTables.length - 1; i++) // max i after loop will be length-1
 								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
@@ -1968,7 +2014,10 @@ package weave.compiler
 				"for (y = 0; y < 10; y++) trace('y =',y);",
 				"x = 0; do { trace('do',x++); } while (trace('cond'), x < 10);",
 				_do_test,
-				"for (trace('y =',0), y = 0; trace(y,'<',10), y < 10; trace('y++'), y++) { trace('loop y =',y); }"
+				"for (trace('y =',0), y = 0; trace(y,'<',10), y < 10; trace('y++'), y++) { trace('loop y =',y); }",
+				"for (i = 0; i < 10; i++) if (i == 5) return ; else trace(i);",
+				"if (true) return ; else trace('test'); trace('BUG');",
+				"for (i = 0; i < 10; i++) { if (i == 3) continue; trace(i); if (i == 5) break; } trace('done');"
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
