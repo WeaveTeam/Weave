@@ -1872,7 +1872,7 @@ package weave.compiler
 							
 							// handle branching and short-circuiting
 							// skip evaluation of true or false branch depending on condition and branch operator
-							if (BRANCH_LOOKUP[method] && call.evalIndex > INDEX_CONDITION)
+							if (BRANCH_LOOKUP[method] !== undefined && call.evalIndex > INDEX_CONDITION)
 								if (BRANCH_LOOKUP[method] == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
 									continue;
 							
@@ -2020,7 +2020,10 @@ package weave.compiler
 						if (ignoreRuntimeErrors)
 							result = undefined;
 						else
+						{
+							trace(decompileObject(call));
 							throw e;
+						}
 					}
 					
 					// handle while and for loops
