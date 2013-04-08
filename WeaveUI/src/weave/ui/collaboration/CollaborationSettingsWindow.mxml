@@ -32,12 +32,13 @@
 				<mx:VBox width="100%" height="100%" label="Connection" paddingBottom="{padding}"
 						 paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
-						<mx:Label text="{lang('Username:')}" width="{labelWidth}" />
-						<mx:TextInput id="nickname" width="{textAreaWidth}" change="trimInput(event);"/>	
+						<mx:Label width="{labelWidth}" text="{lang('Username:')}"/>
+						<mx:TextInput id="nickname" width="{textAreaWidth}"
+									  change="trimInput(event);"/>	
 					</mx:HBox>
 					<mx:HBox width="100%">
-						<mx:Label text="{lang('User Color:')}" width="{labelWidth}" />
-						<mx:ColorPicker id="picker" selectedColor="{generateRandomColor()}" />
+						<mx:Label width="{labelWidth}" text="{lang('User Color:')}"/>
+						<mx:ColorPicker id="picker" selectedColor="{generateRandomColor()}"/>
 					</mx:HBox>
 					<mx:HBox>
 						<mx:Label text="Use images for pointers:"/>
@@ -77,11 +78,12 @@
 					</ui:Center>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" label="{lang('Add-ons')}" enabled="true"
-						 paddingBottom="{padding}" paddingLeft="{padding}"
-						 paddingRight="{padding}" paddingTop="{padding}">
+						 paddingBottom="{padding}" paddingLeft="{padding}" paddingRight="{padding}"
+						 paddingTop="{padding}">
 					<mx:HBox width="100%">
-						<mx:Label text="{lang('Microphone:')}" width="{labelWidth}" />
-						<mx:ComboBox id="micList" width="{textAreaWidth}" change="startMicActivityMonitor()" />
+						<mx:Label width="{labelWidth}" text="{lang('Microphone:')}"/>
+						<mx:ComboBox id="micList" width="{textAreaWidth}"
+									 change="startMicActivityMonitor()"/>
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Spacer width="{labelWidth}"/>
@@ -91,8 +93,9 @@
 						</mx:Canvas>
 					</mx:HBox>
 					<mx:HBox width="100%">
-						<mx:Label text="{lang('Camera:')}" width="{labelWidth}" />
-						<mx:ComboBox id="camList" width="{textAreaWidth}" change="startCamActivityMonitor()" />
+						<mx:Label width="{labelWidth}" text="{lang('Camera:')}"/>
+						<mx:ComboBox id="camList" width="{textAreaWidth}"
+									 change="startCamActivityMonitor()"/>
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Spacer width="{labelWidth}"/>
@@ -103,8 +106,8 @@
 					</mx:HBox>
 					<mx:Spacer height="100%"/>
 					<ui:Center>
-						<mx:Label id="addonsSavedLabel" text="{lang('Camera and microphone have been saved.')}"
-								   visible="false"/>
+						<mx:Label id="addonsSavedLabel" visible="false"
+								  text="{lang('Camera and microphone have been saved.')}"/>
 					</ui:Center>
 					<ui:Center>
 						<mx:Button id="saveAddonsButton" label="{lang('Save')}"
@@ -122,7 +125,6 @@
 			
 			import weave.Weave;
 			import weave.services.collaboration.CollaborationEvent;
-			import weave.ui.collaboration.CollabMouseCursor;
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 150;

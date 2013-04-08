@@ -21,8 +21,7 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:userControls="weave.ui.userControls.*"
-				   title="{lang('Collaboration')}"
-				   creationPolicy="all" layout="absolute">
+				   creationPolicy="all" layout="absolute" title="{lang('Collaboration')}">
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -170,7 +169,8 @@
 			</mx:HDividedBox>
 			<mx:HBox width="100%" enabled="{disconnectButton.enabled}">
 				<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
-				<mx:Button id="sendButton" label="{lang('Send')}" enabled="false" click="sendToRoomButton();"/>
+				<mx:Button id="sendButton" label="{lang('Send')}" click="sendToRoomButton();"
+						   enabled="false"/>
 			</mx:HBox>
 		</mx:VBox>
 	
@@ -179,7 +179,8 @@
 				 verticalScrollPolicy="auto">
 			<mx:VBox id="serverSettings">
 				<ui:Indent label="{lang('IP:')}">
-					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverName.text?'':'Required'}"/>
+					<mx:TextInput id="serverIP" width="{textAreaWidth}"
+								  errorString="{serverName.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('ServerName:')}">
 					<mx:TextInput id="serverName" width="{textAreaWidth}"
@@ -202,8 +203,9 @@
 				<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
 			</ui:Indent>-->
 			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="{lang('Connect')}" click="connect();" />
-				<mx:Button id="disconnectButton" label="{lang('Disconnect')}" enabled="false" click="collabService.disconnect();"/>
+				<mx:Button id="connectButton" label="{lang('Connect')}" click="connect();"/>
+				<mx:Button id="disconnectButton" label="{lang('Disconnect')}"
+						   click="collabService.disconnect();" enabled="false"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>

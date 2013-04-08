@@ -18,9 +18,9 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
-		   width="106" height="86" creationComplete="creationComplete(event)" creationPolicy="all" 
-		   verticalScrollPolicy="off" horizontalScrollPolicy="off">
-	<mx:VBox width="100%" height="100%" id="borderBox" borderThickness="3" borderStyle="solid">
+		   width="106" height="86" creationComplete="creationComplete(event)" creationPolicy="all"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:VBox id="borderBox" width="100%" height="100%" borderStyle="solid" borderThickness="3">
 		<mx:UIComponent id="videoArea" width="100%" height="100%"/>
 		<mx:Label id="nameLabel" width="100%" height="3%"/>
 	</mx:VBox>	

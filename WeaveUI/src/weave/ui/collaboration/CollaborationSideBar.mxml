@@ -110,13 +110,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</mx:Canvas>
 					<mx:Canvas id="color" width="16" height="16" borderColor="0" borderStyle="solid"
 							   borderThickness="2" cornerRadius="8"/>
-					<mx:Image id="micPic" width="15" height="15"
-							  source="@Embed(source='/weave/resources/images/collab/mic.png')" visible="{micPic.includeInLayout}" cacheAsBitmap="true"/>
+					<mx:Image id="micPic" visible="{micPic.includeInLayout}" width="15" height="15"
+							  cacheAsBitmap="true"
+							  source="@Embed(source='/weave/resources/images/collab/mic.png')"/>
 					<mx:Image id="camPic" width="15" height="15"
 							  source="@Embed(source='/weave/resources/images/collab/cam.png')"/>
 					<mx:Image id="specPic" width="22" height="12"
 							  source="@Embed(source='/weave/resources/images/collab/eye.png')"/>
-					<collaboration:CollaborationPing id="collabPing" width="16" height="14" />
+					<collaboration:CollaborationPing id="collabPing" width="16" height="14"/>
 				</mx:HBox>
 			</mx:Component>
 		</mx:itemRenderer>

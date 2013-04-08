@@ -17,21 +17,19 @@
 	You should have received a copy of the GNU General Public License
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<ui:ControlPanel  xmlns="weave.ui.*"
-				  xmlns:mx="http://www.adobe.com/2006/mxml"
-				  xmlns:ui="weave.ui.*" 
-				  layout="absolute"
-				  width="338" height="210"
-				  title="{lang('Collaboration Settings')}"
-				  backgroundColor="#EFF4BC"
-				  creationComplete="creationComplete()">
-	<mx:VBox label="{lang('Server Settings')}" width="100%" height="100%">
+<ui:ControlPanel xmlns="weave.ui.*"
+				 xmlns:mx="http://www.adobe.com/2006/mxml"
+				 xmlns:ui="weave.ui.*"
+				 width="338" height="210" backgroundColor="#EFF4BC"
+				 creationComplete="creationComplete()" layout="absolute"
+				 title="{lang('Collaboration Settings')}">
+	<mx:VBox width="100%" height="100%" label="{lang('Server Settings')}">
 		<mx:HBox width="100%">
 			<mx:Label width="{labelWidth}" text="IP:"/>
 			<mx:TextInput id="serverIP" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
-			<mx:Label text="{lang('ServerName:')}" width="{labelWidth}" />
+			<mx:Label width="{labelWidth}" text="{lang('ServerName:')}"/>
 			<mx:TextInput id="serverName" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
@@ -39,7 +37,7 @@
 			<mx:TextInput id="port" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
-			<mx:Label text="{lang('Room Name:')}" width="{labelWidth}" />
+			<mx:Label width="{labelWidth}" text="{lang('Room Name:')}"/>
 			<mx:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
