@@ -93,6 +93,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			*/
 			public function inControl(ids:Array):void
 			{
+				var foundOne:Boolean = false;
 				for( var i:int = 1; i < ids.length; i++ )
 					if( !alreadyExists(ids[i], controlList) )
 						controlList.push(ids[i]);
@@ -109,12 +110,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					if( canvasList[controlList[k]] != null )
 					{
+						foundOne = true;
 						(canvasList[controlList[k]] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
 						(canvasList[controlList[k]] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
 						this.height = (canvasList[controlList[k]] as CollaborationVideoComponent).height + 17;
 						//Need to use callLater here, as the height and width changes don't take effect immediately.
 					}
 				}
+				if( !foundOne )
+					this.height = CollaborationVideoComponent.defaultHeight + 17;
 				adjustLayout();
 			}
 			//This function is used by inControl() to shrink a user's component when they lose control.
