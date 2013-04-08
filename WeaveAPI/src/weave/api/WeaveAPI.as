@@ -196,15 +196,20 @@ package weave.api
 				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = false;
 				ExternalInterface.call(
-					'function(objectID) {' +
-					'  var weave = document.getElementById(objectID);' +
-					'  if (window && window.weaveReady) {' +
-					'    window.weaveReady(weave);' +
-					'  }' +
-					'  else if (weaveReady) {' +
-					'    weaveReady(weave);' +
-					'  }' +
-					'}',
+					<![CDATA[
+						function(objectID)
+						{
+							var weave = document.getElementById(objectID);
+							if (window && window.weaveReady)
+							{
+								window.weaveReady(weave);
+							}
+							else if (weaveReady)
+							{
+								weaveReady(weave);
+							}
+						}
+					]]>,
 					[ExternalInterface.objectID]
 				);
 				ExternalInterface.marshallExceptions = prev;

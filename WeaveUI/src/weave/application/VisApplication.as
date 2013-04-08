@@ -290,6 +290,7 @@ package weave.application
 			// enable JavaScript API after initial session state has loaded.
 			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
+			Weave.initJavaScriptDragDrop();
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
 		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
