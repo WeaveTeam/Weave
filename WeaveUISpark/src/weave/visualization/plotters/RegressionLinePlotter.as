@@ -346,21 +346,29 @@ package weave.visualization.plotters
 			
 			// For the other types, we know that coefficients only has 2 entries.
 			
-			//
+			// Model y = a*ln(x) + b
+			// called with (y, ln(x))
+			// => A = a, B = b			
 			else if (type == LOGARITHMIC) 
 			{					
 				return a*Math.log(xValue) + b;
 			}
-			
+	
+			// Model y = b*exp(a*x)
+			// => ln(y) = ln(b) + a*x
+			// called with (ln(y), x)
+			// => A = a, B = ln(b)
 			else if (type == EXPONENTIAL) 
 			{
-				trace(coefficients);
 				return Math.exp(b)*Math.exp(a*xValue);
-				//return Math.exp(coefficients[0])*Math.exp(xValue*coefficients[1]);
 			}
+			
+			// Model y = b*x^a
+			// => ln(y) = ln(b) + a*ln(x)
+			// called with (ln(y), a*ln(x)
+			// => A = a, B = ln(b)
 			else if (type == POWER) 
 			{
-				trace(coefficients);
 				return Math.exp(b) * Math.pow(xValue, a);	
 			}
 			else
