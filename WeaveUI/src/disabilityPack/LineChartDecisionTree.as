@@ -59,35 +59,35 @@ package disabilityPack
 			//constructor
 		}
 		
-		public function lineChartDT(segment:Array):Boolean
+		public function lineChartDT(segment:Array, corr:Number, fTests:Array, percentageTotal:Number, diffAM:Number, currSegNum:Number, totalNumber:Number, actualRunsNum:Number, outlier:Boolean, runsTestB:Boolean):Boolean
 		{
 			// 1=true=split 0=false=no split
 			
-			if(correlationCoefficient(segment)>0.815541)
+			if(corr>0.815541)
 			{
-				if(percentageOfTotalPoints() <= 0.62963)
+				if(percentageTotal <= 0.62963)
 				{
 					return false;
 				}
 				else
 				{
-					if(correlationCoefficient(segment) > 0.962782)
+					if(corr > 0.962782)
 					{
 						return false;
 					}
 					else
 					{
-						if(fTest() == true)
+						if(fTest(fTests) == true)
 						{
-							if(differenceBetweenActualRunsandMeanRuns() <= 0.052632) 
+							if(diffAM <= 0.052632) 
 							{
 								return true;
 							}
 							else
 							{
-								if(percentageOfTotalPoints() <= 0.894737)
+								if(percentageTotal <= 0.894737)
 								{
-									if(totalNumberOfPoints() <= 10)
+									if(totalNumber <= 10)
 									{
 										return true;
 									}
@@ -98,7 +98,7 @@ package disabilityPack
 								}
 								else
 								{
-									if(differenceBetweenActualRunsandMeanRuns() <= 0.480712)
+									if(diffAM <= 0.480712)
 									{
 										return false;
 										
@@ -113,19 +113,19 @@ package disabilityPack
 						}
 						else // Ftest = 1 = false
 						{
-							if(percentageOfTotalPoints() > 0.866667)
+							if(percentageTotal > 0.866667)
 							{
 								return true;
 							}
 							else
 							{
-								if(totalNumberOfPoints() <= 14)
+								if(totalNumber <= 14)
 								{
 									return false;
 								}
 								else//totalNumberofPoints
 								{
-									if(actualRuns() <= 4)
+									if(actualRunsNum <= 4)
 									{
 										return true;
 									}
@@ -142,39 +142,39 @@ package disabilityPack
 			// 1=true=split 0=false=no split
 			else // correlationCoeffiicent, main one
 			{
-				if(percentageOfTotalPoints() > 0.894737)
+				if(percentageTotal > 0.894737)
 				{
 					return true;
 				}
 				else
 				{
-					if(runsTest() == true)
+					if(runsTestB == true)
 					{
 						return true;
 					}
 					else
 					{
-						if(fTest() == true)
+						if(fTest(fTests) == true)
 						{
 							return true;
 						}
 						else
 						{
-							if(percentageOfTotalPoints() <= 0.392857)
+							if(percentageTotal <= 0.392857)
 							{
-								if(actualRuns() > 5)
+								if(actualRunsNum > 5)
 								{
 									return false;
 								}
 								else
 								{
-									if(numberOfPointsinCurrentSegment(segment) <=5 )
+									if(currSegNum <=5 )
 									{
 										return false;
 									}
 									else
 									{
-										if(correlationCoefficient(segment) <= 0.538139)
+										if(corr <= 0.538139)
 										{
 											return true;
 										}
@@ -189,32 +189,32 @@ package disabilityPack
 							}
 							else //percentage of total points > 0.392857
 							{
-								if(outlierDetection() == true)
+								if(outlier == true)
 								{
 									return true;
 								}
 								
 								else
 								{
-									if(totalNumberOfPoints() > 18)
+									if(totalNumber > 18)
 									{
 										return false;
 									}
 									else
 									{
-										if(correlationCoefficient(segment) > 0.725035)
+										if(corr > 0.725035)
 										{
 											return false;
 										}
 										else
 										{
-											if(differenceBetweenActualRunsandMeanRuns() <= 0.215768)
+											if(diffAM <= 0.215768)
 											{
 												return true;
 											}
 											else
 											{
-												if(totalNumberOfPoints() <= 17)
+												if(totalNumber <= 17)
 												{
 													return false;
 												}
@@ -261,9 +261,9 @@ package disabilityPack
 		}
 		
 		
-		public function totalNumberOfPoints():Number { 	return InitialSegmentLength;  }
+	//	public function totalNumber:Number { 	return InitialSegmentLength;  }
 		
-		public function numberOfPointsinCurrentSegment(segment:Array):Number {	return segment.length;	}
+	//	public function currSegNum(segment:Array):Number {	return segment.length;	}
 		
 		public function correlationCoefficient(segment:Array):Number
 		{
@@ -271,15 +271,15 @@ package disabilityPack
 			return 0.80;
 		}
 		
-		public function percentageOfTotalPoints():Number {return 0.92;}
+	//	public function percentageTotal:Number {return 0.92;}
 		
-		public function fTest():Boolean {return false;}
+		public function fTest(fTests):Boolean {return false;}
 		
 		public function changingPointsFtest():Number {return 5;}
 		
-		public function runsTest():Boolean { return false; }
+		//public function runsTestB:Boolean { return false; }
 		
-		public function actualRuns():Number {return 5;}
+	//	public function actualRunsNum:Number {return 5;}
 		
 		public function meanRuns(runsMeanValue:Number):Number {return runsMeanValue;}
 	    public function standardDevOfRuns():Number
@@ -288,13 +288,13 @@ package disabilityPack
 			var sdRunsTest:Number = new Number();
 			return sdRunsTest;
 		}
-		
-		public function differenceBetweenActualRunsandMeanRuns():Number
+		/*
+		public function diffAM:Number
 		{
 			// (r-rmean)/rmean
 			return 5;
-		}
-		public function outlierDetection():Boolean {	return false;	}
+		}*/
+	//	public function outlier:Boolean {	return false;	}
 		
 		public function numberOfOutliers():Number
 		{

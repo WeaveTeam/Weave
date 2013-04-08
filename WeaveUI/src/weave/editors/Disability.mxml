@@ -103,7 +103,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var joinKeysRArray:Array = new Array();
 			public var joinColsRArray:Array = new Array();
 			public var columnNames:Array = new Array();
+			public var fTestValues:Array = new Array();
+			private var finalRObject:Array;
 			
+			/*
 			private var RdecisionScript:String = "corr <- cor(dataX, dataY)\n" +
 												 "ftest <- var.test(dataX, dataY, conf.level=0.05)\n"+											
 												 "outlier_detection <- outliers::outlier(dataY)\n"+
@@ -111,6 +114,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 												 "intercept <- coefficients(fit)[1]\n"+
 												 "slope <- coefficients(fit)[2]\n"+
 												 "rSquared <- summary(fit)$r.squared\n";
+			*/
+			private var RdecisionScript:String = "corr <- cor(dataX, dataY)\n" +											
+												"outlier_detection <- outliers::outlier(dataY)\n"+
+												"fit <- lm(dataY~dataX)\n"+
+												"intercept <- coefficients(fit)[1]\n"+
+												"slope <- coefficients(fit)[2]\n"+
+												"rSquared <- summary(fit)$r.squared\n";
+			
+			private var FdecisionScript:String ="ftest <- var.test(dataX1, dataY1, conf.level=0.05)\n";											
+			
+			private var decisionCount:int = 0;
+			private var fDecisionCount:int = 0;
+			private var firstSegLength:int = 0;
 			
 			public function set target(panel:DraggablePanel):void
 			{
@@ -216,16 +232,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					//reportError(joinColsRArray);
 				}
 				
+				firstSegLength = inputValues.length;
 				/*//inputValues.push(100);
 				inputValues.push(16.2);
-				inputValues.push(16.2);
-				inputValues.push(16.2);
+				x
+				
 				
 				inputValues.push(16.2);
-				inputValues.push(16.2);
-				inputValues.push(16.2);
 				*/
-				trace("INPUT VALUES = " + inputValues);
+				//trace("INPUT VALUES = " + inputValues);
 				lineDecisionTree.setSegmentLength(inputValues.length);
 				lineDecisionTree.getJoinKeysArray(joinKeysRArray);
 				
@@ -234,34 +249,105 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					dataX.push(index);
 				}
-				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "ftest", "outlier_detection", "intercept", "slope", "rSquared"], RdecisionScript, "", false, true, false);
+				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "outlier_detection", "intercept", "slope", "rSquared"], RdecisionScript, "", false, true, false);
 				
 				DelayedAsyncResponder.addResponder(query, handleRunScriptDecision, handleRunScriptFault, null);
+				decisionCount++;
 				//split(inputValues);
 				
 				//inputValues = joinColsRArray; //use this
 				outputNames = ["mySlope"];	
 				inputName = ["y1", "y2"]; // //default name to be used in R	
 				query = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);   
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray); 
+				
+				
+				var dataY1:Array = new Array();
+				var dataY2:Array = new Array();
+				var dataX1:Array = new Array();
+				var dataX2:Array = new Array();
+				for(var j:int=2; j<inputValues.length - 1; j++)
+				{
+					dataX1 = new Array();
+					dataX2 = new Array();
+					dataY1 = (inputValues.slice(0,j));
+					
+					//trace(dataY1.length);
+					for(var k:int = 0; k < dataY1.length ; k++)
+					{
+						dataX1.push(k);
+					}
+					
+					k= 0;
+					dataY2 = (inputValues.slice(j, inputValues.length));
+					for(k = 0; k < dataY2.length ; k++)
+					{
+						dataX2.push(k);
+					}
+					
+					//trace("DATAY1    " +dataY1);
+					//trace("DATAY2    " +dataY2);
+					
+					outputNames = ["ftest"];
+					query = Rservice.runScript(null,["dataX1", "dataY1"], [dataX1, dataY1], outputNames, FdecisionScript, "", false, false, false);
+					DelayedAsyncResponder.addResponder(query, handleFtestScriptDecision, handleRunScriptFault, null);
+					
+					query = Rservice.runScript(null,["dataX1", "dataY1"], [dataX2, dataY2], outputNames, FdecisionScript, "", false, false, false);
+					DelayedAsyncResponder.addResponder(query, handleFtestScriptDecision, handleRunScriptFault, null);
+					fDecisionCount+=2;
+				}
 				
 			}
 			
-			private var corr:Number;
-			private var ftest:Array;
+			private var corr:Number = new Number();
+			private var ftest:Array = new Array();
 			private var outlier_detection:Number;
 			private var intercept:Number = NaN;
 			private var slope:Number = NaN;
 			private var rSquared:Number = NaN;
+			
+			
+			private var resultSegmentation:Array = new Array();
+			
+			public function handleFtestScriptDecision(event:ResultEvent, token:Object):void
+			{
+				var Robj:Array = event.result as Array;
+				////trace(Robj);
+				var RresultArray:Array = new Array();
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for(var i:int = 0; i<Robj.length; i++)
+				{
+					var rResult:RResult = new RResult(Robj[i]);
+					RresultArray.push(rResult);				
+				}
+				
+				ftest = (RresultArray[0] as RResult).value as Array;
+				fTestValues.push(ftest[0]);
+				fDecisionCount--;
+				
+				if(fDecisionCount == 0 && decisionCount == 0)
+				{
+					//should split()
+					resultSegmentation = split(inputValues);
+					trace(resultSegmentation);
+					
+					trace(inputValues[0] + "   " + inputValues[1]);
+					trace(inputValues[1] + "   " + inputValues[2]+ "   "+inputValues[3]);
+					processingRResult(finalRObject)
+					
+				}			
+				
+			}
 			
 			public function handleRunScriptDecision(event:ResultEvent, token:Object):void
 			{
 				// get needed decision values, execut split
 				
 				// split(inputValues)
-				trace("degerler geldi");
+				////trace("degerler geldi");
 				var Robj:Array = event.result as Array;
-				trace(Robj);
+				////trace(Robj);
 				var RresultArray:Array = new Array();
 				
 				//collecting Objects of type RResult(Should Match result object from Java side)
@@ -272,21 +358,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 					
 				corr = Number((RresultArray[0] as RResult).value);
-				ftest = (RresultArray[1] as RResult).value as Array;//ilk deger ftest degeri
-				outlier_detection = (RresultArray[2] as RResult).value as Number;
-			    intercept = (RresultArray[3] as RResult).value as Number;
-				slope = (RresultArray[4] as RResult).value as Number;
-				rSquared = (RresultArray[5] as RResult).value as Number;
+				//ftest = (RresultArray[1] as RResult).value as Array;//ilk deger ftest degeri
+				outlier_detection = (RresultArray[1] as RResult).value as Number;
+			    intercept = (RresultArray[2] as RResult).value as Number;
+				slope = (RresultArray[3] as RResult).value as Number;
+				rSquared = (RresultArray[4] as RResult).value as Number;
 
 				
 				runsTest(inputValues);
 				
-				trace("bu corr " + corr);
-				trace("bu f " + ftest);
-				trace("outlier " + outlier_detection);
-				trace("bu intercept " +intercept);
-				trace("bu slope " +slope);
-				trace("r squared " +rSquared);
+				//trace("corr " + corr);
+				////trace("f " + ftest);
+				//trace("outlier " + outlier_detection);
+				//trace("intercept " +intercept);
+				//trace("slope " +slope);
+				//trace("r squared " +rSquared);
+				decisionCount--;
+				if(fDecisionCount == 0 && decisionCount ==0)
+				{
+					//should split()
+					
+					var result:Array = split(inputValues);
+					
+					trace(result);
+					processingRResult(finalRObject);
+					
+					
+				}
+				
 				//if outlier > critical value
 				// r script tekrar cagir. Baska fonksyonda yap (handle runscript), gelenler cricital value
 				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 			
@@ -298,7 +397,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// to do handle multiple asynchronous calls
 				var rObject:Array = new Array();
 				rObject = event.result as Array;
-				var finalRObject:Array = new Array();//collects all the RResult objects after being returned from R
+				finalRObject= new Array();//collects all the RResult objects after being returned from R
 				
 				if (rObject == null)
 				{
@@ -309,19 +408,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{					
 					if (rObject[i] == null)
 					{
-						trace("WARNING! R Service returned null in results array at index "+i);
+						//trace("WARNING! R Service returned null in results array at index "+i);
 						continue;
 					}					
 					var rResult:RResult = new RResult(rObject[i]);
 					finalRObject[i] = rResult.value;					
 				}				
-				processingRResult(finalRObject);				
+								
 			}
 			
 			
 			private function handleRunScriptFault(event:FaultEvent, token:Object):void
 			{
-				trace(["fault", token, event.message].join("\n"));
+				//trace(["fault", token, event.message].join("\n"));
 				reportError(event);
 			}
 			
@@ -345,10 +444,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					residual[j] = inputValues[j] - yRegValues[j];
 					
-					if(residual[j] < 0) {negResRun++;}
-					
-					else {posRes++}
-											
+					if(residual[j] < 0) {negResRun++;}				
+					else {posRes++}											
 				}
 				
 				runsMean = ((2*negResRun*posRes)/(negResRun + posRes)) + 1;
@@ -357,13 +454,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//lineDecisionTree.actualRuns(negResRun);
 				//lineDecisionTree.meanRuns(runsMean);
 				
-				trace("inputvalues "+inputValues);
-				trace("yreg "+yRegValues);
-				trace("res array" +residual);
-				trace("runs "+runsMean);
-				trace("sd " +standardDV);
+				//trace("inputvalues "+inputValues);
+				//trace("yreg "+yRegValues);
+				//trace("res array" +residual);
+				//trace("runs "+runsMean);
+				//trace("sd " +standardDV);
 				
-				differenceOfActualAndRuns = negResRun - runsMean;
+				differenceOfActualAndRuns = (negResRun - runsMean)/runsMean;
 				
 				if(negResRun > (runsMean-standardDV)) {return false;}
 				else {return true;}
@@ -371,10 +468,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			
 			public var checkLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
-			
-			
 			
 			public function processingRResult(_sentpropertiesValues:Array):void
 			{
@@ -392,9 +486,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(_panel.title.substring(0,4)=='Line')
 				{
-					automaticToolDescTextBox.text = finalTextMessages[0];
+					automaticToolDescTextBox.text = "The visualization presents the '"+_panel.title +"'. "+"The line chart is composed of  "+resultSegmentation.length+" visually distinguisable trends. " +"The first segment has a slightly decreasing trend "+"The second segment has an increasing trend"  ;
 				}
+				
+				//Weave.properties.disabilitySystemText.value = automaticToolDescTextBox.text;
+				
+				//	automaticToolDescTextBox.text = finalTextMessages[0] ;
+
 			}
+			
+			
 				
 			public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
 			
@@ -402,8 +503,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function shouldSplit(segment:Array):Boolean
 			{
-					
-				if(lineDecisionTree.lineChartDT(segment) == true)
+				trace("shouldSplit");
+				if(lineDecisionTree.lineChartDT(segment,corr, fTestValues, segment.length / firstSegLength, differenceOfActualAndRuns, segment.length, firstSegLength, negResRun, false, runsTest(segment) ) == true)
 				{
 					return true;
 				}
@@ -470,19 +571,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}		
 					
 					
-				trace(" WANT TO SEE THE TRACE MESSAGE");
+				//trace(" WANT TO SEE THE //trace MESSAGE");
 				first.push(0);
-				trace(maxVDIndex);
+				//trace(maxVDIndex);
 				first.push(maxVDIndex);
 				secondSegment.push(maxVDIndex);
 				secondSegment.push(segment.length - 1);
 				resultSegment.push(first);
 				resultSegment.push(secondSegment);
+				
 					
 				return resultSegment;
 					
 			}
 			
+			
+		
 		]]>
 	</mx:Script>
 </mx:VBox>
