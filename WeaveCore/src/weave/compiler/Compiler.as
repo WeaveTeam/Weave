@@ -78,7 +78,7 @@ package weave.compiler
 		
 		private static const ST_VAR:String = 'var';
 		private static const ST_RETURN:String = 'return';
-		private static const ST_THROW:String = 'finally';
+		private static const ST_THROW:String = 'throw';
 		
 		private static const _statementsWithoutParams:Array = [
 			ST_ELSE, ST_DO, ST_BREAK, ST_CONTINUE, ST_CASE, ST_DEFAULT,
@@ -91,7 +91,7 @@ package weave.compiler
 		/**
 		 * Used during compiling only.
 		 */		
-		private static const _jumpStatements:Array = [ST_BREAK, ST_CONTINUE, ST_RETURN];
+		private static const _jumpStatements:Array = [ST_BREAK, ST_CONTINUE, ST_RETURN, ST_THROW];
 		
 		/**
 		 * Only used during evaluation and decompiling.
@@ -173,6 +173,47 @@ package weave.compiler
 		 * This is used to match number tokens.
 		 */		
 		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
+		
+		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
+		private const LOOP_LOOKUP:Dictionary = new Dictionary(); // Function -> true or ST_BREAK or ST_CONTINUE
+		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function -> Boolean, for short-circuiting
+		private const ASSIGN_OP_LOOKUP:Object = new Dictionary(); // Function -> true
+		private const MAX_OPERATOR_LENGTH:int = 4;
+		
+		/**
+		 * While this is set to true, compiler optimizations are enabled.
+		 */		
+		public var enableOptimizations:Boolean = true;
+		
+		/**
+		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
+		 */
+		private const libraries:Array = [];
+		
+		/**
+		 * This object maps the name of a predefined constant to its value.
+		 */
+		private var constants:Object = null;
+		/**
+		 * This object maps an operator like "*" to a Function with the following signature:
+		 *     function(x:Number, y:Number):Number
+		 * If there is no function associated with the operator, it maps the operator to a value of null.
+		 */
+		private var operators:Object = null;
+		/**
+		 * This object maps an assignment operator like "=" to its corresponding function.
+		 * This object is used as a quick lookup to see if an operator is an assignment operator.
+		 */
+		private var assignmentOperators:Object = null;
+		/**
+		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
+		 * Each nested Array is a group of operators that should be evaluated in the same pass.
+		 */
+		private var orderedOperators:Array = null;
+		/**
+		 * This is an Array of all the unary operator symbols.
+		 */
+		private var unaryOperatorSymbols:Array = null;
 
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
@@ -286,47 +327,6 @@ package weave.compiler
 		{
 			return libraries.concat(); // make a copy
 		}
-		
-		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
-		private const LOOP_LOOKUP:Dictionary = new Dictionary(); // Function -> true or ST_BREAK or ST_CONTINUE
-		private const BRANCH_LOOKUP:Dictionary = new Dictionary(); // Function -> Boolean
-		private const ASSIGN_OP_LOOKUP:Object = new Dictionary(); // Function -> true
-		private const MAX_OPERATOR_LENGTH:int = 4;
-		
-		/**
-		 * While this is set to true, compiler optimizations are enabled.
-		 */		
-		public var enableOptimizations:Boolean = true;
-		
-		/**
-		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
-		 */
-		private const libraries:Array = [];
-		
-		/**
-		 * This object maps the name of a predefined constant to its value.
-		 */
-		private var constants:Object = null;
-		/**
-		 * This object maps an operator like "*" to a Function with the following signature:
-		 *     function(x:Number, y:Number):Number
-		 * If there is no function associated with the operator, it maps the operator to a value of null.
-		 */
-		private var operators:Object = null;
-		/**
-		 * This object maps an assignment operator like "=" to its corresponding function.
-		 * This object is used as a quick lookup to see if an operator is an assignment operator.
-		 */
-		private var assignmentOperators:Object = null;
-		/**
-		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
-		 * Each nested Array is a group of operators that should be evaluated in the same pass.
-		 */
-		private var orderedOperators:Array = null;
-		/**
-		 * This is an Array of all the unary operator symbols.
-		 */
-		private var unaryOperatorSymbols:Array = null;
 		/**
 		 * This function will initialize the operators and constants.
 		 */
@@ -466,6 +466,7 @@ package weave.compiler
 				}
 			};
 			// special case operators for loop statements
+			operators[ST_IF] = function(c:*, t:*, f:*):* { return c ? t : f; };
 			operators[ST_DO] = function(x:*, y:*):* { return x && y; };
 			operators[ST_WHILE] = function(x:*, y:*):* { return x && y; };
 			operators[ST_FOR] = function(x:*, y:*):* { return x && y; };
@@ -476,6 +477,7 @@ package weave.compiler
 			operators[ST_BREAK] = function(..._):*{};
 			operators[ST_CONTINUE] = function(..._):*{};
 			operators[ST_RETURN] = function(..._):*{};
+			operators[ST_THROW] = function(e:*):* { throw e; };
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -522,6 +524,7 @@ package weave.compiler
 					constants[OPERATOR_ESCAPE + op] = operators[op];
 			
 			// fill reverse-lookup dictionaries
+			BRANCH_LOOKUP[operators[ST_IF]] = true;
 			BRANCH_LOOKUP[operators[ST_DO]] = true;
 			BRANCH_LOOKUP[operators[ST_WHILE]] = true;
 			BRANCH_LOOKUP[operators[ST_FOR]] = true;
@@ -540,6 +543,7 @@ package weave.compiler
 			JUMP_LOOKUP[operators[ST_BREAK]] = true;
 			JUMP_LOOKUP[operators[ST_CONTINUE]] = true;
 			JUMP_LOOKUP[operators[ST_RETURN]] = true;
+			JUMP_LOOKUP[operators[ST_THROW]] = true;
 			
 			// fill assignment operator reverse-lookup dictionary
 			for each (var assigOp:Function in assignmentOperators)
@@ -1100,11 +1104,20 @@ package weave.compiler
 				
 				// cut out tokens between brackets
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
+				
 				if (debug)
 					trace("compiling tokens", leftBracket, subArray.join(' '), rightBracket);
+				
+				if (leftBracket == '{')
+				{
+					compiledToken = compileTokens(subArray, true);
+					tokens.splice(open, 2, compileOperator(';', [compiledToken]));
+					continue;
+				}
+				
 				var separator:String = ',';
-				if (leftBracket == '{' || (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token]))
-					separator = ';';
+				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
+					separator = ';'; // statement parameters are separated by ';'
 				compiledParams = compileArray(subArray, separator);
 
 				if (leftBracket == '[') // this is either an array or a property access
@@ -1463,7 +1476,7 @@ package weave.compiler
 				if (startIndex < tokens.length - 1)
 				{
 					cfc = tokens[startIndex] as CompiledFunctionCall;
-					if (!cfc || (cfc.evaluatedMethod != operators[';'] && !statements.hasOwnProperty(cfc.evaluatedMethod)))
+					if (!cfc || (cfc.evaluatedMethod != operators[';'] && !tokenIsStatement(cfc)))
 					{
 						if (stmt)
 							throw new Error("Unexpected " + stmt);
@@ -1498,7 +1511,7 @@ package weave.compiler
 					
 					if (type == PN_EXPR) // non-statement
 					{
-						if (statements.hasOwnProperty(token))
+						if (tokenIsStatement(token))
 							throw new Error('Unexpected ' + token);
 						if (cfc && cfc.evaluatedMethod == operators[';'] && cfc.compiledParams.length > 1)
 							throwInvalidSyntax(stmt);
@@ -1523,7 +1536,7 @@ package weave.compiler
 				{
 					// implemented as "cond ? true_stmt : false_stmt"
 					params.splice(2, 1); // works whether or not else is present
-					tokens[startIndex] = compileFunctionCall(new CompiledConstant(ST_IF, operators['?:']), params);
+					tokens[startIndex] = compileOperator(ST_IF, params);
 				}
 				else if (stmt == ST_DO) // do {stmt} while (cond);
 				{
@@ -1621,6 +1634,16 @@ package weave.compiler
 		private function throwInvalidSyntax(statement:String):void
 		{
 			throw new Error("Invalid '" + statement + "' syntax");
+		}
+		
+		private function tokenIsStatement(token:Object):Boolean
+		{
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+			if (!cfc)
+				return statements.hasOwnProperty(token);
+			
+			var method:* = cfc.evaluatedMethod;
+			return (JUMP_LOOKUP[method] || LOOP_LOOKUP[method])
 		}
 		
 		/**
@@ -1942,6 +1965,11 @@ package weave.compiler
 								}
 								return result; // break at top level
 							}
+							else if (method == operators[ST_THROW])
+							{
+								//TODO - find try/catch/finally
+								throw call.evaluatedParams[0];
+							}
 						}
 						else if (ASSIGN_OP_LOOKUP[method] && compiledParams.length == 2) // two params means local assignment
 						{
@@ -1987,7 +2015,7 @@ package weave.compiler
 							result = method.apply(null, call.evaluatedParams);
 						}
 					}
-					catch (e:Error)
+					catch (e:*)
 					{
 						if (ignoreRuntimeErrors)
 							result = undefined;
