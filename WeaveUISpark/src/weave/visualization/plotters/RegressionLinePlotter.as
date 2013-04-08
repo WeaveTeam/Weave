@@ -125,7 +125,7 @@ package weave.visualization.plotters
 			
 			if (currentTrendline.value == POWER)
 			{
-				Rstring = "fit <- lm( log(y) ~ x )\n" 
+				Rstring = "fit <- lm( log(y) ~ log(x) )\n" 
 					+"coef <- coefficients(fit)\n" 
 					+"rSquared <- summary(fit)$r.squared\n";
 			}
@@ -163,9 +163,14 @@ package weave.visualization.plotters
 			// R only returns coefficients and rSquared
 			if (RresultArray.length == 2)
 			{
-				coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
+				
+				//coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
+				coefficients = (RresultArray[0] as RResult).value as Array;
+				
 				// Preprocess coefficients ==> It might return NaN in higher degree
 				// where it should in fact be 0.
+				
+				// problem arises sometimes, when coefficients is null, meaning the R calls are not done yet? May be create a busy loop?
 				for (var i:int = 0; i < coefficients.length; i++)
 				{
 					if (isNaN(coefficients[i]))
@@ -322,6 +327,9 @@ package weave.visualization.plotters
 		 **/
 		private function evalFunction(type:String, coefficients:Array, xValue:Number):Number
 		{
+				
+			var b:Number = coefficients[0];
+			var a:Number = coefficients[1];
 			
 			if (type == POLYNOMIAL) 
 			{
@@ -335,19 +343,25 @@ package weave.visualization.plotters
 				
 				return result;
 			}
+			
+			// For the other types, we know that coefficients only has 2 entries.
+			
+			//
 			else if (type == LOGARITHMIC) 
-			{	
-				return coefficients[0]*Math.log(xValue) + coefficients[1];
+			{					
+				return a*Math.log(xValue) + b;
 			}
-				
-				
+			
 			else if (type == EXPONENTIAL) 
 			{
-				return Math.exp(coefficients[0])*Math.exp(xValue*coefficients[1]);
+				trace(coefficients);
+				return Math.exp(b)*Math.exp(a*xValue);
+				//return Math.exp(coefficients[0])*Math.exp(xValue*coefficients[1]);
 			}
 			else if (type == POWER) 
 			{
-				return Math.exp(coefficients[0])*Math.pow(xValue, coefficients[1]);	
+				trace(coefficients);
+				return Math.exp(b) * Math.pow(xValue, a);	
 			}
 			else
 			{
