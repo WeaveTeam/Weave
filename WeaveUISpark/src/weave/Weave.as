@@ -503,5 +503,23 @@ package weave
 			
 			return saved != null;
 		}
+		
+		
+		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
+		private static const WeaveStartup:Class;
+
+		public static function initJavaScriptDragDrop():void
+		{
+			if (!ExternalInterface.available)
+				return;
+			try
+			{
+				ExternalInterface.call(String(new WeaveStartup()), ExternalInterface.objectID);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
 	}
 }
