@@ -55,9 +55,9 @@
 								   enabled="{CollabMouseCursor.useImage}"/>						
 					</mx:HBox>
 					<mx:HBox>
-						<mx:Label text="Profile Picture Link:"/>
+						<mx:Label text="{lang('Profile Picture Link:')}"/>
 						<mx:TextInput id="profilePic" width="70"/>
-						<mx:Button label="Load" click="loadProfilePicture(event)"/>						
+						<mx:Button label="{lang('Load')}" click="loadProfilePicture(event)"/>						
 					</mx:HBox>
 					<mx:HBox>
 						<mx:Label text="Show participants' cameras:"/>
@@ -78,7 +78,7 @@
 						</mx:HBox>
 					</ui:Center>
 				</mx:VBox>
-				<mx:VBox width="100%" height="100%" label="{lang('Add-ons')}" enabled="false"
+				<mx:VBox width="100%" height="100%" label="{lang('Add-ons')}" enabled="true"
 						 paddingBottom="{padding}" paddingLeft="{padding}" paddingRight="{padding}"
 						 paddingTop="{padding}">
 					<mx:HBox width="100%">
@@ -107,8 +107,8 @@
 					</mx:HBox>
 					<mx:Spacer height="100%"/>
 					<ui:Center>
-						<mx:Label id="addonsSavedLabel" text="{lang('Camera and microphone have been saved.')}"
-								   visible="false"/>
+						<mx:Label id="addonsSavedLabel" visible="false"
+								  text="{lang('Camera and microphone have been saved.')}"/>
 					</ui:Center>
 					<ui:Center>
 						<mx:Button id="saveAddonsButton" label="{lang('Save')}"
@@ -126,7 +126,6 @@
 			
 			import weave.Weave;
 			import weave.services.collaboration.CollaborationEvent;
-			import weave.ui.collaboration.CollabMouseCursor;
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 150;
