@@ -273,7 +273,7 @@ package disabilityPack
 		
 	//	public function percentageTotal:Number {return 0.92;}
 		
-		public function fTest(fTests):Boolean {return false;}
+		public function fTest(fTests:Array):Boolean {return false;}
 		
 		public function changingPointsFtest():Number {return 5;}
 		

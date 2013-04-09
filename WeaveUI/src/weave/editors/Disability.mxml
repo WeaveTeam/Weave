@@ -120,7 +120,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 												"fit <- lm(dataY~dataX)\n"+
 												"intercept <- coefficients(fit)[1]\n"+
 												"slope <- coefficients(fit)[2]\n"+
-												"rSquared <- summary(fit)$r.squared\n";
+												"rSquared <- summary(fit)$r.squared\n"+
+												"grubbs <- outliers::grubbs.test(dataY, type = 10)\n";
 			
 			private var FdecisionScript:String ="ftest <- var.test(dataX1, dataY1, conf.level=0.05)\n";											
 			
@@ -249,7 +250,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					dataX.push(index);
 				}
-				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "outlier_detection", "intercept", "slope", "rSquared"], RdecisionScript, "", false, true, false);
+				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "outlier_detection", "intercept", "slope", "rSquared", "grubbs"], RdecisionScript, "", false, true, false);
 				
 				DelayedAsyncResponder.addResponder(query, handleRunScriptDecision, handleRunScriptFault, null);
 				decisionCount++;
@@ -305,6 +306,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var intercept:Number = NaN;
 			private var slope:Number = NaN;
 			private var rSquared:Number = NaN;
+			private var grubbs:Array = new Array();
 			
 			
 			private var resultSegmentation:Array = new Array();
@@ -339,6 +341,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}			
 				
 			}
+			public var outlierValue:Boolean = new Boolean();
 			
 			public function handleRunScriptDecision(event:ResultEvent, token:Object):void
 			{
@@ -363,6 +366,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			    intercept = (RresultArray[2] as RResult).value as Number;
 				slope = (RresultArray[3] as RResult).value as Number;
 				rSquared = (RresultArray[4] as RResult).value as Number;
+				grubbs = (RresultArray[5] as RResult).value as Array;
 
 				
 				runsTest(inputValues);
@@ -373,6 +377,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//trace("intercept " +intercept);
 				//trace("slope " +slope);
 				//trace("r squared " +rSquared);
+				trace("grubbs " +grubbs);
+				
 				decisionCount--;
 				if(fDecisionCount == 0 && decisionCount ==0)
 				{
@@ -388,7 +394,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				//if outlier > critical value
 				// r script tekrar cagir. Baska fonksyonda yap (handle runscript), gelenler cricital value
-				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 			
+				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 
+				
+				if(grubbs[0]>grubbs[1])	 {outlierValue = true; /*there is an outlier */} 
+				
+				else { outlierValue = false; /*no outlier*/ }  
 			}
 			
 			public function handleRunScriptResult(event:ResultEvent, token:Object):void
@@ -466,6 +476,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else {return true;}
 			
 			}
+			
+			
+			
+		
 			
 			
 			public var checkLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
@@ -579,6 +593,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				secondSegment.push(segment.length - 1);
 				resultSegment.push(first);
 				resultSegment.push(secondSegment);
+				
 				
 					
 				return resultSegment;
