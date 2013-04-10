@@ -822,15 +822,7 @@ package weave.compiler
 				var condition:ICompiledObject = compileTokens(tokens.slice(left - 1, left), false);
 				var trueBranch:ICompiledObject = compileTokens(tokens.slice(left + 1, right), false);
 				var falseBranch:ICompiledObject = compileTokens(tokens.slice(right + 1, end), false);
-				
-				// optimization: eliminate unnecessary branch
-				var result:ICompiledObject;
-				if (enableOptimizations && condition is CompiledConstant)
-					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
-				else
-					result = compileOperator('?:', [condition, trueBranch, falseBranch]);
-				
-				tokens.splice(left - 1, end - left + 1, result);
+				tokens.splice(left - 1, end - left + 1, compileOperator('?:', [condition, trueBranch, falseBranch]));
 			}
 			// stop if any branch operators remain
 			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
@@ -985,7 +977,7 @@ package weave.compiler
 						return compiledString;
 					
 					compiledObjects.unshift(compiledString);
-					return new CompiledFunctionCall(new CompiledConstant('substitute', StringUtil.substitute), compiledObjects);
+					return compileFunctionCall(new CompiledConstant('substitute', StringUtil.substitute), compiledObjects);
 				}
 				else if (escapeIndex < bracketIndex) // handle '\'
 				{
@@ -1177,7 +1169,7 @@ package weave.compiler
 					
 					// the token to the left is the method
 					// replace the function token, '(', and ')' tokens with a compiled function call
-					tokens.splice(open - 1, 3, new CompiledFunctionCall(compiledToken, compiledParams));
+					tokens.splice(open - 1, 3, compileFunctionCall(compiledToken, compiledParams));
 					continue;
 				}
 				
@@ -1248,7 +1240,7 @@ package weave.compiler
 			// do not treat statement keywords as variable names
 			if (statements.hasOwnProperty(variableName))
 				return variableName;
-			return new CompiledFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
+			return compileFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
 		}
 		
 		private function newTrueConstant():CompiledConstant
@@ -1414,23 +1406,23 @@ package weave.compiler
 			}
 		}
 		
+		private function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array, decompile:Function = null):CompiledFunctionCall
+		{
+			return new CompiledFunctionCall(compiledMethod, compiledParams, decompile || decompileObject);
+		}
+		
 		/**
 		 * @param operatorName
 		 * @param compiledParams
 		 * @return 
 		 */
-		private function compileOperator(operatorName:String, compiledParams:Array):ICompiledObject
+		private function compileOperator(operatorName:String, compiledParams:Array):CompiledFunctionCall
 		{
-			/*
-			// special case for variable lookup
-			if (operatorName == '#')
-				return new CompiledFunctionCall(compiledParams[0], null);
-			*/
 			operatorName = OPERATOR_ESCAPE + operatorName;
-			return new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 		
-		private function compileVariableAssignment(assignmentOperator:String, lhs:CompiledFunctionCall, rhs:ICompiledObject):ICompiledObject
+		private function compileVariableAssignment(assignmentOperator:String, lhs:CompiledFunctionCall, rhs:ICompiledObject):CompiledFunctionCall
 		{
 			if (!lhs || !rhs)
 				throw new Error("Invalid " + (!lhs ? 'left' : 'right') + "-hand-side of '" + assignmentOperator + "'");
@@ -1713,28 +1705,23 @@ package weave.compiler
 		 */
 		public function decompileObject(compiledObject:ICompiledObject):String
 		{
+			// special case for constants
 			if (compiledObject is CompiledConstant)
-				return (compiledObject as CompiledConstant).name;
+				return compiledObject.toString();
+			
+			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			
 //			if (debug)
 //				trace("decompiling: " + ObjectUtil.toString(compiledObject));
-			
-			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 
+			// special case for variable names
+			if (!call.compiledParams)
+				return call.compiledMethod.toString();
+			
 			// decompile the function name
 			var name:String = decompileObject(call.compiledMethod);
 			var constant:CompiledConstant;
 			var i:int;
-			
-			// special case for variable lookup
-			if (call.compiledParams == null)
-			{
-				constant = call.compiledMethod as CompiledConstant;
-				if (constant && constant.name === constant.value)
-					return name;
-				throw new Error("Unable to decompile dynamic variable lookup");
-				//return "(#" + name + ")";
-			}
 			
 			if (name == ST_DO || name == ST_WHILE)
 			{

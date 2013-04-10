@@ -19,6 +19,9 @@
 
 package weave.compiler
 {
+	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
+
 	/**
 	 * This serves as a structure for storing the information required to make a function call.
 	 * This is used in the Compiler class to avoid parsing tokens multiple times.
@@ -28,10 +31,19 @@ package weave.compiler
 	 */
 	public class CompiledFunctionCall implements ICompiledObject
 	{
-		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array)
+		/**
+		 * @param compiledMethod
+		 * @param compiledParams
+		 * @param decompile
+		 * @see #decompile
+		 * @see #compiledParams
+		 * @see #compiledMethod
+		 */
+		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array, decompile:Function)
 		{
 			this.compiledMethod = compiledMethod;
 			this.compiledParams = compiledParams;
+			this.decompile = decompile;
 			
 			evaluateConstants();
 		}
@@ -82,5 +94,22 @@ package weave.compiler
 		 * This Array is used to store the results of evaluating the compiledParams Array before calling the method.
 		 */
 		public var evaluatedParams:Array;
+		
+		/**
+		 * A function that generates source code from this CompiledFunctionCall.
+		 * The function signature must be:  function(call:CompiledFunctionCall):String
+		 */		
+		public var decompile:Function;
+		
+		/**
+		 * This will call <code>decompile(this)</code> or throw an error if it is null.
+		 */		
+		public function toString():String
+		{
+			if (decompile is Function)
+				return decompile(this);
+			
+			throw new Error("Missing decompile function");
+		}
 	}
 }
