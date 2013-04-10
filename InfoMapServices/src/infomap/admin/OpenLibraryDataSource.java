@@ -47,7 +47,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 		if(numOfDocs == 0)
 			return null;
 		
-		double numOfPages = Math.ceil(numOfDocs / 100);
+		double numOfPages = Math.ceil(numOfDocs / 100.0);
 		
 		OpenLibraryDataModel queryResults = null;
 		/* OpenLibrary returns results of 100 per page */
