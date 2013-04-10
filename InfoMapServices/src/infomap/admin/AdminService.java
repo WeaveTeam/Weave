@@ -142,6 +142,7 @@ public class AdminService extends GenericServlet {
 			serverURL = prop.getProperty("serverURL");
 			username = prop.getProperty("dbUsername");
 			password = prop.getProperty("dbPassword");
+			host = prop.getProperty("feedSourcesDBServerURL");
 		}catch (Exception e)
 		{
 			System.out.println("Error reading configuration file");
@@ -297,91 +298,92 @@ public class AdminService extends GenericServlet {
 		super.destroy();
 	}
 
-//	synchronized public Object[][] getRssFeeds() {
-//		String query = "SELECT title,url FROM rss_feeds";
-//		SQLResult result = null;
-//		Connection connection = null;
-//		try {
-//			String url = SQLUtils.getConnectString("MySQL", host, port,
-//					database, username, password);
-//			connection = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"),
-//					url);
-//			result = SQLUtils.getRowSetFromQuery(connection, query);
-//
-//		} catch (Exception e) {
-//			System.out.println(query);
-//			e.printStackTrace();
-//		} finally {
-//			SQLUtils.cleanup(connection);
-//		}
-//		return result.rows;
-//	}
-//
-//	public String addRssFeed(String title, String url) throws RemoteException {
-//		try {
-//
-//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
-//					database, username, password);
-//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-//
-//			String query = "SELECT * FROM rss_feeds WHERE url = '" + url + "'";
-//
-//			SQLResult checkResult = SQLUtils.getRowSetFromQuery(conn, query);
-//
-//			if (checkResult.rows.length != 0) {
-//				return "RSS Feed already exists";
-//			}
-//
+	synchronized public Object[][] getRssFeeds() {
+		String query = "SELECT title, url FROM %s";
+		SQLResult result = null;
+		Connection connection = null;
+		try {
+			String url = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
+					database, username, password);
+			connection = SQLUtils.getConnection(url);
+			result = SQLUtils.getResultFromQuery(connection, query, null, true);
+
+		} catch (Exception e) {
+			System.out.println(query);
+			e.printStackTrace();
+		} finally {
+			SQLUtils.cleanup(connection);
+		}
+		return result.rows;
+	}
+
+	public String addRssFeed(String title, String url) throws RemoteException {
+		try {
+
+			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(connURL);
+
+			String query = "SELECT * FROM rss_feeds WHERE url = ?";
+			
+			String[] params = new String[1];
+			params[0]= url;
+			SQLResult checkResult = SQLUtils.getResultFromQuery(conn,query, params, true);
+
+			if (checkResult.rows.length != 0) {
+				return "RSS Feed already exists";
+			}
+
 //			String titleQuery = "SELECT * FROM rss_feeds WHERE title = '"
 //					+ title + "'";
-//
-//			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
-//					titleQuery);
+//			String[] titleQueryParams = new String[1];
+//			titleQueryParams[0] = title;
+//			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,titleQuery);
 //
 //			if (checkTitleQueryResult.rows.length != 0) {
 //				return "There is already a feed with the same title. Please give a different title.";
 //			}
-//
-//			Map<String, Object> valueMap = new HashMap<String, Object>();
-//
-//			valueMap.put("title", title);
-//			valueMap.put("url", url);
-//
-//			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
-//
-//			return "RSS Feed added successfully";
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new RemoteException(e.getMessage());
-//		}
-//
-//	}
-//
-//	public String deleteRssFeed(String url) throws RemoteException {
-//		try {
-//
-//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
-//					database, username, password);
-//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
-//
-//			String query = "DELETE FROM rss_feeds WHERE url = '" + url + "'";
-//
-//			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
-//
-//			return "RSS Feed was deleted";
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new RemoteException(e.getMessage());
-//		}
-//
-//	}
+
+			Map<String, Object> valueMap = new HashMap<String, Object>();
+
+			valueMap.put("title", title);
+			valueMap.put("url", url);
+
+			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
+
+			return "RSS Feed added successfully";
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
+		}
+
+	}
+
+	public String deleteRssFeed(String url) throws RemoteException {
+		try {
+
+			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
+					database, username, password);
+			conn = SQLUtils.getConnection(connURL);
+			
+			String query = "DELETE FROM rss_feeds WHERE url = '" + url + "'";
+
+			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
+
+			return "RSS Feed was deleted";
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
+		}
+
+	}
 
 //	public String addAtomFeed(String url, String title) throws RemoteException {
 //		try {
 //
-//			String connURL = SQLUtils.getConnectString("MySQL", host, port,
+//			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
 //					database, username, password);
-//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), connURL);
+//			conn = SQLUtils.getConnection(connURL);
 //
 //			Statement stat = conn.createStatement();
 //
@@ -393,14 +395,13 @@ public class AdminService extends GenericServlet {
 //			if (!checkIfExists.next())
 //				return "Atom Feed alreadt exists";
 //
-//			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"
-//					+ title + "'";
-//
-//			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,
-//					titleQuery);
-//
-//			if (checkTitleQueryResult.rows.length != 0)
-//				return "There is already a feed with the same title. Please give a different title.";
+////			String titleQuery = "SELECT * FROM atom_feeds WHERE title = '"
+////					+ title + "'";
+////
+////			SQLResult checkTitleQueryResult = SQLUtils.getRowSetFromQuery(conn,titleQuery);
+////
+////			if (checkTitleQueryResult.rows.length != 0)
+////				return "There is already a feed with the same title. Please give a different title.";
 //
 //			Map<String, Object> valueMap = new HashMap<String, Object>();
 //
@@ -421,9 +422,9 @@ public class AdminService extends GenericServlet {
 //	public void deleteAtomFeed(String title) {
 //		try {
 //
-//			String url = SQLUtils.getConnectString("MySQL", host, port,
+//			String url = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
 //					database, username, password);
-//			conn = SQLUtils.getConnection(SQLUtils.getDriver("MySQL"), url);
+//			conn = SQLUtils.getConnection(url);
 //
 //			String deleteFileSource = "DELETE FROM atom_feeds WHERE titile ='"
 //					+ title + "')";
@@ -441,7 +442,7 @@ public class AdminService extends GenericServlet {
 //		}
 //
 //	}
-//
+
 //	public void addFilePath(String url, String title) {
 //		try {
 //
@@ -464,7 +465,7 @@ public class AdminService extends GenericServlet {
 //		}
 //
 //	}
-//
+
 //	public void recursivelyAddFiles(String path) {
 //
 //		File file = new File(path);

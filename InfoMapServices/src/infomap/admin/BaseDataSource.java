@@ -40,10 +40,6 @@ public class BaseDataSource extends AbstractDataSource{
 	
 	@Override
 	SolrInputDocument[] searchForQuery() {
-		// TODO Auto-generated method stub
-		System.out.println("IN BASE-SEARCHFORQUERY");
-    	
-		
 		List<SolrInputDocument> results = new ArrayList();
 		String reqURI ="";
 		
