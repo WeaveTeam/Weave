@@ -197,7 +197,7 @@ package weave.core
 						if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
 						{
 							// remove object if name matches
-							if (globalName == item[DynamicState.OBJECT_NAME])
+							if (globalName == (item[DynamicState.OBJECT_NAME] || null)) // convert empty string to null
 								removeObject();
 						}
 						else

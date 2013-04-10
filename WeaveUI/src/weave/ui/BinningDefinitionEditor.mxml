@@ -156,7 +156,7 @@
 			
 			private function getAbstractDef():AbstractBinningDefinition
 			{
-				return binnedColumn.binningDefinition.internalBinningDefinition as AbstractBinningDefinition;
+				return binnedColumn.binningDefinition.internalObject as AbstractBinningDefinition;
 			}
 			
 			override protected function childrenCreated():void
@@ -192,7 +192,7 @@
 				}
 				
 				// find the radio button with the same binning definition type
-				var def:IBinningDefinition = binnedColumn.binningDefinition.internalBinningDefinition;
+				var def:IBinningDefinition = binnedColumn.binningDefinition.internalObject as IBinningDefinition;
 				for (var i:int = 0; i < typeGroup.numRadioButtons; i++)
 				{
 					var radioButton:RadioButton = typeGroup.getRadioButtonAt(i);
@@ -209,7 +209,7 @@
 				}
 				
 				// update bin names
-				gridSource.source = binnedColumn.getDerivedBins().getNames();
+				gridSource.source = binnedColumn.binningDefinition.getBinNames();
 				if (getAbstractDef().overrideBinNames.value)
 					overrideNamesCheckBox.selected = true;
 				else
@@ -237,7 +237,7 @@
 				if (input.text == event.itemRenderer.data as String)
 					return;
 				
-				if (binnedColumn.getDerivedBins().getObject(input.text))
+				if (binnedColumn.binningDefinition.getBinNames().indexOf(input.text) >= 0)
 				{
 					input.errorString = lang('Name already exists.');
 					

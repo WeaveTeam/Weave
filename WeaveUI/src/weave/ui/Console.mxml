@@ -56,6 +56,7 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
 			use namespace mx_internal;
@@ -77,6 +78,7 @@
 				super.childrenCreated();
 				
 				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
+				compiler.setHashOperator(debugHelper);
 				input.getTextField().alwaysShowSelection = true;
 		    }
 			
@@ -118,7 +120,7 @@
 					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
 					consoleTrace(result);
 				}
-				catch (e:Error)
+				catch (e:*)
 				{
 					consoleTrace(script, e);
 				}
@@ -158,7 +160,9 @@
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
-				'$': debugHelper
+				'$': debugHelper,
+				'$$': debugHelper2,
+				'_': {}
 			};
 			
 			private function debugHelper(arg:* = null):*
@@ -167,6 +171,13 @@
 				if (arg == null || type != 'object' && type != 'function')
 					return debugLookup(arg);
 				return debugId(arg);
+			}
+			
+			private function debugHelper2(arg:* = null):*
+			{
+				if (isFinite(StandardLib.asNumber(arg)))
+					arg = debugLookup(arg);
+				return DebugUtils.debugDisplayList(arg || stage);
 			}
 			
 			private function getVisApp():Object
@@ -217,7 +228,7 @@
 						else
 							result = String(result);
 					}
-					catch (e:Error)
+					catch (e:*)
 					{
 						result = String(result)
 					}
@@ -225,9 +236,12 @@
 					input.text = '';
 					historyIndex = history.length;
 				}
-				catch (e:Error)
+				catch (e:*)
 				{
 					result = e;
+					var error:Error = e as Error;
+					if (error)
+						trace(error.getStackTrace());
 				}
 				
 				// append result to log

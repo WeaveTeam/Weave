@@ -42,17 +42,16 @@ package weave.services.beans
 		{
 			return [
 				"connection",
-				"sqlSchema",
-				"sqlTable",
-				"sqlColumn",
 				"sqlQuery",
 				"sqlParams",
-				"sqlResult",
-				"importMethod",
-				"sqlKeyColumn",
 				"sqlTablePrefix",
+				"importMethod",
 				"fileName",
-				"keyColumn"
+				"keyColumn",
+				"sqlSchema",
+				"sqlTable",
+				"sqlKeyColumn",
+				"sqlColumn"
 			];
 		}
 		
@@ -74,25 +73,6 @@ package weave.services.beans
 		public function toString():String
 		{
 			return objToStr({'publicMetadata': objToStr(publicMetadata), 'privateMetadata': objToStr(privateMetadata)});
-		}
-
-		private function outputDiff(oldObj:Object, newObj:Object, output:Object):void
-		{
-			var name:String;
-			for (name in oldObj)
-				if (oldObj[name] != newObj[name])
-					output[name] = newObj[name];
-			for (name in newObj)
-				if (oldObj[name] != newObj[name])
-					output[name] = newObj[name];
-		}
-		
-		public function getDiff(newPrivateMetadata:Object, newPublicMetadata:Object):EntityMetadata
-		{
-			var diff:EntityMetadata = new EntityMetadata();
-			outputDiff(privateMetadata, newPrivateMetadata, diff.privateMetadata);
-			outputDiff(publicMetadata, newPublicMetadata, diff.publicMetadata);
-			return diff;
 		}
 	}
 }

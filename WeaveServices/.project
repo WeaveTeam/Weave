@@ -3,6 +3,7 @@
 	<name>WeaveServices</name>
 	<comment></comment>
 	<projects>
+		<project>WeaveServletUtils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

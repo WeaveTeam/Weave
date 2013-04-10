@@ -24,6 +24,9 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObjectWithBusyStatus;
+	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
 	
 	/**
@@ -31,7 +34,7 @@ package weave.services
 	 * 
 	 * @author adufilie
 	 */
-	public class AsyncInvocationQueue
+	public class AsyncInvocationQueue implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
 		public static var debug:Boolean = false;
 		
@@ -43,6 +46,18 @@ package weave.services
 			_paused = paused;
 		}
 		
+		public function isBusy():Boolean
+		{
+			assertQueueValid();
+			return _downloadQueue.length > 0;
+		}
+		
+		public function dispose():void
+		{
+			assertQueueValid();
+			_downloadQueue.length = 0;
+		}
+		
 		private var _paused:Boolean = false;
 		
 		/**
@@ -50,6 +65,8 @@ package weave.services
 		 */		
 		public function begin():void
 		{
+			assertQueueValid();
+			
 			if (_paused)
 			{
 				_paused = false;
@@ -65,6 +82,8 @@ package weave.services
 		// interface to add a query to the download queue. 
 		public function addToQueue(query:DelayedAsyncInvocation):void
 		{
+			assertQueueValid();
+			
 			//trace("addToQueue",query);
 			
 			// if this query has already been queued, then do not queue it again
@@ -113,6 +132,8 @@ package weave.services
 		// perform a query in the queue
 		protected function performQuery(query:DelayedAsyncInvocation):void
 		{
+			assertQueueValid();
+			
 			//trace("performQuery (timeout = "+query.webService.requestTimeout+")",query.toString());
 			addAsyncResponder(query, handleQueryResultOrFault, handleQueryResultOrFault, query);
 			
@@ -129,6 +150,9 @@ package weave.services
 		// This function gets called when a query has been downloaded.  It will download the next query if available
 		protected function handleQueryResultOrFault(event:Event, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
 			WeaveAPI.ProgressIndicator.removeTask(query);
 			
@@ -158,6 +182,8 @@ package weave.services
 		
 		public function removeQueriesOfOperationTypes(... operations):void
 		{
+			assertQueueValid();
+			
 			for each (var operation:String in operations)
 			{
 				// remove matching queries
@@ -174,6 +200,12 @@ package weave.services
 				}
 			}
 			//trace("remaining queries: " + _downloadQueue.length);
+		}
+		
+		private function assertQueueValid():void
+		{
+			if (objectWasDisposed(this))
+				throw new Error("AsyncInvocationQueue was already disposed");
 		}
 	}
 }

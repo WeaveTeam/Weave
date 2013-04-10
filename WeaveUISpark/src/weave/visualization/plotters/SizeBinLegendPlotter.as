@@ -20,21 +20,26 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.ITextPlotter;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
+	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
-	import weave.utils.TickMarkUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -62,101 +67,165 @@ package weave.visualization.plotters
 		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
-		// this is used to draw text on bitmaps
-		private const bitmapText:BitmapText = new BitmapText();
+		public const absoluteValueColorEnabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const absoluteValueColorMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const absoluteValueColorMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		
-		/**
-		 * This is the line style used to draw the outline of the shape.
-		 */
-		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public static const simpleRadio:String = "simple";
+		public static const customRadio:String = "custom";
+		public const numberOfCircles:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, verifyNumberOfCircles));
+		public const customCircleRadiuses:LinkableString = newLinkableChild(this, LinkableString);
+		public const typeRadio:LinkableString = registerLinkableChild(this, new LinkableString(simpleRadio));
 		
-		private const tempPoint:Point = new Point(); // reusable temporary object
+		private const bitmapText:BitmapText = new BitmapText(); // This is used to draw text on bitmaps
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle); // This is the line style used to draw the outline of the shape.
+		
+		private function verifyNumberOfCircles(value:Number):Boolean {
+			if (value < 2)
+				return false;
+			else
+				return true;
+		}
+		
 		private var XMIN:Number = 0, YMIN:Number = 0, XMAX:Number = 1, YMAX:Number = 1;		
-		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			return new Bounds2D(XMIN, YMIN, XMAX, YMAX);
 		}
 		
-		private var valueMax:Number = 0, valueMin:Number = 0; // variables for min and max values in the radius column
-		private var numberOfTick:Number = 0, majorInterval:Number = 0, firstMajorTickMarkValue:Number = 0;
-
+		private const tempPoint:Point = new Point(); // Reusable temporary object
+		private var valueMax:Number = 0, valueMin:Number = 0; // Variables for min and max values of the radius column
+		private var circleRadiuses:Array;
+		private var normalizedCircleRadiuses:Array;
+		private var yInterval:Number;
+		private var maxCustomRadius:Number;
+		private var xMargin:int = 5;
+		private var xMin:Number;
+		private var yPosition:Number;
+		private var fillColor:Number;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			var margin:int = 5;
-
-			numberOfTick = Math.floor(screenBounds.getYCoverage() / (maxScreenRadius.value * 2.5));
-			
-			// calculate how many circles should be drawn
+			var i:int;
+			var j:int;
 			valueMax = radiusColumnStats.getMax();
 			valueMin = radiusColumnStats.getMin();
-			var tempNumberOfTick:Number = numberOfTick;
-			var numberOfTickReturned:Number = 0;
 			
-			// numberOfTickReturned might be larger than NumberOfTick set in TickMarkUtils.getNiceInterval
-			// the while loop is used to find out correct setting for firstMajorTickMarkValue and majorInterval
-			while (true)
+			if (isNaN(valueMin) ||  isNaN(valueMax)) return; // ToDo
+			
+			if (typeRadio.value == simpleRadio)
 			{
-				numberOfTickReturned = 0;
-				majorInterval = TickMarkUtils.getNiceInterval(valueMin, valueMax, tempNumberOfTick);
-				firstMajorTickMarkValue = TickMarkUtils.getFirstTickValue(valueMin, majorInterval);			
-				for (var tick:Number = firstMajorTickMarkValue; tick <= valueMax; tick += majorInterval)
+				circleRadiuses = new Array();
+				for (i = 0; i < numberOfCircles.value; i++)
+					circleRadiuses.push(StandardLib.roundSignificant(valueMin + i * (valueMax - valueMin) / (numberOfCircles.value - 1), 4));
+			}
+			else if (typeRadio.value == customRadio)
+			{
+				circleRadiuses = customCircleRadiuses.value.split(',');
+				// remove bad values
+				for (i = circleRadiuses.length; i--;)
 				{
-					numberOfTickReturned++;
+					var number:Number = StandardLib.asNumber(circleRadiuses[i]);
+					if (!isFinite(number))
+						circleRadiuses.splice(i, 1);
+					else
+						circleRadiuses[i] = number;
 				}
-				
-				if (numberOfTickReturned <= numberOfTick)
+				// sort numerically
+				AsyncSort.sortImmediately(circleRadiuses, ObjectUtil.numericCompare);
+			}
+
+			normalizedCircleRadiuses = new Array();
+			if (absoluteValueColorEnabled.value)
+			{
+				var absMax:Number = Math.max(Math.abs(valueMin), Math.abs(valueMax));
+				for (i = 0; i < circleRadiuses.length; i++)
+					normalizedCircleRadiuses.push(StandardLib.scale(Math.abs(circleRadiuses[i]), 0, absMax, 0, maxScreenRadius.value));
+			}
+			else
+			{
+				for (i = 0; i < circleRadiuses.length; i++)
 				{
-					break;
+					// Remove invalid radius (less than 0)
+					if (StandardLib.scale(circleRadiuses[i], valueMin, valueMax, minScreenRadius.value, maxScreenRadius.value) < 0)
+					{
+						circleRadiuses.splice(i, 1);
+						i--;
+					}
+					else
+						normalizedCircleRadiuses.push(StandardLib.scale(circleRadiuses[i], valueMin, valueMax, minScreenRadius.value, maxScreenRadius.value));
 				}
-				else
-					tempNumberOfTick = tempNumberOfTick - 1;
 			}
 			
-			// draw the size legend		
-			var yPosition:Number = screenBounds.getYNumericMin() + maxScreenRadius.value;
-			var yIntervalHeight:Number = 0;
-			
-			if ((screenBounds.getYCoverage() - maxScreenRadius.value) > 0)
-				yIntervalHeight = (screenBounds.getYCoverage() - maxScreenRadius.value) / numberOfTickReturned;
-			
-			for (var value:Number = firstMajorTickMarkValue; value <= valueMax; value += majorInterval)
+			if (normalizedCircleRadiuses.length != 0)
 			{
-				// draw graphics
-				// Normalize radius value
-				var radius:Number = (value - valueMin) / (valueMax - valueMin);
-				if (isNaN(radius))
-					radius = defaultScreenRadius.value;
+				yInterval = screenBounds.getYCoverage() / normalizedCircleRadiuses.length;
+				
+				// Because of the custom circle radiuses, the real max radius needs to be determined.
+				if (normalizedCircleRadiuses[0] > normalizedCircleRadiuses[normalizedCircleRadiuses.length - 1])
+					maxCustomRadius = normalizedCircleRadiuses[0];
 				else
-					radius = minScreenRadius.value + (radius *(maxScreenRadius.value - minScreenRadius.value));
-				
-				var xMin:Number = screenBounds.getXNumericMin();
-				var xMax:Number = screenBounds.getXNumericMax();
-				
-				// get y coordinate to display graphics at.
+					maxCustomRadius = normalizedCircleRadiuses[normalizedCircleRadiuses.length - 1];
+			}
+			
+			// Draw size legend
+			xMin = screenBounds.getXNumericMin();
+			yPosition = screenBounds.getYNumericMin() + yInterval / 2; // First y position
+			fillColor = NaN;
+			
+			for (i = 0; i < normalizedCircleRadiuses.length; i++)
+			{
 				tempPoint.y = yPosition;
 				
+				if (absoluteValueColorEnabled.value)
+				{
+					// Draw large circle befroe small circle for both negative (top down direction) and positive (bottom up direction)  
+					if (circleRadiuses[i] < 0)
+					{
+						fillColor = absoluteValueColorMin.value;
+					}
+					else
+					{
+						fillColor = absoluteValueColorMax.value;
+						yPosition = screenBounds.getYNumericMax() - yInterval / 2; // First y position from bottom
+						for (j = normalizedCircleRadiuses.length - 1; j >= i; j--)
+						{
+							tempPoint.y = yPosition;
+							drawLegend(destination, j);
+							yPosition = yPosition - yInterval;
+						}
+						break;
+					}
+				}
 				
-				// draw circle
-				var g:Graphics = tempShape.graphics;
-				g.clear();
-				lineStyle.beginLineStyle(null, g);
-				//if (!isNaN(color))
-				//	g.beginFill(color, 1.0);
-				tempShape.graphics.drawCircle(xMin + margin + maxScreenRadius.value, tempPoint.y, radius);
-				destination.draw(tempShape);
-				
-				// set up BitmapText
-				LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
-				bitmapText.text = value.toString();
-				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
-				bitmapText.x = xMin + margin + maxScreenRadius.value * 2 + margin;
-				bitmapText.y = tempPoint.y;
-				bitmapText.draw(destination);
-				
-				yPosition = yPosition + yIntervalHeight;
-				
+				drawLegend(destination, i);
+				yPosition = yPosition + yInterval;
 			}
+		}
+		
+		private function drawLegend(destination:BitmapData, index:int):void
+		{
+			// draw circle
+			tempShape.graphics.clear();
+			lineStyle.beginLineStyle(null, tempShape.graphics);
+			if (isFinite(fillColor))
+				tempShape.graphics.beginFill(fillColor);
+			else
+				tempShape.graphics.endFill();
+			
+			tempShape.graphics.drawCircle(xMin + xMargin + maxCustomRadius, tempPoint.y, normalizedCircleRadiuses[index]);
+			
+			tempShape.graphics.endFill();
+			destination.draw(tempShape);
+			
+			// set up BitmapText
+			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
+			bitmapText.text = ColumnUtils.deriveStringFromNumber(radiusColumn, circleRadiuses[index]);
+			if (bitmapText.text == null)
+				bitmapText.text = StandardLib.formatNumber(circleRadiuses[index]);
+			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
+			bitmapText.x = xMin + xMargin + maxCustomRadius * 2 + xMargin;
+			bitmapText.y = tempPoint.y;
+			bitmapText.draw(destination);
 		}
 	}
 }

@@ -16,7 +16,8 @@
 package weave.api
 {
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * Shortcut for WeaveAPI.SessionManager.newDisposableChild()
+	 * @copy weave.api.core.ISessionManager#newDisposableChild()
 	 */
 	public function newDisposableChild(disposableParent:Object, disposableChildType:Class):*
 	{

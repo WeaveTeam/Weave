@@ -278,15 +278,12 @@ package weave.core
 		}
 
 		/**
-		 * This will decrease the delay count if it is greater than zero.
+		 * This will decrease the delay count by one if it is greater than zero.
 		 * If triggerCallbacks() was called while the delay count was greater than zero, immediate callbacks will be called now.
-		 * @param undoAllDelays If this is set to true, the delay count will be set to zero.  Otherwise, the delay count will be decreased by one.
 		 */
-		public final function resumeCallbacks(undoAllDelays:Boolean = false):void
+		public final function resumeCallbacks():void
 		{
-			if (undoAllDelays)
-				_delayCount = 0;
-			else if (_delayCount > 0)
+			if (_delayCount > 0)
 				_delayCount--;
 
 			if (_delayCount == 0 && _runCallbacksIsPending)

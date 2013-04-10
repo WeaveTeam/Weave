@@ -28,31 +28,39 @@ package weave.compiler
 	 */
 	public class CompiledFunctionCall implements ICompiledObject
 	{
-		public function CompiledFunctionCall(compiledName:ICompiledObject, compiledParams:Array)
+		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array)
 		{
-			constructor(compiledName, compiledParams);
-		}
-		/**
-		 * This is the constructor code. The code is in a separate function because constructors do not get compiled.
-		 */
-		private function constructor(compiledName:ICompiledObject, compiledParams:Array):void
-		{
-			this.compiledMethod = compiledName;
+			this.compiledMethod = compiledMethod;
 			this.compiledParams = compiledParams;
 			
+			evaluateConstants();
+		}
+		
+		/**
+		 * This is called in the constructor.  It can also be called later after compiledParams is modified.
+		 */		
+		public function evaluateConstants():void
+		{
 			// if name is constant, evaluate it once now
-			if (compiledName is CompiledConstant)
-				evaluatedMethod = (compiledName as CompiledConstant).value;
+			if (compiledMethod is CompiledConstant)
+				evaluatedMethod = (compiledMethod as CompiledConstant).value;
+			else
+				evaluatedMethod = null;
 			
 			if (compiledParams)
 			{
-				this.evaluatedParams = new Array(compiledParams.length);
+				evaluatedParams = new Array(compiledParams.length);
 				// move constant values from the compiledParams array to the evaluatedParams array.
 				for (var i:int = 0; i < compiledParams.length; i++)
 					if (compiledParams[i] is CompiledConstant)
 						evaluatedParams[i] = (compiledParams[i] as CompiledConstant).value;
 			}
+			else
+			{
+				evaluatedParams = null;
+			}
 		}
+		
 		/**
 		 * This is a compiled object that evaluates to a method.
 		 */

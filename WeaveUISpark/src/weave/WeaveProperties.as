@@ -40,12 +40,12 @@ package weave
 	import ru.etcs.utils.FontLoader;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.linkBindableProperty;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.linkBindableProperty;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -96,7 +96,11 @@ package weave
 				}
 			);
 
+			_toggleToolsMenuItem("GraphTool", false);
+			_toggleToolsMenuItem("DataStatisticsTool", false);
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
+			_toggleToolsMenuItem("SchafersMissingDataTool", false);
+			_toggleToolsMenuItem("DataFilter", false);
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;
@@ -238,12 +242,10 @@ package weave
 		public function getToolToggle(classDef:Class):LinkableBoolean
 		{
 			var className:String = getQualifiedClassName(classDef).split('::').pop();
-			var toggle:LinkableBoolean = toolToggles.getObject(className) as LinkableBoolean;
-			if (!toggle)
-			{
-				toggle = toolToggles.requestObject(className, LinkableBoolean, true);
+			var existsPreviously:Boolean = toolToggles.getObject(className) is LinkableBoolean;
+			var toggle:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, true); // lock
+			if (!existsPreviously)
 				toggle.value = true; // default value
-			}
 			return toggle;
 		}
 
@@ -587,7 +589,6 @@ package weave
 		[Deprecated(replacement="getToolToggle")] public function set enableAddGaugeTool(value:Boolean):void { _toggleToolsMenuItem("GaugeTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddHistogram(value:Boolean):void { _toggleToolsMenuItem("HistogramTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAdd2DHistogram(value:Boolean):void { _toggleToolsMenuItem("Histogram2DTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddGraphTool(value:Boolean):void { _toggleToolsMenuItem("GraphTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddLineChart(value:Boolean):void { _toggleToolsMenuItem("LineChartTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddDimensionSliderTool(value:Boolean):void { _toggleToolsMenuItem("DimensionSliderTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddMap(value:Boolean):void { _toggleToolsMenuItem("MapTool", value); }

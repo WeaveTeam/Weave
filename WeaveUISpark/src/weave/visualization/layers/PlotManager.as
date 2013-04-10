@@ -30,9 +30,10 @@ package weave.visualization.layers
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.StringUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -44,6 +45,7 @@ package weave.visualization.layers
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -310,8 +312,7 @@ package weave.visualization.layers
 				for each (var name:String in names)
 				{
 					var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
-					var boundsArray:Array = spatialIndex.getBoundsFromKey(key);
-					for each (var bounds:IBounds2D in boundsArray)
+					for each (var bounds:IBounds2D in spatialIndex.getBoundsFromKey(key))
 						tempBounds.includeBounds(bounds);
 				}
 			}
@@ -319,17 +320,25 @@ package weave.visualization.layers
 			// make sure callbacks only trigger once.
 			getCallbackCollection(zoomBounds).delayCallbacks();
 			
-			// zoom to that bounds, expanding the area to keep the fixed aspect ratio
-			// if tempBounds is undefined and enableAutoZoomToExtent is enabled, this will zoom to the full extent.
-			zoomBounds.setDataBounds(tempBounds, true);
-			
-			// zoom out to include the specified margin
-			zoomBounds.getDataBounds(tempBounds);
-			var scale:Number = 1 / (1 - zoomMarginPercent);
-			tempBounds.setWidth(tempBounds.getWidth() * scale);
-			tempBounds.setHeight(tempBounds.getHeight() * scale);
-			zoomBounds.setDataBounds(tempBounds);
-			
+			if (tempBounds.isEmpty())
+			{
+				zoomBounds.getDataBounds(tempDataBounds);
+				tempDataBounds.setCenter(tempBounds.getXCenter(), tempBounds.getYCenter());
+				zoomBounds.setDataBounds(tempDataBounds);
+			}
+			else
+			{
+				// zoom to that bounds, expanding the area to keep the fixed aspect ratio
+				// if tempBounds is undefined and enableAutoZoomToExtent is enabled, this will zoom to the full extent.
+				zoomBounds.setDataBounds(tempBounds, true);
+				
+				// zoom out to include the specified margin
+				zoomBounds.getDataBounds(tempBounds);
+				var scale:Number = 1 / (1 - zoomMarginPercent);
+				tempBounds.setWidth(tempBounds.getWidth() * scale);
+				tempBounds.setHeight(tempBounds.getHeight() * scale);
+				zoomBounds.setDataBounds(tempBounds);
+			}
 			getCallbackCollection(zoomBounds).resumeCallbacks();
 		}
 
@@ -440,7 +449,11 @@ package weave.visualization.layers
 			
 			// get plotter from sourceLayer
 			var plotterFromSourceLayer:IPlotterWithGeometries = plotters.getObject(sourceLayer) as IPlotterWithGeometries;
-			
+			if (!plotterFromSourceLayer)
+			{
+				reportError(StringUtil.substitute('Plotter named "{0}" does not exist.', sourceLayer));
+				return null;
+			}
 				
 			// use the source keys to get a list of overlapping geometries on the destination layer.
 			// Iterate over all the keys

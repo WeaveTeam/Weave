@@ -23,6 +23,8 @@ package weave.ui
 	import flash.ui.ContextMenuItem;
 	import flash.utils.Dictionary;
 	
+	import weave.utils.AsyncSort;
+	
 	public class CustomContextMenuManager
 	{
 		public function CustomContextMenuManager()
@@ -75,7 +77,7 @@ package weave.ui
 			var _groupName:String;
 			for (_groupName in groups)
 				groupNames.push(_groupName);
-			groupNames.sort();
+			AsyncSort.sortImmediately(groupNames);
 			
 			// go through each menu item in each group and add these to the context menu for this destination
 			var newMenuItems:Array = [];

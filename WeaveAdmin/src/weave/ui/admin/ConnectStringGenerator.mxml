@@ -19,9 +19,13 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+<!---
+	Check linkableObjectIsBusy() to see if this component is busy with an RPC call.
+	@author adufilie
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 				xmlns:ui="weave.ui.*"
-				xmlns="weave.ui.admin.managers.*" 
+				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="SQL Server type" group="{indentGroup}">
 		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
@@ -51,6 +55,8 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
+			import weave.api.core.ICallbackCollection;
+			import weave.api.getCallbackCollection;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
@@ -80,13 +86,38 @@
 					connectString = "jdbc:mysql://localhost:3306/?user=&password=";
 			}
 			
-			private var generate:Function = EventUtils.generateDelayedCallback(this, _generate, 500);
+			private function generate():void
+			{
+				WeaveAPI.SessionManager.assignBusyTask(_generate, this);
+				_delayedGenerate();
+				triggerCallbacks();
+			}
 			
+			private var _delayedGenerate:Function = EventUtils.generateDelayedCallback(this, _generate, 500);
+			
+			private function triggerCallbacks():void
+			{
+				getCallbackCollection(this).triggerCallbacks();
+			}
 			private function _generate():void
 			{
+				WeaveAPI.SessionManager.unassignBusyTask(_generate);
+				
 				connectString = '';
 				var token:AsyncToken = Admin.service.getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
-				addAsyncResponder(token, function(event:ResultEvent, _:*):void { connectString = event.result as String; });
+				WeaveAPI.SessionManager.assignBusyTask(token, this);
+				addAsyncResponder(
+					token,
+					function(event:ResultEvent, _:*):void
+					{
+						connectString = event.result as String;
+						triggerCallbacks();
+					},
+					function(..._):void
+					{
+						triggerCallbacks();
+					}
+				);
 			}
 		]]>
 	</mx:Script>

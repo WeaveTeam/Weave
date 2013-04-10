@@ -21,6 +21,7 @@ package weave.data.ColumnReferences
 {
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableXML;
+	import weave.utils.AsyncSort;
 	import weave.utils.HierarchyUtils;
 
 	/**
@@ -65,7 +66,8 @@ package weave.data.ColumnReferences
 				var attrs:XMLList = HierarchyUtils.getLeafNodeFromPath(hierarchyPath.value || <tag/>).attributes();
 				for each (var attr:XML in attrs)
 					properties.push(attr.localName() + ': "' + attr.toXMLString() + '"');
-				_hash = _hashPrefix + ';' + dataSourceName.value + '{' + properties.sort().join(', ') + '}';
+				AsyncSort.sortImmediately(properties);
+				_hash = _hashPrefix + ';' + dataSourceName.value + '{' + properties.join(', ') + '}';
 			}
 			return _hash;
 		}

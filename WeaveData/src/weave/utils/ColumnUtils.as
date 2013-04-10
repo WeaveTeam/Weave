@@ -27,9 +27,6 @@ package weave.utils
 	import org.osmf.metadata.Metadata;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
@@ -39,12 +36,15 @@ package weave.utils
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
+	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumnCache;
-	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	
@@ -369,41 +369,44 @@ package weave.utils
 			return result;
 		}
 		
-		public static function generateTableCSV(attrCols:Array,keys:* = null,dataType:Class = null):String{
-			
-			
+		public static function generateTableCSV(attrCols:Array,keys:* = null,dataType:Class = null):String
+		{
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
 			var records:Array = [];				
 			// get the list of column titles
-			//var attrCols:Array = getSelectableAttributes();
 			var definedAttrCols:Array = [];				
 			var columnTitles:Array = [];
 			var i:int;
-			for ( i = 0; i < attrCols.length; i++){
-				// to make sure only available attributes are added for export
-				if ((attrCols[i] is  IColumnWrapper) && (attrCols[i] as  IColumnWrapper).getInternalColumn()){
-					columnTitles.push(ColumnUtils.getTitle(attrCols[i]));
-					definedAttrCols.push(attrCols[i]);
-				}					
-				if (attrCols[i] is  LinkableHashMap)  {
-					var hashMapColumns:Array = (attrCols[i] as  LinkableHashMap).getObjects();
-					for (var j:int = 0; j < hashMapColumns.length; j++){
-						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn()){
+			var item:*;
+			for (i = 0; i < attrCols.length; i++)
+			{
+				item = attrCols[i];
+				// to make sure undefined attributes are not exported
+				if ((item is IColumnWrapper) && (item as IColumnWrapper).getInternalColumn())
+				{
+					columnTitles.push(ColumnUtils.getTitle(item));
+					definedAttrCols.push(item);
+				}
+				if (item is LinkableHashMap)
+				{
+					var hashMapColumns:Array = (item as LinkableHashMap).getObjects();
+					for (var j:int = 0; j < hashMapColumns.length; j++)
+					{
+						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn())
+						{
 							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
 							definedAttrCols.push(hashMapColumns[j]);
 						}								
 					}
 				}
 			}
-			if(!keys){
+			if (!keys)
 				keys = getAllKeys(definedAttrCols);
-			}
 			
 			var keyTypeMap:Object = {};				
 			// create the data for each column in each selected row
-			//	var keys:* = _plotter.keySet.keys;
-			for each (var item:Object in keys)
+			for each (item in keys)
 			{
 				var key:IQualifiedKey = item as IQualifiedKey;
 				var record:Object = {};

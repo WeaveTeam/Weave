@@ -53,7 +53,6 @@ package weave.compiler
 
 	/**
 	 * This provides a set of static functions for use with the Weave Compiler.
-	 * This set of functions allows access to almost any object, so it should be used with care when exposing these functions to users.
 	 * 
 	 * @author adufilie
 	 */

@@ -391,16 +391,17 @@ package weave.visualization.plotters
 			drawCreditText(destination);
 		}
 		
-		private var _providerCredit:String = '';
 		private const _textField:TextField = new TextField(); // reusable object
 		private function drawCreditText(destination:BitmapData):void
 		{
-			if(_providerCredit == null)
-				return;
-			_textField.text = _providerCredit;
-			_tempMatrix.identity();
-			_tempMatrix.translate(0, destination.height - _textField.height);
-			destination.draw(_textField, _tempMatrix);		
+			var _providerCredit:String = _service.getCreditInfo();
+			if (_providerCredit)
+			{
+				_textField.text = _providerCredit;
+				_tempMatrix.identity();
+				_tempMatrix.translate(0, destination.height - _textField.height);
+				destination.draw(_textField, _tempMatrix);
+			}
 		}
 
 		/**
@@ -414,7 +415,6 @@ package weave.visualization.plotters
 			if (provider == WMSProviders.NASA)
 			{
 				service.requestLocalObject(OnEarthProvider,false);
-				
 			}
 			else if(provider == WMSProviders.CUSTOM_MAP)
 			{
@@ -425,8 +425,6 @@ package weave.visualization.plotters
 				service.requestLocalObject(ModestMapsWMS,false);
 				_service.setProvider(provider);
 			}
-			
-			_providerCredit = _service.getCreditInfo();
 			
 			// determine maximum bounds for reprojecting images
 			_allowedTileReprojBounds.copyFrom(_latLonBounds);

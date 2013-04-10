@@ -21,6 +21,8 @@
 package weave.services.wms
 {
 	import flash.utils.Dictionary;
+	
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class is a collection of static objects and methods regarding the
@@ -55,7 +57,7 @@ package weave.services.wms
 			for (var key:String in _providersToSRS)
 				result.push(key);
 			
-			result.sort();
+			AsyncSort.sortImmediately(result);
 			return result;
 		}
 		

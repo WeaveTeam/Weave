@@ -117,13 +117,11 @@ package weave.visualization.plotters
 		 */		
 		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
-		private const _binsOrdering:Array = [];
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];
 		public var numBins:int = 0;
 		private function createHashMaps():void
 		{
-			_binsOrdering.length = 0;
 			_binToString = [];
 			_binToBounds = [];
 			
@@ -139,8 +137,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			var bins:Array = binnedColumn.getDerivedBins().getObjects();
-			numBins = bins.length;
+			numBins = binnedColumn.numberOfBins;
 			var maxCols:int = maxColumns.value;
 			if (maxCols <= 0)
 				maxCols = 1;
@@ -156,7 +153,6 @@ package weave.visualization.plotters
 				var row:int = adjustedIBin / maxCols;
 				var col:int = adjustedIBin % maxCols;
 				var b:IBounds2D = new Bounds2D();
-				_binsOrdering.push(bins[iBin]);
 				
 				LegendUtils.getBoundsFromItemID(getBackgroundDataBounds(), adjustedIBin, b, maxNumBins, maxCols, true);
 				
@@ -239,7 +235,7 @@ package weave.visualization.plotters
 			var internalMin:Number = stats.getMin();
 			var internalMax:Number = stats.getMax();
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
-			var binCount:int = binnedColumn.getDerivedBins().getObjects().length;
+			var binCount:int = binnedColumn.numberOfBins;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
 				// if _drawBackground is set, we should draw the bins that have no records in them.

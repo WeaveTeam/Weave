@@ -164,26 +164,44 @@ package weave.services
 		
 		protected var truncateToStringOutput:Boolean = true; // set to true to prevent toString() from returning lengthy strings
 		
+		private function arrayToString(a:Array, truncateItemLength:int = 64, includeBrackets:Boolean = true):String
+		{
+			var result:String = '';
+			var s:String;
+			for (var i:int = 0; i < a.length; i++)
+			{
+				if (i > 0)
+					result += ', ';
+				
+				if (a[i] is Array)
+					s = arrayToString(a[i], int.MAX_VALUE, false);
+				else
+					s = a[i];
+				
+				if (s != null && s.length > truncateItemLength)
+					s = s.substr(0, truncateItemLength - 3) + '...';
+				
+				if (a[i] is String)
+					s = '"' + s + '"';
+				if (a[i] is Array)
+					s = '[' + s + ']';
+				
+				result += s;
+			}
+			
+			if (includeBrackets)
+				return '[' + result + ']'
+			
+			return result;
+		}
+		
 		override public function toString():String
 		{
 			var paramStr:String = "";
-			var tempStr:String;
 			if (parameters is Array)
-			{
-				for (var i:int = 0; i < parameters.length; i++)
-				{
-					if (i > 0)
-						paramStr += ", ";
-					tempStr = parameters[i];
-					if (tempStr != null && truncateToStringOutput && tempStr.length > 64)
-						tempStr = tempStr.substr(0, 61) + "...";
-					paramStr += tempStr;
-				}
-			}
+				paramStr = arrayToString(parameters as Array, truncateToStringOutput ? 64 : int.MAX_VALUE, false);
 			else
-			{
 				paramStr = ObjectUtil.toString(parameters);
-			}
 			return methodName + "(" + paramStr + ")";
 		}
 	}

@@ -24,9 +24,9 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
-	import weave.utils.AsyncSort;
+	import weave.api.core.ILinkableVariable;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -37,11 +37,8 @@ package weave.core
 	public class LinkableVariable extends CallbackCollection implements ILinkableVariable
 	{
 		/**
-		 * This constructor does not allow an initial value to be specified, because no other class has a pointer to this object until the
-		 * constructor completes, which means the value cannot be retrieved during any callbacks that would run in the constructor.  This
-		 * forces the developer to set default values outside the constructor of the LinkableVariable, which means the callbacks will run
-		 * the first time the value is set.  This behavior is desirable because it allows the initial value to be handled by the same code
-		 * that handles new values.
+		 * If a defaultValue is specified, callbacks will be triggered in a later frame unless they have already been triggered before then.
+		 * This behavior is desirable because it allows the initial value to be handled by the same callbacks that handles new values.
 		 * @param sessionStateType The type of values accepted for this sessioned property.
 		 * @param verifier A function that returns true or false to verify that a value is accepted as a session state or not.  The function signature should be  function(value:*):Boolean.
 		 * @param defaultValue The default value for the session state.
@@ -55,7 +52,7 @@ package weave.core
 				reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 				_sessionStateType = String;
 			}
-			else
+			else if (sessionStateType != Object)
 			{
 				_sessionStateType = sessionStateType;
 			}
@@ -91,7 +88,21 @@ package weave.core
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			if (_sessionStateType == null) // if no type restriction...
-				return AsyncSort.defaultCompare(_sessionState, otherSessionState) == 0;
+			{
+				var equal:Boolean = StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
+				
+				// BEGIN TEMPORARY SOLUTION
+				// special case if both are dynamic objects and pointers are equal - always assume they have been modified
+				// this is a temporary solution until detectChanges() is added
+				// (private copy of session state needs to be stored for comparison to public session state)
+				if (equal && _sessionState !== null && typeof(_sessionState) == 'object' && _sessionState === otherSessionState)
+				{
+					return false;
+				}
+				// END TEMPORARY SOLUTION
+				
+				return equal;
+			}
 			return _sessionState == otherSessionState;
 		}
 		
@@ -154,25 +165,34 @@ package weave.core
 			if (_verifier != null && !_verifier(value))
 				return;
 			
-			// If the value is non-primitive, save a copy because we don't want
-			// two LinkableVariables to share the same object as their session state.
+			var wasCopied:Boolean = false;
+			var type:String = null;
 			if (value !== null)
 			{
-				// not supporting XML directly
-				var type:String = typeof(value);
+				type = typeof(value);
+				// not supporting XML directly because XMLs are difficult to compare
+				// and we don't want two LinkableVariables to share the same object as their session state.
 				if (type == 'xml')
 				{
 					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 					value = XML(value).toXMLString();
 				}
-				
-				else if (type == 'object')
+				else if (type == 'object' && value.constructor != Object)
+				{
+					// convert to dynamic Object prior to sessionStateEquals comparison
 					value = ObjectUtil.copy(value);
+					wasCopied = true;
+				}
 			}
 			
 			// stop if the value did not change
 			if (_sessionStateWasSet && sessionStateEquals(value))
 				return;
+			
+			// If the value is a dynamic object, save a copy because we don't want
+			// two LinkableVariables to share the same object as their session state.
+			if (type == 'object' && !wasCopied)
+				value = ObjectUtil.copy(value);
 			
 			_sessionStateWasSet = true;
 

@@ -30,6 +30,7 @@ package weave
 	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
@@ -384,6 +385,9 @@ package weave
 			
 			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
+			
+			if (WeaveAPI.externalInterfaceInitialized)
+				properties.runStartupJavaScript();
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
@@ -439,18 +443,27 @@ package weave
 			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
 			var flush:Boolean = false;
 			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
-			if (ExternalInterface.objectID)
+			if (ExternalInterface.available && ExternalInterface.objectID)
 			{
-				// get uid that was previously saved in parent node
-				uid = ExternalInterface.call(
-					"function(objectID) {" +
-					"  var p = document.getElementById(objectID).parentNode;" +
-					"  var reloadID = p.weaveReloadID;" +
-					"  p.weaveReloadID = undefined;" +
-					"  return reloadID;" +
-					"}",
-					ExternalInterface.objectID
-				);
+				try
+				{
+					// get uid that was previously saved in parent node
+					uid = ExternalInterface.call(
+						"function(objectID) {" +
+						"  var p = document.getElementById(objectID).parentNode;" +
+						"  var reloadID = p.weaveReloadID;" +
+						"  p.weaveReloadID = undefined;" +
+						"  return reloadID;" +
+						"}",
+						ExternalInterface.objectID
+					);
+				}
+				catch (e:Error)
+				{
+					if (e.errorID == 2060 && e.getStackTrace() == null)
+						e.message = StringUtil.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication.url);
+					reportError(e);
+				}
 			}
 			
 			// get session history from shared object
@@ -492,6 +505,24 @@ package weave
 			obj.close();
 			
 			return saved != null;
+		}
+		
+		
+		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
+		private static const WeaveStartup:Class;
+
+		public static function initJavaScriptDragDrop():void
+		{
+			if (!ExternalInterface.available)
+				return;
+			try
+			{
+				ExternalInterface.call(String(new WeaveStartup()), ExternalInterface.objectID);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 	}
 }

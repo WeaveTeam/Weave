@@ -28,15 +28,10 @@
 								change="handleWMSProviderChange()"/>
 			</mx:HBox>
 			<mx:Box id="customWMSSettings" visible="false" width="100%" height="100%" includeInLayout="false">
-				<ui:Indent label="URL: ">
-					<mx:TextInput id="wmsURLText" width="200"/>
-				</ui:Indent>
-				<ui:Indent label="Projection SRS: ">
-					<mx:TextInput id="projSRSText" width="75"/>
-				</ui:Indent>
-				<ui:Indent label="Maximum Zoom: ">
-					<mx:TextInput id="maxZoomText" width="50"/>					
-				</ui:Indent>
+				<ui:IndentTextInput id="wmsURLText" label="URL:"/>
+				<ui:IndentTextInput id="projSRSText" label="Projection SRS:"/>
+				<ui:IndentTextInput id="maxZoomText" label="Maximum Zoom:"/>
+				<ui:IndentTextInput id="creditInfoText" label="Copyright text:"/>
 			</mx:Box>
 		</mx:VBox>
 		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
@@ -87,6 +82,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				setWMSLayerServiceOnPlotterChange();
 				handleWMSProviderChange();
 				wmsURLText.toolTip =  "Enclose x,y,z in curly braces as shown in this sample URL: http://tile.openstreetmap.org/{z}/{x}/{y}.png";
 			}
@@ -112,7 +108,7 @@
 			
 			private function setWMSLayerServiceOnPlotterChange():void
 			{
-				if(!_plotter.providerName || !wmsLayerService)
+				if (!_plotter.providerName || !wmsLayerService)
 					return;
 				wmsLayerService.selectedItem = _plotter.providerName;
 
@@ -123,13 +119,14 @@
 			{
 				_plotter.setProvider(wmsLayerService.selectedItem as String);
 				
-				if(_plotter.service.internalObject is CustomWMS)
+				if (_plotter.service.internalObject is CustomWMS)
 				{
-					if(_customWMS != null)
+					if (_customWMS != null)
 					{
 						unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
 						unlinkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
 						unlinkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
+						unlinkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
 					}
 					customWMSSettings.includeInLayout = true;								
 					customWMSSettings.visible = true;
@@ -139,8 +136,10 @@
 					linkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
 					linkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
 					linkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
+					linkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
 
-				}else
+				}
+				else
 				{
 					customWMSSettings.includeInLayout = false;								
 					customWMSSettings.visible = false;

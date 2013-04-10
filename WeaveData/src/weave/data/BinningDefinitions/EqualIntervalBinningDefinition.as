@@ -20,7 +20,6 @@
 package weave.data.BinningDefinitions
 {
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IPrimitiveColumn;
@@ -47,7 +46,7 @@ package weave.data.BinningDefinitions
 		
 		public const dataInterval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
-		override public function getBinClassifiersForColumn(column:IAttributeColumn, output:ILinkableHashMap):void
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			var name:String;
 			// clear any existing bin classifiers
@@ -55,7 +54,6 @@ package weave.data.BinningDefinitions
 			
 			//var integerValuesOnly:Boolean = column is StringColumn;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			_statsJuggler.target = stats;
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
 			var binMin:Number;
@@ -104,6 +102,9 @@ package weave.data.BinningDefinitions
 					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
+			
+			// trigger callbacks now because we're done updating the output
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		// reusable temporary object

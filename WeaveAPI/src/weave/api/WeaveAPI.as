@@ -172,6 +172,16 @@ package weave.api
 		 */
 		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
+		private static var _externalInterfaceInitialized:Boolean = false;
+		
+		/**
+		 * This will be true after initializeExternalInterface() completes successfully.
+		 */
+		public static function get externalInterfaceInitialized():Boolean
+		{
+			return _externalInterfaceInitialized;
+		}
+		
 		/**
 		 * This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
 		 * After initializing, this will call an external function weaveReady(weave) if it exists, where the
@@ -179,7 +189,7 @@ package weave.api
 		 */
 		public static function initializeExternalInterface():void
 		{
-			if (!ExternalInterface.available)
+			if (!ExternalInterface.available || _externalInterfaceInitialized)
 				return;
 			
 			try
@@ -187,30 +197,34 @@ package weave.api
 				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
 				for each (var theInterface:Class in interfaces)
 				{
+					var instance:Object = getSingletonInstance(theInterface);
 					var classInfo:Object = describeTypeJSON(theInterface, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
 					// add a callback for each external interface function
-					for each (var method:Object in classInfo.traits.methods)
-					{
-						var methodName:String = method.name;
-						var callback:Function = generateExternalInterfaceCallback(methodName, theInterface);
-						ExternalInterface.addCallback(methodName, callback);
-					}
+					for each (var methodInfo:Object in classInfo.traits.methods)
+						generateExternalInterfaceCallback(instance, methodInfo);
 				}
 				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = false;
 				ExternalInterface.call(
-					'function(objectID) {' +
-					'  var weave = document.getElementById(objectID);' +
-					'  if (window && window.weaveReady) {' +
-					'    window.weaveReady(weave);' +
-					'  }' +
-					'  else if (weaveReady) {' +
-					'    weaveReady(weave);' +
-					'  }' +
-					'}',
+					<![CDATA[
+						function(objectID)
+						{
+							var weave = document.getElementById(objectID);
+							if (window && window.weaveReady)
+							{
+								window.weaveReady(weave);
+							}
+							else if (weaveReady)
+							{
+								weaveReady(weave);
+							}
+						}
+					]]>,
 					[ExternalInterface.objectID]
 				);
 				ExternalInterface.marshallExceptions = prev;
+				
+				_externalInterfaceInitialized = true;
 			}
 			catch (e:Error)
 			{
@@ -222,14 +236,22 @@ package weave.api
 		}
 		
 		/**
-		 * @private 
+		 * @private
 		 */
-		private static function generateExternalInterfaceCallback(methodName:String, theInterface:Class):Function
+		private static function generateExternalInterfaceCallback(instance:Object, methodInfo:Object):void
 		{
-			return function (...args):* {
-				var instance:Object = getSingletonInstance(theInterface);
-				return (instance[methodName] as Function).apply(null, args);
+			var method:Function = instance[methodInfo.name] as Function;
+			// find the number of required parameters
+			var paramCount:int = 0;
+			while (paramCount < method.length && !methodInfo.parameters[paramCount].optional)
+				paramCount++;
+			function callback(...args):*
+			{
+				if (args.length < paramCount)
+					args.length = paramCount;
+				return method.apply(null, args);
 			}
+			ExternalInterface.addCallback(methodInfo.name, callback);
 		}
 		
 		

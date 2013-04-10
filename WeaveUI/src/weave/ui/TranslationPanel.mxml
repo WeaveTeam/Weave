@@ -70,6 +70,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.core.UIUtils;
+			import weave.utils.AsyncSort;
 			import weave.utils.PopUpUtils;
 			
 			private static const ORIGINAL:String = "original";
@@ -179,7 +180,7 @@
 					trace(e);
 					ids = 'ar-SA,bg-BG,ca-ES,zh-TW,cs-CZ,da-DK,de-DE,el-GR,en-US,es-ES@collation=traditional,fi-FI,fr-FR,he-IL,hu-HU,is-IS,it-IT,ja-JP,ko-KR,nl-NL,nb-NO,pl-PL,pt-BR,ro-RO,ru-RU,hr-HR,sk-SK,sq-AL,sv-SE,th-TH,tr-TR,ur-PK,id-ID,uk-UA,be-BY,sl-SI,et-EE,lv-LV,lt-LT,fa-IR,vi-VN,hy-AM,az-Latn-AZ,eu-ES,mk-MK,af-ZA,ka-GE,fo-FO,hi-IN,ms-MY,kk-KZ,ky-KG,sw-KE,uz-Latn-UZ,tt-RU,pa-IN,gu-IN,ta-IN,te-IN,kn-IN,mr-IN,sa-IN,mn-MN,gl-ES,kok-IN,syr-SY,dv-MV,ar-IQ,zh-CN,de-CH,en-GB,es-MX,fr-BE,it-CH,nl-BE,nn-NO,pt-PT,sr-Latn-CS,sv-FI,az-Cyrl-AZ,ms-BN,uz-Cyrl-UZ,ar-EG,zh-HK,de-AT,en-AU,es-ES,fr-CA,sr-Cyrl-CS,ar-LY,zh-SG,de-LU,en-CA,es-GT,fr-CH,ar-DZ,zh-MO,de-LI,en-NZ,es-CR,fr-LU,ar-MA,en-IE,es-PA,fr-MC,ar-TN,en-ZA,es-DO,ar-OM,en-JM,es-VE,ar-YE,en-029,es-CO,ar-SY,en-BZ,es-PE,ar-JO,en-TT,es-AR,ar-LB,en-ZW,es-EC,ar-KW,en-PH,es-CL,ar-AE,es-UY,ar-BH,es-PY,ar-QA,es-BO,es-SV,es-HN,es-NI,es-PR,cy-GB,mi-NZ,mt-MT,quz-BO,quz-EC,quz-PE,tn-ZA,xh-ZA,zu-ZA,nso-ZA,se-NO,se-SE,se-FI,smj-NO,smj-SE,sma-NO,sma-SE,sms-FI,smn-FI,hr-BA,bs-Latn-BA,sr-Latn-BA,sr-Cyrl-BA,bs-Cyrl-BA,fil-PH,lb-LU,ps-AF,fy-NL,arn-CL,ne-NP,iu-CA,ga-IE,moh-CA,rm-CH,bn-IN,ml-IN,de-DE@collation=phonebook,hu-HU@collation=technical,ka-GE@collation=modern,zh-CN@collation=stroke,zh-SG@collation=stroke,zh-MO@collation=stroke,zh-TW@collation=pinyin'.split(',');
 				}
-				ids.sort();
+				AsyncSort.sortImmediately(ids);
 				alertBox.autoCompleteChoices = ids;
 				
 				var button:Button = new Button();

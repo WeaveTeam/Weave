@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:HBox xmlns="weave.editors.*" 
+		xmlns:mx="http://www.adobe.com/2006/mxml"
+		implements="weave.api.ui.ILinkableObjectEditor"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:CheckBox label="{getEnableLabel(columnTitle)}" id="filterEnable" click="toggleFilter();"/>
+	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(numberFilter.column, lang('Filter'));"/>
+	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" thumbCount="2" liveDragging="true" change="handleSliderChange(event);"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.events.SliderEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.core.CallbackJuggler;
+			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.NumberDataFilter;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.utils.ColumnUtils;
+			
+			[Bindable] private var columnTitle:String;
+			private function getEnableLabel(columnTitle:String):String
+			{
+				return lang('Filter by {0}', columnTitle || '...');
+			}
+			
+			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
+			private const statsJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
+			
+			public function get numberFilter():NumberDataFilter
+			{
+				return filterJuggler.target as NumberDataFilter;
+			}
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				filterJuggler.target = object as NumberDataFilter;
+				if (numberFilter)
+					statsJuggler.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
+			}
+			public function applyChanges():void
+			{
+				// changes are applied immediately
+			}
+			
+			private function toggleFilter():void
+			{
+				if (numberFilter)
+					numberFilter.enabled.value = filterEnable.selected;
+			}
+			
+			private function handleSliderChange(event:SliderEvent):void
+			{
+				if (!numberFilter || !UIUtils.hasFocus(filterSlider))
+					return;
+				numberFilter.min.value = filterSlider.values[0];
+				numberFilter.max.value = filterSlider.values[1];
+			}
+
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				if (numberFilter)
+				{
+					enabled = true;
+					filterEnable.selected = numberFilter.enabled.value;
+					var column:DynamicColumn = numberFilter.column;
+					columnTitle = ColumnUtils.getTitle(column);
+					filterSlider.minimum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMin();
+					filterSlider.maximum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMax();
+					filterSlider.values = [numberFilter.min.value, numberFilter.max.value];
+				}
+				else
+				{
+					enabled = false;
+					filterEnable.selected = false;
+					filterSlider.minimum = 0;
+					filterSlider.maximum = 100;
+					filterSlider.values = [0, 100];
+				}
+				
+				super.updateDisplayList.apply(this, arguments);
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

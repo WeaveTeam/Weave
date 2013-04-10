@@ -226,7 +226,7 @@ package weave.utils
 			trace("pol2: " + polygon2.length);
 			var a:Object = polygon2[0];
 			var b:Object;
-			for (var i2:int = polygon2.length - 1; i2 >= 0; i2--)
+			for (var i2:int = polygon2.length; i2--;)
 			{
 				b = a;
 				a = polygon2[i2];
@@ -257,7 +257,7 @@ package weave.utils
 				return false;
 			var c:Object = polygon[0];
 			var d:Object;
-			for (var i:int = polygon.length - 1; i >= 0; i--)
+			for (var i:int = polygon.length; i--;)
 			{
 				d = c;
 				c = polygon[i];
@@ -354,7 +354,7 @@ package weave.utils
 			var Bx:Number;
 			var By:Number;
 			// loop through the segments of the polygon
-			for (var pointIndex:int = polygon.length - 1; pointIndex >= 0; pointIndex--)
+			for (var pointIndex:int = polygon.length; pointIndex--;)
 			{
 				Bx = Ax;
 				By = Ay;

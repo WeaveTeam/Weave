@@ -54,12 +54,13 @@
 								prompt="{lang('Enter a table name')}"
 								change="activeTable = _tableInput.text;"/>
 		<mx:CheckBox id="tableOverwriteCheck"
-					 label="{lang('Overwrite')}"
+					 label="{lang('Overwrite SQL table')}"
 					 selected="false"
 					 visible="{tableOverwriteCheckVisible}"
 					 includeInLayout="{tableOverwriteCheckVisible}"/>
 	</ui:Indent>
 	<mx:Metadata>
+		[Event(name="propertyChange", type="flash.events.Event")]
 		[Exclude(name="_tableCombo", kind="property")]
 		[Exclude(name="_tableInput", kind="property")]
 	</mx:Metadata>
@@ -134,6 +135,7 @@
 			{
 				if (!showTableCombo)
 					return;
+				
 				activeTable = '';
 				// clear current list, then request new list
 				tables = [];
@@ -171,6 +173,9 @@
 			
 			public function getColumns():void
 			{
+				if (!showTableCombo)
+					return;
+				
 				// clear current list, then request new list
 				columns = [];
 				if (activeSchema != '' && activeTable != '')

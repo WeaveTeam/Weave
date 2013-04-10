@@ -28,17 +28,16 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -476,11 +475,9 @@ package weave.visualization.layers
 			var y_yAxis:Number;
 			var x_xAxis:Number;
 			var y_xAxis:Number;
-			var bounds:IBounds2D = plotManager.hack_getSpatialIndex(MAIN_PLOT_LAYER_NAME).getBoundsFromKey(recordKeys[0])[0];
-			
-			// if there is a visualization with one set of data and the user drag selects over to it, the 
-			// spatial index will return an empty array for the key, which means bounds will be null. 
-			if (bounds == null) 
+			var boundsArray:Array = plotManager.hack_getSpatialIndex(MAIN_PLOT_LAYER_NAME).getBoundsFromKey(recordKeys[0]);
+			var bounds:IBounds2D = boundsArray ? boundsArray[0] : null;
+			if (bounds == null)
 				return; 
 			
 			var yExists:Boolean = isFinite(bounds.getYMin());

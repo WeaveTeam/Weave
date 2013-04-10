@@ -1598,6 +1598,56 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				restorePanel();
 			}
 			
+			private var _escapeKeyClosesPanel:Boolean = false;
+			
+			public function get escapeKeyClosesPanel():Boolean
+			{
+				return _escapeKeyClosesPanel;
+			}
+			
+			/**
+			 * Set this to true to allow the ESCAPE key to close this panel.
+			 */
+			public function set escapeKeyClosesPanel(value:Boolean):void
+			{
+				_escapeKeyClosesPanel = value;
+				if (value)
+					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyDown);
+				else
+					WeaveAPI.StageUtils.removeEventCallback(KeyboardEvent.KEY_DOWN, handleKeyDown);
+			}
+			
+			private function handleKeyDown():void
+			{
+				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if (parent && event && event.keyCode == Keyboard.ESCAPE)
+				{
+					// find the top-most draggable panel with escapeKeyClosesPanel=true
+					for (var i:int = parent.numChildren; i--;)
+					{
+						var panel:DraggablePanel = parent.getChildAt(i) as DraggablePanel;
+						if (panel && panel.escapeKeyClosesPanel)
+						{
+							if (panel == this)
+							{
+								stage.focus = parent;
+								panel.handleEscapeKey();
+							}
+							// we don't want to do anything more
+							return;
+						}
+					}
+				}
+			}
+			
+			/**
+			 * This function gets called when the user presses ESCAPE and escapeKeyClosesPanel has been set to true.
+			 */
+			protected function handleEscapeKey():void
+			{
+				// don't remove immediately because we don't want multiple windows to close in handleKeyDown()
+				callLater(removePanel);
+			}
 			
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.

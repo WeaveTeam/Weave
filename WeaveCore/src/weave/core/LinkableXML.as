@@ -28,6 +28,7 @@ package weave.core
 	 * a copy of the XML that you set as the session state.
 	 * 
 	 * @author adufilie
+	 * @see weave.core.LinkableVariable
 	 */
 	public class LinkableXML extends LinkableVariable
 	{

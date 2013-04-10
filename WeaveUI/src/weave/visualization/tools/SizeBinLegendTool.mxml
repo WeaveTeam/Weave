@@ -26,9 +26,11 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.linkSessionState;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableDynamicObject;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -42,10 +44,12 @@
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 			import weave.visualization.plotters.SizeBinLegendPlotter;
 			
+			private const indent:int = 120;
+			private const inputWidth:int = 64;
 			private const COLOR_LEGEND_LAYER_NAME:String = "color legend";
 			private var _sizeBinLegendPlotter:SizeBinLegendPlotter;
 			private var _sizeBinLegendLayerSettings:LayerSettings;
-			private var _colorLegendLayerSettings:LayerSettings;
+			private var _colorLegendLayerSettings:LayerSettings;			
 			
 			override protected function constructor():void
 			{
@@ -80,11 +84,62 @@
 				super.childrenCreated();
 				visualization.plotManager.marginTopNumber.addGroupedCallback(this, handleMarginChange);
 				linkBindableProperty(visualization.plotManager.marginTopNumber, marginLabel, "height");
+				
+				
+				var delay:int = 500;
+				linkBindableProperty(_sizeBinLegendPlotter.numberOfCircles, numOfCirclesNumericStepper, 'value', delay);
+				linkBindableProperty(_sizeBinLegendPlotter.customCircleRadiuses, circleRadiusesTextInput, 'text', delay);
+				
+				_sizeBinLegendPlotter.typeRadio.addImmediateCallback(this, updateTypeRadioUI);
+				
+				marginLabelCheckBox.addEventListener(Event.CHANGE, toggleShowAttributeName);
 			}
+			
+			private function updateTypeRadioUI():void
+			{
+				if (_sizeBinLegendPlotter.typeRadio.value == SizeBinLegendPlotter.simpleRadio)
+					typeGroup.selection = simpleRadio;
+				else if (_sizeBinLegendPlotter.typeRadio.value == SizeBinLegendPlotter.customRadio)
+					typeGroup.selection = customRadio;
+			}
+			
+			private function handleTypeRadio():void
+			{
+				// this may be zero even if children are created.
+				if (typeGroup.numRadioButtons == 0) return;
+				
+				if (typeGroup.selection == simpleRadio)
+					_sizeBinLegendPlotter.typeRadio.value = SizeBinLegendPlotter.simpleRadio;
+				else if (typeGroup.selection == customRadio)
+					_sizeBinLegendPlotter.typeRadio.value = SizeBinLegendPlotter.customRadio;
+			}
+			
+			
+			// Get called in handleScatterPlotChange
+			override protected function get defaultPanelTitle():String
+			{				
+				if (scatterPlot == null || !scatterPlot.plotter.enabledSizeBy.value)
+					return lang("Color legend of " + ColumnUtils.getTitle(colorColumn));
+				else
+					return lang("Size legend of " + ColumnUtils.getTitle(_sizeBinLegendPlotter.radiusColumn));
+			}
+			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
+			private var _prevMarginTop:String = String(DEFAULT_MARGIN_TOP); // this stores the previous nonzero top margin setting
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.plotManager.marginTopNumber.value != 0;
+				if (visualization.plotManager.marginTopNumber.value != 0)
+				{
+					_prevMarginTop = visualization.plotManager.marginTop.value;
+					marginLabelCheckBox.selected = true;
+				}
+				else
+					marginLabelCheckBox.selected = false;
+			}
+			
+			private function toggleShowAttributeName(e:Event):void
+			{
+				visualization.plotManager.marginTop.value = marginLabelCheckBox.selected ? _prevMarginTop : '0';
 			}
 			
 			public const dynamicScatterPlotTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ScatterPlotTool), handleScatterPlotChange, true);
@@ -99,9 +154,14 @@
 				
 				if (scatterPlot != null)
 				{
+					// One time session state copy
 					copySessionState(scatterPlot.plotter.screenRadius, _sizeBinLegendPlotter.radiusColumn);
 					copySessionState(scatterPlot.plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
 					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
+					
+					copySessionState(scatterPlot.plotter.absoluteValueColorEnabled, _sizeBinLegendPlotter.absoluteValueColorEnabled);
+					copySessionState(scatterPlot.plotter.absoluteValueColorMin, _sizeBinLegendPlotter.absoluteValueColorMin);
+					copySessionState(scatterPlot.plotter.absoluteValueColorMax, _sizeBinLegendPlotter.absoluteValueColorMax);
 				}
 				
 				if (scatterPlot && scatterPlot.plotter.enabledSizeBy.value)
@@ -118,6 +178,7 @@
 				}
 				
 				updateMarginLabel();
+				handlePanelTitleChange();
 			}
 			
 			private function handleMarginLabelClick():void
@@ -172,6 +233,28 @@
 				 toolTip="{lang('{0}\r\tClick here to select the attribute used for {1}.', marginLabelText, marginLabelMode)}"/>
 
 	<ui:ControlPanel>
+			<mx:VBox label="{lang('Tick Marks')}">
+				<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:RadioButton id="simpleRadio" label="{lang('Equally Spaced')}" groupName="typeGroup" selected="true" width="100%"/>
+					<mx:Label text="{lang('Number of Radiuses:')}"/>
+					<mx:NumericStepper enabled="{simpleRadio.selected}" minimum="2" maximum="50" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
+					<ui:HelpComponent label="{simpleRadio.label}">
+						Example: If your data is between 0 and 100 and you specify 3 radiuses, the following radiuses will be created: 0, 50, 100
+					</ui:HelpComponent>
+				</mx:HBox>
+				
+				<mx:HRule width="100%"/>
+				
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:RadioButton id="customRadio" label="{lang('Custom Radiuses')}" groupName="typeGroup" width="100%"/>
+					<mx:TextInput enabled="{customRadio.selected}" id="circleRadiusesTextInput" width="100%"/>
+					<ui:HelpComponent label="{customRadio.label}">
+						Enter comma-separated custom break values.
+					</ui:HelpComponent>
+				</mx:HBox>
+			</mx:VBox>
+		
 			<mx:Panel id="attributesPanel" 
 					  label="{lang('Display Preferences')}"
 					  headerHeight="2"
@@ -183,7 +266,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}" change="visualization.plotManager.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="{lang('Click to hide the title of the Legend.')}"/>
+				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}"/>
 			</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

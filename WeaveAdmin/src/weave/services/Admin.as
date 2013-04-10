@@ -28,6 +28,7 @@ package weave.services
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.services.beans.DatabaseConfigInfo;
+	import weave.services.beans.EntityHierarchyInfo;
 
 	public class Admin
 	{
@@ -89,6 +90,7 @@ package weave.services
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
+		[Bindable] private var dataTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
 		// values the user has currently selected
@@ -168,10 +170,9 @@ package weave.services
 			service.addHook(
 				service.getWeaveFileNames,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, user_pass_showAllFiles:Array):void
 				{
-					// save list
-					var showAllFiles:Boolean = arguments[0];
+					var showAllFiles:Boolean = user_pass_showAllFiles[2];
 					if (showAllFiles)
 						weaveFileNames = event.result as Array || [];
 					else
@@ -217,10 +218,12 @@ package weave.services
 			service.addHook(
 				service.removeConnectionInfo,
 				null,
-				function(event:ResultEvent, arguments:Array):void
+				function(event:ResultEvent, user_pass_connectionNameToRemove:Array):void
 				{
+					var activeUser:String = user_pass_connectionNameToRemove[0];
+					var removedUser:String = user_pass_connectionNameToRemove[2];
 					// if user removed self, log out
-					if (arguments[0] == arguments[2])
+					if (activeUser == removedUser)
 					{
 						activeConnectionName = '';
 						activePassword = '';
@@ -251,12 +254,16 @@ package weave.services
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
-					if (!userHasAuthenticated)
-						service.authenticate(activeConnectionName, activePassword);
+					if (activeConnectionName && activePassword)
+					{
+						if (!userHasAuthenticated)
+							service.authenticate(activeConnectionName, activePassword);
 					
-					// refresh
-					service.getDatabaseConfigInfo();
-					entityCache.clearCache();
+						// refresh
+						service.getDatabaseConfigInfo();
+					}
+					// purge cache
+					entityCache.invalidateAll(true);
 				}
 			);
 			/////////////////
@@ -281,59 +288,9 @@ package weave.services
 			);
 			////////////////
 			// Data import
-			service.addHook(
-				service.importSQL,
-				null,
-				function(event:ResultEvent, token:Object):void
-				{
-					var id:int = int(event.result);
-					focusEntityId = id;
-					// request children
-					entityCache.invalidate(id, true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			service.addHook(
-				service.importCSV,
-				null,
-				function(event:ResultEvent, token:Object):void
-				{
-					var id:int = int(event.result);
-					focusEntityId = id;
-					// request children
-					entityCache.invalidate(id, true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			service.addHook(
-				service.importSHP,
-				null,
-				function(event:ResultEvent, token:Object):void
-				{
-					var id:int = int(event.result);
-					focusEntityId = id;
-					// request children
-					entityCache.invalidate(id, true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			/*
-			service.addHook(
-				service.importDBF,
-				null,
-				function(event:ResultEvent, token:Object = null):void
-				{
-					focusEntityId = int(event.result);
-					// request children
-					entityCache.invalidate(int(event.result), true);
-					// refresh list
-					service.getKeyTypes();
-				}
-			);
-			*/
+			service.addHook(service.importSQL, null, handleTableImportResult);
+			service.addHook(service.importCSV, null, handleTableImportResult);
+			service.addHook(service.importSHP, null, handleTableImportResult);
 			//////////////////
 			// Miscellaneous
 			service.addHook(
@@ -343,21 +300,45 @@ package weave.services
 				{
 					// save list
 					if (userHasAuthenticated)
+					{
 						keyTypes = event.result as Array || [];
+						dataTypes = keyTypes.concat();
+						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY);
+					}
 				}
 			);
 			service.addHook(
 				service.newEntity,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, user0_pass1_type2_meta3_parent4_index5:Array):void
 				{
 					var id:int = int(event.result);
 					focusEntityId = id;
 					entityCache.invalidate(id);
+					var parentId:int = user0_pass1_type2_meta3_parent4_index5[4];
+					entityCache.invalidate(parentId);
 				}
 			);
 			
 			service.checkDatabaseConfigExists();
+		}
+		
+		private function handleTableImportResult(event:ResultEvent, token:Object):void
+		{
+			var tableId:int = int(event.result);
+			var info:EntityHierarchyInfo = entityCache.getBranchInfo(tableId);
+			if (info)
+				weaveTrace(lang('Existing data table "{0}" was updated successfully.', info.title));
+			else
+				weaveTrace(lang("New data table created successfully."));
+			
+			focusEntityId = tableId;
+			// request children
+			entityCache.invalidate(tableId, true);
+			for each (var id:int in entityCache.getEntity(tableId).childIds)
+				entityCache.invalidate(id);
+			// refresh list
+			service.getKeyTypes();
 		}
 			
 		[Bindable] public function get activeConnectionName():String
@@ -377,6 +358,7 @@ package weave.services
 			weaveFileNames = [];
 			privateWeaveFileNames = [];
 			keyTypes = [];
+			dataTypes = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
@@ -444,7 +426,7 @@ package weave.services
 					return connectionNames;
 				
 				case ColumnMetadata.DATA_TYPE:
-					return [DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY];
+					return dataTypes;
 				
 				case ColumnMetadata.KEY_TYPE:
 					return keyTypes;

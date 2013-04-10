@@ -144,17 +144,24 @@ package weave.visualization.plotters
 			}
 		}
 		
+		private var _in_updateFilterEquationColumns:Boolean = false;
 		private function updateFilterEquationColumns():void
 		{
+			if (_in_updateFilterEquationColumns)
+				return;
+			_in_updateFilterEquationColumns = true;
+			
 			if (enableGroupBy.value)
 			{
-				setColumnKeySources([_keySet_groupBy]);
+				setSingleKeySource(_keySet_groupBy);
 			}
 			else
 			{
 				var list:Array = _columns.concat();
 				list.unshift(lineStyle.color);
 				setColumnKeySources(list);
+				
+				_in_updateFilterEquationColumns = false;
 				return;
 			}
 			
@@ -182,6 +189,7 @@ package weave.visualization.plotters
 				
 				if(_xattrObjects.length > 0)
 					xAttributeColumns.removeAllObjects();
+				_in_updateFilterEquationColumns = false;
 				return;
 			}
 			
@@ -189,6 +197,7 @@ package weave.visualization.plotters
 			var keyType:String = ColumnUtils.getKeyType(groupBy);
 			if (keyType != ColumnUtils.getKeyType(xData) || keyType != ColumnUtils.getKeyType(yData))
 			{
+				_in_updateFilterEquationColumns = false;
 				return;
 			}
 			
@@ -218,6 +227,7 @@ package weave.visualization.plotters
 			}				
 			
 			columns.resumeCallbacks();
+			_in_updateFilterEquationColumns = false;
 		}
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
@@ -316,8 +326,8 @@ package weave.visualization.plotters
 			// push three geometries between each column
 			var x:Number, y:Number;
 			var prevX:Number, prevY:Number;
-			
-		  for (var i:int = 0; i < _columns.length; ++i)
+			var geometry:ISimpleGeometry;
+			for (var i:int = 0; i < _columns.length; ++i)
 			{
 				x = getXAttributeCoordinates(recordKey, i);
 				
@@ -328,9 +338,29 @@ package weave.visualization.plotters
 				
 				if (i > 0)
 				{
-					var geometry:ISimpleGeometry = new SimpleGeometry(GeometryType.LINE);
-					geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
-					results.push(geometry);
+					if (isFinite(y) && isFinite(prevY))
+					{
+						geometry = new SimpleGeometry(GeometryType.LINE);
+						geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
+						results.push(geometry);
+					}
+					else
+					{
+						// case where current coord is defined and previous coord is missing
+						if (isFinite(y))
+						{
+							geometry = new SimpleGeometry(GeometryType.POINT);
+							geometry.setVertices([new Point(x, y)]);
+							results.push(geometry);
+						}
+						// special case where i == 1 and y0 (prev) is defined and y1 (current) is missing
+						if (i == 1 && isFinite(prevY))
+						{
+							geometry = new SimpleGeometry(GeometryType.POINT);
+							geometry.setVertices([new Point(prevX, prevY)]);
+							results.push(geometry);
+						}
+					}
 				}
 				
 				prevX = x;

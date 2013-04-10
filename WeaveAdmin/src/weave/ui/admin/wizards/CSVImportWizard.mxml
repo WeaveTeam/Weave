@@ -27,18 +27,21 @@
 			label="{lang('Import CSV data to Weave')}"
 			creationComplete="handleCreationComplete()"
 			>
+	
 	<mx:VBox id="csvUploadPage" label="{lang('Import a CSV file to SQL')}">
+		<mx:CheckBox id="noAppendCheckBox" label="{lang('Create new Weave table entry even if a matching one already exists')}"/>
 		<ui:Indent group="{tableSelector.indentGroup}" label="{lang('CSV file')}" >
 			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
-			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="{lang('Select a CSV file.')}" change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
+			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="{lang('Select a CSV file.')}" change="enableAllWidgets(csvFileNameInput.text ? true : false)" editable="true"/>
 			<mx:Button label="{lang('Upload File')}" click="browseAndUpload();"/>
 			<mx:Button label="{lang('Choose File on Server')}" click="openServerBrowser();" />
 			<mx:Text id="fileStatus"/>
 		</ui:Indent>
-		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
+		<mx:VBox visible="{csvFileNameInput.asTextInput().text ? true : false}">
 			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 		</mx:VBox>
 	</mx:VBox>
+	
 	<mx:VBox id="optionalSettingsPage" label="{lang('Configure data for Weave')}">
 		<ui:Indent label="{lang('Table display name')}">
 			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
@@ -64,12 +67,12 @@
 				</ui:HelpComponent>
 			</ui:Indent>
 			
-			<mx:Label text="{lang('What do these keys correspond to?')}"/>
-			<admin:KeyTypeDialog id="keytypeSelector"
-											paddingLeft="{paddingIndent}"
-											defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
+			<admin:KeyTypeDialog id="keytypeSelector" defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
 			
-			<mx:CheckBox id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
+			<mx:RadioButtonGroup id="radioGroup"/>
+			<mx:RadioButton label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
+			
+			<mx:RadioButton id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false" group="{radioGroup}"/>
 			<ui:Indent label="{lang('Secondary key column')}"
 					   paddingLeft="{paddingIndent}"
 					   grouped="false"
@@ -79,7 +82,7 @@
 			</ui:Indent>
 			
 			<mx:HBox>
-				<mx:CheckBox id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false"/>
+				<mx:RadioButton id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false" group="{radioGroup}"/>
 				<ui:HelpComponent>
 					This option is to be used when the new data table has a column that refers to keys in another data table but the keys do not uniquely identify rows in the new table.
 					
@@ -94,12 +97,15 @@
 			</ui:Indent>
 		</mx:VBox>
 	</mx:VBox>
+	
 	<mx:VBox id="dublinCorePage" width="100%" label="{lang('Specify Dublin Core metadata')}">
 		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="{lang('Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the Data Hierarchies tab.')}"/>
 		<mx:LinkButton label="{lang('Click for Dublin Core Reference')}" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
 		<mx:Form>
 			<mx:FormItem label="{lang('Title')}">
-				<mx:TextInput id="dcTitleTextInput" text="{dataTableNameInput.text}" toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
+				<mx:TextInput id="dcTitleTextInput" text="{dataTableNameInput.text}"
+							  change="dataTableNameInput.text = dcTitleTextInput.text;"
+							  toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
 			</mx:FormItem>
 			<mx:FormItem label="{lang('Subject')}">
 				<mx:TextInput id="dcSubjectTextInput" toolTip="{lang('The topic of the content of the resource. Typically, a Subject will be expressed as keywords or key phrases or classification codes that describe the topic of the resource. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme.')}"/>
@@ -109,6 +115,7 @@
 			</mx:FormItem>
 		</mx:Form>
 	</mx:VBox>
+	
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -299,29 +306,30 @@
 						configTableName,
 						keyType,
 						nullFlagInput.text,
-						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
+						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null,
+						!noAppendCheckBox.selected
 					),
 					function handleImportCSV(event:ResultEvent, token:Object = null):void
 					{
 						var tableId:int = int(event.result);
 						
+						const SUBJECT:String = 'subject';
+						const DESCRIPTION:String = 'subject';
 						var em:EntityMetadata = new EntityMetadata();
-						if (dcTitleTextInput.text)
-							em.publicMetadata["title"] = dcTitleTextInput.text;
-						if (dcSubjectTextInput.text)
-							em.publicMetadata["subject"] = dcSubjectTextInput.text;
-						if (dcDescriptionTextInput.text)
-							em.publicMetadata["description"] = dcDescriptionTextInput.text;
-						
-						addAsyncResponder(
-							Admin.service.updateEntity(tableId, em),
-							function(..._):void
-							{
-								weaveTrace(lang("Data table entry created successfully."));
-								close();
-							},
-							enable
-						);
+						em.publicMetadata[SUBJECT] = dcSubjectTextInput.text;
+						em.publicMetadata[DESCRIPTION] = dcDescriptionTextInput.text;
+						if (em.publicMetadata[SUBJECT] || em.publicMetadata[DESCRIPTION])
+						{
+							addAsyncResponder(
+								Admin.service.updateEntity(tableId, em),
+								function(..._):void { close(); },
+								enable
+							);
+						}
+						else
+						{
+							close();
+						}
 					},
 					enable
 				);
@@ -397,7 +405,7 @@
 					return; //we don't clear errors because because this is an asynchronous call, so we don't want it to update UI, if the result is late.
 				}
 				
-				if(!e.result)
+				if (!e.result)
 				{
 					csvKeyColumnCombo.errorString = "Key values are not unique";
 					
@@ -405,7 +413,8 @@
 					
 					finishEnabled = false;
 					nextEnabled = false;
-				}else
+				}
+				else
 				{
 					
 					clearErrors();
@@ -418,27 +427,6 @@
 			private function handleKeyColumnCheckFault(e:FaultEvent,token:Object=null):void
 			{
 				reportError("Error checking Key Column");
-			}
-			
-			/**
-			 * This function takes an array of values and performs a check to see if the values are unique
-			 *  */
-			private function isUnique(data:Array):Boolean
-			{
-				var unique:Boolean = true;
-				var testUniquenessObject:Object = new Object();
-				for(var i:int=0;i<data.length;i++)
-				{
-					if (testUniquenessObject[data[i]] == undefined)
-					{
-						testUniquenessObject[data[i]] = true;
-						continue;
-					}
-					unique = false;
-					break;
-				}
-				
-				return unique;
 			}
 		]]>
 	</mx:Script>

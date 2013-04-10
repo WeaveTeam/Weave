@@ -1,0 +1,35 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"tab_size": 4
+	},
+	"build_systems":
+	[
+		{
+			"name": "Ant - install",
+			"cmd": ["ant", "-f", "WeaveClient/buildall.xml", "install"],
+			"working_dir":"${project_path}",
+			"env":
+			{
+				"FLEX_HOME":"/home/pkovac/bin/flex",
+				"ANT_OPTS":"-XX:MaxPermSize=1024m"
+			}
+		},
+		{
+			"name": "Ant - clean",
+			"cmd": ["ant", "-f", "WeaveClient/buildall.xml", "clean"],
+			"working_dir":"${project_path}",
+			"env":
+			{
+				"FLEX_HOME":"/home/pkovac/bin/flex",
+				"ANT_OPTS":"-XX:MaxPermSize=1024m"
+			}
+		}
+	]
+}

@@ -61,12 +61,47 @@ package weave.ui
 		public var colorEndList:Array = [0xa0a0a0, 0x404040, 0xa0a0a0];
 		public var alphaStart:Number = 1;
 		public var alphaEnd:Number = 0;
-		public var diameterRatio:Number = 0.25;
+		private var _diameter:Number = 20; // when this is set, diameterRatio will be disabled
+		private var _diameterRatio:Number = NaN; // percentage of window size
 		public var circleRatio:Number = 0.2;
 		public var numCircles:uint = 12;
 		private var prevFrame:int = -1;
 		private var timeBecameBusy:int = 0;
 		public var autoVisibleDelay:int = 2500;
+		
+		/**
+		 * Diameter of busy indicator.
+		 * Setting this unsets diameterRatio.
+		 */		
+		public function set diameter(value:Number):void
+		{
+			if (isFinite(value))
+			{
+				_diameter = value;
+				_diameterRatio = NaN;
+			}
+		}
+		public function get diameter():Number
+		{
+			return _diameter;
+		}
+		
+		/**
+		 * Diameter expressed as a percentage of the parent size (number between 0 and 1).
+		 * Setting this unsets diameter.
+		 */		
+		public function set diameterRatio(value:Number):void
+		{
+			if (isFinite(value))
+			{
+				_diameterRatio = value;
+				_diameter = NaN;
+			}
+		}
+		public function get diameterRatio():Number
+		{
+			return _diameterRatio;
+		}
 		
 		/**
 		 * This will update the graphics immediately when set.
@@ -129,7 +164,11 @@ package weave.ui
 			
 			var cx:Number = parent.width / 2 - this.x;
 			var cy:Number = parent.height / 2 - this.y;
-			var radius:Number = Math.min(parent.width, parent.height) * diameterRatio / 2;
+			var radius:Number;
+			if (isFinite(diameter))
+				radius = diameter / 2;
+			else
+				radius = Math.min(parent.width, parent.height) * diameterRatio / 2;
 			var revolution:Number = frame / numCircles;
 			var colorIndexNorm:Number = revolution % (colorStartList.length - 1) / (colorStartList.length - 1);
 			var colorStart:Number = StandardLib.interpolateColor(colorIndexNorm, colorStartList);
