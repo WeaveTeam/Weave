@@ -9,6 +9,7 @@
     <classEntry path="weave.ui.DataMiningEditors.NumberInputComponent"/>
     <classEntry path="weave.ui.DataMiningEditors.DataMiningChannelToR"/>
     <classEntry path="weave.ui.DataMiningEditors.PartitionAroundMedoidsClustering"/>
+    <classEntry path="weave.ui.DataMiningEditors.DataPreloadInR"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

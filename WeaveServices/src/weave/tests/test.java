@@ -77,25 +77,69 @@ public class test
 		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
 		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+		//inputValues1 = new Object[0];
+		inputNames = new String[]{"myMatrix"};
 		//Object[] array4 = {"ji", "hello"};
 		//Object[] array5 = {0,1,2,3,4};
-		inputNames = new String []{"inputColumns","EMModel"};
+		//inputNames = new String []{"inputColumns","EMModel"};
 		Object[][] myMatrix = new Object[][]{array1, array2, array3};
-		String[] EMModel = {"VII"};
-		inputValues1 = new Object[]{myMatrix,EMModel};
-		script = "library(mclust)\n" +
-		"hello1 <- function(inputColumns, EMModel){\n" +
-		"Clusters = list()\n" + 
-		"for(i in 1: length(EMModel)){\n" +
-		"BIC <- NA\n" +
-		"try(BIC <- Mclust(inputColumns, 7, EMModel[i]))\n" +
-		"Results <- NA\n" +
-		"try( Results <- summary( BIC, inputColumns ) )\n" +
-		"Clusters [[i]]<- Results$classification\n" + 
-		"return(Clusters)}}\n" +
-		"ans <- hello1(inputColumns, EMModel)\n";
+		//String[] EMModel = {"VII"};
+		inputValues1 = new Object[]{myMatrix};
+		//script = "y <- max(x)";
+		script = " frame <- data.frame(myMatrix)\n" +
+				"normandBin <- function(frame)\n" +  
+                               "structure(list(counts = getCounts(frame), breaks = getBreaks(frame)), class = \"normandBin\");\n"+
+				"getNorm <- function(frame){\n" +				
+			         "myRows <- nrow(frame)\n" +
+					 "myColumns <- ncol(frame)\n" +
+					 "for (z in 1:myColumns ){\n" +
+			         "maxr <- max(frame[z])\n" +
+			         "minr <- min(frame[z])\n" +
+			         "for(i in 1:myRows ){\n" +
+			         "frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n" +
+			         " }\n" +
+			         "}\n" +
+					 "return(frame)\n" +
+					 "}\n" +
+		 "getCounts <- function(normFrame){\n" +
+					   "normFrame <- getNorm(frame)\n" +
+						"c <- ncol(normFrame)\n" +
+						"histoInfo <- list()\n" +
+						"answerCounts <- list()\n" +
+						"for( s in 1:c){\n" + 
+					    "histoInfo[[s]] <- hist(normFrame[[s]], plot = FALSE)\n" + 
+						"answerCounts[[s]] <- histoInfo[[s]]$counts\n" +
+						"}\n" +
+						"return(answerCounts)\n" +
+						"}\n" +
+		"getBreaks <- function(frame){\n" +
+		              "normFrame <- getNorm(frame)\n" +
+					  " c <- ncol(normFrame)\n" +
+					  "histoInfo <- list()\n" +
+					  "answerBreaks <- list()\n" +
+					  "for( i in 1:c){\n" +
+					  "histoInfo[[i]] <- hist(normFrame[[i]], plot = FALSE)\n" +
+					  "answerBreaks[[i]] <- histoInfo[[i]]$breaks\n" +
+					  "}\n" +
+					  "return(answerBreaks)\n" +
+					  "}\n" +
+					
+		"finalResult <- normandBin(frame)\n";
 		
-		resultNames = new String[]{"ans[[1]]"};
+		
+//		script = "library(mclust)\n" +
+//		"hello1 <- function(inputColumns, EMModel){\n" +
+//		"Clusters = list()\n" + 
+//		"for(i in 1: length(EMModel)){\n" +
+//		"BIC <- NA\n" +
+//		"try(BIC <- Mclust(inputColumns, 7, EMModel[i]))\n" +
+//		"Results <- NA\n" +
+//		"try( Results <- summary( BIC, inputColumns ) )\n" +
+//		"Clusters [[i]]<- Results$classification\n" + 
+//		"return(Clusters)}}\n" +
+//		"ans <- hello1(inputColumns, EMModel)\n";
+		
+		resultNames = new String[]{"frame", "finalResult"};
 		call(null,inputNames, inputValues1,resultNames,script,plotscript, false,false,false);
 	}	
 }		
