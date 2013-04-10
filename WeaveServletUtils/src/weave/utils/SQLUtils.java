@@ -627,7 +627,7 @@ public class SQLUtils
 		catch (SQLException e)
 		{
 			//e.printStackTrace();
-			throw e;
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
