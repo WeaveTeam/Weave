@@ -1715,7 +1715,7 @@ package weave.compiler
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			
 			// handle custom decompile function
-			if (call.decompile)
+			if (call.decompile != null)
 				return call.decompile(call);
 			
 			// special case for variable lookup
