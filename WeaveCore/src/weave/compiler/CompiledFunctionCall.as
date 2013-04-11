@@ -34,10 +34,8 @@ package weave.compiler
 		/**
 		 * @param compiledMethod
 		 * @param compiledParams
-		 * @param decompile
-		 * @see #decompile
-		 * @see #compiledParams
 		 * @see #compiledMethod
+		 * @see #compiledParams
 		 */
 		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array)
 		{
@@ -95,9 +93,8 @@ package weave.compiler
 		public var evaluatedParams:Array;
 		
 		/**
-		 * A function that generates source code from this CompiledFunctionCall.
-		 * The function signature must be:  function(call:CompiledFunctionCall):String
+		 * An optional set of original tokens to use in place of this CompiledFunctionCall when decompiling.
 		 */		
-		public var decompile:Function;
+		public var originalTokens:Array;
 	}
 }
