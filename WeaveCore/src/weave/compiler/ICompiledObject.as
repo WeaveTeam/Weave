@@ -26,6 +26,5 @@ package weave.compiler
 	 */
 	public interface ICompiledObject
 	{
-		function toString():String;
 	}
 }

@@ -45,13 +45,5 @@ package weave.compiler
 		 * This is the constant that was compiled.
 		 */
 		public var value:* = null;
-		
-		/**
-		 * Returns the name field.
-		 */		
-		public function toString():String
-		{
-			return name;
-		}
 	}
 }

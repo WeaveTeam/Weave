@@ -1408,7 +1408,9 @@ package weave.compiler
 		
 		private function compileFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array, decompile:Function = null):CompiledFunctionCall
 		{
-			return new CompiledFunctionCall(compiledMethod, compiledParams, decompile || decompileObject);
+			var call:CompiledFunctionCall = new CompiledFunctionCall(compiledMethod, compiledParams);
+			call.decompile = decompile;
+			return call;
 		}
 		
 		/**
@@ -1516,7 +1518,7 @@ package weave.compiler
 				// found matching pattern
 				var params:Array = tokens.splice(startIndex + 1, pattern.length - 1);
 				
-				if (stmt == ST_IF)
+				if (stmt == ST_IF) // if (cond) {stmt} else {stmt}
 				{
 					// implemented as "cond ? true_stmt : false_stmt"
 					params.splice(2, 1); // works whether or not else is present
@@ -1707,107 +1709,118 @@ package weave.compiler
 		{
 			// special case for constants
 			if (compiledObject is CompiledConstant)
-				return compiledObject.toString();
+				return (compiledObject as CompiledConstant).name;
 			
+			var i:int;
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			
-//			if (debug)
-//				trace("decompiling: " + ObjectUtil.toString(compiledObject));
-
-			// special case for variable names
+			// handle custom decompile function
+			if (call.decompile)
+				return call.decompile(call);
+			
+			// special case for variable lookup
 			if (!call.compiledParams)
-				return call.compiledMethod.toString();
+				return decompileObject(call.compiledMethod);
 			
-			// decompile the function name
-			var name:String = decompileObject(call.compiledMethod);
-			var constant:CompiledConstant;
-			var i:int;
+			var cMethod:CompiledConstant = call.compiledMethod as CompiledConstant
+			var cParams:Array = call.compiledParams;
 			
-			if (name == ST_DO || name == ST_WHILE)
-			{
-				// implemented as "while (cond && (stmt, true));"
-				var _cond:String = decompileObject(call.compiledParams[0]);
-				var _stmtWrapper:CompiledFunctionCall = call.compiledParams[1];
-				var _stmt:String = decompileObject(_stmtWrapper.compiledParams[0]);
-				if (name == ST_DO)
-					return [ST_DO, _stmt, ST_WHILE, _cond].join(' ') + ';';
-				return [ST_WHILE, _cond, _stmt].join(' ');
-			}
-			
-			// decompile each paramter
+			// decompile each param
 			var params:Array = [];
-			for (i = 0; i < call.compiledParams.length; i++)
-				params[i] = decompileObject(call.compiledParams[i]);
+			for (i = 0; i < cParams.length; i++)
+				params[i] = decompileObject(cParams[i]);
 			
-			// replace infix operator function calls with the preferred infix syntax
-			if (name.indexOf(OPERATOR_ESCAPE) == 0)
+			var op:String;
+			if (cMethod)
 			{
-				var op:String = name.substr(OPERATOR_ESCAPE.length);
-				if ((op == '.' || assignmentOperators.hasOwnProperty(op)) && params.length > 0)
+				op = cMethod.name;
+				if (op.substr(0, OPERATOR_ESCAPE.length) == OPERATOR_ESCAPE)
+					op = op.substr(OPERATOR_ESCAPE.length);
+			}
+			if (cMethod && constants[cMethod.name] == cMethod.value && operators[op] == cMethod.value)
+			{
+				var n:int = cParams.length;
+				if (n > 0 && (ASSIGN_OP_LOOKUP[cMethod.value] || op == '.' || op == '..'))
 				{
 					var result:String = params[0];
-					var n:int = params.length;
-					if (op != '.')
-						n--;
 					for (i = 1; i < n; i++)
 					{
+						// assignment op has last parameter as right-hand-side value
+						if (i == n - 1 && op != '.' && op != '..')
+							break;
 						// if the evaluated param compiles as a variable, use the '.' syntax
-						constant = call.compiledParams[i] as CompiledConstant;
+						var constant:CompiledConstant = cParams[i] as CompiledConstant;
 						var variable:CompiledFunctionCall = null;
 						try {
 							variable = compileToObject(constant.value) as CompiledFunctionCall;
-							if (variable.evaluatedMethod != constant.value)
+							if (variable.compiledParams)
 								variable = null;
 						} catch (e:Error) { }
 						
 						if (variable)
-							result += '.' + variable.evaluatedMethod;
+							result += op + variable.evaluatedMethod;
+						else if (op == '..')
+							result += '.descendants(' + params[i] + ')';
 						else
 							result += '[' + params[i] + ']';
 					}
-					if (op == '.')
+					if (op == '.' || op == '..')
 						return result;
-					
-					if (op.charAt(0) == '#')
+					if (op == '#++' || op == '#--')
 						return result + op.substr(1);
+					if (op == '++' || op == '--')
+						return op + result;
 					if (op == 'delete')
 						return op + ' ' + result;
-					if (op == '--' || op == '++')
-						return op + result;
 					
-					return StringUtil.substitute("({0} {1} {2})", result, op, params[params.length - 1]);
+					return StringUtil.substitute("({0} {1} {2})", result, op, params[n - 1]); // example:  "(a.b = c)"
 				}
+				
 				// variable number of params
 				if (op == '[')
-					return '[' + params.join(', ') + ']'
-				if (op == '(')
-					return '(' + params.join('; ') + ')';
+					return '[' + params.join(', ') + ']';
+				
 				if (op == ';')
 					return '{' + params.join('; ') + '}';
-				if (op == ',' && params.length > 0)
+				
+				if (op == ',' && n > 0) // zero params not allowed for this syntax
 					return '(' + params.join(', ') + ')';
 				
-				if (call.compiledParams.length == 1) // unary op
+				if (op == '(' && n > 0) // zero params not allowed for this syntax
+					return '(' + params.join('; ') + ')';
+				
+				if (op == ST_IF)
 				{
-					var c:String = op.charAt(0);
-					if (operators.hasOwnProperty(c) && c != (params[0] as String).charAt(0))
-						return op + params[0];
-					return op + ' ' + params[0];
+					if (n <= 3)
+					{
+						var format:String = "if ({0}) { {1} }"
+						if (params.length == 3)
+							format += " else { {2} }";
+						return StringUtil.substitute(format, params);
+					}
 				}
-				if (call.compiledParams.length == 2) // infix op
-					return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
-				if (call.compiledParams.length == 3 && op == '?:') // ternary op
-					return StringUtil.substitute("({0} ? {1} : {2})", params);
+				else if (PURE_OP_LOOKUP[cMethod.value])
+				{
+					if (n == 1) // unary op
+					{
+						var param:String = params[0];
+						var c:String = op.charAt(0);
+						if (operators.hasOwnProperty(c) && c != param.charAt(0))
+							return op + param;
+						// need a space between operators with identical characters
+						return op + ' ' + param;
+					}
+					
+					if (n == 2) // infix op
+						return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
+					
+					if (n == 3 && op == '?:') // ternary op
+						return StringUtil.substitute("({0} ? {1} : {2})", params);
+				}
 			}
 			
-			if (name == ST_IF)
-			{
-				if (params.length == 2)
-					return [ST_IF, params[0], params[1]].join(' ');
-				return [ST_IF, params[0], params[1], ST_ELSE, params[2]].join(' ');
-			}
-
-			return name + '(' + params.join(', ') + ')';
+			// normal function syntax
+			return decompileObject(call.compiledMethod) + '(' + params.join(', ') + ')';
 		}
 		
 		/**

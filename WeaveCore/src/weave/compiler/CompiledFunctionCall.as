@@ -39,11 +39,10 @@ package weave.compiler
 		 * @see #compiledParams
 		 * @see #compiledMethod
 		 */
-		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array, decompile:Function)
+		public function CompiledFunctionCall(compiledMethod:ICompiledObject, compiledParams:Array)
 		{
 			this.compiledMethod = compiledMethod;
 			this.compiledParams = compiledParams;
-			this.decompile = decompile;
 			
 			evaluateConstants();
 		}
@@ -100,16 +99,5 @@ package weave.compiler
 		 * The function signature must be:  function(call:CompiledFunctionCall):String
 		 */		
 		public var decompile:Function;
-		
-		/**
-		 * This will call <code>decompile(this)</code> or throw an error if it is null.
-		 */		
-		public function toString():String
-		{
-			if (decompile is Function)
-				return decompile(this);
-			
-			throw new Error("Missing decompile function");
-		}
 	}
 }
