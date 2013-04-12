@@ -1510,8 +1510,8 @@ package weave.compiler
 				}
 				
 				// found matching pattern
+				var originalTokens:Array = tokens.slice(startIndex, startIndex + pattern.length);
 				var params:Array = tokens.splice(startIndex + 1, pattern.length - 1);
-				var originalTokens:Array = [stmt].concat(params);
 				
 				if (stmt == ST_IF) // if (cond) {stmt} else {stmt}
 				{
@@ -1566,6 +1566,11 @@ package weave.compiler
 				{
 					tokens[startIndex] = compileOperator(stmt, params);
 				}
+				else
+				{
+					throw new Error(stmt + " not supported yet");
+				}
+				
 				// save original token list for correct decompiling
 				(tokens[startIndex] as CompiledFunctionCall).originalTokens = originalTokens;
 				
