@@ -164,6 +164,11 @@ package weave.compiler
 		 */
 		public static const OPERATOR_ESCAPE:String = '\\';
 		
+		public static const FUNCTION:String = 'function';
+		public static const FUNCTION_PARAM_NAMES:String = 'names';
+		public static const FUNCTION_PARAM_VALUES:String = 'values';
+		public static const FUNCTION_CODE:String = 'code';
+		
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
 		 */
@@ -393,7 +398,7 @@ package weave.compiler
 					default: throw new Error("Too many constructor parameters (maximum 10)");
 				}
 			};
-			operators['function'] = function(..._):void { };
+			operators[FUNCTION] = function(..._):*{};
 			// property access should not be optimized to constants
 			operators["."] = function(object:*, ...chain):* {
 				for (var i:int = 0; i < chain.length; i++)
@@ -1121,8 +1126,51 @@ package weave.compiler
 				
 				if (leftBracket == '{')
 				{
-					compiledToken = compileTokens(subArray, true);
-					tokens.splice(open, 2, compileOperator(';', [compiledToken]));
+					// It's ok if it creates an extra {} wrapper because optimize() will take care of that.
+					// It's important to remember that the brackets existed for statement processing.
+					tokens.splice(open, 2, compileOperator(';', [compileTokens(subArray, true)]));
+					
+					// compile inline function
+					if (open >= 2 && tokens[open - 2] == FUNCTION)
+					{
+						var call:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
+						if (!call || call.evaluatedMethod != operators[','])
+							throwInvalidSyntax(FUNCTION);
+						
+						// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
+						var variableNames:Array = [];
+						var variableValues:Array = [];
+						for each (token in call.compiledParams)
+						{
+							var variable:CompiledFunctionCall = token as CompiledFunctionCall;
+							if (!variable)
+								throwInvalidSyntax(FUNCTION);
+							
+							if (!variable.compiledParams)
+							{
+								// local variable
+								variableNames.push(variable.evaluatedMethod);
+								variableValues.push(undefined);
+							}
+							else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
+							{
+								// local variable assignment
+								variableNames.push(variable.evaluatedParams[0]);
+								variableValues.push(variable.evaluatedParams[1]);
+							}
+							else
+								throwInvalidSyntax(FUNCTION);
+						}
+						var functionParams:Object = {};
+						functionParams[FUNCTION_PARAM_NAMES] = variableNames;
+						functionParams[FUNCTION_PARAM_VALUES] = variableValues;
+						functionParams[FUNCTION_CODE] = optimize(tokens[open]);
+						call = compileOperator(FUNCTION, [new CompiledConstant(null, functionParams)]);
+						call.originalTokens = tokens.slice(open - 2, open + 1);
+						tokens.splice(open - 2, 3, call);
+						continue;
+					}
+					
 					continue;
 				}
 				
@@ -2067,6 +2115,12 @@ package weave.compiler
 								result = getDefinitionByName(call.evaluatedParams[0]);
 							else // all other single-parameter type casting operations
 								result = method(call.evaluatedParams[0]);
+						}
+						else if (method == operators[FUNCTION])
+						{
+							// inline function
+							var funcParams:Object = call.evaluatedParams[0];
+							result = compileObjectToFunction(funcParams[FUNCTION_CODE], symbolTable, ignoreRuntimeErrors, useThisScope, funcParams[FUNCTION_PARAM_NAMES], funcParams[FUNCTION_PARAM_VALUES]);
 						}
 						else
 						{
