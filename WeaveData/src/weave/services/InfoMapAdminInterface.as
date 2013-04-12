@@ -182,21 +182,21 @@ package weave.services
 //				return query;
 //			}
 			
-			public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String):AsyncToken
+			public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getClustersForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator]);
+				var query:AsyncToken = generateQueryAndRun("getClustersForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator,sources]);
 				return query;
 			}
 			
-			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String):AsyncToken
+			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator]);
+				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator,sources]);
 				return query;
 			}
 			
-			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
+			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords,operator]);
+				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords,operator,sources]);
 				return query;
 			}
 			
@@ -206,15 +206,15 @@ package weave.services
 				return query;
 			}			
 			
-			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String,operator:String):AsyncToken
+			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String,operator:String,sources:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString,operator]);
+				var query:AsyncToken = generateQueryAndRun("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString,operator,sources]);
 				return query;
 			}
 			
-			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int, operator:String):AsyncToken
+			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int, operator:String,sources:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows,operator]);
+				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows,operator,sources]);
 				return query;
 			}
 			
@@ -243,9 +243,9 @@ package weave.services
 			}
 			
 			
-			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,operator:String):AsyncToken
+			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,operator:String,sources:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter,operator]);
+				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter,operator,sources]);
 				return query;
 			}
 			

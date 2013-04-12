@@ -13,6 +13,10 @@
 		<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 		<mx:ComboBox id="operator"/>
 	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Source Type: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+		<mx:ComboBox id="sourceType" change="handleSourceTypeChange()"/>
+	</mx:HBox>
 	<mx:Label text="Set a Date Range" fontWeight="bold"  />
 	<mx:HBox>
 		<mx:VBox>
@@ -103,7 +107,12 @@
 				keyword.text = query.keywords.value;
 				
 				operator.dataProvider = ['OR','AND'];
+				sourceType.dataProvider = ["All","Books"];
 				operator.selectedItem = query.operator.value;
+				if(query.sources.value == "")
+				{
+					sourceType.selectedItem = "All";
+				}
 				linkBindableProperty(query.operator,operator,"selectedItem");
 								
 				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
@@ -123,6 +132,17 @@
 				}
 			}
 			
+			private function handleSourceTypeChange():void
+			{
+				if(sourceType.selectedItem == "ALL")
+				{
+					query.sources.value
+				}
+				else if(sourceType.selectedItem == "Books")
+				{
+					query.sources.value = "Books";
+				}
+			}
 			// we only want to make a query if both dates are set. 
 			private function handleDateChange():void
 			{

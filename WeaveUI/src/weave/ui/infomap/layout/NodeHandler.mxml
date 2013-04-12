@@ -303,6 +303,7 @@
 				//opens the settings panel
 				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
 				nodeBase.addChildAt(_radialMenu,0);
+				_radialMenu.x = (0-_radialMenu.height);
 				
 				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
 				_radialMenu.addMenuItem(closeImg,_closeImgText,close);
@@ -472,11 +473,11 @@
 				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);
 				
 				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
 					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,sources:currentQuery.sources.value});
 				
 			}
 			
@@ -502,7 +503,7 @@
 				/* if the query has changed do nothing */
 				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value)
+					token.endDate != currentQuery.dateFilter.endDate.value || token.sources != currentQuery.sources.value)
 					return;
 				
 				var numOfDocs:Number = event.result as Number;
@@ -537,7 +538,8 @@
 					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000);
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
+					currentQuery.dateFilter,2000);
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 			}
@@ -548,7 +550,7 @@
 				//if the query has changed do nothing
 				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value)
+					token.endDate != currentQuery.dateFilter.endDate.value || token.sources != currentQuery.sources.value)
 					return;
 				
 				var docsArray:Array = event.result as Array;
@@ -739,11 +741,11 @@
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
+					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter);
 				
 				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,operator:currentQuery.operator.value,
-						endDate:currentQuery.dateFilter.endDate.value,forceHide:true,forceShow:false});
+						endDate:currentQuery.dateFilter.endDate.value,forceHide:true,forceShow:false,sources:currentQuery.sources.value});
 				showList();
 				getEntityDistribution();
 				getTopicsClassification();
@@ -764,7 +766,7 @@
 				//if the query has changed do nothing
 				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value)
+					token.endDate != currentQuery.dateFilter.endDate.value || token.sources != currentQuery.sources.value)
 					return;
 				wordCount = event.result as Array;
 				
@@ -872,7 +874,7 @@
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
 				nodeBase.height = nodeBase.keywordTextArea.height + _radialMenu.iconSize;
 				nodeBase.keywordTextArea.y = _radialMenu.iconSize;
-				_radialMenu.y = nodeBase.keywordTextArea.y - _radialMenu.height; 
+				_radialMenu.y = 0- _radialMenu.height; 
 			}
 			
 			override public function validateDisplayList():void
@@ -1031,11 +1033,13 @@
 				
 				
 				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,entities,currentQuery.operator.value,currentQuery.dateFilter,2000);
+															relatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
+															currentQuery.dateFilter,2000);
 				
 				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
 					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
+						sources:currentQuery.sources.value});
 			}
 			
 			
@@ -1047,7 +1051,8 @@
 				//if the query has changed do nothing
 				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
 					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value)
+					token.endDate != currentQuery.dateFilter.endDate.value || 
+					token.sources != currentQuery.sources.value)
 					return;
 				var entities:Array = event.result.entities;
 				var urls:Array = event.result.urls;
@@ -1071,6 +1076,9 @@
 				
 				for(var j:int =0; j<urls.length; j++)
 				{
+					if(urls[j] == null)
+						continue;
+					
 					for(var k:int = 0; k<urls[j].length; k++)
 					{
 						if(_URLToEntitiesHashMap[urls[j][k]] == undefined)
@@ -1599,11 +1607,11 @@
 				if(wordCount.length == 0)
 				{
 					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter);
+						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter);
 					
 					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
 						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,
-							endDate:currentQuery.dateFilter.endDate.value,operator:currentQuery.operator.value});
+							endDate:currentQuery.dateFilter.endDate.value,operator:currentQuery.operator.value,sources:currentQuery.sources.value});
 					
 					return;
 				}
@@ -1783,17 +1791,19 @@
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
 					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),
-						relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000, 3, numOfKeywordsInEachTopic.value);
+						relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,2000, 3, numOfKeywordsInEachTopic.value);
 				}
-				else{
+				else
+				{
 					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),
-						relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,2000, numOfTopics.value, numOfKeywordsInEachTopic.value);
+						relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,2000, numOfTopics.value,
+						numOfKeywordsInEachTopic.value);
 				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
 				
 				addAsyncResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
 					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value});
+						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,sources:currentQuery.sources.value});
 			}
 			
 			private function handleTopicsPropertiesChange():void
@@ -1817,7 +1827,7 @@
 				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
 				var servletParam:Object = new Object();
 				servletParam.method = "getClustersForQueryWithRelatedKeywords";
-				servletParam.params = [currentQuery.keywords.value.split(','),relatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),2000,currentQuery.operator.value];
+				servletParam.params = [currentQuery.keywords.value.split(','),relatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),2000,currentQuery.operator.value,currentQuery.sources.value];
 				clusterCSVDataSource.servletParams.value = servletParam;
 				clusterCSVDataSource.keyColName.value = "document";
 				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
@@ -1933,17 +1943,17 @@
 			
 			//this variable is false when the user loads the map for the first time. 			
 			private var highlightNewDocuments:Boolean = true;
-			private function checkForNewDocuments(event:TimerEvent):void
-			{
-				if(!previousQuery.sources.value == '')
-				{
-					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-				}
-				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
-				wordCount = [];
-				status.text = "Searching...";
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
-			}
+//			private function checkForNewDocuments(event:TimerEvent):void
+//			{
+//				if(!previousQuery.sources.value == '')
+//				{
+//					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+//				}
+//				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
+//				wordCount = [];
+//				status.text = "Searching...";
+//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
+//			}
 			
 			
 			

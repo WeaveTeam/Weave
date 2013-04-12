@@ -1,11 +1,15 @@
 package infomap.admin;
 
+import java.math.BigInteger;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -14,20 +18,17 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.solr.common.SolrInputDocument;
 
+import weave.utils.FileUtils;
+
 import com.google.gson.Gson;
 
 public class OpenLibraryDataSource extends AbstractDataSource 
 {
-	public static void main(String[] args) {
-		OpenLibraryDataSource inst = new OpenLibraryDataSource();
-		
-		inst.requiredQueryTerms = new String[2];
-		
-		inst.requiredQueryTerms[0] = "information";
-		inst.requiredQueryTerms[1] = "visualization";
-		
-		System.out.println(inst.searchForQuery());
-	}
+//	public static void main(String[] args) {
+//		OpenLibraryDataSource inst = new OpenLibraryDataSource();
+//		
+//		FileUtils.copyFileFromURL("http://covers.openlibrary.org/b/olid/OL7440033M-S.jpg?default=false", "C:\\Program Files\\Apache Software Foundation\\Tomcat 7.0\\webapps\\ROOT\\saby.jpg");
+//	}
 	
 	private static String requestURL = "http://openlibrary.org/search.json?";
 	
@@ -68,7 +69,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 				String title = docs[j].title;
 				
 				if(docs[j].author_name != null)
-					title += joinArrayElements(docs[j].author_name, " ");
+					title += " by " + joinArrayElements(docs[j].author_name, " ");
 				
 				d.addField("title", title);
 				
@@ -115,9 +116,31 @@ public class OpenLibraryDataSource extends AbstractDataSource
 						}	
 						
 						
-						d.addField("sourceType", "Books");
+						d.addField("source", "Books");
 					}
+					
+					
 				}
+				
+				String key ="";
+				if(docs[j].key != null)
+				{
+					key = docs[j].key;
+				}else if(docs[j].cover_edition_key !=null)
+				{
+					key = docs[j].cover_edition_key;
+				}
+				else
+				{
+					continue;
+				}
+				
+				d.addField("link", "http://openlibrary.org/works/"+key);
+				
+				String imgName = FileUtils.generateUniqueNameFromURL("http://openlibrary.org/works/"+key) + ".jpg";
+				if(copyImageFromURL("http://covers.openlibrary.org/b/olid/"+key+"-S.jpg?default=false", imgName));
+					d.addField("imgName", imgName);
+				
 				result.add(d);
 			}
 		}
@@ -145,6 +168,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 		
 		try{
 			/* Read and Parse JSON result */
+			query = URLEncoder.encode(query, "UTF-8");
 			String reqURI = requestURL+"&q="+query+"&page="+page;
 			HttpGet httpget = new HttpGet(reqURI);
 			httpget.setHeader("Content-Type", "text/plain; charset=UTF-8");//this is required for special characters.
@@ -179,5 +203,30 @@ public class OpenLibraryDataSource extends AbstractDataSource
 		
 		return result;
 	}
-
+	
+	private Boolean copyImageFromURL(String sourceURL,String imageName)
+	{
+		int index = sourceURL.lastIndexOf('.');
+		
+		String imgExtension = sourceURL.substring(index, sourceURL.length());
+		
+		Properties prop = new Properties();
+		
+		try
+		{
+			prop.load(getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties"));
+		String tomcatPath = prop.getProperty("tomcatPath");
+		
+		String thumbnailPath = prop.getProperty("thumbnailPath");
+		String destinationPath = tomcatPath + thumbnailPath + imageName + imgExtension; 
+		
+		return FileUtils.copyFileFromURL(sourceURL, destinationPath);
+		
+		}catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		
+	}
 }

@@ -147,7 +147,7 @@ public class BaseDataSource extends AbstractDataSource{
 		
 			}
 		}
-		System.out.println("BASE FOUND DOCUMENTS  " + results.size());
+//		System.out.println("BASE FOUND DOCUMENTS  " + results.size());
 		return results.toArray(new SolrInputDocument[results.size()]);
 	}
 	

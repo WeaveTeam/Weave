@@ -843,7 +843,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			
 			private var loader:URLLoader = null;
-			/* private function addRssFeed():void
+			private function addRssFeed():void
 			{
 				var url:String = feedURL.text;
 				url = StringUtil.trim(url);
@@ -890,7 +890,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					sortByTitle();
 				}
 			}
-			*/
+			
 			private function sortByTitle():void
 			{
 				/* var dp:ArrayCollection = grid.dataProvider as ArrayCollection;
@@ -1186,7 +1186,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				</mx:VBox>
 			</mx:Accordion>
 		</mx:VBox>
-		<!--<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
+		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
 		<mx:Label text="Enter RSS Feed: " />
 		<mx:HBox>
 			<mx:Label text="Title"/>
@@ -1209,7 +1209,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:HBox>
 			<mx:TextArea backgroundColor="0xCCCCCC" borderThickness="0" editable="false" width="500" height="100%" fontWeight="bold" text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
 		</mx:VBox>
-		<mx:VBox id="uploadFilesPanel" label="Index Local Files">
+		<!--<mx:VBox id="uploadFilesPanel" label="Index Local Files">
 			<mx:HBox>
 				<mx:Label text="Enter username: "/>
 				<mx:TextInput width="200" id="username" />

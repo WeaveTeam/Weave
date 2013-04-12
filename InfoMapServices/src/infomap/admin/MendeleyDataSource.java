@@ -1,5 +1,6 @@
 package infomap.admin;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -102,7 +103,12 @@ public class MendeleyDataSource extends AbstractDataSource {
 			{
 				//parsing the query
 				String queryString = generateQuery(requiredQueryTerms[i]);
-				
+				try {
+					queryString = URLEncoder.encode(queryString, "UTF-8");
+				} catch (UnsupportedEncodingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				PagedList<Document> documents = service.search(queryString,j,numberOfDocumentsPerRequest);
 				
 				if(documents.size() == 0)

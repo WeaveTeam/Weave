@@ -187,7 +187,7 @@ public class GenerateThumbnailJob implements Job{
 					SolrDocument d = docItr.next();
 					
 					String docURL = (String)d.getFieldValue("link");
-					String imgName = generateUniqueNameFromURL(docURL);
+					String imgName = FileUtils.generateUniqueNameFromURL(docURL);
 					
 					
 					Boolean success = createImageForDocument(docURL, imgName);
@@ -227,7 +227,7 @@ public class GenerateThumbnailJob implements Job{
 					SolrDocument d = docItrForError.next();
 					
 					String docURLForError = (String)d.getFieldValue("link");
-					String imgNameForError = generateUniqueNameFromURL(docURLForError);
+					String imgNameForError = FileUtils.generateUniqueNameFromURL(docURLForError);
 					
 					
 					Boolean successForError = createImageForDocument(docURLForError, imgNameForError);
@@ -442,23 +442,6 @@ public class GenerateThumbnailJob implements Job{
 			pdf.delete();
 		
 		return success;
-	}
-	
-	private String generateUniqueNameFromURL(String url)
-	{
-		//generate unique name from URL
-		String imgName = null;
-		try{
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.reset();
-			byte[] message = md.digest(url.toString().getBytes());
-			BigInteger number = new BigInteger(1, message);
-			imgName = number.toString();
-		}catch(Exception e){
-			System.out.println("Error Generating unique image name");
-			e.printStackTrace();
-		}
-		return imgName;
 	}
 	
 	private ExecutorService executor = Executors.newSingleThreadScheduledExecutor();

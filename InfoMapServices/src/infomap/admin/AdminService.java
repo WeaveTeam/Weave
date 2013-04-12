@@ -629,7 +629,7 @@ public class AdminService extends GenericServlet {
 			q.setRows(1);
 			response = solrInstance.query(q);
 
-			System.out.println("QUERY IS " + q.toString());
+			//System.out.println("QUERY IS " + q.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -681,7 +681,7 @@ public class AdminService extends GenericServlet {
 	}
 	
 	public String[][] getWordCount(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter, String operator) {
+			String[] relatedKeywords, String dateFilter, String operator,String sources) {
 		setSolrServer(solrServerUrl);
 
 		String[][] result = null;
@@ -699,7 +699,13 @@ public class AdminService extends GenericServlet {
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
-
+			
+			if(sources!=null && sources.length()>0)
+			{
+				q.setFilterQueries("source:"+sources);
+			}
+			
+			
 			// set number of rows
 			q.setRows(1);
 
@@ -818,7 +824,7 @@ public class AdminService extends GenericServlet {
 	public TopicClassificationResults classifyDocumentsForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows, int numOfTopics,
-			int numOfKeywordsInEachTopic,String operator) throws NullPointerException {
+			int numOfKeywordsInEachTopic,String operator,String sources) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -840,7 +846,12 @@ public class AdminService extends GenericServlet {
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
-
+			
+			if(sources!=null && sources.length()>0)
+			{
+				q.setFilterQueries("source:"+sources);
+			}
+			
 			// set number of rows
 			q.setRows(rows);
 
@@ -1058,7 +1069,7 @@ public class AdminService extends GenericServlet {
 	
 	public String[][] getClustersForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows,String operator) throws IOException, SolrServerException
+			String dateFilter, int rows,String operator,String sources) throws IOException, SolrServerException
 	{
 		String[][] result = null;
 		
@@ -1074,6 +1085,11 @@ public class AdminService extends GenericServlet {
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
 
+			if(sources!=null && sources.length()>0)
+			{
+				q.setFilterQueries("source:"+sources);
+			}
+			
 			// set number of rows
 			q.setRows(rows);
 
@@ -1139,7 +1155,7 @@ public class AdminService extends GenericServlet {
 	
 	public Object[] getResultsForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows,String operator) throws NullPointerException {
+			String dateFilter, int rows,String operator,String sources) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -1156,7 +1172,12 @@ public class AdminService extends GenericServlet {
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
-
+			
+			if(sources!=null && sources.length()>0)
+			{
+				q.setFilterQueries("source:"+sources);
+			}
+			
 			// set number of rows
 			q.setRows(rows);
 
@@ -1166,7 +1187,7 @@ public class AdminService extends GenericServlet {
 			QueryResponse response = solrInstance.query(q);
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 
-			System.out.println("QUERY IS " + q.toString());
+			//System.out.println("QUERY IS " + q.toString());
 
 			while (iter.hasNext()) {
 				SolrDocument doc = iter.next();
@@ -1176,9 +1197,18 @@ public class AdminService extends GenericServlet {
 				docArray[1] = (String) doc.getFieldValue("title");
 
 				if (doc.getFieldValue("imgName") != null)
-					docArray[2] = serverURL + "thumbnails/"
-							+ (String) doc.getFieldValue("imgName");
-
+				{
+					String imageURL = (String)doc.getFieldValue("imgName");
+					if (imageURL.contains("http"))
+					{
+						docArray[2] = imageURL;
+					}else
+					{
+						docArray[2] = serverURL + "thumbnails/"
+						+ (String) doc.getFieldValue("imgName");
+					}
+				}
+					
 				if (doc.containsKey("date_published"))
 					docArray[3] = doc.getFieldValue("date_published")
 							.toString();
@@ -1320,7 +1350,7 @@ public class AdminService extends GenericServlet {
 			QueryResponse response = solrInstance.query(q);
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 
-			System.out.println("QUERY IS " + q.toString());
+			//System.out.println("QUERY IS " + q.toString());
 
 			while (iter.hasNext()) {
 				SolrDocument doc = iter.next();
@@ -1338,7 +1368,7 @@ public class AdminService extends GenericServlet {
 	}
 
 	public long getNumOfDocumentsForQuery(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter, String operator) {
+			String[] relatedKeywords, String dateFilter, String operator,String sources) {
 		setSolrServer(solrServerUrl);
 
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
@@ -1354,7 +1384,12 @@ public class AdminService extends GenericServlet {
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
-
+			
+			if(sources!=null && sources.length()>0)
+			{
+				q.setFilterQueries("source:"+sources);
+			}
+			
 			q.setRows(1);
 			q.setFields("link");
 
@@ -1368,7 +1403,7 @@ public class AdminService extends GenericServlet {
 
 	public EntityDistributionObject getEntityDistributionForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, String[] entities, int rows, String operator) {
+			String dateFilter, String[] entities, int rows, String operator,String sources) {
 
 		Object[][] urls = new Object[entities.length][];
 
@@ -1390,6 +1425,11 @@ public class AdminService extends GenericServlet {
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
 
+			if(sources!=null && sources.length()>0)
+			{
+				q.setFilterQueries("source:"+sources);
+			}
+			
 			q.setFields("link");
 
 			// Setting up the Group Parameters
@@ -1519,6 +1559,10 @@ public class AdminService extends GenericServlet {
 			bds.relatedQueryTerms = relatedQueryTerms.clone();
 		result = result + bds.getTotalNumberOfQueryResults();
 		
+		OpenLibraryDataSource olds = new OpenLibraryDataSource();
+		olds.requiredQueryTerms = requiredQueryTerms.clone();
+		olds.solrServerURL = solrServerUrl;
+		result = result + olds.getTotalNumberOfQueryResults();
 		return result;
 	}
 	
@@ -1544,10 +1588,15 @@ public class AdminService extends GenericServlet {
 		if(relatedQueryTerms != null)
 			bds.relatedQueryTerms = relatedQueryTerms.clone();
 		bds.solrServerURL = solrServerUrl;
-
+		
+		OpenLibraryDataSource olds = new OpenLibraryDataSource();
+		olds.requiredQueryTerms = requiredQueryTerms.clone();
+		olds.solrServerURL = solrServerUrl;
+		
 		executor.execute(ads);
 		executor.execute(mds);
 		executor.execute(bds);
+		executor.execute(olds);
 		System.out.println("Finished Calling Sources " + timer.get());
 	}
 
@@ -1601,7 +1650,7 @@ public class AdminService extends GenericServlet {
 					+ response.getElapsedTime() + response.getQTime());
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 
-			System.out.println("QUERY IS " + q.toString());
+			//System.out.println("QUERY IS " + q.toString());
 
 			// System.out.println("NUM OF DOCUMENTS IS " +
 			// response.getResults().getNumFound());
