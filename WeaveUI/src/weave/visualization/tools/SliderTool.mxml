@@ -199,11 +199,14 @@
 	{
 		//we'll run through the dimensions to set the defaults
 		//intialize the labels (a list of years concatenated, separated by commas)
-		if (labelsLinkableString.value.length == 0)
+		if (!labelsLinkableString.value)
 		{
-			var labels:Array = getValuesFromCurrentDimensions();
-			if ((labelsLinkableString.value != null) && (labels != null))
-				labelsLinkableString.value = labels.join(',');
+			getValuesFromCurrentDimensions();
+			if (!labelsLinkableString.value)
+			{
+				callLater(initializeLabels);
+				return;
+			}
 		}
 		updateLabelProperties();
 		linkBindableProperty(currentSliderPosition, dimensionSlider, 'value');
@@ -228,7 +231,7 @@
 	 *     the current implementation links the timeslider to all 
 	 *     the tools
 	 * **/
-	protected function getValuesFromCurrentDimensions():Array
+	public function getValuesFromCurrentDimensions():void
 	{
 		//loop through the columns, getting the possible time values for each
 		//step one - just get first one
@@ -249,14 +252,7 @@
 				countOfYearsFound = years.length;
 			}
 		}
-
-		return newLabels;
-	}
-	
-	
-	private function onUserControlsAddedToStage(event:Event):void
-	{
-		getValuesFromCurrentDimensions();
+		labelsLinkableString.value = newLabels.join(',');
 	}
 	
 	/**
@@ -409,8 +405,7 @@
 	</mx:HBox>
 	<ui:ControlPanel>
 		<mx:VBox width="100%" id="timesliderControls"
-				label="{lang('Slider controls')}"
-				addedToStage="onUserControlsAddedToStage(event)">
+				label="{lang('Slider controls')}">
 			<ui:Indent label="{lang('Time slider labels:')}">
 				<mx:TextInput id="labelsInput" 
 							  width="90%"
