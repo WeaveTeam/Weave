@@ -81,10 +81,10 @@ package weave.compiler
 		
 		private static const _statementsWithoutParams:Array = [
 			ST_ELSE, ST_DO, ST_BREAK, ST_CONTINUE, ST_CASE, ST_DEFAULT,
-			ST_TRY, ST_FINALLY, ST_VAR, ST_RETURN, ST_THROW
+			ST_TRY, ST_FINALLY, ST_RETURN, ST_THROW, ST_VAR
 		];
 		private static const _statementsWithParams:Array = [
-			ST_IF, ST_FOR, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
+			ST_IF, ST_FOR, ST_EACH, ST_FOR_EACH, ST_WHILE, ST_SWITCH, ST_CATCH
 		];
 		
 		/**
@@ -132,6 +132,12 @@ package weave.compiler
 		private static const PN_EXPR:String = 'EXPR';
 		
 		/**
+		 * may only contain one expression, optionally enclosed in (), no statements.
+		 * Used in conjunction with _validStatementPatterns.
+		 */
+		private static const PN_VARS:String = 'VARS';
+		
+		/**
 		 * longer patterns appear earlier so they will match before shorter patterns when checked in order
 		 */
 		private static const _validStatementPatterns:Array = [
@@ -148,7 +154,8 @@ package weave.compiler
 			[ST_CONTINUE],
 			[ST_RETURN, PN_EXPR],
 			[ST_RETURN],
-			[ST_THROW, PN_EXPR]
+			[ST_THROW, PN_EXPR],
+			[ST_VAR, PN_VARS]
 		];
 
 		/**
@@ -184,11 +191,6 @@ package weave.compiler
 		private const ASSIGN_OP_LOOKUP:Object = new Dictionary(); // Function -> true
 		private const PURE_OP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
 		private const MAX_OPERATOR_LENGTH:int = 4;
-		
-		/**
-		 * While this is set to true, compiler optimizations are enabled.
-		 */		
-		public var enableOptimizations:Boolean = true;
 		
 		/**
 		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
@@ -239,7 +241,7 @@ package weave.compiler
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
-			var compiledObject:ICompiledObject = optimize(compileTokens(tokens, true));
+			var compiledObject:ICompiledObject = finalize(compileTokens(tokens, true));
 			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope, paramNames, paramDefaults);
 		}
 		
@@ -251,7 +253,7 @@ package weave.compiler
 		 */
 		public function compileToObject(expression:String):ICompiledObject
 		{
-			return optimize(compileTokens(getTokens(expression), true));
+			return finalize(compileTokens(getTokens(expression), true));
 		}
 		
 		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
@@ -420,6 +422,7 @@ package weave.compiler
 					a.push(k);
 				return a;
 			};
+			operators[ST_VAR] = function(..._):*{};
 			// loop statements
 			operators[ST_DO] = function(x:*, y:*):* { return x && y; };
 			operators[ST_WHILE] = function(x:*, y:*):* { return x && y; };
@@ -1126,7 +1129,7 @@ package weave.compiler
 				
 				if (leftBracket == '{')
 				{
-					// It's ok if it creates an extra {} wrapper because optimize() will take care of that.
+					// It's ok if it creates an extra {} wrapper because finalize() will take care of that.
 					// It's important to remember that the brackets existed for statement processing.
 					tokens.splice(open, 2, compileOperator(';', [compileTokens(subArray, true)]));
 					
@@ -1164,10 +1167,9 @@ package weave.compiler
 						var functionParams:Object = {};
 						functionParams[FUNCTION_PARAM_NAMES] = variableNames;
 						functionParams[FUNCTION_PARAM_VALUES] = variableValues;
-						functionParams[FUNCTION_CODE] = optimize(tokens[open]);
+						functionParams[FUNCTION_CODE] = finalize(tokens[open]);
 						call = compileOperator(FUNCTION, [new CompiledConstant(null, functionParams)]);
-						call.originalTokens = tokens.slice(open - 2, open + 1);
-						tokens.splice(open - 2, 3, call);
+						call.originalTokens = tokens.splice(open - 2, 3, call);
 						continue;
 					}
 					
@@ -1222,21 +1224,12 @@ package weave.compiler
 				
 				// '{' or '(' group that does not correspond to a function call
 				
-				if (leftBracket == '(' && compiledParams.length == 0)
+				if (leftBracket == '(' && compiledParams.length == 0 && token != FUNCTION)
 					throw new Error("Missing expression inside parentheses");
 				
-				if (enableOptimizations && compiledParams.length == 1 && separator == ',')
-				{
-					// simplify to single expression
-					tokens.splice(open, 2, compiledParams[0]);
-				}
-				else
-				{
-					// cannot be simplified at the moment -- multiple commands or statement params
-					if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
-						separator = '('; // statement params
-					tokens.splice(open, 2, compileOperator(separator, compiledParams));
-				}
+				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
+					separator = '('; // statement params
+				tokens.splice(open, 2, compileOperator(separator, compiledParams));
 			}
 		}
 		
@@ -1285,7 +1278,7 @@ package weave.compiler
 		private function compileVariable(variableName:String):Object
 		{
 			// do not treat statement keywords as variable names
-			if (statements.hasOwnProperty(variableName))
+			if (statements.hasOwnProperty(variableName) || operators.hasOwnProperty(variableName))
 				return variableName;
 			return new CompiledFunctionCall(new CompiledConstant(variableName, variableName), null); // params are null as a special case
 		}
@@ -1517,6 +1510,8 @@ package weave.compiler
 				return;
 			}
 			
+			var varNames:Array;
+			
 			// find a matching statement pattern
 			nextPattern: for each (var pattern:Array in _validStatementPatterns)
 			{
@@ -1555,13 +1550,69 @@ package weave.compiler
 						if (!call || call.evaluatedMethod != operators[';'])
 							throwInvalidSyntax(stmt);
 					}
+					
+					if (type == PN_VARS)
+					{
+						// must be function call
+						if (tokenIsStatement(token) || !call)
+							throwInvalidSyntax(stmt);
+						
+						// must be local variable/assignment or list of local variables/assignments
+						
+						// if there is only a single variable, wrap it in an operator ',' call
+						if (!call.compiledParams || call.evaluatedMethod == operators['='])
+							tokens[startIndex + i] = token = call = compileOperator(',', [call]);
+						
+						// special case for "x = 3;" which becomes {x = 3}
+						if (call.evaluatedMethod == operators[';'] && call.compiledParams.length == 1)
+						{
+							call.compiledMethod = new CompiledConstant(',', operators[',']);
+							call.evaluateConstants();
+						}
+							
+						if (call.evaluatedMethod != operators[','] || call.compiledParams.length == 0)
+							throwInvalidSyntax(stmt);
+						
+						varNames = [];
+						for (var i:int = 0; i < call.compiledParams.length; i++)
+						{
+							var variable:CompiledFunctionCall = call.compiledParams[i] as CompiledFunctionCall;
+							if (!variable)
+								throwInvalidSyntax(stmt);
+							
+							if (!variable.compiledParams) // local initialization
+							{
+								// variable initialization only -- remove from ',' params
+								call.compiledParams.splice(i--, 1);
+								varNames.push(variable.evaluatedMethod);
+							}
+							else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2) // local assignment
+							{
+								varNames.push(variable.evaluatedParams[0]);
+							}
+							else
+								throwInvalidSyntax(stmt);
+						}
+					}
 				}
 				
 				// found matching pattern
 				var originalTokens:Array = tokens.slice(startIndex, startIndex + pattern.length);
 				var params:Array = tokens.splice(startIndex + 1, pattern.length - 1);
 				
-				if (stmt == ST_IF) // if (cond) {stmt} else {stmt}
+				if (stmt == ST_VAR)
+				{
+					token = compileOperator(ST_VAR, [new CompiledConstant(null, varNames)]);
+					call = params[0];
+					if (call.compiledParams.length > 0)
+					{
+						call.compiledParams.unshift(token);
+						call.evaluateConstants();
+						token = call;
+					}
+					tokens[startIndex] = token;
+				}
+				else if (stmt == ST_IF) // if (cond) {stmt} else {stmt}
 				{
 					// implemented as "cond ? true_stmt : false_stmt"
 					params.splice(2, 1); // works whether or not else is present
@@ -1616,7 +1667,7 @@ package weave.compiler
 				}
 				else
 				{
-					throw new Error(stmt + " not supported yet");
+					throw new Error(stmt + " not supported");
 				}
 				
 				// save original token list for correct decompiling
@@ -1683,21 +1734,70 @@ package weave.compiler
 			return (JUMP_LOOKUP[method] || LOOP_LOOKUP[method])
 		}
 		
-		private function optimize(compiledObject:ICompiledObject):ICompiledObject
+		/**
+		 * Call this to move all var declarations at the beginning of the code and perform optimizations on the compiled objects.
+		 * @param compiledObject An ICompiledObject to finalize.
+		 * @return A finialized/optimized version of compiledObject.
+		 */
+		private function finalize(compiledObject:ICompiledObject):ICompiledObject
+		{
+			var varLookup:Object = {};
+			
+			compiledObject = _finalize(compiledObject, varLookup);
+			
+			var names:Array = [];
+			for (var name:String in varLookup)
+				names.push(name);
+			
+			if (names.length > 0)
+			{
+				// there is at least one var declaration, so we need to include it at the beginning.
+				var varDeclarations:CompiledFunctionCall = compileOperator(ST_VAR, [new CompiledConstant(null, names)]);
+				var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall
+				if (call && call.evaluatedMethod == operators[';'])
+				{
+					call.compiledParams.unshift(varDeclarations);
+					call.evaluateConstants();
+				}
+				else
+					compiledObject = compileOperator(';', [varDeclarations, compiledObject]);
+			}
+			return compiledObject;
+		}
+		/**
+		 * @private helper function
+		 */
+		private function _finalize(compiledObject:ICompiledObject, varLookup:Object):ICompiledObject
 		{
 			if (compiledObject is CompiledConstant)
 				return compiledObject;
 			
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
-			
-			call.compiledMethod = optimize(call.compiledMethod);
+			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
+			if (!call.compiledMethod)
+				throw new Error("Misplaced variable declaration");
 			var params:Array = call.compiledParams;
 			if (params)
+			{
 				for (var i:int = 0; i < params.length; i++)
-					params[i] = optimize(params[i]);
+				{
+					params[i] = _finalize(params[i], varLookup);
+					if (params[i] == null) // variable declaration eliminated?
+						params.splice(i--, 1);
+				}
+			}
 			call.evaluateConstants();
 			
 			var method:Object = call.evaluatedMethod;
+			
+			// remove var declarations from their current locations
+			if (method == operators[ST_VAR])
+			{
+				for each (var name:String in call.evaluatedParams[0])
+					varLookup[name] = true;
+				return null;
+			}
+			
 			if (method == operators[';'] || method == operators[','] || method == operators['('])
 			{
 				if (params.length == 0)
@@ -1710,7 +1810,7 @@ package weave.compiler
 				{
 					if (debug)
 						trace('optimized unnecessary wrapper function call:',decompileObject(compiledObject));
-					return optimize(params[0]);
+					return _finalize(params[0], varLookup);
 				}
 			}
 			
@@ -1864,6 +1964,11 @@ package weave.compiler
 					if (n == 3 && op == '?:') // ternary op
 						return StringUtil.substitute("({0} ? {1} : {2})", params);
 				}
+				
+				if (op == ST_VAR)
+				{
+					return ST_VAR + ' ' + ((cParams[0] as CompiledConstant).value as Array).join(', ');
+				}
 			}
 			
 			// normal function syntax
@@ -1907,16 +2012,20 @@ package weave.compiler
 
 			const builtInSymbolTable:Object = {};
 			builtInSymbolTable['eval'] = undefined;
+			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
-			const allSymbolTables:Array = [
-				builtInSymbolTable,
-				null/*localSymbolTable*/,
-				symbolTable,
-				null/*this*/,
-				constants
-			];
-			const LOCAL_SYMBOL_TABLE_INDEX:int = 1;
-			const THIS_SYMBOL_TABLE_INDEX:int = 3;
+			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
+			const LOCAL_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1; // placeholder
+			
+			// add custom symbol table(s)
+			if (symbolTable is Array)
+				for each (var _symbolTable:Object in symbolTable)
+					allSymbolTables.push(_symbolTable);
+			else
+				allSymbolTables.push(symbolTable);
+			
+			const THIS_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1; // placeholder
+			allSymbolTables.push(constants); // constants last
 			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
@@ -2085,12 +2194,16 @@ package weave.compiler
 							if (builtInSymbolTable.hasOwnProperty(symbolName))
 								throw new Error("Cannot assign built-in symbol: " + symbolName);
 							
+							// find the most local symbol table that has the variable
+							for (i = LOCAL_SYMBOL_TABLE_INDEX; i <= THIS_SYMBOL_TABLE_INDEX; i++)
+								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
+									break;
+							// if no symbol table has the variable, create a new local variable
+							if (i > THIS_SYMBOL_TABLE_INDEX)
+								i = LOCAL_SYMBOL_TABLE_INDEX;
+							
 							// assignment operator expects parameters like (host, ...chain, value)
-							// if there is no matching local variable and 'this' has a matching one, assign the property of 'this'
-							if (useThisScope && this && this.hasOwnProperty(symbolName) && !localSymbolTable.hasOwnProperty(symbolName))
-								result = method(this, symbolName, call.evaluatedParams[1]);
-							else // otherwise, assign local variable
-								result = method(localSymbolTable, symbolName, call.evaluatedParams[1]);
+							result = method(allSymbolTables[i], symbolName, call.evaluatedParams[1]);
 						}
 						else if (method is Class)
 						{
@@ -2116,11 +2229,30 @@ package weave.compiler
 							else // all other single-parameter type casting operations
 								result = method(call.evaluatedParams[0]);
 						}
-						else if (method == operators[FUNCTION])
+						else if (method == operators[ST_VAR]) // variable initialization
 						{
-							// inline function
+							for each (result in call.evaluatedParams[0])
+								if (!localSymbolTable.hasOwnProperty(result))
+									localSymbolTable[result] = undefined;
+							result = undefined;
+						}
+						else if (method == operators[FUNCTION]) // inline function definition
+						{
+							// x = 'x'; function(){ x = 3; return x; }() == x
+							
+							var _symbolTables:Array = [localSymbolTable].concat(symbolTable); // works whether symbolTable is an Array or Object
+							if (useThisScope)
+								_symbolTables.push(this);
+							
 							var funcParams:Object = call.evaluatedParams[0];
-							result = compileObjectToFunction(funcParams[FUNCTION_CODE], symbolTable, ignoreRuntimeErrors, useThisScope, funcParams[FUNCTION_PARAM_NAMES], funcParams[FUNCTION_PARAM_VALUES]);
+							result = compileObjectToFunction(
+								funcParams[FUNCTION_CODE],
+								_symbolTables,
+								ignoreRuntimeErrors,
+								useThisScope,
+								funcParams[FUNCTION_PARAM_NAMES],
+								funcParams[FUNCTION_PARAM_VALUES]
+							);
 						}
 						else
 						{
@@ -2233,7 +2365,8 @@ package weave.compiler
 				"for (i = 0; i < 10; i++) { if (i == 3) continue; trace(i); if (i == 5) break; } trace('done');",
 				"i = 0; do { if (i == 3) continue; trace(i); if (i == 5) break; } while (i >= 0 && ++i < 10) trace('done');",
 				"i = -1; while (++i < 10) { if (i == 3) continue; trace(i); if (i == 5) break; } trace('done');",
-				"a = []; o = Object('a',1,'b',2,'c',3,'d',4,'e',5); for (k in o) { a.push(`{k} = {o[k]}`); o['?'+k]=k+'!'; delete o[k]; } for each (p in o) a.push(p); return [a,o];"
+				"a = []; o = Object('a',1,'b',2,'c',3,'d',4,'e',5); for (k in o) { a.push(`{k} = {o[k]}`); o['?'+k]=k+'!'; delete o[k]; } for each (p in o) a.push(p); return [a,o];",
+				"x = 3; var x = 4; x"
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
@@ -2261,11 +2394,9 @@ package weave.compiler
 				var recompiled:String = compiler.decompileObject(compiler.compileTokens(tokens2, true));
 				trace("recompiled:", recompiled);
 
-				compiler.enableOptimizations = true;
 				var tokens3:Array = compiler.getTokens(recompiled);
-				var optimized:String = compiler.decompileObject(compiler.compileTokens(tokens3, true));
-				trace(" optimized:", optimized);
-				compiler.enableOptimizations = false;
+				var decompiled2:String = compiler.decompileObject(compiler.compileTokens(tokens3, true));
+				trace("decompiled(2):", decompiled2);
 				
 				var f:Function = compiler.compileToFunction(eq, vars, false);
 				for each (var value:* in values)
