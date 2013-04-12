@@ -459,6 +459,18 @@ package weave.compiler
 		}
 		
 		/**
+		 * This uses AsyncSort.sortImmediately() to sort an Array (or Vector) in place.
+		 * @param array An Array (or Vector) to sort.
+		 * @param compare A function that accepts two items and returns -1, 0, or 1.
+		 * @see weave.utils.AsyncSort#sortImmediately()
+		 * @see Array#sort()
+		 */		
+		public static function sort(array:*, compare:Function = null):void
+		{
+			AsyncSort.sortImmediately(array, compare);
+		}
+		
+		/**
 		 * This function compares each of the elements in two arrays in order, supporting nested Arrays.
 		 * @param a The first Array for comparison
 		 * @param b The second Array for comparison

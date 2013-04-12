@@ -285,7 +285,7 @@ package weave.core
 				else
 					result = evalExpression.apply(null, arguments);
 			}
-			catch (e:Error)
+			catch (e:*)
 			{
 				reportError(e);
 			}
@@ -317,7 +317,7 @@ package weave.core
 						ExternalInterface.marshallExceptions = true;
 						ExternalInterface.call(callback);
 					}
-					catch (e:Error)
+					catch (e:*)
 					{
 						reportError(e);
 					}
@@ -346,7 +346,7 @@ package weave.core
 					else
 						return func();
 				}
-				catch (e:Error)
+				catch (e:*)
 				{
 					reportError(e);
 				}

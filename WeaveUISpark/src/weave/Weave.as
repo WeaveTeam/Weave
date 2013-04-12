@@ -385,6 +385,9 @@ package weave
 			
 			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
+			
+			if (WeaveAPI.externalInterfaceInitialized)
+				properties.runStartupJavaScript();
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";

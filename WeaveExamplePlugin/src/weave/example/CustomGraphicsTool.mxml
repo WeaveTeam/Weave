@@ -40,10 +40,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.PlotterUtils;
 			
 			public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
-			public const beginScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true));
-			public const iterateScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true, ['key', 'index']));
-			public const endScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true));
-			public const locals:Object = {};
+			public const drawScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true, ['keys']));
+			public const locals:Object = {}; // for use inside scripts
 			
 			public const dataBounds:Bounds2D = new Bounds2D();
 			public const screenBounds:Bounds2D = new Bounds2D();
@@ -53,9 +51,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function get bitmapData():BitmapData { return bitmap.bitmapData; }
 			public const bitmapText:BitmapText = new BitmapText();
 			
-			override protected function createChildren():void{
+			override protected function createChildren():void
+			{
 				super.createChildren();
 				canvas.rawChildren.addChild(bitmap);
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem("Edit session state", toggleControlPanel);
 			}
 
 			public function getVar(name:String):ILinkableObject
@@ -68,27 +69,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private var _keys:Array;
 			
-			override protected function childrenCreated():void{
+			private const _prevSize:Point = new Point();
+			
+			override protected function childrenCreated():void
+			{
 				super.childrenCreated();
 				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 			}
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList.apply(this,arguments);
+				
+				var varsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, vars);
+				var scriptChanged:Boolean = detectLinkableObjectChange(updateDisplayList, drawScript)
+				if (!scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
+					return;
+				
+				_prevSize.x = unscaledWidth;
+				_prevSize.y = unscaledHeight;
+				
 				try
 				{
 					if (!PlotterUtils.setBitmapDataSize(bitmap, unscaledWidth, unscaledHeight))
 						PlotterUtils.clearBitmapData(bitmap);
 					
-					if (detectLinkableObjectChange(updateDisplayList, vars))
+					if (varsChanged)
 						_keys = ColumnUtils.getAllKeys(vars.getObjects(IKeySet));
 					
-					beginScript.apply(this);
-					for (var i:int = 0; i < _keys.length; i++)
-					{
-						iterateScript.apply(this, [_keys[i], i]);
-					}
-					endScript.apply(this);
+					drawScript.apply(this, [_keys]);
 				}
 				catch (e:Error)
 				{
