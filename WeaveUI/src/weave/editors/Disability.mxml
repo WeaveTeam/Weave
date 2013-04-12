@@ -46,9 +46,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
 			import disabilityDictionary.DisabilityMessageProperties;
 			import disabilityDictionary.DisabilityObject;
-			
 			import disabilityPack.LineChartDecisionTree;
-			
+			import disabilityPack.SegmentValue;
 			import mx.accessibility.CheckBoxAccImpl;
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
@@ -59,10 +58,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
-			import mx.rpc.AsyncToken;
-			import mx.rpc.events.FaultEvent;
-			import mx.rpc.events.ResultEvent;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
@@ -78,10 +73,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncInvocation;
-			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveRServlet;
-			import weave.services.beans.RResult;
 			import weave.ui.ControlPanel;
 			import weave.ui.DisabilityOptions;
 			import weave.ui.DraggablePanel;
@@ -89,79 +80,54 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
-					
 			// creationComplete="automaticToolDescTextBoxInitialize(event);"
-			
-			[Bindable] private var _panel:DraggablePanel = null;			
-			
+			[Bindable] private var _panel:DraggablePanel = null;	
 			public var vizEntities:Array = WeaveAPI.globalHashMap.getObjects(LineChartTool);//collect all the visualization tools
-			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);		
-			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();			
-			public var variables:LinkableHashMap;			
-			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);		
+			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);	
+			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();	
+			public var variables:LinkableHashMap;	
+			
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
 			public var joinKeysRArray:Array = new Array();
 			public var joinColsRArray:Array = new Array();
 			public var columnNames:Array = new Array();
-			public var fTestValues:Array = new Array();
+			public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
 			private var finalRObject:Array;
-			
-			/*
-			private var RdecisionScript:String = "corr <- cor(dataX, dataY)\n" +
-												 "ftest <- var.test(dataX, dataY, conf.level=0.05)\n"+											
-												 "outlier_detection <- outliers::outlier(dataY)\n"+
-												 "fit <- lm(dataY~dataX)\n"+
-												 "intercept <- coefficients(fit)[1]\n"+
-												 "slope <- coefficients(fit)[2]\n"+
-												 "rSquared <- summary(fit)$r.squared\n";
-			*/
-			private var RdecisionScript:String = "corr <- cor(dataX, dataY)\n" +											
-												"outlier_detection <- outliers::outlier(dataY)\n"+
-												"fit <- lm(dataY~dataX)\n"+
-												"intercept <- coefficients(fit)[1]\n"+
-												"slope <- coefficients(fit)[2]\n"+
-												"rSquared <- summary(fit)$r.squared\n"+
-												"grubbs <- outliers::grubbs.test(dataY, type = 10)\n";
-			
-			private var FdecisionScript:String ="ftest <- var.test(dataX1, dataY1, conf.level=0.05)\n";											
-			
+			private var resultSegmentation:Array = new Array();
 			private var decisionCount:int = 0;
 			private var fDecisionCount:int = 0;
-			private var firstSegLength:int = 0;
-			
+			public static var firstSegLength:int = 0;
+			private var fTestValues:Array = new Array();
+			private var initialSegment:SegmentValue = new SegmentValue();
+			public var splittedSegments:Array = new Array();
+			public var segmentsLeftToSplit:int = 0;
+			public var initSegmentIndices:Array = new Array();
 			public function set target(panel:DraggablePanel):void
 			{
 				if (_panel)
 					throw new Error("target should not be set more than once");
-				
 				_panel = panel;
 			}
-			
 			override protected function childrenCreated():void
 			{
-				super.childrenCreated();		
+				super.childrenCreated();	
 			}
-			
 			public function getSystemGeneratedText():void
 			{
 			}
-			
 			private function handleCreationComplete(event:Event) : void
 			{
 				variables = lineChartPlotter.columns;
 				//linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 				checkingPlotterObjects();
 				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
-				
 				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
 				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
-				
 				if( HashDisabilityText == null)
 					reportError("Error Creating request object from Disability Options");
 				else
 					linkBindableProperty(HashDisabilityText, event.target, "text");	
 			}
-			
 			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
 			{
 				automaticToolDescTextBox.text = "after button clicked";
@@ -170,13 +136,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var rResult:Array;
 				vizType = "lineChart";	
 			}
-			
 			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
 			public function checkingPlotterObjects():void
 			{	
 				if(WeaveAPI.SessionManager.linkableObjectIsBusy(variables)) return;
+				splittedSegments= new Array();
+				segmentsLeftToSplit = 0;
 				columnPreprocessing();
-			}		
+			}	
 			//getting the columns ready for R
 			protected function columnPreprocessing():void
 			{
@@ -189,21 +156,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for(var i:int =0 ; i < colObjects.length; i++)
 				{
 					var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
-					var dataType:String = ColumnUtils.getDataType(col);			
+					var dataType:String = ColumnUtils.getDataType(col);	
 					if (dataType == "number")
 					{
 						numericCols.push(col);
 						columnNames.push(ColumnUtils.getTitle(col));
 					}
-				}				
+				}	
 				//joining columns returns columns only complete records (no incomplete records)
-				var joinedColumns:Array = joinColumns(numericCols);				
+				var joinedColumns:Array = joinColumns(numericCols);	
 				joinKeysRArray = joinedColumns[0];
-				joinColsRArray = joinedColumns[1];				
-				//todo: getting axis, title, color, scale, etc
-				sendColumnsToR();	
+				joinColsRArray = joinedColumns[1];	
+				//todo: getting axis, title, color, scale, etc	
+				StartSegmentation();
 			}
-			
 			private function joinColumns(columns:Array):Array
 			{
 				var selection:KeySet = Weave.defaultSelectionKeySet;
@@ -213,395 +179,186 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
 				return [result.shift(), result];
 			}
-			
-			private var inputValues:Array = new Array();
-			
-			protected function sendColumnsToR():void
+			private function StartSegmentation():void
 			{
-				//send the columns and variables returned from getInfoForR to R using this function			
-				var computeScript:String = "mySlope <- y2 -y1";		
-				//var inputValues:Array = new Array(); //inputValues is a matrix of all of the columns that are to be sent to R
-				var tempArray:Array = new Array();	
-				var outputNames:Array = new Array();
-				var inputName:Array = new Array();
-				var query:AsyncToken;
-				var dataX:Array = new Array();
-				
+				var firstSegment:Array = new Array();
+				trace("start");
 				for (var i:int = 0; i<joinColsRArray.length; i++)
 				{
-					inputValues.push(joinColsRArray[i][0].valueOf());
+					firstSegment.push(joinColsRArray[i][0].valueOf());
+					
 					//reportError(joinColsRArray);
 				}
-				
-				firstSegLength = inputValues.length;
-				/*//inputValues.push(100);
-				inputValues.push(16.2);
-				x
-				
-				
-				inputValues.push(16.2);
-				*/
-				//trace("INPUT VALUES = " + inputValues);
-				lineDecisionTree.setSegmentLength(inputValues.length);
-				lineDecisionTree.getJoinKeysArray(joinKeysRArray);
-				
-				
-				for(var index:int = 0; index < inputValues.length ; index++)
+				if(firstSegment.length > 0)
 				{
-					dataX.push(index);
+					initialSegment = new SegmentValue();
+					initialSegment.segmentIndices = new Array(0, firstSegment.length);
+					initialSegment.setSegment(firstSegment);
+					initialSegment.mDisability = this;
+					initSegmentIndices = initialSegment.segmentIndices;
+					firstSegLength = firstSegment.length;
+					initialSegment.getValues();
 				}
-				query = Rservice.runScript(null,["dataX", "dataY"], [dataX, inputValues], ["corr", "outlier_detection", "intercept", "slope", "rSquared", "grubbs"], RdecisionScript, "", false, true, false);
-				
-				DelayedAsyncResponder.addResponder(query, handleRunScriptDecision, handleRunScriptFault, null);
-				decisionCount++;
-				//split(inputValues);
-				
-				//inputValues = joinColsRArray; //use this
-				outputNames = ["mySlope"];	
-				inputName = ["y1", "y2"]; // //default name to be used in R	
-				query = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray); 
-				
-				
-				var dataY1:Array = new Array();
-				var dataY2:Array = new Array();
-				var dataX1:Array = new Array();
-				var dataX2:Array = new Array();
-				for(var j:int=2; j<inputValues.length - 1; j++)
-				{
-					dataX1 = new Array();
-					dataX2 = new Array();
-					dataY1 = (inputValues.slice(0,j));
-					
-					//trace(dataY1.length);
-					for(var k:int = 0; k < dataY1.length ; k++)
-					{
-						dataX1.push(k);
-					}
-					
-					k= 0;
-					dataY2 = (inputValues.slice(j, inputValues.length));
-					for(k = 0; k < dataY2.length ; k++)
-					{
-						dataX2.push(k);
-					}
-					
-					//trace("DATAY1    " +dataY1);
-					//trace("DATAY2    " +dataY2);
-					
-					outputNames = ["ftest"];
-					query = Rservice.runScript(null,["dataX1", "dataY1"], [dataX1, dataY1], outputNames, FdecisionScript, "", false, false, false);
-					DelayedAsyncResponder.addResponder(query, handleFtestScriptDecision, handleRunScriptFault, null);
-					
-					query = Rservice.runScript(null,["dataX1", "dataY1"], [dataX2, dataY2], outputNames, FdecisionScript, "", false, false, false);
-					DelayedAsyncResponder.addResponder(query, handleFtestScriptDecision, handleRunScriptFault, null);
-					fDecisionCount+=2;
-				}
-				
 			}
-			
-			private var corr:Number = new Number();
-			private var ftest:Array = new Array();
-			private var outlier_detection:Number;
-			private var intercept:Number = NaN;
-			private var slope:Number = NaN;
-			private var rSquared:Number = NaN;
-			private var grubbs:Array = new Array();
-			
-			
-			private var resultSegmentation:Array = new Array();
-			
-			public function handleFtestScriptDecision(event:ResultEvent, token:Object):void
-			{
-				var Robj:Array = event.result as Array;
-				////trace(Robj);
-				var RresultArray:Array = new Array();
-				
-				//collecting Objects of type RResult(Should Match result object from Java side)
-				for(var i:int = 0; i<Robj.length; i++)
-				{
-					var rResult:RResult = new RResult(Robj[i]);
-					RresultArray.push(rResult);				
-				}
-				
-				ftest = (RresultArray[0] as RResult).value as Array;
-				fTestValues.push(ftest[0]);
-				fDecisionCount--;
-				
-				if(fDecisionCount == 0 && decisionCount == 0)
-				{
-					//should split()
-					resultSegmentation = split(inputValues);
-					trace(resultSegmentation);
-					
-					trace(inputValues[0] + "   " + inputValues[1]);
-					trace(inputValues[1] + "   " + inputValues[2]+ "   "+inputValues[3]);
-					processingRResult(finalRObject)
-					
-				}			
-				
-			}
-			public var outlierValue:Boolean = new Boolean();
-			
-			public function handleRunScriptDecision(event:ResultEvent, token:Object):void
-			{
-				// get needed decision values, execut split
-				
-				// split(inputValues)
-				////trace("degerler geldi");
-				var Robj:Array = event.result as Array;
-				////trace(Robj);
-				var RresultArray:Array = new Array();
-				
-				//collecting Objects of type RResult(Should Match result object from Java side)
-				for(var i:int = 0; i<Robj.length; i++)
-				{
-					var rResult:RResult = new RResult(Robj[i]);
-					RresultArray.push(rResult);				
-				}
-					
-				corr = Number((RresultArray[0] as RResult).value);
-				//ftest = (RresultArray[1] as RResult).value as Array;//ilk deger ftest degeri
-				outlier_detection = (RresultArray[1] as RResult).value as Number;
-			    intercept = (RresultArray[2] as RResult).value as Number;
-				slope = (RresultArray[3] as RResult).value as Number;
-				rSquared = (RresultArray[4] as RResult).value as Number;
-				grubbs = (RresultArray[5] as RResult).value as Array;
-
-				
-				runsTest(inputValues);
-				
-				//trace("corr " + corr);
-				////trace("f " + ftest);
-				//trace("outlier " + outlier_detection);
-				//trace("intercept " +intercept);
-				//trace("slope " +slope);
-				//trace("r squared " +rSquared);
-				trace("grubbs " +grubbs);
-				
-				decisionCount--;
-				if(fDecisionCount == 0 && decisionCount ==0)
-				{
-					//should split()
-					
-					var result:Array = split(inputValues);
-					
-					trace(result);
-					processingRResult(finalRObject);
-					
-					
-				}
-				
-				//if outlier > critical value
-				// r script tekrar cagir. Baska fonksyonda yap (handle runscript), gelenler cricital value
-				//dan buyuk oldugu surece tekrar cagir, gelen valuelari array'e at. 
-				
-				if(grubbs[0]>grubbs[1])	 {outlierValue = true; /*there is an outlier */} 
-				
-				else { outlierValue = false; /*no outlier*/ }  
-			}
-			
-			public function handleRunScriptResult(event:ResultEvent, token:Object):void
-			{
-				//if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
-				// to do handle multiple asynchronous calls
-				var rObject:Array = new Array();
-				rObject = event.result as Array;
-				finalRObject= new Array();//collects all the RResult objects after being returned from R
-				
-				if (rObject == null)
-				{
-					reportError("R Servlet did not return an Array of results as expected.");
-					return;
-				}				
-				for (var i:int=0; i < rObject.length; i++)
-				{					
-					if (rObject[i] == null)
-					{
-						//trace("WARNING! R Service returned null in results array at index "+i);
-						continue;
-					}					
-					var rResult:RResult = new RResult(rObject[i]);
-					finalRObject[i] = rResult.value;					
-				}				
-								
-			}
-			
-			
-			private function handleRunScriptFault(event:FaultEvent, token:Object):void
-			{
-				//trace(["fault", token, event.message].join("\n"));
-				reportError(event);
-			}
-			
-			private var negResRun:Number = new Number(); //negative residual, this is the number of runs;
-			private var runsMean:Number =new Number();
-			private var differenceOfActualAndRuns:Number = new Number();
-			
-			private function runsTest(inputValues:Array):Boolean
+			public function runsTest(mSegment:SegmentValue):void
 			{
 				var yRegValues:Array = new Array();
 				var residual:Array = new Array();
 				var posRes:int = new int(); //positive residual
 				var standardDV:Number = new Number();
-				
-				for(var i:int=0; i<inputValues.length; i++)
+				var runsMean:Number =new Number();
+				for(var i:int=0; i<mSegment.Segment.length; i++)
 				{
-					yRegValues[i] = intercept + (slope * i);
+					yRegValues[i] = mSegment.intercept + (mSegment.slope * i);
+					residual[i] = mSegment.Segment[i] - yRegValues[i];
+					if(residual[i] < 0) 
+						mSegment.actualRunsNum++;	
+					else 
+						posRes++	
 				}
-				
-				for (var j:int=0; j<inputValues.length; j++)
-				{
-					residual[j] = inputValues[j] - yRegValues[j];
-					
-					if(residual[j] < 0) {negResRun++;}				
-					else {posRes++}											
-				}
-				
-				runsMean = ((2*negResRun*posRes)/(negResRun + posRes)) + 1;
-				standardDV = ((2*negResRun*posRes)*(2*negResRun*posRes - negResRun - posRes))/((negResRun+posRes)*(negResRun+posRes)*(negResRun+posRes-1));
-				
-				//lineDecisionTree.actualRuns(negResRun);
-				//lineDecisionTree.meanRuns(runsMean);
-				
-				//trace("inputvalues "+inputValues);
-				//trace("yreg "+yRegValues);
-				//trace("res array" +residual);
-				//trace("runs "+runsMean);
-				//trace("sd " +standardDV);
-				
-				differenceOfActualAndRuns = (negResRun - runsMean)/runsMean;
-				
-				if(negResRun > (runsMean-standardDV)) {return false;}
-				else {return true;}
-			
-			}
-			
-			
-			
-		
-			
-			
-			public var checkLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
-			
-			public function processingRResult(_sentpropertiesValues:Array):void
-			{
-				var tempProperties:Array = new Array();
-				//var mockpropertiesValues:Array = new Array();//array of values of properties returned from R
-				tempProperties.push(_sentpropertiesValues);//returned from R				
-				//one DisabilityObject is made for every tool is one Weave instance
-				var tempDisabilityObject :DisabilityObject = new DisabilityObject();
-				tempDisabilityObject.properties = _sentpropertiesValues;
-				tempDisabilityObject.vizDetails.push(_target.title);
-				tempDisabilityObject.vizDetails.push(columnNames);				
-				//this gives us the final array of text messages
-				var finalTextMessages:Array = checkLookUpDict.collectMessageCategoryID(tempDisabilityObject);
-				Weave.properties.disabilitySystemText.value = finalTextMessages[0];
-				
-				if(_panel.title.substring(0,4)=='Line')
-				{
-					automaticToolDescTextBox.text = "The visualization presents the '"+_panel.title +"'. "+"The line chart is composed of  "+resultSegmentation.length+" visually distinguisable trends. " +"The first segment has a slightly decreasing trend "+"The second segment has an increasing trend"  ;
-				}
-				
-				//Weave.properties.disabilitySystemText.value = automaticToolDescTextBox.text;
-				
-				//	automaticToolDescTextBox.text = finalTextMessages[0] ;
-
-			}
-			
-			
-				
-			public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
-			
-			private var splitCount:int = 0;
-			
-			public function shouldSplit(segment:Array):Boolean
-			{
-				trace("shouldSplit");
-				if(lineDecisionTree.lineChartDT(segment,corr, fTestValues, segment.length / firstSegLength, differenceOfActualAndRuns, segment.length, firstSegLength, negResRun, false, runsTest(segment) ) == true)
-				{
-					return true;
-				}
+				runsMean = ((2*mSegment.actualRunsNum*posRes)/(mSegment.actualRunsNum + posRes)) + 1;
+				standardDV = ((2*mSegment.actualRunsNum*posRes)*(2*mSegment.actualRunsNum*posRes - mSegment.actualRunsNum - posRes))/((mSegment.actualRunsNum+posRes)*(mSegment.actualRunsNum+posRes)*(mSegment.actualRunsNum+posRes-1));
+				mSegment.diffAM = (mSegment.actualRunsNum - runsMean)/runsMean;
+				if(mSegment.actualRunsNum > (runsMean-standardDV)) 
+					mSegment.runsTestB = false;
 				else
+					mSegment.runsTestB = true;	
+			}
+			public function shouldSplit(mSegment:SegmentValue):Boolean
+			{
+				runsTest(mSegment);
+				return LineChartDecisionTree.getInstance().lineChartDT(mSegment.Segment,mSegment.corr, mSegment.fTests, mSegment.Segment.length / firstSegLength, mSegment.diffAM, mSegment.Segment.length, firstSegLength, mSegment.actualRunsNum, false, mSegment.runsTestB);
+			}
+			private function splitWithR(mSegment:SegmentValue):void
+			{
+				// get values first
+			}
+			public function splitComplete():void
+			{
+				var start:Boolean = false;
+				var end:Boolean = false;
+				var sum:int = 0;
+				for(var i:int=0; i< splittedSegments.length; i++)
 				{
-					return false;
-				}
-					
-					
-				/*
-					if(splitCount <2)
+					sum += splittedSegments[i][1] - splittedSegments[i][0];
+					/*
+					if(splittedSegments[i][0] == 0)
 					{
-						splitCount++;
-						return true;
+					//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1] - 1));
+					start = true;
+					trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1]));
 					}
-					return false;
+					else
+					{
+					//trace("segment start: " + (splittedSegments[i][0]-1) + "   end: "+ (splittedSegments[i][1] - 1));	
+					trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1]));
+					}
+					*/
 				}
-				*/
-			}
-				
-		    private function split(segment:Array):Array // takes the whole segment as input, and splits the segment recursively
-			{
-				var result:Array = new Array(); // the resulting splitted graphs
-				var splittedSegments:Array = new Array();
-					
-				if(!shouldSplit(segment))
+				trace("processing.. " + Math.floor((sum / initSegmentIndices[1]) * 100) + "%");
+				if(sum == initSegmentIndices[1])
 				{
-					return segment;
+					trace("finished");
+					trace("Line chart splitted into " + splittedSegments.length + " segments");
+					splittedSegments.sortOn("0", Array.NUMERIC);
+					for(var me:int=0; me< splittedSegments.length; me++)
+					{	
+						if(splittedSegments[me][0] == 0)
+						{
+							//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1] - 1));
+							start = true;
+							splittedSegments[me][1] = splittedSegments[me][1] - 1;
+						}
+						else
+						{
+							//trace("segment start: " + (splittedSegments[i][0]-1) + "   end: "+ (splittedSegments[i][1] - 1));	
+							//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1]));
+							splittedSegments[me][0] = splittedSegments[me][0] - 1;
+							splittedSegments[me][1] = splittedSegments[me][1] - 1;
+						}
+						trace("segment no: "+ (me+1) +", start: " + splittedSegments[me][0] + "   end: "+ (splittedSegments[me][1]));
+					}
+					ProduceSentence
+				}
+			}
+			public function split(mSegment:SegmentValue):void
+			{
+				//trace("aa");
+				if(!shouldSplit(mSegment))
+				{
+					splittedSegments.push(mSegment.segmentIndices);
+					//if(segmentsLeftToSplit ==0)
+					splitComplete();
+					//trace("splitted segments , " + splittedSegments);
 				}
 				else
 				{
-					splittedSegments = splitSegment(segment);
-					result.push(split(splittedSegments[0]));
-					result.push(split(splittedSegments[1]));
+					var newSegments:Array = splitSegment(mSegment);
+					var Segment1:SegmentValue = new SegmentValue();
+					var Segment2:SegmentValue = new SegmentValue();
+					segmentsLeftToSplit +=2;
+					Segment1.segmentIndices = newSegments[1];
+					Segment1.setSegment(newSegments[0]);
+					Segment1.mDisability = initialSegment.mDisability;
+					Segment2.segmentIndices = newSegments[3];
+					Segment2.setSegment(newSegments[2]);
+					Segment2.mDisability = initialSegment.mDisability;
+					Segment1.split();
+					Segment2.split();
+					//seg1
+					//seg2
 				}
-					
-				return result; //has resulted segment pieces
 			}
-				
-			private function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
+			public static function splitSegment(mSegment:SegmentValue):Array
 			{
-				return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
-			}
-				
-			private function splitSegment(segment:Array):Array
-			{
-				var startPoint:Array = new Array(0,segment[0]);
-				var endPoint:Array = new Array(segment.length - 1,segment[segment.length -1]);
+				var startPoint:Array = new Array(mSegment.segmentIndices[0],mSegment.Segment[0]);
+				var endPoint:Array = new Array(mSegment.segmentIndices[1],mSegment.Segment[mSegment.Segment.length -1]);
 				var resultSegment:Array = new Array();
 				var maxVD:Number = -1;
 				var maxVDIndex:int = 0;
 				var currVD:Number = -1;
 				var first:Array = new Array();
 				var secondSegment:Array = new Array();
-					
-				for(var i:int = 0; i < segment.length - 1 ; i++)
+				var firstIndices:Array = new Array();
+				var secondIndices:Array = new Array();
+				for(var i:int = mSegment.segmentIndices[0]; i < mSegment.segmentIndices[1] ; i++)
 				{
-					currVD = verticalDistance(startPoint, endPoint, new Array(i, segment[i]));
+					currVD = verticalDistance(startPoint, endPoint, new Array(i, mSegment.Segment[i]));
 					if(currVD > maxVD)
 					{
 						maxVD = currVD;
 						maxVDIndex = i;
 					}
-				}		
-					
-					
-				//trace(" WANT TO SEE THE //trace MESSAGE");
-				first.push(0);
+				}	
+				for(i = 0; i < maxVDIndex ; i++)
+				{
+					first.push(mSegment.Segment[i]);	
+				}
+				for(i = maxVDIndex; i < mSegment.Segment.length ; i++)
+				{
+					secondSegment.push(mSegment.Segment[i]);	
+				}
+				firstIndices.push(mSegment.segmentIndices[0]);
 				//trace(maxVDIndex);
-				first.push(maxVDIndex);
-				secondSegment.push(maxVDIndex);
-				secondSegment.push(segment.length - 1);
+				firstIndices.push(maxVDIndex);
+				secondIndices.push(maxVDIndex);
+				secondIndices.push(mSegment.segmentIndices[1]);
 				resultSegment.push(first);
+				resultSegment.push(firstIndices);
 				resultSegment.push(secondSegment);
-				
-				
-					
+				resultSegment.push(secondIndices);
 				return resultSegment;
-					
 			}
-			
-			
-		
+			public static function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
+			{
+				return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
+			}
+			public function ProduceSentence(initSeg:Array, splitIndices:Array):void
+			{
+				//for(var kaka:int = 0; kaka < initSegmentIndices[1] ; kaka++)
+				//	trace(initialSegment.Segment[kaka]);
+				automaticToolDescTextBox.text = "osman";
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>
