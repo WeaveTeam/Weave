@@ -132,7 +132,7 @@ package weave.compiler
 		private static const PN_EXPR:String = 'EXPR';
 		
 		/**
-		 * may only contain one expression, optionally enclosed in (), no statements.
+		 * variable names and/or assignments separated by commas
 		 * Used in conjunction with _validStatementPatterns.
 		 */
 		private static const PN_VARS:String = 'VARS';
@@ -984,7 +984,7 @@ package weave.compiler
 						return compiledString;
 					
 					compiledObjects.unshift(compiledString);
-					return new CompiledFunctionCall(new CompiledConstant('substitute', StringUtil.substitute), compiledObjects);
+					return new CompiledFunctionCall(new CompiledConstant('substitute', StandardLib.substitute), compiledObjects);
 				}
 				else if (escapeIndex < bracketIndex) // handle '\'
 				{
@@ -1048,7 +1048,7 @@ package weave.compiler
 						throw new Error("Missing '}' in string literal inline code: " + input);
 					
 					// now bracketIndex points to '{' and escapeIndex points to matching '}'
-					//replace code between brackets with an int like {0} so the resulting string can be passed to StringUtil.substitute() with compiledObject as the next parameter
+					//replace code between brackets with an int like {0} so the resulting string can be passed to StandardLib.substitute() with compiledObject as the next parameter
 					output += input.substring(searchIndex, bracketIndex) + '{' + compiledObjects.length + '}';
 					searchIndex = escapeIndex + 1;
 					compiledObjects.push(compileTokens(tokens, true));
@@ -1488,7 +1488,6 @@ package weave.compiler
 		{
 			var stmt:String = tokens[startIndex] as String;
 			var call:CompiledFunctionCall;
-			var i:int;
 			
 			// stop if tokens does not start with a statement
 			if (!statements.hasOwnProperty(stmt))
@@ -1515,13 +1514,13 @@ package weave.compiler
 			// find a matching statement pattern
 			nextPattern: for each (var pattern:Array in _validStatementPatterns)
 			{
-				for (i = 0; i < pattern.length; i++)
+				for (var iPattern:int = 0; iPattern < pattern.length; iPattern++)
 				{
-					if (startIndex + i >= tokens.length)
+					if (startIndex + iPattern >= tokens.length)
 						continue nextPattern;
 					
-					var type:String = pattern[i];
-					var token:Object = tokens[startIndex + i];
+					var type:String = pattern[iPattern];
+					var token:Object = tokens[startIndex + iPattern];
 					call = token as CompiledFunctionCall;
 					
 					if (statements.hasOwnProperty(type) && token != type)
@@ -1542,7 +1541,7 @@ package weave.compiler
 					
 					if (type == PN_STMT)
 					{
-						compileStatement(tokens, startIndex + i);
+						compileStatement(tokens, startIndex + iPattern);
 					}
 					
 					if (type == PN_BLOCK)
@@ -1559,31 +1558,33 @@ package weave.compiler
 						
 						// must be local variable/assignment or list of local variables/assignments
 						
+						// special case for "y, x = 3;" which at this point is stored as {y, x = 3}
+						if (call.evaluatedMethod == operators[';'])
+						{
+							if (call.evaluatedParams.length != 1 || !(call.compiledParams[0] is CompiledFunctionCall))
+								throwInvalidSyntax(stmt);
+							// remove the operator ';' wrapper
+							tokens[startIndex + iPattern] = token = call = call.compiledParams[0];
+						}
+						
 						// if there is only a single variable, wrap it in an operator ',' call
 						if (!call.compiledParams || call.evaluatedMethod == operators['='])
-							tokens[startIndex + i] = token = call = compileOperator(',', [call]);
+							tokens[startIndex + iPattern] = token = call = compileOperator(',', [call]);
 						
-						// special case for "x = 3;" which becomes {x = 3}
-						if (call.evaluatedMethod == operators[';'] && call.compiledParams.length == 1)
-						{
-							call.compiledMethod = new CompiledConstant(',', operators[',']);
-							call.evaluateConstants();
-						}
-							
 						if (call.evaluatedMethod != operators[','] || call.compiledParams.length == 0)
 							throwInvalidSyntax(stmt);
 						
 						varNames = [];
-						for (var i:int = 0; i < call.compiledParams.length; i++)
+						for (var iParam:int = 0; iParam < call.compiledParams.length; iParam++)
 						{
-							var variable:CompiledFunctionCall = call.compiledParams[i] as CompiledFunctionCall;
+							var variable:CompiledFunctionCall = call.compiledParams[iParam] as CompiledFunctionCall;
 							if (!variable)
 								throwInvalidSyntax(stmt);
 							
 							if (!variable.compiledParams) // local initialization
 							{
 								// variable initialization only -- remove from ',' params
-								call.compiledParams.splice(i--, 1);
+								call.compiledParams.splice(iParam--, 1);
 								varNames.push(variable.evaluatedMethod);
 							}
 							else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2) // local assignment
@@ -1610,6 +1611,7 @@ package weave.compiler
 						call.evaluateConstants();
 						token = call;
 					}
+					originalTokens = null; // avoid infinite decompile recursion
 					tokens[startIndex] = token;
 				}
 				else if (stmt == ST_IF) // if (cond) {stmt} else {stmt}
@@ -1798,6 +1800,8 @@ package weave.compiler
 				return null;
 			}
 			
+			//todo - flatten nested operator ';' and ',' calls
+			
 			if (method == operators[';'] || method == operators[','] || method == operators['('])
 			{
 				if (params.length == 0)
@@ -1930,7 +1934,7 @@ package weave.compiler
 					if (op == 'delete')
 						return op + ' ' + result;
 					
-					return StringUtil.substitute("({0} {1} {2})", result, op, params[n - 1]); // example:  "(a.b = c)"
+					return StandardLib.substitute("({0} {1} {2})", result, op, params[n - 1]); // example:  "(a.b = c)"
 				}
 				
 				// variable number of params
@@ -1959,10 +1963,10 @@ package weave.compiler
 					}
 					
 					if (n == 2) // infix op
-						return StringUtil.substitute("({0} {1} {2})", params[0], op, params[1]);
+						return StandardLib.substitute("({0} {1} {2})", params[0], op, params[1]);
 					
 					if (n == 3 && op == '?:') // ternary op
-						return StringUtil.substitute("({0} ? {1} : {2})", params);
+						return StandardLib.substitute("({0} ? {1} : {2})", params);
 				}
 				
 				if (op == ST_VAR)
@@ -2366,7 +2370,8 @@ package weave.compiler
 				"i = 0; do { if (i == 3) continue; trace(i); if (i == 5) break; } while (i >= 0 && ++i < 10) trace('done');",
 				"i = -1; while (++i < 10) { if (i == 3) continue; trace(i); if (i == 5) break; } trace('done');",
 				"a = []; o = Object('a',1,'b',2,'c',3,'d',4,'e',5); for (k in o) { a.push(`{k} = {o[k]}`); o['?'+k]=k+'!'; delete o[k]; } for each (p in o) a.push(p); return [a,o];",
-				"x = 3; var x = 4; x"
+				"y = 4; x = 3; var x = 4, y; [x, y]",
+				"`abc { function(x,y) { return x+y; } } xyz`"
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
