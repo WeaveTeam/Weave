@@ -3,6 +3,7 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
+	import flash.text.TextFormat;
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
@@ -21,6 +22,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -34,7 +36,7 @@ package weave.visualization.plotters
 	import weave.visualization.layers.PlotTask;
 
 	// Refer to Feature #924 for detail description
-	public class GeometryRelationPlotter extends AbstractPlotter implements IPlotterWithGeometries
+	public class GeometryRelationPlotter extends AbstractPlotter
 	{
 		public function GeometryRelationPlotter()
 		{
@@ -53,7 +55,9 @@ package weave.visualization.plotters
 		public const lineWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const posLineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFF0000));
 		public const negLineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x0000FF));
-		
+		public const showValue:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const fontSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(11));
+		public const fontColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
@@ -178,6 +182,7 @@ package weave.visualization.plotters
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
+			var i:int;
 			// Make sure all four column are populated
 			if (sourceKeyColumn.keys.length == 0 || destinationKeyColumn.keys.length == 0 || valueColumn.keys.length == 0 || geometryColumn.keys.length == 0) return 1;
 			
@@ -194,7 +199,7 @@ package weave.visualization.plotters
 
 				// Loop over the data table to find all the row keys with this source key value
 				var tempRowKeys:Array = new Array();
-				for (var i:int = 0; i < sourceKeyColumn.keys.length; i++)
+				for (i = 0; i < sourceKeyColumn.keys.length; i++)
 				{
 					if (sourceKeyColumn.getValueFromKey(sourceKeyColumn.keys[i], IQualifiedKey) == geoKey)
 						tempRowKeys.push(sourceKeyColumn.keys[i]);
@@ -208,33 +213,45 @@ package weave.visualization.plotters
 					max = WeaveAPI.StatisticsCache.getColumnStatistics(valueColumn).getMin();
 				
 				// Value normalization
-				for (var j:int = 0; j < tempRowKeys.length; j++)
+				for (i = 0; i < tempRowKeys.length; i++)
 				{
-					if (valueColumn.getValueFromKey(tempRowKeys[j], Number) > 0)
+					if (valueColumn.getValueFromKey(tempRowKeys[i], Number) > 0)
 					{
-						tempShape.graphics.lineStyle(Math.round((valueColumn.getValueFromKey(tempRowKeys[j], Number) / max) * lineWidth.value), posLineColor.value);
+						tempShape.graphics.lineStyle(Math.round((valueColumn.getValueFromKey(tempRowKeys[i], Number) / max) * lineWidth.value), posLineColor.value);
 					}
 					else
 					{
-						tempShape.graphics.lineStyle(-Math.round((valueColumn.getValueFromKey(tempRowKeys[j], Number) / max) * lineWidth.value), negLineColor.value);
+						tempShape.graphics.lineStyle(-Math.round((valueColumn.getValueFromKey(tempRowKeys[i], Number) / max) * lineWidth.value), negLineColor.value);
 					}
 					
 					tempShape.graphics.moveTo(tempSourcePoint.x, tempSourcePoint.y);
-					getCoordsFromRecordKey(destinationKeyColumn.getValueFromKey(tempRowKeys[j], IQualifiedKey), tempDestinationPoint); // Get destionation coordinate
+					getCoordsFromRecordKey(destinationKeyColumn.getValueFromKey(tempRowKeys[i], IQualifiedKey), tempDestinationPoint); // Get destionation coordinate
 					task.dataBounds.projectPointTo(tempDestinationPoint, task.screenBounds);
 					tempShape.graphics.lineTo(tempDestinationPoint.x, tempDestinationPoint.y);
-
-//					DrawUtils.drawCurvedLine(tempShape.graphics, tempSourcePoint.x, tempSourcePoint.y, tempDestinationPoint.x, tempDestinationPoint.y, 1);
-					
-					bitmapText.x = Math.round((tempSourcePoint.x + tempDestinationPoint.x) / 2);
-					bitmapText.y = Math.round((tempSourcePoint.y + tempDestinationPoint.y) / 2);
-					bitmapText.text = valueColumn.getValueFromKey(tempRowKeys[j], Number);
-					bitmapText.draw(task.buffer);
 				}
-				
+								
 				task.buffer.draw(tempShape);
 				
-				//------------------------
+				if (showValue.value)
+				{
+					for (i = 0; i < tempRowKeys.length; i++)
+					{
+						getCoordsFromRecordKey(destinationKeyColumn.getValueFromKey(tempRowKeys[i], IQualifiedKey), tempDestinationPoint); // Get destionation coordinate
+						task.dataBounds.projectPointTo(tempDestinationPoint, task.screenBounds);
+						
+						bitmapText.x = Math.round((tempSourcePoint.x + tempDestinationPoint.x) / 2);
+						bitmapText.y = Math.round((tempSourcePoint.y + tempDestinationPoint.y) / 2);
+						bitmapText.text = valueColumn.getValueFromKey(tempRowKeys[i], Number);
+						bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
+						bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
+						
+						var f:TextFormat = bitmapText.textFormat;
+						f.size = fontSize.value;
+						f.color = fontColor.value;
+						
+						bitmapText.draw(task.buffer);
+					}
+				}
 				
 				// report progress
 				return task.iteration / task.recordKeys.length;
@@ -243,58 +260,5 @@ package weave.visualization.plotters
 			// report progress
 			return 1; // avoids division by zero in case task.recordKeys.length == 0
 		}
-		
-		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
-		{
-			var results:Array = [];
-			
-//			// push three geometries between each column
-//			var x:Number, y:Number;
-//			var prevX:Number, prevY:Number;
-//			var geometry:ISimpleGeometry;
-//			for (var i:int = 0; i < _columns.length; ++i)
-//			{
-//				x = i;
-//				y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
-//				
-//				if (i > 0)
-//				{
-//					if (isFinite(y) && isFinite(prevY))
-//					{
-//						geometry = new SimpleGeometry(GeometryType.LINE);
-//						geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
-//						results.push(geometry);
-//					}
-//					else
-//					{
-//						// case where current coord is defined and previous coord is missing
-//						if (isFinite(y))
-//						{
-//							geometry = new SimpleGeometry(GeometryType.POINT);
-//							geometry.setVertices([new Point(x, y)]);
-//							results.push(geometry);
-//						}
-//						// special case where i == 1 and y0 (prev) is defined and y1 (current) is missing
-//						if (i == 1 && isFinite(prevY))
-//						{
-//							geometry = new SimpleGeometry(GeometryType.POINT);
-//							geometry.setVertices([new Point(prevX, prevY)]);
-//							results.push(geometry);
-//						}
-//					}
-//				}
-//				
-//				prevX = x;
-//				prevY = y;
-//			}
-			
-			return results;
-		}
-		
-		public function getBackgroundGeometries():Array
-		{
-			return [];
-		}
-		
 	}
 }

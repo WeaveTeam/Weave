@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" label="{lang('Geometry Relations')}" 
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="400" label="{lang('Geometry Relations')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
 	<mx:VBox width="100%">
 		<ui:DynamicColumnComponent id="relationSourceComponent" label="{lang('Source')}"/>
@@ -29,6 +29,32 @@
 						creationComplete="linkBindableProperty(_plotter.negLineColor, event.target, 'selectedColor')"/>
 	</mx:HBox>
 	
+	<mx:CheckBox id="showValueCheckBox" label="{lang('Display value in the middle of the line')}"
+				 creationComplete="linkBindableProperty(_plotter.showValue, event.target, 'selected')"
+				 fontWeight="bold"/>
+	<ui:Indent>
+		<mx:VBox width="100%">
+			<mx:HBox width="100%">
+				<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
+				<mx:HSlider id="labelSizeSlider"
+							width="100%"
+							alpha="1.0"
+							snapInterval="1"
+							tickInterval="2" labels="{['6','8','10','12','14','16','18','20']}"
+							minimum="6" maximum="20" 
+							liveDragging="true" mouseDown="event.stopPropagation()"
+							creationComplete="linkBindableProperty(_plotter.fontSize,event.target,'value')"
+							enabled="{showValueCheckBox.selected}"/>
+			</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
+				<mx:ColorPicker id="colorPicker" width="22" height="22"
+								creationComplete="linkBindableProperty(_plotter.fontColor, event.target, 'selectedColor')"
+								enabled="{showValueCheckBox.selected}"/>
+			</mx:HBox>			
+		</mx:VBox>
+	</ui:Indent>
+		
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
