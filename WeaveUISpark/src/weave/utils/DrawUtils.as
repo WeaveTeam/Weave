@@ -60,7 +60,7 @@ package weave.utils
 			if (startAngle > endAngle)
 				segmentSpan = -segmentSpan;
 			// draw the segments
-			var segmentCount:int = Math.ceil(Math.abs(startAngle - endAngle) / segmentSpan);
+			var segmentCount:int = Math.ceil((endAngle - startAngle) / segmentSpan);
 			for (var i:int = 0; i <= segmentCount; i++)
 			{
 				// make sure last coord is at specified endAngle

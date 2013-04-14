@@ -140,7 +140,7 @@ package weave.visualization.plotters
 				// continue line to inner arc, draw inner arc
 				xScreenRadius = dataInnerRadius * screenBounds.getWidth() / dataBounds.getWidth();
 				yScreenRadius = dataInnerRadius * screenBounds.getHeight() / dataBounds.getHeight();
-				DrawUtils.arcTo(destination, true, xScreenCenter, yScreenCenter, beginRadians, beginRadians + spanRadians, xScreenRadius, yScreenRadius);
+				DrawUtils.arcTo(destination, true, xScreenCenter, yScreenCenter, beginRadians + spanRadians, beginRadians, xScreenRadius, yScreenRadius);
 			}
 			// continue line back to start of outer arc
 			destination.lineTo(tempPoint.x, tempPoint.y);
