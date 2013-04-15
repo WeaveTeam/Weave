@@ -2270,7 +2270,12 @@ package weave.compiler
 							result = undefined;
 						else
 						{
-							trace(decompileObject(call));
+							var decompiled:String = decompileObject(call);
+							var err:Error = e as Error;
+							if (err)
+								err.message = decompiled + '\n' + err.message;
+							else
+								trace(decompiled);
 							throw e;
 						}
 					}
