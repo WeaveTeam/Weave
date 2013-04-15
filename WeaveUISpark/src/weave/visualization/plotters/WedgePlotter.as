@@ -81,16 +81,13 @@ package weave.visualization.plotters
 		 * The data bounds for a glyph has width and height equal to zero.
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			var _beginRadians:Number = beginRadians.getValueFromKey(recordKey, Number);
 			var _pieWidthRadians:Number = spanRadians.getValueFromKey(recordKey, Number);
-			
-			var bounds:IBounds2D = getReusableBounds();
-			getWedgeBounds(bounds, _beginRadians, _pieWidthRadians);
-			return [bounds];
+			getWedgeBounds(initBoundsArray(output), _beginRadians, _pieWidthRadians);
 		}
 		
 		// gets data bounds for a wedge

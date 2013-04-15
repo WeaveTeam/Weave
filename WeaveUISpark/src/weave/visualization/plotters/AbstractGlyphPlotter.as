@@ -183,39 +183,41 @@ package weave.visualization.plotters
 		 * The data bounds for a glyph has width and height equal to zero.
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			initBoundsArray(output);
 			getCoordsFromRecordKey(recordKey, tempPoint);
 			
-			var bounds:IBounds2D = getReusableBounds();
-			bounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 0, 0);
+			var bounds:IBounds2D = output[0];
+			bounds.includePoint(tempPoint);
 			if (isNaN(tempPoint.x))
 				bounds.setXRange(-Infinity, Infinity);
 			if (isNaN(tempPoint.y))
 				bounds.setYRange(-Infinity, Infinity);
-			return [bounds];
 		}
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			// use filtered data so data bounds will not include points that have been filtered out.
-			var bounds:IBounds2D = getReusableBounds();
-			if (!zoomToSubset.value)
+			if (zoomToSubset.value)
 			{
-				bounds.setBounds(
+				output.reset();
+			}
+			else
+			{
+				output.setBounds(
 					statsX.getMin(),
 					statsY.getMin(),
 					statsX.getMax(),
 					statsY.getMax()
 				);
 			}
-			return bounds;
 		}
 	}
 }

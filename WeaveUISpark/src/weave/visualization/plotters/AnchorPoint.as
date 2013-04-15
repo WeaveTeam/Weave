@@ -21,6 +21,7 @@ package weave.visualization.plotters
 {	
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 
@@ -39,9 +40,7 @@ package weave.visualization.plotters
 		
 		public function AnchorPoint()
 		{
-		}		
-		
-		private const convert:Number = (180/Math.PI);
+		}
 		
 		private function convertCoords():void
 		{

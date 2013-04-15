@@ -142,7 +142,7 @@ package weave.utils
 
 			if (plotter)
 			{
-				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
+				plotter.getBackgroundDataBounds(collectiveBounds);
 				
 				// make a copy of the keys vector
 				VectorUtils.copy(plotter.filteredKeySet.keys, _keysArray);			
@@ -180,7 +180,11 @@ package weave.utils
 					return _keysIndex / _keysArray.length;
 				
 				var key:IQualifiedKey = _keysArray[_keysIndex] as IQualifiedKey;
-				_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
+				var boundsArray:Array = _keyToBoundsMap[key] as Array;
+				if (!boundsArray)
+					_keyToBoundsMap[key] = boundsArray = [];
+				
+				_plotter.getDataBoundsFromRecordKey(key, boundsArray);
 				
 				if (_keyToGeometriesMap != null)
 				{
