@@ -1331,6 +1331,7 @@ package weave.compiler
 		 */
 		private function compileUnaryOperators(compiledTokens:Array, operatorSymbols:Array):void
 		{
+			var call:CompiledFunctionCall;
 			var index:int = compiledTokens.length;
 			while (index--) // right to left
 			{
@@ -1358,22 +1359,26 @@ package weave.compiler
 				
 				// skip infix operator
 				if (index > 0 && compiledTokens[index - 1] is ICompiledObject)
-					continue;
+				{
+					call = compiledTokens[index - 1] as CompiledFunctionCall;
+					if (!call || call.evaluatedMethod != operators[';'])
+						continue;
+				}
 				
 				// compile unary operator
 				if (debug)
 					trace("compile unary operator", compiledTokens.slice(index, index + 2).join(' '));
 				
-				if (assignmentOperators.hasOwnProperty(token))
+				if (assignmentOperators.hasOwnProperty(token)) // unary assignment operators
 				{
-					var call:CompiledFunctionCall = nextToken as CompiledFunctionCall;
+					call = nextToken as CompiledFunctionCall;
 					if (call && !call.compiledParams) // variable lookup
 					{
 						compiledTokens.splice(index, 2, compileOperator(token, [call.compiledMethod, newUndefinedConstant()]));
 					}
 					else if (call && call.evaluatedMethod == operators['.'])
 					{
-						// switch '.' to the unary operator
+						// switch '.' to the unary assignment operator
 						call.compiledParams.push(newUndefinedConstant());
 						compiledTokens.splice(index, 2, compileOperator(token, call.compiledParams));
 					}
