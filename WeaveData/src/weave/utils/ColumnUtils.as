@@ -22,10 +22,6 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
-	import org.osmf.metadata.Metadata;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
@@ -41,10 +37,8 @@ package weave.utils
 	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
-	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	

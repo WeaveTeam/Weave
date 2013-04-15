@@ -50,13 +50,13 @@ package weave.api.ui
 		 * This function provides a mapping from a record key to an Array of bounds objects, specified
 		 * in data coordinates, that cover the bounds associated with that record key.
 		 * The simplest geometric object supported is Bounds2D.  Other objects may be supported in future versions.
-		 * @param recordKey The key of a data record.
+		 * @param key The key of a data record.
 		 * @param output An Array which may or may not be already populated with IBounds2D objects.
 		 *               If there are existing IBounds2D objects in this Array, they will be used as output buffers.
 		 *               New IBounds2D objects will be added to the Array as needed.
 		 * @return An Array of geometric objects, in data coordinates, that cover the bounds associated with the record key.
 		 */
-		function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void;
+		function getDataBoundsFromRecordKey(key:IQualifiedKey, output:Array):void;
 
 		/**
 		 * This function will perform one iteration of an asynchronous rendering task.

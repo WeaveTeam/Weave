@@ -125,7 +125,7 @@ package weave.visualization.plotters
 				_projector = null;
 		}
 		
-		protected function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
+		public function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
 		{
 			if (detectLinkableObjectChange(updateProjector, dataX, dataY, sourceProjection, destinationProjection))
 				updateProjector();
@@ -187,10 +187,9 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			initBoundsArray(output);
 			getCoordsFromRecordKey(recordKey, tempPoint);
 			
-			var bounds:IBounds2D = output[0];
+			var bounds:IBounds2D = initBoundsArray(output);
 			bounds.includePoint(tempPoint);
 			if (isNaN(tempPoint.x))
 				bounds.setXRange(-Infinity, Infinity);

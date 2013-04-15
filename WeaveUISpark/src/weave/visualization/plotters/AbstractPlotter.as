@@ -231,7 +231,7 @@ package weave.visualization.plotters
 		 * @param desiredLength The desired number of output IBounds2D objects to appear in the output Array.
 		 * @return The first IBounds2D item in the Array, or null if desiredLength is zero.
 		 */
-		protected function initBoundsArray(output:Array, desiredLength:int = 1):IBounds2D
+		public function initBoundsArray(output:Array, desiredLength:int = 1):IBounds2D
 		{
 			while (output.length < desiredLength)
 				output.push(ObjectPool.borrowObject(Bounds2D));
