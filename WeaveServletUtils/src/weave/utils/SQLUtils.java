@@ -1336,7 +1336,7 @@ public class SQLUtils
 		if (isPostGreSQL)
 		{
 			column_string = String.format("%s,%s", quotedIdField, column_string);
-			qmark_string = String.format("(SELECT MAX(%s)+1 FROM %s),", quotedIdField, quotedTable) + qmark_string;
+			qmark_string = String.format("GREATEST(1, (SELECT MAX(%s)+1 FROM %s)),", quotedIdField, quotedTable) + qmark_string;
 		}
 		
 		query = String.format("INSERT INTO %s (%s)", quotedTable, column_string);
