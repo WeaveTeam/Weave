@@ -41,13 +41,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 wordWrap="true" text="before button clicked"/>	
 	<mx:Button label="Refresh Description" id="automaticDescRefreshButton"
 			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
+	<mx:Label id="progressLabel" width="135" enabled="true"/>
 	<mx:Script>
 		<![CDATA[
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
 			import disabilityDictionary.DisabilityMessageProperties;
 			import disabilityDictionary.DisabilityObject;
+			
 			import disabilityPack.LineChartDecisionTree;
 			import disabilityPack.SegmentValue;
+			
 			import mx.accessibility.CheckBoxAccImpl;
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
@@ -58,6 +61,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
@@ -80,12 +84,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
+			
 			// creationComplete="automaticToolDescTextBoxInitialize(event);"
-			[Bindable] private var _panel:DraggablePanel = null;	
+			
+			[Bindable] private var _panel:DraggablePanel = null;			
+			
 			public var vizEntities:Array = WeaveAPI.globalHashMap.getObjects(LineChartTool);//collect all the visualization tools
-			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);	
-			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();	
-			public var variables:LinkableHashMap;	
+			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);		
+			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();			
+			public var variables:LinkableHashMap;			
 			
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
 			public var joinKeysRArray:Array = new Array();
@@ -94,6 +101,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var lineDecisionTree:LineChartDecisionTree = new LineChartDecisionTree();
 			private var finalRObject:Array;
 			private var resultSegmentation:Array = new Array();
+			private var firstTimeDone:Boolean = false;
+			
+			
 			private var decisionCount:int = 0;
 			private var fDecisionCount:int = 0;
 			public static var firstSegLength:int = 0;
@@ -102,51 +112,71 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var splittedSegments:Array = new Array();
 			public var segmentsLeftToSplit:int = 0;
 			public var initSegmentIndices:Array = new Array();
+			
+			
+			
 			public function set target(panel:DraggablePanel):void
 			{
 				if (_panel)
 					throw new Error("target should not be set more than once");
+				
 				_panel = panel;
 			}
+			
 			override protected function childrenCreated():void
 			{
-				super.childrenCreated();	
+				super.childrenCreated();		
 			}
+			
 			public function getSystemGeneratedText():void
 			{
 			}
+			
 			private function handleCreationComplete(event:Event) : void
 			{
+				
+				
 				variables = lineChartPlotter.columns;
 				//linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 				checkingPlotterObjects();
 				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
+				
 				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
 				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
+				
 				if( HashDisabilityText == null)
 					reportError("Error Creating request object from Disability Options");
 				else
 					linkBindableProperty(HashDisabilityText, event.target, "text");	
 			}
+			
 			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
 			{
-				automaticToolDescTextBox.text = "after button clicked";
+				//automaticToolDescTextBox.text = "after button clicked";
+				StartSegmentation();
 				var dictionaryType:String;
 				var vizType:String;
 				var rResult:Array;
 				vizType = "lineChart";	
 			}
+			
 			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
 			public function checkingPlotterObjects():void
 			{	
+				
 				if(WeaveAPI.SessionManager.linkableObjectIsBusy(variables)) return;
+				
 				splittedSegments= new Array();
 				segmentsLeftToSplit = 0;
 				columnPreprocessing();
-			}	
+			}		
+			
+			
 			//getting the columns ready for R
 			protected function columnPreprocessing():void
 			{
+				progressLabel.text = "Ready";
+				automaticDescRefreshButton.enabled = true;
 				//use this function to gather the appropriate information that will be sent to R
 				//we have the columns in columnObjects
 				var numericCols:Array = new Array();
@@ -156,22 +186,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for(var i:int =0 ; i < colObjects.length; i++)
 				{
 					var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
-					var dataType:String = ColumnUtils.getDataType(col);	
+					var dataType:String = ColumnUtils.getDataType(col);			
 					if (dataType == "number")
 					{
 						numericCols.push(col);
 						columnNames.push(ColumnUtils.getTitle(col));
 					}
-				}	
+				}				
 				//joining columns returns columns only complete records (no incomplete records)
-				var joinedColumns:Array = joinColumns(numericCols);	
+				var joinedColumns:Array = joinColumns(numericCols);				
 				joinKeysRArray = joinedColumns[0];
-				joinColsRArray = joinedColumns[1];	
-				//todo: getting axis, title, color, scale, etc	
-				StartSegmentation();
+				joinColsRArray = joinedColumns[1];				
+				//todo: getting axis, title, color, scale, etc
+				if(!firstTimeDone)
+					StartSegmentation();
 			}
+			
 			private function joinColumns(columns:Array):Array
 			{
+				
 				var selection:KeySet = Weave.defaultSelectionKeySet;
 				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
 				//make dataype Null, so that columns will be sent as exact dataype to R
@@ -179,9 +212,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
 				return [result.shift(), result];
 			}
+			
 			private function StartSegmentation():void
 			{
 				var firstSegment:Array = new Array();
+				progressLabel.text = "processing.. 0%";
+				automaticToolDescTextBox.text = "Please wait while the graph is analyzed..";
+				firstTimeDone = true;
+				trace("\n");
 				trace("start");
 				for (var i:int = 0; i<joinColsRArray.length; i++)
 				{
@@ -189,6 +227,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					//reportError(joinColsRArray);
 				}
+				
 				if(firstSegment.length > 0)
 				{
 					initialSegment = new SegmentValue();
@@ -197,9 +236,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					initialSegment.mDisability = this;
 					initSegmentIndices = initialSegment.segmentIndices;
 					firstSegLength = firstSegment.length;
+					
 					initialSegment.getValues();
 				}
+				
 			}
+			
+			
 			public function runsTest(mSegment:SegmentValue):void
 			{
 				var yRegValues:Array = new Array();
@@ -207,32 +250,44 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var posRes:int = new int(); //positive residual
 				var standardDV:Number = new Number();
 				var runsMean:Number =new Number();
+				
 				for(var i:int=0; i<mSegment.Segment.length; i++)
 				{
 					yRegValues[i] = mSegment.intercept + (mSegment.slope * i);
 					residual[i] = mSegment.Segment[i] - yRegValues[i];
+					
 					if(residual[i] < 0) 
-						mSegment.actualRunsNum++;	
+						mSegment.actualRunsNum++;				
 					else 
-						posRes++	
+						posRes++		
 				}
+				
 				runsMean = ((2*mSegment.actualRunsNum*posRes)/(mSegment.actualRunsNum + posRes)) + 1;
 				standardDV = ((2*mSegment.actualRunsNum*posRes)*(2*mSegment.actualRunsNum*posRes - mSegment.actualRunsNum - posRes))/((mSegment.actualRunsNum+posRes)*(mSegment.actualRunsNum+posRes)*(mSegment.actualRunsNum+posRes-1));
+				
 				mSegment.diffAM = (mSegment.actualRunsNum - runsMean)/runsMean;
+				
 				if(mSegment.actualRunsNum > (runsMean-standardDV)) 
 					mSegment.runsTestB = false;
 				else
-					mSegment.runsTestB = true;	
+					mSegment.runsTestB = true;			
 			}
+			
+			
 			public function shouldSplit(mSegment:SegmentValue):Boolean
 			{
 				runsTest(mSegment);
 				return LineChartDecisionTree.getInstance().lineChartDT(mSegment.Segment,mSegment.corr, mSegment.fTests, mSegment.Segment.length / firstSegLength, mSegment.diffAM, mSegment.Segment.length, firstSegLength, mSegment.actualRunsNum, false, mSegment.runsTestB);
+				
 			}
+			
+			
 			private function splitWithR(mSegment:SegmentValue):void
 			{
 				// get values first
+				
 			}
+			
 			public function splitComplete():void
 			{
 				var start:Boolean = false;
@@ -241,11 +296,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for(var i:int=0; i< splittedSegments.length; i++)
 				{
 					sum += splittedSegments[i][1] - splittedSegments[i][0];
+					
+					
 					/*
 					if(splittedSegments[i][0] == 0)
 					{
 					//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1] - 1));
 					start = true;
+					
 					trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1]));
 					}
 					else
@@ -255,62 +313,98 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					*/
 				}
-				trace("processing.. " + Math.floor((sum / initSegmentIndices[1]) * 100) + "%");
+				
+				
+				progressLabel.text = "processing.. " + Math.floor((sum / initSegmentIndices[1]) * 100) + "%";
 				if(sum == initSegmentIndices[1])
 				{
 					trace("finished");
 					trace("Line chart splitted into " + splittedSegments.length + " segments");
 					splittedSegments.sortOn("0", Array.NUMERIC);
 					for(var me:int=0; me< splittedSegments.length; me++)
-					{	
-						if(splittedSegments[me][0] == 0)
+					{			
+						
+						if(splittedSegments[me][1] == initialSegment.Segment.length)
 						{
 							//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1] - 1));
 							start = true;
+							
+							
 							splittedSegments[me][1] = splittedSegments[me][1] - 1;
 						}
 						else
 						{
 							//trace("segment start: " + (splittedSegments[i][0]-1) + "   end: "+ (splittedSegments[i][1] - 1));	
 							//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1]));
-							splittedSegments[me][0] = splittedSegments[me][0] - 1;
-							splittedSegments[me][1] = splittedSegments[me][1] - 1;
+							//	splittedSegments[me][0] = splittedSegments[me][0] - 1;
+							//	splittedSegments[me][1] = splittedSegments[me][1] - 1;
 						}
+						
 						trace("segment no: "+ (me+1) +", start: " + splittedSegments[me][0] + "   end: "+ (splittedSegments[me][1]));
+						
 					}
-					ProduceSentence
+					
+					
+					
+					//ProduceSentence
+					
+					ProduceSentence(initialSegment.Segment, splittedSegments);
+					progressLabel.text = "Finished.";
+					automaticDescRefreshButton.enabled = false;
 				}
+				
 			}
+			
+			
 			public function split(mSegment:SegmentValue):void
 			{
 				//trace("aa");
+				
+				
 				if(!shouldSplit(mSegment))
 				{
 					splittedSegments.push(mSegment.segmentIndices);
+					
+					
 					//if(segmentsLeftToSplit ==0)
 					splitComplete();
+					
+					
 					//trace("splitted segments , " + splittedSegments);
 				}
 				else
 				{
+					if(mSegment.segmentIndices[0] == 16)
+					{
+						trace("mee");
+					}
 					var newSegments:Array = splitSegment(mSegment);
 					var Segment1:SegmentValue = new SegmentValue();
 					var Segment2:SegmentValue = new SegmentValue();
+					
 					segmentsLeftToSplit +=2;
 					Segment1.segmentIndices = newSegments[1];
 					Segment1.setSegment(newSegments[0]);
 					Segment1.mDisability = initialSegment.mDisability;
+					
 					Segment2.segmentIndices = newSegments[3];
 					Segment2.setSegment(newSegments[2]);
 					Segment2.mDisability = initialSegment.mDisability;
-					Segment1.split();
-					Segment2.split();
+					
+					if(Segment1.Segment != null)
+						Segment1.split();
+					if(Segment2.Segment != null)
+						Segment2.split();
 					//seg1
 					//seg2
+					
 				}
+				
 			}
-			public static function splitSegment(mSegment:SegmentValue):Array
+			
+			public function splitSegment(mSegment:SegmentValue):Array
 			{
+				
 				var startPoint:Array = new Array(mSegment.segmentIndices[0],mSegment.Segment[0]);
 				var endPoint:Array = new Array(mSegment.segmentIndices[1],mSegment.Segment[mSegment.Segment.length -1]);
 				var resultSegment:Array = new Array();
@@ -321,44 +415,230 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var secondSegment:Array = new Array();
 				var firstIndices:Array = new Array();
 				var secondIndices:Array = new Array();
+				
 				for(var i:int = mSegment.segmentIndices[0]; i < mSegment.segmentIndices[1] ; i++)
 				{
-					currVD = verticalDistance(startPoint, endPoint, new Array(i, mSegment.Segment[i]));
+					currVD = verticalDistance(startPoint, endPoint, new Array(i, initialSegment.Segment[i])); //mSegment.Segment
 					if(currVD > maxVD)
 					{
 						maxVD = currVD;
 						maxVDIndex = i;
 					}
-				}	
-				for(i = 0; i < maxVDIndex ; i++)
+				}		
+				
+				for(i = mSegment.segmentIndices[0]; i < maxVDIndex ; i++)
 				{
-					first.push(mSegment.Segment[i]);	
+					first.push(initialSegment.Segment[i]);	
 				}
-				for(i = maxVDIndex; i < mSegment.Segment.length ; i++)
+				
+				for(i = maxVDIndex; i < mSegment.segmentIndices[1] ; i++)
 				{
-					secondSegment.push(mSegment.Segment[i]);	
+					secondSegment.push(initialSegment.Segment[i]);	
 				}
 				firstIndices.push(mSegment.segmentIndices[0]);
 				//trace(maxVDIndex);
 				firstIndices.push(maxVDIndex);
 				secondIndices.push(maxVDIndex);
 				secondIndices.push(mSegment.segmentIndices[1]);
+				
+				
 				resultSegment.push(first);
 				resultSegment.push(firstIndices);
+				
 				resultSegment.push(secondSegment);
 				resultSegment.push(secondIndices);
+				
+				
 				return resultSegment;
+				
 			}
-			public static function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
+			
+			public function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
 			{
 				return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
 			}
+			
+			
+			
+			
 			public function ProduceSentence(initSeg:Array, splitIndices:Array):void
 			{
-				//for(var kaka:int = 0; kaka < initSegmentIndices[1] ; kaka++)
-				//	trace(initialSegment.Segment[kaka]);
-				automaticToolDescTextBox.text = "osman";
+				
+				var ExplenationSentence:String = "";
+				var SegmentAngles:Array = new Array();
+				var lastSpike:Array = new Array();
+				var spikeAvgAngle:Array = new Array();
+				
+				for(var k:int = 0; k < splitIndices.length ; k++)
+				{
+					var avgAngle:Number = 0;
+					var curAng:Number = 0;
+					
+					//avgAngle += curAng;
+					//trace(curAng);
+					avgAngle = 0;
+					
+					// check if the graph spikes down or up at the end of segment
+					for(var j:int = splitIndices[k][0]; j < (splitIndices[k][1] - 1) ; j++)
+					{
+						curAng = CalcAngle(initSeg[j], initSeg[j + 1],  1);
+						avgAngle += curAng;
+						
+						
+					}
+					avgAngle = avgAngle / (Math.abs(splitIndices[k][1] - splitIndices[k][0]) - 1);
+					curAng = CalcAngle(initSeg[splitIndices[k][0]], initSeg[splitIndices[k][1]], Math.abs(initSeg[splitIndices[k][1]] - initSeg[splitIndices[k][0]]));
+					if(curAng < avgAngle - 65)
+					{
+						lastSpike.push(-1);
+						spikeAvgAngle.push(avgAngle);
+					}
+					else if(curAng > avgAngle + 65)
+					{
+						lastSpike.push(1);
+						spikeAvgAngle.push(avgAngle);
+					}
+					else
+					{
+						lastSpike.push(0);
+						spikeAvgAngle.push(0);
+					}
+					
+					curAng = CalcAngle(initSeg[splitIndices[k][0]], initSeg[splitIndices[k][1]], (splitIndices[k][1] - splitIndices[k][0]));
+					//SegmentAngles.push(avgAngle / Math.abs(initSeg[splitIndices[i][1]] - initSeg[splitIndices[i][0]]));
+					SegmentAngles.push(curAng);
+				}
+				trace("Segment angles; " + SegmentAngles);
+				ExplenationSentence = "The graph consists of " + SegmentAngles.length + " trends. ";
+				for(var i:int = 0; i < SegmentAngles.length ; i++)
+				{
+					ExplenationSentence += "The " + OrderArray[i] + " segment ";
+					if(spikeAvgAngle[i] != 0)
+						SegmentAngles[i] = spikeAvgAngle[i];
+					
+					
+					if(SegmentAngles[i] < 0)
+					{
+						if(SegmentAngles[i] >= -5)
+						{
+							ExplenationSentence += "is a stable trend";
+						}
+						else if(SegmentAngles[i] >= -30)
+						{
+							ExplenationSentence += "is a slightly falling trend";
+						}
+						else if(SegmentAngles[i] >= -60)
+						{
+							ExplenationSentence += "is a falling trend";
+						}
+						else if(SegmentAngles[i] >= -90)
+						{
+							ExplenationSentence += "is a sharp falling trend";
+						}
+						
+						
+					}
+					else
+					{
+						if(SegmentAngles[i] <= 5)
+						{
+							ExplenationSentence += "is a stable trend";
+						}
+						else if(SegmentAngles[i] <= 30)
+						{
+							ExplenationSentence += "is a slightly increasing trend";
+						}
+						else if(SegmentAngles[i] <= 60)
+						{
+							ExplenationSentence += "is an increasing trend";
+						}
+						else if(SegmentAngles[i] <= 90)
+						{
+							ExplenationSentence += "is a sharp increasing trend";
+						}
+					}
+					
+					
+					if(lastSpike[i] == 1)
+					{
+						ExplenationSentence += " with a sharp increase at the end. Starts at " + initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]] + ". " ;
+					}
+					else if(lastSpike[i] == -1)
+					{
+						ExplenationSentence += " with a sharp fall at the end. Starts at " + initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]]  + ". " ;
+					}
+					else if(lastSpike[i] == 0)
+					{
+						ExplenationSentence += ". Starts at "+ initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]] + ". "  ;
+					}
+					
+				}
+				ExplenationSentence += "The line chart has " + initSeg.length + " data points.";
+				
+				if(initSeg[0] > initSeg[initSeg.length -1])
+				{
+					ExplenationSentence +=  "Overall, the line chart decreases ";
+				}
+				else
+				{
+					ExplenationSentence +=  "Overall, the line chart increases ";
+				}
+				ExplenationSentence +=  "from " + initSeg[0] + " to " + initSeg[initSeg.length -1];
+				
+				
+				automaticToolDescTextBox.text = ExplenationSentence;
+				
 			}
+			
+			public function CalcAngle(start:Number, end:Number, distance:int):Number
+			{
+				var VertDis:Number = end - start;
+				var HipoVal:Number = Math.sqrt((VertDis * VertDis) + (distance * distance));
+				var sinVal:Number = VertDis / HipoVal;
+				
+				var degree:Number = degFromRad(Math.asin(sinVal));
+				return degree;
+				
+			}
+			
+			public function degFromRad( p_radInput:Number ):Number
+			{
+				var degOutput:Number = ( 180 / Math.PI ) * p_radInput;
+				return degOutput;
+			}
+			
+			var OrderArray:Array = new Array("first",
+				"second",
+				"third",
+				"fourth",
+				"fifth",
+				"sixth",
+				"seventh",
+				"eighth",
+				"ninth",
+				"tenth",
+				"eleventh",
+				"twelfth",
+				"thirteenth",
+				"fiftfourteenth",
+				"fifteenth",
+				"sixteenth",
+				"seventeenth",
+				"eighteenth",
+				"nineteenth",
+				"twentieth",
+				"twenty first",
+				"twenty second",
+				"twenty third",
+				"twenty fourth",
+				"twenty fifth",
+				"twenty sixth",
+				"twenty seventh",
+				"twenty eighth",
+				"twenty ninth");
+			
+			
+			
 		]]>
 	</mx:Script>
 </mx:VBox>

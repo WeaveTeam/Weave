@@ -21,9 +21,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 package disabilityPack
 {
 	import flash.display.JointStyle;
+	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -41,23 +43,37 @@ package disabilityPack
 	/**
 	 * @author mervetuccar
 	 **/
+	
 	public class LineChartDecisionTree
 	{
 		private var InitialSegmentLength:int;
 		private static var _instance:LineChartDecisionTree=null;
+		
+		
 		public function LineChartDecisionTree()
-		{
+		{ 			
 			//constructor
 		}
+		
+		
 		public static function getInstance():LineChartDecisionTree{
 			if(_instance==null){
 				_instance=new LineChartDecisionTree();
 			}
 			return _instance;
 		}
+		
 		public function lineChartDT(segment:Array, corr:Number, fTests:Array, percentageTotal:Number, diffAM:Number, currSegNum:Number, totalNumber:Number, actualRunsNum:Number, outlier:Boolean, runsTestB:Boolean):Boolean
 		{
 			// 1=true=split 0=false=no split
+			
+			if(segment.length < 4)
+			{
+				trace("hobo");
+				return false;
+				
+			}
+			
 			if(corr>0.815541)
 			{
 				if(percentageTotal <= 0.62963)
@@ -96,12 +112,14 @@ package disabilityPack
 									if(diffAM <= 0.480712)
 									{
 										return false;
+										
 									}
 									else
 									{
 										return true;
 									}
 								}
+								
 							}
 						}
 						else // Ftest = 1 = false
@@ -176,6 +194,8 @@ package disabilityPack
 											return false;
 										}
 									}
+									
+									
 								}
 							}
 							else //percentage of total points > 0.392857
@@ -184,6 +204,7 @@ package disabilityPack
 								{
 									return true;
 								}
+									
 								else
 								{
 									if(totalNumber > 18)
@@ -225,24 +246,44 @@ package disabilityPack
 		
 		
 		
+		
+		
+		
+		
+		
 		private var keysArray:Array = new Array;
 		public function getJoinKeysArray(joinKeysArray:Array):void
 		{
 			keysArray.push(joinKeysArray);
 		}
 		
+		
+		
+		
 		private var corrCoefficient:Number = new Number();
+		
 		private function handleRFault(event:FaultEvent, token:Object = null):void
 		{
+			
 			trace("fault");
 			trace(["fault", token, event.message].join("\n"));
 			//corrCoefficient = NaN;
 			reportError(event);
 		}
-		//	public function totalNumber:Number { return InitialSegmentLength;  }
+		
+		
+		//	public function totalNumber:Number { 	return InitialSegmentLength;  }
+		
 		//	public function currSegNum(segment:Array):Number {	return segment.length;	}
 		
+		public function correlationCoefficient(segment:Array):Number
+		{
+			
+			return 0.80;
+		}
+		
 		//	public function percentageTotal:Number {return 0.92;}
+		
 		public function fTest(fTests:Array):Boolean
 		{
 			for(var i:int = 0; i < fTests.length; i++)
@@ -251,13 +292,20 @@ package disabilityPack
 					return true;
 			}
 			return false;
+			
+			
 		}
+		
 		public function changingPointsFtest():Number {return 5;}
+		
 		//public function runsTestB:Boolean { return false; }
+		
 		//	public function actualRunsNum:Number {return 5;}
+		
 		public function meanRuns(runsMeanValue:Number):Number {return runsMeanValue;}
 		public function standardDevOfRuns():Number
 		{
+			
 			var sdRunsTest:Number = new Number();
 			return sdRunsTest;
 		}
@@ -268,10 +316,14 @@ package disabilityPack
 		return 5;
 		}*/
 		//	public function outlier:Boolean {	return false;	}
+		
 		public function numberOfOutliers():Number
 		{
 			//the num of standardized residuals ri, which are greater than the critiical value
 			return 5;
 		}
+		
+		
+		
 	}
 }

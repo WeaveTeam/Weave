@@ -4,7 +4,7 @@
 <stringAttribute key="com.adobe.flexbuilder.debug.ATTR_DEBUG_URL" value="http://localhost:8080/weave.html?file=empty.xml"/>
 <stringAttribute key="com.adobe.flexbuilder.debug.ATTR_PROFILE_URL" value="http://localhost:8080/weave.html?file=empty.xml"/>
 <stringAttribute key="com.adobe.flexbuilder.debug.ATTR_PROJECT" value="WeaveClient"/>
-<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_RUN_URL" value="http://localhost:8080/DisabilityTest.html?file=empty.xml&amp;editable=true"/>
+<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_RUN_URL" value="http://localhost:8080/DisabilityTest.html?file=merve.xml&amp;editable=true"/>
 <booleanAttribute key="com.adobe.flexbuilder.debug.ATTR_USE_DEFAULT_URLS" value="false"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/WeaveClient"/>
