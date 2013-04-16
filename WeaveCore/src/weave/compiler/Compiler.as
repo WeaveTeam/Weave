@@ -1779,6 +1779,7 @@ package weave.compiler
 			if (compiledObject is CompiledConstant)
 				return compiledObject;
 			
+			var i:int;
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
 			if (!call.compiledMethod)
@@ -1786,7 +1787,7 @@ package weave.compiler
 			var params:Array = call.compiledParams;
 			if (params)
 			{
-				for (var i:int = 0; i < params.length; i++)
+				for (i = 0; i < params.length; i++)
 				{
 					params[i] = _finalize(params[i], varLookup);
 					if (params[i] == null) // variable declaration eliminated?
@@ -1805,8 +1806,6 @@ package weave.compiler
 				return null;
 			}
 			
-			//todo - flatten nested operator ';' and ',' calls
-			
 			if (method == operators[';'] || method == operators[','] || method == operators['('])
 			{
 				if (params.length == 0)
@@ -1821,6 +1820,24 @@ package weave.compiler
 						trace('optimized unnecessary wrapper function call:',decompileObject(compiledObject));
 					return _finalize(params[0], varLookup);
 				}
+				
+				// flatten nested grouping operators
+				i = params.length;
+				while (i--)
+				{
+					var nestedCall:CompiledFunctionCall = params[i] as CompiledFunctionCall;
+					if (!nestedCall)
+						continue;
+					var nestedMethod:Object = nestedCall.evaluatedMethod;
+					if (nestedMethod == operators[';'] || nestedMethod == operators[','] || nestedMethod == operators['('])
+					{
+						if (debug)
+							trace('flattened nested grouped expressions:',decompileObject(nestedCall));
+						nestedCall.compiledParams.unshift(i, 1);
+						params.splice.apply(null, nestedCall.compiledParams);
+					}
+				}
+				call.evaluateConstants();
 			}
 			
 			if ((method == operators[ST_IF] || method == operators['?:']) && params[INDEX_CONDITION] is CompiledConstant)

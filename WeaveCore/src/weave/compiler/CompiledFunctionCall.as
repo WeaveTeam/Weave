@@ -58,7 +58,11 @@ package weave.compiler
 			
 			if (compiledParams)
 			{
-				evaluatedParams = new Array(compiledParams.length);
+				if (!evaluatedParams)
+					evaluatedParams = new Array(compiledParams.length);
+				else
+					evaluatedParams.length = compiledParams.length;
+				
 				// move constant values from the compiledParams array to the evaluatedParams array.
 				for (var i:int = 0; i < compiledParams.length; i++)
 					if (compiledParams[i] is CompiledConstant)
