@@ -601,7 +601,9 @@ package weave.compiler
 			while (i < n)
 			{
 				var token:String = getToken(expression, i);
-				if (WHITESPACE.indexOf(token.charAt(0)) == -1)
+				var substr:String = token.substr(0, 2);
+				// skip whitespace and comments
+				if (substr != '//' && substr != '/*' && WHITESPACE.indexOf(token.charAt(0)) == -1)
 					tokens.push(token);
 				i += token.length;
 			}
@@ -618,6 +620,23 @@ package weave.compiler
 			var endIndex:int;
 			var n:int = expression.length;
 			var c:String = expression.charAt(index);
+			
+			// handle comments
+			if (c == '/')
+			{
+				var c2:String = expression.charAt(index + 1);
+				
+				if (c2 == '/') // line comment
+					return expression.substr(index).split('\r')[0].split('\n')[0];
+				
+				if (c2 == '*') /* block comment */
+				{
+					var endBlockComment:int = expression.indexOf("*/", index + 2);
+					if (endBlockComment < 0)
+						throw new Error('Missing end sequence of block comment ("*/"): ' + expression.substr(index));
+					return expression.substring(index, endBlockComment + 2);
+				}
+			}
 			
 			// handle quoted string
 			if (c == '"' || c == "'" || c == '`')
