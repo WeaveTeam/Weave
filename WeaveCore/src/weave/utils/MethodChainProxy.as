@@ -58,11 +58,18 @@ package weave.utils
 	{
 		/**
 		 * Constructor.
-		 * @param objects A list of objects to be checked in order when accessing properties or calling methods of the MethodChainProxy.
+		 * @param object The primary object to be proxied by chainable method wrappers, or null if you wish to specify objects in an Array in the moreObjects parameter.
+		 * @param moreObjects Additional objects to be checked in order in case properties/methods do not exist on the primary object.
+		 *                    You may specify a single Array as the moreObjects parameter if the primary object parameter is set to null.
 		 */		
-		public function MethodChainProxy(...objects):void
+		public function MethodChainProxy(primaryObject:Object, ...moreObjects):void
 		{
-			_objectsToCheck = objects;
+			if (primaryObject == null && moreObjects.length == 1 && moreObjects[0] is Array)
+				moreObjects = (moreObjects[0] as Array).concat();
+			else
+				moreObjects.unshift(primaryObject);
+			
+			_objectsToCheck = moreObjects;
 			
 			_classNames = _objectsToCheck.map(function(o:*):* { return getQualifiedClassName(o); });
 			
@@ -74,6 +81,7 @@ package weave.utils
 				_classNames.push(_thisQName);
 		}
 		
+		private var _foundHost:Object;
 		private var _thisQName:String;
 		private var _objectsToCheck:Array;
 		private var _classNames:Array;
@@ -107,11 +115,17 @@ package weave.utils
 		private function _newFunctionWrapper(host:Object, property:String):Function
 		{
 			// create a wrapper function that supports method chaining
+			var isProxy:Boolean = host is Proxy;
 			var _this:* = this;
 			return function(...args):* {
 				_this._result = undefined; // in case error is thrown
-				_this._result = host[property].apply(null, args);
-				return _this;
+				
+				if (isProxy)
+					_this._result = (host as Proxy).flash_proxy::callProperty(property, args);
+				else
+					_this._result = host[property].apply(host, args);
+				
+				return _this; // return MethodChainProxy to allow method chaining
 			};
 		}
 		
@@ -141,48 +155,57 @@ package weave.utils
 			throw new Error('There is no property named "' + propertyName + '" on ' + _classNames.join(' or '));
 		}
 		
+		private function _findHost(name:*, checkBuiltIns:Boolean):Object
+		{
+			for each (_foundHost in _objectsToCheck)
+				if (_foundHost.hasOwnProperty(name))
+					return _foundHost;
+			
+			if (checkBuiltIns)
+				for each (_foundHost in _objectsToCheck)
+					if (name in _foundHost)
+						return _foundHost;
+			
+			return _foundHost = null;
+		}
+		
 		override flash_proxy function hasProperty(name:*):Boolean
 		{
-			for each (var obj:Object in _objectsToCheck)
-			{
-				if (obj.hasOwnProperty(name))
-					return true;
-			}
+			if (_findHost(name, false))
+				return true;
 			return false;
 		}
 		
 		override flash_proxy function getProperty(name:*):*
 		{
 			if (name == 'valueOf')
-				return _result;
-			
-			for each (var obj:Object in _objectsToCheck)
 			{
-				if (obj.hasOwnProperty(name))
-					return _getWrapper(obj, name);
+				_foundHost = null;
+				return valueOf as Function;
 			}
+			
+			if (_findHost(name, true))
+				return _getWrapper(_foundHost, name);
+			
 			_throwError(name);
 		}
 		
 		override flash_proxy function setProperty(name:*, value:*):void
 		{
-			for each (var obj:Object in _objectsToCheck)
+			if (_findHost(name, true))
 			{
-				if (obj.hasOwnProperty(name))
-				{
-					obj[name] = value;
-					return;
-				}
+				_foundHost[name] = value;
+				return;
 			}
 			_throwError(name);
 		}
 		
 		override flash_proxy function callProperty(name:*, ...parameters):*
 		{
-			var wrapperMethod:* = this.flash_proxy::getProperty(name); // throws error if property does not exist
+			var method:* = flash_proxy::getProperty(name); // this will set _foundHost
 			try
 			{
-				return wrapperMethod.apply(this, parameters);
+				return method.apply(_foundHost, parameters);
 			}
 			catch (e:Error)
 			{

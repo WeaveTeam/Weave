@@ -22,6 +22,7 @@ package weave.compiler
 	import avmplus.DescribeType;
 	
 	import flash.utils.Dictionary;
+	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
@@ -224,6 +225,15 @@ package weave.compiler
 		 * This is an Array of all the unary operator symbols.
 		 */
 		private var unaryOperatorSymbols:Array = null;
+		
+		/**
+		 * This is used to temporarily store the host of the property that was accessed by the last call to the '.' operator.
+		 */		
+		private var _propertyHost:Object = null;
+		/**
+		 * This is used to temporarily store the property name that was accessed by the last call to the '.' operator.
+		 */		
+		private var _propertyName:* = null;
 
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
@@ -403,8 +413,15 @@ package weave.compiler
 			operators[FUNCTION] = function(..._):*{};
 			// property access should not be optimized to constants
 			operators["."] = function(object:*, ...chain):* {
+				var iHost:int = chain.length - 2;
+				_propertyHost = object;
+				_propertyName = chain[iHost + 1];
 				for (var i:int = 0; i < chain.length; i++)
+				{
+					if (i == iHost)
+						_propertyHost = object;
 					object = object[chain[i]];
+				}
 				return object;
 			};
 			operators[".."] = function(object:*, propertyName:*):* {
@@ -2179,6 +2196,10 @@ package weave.compiler
 					// no parameters need to be evaluated, so make the function call now
 					try
 					{
+						// reset _propertyHost and _propertyName prior to method apply in case we are calling operator '.'
+						_propertyHost = null;
+						_propertyName = null;
+						
 						if (!compiledParams) // no compiled params means it's a variable lookup
 						{
 							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
@@ -2254,7 +2275,9 @@ package weave.compiler
 						{
 							// type casting
 							if (method == Array) // special case for Array
+							{
 								result = call.evaluatedParams.concat();
+							}
 							else if (call.evaluatedParams.length != 1)
 							{
 								// special case for Object('prop1', value1, ...)
@@ -2270,9 +2293,13 @@ package weave.compiler
 							}
 							// special case for Class('some.qualified.ClassName')
 							else if (method === Class && call.evaluatedParams[0] is String)
+							{
 								result = getDefinitionByName(call.evaluatedParams[0]);
+							}
 							else // all other single-parameter type casting operations
+							{
 								result = method(call.evaluatedParams[0]);
+							}
 						}
 						else if (method == operators[ST_VAR]) // variable initialization
 						{
@@ -2299,10 +2326,17 @@ package weave.compiler
 								funcParams[FUNCTION_PARAM_VALUES]
 							);
 						}
+						else if (call.evaluatedHost is Proxy)
+						{
+							// use Proxy.flash_proxy::callProperty
+							var proxyParams:Array = call.evaluatedParams.concat();
+							proxyParams.unshift(call.evaluatedMethodName);
+							result = (call.evaluatedHost as Proxy).flash_proxy::callProperty.apply(call.evaluatedHost, proxyParams);
+						}
 						else
 						{
-							// function call
-							result = method.apply(null, call.evaluatedParams);
+							// normal function call
+							result = method.apply(call.evaluatedHost, call.evaluatedParams);
 						}
 					}
 					catch (e:*)
@@ -2346,7 +2380,11 @@ package weave.compiler
 					// otherwise, store the result in the evaluatedParams array of the parent call
 					call = stack[stack.length - 1] as CompiledFunctionCall;
 					if (call.evalIndex == INDEX_METHOD)
+					{
+						call.evaluatedHost = _propertyHost;
+						call.evaluatedMethodName = _propertyName;
 						call.evaluatedMethod = result;
+					}
 					else
 						call.evaluatedParams[call.evalIndex] = result;
 					// advance the evalIndex so the next parameter will be evaluated.
