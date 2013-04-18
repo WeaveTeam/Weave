@@ -2455,7 +2455,8 @@ package weave.compiler
 				"i = -1; while (++i < 10) { if (i == 3) continue; trace(i); if (i == 5) break; } trace('done');",
 				"a = []; o = Object('a',1,'b',2,'c',3,'d',4,'e',5); for (k in o) { a.push(`{k} = {o[k]}`); o['?'+k]=k+'!'; delete o[k]; } for each (p in o) a.push(p); return [a,o];",
 				"y = 4; x = 3; var x = 4, y; [x, y]",
-				"`abc { function(x,y) { return x+y; } } xyz`"
+				"`abc { function(x,y) { return x+y; } } xyz`",
+				"var obj = Object('f', function() { return this == obj; }); var ff = obj.f; [obj.f(), (obj.f)(), ff()]"
 			];
 			var values:Array = [-2, -1, -0.5, 0, 0.5, 1, 2];
 			var vars:Object = {};
