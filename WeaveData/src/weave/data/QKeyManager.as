@@ -113,6 +113,24 @@ package weave.data
 			_callbackCollection.resumeCallbacks();
 			return keys;
 		}
+		
+		/**
+		 * This will replace untyped Objects in an Array with their IQualifiedKey counterparts.
+		 * Each object in the Array should have two properties: <code>keyType</code> and <code>localName</code>
+		 * @param objects An Array to modify.
+		 * @return The same Array that was passed in, modified.
+		 */
+		public function mapQKeys(objects:Array):Array
+		{
+			var i:int = objects.length;
+			while (i--)
+			{
+				var item:Object = objects[i];
+				if (!(item is IQualifiedKey))
+					objects[i] = getQKey(item.keyType, item.localName);
+			}
+			return objects;
+		}
 
 		/**
 		 * Get a list of QKey objects, all with the same key type.

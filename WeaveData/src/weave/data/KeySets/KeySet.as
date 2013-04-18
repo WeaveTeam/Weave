@@ -25,10 +25,10 @@ package weave.data.KeySets
 	
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
-	import weave.api.getSessionState;
-	import weave.api.setSessionState;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getSessionState;
+	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
@@ -154,6 +154,7 @@ package weave.data.KeySets
 			if (_locked)
 				return false;
 			
+			WeaveAPI.QKeyManager.mapQKeys(newKeys);
 			if (newKeys == _keys)
 				_keys = _keys.concat();
 			
@@ -248,6 +249,7 @@ package weave.data.KeySets
 				return false;
 			
 			var changeDetected:Boolean = false;
+			WeaveAPI.QKeyManager.mapQKeys(additionalKeys);
 			for each (var key:IQualifiedKey in additionalKeys)
 			{
 				if (_keyIndex[key] == undefined)
@@ -281,6 +283,7 @@ package weave.data.KeySets
 				return clearKeys();
 			
 			var changeDetected:Boolean = false;
+			WeaveAPI.QKeyManager.mapQKeys(unwantedKeys);
 			for each (var key:IQualifiedKey in unwantedKeys)
 			{
 				if (_keyIndex[key] != undefined)

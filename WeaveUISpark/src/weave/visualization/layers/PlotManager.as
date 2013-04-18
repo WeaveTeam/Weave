@@ -441,7 +441,7 @@ package weave.visualization.layers
 		 **/
 		public function getOverlappingKeysAcrossLayers(sourceKeys:Array, sourceLayer:String, destinationLayer:String):Array
 		{
-			sourceKeys = ColumnUtils.getQKeys(sourceKeys);
+			sourceKeys = WeaveAPI.QKeyManager.mapQKeys(sourceKeys);
 			var simpleGeometriesInSourceLayer:Array = [];
 			var simpleGeometry:ISimpleGeometry;
 			var queriedKeys:Array = [];

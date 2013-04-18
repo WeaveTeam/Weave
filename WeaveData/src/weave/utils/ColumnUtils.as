@@ -185,19 +185,10 @@ package weave.utils
 		 * @param genericObjects An array of generic objects with <code>keyType</code>
 		 * and <code>localName</code> properties.
 		 * @return An array of IQualifiedKey objects.
-		 * 
-		 */		
-		public static function getQKeys(genericObjects:Array):Array
+		 */
+		[Deprecated(replacement="WeaveAPI.QKeyManager.mapQKeys()")] public static function getQKeys(genericObjects:Array):Array
 		{
-			var result:Array = [];
-			
-			for each (var key:Object in genericObjects)
-			{
-				var qkey:IQualifiedKey = getQKey(key);
-				result.push(qkey);
-			}
-
-			return result;
+			return WeaveAPI.QKeyManager.mapQKeys(genericObjects);
 		}
 			
 		/**
