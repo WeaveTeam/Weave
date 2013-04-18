@@ -28,7 +28,7 @@ function(objectID)
 		
 		// private variables
 		var stack = []; // stack of argument counts from push() calls
-		var vars = null; // passed to weave.evaluateExpression()
+		var vars = {}; // passed to weave.evaluateExpression()
 		var libs = []; // passed to weave.evaluateExpression()
 		
 		
@@ -59,6 +59,15 @@ function(objectID)
 		{
 			return weave.getChildNames(path);
 		};
+		/**
+		 * Gets a variable that was previously specified in WeavePath.vars() or saved with WeavePath.exec().
+		 * The first parameter is the variable name. 
+		 */
+		this.getVar = function(name)
+		{
+			return vars[name];
+		};
+		
 		
 		
 		// chainable methods
@@ -164,11 +173,13 @@ function(objectID)
 			return this;
 		};
 		/**
-		 * Specifies a variables object to be used in subsequent calls to exec().
+		 * Specifies additional variables to be used in subsequent calls to exec().
+		 * The parameter should be an object mapping variable names to their values.
 		 */
 		this.vars = function(newVars)
 		{
-			vars = newVars;
+			for (var key in newVars)
+				vars[key] = newVars[key];
 			return this;
 		};
 		/**
@@ -183,14 +194,20 @@ function(objectID)
 		/**
 		 * Calls weave.evaluateExpression() using the current path, vars, and libs.
 		 * First parameter is the script to be evaluated by Weave at the current path.
-		 * Second parameter is an optional callback that will be passed the result of
-		 * evaluating the expression, setting the 'this' pointer to this WeavePath object.
+		 * Second parameter is an optional callback or variable name.
+		 * - If given a callback function, the function will be passed the result of
+		 *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
+		 * - If the second parameter is a variable name, the result will be stored as a variable
+		 *   as if it was passed as an object property to WeavePath.vars().  It may then be used
+		 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getVar().
 		 */
-		this.exec = function(script, callback)
+		this.exec = function(script, callback_or_variableName)
 		{
 			var result = weave.evaluateExpression(path, script, vars, libs);
-			if (callback)
-				callback.apply(this, [result]);
+			if (typeof callback_or_variableName == 'function')
+				callback_or_variableName.apply(this, [result]);
+			else
+				vars[callback_or_variableName] = result;
 			return this;
 		};
 		/**
