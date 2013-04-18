@@ -26,14 +26,18 @@ function(objectID)
 		if (!path)
 			path = [];
 		
-		// public variable
-		this.weave = weave; // pointer to Weave instance
-
 		// private variables
 		var stack = []; // stack of argument counts from push() calls
 		var vars = null; // passed to weave.evaluateExpression()
 		var libs = []; // passed to weave.evaluateExpression()
 		
+		
+		// public variables and non-chainable methods
+		
+		/**
+		 * A pointer to the Weave instance.
+		 */
+		this.weave = weave;
 		/**
 		 * Makes a copy of the current path Array.
 		 */
@@ -41,6 +45,23 @@ function(objectID)
 		{
 			return this.path.concat();
 		};
+		/**
+		 * Gets the object type at the current path.
+		 */
+		this.getType = function()
+		{
+			return weave.getObjectType(path);
+		};
+		/**
+		 * Gets an Array of child names under the current path.
+		 */
+		this.getChildren = function()
+		{
+			return weave.getChildNames(path);
+		};
+		
+		
+		// chainable methods
 		
 		/**
 		 * Specify any number of names to push on to the end of the path.
@@ -221,8 +242,12 @@ function(objectID)
 		}
 		function failMessage(methodName, message)
 		{
+			var str = "WeavePath." + methodName + "(): " + message;
+			
 			//TODO - mode where error is logged instead of thrown
-			throw new Error("WeavePath." + methodName + "(): " + message);
+			//console.log(str);
+			
+			throw new Error(str);
 		}
 	}
 }
