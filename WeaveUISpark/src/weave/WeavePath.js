@@ -2,14 +2,21 @@ function(objectID)
 {
 	var weave = objectID ? document.getElementById(objectID) : document;
 	
-	weave.path = function(path)
+	/**
+	 * Creates a WeavePath object.
+	 * Accepts an optional Array or list of names to serve as the base path.
+	 */
+	weave.path = function(names/*, ...rest*/)
 	{
 		// if there are multiple arguments passed to the function, create an Array
-		if (arguments.length != 1 || path.constructor != Array)
-			path = A(arguments);
+		if (arguments.length != 1 || names.constructor != Array)
+			names = A(arguments);
 		
-		return new WeavePath(path);
+		return new WeavePath(names);
 	};
+	
+	// Used by callbackToString(), maps an integer id to an object with two properties: callback and name
+	weave._WeavePathCallbacks = [];
 	
 	// converts an arguments object to an Array
 	function A(argumentsObject)
@@ -21,7 +28,7 @@ function(objectID)
 		return array;
 	}
 	
-	// constructor
+	// constructor, accepts a single parameter - the base path Array
 	function WeavePath(path)
 	{
 		if (!path)
@@ -31,7 +38,6 @@ function(objectID)
 		var stack = []; // stack of argument counts from push() calls, used with pop()
 		var vars = {}; // used with exec() and getVar()
 		var libs = []; // used with exec()
-		
 		
 		// public variables and non-chainable methods
 		
@@ -79,7 +85,7 @@ function(objectID)
 		
 		
 		
-		// chainable methods
+		// public chainable methods
 		
 		/**
 		 * Specify any number of names to push on to the end of the path.
@@ -105,7 +111,7 @@ function(objectID)
 			if (stack.length)
 				path.length -= stack.pop();
 			else
-				failMessage('pop', 'nothing to pop');
+				failMessage('pop', 'stack is empty');
 			return this;
 		};
 		/**
@@ -161,7 +167,7 @@ function(objectID)
 				var pathcopy = path.concat(A(arguments));
 				var state = pathcopy.pop();
 				weave.setSessionState(pathcopy, state, true)
-					|| failMessage('state', 'object does not exist (path: ' + pathcopy + ')');
+					|| failObject('state', pathcopy);
 			}
 			return this;
 		};
@@ -177,7 +183,7 @@ function(objectID)
 				var pathcopy = path.concat(A(arguments));
 				var diff = pathcopy.pop();
 				weave.setSessionState(pathcopy, diff, false)
-					|| failMessage('diff', 'object does not exist (path: ' + pathcopy + ')');
+					|| failObject('diff', pathcopy);
 			}
 			return this;
 		};
@@ -220,6 +226,33 @@ function(objectID)
 			return this;
 		};
 		/**
+		 * Adds a grouped callback to the object at the current path.
+		 * First parameter is the callback function.
+		 * Second parameter is a Boolean, when set to true will trigger the callback now.
+		 * Since this adds a grouped callback, the callback will not run immediately when addCallback() is called.
+		 */
+		this.addCallback = function(callback, triggerCallbackNow)
+		{
+			if (assertParams('addCallback', arguments))
+			{
+				weave.addCallback(path, callbackToString(callback), triggerCallbackNow)
+					|| failObject('addCallback');
+			}
+			return this;
+		};
+		/**
+		 * Removes a callback from the object at the current path.
+		 */
+		this.removeCallback = function(callback)
+		{
+			if (assertParams('removeCallback', arguments))
+			{
+				weave.removeCallback(path, callbackToString(callback))
+					|| failObject('removeCallback');
+			}
+			return this;
+		};
+		/**
 		 * Applies a function with optional parameters, setting 'this' pointer to the WeavePath object
 		 */
 		this.call = function(func/*[, ...args]*/)
@@ -249,13 +282,39 @@ function(objectID)
 		};
 		
 		// private functions
+		function callbackToString(callback)
+		{
+			var list = weave._WeavePathCallbacks;
+			for (var i in list)
+				if (list[i].callback == callback)
+					return list[i].name;
+			
+			var idStr;
+			try
+			{
+				idStr = JSON.stringify(objectID);
+			}
+			catch (e)
+			{
+				idStr = '"' + objectId + '"';
+			}
+			
+			var name = 'function(){' +
+				'  var weave = document.getElementById('+idStr+');' +
+				'  weave._WeavePathCallbacks['+list.length+'].callback.call(weave);' +
+				'}';
+			
+			list.push({ 'callback': callback, 'name': name });
+			
+			return name;
+		}
 		function assertParams(methodName, args, minLength)
 		{
 			if (!minLength)
 				minLength = 1;
 			if (args.length < minLength)
 			{
-				var msg = "requires at least " + ((minLength == 1) ? "one parameter" : (minLength + " parameters"));
+				var msg = 'requires at least ' + ((minLength == 1) ? 'one parameter' : (minLength + ' parameters'));
 				failMessage(methodName, msg);
 				return false;
 			}
@@ -263,12 +322,17 @@ function(objectID)
 		}
 		function failPath(methodName, path)
 		{
-			var msg = "command failed (path=" + (path || this.path) + ")";
+			var msg = 'command failed (path: ' + (path || this.path) + ')';
+			failMessage(methodName, msg);
+		}
+		function failObject(methodName, path)
+		{
+			var msg = 'object does not exist (path: ' + (path || this.path) + ')';
 			failMessage(methodName, msg);
 		}
 		function failMessage(methodName, message)
 		{
-			var str = "WeavePath." + methodName + "(): " + message;
+			var str = 'WeavePath.' + methodName + '(): ' + message;
 			
 			//TODO - mode where error is logged instead of thrown
 			//console.log(str);
