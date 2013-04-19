@@ -13,8 +13,9 @@ function modifySessionState(stateToModify, path, value)
     path = path.slice(1);
     if (stateToModify.constructor == Array)
     {
-        for each (var dynamicState in stateToModify)
+        for (var i in stateToModify)
         {
+        	var dynamicState = stateToModify[i];
             if (property == dynamicState.objectName)
             {
                 if (path.length)
@@ -57,8 +58,9 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName)
 
     // set the column reference
     var names = dataSourceName ? [dataSourceName] : weave.getChildNames([]);
-    for each (var name in names)
+    for (var i in names)
     {
+    	var name = names[i];
         if (weave.getObjectType([name]) == WeaveDataSource)
         {
             path.push('dynamicColumnReference', null);

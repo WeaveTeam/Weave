@@ -73,7 +73,7 @@ package weave.utils
 			if (pool[object])
 				return;
 			
-			var objectType:Class = ClassUtils.getClassDefinition(getQualifiedClassName(object)) as Class;
+			var objectType:Class = Object(object).constructor; //ClassUtils.getClassDefinition(getQualifiedClassName(object)) as Class;
 			var objects:Array = pool[objectType] as Array;
 			if (!objects)
 				pool[objectType] = objects = [];

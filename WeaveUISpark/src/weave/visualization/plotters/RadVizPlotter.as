@@ -458,27 +458,24 @@ package weave.visualization.plotters
 		 * 
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
-		 * @return An Array of Bounds2D objects that make up the bounds for the record.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			//_columns = columns.getObjects(IAttributeColumn);
 			//if(!unorderedColumns.length) handleColumnsChange();
 			getXYcoordinates(recordKey);
 			
-			var bounds:IBounds2D = getReusableBounds();
-			bounds.includePoint(coordinate);
-			return [bounds];
+			initBoundsArray(output).includePoint(coordinate);
 		}
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @return A Bounds2D object specifying the background data bounds.
+		 * @param An IBounds2D object used to store the background data bounds.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(-1, -1.1, 1, 1.1);
+			output.setBounds(-1, -1.1, 1, 1.1);
 		}		
 		
 		public var drawProbe:Boolean = false;

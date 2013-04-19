@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -59,7 +60,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IDisposableObject
 	{
 		public function GeometryPlotter()
 		{
@@ -113,7 +114,7 @@ package weave.visualization.plotters
 		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize), disposeCachedBitmaps);
 		private function validateIconSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			var geoms:Array = null;
 			var column:IAttributeColumn = geometryColumn; 
@@ -125,11 +126,11 @@ package weave.visualization.plotters
 			else if (value is GeneralizedGeometry)
 				geoms = [value as GeneralizedGeometry]; // single geom -- create array
 
-			var results:Array = [];
+			var i:int = 0;
 			if (geoms != null)
 				for each (var geom:GeneralizedGeometry in geoms)
-					results.push(geom.bounds);
-			return results;
+					output[i++] = geom.bounds;
+			output.length = i;
 		}
 		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
@@ -159,7 +160,7 @@ package weave.visualization.plotters
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
 		 * @param outputDataBounds A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			// try to find an internal StreamedGeometryColumn
 			var column:IAttributeColumn = geometryColumn;
@@ -169,9 +170,9 @@ package weave.visualization.plotters
 			// if the internal geometry column is a streamed column, request the required detail
 			var streamedColumn:StreamedGeometryColumn = column as StreamedGeometryColumn;
 			if (streamedColumn)
-				return streamedColumn.collectiveBounds;
+				output.copyFrom(streamedColumn.collectiveBounds);
 			else
-				return getReusableBounds(); // undefined
+				output.reset(); // undefined
 		}
 
 		/**
@@ -449,10 +450,9 @@ package weave.visualization.plotters
 				outputGraphics.lineTo(firstX, firstY);
 		}
 		
-		override public function dispose():void
+		public function dispose():void
 		{
 			disposeCachedBitmaps();
-			super.dispose();
 		}
 
 		// backwards compatibility 0.9.6

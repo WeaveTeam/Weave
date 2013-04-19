@@ -105,17 +105,17 @@ package weave.visualization.plotters
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output An Array of IBounds2D object to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var bounds:IBounds2D = getReusableBounds(
-					xMinData.getValueFromKey(recordKey, Number),
-					yMinData.getValueFromKey(recordKey, Number),
-					xMaxData.getValueFromKey(recordKey, Number),
-					yMaxData.getValueFromKey(recordKey, Number)
-				);
-			return [bounds];
+			initBoundsArray(output);
+			(output[0] as IBounds2D).setBounds(
+				xMinData.getValueFromKey(recordKey, Number),
+				yMinData.getValueFromKey(recordKey, Number),
+				xMaxData.getValueFromKey(recordKey, Number),
+				yMaxData.getValueFromKey(recordKey, Number)
+			);
 		}
 
 		/**

@@ -62,7 +62,6 @@ package weave.visualization.plotters
 			_filteredData = sortedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(filteredKeySet.keyFilter, _filteredData.filter);
 			
-			registerSpatialProperty(data);
 			setColumnKeySources([_filteredData]);
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
@@ -95,7 +94,7 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(recordKey, graphics);				
 			fillStyle.beginFillStyle(recordKey, graphics);
 			// move to center point
-			WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians);
+			WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, 0, 0, 1, 0.5);
 			// end fill
 			graphics.endFill();
 		}
@@ -158,26 +157,24 @@ package weave.visualization.plotters
 		private const _tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
 		
-		/**
-		 * This gets the data bounds of the bin that a record key falls into.
-		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			initBoundsArray(output, 1);
+			
 			var beginRadians:Number = _beginRadians.getValueFromKey(recordKey, Number);
 			var spanRadians:Number = _spanRadians.getValueFromKey(recordKey, Number);
-			var bounds:IBounds2D = getReusableBounds();
+			var bounds:IBounds2D = output[0];
 			WedgePlotter.getWedgeBounds(bounds, beginRadians, spanRadians);
 			trace(recordKey.localName,bounds);
-			return [bounds];
 		}
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
 		 * @param outputDataBounds A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(-1, -1, 1, 1);
+			output.setBounds(-1, -1, 1, 1);
 		}
 	}
 }

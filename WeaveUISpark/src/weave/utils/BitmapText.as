@@ -82,6 +82,7 @@ package weave.utils
 		public var x:Number = 0; // align text to this x coordinate before rotating
 		public var y:Number = 0; // align text to this y coordinate before rotating
 		public var angle:Number = 0; // rotation angle in degrees
+		public var angleIsDegrees:Boolean = true; // true if angle is specified in degrees, false for radians
 		public var roundCoords:Boolean = true; // round x,y values to integers
 		public var trim:Boolean = true; // trim leading/trailing whitespace
 		public var horizontalAlign:String = HORIZONTAL_ALIGN_LEFT; // default: align x to left side of text
@@ -333,7 +334,10 @@ package weave.utils
 				_matrix.translate(0, - _textField.height);
 			
 			// rotate text around alignment point
-			_matrix.rotate(angle * Math.PI / 180);
+			if (angleIsDegrees)
+				_matrix.rotate(angle * Math.PI / 180);
+			else
+				_matrix.rotate(angle);
 			// move rotated text
 			if (roundCoords)
 				_matrix.translate(Math.round(x), Math.round(y));

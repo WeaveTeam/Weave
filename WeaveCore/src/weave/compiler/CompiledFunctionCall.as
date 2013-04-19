@@ -58,7 +58,11 @@ package weave.compiler
 			
 			if (compiledParams)
 			{
-				evaluatedParams = new Array(compiledParams.length);
+				if (!evaluatedParams)
+					evaluatedParams = new Array(compiledParams.length);
+				else
+					evaluatedParams.length = compiledParams.length;
+				
 				// move constant values from the compiledParams array to the evaluatedParams array.
 				for (var i:int = 0; i < compiledParams.length; i++)
 					if (compiledParams[i] is CompiledConstant)
@@ -83,6 +87,15 @@ package weave.compiler
 		 */
 		public var evalIndex:int;
 		/**
+		 * When the function is called as a property of an object, this will store a pointer to the object
+		 * so that it can be used as the 'this' parameter in Function.apply().
+		 */
+		public var evaluatedHost:Object;
+		/**
+		 * When the function is called as a property of an object, this will store the property name in case the host is a Proxy object.
+		 */
+		public var evaluatedMethodName:Object;
+		/**
 		 * This is used to store the result of evaluating the compiledMethod before evaluating the parameters.
 		 */
 		public var evaluatedMethod:Object;
@@ -91,7 +104,6 @@ package weave.compiler
 		 * This Array is used to store the results of evaluating the compiledParams Array before calling the method.
 		 */
 		public var evaluatedParams:Array;
-		
 		/**
 		 * An optional set of original tokens to use in place of this CompiledFunctionCall when decompiling.
 		 */		

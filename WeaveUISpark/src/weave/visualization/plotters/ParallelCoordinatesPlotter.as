@@ -51,6 +51,7 @@ package weave.visualization.plotters
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
+	import weave.utils.ObjectPool;
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
@@ -256,8 +257,10 @@ package weave.visualization.plotters
 			return shapesAvailable.indexOf(type) >= 0;
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			initBoundsArray(output, _columns.length);
+			var outIndex:int = 0;
 			var results:Array = [];
 			var i:int;
 			var _normalize:Boolean = normalize.value;
@@ -279,7 +282,8 @@ package weave.visualization.plotters
 					if (i < _columns.length - 1)
 					{
 						// include a bounds for the line segment
-						var bounds:IBounds2D = getReusableBounds(x, y, x, y);
+						var bounds:IBounds2D = output[outIndex++] as IBounds2D;
+						bounds.includeCoords(x, y);
 						if (_normalize)
 							y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i+1]).getNorm(recordKey);
 						else
@@ -292,11 +296,11 @@ package weave.visualization.plotters
 				else
 				{
 					// include a bounds for the point on the axis
-					results.push(getReusableBounds(x, y, x, y));
+					(output[outIndex++] as IBounds2D).setBounds(x, y, x, y);
 				}
 			}
-				
-			return results;
+			while (output.length > outIndex)
+				ObjectPool.returnObject(output.pop());
 		}
 		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
@@ -460,28 +464,30 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			// normalized data coordinates
-			var bounds:IBounds2D = getReusableBounds();
-			if (!zoomToSubset.value)
+			if (zoomToSubset.value)
 			{
-				bounds.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
+				output.reset();
+			}
+			else
+			{
+				output.setBounds(0, 0, Math.max(1, columns.getNames().length - 1), 1);
 				
 				if (!normalize.value)
 				{
 					// reset y coords
-					bounds.setYRange(NaN, NaN);
+					output.setYRange(NaN, NaN);
 					for each (var column:IAttributeColumn in columns.getObjects())
 					{
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 						// expand y range to include all data coordinates
-						bounds.includeCoords(0, stats.getMin());
-						bounds.includeCoords(0, stats.getMax());
+						output.includeCoords(0, stats.getMin());
+						output.includeCoords(0, stats.getMax());
 					}
 				}
 			}
-			return bounds;
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object

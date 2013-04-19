@@ -510,6 +510,8 @@ package weave
 		
 		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
 		private static const WeaveStartup:Class;
+		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
+		private static const WeavePath:Class;
 
 		public static function initJavaScriptDragDrop():void
 		{
@@ -518,6 +520,7 @@ package weave
 			try
 			{
 				ExternalInterface.call(String(new WeaveStartup()), ExternalInterface.objectID);
+				ExternalInterface.call(String(new WeavePath()), ExternalInterface.objectID);
 			}
 			catch (e:Error)
 			{

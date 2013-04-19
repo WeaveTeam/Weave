@@ -141,14 +141,13 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			output.reset();
 			if (horizontal.value)
-				bounds.setYRange(start.value, end.value);
+				output.setYRange(start.value, end.value);
 			else
-				bounds.setXRange(start.value, end.value);
-			return bounds;
+				output.setXRange(start.value, end.value);
 		}
 	}
 }
