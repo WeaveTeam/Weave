@@ -80,6 +80,38 @@ public abstract class AbstractDataSource implements Runnable
 		AdminService.addDocuments(updatedResults.toArray(updatedResultsArray),solrServerURL);
 	}
 	
+	private String joinArrayElements(String[] array, String element)
+	{
+		String result ="";
+		
+		if(array.length == 0)
+			return result;
+		
+		for (int i = 0; i<array.length; i++)
+		{
+			result += array[i];
+			if(i != array.length -1)
+				result += element;
+		}
+		
+		return result;
+	}
+	
+	public String[] getRequiredQueryTerms()
+	{
+		String[] requiredTerms;
+		if(relatedQueryTerms == null || relatedQueryTerms.length == 0)
+		{
+			requiredTerms = new String[1];
+			requiredTerms[0] = joinArrayElements(requiredQueryTerms, " ");
+		}
+		else
+		{
+			requiredTerms = requiredQueryTerms;
+		}
+		return requiredTerms;
+	}
+	
 	public void run()
 	{
 		if(requiredQueryTerms.length>0)

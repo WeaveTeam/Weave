@@ -421,6 +421,7 @@
 			 * @private
 			 * Called when the session state of query is changed
 			 **/
+			private var _currentQueryTerms:Array = [];
 			private function createAndSendQuery(event:TimerEvent=null):void
 			{
 				trace("in createAndSendQuery");
@@ -431,7 +432,8 @@
 				
 				/* if this is an empty query clear all documents */
 				if(!currentQuery.keywords.value)
-				{
+				{	
+					_currentQueryTerms = [];
 					handleEmptyResultSet();
 					return;
 				}
@@ -449,8 +451,10 @@
 					WeaveAPI.SessionManager.getSessionState(currentQuery));
 								
 				/* Make query to get number of documents */
+				/* We first check to see if they are separated by commas if not then assume space*/
 				if(_parentPanel.relatedKeywords.value)
-					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
+						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
 
 				if(isQueryDifferent)
 				{
@@ -466,18 +470,20 @@
 					
 				}
 				
+				_currentQueryTerms = currentQuery.keywords.value.indexOf(',') != -1?currentQuery.keywords.value.split(','):
+					currentQuery.keywords.value.split(' ');
 				if(isQueryDifferent || _firstLoad)
 				{
-					InfoMapAdminInterface.instance.queryDataSources(currentQuery.keywords.value.split(','),
-						relatedKeywords);
+					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+						_currentRelatedKeywords);
 				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);
+					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);
 				
-				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,
-					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,sources:currentQuery.sources.value});
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,token);
 				
 			}
 			
@@ -498,12 +504,12 @@
 				WeaveAPI.ErrorManager.reportError(event.fault.message,"Error with Data Source query");
 			}
 			
-			private function handleNumOfDocsQueryResult(event:ResultEvent,token:Object=null):void
+			private function handleNumOfDocsQueryResult(event:ResultEvent,token:QueryObject=null):void
 			{
-				/* if the query has changed do nothing */
-				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
-					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value || token.sources != currentQuery.sources.value)
+				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
+					getSessionState(currentQuery));
+				
+				if(diff != undefined)
 					return;
 				
 				var numOfDocs:Number = event.result as Number;
@@ -512,8 +518,8 @@
 				if(numOfDocs <= 0)
 				{
 					status.text = "0 documents found. Checking with data sources...";
-					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource(currentQuery.keywords.value.split(','),relatedKeywords),
-						handleTotalResults,handleTotalResultsFault);
+					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
+						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
 					return;						
 				}
@@ -533,24 +539,20 @@
 				numOfMatchedDocuments.value = numOfDocs;
 				updateTextArea();
 				
-				/* Send query to get full result set */
-				if(_parentPanel.relatedKeywords.value)
-					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
-				
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
-					currentQuery.dateFilter,2000);
+					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
+					currentQuery.dateFilter,2000,currentQuery.sortBy.value);
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 			}
 			
 			
-			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:Object=null):void
+			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:QueryObject=null):void
 			{
-				//if the query has changed do nothing
-				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
-					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value || token.sources != currentQuery.sources.value)
+				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
+					getSessionState(currentQuery));
+				
+				if(diff != undefined)
 					return;
 				
 				var docsArray:Array = event.result as Array;
@@ -740,12 +742,12 @@
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
-				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-					currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter);
+				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
+					currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
 				
-				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
-					{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,operator:currentQuery.operator.value,
-						endDate:currentQuery.dateFilter.endDate.value,forceHide:true,forceShow:false,sources:currentQuery.sources.value});
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
 				showList();
 				getEntityDistribution();
 				getTopicsClassification();
@@ -761,13 +763,14 @@
 					toggleView(listCanvas);
 			}
 			
-			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
+			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
 			{
-				//if the query has changed do nothing
-				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
-					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value || token.sources != currentQuery.sources.value)
+				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
+					getSessionState(currentQuery));
+				
+				if(diff != undefined)
 					return;
+				
 				wordCount = event.result as Array;
 				
 				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
@@ -833,7 +836,7 @@
 				var uniqueEntityValues:Array = []
 				for each(var prop:String in dict)
 				{
-					uniqueEntityValues.push(prop);	
+					uniqueEntityValues.push('"'+prop+'"');	
 				}
 				
 				return uniqueEntityValues;
@@ -972,7 +975,7 @@
 				if(!currentQuery.keywords.value)
 					return;
 				
-				var requiredKeywords:Array = currentQuery.keywords.value.split(',');
+				var requiredKeywords:Array = _currentQueryTerms;
 				
 				if(requiredKeywords.length == 0)
 				{
@@ -1026,34 +1029,27 @@
 					entities.push(key);
 				}
 				
-				var relatedKeywords:Array = null;
+				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(_currentQueryTerms,
+															_currentRelatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
+															currentQuery.dateFilter,2000,currentQuery.sortBy.value);
 				
-				if(_parentPanel.relatedKeywords.value)
-					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
-				
-				
-				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
-															relatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
-															currentQuery.dateFilter,2000);
-				
-				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,
-					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,
-						sources:currentQuery.sources.value});
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,token);
 			}
 			
 			
 			//TODO: clear/invalidate them when the attirbute column changes.
 			private var _entitiesToURLsHashMap:Dictionary = new Dictionary();
 			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
-			private function handleEntityQueryResults(event:ResultEvent,token:Object=null):void
+			private function handleEntityQueryResults(event:ResultEvent,token:QueryObject=null):void
 			{
-				//if the query has changed do nothing
-				if(token.keywords != currentQuery.keywords.value  || token.operator != currentQuery.operator.value ||
-					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value || 
-					token.sources != currentQuery.sources.value)
+				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
+					getSessionState(currentQuery));
+				
+				if(diff != undefined)
 					return;
+				
 				var entities:Array = event.result.entities;
 				var urls:Array = event.result.urls;
 				
@@ -1230,8 +1226,6 @@
 						}
 					}
 				}
-				
-				requriedKeywords = getUniqueKeywordsFromArray(requriedKeywords);
 				
 				requriedKeywords = getUniqueKeywordsFromArray(requriedKeywords);
 				
@@ -1604,14 +1598,18 @@
 			private function toggleWordCloud(event:Event=null):void
 			{
 				status.text = "Loading Word Cloud...";
+				if (wordCount == null)
+					return;
+				
 				if(wordCount.length == 0)
 				{
-					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(
-						currentQuery.keywords.value.split(','),relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter);
+					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
+						currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
 					
-					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,
-						{keywords:currentQuery.keywords.value,startDate:currentQuery.dateFilter.startDate.value,
-							endDate:currentQuery.dateFilter.endDate.value,operator:currentQuery.operator.value,sources:currentQuery.sources.value});
+					var token:QueryObject = new QueryObject();
+					copySessionState(currentQuery,token);
+					
+					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
 					
 					return;
 				}
@@ -1752,8 +1750,9 @@
 					return;
 				}
 				
-				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(currentQuery.keywords.value.split(','),
-					relatedKeywords,currentQuery.dateFilter,filteredWords.value.split(','),2000,currentQuery.operator.value);
+				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryTerms,_currentRelatedKeywords,
+					currentQuery.dateFilter,filteredWords.value.split(','),2000,currentQuery.operator.value,
+					currentQuery.sources.value,currentQuery.sortBy.value);
 				
 				addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
 			}
@@ -1790,20 +1789,21 @@
 				var topicsQuery:AsyncToken = null
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
-					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),
-						relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,2000, 3, numOfKeywordsInEachTopic.value);
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,_currentRelatedKeywords,
+						currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,2000, 3,
+						numOfKeywordsInEachTopic.value);
 				}
 				else
 				{
-					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(currentQuery.keywords.value.split(','),
-						relatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,2000, numOfTopics.value,
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,
+						_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,2000, numOfTopics.value,
 						numOfKeywordsInEachTopic.value);
 				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
 				
-				addAsyncResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,
-					{keywords:currentQuery.keywords.value,operator:currentQuery.operator.value,
-						startDate:currentQuery.dateFilter.startDate.value,endDate:currentQuery.dateFilter.endDate.value,sources:currentQuery.sources.value});
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(topicsQuery,handleTopicsQueryResult,handleTopicsQueryFault,token);
 			}
 			
 			private function handleTopicsPropertiesChange():void
@@ -1827,7 +1827,8 @@
 				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
 				var servletParam:Object = new Object();
 				servletParam.method = "getClustersForQueryWithRelatedKeywords";
-				servletParam.params = [currentQuery.keywords.value.split(','),relatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),2000,currentQuery.operator.value,currentQuery.sources.value];
+				servletParam.params = [_currentQueryTerms,_currentRelatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),2000,
+					currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value];
 				clusterCSVDataSource.servletParams.value = servletParam;
 				clusterCSVDataSource.keyColName.value = "document";
 				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
@@ -1908,12 +1909,14 @@
 				toggleView(topicComponent);
 			}
 			
-			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
+			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
 			{
-				if(token.keywords != currentQuery.keywords.value || token.operator != currentQuery.operator.value ||
-					token.startDate != currentQuery.dateFilter.startDate.value ||
-					token.endDate != currentQuery.dateFilter.endDate.value)
+				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
+					getSessionState(currentQuery));
+				
+				if(diff != undefined)
 					return;
+				
 				_topicsResult = event.result;
 
 				if (_topicsResult.keywords == null || _topicsResult.urls == null)
@@ -2056,10 +2059,11 @@
 			{
 				previousQuery.keywords.value = keywords;
 				if(_parentPanel.relatedKeywords.value)
-					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
+						_parentPanel.relatedKeywords.value.split(' ');
 			}
 			
-			private var relatedKeywords:Array = null;
+			private var _currentRelatedKeywords:Array = null;
 			public function applyKeywordsFromSelection():void
 			{
 				if(!_parentPanel)
@@ -2068,8 +2072,10 @@
 					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
 				}
 				previousQuery.keywords.value = getRequiredKeywords().join(',');
+				previousQuery.operator.value = "OR";
 				if(_parentPanel.relatedKeywords.value)
-					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
+						_parentPanel.relatedKeywords.value.split(' ');
 				_selection.clearKeys();
 			}
 			

@@ -51,6 +51,11 @@ package weave.ui.infomap.core
 		 **/
 		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
 		
-		
+		public const sortBy:LinkableString = registerLinkableChild(this, new LinkableString("Relevance",function(value:*):Boolean{
+			if(value == 'Relevance' || value == 'Date')
+				return true;
+			else
+				return false;
+		},false));
 	}
 }

@@ -39,16 +39,20 @@ public class BaseDataSource extends AbstractDataSource{
 	private static int numberOfDocumentsPerRequest = 100;
 	
 	@Override
-	SolrInputDocument[] searchForQuery() {
+	SolrInputDocument[] searchForQuery() 
+	{
+		System.out.println("Calling service on " + getSourceName());
 		List<SolrInputDocument> results = new ArrayList();
 		String reqURI ="";
 		
-		for(int i =0; i < requiredQueryTerms.length; i++)
+		String[] requiredTerms = getRequiredQueryTerms();
+		
+		for(int i =0; i < requiredTerms.length; i++)
 		{
-			int numOfDocs = getNumOfDocumentsForQuery(requiredQueryTerms[i]);
+			int numOfDocs = getNumOfDocumentsForQuery(requiredTerms[i]);
 			for (int j =0; j<numOfDocs; j=j+numberOfDocumentsPerRequest)
 			{
-				reqURI = REQUEST_URL+"&query="+generateQuery(requiredQueryTerms[i]) + "&hits=" + numberOfDocumentsPerRequest + "&offset=" + j;
+				reqURI = REQUEST_URL+"&query="+generateQuery(requiredTerms[i]) + "&hits=" + numberOfDocumentsPerRequest + "&offset=" + j;
 				//System.out.println("BASE QUERY IS " + reqURI);
 				DefaultHttpClient httpclient = new DefaultHttpClient();
 				
@@ -153,12 +157,19 @@ public class BaseDataSource extends AbstractDataSource{
 	
 	private String generateQuery(String requiredTerm)
 	{
-		String result = "\"" + requiredTerm + "\"";
-		
+		//String result = "\"" + requiredTerm + "\"";
+		String result = requiredTerm;
 		/* If no related terms return only required term*/
 		if(relatedQueryTerms == null || relatedQueryTerms.length == 0)
 		{
-			return result;
+			try
+			{
+				result = URLEncoder.encode(result, "UTF-8");
+				return result;
+			}catch (Exception e) {
+				System.out.println("Error encoding");
+				return "";
+			}
 		}
 		
 		result +=  " AND (";
@@ -178,18 +189,19 @@ public class BaseDataSource extends AbstractDataSource{
 		{
 			result = URLEncoder.encode(result, "UTF-8");
 		}catch (Exception e) {
-			System.out.println("Error encoding URL");
+			System.out.println("Error encoding");
 		}
 		return result;
 	}
 	
 	@Override
-	long getTotalNumberOfQueryResults() {
-		// TODO Auto-generated method stub
+	long getTotalNumberOfQueryResults() 
+	{
 		long result = 0;
-		for (int i = 0; i <requiredQueryTerms.length; i++)
+		String[] requiredTerms = getRequiredQueryTerms();
+		for (int i = 0; i <requiredTerms.length; i++)
 		{
-			result += getNumOfDocumentsForQuery(requiredQueryTerms[i]);
+			result += getNumOfDocumentsForQuery(requiredTerms[i]);
 		}
 		return result;
 	}

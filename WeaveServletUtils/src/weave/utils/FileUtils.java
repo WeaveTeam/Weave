@@ -86,7 +86,7 @@ public class FileUtils
 			BigInteger number = new BigInteger(1, message);
 			imgName = number.toString();
 		}catch(Exception e){
-			System.out.println("Error Generating unique image name");
+			System.out.println("Error Generating unique name");
 			e.printStackTrace();
 		}
 		return imgName;

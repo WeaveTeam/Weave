@@ -39,12 +39,18 @@ public class MendeleyDataSource extends AbstractDataSource {
 	
 	private String generateQuery(String requiredTerm)
 	{
-		String result = "\"" + requiredTerm + "\"";
+		String result = requiredTerm;
 		
-		/* If no related terms return only required term*/
 		if(relatedQueryTerms == null || relatedQueryTerms.length == 0)
 		{
-			return result;
+			try
+			{
+				result = URLEncoder.encode(result, "UTF-8");
+				return result;
+			}catch (Exception e) {
+				System.out.println("Error encoding");
+				return "";
+			}
 		}
 		
 		result +=  " AND (";
@@ -94,7 +100,8 @@ public class MendeleyDataSource extends AbstractDataSource {
 		SearchService service = factory.createSearchService();
 		
 		List<SolrInputDocument> results = new ArrayList();
-		for (int i = 0; i< requiredQueryTerms.length; i++)
+		String[] requiredTerms = getRequiredQueryTerms();
+		for (int i = 0; i< requiredTerms.length; i++)
 		{
 			//long totalPages = getNumberOfPagesForQuery(requiredQueryTerms[i]);
 			long totalPages = 1; /* There is a 500 requests per hour limit for document details request. So we take only top 20 docs */
@@ -102,7 +109,7 @@ public class MendeleyDataSource extends AbstractDataSource {
 			for(int j=0; j < totalPages; j++)
 			{
 				//parsing the query
-				String queryString = generateQuery(requiredQueryTerms[i]);
+				String queryString = generateQuery(requiredTerms[i]);
 				try {
 					queryString = URLEncoder.encode(queryString, "UTF-8");
 				} catch (UnsupportedEncodingException e1) {

@@ -46,12 +46,19 @@ public class ArxivDataSource extends AbstractDataSource{
 	/* sample query : http://export.arxiv.org/api/query?search_query=all:obesity AND (all:norepinephrine OR all:metaheuristic) /% */
 	private String generateQuery(String requiredTerm)
 	{
-		String result = "all:\"" + requiredTerm + "\"";
+		String result = "all:" + requiredTerm;
 		
 		/* If no related terms return only required term*/
 		if(relatedQueryTerms == null || relatedQueryTerms.length == 0)
 		{
-			return result;
+			try
+			{
+				result = URLEncoder.encode(result, "UTF-8");
+				return result;
+			}catch (Exception e) {
+				System.out.println("Error encoding");
+				return "";
+			}
 		}
 		
 		result +=  " AND (";
@@ -80,10 +87,11 @@ public class ArxivDataSource extends AbstractDataSource{
 	long getTotalNumberOfQueryResults() {
 		// TODO Auto-generated method stub
 		long result = 0;
-		for (int i = 0; i <requiredQueryTerms.length; i++)
+		String[] requiredTerms = getRequiredQueryTerms();
+		for (int i = 0; i <requiredTerms.length; i++)
 		{	
 			try{
-				result += getNumberOfDocumentsForQuery(requiredQueryTerms[i]);
+				result += getNumberOfDocumentsForQuery(requiredTerms[i]);
 			}
 			catch (Exception e) {
 				System.out.println("Error getting number of documents for " + getSourceName());
@@ -121,22 +129,24 @@ public class ArxivDataSource extends AbstractDataSource{
 		    	}
 			}
 		}catch (Exception e) {
-			// TODO: handle exception
 			System.out.println("Error making query");
 		}
 		return result;
 	}
 	
 	@Override
-	SolrInputDocument[] searchForQuery() throws ParseException{
+	SolrInputDocument[] searchForQuery() throws ParseException
+	{
+		System.out.println("Calling service on " + getSourceName());
 		
 		String queryString = "";
 		List<SolrInputDocument> results = new ArrayList();
 		try{
-		for (int i = 0; i <requiredQueryTerms.length; i++)
+			String[] requiredTerms = getRequiredQueryTerms();
+		for (int i = 0; i <requiredTerms.length; i++)
 		{
-			queryString = generateQuery(requiredQueryTerms[i]);
-			int numOfDocs = getNumberOfDocumentsForQuery(requiredQueryTerms[i]);
+			queryString = generateQuery(requiredTerms[i]);
+			int numOfDocs = getNumberOfDocumentsForQuery(requiredTerms[i]);
 			
 			/*Break the request into slices of 2000 docs at a time*/
 			for(int j = 0; j<numOfDocs; j=j+numberOfDocumentsPerRequest)

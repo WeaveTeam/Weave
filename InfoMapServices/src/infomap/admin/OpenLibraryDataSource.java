@@ -16,6 +16,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 
 import weave.utils.FileUtils;
@@ -49,7 +53,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 			return null;
 		
 		double numOfPages = Math.ceil(numOfDocs / 100.0);
-		
+		HttpSolrServer solrServer = new HttpSolrServer(solrServerURL);
 		OpenLibraryDataModel queryResults = null;
 		/* OpenLibrary returns results of 100 per page */
 		for (int i = 1; i<=numOfPages; i++)
@@ -61,6 +65,33 @@ public class OpenLibraryDataSource extends AbstractDataSource
 			SolrInputDocument d = null;
 			for(int j = 0; j < docs.length; j++)
 			{
+				String key ="";
+				if(docs[j].key != null)
+				{
+					key = docs[j].key;
+				}else if(docs[j].cover_edition_key !=null)
+				{
+					key = docs[j].cover_edition_key;
+				}
+				else
+				{
+					continue;
+				}
+				
+				
+				try
+				{
+					/*If already added we ignore. We do this to avoid querying the source for cover images*/
+					SolrQuery q = new SolrQuery().setQuery("link:"+"\"http://openlibrary.org/works/"+key+"\"");
+					QueryResponse resp = solrServer.query(q);
+					if(resp.getResults().getNumFound()>0)
+					{
+						continue;
+					}
+				}catch (SolrServerException e) {
+					continue;
+				}
+				
 				d = new SolrInputDocument();
 				
 				if(docs[j].title == null)
@@ -114,27 +145,10 @@ public class OpenLibraryDataSource extends AbstractDataSource
 						}catch (ParseException e) {
 							System.out.println("Error getting published date");
 						}	
-						
-						
-						d.addField("source", "Books");
 					}
-					
-					
 				}
 				
-				String key ="";
-				if(docs[j].key != null)
-				{
-					key = docs[j].key;
-				}else if(docs[j].cover_edition_key !=null)
-				{
-					key = docs[j].cover_edition_key;
-				}
-				else
-				{
-					continue;
-				}
-				
+				d.addField("source", "Books");
 				d.addField("link", "http://openlibrary.org/works/"+key);
 				
 				String imgName = FileUtils.generateUniqueNameFromURL("http://openlibrary.org/works/"+key) + ".jpg";
@@ -156,7 +170,10 @@ public class OpenLibraryDataSource extends AbstractDataSource
 		if(requiredQueryTerms.length == 0)
 			return numberOfDocs;
 			
-		numberOfDocs = parseJSONResult(1).numFound;
+		OpenLibraryDataModel result = parseJSONResult(1);
+		
+		if(result != null)
+			numberOfDocs = result.numFound;
 			
 		return numberOfDocs;
 	}
@@ -183,6 +200,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 			result = gson.fromJson(streamString, OpenLibraryDataModel.class);
 		}catch (Exception e) {
 			e.printStackTrace();
+			return result;
 		}
 		return result;
 	}
@@ -215,9 +233,9 @@ public class OpenLibraryDataSource extends AbstractDataSource
 		try
 		{
 			prop.load(getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties"));
-		String tomcatPath = prop.getProperty("tomcatPath");
+		String tomcatPath = prop.getProperty("windowsTomcatPath");
 		
-		String thumbnailPath = prop.getProperty("thumbnailPath");
+		String thumbnailPath = prop.getProperty("windowsThumbnailPath");
 		String destinationPath = tomcatPath + thumbnailPath + imageName + imgExtension; 
 		
 		return FileUtils.copyFileFromURL(sourceURL, destinationPath);
@@ -226,7 +244,5 @@ public class OpenLibraryDataSource extends AbstractDataSource
 			e.printStackTrace();
 			return false;
 		}
-		
-		
 	}
 }

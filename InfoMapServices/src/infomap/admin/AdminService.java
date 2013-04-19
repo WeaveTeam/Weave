@@ -41,6 +41,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -663,7 +664,7 @@ public class AdminService extends GenericServlet {
 		else
 		{
 			
-			String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+			String requiredQueryString = mergeKeywords(requiredKeywords, operator);
 			queryString = "(" + requiredQueryString + ")";
 			
 			if (relatedKeywords != null && relatedKeywords.length > 0) {
@@ -681,7 +682,7 @@ public class AdminService extends GenericServlet {
 	}
 	
 	public String[][] getWordCount(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter, String operator,String sources) {
+			String[] relatedKeywords, String dateFilter, String operator,String sources,String sortBy) {
 		setSolrServer(solrServerUrl);
 
 		String[][] result = null;
@@ -693,9 +694,11 @@ public class AdminService extends GenericServlet {
 
 		try {
 
-			// Query Results are always sorted by descending order of relevance
-			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
-					"score", SolrQuery.ORDER.desc);
+
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+			
+			setSortField(q,sortBy);
+			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
@@ -712,7 +715,7 @@ public class AdminService extends GenericServlet {
 			q.addFacetField("description");
 			q.setFacet(true);
 			q.setFacetLimit(100);
-
+			q.set("facet.method", "enum"); 
 			// set fields to title,date and summary only
 			q.setFields("link");
 
@@ -824,7 +827,7 @@ public class AdminService extends GenericServlet {
 	public TopicClassificationResults classifyDocumentsForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows, int numOfTopics,
-			int numOfKeywordsInEachTopic,String operator,String sources) throws NullPointerException {
+			int numOfKeywordsInEachTopic,String operator,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -841,8 +844,9 @@ public class AdminService extends GenericServlet {
 		try {
 
 			// Query Results are always sorted by descending order of relevance
-			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
-					"score", SolrQuery.ORDER.desc);
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+			setSortField(q, sortBy);
+			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
@@ -1069,7 +1073,7 @@ public class AdminService extends GenericServlet {
 	
 	public String[][] getClustersForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows,String operator,String sources) throws IOException, SolrServerException
+			String dateFilter, int rows,String operator,String sources,String sortBy) throws IOException, SolrServerException
 	{
 		String[][] result = null;
 		
@@ -1081,6 +1085,9 @@ public class AdminService extends GenericServlet {
 		try{
 			// Query Results are always sorted by descending order of relevance
 			SolrQuery q = new SolrQuery().setQuery(queryString);
+			
+			setSortField(q, sortBy);
+			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
@@ -1155,7 +1162,7 @@ public class AdminService extends GenericServlet {
 	
 	public Object[] getResultsForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows,String operator,String sources) throws NullPointerException {
+			String dateFilter, int rows,String operator,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -1166,9 +1173,10 @@ public class AdminService extends GenericServlet {
 
 		try {
 
-			// Query Results are always sorted by descending order of relevance
-			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
-					"score", SolrQuery.ORDER.desc);
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+			
+			setSortField(q,sortBy);
+			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
@@ -1227,6 +1235,22 @@ public class AdminService extends GenericServlet {
 		Object[] queryResult = r.toArray();
 		return queryResult;
 
+	}
+	
+	private void setSortField(SolrQuery q, String sortBy)
+	{
+		// Query Results are always sorted by descending order of relevance
+		String sortField = "";
+		if(sortBy.equals("Relevance"))
+			sortField = "score";
+		else
+			sortField = "date_published";
+		
+		
+		q.addSortField(sortField, ORDER.desc);
+		
+		/* add a secondary sort field*/
+		q.addSortField("date_added", ORDER.desc);
 	}
 	
 	public String getDescriptionForURL(String url, String[] keywords)
@@ -1306,7 +1330,7 @@ public class AdminService extends GenericServlet {
 
 	public Object[] getLinksForFilteredQuery(String[] requiredKeywords,
 			String[] relatedKeywords, String dateFilter, String[] filterby,
-			int rows,String operator) throws NullPointerException {
+			int rows,String operator,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String> r = new ArrayList<String>();
@@ -1319,8 +1343,9 @@ public class AdminService extends GenericServlet {
 		try {
 
 			// Query Results are always sorted by descending order of relevance
-			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
-					"score", SolrQuery.ORDER.desc);
+			SolrQuery q = new SolrQuery().setQuery(queryString);
+			
+			setSortField(q, sortBy);
 
 			String filterString = "";
 
@@ -1339,7 +1364,12 @@ public class AdminService extends GenericServlet {
 					filterString += filterString + " AND " + dateFilter;
 
 			if (!filterString.isEmpty())
-				q.setFilterQueries(filterString);
+				q.addFilterQuery(filterString);
+			
+			if(sources!=null && sources.length()>0)
+			{
+				q.addFilterQuery("source:"+sources);
+			}
 
 			// set number of rows
 			q.setRows(rows);
@@ -1403,7 +1433,7 @@ public class AdminService extends GenericServlet {
 
 	public EntityDistributionObject getEntityDistributionForQuery(
 			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, String[] entities, int rows, String operator,String sources) {
+			String dateFilter, String[] entities, int rows, String operator,String sources,String sortBy) {
 
 		Object[][] urls = new Object[entities.length][];
 
@@ -1421,6 +1451,8 @@ public class AdminService extends GenericServlet {
 
 			SolrQuery q = new SolrQuery().setQuery(queryString);
 
+			setSortField(q, sortBy);
+			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
@@ -1501,36 +1533,17 @@ public class AdminService extends GenericServlet {
 		if (keywords == null || keywords.length == 0)
 			return result;
 		String tempStr = "";
-		String[] tempArr;
-		// if it is not a single word we add the operator between each keyword
-		// splitting the keywords at the spaces.
-		if (keywords.length > 1) {
-			for (int i = 0; i < keywords.length; i++) 
+		for (int i = 0; i < keywords.length; i++) 
+		{
+			
+			tempStr = keywords[i].trim();
+			
+			result += tempStr;			
+			if (i != keywords.length - 1)
 			{
-				
-				tempStr = keywords[i].trim();
-				
-				tempArr = tempStr.split(" ");
-				
-				if(tempArr.length >1)
-				{
-					result += mergeKeywords(tempArr, "AND");
-				}
-				else
-				{
-					result += "\"" + tempStr + "\"";
-				}
-				
-				if (i != keywords.length - 1)
-				{
-					result += " " + operator + " ";
-				}
+				result += " " + operator + " ";
 			}
-
-		} else {
-			result = keywords[0];
 		}
-
 		return result;
 	}
 	

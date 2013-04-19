@@ -182,27 +182,33 @@ package weave.services
 //				return query;
 //			}
 			
-			public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String):AsyncToken
+			public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,
+																   operator:String,sources:String,sortBy:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getClustersForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator,sources]);
+				var query:AsyncToken = generateQueryAndRun("getClustersForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,
+					dateFilter,rows,operator,sources,sortBy]);
 				return query;
 			}
 			
-			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String):AsyncToken
+			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String,sortyBy:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows,operator,sources]);
+				var query:AsyncToken = generateQueryAndRun("getResultsForQueryWithRelatedKeywords",[requiredKeywords,
+					relatedKeywords,dateFilter,rows,operator,sources,sortyBy]);
 				return query;
 			}
 			
-			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,operator:String,sources:String,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
+			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,
+													  operator:String,sources:String,sortBy:String,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords,operator,sources]);
+				var query:AsyncToken = generateQueryAndRun("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords,operator,sources,sortBy]);
 				return query;
 			}
 			
-			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,rows:int,operator:String):AsyncToken
+			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,
+													 rows:int,operator:String,sources:String,sortBy:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,dateFilter,filterTerms,rows,operator]);
+				var query:AsyncToken = generateQueryAndRun("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,
+					dateFilter,filterTerms,rows,operator,sources,sortBy]);
 				return query;
 			}			
 			
@@ -212,9 +218,11 @@ package weave.services
 				return query;
 			}
 			
-			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int, operator:String,sources:String):AsyncToken
+			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int, 
+														  operator:String,sources:String,sortBy:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows,operator,sources]);
+				var query:AsyncToken = generateQueryAndRun("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter
+					,entities,rows,operator,sources,sortBy]);
 				return query;
 			}
 			
@@ -243,9 +251,9 @@ package weave.services
 			}
 			
 			
-			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,operator:String,sources:String):AsyncToken
+			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,operator:String,sources:String,sortBy:String):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter,operator,sources]);
+				var query:AsyncToken = generateQueryAndRun("getWordCount",[requiredKeywords,relatedKeywords,dateFilter,operator,sources,sortBy]);
 				return query;
 			}
 			

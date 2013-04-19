@@ -14,6 +14,10 @@
 		<mx:ComboBox id="operator"/>
 	</mx:HBox>
 	<mx:HBox>
+		<mx:Label text="Sorted By: "/>
+		<mx:ComboBox id="sortByComboBox" dataProvider="{['Relevance','Date']}"/>
+	</mx:HBox>
+	<mx:HBox>
 		<mx:Label text="Source Type: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 		<mx:ComboBox id="sourceType" change="handleSourceTypeChange()"/>
 	</mx:HBox>
@@ -114,7 +118,8 @@
 					sourceType.selectedItem = "All";
 				}
 				linkBindableProperty(query.operator,operator,"selectedItem");
-								
+				linkBindableProperty(query.sortBy,sortByComboBox,"selectedItem");
+				
 				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
 				
 				_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);

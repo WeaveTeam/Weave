@@ -137,6 +137,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.linkBindableProperty;
 			import flash.utils.getTimer;
 			import weave.data.KeySets.KeySet;
 			import weave.data.KeySets.FilteredKeySet;
@@ -249,6 +250,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			public function redrawList():void
 			{
+				docList.dataProvider = null;
 				updateList();
 			}
 			
