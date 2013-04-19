@@ -21,15 +21,16 @@ function(objectID)
 		return array;
 	}
 	
+	// constructor
 	function WeavePath(path)
 	{
 		if (!path)
 			path = [];
 		
 		// private variables
-		var stack = []; // stack of argument counts from push() calls
-		var vars = {}; // passed to weave.evaluateExpression()
-		var libs = []; // passed to weave.evaluateExpression()
+		var stack = []; // stack of argument counts from push() calls, used with pop()
+		var vars = {}; // used with exec() and getVar()
+		var libs = []; // used with exec()
 		
 		
 		// public variables and non-chainable methods
@@ -46,6 +47,14 @@ function(objectID)
 			return this.path.concat();
 		};
 		/**
+		 * Gets the session state of an object at the current path or relative to the current path.
+		 * Accepts an optional list of names relative to the current path.
+		 */
+		this.getState = function(/*...names*/)
+		{
+			return weave.getSessionState(path.concat(A(arguments)));
+		};
+		/**
 		 * Gets the object type at the current path.
 		 */
 		this.getType = function()
@@ -55,7 +64,7 @@ function(objectID)
 		/**
 		 * Gets an Array of child names under the current path.
 		 */
-		this.getChildren = function()
+		this.getNames = function()
 		{
 			return weave.getChildNames(path);
 		};
@@ -135,7 +144,7 @@ function(objectID)
 			if (assertParams('reorder', arguments))
 			{
 				weave.setChildNameOrder(path, A(arguments))
-					|| failPath('reorder');
+					|| failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + path);
 			}
 			return this;
 		};
@@ -152,7 +161,7 @@ function(objectID)
 				var pathcopy = path.concat(A(arguments));
 				var state = pathcopy.pop();
 				weave.setSessionState(pathcopy, state, true)
-					|| failPath('state', pathcopy);
+					|| failMessage('state', 'object does not exist (path: ' + pathcopy + ')');
 			}
 			return this;
 		};
@@ -168,7 +177,7 @@ function(objectID)
 				var pathcopy = path.concat(A(arguments));
 				var diff = pathcopy.pop();
 				weave.setSessionState(pathcopy, diff, false)
-					|| failPath('diff', pathcopy);
+					|| failMessage('diff', 'object does not exist (path: ' + pathcopy + ')');
 			}
 			return this;
 		};
