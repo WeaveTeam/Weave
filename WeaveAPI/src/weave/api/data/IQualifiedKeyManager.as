@@ -45,6 +45,14 @@ package weave.api.data
 		function getQKeys(keyType:String, keyStrings:Array):Array;
 
 		/**
+		 * This will replace untyped Objects in an Array with their IQualifiedKey counterparts.
+		 * Each object in the Array should have two properties: <code>keyType</code> and <code>localName</code>
+		 * @param objects An Array to modify.
+		 * @return The same Array that was passed in, modified.
+		 */
+		function mapQKeys(objects:Array):Array;
+		
+		/**
 		 * Get a list of all previoused key types.
 		 *
 		 * @return An array of QKeys.

@@ -59,6 +59,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
+			import weave.utils.MethodChainProxy;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -160,10 +161,15 @@
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
-				'$': debugHelper,
+				'$': methodChainer,
 				'$$': debugHelper2,
 				'_': {}
 			};
+			
+			private function methodChainer(...args):*
+			{
+				return new MethodChainProxy(null, args);
+			}
 			
 			private function debugHelper(arg:* = null):*
 			{
@@ -239,8 +245,9 @@
 				catch (e:*)
 				{
 					result = e;
-					if (e is Error)
-						trace((e as Error).getStackTrace());
+					var error:Error = e as Error;
+					if (error)
+						trace(error.getStackTrace());
 				}
 				
 				// append result to log

@@ -80,8 +80,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.updateDisplayList.apply(this,arguments);
 				
-				if (!detectLinkableObjectChange(updateDisplayList, vars, drawScript)
-					&& _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
+				var varsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, vars);
+				var scriptChanged:Boolean = detectLinkableObjectChange(updateDisplayList, drawScript)
+				if (!scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
 					return;
 				
 				_prevSize.x = unscaledWidth;
@@ -92,10 +93,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (!PlotterUtils.setBitmapDataSize(bitmap, unscaledWidth, unscaledHeight))
 						PlotterUtils.clearBitmapData(bitmap);
 					
-					if (detectLinkableObjectChange(updateDisplayList, vars))
+					if (varsChanged)
 						_keys = ColumnUtils.getAllKeys(vars.getObjects(IKeySet));
 					
-					drawScript.apply(this);
+					drawScript.apply(this, [_keys]);
 				}
 				catch (e:Error)
 				{

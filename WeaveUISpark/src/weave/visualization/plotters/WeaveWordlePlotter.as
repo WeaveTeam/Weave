@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.ObjectPool;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -60,11 +61,11 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			var words:Array = wordColumn.keys;
 			var i:int;
-			var bounds:Bounds2D = getReusableBounds();
+			var bounds:Bounds2D = output as Bounds2D;
 			for( i = 0; i < words.length; i++ ){
 				//This sets the intial points of every word.
 				if( randPoints[words[i]] == undefined ){
@@ -87,24 +88,17 @@ package weave.visualization.plotters
 						bounds.yMax = randPoints[words[i]][1];				
 				}
 			}
-			return bounds;
 		}
 		
 		/**
 		 * This gets the data bounds of the histogram bin that a record key falls into.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
-			if( randPoints[recordKey] != undefined ){
-				bounds.setCenteredRectangle(
-						0,
-						0,
-						1,
-						1
-				);
-			}
-			return [bounds];
+			if( randPoints[recordKey] != undefined )
+				initBoundsArray(output).setBounds(0, 0, 1, 1);
+			else
+				initBoundsArray(output, 0);
 		}
 		/**
 		 * This function retrieves a max and min value from the keys to later be used for sizing purposes.
@@ -161,7 +155,7 @@ package weave.visualization.plotters
 				count = 1;
 				flag = false;
 				if( tooLong == false ) {
-					boundaries[added++] = getReusableBounds( tempBounds.xMin, tempBounds.yMin, tempBounds.xMax, tempBounds.yMax );
+					(boundaries[added++] = ObjectPool.borrowObject(Bounds2D) as Bounds2D).setBounds( tempBounds.xMin, tempBounds.yMin, tempBounds.xMax, tempBounds.yMax );
 					//destination.fillRect( new Rectangle( tempBounds.xMin, tempBounds.yMin, tempBounds.width, tempBounds.height ), 0x80ff0000 );
 					bitMapper.draw(destination);
 				}

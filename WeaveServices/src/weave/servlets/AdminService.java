@@ -1113,6 +1113,14 @@ public class AdminService
 			return false;
 		}
 	}
+	
+	private boolean isDuplicateItem(String[] items, int index)
+	{
+		for (int i = 0; i < items.length; i++)
+			if (i != index && items[index].equals(items[i]))
+				return true;
+		return false;
+	}
 
 	public int importCSV(
 			String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
@@ -1190,7 +1198,8 @@ public class AdminService
 			columnNames = rows[0];
 			originalColumnNames = new String[columnNames.length];
 			fieldLengths = new int[columnNames.length];
-			// converge the column name to meet the requirement of mySQL.
+			int keyColumnIndex = -1;
+			// first, fix all column names
 			for (int iCol = 0; iCol < columnNames.length; iCol++)
 			{
 				String colName = columnNames[iCol];
@@ -1198,24 +1207,33 @@ public class AdminService
 					colName = "Column " + (iCol + 1);
 				// save original column name
 				originalColumnNames[iCol] = colName;
-				boolean isKeyCol = csvKeyColumn.equalsIgnoreCase(colName);
+				// remember key col index
+				if (csvKeyColumn.equalsIgnoreCase(colName))
+					keyColumnIndex = iCol;
 				
-				colName = SQLUtils.fixColumnName(colName);
-				// copy new name if key column changed
-				if (isKeyCol)
-					csvKeyColumn = colName;
-				// if find the column names are repetitive
-				for (int j = 0; j < iCol; j++)
-				{
-					if (colName.equalsIgnoreCase(columnNames[j]))
-					{
-						colName += "_" + j;
-						j = 0; // need to re-check previous names
-					}
-				}
-				// save the new name
-				columnNames[iCol] = colName;
+				columnNames[iCol] = SQLUtils.fixColumnName(colName, "");
 			}
+			
+			// next, make sure there are no duplicates
+			for (int iCol = 0; iCol < columnNames.length; iCol++)
+			{
+				if (isDuplicateItem(columnNames, iCol))
+				{
+					String match = columnNames[iCol];
+					for (int i = 0; i < columnNames.length; i++)
+					{
+						if (match.equals(columnNames[i]))
+						{
+							columnNames[i] = SQLUtils.fixColumnName(match, "_" + i);
+						}
+					}
+					// need to re-check all columns
+					iCol = -1;
+				}
+			}
+			// copy new key column name
+			if (keyColumnIndex >= 0)
+				csvKeyColumn = columnNames[keyColumnIndex];
 
 			// Initialize the types of columns as int (will be changed inside
 			// loop if necessary)

@@ -3,6 +3,11 @@
 	<name>WeaveDesktop</name>
 	<comment></comment>
 	<projects>
+		<project>WeaveAPI</project>
+		<project>WeaveCore</project>
+		<project>WeaveData</project>
+		<project>WeaveUI</project>
+		<project>WeaveUISpark</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -131,10 +131,7 @@ package weave.api.core
 		function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, libraries:Array = null, assignExpressionName:String = null):*;
 		
 		/**
-		 * This function will add a callback that will be delayed except during a scheduled time each frame.  These grouped callbacks use a
-		 * central trigger list, meaning that if multiple CallbackCollections trigger the same grouped callback before the scheduled time,
-		 * it will behave as if it were only triggered once.  The callback function will not be called recursively as a result of it
-		 * triggering callbacks recursively.
+		 * This function will add a grouped callback to an ILinkableObject.
 		 * @param objectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
 		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.

@@ -154,26 +154,25 @@ package weave.visualization.plotters
 			return (task.asyncState as Function).apply(this, arguments);
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			initBoundsArray(output);
+			var bounds:IBounds2D = output[0];
 			
 			if (!layoutAlgorithm)
-				return [ bounds ];
+				return;
 			
 			var node:IGraphNode = (layoutAlgorithm as IGraphAlgorithm).getNodeFromKey(recordKey);
 			if (node)
 				bounds.includePoint(node.position);
-			
-			return [ bounds ];
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
 			if (layoutAlgorithm)
-				(layoutAlgorithm as IGraphAlgorithm).getOutputBounds(filteredKeySet.keys, bounds);
-			return bounds;
+				(layoutAlgorithm as IGraphAlgorithm).getOutputBounds(filteredKeySet.keys, output);
+			else
+				output.reset();
 		}				
 		
 		private function handleColumnsChange():void

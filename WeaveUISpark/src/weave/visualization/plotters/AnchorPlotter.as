@@ -264,24 +264,20 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			if( !anchors ) return null;
-			
-			var anchor:AnchorPoint = anchors.getObject(recordKey.localName) as AnchorPoint;
-			var bounds:IBounds2D = getReusableBounds();			
-			
-			tempPoint.x = anchor.x.value;
-			tempPoint.y = anchor.y.value;
-			
-			bounds.includePoint(tempPoint);				
-			
-			return [bounds];			
+			if (anchors)
+			{
+				var anchor:AnchorPoint = anchors.getObject(recordKey.localName) as AnchorPoint;
+				initBoundsArray(output).includeCoords(anchor.x.value, anchor.y.value);
+			}
+			else
+				initBoundsArray(output, 0);
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(-1, -1.1, 1, 1.1);
+			output.setBounds(-1, -1.1, 1, 1.1);
 		}
 		
 		private function verifyLabelAngleRatio(value:Number):Boolean

@@ -217,6 +217,7 @@
 				_dragSourcePoint.x = dataPoint.x;
 				_dragSourcePoint.y = dataPoint.y;
 			}
+			private var _tempBoundsArray:Array = [];
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				var ctrlKey:Boolean = WeaveAPI.StageUtils.ctrlKey;
@@ -230,10 +231,10 @@
 					return;
 				var _keySet:KeySet = mainLayerSettings.selectionFilter.internalObject as KeySet;
 				_probedKeys = _keySet ? _keySet.keys.concat() : []; // save these keys
-				var boundsArray:Array = _plotter.getDataBoundsFromRecordKey(probedKey);
-				if (!boundsArray || boundsArray.length == 0)
+				_plotter.getDataBoundsFromRecordKey(probedKey, _tempBoundsArray);
+				if (!_tempBoundsArray || _tempBoundsArray.length == 0)
 					return;
-				var bounds:IBounds2D = boundsArray[0];
+				var bounds:IBounds2D = _tempBoundsArray[0];
 				
 				if (_probedKeys.indexOf(probedKey) < 0)
 					_probedKeys.push(probedKey);
