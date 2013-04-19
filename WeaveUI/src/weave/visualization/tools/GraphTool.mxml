@@ -50,11 +50,13 @@
 			import weave.primitives.Bounds2D;
 			import weave.visualization.plotters.GraphLabelPlotter;
 			import weave.visualization.plotters.GraphPlotter;
+			import flash.external.ExternalInterface;
 
 			WeaveAPI.registerImplementation(IVisTool, GraphTool, lang("Graph Tool"));
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;
+			public var primitiveNetwork:Object = null;
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -77,8 +79,84 @@
 				linkSessionState(_plotter.nodesColumn, _labelPlotter.nodesColumn);
 				linkSessionState(_plotter.edgeSourceColumn, _labelPlotter.edgeSourceColumn);
 				linkSessionState(_plotter.edgeTargetColumn, _labelPlotter.edgeTargetColumn);
+
+
 			}
 			
+			private function buildPrimitiveNodes():Array
+			{
+				var nodesKeys:Array = nodesColumn.keys;
+				var numNodes:int = nodesKeys.length;
+				var key_idx:int;
+				var key:IQualifiedKey;
+				var id:String;
+				var label:String;
+				var node:Object;
+				var nodes = [];
+				for (key_idx = 0; key_idx < numNodes; key_idx++)
+				{
+					node = {};
+					key = nodesKeys[key_idx];
+					node.id = nodesColumn.getValueFromKey(key);
+					node.label = labelColumn.getValueFromKey(key);
+					node.keyType = key.keyType;
+					node.localName = key.localName;
+					nodes.push(node);
+				}
+				
+				return nodes;
+			}
+			private function buildPrimitiveEdges():Array
+			{
+				var edgeKeys:Array = edgeSourceColumn.keys;
+				var numEdges:int = edgeKeys.length;
+				var key_idx:int;
+				var key:IQualifiedKey;
+				var id:String;
+				var label:String;
+				var edge:Object;
+				var edges = [];
+				for (key_idx = 0; key_idx < numEdges; key_idx++)
+				{
+					edge = {};
+					key = edgeKeys[key_idx];
+					edge.id = key.localName;
+					edge.source = edgeSourceColumn.getValueFromKey(key);
+					edge.target = edgeTargetColumn.getValueFromKey(key);
+					edge.keyType = key.keyType;
+					edge.localName = key.localName;
+					edges.push(edge)
+				}
+				
+				return edges;
+			}
+			public function buildPrimitiveNetwork():void
+			{
+				var network:Object = {data: {nodes: [], edges: []}};
+				network.dataSchema = {
+					nodes: [{name: "label", type: "string"}, {name: "keyType", type: "string"}, {name: "localName", type: "string"}],
+					edges: [{name: "label", type: "string"}, {name: "keyType", type: "string"}, {name: "localName", type: "string"}]
+				};
+				network.data.nodes = buildPrimitiveNodes();
+				network.data.edges = buildPrimitiveEdges();
+				primitiveNetwork = network;
+			}
+			public function initializeCytoscapeWindow():void
+			{
+				ExternalInterface.call(
+				"function (objectID, url, name) { var weave = objectID ? document.getElementById(objectID) : document;\
+				 weave.cytoscape = window.open(url, name);\
+				  }", ExternalInterface.objectID, "cytoscapeweb/popout.html", "WeaveCytoscapePopout");
+			}
+			public function invokeCytoscapePlotter():void
+			{
+				/* Invoke the cytoscape plotter with whatever our current data is. */
+				ExternalInterface.call("function (objectID, network) { var weave = objectID ? document.getElementById(objectID) : document;\
+					weave.cytoscape.network = JSON.parse(JSON.stringify(network));\
+					weave.cytoscape.draw(network); }", ExternalInterface.objectID, primitiveNetwork);
+				//ExternalInterface.call("function (param) {console.log(param)}", [cytoscapeWindow, primitiveNetwork]);
+				return;
+			}
 			private function handleLayoutAlgorithmChange():void
 			{
 				_labelPlotter.layoutAlgorithm = _plotter.layoutAlgorithm.internalObject as IGraphAlgorithm;
@@ -112,6 +190,10 @@
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+
+				initializeCytoscapeWindow();
+				buildPrimitiveNetwork();
+				invokeCytoscapePlotter();
 			}
 
 			/***********************************************************
