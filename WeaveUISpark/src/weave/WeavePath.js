@@ -143,13 +143,15 @@ function(objectID)
 		};
 		/**
 		 * Calls weave.setChildNameOrder() for the current path.
-		 * Accepts a list of ordered child names.
+		 * Accepts an Array or a list of ordered child names.
 		 */
-		this.reorder = function(/*...orderedNames*/)
+		this.reorder = function(orderedNames/*, ...rest*/)
 		{
 			if (assertParams('reorder', arguments))
 			{
-				weave.setChildNameOrder(path, A(arguments))
+				if (arguments.length > 1)
+					orderedNames = A(arguments);
+				weave.setChildNameOrder(path, orderedNames)
 					|| failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + path);
 			}
 			return this;
