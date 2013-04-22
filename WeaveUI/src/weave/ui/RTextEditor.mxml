@@ -398,7 +398,6 @@ RTextEditor
 				var rScriptSessionState:XML =
 					<RScriptEditor>
 						<assignNames>{assignTA.text}</assignNames>
-						<assignNames>{assignTA.text}</assignNames>
 						<inputScript>{inputTA.text}</inputScript>
 						<plotScript>{plotTA.text}</plotScript>
 						<outputScript>{outputTA.text}</outputScript>

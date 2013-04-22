@@ -826,11 +826,13 @@ package weave.application
 
 				));
 				
+/*
 				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
 					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Disable" : "Enable") + " Weave Analyst"); },
 					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
 					
 				));
+*/
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)

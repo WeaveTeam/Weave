@@ -62,9 +62,11 @@ package weave.application
 		private static var _removeFromSubsetCMI:ContextMenuItem = null;
 		private static var _showAllRecordsCMI:ContextMenuItem = null;
 		private static var _viewRecordCMI:ContextMenuItem = null;
+/*
+// TODO: move this clustering code to the appropriate locations: DataMiningPlatter, DataStatisticsTool
 		private static var _runClusteringonSubsetCMI:ContextMenuItem = null;
 		private static var _doStatisticsonSubsetCMI:ContextMenuItem = null;
-		
+*/		
 		//todo: get these from the active visualization instead?
 		private static var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		private static var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
@@ -79,9 +81,10 @@ package weave.application
 		private static const SUBSET_REMOVE_SELECTION_CAPTION:String = lang("Remove selected record(s) from subset");
 		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove probed record(s) from subset");
 		
+/*
 		private static const SUBSET_RUN_CLUSTERING_CAPTION:String           = lang("Run clustering on subset");
 		private static const SUBSET_DO_STATISTICS_CAPTION:String = lang("Compute Statistics on subset");
-		
+*/		
 		/**
 		 * @param context Any object created as a descendant of a Weave instance.
 		 * @param destination The display object to add the context menu items to.
@@ -112,16 +115,20 @@ package weave.application
 						
 						// create subset only if we have something selected
 						_createSubsetCMI.enabled   		= usingSelection;
+/*
 						_runClusteringonSubsetCMI.enabled       = usingSelection;
 						_doStatisticsonSubsetCMI.enabled  = usingSelection;
+*/
 
 						// first check to see if there is a selection - if so make subset from selection
 						if(selection.keys.length > 0)
 						{
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_SELECTION_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_SELECTION_CAPTION;
+/*
 							_runClusteringonSubsetCMI.caption = SUBSET_RUN_CLUSTERING_CAPTION;
 							_doStatisticsonSubsetCMI.caption = SUBSET_DO_STATISTICS_CAPTION;
+*/
 						}
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
@@ -161,7 +168,7 @@ package weave.application
 					},
 					groupName
 				);
-			
+/*			
 			
 			_runClusteringonSubsetCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
 				SUBSET_RUN_CLUSTERING_CAPTION,
@@ -217,7 +224,7 @@ package weave.application
 				groupName
 				
 		    	);
-				
+*/				
 				
 				
 				

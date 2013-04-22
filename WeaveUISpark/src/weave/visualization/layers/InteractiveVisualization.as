@@ -565,8 +565,6 @@ package weave.visualization.layers
 				_lassoScreenPoints.push(localMaxPoint);
 				_lastLassoPoint = localMaxPoint;
 			}
-			
-			trace(_lassoScreenPoints);
 		}
 		
 		protected function updateSelectionRectangleGraphics():void 
