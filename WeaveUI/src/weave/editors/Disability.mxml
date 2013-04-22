@@ -28,6 +28,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		 xmlns="weave.editors.*"  xmlns:ui="weave.ui.*" label="Disability"
 		 implements="weave.api.core.ILinkableObject"
 		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark">	
+	<mx:CheckBox id="DisCheckBox" label="Enable Disability" click="DisabilityEnableCheckBoxHndlr(event)" enabled="true"
+				 selected="true"/>
 	<mx:Label text="User generated visualization description text:"
 			  textAlign="left"/>	
 	<mx:TextArea id="manualToolDescTextBox" width="100%" height="40%" minWidth="5" minHeight="5" borderStyle="solid"
@@ -50,6 +52,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import disabilityPack.LineChartDecisionTree;
 			import disabilityPack.SegmentValue;
+			import disabilityPack.disabilityMessage;
+			import disabilityPack.disabilityMessagesContainer;
 			
 			import mx.accessibility.CheckBoxAccImpl;
 			import mx.binding.utils.BindingUtils;
@@ -80,6 +84,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.ControlPanel;
 			import weave.ui.DisabilityOptions;
 			import weave.ui.DraggablePanel;
+			import weave.ui.LinkableObjectList;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
@@ -94,6 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();			
 			public var variables:LinkableHashMap;			
 			
+			
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
 			public var joinKeysRArray:Array = new Array();
 			public var joinColsRArray:Array = new Array();
@@ -102,8 +108,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var finalRObject:Array;
 			private var resultSegmentation:Array = new Array();
 			private var firstTimeDone:Boolean = false;
-			
-			
+			private var disabilityMessages:disabilityMessagesContainer = new disabilityMessagesContainer();
+			public static var Instance:Disability;
 			private var decisionCount:int = 0;
 			private var fDecisionCount:int = 0;
 			public static var firstSegLength:int = 0;
@@ -112,7 +118,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var splittedSegments:Array = new Array();
 			public var segmentsLeftToSplit:int = 0;
 			public var initSegmentIndices:Array = new Array();
-			
+			private var DisabilityEnabled:Boolean = true;
+			private var NoMoreData:Boolean = false;
 			
 			
 			public function set target(panel:DraggablePanel):void
@@ -135,8 +142,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleCreationComplete(event:Event) : void
 			{
 				
-				
+				Instance = this;
 				variables = lineChartPlotter.columns;
+		
 				//linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 				checkingPlotterObjects();
 				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
@@ -150,9 +158,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					linkBindableProperty(HashDisabilityText, event.target, "text");	
 			}
 			
+			protected function DisabilityEnableCheckBoxHndlr(event:MouseEvent):void
+			{
+				//event.target
+				
+				
+				
+				DisabilityEnabled = event.target.selected;
+				
+			}
+			
 			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
 			{
+				
 				//automaticToolDescTextBox.text = "after button clicked";
+				
 				StartSegmentation();
 				var dictionaryType:String;
 				var vizType:String;
@@ -175,7 +195,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//getting the columns ready for R
 			protected function columnPreprocessing():void
 			{
-				progressLabel.text = "Ready";
+				NoMoreData = false;
+				//progressLabel.text = "Ready";
 				automaticDescRefreshButton.enabled = true;
 				//use this function to gather the appropriate information that will be sent to R
 				//we have the columns in columnObjects
@@ -198,8 +219,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				joinKeysRArray = joinedColumns[0];
 				joinColsRArray = joinedColumns[1];				
 				//todo: getting axis, title, color, scale, etc
-				if(!firstTimeDone)
+				if(!firstTimeDone && DisabilityEnabled)
 					StartSegmentation();
+				
+				else if(DisabilityEnabled && progressLabel.text == "Finished.")
+				{
+					
+					StartSegmentation();
+					progressLabel.text = "Ready";
+				}
+				
+				else if(joinColsRArray.length == 0)
+				{
+					NoMoreData = true;
+					automaticToolDescTextBox.text = "No data on the Line chart";
+				}
+				
+				
 			}
 			
 			private function joinColumns(columns:Array):Array
@@ -218,6 +254,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var firstSegment:Array = new Array();
 				progressLabel.text = "processing.. 0%";
 				automaticToolDescTextBox.text = "Please wait while the graph is analyzed..";
+				Weave.properties.disabilitySystemText.value = "Processing.";
 				firstTimeDone = true;
 				trace("\n");
 				trace("start");
@@ -321,16 +358,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					trace("finished");
 					trace("Line chart splitted into " + splittedSegments.length + " segments");
 					splittedSegments.sortOn("0", Array.NUMERIC);
-					for(var me:int=0; me< splittedSegments.length; me++)
+					for(var m:int=0; m< splittedSegments.length; m++)
 					{			
 						
-						if(splittedSegments[me][1] == initialSegment.Segment.length)
+						if(splittedSegments[m][1] == initialSegment.Segment.length)
 						{
 							//trace("segment start: " + splittedSegments[i][0] + "   end: "+ (splittedSegments[i][1] - 1));
 							start = true;
 							
 							
-							splittedSegments[me][1] = splittedSegments[me][1] - 1;
+							splittedSegments[m][1] = splittedSegments[m][1] - 1;
 						}
 						else
 						{
@@ -340,7 +377,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							//	splittedSegments[me][1] = splittedSegments[me][1] - 1;
 						}
 						
-						trace("segment no: "+ (me+1) +", start: " + splittedSegments[me][0] + "   end: "+ (splittedSegments[me][1]));
+						trace("segment no: "+ (m+1) +", start: " + splittedSegments[m][0] + "   end: "+ (splittedSegments[m][1]));
 						
 					}
 					
@@ -464,7 +501,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function ProduceSentence(initSeg:Array, splitIndices:Array):void
 			{
 				
-				var ExplenationSentence:String = "";
+				var ExplanationSentence:String = "";
 				var SegmentAngles:Array = new Array();
 				var lastSpike:Array = new Array();
 				var spikeAvgAngle:Array = new Array();
@@ -509,84 +546,78 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					SegmentAngles.push(curAng);
 				}
 				trace("Segment angles; " + SegmentAngles);
-				ExplenationSentence = "The graph consists of " + SegmentAngles.length + " trends. ";
+				ExplanationSentence = "The line chart consists of " + SegmentAngles.length + " trends. ";
 				for(var i:int = 0; i < SegmentAngles.length ; i++)
 				{
-					ExplenationSentence += "The " + OrderArray[i] + " segment ";
+					ExplanationSentence += "The " + OrderArray[i] + " segment ";
 					if(spikeAvgAngle[i] != 0)
 						SegmentAngles[i] = spikeAvgAngle[i];
 					
 					
 					if(SegmentAngles[i] < 0)
 					{
-						if(SegmentAngles[i] >= -5)
-						{
-							ExplenationSentence += "is a stable trend";
-						}
-						else if(SegmentAngles[i] >= -30)
-						{
-							ExplenationSentence += "is a slightly falling trend";
-						}
-						else if(SegmentAngles[i] >= -60)
-						{
-							ExplenationSentence += "is a falling trend";
-						}
-						else if(SegmentAngles[i] >= -90)
-						{
-							ExplenationSentence += "is a sharp falling trend";
-						}
 						
+						for(var p:int = 0 ; p < disabilityMessages.messageContainer.length ; p++)
+						{
+							if(SegmentAngles[i] >= disabilityMessages.messageContainer[p].minAngle)
+							{
+								ExplanationSentence += disabilityMessages.messageContainer[p].messageDec;
+								break;
+							}
+						}
 						
 					}
 					else
 					{
-						if(SegmentAngles[i] <= 5)
+						for(p = 0 ; p < disabilityMessages.messageContainer.length ; p++)
 						{
-							ExplenationSentence += "is a stable trend";
-						}
-						else if(SegmentAngles[i] <= 30)
-						{
-							ExplenationSentence += "is a slightly increasing trend";
-						}
-						else if(SegmentAngles[i] <= 60)
-						{
-							ExplenationSentence += "is an increasing trend";
-						}
-						else if(SegmentAngles[i] <= 90)
-						{
-							ExplenationSentence += "is a sharp increasing trend";
+							if(SegmentAngles[i] <= disabilityMessages.messageContainer[p].maxAngle)
+							{
+								ExplanationSentence += disabilityMessages.messageContainer[p].messageInc;
+								break;
+							}
 						}
 					}
 					
 					
 					if(lastSpike[i] == 1)
 					{
-						ExplenationSentence += " with a sharp increase at the end. Starts at " + initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]] + ". " ;
+						ExplanationSentence += " with a sharp increase at the end. Starts at " + columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]] + ". " ;
 					}
 					else if(lastSpike[i] == -1)
 					{
-						ExplenationSentence += " with a sharp fall at the end. Starts at " + initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]]  + ". " ;
+						ExplanationSentence += " with a sharp fall at the end. Starts at " +columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]]  + ". " ;
 					}
 					else if(lastSpike[i] == 0)
 					{
-						ExplenationSentence += ". Starts at "+ initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]] + ". "  ;
+						//ExplanationSentence += ". Starts at "+ initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]] + ". "  ;
+						ExplanationSentence += ". Starts at "+ columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]] + ". "  ;
+
 					}
 					
 				}
-				ExplenationSentence += "The line chart has " + initSeg.length + " data points.";
+				ExplanationSentence += "The line chart has " + initSeg.length + " data points.";
 				
 				if(initSeg[0] > initSeg[initSeg.length -1])
 				{
-					ExplenationSentence +=  "Overall, the line chart decreases ";
+					ExplanationSentence +=  "Overall, the line chart decreases ";
 				}
 				else
 				{
-					ExplenationSentence +=  "Overall, the line chart increases ";
+					ExplanationSentence +=  "Overall, the line chart increases ";
 				}
-				ExplenationSentence +=  "from " + initSeg[0] + " to " + initSeg[initSeg.length -1];
+				ExplanationSentence +=  "from " + initSeg[0] + " to " + initSeg[initSeg.length -1];
 				
-				
-				automaticToolDescTextBox.text = ExplenationSentence;
+				if(!NoMoreData)
+				{
+				automaticToolDescTextBox.text = ExplanationSentence;
+				Weave.properties.disabilitySystemText.value = ExplanationSentence;
+				}
+				else
+				{
+					automaticToolDescTextBox.text = "No data on the Line chart";
+					Weave.properties.disabilitySystemText.value ="No data on the Line chart";
+				}
 				
 			}
 			
@@ -607,7 +638,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return degOutput;
 			}
 			
-			var OrderArray:Array = new Array("first",
+			private var OrderArray:Array = new Array("first",
 				"second",
 				"third",
 				"fourth",
