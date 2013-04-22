@@ -386,7 +386,7 @@ package weave.utils
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
 						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, dataBounds);
 						
-						if (simplifiedGeom.length == 0 && genGeom.bounds.overlaps(queryBounds))
+						if (/*simplifiedGeom.length == 0 && */genGeom.bounds.overlaps(queryBounds))
 						{
 							result.push(key);
 							continue;
@@ -760,9 +760,20 @@ package weave.utils
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];
 				
-				if (geoms.length == 0)
+				if (!geom || geoms.length == 0)
 				{
-					result.push(key);
+					var keyBounds:Array = getBoundsFromKey(key);
+					for (var j:int = 0; j < keyBounds.length; j++)
+					{
+						setTempBounds(keyBounds[j]);
+						if(ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices,_tempBoundsPolygon))
+						{
+							result.push(key);
+							break;
+							
+						}
+					}
+					//iterate over bounds from key and check if they intersect lasso polygon
 					continue keyLoop;
 				}
 				
@@ -781,7 +792,14 @@ package weave.utils
 						
 						if (simplifiedGeom.length == 0)
 						{
-							result.push(key);
+							//make the polygon
+							setTempBounds((geom as GeneralizedGeometry).bounds);
+							//check if the lasso polygon overlaps the geometry bounds
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices ,_tempBoundsPolygon))
+							{
+							   result.push(key);
+								
+							}
 							continue keyLoop;
 						}
 						

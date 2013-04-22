@@ -218,7 +218,12 @@ package weave.utils
 		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Boolean
 		{
 			if (polygon1.length == 0 || polygon2.length == 0)
+			{
+				
 				return false;
+			}
+			trace("pol1: " + polygon1.length);
+			trace("pol2: " + polygon2.length);
 			var a:Object = polygon2[0];
 			var b:Object;
 			for (var i2:int = polygon2.length; i2--;)

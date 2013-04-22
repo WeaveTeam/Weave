@@ -37,7 +37,7 @@ package weave.core
 		/**
 		 * Set this to true to enable stack traces for debugging.
 		 */
-		public static var debug:Boolean = false;
+		public static var debug:Boolean = true;
 		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
 		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
 

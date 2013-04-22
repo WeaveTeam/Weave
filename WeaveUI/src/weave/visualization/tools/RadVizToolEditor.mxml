@@ -241,17 +241,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function DOcdButton_clickHandler(event:MouseEvent):void
 			{
 				var thrValue:Number = Number(thresholdValue.text);
+				var columnNumPerClass:Number = Number(columninClassTI.text);//limits the number of columns in each class to this number
 				var layoutMeasure:String = new String();
 				if(useThresholdCB.selected){layoutMeasure = measureCheck();} 
 				else{
 					layoutMeasure = "Tstat";
 				}
 				
-				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
+				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue,columnNumPerClass);
 				_target._anchorPlotter.drawingClassLines = true;//cd coloring
 				_target._plotter.doCDLayout = true;//cd layout
-				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to color the anchors accorsing to the class they belong to
-				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
+				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors accorsing to the class they belong to
+				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; //for setting cd dimensional anchor  locations
 				//_target._plotter.setAnchorLocations();
 				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
 			}
@@ -377,7 +378,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		
 		<mx:VBox width="45%">
 					<ui:Indent  width="10%" label="Class Discriminator">
-						<ui:DynamicColumnComponent  visTool="{_target}" id="classDis" />	
+						<ui:DynamicColumnComponent visTool="{_target}" id="classDis" />	
 					</ui:Indent>
 			
 			

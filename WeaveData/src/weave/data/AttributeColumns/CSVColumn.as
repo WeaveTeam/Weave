@@ -59,6 +59,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This should contain a two-column CSV with the first column containing the keys and the second column containing the values.
 		 */
+
 		public const data:LinkableVariable = newLinkableChild(this, LinkableVariable, invalidate);
 		
 		/**
@@ -78,6 +79,7 @@ package weave.data.AttributeColumns
 			}
 			data.setSessionState(stringTable);
 		}
+
 		
 		[Deprecated] public function set csvData(value:String):void
 		{
