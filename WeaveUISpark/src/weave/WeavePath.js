@@ -6,25 +6,39 @@ function(objectID)
 	 * Creates a WeavePath object.
 	 * Accepts an optional Array or list of names to serve as the base path.
 	 */
-	weave.path = function(names/*, ...rest*/)
+	weave.path = function(/*...names*/)
 	{
-		// if there are multiple arguments passed to the function, create an Array
-		if (arguments.length != 1 || names.constructor != Array)
-			names = A(arguments);
-		
-		return new WeavePath(names);
+		return new WeavePath(A(arguments, 1));
 	};
 	
 	// Used by callbackToString(), maps an integer id to an object with two properties: callback and name
 	weave._WeavePathCallbacks = [];
 	
-	// converts an arguments object to an Array
-	function A(argumentsObject)
+	/**
+	 * Private function for internal use.
+	 * 
+	 * Converts an arguments object to an Array.
+	 * The first parameter is an arguments object.
+	 * The second parameter is an integer flag for special behavior.
+	 *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
+	 *   - If set to 2, it handles arguments like (...LIST, REQUIRED_PARAM) where LIST can be either an Array or multiple arguments.
+	 */
+	function A(args, option)
 	{
-		var array = [];
-		var i = argumentsObject.length;
-		while (i--)
-			array[i] = argumentsObject[i];
+		var array;
+		var n = args.length;
+		if (n && n == option && args[0].constructor == Array)
+		{
+			array = args[0].concat();
+			for (var i = 1; i < n; i++)
+				array.push(args[i]);
+		}
+		else
+		{
+			array = [];
+			while (n--)
+				array[n] = args[n];
+		}
 		return array;
 	}
 	
@@ -58,7 +72,7 @@ function(objectID)
 		 */
 		this.getState = function(/*...names*/)
 		{
-			return weave.getSessionState(path.concat(A(arguments)));
+			return weave.getSessionState(path.concat(A(arguments, 1)));
 		};
 		/**
 		 * Gets the object type at the current path.
@@ -93,13 +107,14 @@ function(objectID)
 		 */
 		this.push = function(/*...names*/)
 		{
-			if (assertParams('push', arguments))
+			var args = A(arguments, 1);
+			if (assertParams('push', args))
 			{
 				// append names to path
-				for (var i = 0; i < arguments.length; i++)
-					path.push(arguments[i]);
+				for (var i = 0; i < args.length; i++)
+					path.push(args[i]);
 				// remember the number of names we appended
-				stack.push(arguments.length);
+				stack.push(args.length);
 			}
 			return this;
 		};
@@ -121,9 +136,10 @@ function(objectID)
 		 */
 		this.request = function(/*...names, objectType*/)
 		{
-			if (assertParams('request', arguments))
+			var args = A(arguments, 2);
+			if (assertParams('request', args))
 			{
-				var pathcopy = path.concat(A(arguments));
+				var pathcopy = path.concat(args);
 				var type = pathcopy.pop();
 				weave.requestObject(pathcopy, type)
 					|| failPath('request', pathcopy);
@@ -136,7 +152,7 @@ function(objectID)
 		 */
 		this.remove = function(/*...names*/)
 		{
-			var pathcopy = path.concat(A(arguments));
+			var pathcopy = path.concat(A(arguments, 1));
 			weave.removeObject(pathcopy)
 				|| failPath('remove', pathcopy);
 			return this;
@@ -145,13 +161,12 @@ function(objectID)
 		 * Calls weave.setChildNameOrder() for the current path.
 		 * Accepts an Array or a list of ordered child names.
 		 */
-		this.reorder = function(orderedNames/*, ...rest*/)
+		this.reorder = function(/*...orderedNames*/)
 		{
-			if (assertParams('reorder', arguments))
+			var args = A(arguments, 1);
+			if (assertParams('reorder', args))
 			{
-				if (arguments.length > 1)
-					orderedNames = A(arguments);
-				weave.setChildNameOrder(path, orderedNames)
+				weave.setChildNameOrder(path, args)
 					|| failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + path);
 			}
 			return this;
@@ -164,9 +179,10 @@ function(objectID)
 		 */
 		this.state = function(/*...names, state*/)
 		{
-			if (assertParams('state', arguments))
+			var args = A(arguments, 2);
+			if (assertParams('state', args))
 			{
-				var pathcopy = path.concat(A(arguments));
+				var pathcopy = path.concat(args);
 				var state = pathcopy.pop();
 				weave.setSessionState(pathcopy, state, true)
 					|| failObject('state', pathcopy);
@@ -180,51 +196,14 @@ function(objectID)
 		 */
 		this.diff = function(/*...names, diff*/)
 		{
-			if (assertParams('diff', arguments))
+			var args = A(arguments, 2);
+			if (assertParams('diff', args))
 			{
-				var pathcopy = path.concat(A(arguments));
+				var pathcopy = path.concat(args);
 				var diff = pathcopy.pop();
 				weave.setSessionState(pathcopy, diff, false)
 					|| failObject('diff', pathcopy);
 			}
-			return this;
-		};
-		/**
-		 * Specifies additional variables to be used in subsequent calls to exec().
-		 * The parameter should be an object mapping variable names to their values.
-		 */
-		this.vars = function(newVars)
-		{
-			for (var key in newVars)
-				vars[key] = newVars[key];
-			return this;
-		};
-		/**
-		 * Specifies additional libraries to be included in subsequent calls to exec().
-		 */
-		this.libs = function(/*...libraries*/)
-		{
-			if (assertParams('libs', arguments))
-				A(arguments).forEach(function(lib){ if (libs.indexOf(lib) < 0) libs.push(lib); });
-			return this;
-		};
-		/**
-		 * Calls weave.evaluateExpression() using the current path, vars, and libs.
-		 * First parameter is the script to be evaluated by Weave at the current path.
-		 * Second parameter is an optional callback or variable name.
-		 * - If given a callback function, the function will be passed the result of
-		 *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
-		 * - If the second parameter is a variable name, the result will be stored as a variable
-		 *   as if it was passed as an object property to WeavePath.vars().  It may then be used
-		 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getVar().
-		 */
-		this.exec = function(script, callback_or_variableName)
-		{
-			var result = weave.evaluateExpression(path, script, vars, libs);
-			if (typeof callback_or_variableName == 'function')
-				callback_or_variableName.apply(this, [result]);
-			else
-				vars[callback_or_variableName] = result;
 			return this;
 		};
 		/**
@@ -252,6 +231,45 @@ function(objectID)
 				weave.removeCallback(path, callbackToString(callback))
 					|| failObject('removeCallback');
 			}
+			return this;
+		};
+		/**
+		 * Specifies additional variables to be used in subsequent calls to exec().
+		 * The parameter should be an object mapping variable names to their values.
+		 */
+		this.vars = function(newVars)
+		{
+			for (var key in newVars)
+				vars[key] = newVars[key];
+			return this;
+		};
+		/**
+		 * Specifies additional libraries to be included in subsequent calls to exec().
+		 */
+		this.libs = function(/*...libraries*/)
+		{
+			var args = A(arguments, 1);
+			if (assertParams('libs', args))
+				args.forEach(function(lib){ if (libs.indexOf(lib) < 0) libs.push(lib); });
+			return this;
+		};
+		/**
+		 * Calls weave.evaluateExpression() using the current path, vars, and libs.
+		 * First parameter is the script to be evaluated by Weave at the current path.
+		 * Second parameter is an optional callback or variable name.
+		 * - If given a callback function, the function will be passed the result of
+		 *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
+		 * - If the second parameter is a variable name, the result will be stored as a variable
+		 *   as if it was passed as an object property to WeavePath.vars().  It may then be used
+		 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getVar().
+		 */
+		this.exec = function(script, callback_or_variableName)
+		{
+			var result = weave.evaluateExpression(path, script, vars, libs);
+			if (typeof callback_or_variableName == 'function')
+				callback_or_variableName.apply(this, [result]);
+			else
+				vars[callback_or_variableName] = result;
 			return this;
 		};
 		/**
