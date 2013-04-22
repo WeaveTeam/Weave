@@ -37,6 +37,8 @@ package disabilityPack
 	
 	public class SegmentValue
 	{
+		import weave.services.DelayedAsyncInvocation;
+		import weave.services.DelayedAsyncResponder;
 		
 		
 		public var Segment:Array; 
@@ -52,12 +54,13 @@ package disabilityPack
 		public var dataX:Array;
 		public var segmentIndices:Array;
 		public var mDisability:Disability;
-		
 		private var fDecisionCount:int = 0;
-		
 		public var Rservice:WeaveRServlet;	
-		import weave.services.DelayedAsyncInvocation;
-		import weave.services.DelayedAsyncResponder;
+		
+		/**
+		 * R script calculations for decision tree.
+		 */
+		
 		
 		private var RdecisionScript:String ="segment <- identity(dataY)\n" +	
 			"corr <- cor(dataX, dataY)\n" +											

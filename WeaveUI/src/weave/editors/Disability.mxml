@@ -121,6 +121,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var DisabilityEnabled:Boolean = true;
 			private var NoMoreData:Boolean = false;
 			
+			/**
+			 * In this class, a disability tex manipulation textbos is created under the settings of a visualization.
+			 * The part of segmentation and decision tree functions is computed also here.
+			 */
 			
 			public function set target(panel:DraggablePanel):void
 			{
