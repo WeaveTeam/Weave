@@ -67,65 +67,80 @@ public class test
 	{
 		ws = new RService();
 		String[] inputNames = {};
-		Object[] inputValues1 = {};	
+		//Object[] inputValues1 = {};	
 		//Object[] inputValues = {};
 		String plotscript = "";
 		String script = "";		
+		String script1 = "";
 		//Object[] parameters = {};
 		String [] resultNames = {};	
+		String scriptFilePath = "C:\\Users\\Shweta\\Desktop\\Rtest.R";
+		String csvPath = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
 		
 		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
 		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+		Object[]inputValues1 = {scriptFilePath, csvPath};
+		inputNames = new String[]{"scriptPath", "csvPath"};
+		
+		//works
+//		script = "scriptFromFile <- source(scriptPath)\n" +
+//				"answer <- scriptFromFile$value(col1, col2)\n";
+		
+		//testing
+		script1 = "scriptFromFile <- source(scriptPath)\n" +
+				"library(survey)\n" +
+				"runscript <- scriptFromFile$value(csvPath)\n";
+		
 		//inputValues1 = new Object[0];
-		inputNames = new String[]{"myMatrix"};
+		//inputNames = new String[]{"myMatrix"};
 		//Object[] array4 = {"ji", "hello"};
 		//Object[] array5 = {0,1,2,3,4};
 		//inputNames = new String []{"inputColumns","EMModel"};
-		Object[][] myMatrix = new Object[][]{array1, array2, array3};
+		//Object[][] myMatrix = new Object[][]{array1, array2, array3};
 		//String[] EMModel = {"VII"};
-		inputValues1 = new Object[]{myMatrix};
+		//inputValues1 = new Object[]{myMatrix};
 		//script = "y <- max(x)";
-		script = " frame <- data.frame(myMatrix)\n" +
-				"normandBin <- function(frame)\n" +  
-                               "structure(list(counts = getCounts(frame), breaks = getBreaks(frame)), class = \"normandBin\");\n"+
-				"getNorm <- function(frame){\n" +				
-			         "myRows <- nrow(frame)\n" +
-					 "myColumns <- ncol(frame)\n" +
-					 "for (z in 1:myColumns ){\n" +
-			         "maxr <- max(frame[z])\n" +
-			         "minr <- min(frame[z])\n" +
-			         "for(i in 1:myRows ){\n" +
-			         "frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n" +
-			         " }\n" +
-			         "}\n" +
-					 "return(frame)\n" +
-					 "}\n" +
-		 "getCounts <- function(normFrame){\n" +
-					   "normFrame <- getNorm(frame)\n" +
-						"c <- ncol(normFrame)\n" +
-						"histoInfo <- list()\n" +
-						"answerCounts <- list()\n" +
-						"for( s in 1:c){\n" + 
-					    "histoInfo[[s]] <- hist(normFrame[[s]], plot = FALSE)\n" + 
-						"answerCounts[[s]] <- histoInfo[[s]]$counts\n" +
-						"}\n" +
-						"return(answerCounts)\n" +
-						"}\n" +
-		"getBreaks <- function(frame){\n" +
-		              "normFrame <- getNorm(frame)\n" +
-					  " c <- ncol(normFrame)\n" +
-					  "histoInfo <- list()\n" +
-					  "answerBreaks <- list()\n" +
-					  "for( i in 1:c){\n" +
-					  "histoInfo[[i]] <- hist(normFrame[[i]], plot = FALSE)\n" +
-					  "answerBreaks[[i]] <- histoInfo[[i]]$breaks\n" +
-					  "}\n" +
-					  "return(answerBreaks)\n" +
-					  "}\n" +
-					
-		"finalResult <- normandBin(frame)\n";
-		
+//		script = " frame <- data.frame(myMatrix)\n" +
+//				"normandBin <- function(frame)\n" +  
+//                               "structure(list(counts = getCounts(frame), breaks = getBreaks(frame)), class = \"normandBin\");\n"+
+//				"getNorm <- function(frame){\n" +				
+//			         "myRows <- nrow(frame)\n" +
+//					 "myColumns <- ncol(frame)\n" +
+//					 "for (z in 1:myColumns ){\n" +
+//			         "maxr <- max(frame[z])\n" +
+//			         "minr <- min(frame[z])\n" +
+//			         "for(i in 1:myRows ){\n" +
+//			         "frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n" +
+//			         " }\n" +
+//			         "}\n" +
+//					 "return(frame)\n" +
+//					 "}\n" +
+//		 "getCounts <- function(normFrame){\n" +
+//					   "normFrame <- getNorm(frame)\n" +
+//						"c <- ncol(normFrame)\n" +
+//						"histoInfo <- list()\n" +
+//						"answerCounts <- list()\n" +
+//						"for( s in 1:c){\n" + 
+//					    "histoInfo[[s]] <- hist(normFrame[[s]], plot = FALSE)\n" + 
+//						"answerCounts[[s]] <- histoInfo[[s]]$counts\n" +
+//						"}\n" +
+//						"return(answerCounts)\n" +
+//						"}\n" +
+//		"getBreaks <- function(frame){\n" +
+//		              "normFrame <- getNorm(frame)\n" +
+//					  " c <- ncol(normFrame)\n" +
+//					  "histoInfo <- list()\n" +
+//					  "answerBreaks <- list()\n" +
+//					  "for( i in 1:c){\n" +
+//					  "histoInfo[[i]] <- hist(normFrame[[i]], plot = FALSE)\n" +
+//					  "answerBreaks[[i]] <- histoInfo[[i]]$breaks\n" +
+//					  "}\n" +
+//					  "return(answerBreaks)\n" +
+//					  "}\n" +
+//					
+//		"finalResult <- normandBin(frame)\n";
+//		
 		
 //		script = "library(mclust)\n" +
 //		"hello1 <- function(inputColumns, EMModel){\n" +
@@ -139,8 +154,8 @@ public class test
 //		"return(Clusters)}}\n" +
 //		"ans <- hello1(inputColumns, EMModel)\n";
 		
-		resultNames = new String[]{"frame", "finalResult"};
-		call(null,inputNames, inputValues1,resultNames,script,plotscript, false,false,false);
+		resultNames = new String[]{"runscript"};
+		call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
 	}	
 }		
 		

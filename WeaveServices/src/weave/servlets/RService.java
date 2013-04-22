@@ -46,6 +46,7 @@ public class RService extends GenericServlet
 	{
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
+		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
 		
 	    try {
 	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
@@ -67,6 +68,7 @@ public class RService extends GenericServlet
 	}
 
 	private String docrootPath = "";
+	private String uploadPath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
 	private static ServiceType serviceType = ServiceType.JRI;
@@ -91,6 +93,30 @@ public class RService extends GenericServlet
 	//	}
 		
 		return jriStatus;
+	}
+	
+	public RResult[] runScriptOnCSVDataset()throws Exception
+	{
+		//checking
+		String scriptName = "Rtest.R";
+		String datasetName = "tencars.csv";
+		RResult[] returnedColumns;
+		//get the upload path for csv (on server)
+		//get the upload path for canned RScript (on server)
+		String cannedScriptLocation = uploadPath + "/RScripts/" + scriptName;
+		String csvLocation = uploadPath + "/CSVCollectionforRScripts/" + datasetName;
+		
+		Object[] inputValues = {cannedScriptLocation,csvLocation };
+		String[] inputNames = {"cannedScriptPath", "csvDatasetPath"};
+		String adminScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+								  "library(survey)\n" +
+		                          "columnsReturnedFromR <- scriptFromFile$value(csvDatasetPath)\n";
+		String[] outputNames = {"columnsReturnedFromR"};
+		
+		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, adminScript, "", false, false, false);
+		
+		
+		return returnedColumns;
 	}
 	
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
