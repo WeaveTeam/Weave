@@ -92,53 +92,56 @@ package weave.visualization.plotters
 				var Rstring:String = null;
 				var dataXY:Array = null;
 				var token:AsyncToken = null;
+			
+			if( drawLine.value)
+			{
+				if (currentTrendline.value == LINEAR)
+				{
+					//trace( "calculateRegression() " + xColumn.toString() );
+					Rstring = "fit <- lm(y~x)\n"
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";
+				}
 				
-			if (currentTrendline.value == LINEAR)
-			{
-				//trace( "calculateRegression() " + xColumn.toString() );
-				Rstring = "fit <- lm(y~x)\n"
-					+"coef <- coefficients(fit)\n" 
-					+"rSquared <- summary(fit)$r.squared\n";
+				if (currentTrendline.value == POLYNOMIAL)
+				{
+					Rstring = "fit <- lm(y ~ poly(x, " + polynomialDegree.value.toString() + ", raw = TRUE))\n"
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";			
+				}
+			
+				if (currentTrendline.value == LOGARITHMIC)
+				{
+					Rstring = "fit <- lm( y ~ log(x) )\n" 
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";
+				}
+			
+			
+				if (currentTrendline.value == EXPONENTIAL)
+				{
+					Rstring = "fit <- lm( log(y) ~ x )\n" 
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";	
+				}
+			
+				if (currentTrendline.value == POWER)
+				{
+					Rstring = "fit <- lm( log(y) ~ log(x) )\n" 
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";
+				}
+			
+				dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
+			
+				// sends a request to Rserve to calculate the coefficients of the regression lograrithmic function to xColumn and yColumn
+				token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef", "rSquared"], Rstring, "", false, false, false);
+				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 			}
-				
-			if (currentTrendline.value == POLYNOMIAL)
-			{
-				Rstring = "fit <- lm(y ~ poly(x, " + polynomialDegree.value.toString() + ", raw = TRUE))\n"
-					+"coef <- coefficients(fit)\n" 
-					+"rSquared <- summary(fit)$r.squared\n";			
-			}
-			
-			if (currentTrendline.value == LOGARITHMIC)
-			{
-				Rstring = "fit <- lm( y ~ log(x) )\n" 
-					+"coef <- coefficients(fit)\n" 
-					+"rSquared <- summary(fit)$r.squared\n";
-			}
-			
-			
-			if (currentTrendline.value == EXPONENTIAL)
-			{
-				Rstring = "fit <- lm( log(y) ~ x )\n" 
-					+"coef <- coefficients(fit)\n" 
-					+"rSquared <- summary(fit)$r.squared\n";	
-			}
-			
-			if (currentTrendline.value == POWER)
-			{
-				Rstring = "fit <- lm( log(y) ~ log(x) )\n" 
-					+"coef <- coefficients(fit)\n" 
-					+"rSquared <- summary(fit)$r.squared\n";
-			}
-			
-			dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
-			
-			// sends a request to Rserve to calculate the coefficients of the regression lograrithmic function to xColumn and yColumn
-			token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef", "rSquared"], Rstring, "", false, false, false);
-			addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
-
 		}
 		
 		private var requestID:int = 0; // ID of the latest request, used to ignore old results
+		
 		private function handleLinearRegressionResult(event:ResultEvent, token:Object=null):void
 		{
 			if (this.requestID != int(token))
@@ -171,7 +174,7 @@ package weave.visualization.plotters
 				// where it should in fact be 0.
 				
 				// problem arises sometimes, when coefficients is null, meaning the R calls are not done yet? May be create a busy loop?
-				for (var i:int = 0; i < coefficients.length; i++)
+				for (i = 0; i < coefficients.length; i++)
 				{
 					if (isNaN(coefficients[i]))
 					{
@@ -303,7 +306,7 @@ package weave.visualization.plotters
 						previousPoint = tempPoint.clone();
 					}
 					
-					g.lineStyle(1);
+					lineStyle.beginLineStyle(null,g);
 					g.drawPath(drawCommand, points);					
 					
 					destination.draw(tempShape);

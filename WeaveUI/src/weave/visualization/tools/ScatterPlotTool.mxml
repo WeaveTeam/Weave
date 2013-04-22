@@ -77,6 +77,21 @@
 			
 			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), enableEquationTextEditing);
 			
+			private function isVisibleEquationText():void
+			{
+				if (isVisibleEquationTextBoolean.value)
+				{
+					equationText.visible = true;
+				}
+				else
+				{
+					equationText.visible = false;
+				}
+			}
+			
+			public const isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), isVisibleEquationText);
+			
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -349,38 +364,66 @@
 				{
 					if (equationText.parent != visCanvas)
 						visCanvas.addChild(equationText);
-					
-					if (regressionPlotter.currentTrendline.value == "Linear")
+					if (regressionPlotter.getCoefficients() != null)
 					{
-//						var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-//						var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
-//						lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
-//						equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
-//						equationText.validateNow();
-//						// severely hacked
-//						equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
-//						equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
+						if (regressionPlotter.currentTrendline.value == "Linear")
+						{	
+							var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
+							lineEquation.text = lang("y = {0}x + {1}", slope, intercept);					
+						}
+					
+						else if( regressionPlotter.currentTrendline.value == "Polynomial")
+						{
+							var rawCoefficients:Array = regressionPlotter.getCoefficients();
+							var roundedCoefficients:Array = [];
+							lineEquation.text = lang("Equation: y = ");
+							var i:int = 0;
 						
-					}
-					
-					else if( regressionPlotter.currentTrendline.value == "Polynomial")
-					{
-//						var a:Number = StandardLib.roundSignificant(regressionPlotter.geta(), 4);
-//						var b:Number = StandardLib.roundSignificant(regressionPlotter.getb(), 4);
-//						var c:Number = StandardLib.roundSignificant(regressionPlotter.getc(), 4);
-//						lineEquation.text = lang("Equaiton: y = {0}x^2 + {1}x + {2}", a, b, c);
-//						equationText.text = lang("Equaiton: y = {0}x^2 + {1}x + {2}", a, b, c);	
-//						equationText.validateNow();
-//						equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
-//						equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
+							for (i = 0; i < rawCoefficients.length ; i++ )
+							{
+								roundedCoefficients.push(StandardLib.roundSignificant(rawCoefficients[i], 4));
+							}
+						
+							for (i = 0; i < roundedCoefficients.length - 1; i++ )
+							{
+								lineEquation.text += lang("{0}x^{1} + ", roundedCoefficients[0], roundedCoefficients.length - i - 1); 
+							}
+							
+							lineEquation.text += lang("{0}", roundedCoefficients[roundedCoefficients.length - 1]);
+							
+						}
+						else if ( regressionPlotter.currentTrendline.value == "Exponential")
+						{
+							var base:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							var exponent:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4);
+							lineEquation.text = lang("y = {0}e^{1}x", base, exponent);
+						}
+						else if ( regressionPlotter.currentTrendline.value == "Power")
+						{
+							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4);
+							lineEquation.text = lang("y = {0}x^{1}", base, exponent);
+						}
+						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
+						{
+							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4);
+							lineEquation.text = lang("y = {0}ln(x)+{1}", base, exponent);
+						}
 					}
 				}
 				else
 				{ 
 					if (equationText.parent)
 						equationText.parent.removeChild(equationText);
-					lineEquation.text = lang("Equation: y = mx + b");
+					lineEquation.text = lang("Equation:");
 				}
+				equationText.text = lineEquation.text;
+				equationText.validateNow();
+				// severely hacked This needs to be fixed.
+				equationText.width = visualization.plotManager.marginLeftNumber.value * 4;
+				equationText.height = Math.min(equationText.textHeight + 14, visualization.plotManager.marginBottomNumber.value);
 			}
 			private function updateAxisLabels():void
 			{
@@ -510,7 +553,8 @@
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
-		editable="true"
+		editable="false"
+		visible = "true"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
 		wordWrap="false"
@@ -562,7 +606,8 @@
 			-->
 			<mx:VBox>
 				<mx:CheckBox id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
-						  	 toolTip="Use the dropdown menu to choose a trendline."/>					
+						  	 toolTip="Use the dropdown menu to choose a trendline."
+							 creationComplete="linkBindableProperty(regressionPlotter.drawLine, event.target, 'selected')"/>
 				<ui:Indent>
 					<mx:HBox>
 						<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
