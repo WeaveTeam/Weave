@@ -51,7 +51,7 @@ public class RService extends GenericServlet
 	    try {
 	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
 	    	if (rServePath != null && rServePath.length() > 0)
-	    		rProcess = Runtime.getRuntime().exec(rServePath);
+	    		rProcess = Runtime.getRuntime().exec(new String[]{ rServePath });
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
