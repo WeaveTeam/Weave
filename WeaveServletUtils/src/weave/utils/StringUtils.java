@@ -28,6 +28,10 @@ import java.util.Collection;
  */
 public class StringUtils
 {
+	public static boolean isEmpty(String str)
+	{
+		return str == null || str.length() == 0;
+	}
 	public static String join(String separator, Object[] items)
 	{
 	    StringBuilder result = new StringBuilder((separator.length()+1)*items.length);
