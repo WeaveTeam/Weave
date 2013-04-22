@@ -92,7 +92,7 @@
 				var id:String;
 				var label:String;
 				var node:Object;
-				var nodes = [];
+				var nodes:Array = [];
 				for (key_idx = 0; key_idx < numNodes; key_idx++)
 				{
 					node = {};
@@ -115,7 +115,7 @@
 				var id:String;
 				var label:String;
 				var edge:Object;
-				var edges = [];
+				var edges:Array = [];
 				for (key_idx = 0; key_idx < numEdges; key_idx++)
 				{
 					edge = {};
