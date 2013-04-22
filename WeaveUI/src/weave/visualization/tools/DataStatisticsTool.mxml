@@ -32,6 +32,7 @@
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
 				autoLayout="true"
+				implements="weave.api.ui.IVisTool"
 				>
 	
 	<mx:HBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
