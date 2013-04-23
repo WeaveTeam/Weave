@@ -1,5 +1,7 @@
 package infomap.admin;
 
+import infomap.utils.ArrayUtils;
+
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
@@ -40,7 +42,12 @@ public class OpenLibraryDataSource extends AbstractDataSource
 	String getSourceName() {
 		return "Open Library";
 	}
-
+	
+	@Override
+	String getSourceType() {
+		return "Books";
+	}
+	
 	@Override
 	SolrInputDocument[] searchForQuery() 
 	{
@@ -100,15 +107,15 @@ public class OpenLibraryDataSource extends AbstractDataSource
 				String title = docs[j].title;
 				
 				if(docs[j].author_name != null)
-					title += " by " + joinArrayElements(docs[j].author_name, " ");
+					title += " by " + ArrayUtils.joinArrayElements(docs[j].author_name, " ");
 				
 				d.addField("title", title);
 				
 				if(docs[j].text != null)
-					d.addField("description", joinArrayElements(docs[j].text, " "));
+					d.addField("description", ArrayUtils.joinArrayElements(docs[j].text, " "));
 				
 				if(docs[j].subject != null)
-					d.addField("attr_text_keywords", joinArrayElements(docs[j].subject, ","));
+					d.addField("attr_text_keywords", ArrayUtils.joinArrayElements(docs[j].subject, ","));
 				
 				/* Setting date_added to current date */
 				Date date_added = new Date();
@@ -181,7 +188,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 	private OpenLibraryDataModel parseJSONResult(int page)
 	{
 		OpenLibraryDataModel result = null;
-		String query = joinArrayElements(requiredQueryTerms, "%20");
+		String query = ArrayUtils.joinArrayElements(requiredQueryTerms, "%20");
 		
 		try{
 			/* Read and Parse JSON result */
@@ -203,46 +210,5 @@ public class OpenLibraryDataSource extends AbstractDataSource
 			return result;
 		}
 		return result;
-	}
-	
-	private String joinArrayElements(String[] array, String element)
-	{
-		String result ="";
-		
-		if(array.length == 0)
-			return result;
-		
-		for (int i = 0; i<array.length; i++)
-		{
-			result += array[i];
-			if(i != array.length -1)
-				result += element;
-		}
-		
-		return result;
-	}
-	
-	private Boolean copyImageFromURL(String sourceURL,String imageName)
-	{
-		int index = sourceURL.lastIndexOf('.');
-		
-		String imgExtension = sourceURL.substring(index, sourceURL.length());
-		
-		Properties prop = new Properties();
-		
-		try
-		{
-			prop.load(getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties"));
-		String tomcatPath = prop.getProperty("windowsTomcatPath");
-		
-		String thumbnailPath = prop.getProperty("windowsThumbnailPath");
-		String destinationPath = tomcatPath + thumbnailPath + imageName + imgExtension; 
-		
-		return FileUtils.copyFileFromURL(sourceURL, destinationPath);
-		
-		}catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
 	}
 }

@@ -14,8 +14,8 @@
 		<mx:ComboBox id="operator"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Sorted By: "/>
-		<mx:ComboBox id="sortByComboBox" dataProvider="{['Relevance','Date']}"/>
+		<mx:Label text="Sorted By: " fontWeight="bold" width="{_leftAlignWidth}"/>
+		<mx:ComboBox id="sortByComboBox" creationComplete="event.currentTarget.dataProvider = QueryObject.sortByOptions"/>
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Source Type: " fontWeight="bold" width="{_leftAlignWidth}"/>					

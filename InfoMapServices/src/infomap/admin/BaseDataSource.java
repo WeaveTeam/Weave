@@ -27,6 +27,11 @@ public class BaseDataSource extends AbstractDataSource{
 		return "BASE";
 	}
 	
+	@Override
+	String getSourceType() {
+		return "Papers";
+	}
+	
 	private static String REQUEST_URL = "http://baseapi.ub.uni-bielefeld.de/cgi-bin/BaseHttpSearchInterface.fcgi?func=PerformSearch&sortby=dcdate&format=json";
 	
 	/** The Constant UTF_8_CHAR_SET. */
@@ -118,17 +123,17 @@ public class BaseDataSource extends AbstractDataSource{
 						{
 							
 							
-							if(pubDateString.matches("/[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/"))//if dcdate is of form yyyy-mm-dd
+							if(pubDateString.matches("[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"))//if dcdate is of form yyyy-mm-dd
 							{
 								format = new SimpleDateFormat("yyyy-MM-dd");
 								pubDate = format.parse(pubDateString);
 							}
-							else if(pubDateString.matches("/[0-9]{4}-[0-9]{1,2}$/")) // if dcdate is of form yyyy-mm
+							else if(pubDateString.matches("[0-9]{4}-[0-9]{1,2}")) // if dcdate is of form yyyy-mm
 							{
 								format = new SimpleDateFormat("yyyy-MM");
 								pubDate = format.parse(pubDateString);
 							}
-							else if(pubDateString.matches("/[0-9]{4}$/"))//if dcdate is of form yyyy
+							else if(pubDateString.matches("[0-9]{4}"))//if dcdate is of form yyyy
 							{
 								format = new SimpleDateFormat("yyyy");
 								pubDate = format.parse(pubDateString);

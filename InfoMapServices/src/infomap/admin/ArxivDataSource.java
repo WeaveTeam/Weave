@@ -30,13 +30,19 @@ import flex.messaging.io.ArrayList;
  * Class for Querying ARXIV: http://arxiv.org/help/api/user-manual
  * 
  */
-public class ArxivDataSource extends AbstractDataSource{
+public class ArxivDataSource extends AbstractDataSource
+{
 
 	
 	public static String SOURCE_NAME = "ARXIV";
 	@Override
 	String getSourceName() {
 		return SOURCE_NAME;
+	}
+	
+	@Override
+	String getSourceType() {
+		return "Papers";
 	}
 	
 	private static String BASE_URL = "http://export.arxiv.org/api/query?&sortBy=lastUpdatedDate&sortOrder=descending";
@@ -235,4 +241,6 @@ public class ArxivDataSource extends AbstractDataSource{
 		 
 		return results.toArray(new SolrInputDocument[results.size()]);
 	}
+
+	
 }

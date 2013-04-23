@@ -35,6 +35,11 @@ public class MendeleyDataSource extends AbstractDataSource {
 		return SOURCE_NAME;
 	}
 	
+	@Override
+	String getSourceType() {
+		return "Papers";
+	}
+	
 	private static int numberOfDocumentsPerRequest = 20;
 	
 	private String generateQuery(String requiredTerm)

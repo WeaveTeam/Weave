@@ -1,11 +1,16 @@
 package infomap.admin;
 
+import infomap.utils.ArrayUtils;
+
 import java.util.ArrayList;
+import java.util.Properties;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
+
+import weave.utils.FileUtils;
 
 /**
  * IDataSource: an abstract class for defining new data sources to query from.
@@ -40,7 +45,7 @@ public abstract class AbstractDataSource implements Runnable
 	 */
 	abstract long getTotalNumberOfQueryResults();
 	
-	
+	abstract String getSourceType();
 	/**
 	 * This function should be called after getting the search results for a query
 	 * @param results An array of SolrInputDocument
@@ -80,21 +85,28 @@ public abstract class AbstractDataSource implements Runnable
 		AdminService.addDocuments(updatedResults.toArray(updatedResultsArray),solrServerURL);
 	}
 	
-	private String joinArrayElements(String[] array, String element)
+	Boolean copyImageFromURL(String sourceURL,String imageName)
 	{
-		String result ="";
+		int index = sourceURL.lastIndexOf('.');
 		
-		if(array.length == 0)
-			return result;
+		String imgExtension = sourceURL.substring(index, sourceURL.length());
 		
-		for (int i = 0; i<array.length; i++)
+		Properties prop = new Properties();
+		
+		try
 		{
-			result += array[i];
-			if(i != array.length -1)
-				result += element;
-		}
+			prop.load(getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties"));
+			String tomcatPath = prop.getProperty("tomcatPath");
+			
+			String thumbnailPath = prop.getProperty("thumbnailPath");
+			String destinationPath = tomcatPath + thumbnailPath + imageName + imgExtension; 
+			
+			return FileUtils.copyFileFromURL(sourceURL, destinationPath);
 		
-		return result;
+		}catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	public String[] getRequiredQueryTerms()
@@ -103,7 +115,7 @@ public abstract class AbstractDataSource implements Runnable
 		if(relatedQueryTerms == null || relatedQueryTerms.length == 0)
 		{
 			requiredTerms = new String[1];
-			requiredTerms[0] = joinArrayElements(requiredQueryTerms, " ");
+			requiredTerms[0] = ArrayUtils.joinArrayElements(requiredQueryTerms, " ");
 		}
 		else
 		{

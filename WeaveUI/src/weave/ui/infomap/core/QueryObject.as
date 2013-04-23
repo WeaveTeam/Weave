@@ -52,10 +52,12 @@ package weave.ui.infomap.core
 		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
 		
 		public const sortBy:LinkableString = registerLinkableChild(this, new LinkableString("Relevance",function(value:*):Boolean{
-			if(value == 'Relevance' || value == 'Date')
+			if(sortByOptions.indexOf(value) != -1)
 				return true;
 			else
 				return false;
 		},false));
+		
+		public static var sortByOptions:Array = ['Relevance','Date Published','Date Added'];
 	}
 }

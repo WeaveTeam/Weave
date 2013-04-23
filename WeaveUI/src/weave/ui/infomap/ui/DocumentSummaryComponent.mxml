@@ -99,7 +99,7 @@ Use the static functions to show this as a popup.
 					if(node.parentPanel.relatedKeywords.value)
 						keywords = keywords.concat(node.parentPanel.relatedKeywords.value.split(','));
 					source.getDescriptionForURL(_docURL.value,keywords).addAsyncResponder(handleGetDescriptionResult,handleGetDescriptionFault,_docURL.value);
-					instance.nodeTimeStamp.text = source.getDatePublishedForURL(_docURL.value);
+					instance.nodeTimeStamp.text = getDateText(_docURL.value);
 //					instance.height = instance.nodeTitle.textHeight +  instance.nodeDescription.textHeight 
 //										+ instance.nodeTimeStamp.textHeight;
 //					instance.invalidateSize();
@@ -107,6 +107,26 @@ Use the static functions to show this as a popup.
 					instance.fadeIn.play();
 //					trace("TEXT HEIGHT IS ",instance.nodeDescription.textHeight);
 //					trace("HEIGHT IS ",instance.height);
+				}
+				
+				private static function getDateText(url:String):String
+				{
+					var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+					var date:String = source.getDatePublishedForURL(url);
+					
+					if(date)
+					{
+						return 'Date Published: ' + date;
+					}
+					
+					date = source.getDateAddedForURL(url);
+					
+					if(date)
+					{
+						return 'Date Added: ' + date;
+					}
+					
+					return "";
 				}
 				
 				private static function handleGetDescriptionResult(event:ResultEvent,token:Object =null):void
@@ -160,6 +180,6 @@ Use the static functions to show this as a popup.
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
-		<mx:Text text="{source.getDatePublishedForURL(_docURL.value)}" id="nodeTimeStamp" fontWeight="bold" width="100%" height="5%" />
+		<mx:Text creationComplete="event.currentTarget.text=getDateText(_docURL.value)" id="nodeTimeStamp" fontWeight="bold" width="100%" height="5%" />
 		
 	</mx:VBox>

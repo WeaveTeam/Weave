@@ -219,12 +219,12 @@ public class AdminService extends GenericServlet {
 
 							docs.add((String) doc.getFieldValue("link"));
 						}
-						System.out.println("DOCS ARE + " + docs.toString());
+//						System.out.println("DOCS ARE + " + docs.toString());
 						result[count] = docs.toArray();
 					}
 					count++;
 				}
-				System.out.println("Updated with ");
+//				System.out.println("Updated with ");
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -898,7 +898,7 @@ public class AdminService extends GenericServlet {
 		
 			URL stoplistPath = getClass().getClassLoader().getResource(
 					"infomap/resources/stopwords.txt");
-			System.out.println(stoplistPath.getFile());
+//			System.out.println(stoplistPath.getFile());
 			String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(),
 					"UTF-8");
 			pipeList.add(new TokenSequenceRemoveStopwords(new File(
@@ -1199,7 +1199,7 @@ public class AdminService extends GenericServlet {
 
 			while (iter.hasNext()) {
 				SolrDocument doc = iter.next();
-				String[] docArray = new String[4];
+				String[] docArray = new String[5];
 
 				docArray[0] = (String) doc.getFieldValue("link");
 				docArray[1] = (String) doc.getFieldValue("title");
@@ -1220,10 +1220,13 @@ public class AdminService extends GenericServlet {
 				if (doc.containsKey("date_published"))
 					docArray[3] = doc.getFieldValue("date_published")
 							.toString();
-				else if (doc.containsKey("date_added"))
-					docArray[3] = doc.getFieldValue("date_added").toString();
 				else
-					docArray[3] = "";
+					docArray[3]= "";
+				
+				if (doc.containsKey("date_added"))
+					docArray[4] = doc.getFieldValue("date_added").toString();
+				else
+					docArray[4] = "";
 
 				r.add(docArray);
 			}
@@ -1243,14 +1246,16 @@ public class AdminService extends GenericServlet {
 		String sortField = "";
 		if(sortBy.equals("Relevance"))
 			sortField = "score";
-		else
+		else if (sortBy.equals("Date Published"))
 			sortField = "date_published";
-		
+		else if (sortBy.equals("Date Added"))
+			sortField = "date_added";
 		
 		q.addSortField(sortField, ORDER.desc);
 		
 		/* add a secondary sort field*/
-		q.addSortField("date_added", ORDER.desc);
+		if(!sortField.equals("date_added"))
+			q.addSortField("date_added", ORDER.desc);
 	}
 	
 	public String getDescriptionForURL(String url, String[] keywords)
@@ -1619,7 +1624,7 @@ public class AdminService extends GenericServlet {
 		setSolrServer(solrURL);
 		// query = query + "&wt=json";
 		timer.start();
-		System.out.println("CALLING GET QUERY");
+//		System.out.println("CALLING GET QUERY");
 
 		String query = parseBasicQuery(queryTerms, "AND");
 		long totalNumberOfDocuments = getNumberOfMatchedDocuments(query, fq,
@@ -1657,10 +1662,9 @@ public class AdminService extends GenericServlet {
 			// .setFilterQueries(fq).setSortField(sortField,
 			// SolrQuery.ORDER.desc);
 
-			System.out.println("Making Response " + timer.get());
+//			System.out.println("Making Response " + timer.get());
 			QueryResponse response = solrInstance.query(q);
-			System.out.println("Got Response " + timer.get()
-					+ response.getElapsedTime() + response.getQTime());
+//			System.out.println("Got Response " + timer.get()+ response.getElapsedTime() + response.getQTime());
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 
 			//System.out.println("QUERY IS " + q.toString());
@@ -1791,8 +1795,7 @@ public class AdminService extends GenericServlet {
 		setStreamingSolrServer(solrURL);
 		try {
 			streamingSolrserver.add(d);
-			System.out.println("ADDING DOCUMENTS TO " + solrURL
-					+ " WITH Num Of DOcs: " + docs.length);
+			System.out.println("ADDING DOCUMENTS TO " + solrURL+ " WITH Num Of DOcs: " + docs.length);
 		} catch (Exception e) {
 			System.out
 					.println("Error when adding " + docs.length + "documents");
@@ -1855,8 +1858,7 @@ public class AdminService extends GenericServlet {
 			QueryResponse r = streamingSolrserver.query(q);
 
 			if (r.getResults().getNumFound() > 0) {
-				System.out.println("Document already exists "
-						+ d.getFieldValue("link").toString());
+				System.out.println("Document already exists "+ d.getFieldValue("link").toString());
 			} else {
 
 				streamingSolrserver.add(d);
@@ -1913,7 +1915,7 @@ public class AdminService extends GenericServlet {
 		List<Token> relatedWords = new ArrayList<Token>();
 		 for (CoreLabel label; ptbt.hasNext(); ) {
 		        label = (CoreLabel)ptbt.next();
-		        System.out.println(label.word());
+//		        System.out.println(label.word());
 		        relatedWords.add(new Token(label.word()));
 		      }
 		
