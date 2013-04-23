@@ -70,16 +70,16 @@ public class test
 		//Object[] inputValues1 = {};	
 		//Object[] inputValues = {};
 		String plotscript = "";
-		String script = "";		
+//		String script = "";		
 		String script1 = "";
 		//Object[] parameters = {};
 		String [] resultNames = {};	
 		String scriptFilePath = "C:\\Users\\Shweta\\Desktop\\Rtest.R";
 		String csvPath = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
 		
-		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
-		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
-		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+//		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
+//		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+//		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 		Object[]inputValues1 = {scriptFilePath, csvPath};
 		inputNames = new String[]{"scriptPath", "csvPath"};
 		
