@@ -2,9 +2,6 @@
 <component inheritJdk="true">
 	<exclude-output/>
 	<contentEntry url="file://$MODULE_DIR$"/>
-	<lib name="org.eclipse.jst.server.core.container/org.eclipse.jst.server.preview.runtimeTarget/J2EE Preview" scope="RUNTIME"/>
-	<lib name="org.eclipse.jst.j2ee.internal.module.container" scope="RUNTIME"/>
-	<lib name="org.eclipse.jst.j2ee.internal.web.container" scope="RUNTIME"/>
 	<lib name="commons-io-1.4.jar" scope="COMPILE">
 		<relative-module-cls project-related="jar://$PROJECT_DIR$/WeaveServletUtils/lib/commons-io-1.4.jar!/"/>
 	</lib>
