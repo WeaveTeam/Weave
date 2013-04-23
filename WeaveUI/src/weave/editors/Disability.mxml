@@ -46,9 +46,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Label id="progressLabel" width="135" enabled="true"/>
 	<mx:Script>
 		<![CDATA[
-			import disabilityDictionary.DisabilityMessageCategoryDictionary;
-			import disabilityDictionary.DisabilityMessageProperties;
-			import disabilityDictionary.DisabilityObject;
+			
 			
 			import disabilityPack.LineChartDecisionTree;
 			import disabilityPack.SegmentValue;
