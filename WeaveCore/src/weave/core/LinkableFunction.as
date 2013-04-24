@@ -22,12 +22,15 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ProxyObject;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.
@@ -50,7 +53,7 @@ package weave.core
 		 */
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
-			super(defaultValue);
+			super(unIndent(defaultValue));
 			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
@@ -104,6 +107,19 @@ package weave.core
 			if (_compiledMethod == null)
 				validate();
 			return _compiledMethod.apply(thisArg, argArray);
+		}
+		
+		/**
+		 * This will evaluate the function with the specified parameters.
+		 * @param thisArg The value of 'this' to be used when evaluating the function.
+		 * @param args Arguments to be passed to the compiled function.
+		 * @return The result of evaluating the function.
+		 */		
+		public function call(thisArg:* = null, ...args):*
+		{
+			if (_compiledMethod == null)
+				validate();
+			return _compiledMethod.apply(thisArg, args);
 		}
 		
 		/////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,5 +240,40 @@ package weave.core
 //		{
 //			return _getNewCompiler(false);
 //		}
+		
+		/**
+		 * Takes a script where all lines have been indented, removes the common indentation from all lines and replaces each tab with four spaces.
+		 * The common indentation is naively assumed to be the same as the first non-blank line in the script.
+		 * @param script A script.
+		 * @return The modified script.
+		 */		
+		public static function unIndent(script:String):String
+		{
+			if (script == null)
+				return null;
+			script = StandardLib.replace(script, '\r\n','\n','\r','\n');
+			while (StringUtil.isWhitespace(script.substr(-1)))
+				script = script.substr(0, -1);
+			var lines:Array = script.split('\n');
+			while (!lines[0])
+				lines.shift();
+			var indent:int = 0;
+			var line:String = lines[0];
+			while (line.charAt(indent) == '\t')
+				indent++;
+			lines.forEach(
+				function(line:String, index:int, lines:Array):void
+				{
+					var i:int = 0;
+					var spaces:String = '';
+					while (line.charAt(i) == '\t')
+						if (i++ >= indent)
+							spaces += '    ';
+					
+					lines[index] = spaces + line.substr(i);
+				}
+			);
+			return lines.join('\n') + '\n';
+		}
 	}
 }
