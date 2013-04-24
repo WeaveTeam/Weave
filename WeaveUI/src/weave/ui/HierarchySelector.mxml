@@ -202,12 +202,12 @@ Displays catoegories in a tree view and the attributes in a list.
 					
 					//we need to explcitly clear the openitems because tree does not clear the previous open items by default.
 					categoriesView.openItems = [];
+					categoriesView.validateNow();
 					for(var i:int = 0; i < pathDepth; i++)
 					{
 						var expandNode:XML = HierarchyUtils.getNodeFromPath(attributeHierarchy.value,selectedPathCopy,i);
 						var expandObj:Object = getObjFromNode(expandNode);
 						categoriesView.expandItem(expandObj,true,false);
-						categoriesView.validateNow();
 					}
 					var selectedObj:Object = getObjFromNode(selectedCategory);
 					categoriesView.selectedItem = selectedObj;
