@@ -2132,6 +2132,8 @@ package weave.compiler
 				var result:*;
 				var symbolName:String;
 				var i:int;
+				var propertyHost:Object;
+				var propertyName:String;
 				
 				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
 				if (useThisScope)
@@ -2228,8 +2230,8 @@ package weave.compiler
 					try
 					{
 						// reset _propertyHost and _propertyName prior to method apply in case we are calling operator '.'
-						_propertyHost = null;
-						_propertyName = null;
+						propertyHost = _propertyHost = null;
+						propertyName = _propertyName = null;
 						
 						if (!compiledParams) // no compiled params means it's a variable lookup
 						{
@@ -2242,8 +2244,8 @@ package weave.compiler
 							
 							if (i == THIS_SYMBOL_TABLE_INDEX || allSymbolTables[i] is Proxy)
 							{
-								_propertyHost = allSymbolTables[i];
-								_propertyName = symbolName;
+								propertyHost = allSymbolTables[i];
+								propertyName = symbolName;
 							}
 							result = allSymbolTables[i][symbolName];
 						}
@@ -2387,6 +2389,8 @@ package weave.compiler
 						{
 							// normal function call
 							result = method.apply(call.evaluatedHost, call.evaluatedParams);
+							propertyHost = _propertyHost;
+							propertyName = _propertyName;
 						}
 					}
 					catch (e:*)
@@ -2430,9 +2434,9 @@ package weave.compiler
 					// otherwise, store the result in the evaluatedParams array of the parent call
 					call = stack[stack.length - 1] as CompiledFunctionCall;
 					if (call.evalIndex == INDEX_METHOD)
-					{
-						call.evaluatedHost = _propertyHost;
-						call.evaluatedMethodName = _propertyName;
+					{ 
+						call.evaluatedHost = propertyHost;
+						call.evaluatedMethodName = propertyName;
 						call.evaluatedMethod = result;
 					}
 					else
@@ -2444,10 +2448,20 @@ package weave.compiler
 			};
 			
 			// if the compiled object is a function definition, return that function definition instead of the wrapper.
-			if ((compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION])
+			if (compiledObjectIsFunction(compiledObject))
 				return wrapperFunction() as Function;
 			
 			return wrapperFunction;
+		}
+		
+		/**
+		 * This will check if the compiled object is a function definition.
+		 * @param compiledObject A compiled object returned by compileToObject().
+		 * @return true if the compiledObject is a function definition.
+		 */		
+		public function compiledObjectIsFunction(compiledObject:ICompiledObject):Boolean
+		{
+			return compiledObject is CompiledFunctionCall && (compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION];
 		}
 
 		public static const _do_continue_test:String = <![CDATA[

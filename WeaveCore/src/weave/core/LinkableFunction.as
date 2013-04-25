@@ -29,6 +29,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
 	import weave.compiler.StandardLib;
 	
@@ -65,6 +66,7 @@ package weave.core
 		private var _useThisScope:Boolean = false;
 		private var _compiledMethod:Function = null;
 		private var _paramNames:Array = null;
+		private var _isFunctionDefinition:Boolean = false;
 
 		/**
 		 * This is called whenever the session state changes.
@@ -82,18 +84,31 @@ package weave.core
 		
 		/**
 		 * This will attempt to compile the function.  An Error will be thrown if this fails.
-		 */		
+		 */
 		public function validate():void
 		{
 			if (_compiledMethod == null)
 			{
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
+				_isFunctionDefinition = false;
 				
 				if (_macroProxy == null)
-					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
-				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
+					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
+				var object:ICompiledObject = _compiler.compileToObject(value);
+				_isFunctionDefinition = _compiler.compiledObjectIsFunction(object);
+				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
 			}
+		}
+		
+		/**
+		 * This gets the length property of the generated Function.
+		 */
+		public function get length():int
+		{
+			if (_compiledMethod == null)
+				validate();
+			return _compiledMethod.length;
 		}
 		
 		/**
@@ -101,7 +116,7 @@ package weave.core
 		 * @param thisArg The value of 'this' to be used when evaluating the function.
 		 * @param argArray An Array of arguments to be passed to the compiled function.
 		 * @return The result of evaluating the function.
-		 */		
+		 */
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
 			if (_compiledMethod == null)
@@ -114,7 +129,7 @@ package weave.core
 		 * @param thisArg The value of 'this' to be used when evaluating the function.
 		 * @param args Arguments to be passed to the compiled function.
 		 * @return The result of evaluating the function.
-		 */		
+		 */
 		public function call(thisArg:* = null, ...args):*
 		{
 			if (_compiledMethod == null)
@@ -127,7 +142,7 @@ package weave.core
 		
 		/**
 		 * This is a proxy object for use as a symbol table for the compiler.
-		 */		
+		 */
 		private static var _macroProxy:ProxyObject = null;
 		
 		/**
@@ -140,15 +155,26 @@ package weave.core
 			return macros.getObject(macroName) != null;
 		}
 		
+		private static function _getMacro(macroName:String):*
+		{
+			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
+			if (!lf)
+				return undefined;
+			if (lf._isFunctionDefinition)
+				return lf;
+			return lf.apply();
+		}
+		
 		/**
 		 * This function evaluates a macro specified in the macros hash map.
 		 * @param macroName The name of the macro to evaluate.
+		 * @param params The parameters to pass to the macro.
 		 * @return The result of evaluating the macro.
 		 */
-		public static function evaluateMacro(macroName:String):*
+		public static function evaluateMacro(macroName:String, ...params):*
 		{
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
-			return lf ? lf.apply() : undefined;
+			return lf ? lf.apply(null, params) : undefined;
 		}
 		
 		/**
