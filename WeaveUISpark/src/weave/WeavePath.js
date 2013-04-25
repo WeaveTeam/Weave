@@ -15,7 +15,6 @@ function(objectID)
 	};
 	weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with two properties: callback and name
 	weave.path.vars = {}; // used with exec() and getVar()
-	weave.path.libs = []; // used with exec()
 	
 	/**
 	 * Private function for internal use.
@@ -252,10 +251,12 @@ function(objectID)
 		 */
 		this.libs = function(/*...libraries*/)
 		{
-			var libs = weave.path.libs;
 			var args = A(arguments, 1);
 			if (assertParams('libs', args))
-				args.forEach(function(lib){ if (libs.indexOf(lib) < 0) libs.push(lib); });
+			{
+				// include libraries for future evaluations
+				weave.evaluateExpression(null, null, null, args);
+			}
 			return this;
 		};
 		/**
@@ -271,8 +272,7 @@ function(objectID)
 		this.exec = function(script, callback_or_variableName)
 		{
 			var vars = weave.path.vars;
-			var libs = weave.path.libs;
-			var result = weave.evaluateExpression(path, script, vars, libs);
+			var result = weave.evaluateExpression(path, script, vars);
 			if (typeof callback_or_variableName == 'function')
 				callback_or_variableName.apply(this, [result]);
 			else
