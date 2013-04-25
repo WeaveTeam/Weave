@@ -51,13 +51,22 @@ package weave.ui.infomap.core
 		 **/
 		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
 		
+		public static var FILTER_BY_BOOKS:String= "Books";
+		
 		public const sortBy:LinkableString = registerLinkableChild(this, new LinkableString("Relevance",function(value:*):Boolean{
 			if(sortByOptions.indexOf(value) != -1)
+			{
 				return true;
+			}
 			else
 				return false;
 		},false));
 		
-		public static var sortByOptions:Array = ['Relevance','Date Published','Date Added'];
+		public static var sortByOptions:Array = [SORT_BY_RELEVANCE,SORT_BY_DATE_PUBLISHED,SORT_BY_DATE_ADDED];
+		
+		public static var SORT_BY_RELEVANCE:String = "Relevance";
+		public static var SORT_BY_DATE_PUBLISHED:String = "Date Published";
+		public static var SORT_BY_DATE_ADDED:String = "Date Added";
+		
 	}
 }

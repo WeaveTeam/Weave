@@ -31,6 +31,7 @@ package weave.ui
 	
 	import weave.api.WeaveAPI;
 	import weave.primitives.Bounds2D;
+	import weave.services.beans.RResult;
 	
 	/**
 	 * This class adds a submenu to any UI Compnent.
@@ -98,6 +99,36 @@ package weave.ui
 			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
 			
 			
+		}
+		
+		/**
+		 * Adds a menu item with submenu items
+		 * @param parentLabel The label of the parent menu
+		 * @param childLabels An array of labels for each submenu item
+		 * @param childListeners An array of functions to call when the respective submenu item is clicked. Assumes same order as childLabels.
+		 * @param childParams An Array of array of parameters to pass to the respective listener functions. Assumes same order as childLabels.
+		 * */
+		public function addSubSubMenuItems(parentLabel:String,childLabels:Array,childListeners:Array,childParams:Array=null):void
+		{
+			var temp:Array = [];
+			for (var i:int =0; i< childLabels.length; i++)
+			{
+				var menuItem:SubMenuItem = new SubMenuItem();
+				menuItem.label = childLabels[i];
+				menuItem.listener = childListeners[i];
+				if(childParams && childParams[i])
+					menuItem.params = childParams[i];
+				temp.push(menuItem);
+			}
+			
+			var parentItem:Object = new Object();
+			parentItem.label = parentLabel;
+			parentItem.children = temp;
+			
+			subMenuDataProvider.push(parentItem);
+			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
+			
+			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
 		}
 		
 		/**

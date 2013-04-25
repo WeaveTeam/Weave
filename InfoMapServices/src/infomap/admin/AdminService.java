@@ -132,6 +132,8 @@ public class AdminService extends GenericServlet {
 	public static String serverURL = null;
 
 	public static ConcurrentUpdateSolrServer streamingSolrserver = null;
+	
+	private static Boolean _testMode = false;
 
 	public AdminService() {
 		Properties prop = new Properties();
@@ -144,6 +146,7 @@ public class AdminService extends GenericServlet {
 			username = prop.getProperty("dbUsername");
 			password = prop.getProperty("dbPassword");
 			host = prop.getProperty("feedSourcesDBServerURL");
+			_testMode = prop.getProperty("testMode").equals("true");
 		}catch (Exception e)
 		{
 			System.out.println("Error reading configuration file");
@@ -640,7 +643,7 @@ public class AdminService extends GenericServlet {
 
 	private int highlightSnippetsCount = 10;
 	private int highlightFragmentSize = 150;
-	private ExecutorService executor = Executors.newFixedThreadPool(3);
+	private ExecutorService executor = Executors.newFixedThreadPool(10);
 	private DebugTimer timer = new DebugTimer();
 
 	private static String formulateQuery(String[] requiredKeywords,
@@ -1581,6 +1584,11 @@ public class AdminService extends GenericServlet {
 		olds.requiredQueryTerms = requiredQueryTerms.clone();
 		olds.solrServerURL = solrServerUrl;
 		result = result + olds.getTotalNumberOfQueryResults();
+		
+		GoogleBooksDataSource gbds = new GoogleBooksDataSource();
+		gbds.requiredQueryTerms = requiredQueryTerms.clone();
+		gbds.solrServerURL = solrServerUrl;
+		result = result + gbds.getTotalNumberOfQueryResults();
 		return result;
 	}
 	
@@ -1611,10 +1619,21 @@ public class AdminService extends GenericServlet {
 		olds.requiredQueryTerms = requiredQueryTerms.clone();
 		olds.solrServerURL = solrServerUrl;
 		
+		GoogleBooksDataSource gbds = new GoogleBooksDataSource();
+		gbds.requiredQueryTerms = requiredQueryTerms.clone();
+		if(relatedQueryTerms != null)
+			gbds.relatedQueryTerms = relatedQueryTerms.clone();
+		gbds.solrServerURL = solrServerUrl;
+		
+		
 		executor.execute(ads);
 		executor.execute(mds);
 		executor.execute(bds);
-		executor.execute(olds);
+		if(!_testMode)
+		{
+			executor.execute(olds);
+			executor.execute(gbds);
+		}
 		System.out.println("Finished Calling Sources " + timer.get());
 	}
 
@@ -1795,7 +1814,7 @@ public class AdminService extends GenericServlet {
 		setStreamingSolrServer(solrURL);
 		try {
 			streamingSolrserver.add(d);
-			System.out.println("ADDING DOCUMENTS TO " + solrURL+ " WITH Num Of DOcs: " + docs.length);
+			System.out.println("ADDING DOCUMENTS WITH Num Of DOcs: " + docs.length);
 		} catch (Exception e) {
 			System.out
 					.println("Error when adding " + docs.length + "documents");

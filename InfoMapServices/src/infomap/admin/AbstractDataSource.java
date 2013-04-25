@@ -2,6 +2,7 @@ package infomap.admin;
 
 import infomap.utils.ArrayUtils;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -55,7 +56,7 @@ public abstract class AbstractDataSource implements Runnable
 	{
 		if(results == null)
 			return;
-		System.out.println("adding "+ results.length + " documents in " + solrServerURL + " for " + getSourceName());
+		System.out.println("adding "+ results.length + " documents " + "for " + getSourceName());
 		HttpSolrServer solrServer = new HttpSolrServer(solrServerURL);
 		ArrayList<SolrInputDocument>updatedResults = new ArrayList<SolrInputDocument>();
 		int count = 0;
@@ -95,11 +96,9 @@ public abstract class AbstractDataSource implements Runnable
 		
 		try
 		{
-			prop.load(getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties"));
-			String tomcatPath = prop.getProperty("tomcatPath");
-			
+			InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
 			String thumbnailPath = prop.getProperty("thumbnailPath");
-			String destinationPath = tomcatPath + thumbnailPath + imageName + imgExtension; 
+			String destinationPath = thumbnailPath + imageName + imgExtension; 
 			
 			return FileUtils.copyFileFromURL(sourceURL, destinationPath);
 		

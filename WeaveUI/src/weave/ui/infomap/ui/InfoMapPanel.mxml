@@ -121,6 +121,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
+			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.BitmapUtils;
@@ -175,6 +176,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const globalDateFilter:DateRangeFilter = new DateRangeFilter();
 			
+			public const globalSortByOption:LinkableString = registerLinkableChild(this,new LinkableString());
+			
+			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
+			
 			public const backgroundImageName:LinkableString = registerLinkableChild(this,new LinkableString(''),handleBackgroundImageChange);
 			
 			override protected function constructor():void
@@ -216,12 +221,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
 				
-				_infomapSubMenu.addSubMenuItem("Add Query Node",addInfoMapNode);
-				_infomapSubMenu.addSubMenuItem("Add Map Node",addInfoMapLink);
-				_infomapSubMenu.addSubMenuItem("Show related Data records",showRelatedDataRecords);
-				_infomapSubMenu.addSubMenuItem("Show related Documents",showRelatedDocuments);
-				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+				_infomapSubMenu.addSubSubMenuItems("Add",["Query Node","Map Node"],[addInfoMapNode,addInfoMapLink]);
+				_infomapSubMenu.addSubSubMenuItems("Show", ["Related Data records","Show related Documents"],[showRelatedDataRecords,showRelatedDocuments]);
+				_infomapSubMenu.addSubSubMenuItems("Sort By", [QueryObject.SORT_BY_RELEVANCE,QueryObject.SORT_BY_DATE_PUBLISHED,QueryObject.SORT_BY_DATE_ADDED],
+					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+				_infomapSubMenu.addSubSubMenuItems("Filter By",[QueryObject.FILTER_BY_BOOKS],[filterNodesBy],[[QueryObject.FILTER_BY_BOOKS]])
+				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+				//_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 				
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
@@ -231,8 +237,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				entityColumnsList.reverseButton.visible = false;
 				
 				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
+				
+				
+				sourceType.dataProvider = ["All","Books"];
+				if(globalFilterByOption.value == "")
+				{
+					sourceType.selectedItem = "All";
+				}
+				else
+				{
+					sourceType.selectedItem = globalFilterByOption.value;
+				}
+				
+				sortByComboBox.dataProvider = QueryObject.sortByOptions
+				sortByComboBox.selectedItem = globalSortByOption.value;
+				linkBindableProperty(globalSortByOption,sortByComboBox,"selectedItem");
 			}
 			
+			private function filterNodesBy(option:String):void
+			{
+				globalFilterByOption.value = option;
+				var nodes:Array = nodes.getObjects();
+				for each (var node:NodeHandler in nodes)
+				{
+					node.previousQuery.sources.value = option;
+				}
+			}
+			
+			private function sortNodesBy(option:String):void
+			{
+				globalSortByOption.value = option;
+				var nodes:Array = nodes.getObjects();
+				for each (var node:NodeHandler in nodes)
+				{
+					node.previousQuery.sortBy.value = option;
+				}
+			}
 			private var _firstLoad:Boolean = true;
 			private function handleEntityColumnHashmap():void
 			{
@@ -810,7 +850,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				nodeHandler.nodeBase.width = 200;//starting off with wide text area
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
-
+				
+				if(globalSortByOption.value)
+					nodeHandler.previousQuery.sortBy.value =globalSortByOption.value;
+				if(globalFilterByOption.value)
+					nodeHandler.previousQuery.sources.value = globalFilterByOption.value;
+				
 				if(query)
 				{
 					nodeHandler.applyKeywords(query);
@@ -837,6 +882,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				
+				if(globalSortByOption.value)
+					nodeHandler.previousQuery.sortBy.value =globalSortByOption.value;
+				if(globalFilterByOption.value)
+					nodeHandler.previousQuery.sources.value = globalFilterByOption.value;
 				
 				nodeHandler.applyKeywordsFromSelection();
 			}
@@ -1076,6 +1126,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				fileUploadCount++; //TODO Check for file index status.
 			} */
 			
+			private function handleSourceTypeChange():void
+			{
+				if(sourceType.selectedItem == "ALL")
+				{
+					globalFilterByOption.value = "";
+				}
+				else if(sourceType.selectedItem == "Books")
+				{
+					globalFilterByOption.value = "Books";
+				}
+			}
+			
 			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString("",validateCSVString),updatePanelTitle);
 			
 			private function updatePanelTitle():void
@@ -1139,6 +1201,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Button label="Browse" click="browse()"/>
 				<mx:Button label="Clear" click="clearImage()"/>
 				<mx:Button label="Save" click="saveImage(event)"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Source Type: " fontWeight="bold" width="150"/>					
+				<mx:ComboBox id="sourceType" change="handleSourceTypeChange()"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Sorted By: " fontWeight="bold" width="150"/>
+				<mx:ComboBox id="sortByComboBox"/>
 			</mx:HBox>
 			<!--<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"/>-->
 			<mx:Spacer height="50"/>

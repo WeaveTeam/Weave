@@ -15,7 +15,7 @@
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Sorted By: " fontWeight="bold" width="{_leftAlignWidth}"/>
-		<mx:ComboBox id="sortByComboBox" creationComplete="event.currentTarget.dataProvider = QueryObject.sortByOptions"/>
+		<mx:ComboBox id="sortByComboBox"/>
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Source Type: " fontWeight="bold" width="{_leftAlignWidth}"/>					
@@ -111,13 +111,21 @@
 				keyword.text = query.keywords.value;
 				
 				operator.dataProvider = ['OR','AND'];
-				sourceType.dataProvider = ["All","Books"];
 				operator.selectedItem = query.operator.value;
+				
+				sourceType.dataProvider = ["All","Books"];
 				if(query.sources.value == "")
 				{
 					sourceType.selectedItem = "All";
 				}
+				else
+				{
+					sourceType.selectedItem = query.sources.value;
+				}
 				linkBindableProperty(query.operator,operator,"selectedItem");
+				
+				sortByComboBox.dataProvider = QueryObject.sortByOptions
+				sortByComboBox.selectedItem = query.sortBy.value;
 				linkBindableProperty(query.sortBy,sortByComboBox,"selectedItem");
 				
 				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
@@ -141,7 +149,7 @@
 			{
 				if(sourceType.selectedItem == "ALL")
 				{
-					query.sources.value
+					query.sources.value = ""
 				}
 				else if(sourceType.selectedItem == "Books")
 				{

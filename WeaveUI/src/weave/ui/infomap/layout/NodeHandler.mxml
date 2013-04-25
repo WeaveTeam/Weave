@@ -487,23 +487,6 @@
 				
 			}
 			
-			private function handleTotalResults(event:ResultEvent,token:Object=null):void
-			{
-					if(event.result as Number> 0)
-					{
-						status.text = "No documents found. Wait for next refresh...";
-					}
-					else
-					{
-						status.text = "No documents found."; 
-					}
-			}
-			
-			private function handleTotalResultsFault(event:FaultEvent,token:Object=null):void
-			{
-				WeaveAPI.ErrorManager.reportError(event.fault.message,"Error with Data Source query");
-			}
-			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:QueryObject=null):void
 			{
 				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
@@ -545,6 +528,24 @@
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 			}
+			
+			private function handleTotalResults(event:ResultEvent,token:Object=null):void
+			{
+				if(event.result as Number> 0)
+				{
+					status.text = "Documents found! Wait for next refresh...";
+				}
+				else
+				{
+					status.text = "No documents found."; 
+				}
+			}
+			
+			private function handleTotalResultsFault(event:FaultEvent,token:Object=null):void
+			{
+				WeaveAPI.ErrorManager.reportError(event.fault.message,"Error with Data Source query");
+			}
+			
 			
 			
 			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:QueryObject=null):void
@@ -2071,6 +2072,7 @@
 					var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;					
 					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
 				}
+				
 				previousQuery.keywords.value = getRequiredKeywords().join(',');
 				previousQuery.operator.value = "OR";
 				if(_parentPanel.relatedKeywords.value)

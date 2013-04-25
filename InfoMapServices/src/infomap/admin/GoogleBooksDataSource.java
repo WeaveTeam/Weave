@@ -28,15 +28,15 @@ import com.google.gson.Gson;
 
 public class GoogleBooksDataSource extends AbstractDataSource 
 {
-	public static void main(String[] args) {
-		GoogleBooksDataSource t = new GoogleBooksDataSource();
-		
-		t.requiredQueryTerms = new String[2];
-		t.requiredQueryTerms[0] = "data";
-		t.requiredQueryTerms[1] = "visualization";
-		
-		System.out.println(t.searchForQuery());
-	}
+//	public static void main(String[] args) {
+//		GoogleBooksDataSource t = new GoogleBooksDataSource();
+//		
+//		t.requiredQueryTerms = new String[2];
+//		t.requiredQueryTerms[0] = "data";
+//		t.requiredQueryTerms[1] = "visualization";
+//		
+//		System.out.println(t.searchForQuery());
+//	}
 
 	@Override
 	String getSourceName() 
@@ -55,6 +55,7 @@ public class GoogleBooksDataSource extends AbstractDataSource
 	@Override
 	SolrInputDocument[] searchForQuery() 
 	{
+		System.out.println("Calling service on " + getSourceName());
 		List<SolrInputDocument> result = new ArrayList();	
 		
 		int totalNumOfDocs = (int)getTotalNumberOfQueryResults();
@@ -155,17 +156,14 @@ public class GoogleBooksDataSource extends AbstractDataSource
 	{
 		int index = sourceURL.lastIndexOf('.');
 		
-		String imgExtension = sourceURL.substring(index, sourceURL.length());
-		
 		Properties prop = new Properties();
 		
 		try
 		{
-			prop.load(getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties"));
-			String tomcatPath = prop.getProperty("tomcatPath");
-			
+			InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+			prop.load(config);
 			String thumbnailPath = prop.getProperty("thumbnailPath");
-			String destinationPath = tomcatPath + thumbnailPath + imageName; 
+			String destinationPath = thumbnailPath + imageName; 
 			
 			URL l = new URL(sourceURL);
 			URLConnection c = l.openConnection();
@@ -197,6 +195,8 @@ public class GoogleBooksDataSource extends AbstractDataSource
 		try
 		{
 			String query = ArrayUtils.joinArrayElements(requiredQueryTerms, " ");
+			if(relatedQueryTerms != null && relatedQueryTerms.length >0 )
+				query += " " + ArrayUtils.joinArrayElements(relatedQueryTerms, " ");
 			query = URLEncoder.encode(query, "UTF-8");
 			String reqURI = requestURL+"&q="+query+"&maxResults="+maxResults+"&startIndex="+startIndex;
 			HttpGet httpget = new HttpGet(reqURI);

@@ -101,6 +101,7 @@ public class MendeleyDataSource extends AbstractDataSource {
 	@Override
 	SolrInputDocument[] searchForQuery() throws ParseException{
 
+		System.out.println("Calling service on " + getSourceName());
 		MendeleyServiceFactory factory = MendeleyServiceFactory.newInstance(CONSUMER_KEY, CONSUMER_SECRET);
 		SearchService service = factory.createSearchService();
 		
@@ -200,6 +201,7 @@ public class MendeleyDataSource extends AbstractDataSource {
 					//setting date_added to current date
 					Date date_added = new Date();
 					d.addField("date_added", date_added);			
+					d.addField("source", getSourceType());
 					
 					results.add(d);
 				}

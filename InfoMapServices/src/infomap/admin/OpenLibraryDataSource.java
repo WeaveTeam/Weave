@@ -51,6 +51,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 	@Override
 	SolrInputDocument[] searchForQuery() 
 	{
+		System.out.println("Calling service on " + getSourceName());
 		List<SolrInputDocument> result = new ArrayList<SolrInputDocument>();
 		long numOfDocs = 0;
 		
@@ -188,7 +189,7 @@ public class OpenLibraryDataSource extends AbstractDataSource
 	private OpenLibraryDataModel parseJSONResult(int page)
 	{
 		OpenLibraryDataModel result = null;
-		String query = ArrayUtils.joinArrayElements(requiredQueryTerms, "%20");
+		String query = ArrayUtils.joinArrayElements(requiredQueryTerms, " ");
 		
 		try{
 			/* Read and Parse JSON result */

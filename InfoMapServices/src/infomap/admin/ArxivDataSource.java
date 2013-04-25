@@ -222,6 +222,7 @@ public class ArxivDataSource extends AbstractDataSource
 					Date pubDate = entry.getPublishedDate();
 					d.addField("date_published", pubDate);
 					
+					d.addField("source", getSourceType());
 					results.add(d);
 				}
 			}

@@ -145,6 +145,9 @@ public class BaseDataSource extends AbstractDataSource{
 						{
 							//System.out.println("DATE IS NULL for " + t.response.docs[i].dclink + "with " + t.response.docs[i].dcdate);
 						}
+						
+						d.addField("source", getSourceType());
+						
 						results.add(d);
 					}
 			
