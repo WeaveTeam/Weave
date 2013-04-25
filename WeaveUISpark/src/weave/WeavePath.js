@@ -60,7 +60,7 @@ function(objectID)
 		 */
 		this.weave = weave;
 		/**
-		 * Makes a copy of the current path Array.
+		 * Returns a copy of the current path Array.
 		 */
 		this.getPath = function()
 		{
@@ -103,7 +103,7 @@ function(objectID)
 		
 		/**
 		 * Specify any number of names to push on to the end of the path.
-		 * Accepts an optional list of names relative to the current path.
+		 * Accepts a list of names relative to the current path.
 		 */
 		this.push = function(/*...names*/)
 		{
