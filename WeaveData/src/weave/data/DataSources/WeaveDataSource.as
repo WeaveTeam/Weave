@@ -461,7 +461,9 @@ package weave.data.DataSources
 			if (request.proxyColumn.wasDisposed)
 				return;
 			
-			reportError(event, null, request);
+			var str:String = HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy).toXMLString();
+			var msg:String = "Error retrieving column: " + str + ' (' + event.fault.faultString + ')';
+			reportError(event.fault, msg, request);
 			
 			request.proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 		}

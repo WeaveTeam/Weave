@@ -77,16 +77,13 @@ package weave.core
 				faultContent = faultContent == null ? error : [error, faultContent];
 			if (!(error is Error) || faultMessage || faultContent != null)
 			{
-				if (!(error is Fault))
-				{
-					// wrap the error in a Fault object
-					if (!faultMessage && error is Error)
-						faultMessage = StandardLib.asString((error as Error).message);
-					var fault:Fault = new Fault('Error', faultMessage);
-					fault.content = faultContent;
-					fault.rootCause = error;
-					error = fault;
-				}
+				// wrap the error in a Fault object
+				if (!faultMessage && error is Error)
+					faultMessage = StandardLib.asString((error as Error).message);
+				var fault:Fault = new Fault('Error', faultMessage);
+				fault.content = faultContent;
+				fault.rootCause = error;
+				error = fault;
 			}
 			
 			var _error:Error = error as Error;
