@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString);
 		public const destinationProjection:LinkableString = newSpatialProperty(LinkableString);
 		
-		protected const tempPoint:Point = new Point();
+		public const tempPoint:Point = new Point();
 		private var _projector:IProjector;
 		private var _xCoordCache:Dictionary;
 		private var _yCoordCache:Dictionary;

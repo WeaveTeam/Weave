@@ -44,6 +44,11 @@ package weave.services
 			return servlet.invokeAsyncMethod("runScript", arguments);
 		}
 		
+		public function checkforJRIService():AsyncToken
+		{
+			return servlet.invokeAsyncMethod("checkforJRIService");
+		}
+		
 		// async result will be of type KMeansClusteringResult
 		public function KMeansClustering( inputNames:Array, inputValues:Array,showWarnings:Boolean,numberOfClusters:int,iterations:int):AsyncToken
 		{			

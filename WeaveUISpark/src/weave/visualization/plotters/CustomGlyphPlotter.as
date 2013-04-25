@@ -83,12 +83,47 @@ package weave.visualization.plotters
 			vars.requestObject(name, value, false);
 		}
 		
-		public const function_drawPlotAsyncIteration:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true, ['task']));
+		public const function_drawPlot:LinkableFunction = registerLinkableChild(this, new LinkableFunction(script_drawPlot, false, true, ['keys','dataBounds','screenBounds','destination']));
+		public static const script_drawPlot:String = <![CDATA[
+			// Parameter types: Array, IBounds2D, IBounds2D, BitmapData
+			function(keys, dataBounds, screenBounds, destination)
+			{
+				var getStats = WeaveAPI.StatisticsCache.getColumnStatistics;
+				var DynamicColumn = Class('weave.data.AttributeColumns.DynamicColumn');
+				var screenSize = vars.requestObject('screenSize', DynamicColumn, false);
+				var sizeStats = getStats(screenSize);
+				var graphicsBuffer = new 'weave.utils.GraphicsBuffer'(destination);
+				var key;
+				for each (key in keys)
+				{
+					getCoordsFromRecordKey(key, tempPoint); // uses dataX,dataY
+					var size = 20 * sizeStats.getNorm(key);
+					
+					if (isNaN(tempPoint.x) || isNaN(tempPoint.y) || isNaN(size))
+						continue;
+					
+					// project x,y data coordinates to screen coordinates
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					
+					// draw graphics
+					lineStyle.beginLineStyle(key, graphicsBuffer.graphics());
+					fillStyle.beginFillStyle(key, graphicsBuffer.graphics());
+					
+					graphicsBuffer.drawCircle(tempPoint.x, tempPoint.y, size)
+						.endFill();
+				}
+				graphicsBuffer.flush();
+			}
+		]]>;
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			try
 			{
-				return function_drawPlotAsyncIteration.apply(_thisProxy, arguments);
+				// BIG HACK to work properly as a symbolPlotter in GeometryPlotter
+				if (task.iteration <= task.recordKeys.length)
+					return 0;
+				
+				function_drawPlot.call(_thisProxy, task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			}
 			catch (e:*)
 			{
@@ -97,7 +132,20 @@ package weave.visualization.plotters
 			return 1;
 		}
 		
-		public const function_drawBackground:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true, ['dataBounds', 'screenBounds', 'destination']));
+		public const function_drawBackground:LinkableFunction = registerLinkableChild(this, new LinkableFunction(script_drawBackground, false, true, ['dataBounds', 'screenBounds', 'destination']));
+		public static const script_drawBackground:String = <![CDATA[
+			// Parameter types: IBounds2D, IBounds2D, BitmapData
+			function(dataBounds, screenBounds, destination)
+			{
+				/*
+				var graphicBuffer = new 'weave.utils.GraphicsBuffer'(destination);
+			
+				// draw background graphics here
+			
+				graphicsBuffer.flush();
+				*/
+			}
+		]]>;
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			try
@@ -110,7 +158,21 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public const function_getDataBoundsFromRecordKey:LinkableFunction = registerSpatialProperty(new LinkableFunction(null, false, true, ['key', 'output']));
+		public const function_getDataBoundsFromRecordKey:LinkableFunction = registerSpatialProperty(new LinkableFunction(script_getDataBoundsFromRecordKey, false, true, ['key', 'output']));
+		public static const script_getDataBoundsFromRecordKey:String = <![CDATA[
+			// Parameter types: IQualifiedKey, Array
+			function(key, output)
+			{
+				getCoordsFromRecordKey(key, tempPoint); // uses dataX,dataY
+				
+				var bounds = initBoundsArray(output);
+				bounds.includePoint(tempPoint);
+				if (isNaN(tempPoint.x))
+					bounds.setXRange(-Infinity, Infinity);
+				if (isNaN(tempPoint.y))
+					bounds.setYRange(-Infinity, Infinity);
+			}
+		]]>;
 		override public function getDataBoundsFromRecordKey(key:IQualifiedKey, output:Array):void
 		{
 			try
@@ -123,7 +185,30 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public const function_getBackgroundDataBounds:LinkableFunction = registerSpatialProperty(new LinkableFunction(null, false, true, ['output']));
+		public const function_getBackgroundDataBounds:LinkableFunction = registerSpatialProperty(new LinkableFunction(script_getBackgroundDataBounds, false, true, ['output']));
+		public static const script_getBackgroundDataBounds:String = <![CDATA[
+			// Parameter type: IBounds2D
+			function (output)
+			{
+				if (zoomToSubset.value)
+				{
+					output.reset();
+				}
+				else
+				{
+					var getStats = WeaveAPI.StatisticsCache.getColumnStatistics;
+					var statsX = getStats(dataX);
+					var statsY = getStats(dataY);
+			
+					output.setBounds(
+						statsX.getMin(),
+						statsY.getMin(),
+						statsX.getMax(),
+						statsY.getMax()
+					);
+				}
+			}
+		]]>;
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			try

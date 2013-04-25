@@ -349,7 +349,7 @@ RTextEditor
 			}
 			
 			//To get the name of selected Column from ColumnListComponent and add to respective TextArea(based on Focused Texarea)
-/* 			protected function inputColumnList_doubleClickHandler(event:MouseEvent):void
+ 			/* protected function inputColumnList_doubleClickHandler(event:MouseEvent):void
 			{
 				//trace(event.currentTarget.internalList.selectedIndex);
 				var columnName:String = variables.getName(event.currentTarget.internalList.selectedItem as ILinkableObject)
@@ -369,7 +369,7 @@ RTextEditor
 						outputTA.text = outputTA.text +"\n"+columnName;
 					}					
 				}				
-			}
+			} */
 
  			//Saves the pointer to inputTA
 			protected function inputTA_clickHandler(event:MouseEvent):void
@@ -383,7 +383,7 @@ RTextEditor
 				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
 				focusedTA = selectedTA;
 			}
-*/
+
 			
 			protected function assignTA_clickHandler(event:MouseEvent):void
 			{
@@ -445,6 +445,11 @@ RTextEditor
 			
 			
 
+			/* protected function draggablepanel1_addedToStageHandler(event:Event):void
+			{
+				addAsyncResponder(query, checkForJRIService, 
+			} */
+			
 		]]>
 	</mx:Script>
 	

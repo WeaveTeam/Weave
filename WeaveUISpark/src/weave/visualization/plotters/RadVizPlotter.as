@@ -117,8 +117,8 @@ package weave.visualization.plotters
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
 		
-		public var doCDLayout:Boolean = false;
-		public var LayoutClasses:Dictionary = null;
+		public var doCDLayout:Boolean = false;//(Set via the editor)boolean needed to switch between normal layout and cd layout
+		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
 
 		/**

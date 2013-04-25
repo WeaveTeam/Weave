@@ -22,12 +22,16 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.
@@ -50,7 +54,7 @@ package weave.core
 		 */
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
-			super(defaultValue);
+			super(unIndent(defaultValue));
 			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
@@ -62,6 +66,7 @@ package weave.core
 		private var _useThisScope:Boolean = false;
 		private var _compiledMethod:Function = null;
 		private var _paramNames:Array = null;
+		private var _isFunctionDefinition:Boolean = false;
 
 		/**
 		 * This is called whenever the session state changes.
@@ -79,18 +84,31 @@ package weave.core
 		
 		/**
 		 * This will attempt to compile the function.  An Error will be thrown if this fails.
-		 */		
+		 */
 		public function validate():void
 		{
 			if (_compiledMethod == null)
 			{
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
+				_isFunctionDefinition = false;
 				
 				if (_macroProxy == null)
-					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
-				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
+					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
+				var object:ICompiledObject = _compiler.compileToObject(value);
+				_isFunctionDefinition = _compiler.compiledObjectIsFunction(object);
+				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
 			}
+		}
+		
+		/**
+		 * This gets the length property of the generated Function.
+		 */
+		public function get length():int
+		{
+			if (_compiledMethod == null)
+				validate();
+			return _compiledMethod.length;
 		}
 		
 		/**
@@ -98,7 +116,7 @@ package weave.core
 		 * @param thisArg The value of 'this' to be used when evaluating the function.
 		 * @param argArray An Array of arguments to be passed to the compiled function.
 		 * @return The result of evaluating the function.
-		 */		
+		 */
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
 			if (_compiledMethod == null)
@@ -106,12 +124,25 @@ package weave.core
 			return _compiledMethod.apply(thisArg, argArray);
 		}
 		
+		/**
+		 * This will evaluate the function with the specified parameters.
+		 * @param thisArg The value of 'this' to be used when evaluating the function.
+		 * @param args Arguments to be passed to the compiled function.
+		 * @return The result of evaluating the function.
+		 */
+		public function call(thisArg:* = null, ...args):*
+		{
+			if (_compiledMethod == null)
+				validate();
+			return _compiledMethod.apply(thisArg, args);
+		}
+		
 		/////////////////////////////////////////////////////////////////////////////////////////////
 		// static section
 		
 		/**
 		 * This is a proxy object for use as a symbol table for the compiler.
-		 */		
+		 */
 		private static var _macroProxy:ProxyObject = null;
 		
 		/**
@@ -124,15 +155,26 @@ package weave.core
 			return macros.getObject(macroName) != null;
 		}
 		
+		private static function _getMacro(macroName:String):*
+		{
+			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
+			if (!lf)
+				return undefined;
+			if (lf._isFunctionDefinition)
+				return lf;
+			return lf.apply();
+		}
+		
 		/**
 		 * This function evaluates a macro specified in the macros hash map.
 		 * @param macroName The name of the macro to evaluate.
+		 * @param params The parameters to pass to the macro.
 		 * @return The result of evaluating the macro.
 		 */
-		public static function evaluateMacro(macroName:String):*
+		public static function evaluateMacro(macroName:String, ...params):*
 		{
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
-			return lf ? lf.apply() : undefined;
+			return lf ? lf.apply(null, params) : undefined;
 		}
 		
 		/**
@@ -224,5 +266,40 @@ package weave.core
 //		{
 //			return _getNewCompiler(false);
 //		}
+		
+		/**
+		 * Takes a script where all lines have been indented, removes the common indentation from all lines and replaces each tab with four spaces.
+		 * The common indentation is naively assumed to be the same as the first non-blank line in the script.
+		 * @param script A script.
+		 * @return The modified script.
+		 */		
+		public static function unIndent(script:String):String
+		{
+			if (script == null)
+				return null;
+			script = StandardLib.replace(script, '\r\n','\n','\r','\n');
+			while (StringUtil.isWhitespace(script.substr(-1)))
+				script = script.substr(0, -1);
+			var lines:Array = script.split('\n');
+			while (!lines[0])
+				lines.shift();
+			var indent:int = 0;
+			var line:String = lines[0];
+			while (line.charAt(indent) == '\t')
+				indent++;
+			lines.forEach(
+				function(line:String, index:int, lines:Array):void
+				{
+					var i:int = 0;
+					var spaces:String = '';
+					while (line.charAt(i) == '\t')
+						if (i++ >= indent)
+							spaces += '    ';
+					
+					lines[index] = spaces + line.substr(i);
+				}
+			);
+			return lines.join('\n') + '\n';
+		}
 	}
 }

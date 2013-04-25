@@ -374,7 +374,7 @@ package weave.api
 				}
 				catch (e:Error)
 				{
-					trace(e.message);
+					trace(e.getStackTrace() || e);
 				}
 			}
 			// END TEMPORARY SOLUTION

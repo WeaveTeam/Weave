@@ -118,11 +118,17 @@ package weave.visualization.plotters
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
 			if (binCol == null)
+			{
 				initBoundsArray(output, 0);
+				return;
+			}
 			
 			var binIndex:Number = binCol.getValueFromKey(recordKey, Number);
 			if (isNaN(binIndex))
+			{
 				initBoundsArray(output, 0);
+				return;
+			}
 			
 			var binHeight:int = binCol.getKeysFromBinIndex(binIndex).length;
 			initBoundsArray(output);

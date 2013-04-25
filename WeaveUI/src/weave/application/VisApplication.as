@@ -55,11 +55,11 @@ package weave.application
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
+	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
@@ -113,6 +113,7 @@ package weave.application
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.WeaveAnalyst;
 
 	internal class VisApplication extends VBox implements ILinkableObject
 	{
@@ -856,11 +857,13 @@ package weave.application
 					}
 				}
 				
-//				if (Weave.properties.weaveAnalystMode.value)
-//				{
-//					var _analyst:WeaveAnalyst = new WeaveAnalyst();
-//					this.visDesktop.addChild(_analyst);
-//				}
+
+				if (Weave.properties.weaveAnalystMode.value)
+				{
+					var analystInstance:WeaveAnalyst = WeaveAnalyst.getInstance();
+					this.visDesktop.addChild(analystInstance);
+				}
+
 				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
@@ -869,11 +872,13 @@ package weave.application
 
 				));
 				
-//				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
-//					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Disable" : "Enable") + " Weave Analyst"); },
-//					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
-//					
-//				));
+/*
+				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
+					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Disable" : "Enable") + " Weave Analyst"); },
+					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
+					
+				));
+*/
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -1423,6 +1428,7 @@ package weave.application
 		{ 
 			//if (contextMenu == null)
 				contextMenu = new ContextMenu();
+			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 			
 			// Hide the default Flash menu
 			try
@@ -1439,8 +1445,9 @@ package weave.application
 			{
 				// Add context menu item for selection related items (subset creation, etc)	
 				if (Weave.properties.enableSubsetControls.value)
+				{
 					KeySetContextMenuItems.createContextMenuItems(this);
-				
+				}
 				if (Weave.properties.enableMarker.value)
 					MarkerSettingsComponent.createContextMenuItems(this);
 				
@@ -1456,7 +1463,7 @@ package weave.application
 				if (Weave.properties.enableExportToolImage.value)
 				{
 					// Add a listener to this destination context menu for when it is opened
-					contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+					//contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 					
 					// Create a context menu item for printing of a single tool with title and logo
 					_panelPrintContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
@@ -1475,7 +1482,7 @@ package weave.application
 				if (Weave.properties.enableExportCSV.value)
 				{
 					// Add a listener to this destination context menu for when it is opened
-					contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+					//contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 					
 					// Create a context menu item for printing of a single tool with title and logo
 					_exportCSVContextMenuItem	= CustomContextMenuManager.createAndAddMenuItemToDestination(
@@ -1487,18 +1494,17 @@ package weave.application
 					// By default this menu item is disabled so that it does not show up unless we right click on a tool
 					_exportCSVContextMenuItem.enabled = false;				
 				}
-				
 				if(Weave.properties.enableInfoMap.value)
 				{
 					InfoMapLoader.createContextMenuItems(this);
 				}
-				
 				// Add context menu items for handling search queries
 				if (Weave.properties.enableSearchForRecord.value)
 					SearchEngineUtils.createContextMenuItems(this);
 				
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
+				
 			}
 		}
 
@@ -1553,6 +1559,7 @@ package weave.application
 		{
 			// When the context menu is opened, save a pointer to the active tool, this is the tool we want to export an image of
 			_panelToExport = DraggablePanel.activePanel;
+			CustomContextMenuManager.activePanel = DraggablePanel.activePanel;
 			
 			if (_panelPrintContextMenuItem)
 			{

@@ -78,6 +78,7 @@ package weave.data.AttributeColumns
 			}
 			data.setSessionState(stringTable);
 		}
+
 		
 		[Deprecated] public function set csvData(value:String):void
 		{
