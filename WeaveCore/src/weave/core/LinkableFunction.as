@@ -201,9 +201,7 @@ package weave.core
 			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
 		}
 		
-		{ /** begin static code block **/
-			staticInit();
-		} /** end static code block **/
+		staticInit();
 		
 		/**
 		 * This function will initialize static variables.

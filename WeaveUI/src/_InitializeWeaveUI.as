@@ -61,6 +61,7 @@ package
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
+	import weave.visualization.tools.CustomGraphicsTool;
 	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
@@ -130,6 +131,7 @@ package
 				ColormapHistogramTool,
 				CompoundRadVizTool,
 				CustomTool,
+				CustomGraphicsTool,
 				SchafersMissingDataTool,
 				DataFilter,
 				DataTableTool,

@@ -25,13 +25,13 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -61,9 +61,9 @@ package weave.data.AttributeColumns
 			WeaveAPI.StatisticsCache,
 			WeaveAPI.AttributeColumnCache,
 			WeaveAPI.QKeyManager,
-			EquationColumnLib
+			EquationColumnLib,
+			IQualifiedKey
 		);
-		compiler.includeConstant("IQualifiedKey", IQualifiedKey);
 		/** end static code block **/
 		
 

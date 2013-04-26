@@ -205,6 +205,10 @@ package weave.compiler
 		 */
 		private var constants:Object = null;
 		/**
+		 * This object maps the name of a global symbol to its value.
+		 */
+		private var globals:Object = null;
+		/**
 		 * This object maps an operator like "*" to a Function or a valie of true if there is no function.
 		 */
 		private var operators:Object = null;
@@ -301,9 +305,8 @@ package weave.compiler
 					if (className)
 					{
 						// save the class name as a symbol
-						className = className.split('.').pop();
-						className = className.split('::').pop();
-						constants[className] = library;
+						className = className.substr(Math.max(className.lastIndexOf('.'), className.lastIndexOf(':')) + 1);
+						globals[className] = library;
 					}
 					if (library is Function) // special case for global function like flash.utils.getDefinitionByName
 						continue;
@@ -318,9 +321,9 @@ package weave.compiler
 		 * @param constantName The name of the constant.
 		 * @param constantValue The value of the constant.
 		 */
-		public function includeConstant(constantName:String, constantValue:*):void
+		public function importGlobal(constantName:String, constantValue:*):void
 		{
-			constants[constantName] = constantValue;
+			globals[constantName] = constantValue;
 		}
 
 		/**
@@ -346,21 +349,23 @@ package weave.compiler
 					statements[stmt] = false;
 			}
 			constants = {};
+			globals = {};
 			operators = {};
 			pureOperators = {};
 			assignmentOperators = {};
 			
-			// global symbols
+			// constant, built-in symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
 				constants[String(_const)] = _const;
+			
 			// global classes
 			var _QName:* = getDefinitionByName('QName'); // workaround to avoid asdoc error
 			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
 			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
-				constants[getQualifiedClassName(_class)] = _class;
+				globals[getQualifiedClassName(_class)] = _class;
 			// global functions
 			for each (var _funcName:String in 'decodeURI,decodeURIComponent,encodeURI,encodeURIComponent,escape,isFinite,isNaN,isXMLName,parseFloat,parseInt,trace,unescape'.split(','))
-				constants[_funcName] = getDefinitionByName(_funcName);
+				globals[_funcName] = getDefinitionByName(_funcName);
 			
 			
 			/** operators **/
@@ -771,9 +776,9 @@ package weave.compiler
 			compileBracketsAndProperties(tokens);
 
 			// next step: handle stray operators "..[](){}"
-			for each (token in tokens)
-				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
-					throw new Error("Misplaced '" + token + "'");
+			for (i = 0; i < tokens.length; i++)
+				if (tokens[i] is String && '..[](){}'.indexOf(tokens[i] as String) >= 0)
+					throw new Error("Misplaced '" + tokens[i] + "'" + _betweenTwoTokens(tokens[i - 1], tokens[i + 1]));
 
 			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
@@ -921,16 +926,30 @@ package weave.compiler
 				return tokens[0];
 
 			if (tokens.length > 1)
-			{
-				var leftToken:String = tokens[0] is ICompiledObject ? decompileObject(tokens[0]) : tokens[0];
-				var rightToken:String = tokens[1] is ICompiledObject ? decompileObject(tokens[1]) : tokens[1];
-				throw new Error("Missing operator between " + leftToken + ' and ' + rightToken);
-			}
+				throw new Error("Missing operator" + _betweenTwoTokens(tokens[0], tokens[1]));
 
 			if (allowSemicolons)
 				return compileOperator(';', tokens);
 			
 			throw new Error("Empty expression");
+		}
+		
+		/**
+		 * Used for generating a portion of an error message like " between token1 and token2"
+		 */
+		private function _betweenTwoTokens(token1:Object, token2:Object):String
+		{
+			if (token1 is ICompiledObject)
+				token1 = decompileObject(token1 as ICompiledObject);
+			if (token2 is ICompiledObject)
+				token2 = decompileObject(token2 as ICompiledObject);
+			if (token1 && token2)
+				return ' between ' + token1 + ' and ' + token2;
+			if (token1)
+				return ' after ' + token1;
+			if (token2)
+				return ' before ' + token2;
+			return '';
 		}
 
 		/*
@@ -1131,8 +1150,8 @@ package weave.compiler
 				{
 					var propertyToken:String = tokens[open + 1] as String;
 					
-					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
-						break; // error
+					if (!compiledToken || !propertyToken || operators.hasOwnProperty(propertyToken))
+						throw new Error("Misplaced '" + tokens[open] + "' " + _betweenTwoTokens(token, tokens[open + 1]));
 					
 					// the token on the right is a variable name, but we will store it as a String because it's a property lookup
 					compiledParams = [compiledToken, new CompiledConstant(encodeString(propertyToken), propertyToken)];
@@ -1206,7 +1225,7 @@ package weave.compiler
 					{
 						// property access
 						if (compiledParams.length == 0)
-							throw new Error("Missing parameter for bracket operator: '[]'");
+							throw new Error("Missing parameter for bracket operator: " + decompileObject(compiledToken) + "[]");
 						// the token on the left becomes the first parameter of the access operator
 						compiledParams.unshift(compiledToken);
 						// replace the token to the left and the brackets with the operator call
@@ -1803,7 +1822,11 @@ package weave.compiler
 		{
 			var varLookup:Object = {};
 			
-			compiledObject = _finalize(compiledObject, varLookup);
+			var final:ICompiledObject = _finalize(compiledObject, varLookup);
+			if (!final)
+				return compiledObject;
+			
+			compiledObject = final;
 			
 			var names:Array = [];
 			for (var name:String in varLookup)
@@ -2117,8 +2140,8 @@ package weave.compiler
 			var i:int = libraries.length;
 			while (i--)
 				allSymbolTables.push(libraries[i]);
-			// check constants last
-			allSymbolTables.push(constants);
+			// check globals last
+			allSymbolTables.push(globals);
 			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
@@ -2320,8 +2343,7 @@ package weave.compiler
 								if (!symbolName)
 									symbolName = getQualifiedClassName(result);
 								
-								symbolName = symbolName.split('.').pop();
-								symbolName = symbolName.split('::').pop();
+								symbolName = symbolName.substr(Math.max(symbolName.lastIndexOf('.'), symbolName.lastIndexOf(':')) + 1);
 								allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX][symbolName] = result;
 							}
 						}

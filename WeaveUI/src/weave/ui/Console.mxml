@@ -161,6 +161,7 @@
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
+				'weaveTrace': weaveTrace,
 				'$': methodChainer,
 				'$$': debugHelper2,
 				'_': {}
