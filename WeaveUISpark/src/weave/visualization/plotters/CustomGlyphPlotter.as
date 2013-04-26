@@ -88,9 +88,11 @@ package weave.visualization.plotters
 					
 					var x = tempPoint.x, y = tempPoint.y;
 					var size = 20 * sizeStats.getNorm(key);
+					var color = colorColumn.getValueFromKey(key, Number);
 					
 					// draw graphics
-					buffer.beginFill(color, 1.0); // color, alpha
+					if (isFinite(color))
+						buffer.beginFill(color, 1.0); // color, alpha
 					if (isNaN(size))
 					{
 						size = 10;
