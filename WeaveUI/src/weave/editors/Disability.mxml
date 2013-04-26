@@ -281,7 +281,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			
+			//runs test for decision tree
 			public function runsTest(mSegment:SegmentValue):void
 			{
 				var yRegValues:Array = new Array();
@@ -434,8 +434,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						Segment1.split();
 					if(Segment2.Segment != null)
 						Segment2.split();
-					//seg1
-					//seg2
+					//segment1
+					//segment2
 					
 				}
 				
@@ -491,7 +491,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return resultSegment;
 				
 			}
-			
+			//vertical distance is to find farthest point from the imaginary line between two ends points of the line graph 
 			public function verticalDistance(startPoint:Array, endPoint:Array, measuredPoint:Array):Number
 			{
 				return Math.abs((startPoint[1] + ((endPoint[1] - startPoint[1]) * ((measuredPoint[0] - startPoint[0]) / (endPoint[0] - startPoint[0]))) - measuredPoint[1]));
@@ -504,14 +504,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				
 				var ExplanationSentence:String = "";
-				var SegmentAngles:Array = new Array();
+				var SegmentAngles:Array = new Array();//segment angles for calculating how sharp the segment grows
 				var lastSpike:Array = new Array();
 				var spikeAvgAngle:Array = new Array();
 				
 				for(var k:int = 0; k < splitIndices.length ; k++)
 				{
 					var avgAngle:Number = 0;
-					var curAng:Number = 0;
+					var currAngle:Number = 0;
 					
 					//avgAngle += curAng;
 					//trace(curAng);
@@ -520,19 +520,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					// check if the graph spikes down or up at the end of segment
 					for(var j:int = splitIndices[k][0]; j < (splitIndices[k][1] - 1) ; j++)
 					{
-						curAng = CalcAngle(initSeg[j], initSeg[j + 1],  1);
-						avgAngle += curAng;
+						currAngle = CalcAngle(initSeg[j], initSeg[j + 1],  1);
+						avgAngle += currAngle;
 						
 						
 					}
 					avgAngle = avgAngle / (Math.abs(splitIndices[k][1] - splitIndices[k][0]) - 1);
-					curAng = CalcAngle(initSeg[splitIndices[k][0]], initSeg[splitIndices[k][1]], Math.abs(initSeg[splitIndices[k][1]] - initSeg[splitIndices[k][0]]));
-					if(curAng < avgAngle - 65)
+					currAngle = CalcAngle(initSeg[splitIndices[k][0]], initSeg[splitIndices[k][1]], Math.abs(initSeg[splitIndices[k][1]] - initSeg[splitIndices[k][0]]));
+					if(currAngle < avgAngle - 65)
 					{
 						lastSpike.push(-1);
 						spikeAvgAngle.push(avgAngle);
 					}
-					else if(curAng > avgAngle + 65)
+					else if(currAngle > avgAngle + 65)
 					{
 						lastSpike.push(1);
 						spikeAvgAngle.push(avgAngle);
@@ -543,12 +543,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						spikeAvgAngle.push(0);
 					}
 					
-					curAng = CalcAngle(initSeg[splitIndices[k][0]], initSeg[splitIndices[k][1]], (splitIndices[k][1] - splitIndices[k][0]));
+					currAngle = CalcAngle(initSeg[splitIndices[k][0]], initSeg[splitIndices[k][1]], (splitIndices[k][1] - splitIndices[k][0]));
 					//SegmentAngles.push(avgAngle / Math.abs(initSeg[splitIndices[i][1]] - initSeg[splitIndices[i][0]]));
-					SegmentAngles.push(curAng);
+					SegmentAngles.push(currAngle);
 				}
 				trace("Segment angles; " + SegmentAngles);
-				ExplanationSentence = "The line chart consists of " + SegmentAngles.length + " trends. ";
+				ExplanationSentence = "This image is a line chart. The line chart displays " +initSeg.length+" data points and shows " + SegmentAngles.length + " major trends. ";
+				
 				for(var i:int = 0; i < SegmentAngles.length ; i++)
 				{
 					ExplanationSentence += "The " + OrderArray[i] + " segment ";
@@ -584,31 +585,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					if(lastSpike[i] == 1)
 					{
-						ExplanationSentence += " with a sharp increase at the end. Starts at " + columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]] + ". " ;
+						ExplanationSentence += " "+initSeg[splitIndices[i][0]] +" to "+initSeg[splitIndices[i][1]]+ ". There is a single point sharp increase at the end. This segment begins at " + columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]] + ". " ;
 					}
 					else if(lastSpike[i] == -1)
 					{
-						ExplanationSentence += " with a sharp fall at the end. Starts at " +columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]]  + ". " ;
+						ExplanationSentence += " "+initSeg[splitIndices[i][0]] +" to "+initSeg[splitIndices[i][1]]+". There is a single point sharp fall at the end. This segment starts at " +columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]]  + ". " ;
 					}
 					else if(lastSpike[i] == 0)
 					{
 						//ExplanationSentence += ". Starts at "+ initSeg[splitIndices[i][0]] + " and ends at " + initSeg[splitIndices[i][1]] + ". "  ;
-						ExplanationSentence += ". Starts at "+ columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]] + ". "  ;
+						ExplanationSentence += initSeg[splitIndices[i][0]] +" to "+initSeg[splitIndices[i][1]]+". This segment begins at "+ columnNames[splitIndices[i][0]] + " and ends at " + columnNames[splitIndices[i][1]] + ". "  ;
 
 					}
 					
 				}
-				ExplanationSentence += "The line chart has " + initSeg.length + " data points.";
 				
 				if(initSeg[0] > initSeg[initSeg.length -1])
 				{
-					ExplanationSentence +=  "Overall, the line chart decreases ";
+					ExplanationSentence +=  "Overall, from the first point to the last point, the y axis value on this line chart falls ";
 				}
 				else
 				{
-					ExplanationSentence +=  "Overall, the line chart increases ";
+					ExplanationSentence +=  "Overall, from the first point to the last point, the y axis value on this line chart rises ";
 				}
-				ExplanationSentence +=  "from " + initSeg[0] + " to " + initSeg[initSeg.length -1];
+				ExplanationSentence +=  " from " + initSeg[0] + " to " + initSeg[initSeg.length -1] + ".";
 				
 				if(!NoMoreData)
 				{

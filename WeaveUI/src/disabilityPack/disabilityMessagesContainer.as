@@ -31,11 +31,11 @@ package disabilityPack
 			
 			var mDisabilityMessage:disabilityMessage = new disabilityMessage("is a stable trend", "is a stable trend", -5, 5);
 			messageContainer.push(mDisabilityMessage);
-			mDisabilityMessage = new disabilityMessage("is a slightly falling trend","is a slightly increasing trend", -30, 30);
+			mDisabilityMessage = new disabilityMessage("is a slightly falling trend, decreasing from ","is a slightly rising trend, increasing from", -30, 30);
 			messageContainer.push(mDisabilityMessage);
-			mDisabilityMessage = new disabilityMessage("is a falling trend", "is an increasing trend", -60, 60);
+			mDisabilityMessage = new disabilityMessage("exhibits a falling trend, decreasing from ", "is a rising trend, increasing from", -60, 60);
 			messageContainer.push(mDisabilityMessage);
-			mDisabilityMessage = new disabilityMessage("is a sharp falling trend", "is a sharp increasing trend", -90, 90);
+			mDisabilityMessage = new disabilityMessage("is a sharp falling trend, decreasing from ", "is a sharp rising trend, increasing from", -90, 90);
 			messageContainer.push(mDisabilityMessage);
 						
 			}			
