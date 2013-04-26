@@ -278,7 +278,7 @@ package weave.core
 				function evalExpression(...args):*
 				{
 					var thisObject:Object = getObjectFromPathOrExpressionName(scopeObjectPathOrExpressionName);
-					var compiledMethod:Function = _compiler.compileToFunction(expression, variables, false, thisObject != null);
+					var compiledMethod:Function = _compiler.compileToFunction(expression, variables, null, thisObject != null);
 					return compiledMethod.apply(thisObject, args);
 				}
 				

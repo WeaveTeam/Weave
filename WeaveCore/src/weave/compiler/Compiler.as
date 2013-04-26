@@ -247,18 +247,18 @@ package weave.compiler
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
-		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
+		public function compileToFunction(expression:String, symbolTable:Object, errorHandler:Function = null, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = finalize(compileTokens(tokens, true));
-			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope, paramNames, paramDefaults);
+			return compileObjectToFunction(compiledObject, symbolTable, errorHandler, useThisScope, paramNames, paramDefaults);
 		}
 		
 		/**
@@ -2084,13 +2084,13 @@ package weave.compiler
 		 * This function is for internal use only.
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
 		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
-		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.  This may be set to null, which will cause the Error to be thrown.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2394,7 +2394,7 @@ package weave.compiler
 							result = compileObjectToFunction(
 								funcParams[FUNCTION_CODE],
 								_symbolTables,
-								ignoreRuntimeErrors,
+								errorHandler,
 								useThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES]
@@ -2417,18 +2417,20 @@ package weave.compiler
 					}
 					catch (e:*)
 					{
-						if (ignoreRuntimeErrors)
-							result = undefined;
+						var decompiled:String = decompileObject(call);
+						var err:Error = e as Error;
+						if (err)
+							err.message = decompiled + '\n' + err.message;
 						else
-						{
-							var decompiled:String = decompileObject(call);
-							var err:Error = e as Error;
-							if (err)
-								err.message = decompiled + '\n' + err.message;
-							else
-								trace(decompiled);
+							trace(decompiled);
+						
+						if (errorHandler == null)
 							throw e;
-						}
+						
+						if (errorHandler(e))
+							result = undefined; // ignore and continue
+						else
+							return undefined; // halt
 					}
 					
 					// handle while and for loops
@@ -2579,7 +2581,7 @@ package weave.compiler
 				var decompiled2:String = compiler.decompileObject(compiler.compileTokens(tokens3, true));
 				trace("decompiled(2):", decompiled2);
 				
-				var f:Function = compiler.compileToFunction(eq, vars, false);
+				var f:Function = compiler.compileToFunction(eq, vars);
 				for each (var value:* in values)
 				{
 					vars['v'] = value;
