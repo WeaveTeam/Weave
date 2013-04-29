@@ -44,9 +44,11 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.UntypedLinkableVariable;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -208,15 +210,48 @@ package weave.data.DataSources
 			
 			getCallbackCollection(destinationHashMap).delayCallbacks();
 			var refCol:ReferencedColumn = destinationHashMap.requestObject(null, ReferencedColumn, false);
-			var hierarchyColRef1:HierarchyColumnReference =  refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+			var hcr:HierarchyColumnReference =  refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 			
-			getCallbackCollection(hierarchyColRef1).delayCallbacks();
-			hierarchyColRef1.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
-			hierarchyColRef1.dataSourceName.value = sourceOwner.getName(this);
-			getCallbackCollection(hierarchyColRef1).resumeCallbacks();
+			getCallbackCollection(hcr).delayCallbacks();
+			hcr.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
+			hcr.dataSourceName.value = sourceOwner.getName(this);
+			getCallbackCollection(hcr).resumeCallbacks();
 			
 			getCallbackCollection(destinationHashMap).resumeCallbacks();
 			return refCol;
+		}
+		
+		/**
+		 * This will modify a column object in the session state to refer to a column in this CSVDataSource.
+		 * @param columnNameOrIndex Either a column name or zero-based column index.
+		 * @param columnPath A DynamicColumn or the path in the session state that refers to a DynamicColumn.
+		 * @return A value of true if successful, false if not.
+		 * @see weave.api.IExternalSessionStateInterface
+		 */
+		public function putColumn(columnNameOrIndex:Object, dynamicColumnOrPath:Object):Boolean
+		{
+			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+			if (!sourceOwner)
+				return false;
+			var columnName:String = columnNameOrIndex as String || getColumnNames()[columnNameOrIndex] as String;
+			var dc:DynamicColumn = dynamicColumnOrPath as DynamicColumn;
+			if (!dc)
+				dc = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(dynamicColumnOrPath as Array) as DynamicColumn;
+			if (!columnName || !dc)
+				return false;
+			
+			getCallbackCollection(dc).delayCallbacks();
+			var refCol:ReferencedColumn = dc.requestLocalObject(ReferencedColumn, false);
+			var hcr:HierarchyColumnReference =  refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+			
+			getCallbackCollection(hcr).delayCallbacks();
+			hcr.hierarchyPath.value = <attribute title={columnName} csvColumn={columnName}/>;
+			hcr.dataSourceName.value = sourceOwner.getName(this);
+			getCallbackCollection(hcr).resumeCallbacks();
+			
+			getCallbackCollection(dc).resumeCallbacks();
+			
+			return true;
 		}
 		
 		
