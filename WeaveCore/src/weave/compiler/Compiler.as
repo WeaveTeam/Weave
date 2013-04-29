@@ -1617,6 +1617,18 @@ package weave.compiler
 						if (!call.compiledParams || call.evaluatedMethod == operators['='])
 							tokens[startIndex + iPattern] = token = call = compileOperator(',', [call]);
 						
+						// special case for "for (var x in y) { }"
+						if (call.evaluatedMethod == operators['in'] && call.compiledParams.length == 2)
+						{
+							// check the variable
+							call = call.compiledParams[0] as CompiledFunctionCall;
+							if (!call || call.compiledParams) // not a variable?
+								throwInvalidSyntax(stmt);
+							// save single variable name
+							varNames = [call.evaluatedMethod];
+							continue;
+						}
+						
 						if (call.evaluatedMethod != operators[','] || call.compiledParams.length == 0)
 							throwInvalidSyntax(stmt);
 						
@@ -1640,6 +1652,7 @@ package weave.compiler
 							else
 								throwInvalidSyntax(stmt);
 						}
+						call.evaluateConstants();
 					}
 				}
 				
@@ -1651,7 +1664,13 @@ package weave.compiler
 				{
 					token = compileOperator(ST_VAR, [new CompiledConstant(null, varNames)]);
 					call = params[0];
-					if (call.compiledParams.length > 0)
+					if (call.evaluatedMethod == operators['in'])
+					{
+						call.compiledParams[0] = compileOperator(',', [token, call.compiledParams[0]]);
+						call.evaluateConstants();
+						token = call;
+					}
+					else if (call.compiledParams.length > 0)
 					{
 						call.compiledParams.unshift(token);
 						call.evaluateConstants();
@@ -1735,9 +1754,18 @@ package weave.compiler
 						
 						// implemented as "for (each|in)(\in(list), item=undefined, stmt)
 						var _in:CompiledFunctionCall = forParams.compiledParams[0];
-						var _item:ICompiledObject = compileVariableAssignment(_in.compiledParams[0], '=', newUndefinedConstant());
+						var _item:ICompiledObject;
+						var _var:CompiledFunctionCall = _in.compiledParams[0] as CompiledFunctionCall;
+						if (_var.evaluatedMethod == operators[','] && _var.compiledParams.length == 2) // represented as (var x, x)
+						{
+							_var.compiledParams[1] = compileVariableAssignment(_var.compiledParams[1], '=', newUndefinedConstant());
+						}
+						else
+						{
+							_var = compileVariableAssignment(_in.compiledParams[0], '=', newUndefinedConstant());
+						}
 						var _list:ICompiledObject = compileOperator('in', [_in.compiledParams[1]]);
-						tokens[startIndex] = compileOperator(stmt, [_list, _item, params[1]]);
+						tokens[startIndex] = compileOperator(stmt, [_list, _var, params[1]]);
 					}
 				}
 				else if (_jumpStatements.indexOf(stmt) >= 0)
@@ -1785,11 +1813,21 @@ package weave.compiler
 					{
 						// if 'for' or 'for each' has only one param, it must be the 'in' operator
 						var call:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall; // the first statement param
-						if (!call || call.evaluatedMethod != operators['in'])
+						if (!call || call.evaluatedMethod != operators['in'] || call.compiledParams.length != 2)
 							throwInvalidSyntax(statement);
+						
+						// check the first parameter of the 'in' operator
+						call = call.compiledParams[0] as CompiledFunctionCall;
+						
+						if (call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
+						{
+							var _var:CompiledFunctionCall = call.compiledParams[0] as CompiledFunctionCall;
+							if (!_var || _var.evaluatedMethod != operators[ST_VAR])
+								throwInvalidSyntax(statement);
+							call = call.compiledParams[1]; // should be the variable
+						}
 							
 						// the 'in' operator must have a variable or property reference as its first parameter
-						call = call.compiledParams[0] as CompiledFunctionCall; // the 'in' operator
 						if (!(call.compiledParams == null || call.evaluatedMethod == operators['.'])) // not a variable and not a property
 							throwInvalidSyntax(statement);
 					}
