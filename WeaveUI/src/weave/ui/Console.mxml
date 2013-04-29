@@ -276,7 +276,7 @@
 					{
 						// this is the first error that occurred
 						shouldReportError = e;
-						if (e is Error)
+						if (e as Error) // use 'as' instead of 'is' to avoid asdoc error "Error: Property is write-only."
 							trace((e as Error).getStackTrace());
 					}
 				}
