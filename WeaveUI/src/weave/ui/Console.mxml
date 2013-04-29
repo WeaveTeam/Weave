@@ -282,14 +282,22 @@
 				}
 				
 				var result:*;
-				var decompiled:String;
-				var obj:ICompiledObject = compiler.compileToObject(input.text);
-				//decompiled = compiler.decompileObject(obj);
-				var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
-				result = func.apply(_context);
+				try
+				{
+					var decompiled:String;
+					var obj:ICompiledObject = compiler.compileToObject(input.text);
+					//decompiled = compiler.decompileObject(obj);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
+					result = func.apply(_context);
+					if (shouldReportError)
+						result = shouldReportError;
+				}
+				catch (e:*)
+				{
+					// if we get here it means the command could not be compiled
+					result = e.message;
+				}
 				
-				if (shouldReportError)
-					result = shouldReportError;
 				shouldReportError = true; // future errors should be reported
 				
 				try
