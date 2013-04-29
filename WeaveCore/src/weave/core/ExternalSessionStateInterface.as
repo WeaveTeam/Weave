@@ -262,6 +262,8 @@ package weave.core
 			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
 		}
+		
+		private const _compiler:Compiler = new Compiler();
 
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
@@ -271,21 +273,21 @@ package weave.core
 			var result:* = undefined;
 			try
 			{
-				var compiler:Compiler = new Compiler();
-				compiler.includeLibraries.apply(null, staticLibraries);
+				_compiler.includeLibraries.apply(null, staticLibraries);
+				
 				function evalExpression(...args):*
 				{
 					var thisObject:Object = getObjectFromPathOrExpressionName(scopeObjectPathOrExpressionName);
-					var compiledMethod:Function = compiler.compileToFunction(expression, variables, false, thisObject != null);
+					var compiledMethod:Function = _compiler.compileToFunction(expression, variables, null, thisObject != null);
 					return compiledMethod.apply(thisObject, args);
 				}
 				
 				if (assignExpressionName)
 					_namedExpressions[assignExpressionName] = evalExpression;
-				else
+				else if (expression)
 					result = evalExpression.apply(null, arguments);
 			}
-			catch (e:Error)
+			catch (e:*)
 			{
 				reportError(e);
 			}
@@ -317,7 +319,7 @@ package weave.core
 						ExternalInterface.marshallExceptions = true;
 						ExternalInterface.call(callback);
 					}
-					catch (e:Error)
+					catch (e:*)
 					{
 						reportError(e);
 					}
@@ -346,7 +348,7 @@ package weave.core
 					else
 						return func();
 				}
-				catch (e:Error)
+				catch (e:*)
 				{
 					reportError(e);
 				}

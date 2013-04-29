@@ -23,7 +23,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="weave.ui.*"
 	label="{lang('Import Data to Weave')}"
-	width="440" height="460"
+	width="100%" height="100%"
 	finishEnabled="false"
 	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*"
 	>
@@ -153,6 +153,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.reportError;
 			import weave.api.ui.IPlotter;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.CSVParser;
@@ -230,7 +231,8 @@
 				//We are into the third step, create a data source from data entered.
 				if(selectedIndex == 2)
 				{
-					try{				
+					try
+					{
 						if(csvDataString == "")
 							return;
 						var csvDataSource:CSVDataSource = Weave.root.requestObject(_uniqueNameForDataSource,CSVDataSource, false);
@@ -244,15 +246,13 @@
 							csvDataSource.keyColName.value = keyColumnSelector.selectedItem as String;
 						}
 						
-						assignProbeColumnsFromSource(csvDataSource,_uniqueNameForDataSource);						
-						
-				}catch(e:Error)
-				{
-					
+						assignProbeColumnsFromSource(csvDataSource);						
+					}
+					catch(e:Error)
+					{
+						reportError(e);
+					}
 				}
-				}
-				
-				
 			}
 			
 			private function getUniqueElementsFromArray(source:Array):Array
@@ -277,7 +277,7 @@
 				return result;
 			}
 			
-			private function assignProbeColumnsFromSource(source:CSVDataSource,sourceName:String):void
+			private function assignProbeColumnsFromSource(source:CSVDataSource):void
 			{
 				var hashMap:ILinkableHashMap = ProbeTextUtils.probedColumns;
 				var columnNames:Array = source.getColumnNames();

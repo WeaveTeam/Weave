@@ -88,9 +88,9 @@ package weave.visualization.plotters
 		}
 		
 		private var XMIN:Number = 0, YMIN:Number = 0, XMAX:Number = 1, YMAX:Number = 1;		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return new Bounds2D(XMIN, YMIN, XMAX, YMAX);
+			output.setBounds(XMIN, YMIN, XMAX, YMAX);
 		}
 		
 		private const tempPoint:Point = new Point(); // Reusable temporary object

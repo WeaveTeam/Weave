@@ -41,7 +41,7 @@
 
 	<mx:Box id="viewStackContainer"
 			verticalScrollPolicy="off"
-			horizontalScrollPolicy="off"/>
+			horizontalScrollPolicy="off" height="100%" width="100%"/>
 	
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}"/>

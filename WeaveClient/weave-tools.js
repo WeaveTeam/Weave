@@ -13,8 +13,9 @@ function modifySessionState(stateToModify, path, value)
     path = path.slice(1);
     if (stateToModify.constructor == Array)
     {
-        for each (var dynamicState in stateToModify)
+        for (var i in stateToModify)
         {
+        	var dynamicState = stateToModify[i];
             if (property == dynamicState.objectName)
             {
                 if (path.length)
@@ -29,4 +30,65 @@ function modifySessionState(stateToModify, path, value)
         return modifySessionState(stateToModify[property], path, value)
     stateToModify[property] = value;
     return true;
+}
+
+/**
+ * This will create or update a DynamicColumn to refer to an attribute column on a Weave data server.
+ * @param weave A Weave instance.
+ * @param path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
+ * @param columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables).
+ * @param dataSourceName The name of an existing WeaveDataSource object in the Weave session state.
+ */
+function setWeaveColumnId(weave, path, columnId, dataSourceName)
+{
+    path = path.concat(); // makes a copy
+
+    var DynamicColumn = 'weave.data.AttributeColumns::DynamicColumn';
+    var WeaveDataSource = 'weave.data.DataSources::WeaveDataSource';
+
+    // make sure path refers to a DynamicColumn
+    if (weave.getObjectType(path) != DynamicColumn)
+        if (!weave.requestObject(path, DynamicColumn))
+            throwError();
+
+    // create a ReferencedColumn inside the DynamicColumn
+    path.push(null);
+    if (!weave.requestObject(path, 'ReferencedColumn'))
+        throwError();
+
+    // set the column reference
+    var names = dataSourceName ? [dataSourceName] : weave.getChildNames([]);
+    for (var i in names)
+    {
+    	var name = names[i];
+        if (weave.getObjectType([name]) == WeaveDataSource)
+        {
+            path.push('dynamicColumnReference', null);
+            weave.requestObject(path, 'HierarchyColumnReference');
+            weave.setSessionState(path, {
+                dataSourceName: name,
+                hierarchyPath: '<attribute weaveEntityId="'+columnId+'"/>'
+            });
+            return;
+        }
+    }
+    throw new Error("No WeaveDataSource found.");
+
+    function throwError()
+    {
+        throw new Error('Unable to create column at specified path: ' + path);
+    }
+}
+
+/**
+ * This will show or hide a layer on a visualization.
+ * @param weave Weave instance
+ * @param toolName String
+ * @param layerName String
+ * @param enable true to show, false to hide
+ * @returns true on success
+ */
+function enableWeaveVisLayer(weave, toolName, layerName, enable)
+{
+	return weave.setSessionState([toolName,'children','visualization','plotManager','layerSettings',layerName,'visible'], enable);
 }

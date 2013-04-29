@@ -31,12 +31,14 @@ package weave.compiler
 	public class ProxyObject extends Proxy
 	{
 		/**
-		 * This constructor allows you to specify the three most important flash_proxy functions.
+		 * This constructor allows you to specify the three most important flash_proxy functions
+		 * and an optional custom flash_proxy::callProperty function.
 		 * @param hasProperty function hasProperty(name:*):Boolean
 		 * @param getProperty function getProperty(name:*):*
 		 * @param setProperty function setProperty(name:*, value:*):void
+		 * @param callProperty function callProperty(name:*, ...parameters):*
 		 */		
-		public function ProxyObject(hasProperty:Function, getProperty:Function, setProperty:Function)
+		public function ProxyObject(hasProperty:Function, getProperty:Function, setProperty:Function, callProperty:Function = null)
 		{
 			super();
 			if (hasProperty != null)
@@ -45,18 +47,21 @@ package weave.compiler
 				_get = getProperty;
 			if (setProperty != null)
 				_set = setProperty;
+			if (callProperty != null)
+				_call = callProperty;
 		}
 		
 		private var _has:Function = super.flash_proxy::hasProperty as Function;
 		private var _get:Function = super.flash_proxy::getProperty as Function;
 		private var _set:Function = super.flash_proxy::setProperty as Function;
+		private var _call:Function = null;
 		
 		/**
 		 * @inheritDoc
 		 */
 		override flash_proxy function hasProperty(name:*):Boolean
 		{
-			return _has.apply(this, arguments);
+			return _has.call(this, name);
 		}
 		
 		/**
@@ -64,7 +69,7 @@ package weave.compiler
 		 */
 		override flash_proxy function getProperty(name:*):*
 		{
-			return _get.apply(this, arguments);
+			return _get.call(this, name);
 		}
 		
 		/**
@@ -72,7 +77,19 @@ package weave.compiler
 		 */
 		override flash_proxy function setProperty(name:*, value:*):void
 		{
-			_set.apply(this, arguments);
+			_set.call(this, name, value);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		override flash_proxy function callProperty(name:*, ...parameters):*
+		{
+			if (_call == null)
+				return _get.call(this, name).apply(this, parameters);
+			
+			parameters.unshift(name);
+			return _call.apply(this, parameters);
 		}
 	}
 }

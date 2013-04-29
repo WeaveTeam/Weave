@@ -61,6 +61,7 @@ package
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
+	import weave.visualization.tools.CustomGraphicsTool;
 	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
@@ -74,6 +75,7 @@ package
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.PieChartHistogramTool;
 	import weave.visualization.tools.PieChartTool;
+	import weave.visualization.tools.RInterfaceTool;
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
@@ -129,6 +131,7 @@ package
 				ColormapHistogramTool,
 				CompoundRadVizTool,
 				CustomTool,
+				CustomGraphicsTool,
 				SchafersMissingDataTool,
 				DataFilter,
 				DataTableTool,
@@ -147,7 +150,9 @@ package
 				ThermometerTool,
 				TimeSliderTool,
 				TransposedTableTool,
-				RamachandranPlotTool
+				RamachandranPlotTool,
+				DataStatisticsTool,
+				RInterfaceTool
 			]).toString();
 			
 			/**

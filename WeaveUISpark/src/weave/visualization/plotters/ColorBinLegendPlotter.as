@@ -154,7 +154,8 @@ package weave.visualization.plotters
 				var col:int = adjustedIBin % maxCols;
 				var b:IBounds2D = new Bounds2D();
 				
-				LegendUtils.getBoundsFromItemID(getBackgroundDataBounds(), adjustedIBin, b, maxNumBins, maxCols, true);
+				getBackgroundDataBounds(tempBounds);
+				LegendUtils.getBoundsFromItemID(tempBounds, adjustedIBin, b, maxNumBins, maxCols, true);
 				
 				_binToBounds[iBin] = b;
 				var binString:String = binnedColumn.deriveStringFromNumber(iBin);
@@ -276,11 +277,12 @@ package weave.visualization.plotters
 		
 		private var XMIN:Number = 0, XMAX:Number = 1;
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			initBoundsArray(output);
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (!internalColorColumn)
-				return [ getReusableBounds() ];
+				return;
 			
 			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn)
@@ -288,15 +290,13 @@ package weave.visualization.plotters
 				var index:Number = binnedColumn.getValueFromKey(recordKey, Number);
 				var b:IBounds2D = _binToBounds[index];
 				if (b)
-					return [ b ];
+					(output[0] as IBounds2D).copyFrom(b);
 			}
-			
-			return [ getReusableBounds() ];
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(0, 1, 1, 0);
+			return output.setBounds(0, 1, 1, 0);
 		}
 		
 		// backwards compatibility

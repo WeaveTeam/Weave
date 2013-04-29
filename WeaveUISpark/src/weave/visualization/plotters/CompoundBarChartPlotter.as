@@ -691,9 +691,9 @@ package weave.visualization.plotters
 			return heightColumns.getNames().length == 1 ? STACK : groupingMode.value;
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			var bounds:IBounds2D = initBoundsArray(output);
 			var _groupingMode:String = getActualGroupingMode();
 			var _groupBySortColumn:Boolean = groupBySortColumn.value;
 			var _heightColumns:Array = heightColumns.getObjects();
@@ -800,14 +800,15 @@ package weave.visualization.plotters
 				else // y range
 					bounds.setYRange(tempRange.begin, tempRange.end);
 			}
-			
-			return [bounds];
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
-			if (!zoomToSubset.value)
+			if (zoomToSubset.value)
+			{
+				output.reset();
+			}
+			else
 			{
 				tempRange.setRange(0, 0);
 				var _heightColumns:Array = heightColumns.getObjects();
@@ -858,11 +859,10 @@ package weave.visualization.plotters
 				}
 				
 				if (horizontalMode.value) // x range
-					bounds.setBounds(tempRange.begin, NaN, tempRange.end, NaN);
+					output.setBounds(tempRange.begin, NaN, tempRange.end, NaN);
 				else // y range
-					bounds.setBounds(NaN, tempRange.begin, NaN, tempRange.end);
+					output.setBounds(NaN, tempRange.begin, NaN, tempRange.end);
 			}
-			return bounds;
 		}
 		
 		

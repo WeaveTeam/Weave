@@ -312,8 +312,7 @@ package weave.visualization.layers
 				for each (var name:String in names)
 				{
 					var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
-					var boundsArray:Array = spatialIndex.getBoundsFromKey(key);
-					for each (var bounds:IBounds2D in boundsArray)
+					for each (var bounds:IBounds2D in spatialIndex.getBoundsFromKey(key))
 						tempBounds.includeBounds(bounds);
 				}
 			}
@@ -442,7 +441,7 @@ package weave.visualization.layers
 		 **/
 		public function getOverlappingKeysAcrossLayers(sourceKeys:Array, sourceLayer:String, destinationLayer:String):Array
 		{
-			sourceKeys = ColumnUtils.getQKeys(sourceKeys);
+			sourceKeys = WeaveAPI.QKeyManager.mapQKeys(sourceKeys);
 			var simpleGeometriesInSourceLayer:Array = [];
 			var simpleGeometry:ISimpleGeometry;
 			var queriedKeys:Array = [];

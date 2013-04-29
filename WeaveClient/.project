@@ -7,6 +7,7 @@
 		<project>WeaveCore</project>
 		<project>WeaveData</project>
 		<project>WeaveUI</project>
+		<project>WeaveUISpark</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

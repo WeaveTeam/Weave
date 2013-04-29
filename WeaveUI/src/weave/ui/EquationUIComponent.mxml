@@ -123,7 +123,11 @@
 				
 				// disable function view when appropriate
 				// special case for get() in order to force drag-and-drop to replace the entire get function instead of the get function parameter
-				if (!compiledFunctionCall || !compiledFunctionCall.compiledParams || compiledFunctionCall.compiledParams.length == 0 || EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod) == "get")
+				if (!compiledFunctionCall ||
+					!compiledFunctionCall.compiledParams ||
+					compiledFunctionCall.compiledParams.length == 0 ||
+					compiledFunctionCall.originalTokens ||
+					EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod) == "get")
 					enableFunctionView = false;
 				
 				if (enableFunctionView)
@@ -179,18 +183,30 @@
 				
 				if (children.length == 0)
 					return equation.value;
-				var equationString:String = '';
-				for (var i:int = 0; i < children.length; i++)
+				var strings:Array = [];
+				var i:int;
+				for (i = 0; i < children.length; i++)
 				{
 					if (children[i] is Label || children[i] is TextInput)
 					{
-						equationString += children[i].text == '' ? UNDEFINED : children[i].text;
+						strings.push(children[i].text == '' ? UNDEFINED : children[i].text);
 					}
 					else if (children[i] is EquationUIComponent)
 					{
-						equationString += (children[i] as EquationUIComponent).extractEquationString();
+						strings.push((children[i] as EquationUIComponent).extractEquationString());
 					}
 				}
+				
+				var equationString:String;
+				if (strings[0] == "\\;(")
+				{
+					// remove every other item (commas and parentheses)
+					for (i = 0; i < strings.length; i++)
+						strings.splice(i, 1);
+					equationString = '{ ' + strings.join('; ') + ' }';
+				}
+				else
+					equationString = strings.join('');
 				
 				// compile, then decompile so we will get the preferred syntax
 				try {

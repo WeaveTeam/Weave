@@ -77,7 +77,7 @@ package weave.visualization.plotters
 		 * This is the compiled function to apply to the item labels.
 		 * 
 		 * @default string
-		 */		
+		 */
 		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number','string']), createColumnHashes);
 
 		// TODO This should go somewhere else...
@@ -88,9 +88,9 @@ package weave.visualization.plotters
 		 */		
 		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(0, 0, 1, 1);
+			output.setBounds(0, 0, 1, 1);
 		}
 		
 		private function createColumnHashes():void

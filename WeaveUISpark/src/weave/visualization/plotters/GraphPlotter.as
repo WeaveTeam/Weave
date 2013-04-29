@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.reportError;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -40,6 +41,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.compiler.StandardLib;
 	import weave.graphs.ForceDirectedLayout;
 	import weave.graphs.GridForceDirectedLayout;
 	import weave.graphs.KamadaKawaiLayout;
@@ -48,6 +50,8 @@ package weave.visualization.plotters
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
+	import flash.utils.getTimer;
+
 	
 	/**
 	 * This is a plotter for a node edge chart, commonly referred to as a graph.
@@ -241,7 +245,7 @@ package weave.visualization.plotters
 		// the columns
 		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
 
-		public const sizeColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
+		public const sizeColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
 		public const nodesColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
 		public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
 		public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
@@ -279,15 +283,64 @@ package weave.visualization.plotters
 //		private var _draggedKeysArray:Array = []; 
 //		public var draggedLayerDrawn:Boolean = false;
 //		private var _isDragging:Boolean = false;
-		
+		private const RECORD_INDEX:String = "recordIndex";
+		private const NEIGHBORS:String = "neighborKeys";
+		private const FINISHED:String = "finishedKeys";
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
-			return 1;
+			
+			if (task.iteration == 0) // Initialize if we're on our first pass.
+			{
+				if (task.recordKeys.length == 0) return 1;
+				task.asyncState[RECORD_INDEX] = task.recordKeys.length - 1; 
+				task.asyncState[NEIGHBORS] = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNeighboringKeys(task.recordKeys);
+				task.asyncState[FINISHED] = new Dictionary();
+
+			}
+			
+			var key:IQualifiedKey;
+			var recordIndex:int = task.asyncState[RECORD_INDEX];
+			var neighborKeys:Array = task.asyncState[NEIGHBORS];
+			var finishedKeys:Dictionary = task.asyncState[FINISHED];
+
+			for (; recordIndex >= 0; recordIndex--)
+			{
+				key = task.recordKeys[recordIndex];
+
+				var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(key);
+				if (!node) continue;
+
+				var connections:Vector.<IGraphNode> = node.connections;
+				for (var edgeIndex:int = connections.length - 1; edgeIndex >= 0; edgeIndex--)
+				{
+					var connectedNode:IGraphNode = connections[edgeIndex];
+					if (connectedNode && !finishedKeys.hasOwnProperty(connectedNode.key))
+					{
+						drawEdge(node, connectedNode, task.dataBounds, task.screenBounds, task.buffer);
+						// If there's a reverse connection, and the connectedNode in question isn't in the target keys, render it.
+						if (connectedNode.hasConnection(node)) 
+							drawEdge(connectedNode, node, task.dataBounds, task.screenBounds, task.buffer);
+					}
+				}
+
+				drawNode(node, task.dataBounds, task.screenBounds, task.buffer);
+
+				finishedKeys[node.key] = true;
+				
+				task.asyncState[RECORD_INDEX] = recordIndex;
+				if (getTimer() > task.iterationStopTime) break;
+			}
+
+			recordIndex = task.asyncState[RECORD_INDEX];
+			var progress:Number = (1.0*recordIndex) / (1.0*task.recordKeys.length);
+			return 1.0 - progress;
 		}
 
 		private function drawNode(node:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			var nodeRadius:Number = sizeColumn.getValueFromKey(node.key);
+			if (StandardLib.isUndefined(nodeRadius))
+				nodeRadius = radius.value;
 			tempShape.graphics.clear();
 			lineStyle.beginLineStyle(node.key, tempShape.graphics);
 			tempShape.graphics.beginFill(fillStyle.color.getValueFromKey(node.key));
@@ -297,17 +350,44 @@ package weave.visualization.plotters
 			dataBounds.projectPointTo(screenPoint, screenBounds);
 			var xNode:Number = screenPoint.x;
 			var yNode:Number = screenPoint.y;
-
-
-			node.key;
-			tempShape.graphics.drawCircle(xNode, yNode, radius.value);
+			
+			tempShape.graphics.drawCircle(xNode, yNode, nodeRadius);
 			tempShape.graphics.endFill();
 			destination.draw(tempShape, null, null, null, null, true);
 
 			return;
 		}
+
+		private function drawEdge(srcNode:IGraphNode, destNode:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			
+
+			screenPoint.x = srcNode.position.x;
+			screenPoint.y = srcNode.position.y;
+			dataBounds.projectPointTo(screenPoint, screenBounds);
+			var xSrcNode:Number = screenPoint.x;
+			var ySrcNode:Number = screenPoint.y;
+
+			screenPoint.x = destNode.position.x;
+			screenPoint.y = destNode.position.y;
+			dataBounds.projectPointTo(screenPoint, screenBounds);
+			var xDestNode:Number = screenPoint.x;
+			var yDestNode:Number = screenPoint.y;
+			
+
+			edgesShape.graphics.clear();
+			lineStyle.beginLineStyle(srcNode.key, edgesShape.graphics);	
+
+			lineEdge(xSrcNode, ySrcNode, xDestNode, yDestNode, destNode.hasConnection(srcNode));
+
+			destination.draw(edgesShape, null, null, null, null, true);
+
+			return;
+		}
+
 		private function lineEdge(srcX:Number, srcY:Number, destX:Number, destY:Number, isBidirectional:Boolean):void /* Expects screen coords */
 		{
+			
 			edgesShape.graphics.moveTo(srcX, srcY);
 
 			if (!isBidirectional)
@@ -344,94 +424,21 @@ package weave.visualization.plotters
 			}
 		}
 
-		private function drawEdge(srcNode:IGraphNode, destNode:IGraphNode, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			screenPoint.x = srcNode.position.x;
-			screenPoint.y = srcNode.position.y;
-			dataBounds.projectPointTo(screenPoint, screenBounds);
-			var xSrcNode:Number = screenPoint.x;
-			var ySrcNode:Number = screenPoint.y;
 
-			screenPoint.x = destNode.position.x;
-			screenPoint.y = destNode.position.y;
-			dataBounds.projectPointTo(screenPoint, screenBounds);
-			var xDestNode:Number = screenPoint.x;
-			var yDestNode:Number = screenPoint.y;
 
-			edgesShape.graphics.moveTo(xSrcNode, ySrcNode);
-
-			// TODO: Add support for different edge styles.
-			lineEdge(xSrcNode, ySrcNode, xDestNode, yDestNode, destNode.hasConnection(srcNode));
-
-			destination.draw(edgesShape, null, null, null, null, true);
-
-			return;
-		}
-
-		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{			
-			var count:int = 0;
-			var key:IQualifiedKey;
-			var x:Number;
-			var y:Number;
-			var fullyDrawnNodes:Dictionary = new Dictionary();
-			var recordKeyMap:Dictionary = new Dictionary();
-			
-			for each (key in recordKeys)
-			{
-				recordKeyMap[key] = true;
-			}
-			
-			// we need to get the neighboring keys of the given keys to draw full edges when probing 
-			// and to draw edges when one node is offscreen
-			var keys:Array = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNeighboringKeys(recordKeys);
-			// loop through each node and draw it
-			for (var iKey:int = keys.length - 1; iKey >= 0; --iKey)
-			{
-				key = keys[iKey];
-				var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(key);
-				if (!node)
-					continue;
-				
-				drawNode(node, dataBounds, screenBounds, destination);
-
-				// now draw the edges
-				var connections:Vector.<IGraphNode> = node.connections;
-				edgesShape.graphics.clear();
-				lineStyle.beginLineStyle(key, edgesShape.graphics);				
-				for (var j:int = connections.length - 1; j >= 0; --j)
-				{
-					var connectedNode:IGraphNode = connections[j];
-					var connectedNodeKey:IQualifiedKey = connectedNode.key;
-					
-					// don't draw connections to nodes which weren't in the record keys
-					if (recordKeyMap[key] == undefined && recordKeyMap[connectedNodeKey] == undefined)
-						continue;
-					drawEdge(node, connectedNode, dataBounds, screenBounds, destination);
-					
-					if (!connectedNode.hasConnection(node)) // single connection
-					{
-						edgesShape.graphics.lineTo(screenPoint.x, screenPoint.y);
-					}
-					else // double connection
-					{
-
-					}
-				} // end connections for loop
-				destination.draw(edgesShape, null, null, null, null, true);
-			} // end key for loop
-		}
+		
 
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			initBoundsArray(output);
+			var bounds:IBounds2D = output[0];
 			var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(recordKey);
 			var keyPoint:Point;
 			var edgePoint:Point;
@@ -440,20 +447,15 @@ package weave.visualization.plotters
 				keyPoint = node.position;
 				bounds.includePoint( keyPoint );
 			}
-			
-			return [ bounds ];
 		}
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var b:IBounds2D = getReusableBounds();
-			(layoutAlgorithm.internalObject as IGraphAlgorithm).getOutputBounds(null, b);
-			
-			return b;
+			(layoutAlgorithm.internalObject as IGraphAlgorithm).getOutputBounds(null, output);
 		}
 
 		/**

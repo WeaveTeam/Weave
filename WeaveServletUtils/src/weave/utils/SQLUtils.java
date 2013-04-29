@@ -336,23 +336,46 @@ public class SQLUtils
 	 * @param colName
 	 * @return colName with special characters replaced and truncated to 64 characters.
 	 */
-	public static String fixColumnName(String colName)
+	public static String fixColumnName(String colName, String suffix)
 	{
-		// if the column name has "/", "\", ".", "<", ">".
-		colName = colName.replace("/", "");
-		colName = colName.replace("\\", "");
-		colName = colName.replace(".", "");
-		colName = colName.replace("<", "less than");
-		colName = colName.replace(">", "more than");
+		colName = colName
+			.replace("<=", "LTE")
+			.replace(">=", "GTE")
+			.replace("<", "LT")
+			.replace(">", "GT");
+		
+		StringBuilder sb = new StringBuilder();
+		boolean space = false;
+		for (int i = 0; i < colName.length(); i++)
+		{
+			
+			char c = colName.charAt(i);
+			if (Character.isJavaIdentifierPart(c))
+			{
+				if (space)
+					sb.append(' ');
+				sb.append(c);
+				space = false;
+			}
+			else
+			{
+				space = true;
+			}
+		}
+		// append suffix before truncating
+		sb.append(suffix);
+		
+		colName = sb.toString();
+		
 		// if the length of the column name is longer than the 64-character limit
-		int maxColNameLength = 64 - 4; // leave space for "_123" if there end up being duplicate column names
+		int max = 64 - 4; // leave space for "_123" if there end up being duplicate column names
 		// if name too long, remove spaces
-		if (colName.length() > maxColNameLength)
+		if (colName.length() > max)
 			colName = colName.replace(" ", "");
 		// if still too long, truncate
-		if (colName.length() > maxColNameLength)
+		if (colName.length() > max)
 		{
-			int half = maxColNameLength / 2 - 1;
+			int half = max / 2 - 1;
 			colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
 		}
 		return colName;
@@ -604,7 +627,7 @@ public class SQLUtils
 		catch (SQLException e)
 		{
 			//e.printStackTrace();
-			throw e;
+			throw new SQLExceptionWithQuery(query, e);
 		}
 		finally
 		{
@@ -1313,7 +1336,7 @@ public class SQLUtils
 		if (isPostGreSQL)
 		{
 			column_string = String.format("%s,%s", quotedIdField, column_string);
-			qmark_string = String.format("(SELECT MAX(%s)+1 FROM %s),", quotedIdField, quotedTable) + qmark_string;
+			qmark_string = String.format("GREATEST(1, (SELECT MAX(%s)+1 FROM %s)),", quotedIdField, quotedTable) + qmark_string;
 		}
 		
 		query = String.format("INSERT INTO %s (%s)", quotedTable, column_string);

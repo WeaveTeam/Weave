@@ -644,7 +644,7 @@ public class DataService extends GenericServlet
 				// try to find columns sqlTable==dataTable and sqlColumn=name
 				DataEntityMetadata sqlInfoQuery = new DataEntityMetadata();
 				String sqlTable = metadata.get(DATATABLE);
-				String sqlColumn = SQLUtils.fixColumnName(metadata.get(NAME));
+				String sqlColumn = metadata.get(NAME);
 				for (int i = 0; i < 2; i++)
 				{
 					if (i == 1)

@@ -45,59 +45,18 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class AbstractPlotter implements IPlotter, IDisposableObject
+	public class AbstractPlotter implements IPlotter
 	{
 		/**
 		 * @param columnToGetKeysFrom The column that the IKeySet object uses to get keys from.
 		 */
 		public function AbstractPlotter()
 		{
-			spatialCallbacks.addImmediateCallback(this, returnPooledObjects);
-
 //			var self:Object = this;
 //			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
-//			getCallbackCollection(filteredKeySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',filteredKeySet.keys.length); });
+//			getCallbackCollection(keySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',keySet.keys.length); });
 		}
 		
-		/**
-		 * This is the list of Bounds2D objects that were returned by getReusableBounds().
-		 * These objects will be returned to the ObjectPool when spatialCallbacks run.
-		 */
-		private var pooledObjects:Array = [];
-		
-		/**
-		 * This function gets called as the first spatial callback.
-		 * All Bounds2D objects that were returned by getReusableBounds() will return to the ObjectPool.
-		 */
-		private function returnPooledObjects():void
-		{
-			for each (var object:Object in pooledObjects)
-				ObjectPool.returnObject(object);
-			pooledObjects = [];
-		}
-		
-		/**
-		 * This function gets a Bounds2D object that can only be used until the spatial callbacks run.
-		 * When the spatial callbacks run, these objects will be reclaimed to be used again later.
-		 * It is recommended to use this function only for implementing the getDataBoundsFromRecordKey()
-		 * and getBackgroundDataBounds() functions.
-		 * @param xMin Value to set for Bounds2D.xMin
-		 * @param yMin Value to set for Bounds2D.yMin
-		 * @param xMax Value to set for Bounds2D.xMax
-		 * @param yMax Value to set for Bounds2D.yMax
-		 * @return A Bounds2D object that can be used in getDataBoundsFromRecordKey() and getBackgroundDataBounds().
-		 */
-		protected function getReusableBounds(xMin:Number = NaN, yMin:Number = NaN, xMax:Number = NaN, yMax:Number = NaN):Bounds2D
-		{
-			// TEMPORARY SOLUTION because SpatialIndex seems to be misbehaving now that everything's asynchronous
-			return new Bounds2D(xMin,yMin,xMax,yMax);
-			
-			var bounds:Bounds2D = ObjectPool.borrowObject(Bounds2D);
-			bounds.setBounds(xMin, yMin, xMax, yMax);
-			pooledObjects.push(bounds);
-			return bounds;
-		}
-
 		/**
 		 * This function creates a new registered linkable child of the plotter whose callbacks will also trigger the spatial callbacks.
 		 * @return A new instance of the specified class that is registered as a spatial property.
@@ -131,14 +90,6 @@ package weave.visualization.plotters
 			registerLinkableChild(spatialCallbacks, child);
 			
 			return child;
-		}
-		
-		/**
-		 * This function gets called when the SessionManager disposes of this sessioned object.
-		 */
-		public function dispose():void
-		{
-			returnPooledObjects();
 		}
 		
 		/**
@@ -192,15 +143,16 @@ package weave.visualization.plotters
 		
 		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.
+		 * When you implement this function, you may use initBoundsArray() for convenience.
 		 * 
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
 		 * @param outputDataBounds A Bounds2D object to store the result in.
 		 * @return An Array of Bounds2D objects that make up the bounds for the record.
 		 */
-		public /* abstract */ function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		public /* abstract */ function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			return [];
+			initBoundsArray(output, 0);
 		}
 		
 		/**
@@ -268,9 +220,26 @@ package weave.visualization.plotters
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
 		 * @return A Bounds2D object specifying the background data bounds.
 		 */
-		public /* abstract */ function getBackgroundDataBounds():IBounds2D
+		public /* abstract */ function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds();
+			output.reset();
+		}
+		
+		/**
+		 * This is a convenience function for use inside getDataBoundsFromRecordKey().
+		 * @param output An output Array, which may already contain any number of IBounds2D objects.
+		 * @param desiredLength The desired number of output IBounds2D objects to appear in the output Array.
+		 * @return The first IBounds2D item in the Array, or null if desiredLength is zero.
+		 */
+		public function initBoundsArray(output:Array, desiredLength:int = 1):IBounds2D
+		{
+			while (output.length < desiredLength)
+				output.push(ObjectPool.borrowObject(Bounds2D));
+			while (output.length > desiredLength)
+				ObjectPool.returnObject(output.pop());
+			for each (var bounds:IBounds2D in output)
+				bounds.reset();
+			return output[0] as IBounds2D;
 		}
 	}
 }

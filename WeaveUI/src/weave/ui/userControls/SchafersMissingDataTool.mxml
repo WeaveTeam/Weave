@@ -101,6 +101,9 @@ SchafersMissingDataImputation
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			
+			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
+			
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;

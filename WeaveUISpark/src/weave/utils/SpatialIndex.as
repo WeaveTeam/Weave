@@ -93,16 +93,11 @@ package weave.utils
 		/**
 		 * This function gets a list of Bounds2D objects associated with a key.
 		 * @param key A record key.
-		 * @result An Array of Bounds2D objects associated with the key.
+		 * @result An Array of Bounds2D objects associated with the key, or null if there are none.
 		 */
 		public function getBoundsFromKey(key:IQualifiedKey):Array
 		{
-			var result:Array = _keyToBoundsMap[key] as Array;
-			
-			if (result == null)
-				result = [];
-			
-			return result;
+			return _keyToBoundsMap[key] as Array;
 		}
 		
 		/**
@@ -147,7 +142,7 @@ package weave.utils
 
 			if (plotter)
 			{
-				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
+				plotter.getBackgroundDataBounds(collectiveBounds);
 				
 				// make a copy of the keys vector
 				VectorUtils.copy(plotter.filteredKeySet.keys, _keysArray);			
@@ -185,7 +180,11 @@ package weave.utils
 					return _keysIndex / _keysArray.length;
 				
 				var key:IQualifiedKey = _keysArray[_keysIndex] as IQualifiedKey;
-				_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
+				var boundsArray:Array = _keyToBoundsMap[key] as Array;
+				if (!boundsArray)
+					_keyToBoundsMap[key] = boundsArray = [];
+				
+				_plotter.getDataBoundsFromRecordKey(key, boundsArray);
 				
 				if (_keyToGeometriesMap != null)
 				{
@@ -206,6 +205,10 @@ package weave.utils
 					//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
 					// begin outer loop iteration
 					_boundsArray = getBoundsFromKey(key);
+					
+					if (!_boundsArray)
+						continue;
+					
 					_boundsArrayIndex = 0;
 				}
 				for (; _boundsArrayIndex < _boundsArray.length; _boundsArrayIndex++) // iterate on nested array
@@ -383,7 +386,7 @@ package weave.utils
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
 						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, dataBounds);
 						
-						if (simplifiedGeom.length == 0 && genGeom.bounds.overlaps(queryBounds))
+						if (/*simplifiedGeom.length == 0 && */genGeom.bounds.overlaps(queryBounds))
 						{
 							result.push(key);
 							continue;
@@ -757,9 +760,20 @@ package weave.utils
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];
 				
-				if (geoms.length == 0)
+				if (!geom || geoms.length == 0)
 				{
-					result.push(key);
+					var keyBounds:Array = getBoundsFromKey(key);
+					for (var j:int = 0; j < keyBounds.length; j++)
+					{
+						setTempBounds(keyBounds[j]);
+						if(ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices,_tempBoundsPolygon))
+						{
+							result.push(key);
+							break;
+							
+						}
+					}
+					//iterate over bounds from key and check if they intersect lasso polygon
 					continue keyLoop;
 				}
 				
@@ -778,7 +792,14 @@ package weave.utils
 						
 						if (simplifiedGeom.length == 0)
 						{
-							result.push(key);
+							//make the polygon
+							setTempBounds((geom as GeneralizedGeometry).bounds);
+							//check if the lasso polygon overlaps the geometry bounds
+							if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices ,_tempBoundsPolygon))
+							{
+							   result.push(key);
+								
+							}
 							continue keyLoop;
 						}
 						

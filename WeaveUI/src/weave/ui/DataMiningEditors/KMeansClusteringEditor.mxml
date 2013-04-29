@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*Editor to specify parameters for Kmeans Clustering*/
+@spurushe-->
+
+
+
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="K Means Clustering Editor"
+				
+				backgroundColor="#EFF4BC" width="300" height="400"
+				layout="horizontal"
+				autoLayout="true"
+				implements="weave.api.ui.IVisTool" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*"
+				>
+	<mx:HBox id="hb" width="100%" height="100%">
+		<mx:VBox width="50%" paddingLeft="5" paddingBottom="5" paddingRight="5" height="100%">
+		<mx:Label text="1.Select the input Columns" fontWeight="bold"/>	
+		<ColumnListComponent id="kMeansColumns" hashMap="{inputColumns}"/>
+		</mx:VBox>
+		
+		<mx:VBox id="inputUI" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" height="100%">
+			
+			
+		</mx:VBox>
+	
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Button;
+			
+			import spark.components.TextArea;
+			
+			import weave.Weave;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableHashMap;
+			import weave.services.WeaveRServlet;
+			import weave.services.beans.KMeansClusteringResult;
+			import weave.utils.ColumnUtils;
+			import weave.utils.ResultUtils;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			//to do: take input as columns and as subsets from vizs
+			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			private var assignNames: Array = new Array();
+			public var latestColumnKeys:Array = new Array();
+			public var finalColumns:Array = new Array();
+			//private var _initialing:* = constructor();
+			 
+			private var kMeans:KMeansClustering = new KMeansClustering(this);
+			public var kMeansResult:KMeansClusteringResult;
+			//initializing the input UI
+			private var kMeansClusterInput:NumberInputComponent;
+			private var kMeansIterationsInput:NumberInputComponent;
+			private var kMeansRandomSets:NumberInputComponent;
+			private var kMeansAlgo:ChoiceInputComponent;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				for (var i:int = 0; i < columns.length; i++)
+					inputColumns.requestObjectCopy(null, columns[i]);
+			}
+			
+			private function fillingResult():void
+			{
+				kMeansResult = kMeans.finalResult;
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				kMeansClusterInput = new NumberInputComponent("kClusterNumber", "5");
+				kMeansClusterInput.label = "Enter the number of clusters";
+				kMeansIterationsInput = new NumberInputComponent("kIterationNumber", "500");
+				kMeansIterationsInput.label = "Enter the number of iterations";
+				kMeansRandomSets = new NumberInputComponent("kMeansrandomSets","100");
+				kMeansRandomSets.label = "Enter the number of random sets";
+				kMeansAlgo = new ChoiceInputComponent("kMeansAlgo", ["Choose an algorithm","Hartigan-Wong", "Lloyd","Forgy", "MacQueen"]);
+				kMeansAlgo.label = "Select an algorithm";
+				//var displayScriptTA:TextArea = new TextArea();
+				//displayScriptTA.width = inputUI.width;
+				var doKMeansButton:Button = new Button();
+				doKMeansButton.label = "Run Script"; 
+				doKMeansButton.addEventListener(MouseEvent.CLICK, doKMeansButton_clickHandler);
+				
+				
+				inputUI.addChild(kMeansClusterInput);
+				inputUI.addChild(kMeansIterationsInput);
+			    inputUI.addChild(kMeansRandomSets);
+				inputUI.addChild(kMeansAlgo); 
+				//inputUI.addChild(displayScriptTA);
+				inputUI.addChild(doKMeansButton);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				preprocessingColumns();
+				inputColumns.addGroupedCallback(this, preprocessingColumns);
+			}
+			
+			// we need only numerical columns for clustering
+			 private function preprocessingColumns():void
+			{
+				var colObjects:Array = inputColumns.getObjects(IAttributeColumn);
+				var attributeColumns :Array = new Array();
+				for (var i:int = 0; i < colObjects.length; i++)
+				{
+					var col:IAttributeColumn = colObjects[i] as IAttributeColumn;
+					var datatype:String = ColumnUtils.getDataType(col);
+					if(datatype == "number")
+					{
+						attributeColumns.push(col);
+					}
+					
+					var joinedColumns:Array = ResultUtils.joinColumns(attributeColumns);
+					latestColumnKeys = joinedColumns[0];
+					finalColumns = joinedColumns[1];
+				}
+			} 
+		
+			
+			/*  protected function editScript_clickHandler(event:MouseEvent):void
+			{
+				//to do: Make script change accoring to user inputs of parameters
+				displayScriptTA.text = "frame <- data.frame(inputColumns)\n" +
+				"kMeansResult <- kmeans(frame,"+ kMeansClusterInput.numberInput.text + "," + kMeansIterationsInput.numberInput.text + "," + kMeansRandomSets.numberInput.text +"," + kMeansAlgo.choiceBox.selectedLabel+")";
+			}  */
+			
+			protected function doKMeansButton_clickHandler(event:MouseEvent):void
+			{
+				var clusterNumber:Number = Number(kMeansClusterInput.numberInput.text);
+				var iterationNumber:Number = Number(kMeansIterationsInput.numberInput.text);
+				var randomSetNumber:Number = Number(kMeansRandomSets.numberInput.text);
+				if(!(kMeansAlgo.choiceBox.selectedLabel == "Choose algorithm"))
+				{
+					kMeans.doKMeans(finalColumns,latestColumnKeys,clusterNumber,iterationNumber,kMeansAlgo.choiceBox.selectedLabel,randomSetNumber );
+					
+				}
+				else
+				{
+					kMeans.doKMeans(finalColumns,latestColumnKeys,clusterNumber,iterationNumber,"euclidean",randomSetNumber );
+				}
+				
+			}
+			
+		]]>
+	</mx:Script>
+
+</DraggablePanel>

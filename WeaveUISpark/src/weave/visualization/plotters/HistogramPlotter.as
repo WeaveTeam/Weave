@@ -102,28 +102,37 @@ package weave.visualization.plotters
 		/**
 		 * This function returns the collective bounds of all the bins.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
 			if (binCol != null)
-				return getReusableBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, binCol.largestBinSize));
-			return getReusableBounds();
+				output.setBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, binCol.largestBinSize));
+			else
+				output.reset();
 		}
 		
 		/**
 		 * This gets the data bounds of the histogram bin that a record key falls into.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
 			if (binCol == null)
-				return [];
+			{
+				initBoundsArray(output, 0);
+				return;
+			}
 			
 			var binIndex:Number = binCol.getValueFromKey(recordKey, Number);
 			if (isNaN(binIndex))
-				return [];
+			{
+				initBoundsArray(output, 0);
+				return;
+			}
+			
 			var binHeight:int = binCol.getKeysFromBinIndex(binIndex).length;
-			return [getReusableBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight)];
+			initBoundsArray(output);
+			(output[0] as IBounds2D).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
 		}
 		
 		/**
