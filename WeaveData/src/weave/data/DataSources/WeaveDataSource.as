@@ -27,19 +27,18 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.disposeObjects;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
-	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -47,6 +46,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.QKeyManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
@@ -456,14 +456,14 @@ package weave.data.DataSources
 			WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
 		}
 		
-		private function handleGetAttributeColumnFault(event:FaultEvent, token:Object = null):void
+		private function handleGetAttributeColumnFault(event:FaultEvent, request:ColumnRequestToken):void
 		{
-			var request:ColumnRequestToken = token as ColumnRequestToken;
-
 			if (request.proxyColumn.wasDisposed)
 				return;
 			
-			reportError(event, null, request);
+			var str:String = HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy).toXMLString();
+			var msg:String = "Error retrieving column: " + str + ' (' + event.fault.faultString + ')';
+			reportError(event.fault, msg, request);
 			
 			request.proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 		}
@@ -471,9 +471,11 @@ package weave.data.DataSources
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
-		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
+		private function handleGetAttributeColumn(event:ResultEvent, request:ColumnRequestToken):void
 		{
-			var request:ColumnRequestToken = token as ColumnRequestToken;
+			if (request.proxyColumn.wasDisposed)
+				return;
+			
 			var pathInHierarchy:XML = request.pathInHierarchy;
 			var proxyColumn:ProxyColumn = request.proxyColumn;
 			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
@@ -483,9 +485,6 @@ package weave.data.DataSources
 			else
 				proxyColumn.setMetadata(hierarchyNode);
 
-			if (proxyColumn.wasDisposed)
-				return;
-			
 			try
 			{
 				if (!event.result)

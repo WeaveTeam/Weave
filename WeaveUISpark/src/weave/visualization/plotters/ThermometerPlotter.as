@@ -125,17 +125,16 @@ package weave.visualization.plotters
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
-		 * @return A Bounds2D object specifying the background data bounds.
+		 * @param output An IBounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(0, 0, 1, meterColumnStats.getMax());
+			output.setBounds(0, 0, 1, meterColumnStats.getMax());
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			return [getReusableBounds(0, 0, 1, meterColumnStats.getMax())];
+			initBoundsArray(output).setBounds(0, 0, 1, meterColumnStats.getMax());
 		}
 	}
 }

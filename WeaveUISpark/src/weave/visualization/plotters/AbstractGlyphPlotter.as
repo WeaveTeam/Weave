@@ -94,7 +94,7 @@ package weave.visualization.plotters
 		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString);
 		public const destinationProjection:LinkableString = newSpatialProperty(LinkableString);
 		
-		protected const tempPoint:Point = new Point();
+		public const tempPoint:Point = new Point();
 		private var _projector:IProjector;
 		private var _xCoordCache:Dictionary;
 		private var _yCoordCache:Dictionary;
@@ -125,7 +125,7 @@ package weave.visualization.plotters
 				_projector = null;
 		}
 		
-		protected function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
+		public function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
 		{
 			if (detectLinkableObjectChange(updateProjector, dataX, dataY, sourceProjection, destinationProjection))
 				updateProjector();
@@ -183,39 +183,40 @@ package weave.visualization.plotters
 		 * The data bounds for a glyph has width and height equal to zero.
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			getCoordsFromRecordKey(recordKey, tempPoint);
 			
-			var bounds:IBounds2D = getReusableBounds();
-			bounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 0, 0);
+			var bounds:IBounds2D = initBoundsArray(output);
+			bounds.includePoint(tempPoint);
 			if (isNaN(tempPoint.x))
 				bounds.setXRange(-Infinity, Infinity);
 			if (isNaN(tempPoint.y))
 				bounds.setYRange(-Infinity, Infinity);
-			return [bounds];
 		}
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			// use filtered data so data bounds will not include points that have been filtered out.
-			var bounds:IBounds2D = getReusableBounds();
-			if (!zoomToSubset.value)
+			if (zoomToSubset.value)
 			{
-				bounds.setBounds(
+				output.reset();
+			}
+			else
+			{
+				output.setBounds(
 					statsX.getMin(),
 					statsY.getMin(),
 					statsX.getMax(),
 					statsY.getMax()
 				);
 			}
-			return bounds;
 		}
 	}
 }

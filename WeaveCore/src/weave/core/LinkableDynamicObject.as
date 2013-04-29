@@ -96,7 +96,7 @@ package weave.core
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
 			delayCallbacks(); // make sure callbacks only trigger once
-			var classDef:Class = ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
+			var classDef:Class = Object(objectToCopy).constructor//ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
 			var object:ILinkableObject = requestLocalObject(classDef, false);
 			if (object != null && objectToCopy != null)
 			{

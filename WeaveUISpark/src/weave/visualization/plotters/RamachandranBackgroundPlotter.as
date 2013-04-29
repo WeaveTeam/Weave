@@ -38,9 +38,9 @@ package weave.visualization.plotters
 		public function RamachandranBackgroundPlotter()
 		{
 		}
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(-180,-180,180,180);
+			output.setBounds(-180,-180,180,180);
 		}
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{

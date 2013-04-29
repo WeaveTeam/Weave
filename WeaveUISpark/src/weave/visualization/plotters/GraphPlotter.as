@@ -433,11 +433,12 @@ package weave.visualization.plotters
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			initBoundsArray(output);
+			var bounds:IBounds2D = output[0];
 			var node:IGraphNode = (layoutAlgorithm.internalObject as IGraphAlgorithm).getNodeFromKey(recordKey);
 			var keyPoint:Point;
 			var edgePoint:Point;
@@ -446,20 +447,15 @@ package weave.visualization.plotters
 				keyPoint = node.position;
 				bounds.includePoint( keyPoint );
 			}
-			
-			return [ bounds ];
 		}
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
+		 * @param output A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var b:IBounds2D = getReusableBounds();
-			(layoutAlgorithm.internalObject as IGraphAlgorithm).getOutputBounds(null, b);
-			
-			return b;
+			(layoutAlgorithm.internalObject as IGraphAlgorithm).getOutputBounds(null, output);
 		}
 
 		/**

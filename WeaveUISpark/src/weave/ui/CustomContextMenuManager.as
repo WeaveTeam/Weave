@@ -122,7 +122,7 @@ package weave.ui
 			return menuItem;
 		}
 
-		
+		public static var activePanel:Object;
 		
 		
 		/*

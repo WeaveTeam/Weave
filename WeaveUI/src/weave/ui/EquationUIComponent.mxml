@@ -123,7 +123,11 @@
 				
 				// disable function view when appropriate
 				// special case for get() in order to force drag-and-drop to replace the entire get function instead of the get function parameter
-				if (!compiledFunctionCall || !compiledFunctionCall.compiledParams || compiledFunctionCall.compiledParams.length == 0 || EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod) == "get")
+				if (!compiledFunctionCall ||
+					!compiledFunctionCall.compiledParams ||
+					compiledFunctionCall.compiledParams.length == 0 ||
+					compiledFunctionCall.originalTokens ||
+					EquationColumn.compiler.decompileObject(compiledFunctionCall.compiledMethod) == "get")
 					enableFunctionView = false;
 				
 				if (enableFunctionView)
@@ -194,18 +198,15 @@
 				}
 				
 				var equationString:String;
-				if (strings[0] == "if else(")
+				if (strings[0] == "\\;(")
 				{
 					// remove every other item (commas and parentheses)
 					for (i = 0; i < strings.length; i++)
 						strings.splice(i, 1);
-					strings[0] = '(' + strings[0] + ')';
-					if (strings.length > 2)
-						strings.splice(2,0,'else');
-					strings.splice(0,0,'if');
-					equationString = strings.join(' ');
+					equationString = '{ ' + strings.join('; ') + ' }';
 				}
-				equationString = strings.join('');
+				else
+					equationString = strings.join('');
 				
 				// compile, then decompile so we will get the preferred syntax
 				try {

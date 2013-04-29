@@ -255,23 +255,21 @@ package weave.visualization.plotters
 		/**
 		 * This gets the data bounds of the bin that a record key falls into.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			var binKey:IQualifiedKey = _binLookup.getStringLookupKeyFromInternalColumnKey(recordKey);
 			var beginRadians:Number = _beginRadians.getValueFromKey(binKey, Number);
 			var spanRadians:Number = _spanRadians.getValueFromKey(binKey, Number);
-			var bounds:IBounds2D = getReusableBounds();
-			WedgePlotter.getWedgeBounds(bounds, beginRadians, spanRadians);
-			return [bounds];
+			WedgePlotter.getWedgeBounds(initBoundsArray(output), beginRadians, spanRadians);
 		}
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
 		 * @param outputDataBounds A Bounds2D object to store the result in.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(-1, -1, 1, 1);
+			output.setBounds(-1, -1, 1, 1);
 		}
 	}
 }
