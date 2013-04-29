@@ -239,15 +239,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
 				
 				
-				sourceType.dataProvider = ["All","Books"];
-				if(globalFilterByOption.value == "")
-				{
-					sourceType.selectedItem = "All";
-				}
-				else
-				{
-					sourceType.selectedItem = globalFilterByOption.value;
-				}
+				sourceType.dataProvider = ["","Books"];
+				sourceType.selectedItem = globalFilterByOption.value;
+				linkBindableProperty(globalFilterByOption,sourceType,"selectedItem");
 				
 				sortByComboBox.dataProvider = QueryObject.sortByOptions
 				sortByComboBox.selectedItem = globalSortByOption.value;

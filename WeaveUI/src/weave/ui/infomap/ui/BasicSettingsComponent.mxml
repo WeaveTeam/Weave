@@ -112,17 +112,11 @@
 				
 				operator.dataProvider = ['OR','AND'];
 				operator.selectedItem = query.operator.value;
-				
-				sourceType.dataProvider = ["All","Books"];
-				if(query.sources.value == "")
-				{
-					sourceType.selectedItem = "All";
-				}
-				else
-				{
-					sourceType.selectedItem = query.sources.value;
-				}
 				linkBindableProperty(query.operator,operator,"selectedItem");
+				
+				sourceType.dataProvider = ["","Books"];
+				sourceType.selectedItem = query.sources.value;
+				linkBindableProperty(query.sources,sourceType,"selectedItem");
 				
 				sortByComboBox.dataProvider = QueryObject.sortByOptions
 				sortByComboBox.selectedItem = query.sortBy.value;
