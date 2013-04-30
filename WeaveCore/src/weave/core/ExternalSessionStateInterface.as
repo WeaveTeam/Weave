@@ -199,6 +199,9 @@ package weave.core
 		 */
 		public function requestObject(objectPath:Array, objectType:String):Boolean
 		{
+			if (!objectPath || !objectPath.length)
+				return false;
+			objectPath = objectPath.concat();
 			var childName:String = objectPath.pop();
 			var parent:ILinkableObject = getObject(objectPath);
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -225,6 +228,7 @@ package weave.core
 		{
 			if (!objectPath || !objectPath.length)
 				return false;
+			objectPath = objectPath.concat();
 			var childName:String = objectPath.pop();
 			var object:ILinkableObject = getObject(objectPath);
 			var hashMap:ILinkableHashMap = object as ILinkableHashMap;
