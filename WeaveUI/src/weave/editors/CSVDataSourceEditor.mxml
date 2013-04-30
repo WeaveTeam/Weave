@@ -73,7 +73,7 @@
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
 			
-			private const indentGroup:IndentGroup = new IndentGroup();
+			public const indentGroup:IndentGroup = new IndentGroup();
 			
 			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
