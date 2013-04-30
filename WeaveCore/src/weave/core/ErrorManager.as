@@ -28,8 +28,8 @@ package weave.core
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
-	import weave.api.getCallbackCollection;
 	import weave.api.core.IErrorManager;
+	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugUtils;
 	
@@ -89,6 +89,9 @@ package weave.core
 			var _error:Error = error as Error;
 			if (!_error)
 				throw new Error("Assertion failed");
+			
+			if (!Capabilities.isDebugger && _error.message == "Error #" + _error.errorID && FlashErrorCodes[_error.errorID])
+				_error.message += ": " + FlashErrorCodes[_error.errorID];
 			
 			if (Capabilities.isDebugger)
 			{

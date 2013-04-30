@@ -245,7 +245,7 @@
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
 					result = func.apply(_context);
 					if (shouldReportError)
-						result = shouldReportError;
+						result = String(shouldReportError);
 				}
 				catch (e:*)
 				{
