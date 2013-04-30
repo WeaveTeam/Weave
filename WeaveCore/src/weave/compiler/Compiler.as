@@ -2299,16 +2299,22 @@ package weave.compiler
 							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
 							symbolName = method as String;
 							// find the variable
-							for (i = 0; i < allSymbolTables.length - 1; i++) // max i after loop will be length-1
-								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
-									break;
-							
-							if (i == THIS_SYMBOL_TABLE_INDEX || allSymbolTables[i] is Proxy)
+							for (i = 0; i < allSymbolTables.length; i++) // max i after loop will be length
 							{
-								propertyHost = allSymbolTables[i];
-								propertyName = symbolName;
+								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
+								{
+									if (i == THIS_SYMBOL_TABLE_INDEX || allSymbolTables[i] is Proxy)
+									{
+										propertyHost = allSymbolTables[i];
+										propertyName = symbolName;
+									}
+									result = allSymbolTables[i][symbolName];
+									break;
+								}
 							}
-							result = allSymbolTables[i][symbolName];
+							
+							if (i == allSymbolTables.length)
+								result = getDefinitionByName(symbolName);
 						}
 						else if (JUMP_LOOKUP[method])
 						{
