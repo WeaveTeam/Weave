@@ -205,6 +205,10 @@ package weave.compiler
 		 */
 		private var constants:Object = null;
 		/**
+		 * This object maps the name of a global symbol to its value.
+		 */
+		private var globals:Object = null;
+		/**
 		 * This object maps an operator like "*" to a Function or a valie of true if there is no function.
 		 */
 		private var operators:Object = null;
@@ -243,18 +247,18 @@ package weave.compiler
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
-		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
 		 */
-		public function compileToFunction(expression:String, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
+		public function compileToFunction(expression:String, symbolTable:Object, errorHandler:Function = null, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
 			var tokens:Array = getTokens(expression);
 			//trace("source:", expression, "tokens:" + tokens.join(' '));
 			var compiledObject:ICompiledObject = finalize(compileTokens(tokens, true));
-			return compileObjectToFunction(compiledObject, symbolTable, ignoreRuntimeErrors, useThisScope, paramNames, paramDefaults);
+			return compileObjectToFunction(compiledObject, symbolTable, errorHandler, useThisScope, paramNames, paramDefaults);
 		}
 		
 		/**
@@ -301,9 +305,8 @@ package weave.compiler
 					if (className)
 					{
 						// save the class name as a symbol
-						className = className.split('.').pop();
-						className = className.split('::').pop();
-						constants[className] = library;
+						className = className.substr(Math.max(className.lastIndexOf('.'), className.lastIndexOf(':')) + 1);
+						globals[className] = library;
 					}
 					if (library is Function) // special case for global function like flash.utils.getDefinitionByName
 						continue;
@@ -318,9 +321,9 @@ package weave.compiler
 		 * @param constantName The name of the constant.
 		 * @param constantValue The value of the constant.
 		 */
-		public function includeConstant(constantName:String, constantValue:*):void
+		public function importGlobal(constantName:String, constantValue:*):void
 		{
-			constants[constantName] = constantValue;
+			globals[constantName] = constantValue;
 		}
 
 		/**
@@ -346,21 +349,23 @@ package weave.compiler
 					statements[stmt] = false;
 			}
 			constants = {};
+			globals = {};
 			operators = {};
 			pureOperators = {};
 			assignmentOperators = {};
 			
-			// global symbols
+			// constant, built-in symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
 				constants[String(_const)] = _const;
+			
 			// global classes
 			var _QName:* = getDefinitionByName('QName'); // workaround to avoid asdoc error
 			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
 			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
-				constants[getQualifiedClassName(_class)] = _class;
+				globals[getQualifiedClassName(_class)] = _class;
 			// global functions
 			for each (var _funcName:String in 'decodeURI,decodeURIComponent,encodeURI,encodeURIComponent,escape,isFinite,isNaN,isXMLName,parseFloat,parseInt,trace,unescape'.split(','))
-				constants[_funcName] = getDefinitionByName(_funcName);
+				globals[_funcName] = getDefinitionByName(_funcName);
 			
 			
 			/** operators **/
@@ -771,9 +776,9 @@ package weave.compiler
 			compileBracketsAndProperties(tokens);
 
 			// next step: handle stray operators "..[](){}"
-			for each (token in tokens)
-				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
-					throw new Error("Misplaced '" + token + "'");
+			for (i = 0; i < tokens.length; i++)
+				if (tokens[i] is String && '..[](){}'.indexOf(tokens[i] as String) >= 0)
+					throw new Error("Misplaced '" + tokens[i] + "'" + _betweenTwoTokens(tokens[i - 1], tokens[i + 1]));
 
 			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
@@ -921,16 +926,30 @@ package weave.compiler
 				return tokens[0];
 
 			if (tokens.length > 1)
-			{
-				var leftToken:String = tokens[0] is ICompiledObject ? decompileObject(tokens[0]) : tokens[0];
-				var rightToken:String = tokens[1] is ICompiledObject ? decompileObject(tokens[1]) : tokens[1];
-				throw new Error("Missing operator between " + leftToken + ' and ' + rightToken);
-			}
+				throw new Error("Missing operator" + _betweenTwoTokens(tokens[0], tokens[1]));
 
 			if (allowSemicolons)
 				return compileOperator(';', tokens);
 			
 			throw new Error("Empty expression");
+		}
+		
+		/**
+		 * Used for generating a portion of an error message like " between token1 and token2"
+		 */
+		private function _betweenTwoTokens(token1:Object, token2:Object):String
+		{
+			if (token1 is ICompiledObject)
+				token1 = decompileObject(token1 as ICompiledObject);
+			if (token2 is ICompiledObject)
+				token2 = decompileObject(token2 as ICompiledObject);
+			if (token1 && token2)
+				return ' between ' + token1 + ' and ' + token2;
+			if (token1)
+				return ' after ' + token1;
+			if (token2)
+				return ' before ' + token2;
+			return '';
 		}
 
 		/*
@@ -1131,8 +1150,8 @@ package weave.compiler
 				{
 					var propertyToken:String = tokens[open + 1] as String;
 					
-					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
-						break; // error
+					if (!compiledToken || !propertyToken || operators.hasOwnProperty(propertyToken))
+						throw new Error("Misplaced '" + tokens[open] + "' " + _betweenTwoTokens(token, tokens[open + 1]));
 					
 					// the token on the right is a variable name, but we will store it as a String because it's a property lookup
 					compiledParams = [compiledToken, new CompiledConstant(encodeString(propertyToken), propertyToken)];
@@ -1206,7 +1225,7 @@ package weave.compiler
 					{
 						// property access
 						if (compiledParams.length == 0)
-							throw new Error("Missing parameter for bracket operator: '[]'");
+							throw new Error("Missing parameter for bracket operator: " + decompileObject(compiledToken) + "[]");
 						// the token on the left becomes the first parameter of the access operator
 						compiledParams.unshift(compiledToken);
 						// replace the token to the left and the brackets with the operator call
@@ -1598,6 +1617,18 @@ package weave.compiler
 						if (!call.compiledParams || call.evaluatedMethod == operators['='])
 							tokens[startIndex + iPattern] = token = call = compileOperator(',', [call]);
 						
+						// special case for "for (var x in y) { }"
+						if (call.evaluatedMethod == operators['in'] && call.compiledParams.length == 2)
+						{
+							// check the variable
+							call = call.compiledParams[0] as CompiledFunctionCall;
+							if (!call || call.compiledParams) // not a variable?
+								throwInvalidSyntax(stmt);
+							// save single variable name
+							varNames = [call.evaluatedMethod];
+							continue;
+						}
+						
 						if (call.evaluatedMethod != operators[','] || call.compiledParams.length == 0)
 							throwInvalidSyntax(stmt);
 						
@@ -1621,6 +1652,7 @@ package weave.compiler
 							else
 								throwInvalidSyntax(stmt);
 						}
+						call.evaluateConstants();
 					}
 				}
 				
@@ -1632,7 +1664,13 @@ package weave.compiler
 				{
 					token = compileOperator(ST_VAR, [new CompiledConstant(null, varNames)]);
 					call = params[0];
-					if (call.compiledParams.length > 0)
+					if (call.evaluatedMethod == operators['in'])
+					{
+						call.compiledParams[0] = compileOperator(',', [token, call.compiledParams[0]]);
+						call.evaluateConstants();
+						token = call;
+					}
+					else if (call.compiledParams.length > 0)
 					{
 						call.compiledParams.unshift(token);
 						call.evaluateConstants();
@@ -1716,9 +1754,18 @@ package weave.compiler
 						
 						// implemented as "for (each|in)(\in(list), item=undefined, stmt)
 						var _in:CompiledFunctionCall = forParams.compiledParams[0];
-						var _item:ICompiledObject = compileVariableAssignment(_in.compiledParams[0], '=', newUndefinedConstant());
+						var _item:ICompiledObject;
+						var _var:CompiledFunctionCall = _in.compiledParams[0] as CompiledFunctionCall;
+						if (_var.evaluatedMethod == operators[','] && _var.compiledParams.length == 2) // represented as (var x, x)
+						{
+							_var.compiledParams[1] = compileVariableAssignment(_var.compiledParams[1], '=', newUndefinedConstant());
+						}
+						else
+						{
+							_var = compileVariableAssignment(_in.compiledParams[0], '=', newUndefinedConstant());
+						}
 						var _list:ICompiledObject = compileOperator('in', [_in.compiledParams[1]]);
-						tokens[startIndex] = compileOperator(stmt, [_list, _item, params[1]]);
+						tokens[startIndex] = compileOperator(stmt, [_list, _var, params[1]]);
 					}
 				}
 				else if (_jumpStatements.indexOf(stmt) >= 0)
@@ -1766,11 +1813,21 @@ package weave.compiler
 					{
 						// if 'for' or 'for each' has only one param, it must be the 'in' operator
 						var call:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall; // the first statement param
-						if (!call || call.evaluatedMethod != operators['in'])
+						if (!call || call.evaluatedMethod != operators['in'] || call.compiledParams.length != 2)
 							throwInvalidSyntax(statement);
+						
+						// check the first parameter of the 'in' operator
+						call = call.compiledParams[0] as CompiledFunctionCall;
+						
+						if (call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
+						{
+							var _var:CompiledFunctionCall = call.compiledParams[0] as CompiledFunctionCall;
+							if (!_var || _var.evaluatedMethod != operators[ST_VAR])
+								throwInvalidSyntax(statement);
+							call = call.compiledParams[1]; // should be the variable
+						}
 							
 						// the 'in' operator must have a variable or property reference as its first parameter
-						call = call.compiledParams[0] as CompiledFunctionCall; // the 'in' operator
 						if (!(call.compiledParams == null || call.evaluatedMethod == operators['.'])) // not a variable and not a property
 							throwInvalidSyntax(statement);
 					}
@@ -1803,7 +1860,11 @@ package weave.compiler
 		{
 			var varLookup:Object = {};
 			
-			compiledObject = _finalize(compiledObject, varLookup);
+			var final:ICompiledObject = _finalize(compiledObject, varLookup);
+			if (!final)
+				return compiledObject;
+			
+			compiledObject = final;
 			
 			var names:Array = [];
 			for (var name:String in varLookup)
@@ -2061,13 +2122,13 @@ package weave.compiler
 		 * This function is for internal use only.
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
 		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
-		 * @param ignoreRuntimeErrors If this is set to true, the generated function will ignore any Errors caused by the individual function calls in its execution.  Return values from failed function calls will be treated as undefined.
+		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.  This may be set to null, which will cause the Error to be thrown.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, ignoreRuntimeErrors:Boolean, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2117,8 +2178,8 @@ package weave.compiler
 			var i:int = libraries.length;
 			while (i--)
 				allSymbolTables.push(libraries[i]);
-			// check constants last
-			allSymbolTables.push(constants);
+			// check globals last
+			allSymbolTables.push(globals);
 			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
@@ -2320,8 +2381,7 @@ package weave.compiler
 								if (!symbolName)
 									symbolName = getQualifiedClassName(result);
 								
-								symbolName = symbolName.split('.').pop();
-								symbolName = symbolName.split('::').pop();
+								symbolName = symbolName.substr(Math.max(symbolName.lastIndexOf('.'), symbolName.lastIndexOf(':')) + 1);
 								allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX][symbolName] = result;
 							}
 						}
@@ -2372,7 +2432,7 @@ package weave.compiler
 							result = compileObjectToFunction(
 								funcParams[FUNCTION_CODE],
 								_symbolTables,
-								ignoreRuntimeErrors,
+								errorHandler,
 								useThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES]
@@ -2395,18 +2455,20 @@ package weave.compiler
 					}
 					catch (e:*)
 					{
-						if (ignoreRuntimeErrors)
-							result = undefined;
+						var decompiled:String = decompileObject(call);
+						var err:Error = e as Error;
+						if (err)
+							err.message = decompiled + '\n' + err.message;
 						else
-						{
-							var decompiled:String = decompileObject(call);
-							var err:Error = e as Error;
-							if (err)
-								err.message = decompiled + '\n' + err.message;
-							else
-								trace(decompiled);
+							trace(decompiled);
+						
+						if (errorHandler == null)
 							throw e;
-						}
+						
+						if (errorHandler(e))
+							result = undefined; // ignore and continue
+						else
+							return undefined; // halt
 					}
 					
 					// handle while and for loops
@@ -2557,7 +2619,7 @@ package weave.compiler
 				var decompiled2:String = compiler.decompileObject(compiler.compileTokens(tokens3, true));
 				trace("decompiled(2):", decompiled2);
 				
-				var f:Function = compiler.compileToFunction(eq, vars, false);
+				var f:Function = compiler.compileToFunction(eq, vars);
 				for each (var value:* in values)
 				{
 					vars['v'] = value;

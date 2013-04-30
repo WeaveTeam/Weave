@@ -21,98 +21,90 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	
-	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IPlotTask;
-	import weave.compiler.ProxyObject;
-	import weave.core.ClassUtils;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
-	import weave.visualization.plotters.styles.SolidFillStyle;
-	import weave.visualization.plotters.styles.SolidLineStyle;
 
 	/**
 	 * @author adufilie
 	 */
-	public class CustomGlyphPlotter extends AbstractGlyphPlotter
+	public class CustomGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
 		public function CustomGlyphPlotter()
 		{
-			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			setColumnKeySources([dataX, dataY]);
+			vars.childListCallbacks.addImmediateCallback(this, handleVarList);
 		}
-		
-		/**
-		 * This is the line style used to draw the outline of the rectangle.
-		 */
-		public const lineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
-		/**
-		 * This is the fill style used to fill the rectangle.
-		 */
-		public const fillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
+		private function handleVarList():void
+		{
+			// When a new column is created, register the stats to trigger callbacks and affect busy status.
+			// This will be cleaned up automatically when the column is disposed.
+			var newColumn:IAttributeColumn = vars.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+				registerLinkableChild(vars, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+		}
 		
 		/**
 		 * This can hold any objects that should be stored in the session state.
 		 */
-		public const vars:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
-		
-		private const _thisProxy:ProxyObject = new ProxyObject(hasVar, getVar, setVar);
-		private function hasVar(name:String):Boolean
-		{
-			return this.hasOwnProperty(name) || vars.getObject(name) != null;
-		}
-		private function getVar(name:String):*
-		{
-			return this.hasOwnProperty(name) ? this[name] : vars.getObject(name);
-		}
-		private function setVar(name:String, value:*):void
-		{
-			if (this.hasOwnProperty(name))
-			{
-				this[name] = value;
-				return;
-			}
-			
-			if (value is String)
-				value = ClassUtils.getClassDefinition(value);
-			vars.requestObject(name, value, false);
-		}
+		public const vars:ILinkableHashMap = newSpatialProperty(LinkableHashMap);
+		public const locals:Object = {};
 		
 		public const function_drawPlot:LinkableFunction = registerLinkableChild(this, new LinkableFunction(script_drawPlot, false, true, ['keys','dataBounds','screenBounds','destination']));
 		public static const script_drawPlot:String = <![CDATA[
 			// Parameter types: Array, IBounds2D, IBounds2D, BitmapData
 			function(keys, dataBounds, screenBounds, destination)
 			{
+				import 'weave.data.AttributeColumns.DynamicColumn';
+				import 'weave.utils.GraphicsBuffer';
+			
 				var getStats = WeaveAPI.StatisticsCache.getColumnStatistics;
-				var DynamicColumn = Class('weave.data.AttributeColumns.DynamicColumn');
-				var screenSize = vars.requestObject('screenSize', DynamicColumn, false);
-				var sizeStats = getStats(screenSize);
-				var graphicsBuffer = new 'weave.utils.GraphicsBuffer'(destination);
+				var colorColumn = vars.requestObject('color', DynamicColumn, false);
+				var sizeColumn = vars.requestObject('size', DynamicColumn, false);
+				var sizeStats = getStats(sizeColumn);
+				var buffer = locals.buffer || (locals.buffer = new GraphicsBuffer());
 				var key;
+			
+				colorColumn.globalName = 'defaultColorColumn';
+				buffer.destination(destination)
+					.lineStyle(1, 0x000000, 0.5); // weight, color, alpha
+			
 				for each (key in keys)
 				{
 					getCoordsFromRecordKey(key, tempPoint); // uses dataX,dataY
-					var size = 20 * sizeStats.getNorm(key);
-					
-					if (isNaN(tempPoint.x) || isNaN(tempPoint.y) || isNaN(size))
-						continue;
-					
 					// project x,y data coordinates to screen coordinates
 					dataBounds.projectPointTo(tempPoint, screenBounds);
+			
+					if (isNaN(tempPoint.x) || isNaN(tempPoint.y))
+						continue;
+					
+					var x = tempPoint.x, y = tempPoint.y;
+					var size = 20 * sizeStats.getNorm(key);
+					var color = colorColumn.getValueFromKey(key, Number);
 					
 					// draw graphics
-					lineStyle.beginLineStyle(key, graphicsBuffer.graphics());
-					fillStyle.beginFillStyle(key, graphicsBuffer.graphics());
-					
-					graphicsBuffer.drawCircle(tempPoint.x, tempPoint.y, size)
-						.endFill();
+					if (isFinite(color))
+						buffer.beginFill(color, 1.0); // color, alpha
+					if (isNaN(size))
+					{
+						size = 10;
+						buffer.drawRect(x - size/2, y - size/2, size, size);
+					}
+					else
+					{
+						buffer.drawCircle(tempPoint.x, tempPoint.y, size);
+					}
+					buffer.endFill();
 				}
-				graphicsBuffer.flush();
+				buffer.flush();
 			}
 		]]>;
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
@@ -123,7 +115,7 @@ package weave.visualization.plotters
 				if (task.iteration <= task.recordKeys.length)
 					return 0;
 				
-				function_drawPlot.call(_thisProxy, task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+				function_drawPlot.call(this, task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			}
 			catch (e:*)
 			{
@@ -138,7 +130,9 @@ package weave.visualization.plotters
 			function(dataBounds, screenBounds, destination)
 			{
 				/*
-				var graphicBuffer = new 'weave.utils.GraphicsBuffer'(destination);
+				import 'weave.utils.GraphicsBuffer';
+			
+				var graphicBuffer = new GraphicsBuffer(destination);
 			
 				// draw background graphics here
 			
@@ -150,7 +144,7 @@ package weave.visualization.plotters
 		{
 			try
 			{
-				function_drawBackground.apply(_thisProxy, arguments);
+				function_drawBackground.apply(this, arguments);
 			}
 			catch (e:*)
 			{
@@ -177,7 +171,7 @@ package weave.visualization.plotters
 		{
 			try
 			{
-				function_getDataBoundsFromRecordKey.apply(_thisProxy, arguments);
+				function_getDataBoundsFromRecordKey.apply(this, arguments);
 			}
 			catch (e:*)
 			{
@@ -199,7 +193,7 @@ package weave.visualization.plotters
 					var getStats = WeaveAPI.StatisticsCache.getColumnStatistics;
 					var statsX = getStats(dataX);
 					var statsY = getStats(dataY);
-			
+					
 					output.setBounds(
 						statsX.getMin(),
 						statsY.getMin(),
@@ -213,7 +207,7 @@ package weave.visualization.plotters
 		{
 			try
 			{
-				function_getBackgroundDataBounds.apply(_thisProxy, arguments);
+				function_getBackgroundDataBounds.apply(this, arguments);
 			}
 			catch (e:*)
 			{

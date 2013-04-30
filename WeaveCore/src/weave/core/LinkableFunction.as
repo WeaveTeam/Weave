@@ -97,8 +97,18 @@ package weave.core
 					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
 				var object:ICompiledObject = _compiler.compileToObject(value);
 				_isFunctionDefinition = _compiler.compiledObjectIsFunction(object);
-				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
+				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, errorHandler, _useThisScope, _paramNames);
 			}
+		}
+		
+		private function errorHandler(e:*):Boolean
+		{
+			if (debug)
+				reportError(e);
+			
+			if (_ignoreRuntimeErrors || debug)
+				return true;
+			throw e;
 		}
 		
 		/**
@@ -201,9 +211,7 @@ package weave.core
 			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
 		}
 		
-		{ /** begin static code block **/
-			staticInit();
-		} /** end static code block **/
+		staticInit();
 		
 		/**
 		 * This function will initialize static variables.

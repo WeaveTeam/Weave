@@ -794,14 +794,20 @@ A text editor to change the Session State on the fly.
 					var console:Console;
 					if (_profileWithErrorLogPanel)
 					{
+						var parent:* = ErrorLogPanel.getInstance().parent;
+						
 						ErrorLogPanel.openErrorLog();
 						console = ErrorLogPanel.getInstance().console;
+						
+						if (parent)
+							console.identify();
 					}
-					else // use error log panel
+					else
 					{
 						var defaultEditor:SessionStateEditor = getInstance();
 						if (!defaultEditor.parent)
 							openDefaultEditor();
+						
 						defaultEditor.restorePanel();
 						// show console
 						if (profileDump && !defaultEditor.showConsole.selected)
