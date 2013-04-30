@@ -61,10 +61,11 @@ function(objectID)
 		this.weave = weave;
 		/**
 		 * Returns a copy of the current path Array.
+		 * Accepts an optional list of names to be appended to the result.
 		 */
-		this.getPath = function()
+		this.getPath = function(/*...names*/)
 		{
-			return this.path.concat();
+			return path.concat(A(arguments, 1));
 		};
 		/**
 		 * Gets the session state of an object at the current path or relative to the current path.
@@ -76,17 +77,19 @@ function(objectID)
 		};
 		/**
 		 * Gets the object type at the current path.
+		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getType = function()
+		this.getType = function(/*...names*/)
 		{
-			return weave.getObjectType(path);
+			return weave.getObjectType(path.concat(A(arguments, 1)));
 		};
 		/**
 		 * Gets an Array of child names under the current path.
+		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getNames = function()
+		this.getNames = function(/*...names*/)
 		{
-			return weave.getChildNames(path);
+			return weave.getChildNames(path.concat(A(arguments, 1)));
 		};
 		/**
 		 * Gets a variable that was previously specified in WeavePath.vars() or saved with WeavePath.exec() for this Weave instance.
