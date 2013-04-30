@@ -29,6 +29,8 @@ package weave.compiler
 	
 	import mx.utils.StringUtil;
 	
+	import weave.utils.fixErrorMessage;
+	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
 	 * 
@@ -2464,7 +2466,10 @@ package weave.compiler
 						var decompiled:String = decompileObject(call);
 						var err:Error = e as Error;
 						if (err)
+						{
+							fixErrorMessage(err);
 							err.message = decompiled + '\n' + err.message;
+						}
 						else
 							trace(decompiled);
 						

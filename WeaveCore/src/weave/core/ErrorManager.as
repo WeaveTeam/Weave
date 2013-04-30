@@ -32,6 +32,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugUtils;
+	import weave.utils.fixErrorMessage;
 	
 	/**
 	 * This class is a central location for reporting and detecting errors.
@@ -79,7 +80,10 @@ package weave.core
 			{
 				// wrap the error in a Fault object
 				if (!faultMessage && error is Error)
+				{
+					fixErrorMessage(error as Error);
 					faultMessage = StandardLib.asString((error as Error).message);
+				}
 				var fault:Fault = new Fault('Error', faultMessage);
 				fault.content = faultContent;
 				fault.rootCause = error;
@@ -90,8 +94,7 @@ package weave.core
 			if (!_error)
 				throw new Error("Assertion failed");
 			
-			if (!Capabilities.isDebugger && _error.message == "Error #" + _error.errorID && FlashErrorCodes[_error.errorID])
-				_error.message += ": " + FlashErrorCodes[_error.errorID];
+			fixErrorMessage(_error);
 			
 			if (Capabilities.isDebugger)
 			{
