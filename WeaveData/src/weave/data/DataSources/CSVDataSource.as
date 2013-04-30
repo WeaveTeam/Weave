@@ -22,6 +22,7 @@ package weave.data.DataSources
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -234,9 +235,13 @@ package weave.data.DataSources
 			if (!sourceOwner)
 				return false;
 			var columnName:String = columnNameOrIndex as String || getColumnNames()[columnNameOrIndex] as String;
+			var essi:ExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface;
 			var dc:DynamicColumn = dynamicColumnOrPath as DynamicColumn;
 			if (!dc)
-				dc = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(dynamicColumnOrPath as Array) as DynamicColumn;
+			{
+				essi.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
+				dc = essi.getObject(dynamicColumnOrPath as Array) as DynamicColumn;
+			}
 			if (!columnName || !dc)
 				return false;
 			
