@@ -1,5 +1,5 @@
 <Weave encoding="dynamic">
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -80,6 +80,46 @@
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn9">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource6</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn10">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource6</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Disability 2012" csvColumn="Percent Disability 2012"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn11">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource7</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn12">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource7</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute title="Percent Disability 2012" csvColumn="Percent Disability 2012"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
   </LinkableHashMap>
   <WeaveProperties name="WeaveProperties">
     <backgroundColor>13421772</backgroundColor>
@@ -112,9 +152,10 @@
       <LinkableString name="Line Chart of Percent Obese 2000, Percent Obese 2005, Percent Obese 2010"/>
       <LinkableString name="Line Chart of Percent Obese 1995, Percent Obese 1996, Percent Obese 1997, Percent Obese 1998, Percent Obese 1999, Percent Obese 2000, Percent Obese 2001, Percent Obese 2002, Percent Obese 2003, Percent Obese 2004, Percent Obese 2005, Percent Obese 2006, Percent Obese 2007"/>
       <LinkableString name="Line Chart of Percent Obese 1984, Percent Obese 1985, Percent Obese 1986, Percent Obese 1987, Percent Obese 1988, Percent Obese 1989, Percent Obese 1990, Percent Obese 1991, Percent Obese 1992, Percent Obese 1993, Percent Obese 1994, Percent Obese 1995, Percent Obese 1996, Percent Obese 1997, Percent Obese 1998, Percent Obese 1999, Percent Obese 2000, Percent Obese 2001, Percent Obese 2002, Percent Obese 2003, Percent Obese 2004, Percent Obese 2005, Percent Obese 2006, Percent Obese 2007, Percent Obese 2008, Percent Obese 2009, Percent Obese 2010, Percent Obese 2011, Percent Obese 2012, Percent Obese 2013"/>
+      <LinkableString name="Line Chart of Percent Disability 2010, Percent Disability 2011, Percent Disability 2012"/>
     </disabilityHashMap>
     <disabilityLongAltText/>
-    <disabilitySystemText>This line chart has a decreasing trend</disabilitySystemText>
+    <disabilitySystemText>This image is a line chart. The line chart displays 2 data points and shows 1 major trends. The first segment is a stable trend21.3 to 21.3. This segment begins at Percent Disability 2010 and ends at Percent Disability 2011. Overall, from the first point to the last point, the y axis value on this line chart rises  from 21.3 to 21.3.</disabilitySystemText>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddNewDatasource>true</enableAddNewDatasource>
@@ -315,7 +356,7 @@ wheel</zoom>
       <ReferencedColumn>
         <dynamicColumnReference encoding="dynamic">
           <HierarchyColumnReference>
-            <dataSourceName>CSVDataSource5</dataSourceName>
+            <dataSourceName>CSVDataSource7</dataSourceName>
             <hierarchyPath encoding="xml">
               <attribute title="US State FIPS Code" csvColumn="US State FIPS Code"/>
             </hierarchyPath>
@@ -330,19 +371,19 @@ wheel</zoom>
     <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
-  <KeySet name="defaultSelectionKeySet" encoding="dynamic"/>
-  <KeySet name="defaultProbeKeySet" encoding="dynamic"/>
+  <KeySet encoding="dynamic" name="defaultSelectionKeySet"/>
+  <KeySet encoding="dynamic" name="defaultProbeKeySet"/>
   <KeySet name="alwaysHighlightKeySet"/>
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
   <CSVDataSource name="CSVDataSource2">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="CSVDataSource2"/>
-        <attribute title="State" csvColumn="State" keyType="CSVDataSource2"/>
-        <attribute title="Percent Obese (BMI >= 30) (1995)" csvColumn="Percent Obese (BMI >= 30) (1995)" keyType="CSVDataSource2"/>
-        <attribute title="Percent Obese (BMI >= 30) (2010)" csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2"/>
+        <attribute keyType="CSVDataSource2" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource2" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource2" csvColumn="Percent Obese (BMI >= 30) (1995)" title="Percent Obese (BMI >= 30) (1995)"/>
+        <attribute keyType="CSVDataSource2" csvColumn="Percent Obese (BMI >= 30) (2010)" title="Percent Obese (BMI >= 30) (2010)"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese (BMI &gt;= 30) (1995),Percent Obese (BMI &gt;= 30) (2010)
@@ -354,12 +395,12 @@ wheel</zoom>
   <CSVDataSource name="CSVDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="CSVDataSource"/>
-        <attribute title="State" csvColumn="State" keyType="CSVDataSource"/>
-        <attribute title="Percent Obese 2010" csvColumn="Percent Obese 2010" keyType="CSVDataSource"/>
-        <attribute title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="CSVDataSource"/>
-        <attribute title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="CSVDataSource"/>
-        <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="CSVDataSource"/>
+        <attribute keyType="CSVDataSource" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 2010" title="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese 2010,Percent Obese 2005,Percent Obese 2000,Percent Obese 1995
@@ -371,12 +412,12 @@ wheel</zoom>
   <CSVDataSource name="CSVDataSource3">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="CSVDataSource3"/>
-        <attribute title="State" csvColumn="State" keyType="CSVDataSource3"/>
-        <attribute title="Percent Obese 2010" csvColumn="Percent Obese 2010" keyType="CSVDataSource3"/>
-        <attribute title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="CSVDataSource3"/>
-        <attribute title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="CSVDataSource3"/>
-        <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="CSVDataSource3"/>
+        <attribute keyType="CSVDataSource3" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource3" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 2010" title="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource3" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese 2010,Percent Obese 2005,Percent Obese 2000,Percent Obese 1995
@@ -388,21 +429,21 @@ wheel</zoom>
   <CSVDataSource name="CSVDataSource4">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="CSVDataSource4"/>
-        <attribute title="State" csvColumn="State" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2006" csvColumn="Percent Obese 2006" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2004" csvColumn="Percent Obese 2004" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2003" csvColumn="Percent Obese 2003" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2002" csvColumn="Percent Obese 2002" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2001" csvColumn="Percent Obese 2001" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 1999" csvColumn="Percent Obese 1999" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 1998" csvColumn="Percent Obese 1998" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 1997" csvColumn="Percent Obese 1997" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 1996" csvColumn="Percent Obese 1996" keyType="CSVDataSource4"/>
-        <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="CSVDataSource4"/>
+        <attribute keyType="CSVDataSource4" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource4" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2006" title="Percent Obese 2006"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2004" title="Percent Obese 2004"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2003" title="Percent Obese 2003"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2002" title="Percent Obese 2002"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2001" title="Percent Obese 2001"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1999" title="Percent Obese 1999"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1998" title="Percent Obese 1998"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1997" title="Percent Obese 1997"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1996" title="Percent Obese 1996"/>
+        <attribute keyType="CSVDataSource4" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese 2007,Percent Obese 2006,Percent Obese 2005,Percent Obese 2004,Percent Obese 2003,Percent Obese 2002,Percent Obese 2001,Percent Obese 2000,Percent Obese 1999,Percent Obese 1998,Percent Obese 1997,Percent Obese 1996,Percent Obese 1995
@@ -414,44 +455,89 @@ wheel</zoom>
   <CSVDataSource name="CSVDataSource5">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute title="US State FIPS Code" csvColumn="US State FIPS Code" keyType="CSVDataSource5"/>
-        <attribute title="State" csvColumn="State" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2013" csvColumn="Percent Obese 2013" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2012" csvColumn="Percent Obese 2012" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2011" csvColumn="Percent Obese 2011" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2010" csvColumn="Percent Obese 2010" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2009" csvColumn="Percent Obese 2009" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2008" csvColumn="Percent Obese 2008" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2006" csvColumn="Percent Obese 2006" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2004" csvColumn="Percent Obese 2004" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2003" csvColumn="Percent Obese 2003" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2002" csvColumn="Percent Obese 2002" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2001" csvColumn="Percent Obese 2001" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1999" csvColumn="Percent Obese 1999" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1998" csvColumn="Percent Obese 1998" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1997" csvColumn="Percent Obese 1997" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1996" csvColumn="Percent Obese 1996" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1994" csvColumn="Percent Obese 1994" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1993" csvColumn="Percent Obese 1993" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1992" csvColumn="Percent Obese 1992" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1991" csvColumn="Percent Obese 1991" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1990" csvColumn="Percent Obese 1990" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1989" csvColumn="Percent Obese 1989" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1988" csvColumn="Percent Obese 1988" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1987" csvColumn="Percent Obese 1987" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1986" csvColumn="Percent Obese 1986" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1985" csvColumn="Percent Obese 1985" keyType="CSVDataSource5"/>
-        <attribute title="Percent Obese 1984" csvColumn="Percent Obese 1984" keyType="CSVDataSource5"/>
+        <attribute keyType="CSVDataSource5" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource5" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2013" title="Percent Obese 2013"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2012" title="Percent Obese 2012"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2011" title="Percent Obese 2011"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2010" title="Percent Obese 2010"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2009" title="Percent Obese 2009"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2008" title="Percent Obese 2008"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2007" title="Percent Obese 2007"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2006" title="Percent Obese 2006"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2005" title="Percent Obese 2005"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2004" title="Percent Obese 2004"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2003" title="Percent Obese 2003"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2002" title="Percent Obese 2002"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2001" title="Percent Obese 2001"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 2000" title="Percent Obese 2000"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1999" title="Percent Obese 1999"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1998" title="Percent Obese 1998"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1997" title="Percent Obese 1997"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1996" title="Percent Obese 1996"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1995" title="Percent Obese 1995"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1994" title="Percent Obese 1994"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1993" title="Percent Obese 1993"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1992" title="Percent Obese 1992"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1991" title="Percent Obese 1991"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1990" title="Percent Obese 1990"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1989" title="Percent Obese 1989"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1988" title="Percent Obese 1988"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1987" title="Percent Obese 1987"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1986" title="Percent Obese 1986"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1985" title="Percent Obese 1985"/>
+        <attribute keyType="CSVDataSource5" csvColumn="Percent Obese 1984" title="Percent Obese 1984"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>US State FIPS Code,State,Percent Obese 2013,Percent Obese 2012,Percent Obese 2011,Percent Obese 2010,Percent Obese 2009,Percent Obese 2008,Percent Obese 2007,Percent Obese 2006,Percent Obese 2005,Percent Obese 2004,Percent Obese 2003,Percent Obese 2002,Percent Obese 2001,Percent Obese 2000,Percent Obese 1999,Percent Obese 1998,Percent Obese 1997,Percent Obese 1996,Percent Obese 1995,Percent Obese 1994,Percent Obese 1993,Percent Obese 1992,Percent Obese 1991,Percent Obese 1990,Percent Obese 1989,Percent Obese 1988,Percent Obese 1987,Percent Obese 1986,Percent Obese 1985,Percent Obese 1984
 10,Delaware,15,17,20,25,32,30,28.2,26,23.5,21.1,24,22.4,20.8,16.6,17.5,17.2,18.8,17.7,17.1,15,14,30,28,26,25,24,23,27,26,28</csvDataString>
     <keyColName>US State FIPS Code</keyColName>
     <keyType>CSVDataSource5</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource6">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource6" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource6" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource6" csvColumn="Percent Disability 2010" title="Percent Disability 2010"/>
+        <attribute keyType="CSVDataSource6" csvColumn="Percent Disability 2011" title="Percent Disability 2011"/>
+        <attribute keyType="CSVDataSource6" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Disability 2010,Percent Disability 2011,Percent Disability 2012
+1,Alabama,25.9,23.6,23.6
+2,Alaska,20.2,21.6,21.6
+4,Arizona,22.1,21.1,21.1
+5,Arkansas,24.7,23.2,23.2
+6,California,18.1,24.7,24.7
+8,Colorado,20.6,23.1,23.1
+9,Connecticut,16.6,27.3,27.3
+10,Delaware,21.4,21.3,21.3</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource6</keyType>
+    <url/>
+  </CSVDataSource>
+  <CSVDataSource name="CSVDataSource7">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource7" csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+        <attribute keyType="CSVDataSource7" csvColumn="State" title="State"/>
+        <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2010" title="Percent Disability 2010"/>
+        <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2011" title="Percent Disability 2011"/>
+        <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Disability 2010,Percent Disability 2011,Percent Disability 2012
+1,Alabama,25.9,23.6,23.6
+2,Alaska,20.2,21.6,21.6
+4,Arizona,22.1,21.1,21.1
+5,Arkansas,24.7,23.2,23.2
+6,California,18.1,24.7,24.7
+8,Colorado,20.6,23.1,23.1
+9,Connecticut,16.6,27.3,27.3</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource7</keyType>
     <url/>
   </CSVDataSource>
   <LineChartTool name="LineChartTool">
@@ -556,12 +642,12 @@ wheel</zoom>
               <axisLabelDistance>-10</axisLabelDistance>
               <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
               <axisLineDataBounds>
-                <xMax>29</xMax>
+                <xMax>2</xMax>
                 <xMin>0</xMin>
                 <yMax>0</yMax>
                 <yMin>0</yMin>
               </axisLineDataBounds>
-              <axisLineMaxValue>29</axisLineMaxValue>
+              <axisLineMaxValue>2</axisLineMaxValue>
               <axisLineMinValue>0</axisLineMinValue>
               <forceTickCount>true</forceTickCount>
               <keySet>
@@ -588,343 +674,19 @@ wheel</zoom>
               <overrideAxisName/>
               <showAxisName>true</showAxisName>
               <showLabels>true</showLabels>
-              <tickCountRequested>30</tickCountRequested>
+              <tickCountRequested>3</tickCountRequested>
               <tickMaxValue>NaN</tickMaxValue>
               <tickMinValue>NaN</tickMinValue>
             </SimpleAxisPlotter>
             <ParallelCoordinatesPlotter name="plot">
               <columns encoding="dynamic">
-                <ReferencedColumn name="ReferencedColumn45">
+                <ReferencedColumn name="ReferencedColumn3">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute title="Percent Obese 1984" csvColumn="Percent Obese 1984" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn44">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1985" csvColumn="Percent Obese 1985" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn43">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1986" csvColumn="Percent Obese 1986" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn42">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1987" csvColumn="Percent Obese 1987" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn41">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1988" csvColumn="Percent Obese 1988" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn40">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1989" csvColumn="Percent Obese 1989" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn39">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1990" csvColumn="Percent Obese 1990" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn38">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1991" csvColumn="Percent Obese 1991" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn37">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1992" csvColumn="Percent Obese 1992" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn36">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1993" csvColumn="Percent Obese 1993" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn35">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1994" csvColumn="Percent Obese 1994" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn34">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1995" csvColumn="Percent Obese 1995" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn33">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1996" csvColumn="Percent Obese 1996" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn32">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1997" csvColumn="Percent Obese 1997" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn31">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1998" csvColumn="Percent Obese 1998" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn30">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 1999" csvColumn="Percent Obese 1999" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn29">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2000" csvColumn="Percent Obese 2000" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn28">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2001" csvColumn="Percent Obese 2001" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn27">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2002" csvColumn="Percent Obese 2002" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn26">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2003" csvColumn="Percent Obese 2003" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn25">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2004" csvColumn="Percent Obese 2004" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn24">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2005" csvColumn="Percent Obese 2005" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn23">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2006" csvColumn="Percent Obese 2006" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn22">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2007" csvColumn="Percent Obese 2007" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn21">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2008" csvColumn="Percent Obese 2008" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn20">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2009" csvColumn="Percent Obese 2009" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn6">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2010" csvColumn="Percent Obese 2010" keyType="CSVDataSource5"/>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn5">
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <attribute title="Percent Obese 2011" csvColumn="Percent Obese 2011" keyType="CSVDataSource5"/>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2010" title="Percent Disability 2010"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -933,22 +695,22 @@ wheel</zoom>
                 <ReferencedColumn name="ReferencedColumn4">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute title="Percent Obese 2012" csvColumn="Percent Obese 2012" keyType="CSVDataSource5"/>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2011" title="Percent Disability 2011"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
                   </dynamicColumnReference>
                 </ReferencedColumn>
-                <ReferencedColumn name="ReferencedColumn3">
+                <ReferencedColumn name="ReferencedColumn5">
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute title="Percent Obese 2013" csvColumn="Percent Obese 2013" keyType="CSVDataSource5"/>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1034,7 +796,7 @@ wheel</zoom>
               </color>
               <dataX encoding="dynamic">
                 <AlwaysDefinedColumn>
-                  <defaultValue>29</defaultValue>
+                  <defaultValue>2</defaultValue>
                   <internalDynamicColumn encoding="dynamic"/>
                 </AlwaysDefinedColumn>
               </dataX>
@@ -1042,10 +804,10 @@ wheel</zoom>
                 <ReferencedColumn>
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute title="Percent Obese 2013" csvColumn="Percent Obese 2013" keyType="CSVDataSource5"/>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1080,10 +842,10 @@ wheel</zoom>
                 <ReferencedColumn>
                   <dynamicColumnReference encoding="dynamic">
                     <HierarchyColumnReference>
-                      <dataSourceName>CSVDataSource5</dataSourceName>
+                      <dataSourceName>CSVDataSource7</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute title="Percent Obese 2013" csvColumn="Percent Obese 2013" keyType="CSVDataSource5"/>
+                          <attribute keyType="CSVDataSource7" csvColumn="Percent Disability 2012" title="Percent Disability 2012"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1098,7 +860,7 @@ wheel</zoom>
                       <dataSourceName>CSVDataSource3</dataSourceName>
                       <hierarchyPath encoding="xml">
                         <hierarchy>
-                          <attribute title="State" csvColumn="State" keyType="CSVDataSource3"/>
+                          <attribute keyType="CSVDataSource3" csvColumn="State" title="State"/>
                         </hierarchy>
                       </hierarchyPath>
                     </HierarchyColumnReference>
@@ -1119,7 +881,7 @@ wheel</zoom>
             </TextGlyphPlotter>
           </plotters>
           <zoomBounds>
-            <xMax>29</xMax>
+            <xMax>2</xMax>
             <xMin>0</xMin>
             <yMax>40</yMax>
             <yMin>0</yMin>

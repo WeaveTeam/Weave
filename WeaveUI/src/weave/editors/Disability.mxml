@@ -46,23 +46,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Label id="progressLabel" width="135" enabled="true"/>
 	<mx:Script>
 		<![CDATA[
-			
-			
 			import disabilityPack.LineChartDecisionTree;
+			import disabilityPack.RegressionModels;
+			import disabilityPack.SegmentSummaryAnalyzer;
 			import disabilityPack.SegmentValue;
-			import disabilityPack.disabilityMessage;
+			import disabilityPack.SummarySegment;
 			import disabilityPack.disabilityMessagesContainer;
 			
-			import mx.accessibility.CheckBoxAccImpl;
-			import mx.binding.utils.BindingUtils;
-			import mx.controls.Alert;
-			import mx.controls.Menu;
 			import mx.controls.TextArea;
-			import mx.core.IUIComponent;
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.events.FlexEvent;
-			import mx.managers.DragManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -70,23 +61,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.data.IAttributeColumn;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.api.setSessionState;
-			import weave.api.ui.ILinkableObjectEditor;
-			import weave.api.unlinkBindableProperty;
-			import weave.api.unlinkSessionState;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.KeySets.KeySet;
-			import weave.ui.ControlPanel;
-			import weave.ui.DisabilityOptions;
 			import weave.ui.DraggablePanel;
-			import weave.ui.LinkableObjectList;
 			import weave.utils.ColumnUtils;
-			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
+			
 			
 			// creationComplete="automaticToolDescTextBoxInitialize(event);"
 			
@@ -116,8 +99,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var splittedSegments:Array = new Array();
 			public var segmentsLeftToSplit:int = 0;
 			public var initSegmentIndices:Array = new Array();
-			private var DisabilityEnabled:Boolean = true;
+			private static var DisabilityEnabled:Boolean = true;
 			private var NoMoreData:Boolean = false;
+			public var mSegmentAnalyser:SegmentSummaryAnalyzer;
+			
+			
 			
 			/**
 			 * In this class, a disability tex manipulation textbos is created under the settings of a visualization.
@@ -158,6 +144,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					reportError("Error Creating request object from Disability Options");
 				else
 					linkBindableProperty(HashDisabilityText, event.target, "text");	
+				
+				
+				
 			}
 			
 			protected function DisabilityEnableCheckBoxHndlr(event:MouseEvent):void
@@ -173,9 +162,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
 			{
 				
-				//automaticToolDescTextBox.text = "after button clicked";
 				
-				StartSegmentation();
+				if(joinColsRArray[0].length < 2)
+				{
+					if(!firstTimeDone && DisabilityEnabled)
+						StartSegmentation();
+						
+					else if(DisabilityEnabled && progressLabel.text == "Finished.")
+					{
+						
+						StartSegmentation();
+						progressLabel.text = "Ready";
+					}
+						
+					else if(joinColsRArray.length == 0)
+					{
+						NoMoreData = true;
+						automaticToolDescTextBox.text = "No data on the Line chart";
+					}
+				}
+					
+				else // have more than one graphs, give a brief summary.
+				{
+					MultipleLineExplention();
+					
+					
+				}
 				var dictionaryType:String;
 				var vizType:String;
 				var rResult:Array;
@@ -221,23 +233,166 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				joinKeysRArray = joinedColumns[0];
 				joinColsRArray = joinedColumns[1];				
 				//todo: getting axis, title, color, scale, etc
-				if(!firstTimeDone && DisabilityEnabled)
-					StartSegmentation();
 				
-				else if(DisabilityEnabled && progressLabel.text == "Finished.")
+			
+				if(joinColsRArray[0].length < 2)
+				{
+					if(!firstTimeDone && DisabilityEnabled)
+						StartSegmentation();
+					
+					else if(DisabilityEnabled && progressLabel.text == "Finished.")
+					{
+						
+						StartSegmentation();
+						progressLabel.text = "Ready";
+					}
+					
+					else if(joinColsRArray.length == 0)
+					{
+						NoMoreData = true;
+						automaticToolDescTextBox.text = "No data on the Line chart";
+					}
+				}
+				
+				else
 				{
 					
-					StartSegmentation();
-					progressLabel.text = "Ready";
+					MultipleLineExplention();
+					
+					
 				}
 				
-				else if(joinColsRArray.length == 0)
+			}
+			
+			
+			
+			private function MultipleLineExplention():void
+			{
+				var summarySegmentValues:Array = new Array();
+				for(var init:int = 0; init < joinColsRArray[0].length ; init++) // create as many arrays as there are line charts
+					summarySegmentValues.push(new Array());
+				
+			
+				for(var i:int =0 ; i < joinColsRArray.length ; i++)
 				{
-					NoMoreData = true;
-					automaticToolDescTextBox.text = "No data on the Line chart";
+					
+					for(var j:int = 0; j < joinColsRArray[i].length ; j++)
+					{
+						summarySegmentValues[j].push(joinColsRArray[i][j]);
+					}
+					
+				}
+				mSegmentAnalyser = new SegmentSummaryAnalyzer();
+				
+				mSegmentAnalyser.mDisability = this;
+				
+				for(init = 0; init < summarySegmentValues.length ; init++)
+				{
+					var tmpSummarySeg:SummarySegment = new SummarySegment();	
+					tmpSummarySeg.setValuesIndex(summarySegmentValues[init], init);
+					
+					mSegmentAnalyser.addSegmentSummary(tmpSummarySeg);
 				}
 				
+				mSegmentAnalyser.Analayse();
 				
+			}
+			
+			public function registerMultipleSegmentAnalysis():void
+			{
+				automaticToolDescTextBox.text = "";
+				var counter:Array = new Array();
+				var types:Array = new Array();
+				var increasing:Array = new Array();
+				var Decreasing:Array = new Array();
+				var found:Boolean = false;
+				counter.push(1);
+				types.push(mSegmentAnalyser.getSummarySegments()[0].getAnalysis());// doesnt enter the for loop if there is othing in it
+				if( mSegmentAnalyser.getSummarySegments()[0].getDataValues()[0] < mSegmentAnalyser.getSummarySegments()[0].getDataValues()[mSegmentAnalyser.getSummarySegments()[0].getDataValues().length -1])
+				{
+					increasing.push(1);
+					Decreasing.push(0);
+				}
+				else
+				{
+					Decreasing.push(1);
+					increasing.push(0);
+				}
+				
+				for(var i:int = 1; i < mSegmentAnalyser.getSummarySegments().length ; i++)
+				{
+					found = false;
+					
+					for(var j:int= 0 ; j < types.length ; j++)
+					{
+						if(mSegmentAnalyser.getSummarySegments()[i].getAnalysis() == types[j])
+						{
+							counter[j]++;
+							found = true;
+							if( mSegmentAnalyser.getSummarySegments()[i].getDataValues()[0] < mSegmentAnalyser.getSummarySegments()[i].getDataValues()[mSegmentAnalyser.getSummarySegments()[i].getDataValues().length -1])
+							{
+								increasing[j]++;
+							}
+							else
+								Decreasing[j]++;
+							
+							break;
+						}
+						
+					}
+					if(!found)
+					{
+					
+						counter.push(1);
+						types.push(mSegmentAnalyser.getSummarySegments()[i].getAnalysis());
+						if( mSegmentAnalyser.getSummarySegments()[i].getDataValues()[0] < mSegmentAnalyser.getSummarySegments()[i].getDataValues()[mSegmentAnalyser.getSummarySegments()[i].getDataValues().length -1])
+						{
+							increasing.push(1);
+							Decreasing.push(0);
+						}
+						else
+						{
+							Decreasing.push(1);
+							increasing.push(0);
+						}
+					}
+				
+					
+				}
+				automaticToolDescTextBox.text += "There are " + mSegmentAnalyser.getSummarySegments().length + " line graphs, ";
+				for(var k:int= 0 ; k < types.length ; k++)
+				{
+					if(counter[k] > 1)
+						automaticToolDescTextBox.text += counter[k] + " of the graphs are " + types[k] +" shaped. ";
+					else if(counter[k] == 1)
+						automaticToolDescTextBox.text += counter[k] + " of the graph is " + types[k] +" shaped. ";
+					if(increasing[k] > 0)
+					{
+						if(increasing[k] > 1 && increasing[k] != counter[k])
+							automaticToolDescTextBox.text += increasing[k] + " of them are increasing. ";
+						else if(counter[k] == 1)
+							automaticToolDescTextBox.text += "It is increasing. ";
+						else if(increasing[k] == counter[k])
+							automaticToolDescTextBox.text += "They are all increasing. ";
+						
+					}
+					if(Decreasing[k] > 0)
+					{
+						if(Decreasing[k] > 1 && Decreasing[k] != counter[k])
+						{
+							
+							automaticToolDescTextBox.text += "and," + Decreasing[k] + " of them are decreasing. ";
+							
+						}
+						else if(counter[k] == 1)
+							automaticToolDescTextBox.text += "It is decreasing. ";
+						else if(Decreasing[k] == counter[k])
+							automaticToolDescTextBox.text += "They are all decreasing. ";
+						
+						
+						
+					}
+				}
 			}
 			
 			private function joinColumns(columns:Array):Array
@@ -260,9 +415,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				firstTimeDone = true;
 				trace("\n");
 				trace("start");
+				
 				for (var i:int = 0; i<joinColsRArray.length; i++)
 				{
 					firstSegment.push(joinColsRArray[i][0].valueOf());
+					
 					
 					//reportError(joinColsRArray);
 				}

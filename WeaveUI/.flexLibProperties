@@ -5,6 +5,9 @@
     <classEntry path="disabilityPack.SegmentValue"/>
     <classEntry path="disabilityPack.disabilityMessage"/>
     <classEntry path="disabilityPack.disabilityMessagesContainer"/>
+    <classEntry path="disabilityPack.SummarySegment"/>
+    <classEntry path="disabilityPack.RegressionModels"/>
+    <classEntry path="disabilityPack.SegmentSummaryAnalyzer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
