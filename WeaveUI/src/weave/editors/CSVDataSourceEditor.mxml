@@ -60,6 +60,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -200,20 +201,23 @@
 				grid.loadData(csvRecords, headerArray);
 				
 				PopUpManager.bringToFront(grid);
+				
+				function handleSaveButtonClick(event:MouseEvent):void
+				{
+					// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
+					for each (var item:Object in csvRecords)
+						delete item['mx_internal_uid'];
+					
+					// get new column order
+					headerArray = grid.tableEditor.columns.map(function(col:DataGridColumn, ..._):String { return col.dataField; });
+					csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords, headerArray);
+					
+					//if the data entered through the text area, clear the text area
+					if (csvTextArea.text != "")
+						csvTextArea.text = '';
+				}
 			}
 			
-			private function handleSaveButtonClick(event:MouseEvent):void
-			{
-				// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
-				for each (var item:Object in csvRecords)
-					delete item['mx_internal_uid'];
-				
-				csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords);
-				
-				//if the data entered through the text area, clear the text area
-				if (csvTextArea.text != "")
-					csvTextArea.text = '';
-			}
 			
 			private function handleURLTextChange():void
 			{
