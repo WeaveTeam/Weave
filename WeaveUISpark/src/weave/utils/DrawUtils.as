@@ -38,6 +38,7 @@ package weave.utils
 		 * @param endAngle The angle where the arc ends
 		 * @param radius The radius of the circle that contains the arc
 		 * @param yRadius Optional y radius for an elliptical arc instead of a circular one
+		 * @param outputStartCoords A Point object used to output the starting coordinates of the arc.
 		 * @author adufilie
 		 */		
 		public static function arcTo(graphics:Graphics, continueLine:Boolean, xCenter:Number, yCenter:Number, startAngle:Number, endAngle:Number, radius:Number, yRadius:Number = NaN, outputStartCoords:Point = null):void

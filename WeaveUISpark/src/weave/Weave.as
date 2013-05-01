@@ -367,6 +367,10 @@ package weave
 					}
 					catch (e:Error)
 					{
+						try {
+							loadWeaveFileContent(String(content));
+							return;
+						} catch (e:Error) { }
 						throw new Error("Invalid Weave session state.");
 					}
 				}

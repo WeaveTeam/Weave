@@ -45,6 +45,8 @@
 			import avmplus.DescribeType;
 			
 			import mx.containers.VBox;
+			import mx.core.IToolTip;
+			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
@@ -53,13 +55,16 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
+			import weave.api.reportError;
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
+			import weave.utils.Identify;
 			import weave.utils.MethodChainProxy;
+			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -118,7 +123,7 @@
 				try
 				{
 					var script:String = '`' + script.split('`').join('\\`') + '`';
-					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
+					var result:String = compiler.compileToFunction(script, symbolTable, reportError, true).apply(thisArg);
 					consoleTrace(result);
 				}
 				catch (e:*)
@@ -161,8 +166,10 @@
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
+				'weaveTrace': weaveTrace,
 				'$': methodChainer,
 				'$$': debugHelper2,
+				'identify': Identify.identify,
 				'_': {}
 			};
 			
@@ -207,48 +214,72 @@
 					history.splice(index, 1);
 				// add command to end of history, and point historyIndex to that command
 				historyIndex = history.push(input.text) - 1;
-
+				
 				// run the command
+				
+				var shouldReportError:*;
+				function errorHandler(e:*):void
+				{
+					// print the stack trace only if the error occurs after the initial function call
+					if (shouldReportError)
+					{
+						reportError(e);
+						return;
+					}
+					else
+					{
+						// this is the first error that occurred
+						shouldReportError = e;
+						var err:Error = e as Error; // need to set variable to avoid asdoc error
+						if (err)
+							trace(err.getStackTrace());
+					}
+				}
+				
 				var result:*;
-				var decompiled:String;
 				try
 				{
+					var decompiled:String;
 					var obj:ICompiledObject = compiler.compileToObject(input.text);
 					//decompiled = compiler.decompileObject(obj);
-					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
 					result = func.apply(_context);
-					try
-					{
-						if (typeof result == 'object' && !(result is DisplayObject))
-						{
-							if (result != null && (result as Object).hasOwnProperty('toString') && (result as Object).toString is Function)
-								result = result.toString();
-							else
-								result = ObjectUtil.toString(result);
-							var max:int = 1024;
-							var text:String = result;
-							if (text.length > max)
-								text = text.substr(0, max) + '...';
-							result = StringUtil.trim(text);
-						}
-						else
-							result = String(result);
-					}
-					catch (e:*)
-					{
-						result = String(result)
-					}
-					// if the command runs successfully, clear the input area
-					input.text = '';
-					historyIndex = history.length;
+					if (shouldReportError)
+						result = String(shouldReportError);
 				}
 				catch (e:*)
 				{
-					result = e;
-					var error:Error = e as Error;
-					if (error)
-						trace(error.getStackTrace());
+					// if we get here it means the command could not be compiled
+					result = e.message;
 				}
+				
+				shouldReportError = true; // future errors should be reported
+				
+				try
+				{
+					if (typeof result == 'object' && !(result is DisplayObject))
+					{
+						if (result != null && (result as Object).hasOwnProperty('toString') && (result as Object).toString is Function)
+							result = result.toString();
+						else
+							result = ObjectUtil.toString(result);
+						var max:int = 1024;
+						var text:String = result;
+						if (text.length > max)
+							text = text.substr(0, max) + '...';
+						result = StringUtil.trim(text);
+					}
+					else
+						result = String(result);
+				}
+				catch (e:*)
+				{
+					result = String(result)
+				}
+				
+				// if the command runs successfully, clear the input area
+				input.text = '';
+				historyIndex = history.length;
 				
 				// append result to log
 				log.text += '\r' + result;

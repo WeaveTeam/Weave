@@ -135,7 +135,7 @@
 				try
 				{
 					var script:String = '`' + script.split('`').join('\\`') + '`';
-					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
+					var result:String = compiler.compileToFunction(script, symbolTable, null, true).apply(thisArg);
 					consoleTrace(result);
 				}
 				catch (e:Error)
@@ -206,7 +206,7 @@
 				{
 					var obj:ICompiledObject = compiler.compileToObject(input.text);
 					//decompiled = compiler.decompileObject(obj);
-					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, null, true);
 					result = func.apply(_context);
 					try
 					{

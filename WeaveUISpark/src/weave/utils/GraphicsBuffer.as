@@ -28,14 +28,15 @@ package weave.utils
 	 * 
 	 * @author adufilie
 	 * @see flash.display.Graphics
+	 * @see flash.display.Shape
 	 */
-	public class GraphicsBuffer extends MethodChainProxy
+	public dynamic class GraphicsBuffer extends MethodChainProxy
 	{
-		public function GraphicsBuffer(destination:BitmapData)
+		public function GraphicsBuffer(destination:BitmapData = null)
 		{
 			_destination = destination;
 			_shape = new Shape();
-			_properties = {'flush': flush};
+			_properties = {'flush': this.flush, 'destination': this.destination};
 			super(_properties, _shape, _shape.graphics);
 		}
 		
@@ -44,12 +45,32 @@ package weave.utils
 		private var _shape:Shape;
 		
 		/**
-		 * Draws the vector graphics to the destination BitmapData and then calls Graphics.clear().
-		 */
-		public function flush():GraphicsBuffer
+		 * Sets or gets the current destination BitmapData.
+		 * @param value If specified, this will be the new destination BitmapData.
+		 * @return Either this if value was specified, or the current destination BitmapData if not.
+		 */		
+		public function destination(value:* = undefined):*
 		{
-			_destination.draw(_shape);
+			if (value === undefined)
+				return _destination;
+			
+			_destination = value;
+			return this;
+		}
+		
+		/**
+		 * Draws the vector graphics to the destination BitmapData and then calls Graphics.clear().
+		 * @param destination Optional new destination.
+		 */
+		public function flush(destination:BitmapData = null):GraphicsBuffer
+		{
+			if (destination)
+				_destination = destination;
+			if (_destination)
+				_destination.draw(_shape);
 			_shape.graphics.clear();
+			if (!_destination)
+				throw new Error("destination not set");
 			return this;
 		}
 	}

@@ -42,6 +42,13 @@ package weave.compiler
 			this.compiledMethod = compiledMethod;
 			this.compiledParams = compiledParams;
 			
+			if (!compiledMethod)
+				throw new Error("compiledMethod cannot be null");
+			
+			for each (var param:Object in compiledParams)
+				if (param == null)
+					throw new Error("compiledParams cannot contain nulls");
+			
 			evaluateConstants();
 		}
 		

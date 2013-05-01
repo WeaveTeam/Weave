@@ -28,10 +28,11 @@ package weave.core
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
-	import weave.api.getCallbackCollection;
 	import weave.api.core.IErrorManager;
+	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugUtils;
+	import weave.utils.fixErrorMessage;
 	
 	/**
 	 * This class is a central location for reporting and detecting errors.
@@ -77,21 +78,23 @@ package weave.core
 				faultContent = faultContent == null ? error : [error, faultContent];
 			if (!(error is Error) || faultMessage || faultContent != null)
 			{
-				if (!(error is Fault))
+				// wrap the error in a Fault object
+				if (!faultMessage && error is Error)
 				{
-					// wrap the error in a Fault object
-					if (!faultMessage && error is Error)
-						faultMessage = StandardLib.asString((error as Error).message);
-					var fault:Fault = new Fault('Error', faultMessage);
-					fault.content = faultContent;
-					fault.rootCause = error;
-					error = fault;
+					fixErrorMessage(error as Error);
+					faultMessage = StandardLib.asString((error as Error).message);
 				}
+				var fault:Fault = new Fault('Error', faultMessage);
+				fault.content = faultContent;
+				fault.rootCause = error;
+				error = fault;
 			}
 			
 			var _error:Error = error as Error;
 			if (!_error)
 				throw new Error("Assertion failed");
+			
+			fixErrorMessage(_error);
 			
 			if (Capabilities.isDebugger)
 			{
