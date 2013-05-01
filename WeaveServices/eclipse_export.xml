@@ -21,7 +21,9 @@ Whenever you build WeaveServices, this will automatically export the WAR file.
 			<webinf dir="WebContent/WEB-INF"/>
 			<metainf dir="WebContent/META-INF"/>
 		</war>
-		<sleep seconds="2"/>
-		<move file="bin/WeaveServices.war" tofile="${TOMCAT_HOME}/webapps/WeaveServices.war"/>
+		<sleep seconds="1"/>
+		<move file="bin/WeaveServices.war" tofile="${TOMCAT_HOME}/webapps/WeaveServices.war.tmp"/>
+		<sleep seconds="1"/>
+		<move file="${TOMCAT_HOME}/webapps/WeaveServices.war.tmp" tofile="${TOMCAT_HOME}/webapps/WeaveServices.war"/>
 	</target>
 </project>

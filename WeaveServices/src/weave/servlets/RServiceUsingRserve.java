@@ -110,11 +110,13 @@ public class RServiceUsingRserve
 	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
+		
 		REXP evalValue = null;
 		if (showWarnings)			
 			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
 		else
 			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+		
 		
 		return evalValue;
 	}
@@ -192,7 +194,7 @@ public class RServiceUsingRserve
 	
 	
 	private static  void evaluvateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException{
-		evalScript(rConnection, script, showWarnings);
+		REXP evalValue= evalScript(rConnection, script, showWarnings);
 		if (showIntermediateResults){
 			Object storedRdatas = evalScript(rConnection, "ls()", showWarnings);
 			if(storedRdatas instanceof REXPString){
@@ -209,6 +211,22 @@ public class RServiceUsingRserve
 				}
 			}			
 		}
+		
+		
+		if(evalValue.isList())
+		{
+			Vector<String> names = evalValue.asList().names;
+			resultVector.add(new RResult("columnNames" ,names ));
+			resultVector.add(new RResult("columnValues" ,rexp2javaObj(evalValue) ));
+//			for(int k= 0; k < names.capacity(); k++)
+//			{
+//				Object dd = evalValue.asList().get(k);
+//				resultVector.add(new RResult(names.get(k), dd ));
+//			}
+		}
+		
+		//Object[] finalResult  = {evalValue, names};
+		//return evalValue;
 	}
 	
 	

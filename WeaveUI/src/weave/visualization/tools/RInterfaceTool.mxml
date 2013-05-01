@@ -29,6 +29,7 @@
 				autoLayout="true"
 				creationComplete="draggablepanel1_creationCompleteHandler(event)"
 				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
+	
 	<mx:VBox paddingLeft="10" paddingRight="5" paddingTop="5" paddingBottom="20" width="100%" height="100%">
 		<mx:MenuBar id="ROptions" labelField="@label" fontWeight="bold" cornerRadius="8" itemClick="menuItemClickHandler(event)"
 					change="onTopSelection(event)">
@@ -228,6 +229,35 @@
 				<mx:VBox id="plotScriptTab" label="R plotscript">
 					<mx:TextArea id="RPlotscriptTA" width="100%" height="100%"/>
 				</mx:VBox>
+				<!--To DO move to a separate class-->
+				<mx:VBox id="archDemo" label="Demo">
+					<mx:HBox paddingRight="5" paddingLeft="5" width="100%">
+						<mx:Label text="Select dataset to use "/>
+						<mx:ComboBox id="datasetChoice" dataProvider="{datasetCollection}"/>
+					</mx:HBox>
+					
+					<mx:HBox paddingLeft="5" paddingRight="5" width="100%">
+						<mx:Label text="Select R script(s) to use"/>
+						<mx:ComboBox id="scriptChoices" dataProvider="{scriptCollection}"/>
+					</mx:HBox>
+					
+					<mx:CheckBox  paddingLeft ="5" paddingRight="5" id="csvCB" label="Import from CSV"/>
+					
+					<mx:VBox paddingLeft="5" paddingRight="5" width="100%">
+						<mx:CheckBox id="sqlCB" label="Import from mySQL database" change="sqlCB_changeHandler(event)"/>
+						<mx:HBox>
+							<mx:Label id="schemaLabel" text="Select database schema" enabled="false"/>
+							<mx:ComboBox id="schemaCB" dataProvider="{schemaChoices}" enabled="false"/>
+						</mx:HBox>
+						<mx:Label id="paramLabel" text="Type in parameter names separated by commas" enabled="false"/>
+						<mx:TextArea id="paramInputTA" width="100%" enabled="false"/>
+					</mx:VBox>
+					
+					<mx:HBox width="100%">
+						<mx:Spacer width="80%"/>
+						<mx:Button id="servercall" label="Execute" click="servercall_clickHandler(event)"/>
+					</mx:HBox>
+				</mx:VBox>
 				
 			</mx:TabNavigator>
 			<mx:HBox>
@@ -271,11 +301,14 @@
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
+			
+			import org.igniterealtime.xiff.data.IQ;
 			
 			import spark.components.Image;
 			
@@ -290,7 +323,9 @@
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.CSVColumn;
+			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.AttributeColumns.StringColumn;
+			import weave.data.DataSources.CSVDataSource;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
@@ -309,6 +344,19 @@
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();
 			[Bindable]
 			public var scriptResultValueExhibitCollection:ArrayCollection = new ArrayCollection();
+			
+			//TO DO: MOve this to a separate class hard coded for now
+			[Bindable]
+			public var datasetCollection:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			public var scriptCollection:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			public var schemaChoices:ArrayCollection = new ArrayCollection();
+			public var datasets:Array = new Array(); 
+			public var storedscripts:Array = new Array();
+			public var schema:Array = new Array();
+			
+			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const RScriptTAtext:LinkableString = newLinkableChild(this, LinkableString);
 			public const RPlotscriptTALinkabletext:LinkableString = newLinkableChild(this, LinkableString);
@@ -348,6 +396,15 @@
 				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
+				
+				//TO DO: MOve this to a separate class hard coded for now
+				datasets = ["Select the dataset","SDoH2010Q.csv", "obesity.csv"];
+				storedscripts = ["Select the script","brfssRRoutine.R","CDCSQLQueries.R","obesitySQLRoutine.R", "obesityCSVRoutine.R"];
+				schema = ["Select the schema", "resd", "us"];
+				
+				datasetCollection.source = datasets;
+				scriptCollection.source = storedscripts; 
+				schemaChoices.source = schema;
 				
 			}
 			
@@ -781,17 +838,13 @@
 				}
 			}
 			
-			//to do check if custom type enumeration should be created
-			private static const servicesAvailable:Array = ["JRI","Rserve"];
-			
-			// this is the default value used
-			private static var currentService:String = "Rserve";
 			
 			//checks if the system posseses JRI or Rserve to update column sending options
 			protected function draggablepanel1_creationCompleteHandler(event:FlexEvent):void
 			{
-				var query:AsyncToken = Rservice.checkforJRIService();
-				addAsyncResponder(query, handleJRIPresent, handleRunScriptFault ,null);
+				 var query:AsyncToken = Rservice.checkforJRIService();
+				addAsyncResponder(query, handleJRIPresent, handleRunScriptFault ,null); 
+				
 			}
 			
 			private function handleJRIPresent(event:ResultEvent, token:Object = null):void
@@ -809,6 +862,147 @@
 				}
 			}
 			
+			
+			// TODO move to a separate class 
+			private var queryObject:Array = new Array();
+			
+			// TODO move to a separate class
+			protected function servercall_clickHandler(event:MouseEvent):void
+			{
+				queryObject.length = 0;
+				queryObject.push(datasetChoice.selectedLabel);
+				queryObject.push(scriptChoices.selectedLabel);
+				var queryStatement:String = paramInputTA.text;
+				var schema:String = schemaCB.selectedLabel;
+				//check which fork is selected and make the appropriate asynchronous call
+				//set a default path?
+				if(csvCB.selected)
+				{
+					var csvAsyncCall:AsyncToken = Rservice.runScriptOnCSVOnServer(queryObject);
+					addAsyncResponder(csvAsyncCall, handleServerResults, handleRunScriptFault, null);
+				}
+				
+				if(sqlCB.selected)
+				{
+					var sqlAsyncCall:AsyncToken = Rservice.runScriptOnSQLOnServer(queryObject, queryStatement, schema);
+					addAsyncResponder(sqlAsyncCall, handleServerResults, handleRunScriptFault, null);
+				}
+				
+			}
+			
+			// TODO move to a separate class
+			protected function handleServerResults(event:ResultEvent, token:Object = null):void
+			{
+				var Robj:Array = event.result as Array;
+				trace('Robj:',ObjectUtil.toString(Robj));
+				if (Robj == null)
+				{
+					reportError(lang("R Servlet did not return an Array of results as expected."));
+					return;
+				}
+				
+				
+				var RresultArray:Array = new Array();
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				var headerRows:Array;
+				var rows:Array = new Array();
+				var keys:Array = new Array();
+				var filling:Array = new Array();
+				
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+				
+					if(rResult.name == "columnNames"){
+						 headerRows = (rResult.value as ArrayCollection).toArray();
+						headerRows.unshift("keys");
+						rows.push(headerRows);
+					}
+					if(rResult.name == "columnValues")
+					{
+						var tempColumns:Array = rResult.value as Array;
+						filling = rResult.value as Array;
+						var sampleColumn:Array = tempColumns[0] as Array;
+						for (var r:int = 0; r < sampleColumn.length; r++)					
+						{
+							var row:Array = new Array();
+							row.push(r);
+							keys.push(r as IQualifiedKey);
+							for(var c:int = 0; c < tempColumns.length; c++){
+								var column:Array = tempColumns[c] as Array;
+								row.push(column[r]);
+							}
+							rows.push(row);								
+						}
+						
+					}	
+						
+				}		
+				
+				
+				/* Creating columns 
+				//hard coded for now TO DO provide access with UI	*/
+				
+				var colorColumnFromR:NumberColumn = ResultUtils.resultAsNumberColumn(keys,filling[0],"PercentObese2002");
+				var xColumnFromR:NumberColumn = ResultUtils.resultAsNumberColumn(keys,filling[1],"PercentObese2002");
+				var yColumnFromR:NumberColumn = ResultUtils.resultAsNumberColumn(keys,filling[0],"PercentObese2004");
+			
+				/**
+				 * Creating  new CSVDatasource
+				 **/
+				
+				//Give it a unique name incase we need to store the columns from multiple imputations
+				var name:String = Weave.root.generateUniqueName("ReturnedColumns");
+				var serverResultsCsvDataSource:CSVDataSource = Weave.root.requestObject( name,CSVDataSource,false);
+				serverResultsCsvDataSource.setCSVData(rows);
+				//imputedCsvDataSource.keyType.value = (keys[0] as IQualifiedKey).keyType;
+				serverResultsCsvDataSource.keyColName.value = "keys";
+				
+				automateVisualizations(colorColumnFromR, xColumnFromR, yColumnFromR);
+			}
+			
+			//TO DO move to a separate class
+			private function automateVisualizations(colorColumnFromR:IAttributeColumn, xColumnFromR:IAttributeColumn, yColumnFromR:IAttributeColumn):void
+			{
+				//create the tool
+				//hard coded for now TO DO provide access with UI	
+				var automaticScatterPlot:ScatterPlotTool = new ScatterPlotTool();
+				var attributes:Array = automaticScatterPlot.getSelectableAttributes();
+				
+				var col1:IAttributeColumn = attributes[0] as IAttributeColumn;
+				col1 = xColumnFromR;
+				var col2:IAttributeColumn = attributes[1] as IAttributeColumn
+				col2 = yColumnFromR;
+				var col3:IAttributeColumn = attributes[2] as IAttributeColumn 
+				col3 = colorColumnFromR;
+				
+				FlexGlobals.topLevelApplication.visDesktop.addChild(automaticScatterPlot);
+				
+				/* automaticScatterPlot.plotter.dataX = xColumnFromR;
+				automaticScatterPlot.plotter.dataY = yColumnFromR;
+			    automaticScatterPlot.colorColumn = colorColumnFromR; */
+				//set the color column
+				//add this tool on the viz desktop
+				
+			}
+			
+			protected function sqlCB_changeHandler(event:Event):void
+			{
+				if(sqlCB.selected)
+				{
+					schemaCB.enabled = true;
+					schemaLabel.enabled = true;
+					paramInputTA.enabled = true;
+					paramLabel.enabled = true;
+				}
+				
+			}
 			
 		]]>
 	</mx:Script>
