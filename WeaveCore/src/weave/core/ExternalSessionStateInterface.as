@@ -146,11 +146,14 @@ package weave.core
 		/**
 		 * This function will get the qualified class name of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return The qualified class name of the object referred to by objectPath.
+		 * @return The qualified class name of the object referred to by objectPath, or null if there is no object.
 		 */
 		public function getObjectType(objectPath:Array):String
 		{
-			return getQualifiedClassName(getObject(objectPath));
+			var object:ILinkableObject = getObject(objectPath);
+			if (object == null)
+				return null;
+			return getQualifiedClassName(object);
 		}
 		
 		/**
