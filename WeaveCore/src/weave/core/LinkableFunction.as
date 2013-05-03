@@ -297,7 +297,7 @@ package weave.core
 				indent++;
 			for (var i:int = 0; i < lines.length; i++)
 			{
-				var line:String = lines[i];
+				line = lines[i];
 				var t:int = 0;
 				var spaces:String = '';
 				while (line.charAt(t) == '\t')
