@@ -171,7 +171,7 @@ function(objectID)
 		/**
 		 * Request a new object without modifying the current path.
 		 * Accepts an optional list of names relative to the current path.
-		 * The final parameter should be the object type passed to weave.requestObject().
+		 * The final parameter should be the object type to be passed to weave.requestObject().
 		 */
 		this.request = function(/*...names, objectType*/)
 		{
@@ -214,7 +214,7 @@ function(objectID)
 		 * Sets the session state without modifying the current path, removing any
 		 * dynamically created objects that do not appear in the new state.
 		 * Accepts an optional list of names relative to the current path.
-		 * The final parameter should be the session state diff.
+		 * The final parameter should be the session state.
 		 */
 		this.state = function(/*...names, state*/)
 		{
