@@ -122,6 +122,7 @@ function(objectID)
 				var pathcopy = path.concat(args);
 				var script = "import 'weave.api.WeaveAPI';"
 					+ "var sm = WeaveAPI.SessionManager, thisState = sm.getSessionState(this);"
+					+ "return sm.computeDiff(thisState, otherState);";
 				return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 			}
 			return null;

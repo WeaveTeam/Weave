@@ -87,6 +87,8 @@ package weave.core
 		{
 			if (value && value.hasOwnProperty(XML_STRING))
 				value = value[XML_STRING];
+			if (value is XML)
+				value = (value as XML).toXMLString();
 			super.setSessionState(value);
 		}
 		
