@@ -68,12 +68,12 @@ function(objectID)
 			return path.concat(A(arguments, 1));
 		};
 		/**
-		 * Gets the session state of an object at the current path or relative to the current path.
+		 * Gets an Array of child names under the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getState = function(/*...names*/)
+		this.getNames = function(/*...names*/)
 		{
-			return weave.getSessionState(path.concat(A(arguments, 1)));
+			return weave.getChildNames(path.concat(A(arguments, 1)));
 		};
 		/**
 		 * Gets the object type at the current path.
@@ -84,13 +84,48 @@ function(objectID)
 			return weave.getObjectType(path.concat(A(arguments, 1)));
 		};
 		/**
-		 * Gets an Array of child names under the current path.
+		 * Gets the session state of an object at the current path or relative to the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getNames = function(/*...names*/)
+		this.getState = function(/*...names*/)
 		{
-			return weave.getChildNames(path.concat(A(arguments, 1)));
+			return weave.getSessionState(path.concat(A(arguments, 1)));
 		};
+		/**
+		 * Gets the changes that have occurred since previousState.
+		 * Accepts an optional list of names relative to the current path.
+		 */
+		this.getDiff = function(/*...names, previousState*/)
+		{
+			var args = A(arguments, 2);
+			if (assertParams('getDiff', args))
+			{
+				var otherState = args.pop();
+				var pathcopy = path.concat(args);
+				var script = "import 'weave.api.WeaveAPI';"
+					+ "var sm = WeaveAPI.SessionManager, thisState = sm.getSessionState(this);"
+					+ "return sm.computeDiff(otherState, thisState);";
+				return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
+			}
+			return null;
+		}
+		/**
+		 * Gets the changes that would have to occur to get to another state.
+		 * Accepts an optional list of names relative to the current path.
+		 */
+		this.getReverseDiff = function(/*...names, otherState*/)
+		{
+			var args = A(arguments, 2);
+			if (assertParams('getReverseDiff', args))
+			{
+				var otherState = args.pop();
+				var pathcopy = path.concat(args);
+				var script = "import 'weave.api.WeaveAPI';"
+					+ "var sm = WeaveAPI.SessionManager, thisState = sm.getSessionState(this);"
+				return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
+			}
+			return null;
+		}
 		/**
 		 * Gets a variable that was previously specified in WeavePath.vars() or saved with WeavePath.exec() for this Weave instance.
 		 * The first parameter is the variable name.
@@ -142,8 +177,8 @@ function(objectID)
 			var args = A(arguments, 2);
 			if (assertParams('request', args))
 			{
+				var type = args.pop();
 				var pathcopy = path.concat(args);
-				var type = pathcopy.pop();
 				weave.requestObject(pathcopy, type)
 					|| failPath('request', pathcopy);
 			}
@@ -185,8 +220,8 @@ function(objectID)
 			var args = A(arguments, 2);
 			if (assertParams('state', args))
 			{
+				var state = args.pop();
 				var pathcopy = path.concat(args);
-				var state = pathcopy.pop();
 				weave.setSessionState(pathcopy, state, true)
 					|| failObject('state', pathcopy);
 			}
@@ -202,8 +237,8 @@ function(objectID)
 			var args = A(arguments, 2);
 			if (assertParams('diff', args))
 			{
+				var diff = args.pop();
 				var pathcopy = path.concat(args);
-				var diff = pathcopy.pop();
 				weave.setSessionState(pathcopy, diff, false)
 					|| failObject('diff', pathcopy);
 			}
