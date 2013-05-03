@@ -295,18 +295,17 @@ package weave.core
 			var line:String = lines[0];
 			while (line.charAt(indent) == '\t')
 				indent++;
-			lines.forEach(
-				function(line:String, index:int, lines:Array):void
-				{
-					var i:int = 0;
-					var spaces:String = '';
-					while (line.charAt(i) == '\t')
-						if (i++ >= indent)
-							spaces += '    ';
-					
-					lines[index] = spaces + line.substr(i);
-				}
-			);
+			for (var i:int = 0; i < lines.length; i++)
+			{
+				line = lines[i];
+				var t:int = 0;
+				var spaces:String = '';
+				while (line.charAt(t) == '\t')
+					if (t++ >= indent)
+						spaces += '    ';
+				
+				lines[i] = spaces + line.substr(t);
+			}
 			return lines.join('\n') + '\n';
 		}
 	}

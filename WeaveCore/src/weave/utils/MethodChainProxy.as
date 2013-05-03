@@ -71,7 +71,7 @@ package weave.utils
 			
 			_objectsToCheck = moreObjects;
 			
-			_classNames = _objectsToCheck.map(function(o:*):* { return getQualifiedClassName(o); });
+			_classNames = _objectsToCheck.map(function(o:*, ..._):* { return getQualifiedClassName(o); });
 			
 			_thisQName = getQualifiedClassName(this);
 			var i:int = _classNames.indexOf('Object');

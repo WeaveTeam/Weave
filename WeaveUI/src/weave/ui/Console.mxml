@@ -62,6 +62,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
+			import weave.utils.Identify;
 			import weave.utils.MethodChainProxy;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
@@ -168,7 +169,7 @@
 				'weaveTrace': weaveTrace,
 				'$': methodChainer,
 				'$$': debugHelper2,
-				'identify': identify,
+				'identify': Identify.identify,
 				'_': {}
 			};
 			
@@ -190,53 +191,6 @@
 				if (isFinite(StandardLib.asNumber(arg)))
 					arg = debugLookup(arg);
 				return DebugUtils.debugDisplayList(arg || stage);
-			}
-			
-			private var _identifyDefaults:Array = ['x','y','width','height','percentWidth','percentHeight','minWidth','minHeight','maxWidth','maxHeight'];
-			private var _identifyTarget:DisplayObject = null;
-			private var _identifyPropertyNames:Array = null;
-			private var _identifyHide:Function = null;
-			public function identify(...propertyNames):void
-			{
-				if (propertyNames.length == 1 && !propertyNames[0])
-					propertyNames = null;
-				else if (propertyNames.length == 0)
-					propertyNames = _identifyDefaults;
-				
-				if (propertyNames && _identifyPropertyNames != _identifyDefaults)
-				{
-					_identifyPropertyNames = propertyNames;
-					WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_OVER, this, _identify);
-				}
-				else
-				{
-					_identifyPropertyNames = null;
-					WeaveAPI.StageUtils.removeEventCallback(MouseEvent.MOUSE_OVER, _identify);
-					if (_identifyHide != null)
-						_identifyHide();
-				}
-			}
-			private function _identify():void
-			{
-				if (!stage)
-					identify(false);
-				
-				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
-				var target:DisplayObject = event.target as DisplayObject;
-				
-				if (!_identifyPropertyNames || _identifyTarget == target)
-					return;
-				
-				if (_identifyHide != null)
-					_identifyHide();
-				
-				var strings:Array = [];
-				for each (var name:String in _identifyPropertyNames)
-					if (target.hasOwnProperty(name))
-						strings.push(name + '=' + target[name]);
-					
-				var text:String = debugId(target) + '\n' + strings.join(', ');
-				_identifyHide = PopUpUtils.showTemporaryTooltip(target, text, int.MAX_VALUE);
 			}
 			
 			private function getVisApp():Object
@@ -291,7 +245,7 @@
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
 					result = func.apply(_context);
 					if (shouldReportError)
-						result = shouldReportError;
+						result = String(shouldReportError);
 				}
 				catch (e:*)
 				{
