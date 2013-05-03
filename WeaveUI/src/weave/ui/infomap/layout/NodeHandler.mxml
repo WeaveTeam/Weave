@@ -88,6 +88,7 @@
 			import weave.api.reportError;
 			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -117,6 +118,7 @@
 			import weave.ui.CustomLabel;
 			import weave.ui.DraggablePanel;
 			import weave.ui.ResizableBox;
+			import weave.ui.SubMenu;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
 			import weave.ui.infomap.core.InfoMapNode;
@@ -173,6 +175,8 @@
 																	return true;},false));
 			
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			
+			public const showNewDocumentsOnTop:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false,null,false));
 			
 			/* We separate dateFilter from previousQuery because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
 			is unpredictable. It is easier to handle the callbacks for keywords and date separately.*/
@@ -282,9 +286,12 @@
 			
 			[Embed( source="/weave/resources/images/sphere.png")]
 			private var PointsImgClass:Class;
-			private var _pointsImgText:String = "Points View"
+			private var _pointsImgText:String = "Points View";
 			
-			private var _radialMenu:RadialMenu;
+			[Embed( source="/weave/resources/images/arrowDown.png")]
+			private var _subMenuIcon:Class;
+			private var _menuButton:Image = new Image();
+			private var _subMenu:SubMenu;
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -301,18 +308,34 @@
 //				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				//opens the settings panel
-				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
-				nodeBase.addChildAt(_radialMenu,0);
-				_radialMenu.x = (0-_radialMenu.height);
+				_menuButton.source = _subMenuIcon;
+				nodeBase.addChildAt(_menuButton,0);
+				_menuButton.x = 0 - _menuButton.height;
+				_subMenu = new SubMenu(_menuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 				
-				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
-				_radialMenu.addMenuItem(closeImg,_closeImgText,close);
+//				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
+//				nodeBase.addChildAt(_radialMenu,0);
+//				_radialMenu.x = (0-_radialMenu.height);
+				
+//				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
+//				_radialMenu.addMenuItem(closeImg,_closeImgText,close);
 				
 //				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
 				
 				//removes the node from the panel after confirmation
-				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings);
+//				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
+//				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings);
+				_subMenu.addSubSubMenuItems("Show / Hide",[],[]);
+				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
+				
+				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
+					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+				
+				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy],
+					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
+				
+				_subMenu.addSubMenuItem("Settings",settings);
+				_subMenu.addSubMenuItem("Close",close);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -404,6 +427,8 @@
 				docListComponent.parentNode = this;
 				
 				getCallbackCollection(movedThumbNails).addGroupedCallback(this, handleMovedThumbnailsChangesInViews);
+				
+				showNewDocumentsOnTop.addGroupedCallback(this,handleSortNewDocsChange);
 			}
 			
 			private var _nodeName:String = "";
@@ -447,8 +472,7 @@
 				status.text = "Searching...";
 				
 				/* check to see if this a new query or an old query */
-				var isQueryDifferent:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),
-					WeaveAPI.SessionManager.getSessionState(currentQuery));
+				var isQueryDifferent:Boolean = QueryObject.isQueryDifferent(previousQuery,currentQuery);
 								
 				/* Make query to get number of documents */
 				/* We first check to see if they are separated by commas if not then assume space*/
@@ -468,6 +492,16 @@
 					
 					prevNewDocsCount.value = 0;
 					
+				}else{
+					if(QueryObject.isSortByDifferent(previousQuery,currentQuery))
+					{
+						var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
+							_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
+							currentQuery.dateFilter,2000,currentQuery.sortBy.value);
+						
+						addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+						return;
+					}
 				}
 				
 				_currentQueryTerms = currentQuery.keywords.value.indexOf(',') != -1?currentQuery.keywords.value.split(','):
@@ -489,11 +523,12 @@
 			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:QueryObject=null):void
 			{
-				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
-					getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
 				
-				if(diff != undefined)
+				if(diff)
+				{
 					return;
+				}
 				
 				var numOfDocs:Number = event.result as Number;
 				
@@ -550,11 +585,13 @@
 			
 			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:QueryObject=null):void
 			{
-				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
-					getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery)
+									|| QueryObject.isSortByDifferent(token as QueryObject, currentQuery);
 				
-				if(diff != undefined)
+				if(diff)
+				{
 					return;
+				}
 				
 				var docsArray:Array = event.result as Array;
 				var docsToAdd:Array = [];
@@ -606,8 +643,8 @@
 				var response:Array = docKeySet.keys;
 				
 				
-				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),
-					WeaveAPI.SessionManager.getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery);
+				
 				if(diff)
 				{
 					//its a new query
@@ -735,11 +772,13 @@
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
 				
-				var listImg:Bitmap = new ListImgClass() as Bitmap;
-				_radialMenu.addMenuItem(listImg,_listImgText,toggleList);
+//				var listImg:Bitmap = new ListImgClass() as Bitmap;
+//				_radialMenu.addMenuItem(listImg,_listImgText,toggleList);
+//				
+//				var gridImg:Bitmap = new GridImgClass() as Bitmap;
+//				_radialMenu.addMenuItem(gridImg,_gridImgText,toggleGridView);
 				
-				var gridImg:Bitmap = new GridImgClass() as Bitmap;
-				_radialMenu.addMenuItem(gridImg,_gridImgText,toggleGridView);
+				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleList,toggleGridView]);
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
@@ -756,6 +795,44 @@
 				docListComponent.keys =_reusableThumbnailsToPlotArray;
 			}
 			
+			private var _sortedByNewDocsArray:Array;
+			private function sortNewDocumentsToTop():void
+			{
+				if(_nameOrder.length == 0)
+					return;
+				if(_currentNewDocsCount == 0)
+					return;
+				
+				var newDocs:Array= [];
+				var oldDocs:Array = [];
+				
+				for(var i:int=0; i <_nameOrder.length; i++)
+				{
+					var  d:DocThumbnailComponent = thumbnails.getObject(_nameOrder[i]) as DocThumbnailComponent;
+					if(d.highlighted.value)
+					{
+						newDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
+					}
+					else
+					{
+						oldDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
+					}
+				}
+				
+				_sortedByNewDocsArray = newDocs.concat(oldDocs);
+				docListComponent.keys = _sortedByNewDocsArray;
+			}
+			
+			private function sortByNameOrder():void
+			{
+				var keys:Array = [];
+				for(var i:int=0; i<_nameOrder.length; i++)
+				{
+					keys.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,_nameOrder[i]));
+				}
+				docListComponent.keys = keys;
+			}
+			
 			private function showList():void
 			{
 				if(listCanvas.alpha == 1)
@@ -766,17 +843,18 @@
 			
 			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
 			{
-				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
-					getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
 				
-				if(diff != undefined)
+				if(diff)
+				{
 					return;
+				}
 				
 				wordCount = event.result as Array;
 				
 				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
-				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleWordCloud);
-				
+//				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleWordCloud);
+				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleWordCloud]);				
 			}
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
@@ -876,9 +954,10 @@
 					nodeBase.width = 220;
 				nodeBase.keywordTextArea.width = nodeBase.width;
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
-				nodeBase.height = nodeBase.keywordTextArea.height + _radialMenu.iconSize;
-				nodeBase.keywordTextArea.y = _radialMenu.iconSize;
-				_radialMenu.y = 0; 
+				nodeBase.height = nodeBase.keywordTextArea.height + _menuButton.height;
+				nodeBase.keywordTextArea.y = _menuButton.height;
+//				_radialMenu.y = 0;
+				_menuButton.y = 0
 				if(docListComponent)
 					docListComponent.y = nodeBase.height;
 			}
@@ -1047,11 +1126,12 @@
 			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
 			private function handleEntityQueryResults(event:ResultEvent,token:QueryObject=null):void
 			{
-				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
-					getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
 				
-				if(diff != undefined)
+				if(diff)
+				{
 					return;
+				}
 				
 				var entities:Array = event.result.entities;
 				var urls:Array = event.result.urls;
@@ -1091,7 +1171,8 @@
 				}
 				
 				var entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
-				_radialMenu.addMenuItem(entityDistributionImg,_entityDistributionImgText,showDistributionChart);
+//				_radialMenu.addMenuItem(entityDistributionImg,_entityDistributionImgText,showDistributionChart);
+				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
 
 			}
 			
@@ -1102,7 +1183,7 @@
 			}
 			
 			private var _entityChartName:String = "entityDistributionChart";
-			private function showDistributionChart(event:Event):void
+			private function showDistributionChart(event:Event=null):void
 			{
 				//clear any selection so that bars don't appear faded out
 				_selection.replaceKeys([]);
@@ -1124,8 +1205,8 @@
 				
 				entityDistributionDataSource.putColumnInHashMap(ENTITY_DISTRIBUTION_NUMBER_COLUMN,object.heightColumns);
 				
-				entityDistributionDataSource.setDynamicColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.labelColumn);
-				entityDistributionDataSource.setDynamicColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.sortColumn);
+				entityDistributionDataSource.putColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.labelColumn);
+				entityDistributionDataSource.putColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.sortColumn);
 				
 				object.panelTitle.value = 'Entity Distribution for Query "' + currentQuery.keywords.value + '"';
 			}
@@ -1556,7 +1637,7 @@
 			protected var basicSettingComponent:BasicSettingsComponent;
 			protected var tagCloudSettingComponent:TagCloudSettingComponent;
 			protected var topicModelSettingComponent:TopicNodeSettingComponent
-			private function settings(event:Event):void
+			private function settings(event:Event=null):void
 			{
 				
 				if(_instance)
@@ -1585,7 +1666,7 @@
 				}
 			}
 			
-			private function close(event:Event):void
+			private function close(event:Event=null):void
 			{
 				Alert.show("Are you sure you want to remove this node?",
 					"Remove Node?",
@@ -1671,7 +1752,7 @@
 			}
 			
 			private var _showGridFlag:Boolean = false;
-			private function toggleGridView(event:MouseEvent):void
+			private function toggleGridView(event:MouseEvent=null):void
 			{
 				_showGridFlag = !_showGridFlag;
 				_showListFlag= false;
@@ -1836,7 +1917,8 @@
 				clusterCSVDataSource.keyColName.value = "document";
 				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
 				var clusterImg:Bitmap = new ClusterImgClass() as Bitmap;
-				_radialMenu.addMenuItem(clusterImg,_clusterImgText,showClusters);
+//				_radialMenu.addMenuItem(clusterImg,_clusterImgText,showClusters);
+				_subMenu.addSubSubMenuItems("Show / Hide",["Clusters"],[showClusters]);
 			}
 			
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
@@ -1914,11 +1996,12 @@
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
 			{
-				var diff:* = WeaveAPI.SessionManager.computeDiff(getSessionState(token),
-					getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
 				
-				if(diff != undefined)
+				if(diff)
+				{
 					return;
+				}
 				
 				_topicsResult = event.result;
 
@@ -1930,10 +2013,12 @@
 				}
 				
 				var topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(topicsImg,_topicsImgText,showClassificationResults);
+//				_radialMenu.addMenuItem(topicsImg,_topicsImgText,showClassificationResults);
+				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
 				
 				var pointsImg:Bitmap = new PointsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(pointsImg,_pointsImgText,showPoints);
+//				_radialMenu.addMenuItem(pointsImg,_pointsImgText,showPoints);
+				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[showPoints]);
 
 				if(flag_topicPropertiesChange){
 					showClassificationResults();
@@ -1965,7 +2050,8 @@
 			
 			private function updateTextArea():void
 			{
-				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(currentQuery));
+				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery) || 
+										QueryObject.isSortByDifferent(previousQuery, currentQuery);
 				
 				if(!previousQuery.keywords.value)
 				{
@@ -2083,6 +2169,38 @@
 				_selection.clearKeys();
 			}
 			
+			private function toggleShowNewDocsOnTop():void
+			{
+				showNewDocumentsOnTop.value = !showNewDocumentsOnTop.value
+			}
+			
+			private function handleSortNewDocsChange():void
+			{
+				if(showNewDocumentsOnTop.value)
+				{
+					sortNewDocumentsToTop();
+				}
+				else
+				{
+					sortByNameOrder();
+				}
+			}
+			private function sortBy(option:String):void
+			{
+				if(previousQuery.sortBy.value == option)
+				{
+					sortByNameOrder();		
+				}
+				else
+				{
+					previousQuery.sortBy.value = option;
+				}
+			}
+			
+			private function filterQueryBy(option:String):void
+			{
+				previousQuery.sources.value = option;
+			}
 			
 			private function handleDateFilterChange():void
 			{
@@ -2173,7 +2291,8 @@
 			
 			private function hideIcons():void
 			{
-				_radialMenu.removeAllMenuItems();
+//				_radialMenu.removeAllMenuItems();
+				_subMenu.removeAllSubMenuItems();
 			}
 			
 			private function handleEmptyResultSet():void

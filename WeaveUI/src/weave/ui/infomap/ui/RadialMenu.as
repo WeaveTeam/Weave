@@ -118,6 +118,7 @@ package weave.ui.infomap.ui
 		
 		public static const RADIAL_STYLE:String = "radial";
 		public static const LINE_STYLE:String = "line";
+		public static const DROP_DOWN_STYLE:String = "dropdown";
 		
 		private var _radius:int = 50;
 		private function showMenu(event:Event):void

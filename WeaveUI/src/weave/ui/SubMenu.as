@@ -28,8 +28,10 @@ package weave.ui
 	import mx.controls.Menu;
 	import mx.core.UIComponent;
 	import mx.events.MenuEvent;
+	import mx.utils.ArrayUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	import weave.primitives.Bounds2D;
 	import weave.services.beans.RResult;
 	
@@ -84,15 +86,28 @@ package weave.ui
 		 */
 		public function addSubMenuItem(label:String,listener:Function,params:Array=null):void
 		{
-			var menuItem:SubMenuItem = new SubMenuItem();
-			menuItem.label = label;
+			var menuItem:SubMenuItem = null;
+			
+			/* Check if there is already a menu item with same label*/
+			for each(var obj:Object in subMenuDataProvider)
+			{
+				if(obj.label && obj.label == label)
+				{
+					menuItem = obj as SubMenuItem;
+					break;
+				}
+			}
+			
+			/* if not then create new SubMenuItem*/
+			if(menuItem ==null)
+			{
+				menuItem = new SubMenuItem();
+				menuItem.label = label;
+				subMenuDataProvider.push(menuItem);
+			}
+			
 			menuItem.listener = listener;
 			menuItem.params = params;
-			
-			subMenuDataProvider.push(menuItem);
-			
-			//			subMenu = Menu.createMenu(_uiParent,subMenuDataProvider,false);
-			
 			
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
 			
@@ -110,9 +125,30 @@ package weave.ui
 		 * */
 		public function addSubSubMenuItems(parentLabel:String,childLabels:Array,childListeners:Array,childParams:Array=null):void
 		{
+			var parentItem:Object = null;
+			
+			for each(var obj:Object in subMenuDataProvider)
+			{
+				if(obj.label && obj.label == parentLabel)
+				{
+					parentItem = obj;
+					break;
+				}
+			}
+			var children:Array = [];
+			if(parentItem && parentItem.children)
+				children= parentItem.children as Array;
 			var temp:Array = [];
 			for (var i:int =0; i< childLabels.length; i++)
 			{
+				if(children.length>0)
+				{
+					for(var j:int =0; j < children.length; j++)
+					{
+						if(children[j].label==childLabels[i])
+							(parentItem.children as Array).splice(j,1);
+					}
+				}
 				var menuItem:SubMenuItem = new SubMenuItem();
 				menuItem.label = childLabels[i];
 				menuItem.listener = childListeners[i];
@@ -121,11 +157,27 @@ package weave.ui
 				temp.push(menuItem);
 			}
 			
-			var parentItem:Object = new Object();
-			parentItem.label = parentLabel;
-			parentItem.children = temp;
+			temp = children.concat(temp);
+			/* If parentItem doesn't exist create new parent with label and children else concatenate children*/
+			if(!parentItem)
+			{
+				parentItem= new Object();
+				parentItem.label = parentLabel;
+				parentItem.children = temp;
+				subMenuDataProvider.push(parentItem);
+			}
+			else
+			{
+				if(parentItem.children is Array)
+				{
+					parentItem.children = temp;
+				}
+				else
+				{
+					reportError("Error adding items to node submenu");
+				}
+			}
 			
-			subMenuDataProvider.push(parentItem);
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
 			
 			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});

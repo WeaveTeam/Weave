@@ -52,6 +52,10 @@ package weave.ui.infomap.core
 		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
 		
 		public static var FILTER_BY_BOOKS:String= "Books";
+		public static var FILTER_BY_PAPERS:String= "Papers";
+		public static var FILTER_BY_NONE:String = "";
+		
+		public static var filterByOptions:Array = [FILTER_BY_NONE,FILTER_BY_BOOKS,FILTER_BY_PAPERS];
 		
 		public const sortBy:LinkableString = registerLinkableChild(this, new LinkableString("Relevance",function(value:*):Boolean{
 			if(sortByOptions.indexOf(value) != -1)
@@ -67,6 +71,30 @@ package weave.ui.infomap.core
 		public static var SORT_BY_RELEVANCE:String = "Relevance";
 		public static var SORT_BY_DATE_PUBLISHED:String = "Date Published";
 		public static var SORT_BY_DATE_ADDED:String = "Date Added";
+		
+		/*Function to compare 2 QueryObject instances. Ignores sortBy value*/
+		public static function isQueryDifferent(q1:QueryObject, q2:QueryObject):Boolean
+		{
+			if(q1.keywords.value != q2.keywords.value)
+				return true;
+			else if(q1.operator.value != q2.operator.value)
+				return true;
+			else if(q1.dateFilter.startDate.value != q2.dateFilter.startDate.value)
+				return true;
+			else if(q1.dateFilter.endDate.value != q2.dateFilter.endDate.value)
+				return true;
+			else if(q1.sources.value != q2.sources.value)
+				return true;
+			else return false;
+		}
+		
+		public static function isSortByDifferent(q1:QueryObject, q2:QueryObject):Boolean
+		{
+			if(q1.sortBy.value != q2.sortBy.value)
+				return true;
+			else 
+				return false;
+		}
 		
 	}
 }
