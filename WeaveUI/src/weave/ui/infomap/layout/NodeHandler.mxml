@@ -296,8 +296,8 @@
 			{
 				super.childrenCreated();
 				
-				getCallbackCollection(currentQuery).addGroupedCallback(this,createAndSendQuery,false);//currentQuery should always be triggered by change in previousQuery
-				getCallbackCollection(previousQuery).addGroupedCallback(this,updateTextArea,true);
+//				getCallbackCollection(currentQuery).addGroupedCallback(this,createAndSendQuery,false);//currentQuery should always be triggered by change in previousQuery
+				getCallbackCollection(previousQuery).addGroupedCallback(this,handleChangeToPrevQuery,true);
 				
 				//if node is selected we highlight the nodeBase
 				//				node.selected.addGroupedCallback(this,highlightNode);
@@ -390,7 +390,7 @@
 				filteredWords.addGroupedCallback(this,filterListByKeywords,false);
 				
 //				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
-				prevNewDocsCount.addGroupedCallback(this,updateTextArea);
+				prevNewDocsCount.addGroupedCallback(this,handleChangeToPrevQuery);
 				
 				numOfWordsInCloud.addGroupedCallback(this,redrawWordCloud,false);
 				
@@ -442,6 +442,10 @@
 			
 			private var docKeySet:KeySet = new KeySet();
 			
+			//////////////////////////////
+			// Query Functions
+			//////////////////////////////
+			
 			/**
 			 * @private
 			 * Called when the session state of query is changed
@@ -480,29 +484,19 @@
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
 						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
 
-				if(isQueryDifferent)
-				{
-					/* remove all documents */
-					handleEmptyResultSet();
-					
-					/* Hide any views */
-					hideAllViews();
-					
-					hideIcons();
-					
-					prevNewDocsCount.value = 0;
-					
-				}else{
-					if(QueryObject.isSortByDifferent(previousQuery,currentQuery))
-					{
-						var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
-							_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
-							currentQuery.dateFilter,2000,currentQuery.sortBy.value);
-						
-						addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
-						return;
-					}
-				}
+//				if(isQueryDifferent)
+//				{
+//					/* remove all documents */
+//					handleEmptyResultSet();
+//					
+//					/* Hide any views */
+//					hideAllViews();
+//					
+//					hideIcons();
+//					
+//					prevNewDocsCount.value = 0;
+//					
+//				}
 				
 				_currentQueryTerms = currentQuery.keywords.value.indexOf(',') != -1?currentQuery.keywords.value.split(','):
 					currentQuery.keywords.value.split(' ');
@@ -555,13 +549,23 @@
 				
 				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
 				numOfMatchedDocuments.value = numOfDocs;
-				updateTextArea();
+				handleChangeToPrevQuery();
 				
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
 					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
 					currentQuery.dateFilter,2000,currentQuery.sortBy.value);
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+				
+				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
+					currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
+				
+				var token:QueryObject = new QueryObject();
+				copySessionState(currentQuery,token);
+				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
+				getEntityDistribution();
+				getTopicsClassification();
+				getClusters();
 			}
 			
 			private function handleTotalResults(event:ResultEvent,token:Object=null):void
@@ -620,7 +624,7 @@
 				
 				_parentPanel.infoMapsDataSource.csvData.setSessionState(
 					(_parentPanel.infoMapsDataSource.csvData.getSessionState() as Array).concat(docsToAdd));			
-				
+				VectorUtils.copy(keys,_nameOrder);
 				docKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
 				
 				/* we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called */
@@ -678,7 +682,6 @@
 				_reusableThumbnailsToPlotArray = [];
 				_currentNewDocsCount = 0;
 				_thumbnailCount = 0;
-				_nameOrder = [];
 				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_PARSING,_completeThumbnailsIteration);
 			}
 			
@@ -690,7 +693,6 @@
 					return 1;
 				
 				var link:String = (docKeySet.keys[_thumbnailCount] as IQualifiedKey).localName;					
-				_nameOrder.push(link);
 				var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
 				
 				
@@ -750,7 +752,6 @@
 				
 				if(_subset.containsKey(qKey))
 				{
-					_reusableThumbnailsToPlotArray.push(qKey);
 					thumbnail.visible = true;
 				}else{
 					
@@ -768,77 +769,15 @@
 			private function _completeThumbnailsIteration():void
 			{
 				thumbnails.setNameOrder(_nameOrder);
-				//				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
-				
-//				var listImg:Bitmap = new ListImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(listImg,_listImgText,toggleList);
-//				
-//				var gridImg:Bitmap = new GridImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(gridImg,_gridImgText,toggleGridView);
 				
 				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleList,toggleGridView]);
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
-				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
-					currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
-				
-				var token:QueryObject = new QueryObject();
-				copySessionState(currentQuery,token);
-				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
+				addAllDocumentsToList();
 				showList();
-				getEntityDistribution();
-				getTopicsClassification();
-				getClusters();
-				docListComponent.keys =_reusableThumbnailsToPlotArray;
-			}
-			
-			private var _sortedByNewDocsArray:Array;
-			private function sortNewDocumentsToTop():void
-			{
-				if(_nameOrder.length == 0)
-					return;
-				if(_currentNewDocsCount == 0)
-					return;
-				
-				var newDocs:Array= [];
-				var oldDocs:Array = [];
-				
-				for(var i:int=0; i <_nameOrder.length; i++)
-				{
-					var  d:DocThumbnailComponent = thumbnails.getObject(_nameOrder[i]) as DocThumbnailComponent;
-					if(d.highlighted.value)
-					{
-						newDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
-					}
-					else
-					{
-						oldDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
-					}
-				}
-				
-				_sortedByNewDocsArray = newDocs.concat(oldDocs);
-				docListComponent.keys = _sortedByNewDocsArray;
-			}
-			
-			private function sortByNameOrder():void
-			{
-				var keys:Array = [];
-				for(var i:int=0; i<_nameOrder.length; i++)
-				{
-					keys.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,_nameOrder[i]));
-				}
-				docListComponent.keys = keys;
-			}
-			
-			private function showList():void
-			{
-				if(listCanvas.alpha == 1)
-					return;
-				else
-					toggleView(listCanvas);
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
@@ -876,6 +815,8 @@
 			[Bindable]
 			private var _currentNewDocsCount:int = 0;
 			//			private var _firstLoad:Boolean = true;
+			
+
 			
 			private function clearAllNewDocuments(event:Event=null):void
 			{
@@ -972,72 +913,6 @@
 			public var _reusableThumbnailsToPlotArray:Array = [];
 			
 			
-			private var views:Array = [];
-			private function toggleView(view:DisplayObject):void
-			{
-				if(view == null)
-					return;
-				
-				if(view.alpha == 1)
-				{
-					fadeOut.play([view]);
-				}
-				else
-				{
-					var viewsToHide:Array = [];
-					for each(var v:DisplayObject in views)
-					{
-						if(v != null && v != view && v.alpha !=0)
-						{
-							viewsToHide.push(v);
-						}
-					}
-					fadeOut.play(viewsToHide);
-					fadeIn.play([view]);
-					
-					if(view == listCanvas)
-					{
-						//if the list is not added yet
-						if(!listCanvas.contains(docListComponent))
-						{
-							listCanvas.alpha = 0;
-							listCanvas.addChild(docListComponent);
-							docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
-							
-							docListComponent.y = nodeBase.height;
-							
-							toggleView(listCanvas);
-							return;
-						}
-						
-						docListComponent.y = nodeBase.height;
-					}
-				}
-			}
-			
-			private function hideAllViews():void
-			{
-				fadeOut.play(views);
-			}
-			
-			private function addAllDocumentsToList():void
-			{
-				var tNails:Array = thumbnails.getObjects();
-				_reusableThumbnailsToPlotArray = [];	
-				for (var i:int = 0; i<tNails.length; i++)
-				{
-					var t:DocThumbnailComponent = tNails[i];
-					
-					var docURL:String = thumbnails.getName(t);
-					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
-					
-					if(_subset.containsKey(qKey))
-					{
-						_reusableThumbnailsToPlotArray.push(qKey);
-					}
-				}
-				docListComponent.keys = _reusableThumbnailsToPlotArray;
-			}
 			
 			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
 			public var entityDistributionDataSource:CSVDataSource = new CSVDataSource(); 
@@ -1209,6 +1084,120 @@
 				entityDistributionDataSource.putColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.sortColumn);
 				
 				object.panelTitle.value = 'Entity Distribution for Query "' + currentQuery.keywords.value + '"';
+			}
+			
+			
+			private var _sortedByNewDocsArray:Array;
+			private function sortNewDocumentsToTop():void
+			{
+				if(_nameOrder.length == 0)
+					return;
+				if(_currentNewDocsCount == 0)
+					return;
+				
+				var newDocs:Array= [];
+				var oldDocs:Array = [];
+				
+				for(var i:int=0; i <_nameOrder.length; i++)
+				{
+					var  d:DocThumbnailComponent = thumbnails.getObject(_nameOrder[i]) as DocThumbnailComponent;
+					if(d.highlighted.value)
+					{
+						newDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
+					}
+					else
+					{
+						oldDocs.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,d.docURL.value));
+					}
+				}
+				
+				_sortedByNewDocsArray = newDocs.concat(oldDocs);
+				docListComponent.keys = _sortedByNewDocsArray;
+			}
+			
+			private function sortByNameOrder():void
+			{
+				var keys:Array = [];
+				for(var i:int=0; i<_nameOrder.length; i++)
+				{
+					keys.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,_nameOrder[i]));
+				}
+				docListComponent.keys = keys;
+			}
+			
+			private function showList():void
+			{
+				if(listCanvas.alpha == 1)
+					return;
+				else
+					toggleView(listCanvas);
+			}
+			
+			private var views:Array = [];
+			private function toggleView(view:DisplayObject):void
+			{
+				if(view == null)
+					return;
+				
+				if(view.alpha == 1)
+				{
+					fadeOut.play([view]);
+				}
+				else
+				{
+					var viewsToHide:Array = [];
+					for each(var v:DisplayObject in views)
+					{
+						if(v != null && v != view && v.alpha !=0)
+						{
+							viewsToHide.push(v);
+						}
+					}
+					fadeOut.play(viewsToHide);
+					fadeIn.play([view]);
+					
+					if(view == listCanvas)
+					{
+						//if the list is not added yet
+						if(!listCanvas.contains(docListComponent))
+						{
+							listCanvas.alpha = 0;
+							listCanvas.addChild(docListComponent);
+							docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
+							
+							docListComponent.y = nodeBase.height;
+							
+							toggleView(listCanvas);
+							return;
+						}
+						
+						docListComponent.y = nodeBase.height;
+					}
+				}
+			}
+			
+			private function hideAllViews():void
+			{
+				fadeOut.play(views);
+			}
+			
+			private function addAllDocumentsToList():void
+			{
+				var tNails:Array = thumbnails.getObjects();
+				_reusableThumbnailsToPlotArray = [];	
+				for (var i:int = 0; i<tNails.length; i++)
+				{
+					var t:DocThumbnailComponent = tNails[i];
+					
+					var docURL:String = thumbnails.getName(t);
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					if(_subset.containsKey(qKey))
+					{
+						_reusableThumbnailsToPlotArray.push(qKey);
+					}
+				}
+				docListComponent.keys = _reusableThumbnailsToPlotArray;
 			}
 			
 			public function showRelatedRecords():void
@@ -1676,6 +1665,50 @@
 				);
 			}
 			
+			
+			
+			/* TODO: if _subset and _tagWordSubset is empty just plot all */
+			private function includedThumbnails():Array
+			{
+				var thumbs:Array = thumbnails.getObjects();
+				var requiredThumbs:Array = []
+				for (var i:int = 0; i < thumbs.length; i++)
+				{
+					var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					if(_subset.containsKey(qKey))
+					{
+						requiredThumbs.push(thumbs[i]);
+					}
+				}
+				return requiredThumbs;
+			}
+			
+			private var _pointCanvas:PointsLayout = new PointsLayout();
+			private function showPoints(event:Event=null):void
+			{
+				if(contains(_pointCanvas) && _pointCanvas.alpha == 1)
+				{
+					toggleView(_pointCanvas);
+					return;
+				}
+				status.text = "Drawing points...";
+				var urls:Array = [];
+				VectorUtils.copy(_topicsResult.urls,urls);
+				var keywords:Array = _topicsResult.keywords;
+				
+				if(!contains(_pointCanvas))
+				{
+					addChild(_pointCanvas);
+				}
+				_pointCanvas.y = nodeBase.height;
+				_pointCanvas.drawPoints(urls, keywords, this);
+				
+				toggleView(_pointCanvas);
+				status.text = "";
+			}
+			
 			private var wordCloud:TagCloud = null;
 			private var colorRamp:ColorRamp = new ColorRamp();
 			private var wordCount:Array = [];
@@ -1770,48 +1803,6 @@
 				{
 					toggleView(listCanvas);
 				}
-			}
-			
-			/* TODO: if _subset and _tagWordSubset is empty just plot all */
-			private function includedThumbnails():Array
-			{
-				var thumbs:Array = thumbnails.getObjects();
-				var requiredThumbs:Array = []
-				for (var i:int = 0; i < thumbs.length; i++)
-				{
-					var docURL:String = (thumbs[i] as DocThumbnailComponent).docURL.value;
-					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
-					
-					if(_subset.containsKey(qKey))
-					{
-						requiredThumbs.push(thumbs[i]);
-					}
-				}
-				return requiredThumbs;
-			}
-			
-			private var _pointCanvas:PointsLayout = new PointsLayout();
-			private function showPoints(event:Event=null):void
-			{
-				if(contains(_pointCanvas) && _pointCanvas.alpha == 1)
-				{
-					toggleView(_pointCanvas);
-					return;
-				}
-				status.text = "Drawing points...";
-				var urls:Array = [];
-				VectorUtils.copy(_topicsResult.urls,urls);
-				var keywords:Array = _topicsResult.keywords;
-				
-				if(!contains(_pointCanvas))
-				{
-					addChild(_pointCanvas);
-				}
-				_pointCanvas.y = nodeBase.height;
-				_pointCanvas.drawPoints(urls, keywords, this);
-				
-				toggleView(_pointCanvas);
-				status.text = "";
 			}
 			
 //			private var clickedWordKeySet:KeySet = new KeySet();
@@ -2048,7 +2039,7 @@
 			
 			
 			
-			private function updateTextArea():void
+			private function handleChangeToPrevQuery():void
 			{
 				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery) || 
 										QueryObject.isSortByDifferent(previousQuery, currentQuery);
@@ -2078,6 +2069,41 @@
 					return;
 				}
 				
+				updateTextArea();
+				
+				if(QueryObject.isQueryDifferent(previousQuery,currentQuery))
+				{
+					copySessionState(previousQuery,currentQuery);
+					if(!_firstLoad)
+					{
+						/* remove all documents */
+						handleEmptyResultSet();
+						
+						/* Hide any views */
+						hideAllViews();
+						
+						hideIcons();
+					}
+					createAndSendQuery();
+				}
+				else if(QueryObject.isSortByDifferent(previousQuery,currentQuery))
+				{
+					copySessionState(previousQuery,currentQuery);
+					var token:QueryObject = new QueryObject();
+					copySessionState(currentQuery,token);
+					var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
+						_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
+						currentQuery.dateFilter,2000,currentQuery.sortBy.value);
+					
+					addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
+				}
+
+				updateNodeTextOnNewDocuments();
+				adjustNodeBase();
+			}
+			
+			private function updateTextArea():void
+			{
 				//we restrict node length to 200.
 				if(previousQuery.keywords.value.length >200)
 				{
@@ -2088,25 +2114,7 @@
 				}
 				nodeBase.keywordTextArea.editable = false;
 				nodeBase.keywordTextArea.selectable = false;
-				
-				
-				if(diff)
-				{
-					copySessionState(previousQuery,currentQuery);
-					if(!_firstLoad)
-					{
-						thumbnails.removeAllObjects();
-						numOfMatchedDocuments.value = 0;
-						_currentNewDocsCount = 0;
-						prevNewDocsCount.value = 0;
-						docKeySet.replaceKeys([]);
-					}
-				}
-
-				updateNodeTextOnNewDocuments();
-				adjustNodeBase();
 			}
-			
 			private function removeWordCloud():void
 			{
 				wordCloud.clearCloud();
@@ -2217,28 +2225,6 @@
 				}
 			}
 			
-			
-//			private function handleClickedWordKeySetChange():void
-//			{
-//				var keys:Array = clickedWordKeySet.keys;
-//				var includeKeys:Array = [];
-//				
-//				for each(var k:IQualifiedKey in keys)
-//				{
-//					if(thumbnails.getObject(k.localName))
-//					{
-//						includeKeys.push(k);	
-//					}
-//				}
-//				
-//				//				_subset.replaceKeys(false,true,includeKeys);
-//				_tagWordSubset.replaceKeys(false,true,includeKeys);
-//				status.text = "";
-//				filterStatus.htmlText= "<b>Filtered by: </b>" + filteredWords.value;
-//				clearFiltersButton.visible = true;
-//				
-//			}
-			
 			public var currentView:DisplayObject = null;
 			private function handleFadeInEffectsStart(event:EffectEvent):void
 			{
@@ -2312,67 +2298,6 @@
 			{
 				refreshTimer.stop();
 			}
-			
-			//							private function handleEditCommentsClick(event:MouseEvent):void
-			//			{
-			//				nodeBase.editImage.visible = false;
-			//				nodeBase.commentTextArea.visible = true;
-			//				nodeBase.commentTextArea.setFocus();
-			//			}
-			//			
-			//			private function handleCommentsChange():void
-			//			{
-			//				if(nodeBase.commentTextArea.text != comments.value)
-			//					nodeBase.commentTextArea.text = comments.value;
-			//				if(comments.value)
-			//				{
-			//					nodeBase.commentTextArea.visible = true;
-			//					nodeBase.editImage.visible = false;
-			//					nodeBase.commentTextArea.validateNow();
-			//				}else{
-			//					nodeBase.commentTextArea.visible = false;
-			//					nodeBase.editImage.visible = true;
-			//				}
-			//			}
-			//			
-			//			private function handleCommentKeyUp(event:KeyboardEvent=null):void
-			//			{
-			//				
-			//				comments.value = nodeBase.commentTextArea.text;
-			//				if(event.keyCode == Keyboard.ESCAPE)
-			//				{
-			//					updateCommentTextArea();
-			//					nodeBase.keywordTextArea.setFocus();
-			//				}
-			//			}
-			//			
-			//			private function updateCommentTextArea(event:Event=null):void
-			//			{
-			//				nodeBase.commentTextArea.minHeight = nodeBase.commentTextArea.textHeight;
-			//
-			//				if(nodeBase.commentTextArea.text == "")
-			//				{
-			//					comments.triggerCallbacks();
-			//				}
-			//			}	
-			
-			
-			//			private function handleCommentAreaChange(event:Event):void
-			//			{
-			//				var ta_height:uint = 20;
-			//				
-			//				nodeBase.commentTextArea.validateNow();
-			//				
-			//				for(var i:int=0; i < nodeBase.commentTextArea.mx_internal::getTextField().numLines; i++) {
-			//					ta_height += nodeBase.commentTextArea.mx_internal::getTextField().getLineMetrics(i).height;
-			//				}
-			//				
-			//				nodeBase.commentTextArea.height = ta_height;
-			//				
-			//				nodeBase.height +=  ta_height;
-			//				nodeBase.invalidateDisplayList();
-			//			}
-			
 		]]>
 	</mx:Script>
 	
