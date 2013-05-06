@@ -66,7 +66,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
-			import weave.api.linkableObjectIsBusy;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
@@ -308,12 +307,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return getQualifiedClassName(this).split(':').pop();
 			}
 			
-			// workaround to fix text layout performance problem
-			override public function set title(value:String):void
-			{
-				super.title = value.substr(0, 256);
-			}
-			
 			/**
 			 * This gets called when the panelTitle session state changes.
 			 * If you need the panel title to be updated, you can call this function directly or as a callback.
@@ -321,11 +314,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			protected function handlePanelTitleChange():void
 			{
-				if (linkableObjectIsBusy(this))
-				{
-					callLater(handlePanelTitleChange);
-					return;
-				}
 				if (panelTitle.value)
 				{
 					panelTitleFunction.value = '`' + panelTitle.value.split('`').join('\\`') + '`';

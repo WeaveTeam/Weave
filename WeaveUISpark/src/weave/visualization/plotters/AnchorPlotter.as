@@ -28,14 +28,11 @@ package weave.visualization.plotters
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
-	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -57,24 +54,8 @@ package weave.visualization.plotters
 			
 			setSingleKeySource(_keySet);
 		}
-		
-		public function setRadViz(radviz:IPlotter):void
-		{
-			if (this._radviz)
-				throw new Error("radviz plotter may only be set once.");
-			_radviz = radviz;
-			if (radviz is RadVizPlotter)
-				anchors = (radviz as RadVizPlotter).anchors;
-			if (radviz is CompoundRadVizPlotter)
-				anchors = (radviz as CompoundRadVizPlotter).anchors;
-			if (!anchors)
-				throw new Error("not a radviz plotter");
-			this.anchors = registerSpatialProperty(anchors);
-			this.anchors.childListCallbacks.addGroupedCallback(this, handleAnchorsChange);
-		}
-		private var _radviz:IPlotter;
-		private var anchors:LinkableHashMap = null;
-		
+
+		public var anchors:LinkableHashMap = newSpatialProperty(LinkableHashMap,handleAnchorsChange);
 		public const labelAngleRatio:LinkableNumber = registerSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
 		
 		private const _keySet:KeySet = newDisposableChild(this, KeySet);
@@ -94,22 +75,25 @@ package weave.visualization.plotters
 		private const _currentDataBounds:Bounds2D = new Bounds2D();
 		
 		public function handleAnchorsChange():void
-		{
+		{		
 			var keys:Array = anchors.getNames(AnchorPoint);
-			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys(ANCHOR_KEYTYPE,keys);
+			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys('dimensionAnchors',keys);
 
 			_keySet.replaceKeys(keyArray);
 			fillColorMap();
-		}
-		
-		private static const ANCHOR_KEYTYPE:String = 'dimensionAnchors';
+		}			
 		
 		private function fillColorMap():void
 		{
+			var i:int = 0;
 			anchorColorMap = new Dictionary(true);
-			var _names:Array = anchors.getNames(AnchorPoint);
-			for (var i:int = 0; i < _names.length; i++)
-				anchorColorMap[_names[i]] = colorMap.getColorFromNorm(i / (_names.length - 1)); 
+			var _anchors:Array = anchors.getObjects(AnchorPoint);
+			
+			for each( var anchor:AnchorPoint in anchors.getObjects())
+			{
+				anchorColorMap[anchors.getName(anchor)] = colorMap.getColorFromNorm(i / (_anchors.length - 1)); 
+				i++;
+			}
 		}
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
@@ -119,6 +103,7 @@ package weave.visualization.plotters
 		}
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			var array:Array = anchors.getObjects(AnchorPoint);
 			var x:Number; 
 			var y:Number;
 			
@@ -131,11 +116,10 @@ package weave.visualization.plotters
 						
 			graphics.lineStyle(1);
 
+			// loop through anchors hash map and draw dimensional anchors and labels	
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
-				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
-					continue;
 				
 				x = anchor.x.value;
 				y = anchor.y.value;
@@ -284,10 +268,8 @@ package weave.visualization.plotters
 		{
 			if (anchors)
 			{
-				var bounds:IBounds2D = initBoundsArray(output);
 				var anchor:AnchorPoint = anchors.getObject(recordKey.localName) as AnchorPoint;
-				if (anchor)
-					bounds.includeCoords(anchor.x.value, anchor.y.value);
+				initBoundsArray(output).includeCoords(anchor.x.value, anchor.y.value);
 			}
 			else
 				initBoundsArray(output, 0);

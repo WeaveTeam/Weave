@@ -102,11 +102,6 @@ LinkableObjectList
 			
 			private function refreshLabels():void
 			{
-				if (!stage)
-				{
-					callLater(refreshLabels);
-					return;
-				}
 				labelFunction = labelFunction; // this refreshes the labels
 			}
 			

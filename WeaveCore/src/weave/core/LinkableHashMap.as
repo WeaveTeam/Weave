@@ -151,11 +151,10 @@ package weave.core
 				_orderedNames[oldIndex] = null;
 			}
 			// remove array items that have been set to null
-			var out:int = 0;
-			for (i = 0; i < _orderedNames.length; i++)
-				if (_orderedNames[i] != null)
-					_orderedNames[out++] = _orderedNames[i];
-			_orderedNames.length = out;
+			i = _orderedNames.length;
+			while (i--)
+				if (_orderedNames[i] == null)
+					_orderedNames.splice(i, 1);
 			// if the name order changed, run child list callbacks
 			if (changeDetected)
 				_childListCallbacks.runCallbacks(null, null, null);

@@ -72,7 +72,7 @@ package weave.visualization.layers
 	 */
 	public class PlotManager implements ILinkableObject
 	{
-		public var debug:Boolean = false;
+		private function debugTrace(..._):void { } // comment this line to enable debugging
 		
 		public function PlotManager()
 		{
@@ -674,8 +674,7 @@ package weave.visualization.layers
 			
 			zoomBounds.getDataBounds(tempDataBounds);
 			zoomBounds.getScreenBounds(tempScreenBounds);
-			if (debug)
-				debugTrace(this,'\n\tdata',String(tempDataBounds),'\n\tscreen',String(tempScreenBounds));
+			debugTrace(this,'\n\tdata',String(tempDataBounds),'\n\tscreen',String(tempScreenBounds));
 			
 			PlotterUtils.setBitmapDataSize(bitmap, _unscaledWidth, _unscaledHeight);
 			if (_unscaledWidth && _unscaledHeight)
@@ -687,8 +686,7 @@ package weave.visualization.layers
 					
 					if (layerShouldBeRendered(name))
 					{
-						if (debug)
-							debugTrace('render',name,getPlotter(name));
+						debugTrace('render',name,getPlotter(name));
 						for each (var task:PlotTask in _name_to_PlotTask_Array[name])
 						{
 							var busy:Boolean = linkableObjectIsBusy(task);
@@ -696,8 +694,7 @@ package weave.visualization.layers
 							
 							if (completedReady)
 							{
-								if (debug)
-									debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
+								debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
 								
 								copyScaledPlotGraphics(
 									task.completedBitmap, task.completedDataBounds, task.completedScreenBounds,
@@ -705,7 +702,7 @@ package weave.visualization.layers
 									fade && busy ? 1 - task.progress : 1
 								);
 							}
-							else if (debug)
+							else
 							{
 								//debugTrace(String(task),'undefined',name);
 							}
@@ -714,8 +711,7 @@ package weave.visualization.layers
 							{
 								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
 								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
-								if (debug)
-									debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
+								debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
 								
 								shouldRender = true;
 								copyScaledPlotGraphics(
@@ -726,7 +722,7 @@ package weave.visualization.layers
 							}
 						}
 					}
-					else if (debug)
+					else
 					{
 						//debugTrace('do not render',name);
 					}

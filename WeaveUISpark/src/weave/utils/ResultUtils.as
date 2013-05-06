@@ -99,10 +99,8 @@ package weave.utils
 		}
 		
 		public static function resultAsNumberColumn( keys:Object , column:Object,columName:String = ""):NumberColumn{
-			var numColumn:NumberColumn = new NumberColumn(<attribute title="{columnName}"/>);
-			var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);
-			if (column is Number)
-				column = [column];
+			var numColumn:NumberColumn = new NumberColumn();
+			var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);			
 			var dataVec:Vector.<Number> = Vector.<Number>(column);
 			numColumn.setRecords(keyVec, dataVec);
 			return numColumn;
