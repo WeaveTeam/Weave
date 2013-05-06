@@ -2,6 +2,9 @@ function(objectID)
 {
 	var weave = objectID ? document.getElementById(objectID) : document;
 	
+	// browser backwards compatibility
+	if (!Array.isArray)
+		Array.isArray = function(o) { return Object.prototype.toString.call(o) === '[object Array]'; }
 	
 	// variables global to this Weave instance
 
@@ -29,7 +32,7 @@ function(objectID)
 	{
 		var array;
 		var n = args.length;
-		if (n && n == option && args[0] && args[0].constructor == Array)
+		if (n && n == option && args[0] && Array.isArray(args[0].constructor))
 		{
 			array = args[0].concat();
 			for (var i = 1; i < n; i++)
@@ -339,7 +342,7 @@ function(objectID)
 		{
 			if (assertParams('forEach', arguments, 2))
 			{
-				if (items.constructor == Array)
+				if (Array.isArray(items.constructor))
 					items.forEach(visitorFunction, this);
 				else
 					for (var key in items) visitorFunction.call(this, items[key], key, items);
