@@ -1,0 +1,185 @@
+<SimpleVisTool xmlns="weave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="weave.ui.*" 
+		 xmlns:userControls="weave.ui.userControls.*"
+		 layout="absolute">
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
+			import weave.api.graphs.IGraphAlgorithm;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.api.primitives.IBounds2D;
+			import weave.api.registerLinkableChild;
+			import weave.api.registerDisposableChild;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
+			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.KeySet;
+			import weave.primitives.Bounds2D;
+			import flash.external.ExternalInterface;
+
+			public const colorColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleNodeColumnChange);
+			public const nodesColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleNodeColumnChange);
+			public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleEdgeColumnChange);
+			public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleEdgeColumnChange);
+			public const labelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), handleNodeColumnChange);
+			public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+			public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+
+			WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("Cytoscape-Web Tool"));
+			private var _toolName:String;
+			private var _primitive_edges:Object;
+			private var _primitive_nodes:Object;
+			private var _primitive_network:Object;
+			private function launchCytoscape():void
+			{
+				ExternalInterface.call(
+				"function (weaveID, toolname, url, name) {\
+				 var weave = weaveID ? document.getElementById(weaveID) : document;\
+				 if (weave.cytoscape == undefined) weave.cytoscape = {};\
+				 weave.cytoscape[toolname] = window.open(url, toolname);\
+				 weave.cytoscape[toolname].weave = weave;\
+				  }", 
+					ExternalInterface.objectID, _toolName, "cytoscapeweb/popout.html", _toolName);
+			}
+			private function sendNetworkToCytoscape():void
+			{
+				ExternalInterface.call(
+					"function (weaveID, toolname, network) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].draw(network);\
+						weave.cytoscape[toolname].network = network;\
+						}",
+						ExternalInterface.objectID, _toolName, _primitive_network);
+			}
+
+			private function buildPrimitiveNodes():void
+			{
+				var nodesKeys:Array = nodesColumn.keys;
+				var numNodes:int = nodesKeys.length;
+				var key_idx:int;
+				var key:IQualifiedKey;
+				var id:String;
+				var label:String;
+				var node:Object;
+				var nodes:Array = [];
+				for (key_idx = 0; key_idx < numNodes; key_idx++)
+				{
+					node = {};
+					key = nodesKeys[key_idx];
+					node.id = nodesColumn.getValueFromKey(key, String);
+					node.label = labelColumn.getValueFromKey(key, String);
+					node.keyType = key.keyType;
+					node.localName = key.localName;
+					nodes.push(node);
+				}
+				
+				_primitive_nodes = nodes;
+			}
+
+			private function buildPrimitiveEdges():void
+			{
+				var edgeKeys:Array = edgeSourceColumn.keys;
+				var numEdges:int = edgeKeys.length;
+				var key_idx:int;
+				var key:IQualifiedKey;
+				var id:String;
+				var label:String;
+				var edge:Object;
+				var edges:Array = [];
+				for (key_idx = 0; key_idx < numEdges; key_idx++)
+				{
+					edge = {};
+					key = edgeKeys[key_idx];
+					edge.id = key.localName;
+					edge.source = edgeSourceColumn.getValueFromKey(key, String);
+					edge.target = edgeTargetColumn.getValueFromKey(key, String);
+					edge.keyType = key.keyType;
+					edge.localName = key.localName;
+					edges.push(edge);
+				}
+				
+				_primitive_edges = edges;
+			}
+
+			public function buildPrimitiveNetwork():void
+			{
+				var network:Object = {data: {nodes: [], edges: []}};
+				network.dataSchema = {
+					nodes: [{name: "label", type: "string"}, {name: "keyType", type: "string"}, {name: "localName", type: "string"}],
+					edges: [{name: "label", type: "string"}, {name: "keyType", type: "string"}, {name: "localName", type: "string"}]
+				};
+				network.data.nodes = _primitive_nodes;
+				network.data.edges = _primitive_edges;
+				_primitive_network = network;
+			}
+			private function handleNodeColumnChange():void
+			{
+				/* We have no real way of validating that a given nodelist corresponds to a given edgelist, so we just assume this is right. */
+				buildPrimitiveNodes();
+				buildPrimitiveNetwork();
+				sendNetworkToCytoscape();
+			}
+			private function handleEdgeColumnChange():void
+			{
+				/* If edgesource and edgetarget don't share a common keytype, don't bother rebuilding the edges; the result will be garbage. */
+				var srcKeyType:String = edgeSourceColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				var targetKeyType:String = edgeTargetColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				if (srcKeyType != targetKeyType) return;
+				buildPrimitiveEdges();
+				buildPrimitiveNetwork();
+				sendNetworkToCytoscape();
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+				colorComponent.dynamicObject = colorColumn;
+				nodeComponent.dynamicObject = nodesColumn;
+				labelComponent.dynamicObject = labelColumn;
+				edgeSourceComponent.dynamicObject = edgeSourceColumn;
+				edgeTargetComponent.dynamicObject = edgeTargetColumn;
+				nodeRadiusComponent.dynamicObject = nodeRadiusColumn;
+
+				
+
+				_toolName = WeaveAPI.globalHashMap.getName(this);
+
+				launchCytoscape();
+			}
+			override public function getSelectableAttributeNames():Array
+			{
+				return [lang("Color"), lang("Node IDs"), lang("Label"), lang("Edge Source IDs"), lang("Edge Target IDs"), lang("Edge Color Column")];
+			}
+
+		]]>
+	</mx:Script>
+		<ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Node Color')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeRadiusComponent" label="{lang('Node Size')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="{lang('Labels')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
+		</mx:VBox>
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<mx:HBox>
+				<mx:Label text="{lang('Radius Size')}"
+						  toolTip="{lang('Use this option to control the default size of the each node in the graph.')}"/>
+				<mx:NumericStepper id="numRadiusSize" minimum="1"/>
+			</mx:HBox>
+
+			<mx:CheckBox id="undirectedCheckBox" label="{lang('Undirected edges.')}" 
+				toolTip="{lang('Use this option if you want your graph data to be assumed as undirected.')}"/>
+		</mx:VBox>	
+	</ui:ControlPanel>
+</SimpleVisTool>
