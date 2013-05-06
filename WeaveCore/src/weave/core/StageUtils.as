@@ -33,10 +33,10 @@ package weave.core
 	import mx.core.mx_internal;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
 	import weave.utils.DebugUtils;
@@ -121,7 +121,7 @@ package weave.core
 		private const _priorityCallLaterQueues:Array = [[], [], [], []];
 		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
 		private const _priorityElapsedTimes:Array = [0, 0, 0, 0]; // An Array of elapsed times corresponding to callLater queues.
-		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 75, 50, 25]; // An Array of allocated times corresponding to callLater queues.
+		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 100, 65, 35]; // An Array of allocated times corresponding to callLater queues.
 
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -318,74 +318,72 @@ package weave.core
 		{
 			if (UIComponentGlobals.callLaterSuspendCount > 0)
 				return;
-			
+
+			// The variables countdown and lastPriority are used to avoid running newly-added tasks immediately.
+			// This avoids wasting time on async tasks that do nothing and return early, adding themselves back to the queue.
+
 			var args:Array;
 			var stackTrace:String;
-			var i:int;
 			var now:int;
 			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
 
 			// first run the functions that should be called before anything else.
-			var calls:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
-			if (calls.length > 0)
+			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
+			var countdown:int;
+			for (countdown = queue.length; countdown > 0; countdown--)
 			{
-				// reset the Array now because these function calls may cause more calls to be queued, which shouldn't be called immediately.
-				_priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] = [];
-				for (i = 0; i < calls.length; i++)
-				{
-					if (debug_callLater)
-						DebugTimer.begin();
-					
-					// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
-					args = calls[i] as Array;
-					stackTrace = _stackTraceMap[args];
-					
-					now = getTimer();
-					// if max computation time was reached for this frame, queue this function for later
-					if (now > allStop)
-					{
-						(_priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array).push(args);
-						continue;
-					}
-					
-//					WeaveAPI.SessionManager.unassignBusyTask(args);
-					
-					// don't call the function if the relevantContext was disposed of.
-					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
-						(args[1] as Function).apply(null, args[2]);
-					
-					if (debug_callLater)
-						DebugTimer.end(stackTrace);
-				}
+				if (debug_callLater)
+					DebugTimer.begin();
+				
+				now = getTimer();
+				// stop when max computation time is reached for this frame
+				if (now > allStop)
+					return;
+				
+				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
+				args = queue.shift();
+				stackTrace = _stackTraceMap[args];
+				
+//				WeaveAPI.SessionManager.unassignBusyTask(args);
+				
+				// don't call the function if the relevantContext was disposed of.
+				if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
+					(args[1] as Function).apply(null, args[2]);
+				
+				if (debug_callLater)
+					DebugTimer.end(stackTrace);
 			}
 			
 //			trace('-------');
+			
 			var minPriority:int = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1;
+			var lastPriority:int = _activePriority == minPriority ? _priorityCallLaterQueues.length - 1 : _activePriority - 1;
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
 			var pElapsed:int = int(_priorityElapsedTimes[_activePriority]);
 			var pStop:int = Math.min(allStop, pStart + pAlloc - pElapsed);
-			var pQueue:Array = _priorityCallLaterQueues[_activePriority] as Array;
+			queue = _priorityCallLaterQueues[_activePriority] as Array;
+			countdown = queue.length;
 			while (true)
 			{
 				if (debug_callLater)
 					DebugTimer.begin();
 				
 				now = getTimer();
-				if (now > pStop || pQueue.length == 0)
+				if (countdown == 0 || now > pStop)
 				{
 					// keep track of elapsed time for this priority
 					pElapsed += now - pStart;
 					_priorityElapsedTimes[_activePriority] = pElapsed;
 					
-					// if max computation time was reached for this frame, stop now
-					if (now > allStop)
-						break;
+					// if max computation time was reached for this frame or we have visited all priorities, stop now
+					if (now > allStop || _activePriority == lastPriority)
+						return;
 					
 					// see if there are any entries left in the queues
 					var remaining:int = 0;
-					for (i = minPriority; i < _priorityCallLaterQueues.length; i++)
-						remaining += (_priorityCallLaterQueues[i] as Array).length;
+					for each (queue in _priorityCallLaterQueues)
+						remaining += queue.length;
 					// stop if no more entries
 					if (remaining == 0)
 						break;
@@ -403,18 +401,21 @@ package weave.core
 					pAlloc = int(_priorityAllocatedTimes[_activePriority]);
 					pElapsed = int(_priorityElapsedTimes[_activePriority]);
 					pStop = Math.min(allStop, pStart + pAlloc - pElapsed);
-					pQueue = _priorityCallLaterQueues[_activePriority] as Array;
+					queue = _priorityCallLaterQueues[_activePriority] as Array;
+					countdown = queue.length;
 					
 					// restart loop to check stopping condition
 					continue;
 				}
+				
+				countdown--;
 				
 //				trace('p',_activePriority,pElapsed,'/',pAlloc);
 				_currentTaskStopTime = pStop; // make sure _iterateTask knows when to stop
 				
 				// call the next function in the queue
 				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
-				args = pQueue.shift() as Array;
+				args = queue.shift() as Array;
 				stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
 				
 //				WeaveAPI.SessionManager.unassignBusyTask(args);

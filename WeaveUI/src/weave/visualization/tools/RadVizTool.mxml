@@ -111,7 +111,7 @@
 				_plotter.setAnchorLocations();//normal layout
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true) ;
 				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
-				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
+				_anchorPlotter.setRadViz(_plotter);
 				
 				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawProbeLines);
 				
@@ -187,16 +187,19 @@
 				var outputNames:Array = ["normOutput"];
 				var script:String = "frame <- data.frame(mymatrix)\n" +
 					"donorm <- function(frame){\n" +
-					"RR <- nrow(frame)\n"+
-					"CC <- ncol(frame)\n"+
-					"for (z in 1:CC){\n"+
-					"maxr <- max(frame[z])\n"+
-					"minr <- min(frame[z])\n"+
-					"for(i in 1:RR){\n"+
-					" frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n"+
-					" }\n"+
-					"}\n"+
-					"frame\n"+
+					"  RR <- nrow(frame)\n"+
+					"  CC <- ncol(frame)\n"+
+					"  for (z in 1:CC){\n"+
+					"    maxr <- max(frame[z])\n"+
+					"    minr <- min(frame[z])\n" +
+					"    rng <- (maxr - minr)\n" +
+					"    if (rng == 0)\n" +
+					"      rng <- 1\n"+
+					"    for(i in 1:RR){\n"+
+					"      frame[i,z] <- (frame[i,z] - minr) / rng\n"+
+					"    }\n"+
+					"  }\n"+
+					"  frame\n"+
 					"}\n"+
 					"normOutput <- donorm(frame)\n";
 				
@@ -204,7 +207,7 @@
 				latestjoinedColumnKeys = result[0];
 				var joinedColumns:Array = result[1];
 				
-				if ( latestjoinedColumnKeys.length != 0)
+				if ( latestjoinedColumnKeys.length > 0)
 				{
 					inputValues.push(joinedColumns); 
 					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
