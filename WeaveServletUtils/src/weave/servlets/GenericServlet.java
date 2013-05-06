@@ -597,7 +597,7 @@ public class GenericServlet extends HttpServlet
 		}
 		if (extraParameters != null)
 		{
-			System.out.println("Received servlet request: " + methodName + Arrays.deepToString(argValues));
+			System.out.println("Received servlet request: " + methodToString(methodName, argValues));
 			System.out.println("Unused parameters: "+extraParameters.entrySet());
 		}
 		
@@ -686,7 +686,7 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (InvocationTargetException e)
 		{
-			System.err.println(methodName + Arrays.deepToString(params));
+			System.err.println(methodToString(methodName, params));
 			sendError(e,null);
 		}
 		catch (IllegalArgumentException e)
@@ -699,14 +699,14 @@ public class GenericServlet extends HttpServlet
 		}
 		catch (Exception e)
 		{
-			System.err.println(methodName + Arrays.deepToString(params));
+			System.err.println(methodToString(methodName, params));
 			sendError(e, null);
 		}
 		
 		long endTime = System.currentTimeMillis();
 		// debug
 		if (endTime - startTime >= debugThreshold)
-			System.out.println(String.format("[%sms] %s", endTime - startTime, methodName + Arrays.deepToString(params)));
+			System.out.println(String.format("[%sms] %s", endTime - startTime, methodToString(methodName, params)));
     }
     
 	/**
@@ -1020,5 +1020,14 @@ public class GenericServlet extends HttpServlet
 		//amf3Input.close();
     	
 		return deSerializedObj;
-    }    
+    }
+    
+    protected String methodToString(String name, Object[] params)
+    {
+		String str = name + Arrays.deepToString(params);
+		int max = 1024;
+		if (str.length() > max)
+			str = str.substring(0, max) + "...";
+    	return str;
+    }
 }
