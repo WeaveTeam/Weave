@@ -290,14 +290,16 @@ package weave.data.BinningDefinitions
 			
 			// the lower_class_limits matrix is used as indexes into itself
 			// here: the `kClassCount` variable is reused in each iteration.
-			while (countNum >=2)
+			if(kClassCount>countNum) // we only do this step if the number of values is greater than the number of bins.
 			{
-				var id:Number = _lower_class_limits[kClassCount][countNum] -2;
-				kClass[countNum -1] = _sortedValues[id];
-				kClassCount = _lower_class_limits[kClassCount][countNum] -1;
-				countNum --;
+				while (countNum >=2)
+				{
+					var id:Number = _lower_class_limits[kClassCount][countNum] -2;
+					kClass[countNum -1] = _sortedValues[id];
+					kClassCount = _lower_class_limits[kClassCount][countNum] -1;
+					countNum --;
+				}
 			}
-			
 			// check to see if the 0 and 1 in the array are the same - if so, set 0
 			// to 0:
 			if (kClass[0] == kClass[1]) 
@@ -334,7 +336,15 @@ package weave.data.BinningDefinitions
 					/* Get the index of the next break */
 					maxIndex = _previousSortedValues.lastIndexOf(kClass[iBin+1]);
 				}
-				_tempNumberClassifier.max.value = _previousSortedValues[maxIndex];
+				
+				if(maxIndex == -1)
+				{
+					_tempNumberClassifier.max.value = _tempNumberClassifier.min.value ;
+				}
+				else
+				{
+					_tempNumberClassifier.max.value = _previousSortedValues[maxIndex];
+				}
 				_tempNumberClassifier.minInclusive.value = true;
 				_tempNumberClassifier.maxInclusive.value = true;
 				
