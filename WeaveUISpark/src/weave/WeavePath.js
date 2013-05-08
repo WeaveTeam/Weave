@@ -10,9 +10,9 @@ function(objectID)
 
 	/**
 	 * Creates a WeavePath object.
-	 * Accepts an optional Array or list of names to serve as the base path.
+	 * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
 	 */
-	weave.path = function(/*...names*/)
+	weave.path = function(/*...basePath*/)
 	{
 		return new WeavePath(A(arguments, 1));
 	};
@@ -66,23 +66,23 @@ function(objectID)
 		 * Returns a copy of the current path Array.
 		 * Accepts an optional list of names to be appended to the result.
 		 */
-		this.getPath = function(/*...names*/)
+		this.getPath = function(/*...relativePath*/)
 		{
 			return path.concat(A(arguments, 1));
 		};
 		/**
-		 * Gets an Array of child names under the current path.
+		 * Gets an Array of child names under the object at the current path or relative to the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getNames = function(/*...names*/)
+		this.getNames = function(/*...relativePath*/)
 		{
 			return weave.getChildNames(path.concat(A(arguments, 1)));
 		};
 		/**
-		 * Gets the object type at the current path.
+		 * Gets the type (qualified class name) of the object at the current path or relative to the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getType = function(/*...names*/)
+		this.getType = function(/*...relativePath*/)
 		{
 			return weave.getObjectType(path.concat(A(arguments, 1)));
 		};
@@ -90,15 +90,15 @@ function(objectID)
 		 * Gets the session state of an object at the current path or relative to the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getState = function(/*...names*/)
+		this.getState = function(/*...relativePath*/)
 		{
 			return weave.getSessionState(path.concat(A(arguments, 1)));
 		};
 		/**
-		 * Gets the changes that have occurred since previousState.
+		 * Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getDiff = function(/*...names, previousState*/)
+		this.getDiff = function(/*...relativePath, previousState*/)
 		{
 			var args = A(arguments, 2);
 			if (assertParams('getDiff', args))
@@ -113,10 +113,10 @@ function(objectID)
 			return null;
 		}
 		/**
-		 * Gets the changes that would have to occur to get to another state.
+		 * Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getReverseDiff = function(/*...names, otherState*/)
+		this.getReverseDiff = function(/*...relativePath, otherState*/)
 		{
 			var args = A(arguments, 2);
 			if (assertParams('getReverseDiff', args))
@@ -147,7 +147,7 @@ function(objectID)
 		 * Specify any number of names to push on to the end of the path.
 		 * Accepts a list of names relative to the current path.
 		 */
-		this.push = function(/*...names*/)
+		this.push = function(/*...relativePath*/)
 		{
 			var args = A(arguments, 1);
 			if (assertParams('push', args))
@@ -172,11 +172,11 @@ function(objectID)
 			return this;
 		};
 		/**
-		 * Request a new object without modifying the current path.
+		 * Requests that an object be created if it doesn't already exist.
 		 * Accepts an optional list of names relative to the current path.
 		 * The final parameter should be the object type to be passed to weave.requestObject().
 		 */
-		this.request = function(/*...names, objectType*/)
+		this.request = function(/*...relativePath, objectType*/)
 		{
 			var args = A(arguments, 2);
 			if (assertParams('request', args))
@@ -189,10 +189,10 @@ function(objectID)
 			return this;
 		};
 		/**
-		 * Remove a dynamically created object without modifying the current path.
+		 * Removes a dynamically created object.
 		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.remove = function(/*...names*/)
+		this.remove = function(/*...relativePath*/)
 		{
 			var pathcopy = path.concat(A(arguments, 1));
 			weave.removeObject(pathcopy)
@@ -214,12 +214,12 @@ function(objectID)
 			return this;
 		};
 		/**
-		 * Sets the session state without modifying the current path, removing any
-		 * dynamically created objects that do not appear in the new state.
+		 * Sets the session state of the object at the current path or relative to the current path.
+		 * Any existing dynamically created objects that do not appear in the new state will be removed.
 		 * Accepts an optional list of names relative to the current path.
 		 * The final parameter should be the session state.
 		 */
-		this.state = function(/*...names, state*/)
+		this.state = function(/*...relativePath, state*/)
 		{
 			var args = A(arguments, 2);
 			if (assertParams('state', args))
@@ -232,11 +232,12 @@ function(objectID)
 			return this;
 		};
 		/**
-		 * Applies a session state as a diff, keeping any dynamically created objects that do not appear in the new state.
+		 * Applies a session state diff to the object at the current path or relative to the current path.
+		 * Existing dynamically created objects that do not appear in the new state will remain unchanged.
 		 * Accepts an optional list of names relative to the current path.
 		 * The final parameter should be the session state diff.
 		 */
-		this.diff = function(/*...names, diff*/)
+		this.diff = function(/*...relativePath, diff*/)
 		{
 			var args = A(arguments, 2);
 			if (assertParams('diff', args))
