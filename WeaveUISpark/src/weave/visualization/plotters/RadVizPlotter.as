@@ -44,6 +44,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.DataSources.CSVDataSource;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.radviz.BruteForceLayoutAlgorithm;
@@ -526,6 +527,69 @@ package weave.visualization.plotters
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);
 			
 			RadVizUtils.reorderColumns(columns, array);
+		}
+		
+		[Bindable] public var listOfCsvData:Array = WeaveAPI.globalHashMap.getNames(CSVDataSource);
+		public var sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
+		public var dataSetName:LinkableString = registerLinkableChild(this, new LinkableString(listOfCsvData[0]));
+		public var enableRSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public var sampleSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
+		public function sampleDataSet():void
+		{
+			var originalCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.getObject(dataSetName.value) as CSVDataSource;
+			var randomIndex:int = 0; // random index to randomly pick a row.
+			var i:int; // used to iterate over the data.
+			var originalArray:Array = [];
+			var sampledArray:Array = [];
+			
+			if (!enableRSampling.value) //regular weave sampling
+			{
+				originalArray = originalCSVDataSource.getCSVData().slice(0); // slice to get a copy. otherwise we modify the original array.				
+				if (originalArray.length < sampleSize.value)
+				{
+					sampledArray = originalArray; // sample size is bigger than the data set.
+				}
+				else // sampling begins here
+				{
+					var titleRow:Array = originalArray.shift(); // throwing the column names first row.
+					i = sampleSize.value; // we need to reduce this number by one because the title row already accounts for a row
+					var length:int = originalArray.length;
+					while( i != 0 )
+					{
+						randomIndex = int(Math.random() * (length));
+						sampledArray.push(originalArray[randomIndex]);
+						originalArray.splice(randomIndex, 1);
+						length--;
+						i--;
+					}
+					sampledArray.unshift(titleRow); // we put the title row back here..
+					originalArray.splice(0); // we clear this array since we don't need it anymore.
+					// Sampling is done. we wrap it back into a CSVDataSource
+					// begin saving the CSVDataSource.
+					if (sampleTitle.value == "")
+					{
+						sampleTitle.value = "sampled" + WeaveAPI.globalHashMap.getName(originalCSVDataSource);
+					}
+					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
+					sampledCSVDataSource.setCSVData(sampledArray);
+					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;									
+				} 
+			}
+			else // Rsampling
+			{
+				// TODO
+				// R documentation says to pass it a vector (2 dimensional?)
+				// sample(x, size, replace = FALSE, prob = NULL)
+				//
+				// arguments
+				// x       Vector of one or more elements
+				// size    The sample size
+				// replace Should sampling be done with replacement
+				// prob    vector of probability weights (should be null for random sampling)
+			}
+
+			
+			
 		}
 		
 		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);

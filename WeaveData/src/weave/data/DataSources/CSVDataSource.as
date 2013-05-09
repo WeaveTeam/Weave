@@ -120,6 +120,11 @@ package weave.data.DataSources
 		{
 			csvData.setSessionState(rows);
 		}
+		
+		public function getCSVData():Array
+		{
+			return csvData.getSessionState() as Array;
+		}
 		/**
 		 * Convenience function for setting session state of csvData.
 		 * @param rows

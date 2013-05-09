@@ -371,6 +371,38 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								  creationComplete="linkBindableProperty(_target._plotter.iterations, event.target, 'text')"/>
 				</mx:HBox>
 			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox>
+				<mx:HBox>
+					<mx:CheckBox id="sampleCheckBox" label="Sample Data Set" labelPlacement="left" toolTip="Randomly sample the data set"/>
+					<mx:Label text="Sample name" />
+					<mx:TextInput id="sampleTitle" toolTip="This name will be used for the new sample source"
+								  creationComplete="linkBindableProperty(_target._plotter.sampleTitle, event.target, 'text')"/>
+				</mx:HBox>
+				<mx:HBox>					
+					<mx:Label text = "Sample Size" toolTip="Specify a sample size." />
+					<mx:TextInput id ="sampleSize" text="300" enabled="{sampleCheckBox.selected}"
+								  creationComplete="linkBindableProperty(_target._plotter.sampleSize, event.target, 'text')"/>
+					
+				</mx:HBox>
+				<mx:VBox>
+					<mx:HBox>
+						<mx:Label text="Source name" />
+						<mx:ComboBox id="csvDataComboBox" dataProvider="{_target._plotter.listOfCsvData}"
+									 enabled = "{sampleCheckBox.selected}"
+									 creationComplete="linkBindableProperty(_target._plotter.dataSetName, event.target, 'selectedItem')"/>
+					</mx:HBox>
+					
+					<mx:CheckBox label="Sample using R."
+								 id="enableRSamplingCheckbox"
+								 enabled = "{sampleCheckBox.selected}"
+								 toolTip="This option can be used if you have Rserve running"
+								 creationComplete="linkBindableProperty(_target._plotter.enableRSampling, event.target, 'selected')"/>
+					<mx:Button id= "sampleDataButton" label="Sample"
+							   enabled = "{sampleCheckBox.selected}"
+							   click="_target._plotter.sampleDataSet()"/>
+					</mx:VBox>
+				</mx:VBox>
 		</mx:VBox>
 	<mx:VBox id="cdlayout" label="CDLayout" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<mx:HBox>
