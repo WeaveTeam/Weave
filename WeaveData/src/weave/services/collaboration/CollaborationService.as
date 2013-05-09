@@ -89,6 +89,7 @@ package weave.services.collaboration
 		public var roomToJoin:String;
 		public var myRole:String;
 		public var room:Room;
+		public var hasControl:Boolean;
 		[Bindable] public var ping:Number;
 
 		public function CollaborationService( root:ILinkableObject )
@@ -96,7 +97,7 @@ package weave.services.collaboration
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, MicrophoneActivity, ProfilePicMessage, RequestProfilePic])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -194,7 +195,6 @@ package weave.services.collaboration
 		private function sendEncodedObject( message:Object, target:String ):void
 		{
 			if (!connectedToRoom) {
-				trace("Not connected");
 				return;
 //				throw new Error("Not connected");
 			}
@@ -209,25 +209,43 @@ package weave.services.collaboration
 			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
 			sendEncodedObject(message, null);
 		}
+		public function sendMicrophoneActivity( id:String, vol:int ):void
+		{
+			var message:MicrophoneActivity = new MicrophoneActivity(id, vol);
+			sendEncodedObject(message, null);
+		}
 		public function requestMouseMessage( id:String ):void
 		{
 			var message:RequestMouseMessage = new RequestMouseMessage(nickname);
 			sendEncodedObject(message, id);
 		}
-		public function requestAddonStatus( id:String, info:Dictionary = null ):void
+		public function requestProfilePic( id:String ):void
 		{
-			var message:AddonStatus = new AddonStatus(id, info);
+			var message:RequestProfilePic = new RequestProfilePic(nickname);
+			sendEncodedObject(message, id);
+		}
+		public function requestMouseControl(id:String):void
+		{
+			var message:RequestMouseControl = new RequestMouseControl(nickname);
+			sendEncodedObject(message, null);
+		}
+		public function relinquishMouseControl(id:String):void
+		{
+			var message:RelinquishMouseControl = new RelinquishMouseControl(nickname);
+			sendEncodedObject(message, null);
+		}
+		public function requestAddonStatus( id:String, info:Dictionary = null, mouseQueue:Array = null ):void
+		{
+			var message:AddonStatus = new AddonStatus(id, info, mouseQueue);
 			if( info == null )
 			{
 				var sendTo:String = userList[0];
 				if( sendTo == nickname )
 					sendTo = userList[1];
-				trace("sending request to", sendTo);
 				sendEncodedObject(message, sendTo);
 			} 
 			else
 			{
-				trace("sending addons to", id);
 				sendEncodedObject(message, id);
 			}
 		}
@@ -249,6 +267,11 @@ package weave.services.collaboration
 		{
 			var message:AddonsMessage = new AddonsMessage(id, type, toggle);
 			sendEncodedObject(message, null);
+		}
+		public function sendProfilePicLink( id:String, link:String, messageTo:String = null):void
+		{
+			var message:ProfilePicMessage = new ProfilePicMessage(id, link);
+			sendEncodedObject(message, messageTo);
 		}
 		//Handles Sending the entire session state. Should only be used if
 		//someone needs a hard reset, or joining the collaboration server
@@ -341,6 +364,7 @@ package weave.services.collaboration
 				else if (log.length > 0)
 				{
 					var entry:Object = log[log.length - 1];
+					//if( hasControl )
 					sendSessionStateDiff( entry.id, entry.forward );
 				}
 			}
@@ -465,6 +489,22 @@ package weave.services.collaboration
 					if( rmm.id != nickname ) 
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
 				}
+				else if( o is RequestProfilePic )
+				{
+					var rpp:RequestProfilePic = o as RequestProfilePic;
+					if( rpp.id != nickname ) 
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_PROFILE_PIC_LINK, rpp.id));
+				}
+				else if( o is RequestMouseControl )
+				{
+					var rmc:RequestMouseControl = o as RequestMouseControl;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.REQUEST_MOUSE_CONTROL, rmc.id));	
+				}
+				else if( o is RelinquishMouseControl )
+				{
+					var rlmc:RelinquishMouseControl = o as RelinquishMouseControl;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, rlmc.id));
+				}
 				else if( o is MouseMessage )
 				{
 					var mm:MouseMessage = o as MouseMessage;
@@ -492,19 +532,28 @@ package weave.services.collaboration
 					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
+				else if( o is ProfilePicMessage )
+				{
+					var ppm:ProfilePicMessage = o as ProfilePicMessage;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_USER_PROFILE_PIC, ppm.link, 0, 0, 0, ppm.id));
+				}
 				else if( o is AddonStatus )
 				{
 					var status:AddonStatus = o as AddonStatus;
 					if( status.info == null )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_USERLIST, status.id));
 					else
-						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info));
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info, status.queueArray));
+				}
+				else if( o is MicrophoneActivity )
+				{
+					var ma:MicrophoneActivity = o as MicrophoneActivity;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.MICROPHONE_ACTIVITY, ma.id, 0, ma.volume));
 				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
 //					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
-					trace(nickname,"Unknown type");
 				}
 			}
 			
@@ -702,6 +751,33 @@ internal class RequestMouseMessage
 	
 	public var id:String;
 }
+internal class RequestProfilePic
+{
+	public function RequestProfilePic(id:String = null)
+	{
+		this.id = id;
+	}
+	
+	public var id:String;
+}
+internal class RequestMouseControl
+{
+	public function RequestMouseControl(id:String = null)
+	{
+		this.id = id;
+	}
+	
+	public var id:String;
+}
+internal class RelinquishMouseControl
+{
+	public function RelinquishMouseControl(id:String = null)
+	{
+		this.id = id;
+	}
+	
+	public var id:String;
+}
 internal class Ping
 {
 	public function Ping(id:String = null, sendToRoom:Boolean = false, ping:Number = 0)
@@ -730,13 +806,35 @@ internal class AddonsMessage
 	public var type:String;
 	public var toggle:Boolean;
 }
+internal class ProfilePicMessage
+{
+	public function ProfilePicMessage(id:String = null, link:String = null)
+	{
+		this.id = id;
+		this.link = link;
+	}
+	public var id:String;
+	public var link:String;
+}
 internal class AddonStatus
 {
-	public function AddonStatus(id:String = null, info:Dictionary = null)
+	public function AddonStatus(id:String = null, info:Dictionary = null, queueArray:Array = null)
 	{
 		this.id = id;
 		this.info = info;
+		this.queueArray = queueArray;
 	}
 	public var id:String;
 	public var info:Dictionary;
+	public var queueArray:Array;
+}
+internal class MicrophoneActivity
+{
+	public function MicrophoneActivity(id:String = null, volume:int = 0)
+	{
+		this.id = id;
+		this.volume = volume;
+	}
+	public var id:String;
+	public var volume:int;
 }

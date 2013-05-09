@@ -1,23 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
-		   creationPolicy="all" creationComplete="creationCompleteHandler(event)"
-		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
-	<mx:VBox width="100%" height="100%" verticalGap="3" 
-			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
-		<mx:Canvas id="borderCanvas" borderColor="0x54585E" borderThickness="{_borderThickness}" borderStyle="solid" >
-			<mx:UIComponent id="holder" width="100%" height="100%" />
+<!--
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*"
+		 creationComplete="creationCompleteHandler(event)" creationPolicy="all"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalGap="3"
+			 verticalScrollPolicy="off">
+		<mx:Canvas id="borderCanvas" borderColor="0x54585E" borderStyle="solid"
+				   borderThickness="{_borderThickness}">
+			<mx:UIComponent id="holder" width="100%" height="100%"/>
 		</mx:Canvas>
 		<ui:Center>
-			<mx:Label id="nameLabel" text="{nickname}" />
+			<mx:Label id="nameLabel" text="{nickname}"/>
 		</ui:Center>
 	</mx:VBox>
 	
-	<mx:Move id="moveEffect" duration="600" />
+	<mx:Move id="moveEffect" duration="600"/>
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
-			
 			
 			public var stream:NetStream;
 			public var video:Video;
