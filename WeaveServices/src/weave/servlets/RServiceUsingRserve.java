@@ -212,21 +212,14 @@ public class RServiceUsingRserve
 			}			
 		}
 		
+		//To do find a better way of doing this
+//		if(evalValue.isList())
+//		{
+//			Vector<String> names = evalValue.asList().names;
+//			resultVector.add(new RResult("columnNames" ,names ));
+//			resultVector.add(new RResult("columnValues" ,rexp2javaObj(evalValue) ));		
+//		}
 		
-		if(evalValue.isList())
-		{
-			Vector<String> names = evalValue.asList().names;
-			resultVector.add(new RResult("columnNames" ,names ));
-			resultVector.add(new RResult("columnValues" ,rexp2javaObj(evalValue) ));
-//			for(int k= 0; k < names.capacity(); k++)
-//			{
-//				Object dd = evalValue.asList().get(k);
-//				resultVector.add(new RResult(names.get(k), dd ));
-//			}
-		}
-		
-		//Object[] finalResult  = {evalValue, names};
-		//return evalValue;
 	}
 	
 	

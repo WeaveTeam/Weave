@@ -233,21 +233,21 @@
 				<mx:VBox id="archDemo" label="Demo">
 					<mx:HBox paddingRight="5" paddingLeft="5" width="100%">
 						<mx:Label text="Select dataset to use "/>
-						<mx:ComboBox id="datasetChoice" dataProvider="{datasetCollection}"/>
+						<mx:ComboBox id="datasetChoice" dataProvider="{datasetCollection}" change="updateQueryObjectString(event)"/>
 					</mx:HBox>
 					
 					<mx:HBox paddingLeft="5" paddingRight="5" width="100%">
 						<mx:Label text="Select R script(s) to use"/>
-						<mx:ComboBox id="scriptChoices" dataProvider="{scriptCollection}"/>
+						<mx:ComboBox id="scriptChoices" dataProvider="{scriptCollection}" change="updateQueryObjectString(event)"/>
 					</mx:HBox>
 					
-					<mx:CheckBox  paddingLeft ="5" paddingRight="5" id="csvCB" label="Import from CSV"/>
+					<mx:CheckBox  paddingLeft ="5" paddingRight="5" id="csvCB" label="Import from CSV" click="updateQueryObjectString(event)"/>
 					
 					<mx:VBox paddingLeft="5" paddingRight="5" width="100%">
-						<mx:CheckBox id="sqlCB" label="Import from mySQL database" change="sqlCB_changeHandler(event)"/>
+						<mx:CheckBox id="sqlCB" label="Import from mySQL database" click="sqlCB_changeHandler(event)"/>
 						<mx:HBox>
 							<mx:Label id="schemaLabel" text="Select database schema" enabled="false"/>
-							<mx:ComboBox id="schemaCB" dataProvider="{schemaChoices}" enabled="false"/>
+							<mx:ComboBox id="schemaCB" dataProvider="{schemaChoices}" enabled="false" change="updateQueryObjectString(event)"/>
 						</mx:HBox>
 						<mx:Label id="paramLabel" text="Type in parameter names separated by commas" enabled="false"/>
 						<mx:TextArea id="paramInputTA" width="100%" enabled="false"/>
@@ -257,6 +257,10 @@
 						<mx:Spacer width="80%"/>
 						<mx:Button id="servercall" label="Execute" click="servercall_clickHandler(event)"/>
 					</mx:HBox>
+				</mx:VBox>
+				
+				<mx:VBox id="queryObjectDisplay" label="Query Object">
+					<mx:TextArea id="queryObjectTA" width="100%" height="100%"/>
 				</mx:VBox>
 				
 			</mx:TabNavigator>
@@ -323,6 +327,7 @@
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.CSVColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.DataSources.CSVDataSource;
@@ -363,6 +368,8 @@
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public var resultString:String = "";//this is the result of every script returned from R
 			public var numberOfRCalls:int = 0;
+			
+			public const queryObjectDisplayString:LinkableString = newLinkableChild(this, LinkableString);
 			
 			public var columnNames:Array = new Array();
 			public var inputNames:Array = new Array();
@@ -413,6 +420,8 @@
 				super.childrenCreated();
 				linkBindableProperty(RScriptTAtext,RScriptTA,"text");
 				linkBindableProperty(RPlotscriptTALinkabletext,RPlotscriptTA,"text");
+				//move to a separate class
+				linkBindableProperty(queryObjectDisplayString,queryObjectTA,"text");
 				
 				variables.addImmediateCallback(this, normaBinAndStatR, true);
 			}
@@ -862,7 +871,7 @@
 				}
 			}
 			
-			
+			//-------------TO DO move to a separate class--------------------------------------------------------------------------------		
 			// TODO move to a separate class 
 			private var queryObject:Array = new Array();
 			
@@ -893,6 +902,7 @@
 			// TODO move to a separate class
 			protected function handleServerResults(event:ResultEvent, token:Object = null):void
 			{
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "Results returned from R\n\n";
 				var Robj:Array = event.result as Array;
 				trace('Robj:',ObjectUtil.toString(Robj));
 				if (Robj == null)
@@ -945,17 +955,16 @@
 						
 				}		
 				
-				
-				/* Creating columns 
-				//hard coded for now TO DO provide access with UI	*/
-				
-				var colorColumnFromR:NumberColumn = ResultUtils.resultAsNumberColumn(keys,filling[0],"PercentObese2002");
-				var xColumnFromR:NumberColumn = ResultUtils.resultAsNumberColumn(keys,filling[1],"PercentObese2002");
-				var yColumnFromR:NumberColumn = ResultUtils.resultAsNumberColumn(keys,filling[0],"PercentObese2004");
-			
 				/**
 				 * Creating  new CSVDatasource
 				 **/
+				/* This is the final array added as a CSVDataSource having structure
+				[
+				["k","x","y","z"]
+				["k1",1,2,3]
+				["k2",3,4,6]
+				["k3",2,4,56]
+				] */
 				
 				//Give it a unique name incase we need to store the columns from multiple imputations
 				var name:String = Weave.root.generateUniqueName("ReturnedColumns");
@@ -964,32 +973,28 @@
 				//imputedCsvDataSource.keyType.value = (keys[0] as IQualifiedKey).keyType;
 				serverResultsCsvDataSource.keyColName.value = "keys";
 				
-				automateVisualizations(colorColumnFromR, xColumnFromR, yColumnFromR);
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "Columns returned from R\n\n";
+				
+				automateVisualizations(serverResultsCsvDataSource);
+				
 			}
 			
-			//TO DO move to a separate class
-			private function automateVisualizations(colorColumnFromR:IAttributeColumn, xColumnFromR:IAttributeColumn, yColumnFromR:IAttributeColumn):void
+
+			private function automateVisualizations(serverResultsCsvDataSource:CSVDataSource):void
 			{
 				//create the tool
 				//hard coded for now TO DO provide access with UI	
 				var automaticScatterPlot:ScatterPlotTool = new ScatterPlotTool();
 				var attributes:Array = automaticScatterPlot.getSelectableAttributes();
 				
-				var col1:IAttributeColumn = attributes[0] as IAttributeColumn;
-				col1 = xColumnFromR;
-				var col2:IAttributeColumn = attributes[1] as IAttributeColumn
-				col2 = yColumnFromR;
-				var col3:IAttributeColumn = attributes[2] as IAttributeColumn 
-				col3 = colorColumnFromR;
+				serverResultsCsvDataSource.putColumn("State", attributes[0] as DynamicColumn);
+				serverResultsCsvDataSource.putColumn("prev.percent", attributes[1] as DynamicColumn);
+				serverResultsCsvDataSource.putColumn("response", attributes[2] as DynamicColumn);
+				
 				
 				FlexGlobals.topLevelApplication.visDesktop.addChild(automaticScatterPlot);
-				
-				/* automaticScatterPlot.plotter.dataX = xColumnFromR;
-				automaticScatterPlot.plotter.dataY = yColumnFromR;
-			    automaticScatterPlot.colorColumn = colorColumnFromR; */
-				//set the color column
-				//add this tool on the viz desktop
-				
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "ScatterPlot Tool added\n\n";
+							
 			}
 			
 			protected function sqlCB_changeHandler(event:Event):void
@@ -1000,6 +1005,41 @@
 					schemaLabel.enabled = true;
 					paramInputTA.enabled = true;
 					paramLabel.enabled = true;
+				}
+				else
+				{
+					schemaCB.enabled = false;
+					schemaLabel.enabled = false;
+					paramInputTA.enabled = false;
+					paramLabel.enabled = false;
+				}
+				updateQueryObjectString(event);
+				
+			}
+			
+			protected function updateQueryObjectString(event:Event):void
+			{
+				if(event.target == datasetChoice)
+					queryObjectDisplayString.value = queryObjectDisplayString.value + "Data Set selected : " + datasetChoice.selectedLabel+ "\n\n";
+				if(event.target == scriptChoices)
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "R routine selected : "+ scriptChoices.selectedLabel + "\n\n";
+				if(event.target == schemaCB)
+					queryObjectDisplayString.value = queryObjectDisplayString.value + "Database schema selected : " + schemaCB.selectedLabel + "\n\n";
+				if(event.target == csvCB)
+				{
+					if(csvCB.selected)
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing CSV selected\n\n";
+					else
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing CSV unselected\n\n"
+					
+				}
+				
+				if(event.target == sqlCB)
+				{
+					if(sqlCB.selected)
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing from SQL table selected\n\n";
+					else
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing from SQL table unselected\n\n";
 				}
 				
 			}
