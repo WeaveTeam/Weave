@@ -65,7 +65,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
 			<ui:HelpComponent>
-				The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
+				The table is currently hiding some of the records, as the amount has exceeded the tables capability for dealing with it efficiently.
 			</ui:HelpComponent>
 		</mx:HBox>
 		
@@ -94,6 +94,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.ResizeEvent;
+			import mx.events.ListEvent;
+
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -153,6 +155,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;
+
 			private var colorColumn:ColorColumn = Weave.defaultColorColumn;
 			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
@@ -181,10 +185,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 				_selection.addImmediateCallback(this,invalidateDisplayList);
+				_probe.addImmediateCallback(this,invalidateDisplayList);
 				colorColumn.addImmediateCallback(this,invalidateDisplayList);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);				
 			}
-			
 			
 			override protected function childrenCreated():void
 			{
@@ -197,6 +201,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
 				
+				dataGrid.addEventListener(ListEvent.ITEM_ROLL_OVER, handleRollOver);
+				//dataGrid.addEventListener(ListEvent.ITEM_ROLL_OUT, handleRollOut);
+
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
@@ -206,6 +213,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 				
 			}
+
+
 			
 			/**
 			 * This function(event ListeSner) gets called during dataGrid Resize event
@@ -230,6 +239,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					dataGrid.headerHeight = 50;
 				}
+
+			}
+			private function handleRollOver(event:ListEvent):void // Probe
+			{
+				var index:int = event.rowIndex;
+				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
+				var key:IQualifiedKey = obj as IQualifiedKey;
+				weaveTrace(event);
+				_probe.replaceKeys([key]);
+			}
+			private function handleRollOut(event:ListEvent):void // Unprobe
+			{
+				var index:int = event.rowIndex;
+				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
+				var key:IQualifiedKey =  obj as IQualifiedKey;
+				weaveTrace(event);
+				if (_probe.containsKey(key))
+					_probe.clearKeys();
 
 			}
 			
@@ -281,6 +308,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (detectLinkableObjectChange(updateDisplayList, _selection))
 				{
 					updateGlobalSelectionChange();				
+				}
+
+				if (detectLinkableObjectChange(updateDisplayList, _probe))
+				{
+					updateGlobalProbeChange();
 				}
 				
 				if (detectLinkableObjectChange(updateDisplayList, colorColumn))
@@ -447,7 +479,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (changeDetected)
 					dataGrid.selectedItems = selectedItems;				
 			}
-			
+
+			private function updateGlobalProbeChange():void
+			{
+				
+				if (!parent)
+				{
+					callLater(updateGlobalProbeChange);
+					return;
+				}
+				if (_probe.keys.length > 0)
+				{
+					dataGrid.drawItemForced(_probe.keys[0], false, true);
+				}
+				return;
+			}
 			
 			/**
 			 * Default Filter function set for Datgrid by setting its filter properties

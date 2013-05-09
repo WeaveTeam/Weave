@@ -46,7 +46,6 @@
 				 var weave = weaveID ? document.getElementById(weaveID) : document;\
 				 if (weave.cytoscape == undefined) weave.cytoscape = {};\
 				 weave.cytoscape[toolname] = window.open(url, toolname);\
-				 weave.cytoscape[toolname].weave = weave;\
 				  }", 
 					ExternalInterface.objectID, _toolName, "cytoscapeweb/popout.html", _toolName);
 			}
@@ -55,8 +54,10 @@
 				ExternalInterface.call(
 					"function (weaveID, toolname, network) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
-						weave.cytoscape[toolname].draw(network);\
+						weave.cytoscape[toolname].weave = weave;\
+						weave.cytoscape[toolname].WeaveArray = Array;\
 						weave.cytoscape[toolname].network = network;\
+						weave.cytoscape[toolname].draw(network);\
 						}",
 						ExternalInterface.objectID, _toolName, _primitive_network);
 			}

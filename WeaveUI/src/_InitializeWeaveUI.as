@@ -83,6 +83,7 @@ package
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
+	import weave.visualization.tools.CytoscapeWebTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -132,6 +133,7 @@ package
 				CompoundRadVizTool,
 				CustomTool,
 				CustomGraphicsTool,
+				CytoscapeWebTool,
 				SchafersMissingDataTool,
 				DataFilter,
 				DataTableTool,
