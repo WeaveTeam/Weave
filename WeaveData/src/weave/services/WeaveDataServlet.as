@@ -199,14 +199,14 @@ internal class WeaveGeometryTileServlet implements IWeaveGeometryTileService
 	public function getMetadataTiles(tileIDs:Array):AsyncToken
 	{
 		var token:AsyncToken = _service.getGeometryStreamMetadataTiles(_columnId, tileIDs);
-		WeaveAPI.SessionManager.assignBusyTask(token, this);
+		WeaveAPI.ProgressIndicator.addTask(token, this);
 		return token;
 	}
 	
 	public function getGeometryTiles(tileIDs:Array):AsyncToken
 	{
 		var token:AsyncToken = _service.getGeometryStreamGeometryTiles(_columnId, tileIDs);
-		WeaveAPI.SessionManager.assignBusyTask(token, this);
+		WeaveAPI.ProgressIndicator.addTask(token, this);
 		return token;
 	}
 }

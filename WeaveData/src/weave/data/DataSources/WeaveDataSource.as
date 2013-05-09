@@ -453,7 +453,7 @@ package weave.data.DataSources
 				query = dataService.getColumnFromMetadata(params);
 			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
-			WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
+			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
 		}
 		
 		private function handleGetAttributeColumnFault(event:FaultEvent, request:ColumnRequestToken):void

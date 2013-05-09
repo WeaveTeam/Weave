@@ -268,9 +268,7 @@ internal class CustomURLLoader extends URLLoader
 			}
 			
 			// keep track of pending requests
-			WeaveAPI.ProgressIndicator.addTask(this);
-			if (relevantContext is ILinkableObject)
-				WeaveAPI.SessionManager.assignBusyTask(this, relevantContext as ILinkableObject);
+			WeaveAPI.ProgressIndicator.addTask(this, relevantContext as ILinkableObject);
 			addResponder(new AsyncResponder(removeTask, removeTask));
 			
 			// set up event listeners
