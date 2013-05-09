@@ -309,11 +309,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					updateGlobalSelectionChange();				
 				}
-
-				if (detectLinkableObjectChange(updateDisplayList, _probe))
-				{
-					updateGlobalProbeChange();
-				}
 				
 				if (detectLinkableObjectChange(updateDisplayList, colorColumn))
 				{
@@ -331,6 +326,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
 				}
+
+				callLater(updateGlobalProbeChange);
 			}
 			
 			
