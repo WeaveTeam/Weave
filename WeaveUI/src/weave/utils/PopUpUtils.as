@@ -112,9 +112,13 @@ package weave.utils
 				if (tip && component.parent)
 				{
 					var coords:Point = component.localToGlobal(new Point(0, component.height));
-					tip.x = coords.x;
+					tip.x = Math.max(0, coords.x);
+					tip.y = Math.max(0, coords.y);
 					if (component.stage)
-						tip.y = Math.min(coords.y, component.stage.stageHeight - tip.height);
+					{
+						tip.x = Math.min(tip.x, component.stage.stageWidth - tip.width);
+						tip.y = Math.min(tip.y, component.stage.stageHeight - tip.height);
+					}
 					PopUpManager.bringToFront(tip);
 				}
 				else

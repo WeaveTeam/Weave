@@ -103,6 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.core.IChildListCallbackInterface;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
@@ -282,8 +283,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				// update the list of tools
 				targetToolCombo.dataProvider = Weave.root.getNames(SimpleVisTool);
-				// after we set the data provider, we have to make sure the correct item is selected
-				handleTargetToolChange();
+				// make sure the correct item is selected
+				targetToolCombo.selectedItem = targetTool.value;
+				var clc:IChildListCallbackInterface = Weave.root.childListCallbacks;
+				if (clc.lastNameAdded == targetTool.value || clc.lastNameRemoved == targetTool.value)
+					handleTargetToolChange();
 			}
 			
 			// called when the target tool changes

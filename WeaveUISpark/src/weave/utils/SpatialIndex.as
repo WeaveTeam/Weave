@@ -204,7 +204,7 @@ package weave.utils
 				{
 					//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
 					// begin outer loop iteration
-					_boundsArray = getBoundsFromKey(key);
+					_boundsArray = _keyToBoundsMap[key];
 					
 					if (!_boundsArray)
 						continue;
@@ -386,7 +386,7 @@ package weave.utils
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
 						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, dataBounds);
 						
-						if (/*simplifiedGeom.length == 0 && */genGeom.bounds.overlaps(queryBounds))
+						if (simplifiedGeom.length == 0 && genGeom.bounds.overlaps(queryBounds))
 						{
 							result.push(key);
 							continue;
@@ -749,8 +749,7 @@ package weave.utils
 			var queryGeomVertices:Array = geometry.getVertices();
 			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
-			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
-				return keys;
+			var geomEnabled:Boolean = _keyToGeometriesMap && Weave.properties.enableGeometryProbing.value;
 			
 			var result:Array = [];
 			
@@ -758,11 +757,11 @@ package weave.utils
 			keyLoop: for (var i:int = keys.length; i--;)
 			{
 				var key:IQualifiedKey = keys[i];
-				var geoms:Array = _keyToGeometriesMap[key];
 				
-				if (!geom || geoms.length == 0)
+				var geoms:Array = geomEnabled ? _keyToGeometriesMap[key] : null;
+				if (!geoms || geoms.length == 0)
 				{
-					var keyBounds:Array = getBoundsFromKey(key);
+					var keyBounds:Array = _keyToBoundsMap[key];
 					for (var j:int = 0; j < keyBounds.length; j++)
 					{
 						setTempBounds(keyBounds[j]);

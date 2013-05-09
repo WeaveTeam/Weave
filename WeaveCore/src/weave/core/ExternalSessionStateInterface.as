@@ -113,16 +113,9 @@ package weave.core
 				{
 					var value:Object = state[name];
 					if (value is XML)
-					{
 						state[name] = (value as XML).toXMLString();
-					}
-					else if (value != null)
-					{
-						if (value.hasOwnProperty(LinkableXML.XML_STRING))
-							state[name] = value[LinkableXML.XML_STRING];
-						else
-							convertSessionStateToPrimitives(value);
-					}
+					else
+						convertSessionStateToPrimitives(value);
 				}
 			}
 		}
@@ -146,11 +139,14 @@ package weave.core
 		/**
 		 * This function will get the qualified class name of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return The qualified class name of the object referred to by objectPath.
+		 * @return The qualified class name of the object referred to by objectPath, or null if there is no object.
 		 */
 		public function getObjectType(objectPath:Array):String
 		{
-			return getQualifiedClassName(getObject(objectPath));
+			var object:ILinkableObject = getObject(objectPath);
+			if (object == null)
+				return null;
+			return getQualifiedClassName(object);
 		}
 		
 		/**
@@ -199,6 +195,9 @@ package weave.core
 		 */
 		public function requestObject(objectPath:Array, objectType:String):Boolean
 		{
+			if (!objectPath || !objectPath.length)
+				return false;
+			objectPath = objectPath.concat();
 			var childName:String = objectPath.pop();
 			var parent:ILinkableObject = getObject(objectPath);
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -225,6 +224,7 @@ package weave.core
 		{
 			if (!objectPath || !objectPath.length)
 				return false;
+			objectPath = objectPath.concat();
 			var childName:String = objectPath.pop();
 			var object:ILinkableObject = getObject(objectPath);
 			var hashMap:ILinkableHashMap = object as ILinkableHashMap;

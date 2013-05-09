@@ -127,6 +127,7 @@ A text editor to change the Session State on the fly.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.DebugUtils;
+			import weave.utils.Identify;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 
@@ -800,7 +801,7 @@ A text editor to change the Session State on the fly.
 						console = ErrorLogPanel.getInstance().console;
 						
 						if (parent)
-							console.identify();
+							Identify.identify();
 					}
 					else
 					{

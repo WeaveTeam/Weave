@@ -462,8 +462,17 @@
 			private function updateOverviewWindow():void
 			{				
 				if (enableOverview.value)
-				{					
+				{
 					overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME, MapOverviewWindow, false); //not locked because it should be removable
+					// catercorner to the mapControls 
+					if (mapControls.top == 0)
+						overviewPanel.panelY.value = "75%";
+					if (mapControls.left == 0)
+						overviewPanel.panelX.value = "75%";
+					if (mapControls.bottom == 0)
+						overviewPanel.panelY.value = "0%";
+					if (mapControls.right == 0)
+						overviewPanel.panelX.value = "0%";
 
 					// remove overview window from parent's session state
 					(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(children, overviewPanel);

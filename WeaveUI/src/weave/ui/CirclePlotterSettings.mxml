@@ -54,7 +54,7 @@
 			
 			override protected function childrenCreated():void
 			{
-				
+				this.enableMoveResize.value = true;
 			}
 			
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;

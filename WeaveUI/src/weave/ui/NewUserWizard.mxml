@@ -208,6 +208,7 @@
 			private var delimiters:Object = new Object();
 			
 			private var _uniqueNameForDataSource:String="";
+			private var _tempArray:Array = [];
 			override public function next():void
 			{
 				super.next();
@@ -221,8 +222,8 @@
 						delimiterBox.visible = true;
 						var delimiter:Object = getDelimiterObject(dataString);
 						delimiterSelector.selectedItem = delimiter.name;
-						var tempArray:Array = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
-						updateCSVDataStringFromArray(tempArray);
+						_tempArray = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
+						updateCSVDataStringFromArray(_tempArray);
 						_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
 						keyTypeSelector.addKeyTypeToMenu(_uniqueNameForDataSource);
 					}
@@ -236,7 +237,7 @@
 						if(csvDataString == "")
 							return;
 						var csvDataSource:CSVDataSource = Weave.root.requestObject(_uniqueNameForDataSource,CSVDataSource, false);
-						csvDataSource.setCSVDataString(csvDataString);
+						csvDataSource.setCSVData(_tempArray);
 						if(keyTypeSelector.selectedItem)
 							csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 						else
@@ -355,8 +356,8 @@
 					{
 						dataByteArray = _fileLoader.data;
 						delimiterBox.visible = false;
-						var tempArray:Array = WeaveAPI.CSVParser.parseCSV(dataByteArray.toString());
-						updateCSVDataStringFromArray(tempArray);						
+						_tempArray= WeaveAPI.CSVParser.parseCSV(dataByteArray.toString());
+						updateCSVDataStringFromArray(_tempArray);						
 						
 					}else if(_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition ){
 						
@@ -399,7 +400,7 @@
 						
 						if(lastRowEmpty)
 							xlsDataArray.pop();
-						
+						_tempArray = xlsDataArray;
 						updateCSVDataStringFromArray(xlsDataArray);
 					}else if(_fileLoader.name.search(".txt") == extensionPosition || _fileLoader.name.search(".TXT") == extensionPosition ){
 						
@@ -409,10 +410,12 @@
 						var delimiter:Object = getDelimiterObject(fileDataString);
 						delimiterSelector.selectedItem = delimiter.name;
 						var fileDataArray:Array = new CSVParser(false, delimiter.string).parseCSV(fileDataString);
+						_tempArray = fileDataArray;
 						updateCSVDataStringFromArray(fileDataArray);
 					}
 					keyColumnSelector.dataProvider = uniqueColumns;
 					uploadMessage.text = lang("Loaded!");
+					_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
 					this.next();
 				}
 					catch(e:Error){
@@ -510,8 +513,9 @@
 				}
 				
 				var dataString:String = _fileLoader ? _fileLoader.data.toString() : dataTextArea.text;
-				var tempArray:Array = new CSVParser(false, appliedDemiliter.string).parseCSV(dataString);
-				updateCSVDataStringFromArray(tempArray);
+				_tempArray= new CSVParser(false, appliedDemiliter.string).parseCSV(dataString);
+				
+				updateCSVDataStringFromArray(_tempArray);
 			}
 			
 			private function updateCSVDataStringFromArray(csvDataArray:Array):void
