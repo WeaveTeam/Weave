@@ -37,6 +37,7 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.linkableObjectIsBusy;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -140,6 +141,8 @@ package weave.visualization.plotters
 		
 		private function handleColumnsChange():void
 		{
+			if (linkableObjectIsBusy(columns) || linkableObjectIsBusy(spatialCallbacks))
+				return;
 			var i:int = 0;
 			var keyNormArray:Array;
 			var columnNormArray:Array;
