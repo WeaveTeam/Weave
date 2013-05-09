@@ -368,8 +368,8 @@
 					{
 						if (regressionPlotter.currentTrendline.value == "Linear")
 						{	
-							var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
+							var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
+							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
 							lineEquation.text = lang("y = {0}x + {1}", slope, intercept);					
 						}
 					
@@ -385,30 +385,30 @@
 								roundedCoefficients.push(StandardLib.roundSignificant(rawCoefficients[i], 4));
 							}
 						
-							for (i = 0; i < roundedCoefficients.length - 1; i++ )
+							for (i = roundedCoefficients.length - 1; i >  0; i-- )
 							{
-								lineEquation.text += lang("{0}x^{1} + ", roundedCoefficients[0], roundedCoefficients.length - i - 1); 
+								lineEquation.text += lang("{0}x^{1} + ", roundedCoefficients[i], i); 
 							}
 							
-							lineEquation.text += lang("{0}", roundedCoefficients[roundedCoefficients.length - 1]);
+							lineEquation.text += lang("{0}", roundedCoefficients[0]);
 							
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Exponential")
 						{
 							var base:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							var exponent:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4);
+							var exponent:Number = Math.exp(StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4));
 							lineEquation.text = lang("y = {0}e^{1}x", base, exponent);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Power")
 						{
 							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4);
+							exponent = Math.exp(StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4));
 							lineEquation.text = lang("y = {0}x^{1}", base, exponent);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
 						{
-							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4);
+							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
+							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0],4);
 							lineEquation.text = lang("y = {0}ln(x)+{1}", base, exponent);
 						}
 					}
@@ -422,7 +422,7 @@
 				equationText.text = lineEquation.text;
 				equationText.validateNow();
 				// severely hacked This needs to be fixed.
-				equationText.width = visualization.plotManager.marginLeftNumber.value * 4;
+				equationText.width = visualization.plotManager.marginLeftNumber.value * 8;
 				equationText.height = Math.min(equationText.textHeight + 14, visualization.plotManager.marginBottomNumber.value);
 			}
 			private function updateAxisLabels():void

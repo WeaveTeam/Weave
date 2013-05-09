@@ -569,9 +569,9 @@ package weave.visualization.plotters
 					originalArray.splice(0); // we clear this array since we don't need it anymore.
 					// Sampling is done. we wrap it back into a CSVDataSource
 					// begin saving the CSVDataSource.
-					if (sampleTitle.value == "")
+					if (sampleTitle.value == "" || sampleTitle.value == "optional")
 					{
-						sampleTitle.value = "sampled" + WeaveAPI.globalHashMap.getName(originalCSVDataSource);
+						sampleTitle.value = "Sampled" + WeaveAPI.globalHashMap.getName(originalCSVDataSource);
 					}
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
