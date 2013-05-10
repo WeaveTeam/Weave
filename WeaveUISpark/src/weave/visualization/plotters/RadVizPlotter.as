@@ -532,7 +532,7 @@ package weave.visualization.plotters
 		}
 		
 		[Bindable] public var listOfCsvData:Array = WeaveAPI.globalHashMap.getNames(CSVDataSource);
-		public var sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString("optional"));
+		public var sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
 		public var dataSetName:LinkableString = registerLinkableChild(this, new LinkableString(listOfCsvData[0]));
 		public var enableRSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public var sampleSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
