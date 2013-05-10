@@ -601,7 +601,7 @@ package weave.visualization.plotters
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
 					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
-					sampleTitle.value = "optional";
+					sampleTitle.value = "";
 				} 
 			}
 			else // Rsampling

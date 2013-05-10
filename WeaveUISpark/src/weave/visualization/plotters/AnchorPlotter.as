@@ -45,6 +45,8 @@ package weave.visualization.plotters
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
+	import weave.visualization.plotters.styles.SolidFillStyle;
+	import weave.visualization.plotters.styles.SolidLineStyle;
 
 	/**
 	 * AnchorPlotter
@@ -98,6 +100,11 @@ package weave.visualization.plotters
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		private const _currentDataBounds:Bounds2D = new Bounds2D();
 		
+		public const circleLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
+		public const anchorLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
+		public const anchorFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
+		public var anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		
 		public function handleAnchorsChange():void
 		{
 			var keys:Array = anchors.getNames(AnchorPoint);
@@ -135,11 +142,13 @@ package weave.visualization.plotters
 
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
-						
-			graphics.lineStyle(1);
-
+									
+			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
+				anchorLineStyle.beginLineStyle(null, graphics);
+				anchorFillStyle.beginFillStyle(null, graphics);
+
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
 				if(anchorThreshold)
 				{
@@ -165,7 +174,7 @@ package weave.visualization.plotters
 					graphics.beginFill(anchorColorMap[key.localName]);		
 				//color the dimensional anchors according to the class hey belong to
 				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
-				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
+				graphics.drawCircle(tempPoint.x, tempPoint.y, anchorRadius.value);				
 				graphics.endFill();
 				
 				
@@ -240,7 +249,7 @@ package weave.visualization.plotters
 			
 			// draw RadViz circle
 			try {
-				g.lineStyle(2, 0, .2);
+				circleLineStyle.beginLineStyle(null,g);
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
 			
@@ -286,8 +295,8 @@ package weave.visualization.plotters
 				nextClassAnchor.y = Math.sin(nextClassPos);
 				dataBounds.projectPointTo(nextClassAnchor, screenBounds);
 				
-				graphics.lineStyle(1, 0x00ff00);
-				graphics.lineStyle(0.8,Math.random() * uint.MAX_VALUE);
+				graphics.lineStyle(3, 0x00ff00);
+				graphics.lineStyle(2,Math.random() * uint.MAX_VALUE);
 				classIncrementor ++;
 				graphics.moveTo(previousClassAnchor.x, previousClassAnchor.y);
 				graphics.lineTo(centre.x, centre.y);
