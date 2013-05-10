@@ -95,9 +95,5 @@ package weave.radviz
 			// empty
 		}
 		
-		public function performCDLayout(finalClasse:Dictionary):void
-		{
-			//empty
-		}
 	}
 }
