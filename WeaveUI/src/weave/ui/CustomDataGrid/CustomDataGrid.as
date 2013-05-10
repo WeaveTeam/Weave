@@ -42,7 +42,6 @@ package weave.ui.CustomDataGrid
 	 */	
 	public class CustomDataGrid extends DataGrid
 	{
-		
 		public function CustomDataGrid()
 		{
 			headerClass = CustomDataGridHeader;
@@ -74,19 +73,13 @@ package weave.ui.CustomDataGrid
 			collection.refresh();
 		}
 		
-		public function setHighlightUID(value:String):void
-		{
-			highlightUID = value;
-		}
 		public function drawItemForced(item:Object,
  										selected:Boolean = false,
  										highlighted:Boolean = false,
  										caret:Boolean = false,
  										transition:Boolean = false):void
 		{
-			var uid:String = UIDUtil.getUID(item);
 			var renderer:IListItemRenderer = itemToItemRenderer(item);
-			weaveTrace(uid + " has item renderer " + renderer);
 			drawItem(renderer, selected, highlighted, caret, transition);
 		}
 		/**
