@@ -90,7 +90,7 @@ package weave.utils
 		/**
 		 * Draws text at current position, or new position and angle if specified.
 		 */
-		public function drawText(text:Object):TextGraphics
+		public function drawText(text:*):TextGraphics
 		{
 			return this.text(text).draw();
 		}

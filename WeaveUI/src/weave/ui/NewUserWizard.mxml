@@ -23,7 +23,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="weave.ui.*"
 	label="{lang('Import Data to Weave')}"
-	width="440" height="460"
+	width="100%" height="100%"
 	finishEnabled="false"
 	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*"
 	>
@@ -153,6 +153,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.reportError;
 			import weave.api.ui.IPlotter;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.CSVParser;
@@ -207,6 +208,7 @@
 			private var delimiters:Object = new Object();
 			
 			private var _uniqueNameForDataSource:String="";
+			private var _tempArray:Array = [];
 			override public function next():void
 			{
 				super.next();
@@ -220,8 +222,8 @@
 						delimiterBox.visible = true;
 						var delimiter:Object = getDelimiterObject(dataString);
 						delimiterSelector.selectedItem = delimiter.name;
-						var tempArray:Array = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
-						updateCSVDataStringFromArray(tempArray);
+						_tempArray = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
+						updateCSVDataStringFromArray(_tempArray);
 						_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
 						keyTypeSelector.addKeyTypeToMenu(_uniqueNameForDataSource);
 					}
@@ -230,11 +232,12 @@
 				//We are into the third step, create a data source from data entered.
 				if(selectedIndex == 2)
 				{
-					try{				
+					try
+					{
 						if(csvDataString == "")
 							return;
 						var csvDataSource:CSVDataSource = Weave.root.requestObject(_uniqueNameForDataSource,CSVDataSource, false);
-						csvDataSource.setCSVDataString(csvDataString);
+						csvDataSource.setCSVData(_tempArray);
 						if(keyTypeSelector.selectedItem)
 							csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 						else
@@ -244,15 +247,13 @@
 							csvDataSource.keyColName.value = keyColumnSelector.selectedItem as String;
 						}
 						
-						assignProbeColumnsFromSource(csvDataSource,_uniqueNameForDataSource);						
-						
-				}catch(e:Error)
-				{
-					
+						assignProbeColumnsFromSource(csvDataSource);						
+					}
+					catch(e:Error)
+					{
+						reportError(e);
+					}
 				}
-				}
-				
-				
 			}
 			
 			private function getUniqueElementsFromArray(source:Array):Array
@@ -277,7 +278,7 @@
 				return result;
 			}
 			
-			private function assignProbeColumnsFromSource(source:CSVDataSource,sourceName:String):void
+			private function assignProbeColumnsFromSource(source:CSVDataSource):void
 			{
 				var hashMap:ILinkableHashMap = ProbeTextUtils.probedColumns;
 				var columnNames:Array = source.getColumnNames();
@@ -355,8 +356,8 @@
 					{
 						dataByteArray = _fileLoader.data;
 						delimiterBox.visible = false;
-						var tempArray:Array = WeaveAPI.CSVParser.parseCSV(dataByteArray.toString());
-						updateCSVDataStringFromArray(tempArray);						
+						_tempArray= WeaveAPI.CSVParser.parseCSV(dataByteArray.toString());
+						updateCSVDataStringFromArray(_tempArray);						
 						
 					}else if(_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition ){
 						
@@ -399,7 +400,7 @@
 						
 						if(lastRowEmpty)
 							xlsDataArray.pop();
-						
+						_tempArray = xlsDataArray;
 						updateCSVDataStringFromArray(xlsDataArray);
 					}else if(_fileLoader.name.search(".txt") == extensionPosition || _fileLoader.name.search(".TXT") == extensionPosition ){
 						
@@ -409,10 +410,12 @@
 						var delimiter:Object = getDelimiterObject(fileDataString);
 						delimiterSelector.selectedItem = delimiter.name;
 						var fileDataArray:Array = new CSVParser(false, delimiter.string).parseCSV(fileDataString);
+						_tempArray = fileDataArray;
 						updateCSVDataStringFromArray(fileDataArray);
 					}
 					keyColumnSelector.dataProvider = uniqueColumns;
 					uploadMessage.text = lang("Loaded!");
+					_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
 					this.next();
 				}
 					catch(e:Error){
@@ -510,8 +513,9 @@
 				}
 				
 				var dataString:String = _fileLoader ? _fileLoader.data.toString() : dataTextArea.text;
-				var tempArray:Array = new CSVParser(false, appliedDemiliter.string).parseCSV(dataString);
-				updateCSVDataStringFromArray(tempArray);
+				_tempArray= new CSVParser(false, appliedDemiliter.string).parseCSV(dataString);
+				
+				updateCSVDataStringFromArray(_tempArray);
 			}
 			
 			private function updateCSVDataStringFromArray(csvDataArray:Array):void

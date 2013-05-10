@@ -2,6 +2,9 @@ function(objectID)
 {
 	var weave = objectID ? document.getElementById(objectID) : document;
 	
+	
+	// variables global to this Weave instance
+
 	/**
 	 * Creates a WeavePath object.
 	 * Accepts an optional Array or list of names to serve as the base path.
@@ -10,9 +13,8 @@ function(objectID)
 	{
 		return new WeavePath(A(arguments, 1));
 	};
-	
-	// Used by callbackToString(), maps an integer id to an object with two properties: callback and name
-	weave._WeavePathCallbacks = [];
+	weave.path.callbacks = []; // Used by callbackToString(), maps an integer id to an object with two properties: callback and name
+	weave.path.vars = {}; // used with exec() and getVar()
 	
 	/**
 	 * Private function for internal use.
@@ -27,7 +29,7 @@ function(objectID)
 	{
 		var array;
 		var n = args.length;
-		if (n && n == option && args[0].constructor == Array)
+		if (n && n == option && args[0] && args[0].constructor == Array)
 		{
 			array = args[0].concat();
 			for (var i = 1; i < n; i++)
@@ -50,8 +52,6 @@ function(objectID)
 		
 		// private variables
 		var stack = []; // stack of argument counts from push() calls, used with pop()
-		var vars = {}; // used with exec() and getVar()
-		var libs = []; // used with exec()
 		
 		// public variables and non-chainable methods
 		
@@ -60,11 +60,12 @@ function(objectID)
 		 */
 		this.weave = weave;
 		/**
-		 * Makes a copy of the current path Array.
+		 * Returns a copy of the current path Array.
+		 * Accepts an optional list of names to be appended to the result.
 		 */
-		this.getPath = function()
+		this.getPath = function(/*...names*/)
 		{
-			return this.path.concat();
+			return path.concat(A(arguments, 1));
 		};
 		/**
 		 * Gets the session state of an object at the current path or relative to the current path.
@@ -76,25 +77,27 @@ function(objectID)
 		};
 		/**
 		 * Gets the object type at the current path.
+		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getType = function()
+		this.getType = function(/*...names*/)
 		{
-			return weave.getObjectType(path);
+			return weave.getObjectType(path.concat(A(arguments, 1)));
 		};
 		/**
 		 * Gets an Array of child names under the current path.
+		 * Accepts an optional list of names relative to the current path.
 		 */
-		this.getNames = function()
+		this.getNames = function(/*...names*/)
 		{
-			return weave.getChildNames(path);
+			return weave.getChildNames(path.concat(A(arguments, 1)));
 		};
 		/**
-		 * Gets a variable that was previously specified in WeavePath.vars() or saved with WeavePath.exec().
-		 * The first parameter is the variable name. 
+		 * Gets a variable that was previously specified in WeavePath.vars() or saved with WeavePath.exec() for this Weave instance.
+		 * The first parameter is the variable name.
 		 */
 		this.getVar = function(name)
 		{
-			return vars[name];
+			return weave.path.vars[name];
 		};
 		
 		
@@ -103,7 +106,7 @@ function(objectID)
 		
 		/**
 		 * Specify any number of names to push on to the end of the path.
-		 * Accepts an optional list of names relative to the current path.
+		 * Accepts a list of names relative to the current path.
 		 */
 		this.push = function(/*...names*/)
 		{
@@ -208,6 +211,7 @@ function(objectID)
 		};
 		/**
 		 * Adds a grouped callback to the object at the current path.
+		 * When the callback is called, the Weave instance will be passed as the first parameter.
 		 * First parameter is the callback function.
 		 * Second parameter is a Boolean, when set to true will trigger the callback now.
 		 * Since this adds a grouped callback, the callback will not run immediately when addCallback() is called.
@@ -235,10 +239,12 @@ function(objectID)
 		};
 		/**
 		 * Specifies additional variables to be used in subsequent calls to exec().
-		 * The parameter should be an object mapping variable names to their values.
+		 * The variables will be made globally available for any WeavePath object created from the same Weave instance.
+		 * The first parameter should be an object mapping variable names to values.
 		 */
 		this.vars = function(newVars)
 		{
+			var vars = weave.path.vars;
 			for (var key in newVars)
 				vars[key] = newVars[key];
 			return this;
@@ -250,7 +256,10 @@ function(objectID)
 		{
 			var args = A(arguments, 1);
 			if (assertParams('libs', args))
-				args.forEach(function(lib){ if (libs.indexOf(lib) < 0) libs.push(lib); });
+			{
+				// include libraries for future evaluations
+				weave.evaluateExpression(null, null, null, args);
+			}
 			return this;
 		};
 		/**
@@ -265,7 +274,8 @@ function(objectID)
 		 */
 		this.exec = function(script, callback_or_variableName)
 		{
-			var result = weave.evaluateExpression(path, script, vars, libs);
+			var vars = weave.path.vars;
+			var result = weave.evaluateExpression(path, script, vars);
 			if (typeof callback_or_variableName == 'function')
 				callback_or_variableName.apply(this, [result]);
 			else
@@ -304,7 +314,7 @@ function(objectID)
 		// private functions
 		function callbackToString(callback)
 		{
-			var list = weave._WeavePathCallbacks;
+			var list = weave.path.callbacks;
 			for (var i in list)
 				if (list[i].callback == callback)
 					return list[i].name;
@@ -321,7 +331,7 @@ function(objectID)
 			
 			var name = 'function(){' +
 				'  var weave = document.getElementById('+idStr+');' +
-				'  weave._WeavePathCallbacks['+list.length+'].callback.call(weave);' +
+				'  weave.path.callbacks['+list.length+'].callback.call(null, weave);' +
 				'}';
 			
 			list.push({ 'callback': callback, 'name': name });

@@ -32,7 +32,7 @@ package weave.ui
 	import weave.utils.EventUtils;
 	
 	/**
-	 * This class features a correctly behaving auto horizontal scroll policy.
+	 * This class features a correctly behaving auto scroll policy and scrollToIndex().
 	 * @author adufilie
 	 */	
 	public class CustomTree extends Tree
@@ -217,5 +217,30 @@ package weave.ui
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
+		
+		private var _pendingScrollToIndex:int = -1;
+		override public function scrollToIndex(index:int):Boolean
+		{
+			if (index < -1)
+			{
+				index /= -2;
+				if (index != _pendingScrollToIndex)
+				{
+					_pendingScrollToIndex = -1;
+					return false;
+				}
+			}
+			_pendingScrollToIndex = -1;
+			
+			if (maxVerticalScrollPosition == 0 && index > 0)
+			{
+				_pendingScrollToIndex = index;
+				callLater(scrollToIndex, [index * -2]);
+				return false;
+			}
+			
+			return super.scrollToIndex(index);
+		}
+
 	}
 }

@@ -617,6 +617,9 @@ public class GenericServlet extends HttpServlet
 			return;
 		}
 		
+		if (methodParams == null)
+			methodParams = new Object[0];
+		
 		if (methodParams instanceof Map)
 			methodParams = getParamsFromMap(methodName, (Map<?,?>)methodParams);
 		

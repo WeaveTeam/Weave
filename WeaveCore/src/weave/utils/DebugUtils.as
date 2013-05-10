@@ -22,6 +22,7 @@ package weave.utils
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
+	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -242,12 +243,10 @@ package weave.utils
 		
 		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, currentDepth:int = 0):String
 		{
-			var str:String = StringUtil.substitute(
-				'{0}{1} ({2})\n',
-				StandardLib.lpad('', currentDepth * 2, '| '),
-				root.name,
-				debugId(root)
-			);
+			var pad:String = StandardLib.lpad('', currentDepth * 2, '| ');
+			var rect:Rectangle = root.getRect(root.parent);
+			var str:String = StandardLib.substitute("{0}{1} ({2}) {3}\n", pad, root.name, debugId(root), rect);
+			
 			var container:DisplayObjectContainer = root as DisplayObjectContainer;
 			if (container && currentDepth != maxDepth)
 				for (var i:int = 0; i < container.numChildren; i++)

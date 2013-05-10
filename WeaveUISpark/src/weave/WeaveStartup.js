@@ -60,7 +60,8 @@ function(objectID)
 	function handleReaderLoadEnd(evt) {
 		var data = evt.target.result;
 		data = data.substr(data.indexOf('base64,') + 7);
-		var script = "ba = new 'mx.utils.Base64Decoder'(); ba.decode(data); Class('weave.Weave').loadWeaveFileContent(ba.flush())";
-		weave.evaluateExpression([], script, {"data": data});
+		var libs = ['mx.utils.Base64Decoder', 'weave.Weave'];
+		var script = "var ba = new Base64Decoder(); ba.decode(data); Weave.loadWeaveFileContent(ba.flush())";
+		weave.evaluateExpression([], script, {"data": data}, libs);
 	}
 }

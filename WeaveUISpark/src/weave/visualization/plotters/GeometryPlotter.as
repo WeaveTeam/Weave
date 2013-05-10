@@ -361,9 +361,11 @@ package weave.visualization.plotters
 					d_asyncState[plotter] = {};
 					d_progress[plotter] = 0;
 				}
-				task.asyncState = d_asyncState[plotter];
 				if (d_progress[plotter] != 1)
+				{
+					task.asyncState = d_asyncState[plotter];
 					d_progress[plotter] = plotter.drawPlotAsyncIteration(task);
+				}
 				progress += d_progress[plotter];
 			}
 			task.asyncState = ourAsyncState;

@@ -462,6 +462,8 @@ package weave.compiler
 		
 		public static function mean(...args):Number
 		{
+			if (args.length == 1 && args[0] is Array)
+				args = args[0];
 			var sum:Number = 0;
 			for each (var value:Number in args)
 				sum += value;
@@ -470,6 +472,8 @@ package weave.compiler
 		
 		public static function sum(...args):Number
 		{
+			if (args.length == 1 && args[0] is Array)
+				args = args[0];
 			var sum:Number = 0;
 			for each (var value:Number in args)
 				sum += value;

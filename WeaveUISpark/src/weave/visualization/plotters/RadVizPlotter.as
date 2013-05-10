@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -117,7 +118,6 @@ package weave.visualization.plotters
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
 		
-		public var doCDLayout:Boolean = false;//(Set via the editor)boolean needed to switch between normal layout and cd layout
 		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
 
@@ -213,7 +213,32 @@ package weave.visualization.plotters
 			setAnchorLocations();
 		}
 	
-	
+		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
+		{
+			var anchorObjects:Array = anchors.getObjects(AnchorPoint);
+			var anchorNames:Array = anchors.getNames(AnchorPoint);
+			for(var type:Object in tandpMapping)
+			{
+				var colNamesArray:Array = tandpMapping[type];
+				var colValuesArray:Array = tandpValuesMapping[type+"metricvalues"];
+				for(var n:int = 0; n < anchorNames.length; n++)//looping through all columns
+				{
+					var tempAnchorName:String = anchorNames[n];
+					for(var c:int =0; c < colNamesArray.length; c++)
+					{
+						if(tempAnchorName == colNamesArray[c])
+						{
+							var tempAnchor:AnchorPoint = (anchors.getObject(tempAnchorName)) as AnchorPoint;
+							tempAnchor.classDiscriminationMetric.value = colValuesArray[c];
+							tempAnchor.classType.value = String(type);
+						}
+							
+					}
+				}
+				
+			}
+			
+		}
 		public function setAnchorLocations( ):void
 		{	
 			var _columns:Array = columns.getObjects();
@@ -256,7 +281,7 @@ package weave.visualization.plotters
 				var currentClassPos:Number = classTheta * classIncrementor;
 				var columnIncrementor:int = 1;//change
 				
-				
+								
 				for( var g :int = 0; g < colNames.length; g++)//change
 				{
 					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;

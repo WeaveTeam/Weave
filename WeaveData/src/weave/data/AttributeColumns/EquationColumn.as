@@ -25,13 +25,13 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.CompiledConstant;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -61,9 +61,9 @@ package weave.data.AttributeColumns
 			WeaveAPI.StatisticsCache,
 			WeaveAPI.AttributeColumnCache,
 			WeaveAPI.QKeyManager,
-			EquationColumnLib
+			EquationColumnLib,
+			IQualifiedKey
 		);
-		compiler.includeConstant("IQualifiedKey", IQualifiedKey);
 		/** end static code block **/
 		
 
@@ -172,16 +172,12 @@ package weave.data.AttributeColumns
 				{
 					try
 					{
-						var func:Function = compiler.compileToFunction(value, _symbolTableProxy, true);
+						var func:Function = compiler.compileToFunction(value, _symbolTableProxy, errorHandler);
 						value = func.apply(this, arguments);
 					}
-					catch (e:Error)
+					catch (e:*)
 					{
-						if (_lastError != e.message)
-						{
-							_lastError = e.message;
-							reportError(e);
-						}
+						errorHandler(e);
 					}
 				}
 			}
@@ -191,6 +187,16 @@ package weave.data.AttributeColumns
 			}
 			_cachedMetadata[propertyName] = value;
 			return value;
+		}
+		
+		private function errorHandler(e:*):void
+		{
+			var str:String = e is Error ? e.message : String(e);
+			if (_lastError != str)
+			{
+				_lastError = str;
+				reportError(e);
+			}
 		}
 
 		/**
@@ -314,7 +320,7 @@ package weave.data.AttributeColumns
 					else
 					{
 						// compile into a function
-						compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, true, false, ['key', 'dataType']);
+						compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, errorHandler, false, ['key', 'dataType']);
 						_equationIsConstant = false;
 						_equationResultCache = new Dictionary(); // create a new cache
 						_constantResult = undefined;
