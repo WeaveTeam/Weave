@@ -34,7 +34,7 @@
 			public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 			public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 
-			WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("Cytoscape-Web Tool"));
+			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("Cytoscape-Web Tool"));
 			private var _toolName:String;
 			private var _primitive_edges:Object;
 			private var _primitive_nodes:Object;
