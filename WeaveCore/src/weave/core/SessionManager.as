@@ -19,6 +19,8 @@
 
 package weave.core
 {
+	import avmplus.DescribeType;
+	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
@@ -36,10 +38,7 @@ package weave.core
 	import mx.rpc.AsyncToken;
 	import mx.utils.ObjectUtil;
 	
-	import avmplus.DescribeType;
-	
 	import weave.api.WeaveAPI;
-	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -49,6 +48,7 @@ package weave.core
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.AsyncSort;
 	import weave.utils.Dictionary2D;
@@ -694,6 +694,9 @@ package weave.core
 		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		private const _aBusyTraversal:Array = [];
+		private var _unbusyTriggerInitialized:Boolean = false;
+		private const _dUnbusyTriggerCounts:Dictionary = new Dictionary(true); // ILinkableObject -> int
+		private const _dUnbusyStackTraces:Dictionary = new Dictionary(true); // ILinkableObject -> String
 		
 		private function disposeBusyTaskPointers(disposedObject:ILinkableObject):void
 		{
@@ -712,14 +715,19 @@ package weave.core
 			if (debugBusyTasks)
 				_dTaskStackTrace[taskToken] = new Error("Stack trace when task was last assigned").getStackTrace();
 			
-			if (taskToken is AsyncToken)
+			// stop if already assigned
+			var test:* = _d2dTaskOwner.dictionary[taskToken];
+			if (test && test[busyObject])
+				return;
+			
+			if (taskToken is AsyncToken && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
 			
 			_d2dOwnerTask.set(busyObject, taskToken, true);
 			_d2dTaskOwner.set(taskToken, busyObject, true);
 		}
 		
-		private function unassignAsyncToken(event:Event, token:Object):void
+		private function unassignAsyncToken(event:Event, token:AsyncToken):void
 		{
 			unassignBusyTask(token);
 		}
@@ -730,42 +738,78 @@ package weave.core
 		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
-			var owner:*;
-			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];
-			delete _d2dTaskOwner.dictionary[taskToken];
-			for (owner in dOwner)
-				delete _d2dOwnerTask.dictionary[owner][taskToken];
-			
-			if (debugBusyTasks)
+			if (WeaveAPI.ProgressIndicator.hasTask(taskToken))
 			{
-				for (owner in dOwner)
-					dOwner[owner] = getCallbackCollection(owner).triggerCounter;
+				WeaveAPI.ProgressIndicator.removeTask(taskToken);
+				return;
+			}
+			
+			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];
+			if (!dOwner)
+				return;
+			
+			if (!_unbusyTriggerInitialized)
+			{
+				WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, unbusyTrigger);
+				_unbusyTriggerInitialized = true;
+			}
+			
+			delete _d2dTaskOwner.dictionary[taskToken];
+			nextOwner: for (var owner:* in dOwner)
+			{
+				var dTask:Dictionary = _d2dOwnerTask.dictionary[owner];
+				delete dTask[taskToken];
 				
-				WeaveAPI.StageUtils.callLater(null, debugBusyTasksCallLater, [taskToken, dOwner]);
+				// if there are other tasks, continue to next owner
+				for (var task:* in dTask)
+					continue nextOwner;
+				
+				// when there are no more tasks, check later to see if callbacks trigger
+				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
+				
+				if (debugBusyTasks)
+				{
+					var stackTrace:String = new Error("Stack trace when last task was unassigned").getStackTrace();
+					_dUnbusyStackTraces[owner] = {assigned: _dTaskStackTrace[taskToken], unassigned: stackTrace, token: taskToken};
+				}
 			}
 		}
 		
-		private function debugBusyTasksCallLater(taskToken:Object, ownerLookup:Dictionary):void
+		/**
+		 * Called the frame after an owner's last busy task is unassigned.
+		 * Triggers callbacks if they have not been triggered since then.
+		 */		
+		private function unbusyTrigger():void
 		{
-			if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
-			{
-				WeaveAPI.StageUtils.callLater(null, debugBusyTasksCallLater, arguments);
-				return;
-			}
-			for (var owner:* in ownerLookup)
-			{
-				if (linkableObjectIsBusy(owner))
-					continue;
-				// if owner is no longer busy but has not triggered callbacks, there may be a problem.
-				var prevCounter:int = ownerLookup[owner];
-				var cc:ICallbackCollection = getCallbackCollection(owner);
-				if (prevCounter == cc.triggerCounter)
+			var owner:*;
+			do {
+				owner = null;
+				for (owner in _dUnbusyTriggerCounts)
 				{
-					var stackTrace:String = _dTaskStackTrace[taskToken];
-					trace('object is no longer busy, but has not triggered callbacks:', debugId(owner));
-					trace(stackTrace);
+					var triggerCount:int = _dUnbusyTriggerCounts[owner];
+					delete _dUnbusyTriggerCounts[owner]; // affects next for loop iteration - mitigated by outer loop
+					
+					var cc:CallbackCollection = CallbackCollection(getCallbackCollection(owner));
+					if (cc.wasDisposed)
+						continue; // already disposed
+					
+					if (cc.triggerCounter != triggerCount)
+						continue; // already triggered
+					
+					if (linkableObjectIsBusy(owner))
+						continue; // busy again
+					
+					if (debugBusyTasks)
+					{
+						var stackTraces:Object = _dUnbusyStackTraces[owner];
+						trace('Triggering callbacks because they have not triggered since owner has becoming unbusy:', debugId(owner));
+						trace(stackTraces.assigned);
+						trace(stackTraces.unassigned);
+					}
+					
+					cc.triggerCallbacks();
 				}
-			}
+			} while (owner);
 		}
 		
 		/**
@@ -1295,12 +1339,16 @@ package weave.core
 			// a function that takes zero parameters and sets the bindable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
-				// unlink if linkableVariable was disposed of
+				// unlink if linkableVariable was disposed
 				if (objectWasDisposed(linkableVariable))
 				{
 					unlinkBindableProperty(linkableVariable, bindableParent, bindablePropertyName);
 					return;
 				}
+				// stop if unlinked
+				var test:Object;
+				if (!(test = _watcherMap[linkableVariable]) || !(test = test[bindableParent]) || !test.hasOwnProperty(bindablePropertyName))
+					return;
 				
 				/*debugLink(
 					linkableVariable.getSessionState(),
@@ -1434,6 +1482,7 @@ package weave.core
 			};
 			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
 			// because that will copy from the bindable property to the sessioned property.
+			_watcherMap[linkableVariable][bindableParent][bindablePropertyName] = null; // prevents synchronize() from thinking it's unlinked
 			synchronize();
 			watcher = BindingUtils.bindSetter(synchronize, bindableParent, bindablePropertyName);
 			// save a mapping from the linkableVariable,bindableParent,bindablePropertyName parameters to the watcher for the property

@@ -31,9 +31,11 @@ package weave.api.core
 
 		/**
 		 * This function will register a background task.
-		 * @param taskToken A token representing a background task.
+		 * @param taskToken A token representing a background task.  If this is an AsyncToken, a responder will be added that will automatically call removeTask(taskToken) on success or failure.
+		 * @param busyObject An object that is responsible for the task. If specified, will call WeaveAPI.SessionManager.assignBusyTask().
+		 * @see weave.api.core.ISessionManager#assignBusyTask()
 		 */
-		function addTask(taskToken:Object):void;
+		function addTask(taskToken:Object, busyObject:ILinkableObject = null):void;
 		
 		/**
 		 * This function will check if a background task is registered as an active task.
@@ -51,8 +53,9 @@ package weave.api.core
 
 		/**
 		 * This function will remove a previously registered pending request token and decrease the pendingRequestCount if necessary.
-		 * 
+		 * Also calls WeaveAPI.SessionManager.unassignBusyTask().
 		 * @param taskToken The object to remove from the progress indicator.
+		 * @see weave.api.core.ISessionManager#unassignBusyTask()
 		 */
 		function removeTask(taskToken:Object):void;
 		
