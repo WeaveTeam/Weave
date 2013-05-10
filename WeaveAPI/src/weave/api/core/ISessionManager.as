@@ -112,14 +112,18 @@ package weave.api.core
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
 		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
+		 * This will not add the task to WeaveAPI.ProgressIndicator.
 		 * @param taskToken A token representing an asynchronous task.  If this is an AsyncToken, a responder will be added that will automatically call unassignBusyTask(taskToken) on success or failure.
 		 * @param busyObject The object that is busy waiting for the task to complete.
+		 * @see weave.api.core.IProgressIndicator#addTask()
 		 */
 		function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void;
 		
 		/**
 		 * This will unassign an asynchronous task from all linkable objects it has been previously assigned to.
+		 * If the task was previously registered with WeaveAPI.ProgressManager, this will call WeaveAPI.ProgressManager.removeTask().
 		 * @param taskToken A token representing an asynchronous task.
+		 * @see weave.api.core.IProgressIndicator#removeTask()
 		 */
 		function unassignBusyTask(taskToken:Object):void;
 		

@@ -128,12 +128,12 @@
 				}
 				catch (e:*)
 				{
-					consoleTrace(script, e);
+					consoleTrace(script + '\r' + e);
 				}
 			}
 			public function consoleTrace(...args):void
 			{
-				log.text += '\r\r' + args.join('\r');
+				log.text += '\r\r' + args.join(' ');
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}

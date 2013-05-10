@@ -131,12 +131,15 @@ function(objectID)
 			return null;
 		}
 		/**
-		 * Gets a variable that was previously specified in WeavePath.vars() or saved with WeavePath.exec() for this Weave instance.
-		 * The first parameter is the variable name.
+		 * Calls weave.evaluateExpression() using the current path, vars, and libs and returns the resulting value.
+		 * First parameter is the script to be evaluated by Weave at the current path, or simply a variable name.
 		 */
-		this.getVar = function(name)
+		this.getValue = function(script_or_variableName)
 		{
-			return weave.path.vars[name];
+			var vars = weave.path.vars;
+			if (vars.hasOwnProperty(script_or_variableName))
+				return vars[script_or_variableName];
+			return weave.evaluateExpression(path, script_or_variableName, vars);
 		};
 		
 		
@@ -310,7 +313,7 @@ function(objectID)
 		 *   evaluating the expression, setting the 'this' pointer to this WeavePath object.
 		 * - If the second parameter is a variable name, the result will be stored as a variable
 		 *   as if it was passed as an object property to WeavePath.vars().  It may then be used
-		 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getVar().
+		 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getValue().
 		 */
 		this.exec = function(script, callback_or_variableName)
 		{
@@ -409,5 +412,10 @@ function(objectID)
 			
 			throw new Error(str);
 		}
+
+		
+		// deprecated methods
+		
+		this.getVar = function(n){ console.log("WeavePath.getVar() is deprecated. Use getValue() instead."); return weave.path.vars[n]; };
 	}
 }

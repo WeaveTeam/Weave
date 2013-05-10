@@ -143,11 +143,16 @@
 			private const delayedHandleShpNameChange:Function = EventUtils.generateDelayedCallback(this, handleShpNameChange, 1000);
 			private function handleShpNameChange():void
 			{
-				_dbfFilesToRequestColumnNamesFrom = [shpFileNameInput.text + '.dbf'];
-				addAsyncResponder(
-					Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
-					handleDBFColumnNames
-				);
+				var name:String = shpFileNameInput.text;
+				if (name)
+				{
+					_dbfFilesToRequestColumnNamesFrom = [name + '.dbf'];
+					addAsyncResponder(
+						Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
+						handleDBFColumnNames
+					);
+					tableSelector.activeTable = name;
+				}
 				toggleButtons();
 			}
 			
@@ -251,12 +256,8 @@
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
 				
 				shpFileNameInput.text = tableName;
-				
-				_dbfFilesToRequestColumnNamesFrom = [tableName + ".dbf"];
-				
-				Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom);
-				tableSelector.activeTable = tableName;
-				
+				handleShpNameChange();
+
 				PopUpManager.removePopUp(_serverFileBrowser);
 				toggleButtons();
 			}
