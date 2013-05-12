@@ -148,7 +148,7 @@ package weave.api.core
 		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
 		 */
-		function startTask(relevantContext:Object, iterativeTask:Function, priority:int, finalCallback:Function = null):void;
+		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void;
 		
 		/**
 		 * This is the last event that occurred on the stage.

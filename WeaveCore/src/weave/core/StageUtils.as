@@ -327,6 +327,8 @@ package weave.core
 			var now:int;
 			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
 
+			_currentTaskStopTime = allStop; // make sure _iterateTask knows when to stop
+
 			// first run the functions that should be called before anything else.
 			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
 			var countdown:int;
@@ -494,15 +496,15 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int, finalCallback:Function = null):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
-			if (priority <= 0)
+			if (priority >= _priorityCallLaterQueues.length)
 			{
-				reportError("Task priority " + priority + " is not supported.");
+				reportError("Invalid priority value: " + priority);
 				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
 			}
 			
