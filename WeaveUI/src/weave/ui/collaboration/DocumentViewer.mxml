@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   width="400" height="300" layout="absolute"
+				   resize="draggablepanel1_resizeHandler(event)" title="Document Viewer"
+				   creationComplete="handleCreationComplete(event)">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.reportError;
+			
+			private var _pdfFile:FileReference = new FileReference();
+			private var _pdfLoader:Loader = new Loader();
+			
+			
+			protected function handleCreationComplete(event:FlexEvent):void
+			{
+				_pdfFile.addEventListener(Event.SELECT, pdfFileSelectedHandler);
+				_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+				_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
+				_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				
+			}
+			
+			private function pdfFileSelectedHandler(event:Event):void
+			{
+				_pdfFile.load();
+				WeaveAPI.ProgressIndicator.addTask(_pdfFile);
+			}
+			
+			private function handleProgress(event:ProgressEvent):void
+			{
+				WeaveAPI.ProgressIndicator.updateTask(_pdfFile, event.bytesLoaded / event.bytesTotal);
+			}
+			
+			private function pdfFileLoadCompleteHandler(event:Event):void
+			{
+				WeaveAPI.ProgressIndicator.removeTask(_pdfFile);
+				if (_pdfFile.data == null)
+				{
+					return;
+				}
+				
+				//addAsyncResponder(Admin.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
+				
+				pdfSelected.text = _pdfFile.name;
+				
+				//addAsyncResponder(Admin.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
+			}
+			
+			private function fileErrorHandler(event:IOErrorEvent):void
+			{
+				reportError(event);
+			}
+			
+			protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function selectPDFButton(event:MouseEvent):void
+			{
+				try
+				{
+				var fileTypes:Array = [new FileFilter("PDF Files", "*.pdf")];
+				_pdfFile.browse(fileTypes);
+				}
+				catch(e:Error)
+				{
+					reportError(e);
+				}
+				
+			}
+			
+			protected function loadPDF(event:MouseEvent):void
+			{
+				var url:URLRequest = new URLRequest(pdfURL.text); 
+				_pdfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderOnComplete);
+				_pdfLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				_pdfLoader.load(url); 
+				
+			}
+			
+			private function loaderOnComplete(event:Event):void
+			{
+				if (_pdfLoader.content == null)
+				{
+					return;
+				}
+				
+			
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<ui:ControlPanel>
+		<mx:VBox>
+			<mx:HBox>
+				<mx:Label text="Server IP:"/>
+				<mx:TextInput id="serverIP"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Enter URL of PDF:"/>
+				<mx:TextInput id="pdfURL"/>
+				<mx:Button label="Load" click="loadPDF(event)"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="---  OR  ---"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Select PDF file:"/>
+				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a CSV file.')}" />
+				<mx:Button label="Load PDF"  click="selectPDFButton(event)"/>
+			</mx:HBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+</ui:DraggablePanel>

@@ -63,7 +63,10 @@
 						<mx:CheckBox id="showParticipantPanel"
 									 click="showParticipantPanelClick(event)" selected="false"/>					
 					</mx:HBox>
-					<mx:Spacer height="10"/>
+					<ui:Center>
+						<mx:Button label="Share a Document" click="shareDocumentClick(event)"/>
+					</ui:Center>
+					<mx:Spacer height="5"/>
 					<ui:Center>
 						<mx:Label visible="{warningVisible}" color="#FF0000" fontWeight="bold"
 								  text="{warningMsg}"/>
@@ -125,6 +128,7 @@
 			
 			import weave.Weave;
 			import weave.services.collaboration.CollaborationEvent;
+			import weave.ui.DraggablePanel;
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 150;
@@ -376,6 +380,12 @@
 			{
 				if( connectButton.label == lang("Disconnect") )
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.PROFILE_PICTURE, profilePic.text));
+			}
+			
+			protected function shareDocumentClick(event:MouseEvent):void
+			{
+				//var docViewer:DocumentViewer = new DocumentViewer();
+				DraggablePanel.openStaticInstance(DocumentViewer);
 			}
 			
 		]]>
