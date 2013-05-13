@@ -90,6 +90,9 @@ package weave.services
 		{
 			addBaseURL(request);
 			
+			// attempt to load crossdomain.xml from same folder as file
+			//Security.loadPolicyFile(URLUtil.getFullURL(request.url, 'crossdomain.xml'));
+			
 			var urlLoader:CustomURLLoader;
 			try
 			{
