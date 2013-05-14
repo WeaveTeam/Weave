@@ -715,7 +715,7 @@ public class AdminService extends GenericServlet {
 			// set number of rows
 			q.setRows(1);
 
-			q.addFacetField("description");
+			q.addFacetField("facetText");
 			q.setFacet(true);
 			q.setFacetLimit(100);
 			q.set("facet.method", "enum"); 
@@ -724,7 +724,7 @@ public class AdminService extends GenericServlet {
 
 			QueryResponse response = solrInstance.query(q);
 
-			FacetField ff = response.getFacetField("description");
+			FacetField ff = response.getFacetField("facetText");
 			Iterator<Count> iter2 = ff.getValues().iterator();
 
 			String[][] wordCount = new String[ff.getValueCount()][2];

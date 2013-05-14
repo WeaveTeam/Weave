@@ -23,8 +23,8 @@
 			 blurXFrom="10.0" blurYFrom="10.0" 
 			 blurXTo="10.0" blurYTo="10.0"
 			 duration="0" target="{nodeBase}"/>
-	<mx:Fade id="fadeIn" alphaFrom="0.0" effectStart="handleFadeInEffectsStart(event)" alphaTo="1.0" duration="750" />
-	<mx:Fade id="fadeOut" alphaFrom="1.0" effectEnd="handleFadeOutEffectsEnd(event)" alphaTo="0.0" duration="750" />
+	<mx:Fade id="fadeIn" alphaFrom="0.0" effectStart="handleEffectsStart(event)" effectEnd="handleEffectsEnd(event)" alphaTo="1.0" duration="750" />
+	<mx:Fade id="fadeOut" alphaFrom="1.0" effectStart="handleEffectsStart(event)"  effectEnd="handleEffectsEnd(event)" alphaTo="0.0" duration="750" />
 	<mx:Sequence id="newDocumentHighlight" target="{nodeBase.keywordTextArea}">
 		<mx:Fade id="newDocumentFadeOut" alphaFrom="1.0" alphaTo="0.0" duration="1000" />
 		<mx:Fade id="newDocumentFadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1000" />
@@ -51,6 +51,7 @@
 			import mx.core.UIComponent;
 			import mx.core.UITextField;
 			import mx.core.mx_internal;
+			import mx.effects.Effect;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
@@ -325,17 +326,6 @@
 				//removes the node from the panel after confirmation
 //				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
 //				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings);
-				_subMenu.addSubSubMenuItems("Show / Hide",[],[]);
-				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
-				
-				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
-					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
-				
-				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy],
-					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
-				
-				_subMenu.addSubMenuItem("Settings",settings);
-				_subMenu.addSubMenuItem("Close",close);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -453,11 +443,14 @@
 			private var _currentQueryTerms:Array = [];
 			private function createAndSendQuery(event:TimerEvent=null):void
 			{
-				trace("in createAndSendQuery");
 				/* this function is called every time the query parameters changes, so we will reset the timer so that it is not called immediately
 				when the query changes. This way we can avoid adding old results for a new query. */
 				refreshTimer.reset();
 				refreshTimer.start();
+				
+				_subMenu.addSubMenuItem("Settings",settings);
+				_subMenu.addSubMenuItem("Close",close);
+				
 				
 				/* if this is an empty query clear all documents */
 				if(!currentQuery.keywords.value)
@@ -533,12 +526,14 @@
 					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
 						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
+					adjustNodeBase();
 					return;						
 				}
 				
 				if(!_firstLoad && numOfMatchedDocuments.value == numOfDocs)
 				{
-					status.text = "";					
+					status.text = "";
+					adjustNodeBase();
 					return;
 				}
 				
@@ -642,7 +637,6 @@
 			 **/
 			private function handleDocKeySetChange():void
 			{
-				trace("in handleDocKeySetChange");
 				status.text = "";
 				var response:Array = docKeySet.keys;
 				
@@ -773,11 +767,18 @@
 				prevNewDocsCount.value = _currentNewDocsCount;
 				
 				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleList,toggleGridView]);
+				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
+				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
+					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+				
+				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy],
+					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
 				addAllDocumentsToList();
 				showList();
+				status.text = "";
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
@@ -1127,7 +1128,7 @@
 			
 			private function showList():void
 			{
-				if(listCanvas.alpha == 1)
+				if(currentView == listCanvas)
 					return;
 				else
 					toggleView(listCanvas);
@@ -1139,23 +1140,16 @@
 				if(view == null)
 					return;
 				
-				if(view.alpha == 1)
+				if(view == currentView)
 				{
 					fadeOut.play([view]);
+					trace("hiding ",view, view.alpha);
 				}
 				else
-				{
-					var viewsToHide:Array = [];
-					for each(var v:DisplayObject in views)
-					{
-						if(v != null && v != view && v.alpha !=0)
-						{
-							viewsToHide.push(v);
-						}
-					}
-					fadeOut.play(viewsToHide);
+				{	
+					if(currentView)
+						fadeOut.play([currentView]);
 					fadeIn.play([view]);
-					
 					if(view == listCanvas)
 					{
 						//if the list is not added yet
@@ -1167,7 +1161,6 @@
 							
 							docListComponent.y = nodeBase.height;
 							
-							toggleView(listCanvas);
 							return;
 						}
 						
@@ -1178,7 +1171,11 @@
 			
 			private function hideAllViews():void
 			{
-				fadeOut.play(views);
+				if(currentView)
+				{
+					fadeOut.play([currentView]);
+					trace("hiding all views");
+				}
 			}
 			
 			private function addAllDocumentsToList():void
@@ -1701,6 +1698,7 @@
 				if(!contains(_pointCanvas))
 				{
 					addChild(_pointCanvas);
+					_pointCanvas.alpha = 0; //initializing so that toggle will show the points
 				}
 				_pointCanvas.y = nodeBase.height;
 				_pointCanvas.drawPoints(urls, keywords, this);
@@ -1780,6 +1778,7 @@
 				}
 				else
 				{
+					trace("hiding list");
 					toggleView(listCanvas);
 				}
 			}
@@ -1969,7 +1968,7 @@
 					//var topicComponent:TopicNodeComponent = new TopicNodeComponent();
 					var parentComponent:UIComponent = new UIComponent();
 					parentComponent.width = 400;
-					parentComponent.height = 230; // ToDo Add extra 20 for showing spot label
+					parentComponent.height = 230; // ToDo Add extra 20 for displaying spot label
 					parentComponent.y= nodeBase.height;
 					
 					topicComponent.drawTreeMap(urls, keywords, parentComponent, spaceBetwwenTopicRect.value);
@@ -2088,6 +2087,7 @@
 				}
 				else if(QueryObject.isSortByDifferent(previousQuery,currentQuery))
 				{
+					status.text = "Sorting...";
 					copySessionState(previousQuery,currentQuery);
 					var token:QueryObject = new QueryObject();
 					copySessionState(currentQuery,token);
@@ -2207,6 +2207,7 @@
 			
 			private function filterQueryBy(option:String):void
 			{
+				status.text = "Filtering..."
 				previousQuery.sources.value = option;
 			}
 			
@@ -2225,34 +2226,33 @@
 				}
 			}
 			
-			public var currentView:DisplayObject = null;
-			private function handleFadeInEffectsStart(event:EffectEvent):void
+			public var currentView:UIComponent = null;
+			private function handleEffectsStart(event:EffectEvent):void
 			{
-				var displayObj:Object = event.effectInstance.target;
-				(displayObj as DisplayObject).visible = true;
-				
-				if(displayObj is UIComponent)
-					(displayObj as UIComponent).enabled = true;
-				
-				currentView  = displayObj as DisplayObject;
+				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
+				displayObj.mouseChildren = false;
+				if(event.currentTarget == fadeIn)
+				{
+					displayObj.visible = true;
+					currentView = displayObj;
+					trace("showing ",displayObj);
+				}else
+				{
+					/*if you are fading out of current view set currentView to null*/
+					if(currentView == displayObj)
+						currentView = null;
+				}
 			}
 			
-			private function handleFadeOutEffectsEnd(event:EffectEvent):void
+			private function handleEffectsEnd(event:EffectEvent):void
 			{
-				var displayObj:Object = event.effectInstance.target;
-				(displayObj as DisplayObject).visible = false;
-				
-				if(displayObj is UIComponent)
-					(displayObj as UIComponent).enabled = false;
-				
-				/* We set current view to null, so that if it is not set in fadeIn that means there are no current views */
-				if(currentView == displayObj)
-					currentView = null;
-				
-//				if(event.effectInstance.target == listCanvas)
-//				{
-//					handleClearFiltersButton();
-//				}
+				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
+				displayObj.mouseChildren = true;
+				if(event.currentTarget == fadeOut)
+				{
+					displayObj.visible = false;
+					trace("hiding ",displayObj);
+				}
 			}
 			
 			private function handleBorderColor():void

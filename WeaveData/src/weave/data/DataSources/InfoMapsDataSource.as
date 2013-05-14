@@ -151,7 +151,6 @@ package weave.data.DataSources
 		public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,operator:String,sources:String,
 									 dateFilter:DateRangeFilter,sortBy:String):AsyncToken
 		{
-			trace("CALLING WORD COUNT" + DateUtils.getCurrentDate().toUTCString());
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
 			var q:AsyncToken = InfoMapAdminInterface.instance.getWordCount(requiredKeywords,relatedKeywords,dateFilterString,operator,sources,sortBy);

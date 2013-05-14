@@ -68,7 +68,7 @@
 				
 				if(additionalKeywords.commaSeparatedString)
 				{
-					value = value + "," + additionalKeywords.commaSeparatedString;
+					value = value? value + "," + additionalKeywords.commaSeparatedString:additionalKeywords.commaSeparatedString;
 				}
 				
 				return value;
