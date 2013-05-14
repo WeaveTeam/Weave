@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkableObjectIsBusy;
@@ -39,6 +40,8 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
@@ -86,8 +89,21 @@ package weave.visualization.plotters
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
-		public var displayClassNames:Boolean = false;//this displays the names of the classes 
+		public var displayClassNames:Boolean = false;//this displays the names of the classes
+		
+		// key is String, value is array of AnchorPoint names
 		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
+		
+		private function getClassFromAnchor(anchorName:String):String
+		{
+			for (var key:String in anchorClasses)
+			{
+				var anchors:Array = anchorClasses[key];
+				if (anchors.indexOf(anchorName) >= 0)
+					return key;
+			}
+			return null;
+		}
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
 		private var keyBoundsMap:Dictionary = new Dictionary();
@@ -152,9 +168,18 @@ package weave.visualization.plotters
 				
 				// draw circle
 				if(enableWedgeColoring.value)
-					graphics.beginFill(anchorColorMap[key.localName]);		
-				//color the dimensional anchors according to the class hey belong to
-				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
+					graphics.beginFill(anchorColorMap[key.localName]);
+				else
+				{
+					//color the dimensional anchors according to the class hey belong to
+					var classStr:String = getClassFromAnchor(key.localName);
+					var cc:ColorColumn = Weave.defaultColorColumn;
+					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;
+					var binIndex:int = binColumn.getBinIndexFromDataValue(classStr);
+					var color:Number = cc.ramp.getColorFromNorm(binIndex / (binColumn.numberOfBins - 1));
+					if (isFinite(color))
+						graphics.beginFill(color);
+				}
 				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
 				graphics.endFill();
 				
