@@ -388,7 +388,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:Indent label="Anchor point color">
 				<mx:ColorPicker id="anchorColorPicker"
 								selectedColor="0xFFFFFF"
-								creationComplete="linkBindableProperty(_target._anchorPlotter.regularAnchorColor, event.target, 'selectedColor')" />
+								creationComplete="linkBindableProperty(_target._anchorPlotter.anchorFillStyle.color.defaultValue, event.target, 'selectedColor')" />
 			</ui:Indent>	
 			
 		</mx:VBox>
@@ -519,8 +519,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
 					</mx:HBox>
 					
-					<mx:CheckBox paddingLeft="10" id="tInTableCB" label="Show t-statistic in table"/>
-					<mx:CheckBox paddingLeft="10" id="pInTableCB" label="Show p values in table"/>
+					<!-- <mx:CheckBox paddingLeft="10" id="tInTableCB" label="Show t-statistic in table"/>
+					<mx:CheckBox paddingLeft="10" id="pInTableCB" label="Show p values in table"/> -->
 				</mx:VBox>
 				
 		</mx:VBox>
