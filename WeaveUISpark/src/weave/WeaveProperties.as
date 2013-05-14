@@ -97,6 +97,7 @@ package weave
 			);
 
 			_toggleToolsMenuItem("GraphTool", false);
+			_toggleToolsMenuItem("CustomGraphicsTool", false);
 			_toggleToolsMenuItem("DataStatisticsTool", false);
 			_toggleToolsMenuItem("RamachandranPlotTool", false);
 			_toggleToolsMenuItem("SchafersMissingDataTool", false);

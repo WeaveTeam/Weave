@@ -194,26 +194,27 @@ package weave.visualization.plotters
 		/**
 		 * This function returns the collective bounds of all the bins.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			if (xBinnedColumn.getInternalColumn() != null && yBinnedColumn.getInternalColumn() != null)
-				return getReusableBounds(-0.5, -0.5, xBinnedColumn.numberOfBins - 0.5, yBinnedColumn.numberOfBins -0.5);
-			return getReusableBounds();
+				output.setBounds(-0.5, -0.5, xBinnedColumn.numberOfBins - 0.5, yBinnedColumn.numberOfBins -0.5);
+			else
+				output.reset();
 		}
 		
 		/**
 		 * This gets the data bounds of the histogram bin that a record key falls into.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			
+			initBoundsArray(output);
 			if(xBinnedColumn.getInternalColumn() == null || yBinnedColumn.getInternalColumn() == null)
-				return [getReusableBounds()];
+				return;
 			
 			var shapeKey:String = keyToCellMap[recordKey];
 			
 			if(shapeKey == null)
-				return [getReusableBounds()];
+				return;
 			
 			var temp:Array = shapeKey.split(",");
 			
@@ -225,7 +226,7 @@ package weave.visualization.plotters
 			var xMax:Number = xKey + 0.5; 
 			var yMax:Number = yKey + 0.5;
 			
-			return [getReusableBounds(xMin,yMin,xMax,yMax)];
+			(output[0] as IBounds2D).setBounds(xMin,yMin,xMax,yMax);
 		}
 		
 	}

@@ -50,14 +50,13 @@ package weave.visualization.plotters
 		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			output.reset();
 			if (horizontal.value)
-				bounds.setYRange(start.value, end.value);
+				output.setYRange(start.value, end.value);
 			else
-				bounds.setXRange(start.value, end.value);
-			return bounds;
+				output.setXRange(start.value, end.value);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void

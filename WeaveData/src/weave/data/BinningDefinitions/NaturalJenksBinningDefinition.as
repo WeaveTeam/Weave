@@ -42,7 +42,9 @@ package weave.data.BinningDefinitions
 	import weave.utils.VectorUtils;
 	
 	/**
-	 * Implemented from Doug Curl (javascript) and Daniel J Lewis (python implementation) and  Simon Georget (Geostats)
+	 * Implemented from https://gist.github.com/tmcw/4977508
+	 * Also, read : http://macwright.org/2013/02/18/literate-jenks.html
+	 * Other implementations from Doug Curl (javascript) and Daniel J Lewis (python implementation) and  Simon Georget (Geostats)
 	 * http://www.arcgis.com/home/item.html?id=0b633ff2f40d412995b8be377211c47b
 	 * http://danieljlewis.org/2010/06/07/jenks-natural-breaks-algorithm-in-python/
 	 * https://github.com/simogeo/geostats/blob/master/lib/geostats.js
@@ -130,6 +132,14 @@ package weave.data.BinningDefinitions
 			return 1;
 		}
 		
+		// in the original implementation, these matrices are referred to
+		// as `LC` and `OP`
+		//
+		// * lower_class_limits (LC): optimal lower class limits
+		// * variance_combinations (OP): optimal variance combinations for all classes
+		private var _lower_class_limits:Array = [];
+		private var _variance_combinations:Array = [];
+		
 		private function _iterateSortedKeys(returnTime:int):Number
 		{
 			// wait for sort to complete
@@ -138,34 +148,41 @@ package weave.data.BinningDefinitions
 			
 			VectorUtils.copy(_sortedValues,_previousSortedValues);
 			
-			_mat1 = [];
-			_mat2 = [];
+			if(_sortedValues.length ==0)
+				return 0;
+			
+			_lower_class_limits = [];
+			_variance_combinations = [];
+			var numberOfBins:Number = numOfBins.value;
+			// Initialize and fill each matrix with zeroes
 			for (var i:int = 0; i < _sortedValues.length+1; i++)
 			{
 				var temp1:Array = [];
 				var temp2:Array = [];
-				
-				for(var j:int =0; j < numOfBins.value+1; j++)
+				// despite these arrays having the same values, we need
+				// to keep them separate so that changing one does not change
+				// the other
+				for(var j:int =0; j < numberOfBins+1; j++)
 				{
 					temp1.push(0);
 					temp2.push(0);
 				}
-				_mat1.push(temp1);
-				_mat2.push(temp2);
+				_lower_class_limits.push(temp1);
+				_variance_combinations.push(temp2);
 			}
 			
-			for (var k:int =1; k < numOfBins.value + 1; k++)
+			for (var k:int =1; k <numberOfBins + 1; k++)
 			{
-				_mat1[0][k] = 1;
-				_mat2[0][k] = 0;
+				_lower_class_limits[1][k] = 1;
+				_variance_combinations[1][k] = 0;
 				
-				for (var t:int =1; t<_sortedValues.length+1; t++)
+				for (var t:int =2; t<_sortedValues.length+1; t++)
 				{
-					_mat2[t][k] = Number.POSITIVE_INFINITY;
+					_variance_combinations[t][k] = Number.POSITIVE_INFINITY;
 				}
 			}
 			
-			_v = 0;
+			_variance = 0;
 			_count = 2;
 			_m = 0;
 			
@@ -174,24 +191,34 @@ package weave.data.BinningDefinitions
 		
 		private var _previousSortedValues:Array = [];
 		private var _sortedValues:Array = [];
-		private var _mat1:Array = [];
-		private var _mat2:Array = [];
+		
 		private var _count:int = 2;
 		private var _m:Number = 0;
-		private var _v:Number = 0;
-		private var _s1:Number = 0;
-		private var _s2:Number = 0;
-		private var _w:Number = 0;
 		private var _p:Number = 2;
+		
+		// the variance, as computed at each step in the calculation
+		private var _variance:Number = 0;
+		
+		// `SZ` originally. this is the sum of the values seen thus
+		// far when calculating variance.
+		private var _sum:Number = 0;
+		
+		// `ZSQ` originally. the sum of squares of values seen
+		// thus far
+		private var _sum_squares:Number = 0;
+		// `WT` originally
+		private var _w:Number = 0;
+		
 		
 		private function _iterateJenksBreaks(returnTime:int):Number
 		{
+			// Compute the matrices required for Jenks breaks.
 			for (; _count < _sortedValues.length + 1; _count++)
 			{
 				if(_m==0)
 				{
-					_s1= 0;
-					_s2= 0;
+					_sum= 0;
+					_sum_squares= 0;
 					_w= 0;
 					_m =1;			
 				}
@@ -201,32 +228,44 @@ package weave.data.BinningDefinitions
 					{
 						return _count/(_sortedValues.length+1);
 					}
-					var i3:Number = _count - _m +1;
-					var val:Number = _sortedValues[i3-1];
+					// `III` originally
+					var lower_class_limit:Number = _count - _m +1;
+					var val:Number = _sortedValues[lower_class_limit-1];
 					
-					_s2 += val * val;
-					_s1 += val;
+					_sum_squares += val * val;
+					_sum += val;
 					
+					// here we're estimating variance for each potential classing
+					// of the data, for each potential number of classes. `w`
+					// is the number of data points considered so far.
 					_w += 1;
-					_v = _s2 - (_s1 * _s1) / _w;
-					var i4:Number= i3 -1;
+					
+					// the variance at this point in the sequence is the difference
+					// between the sum of squares and the total x 2, over the number
+					// of samples.					
+					_variance = _sum_squares - (_sum * _sum) / _w;
+					
+					var i4:Number= lower_class_limit -1;
 					if(i4 !=0)
 					{
 						_p = 2;
 						for (; _p < numOfBins.value + 1; _p++)
 						{
-							
-							if((_mat2[_count][_p]) >= (_v + _mat2[i4][_p-1]))
+							// if adding this element to an existing class
+							// will increase its variance beyond the limit, break
+							// the class at this point, setting the lower_class_limit
+							// at this point.
+							if((_variance_combinations[_count][_p]) >= (_variance + _variance_combinations[i4][_p-1]))
 							{
-								_mat1[_count][_p] = i3;
-								_mat2[_count][_p] = _v +_mat2[i4][_p-1];
+								_lower_class_limits[_count][_p] = lower_class_limit;
+								_variance_combinations[_count][_p] = _variance +_variance_combinations[i4][_p-1];
 							}
 						}
 					}
 				}
 				_m = 0;
-				_mat1[_count][1] = 1;
-				_mat2[_count][1] = _v;
+				_lower_class_limits[_count][1] = 1;
+				_variance_combinations[_count][1] = _variance;
 			}
 			return 1;
 		}
@@ -242,26 +281,25 @@ package weave.data.BinningDefinitions
 				kClass.push(0);
 			}
 			
-			//this is the last number in the array
+			// the calculation of classes will never include the upper and
+			// lower bounds, so we need to explicitly set them
 			kClass[countNum] = _sortedValues[_sortedValues.length -1];
 			
-			//this is the first numer in the array 
 			kClass[0] = _sortedValues[0];
 			
 			
-			
-			while (countNum >=2)
+			// the lower_class_limits matrix is used as indexes into itself
+			// here: the `kClassCount` variable is reused in each iteration.
+			if(kClassCount>countNum) // we only do this step if the number of values is greater than the number of bins.
 			{
-				var id:Number = _mat1[kClassCount][countNum] -2;
-				kClass[countNum -1] = _sortedValues[id];
-				kClassCount = _mat1[kClassCount][countNum] -1;
-				// spits out the rank and value of the break values:
-				// console.log("id="+id,"rank = " + String(mat1[k][countNum]),"val =
-				// " + String(dataList[id]))
-				// count down:
-				countNum --;
+				while (countNum >=2)
+				{
+					var id:Number = _lower_class_limits[kClassCount][countNum] -2;
+					kClass[countNum -1] = _sortedValues[id];
+					kClassCount = _lower_class_limits[kClassCount][countNum] -1;
+					countNum --;
+				}
 			}
-			
 			// check to see if the 0 and 1 in the array are the same - if so, set 0
 			// to 0:
 			if (kClass[0] == kClass[1]) 
@@ -298,7 +336,15 @@ package weave.data.BinningDefinitions
 					/* Get the index of the next break */
 					maxIndex = _previousSortedValues.lastIndexOf(kClass[iBin+1]);
 				}
-				_tempNumberClassifier.max.value = _previousSortedValues[maxIndex];
+				
+				if(maxIndex == -1)
+				{
+					_tempNumberClassifier.max.value = _tempNumberClassifier.min.value ;
+				}
+				else
+				{
+					_tempNumberClassifier.max.value = _previousSortedValues[maxIndex];
+				}
 				_tempNumberClassifier.minInclusive.value = true;
 				_tempNumberClassifier.maxInclusive.value = true;
 				

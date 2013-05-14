@@ -99,12 +99,72 @@ package weave.utils
 		}
 		
 		public static function resultAsNumberColumn( keys:Object , column:Object,columName:String = ""):NumberColumn{
-			var numColumn:NumberColumn = new NumberColumn();
-			var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);			
+			var numColumn:NumberColumn = new NumberColumn(<attribute title="{columnName}"/>);
+			var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);
+			if (column is Number)
+				column = [column];
 			var dataVec:Vector.<Number> = Vector.<Number>(column);
 			numColumn.setRecords(keyVec, dataVec);
 			return numColumn;
 		}
+		
+		/**
+		 * @return A multi-dimensional Array like [keys, [data1, data2, ...]] where keys implement IQualifiedKey
+		 */
+		public static function joinColumns(columns:Array):Array
+		{
+		var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+		//make dataype Null, so that columns will be sent as exact dataype to R
+		//if mentioned as String or NUmber ,will convert all columns to String or Number .
+		var result:Array = ColumnUtils.joinColumns(columns,null, true, keys);
+		return [result.shift(),result];
+		}
+		
+		public static function get selection():KeySet
+		{
+		return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		}
+		
+		public static function rResultToColumn(token:Array, RresultArray:Array,Robj:Array):void
+		{
+			var keys:Array = token as Array;
+			
+			//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
+			for (var p:int = 0;p < RresultArray.length; p++)
+			{
+				
+				if(RresultArray[p].value is Array){
+					if(keys){
+						if ((RresultArray[p].value).length == keys.length){
+							if (RresultArray[p].value[0] is String)	{
+								var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
+								var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+								var dataVec:Vector.<String> = new Vector.<String>();
+								VectorUtils.copy(keys, keyVec);
+								VectorUtils.copy(Robj[p].value, dataVec);
+								testStringColumn.setRecords(keyVec, dataVec);
+								if (keys.length > 0)
+									testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
+								testStringColumn.metadata.@name = RresultArray[p].name;
+							}
+							else{
+								var table:Array = [];
+								for (var k:int = 0; k < keys.length; k++)
+									table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
+								
+								//testColumn are named after respective Objects Name (i.e) object{name: , value:}
+								var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
+								testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
+								testColumn.numericMode.value = true;
+								testColumn.data.setSessionState(table);
+								testColumn.title.value = RresultArray[p].name;
+							}
+						}
+					}						
+				}										
+			}
+	   }
+		
 		
 	}
 }

@@ -133,7 +133,7 @@ package weave.data.AttributeColumns
 			{
 				try
 				{
-					_stringToNumberFunction = compiler.compileToFunction(numberFormat, null, true, false, [ColumnMetadata.STRING]);
+					_stringToNumberFunction = compiler.compileToFunction(numberFormat, null, errorHandler, false, [ColumnMetadata.STRING]);
 				}
 				catch (e:Error)
 				{
@@ -147,7 +147,7 @@ package weave.data.AttributeColumns
 			{
 				try
 				{
-					_numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [ColumnMetadata.NUMBER]);
+					_numberToStringFunction = compiler.compileToFunction(stringFormat, null, errorHandler, false, [ColumnMetadata.NUMBER]);
 				}
 				catch (e:Error)
 				{
@@ -157,6 +157,11 @@ package weave.data.AttributeColumns
 			
 			_iterateAll(-1); // restart from first task
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
+		}
+		
+		private function errorHandler(e:*):void
+		{
+			return; // do nothing
 		}
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2, _iterate3, _iterate4);

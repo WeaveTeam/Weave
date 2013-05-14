@@ -367,6 +367,10 @@ package weave
 					}
 					catch (e:Error)
 					{
+						try {
+							loadWeaveFileContent(String(content));
+							return;
+						} catch (e:Error) { }
 						throw new Error("Invalid Weave session state.");
 					}
 				}
@@ -385,6 +389,9 @@ package weave
 			
 			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
+			
+			if (WeaveAPI.externalInterfaceInitialized)
+				properties.runStartupJavaScript();
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
@@ -507,6 +514,8 @@ package weave
 		
 		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
 		private static const WeaveStartup:Class;
+		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
+		private static const WeavePath:Class;
 
 		public static function initJavaScriptDragDrop():void
 		{
@@ -515,6 +524,7 @@ package weave
 			try
 			{
 				ExternalInterface.call(String(new WeaveStartup()), ExternalInterface.objectID);
+				ExternalInterface.call(String(new WeavePath()), ExternalInterface.objectID);
 			}
 			catch (e:Error)
 			{

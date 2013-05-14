@@ -209,15 +209,16 @@ package weave.visualization.plotters
 		 * @param outputDataBounds A Bounds2D object to store the result in.
 		 * @return A Bounds2D object specifying the background data bounds.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			//TODO move these hard coded bounds to sessioned variables and make UI for editing them
-			return getReusableBounds(-1, -.3, 1, 1);
+			output.setBounds(-1, -.3, 1, 1);
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			return [getReusableBounds(-1, -.3, 1, 1)];
+			initBoundsArray(output);
+			(output[0] as IBounds2D).setBounds(-1, -.3, 1, 1);
 		}
 	}
 }

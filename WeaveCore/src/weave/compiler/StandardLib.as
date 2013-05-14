@@ -140,6 +140,24 @@ package weave.compiler
 		}
 		
 		/**
+		 * Substitutes "{n}" tokens within the specified string with the respective arguments passed in.
+		 * Same syntax as StringUtil.substitute() without the side-effects of using String.replace() with a regex.
+		 * @see String#replace()
+		 * @see mx.utils.StringUtil#substitute()
+		 */
+		public static function substitute(format:String, ...args):String
+		{
+			for (var i:int = 0; i < args.length; i++)
+			{
+				var str:String = '{' + i + '}';
+				var j:int = int.MAX_VALUE;
+				while ((j = format.lastIndexOf(str, j)) >= 0)
+					format = format.substr(0, j) + args[i] + format.substr(j + str.length);
+			}
+			return format;
+		}
+		
+		/**
 		 * @param number The Number to convert to a String.
 		 * @param base Specifies the numeric base (from 2 to 36) to use.
 		 * @param zeroPad This is the minimum number of digits to return.  The number will be padded with zeros if necessary.
@@ -444,6 +462,8 @@ package weave.compiler
 		
 		public static function mean(...args):Number
 		{
+			if (args.length == 1 && args[0] is Array)
+				args = args[0];
 			var sum:Number = 0;
 			for each (var value:Number in args)
 				sum += value;
@@ -452,10 +472,24 @@ package weave.compiler
 		
 		public static function sum(...args):Number
 		{
+			if (args.length == 1 && args[0] is Array)
+				args = args[0];
 			var sum:Number = 0;
 			for each (var value:Number in args)
 				sum += value;
 			return sum;
+		}
+		
+		/**
+		 * This uses AsyncSort.sortImmediately() to sort an Array (or Vector) in place.
+		 * @param array An Array (or Vector) to sort.
+		 * @param compare A function that accepts two items and returns -1, 0, or 1.
+		 * @see weave.utils.AsyncSort#sortImmediately()
+		 * @see Array#sort()
+		 */		
+		public static function sort(array:*, compare:Function = null):void
+		{
+			AsyncSort.sortImmediately(array, compare);
 		}
 		
 		/**

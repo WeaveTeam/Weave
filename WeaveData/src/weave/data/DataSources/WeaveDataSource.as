@@ -20,6 +20,7 @@
 package weave.data.DataSources
 {
 	import flash.net.URLRequest;
+	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -27,19 +28,18 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.disposeObjects;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
-	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -47,6 +47,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.QKeyManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
@@ -222,15 +223,14 @@ package weave.data.DataSources
 				{
 					var entityType:int = entityType_entityIds[0];
 					var entityIds:Array = entityType_entityIds[1];
+					var orderLookup:Object = createLookup(entityIds);
 					
 					var entities:Array = event.result as Array;
 					AsyncSort.sortImmediately(
 						entities,
 						function(entity1:Object, entity2:Object):int
 						{
-							var i1:int = entityIds.indexOf(entity1.id);
-							var i2:int = entityIds.indexOf(entity2.id);
-							return ObjectUtil.numericCompare(i1, i2);
+							return ObjectUtil.numericCompare(orderLookup[entity1.id], orderLookup[entity2.id]);
 						}
 					);
 					
@@ -317,8 +317,8 @@ package weave.data.DataSources
 					geoms[i] = metadata;
 				}
 				
-				tables.sortOn("title", Array.CASEINSENSITIVE);
-				geoms.sortOn("title", Array.CASEINSENSITIVE);
+				AsyncSort.sortImmediately(tables, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
+				AsyncSort.sortImmediately(geoms, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
 	
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
 
@@ -355,6 +355,16 @@ package weave.data.DataSources
 //				reportError(e, "Unable to generate hierarchy");
 //			}
 		}
+		
+		/**
+		 * Creates a lookup from item to index.
+		 */
+		private function createLookup(items:Array):Object
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			items.forEach(function(id:*, index:*, array:*):void { lookup[id] = index; });
+			return lookup;
+		}
 
 		private function handleColumnEntities(event:ResultEvent, hierarcyNode_entityIds:Array):void
 		{
@@ -363,6 +373,7 @@ package weave.data.DataSources
 
 			var hierarchyNode:XML = hierarcyNode_entityIds[0] as XML; // the node to add the list of columns to
 			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
+			var orderLookup:Object = createLookup(entityIds);
 
 			try
 			{
@@ -371,9 +382,7 @@ package weave.data.DataSources
 					entities,
 					function(entity1:Object, entity2:Object):int
 					{
-						var i1:int = entityIds.indexOf(entity1.id);
-						var i2:int = entityIds.indexOf(entity2.id);
-						return ObjectUtil.numericCompare(i1, i2);
+						return ObjectUtil.numericCompare(orderLookup[entity1.id], orderLookup[entity2.id]);
 					}
 				);
 				
@@ -453,17 +462,17 @@ package weave.data.DataSources
 				query = dataService.getColumnFromMetadata(params);
 			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
-			WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
+			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
 		}
 		
-		private function handleGetAttributeColumnFault(event:FaultEvent, token:Object = null):void
+		private function handleGetAttributeColumnFault(event:FaultEvent, request:ColumnRequestToken):void
 		{
-			var request:ColumnRequestToken = token as ColumnRequestToken;
-
 			if (request.proxyColumn.wasDisposed)
 				return;
 			
-			reportError(event, null, request);
+			var str:String = HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy).toXMLString();
+			var msg:String = "Error retrieving column: " + str + ' (' + event.fault.faultString + ')';
+			reportError(event.fault, msg, request);
 			
 			request.proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 		}
@@ -471,9 +480,11 @@ package weave.data.DataSources
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
-		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
+		private function handleGetAttributeColumn(event:ResultEvent, request:ColumnRequestToken):void
 		{
-			var request:ColumnRequestToken = token as ColumnRequestToken;
+			if (request.proxyColumn.wasDisposed)
+				return;
+			
 			var pathInHierarchy:XML = request.pathInHierarchy;
 			var proxyColumn:ProxyColumn = request.proxyColumn;
 			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
@@ -483,9 +494,6 @@ package weave.data.DataSources
 			else
 				proxyColumn.setMetadata(hierarchyNode);
 
-			if (proxyColumn.wasDisposed)
-				return;
-			
 			try
 			{
 				if (!event.result)

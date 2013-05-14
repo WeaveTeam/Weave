@@ -46,6 +46,8 @@
 			<mx:Object label="{lang('Labels')}" plotterClass="{AxisLabelPlotter}" selectable="false"/>
 			<mx:Object label="{lang('Rectangle Plotter')}" plotterClass="{RectanglePlotter}" selectable="true"/>
 			<mx:Object label="{lang('Image Plotter')}" plotterClass="{ImageGlyphPlotter}" selectable="true"/>
+			<mx:Object label="{lang('Simple Glyph Plotter')}" plotterClass="{SimpleGlyphPlotter}" selectable="true"/>
+			<mx:Object label="{lang('Custom Glyph Plotter')}" plotterClass="{CustomGlyphPlotter}" selectable="true"/>
 		</mx:List>
 	
 		<mx:Button label="{lang('Add new layer')}" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
@@ -63,11 +65,13 @@
 			import weave.utils.EditorManager;
 			import weave.visualization.layers.Visualization;
 			import weave.visualization.plotters.AxisLabelPlotter;
+			import weave.visualization.plotters.CustomGlyphPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
 			import weave.visualization.plotters.ImageGlyphPlotter;
 			import weave.visualization.plotters.RectanglePlotter;
+			import weave.visualization.plotters.SimpleGlyphPlotter;
 			import weave.visualization.plotters.WMSPlotter;
 			
 			private var _visualization:Visualization = null;

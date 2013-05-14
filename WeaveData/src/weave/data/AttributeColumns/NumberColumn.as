@@ -109,7 +109,7 @@ package weave.data.AttributeColumns
 			{
 				try
 				{
-					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [ColumnMetadata.NUMBER]);
+					numberToStringFunction = compiler.compileToFunction(stringFormat, null, errorHandler, false, [ColumnMetadata.NUMBER]);
 				}
 				catch (e:Error)
 				{
@@ -125,6 +125,12 @@ package weave.data.AttributeColumns
 			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
 		}
 		
+		private function errorHandler(e:*):void
+		{
+			_error = e;
+		}
+		
+		private var _error:String;
 		private var _i:int;
 		private var _keys:Vector.<IQualifiedKey>;
 		private var _numericData:Vector.<Number>;
@@ -146,7 +152,10 @@ package weave.data.AttributeColumns
 					{
 						_uniqueKeys.push(key);
 						_keyToNumericDataMapping[key] = number;
-						_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
+						_error = null;
+						var string:String = StandardLib.asString(numberToStringFunction(number));
+						_keyToStringDataMapping[key] = _error ? _error : string;
+						_error = null;
 					}
 					else if (!_reportedDuplicate)
 					{
@@ -177,7 +186,7 @@ package weave.data.AttributeColumns
 		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
-			return numberToStringFunction(number);
+			return StandardLib.asString(numberToStringFunction(number));
 		}
 
 		/**

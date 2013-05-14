@@ -87,7 +87,7 @@ package weave.radviz
 					} 
 					temp.splice(i,1); // remove inserted dimension in each iteration
 				}
-				orderedLayout = stored; //save best so far
+				orderedLayout = stored || []; //save best so far
 			}
 						
 			trace( "incremental ", min);

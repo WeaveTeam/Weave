@@ -93,19 +93,17 @@ package weave.visualization.plotters
 		 * @param key The key of a data record.
 		 * @param outputDataBounds A Bounds2D object to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			var b1:IBounds2D = getReusableBounds();
-			var b2:IBounds2D = getReusableBounds();
-			b1.includeCoords(
+			initBoundsArray(output, 2);
+			(output[0] as IBounds2D).includeCoords(
 					x1Data.getValueFromKey(recordKey, Number),
 					y1Data.getValueFromKey(recordKey, Number)
 				);
-			b2.includeCoords(
+			(output[1] as IBounds2D).includeCoords(
 					x2Data.getValueFromKey(recordKey, Number),
 					y2Data.getValueFromKey(recordKey, Number)
 				);
-			return [b1,b2];
 		}
 
 		/**

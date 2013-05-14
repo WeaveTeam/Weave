@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
@@ -74,8 +75,9 @@ package weave.visualization.plotters
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
-			getCallbackCollection(filteredKeySet).addImmediateCallback(this, handleColumnsChange, true);
+			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
+			columns.addGroupedCallback(this, handleColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -87,7 +89,9 @@ package weave.visualization.plotters
 				anchors.requestObject(newColumnName, AnchorPoint, false);
 				// When a new column is created, register the stats to trigger callbacks and affect busy status.
 				// This will be cleaned up automatically when the column is disposed.
-				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
+				registerSpatialProperty(stats)
+				getCallbackCollection(stats).addGroupedCallback(this, handleColumnsChange);
 			}
 			var oldColumnName:String = columns.childListCallbacks.lastNameRemoved;
 			if(oldColumnName != null)
@@ -97,7 +101,7 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		
 		/**
@@ -117,8 +121,8 @@ package weave.visualization.plotters
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
 		
-		public var doCDLayout:Boolean = false;
-		public var LayoutClasses:Dictionary = null;
+		public var doCDLayout:Boolean = false;//(Set via the editor)boolean needed to switch between normal layout and cd layout
+		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
 
 		/**
@@ -139,6 +143,9 @@ package weave.visualization.plotters
 		
 		private function handleColumnsChange():void
 		{
+			if (linkableObjectIsBusy(columns) || linkableObjectIsBusy(spatialCallbacks))
+				return;
+			
 			var i:int = 0;
 			var keyNormArray:Array;
 			var columnNormArray:Array;
@@ -146,7 +153,7 @@ package weave.visualization.plotters
 			var columnNumberArray:Array;
 			var sum:Number = 0;
 			
-			randomArrayIndexMap = 	new Dictionary(true);				
+			randomArrayIndexMap = 	new Dictionary(true);
 			var keyMaxMap:Dictionary = new Dictionary(true);
 			var keyMinMap:Dictionary = new Dictionary(true);
 			keyNormMap = 			new Dictionary(true);
@@ -284,14 +291,13 @@ package weave.visualization.plotters
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
-		private function getXYcoordinates(recordKey:IQualifiedKey):Number
+		private function getXYcoordinates(recordKey:IQualifiedKey):void
 		{
 			var cached:Array = coordCache[recordKey] as Array;
 			if (cached)
 			{
 				coordinate.x = cached[0];
 				coordinate.y = cached[1];
-				return cached[2];
 			}
 			
 			//implements RadViz algorithm for x and y coordinates of a record
@@ -301,30 +307,28 @@ package weave.visualization.plotters
 			
 			var anchorArray:Array = anchors.getObjects();			
 			
-			var sum:Number = 0;			
 			var value:Number = 0;			
 			var name:String;
-			var keyMapExists:Boolean = true;
 			var anchor:AnchorPoint;
-			var array:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
-			if(!array) keyMapExists = false;
-			var array2:Dictionary = keyNumberMap[recordKey];
-			var i:int = 0;
-			for each( var column:IAttributeColumn in columns.getObjects())
+			var normArray:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
+			var _cols:Array = columns.getObjects();
+			for (var i:int = 0; i < _cols.length; i++)
 			{
+				var column:IAttributeColumn = _cols[i];
 				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-				value = (keyMapExists) ? array[i] : stats.getNorm(recordKey);
-				name = (keyMapExists) ? columnTitleMap[column] : columns.getName(column);	
-				sum += (keyMapExists) ? array2[column] : column.getValueFromKey(recordKey, Number);
+				value = normArray ? normArray[i] : stats.getNorm(recordKey);
+				if (isNaN(value))
+					continue;
+				
+				name = normArray ? columnTitleMap[column] : columns.getName(column);
 				anchor = anchors.getObject(name) as AnchorPoint;
 				numeratorX += value * anchor.x.value;
 				numeratorY += value * anchor.y.value;						
 				denominator += value;
-				i++ ;
 			}
 			if(denominator==0) 
 			{
-				denominator = .00001;
+				denominator = 1;
 			}
 			coordinate.x = (numeratorX/denominator);
 			coordinate.y = (numeratorY/denominator);
@@ -332,9 +336,7 @@ package weave.visualization.plotters
 			if( enableJitter.value )
 				jitterRecords(recordKey);
 			
-			coordCache[recordKey] = [coordinate.x, coordinate.y, sum];
-			
-			return sum;
+			coordCache[recordKey] = [coordinate.x, coordinate.y];
 		}
 		
 		private function jitterRecords(recordKey:IQualifiedKey):void
@@ -458,27 +460,24 @@ package weave.visualization.plotters
 		 * 
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
-		 * @return An Array of Bounds2D objects that make up the bounds for the record.
+		 * @param output An Array of IBounds2D objects to store the result in.
 		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			//_columns = columns.getObjects(IAttributeColumn);
 			//if(!unorderedColumns.length) handleColumnsChange();
 			getXYcoordinates(recordKey);
 			
-			var bounds:IBounds2D = getReusableBounds();
-			bounds.includePoint(coordinate);
-			return [bounds];
+			initBoundsArray(output).includePoint(coordinate);
 		}
 		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
-		 * @return A Bounds2D object specifying the background data bounds.
+		 * @param An IBounds2D object used to store the background data bounds.
 		 */
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			return getReusableBounds(-1, -1.1, 1, 1.1);
+			output.setBounds(-1, -1.1, 1, 1.1);
 		}		
 		
 		public var drawProbe:Boolean = false;

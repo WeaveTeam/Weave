@@ -25,8 +25,23 @@ package weave.utils;
 public class SerialIDGenerator
 {
 	private int nextID = 0;
+	/**
+	 * Allocates a single ID
+	 * @return A new ID
+	 */
 	public synchronized int getNext()
 	{
 		return nextID++;
+	}
+	/**
+	 * Allocates a range of IDs.
+	 * @param allocate The number of IDs to allocate.
+	 * @return A new ID.  The additional IDs will be allocated in succession to this one.  The last ID allocated will be (result + allocate - 1).
+	 */
+	public synchronized int getNext(int allocate)
+	{
+		if (allocate < 1)
+			return -1;
+		return nextID += allocate;
 	}
 }

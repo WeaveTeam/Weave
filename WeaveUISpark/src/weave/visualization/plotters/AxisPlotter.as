@@ -189,12 +189,11 @@ package weave.visualization.plotters
 		}
 		
 		// gets the bounds of a tick mark
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			initBoundsArray(output);
 			getTickValueAndDataCoords(recordKey, tempPoint);
-			var bounds:IBounds2D = getReusableBounds();
-			bounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 0, 0);
-			return [bounds];
+			(output[0] as IBounds2D).includePoint(tempPoint);
 		}
 		
 		// draws the tick marks
@@ -428,11 +427,9 @@ package weave.visualization.plotters
 //		}
 		
 		// gets the bounds of the axis line
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
-			axisLineDataBounds.copyTo(bounds);
-			return bounds;
+			axisLineDataBounds.copyTo(output);
 		}
 		
 		private function initPrivateAxisLineBoundsVariables(dataBounds:IBounds2D, screenBounds:IBounds2D):void

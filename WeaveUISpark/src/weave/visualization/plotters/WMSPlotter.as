@@ -37,6 +37,7 @@ package weave.visualization.plotters
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
@@ -68,7 +69,7 @@ package weave.visualization.plotters
 	 * @author kmonico
 	 * @author skolman
 	 */
-	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus
+	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
 		// TODO: move the image reprojection code elsewhere
 		
@@ -141,6 +142,7 @@ package weave.visualization.plotters
 		private const _tempMatrix:Matrix = new Matrix(); 
 		private const _tempDataBounds:IBounds2D = new Bounds2D();
 		private const _tempScreenBounds:IBounds2D = new Bounds2D();
+		private const _tempBackgroundDataBounds:IBounds2D = new Bounds2D();
 		private const _clipRectangle:Rectangle = new Rectangle();
 		
 		// used to show a missing image
@@ -284,7 +286,7 @@ package weave.visualization.plotters
 			
 			//// THERE IS A PROJECTION
 			
-			var bgDataBounds:IBounds2D = getBackgroundDataBounds(); // temp solution, slightly inefficient
+			getBackgroundDataBounds(_tempBackgroundDataBounds);
 
 			_tempDataBounds.copyFrom(dataBounds);
 			_tempScreenBounds.copyFrom(screenBounds);
@@ -293,7 +295,7 @@ package weave.visualization.plotters
 			if (areProjectionsDifferent && mapProjExists) 
 			{
 				// make sure _tempDataBounds is within the valid range
-				bgDataBounds.constrainBounds(_tempDataBounds, false);
+				_tempBackgroundDataBounds.constrainBounds(_tempDataBounds, false);
 				_tempDataBounds.centeredResize(_tempDataBounds.getWidth() - ProjConstants.EPSLN, _tempDataBounds.getHeight() - ProjConstants.EPSLN);
 				
 				// calculate screen bounds that corresponds to _tempDataBounds
@@ -432,35 +434,29 @@ package weave.visualization.plotters
 			spatialCallbacks.triggerCallbacks();
 		}
 		
-		override public function getBackgroundDataBounds():IBounds2D
+		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var bounds:IBounds2D = getReusableBounds();
+			output.reset();
 			if (_service != null)
 			{
 				// determine bounds of plotter
-				_service.getAllowedBounds(bounds);
+				_service.getAllowedBounds(output);
 				
 				var serviceSRS:String = _service.getProjectionSRS();
 				if (serviceSRS != srs.value
 					&& projManager.projectionExists(srs.value)
 					&& projManager.projectionExists(serviceSRS))
 				{
-					projManager.transformBounds(_service.getProjectionSRS(), srs.value, bounds);
+					projManager.transformBounds(_service.getProjectionSRS(), srs.value, output);
 				}
 			}
-			
-			return bounds;
 		}
 		
-		override public function dispose():void
+		public function dispose():void
 		{
 			if (_service != null)
-			{
 				_service.cancelPendingRequests(); // cancel everything to prevent any callbacks from running
-				
-			}
 			WeaveAPI.SessionManager.disposeObjects(_service);
-			super.dispose();
 		}
 
 		/**

@@ -31,6 +31,8 @@ package weave.utils
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 	
+	import weave.api.WeaveAPI;
+	
 	public class PopUpUtils
 	{
 		public static function createDisplayObjectAsPopUp(destination:DisplayObject, classType:Class):IFlexDisplayObject
@@ -86,23 +88,53 @@ package weave.utils
 		 * @param component The component below which a tooltip should be placed.
 		 * @param text The text to display in the tooltip.
 		 * @param duration The amount of time the tooltip will be displayed.
+		 * @return A function that will hide the tooltip.
 		 */
-		public static function showTemporaryTooltip(component:UIComponent, text:String, duration:int = 1500):void
+		public static function showTemporaryTooltip(component:DisplayObject, text:String, duration:int = 1500):Function
 		{
 			// create tooltip underneath editor
-			var coords:Point = component.localToGlobal(new Point(0,0));
-			var tip:ToolTip = PopUpManager.createPopUp(component, ToolTip) as ToolTip;
+			var tip:ToolTip = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ToolTip) as ToolTip;
+			tip.mouseChildren = false;
 			tip.text = text;
-			tip.x = coords.x;
-			tip.y = coords.y + component.height;
-			// show tooltip only temporarily
+			tip.validateNow();
+			show();
+			
+			// Periodically bring tooltip to front so user sees it.
+			// This is required in case the user clicks on another popup that obscures the tooltip.
 			var interval:int = 200;
 			var timer:Timer = new Timer(interval, duration / interval);
-			// bring tooltip to front so user sees it -- this is required in case the user clicks on another popup that obscures the tooltip
-			timer.addEventListener(TimerEvent.TIMER, function(_:*):void { PopUpManager.bringToFront(tip); });
-			// remove tooltip
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(_:*):void { PopUpManager.removePopUp(tip); });
+			timer.addEventListener(TimerEvent.TIMER, show);
+			timer.addEventListener(TimerEvent.TIMER_COMPLETE, hide);
 			timer.start();
+			
+			function show(_:* = null):void
+			{
+				if (tip && component.parent)
+				{
+					var coords:Point = component.localToGlobal(new Point(0, component.height));
+					tip.x = Math.max(0, coords.x);
+					tip.y = Math.max(0, coords.y);
+					if (component.stage)
+					{
+						tip.x = Math.min(tip.x, component.stage.stageWidth - tip.width);
+						tip.y = Math.min(tip.y, component.stage.stageHeight - tip.height);
+					}
+					PopUpManager.bringToFront(tip);
+				}
+				else
+					hide();
+			}
+			function hide(_:* = null):void
+			{
+				if (tip)
+				{
+					PopUpManager.removePopUp(tip);
+					timer.stop();
+					tip = null;
+				}
+			}
+			
+			return hide;
 		}
 	}
 }

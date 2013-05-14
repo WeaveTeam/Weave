@@ -287,7 +287,7 @@ package weave.data.DataSources
 			debug('getAttributeColumn', refCopy.getHashCode());
 			
 			var dcr:DelayedColumnRequest = new DelayedColumnRequest(refCopy, proxyColumn);
-			WeaveAPI.SessionManager.assignBusyTask(dcr, proxyColumn);
+			WeaveAPI.ProgressIndicator.addTask(dcr, proxyColumn);
 			handlePendingColumnRequest(dcr);
 			
 			return proxyColumn;
@@ -310,7 +310,7 @@ package weave.data.DataSources
 				debug('requestColumnFromSource', request.columnReference.getHashCode());
 				
 				WeaveAPI.StageUtils.callLater(request.proxyColumn, requestColumnFromSource, [request.columnReference, request.proxyColumn]);
-				WeaveAPI.StageUtils.callLater(request.proxyColumn, WeaveAPI.SessionManager.unassignBusyTask, [request]);
+				WeaveAPI.StageUtils.callLater(request.proxyColumn, WeaveAPI.ProgressIndicator.removeTask, [request]);
 				//requestColumnFromSource(request.columnReference, request.proxyColumn);
 			}
 			else

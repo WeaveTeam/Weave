@@ -38,6 +38,7 @@ package weave.radviz
 	 */	
 	public class ClassDiscriminationLayoutAlgorithm extends AbstractLayoutAlgorithm implements ILayoutAlgorithm
 	{
+		//  String -> Array <of LinkableHashMap object names>
 		public var tAndpMapping:Dictionary;//stores the columns belonging to a particular class{key = classname value = array of columns belonging to this class}
 		public var ClassToColumnMap:Dictionary;
 		/** structure of ClassToColumnMap
@@ -68,8 +69,8 @@ package weave.radviz
 				for(var g:int = 0; g < selectedColumn.keys.length; g++)
 				{
 					var mkey:IQualifiedKey = selectedColumn.keys[g] as IQualifiedKey;
-					//var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
-					var type:Object = selectedColumn.getValueFromKey(mkey,String);
+					
+					var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
 					
 					
 					if(!ClassToColumnMap.hasOwnProperty(type))// && !tAndpMapping.hasOwnProperty(type))
@@ -115,7 +116,7 @@ package weave.radviz
 		
 		
 		/**This function segregates the columns into classes using the statistical measure (t-statistic in this case) */
-		public function actualAlgo(columnNames:Array,ClassToColumnMap:Dictionary, layoutMeasure:String, thresholdValue:Number):Dictionary
+		public function actualAlgo(columnNames:Array,ClassToColumnMap:Dictionary, layoutMeasure:String, thresholdValue:Number, columnNumPerClass:Number):Dictionary
 		{
 			tAndpMapping = new Dictionary();
 			for (var r:int = 0 ; r < columnNames.length; r++)//for each column loop through the classes

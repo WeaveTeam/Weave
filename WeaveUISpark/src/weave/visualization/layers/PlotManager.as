@@ -59,7 +59,6 @@ package weave.visualization.layers
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.ZoomBounds;
-	import weave.utils.ColumnUtils;
 	import weave.utils.NumberUtils;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
@@ -72,7 +71,7 @@ package weave.visualization.layers
 	 */
 	public class PlotManager implements ILinkableObject
 	{
-		private function debugTrace(..._):void { } // comment this line to enable debugging
+		public var debug:Boolean = false;
 		
 		public function PlotManager()
 		{
@@ -441,7 +440,7 @@ package weave.visualization.layers
 		 **/
 		public function getOverlappingKeysAcrossLayers(sourceKeys:Array, sourceLayer:String, destinationLayer:String):Array
 		{
-			sourceKeys = ColumnUtils.getQKeys(sourceKeys);
+			sourceKeys = WeaveAPI.QKeyManager.mapQKeys(sourceKeys);
 			var simpleGeometriesInSourceLayer:Array = [];
 			var simpleGeometry:ISimpleGeometry;
 			var queriedKeys:Array = [];
@@ -674,19 +673,21 @@ package weave.visualization.layers
 			
 			zoomBounds.getDataBounds(tempDataBounds);
 			zoomBounds.getScreenBounds(tempScreenBounds);
-			debugTrace(this,'\n\tdata',String(tempDataBounds),'\n\tscreen',String(tempScreenBounds));
+			if (debug)
+				debugTrace(this,'\n\tdata',String(tempDataBounds),'\n\tscreen',String(tempScreenBounds));
 			
 			PlotterUtils.setBitmapDataSize(bitmap, _unscaledWidth, _unscaledHeight);
 			if (_unscaledWidth && _unscaledHeight)
 			{
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
-//					if (linkableObjectIsBusy(hack_getSpatialIndex(name)))
+//					if (linkableObjectIsBusy(_name_to_SpatialIndex[name]))
 //						continue;
 					
 					if (layerShouldBeRendered(name))
 					{
-						debugTrace('render',name,getPlotter(name));
+						if (debug)
+							debugTrace('render',name,getPlotter(name));
 						for each (var task:PlotTask in _name_to_PlotTask_Array[name])
 						{
 							var busy:Boolean = linkableObjectIsBusy(task);
@@ -694,7 +695,8 @@ package weave.visualization.layers
 							
 							if (completedReady)
 							{
-								debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
+								if (debug)
+									debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
 								
 								copyScaledPlotGraphics(
 									task.completedBitmap, task.completedDataBounds, task.completedScreenBounds,
@@ -702,7 +704,7 @@ package weave.visualization.layers
 									fade && busy ? 1 - task.progress : 1
 								);
 							}
-							else
+							else if (debug)
 							{
 								//debugTrace(String(task),'undefined',name);
 							}
@@ -711,7 +713,8 @@ package weave.visualization.layers
 							{
 								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
 								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
-								debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
+								if (debug)
+									debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
 								
 								shouldRender = true;
 								copyScaledPlotGraphics(
@@ -722,7 +725,7 @@ package weave.visualization.layers
 							}
 						}
 					}
-					else
+					else if (debug)
 					{
 						//debugTrace('do not render',name);
 					}

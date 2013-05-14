@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.disposeObjects;
+	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -50,7 +51,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class RegressionLinePlotter extends AbstractPlotter
+	public class RegressionLinePlotter extends AbstractPlotter implements IDisposableObject
 	{
 		public function RegressionLinePlotter()
 		{
@@ -285,9 +286,8 @@ package weave.visualization.plotters
 				}
 			}		
 		}
-		override public function dispose():void
+		public function dispose():void
 		{
-			super.dispose();
 			requestID = 0; // forces all results from previous requests to be ignored
 		}
 		

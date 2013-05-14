@@ -172,6 +172,16 @@ package weave.api
 		 */
 		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
+		private static var _externalInterfaceInitialized:Boolean = false;
+		
+		/**
+		 * This will be true after initializeExternalInterface() completes successfully.
+		 */
+		public static function get externalInterfaceInitialized():Boolean
+		{
+			return _externalInterfaceInitialized;
+		}
+		
 		/**
 		 * This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
 		 * After initializing, this will call an external function weaveReady(weave) if it exists, where the
@@ -179,7 +189,7 @@ package weave.api
 		 */
 		public static function initializeExternalInterface():void
 		{
-			if (!ExternalInterface.available)
+			if (!ExternalInterface.available || _externalInterfaceInitialized)
 				return;
 			
 			try
@@ -213,6 +223,8 @@ package weave.api
 					[ExternalInterface.objectID]
 				);
 				ExternalInterface.marshallExceptions = prev;
+				
+				_externalInterfaceInitialized = true;
 			}
 			catch (e:Error)
 			{
@@ -362,7 +374,7 @@ package weave.api
 				}
 				catch (e:Error)
 				{
-					trace(e.message);
+					trace(e.getStackTrace() || e);
 				}
 			}
 			// END TEMPORARY SOLUTION
