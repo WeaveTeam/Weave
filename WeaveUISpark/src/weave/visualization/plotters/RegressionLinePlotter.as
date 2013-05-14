@@ -175,14 +175,16 @@ package weave.visualization.plotters
 				// where it should in fact be 0.
 				
 				// problem arises sometimes, when coefficients is null, meaning the R calls are not done yet? May be create a busy loop?
-				for (i = 0; i < coefficients.length; i++)
+				if (coefficients)
 				{
-					if (isNaN(coefficients[i]))
+					for (i = 0; i < coefficients.length; i++)
 					{
-						coefficients[i] = 0;
+						if (isNaN(coefficients[i]))
+						{
+							coefficients[i] = 0;
+						}
 					}
-				}
-				
+				}	
 				rSquared = Number((RresultArray[1] as RResult).value);
 				getCallbackCollection(this).triggerCallbacks();	
 			}

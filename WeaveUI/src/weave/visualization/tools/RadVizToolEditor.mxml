@@ -388,7 +388,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:Indent label="Anchor point color">
 				<mx:ColorPicker id="anchorColorPicker"
 								selectedColor="0xFFFFFF"
-								creationComplete="linkBindableProperty(_target._anchorPlotter.anchorFillStyle.color.defaultValue, event.target, 'selectedColor')" />
+								creationComplete="linkBindableProperty(_target._anchorPlotter.regularAnchorColor, event.target, 'selectedColor')" />
 			</ui:Indent>	
 			
 		</mx:VBox>

@@ -36,6 +36,7 @@ package weave.visualization.plotters
 		
 		public const polarRadians:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		public const radius:LinkableNumber = newLinkableChild(this,LinkableNumber);
+		//public const anchorColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const title:LinkableString = newLinkableChild(this, LinkableString);
 		
 		//metric used to calculate the class discrimiation for eg t-stat, p value, mean ratio etc

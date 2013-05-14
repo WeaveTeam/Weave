@@ -75,7 +75,7 @@
 				}				
 			}
 			
-			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), enableEquationTextEditing);
+			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), enableEquationTextEditing);
 			
 			private function isVisibleEquationText():void
 			{
@@ -89,7 +89,7 @@
 				}
 			}
 			
-			public const isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), isVisibleEquationText);
+			public var isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), isVisibleEquationText);
 			
 			
 			override protected function constructor():void
@@ -370,13 +370,15 @@
 						{	
 							var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
 							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							lineEquation.text = lang("y = {0}x + {1}", slope, intercept);					
+							var rsquared:Number = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}x + {1}    R^2 = {2}", slope, intercept, rsquared);					
 						}
 					
 						else if( regressionPlotter.currentTrendline.value == "Polynomial")
 						{
 							var rawCoefficients:Array = regressionPlotter.getCoefficients();
 							var roundedCoefficients:Array = [];
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
 							lineEquation.text = lang("Equation: y = ");
 							var i:int = 0;
 						
@@ -390,26 +392,29 @@
 								lineEquation.text += lang("{0}x^{1} + ", roundedCoefficients[i], i); 
 							}
 							
-							lineEquation.text += lang("{0}", roundedCoefficients[0]);
+							lineEquation.text += lang("{0}    R^2 = {1}", roundedCoefficients[0], rsquared);
 							
 						}
-						else if ( regressionPlotter.currentTrendline.value == "Exponential")
+						else if (regressionPlotter.currentTrendline.value == "Exponential")
 						{
 							var base:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							var exponent:Number = Math.exp(StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4));
-							lineEquation.text = lang("y = {0}e^{1}x", base, exponent);
+							var exponent:Number = StandardLib.roundSignificant(Math.exp(regressionPlotter.getCoefficients()[1]), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}e^{1}x    R^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Power")
 						{
 							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							exponent = Math.exp(StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1],4));
-							lineEquation.text = lang("y = {0}x^{1}", base, exponent);
+							exponent = StandardLib.roundSignificant(Math.exp(regressionPlotter.getCoefficients()[1]), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}x^{1}    R^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
 						{
 							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
 							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0],4);
-							lineEquation.text = lang("y = {0}ln(x)+{1}", base, exponent);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}ln(x)+{1}    R^2 = {2}", base, exponent, rsquared);
 						}
 					}
 				}
@@ -626,7 +631,9 @@
 				-->
 				<ui:Indent>
 					<mx:VBox>
-						<mx:Label id="lineEquation" text="{lang('Equation:')}"/>
+						<mx:Label id="lineEquation" text="{lang('Equation')}"/>
+						<mx:CheckBox id="hideEquationCheckBox" label="{lang('Show equation')}" labelPlacement="right"
+									 creationComplete="linkBindableProperty(this.isVisibleEquationTextBoolean, event.target, 'selected')"/>
 						<mx:HBox>
 							<mx:Label text="{lang('Line Color')}" />
 							<mx:ColorPicker id="regressionColorPicker" 

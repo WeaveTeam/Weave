@@ -41,9 +41,9 @@ package weave.radviz
 		public var tAndpMapping:Dictionary;//stores the column names belonging to a particular class{key = classname value = array of column names belonging to this class}
 		public var tandpValuesMapping:Dictionary;//stores the column values belonging to a particular class{key = classname value = array of column values belonging to this class}
 		public var ClassToColumnMap:Dictionary;
-		/** structure of ClassToColumnMap
+		/** structure of ClassToColumnMap (Bins)
 		 for example :    type                        				Array
-		 ClassToColumnMap[japanese]       			   			 Object 1
+		 ClassToColumnMap[japanese]      			   			 Object 1
 																 ColumnName1     values in Column1
 		 														 ColumnName2		       Column2
 		 														 ColumnName3		       Column3

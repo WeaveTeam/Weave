@@ -103,7 +103,10 @@ package weave.visualization.plotters
 		public const circleLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const anchorLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const anchorFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
+		public const regularAnchorColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		public var anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		
+		
 		
 		public function handleAnchorsChange():void
 		{
@@ -147,7 +150,7 @@ package weave.visualization.plotters
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchorLineStyle.beginLineStyle(null, graphics);
-				anchorFillStyle.beginFillStyle(null, graphics);
+				graphics.beginFill(regularAnchorColor.value);
 
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
 				if(anchorThreshold)
@@ -171,9 +174,10 @@ package weave.visualization.plotters
 				
 				// draw circle
 				if(enableWedgeColoring.value)
-					graphics.beginFill(anchorColorMap[key.localName]);		
+					graphics.beginFill(uint(anchor.anchorColor.value));		
 				//color the dimensional anchors according to the class hey belong to
-				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
+				if(doCDLayout)
+					graphics.beginFill(uint(anchor.anchorColor.value));			
 				graphics.drawCircle(tempPoint.x, tempPoint.y, anchorRadius.value);				
 				graphics.endFill();
 				
@@ -295,12 +299,12 @@ package weave.visualization.plotters
 				nextClassAnchor.y = Math.sin(nextClassPos);
 				dataBounds.projectPointTo(nextClassAnchor, screenBounds);
 				
-				graphics.lineStyle(3, 0x00ff00);
-				graphics.lineStyle(2,Math.random() * uint.MAX_VALUE);
+				graphics.lineStyle(2, 2, .4);
+				//graphics.lineStyle(2,Math.random() * uint.MAX_VALUE);
 				classIncrementor ++;
 				graphics.moveTo(previousClassAnchor.x, previousClassAnchor.y);
 				graphics.lineTo(centre.x, centre.y);
-				graphics.lineTo(nextClassAnchor.x, nextClassAnchor.y);
+				//graphics.lineTo(nextClassAnchor.x, nextClassAnchor.y);
 				
 				//adding class labels TO DO find a way of displaying class labels using legend or labels
 				/*var classLabelPosition:Number = (classTheta/2)*classIncrementor;
