@@ -34,6 +34,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.net.sendToURL;
+			
 			import mx.controls.Alert;
 			import mx.events.ListEvent;
 			import mx.rpc.AsyncToken;
@@ -148,6 +150,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					trace("receivedFromRCounter :" + receivedFromRCounter);
 					trace("sentToRCounter :" + sentToRCounter);
 					
+					if(sentToRCounter == receivedFromRCounter)
+					{
+						doCdLayout();
+					}
+					
 					
 			}
 			
@@ -159,63 +166,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 		
 			
-			//reports which algorithm with which to compute the t-statistic
-			protected function layoutAlgoCB_changeHandler(event:ListEvent):void
-			{
-				/*  var script:String = "";
-				var flag:Boolean;  */
-				if(UIUtils.hasFocus(layoutAlgoCB)){
-					var selectedOptionName:String= layoutAlgoCB.selectedLabel;
-				}
-				
-				/*  if (selectedOptionName == "t-statistic = variance"){flag = true;}
-				
-				if (selectedOptionName == "t-statistic != variance"){flag = false;}  */
-				
-				/* Call to R
-				FOr a type(example "American") sends one column at a time and a two-sample t-test is performed in R
-				For each column the t-statistic and p-value are returned from R
-				*/
-				
-				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-				
-				/*  if(flag){script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
-				if(!flag){script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  */
-				
-				for (var type:Object in _target.cdLayout.ClassToColumnMap)
-				{						
-					for(var l:int = 0; l < colObjects.length; l++)
-					{
-						var inputValues:Array = new Array();//sending two vectors to R
-						var inputNames:Array;
-						inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
-						var temArray:Array = new Array();
-						var temArray2:Array = new Array();
-						for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
-						{
-							if(type!= comparetype)//collecting the values of the same column for other types
-							{
-								temArray = temArray.concat((_target.cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);
-							}
-						}
-						
-						inputValues.push(temArray);
-						inputNames = ["x", "y"];
-						
-						//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
-						var script:String = "cdoutput <- t.test(x,y)";
-						var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
-						
-						//send one column to R at a time
-						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-						addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
-						//addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
-					}
-					
-				}
-				
-			}
-	
+			
 			// identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
 			protected function measureCheck():String
 			{
@@ -240,18 +191,92 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**this function sends columns to R for calculation of the t-statistic and p-value*/
 			protected function DOcdButton_clickHandler(event:MouseEvent):void
 			{
-				var thrValue:Number = Number(thresholdValue.text);
-				var columnNumPerClass:Number = Number(columninClassTI.text);//limits the number of columns in each class to this number
+				var script:String = "";
+				var flag:Boolean;  
+				sentToRCounter = 0;
+				var selectedOptionName:String= layoutAlgoCB.selectedLabel;
+				
+				if (selectedOptionName == "t-statistic = variance"){flag = true;}
+				
+				if (selectedOptionName == "t-statistic != variance"){flag = false;}  
+				
+				/* Call to R
+				FOr a type(example "American") sends one column at a time and a two-sample t-test is performed in R
+				For each column the t-statistic and p-value are returned from R
+				*/
+				
+				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
+				if(colObjects.length == 0)
+					return;
+				
+				if(flag)
+				{script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
+				if(flag == false)
+				{script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  
+				//var script:String = "cdoutput <- t.test(x,y)";
+				
+				for (var type:Object in _target.cdLayout.ClassToColumnMap)
+				{						
+					for(var l:int = 0; l < colObjects.length; l++)
+					{
+						var inputValues:Array = new Array();//sending two vectors to R
+						var inputNames:Array;
+						inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
+						var temArray:Array = new Array();
+						var temArray2:Array = new Array();
+						for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
+						{
+							if(type!= comparetype)//collecting the values of the same column for other types
+							{
+								temArray = temArray.concat((_target.cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);
+							}
+						}
+						
+						inputValues.push(temArray);
+						inputNames = ["x", "y"];
+						
+						//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
+						var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
+						
+						//send one column to R at a time
+						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+						addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
+						sentToRCounter++;
+						//addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
+					}
+					
+				}
+				
+			}
+			
+			private function doCdLayout():void
+			{
+				receivedFromRCounter = 0;
+				
+				//testing
+				//check if columns are present
+				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
+				if (colObjects.length == 0)
+					return;
+				
+				var thrValue:Number;
+				var columnNumPerClass:Number;
+				if(thresholdValue.text != "")//check done because if left empty automatically assigned to zero(not desired)
+				    thrValue = Number(thresholdValue.text);
+				_target._anchorPlotter.anchorThreshold = thrValue;
+				//if(columninClassTI.text != "")
+				    //columnNumPerClass = Number(columninClassTI.text);//limits the number of columns in each class to this number
 				var layoutMeasure:String = new String();
 				if(useThresholdCB.selected){layoutMeasure = measureCheck();} 
 				else{
 					layoutMeasure = "Tstat";
 				}
 				
-				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue,columnNumPerClass);
+				_target.cdLayout.performClassDiscrimination(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue,columnNumPerClass);
 				_target._anchorPlotter.drawingClassLines = true;//cd coloring
-				_target._plotter.doCDLayout = true;//cd layout
+				_target._anchorPlotter.doCDLayout = true;//cd layout needed for tstat rendering
 				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors accorsing to the class they belong to
+				_target._plotter.setclassDiscriminationMetric(_target.cdLayout.tAndpMapping, _target.cdLayout.tandpValuesMapping);
 				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; //for setting cd dimensional anchor  locations
 				//_target._plotter.setAnchorLocations();
 				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
@@ -260,7 +285,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			//restoring the default ordering
 			protected function defaultDAs_clickHandler(event:MouseEvent):void
 			{
-				_target._plotter.doCDLayout = false;
+				_target._anchorPlotter.doCDLayout = false;
+				_target._anchorPlotter.anchorThreshold = NaN;//find a better way to do this
 				_target._anchorPlotter.drawingClassLines = false;
 				_target._plotter.setAnchorLocations();//normal layout
 				
@@ -268,8 +294,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function useThresholdCB_clickHandler(event:MouseEvent):void
 			{
-				if(useThresholdCB.selected){ pValCB.enabled = true; tStatCB.enabled = true; thresholdValue.enabled = true; thrValLabel.enabled = true;}
-				if(!useThresholdCB.selected){ pValCB.enabled = false; tStatCB.enabled = false; thresholdValue.enabled = false; thrValLabel.enabled = false;}
+				if(useThresholdCB.selected){ thresholdValue.enabled = true; thrValLabel.enabled = true;}
+				if(!useThresholdCB.selected){ thresholdValue.enabled = false; thrValLabel.enabled = false;}
 				
 			}
 			
@@ -315,6 +341,56 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 					creationComplete="linkBindableProperty(_target._anchorPlotter.labelAngleRatio, event.target, 'value')"/>
 			</ui:Indent>
+			<mx:Spacer height="10"/>
+			
+			
+			<ui:Indent label="Circle line thickness" width="100%">
+				<mx:HSlider id="circleLineThicknessSlider" width="100%"
+							creationComplete="linkBindableProperty(_target._anchorPlotter.circleLineStyle.weight.defaultValue, event.target, 'value')"
+							minimum="1" maximum="10" snapInterval="1" liveDragging="true"
+							tickInterval="1"/>
+			</ui:Indent>
+			
+			<ui:Indent label="Circle line opacity" width="100%">
+				<mx:HSlider id="circleLineOpacitySlider" width="100%"
+							creationComplete="linkBindableProperty(_target._anchorPlotter.circleLineStyle.alpha.defaultValue, event.target, 'value')"
+							minimum="0" maximum="1" snapInterval="0.1" liveDragging="true"
+							tickInterval="0.1"/>
+			</ui:Indent>
+			
+			
+			<ui:Indent label="Circle color" width="100%">
+				<mx:ColorPicker id="circleColorPicker"
+								creationComplete="linkBindableProperty(_target._anchorPlotter.circleLineStyle.color.defaultValue, event.target, 'selectedColor')" />
+			</ui:Indent>
+			
+			<mx:Spacer height="10"/>
+			
+			
+			<ui:Indent label="Anchor point radius" width="100%">
+				<mx:HSlider width="100%"
+							alpha="1.0"
+							tickInterval="1" 
+							minimum="1" maximum="10" 
+							creationComplete="linkBindableProperty(_target._anchorPlotter.anchorRadius, event.target, 'value')"/>
+				
+			</ui:Indent>
+			
+
+			<ui:Indent label="Anchor point opacity">
+				<mx:HSlider id="anchorPointOpacitySlider" width="100%" value="0.0"
+							creationComplete="linkBindableProperty(_target._anchorPlotter.anchorFillStyle.alpha.defaultValue, event.target, 'value')"
+							minimum="0" maximum="1" snapInterval="0.1" liveDragging="true"
+							tickInterval="0.1"/>
+							
+			</ui:Indent>
+			
+			<ui:Indent label="Anchor point color">
+				<mx:ColorPicker id="anchorColorPicker"
+								selectedColor="0xFFFFFF"
+								creationComplete="linkBindableProperty(_target._anchorPlotter.regularAnchorColor, event.target, 'selectedColor')" />
+			</ui:Indent>	
+			
 		</mx:VBox>
 		
 		<mx:VBox id="advancedPanel" label="Advanced">			
@@ -371,20 +447,47 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								  creationComplete="linkBindableProperty(_target._plotter.iterations, event.target, 'text')"/>
 				</mx:HBox>
 			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox>
+				<mx:HBox>
+					<mx:CheckBox id="sampleCheckBox" label="Sample Data Set" labelPlacement="left" toolTip="Randomly sample the data set"/>
+					<mx:Label text="Sample Name" />
+					<mx:TextInput id="sampleTitle" text="optional" toolTip="This name will be used for the new sample source"
+								  enabled="{sampleCheckBox.selected}"
+								  creationComplete="linkBindableProperty(_target._plotter.sampleTitle, event.target, 'text')"/>
+				</mx:HBox>
+				<mx:HBox>					
+					<mx:Label text = "Sample Size" toolTip="Specify a sample size." />
+					<mx:TextInput id ="sampleSize" text="300" enabled="{sampleCheckBox.selected}"
+								  creationComplete="linkBindableProperty(_target._plotter.sampleSize, event.target, 'text')"/>
+					
+				</mx:HBox>
+				<mx:VBox>
+					<mx:HBox>
+						<mx:Label text="Source name" />
+						<mx:ComboBox id="csvDataComboBox" dataProvider="{_target._plotter.listOfCsvData}"
+									 enabled = "{sampleCheckBox.selected}"
+									 creationComplete="linkBindableProperty(_target._plotter.dataSetName, event.target, 'selectedItem')"/>
+					</mx:HBox>
+					
+					<mx:CheckBox label="Sample using R."
+								 id="enableRSamplingCheckbox"
+								 enabled = "{sampleCheckBox.selected}"
+								 toolTip="This option can be used if you have Rserve running"
+								 creationComplete="linkBindableProperty(_target._plotter.enableRSampling, event.target, 'selected')"/>
+					<mx:Button id= "sampleDataButton" label="Sample"
+							   enabled = "{sampleCheckBox.selected}"
+							   click="_target._plotter.sampleDataSet()"/>
+					</mx:VBox>
+				</mx:VBox>
 		</mx:VBox>
 	<mx:VBox id="cdlayout" label="CDLayout" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-		<mx:HBox>
-			
-		
-		<mx:VBox width="45%">
-					<ui:Indent  width="10%" label="Class Discriminator">
+		<mx:VBox width="100%">
+						<!--mx:Label text="Choose the class disciminator column"/-->
 						<ui:DynamicColumnComponent visTool="{_target}" id="classDis" />	
-					</ui:Indent>
-			
-			
 				<ui:Indent label="Layout Algorithm">
 					
-					<mx:ComboBox id="layoutAlgoCB" change="layoutAlgoCB_changeHandler(event)">
+					<mx:ComboBox id="layoutAlgoCB" >
 						<mx:ArrayCollection>
 							<mx:String>Select an option</mx:String>
 							<mx:String>t-statistic = variance</mx:String>
@@ -394,69 +497,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</mx:ComboBox>
 					</ui:Indent>
 			
-			<mx:Spacer height="10"/>
-		
-				<mx:CheckBox label="Use Threshold" id="useThresholdCB"  click="useThresholdCB_clickHandler(event)" />
-			<ui:Indent>
+				
+					<mx:Label text="Choose Class Discimination Metric"/>
 				<mx:VBox>
-					<mx:CheckBox id = "tStatCB" label="t-statistic" enabled="false"/>
-					<mx:CheckBox id="pValCB" label="p-value" enabled="false"/>
+					<mx:RadioButtonGroup id="classDisMetric"/>
+						<mx:RadioButton paddingLeft="10" groupName="classDisMetric" label="t-statistic" id="tStatCB"/>
+						<mx:RadioButton paddingLeft="10" groupName="classDisMetric" label="p-Value" id="pValCB"/>
 					
 				</mx:VBox>
 				
-			</ui:Indent>
+			<mx:CheckBox paddingLeft="10" label="Use Threshold" id="useThresholdCB"  click="useThresholdCB_clickHandler(event)" />
 			<mx:HBox>
 				<mx:Label  id="thrValLabel" text="Threshold Value" enabled="false"/>
 				<mx:TextInput  width="20%" id="thresholdValue" enabled="false"/>
-				<mx:Button id="DOcd" label="Run Algorithm" click="DOcdButton_clickHandler(event)"/>
+				
 			</mx:HBox>
 			
-			<mx:CheckBox label="Use Bonferroni Correction" id="useBonferroniCB" />
-			<ui:Indent>
 				<mx:VBox>
-					<mx:CheckBox label="Use the number of active columns"/>
-					<mx:CheckBox label="Custom Value"/>
-					<mx:TextInput id="customValue"/>
+					<mx:HBox paddingLeft="10">
+						<mx:Button id="DOcd" label="Do Class Discrimiation" click="DOcdButton_clickHandler(event)"/>
+						<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
+					</mx:HBox>
 					
-					<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
+					<mx:CheckBox paddingLeft="10" id="tInTableCB" label="Show t-statistic in table"/>
+					<mx:CheckBox paddingLeft="10" id="pInTableCB" label="Show p values in table"/>
 				</mx:VBox>
 				
-			</ui:Indent>
 		</mx:VBox>
-	
-		<mx:VBox >
-			<ui:Indent label="Class Column">
-				<mx:ComboBox>
-					<mx:ArrayCollection>
-						<mx:String>Positive Influences only</mx:String>
-						<mx:String>Negative Influences only</mx:String>
-						<mx:String>Both influences</mx:String>
-					</mx:ArrayCollection>
-				</mx:ComboBox>
-			</ui:Indent>
 			
-			<mx:CheckBox label="Limit Number of Columns Assigned"/>
-			<mx:HBox>
-				<mx:Label text= "Columns per class"/>
-				<mx:TextInput id="columninClassTI"/>
-			</mx:HBox>
-			
-			<mx:Spacer height="20"/>
-			
-			<mx:CheckBox id="tInTableCB" label="Show t-statistic in table"/>
-			<mx:CheckBox  id="pInTableCB" label="Show p values in table"/>
-			
-			<mx:Spacer height="20"/>
-			<mx:Label text="Display with Axis Names"/>
-			<ui:Indent>
-				<mx:CheckBox id="tInRadvizCB" label="t-statistic"/>
-				<mx:CheckBox id="pInRadvizCB" label="p-value"/>	
-				
-			</ui:Indent>
-			
-			
-		</mx:VBox>
-		</mx:HBox>
 	</mx:VBox>
 		
 	

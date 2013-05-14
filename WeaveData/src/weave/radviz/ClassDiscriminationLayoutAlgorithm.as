@@ -38,12 +38,15 @@ package weave.radviz
 	 */	
 	public class ClassDiscriminationLayoutAlgorithm extends AbstractLayoutAlgorithm implements ILayoutAlgorithm
 	{
+
+		public var tandpValuesMapping:Dictionary;//stores the column values belonging to a particular class{key = classname value = array of column values belonging to this class}
 		//  String -> Array <of LinkableHashMap object names>
 		public var tAndpMapping:Dictionary;//stores the columns belonging to a particular class{key = classname value = array of columns belonging to this class}
+
 		public var ClassToColumnMap:Dictionary;
-		/** structure of ClassToColumnMap
+		/** structure of ClassToColumnMap (Bins)
 		 for example :    type                        				Array
-		 ClassToColumnMap[japanese]       			   			 Object 1
+		 ClassToColumnMap[japanese]      			   			 Object 1
 																 ColumnName1     values in Column1
 		 														 ColumnName2		       Column2
 		 														 ColumnName3		       Column3
@@ -108,52 +111,73 @@ package weave.radviz
 		}				
 		
 		
-		override public function performCDLayout(finalClases:Dictionary):void
-		{
-			
-		
-		}
-		
 		
 		/**This function segregates the columns into classes using the statistical measure (t-statistic in this case) */
-		public function actualAlgo(columnNames:Array,ClassToColumnMap:Dictionary, layoutMeasure:String, thresholdValue:Number, columnNumPerClass:Number):Dictionary
+		public function performClassDiscrimination(columnNames:Array,ClassToColumnMap:Dictionary, layoutMeasure:String, thresholdValue:Number, columnNumPerClass:Number):Dictionary
 		{
-			tAndpMapping = new Dictionary();
+			tAndpMapping = new Dictionary();//maps column names
+			tandpValuesMapping = new Dictionary();//maps column values
 			for (var r:int = 0 ; r < columnNames.length; r++)//for each column loop through the classes
 			{
 				
-				
+				var firstLoop:Boolean = true;
 				var tempType:Object;
-				var isColumnLoopBegin:Boolean = true;
 				var compareNum:Number;
 				
 				for (var type:Object in ClassToColumnMap)
-				{
+				{ 
 					
 					if(!tAndpMapping.hasOwnProperty(type))
 					{
 						tAndpMapping[type] = new Array();
+						tandpValuesMapping[type+"metricvalues"] = new Array();
 					}
 					
 					if(layoutMeasure == "PVal")//only if pvalue is selected
 					{
 						var tempPValue:Number = (ClassToColumnMap[type] as ClassInfoObject).pValuesArray[r];
-						if (tempPValue > thresholdValue)
+						if(isNaN(thresholdValue))// if threshold has not been specified
 						{
-							if(isColumnLoopBegin)
+							
+							if(firstLoop)
 							{
-								isColumnLoopBegin = false;
-								compareNum = (ClassToColumnMap[type]as ClassInfoObject).pValuesArray[r];
+								firstLoop = false;
+								compareNum = (ClassToColumnMap[type] as ClassInfoObject).pValuesArray[r];
 								tempType = type;
+								
 							}
+								
 							else
 							{
 								if(compareNum < tempPValue)
 								{
+									tempType = type;
 									compareNum = tempPValue;
+									
+								}
+							}
+							
+						}
+						
+						if(isNaN(thresholdValue) == false)//if threshold is specified
+						{
+							if (tempPValue > thresholdValue)
+							{
+								if(firstLoop)
+								{
+									firstLoop = false;
+									compareNum = (ClassToColumnMap[type]as ClassInfoObject).pValuesArray[r];
 									tempType = type;
 								}
-								
+								else
+								{
+									if(compareNum < tempPValue)
+									{
+										compareNum = tempPValue;
+										tempType = type;
+									}
+									
+								}
 							}
 						}
 					}
@@ -161,32 +185,73 @@ package weave.radviz
 					else// as default and if tstatistic is chosen as a measure 
 					{
 						var tempTValue:Number = (ClassToColumnMap[type] as ClassInfoObject).tStatisticArray[r];
-						if (tempTValue > thresholdValue)
+													
+						if(firstLoop)
+							 {
+								 firstLoop = false;
+								 compareNum = (ClassToColumnMap[type] as ClassInfoObject).tStatisticArray[r];
+								 tempType = type;
+								 
+							 }
+						 
+						 else
+						 {
+								 if(compareNum < tempTValue)
+								 {
+									 tempType = type;
+									 compareNum = tempTValue;
+									 
+								 }
+						 }
+						
+					}//using Tstat loop ends here
+					
+					
+				}//for every type loops ends here
+				
+				if(tempType != null)
+				{
+					if(isNaN(thresholdValue) == false)//if threshold is specified
+					{
+						if(compareNum >= thresholdValue)
 						{
-							if(isColumnLoopBegin)
-							{
-								isColumnLoopBegin = false;
-								compareNum = (ClassToColumnMap[type]as ClassInfoObject).tStatisticArray[r];
-								tempType = type;
-							}
-							else
-							{
-								if(compareNum < tempTValue)
-								{
-									compareNum = tempTValue;
-									tempType = type;
-								}
-								
-							}
+							tAndpMapping[tempType].push(columnNames[r]);
+							tandpValuesMapping[tempType+"metricvalues"].push(compareNum);
 						}
 					}
 					
+					else
+					{
+						tAndpMapping[tempType].push(columnNames[r]);
+						tandpValuesMapping[tempType+"metricvalues"].push(compareNum);
+					}
+					
+					/*tAndpMapping[tempType].push(columnNames[r]);
+					tandpValuesMapping[tempType+"metricvalues"].push(compareNum);*/
 				}
 				
-				tAndpMapping[tempType].push(columnNames[r]);
-			}
+			}//for every column loop ends here
 			
 			return tAndpMapping;
 		}		
 	}
 }
+
+
+
+/*if(columnNumberperType > 0)//allows only definite number of columns to be included in every class
+{
+	if(r < columnNumPerClass)
+	{
+		tAndpMapping[tempType].push(columnNames[r]);
+		tandpValuesMapping[tempType+"metricvalues"].push(compareNum);
+	}
+	columnNumberperType--;
+}
+
+if(isNaN(columnNumberperType))
+{
+	tAndpMapping[tempType].push(columnNames[r]);
+	tandpValuesMapping[tempType+"metricvalues"].push(compareNum);
+}*/
+

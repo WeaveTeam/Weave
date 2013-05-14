@@ -75,7 +75,22 @@
 				}				
 			}
 			
-			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), enableEquationTextEditing);
+			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), enableEquationTextEditing);
+			
+			private function isVisibleEquationText():void
+			{
+				if (isVisibleEquationTextBoolean.value)
+				{
+					equationText.visible = true;
+				}
+				else
+				{
+					equationText.visible = false;
+				}
+			}
+			
+			public var isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), isVisibleEquationText);
+			
 			
 			override protected function constructor():void
 			{
@@ -349,21 +364,71 @@
 				{
 					if (equationText.parent != visCanvas)
 						visCanvas.addChild(equationText);
-					var slope:Number = StandardLib.roundSignificant(regressionPlotter.getSlope(), 4);
-					var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getIntercept(), 4);
-					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
-					equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
-					equationText.validateNow();
-					// severely hacked
-					equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
-					equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
+					if (regressionPlotter.getCoefficients() != null)
+					{
+						if (regressionPlotter.currentTrendline.value == "Linear")
+						{	
+							var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
+							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							var rsquared:Number = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}x + {1}    R^2 = {2}", slope, intercept, rsquared);					
+						}
+					
+						else if( regressionPlotter.currentTrendline.value == "Polynomial")
+						{
+							var rawCoefficients:Array = regressionPlotter.getCoefficients();
+							var roundedCoefficients:Array = [];
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("Equation: y = ");
+							var i:int = 0;
+						
+							for (i = 0; i < rawCoefficients.length ; i++ )
+							{
+								roundedCoefficients.push(StandardLib.roundSignificant(rawCoefficients[i], 4));
+							}
+						
+							for (i = roundedCoefficients.length - 1; i >  0; i-- )
+							{
+								lineEquation.text += lang("{0}x^{1} + ", roundedCoefficients[i], i); 
+							}
+							
+							lineEquation.text += lang("{0}    R^2 = {1}", roundedCoefficients[0], rsquared);
+							
+						}
+						else if (regressionPlotter.currentTrendline.value == "Exponential")
+						{
+							var base:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							var exponent:Number = StandardLib.roundSignificant(Math.exp(regressionPlotter.getCoefficients()[1]), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}e^{1}x    R^2 = {2}", base, exponent, rsquared);
+						}
+						else if ( regressionPlotter.currentTrendline.value == "Power")
+						{
+							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
+							exponent = StandardLib.roundSignificant(Math.exp(regressionPlotter.getCoefficients()[1]), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}x^{1}    R^2 = {2}", base, exponent, rsquared);
+						}
+						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
+						{
+							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
+							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0],4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							lineEquation.text = lang("y = {0}ln(x)+{1}    R^2 = {2}", base, exponent, rsquared);
+						}
+					}
 				}
 				else
 				{ 
 					if (equationText.parent)
 						equationText.parent.removeChild(equationText);
-					lineEquation.text = lang("Equation: y = mx + b");
+					lineEquation.text = lang("Equation:");
 				}
+				equationText.text = lineEquation.text;
+				equationText.validateNow();
+				// severely hacked This needs to be fixed.
+				equationText.width = visualization.plotManager.marginLeftNumber.value * 8;
+				equationText.height = Math.min(equationText.textHeight + 14, visualization.plotManager.marginBottomNumber.value);
 			}
 			private function updateAxisLabels():void
 			{
@@ -493,7 +558,8 @@
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
-		editable="true"
+		editable="false"
+		visible = "true"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
 		wordWrap="false"
@@ -545,7 +611,8 @@
 			-->
 			<mx:VBox>
 				<mx:CheckBox id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
-						  	 toolTip="Use the dropdown menu to choose a trendline."/>					
+						  	 toolTip="Use the dropdown menu to choose a trendline."
+							 creationComplete="linkBindableProperty(regressionPlotter.drawLine, event.target, 'selected')"/>
 				<ui:Indent>
 					<mx:HBox>
 						<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
@@ -564,7 +631,9 @@
 				-->
 				<ui:Indent>
 					<mx:VBox>
-						<mx:Label id="lineEquation" text="{lang('Equation:')}"/>
+						<mx:Label id="lineEquation" text="{lang('Equation')}"/>
+						<mx:CheckBox id="hideEquationCheckBox" label="{lang('Show equation')}" labelPlacement="right"
+									 creationComplete="linkBindableProperty(this.isVisibleEquationTextBoolean, event.target, 'selected')"/>
 						<mx:HBox>
 							<mx:Label text="{lang('Line Color')}" />
 							<mx:ColorPicker id="regressionColorPicker" 
