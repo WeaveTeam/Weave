@@ -622,6 +622,9 @@ public class DataService extends GenericServlet
 	public AttributeColumnData getColumnFromMetadata(Map<String, String> metadata)
 		throws RemoteException
 	{
+		if (metadata == null || metadata.size() == 0)
+			throw new RemoteException("No metadata query parameters specified.");
+		
 		DataEntityMetadata query = new DataEntityMetadata();
 		query.publicMetadata = metadata;
 		

@@ -20,6 +20,7 @@
 package weave.data.DataSources
 {
 	import flash.net.URLRequest;
+	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -222,15 +223,14 @@ package weave.data.DataSources
 				{
 					var entityType:int = entityType_entityIds[0];
 					var entityIds:Array = entityType_entityIds[1];
+					var orderLookup:Object = createLookup(entityIds);
 					
 					var entities:Array = event.result as Array;
 					AsyncSort.sortImmediately(
 						entities,
 						function(entity1:Object, entity2:Object):int
 						{
-							var i1:int = entityIds.indexOf(entity1.id);
-							var i2:int = entityIds.indexOf(entity2.id);
-							return ObjectUtil.numericCompare(i1, i2);
+							return ObjectUtil.numericCompare(orderLookup[entity1.id], orderLookup[entity2.id]);
 						}
 					);
 					
@@ -317,8 +317,8 @@ package weave.data.DataSources
 					geoms[i] = metadata;
 				}
 				
-				tables.sortOn("title", Array.CASEINSENSITIVE);
-				geoms.sortOn("title", Array.CASEINSENSITIVE);
+				AsyncSort.sortImmediately(tables, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
+				AsyncSort.sortImmediately(geoms, function(a:*, b:*):* { return AsyncSort.compareCaseInsensitive(a.title, b.title); });
 	
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
 
@@ -355,6 +355,16 @@ package weave.data.DataSources
 //				reportError(e, "Unable to generate hierarchy");
 //			}
 		}
+		
+		/**
+		 * Creates a lookup from item to index.
+		 */
+		private function createLookup(items:Array):Object
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			items.forEach(function(id:*, index:*, array:*):void { lookup[id] = index; });
+			return lookup;
+		}
 
 		private function handleColumnEntities(event:ResultEvent, hierarcyNode_entityIds:Array):void
 		{
@@ -363,6 +373,7 @@ package weave.data.DataSources
 
 			var hierarchyNode:XML = hierarcyNode_entityIds[0] as XML; // the node to add the list of columns to
 			var entityIds:Array = hierarcyNode_entityIds[1] as Array; // ordered list of ids
+			var orderLookup:Object = createLookup(entityIds);
 
 			try
 			{
@@ -371,9 +382,7 @@ package weave.data.DataSources
 					entities,
 					function(entity1:Object, entity2:Object):int
 					{
-						var i1:int = entityIds.indexOf(entity1.id);
-						var i2:int = entityIds.indexOf(entity2.id);
-						return ObjectUtil.numericCompare(i1, i2);
+						return ObjectUtil.numericCompare(orderLookup[entity1.id], orderLookup[entity2.id]);
 					}
 				);
 				
