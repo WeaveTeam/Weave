@@ -65,7 +65,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
 			<ui:HelpComponent>
-				The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
+				The table is currently hiding some of the records, as the amount has exceeded the tables capability for dealing with it efficiently.
 			</ui:HelpComponent>
 		</mx:HBox>
 		
@@ -94,6 +94,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.ResizeEvent;
+			import mx.events.ListEvent;
+
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -145,6 +147,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));	
+			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+
 			private const dataGridColumns:Dictionary = new Dictionary();
 			private var _currentDataGridColumns:Array = [];
 			
@@ -153,6 +157,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;
+			private var _lastHighlighted:IQualifiedKey;
+
 			private var colorColumn:ColorColumn = Weave.defaultColorColumn;
 			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
@@ -181,10 +188,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 				_selection.addImmediateCallback(this,invalidateDisplayList);
+				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
 				colorColumn.addImmediateCallback(this,invalidateDisplayList);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);				
 			}
-			
 			
 			override protected function childrenCreated():void
 			{
@@ -193,10 +200,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				linkBindableProperty(showColors,showColorsCheckBox,"selected");
+				linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
+
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
 				
+				dataGrid.addEventListener(ListEvent.ITEM_ROLL_OVER, handleRollOver);
+				dataGrid.addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
+
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
@@ -206,6 +218,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 				
 			}
+
 			
 			/**
 			 * This function(event ListeSner) gets called during dataGrid Resize event
@@ -231,6 +244,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dataGrid.headerHeight = 50;
 				}
 
+			}
+			
+			private function handleRollOver(event:ListEvent):void // Probe
+			{
+				if (enableProbing.value == false) return;
+
+				var index:int = event.rowIndex;
+				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
+				var key:IQualifiedKey = obj as IQualifiedKey;
+
+				_probe.replaceKeys([key]);
+			}
+			private function handleRollOut(event:MouseEvent):void // Unprobe
+			{
+				if (enableProbing.value == false) return;
+				
+				_probe.clearKeys();
+			}
+			private function handleItemHandleRollOut(event:ListEvent):void
+			{
+				if ((dataGrid.mouseY < dataGrid.headerHeight) || (dataGrid.mouseX > dataGrid.width - 16))
+					handleRollOut(null);
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
@@ -299,6 +334,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
 				}
+				updateGlobalProbeChangeLater();
 			}
 			
 			
@@ -447,7 +483,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (changeDetected)
 					dataGrid.selectedItems = selectedItems;				
 			}
-			
+			private function updateGlobalProbeChangeLater():void
+			{
+				if (enableProbing.value == true)
+					callLater(updateGlobalProbeChange);
+			}
+
+			private function updateGlobalProbeChange():void
+			{
+				
+				if (!parent)
+				{
+					callLater(updateGlobalProbeChange);
+					return;
+				}
+				dataGrid.drawItemForced(_lastHighlighted, _selection.containsKey(_lastHighlighted), false);
+				if (_probe.keys.length > 0)
+				{
+					var key:IQualifiedKey = _probe.keys[0];
+					var keySelected:Boolean = _selection.containsKey(key);
+					dataGrid.drawItemForced(key, keySelected, true);
+					_lastHighlighted = key;
+				}
+				else
+				{
+					_lastHighlighted = null;
+				}
+				return;
+			}
 			
 			/**
 			 * Default Filter function set for Datgrid by setting its filter properties
@@ -937,10 +1000,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
+
 			<mx:HBox>
 				<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
 				<mx:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			</mx:HBox>
+			<mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable probing.')}"/>
 			<mx:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
 			<mx:HBox>
 				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>

@@ -445,21 +445,20 @@ package weave.primitives
 			// If three consecutive vertices all share one of (X_HI, X_LO, Y_HI, Y_LO) test results,
 			// then the middle point can be skipped when rendering inside the bounds.
 			
-			var xPositive:Boolean = xMin < xMax;
-			var yPositive:Boolean = yMin < yMax;
-			var xTest:uint = 0;
+			var x0:Number, x1:Number, y0:Number, y1:Number;
 			
-			if (x < (xPositive ? xMin : xMax))
-				xTest = 0x0001; // X_LO
-			else if (x > (xPositive ? xMax : xMin))
-				xTest = 0x0010; // X_HI
+			if (xMin < xMax)
+				x0 = xMin, x1 = xMax;
+			else
+				x1 = xMin, x0 = xMax;
 			
-			if (y < (yPositive ? yMin : yMax))
-				return xTest | 0x0100; // Y_LO
-			else if (y > (yPositive ? yMax : yMin)) 
-				return xTest | 0x1000; // Y_HI
+			if (yMin < yMax)
+				y0 = yMin, y1 = yMax;
+			else
+				y1 = yMin, y0 = yMax;
 			
-			return xTest;
+			return (x < x0 ? 0x0001/*X_LO*/ : (x > x1 ? 0x0010/*X_HI*/ : 0))
+				| (y < y0 ? 0x0100/*Y_LO*/ : (y > y1 ? 0x1000/*Y_HI*/ : 0));
 		}
 		
 		/**

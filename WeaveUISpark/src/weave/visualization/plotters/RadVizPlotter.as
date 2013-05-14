@@ -288,13 +288,10 @@ package weave.visualization.plotters
 				var currentClassPos:Number = classTheta * classIncrementor;
 				var columnIncrementor:int = 1;//change
 				
-				cdAnchor.title.value;
-				var color:Number = Math.random() * uint.MAX_VALUE;
-				//var color:Number = weave.core.LinkableHashMap[defaultColorColumn];
 				for( var g :int = 0; g < colNames.length; g++)//change
 				{
 					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
-					cdAnchor.anchorColor.value = color;
+					//cdAnchor.anchorColor.value = color;
 					cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
 					cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
 					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);

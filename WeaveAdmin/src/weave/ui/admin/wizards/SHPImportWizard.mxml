@@ -117,8 +117,8 @@
 				var step1:Boolean = (shpSelected && tableSelector.activeSchema && tableSelector.activeTable);
 				
 				// step 2
-				var step2:Boolean = true;
-				
+				var step2:Boolean = dbfKeyColumnsCombo && !dbfKeyColumnsCombo.errorString;
+								
 				nextEnabled = [step1,step2][selectedIndex];
 				finishEnabled = step1 && step2;
 			}
@@ -308,16 +308,15 @@
 			private function handleKeyColumnsChange():void
 			{
 				toggleButtons();
-				if(dbfKeyColumnsCombo.dataProvider == null ||(dbfKeyColumnsCombo.dataProvider as ArrayCollection).length == 0)
+				if (dbfKeyColumnsCombo.dataProvider == null || (dbfKeyColumnsCombo.dataProvider as ArrayCollection).length == 0)
 				{
 					return;
 				}
 				
-				if(!dbfImportCheckBox.selected )
+				if (!dbfImportCheckBox.selected)
 				{
 					dbfKeyColumnsCombo.errorString = '';
-					finishEnabled = true;
-					nextEnabled = true;
+					toggleButtons();
 					return;
 				}
 				
@@ -331,20 +330,13 @@
 			}
 			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void
 			{
-				if(!event.result)
-				{
-					dbfKeyColumnsCombo.errorString = 'Key values are not unique';
-					finishEnabled = false;
-					nextEnabled = false;
-				}
-				else
-				{
+				if (event.result)
 					dbfKeyColumnsCombo.errorString = '';
-					finishEnabled = true;
-					nextEnabled = true;
-				}
+				else
+					dbfKeyColumnsCombo.errorString = 'Key values are not unique';
 				
 				dbfKeyColumnsCombo.invalidateDisplayList();
+				toggleButtons();
 			}
 			
 			private function validateProjectionSRS():void

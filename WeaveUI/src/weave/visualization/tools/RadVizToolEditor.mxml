@@ -485,8 +485,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox width="100%">
 						<!--mx:Label text="Choose the class disciminator column"/-->
 						<ui:DynamicColumnComponent visTool="{_target}" id="classDis" />	
-			
-			
 				<ui:Indent label="Layout Algorithm">
 					
 					<mx:ComboBox id="layoutAlgoCB" >
