@@ -66,6 +66,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
+			import weave.api.linkableObjectIsBusy;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
@@ -113,7 +114,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
 			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
-			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
+			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange, true);
 			
 			public const enableMoveResize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true));
@@ -305,6 +306,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function get defaultPanelTitle():String
 			{
 				return getQualifiedClassName(this).split(':').pop();
+			}
+			
+			// workaround to fix text layout performance problem
+			override public function set title(value:String):void
+			{
+				super.title = value.substr(0, 256);
 			}
 			
 			/**

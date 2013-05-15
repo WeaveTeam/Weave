@@ -21,7 +21,12 @@ package weave.core
 {
 	import flash.utils.Dictionary;
 	
+	import mx.rpc.AsyncResponder;
+	import mx.rpc.AsyncToken;
+	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
 
@@ -44,9 +49,26 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addTask(taskToken:Object):void
+		public function addTask(taskToken:Object, busyObject:ILinkableObject = null):void
 		{
-			updateTask(taskToken, 0);
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
+			
+			if (taskToken is AsyncToken && _taskToProgressMap[taskToken] === undefined)
+				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
+
+			// add task before WeaveAPI.SessionManager.assignBusyTask()
+			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
+			
+			if (busyObject)
+				WeaveAPI.SessionManager.assignBusyTask(taskToken, busyObject);
+			
+			cc.resumeCallbacks();
+		}
+		
+		private function handleAsyncToken(event:Object, token:AsyncToken):void
+		{
+			removeTask(token);
 		}
 		
 		/**
@@ -65,13 +87,17 @@ package weave.core
 			// if this token isn't in the Dictionary yet, increase count
 			if (_taskToProgressMap[taskToken] === undefined)
 			{
+				// expecting NaN from addTask()
+				if (!isNaN(percent))
+					throw new Error("updateTask() called, but task was not previously added with addTask()");
 				if (debug)
 					_taskToStackTraceMap[taskToken] = new Error("Stack trace").getStackTrace();
+				
+				// increase count when new task is added
 				_taskCount++;
 				_maxTaskCount++;
 			}
-			if (!isFinite(percent))
-				percent = 0.5; // undetermined
+			
 			_taskToProgressMap[taskToken] = percent;
 			getCallbackCollection(this).triggerCallbacks();
 		}
@@ -85,8 +111,6 @@ package weave.core
 			if (_taskToProgressMap[taskToken] === undefined)
 				return;
 
-			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
-
 			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
 			
 			delete _taskToProgressMap[taskToken];
@@ -96,6 +120,8 @@ package weave.core
 			if (_taskCount == 1)
 				_maxTaskCount = _taskCount;
 			
+			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
@@ -109,8 +135,9 @@ package weave.core
 			for (var task:Object in _taskToProgressMap)
 			{
 				var stackTrace:String = _taskToStackTraceMap[task]; // check this when debugging
-				
-				sum += Number(_taskToProgressMap[task]);
+				var progress:Number = _taskToProgressMap[task];
+				if (isFinite(progress))
+					sum += progress;
 			}
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;

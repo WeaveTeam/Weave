@@ -97,8 +97,8 @@
 				{
 					node = {};
 					key = nodesKeys[key_idx];
-					node.id = nodesColumn.getValueFromKey(key);
-					node.label = labelColumn.getValueFromKey(key);
+					node.id = nodesColumn.getValueFromKey(key, String);
+					node.label = labelColumn.getValueFromKey(key, String);
 					node.keyType = key.keyType;
 					node.localName = key.localName;
 					nodes.push(node);
@@ -121,11 +121,11 @@
 					edge = {};
 					key = edgeKeys[key_idx];
 					edge.id = key.localName;
-					edge.source = edgeSourceColumn.getValueFromKey(key);
-					edge.target = edgeTargetColumn.getValueFromKey(key);
+					edge.source = edgeSourceColumn.getValueFromKey(key, String);
+					edge.target = edgeTargetColumn.getValueFromKey(key, String);
 					edge.keyType = key.keyType;
 					edge.localName = key.localName;
-					edges.push(edge)
+					edges.push(edge);
 				}
 				
 				return edges;
@@ -150,6 +150,7 @@
 			}
 			public function invokeCytoscapePlotter():void
 			{
+				buildPrimitiveNetwork();
 				/* Invoke the cytoscape plotter with whatever our current data is. */
 				ExternalInterface.call("function (objectID, network) { var weave = objectID ? document.getElementById(objectID) : document;\
 					weave.cytoscape.network = JSON.parse(JSON.stringify(network));\
@@ -192,8 +193,6 @@
 				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 
 				initializeCytoscapeWindow();
-				buildPrimitiveNetwork();
-				invokeCytoscapePlotter();
 			}
 
 			/***********************************************************

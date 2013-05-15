@@ -24,14 +24,11 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.utils.NameUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableOwner;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
@@ -260,7 +257,7 @@ package weave.utils
 
 			if (debug)
 			{
-				trace(toString(), "decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
+				trace("decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
 				
 				// generate checklists for debugging
 				geometryTilesChecklist.length = 0;
@@ -273,7 +270,10 @@ package weave.utils
 			}
 			
 			// collective bounds changed
-			WeaveAPI.StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
+			
+			// Weave automatically triggers callbacks when all tasks complete
+			if (!linkableObjectIsBusy(metadataCallbacks))
+				metadataCallbacks.triggerCallbacks();
 		}
 
 		private var _projectionWKT:String = ""; // stores the well-known-text defining the projection
@@ -300,32 +300,6 @@ package weave.utils
 			for each (geom in geometries)
 				if (geom != null)
 					geom.geomType = value;
-		}
-		
-		/**
-		 * The keys in this dictionary are ByteArray objects that are currently being processed.
-		 */
-		private const _metadataStreamQueue:Dictionary = new Dictionary();
-		private const _geometryStreamQueue:Dictionary = new Dictionary();
-		
-		private function _triggerCallbacksIfQueueEmpty(queue:Dictionary):void
-		{
-			for (var o:* in queue)
-				return;
-			if (queue === _metadataStreamQueue)
-			{
-				if (debug)
-					trace(toString(), 'metadata queue empty, metadataCallbacks triggered');
-				
-				metadataCallbacks.triggerCallbacks();
-			}
-			else
-			{
-				if (debug)
-					trace(toString(), 'geometry queue empty, callbacks triggered');
-				
-				getCallbackCollection(this).triggerCallbacks();
-			}
 		}
 		
 		/**
@@ -359,12 +333,12 @@ package weave.utils
 	
 								if (debug)
 								{
-									trace(toString(), "got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
+									trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
 									flag = metadataTilesChecklist.indexOf(tileID);
 									if (flag >= 0)
 									{
 										metadataTilesChecklist.splice(flag, 1);
-										trace(toString(), "remaining metadata tiles: "+metadataTilesChecklist);
+										trace("remaining metadata tiles: "+metadataTilesChecklist);
 									}
 								}
 							}
@@ -493,21 +467,11 @@ package weave.utils
 	            } 
 	            catch(e:EOFError) { }
 	
-				// remove this stream from the processing list
-				delete _metadataStreamQueue[stream];
-				
-				for (var o:* in _metadataStreamQueue)
-					return 1; // done, skip callbacks
-				
-				// keys and bounding boxes changed
-				WeaveAPI.StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
-				
 				return 1; // done
 			};
 			
-			_metadataStreamQueue[stream] = NameUtil.createUniqueName(stream);
-			
-			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_PARSING);
+			// Weave automatically triggers callbacks when all tasks complete
+			WeaveAPI.StageUtils.startTask(metadataCallbacks, task, WeaveAPI.TASK_PRIORITY_PARSING);
 		}
 
 		/**
@@ -541,12 +505,12 @@ package weave.utils
 	
 								if (debug)
 								{
-									trace(toString(), "got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
+									trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
 									flag = geometryTilesChecklist.indexOf(tileID);
 									if (flag >= 0)
 									{
 										geometryTilesChecklist.splice(flag, 1);
-										trace(toString(), "remaining geometry tiles: "+geometryTilesChecklist);
+										trace("remaining geometry tiles: "+geometryTilesChecklist);
 									}
 								}
 							}
@@ -608,20 +572,10 @@ package weave.utils
 	            }
 	            catch(e:EOFError) { }
 	            
-				// remove this stream from the processing list
-				delete _geometryStreamQueue[stream];
-				
-				for (var o:* in _geometryStreamQueue)
-					return 1; // done, skip callbacks
-				
-				// geometries changed
-				WeaveAPI.StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_geometryStreamQueue]);
-
 				return 1; // done
 			}
 			
-			_geometryStreamQueue[stream] = NameUtil.createUniqueName(stream);
-			
+				// Weave automatically triggers callbacks when all tasks complete
 			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_PARSING);
 		}
 
@@ -647,11 +601,6 @@ package weave.utils
 			return result;
 		}
 		*/
-		
-		public function toString():String
-		{
-			return String(getLinkableOwner(this)) + "decoder";
-		}
 	}
 }
 

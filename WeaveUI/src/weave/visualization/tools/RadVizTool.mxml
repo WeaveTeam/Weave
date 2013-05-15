@@ -79,7 +79,7 @@
 
 			public var normalizedColumns:Array = new Array();//normalized columns returned from R
 			private var normalizedColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
-			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);//column used as the Class Discriminator
+			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, classDiscriminatorColumnUpdate);//column used as the Class Discriminator
 			public var cdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
@@ -112,7 +112,7 @@
 				_plotter.setAnchorLocations();//normal layout
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true) ;
 				visualization.plotManager.getLayerSettings(ANCHOR_LAYER).selectable.value = false;
-				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
+				_anchorPlotter.setRadViz(_plotter);
 				
 				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawProbeLines);
 				
@@ -124,9 +124,10 @@
 			{
 				super.childrenCreated();
 				
-//				_plotter.columns.addGroupedCallback(this, normalizationInR);
-				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate);
+				_plotter.columns.addGroupedCallback(this, normalizationInR);
+				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate,true);
 				
+				probeSprite.mouseChildren = false;
 				//visualization.rawChildren.addChild(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
 				sprCont.addChild(probeSprite)
@@ -155,7 +156,7 @@
 				
 				var colObjects:Array = _plotter.columns.getObjects();//user selected columns
 				//the class discriminator column needs to be selected and the columns need to be normalized
-				if(classDiscriminatorColumn.keys.length == 0 ||
+				if(classDiscriminatorColumn.keys.length == 0 || colObjects.length == 0 ||
 					WeaveAPI.SessionManager.linkableObjectIsBusy(normalizedColumnsGroup) ||
 					!normalizedColumnsGroup)//incase user selects discriminator before columns
 				{return;}
@@ -188,16 +189,19 @@
 				var outputNames:Array = ["normOutput"];
 				var script:String = "frame <- data.frame(mymatrix)\n" +
 					"donorm <- function(frame){\n" +
-					"RR <- nrow(frame)\n"+
-					"CC <- ncol(frame)\n"+
-					"for (z in 1:CC){\n"+
-					"maxr <- max(frame[z])\n"+
-					"minr <- min(frame[z])\n"+
-					"for(i in 1:RR){\n"+
-					" frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n"+
-					" }\n"+
-					"}\n"+
-					"frame\n"+
+					"  RR <- nrow(frame)\n"+
+					"  CC <- ncol(frame)\n"+
+					"  for (z in 1:CC){\n"+
+					"    maxr <- max(frame[z])\n"+
+					"    minr <- min(frame[z])\n" +
+					"    rng <- (maxr - minr)\n" +
+					"    if (rng == 0)\n" +
+					"      rng <- 1\n"+
+					"    for(i in 1:RR){\n"+
+					"      frame[i,z] <- (frame[i,z] - minr) / rng\n"+
+					"    }\n"+
+					"  }\n"+
+					"  frame\n"+
 					"}\n"+
 					"normOutput <- donorm(frame)\n";
 				
@@ -205,9 +209,9 @@
 				latestjoinedColumnKeys = result[0];
 				var joinedColumns:Array = result[1];
 				
-				if ( latestjoinedColumnKeys.length != 0)
+				if (latestjoinedColumnKeys.length > 0)
 				{
-					inputValues.push(joinedColumns); 
+					inputValues.push(joinedColumns);
 					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
 					addAsyncResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
 				}
@@ -241,6 +245,13 @@
 					}
 					var rResult:RResult = new RResult(Robj[i]);
 					temRObjects = (rResult.value) as Array;
+					
+					//handles cases when R returns a NaN, (for eg when all records have the same value for a column or when the dataset contains one record)
+					/* for(var f:int = 0; f< temRObjects.length; f++)
+					{
+						if(isNaN(temRObjects[f]))
+							return;
+					} */
 					
 				}	
 				
@@ -341,12 +352,12 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Size"),lang("Color"),lang("Anchor Dimensions")];
+				return [lang("Size"),lang("Color"),lang("Anchor Dimensions"), lang("Class Discriminator")];
 			}
 			
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
+				return [_plotter.radiusColumn,colorColumn,_plotter.columns,classDiscriminatorColumn];
 			}
 			
 			override protected function get defaultPanelTitle():String

@@ -29,6 +29,7 @@
 				autoLayout="true"
 				creationComplete="draggablepanel1_creationCompleteHandler(event)"
 				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
+	
 	<mx:VBox paddingLeft="10" paddingRight="5" paddingTop="5" paddingBottom="20" width="100%" height="100%">
 		<mx:MenuBar id="ROptions" labelField="@label" fontWeight="bold" cornerRadius="8" itemClick="menuItemClickHandler(event)"
 					change="onTopSelection(event)">
@@ -228,6 +229,39 @@
 				<mx:VBox id="plotScriptTab" label="R plotscript">
 					<mx:TextArea id="RPlotscriptTA" width="100%" height="100%"/>
 				</mx:VBox>
+				<!--To DO move to a separate class-->
+				<mx:VBox id="archDemo" label="Demo">
+					<mx:HBox paddingRight="5" paddingLeft="5" width="100%">
+						<mx:Label text="Select dataset to use "/>
+						<mx:ComboBox id="datasetChoice" dataProvider="{datasetCollection}" change="updateQueryObjectString(event)"/>
+					</mx:HBox>
+					
+					<mx:HBox paddingLeft="5" paddingRight="5" width="100%">
+						<mx:Label text="Select R script(s) to use"/>
+						<mx:ComboBox id="scriptChoices" dataProvider="{scriptCollection}" change="updateQueryObjectString(event)"/>
+					</mx:HBox>
+					
+					<mx:CheckBox  paddingLeft ="5" paddingRight="5" id="csvCB" label="Import from CSV" click="updateQueryObjectString(event)"/>
+					
+					<mx:VBox paddingLeft="5" paddingRight="5" width="100%">
+						<mx:CheckBox id="sqlCB" label="Import from mySQL database" click="sqlCB_changeHandler(event)"/>
+						<mx:HBox>
+							<mx:Label id="schemaLabel" text="Select database schema" enabled="false"/>
+							<mx:ComboBox id="schemaCB" dataProvider="{schemaChoices}" enabled="false" change="updateQueryObjectString(event)"/>
+						</mx:HBox>
+						<mx:Label id="paramLabel" text="Type in parameter names separated by commas" enabled="false"/>
+						<mx:TextArea id="paramInputTA" width="100%" enabled="false"/>
+					</mx:VBox>
+					
+					<mx:HBox width="100%">
+						<mx:Spacer width="80%"/>
+						<mx:Button id="servercall" label="Execute" click="servercall_clickHandler(event)"/>
+					</mx:HBox>
+				</mx:VBox>
+				
+				<mx:VBox id="queryObjectDisplay" label="Query Object">
+					<mx:TextArea id="queryObjectTA" width="100%" height="100%"/>
+				</mx:VBox>
 				
 			</mx:TabNavigator>
 			<mx:HBox>
@@ -271,11 +305,14 @@
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
+			
+			import org.igniterealtime.xiff.data.IQ;
 			
 			import spark.components.Image;
 			
@@ -290,7 +327,10 @@
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.CSVColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.AttributeColumns.StringColumn;
+			import weave.data.DataSources.CSVDataSource;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
@@ -309,12 +349,27 @@
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();
 			[Bindable]
 			public var scriptResultValueExhibitCollection:ArrayCollection = new ArrayCollection();
+			
+			//TO DO: MOve this to a separate class hard coded for now
+			[Bindable]
+			public var datasetCollection:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			public var scriptCollection:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			public var schemaChoices:ArrayCollection = new ArrayCollection();
+			public var datasets:Array = new Array(); 
+			public var storedscripts:Array = new Array();
+			public var schema:Array = new Array();
+			
+			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const RScriptTAtext:LinkableString = newLinkableChild(this, LinkableString);
 			public const RPlotscriptTALinkabletext:LinkableString = newLinkableChild(this, LinkableString);
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public var resultString:String = "";//this is the result of every script returned from R
 			public var numberOfRCalls:int = 0;
+			
+			public const queryObjectDisplayString:LinkableString = newLinkableChild(this, LinkableString);
 			
 			public var columnNames:Array = new Array();
 			public var inputNames:Array = new Array();
@@ -349,6 +404,15 @@
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 				
+				//TO DO: MOve this to a separate class hard coded for now
+				datasets = ["Select the dataset","SDoH2010Q.csv", "obesity.csv"];
+				storedscripts = ["Select the script","brfssRRoutine.R","CDCSQLQueries.R","obesitySQLRoutine.R", "obesityCSVRoutine.R"];
+				schema = ["Select the schema", "resd", "us"];
+				
+				datasetCollection.source = datasets;
+				scriptCollection.source = storedscripts; 
+				schemaChoices.source = schema;
+				
 			}
 			
 			override protected function childrenCreated():void
@@ -356,6 +420,8 @@
 				super.childrenCreated();
 				linkBindableProperty(RScriptTAtext,RScriptTA,"text");
 				linkBindableProperty(RPlotscriptTALinkabletext,RPlotscriptTA,"text");
+				//move to a separate class
+				linkBindableProperty(queryObjectDisplayString,queryObjectTA,"text");
 				
 				variables.addImmediateCallback(this, normaBinAndStatR, true);
 			}
@@ -781,17 +847,13 @@
 				}
 			}
 			
-			//to do check if custom type enumeration should be created
-			private static const servicesAvailable:Array = ["JRI","Rserve"];
-			
-			// this is the default value used
-			private static var currentService:String = "Rserve";
 			
 			//checks if the system posseses JRI or Rserve to update column sending options
 			protected function draggablepanel1_creationCompleteHandler(event:FlexEvent):void
 			{
-				var query:AsyncToken = Rservice.checkforJRIService();
-				addAsyncResponder(query, handleJRIPresent, handleRunScriptFault ,null);
+				 var query:AsyncToken = Rservice.checkforJRIService();
+				addAsyncResponder(query, handleJRIPresent, handleRunScriptFault ,null); 
+				
 			}
 			
 			private function handleJRIPresent(event:ResultEvent, token:Object = null):void
@@ -809,6 +871,178 @@
 				}
 			}
 			
+			//-------------TO DO move to a separate class--------------------------------------------------------------------------------		
+			// TODO move to a separate class 
+			private var queryObject:Array = new Array();
+			
+			// TODO move to a separate class
+			protected function servercall_clickHandler(event:MouseEvent):void
+			{
+				queryObject.length = 0;
+				queryObject.push(datasetChoice.selectedLabel);
+				queryObject.push(scriptChoices.selectedLabel);
+				var queryStatement:String = paramInputTA.text;
+				var schema:String = schemaCB.selectedLabel;
+				//check which fork is selected and make the appropriate asynchronous call
+				//set a default path?
+				if(csvCB.selected)
+				{
+					var csvAsyncCall:AsyncToken = Rservice.runScriptOnCSVOnServer(queryObject);
+					addAsyncResponder(csvAsyncCall, handleServerResults, handleRunScriptFault, null);
+				}
+				
+				if(sqlCB.selected)
+				{
+					var sqlAsyncCall:AsyncToken = Rservice.runScriptOnSQLOnServer(queryObject, queryStatement, schema);
+					addAsyncResponder(sqlAsyncCall, handleServerResults, handleRunScriptFault, null);
+				}
+				
+			}
+			
+			// TODO move to a separate class
+			protected function handleServerResults(event:ResultEvent, token:Object = null):void
+			{
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "Results returned from R\n\n";
+				var Robj:Array = event.result as Array;
+				trace('Robj:',ObjectUtil.toString(Robj));
+				if (Robj == null)
+				{
+					reportError(lang("R Servlet did not return an Array of results as expected."));
+					return;
+				}
+				
+				
+				var RresultArray:Array = new Array();
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				var headerRows:Array;
+				var rows:Array = new Array();
+				var keys:Array = new Array();
+				var filling:Array = new Array();
+				
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+				
+					if(rResult.name == "columnNames"){
+						 headerRows = (rResult.value as ArrayCollection).toArray();
+						headerRows.unshift("keys");
+						rows.push(headerRows);
+					}
+					if(rResult.name == "columnValues")
+					{
+						var tempColumns:Array = rResult.value as Array;
+						filling = rResult.value as Array;
+						var sampleColumn:Array = tempColumns[0] as Array;
+						for (var r:int = 0; r < sampleColumn.length; r++)					
+						{
+							var row:Array = new Array();
+							row.push(r);
+							keys.push(r as IQualifiedKey);
+							for(var c:int = 0; c < tempColumns.length; c++){
+								var column:Array = tempColumns[c] as Array;
+								row.push(column[r]);
+							}
+							rows.push(row);								
+						}
+						
+					}	
+						
+				}		
+				
+				/**
+				 * Creating  new CSVDatasource
+				 **/
+				/* This is the final array added as a CSVDataSource having structure
+				[
+				["k","x","y","z"]
+				["k1",1,2,3]
+				["k2",3,4,6]
+				["k3",2,4,56]
+				] */
+				
+				//Give it a unique name incase we need to store the columns from multiple imputations
+				var name:String = Weave.root.generateUniqueName("ReturnedColumns");
+				var serverResultsCsvDataSource:CSVDataSource = Weave.root.requestObject( name,CSVDataSource,false);
+				serverResultsCsvDataSource.setCSVData(rows);
+				//imputedCsvDataSource.keyType.value = (keys[0] as IQualifiedKey).keyType;
+				serverResultsCsvDataSource.keyColName.value = "keys";
+				
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "Columns returned from R\n\n";
+				
+				automateVisualizations(serverResultsCsvDataSource);
+				
+			}
+			
+
+			private function automateVisualizations(serverResultsCsvDataSource:CSVDataSource):void
+			{
+				//create the tool
+				//hard coded for now TO DO provide access with UI	
+				var automaticScatterPlot:ScatterPlotTool = new ScatterPlotTool();
+				var attributes:Array = automaticScatterPlot.getSelectableAttributes();
+				
+				serverResultsCsvDataSource.putColumn("State", attributes[0] as DynamicColumn);
+				serverResultsCsvDataSource.putColumn("prev.percent", attributes[1] as DynamicColumn);
+				serverResultsCsvDataSource.putColumn("response", attributes[2] as DynamicColumn);
+				
+				
+				FlexGlobals.topLevelApplication.visDesktop.addChild(automaticScatterPlot);
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "ScatterPlot Tool added\n\n";
+							
+			}
+			
+			protected function sqlCB_changeHandler(event:Event):void
+			{
+				if(sqlCB.selected)
+				{
+					schemaCB.enabled = true;
+					schemaLabel.enabled = true;
+					paramInputTA.enabled = true;
+					paramLabel.enabled = true;
+				}
+				else
+				{
+					schemaCB.enabled = false;
+					schemaLabel.enabled = false;
+					paramInputTA.enabled = false;
+					paramLabel.enabled = false;
+				}
+				updateQueryObjectString(event);
+				
+			}
+			
+			protected function updateQueryObjectString(event:Event):void
+			{
+				if(event.target == datasetChoice)
+					queryObjectDisplayString.value = queryObjectDisplayString.value + "Data Set selected : " + datasetChoice.selectedLabel+ "\n\n";
+				if(event.target == scriptChoices)
+				queryObjectDisplayString.value = queryObjectDisplayString.value + "R routine selected : "+ scriptChoices.selectedLabel + "\n\n";
+				if(event.target == schemaCB)
+					queryObjectDisplayString.value = queryObjectDisplayString.value + "Database schema selected : " + schemaCB.selectedLabel + "\n\n";
+				if(event.target == csvCB)
+				{
+					if(csvCB.selected)
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing CSV selected\n\n";
+					else
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing CSV unselected\n\n"
+					
+				}
+				
+				if(event.target == sqlCB)
+				{
+					if(sqlCB.selected)
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing from SQL table selected\n\n";
+					else
+						queryObjectDisplayString.value = queryObjectDisplayString.value + "Importing from SQL table unselected\n\n";
+				}
+				
+			}
 			
 		]]>
 	</mx:Script>

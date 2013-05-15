@@ -96,6 +96,11 @@ package weave.utils
 			return _result;
 		}
 		
+		public function toString():String
+		{
+			return '[object ' + getQualifiedClassName(this).split(':').pop() + ']';
+		}
+		
 		private function _getWrapper(host:Object, property:String):*
 		{
 			// used cached wrapper function if it exists
@@ -180,8 +185,12 @@ package weave.utils
 		
 		override flash_proxy function getProperty(name:*):*
 		{
-			if (name == 'valueOf')
+			if (String(name) == 'valueOf')
 				return valueOf as Function;
+			if (String(name) == 'toString')
+				return toString as Function;
+			if (String(name) == 'hasOwnProperty')
+				return flash_proxy::hasProperty as Function;
 			
 			if (_wrappers.hasOwnProperty(name))
 				return _wrappers[name];

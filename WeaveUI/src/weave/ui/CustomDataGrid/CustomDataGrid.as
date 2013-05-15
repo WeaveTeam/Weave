@@ -20,8 +20,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 package weave.ui.CustomDataGrid
 {
 	import mx.controls.DataGrid;
+	import mx.controls.listClasses.IListItemRenderer;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.core.mx_internal;
+	import mx.utils.UIDUtil;
+
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
@@ -39,7 +42,6 @@ package weave.ui.CustomDataGrid
 	 */	
 	public class CustomDataGrid extends DataGrid
 	{
-		
 		public function CustomDataGrid()
 		{
 			headerClass = CustomDataGridHeader;
@@ -71,9 +73,15 @@ package weave.ui.CustomDataGrid
 			collection.refresh();
 		}
 		
-		
-		
-		
+		public function drawItemForced(item:Object,
+ 										selected:Boolean = false,
+ 										highlighted:Boolean = false,
+ 										caret:Boolean = false,
+ 										transition:Boolean = false):void
+		{
+			var renderer:IListItemRenderer = itemToItemRenderer(item);
+			drawItem(renderer, selected, highlighted, caret, transition);
+		}
 		/**
 		 * There's a bug in Flex 3.6 SDK where the locked column content may not be updated
 		 * at the same time as the listItems for the DataGrid. This is an issue because they

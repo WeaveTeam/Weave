@@ -49,7 +49,6 @@ import weave.beans.GeometryStreamMetadata;
 import weave.beans.PGGeom;
 import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
-import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
@@ -189,6 +188,18 @@ public class DataService extends GenericServlet
 	////////////
 	// Columns
 	
+	private ConnectionInfo getColumnConnectionInfo(DataEntity entity) throws RemoteException
+	{
+		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
+ 		if (connInfo == null)
+		{
+			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
+			throw new RemoteException(String.format("Connection named '%s' associated with column #%s (%s) no longer exists", connName, entity.id, title));
+		}
+ 		return connInfo;
+	}
+	
 	public AttributeColumnData getColumn(int columnId, double minParam, double maxParam, String[] sqlParams)
 		throws RemoteException
 	{
@@ -206,16 +217,10 @@ public class DataService extends GenericServlet
 			return result;
 		}
 		
-		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
 		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
 		
-		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
-		if (connInfo == null)
-		{
-			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
-			throw new RemoteException(String.format("Connection named '%s' associated with column #%s (%s) no longer exists", connName, columnId, title));
-		}
+		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
 		
 		List<String> keys = new ArrayList<String>();
 		List<Double> numericData = null;
@@ -428,11 +433,9 @@ public class DataService extends GenericServlet
 	{
 		assertStreamingGeometryColumn(entity, true);
 		
-		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+		Connection conn = getColumnConnectionInfo(entity).getStaticReadOnlyConnection();
 		String schema = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
 		String tablePrefix = entity.privateMetadata.get(PrivateMetadata.SQLTABLEPREFIX);
-		
-		Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 		try
 		{
 			switch (component)
@@ -472,7 +475,6 @@ public class DataService extends GenericServlet
 		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex++)
 			keyMap.put(keysArray[keyIndex], keyIndex);
 		
-		ConnectionConfig connConfig = getConnectionConfig();
 		DataConfig dataConfig = getDataConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
@@ -491,7 +493,6 @@ public class DataService extends GenericServlet
 		for (int colIndex = 0; colIndex < infoList.size(); colIndex++)
 		{
 			DataEntity info = infoList.get(colIndex);
-			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 			String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
 			metadataList[colIndex] = info.publicMetadata;
@@ -527,7 +528,7 @@ public class DataService extends GenericServlet
 			{
 				//timer.start();
 				
-				Connection conn = connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection();
+				Connection conn = getColumnConnectionInfo(info).getStaticReadOnlyConnection();
 				String[] sqlParamsArray = null;
 				if (sqlParams != null && sqlParams.length() > 0)
 					sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
@@ -621,6 +622,9 @@ public class DataService extends GenericServlet
 	public AttributeColumnData getColumnFromMetadata(Map<String, String> metadata)
 		throws RemoteException
 	{
+		if (metadata == null || metadata.size() == 0)
+			throw new RemoteException("No metadata query parameters specified.");
+		
 		DataEntityMetadata query = new DataEntityMetadata();
 		query.publicMetadata = metadata;
 		
