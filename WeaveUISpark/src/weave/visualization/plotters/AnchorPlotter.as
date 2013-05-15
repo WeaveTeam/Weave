@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
@@ -197,6 +198,7 @@ package weave.visualization.plotters
 					var classStr:String = getClassFromAnchor(key.localName);
 					var cc:ColorColumn = Weave.defaultColorColumn;
 					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;
+					binColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, false)
 					var binIndex:int = binColumn.getBinIndexFromDataValue(classStr);
 					var color:Number = cc.ramp.getColorFromNorm(binIndex / (binColumn.numberOfBins - 1));
 					if (isFinite(color))
