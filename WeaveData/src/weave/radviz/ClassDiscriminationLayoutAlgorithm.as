@@ -38,11 +38,9 @@ package weave.radviz
 	 */	
 	public class ClassDiscriminationLayoutAlgorithm extends AbstractLayoutAlgorithm implements ILayoutAlgorithm
 	{
-
+		//  String -> Array of LinkableHashMap object names
+		public var tAndpMapping:Dictionary;//stores the column names belonging to a particular class{key = classname value = array of column names belonging to this class}
 		public var tandpValuesMapping:Dictionary;//stores the column values belonging to a particular class{key = classname value = array of column values belonging to this class}
-		//  String -> Array <of LinkableHashMap object names>
-		public var tAndpMapping:Dictionary;//stores the columns belonging to a particular class{key = classname value = array of columns belonging to this class}
-
 		public var ClassToColumnMap:Dictionary;
 		/** structure of ClassToColumnMap (Bins)
 		 for example :    type                        				Array

@@ -194,7 +194,7 @@ public class RServiceUsingRserve
 	
 	
 	private static  void evaluvateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException{
-		REXP evalValue= evalScript(rConnection, script, showWarnings);
+		/* REXP evalValue = */ evalScript(rConnection, script, showWarnings);
 		if (showIntermediateResults){
 			Object storedRdatas = evalScript(rConnection, "ls()", showWarnings);
 			if(storedRdatas instanceof REXPString){
