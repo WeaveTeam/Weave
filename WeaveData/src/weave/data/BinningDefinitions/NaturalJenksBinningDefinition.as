@@ -110,7 +110,7 @@ package weave.data.BinningDefinitions
 			
 			_compoundIterateAll(-1); // reset compound task
 			
-			WeaveAPI.StageUtils.startTask(this, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _handleJenksBreaks);
+			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _handleJenksBreaks);
 		}
 		
 		private var _compoundIterateAll:Function = StageUtils.generateCompoundIterativeTask(_getValueFromKeys, _iterateSortedKeys, _iterateJenksBreaks);
