@@ -123,7 +123,6 @@ package weave.visualization.plotters
 		public const circleLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const anchorLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const anchorFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
-		public const regularAnchorColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		public var anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		
@@ -170,7 +169,7 @@ package weave.visualization.plotters
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchorLineStyle.beginLineStyle(null, graphics);
-				graphics.beginFill(regularAnchorColor.value);
+				anchorFillStyle.beginFillStyle(null, graphics);
 
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
 				if(anchorThreshold)
@@ -195,7 +194,7 @@ package weave.visualization.plotters
 				// draw circle
 				if(enableWedgeColoring.value)
 					graphics.beginFill(anchorColorMap[key.localName]);
-				else
+				if(doCDLayout)
 				{
 					//color the dimensional anchors according to the class they belong to
 					var classStr:String = getClassFromAnchor(key.localName);
