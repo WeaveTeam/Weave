@@ -31,8 +31,8 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				xCol.dynamicObject = _plotter.xColumn;
-				yCol.dynamicObject = _plotter.yColumn;
+				xCol.dynamicObject = _plotter.dataX;
+				yCol.dynamicObject = _plotter.dataY;
 			}
 			
 			private var _plotter:ImageGlyphPlotter = null;

@@ -26,24 +26,28 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
-	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
+	import weave.visualization.plotters.styles.SolidFillStyle;
+	import weave.visualization.plotters.styles.SolidLineStyle;
 
 	/**
 	 * AnchorPlotter
@@ -54,7 +58,7 @@ package weave.visualization.plotters
 		public function AnchorPlotter()	
 		{
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // this causes a redraw when text format changes
-			
+			registerLinkableChild(this, Weave.defaultColorColumn);			
 			setSingleKeySource(_keySet);
 		}
 		
@@ -85,14 +89,38 @@ package weave.visualization.plotters
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
+		
+		
 		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
-		public var displayClassNames:Boolean = false;//this displays the names of the classes 
+
+		// anchorClasses key is String, value is array of AnchorPoint names
 		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
+
+		public var anchorThreshold:Number;
+		public var doCDLayout:Boolean = false;// this displays the tstat value with every dimensional anchor name (displayed only when CD layout is done)
+		
+		private function getClassFromAnchor(anchorName:String):String
+		{
+			for (var key:String in anchorClasses)
+			{
+				var anchors:Array = anchorClasses[key];
+				if (anchors.indexOf(anchorName) >= 0)
+					return key;
+			}
+			return null;
+		}
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
 		private var keyBoundsMap:Dictionary = new Dictionary();
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		private const _currentDataBounds:Bounds2D = new Bounds2D();
+		
+		public const circleLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
+		public const anchorLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
+		public const anchorFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
+		public const anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		
+		
 		
 		public function handleAnchorsChange():void
 		{
@@ -104,6 +132,8 @@ package weave.visualization.plotters
 		}
 		
 		private static const ANCHOR_KEYTYPE:String = 'dimensionAnchors';
+		
+		
 		
 		private function fillColorMap():void
 		{
@@ -129,14 +159,23 @@ package weave.visualization.plotters
 
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
-						
-			graphics.lineStyle(1);
-
+									
+			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
 				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
 					continue;
+				
+				anchorLineStyle.beginLineStyle(null, graphics);
+				anchorFillStyle.beginFillStyle(null, graphics);
+
+				if(anchorThreshold)
+				{
+					if(anchor.classDiscriminationMetric.value < anchorThreshold)
+						continue;
+					
+				}
 				
 				x = anchor.x.value;
 				y = anchor.y.value;
@@ -152,10 +191,20 @@ package weave.visualization.plotters
 				
 				// draw circle
 				if(enableWedgeColoring.value)
-					graphics.beginFill(anchorColorMap[key.localName]);		
-				//color the dimensional anchors according to the class hey belong to
-				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
-				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
+					graphics.beginFill(anchorColorMap[key.localName]);
+				else if (doCDLayout)
+				{
+					//color the dimensional anchors according to the class hey belong to
+					var classStr:String = getClassFromAnchor(key.localName);
+					var cc:ColorColumn = Weave.defaultColorColumn;
+					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;
+					binColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, false)
+					var binIndex:int = binColumn.getBinIndexFromDataValue(classStr);
+					var color:Number = cc.ramp.getColorFromNorm(binIndex / (binColumn.numberOfBins - 1));
+					if (isFinite(color))
+						graphics.beginFill(color);
+				}
+				graphics.drawCircle(tempPoint.x, tempPoint.y, anchorRadius.value);				
 				graphics.endFill();
 				
 				
@@ -163,6 +212,9 @@ package weave.visualization.plotters
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
 				
+				if(doCDLayout)//displays the class discrimination metric used, either tstat or pvalue
+					_bitmapText.text = _bitmapText.text + "\n"+ "  Metric : " + 
+						Math.round(anchor.classDiscriminationMetric.value *100)/100 +"\n" + "  Class :" + anchor.classType.value;
 				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				_bitmapText.angle = screenBounds.getYDirection() * (radians * 180 / Math.PI);
@@ -227,13 +279,13 @@ package weave.visualization.plotters
 			
 			// draw RadViz circle
 			try {
-				g.lineStyle(2, 0, .2);
+				circleLineStyle.beginLineStyle(null,g);
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
 			
 			if(drawingClassLines)
 			{
-				drawClassLines(dataBounds, screenBounds, g);
+				drawClassLines(dataBounds, screenBounds, g,destination );
 			}
 			
 			destination.draw(tempShape);
@@ -242,9 +294,9 @@ package weave.visualization.plotters
 			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
-		public function drawClassLines(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:Graphics):void
+		public function drawClassLines(dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
 		{
-			var graphics:Graphics = destination;
+			var graphics:Graphics = g;
 			var numOfClasses:int = 0;
 			for ( var type:Object in anchorClasses)
 			{
@@ -259,25 +311,38 @@ package weave.visualization.plotters
 			
 			for(var cdClass:Object in anchorClasses)
 			{
+				_bitmapText.text = "";
 				var previousClassAnchor:Point = new Point();
+				var classLabelPoint:Point = new Point();
 				var currentClassPos:Number = classTheta * classIncrementor;
 				previousClassAnchor.x = Math.cos(currentClassPos);
 				previousClassAnchor.y = Math.sin(currentClassPos);
 				dataBounds.projectPointTo(previousClassAnchor,screenBounds);
 				
 				var nextClassAnchor:Point = new Point();
-				var nextClassPos:Number = (classTheta - 0.01)  * (classIncrementor + 1);
+				var nextClassPos:Number = (classTheta - 0.02)  * (classIncrementor + 1);
 				nextClassAnchor.x = Math.cos(nextClassPos);
 				nextClassAnchor.y = Math.sin(nextClassPos);
 				dataBounds.projectPointTo(nextClassAnchor, screenBounds);
 				
-				graphics.lineStyle(1, 0x00ff00);
-				graphics.lineStyle(0.5,Math.random() * uint.MAX_VALUE);
+				graphics.lineStyle(2, 2, .4);
+				//graphics.lineStyle(2,Math.random() * uint.MAX_VALUE);
 				classIncrementor ++;
 				graphics.moveTo(previousClassAnchor.x, previousClassAnchor.y);
 				graphics.lineTo(centre.x, centre.y);
-				graphics.lineTo(nextClassAnchor.x, nextClassAnchor.y);
+				//graphics.lineTo(nextClassAnchor.x, nextClassAnchor.y);
 				
+				//adding class labels TO DO find a way of displaying class labels using legend or labels
+				/*var classLabelPosition:Number = (classTheta/2)*classIncrementor;
+				classLabelPoint.x = Math.cos(classLabelPosition);
+				classLabelPoint.y = Math.sin(classLabelPosition);
+				dataBounds.projectPointTo(classLabelPoint, screenBounds);
+				
+				_bitmapText.text = String(cdClass);
+				_bitmapText.x = classLabelPoint.x;
+				_bitmapText.y = classLabelPoint.y;
+				
+				_bitmapText.draw(destination);*/
 			}
 		}
 		

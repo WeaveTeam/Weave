@@ -694,7 +694,6 @@ package weave.core
 		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		private const _aBusyTraversal:Array = [];
-		private var _unbusyTriggerInitialized:Boolean = false;
 		private const _dUnbusyTriggerCounts:Dictionary = new Dictionary(true); // ILinkableObject -> int
 		private const _dUnbusyStackTraces:Dictionary = new Dictionary(true); // ILinkableObject -> String
 		
@@ -748,12 +747,6 @@ package weave.core
 			if (!dOwner)
 				return;
 			
-			if (!_unbusyTriggerInitialized)
-			{
-				WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, unbusyTrigger);
-				_unbusyTriggerInitialized = true;
-			}
-			
 			delete _d2dTaskOwner.dictionary[taskToken];
 			nextOwner: for (var owner:* in dOwner)
 			{
@@ -766,6 +759,7 @@ package weave.core
 				
 				// when there are no more tasks, check later to see if callbacks trigger
 				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
+				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
@@ -778,11 +772,14 @@ package weave.core
 		/**
 		 * Called the frame after an owner's last busy task is unassigned.
 		 * Triggers callbacks if they have not been triggered since then.
-		 */		
-		private function unbusyTrigger():void
+		 */
+		private function unbusyTrigger(stopTime:int):Number
 		{
 			var owner:*;
 			do {
+				if (getTimer() > stopTime)
+					return 0;
+				
 				owner = null;
 				for (owner in _dUnbusyTriggerCounts)
 				{
@@ -810,6 +807,8 @@ package weave.core
 					cc.triggerCallbacks();
 				}
 			} while (owner);
+			
+			return 1;
 		}
 		
 		/**

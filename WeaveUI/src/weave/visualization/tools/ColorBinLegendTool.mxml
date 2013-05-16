@@ -106,7 +106,6 @@
 				if (_plotter.getInternalColorColumn() == null)
 				{
 					cRampEditor.colorRamp = null;
-					reportError("ColorBinLegendPlotter.getInternalColorColumn() is null");
 				}
 				else
 				{

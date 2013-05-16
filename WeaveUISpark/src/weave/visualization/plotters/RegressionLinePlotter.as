@@ -23,17 +23,23 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import mx.collections.ArrayCollection;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ArrayUtil;
 	
 	import weave.Weave;
+	import weave.api.disposeObjects;
 	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Range;
 	import weave.services.WeaveRServlet;
@@ -79,27 +85,62 @@ package weave.visualization.plotters
 		
 		private function resetRegressionLine():void
 		{
-			// clear previous values
-			slope = NaN;
-			intercept = NaN;
+			coefficients = null;
+			rSquared = 0;
 		}
 		private function calculateRRegression():void
 		{
-			//trace( "calculateRegression() " + xColumn.toString() );
-			if( drawLine.value )
+				var Rstring:String = null;
+				var dataXY:Array = null;
+				var token:AsyncToken = null;
+			
+			if( drawLine.value)
 			{
-				var Rstring:String = "fit <- lm(y~x)\n"
-					+"intercept <- coefficients(fit)[1]\n"
-					+"slope <- coefficients(fit)[2]\n"
-					+"rSquared <- summary(fit)$r.squared\n";
+				if (currentTrendline.value == LINEAR)
+				{
+					//trace( "calculateRegression() " + xColumn.toString() );
+					Rstring = "fit <- lm(y~x)\n"
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";
+				}
 				
-				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
-				
-				// sends a request to Rserve to calculate the slope and intercept of a regression line fitted to xColumn and yColumn 
-				var token:AsyncToken = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["intercept","slope","rSquared"],Rstring,"",false,false,false);
+				if (currentTrendline.value == POLYNOMIAL)
+				{
+					Rstring = "fit <- lm(y ~ poly(x, " + polynomialDegree.value.toString() + ", raw = TRUE))\n"
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";			
+				}
+			
+				if (currentTrendline.value == LOGARITHMIC)
+				{
+					Rstring = "fit <- lm( y ~ log(x) )\n" 
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";
+				}
+			
+			
+				if (currentTrendline.value == EXPONENTIAL)
+				{
+					Rstring = "fit <- lm( log(y) ~ x )\n" 
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";	
+				}
+			
+				if (currentTrendline.value == POWER)
+				{
+					Rstring = "fit <- lm( log(y) ~ log(x) )\n" 
+						+"coef <- coefficients(fit)\n" 
+						+"rSquared <- summary(fit)$r.squared\n";
+				}
+			
+				dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
+			
+				// sends a request to Rserve to calculate the coefficients of the regression lograrithmic function to xColumn and yColumn
+				token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef", "rSquared"], Rstring, "", false, false, false);
 				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 			}
 		}
+		
 		private var requestID:int = 0; // ID of the latest request, used to ignore old results
 		
 		private function handleLinearRegressionResult(event:ResultEvent, token:Object=null):void
@@ -123,13 +164,29 @@ package weave.visualization.plotters
 				RresultArray.push(rResult);				
 			}
 			
-			if (RresultArray.length > 1)
+			// R only returns coefficients and rSquared
+			if (RresultArray.length == 2)
 			{
-				intercept = (Number((RresultArray[0] as RResult).value) != intercept) ? Number((RresultArray[0] as RResult).value) : NaN ;
-				slope = Number((RresultArray[1] as RResult).value);
-				rSquared = Number((RresultArray[2] as RResult).value);
-				//trace( "R" + " " + intercept + " " + slope) ;
-				getCallbackCollection(this).triggerCallbacks();
+				
+				//coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
+				coefficients = (RresultArray[0] as RResult).value as Array;
+				
+				// Preprocess coefficients ==> It might return NaN in higher degree
+				// where it should in fact be 0.
+				
+				// problem arises sometimes, when coefficients is null, meaning the R calls are not done yet? May be create a busy loop?
+				if (coefficients)
+				{
+					for (i = 0; i < coefficients.length; i++)
+					{
+						if (isNaN(coefficients[i]))
+						{
+							coefficients[i] = 0;
+						}
+					}
+				}	
+				rSquared = Number((RresultArray[1] as RResult).value);
+				getCallbackCollection(this).triggerCallbacks();	
 			}
 		}
 		
@@ -142,44 +199,45 @@ package weave.visualization.plotters
 			}
 			
 			reportError(event);
-			intercept = NaN;
-			slope = NaN;
+			coefficients = null;
+			rSquared = NaN;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		public function getSlope():Number { return slope; }
-		public function getIntercept():Number { return intercept; }
-
-		private var intercept:Number = NaN;
-		private var slope:Number = NaN;
+		public function getCoefficients():Array { return coefficients; }		
+		public function getrSquared():Number { return rSquared; }
+		
 		private var rSquared:Number = NaN;
+		private var coefficients:Array = null;
+		
 		private var tempRange:Range = new Range();
 		private var tempPoint:Point = new Point();
 		private var tempPoint2:Point = new Point();
 
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if(drawLine.value)
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			
+			if(currentTrendline.value == LINEAR)
 			{
-				var g:Graphics = tempShape.graphics; 
-				g.clear();
-				
-				if(!isNaN(intercept))
+//				if(!isNaN(coefficients[0]))
+				if (coefficients != null)
 				{
 					tempPoint.x = dataBounds.getXMin();
 					tempPoint2.x = dataBounds.getXMax();
 					
-					tempPoint.y = (slope*tempPoint.x)+intercept;
-					tempPoint2.y = (slope*tempPoint2.x)+intercept;
+					tempPoint.y = (coefficients[1] * tempPoint.x) + coefficients[0];
+					tempPoint2.y = (coefficients[1] * tempPoint2.x) + coefficients[0];
 					
 					tempRange.setRange( dataBounds.getYMin(), dataBounds.getYMax() );
 					
 					// constrain yMin to be within y range and derive xMin from constrained yMin
-					tempPoint.x = tempPoint.x + (tempRange.constrain(tempPoint.y) - tempPoint.y) / slope;
+					tempPoint.x = tempPoint.x + (tempRange.constrain(tempPoint.y) - tempPoint.y) / coefficients[1];
 					tempPoint.y = tempRange.constrain(tempPoint.y);
 					
 					// constrain yMax to be within y range and derive xMax from constrained yMax
-					tempPoint2.x = tempPoint.x + (tempRange.constrain(tempPoint2.y) - tempPoint.y) / slope;
+					tempPoint2.x = tempPoint.x + (tempRange.constrain(tempPoint2.y) - tempPoint.y) / coefficients[1];
 					tempPoint2.y = tempRange.constrain(tempPoint2.y);
 					
 					dataBounds.projectPointTo(tempPoint,screenBounds);
@@ -191,11 +249,148 @@ package weave.visualization.plotters
 					
 					destination.draw(tempShape);
 				}
-			}		
+			}	
+			else 
+			{
+				
+				if (coefficients != null)
+				{
+					points = new Vector.<Number>;
+					drawCommand = new Vector.<int>;
+					var previousPoint:Point = null;
+					
+					// Use dataBounds to determine how many points should be drawn
+//					var flag:Boolean = true;
+//					 for (var x:int = dataBounds.getXMin(); x < dataBounds.getXMax(); x++)
+//					 {
+//						tempPoint.x = x;
+//						
+//						tempPoint.y = 
+//						tempPoint.y = evalFunction(currentTrendline.value, coefficients, x);
+//						if (isNaN(tempPoint.y))
+//						{
+//							// technically this is a problem
+//						}
+//						
+//						dataBounds.projectPointTo(tempPoint, screenBounds);
+//						points.push(tempPoint.x);
+//						points.push(tempPoint.y);
+//						
+//						if (flag == true)
+//						{
+//							drawCommand.push(1);
+//							flag = false;
+//						}
+//						else drawCommand.push(2);
+//					}
+					 
+					// Use screenBounds to determine how many points should be drawn ==> Draw lines for every 3 pixels
+					var numberOfPoint:Number = Math.floor(screenBounds.getXCoverage() / 3);
+					var increment:Number = dataBounds.getXCoverage() / numberOfPoint;
+					var flag:Boolean = true;
+					for (var x:Number = dataBounds.getXMin(); x <= dataBounds.getXMax(); x = x + increment)
+					{
+						tempPoint.x = x;
+						tempPoint.y = evalFunction(currentTrendline.value, coefficients, x);
+						dataBounds.projectPointTo(tempPoint, screenBounds);
+						points.push(tempPoint.x);
+						points.push(tempPoint.y);
+						
+						if (flag == true)
+						{
+							drawCommand.push(1);
+							flag = false;
+						}
+						else if (screenBounds.containsPoint(previousPoint) && screenBounds.containsPoint(tempPoint))
+							drawCommand.push(2);
+						else
+							drawCommand.push(1);
+						
+						previousPoint = tempPoint.clone();
+					}
+					
+					lineStyle.beginLineStyle(null,g);
+					g.drawPath(drawCommand, points);					
+					
+					destination.draw(tempShape);
+				}
+			}
 		}
+
 		public function dispose():void
 		{
 			requestID = 0; // forces all results from previous requests to be ignored
 		}
+		
+		private var points:Vector.<Number> = null;
+		private var drawCommand:Vector.<int> = null;
+		
+		/**
+		 * 	@author Yen-Fu 
+		 *	This function evaluates a polynomial, given the coefficients (a, b, c,..) and the value x. 
+		 * 	ax^n-1+bx^n-2+...
+		 **/
+		private function evalFunction(type:String, coefficients:Array, xValue:Number):Number
+		{
+				
+			var b:Number = coefficients[0];
+			var a:Number = coefficients[1];
+			
+			if (type == POLYNOMIAL) 
+			{
+				var result:Number = 0;
+				var degree:int = coefficients.length - 1;
+				for (var i:int = 0; i <= degree; i++)
+				{
+					result += coefficients[i] * Math.pow(xValue, i);
+				}
+				
+				
+				return result;
+			}
+			
+			// For the other types, we know that coefficients only has 2 entries.
+			
+			// Model y = a*ln(x) + b
+			// called with (y, ln(x))
+			// => A = a, B = b			
+			else if (type == LOGARITHMIC) 
+			{					
+				return a*Math.log(xValue) + b;
+			}
+	
+			// Model y = b*exp(a*x)
+			// => ln(y) = ln(b) + a*x
+			// called with (ln(y), x)
+			// => A = a, B = ln(b)
+			else if (type == EXPONENTIAL) 
+			{
+				return Math.exp(b)*Math.exp(a*xValue);
+			}
+			
+			// Model y = b*x^a
+			// => ln(y) = ln(b) + a*ln(x)
+			// called with (ln(y), a*ln(x)
+			// => A = a, B = ln(b)
+			else if (type == POWER) 
+			{
+				return Math.exp(b) * Math.pow(xValue, a);	
+			}
+			else
+			{
+				return NaN;
+			}
+		}
+			
+		// Trendlines
+		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), calculateRRegression);
+		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(LINEAR), calculateRRegression);
+
+		[Bindable] public var trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
+		public static const LINEAR:String = "Linear";
+		public static const POLYNOMIAL:String = "Polynomial";
+		public static const LOGARITHMIC:String = "Logarithmic";
+		public static const EXPONENTIAL:String = "Exponential";
+		public static const POWER:String = "Power";
 	}
 }
