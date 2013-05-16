@@ -81,7 +81,7 @@ package weave.data.BinningDefinitions
 			if (internalObject && column)
 				(internalObject as IBinningDefinition).generateBinClassifiersForColumn(column);
 			else
-				triggerCallbacks(); // bins are empty
+				asyncResultCallbacks.triggerCallbacks(); // bins are empty
 		}
 		
 		/**
@@ -107,7 +107,7 @@ package weave.data.BinningDefinitions
 		 */
 		public function getBinClassifiers():Array
 		{
-			if (internalObject)
+			if (internalObject && columnJuggler.target)
 				return (internalObject as IBinningDefinition).getBinClassifiers();
 			return [];
 		}
@@ -117,7 +117,7 @@ package weave.data.BinningDefinitions
 		 */
 		public function getBinNames():Array
 		{
-			if (internalObject)
+			if (internalObject && columnJuggler.target)
 				return (internalObject as IBinningDefinition).getBinNames();
 			return [];
 		}
