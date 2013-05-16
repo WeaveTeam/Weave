@@ -35,6 +35,7 @@ package
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.GeometryLabelPlotterEditor;
 	import weave.editors.GeometryPlotterEditor;
+	import weave.editors.GeometryRelationPlotterEditor;
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
@@ -54,6 +55,7 @@ package
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
+	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
 	import weave.visualization.plotters.WMSPlotter;
@@ -63,6 +65,7 @@ package
 	import weave.visualization.tools.CompoundRadVizTool;
 	import weave.visualization.tools.CustomGraphicsTool;
 	import weave.visualization.tools.CustomTool;
+	import weave.visualization.tools.CytoscapeWebTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
 	import weave.visualization.tools.DataTableTool;
@@ -83,7 +86,6 @@ package
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
-	import weave.visualization.tools.CytoscapeWebTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -110,6 +112,7 @@ package
 			EditorManager.registerEditor(StringDataFilter, StringDataFilterEditor);
 			EditorManager.registerEditor(NumberDataFilter, NumberDataFilterEditor);
 			
+			EditorManager.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
 			EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
 			EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
 			EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
