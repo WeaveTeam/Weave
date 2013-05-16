@@ -21,8 +21,13 @@ package weave.servlets;
 
 import static weave.config.WeaveConfig.getConnectionConfig;
 import static weave.config.WeaveConfig.getDataConfig;
+import static weave.config.WeaveConfig.getUploadPath;
 import static weave.config.WeaveConfig.initWeaveConfig;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -51,6 +56,7 @@ import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
+import weave.config.WeaveConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithChildren;
@@ -61,6 +67,7 @@ import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
+import weave.utils.FileUtils;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -461,6 +468,37 @@ public class DataService extends GenericServlet
 			e.printStackTrace();
 			throw new RemoteException(String.format("Unable to read geometry data (id=%s)", entity.id));
 		}
+	}
+	
+	////////////////////////////
+	// Collaboration PDF
+	
+	public String convertPDF(String filename, InputStream content) throws Exception
+	{			
+		String newFilePath = new String();
+		String filePath = WeaveConfig.getDocrootPath() + filename;
+		System.out.print(filePath);
+		System.out.println("DataService.convertPDF()");
+		System.err.println(filePath);
+		try
+		{
+			FileUtils.copy(content, new FileOutputStream(filePath));
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("File conversion failed.", e);
+		}
+		
+		newFilePath = filePath.substring(0, filePath.lastIndexOf(".")) + ".swf";
+		
+		System.out.println();
+		System.out.print(newFilePath);
+		
+		String[] command = { "pdf2swf.exe", filePath, "-o", newFilePath, "-f", "-T 9", "-t", "-s", "storeallcharacters" };
+		
+		Process p = Runtime.getRuntime().exec(command);
+		
+		return newFilePath;
 	}
 	
 	////////////////////////////
