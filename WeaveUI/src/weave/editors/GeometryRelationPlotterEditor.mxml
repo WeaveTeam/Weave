@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="400" label="{lang('Geometry Relations')}" 
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry Relations')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
 	<mx:VBox width="100%">
 		<ui:DynamicColumnComponent id="relationSourceComponent" label="{lang('Source')}"/>
