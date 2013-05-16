@@ -146,10 +146,12 @@ package weave.data.BinningDefinitions
 			if (asyncSort.result == null)
 				return 0;
 			
+			// the code below runs only once - this function is not a proper iterative task
+			
 			VectorUtils.copy(_sortedValues,_previousSortedValues);
 			
-			if(_sortedValues.length ==0)
-				return 0;
+			if(_sortedValues.length == 0)
+				return 1;
 			
 			_lower_class_limits = [];
 			_variance_combinations = [];
