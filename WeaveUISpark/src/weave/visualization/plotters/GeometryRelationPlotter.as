@@ -1,7 +1,5 @@
 package weave.visualization.plotters
 {
-	import flash.display.Graphics;
-	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	import flash.utils.Dictionary;
@@ -10,10 +8,8 @@ package weave.visualization.plotters
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IProjector;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.ISimpleGeometry;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -21,19 +17,14 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.BitmapText;
-	import weave.utils.ColumnUtils;
-	import weave.utils.DrawUtils;
-	import weave.visualization.layers.PlotTask;
 
 	// Refer to Feature #924 for detail description
 	public class GeometryRelationPlotter extends AbstractPlotter
@@ -162,22 +153,15 @@ package weave.visualization.plotters
 			}
 		}
 		
-		/**
-		 * The data bounds for a glyph has width and height equal to zero.
-		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
-		 * @param key The key of a data record.
-		 * @param outputDataBounds A Bounds2D object to store the result in.
-		 */
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
 			getCoordsFromRecordKey(recordKey, tempGeometryPoint);
-			var Bounds:IBounds2D = getReusableBounds();
-			Bounds.setCenteredRectangle(tempGeometryPoint.x, tempGeometryPoint.y, 0, 0);
+			var bounds:IBounds2D = initBoundsArray(output);
+			bounds.setCenteredRectangle(tempGeometryPoint.x, tempGeometryPoint.y, 0, 0);
 			if (isNaN(tempGeometryPoint.x))
-				Bounds.setXRange(-Infinity, Infinity);
+				bounds.setXRange(-Infinity, Infinity);
 			if (isNaN(tempSourcePoint.y))
-				Bounds.setYRange(-Infinity, Infinity);
-			return [Bounds];
+				bounds.setYRange(-Infinity, Infinity);
 		}
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
