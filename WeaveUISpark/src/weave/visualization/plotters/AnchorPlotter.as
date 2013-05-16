@@ -325,7 +325,7 @@ package weave.visualization.plotters
 				nextClassAnchor.y = Math.sin(nextClassPos);
 				dataBounds.projectPointTo(nextClassAnchor, screenBounds);
 				
-				graphics.lineStyle(2, 2, .4);
+				graphics.lineStyle(2, 0xb8860B, .4);
 				//graphics.lineStyle(2,Math.random() * uint.MAX_VALUE);
 				classIncrementor ++;
 				graphics.moveTo(previousClassAnchor.x, previousClassAnchor.y);
