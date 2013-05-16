@@ -25,6 +25,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.controls.Alert;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
@@ -580,11 +582,13 @@ package weave.visualization.plotters
 				} 
 				else
 				{
+					Alert.show(lang("No data found."))
 					return;
 				}
 				if (originalArray.length < sampleSizeRows.value)
 				{
 					sampledArray = originalArray; // sample size is bigger than the data set.
+					Alert.show(lang("Data sampled successfully."))
 				}
 				else // sampling begins here
 				{
@@ -616,7 +620,7 @@ package weave.visualization.plotters
 					else // column sampling begins here
 					{
 						i = sampleSizeColumns.value - 2; // we need to reduce this number by one because the title row already accounts for a row
-						length = transposedSampledArray.length - 2; // accounted for the first two columns removed.
+						length = transposedSampledArray.length; // accounted for the first two columns removed.
 						sampledArray = []; // making this sampled array reusable
 						while( i != 0 )
 						{
@@ -640,7 +644,8 @@ package weave.visualization.plotters
 					}
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
-					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;				
+					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
+					Alert.show(lang("Data sampled successfully."));
 					sampleTitle.value = "";
 				} 
 			}
