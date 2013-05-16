@@ -208,10 +208,9 @@
 				latestjoinedColumnKeys = result[0];
 				var joinedColumns:Array = result[1];
 				
-
-				if ( latestjoinedColumnKeys.length > 1)//normalization does not work with a single record
+				if (latestjoinedColumnKeys.length > 0)
 				{
-					inputValues.push(joinedColumns); 
+					inputValues.push(joinedColumns);
 					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
 					addAsyncResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
 				}

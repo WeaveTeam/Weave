@@ -19,7 +19,6 @@
 
 package weave.visualization.plotters
 {	
-	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.geom.Matrix;
@@ -30,14 +29,12 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
-	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -96,11 +93,9 @@ package weave.visualization.plotters
 		
 		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
 
-		public var displayClassNames:Boolean = false;//this displays the names of the classes
-		
-		// key is String, value is array of AnchorPoint names
-
+		// anchorClasses key is String, value is array of AnchorPoint names
 		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
+
 		public var anchorThreshold:Number;
 		public var doCDLayout:Boolean = false;// this displays the tstat value with every dimensional anchor name (displayed only when CD layout is done)
 		
@@ -123,7 +118,7 @@ package weave.visualization.plotters
 		public const circleLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const anchorLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		public const anchorFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
-		public var anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		
 		
@@ -168,10 +163,13 @@ package weave.visualization.plotters
 			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
+				anchor = anchors.getObject(key.localName) as AnchorPoint;
+				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
 				anchorLineStyle.beginLineStyle(null, graphics);
 				anchorFillStyle.beginFillStyle(null, graphics);
 
-				anchor = anchors.getObject(key.localName) as AnchorPoint;
 				if(anchorThreshold)
 				{
 					if(anchor.classDiscriminationMetric.value < anchorThreshold)
@@ -194,19 +192,19 @@ package weave.visualization.plotters
 				// draw circle
 				if(enableWedgeColoring.value)
 					graphics.beginFill(anchorColorMap[key.localName]);
-				if(doCDLayout)
+				else if (doCDLayout)
 				{
-					//color the dimensional anchors according to the class they belong to
+					//color the dimensional anchors according to the class hey belong to
 					var classStr:String = getClassFromAnchor(key.localName);
 					var cc:ColorColumn = Weave.defaultColorColumn;
 					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;
-					binColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, false);
-					var binIndex:Number = binColumn.getBinIndexFromDataValue(classStr);
+					binColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, false)
+					var binIndex:int = binColumn.getBinIndexFromDataValue(classStr);
 					var color:Number = cc.ramp.getColorFromNorm(binIndex / (binColumn.numberOfBins - 1));
 					if (isFinite(color))
 						graphics.beginFill(color);
 				}
-				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
+				graphics.drawCircle(tempPoint.x, tempPoint.y, anchorRadius.value);				
 				graphics.endFill();
 				
 				

@@ -46,7 +46,7 @@ public class RService extends GenericServlet
 	{
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
-		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
+//		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
 		
 	    try {
 	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
@@ -68,7 +68,7 @@ public class RService extends GenericServlet
 	}
 
 	private String docrootPath = "";
-	private String uploadPath = "";
+//	private String uploadPath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
 	private static ServiceType serviceType = ServiceType.JRI;
@@ -95,6 +95,7 @@ public class RService extends GenericServlet
 		return jriStatus;
 	}
 	
+	/*
 	//handles running canned scripts by pulling data from csv
 	public RResult[] runScriptOnCSVOnServer(String[] queryObject)throws Exception
 	{
@@ -160,6 +161,7 @@ public class RService extends GenericServlet
 			
 		return sqlreturnedColumns;
 	}
+	*/
 	
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
