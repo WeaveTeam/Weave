@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+    
+    <head>
+        <title>Cytoscape Web example</title>
+        
+        <!-- JSON support for IE (needed to use JS API) -->
+        <script type="text/javascript" src="js/min/json2.min.js"></script>
+        
+        <!-- Flash embedding utility (needed to embed Cytoscape Web) -->
+        <script type="text/javascript" src="js/min/AC_OETags.min.js"></script>
+        
+        <!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
+        <script type="text/javascript" src="js/min/cytoscapeweb.min.js"></script>
+        
+        <script type="text/javascript">
+            function select(elements) {
+                nodes = Array.concat([], elements["nodes"]);
+                edges = Array.concat([], elements["edges"]);
+                console.log(nodes);                
+
+                disable_listeners();
+                vis.deselect();
+                vis.select("nodes", nodes);
+                vis.select("edges", edges);
+                enable_listeners();
+                return;
+            }
+            function select_handler(evt) {
+                var elements = vis.selected();
+                var length = elements.length;
+                var idx;
+                var key_list = new WeaveArray;
+                for (idx = 0; idx < length; idx++)
+                {
+                    var data = elements[idx].data;
+                    var qualkey = {localName: data.localName, keyType: data.keyType};
+                    key_list.push(qualkey);
+                }
+                console.log(key_list);
+                var path = new WeaveArray;
+                path.push('defaultSelectionKeySet');
+                window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
+                return;
+            }
+            function probe_handler(evt) {
+                var element = evt.target;
+                var qualkey = {localName: element.data.localName, keyType: element.data.keyType};
+                var key_list = new WeaveArray;
+                key_list.push(qualkey);
+                var path = new WeaveArray;
+                path.push('defaultProbeKeySet');
+                console.log(qualkey);
+                window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
+            }
+            function unprobe_handler(evt) {
+                var element = evt.target;
+                
+                var path = new WeaveArray;
+                path.push('defaultProbeKeySet');
+                var key_list = new WeaveArray;
+                window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
+            }
+            function ready_handler() {
+                return;
+            }
+            function draw(network) {
+                network = JSON.parse(JSON.stringify(network)); // Rebuilds the network using the local array prototype
+                window.vis.draw({network: network});
+            }
+            function enable_listeners() {
+                vis.addListener("select", select_handler);
+                vis.addListener("deselect", select_handler);
+                vis.addListener("mouseover", "nodes", probe_handler);
+                vis.addListener("mouseover", "edges", probe_handler);
+                vis.addListener("mouseout", "nodes", unprobe_handler);
+                vis.addListener("mouseout", "nodes", unprobe_handler);
+            }
+            function disable_listeners() {
+                vis.removeListener("select", select_handler);
+                vis.removeListener("deselect", select_handler);
+                vis.removeListener("mouseover", "nodes", probe_handler);
+                vis.removeListener("mouseover", "edges", probe_handler);
+                vis.removeListener("mouseout", "nodes", unprobe_handler);
+                vis.removeListener("mouseout", "nodes", unprobe_handler);
+            }
+            window.onload=function() {
+                // id of Cytoscape Web container div
+                var div_id = "cytoscapeweb"; 
+                // you could also use other formats (e.g. GraphML) or grab the network data via AJAX
+                
+                // initialization options
+                var options = {
+                    // where you have the Cytoscape Web SWF
+                    swfPath: "swf/CytoscapeWeb",
+                    // where you have the Flash installer SWF
+                    flashInstallerPath: "swf/playerProductInstall"
+                };
+                
+                // init 
+                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+                vis.ready(ready_handler);
+                window.vis = vis;
+                enable_listeners();
+            };
+        </script>
+        
+        <style>
+            /* The Cytoscape Web container must have its dimensions set. */
+            html, body { height: 100%; width: 100%; padding: 0; margin: 0; }
+            #cytoscapeweb { width: 100%; height: 100%; }
+        </style>
+    </head>
+    
+    <body>
+        <div id="cytoscapeweb">
+            Cytoscape Web will replace the contents of this div with your graph.
+        </div>
+    </body>
+    
+</html>
