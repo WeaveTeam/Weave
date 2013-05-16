@@ -299,6 +299,8 @@ package weave.visualization.plotters
 					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
 					columnIncrementor++;//change
 				}
+				
+				classIncrementor++;
 			}
 				
 			anchors.resumeCallbacks();
@@ -645,7 +647,7 @@ package weave.visualization.plotters
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
 					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
-					Alert.show(lang("Data sampled successfully."));
+					Alert.show(lang("Data sampled successfully"));
 					sampleTitle.value = "";
 				} 
 			}
