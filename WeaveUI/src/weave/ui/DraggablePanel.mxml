@@ -311,7 +311,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// workaround to fix text layout performance problem
 			override public function set title(value:String):void
 			{
-				super.title = value.substr(0, 256);
+				super.title = value && value.substr(0, 256);
 			}
 			
 			/**
