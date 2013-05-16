@@ -6,14 +6,27 @@
 				   creationComplete="handleCreationComplete(event)">
 	<mx:Script>
 		<![CDATA[
+			import mx.containers.Canvas;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
+			import weave.Weave;
+			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
+			import weave.api.data.IDataRowSource;
+			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.data.DataSources.WeaveDataSource;
+			import weave.services.AMF3Servlet;
+			import weave.services.addAsyncResponder;
 			
 			private var _pdfFile:FileReference = new FileReference();
 			private var _pdfLoader:Loader = new Loader();
+			//Re-useable movieclip object for the converted pdf.
+			private var swfMovieClip:MovieClip = new MovieClip;
 			
 			
 			protected function handleCreationComplete(event:FlexEvent):void
@@ -36,6 +49,8 @@
 				WeaveAPI.ProgressIndicator.updateTask(_pdfFile, event.bytesLoaded / event.bytesTotal);
 			}
 			
+			private var _servlet:AMF3Servlet = null;
+			
 			private function pdfFileLoadCompleteHandler(event:Event):void
 			{
 				WeaveAPI.ProgressIndicator.removeTask(_pdfFile);
@@ -44,11 +59,47 @@
 					return;
 				}
 				
-				//addAsyncResponder(Admin.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
+				_servlet = new AMF3Servlet(serverIP.text + "/WeaveServices/DataService");
+				registerLinkableChild(this, _servlet);
 				
 				pdfSelected.text = _pdfFile.name;
 				
-				//addAsyncResponder(Admin.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
+				var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[_pdfFile.name,_pdfFile.data]);
+				addAsyncResponder(token, handleServletResponse, handleServletError, token);
+			}
+			
+			var swfLoader:Loader = new Loader();
+			
+			private function handleServletResponse(event:ResultEvent, token:Object = null):void
+			{
+				var getSWFLink:URLRequest = new URLRequest(serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf");
+				trace( serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf" );
+				swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
+				swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
+				swfLoader.load(getSWFLink);
+				trace(event.message);
+				trace(event.result);
+				trace(token);
+			}
+			
+			private function progress(e:ProgressEvent):void
+			{
+				trace(e.bytesLoaded / e.bytesTotal);
+			}
+			
+			private function handleSWFDownload(e:Event):void
+			{
+				swfMovieClip = e.currentTarget.content;
+				swfMovieClip.x = this.borderMetrics.left;
+				swfMovieClip.y = this.borderMetrics.top;
+				swfMovieClip.width = (this.width - this.borderMetrics.left - this.borderMetrics.right );
+				swfMovieClip.height = (this.height - this.borderMetrics.top - this.borderMetrics.bottom);
+				this.rawChildren.addChild(e.currentTarget.content);
+			}
+			
+			private function handleServletError(event:FaultEvent, token:Object = null):void
+			{
+				reportError(event);
 			}
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
@@ -58,8 +109,9 @@
 			
 			protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
 			{
-				// TODO Auto-generated method stub
-				
+				swfMovieClip.width = (this.width - this.borderMetrics.left - this.borderMetrics.right );
+				swfMovieClip.height = (this.height - this.borderMetrics.top - this.borderMetrics.bottom);
+				this.invalidateDisplayList();
 			}
 			
 			protected function selectPDFButton(event:MouseEvent):void
