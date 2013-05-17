@@ -131,10 +131,16 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
 			<mx:HBox width="100%">
 				<mx:Label text="{lang('Label angle')}" fontWeight="bold"/>
-				<mx:HSlider id="labelAngleSlider"
+				<mx:HSlider
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						dataTipFormatFunction="{function(v:Number):String { return lang('{0}%', Math.round(100 * v)); }}"
 						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
+			</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:Label text="{lang('Inner radius')}" fontWeight="bold"/>
+				<mx:HSlider
+						snapInterval="0.05" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+						creationComplete="linkBindableProperty(_plotter.innerRadius, event.target, 'value')"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
