@@ -209,6 +209,15 @@
 						</mx:HBox>
 					</mx:VBox>
 					
+					<mx:VBox id="relationPlotterControls" width="100%" >
+						<mx:VBox width="100%">
+							<ui:DynamicColumnComponent id="relationSourceComponent" label="{lang('Source')}"/>
+							<ui:DynamicColumnComponent id="relationDestinationComponent" label="{lang('Destination')}"/>
+							<ui:DynamicColumnComponent id="relationValueComponent" label="{lang('Value')}"/>
+							<ui:DynamicColumnComponent id="relationGeometryComponent" label="{lang('Geometry')}"/> 
+						</mx:VBox>
+					</mx:VBox>
+					
 					<mx:VBox id="geometryPlotterControls" width="100%" paddingTop="3" horizontalAlign="center">
 						<mx:HBox  width="100%" horizontalAlign="center" verticalAlign="middle">												
 							<mx:VBox borderStyle="solid" verticalGap="0" 
@@ -304,6 +313,7 @@
 					<![CDATA[
 						import mx.collections.ArrayCollection;
 						import mx.collections.ICollectionView;
+						import mx.controls.Alert;
 						import mx.events.CloseEvent;
 						import mx.rpc.mxml.Concurrency;
 						
@@ -337,6 +347,7 @@
 						import weave.visualization.plotters.CirclePlotter;
 						import weave.visualization.plotters.GeometryLabelPlotter;
 						import weave.visualization.plotters.GeometryPlotter;
+						import weave.visualization.plotters.GeometryRelationPlotter;
 						import weave.visualization.plotters.SingleImagePlotter;
 						import weave.visualization.plotters.WMSPlotter;
 						import weave.visualization.plotters.styles.SolidFillStyle;
@@ -383,6 +394,8 @@
 							{
 								if (plotter is GeometryLabelPlotter)
 									controlsStack.selectedChild = labelPlotterControls;
+								if (plotter is GeometryRelationPlotter)
+									controlsStack.selectedChild = relationPlotterControls;
 								if (plotter is GeometryPlotter)
 									controlsStack.selectedChild = geometryPlotterControls;
 								if (plotter is WMSPlotter)
@@ -465,6 +478,15 @@
 								labelComponent.dynamicObject = labelPlotter.text;
 								geometryComponent.dynamicObject = labelPlotter.geometryColumn.internalDynamicColumn;
 							}
+							else if (plotter is GeometryRelationPlotter)
+							{
+								settingsButton.visible = true;
+								var relationPlotter:GeometryRelationPlotter = plotter as GeometryRelationPlotter;
+								relationGeometryComponent.dynamicObject = relationPlotter.geometryColumn.internalDynamicColumn;
+								relationSourceComponent.dynamicObject = relationPlotter.sourceKeyColumn;
+								relationDestinationComponent.dynamicObject = relationPlotter.destinationKeyColumn;
+								relationValueComponent.dynamicObject = relationPlotter.valueColumn;
+							}
 							else if (plotter is GeometryPlotter)
 							{
 								settingsButton.visible = true;
@@ -519,6 +541,13 @@
 								unlinkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor" );
 								labelComponent.dynamicObject = null;
 								geometryComponent.dynamicObject = null;
+							}
+							else if (plotter is GeometryRelationPlotter)
+							{
+								relationGeometryComponent.dynamicObject = null;
+								relationSourceComponent.dynamicObject = null;
+								relationDestinationComponent.dynamicObject = null;
+								relationValueComponent.dynamicObject = null;
 							}
 							else if (plotter is GeometryPlotter)
 							{

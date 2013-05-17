@@ -113,7 +113,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
+			import weave.core.CallbackJuggler;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
@@ -123,7 +125,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
-			import weave.visualization.tools.SimpleVisTool;
 
 			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
@@ -186,6 +187,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			private const toolJuggler:CallbackJuggler = new CallbackJuggler(this, handleToolChange, true);
 			
 			// used to label the choices
 			private function choiceLabelFunction(column:IAttributeColumn):String
@@ -241,7 +243,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
 				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
-				targetTool.addImmediateCallback(this, handleTargetToolChange, true);
+				targetTool.addGroupedCallback(this, validateToolJugglerTarget, true);
 				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addImmediateCallback(this, handleChoicesChange, true);
 				showPlayButton.addImmediateCallback(this, stopPlay);
@@ -273,30 +275,33 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			// this returns the tool object corresponding to the selected item in the toolCombo
-			public function getTargetTool():SimpleVisTool
+			public function getTargetTool():IVisToolWithSelectableAttributes
 			{
-				return Weave.root.getObject(targetTool.value) as SimpleVisTool;
+				return toolJuggler.target as IVisToolWithSelectableAttributes;
 			}
 			
 			// called whenever a global object gets added/removed/reordered
 			private function handleGlobalListChange():void
 			{
 				// update the list of tools
-				targetToolCombo.dataProvider = Weave.root.getNames(SimpleVisTool);
+				targetToolCombo.dataProvider = Weave.root.getNames(IVisToolWithSelectableAttributes);
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
-				var clc:IChildListCallbackInterface = Weave.root.childListCallbacks;
-				if (clc.lastNameAdded == targetTool.value || clc.lastNameRemoved == targetTool.value)
-					handleTargetToolChange();
+				validateToolJugglerTarget();
 			}
 			
-			// called when the target tool changes
-			private function handleTargetToolChange():void
+			private function validateToolJugglerTarget():void
+			{
+				toolJuggler.target = Weave.root.getObject(targetTool.value) as IVisToolWithSelectableAttributes;
+			}
+			
+			// called when the tool triggers callbacks
+			private function handleToolChange():void
 			{
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
 				
-				var tool:SimpleVisTool = getTargetTool();
+				var tool:IVisToolWithSelectableAttributes = getTargetTool();
 				// update the list of available attributes
 				if (tool)
 				{
@@ -315,7 +320,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// called when the target attr changes
 			private function handleTargetAttributeChange():void
 			{
-				var tool:SimpleVisTool = getTargetTool();
+				var tool:IVisToolWithSelectableAttributes = getTargetTool();
 				// only enable the choiceCombo if the target attribute exists in the target tool
 				if (tool)
 				{
@@ -382,7 +387,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// called when the user clicks on the combo in the main AttributeMenuTool window
 			private function handleAttrSelected(selectedIndex:int):void
 			{
-				var tool:SimpleVisTool = getTargetTool();
+				var tool:IVisToolWithSelectableAttributes = getTargetTool();
 				// do nothing if there is no tool or the component doesn't have focus
 				if (!tool)
 					return;

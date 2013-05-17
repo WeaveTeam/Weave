@@ -305,7 +305,7 @@
 				super.handleEscapeKey();
 			}
 			
-			public static function openEditor(linkableObject:ILinkableObject):ILinkableObjectEditor
+			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null):ILinkableObjectEditor
 			{
 				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
 				if (editor)
@@ -313,9 +313,11 @@
 					var controlPanel:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 					PopUpManager.centerPopUp(controlPanel);
-					controlPanel.targets = [linkableObject];
-					
+					controlPanel.targets = targets || [linkableObject];
+					if (initialSessionStates)
+						controlPanel._savedTargetSessionStates = initialSessionStates;
 					controlPanel.tabNavigator.addChild(editor as DisplayObject);
+					controlPanel.panelTitle.value = "{tabNavigator.getChildAt(0).label}";
 				}
 				return editor;
 			}

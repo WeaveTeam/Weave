@@ -34,12 +34,23 @@ package weave.core
 	{
 		public function LinkableXML(allowNull:Boolean = true)
 		{
-			super(String, allowNull ? null : notNull);
+			super(String, verifyXMLString);
+			_allowNull = allowNull;
 		}
 		
-		private function notNull(value:Object):Boolean
+		private var _allowNull:Boolean;
+		
+		private function verifyXMLString(value:String):Boolean
 		{
-			return value != null;
+			if (value == null)
+				return _allowNull;
+			
+			try {
+				XML(value);
+				return true;
+			}
+			catch (e:*) { }
+			return false;
 		}
 
 		/**

@@ -28,6 +28,9 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			
+			import weave.api.data.IKeySet;
+			
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -64,6 +67,7 @@
 			import weave.visualization.plotters.AbstractGlyphPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
+			import weave.visualization.plotters.GeometryRelationPlotter;
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
@@ -436,6 +440,51 @@
 				}
 			}
 			
+			private function addRelationLayer():void
+			{
+				var i:int;
+				// get existing layers before they change
+				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
+				// if a layer is selected in the editor, check that one first.
+				if (visualization.plotManager.getPlotter(layerEditor.selectedItem as String))
+					layerNames.unshift(layerEditor.selectedItem);
+				// create new label layer
+				var relationLayerName:String = visualization.plotManager.plotters.generateUniqueName("relation");
+				var relationPlotter:GeometryRelationPlotter = visualization.plotManager.plotters.requestObject(relationLayerName, GeometryRelationPlotter, false);
+				// loop through existing layers to find geometry layer that we can add corresponding labels for
+				for each (var layerName:String in layerNames)
+				{
+					var geomPlotter:GeometryPlotter = visualization.plotManager.getPlotter(layerName) as GeometryPlotter;
+					if (geomPlotter)
+					{
+						// found a geometry layer
+						copySessionState(geomPlotter.geometryColumn, relationPlotter.geometryColumn);
+						// stop when we found geometry layer
+						break;
+					}
+				}
+			}
+			// ToDo
+//			private var dataBounds:Bounds2D = new Bounds2D();
+//			private var screenBounds:Bounds2D = new Bounds2D();
+//			private function drawProbeLines():void
+//			{ 
+//				if(!Weave.properties.enableProbeLines.value) return;
+//				
+//				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
+//				if (!probeKeySet)
+//					return;
+//				
+//				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+//				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
+//				
+//				_plotter.probedKeys = probeKeySet.keys ;
+//				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
+//				
+//				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);	
+//				
+//			}
+			
 			private function addWMSLayer():void
 			{
 				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
@@ -747,6 +796,7 @@
 				<mx:Button label="Add Base Map" click="addWMSLayer();" toolTip="Add an image layer underneath the geometries"/>
 				<mx:Button label="Add Geometry" click="addGeomLayer();" toolTip="Add a layer of polygons, lines, or points that can be colored according to the data"/>
 				<mx:Button label="Add Labels" click="addLabelLayer();" toolTip="Add labels to the selected geometry layer"/>
+				<!--<mx:Button label="Add relations" click="addRelationLayer();" toolTip="Add relations to the selected geometry layer"/>-->
 			</mx:HBox>
 			
 			<!--<mx:DataGrid dataProvider="{_layerNames.reverse()}">

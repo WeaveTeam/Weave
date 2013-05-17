@@ -302,7 +302,7 @@ package weave.core
 			}
 			
 			if (_previousFrameElapsedTime > 3000)
-				trace(_previousFrameElapsedTime);
+				trace('Previous frame took', _previousFrameElapsedTime, 'ms');
 			
 			// update mouse coordinates
 			_lastMousePoint.x = _stage.mouseX;

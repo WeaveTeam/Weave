@@ -188,7 +188,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
-				Weave.properties.weaveAnalystMode.addGroupedCallback(this, disabledWeaveAnalystHandler);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
@@ -311,7 +310,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// workaround to fix text layout performance problem
 			override public function set title(value:String):void
 			{
-				super.title = value.substr(0, 256);
+				super.title = value && value.substr(0, 256);
 			}
 			
 			/**
@@ -532,15 +531,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				invalidateSize();
 				invalidateDisplayList();
 				updateBorders();
-			}
-			
-			private function disabledWeaveAnalystHandler():void
-			{
-				/* TO DO : disable the canvas
-				2. fate of the children?
-				3. sessioned or not?
-				4. give user the ability to save the results of Weave analyst?*/
-				
 			}
 			
 			override public function move(x:Number, y:Number):void

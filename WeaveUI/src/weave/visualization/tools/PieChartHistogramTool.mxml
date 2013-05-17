@@ -115,16 +115,22 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox id="attributesPanel" label="{lang('Labeling')}">
+		<mx:VBox id="attributesPanel" label="{lang('Display')}">
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:Indent label="{lang('Label angle')}">
-				<mx:HSlider id="labelAngleSlider"
+				<mx:HSlider
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 							creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
 			</ui:Indent>
+			<mx:HBox width="100%">
+				<mx:Label text="{lang('Inner radius')}"/>
+				<mx:HSlider
+					snapInterval="0.05" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+					creationComplete="linkBindableProperty(_plotter.innerRadius, event.target, 'value')"/>
+			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>
