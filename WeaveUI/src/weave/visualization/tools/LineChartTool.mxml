@@ -55,7 +55,6 @@
 			
 			WeaveAPI.registerImplementation(IVisTool, LineChartTool, lang("Line Chart"));
 			
-			[Bindable]
 			private var _plotter:ParallelCoordinatesPlotter = null;
 			
 			override protected function constructor():void
@@ -99,9 +98,18 @@
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxes, true);
 				// END TEMPORARY SOLUTION
 				var self:* = this;
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.columns); });
-				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void {AttributeSelectorPanel.openToolSelector(self, _plotter.xAttributeColumns);});
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void {
+					if (_plotter.enableGroupBy.value)
+						AttributeSelectorPanel.openToolSelector(self, labelPlotter.text);
+					else
+						AttributeSelectorPanel.openToolSelector(self, _plotter.yData);
+				});
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void {
+					if (_plotter.enableGroupBy.value)
+						AttributeSelectorPanel.openToolSelector(self, _plotter.columns);
+					else
+						AttributeSelectorPanel.openToolSelector(self, _plotter.xData);
+				});
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [];
@@ -111,7 +119,7 @@
 					initColumnDefaults.apply(null, columnsToInit);
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
-				_plotter.xAttributeColumns.addGroupedCallback(this, updateProbeColumns,true);
+				_plotter.xColumns.addGroupedCallback(this, updateProbeColumns,true);
 				_plotter.xData.addGroupedCallback(this, updateFilterText);
 				_plotter.xValues.addGroupedCallback(this, updateFilterText, true);
 				
@@ -129,7 +137,7 @@
 					visualization.additionalProbeColumns.unshift(labelPlotter.text, colorColumn);
 					if(_plotter.usingXAttributes)
 					{
-						visualization.additionalProbeColumns = _plotter.xAttributeColumns.getObjects(IAttributeColumn);
+						visualization.additionalProbeColumns = _plotter.xColumns.getObjects(IAttributeColumn);
 						visualization.additionalProbeColumns.unshift(labelPlotter.text, colorColumn);
 					}
 				}
@@ -216,11 +224,22 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Color"),lang("Label"),lang("Y Values"),lang("X Values")];
+				var names:Array = [lang("Color"), lang("Label")];
+				if (_plotter.enableGroupBy.value)
+					names.push(lang("Y Column"), lang("X Column"), lang("Group by"));
+				else
+					names.push(lang("Y Values"), lang("X Values"));
+				
+				return names;
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [colorColumn,labelPlotter.text,_plotter.columns,_plotter.xAttributeColumns];
+				var attrs:Array = [colorColumn, labelPlotter.text];
+				if (_plotter.enableGroupBy.value)
+					attrs.push(_plotter.yData, _plotter.xData, _plotter.groupBy);
+				else
+					attrs.push(_plotter.columns, _plotter.xColumns);
+				return attrs;
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -230,14 +249,10 @@
 			
 			private function getColumnObjects():Array
 			{
-				return _plotter.xAttributeColumns.getObjects(IAttributeColumn);
-			
+				return _plotter.xColumns.getObjects(IAttributeColumn);
 			}
 			
-			
-			
 			private static const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
-			
 			
 			
 			private function updateAxes():void
@@ -331,7 +346,7 @@
 				settings.selectable.lock();
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
-				_plotter.xAttributeColumns.addImmediateCallback(this, updateColumns, true);
+				_plotter.xColumns.addImmediateCallback(this, updateColumns, true);
 
 				labelPlotter.xScreenOffset.value = 5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
@@ -348,7 +363,7 @@
 			private function updateColumns():void
 			{
 				var _columns:Array = _plotter.columns.getObjects();
-				var _xattrObjects:Array = _plotter.xAttributeColumns.getObjects();
+				var _xattrObjects:Array = _plotter.xColumns.getObjects();
 				
 				if (_columns.length == 0)
 				{
