@@ -122,6 +122,7 @@ A text editor to change the Session State on the fly.
 			import weave.core.DynamicState;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -754,7 +755,10 @@ A text editor to change the Session State on the fly.
 			private static function _initialize():void
 			{
 				if (Capabilities.isDebugger)
+				{
 					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+					WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
+				}
 			}
 			_initialize();
 			
@@ -782,56 +786,65 @@ A text editor to change the Session State on the fly.
 			
 			private static var _profileWithErrorLogPanel:Boolean = true;
 			private static var _showProfileData:Boolean = false;
+			
+			private static function handleStagePointClick():void
+			{
+				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
+				if (event.stageX == 0 && event.stageY == 0)
+					openConsole();
+			}
 			private static function handleKeyDown():void
 			{
 				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
 				if (event.keyCode == Keyboard.F8) // F8 to show profile data
+					openConsole();
+			}
+			private static function openConsole():void
+			{
+				// hold ctrl to toggle which panel to open
+				if (WeaveAPI.StageUtils.ctrlKey)
+					_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
+				
+				var profileDump:Object = DebugUtils.profileDump(WeaveAPI.StageUtils.shiftKey); // hold shift to reset profile data
+				var console:Console;
+				if (_profileWithErrorLogPanel)
 				{
-					// hold ctrl to toggle which panel to open
-					if (event.ctrlKey)
-						_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
+					var parent:* = ErrorLogPanel.getInstance().parent;
 					
-					var profileDump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
-					var console:Console;
-					if (_profileWithErrorLogPanel)
-					{
-						var parent:* = ErrorLogPanel.getInstance().parent;
-						
-						ErrorLogPanel.openErrorLog();
-						console = ErrorLogPanel.getInstance().console;
-						
-						if (parent)
-							Identify.identify();
-					}
-					else
-					{
-						var defaultEditor:SessionStateEditor = getInstance();
-						if (!defaultEditor.parent)
-							openDefaultEditor();
-						
-						defaultEditor.restorePanel();
-						// show console
-						if (profileDump && !defaultEditor.showConsole.selected)
-							defaultEditor.toggleShowConsole();
-						console = defaultEditor.console;
-					}
+					ErrorLogPanel.openErrorLog();
+					console = ErrorLogPanel.getInstance().console;
 					
-					// don't show any profile data until we have some.
-					if (!_showProfileData)
-						_showProfileData = profileDump != null;
+					if (parent)
+						Identify.identify();
+				}
+				else
+				{
+					var defaultEditor:SessionStateEditor = getInstance();
+					if (!defaultEditor.parent)
+						openDefaultEditor();
 					
-					if (_showProfileData)
-						console.consoleTrace(ObjectUtil.toString(profileDump));
+					defaultEditor.restorePanel();
+					// show console
+					if (profileDump && !defaultEditor.showConsole.selected)
+						defaultEditor.toggleShowConsole();
+					console = defaultEditor.console;
+				}
+				
+				// don't show any profile data until we have some.
+				if (!_showProfileData)
+					_showProfileData = profileDump != null;
+				
+				if (_showProfileData)
+					console.consoleTrace(ObjectUtil.toString(profileDump));
 
-					if (console.stage)
-					{
-						var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
-						var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
-						while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
-							top = top.parent;
-						if (top)
-							console.consoleTrace(debugId(top));
-					}
+				if (console.stage)
+				{
+					var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
+					var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
+					while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
+						top = top.parent;
+					if (top)
+						console.consoleTrace(debugId(top));
 				}
 			}
 		]]>
