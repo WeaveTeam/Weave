@@ -858,7 +858,7 @@ package weave.application
 				}
 				
 
-				if (Weave.properties.weaveAnalystMode.value)
+				if (Weave.properties.enableWeaveAnalystMode.value)
 				{
 					var analystInstance:WeaveAnalyst = WeaveAnalyst.getInstance();
 					this.visDesktop.addChild(analystInstance);

@@ -29,8 +29,10 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
+	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 
 	/**
 	 * This object links to an internal ILinkableObject.
@@ -337,6 +339,11 @@ package weave.core
 					for each (link in links)
 					{
 						// sanity checks
+						if (objectWasDisposed(link))
+						{
+							reportError('found disposed LinkableDynamicObject while handling global object creation');
+							continue;
+						}
 						if (link._globalName != name)
 							throw new Error("LinkableDynamicObject did not link to expected global name.");
 						if (link._internalObject != null)
@@ -364,6 +371,11 @@ package weave.core
 					for each (link in links)
 					{
 						// sanity check
+						if (objectWasDisposed(link))
+						{
+							reportError('found disposed LinkableDynamicObject while handling global object removal');
+							continue;
+						}
 						if (link._globalName != name)
 							throw new Error("LinkableDynamicObject did not link to expected global name.");
 						
@@ -371,7 +383,7 @@ package weave.core
 						{
 							// sanity checks
 							if (link._locked)
-								throw new Error("LinkableDynamicObject was locked while referenced global object was disposed of.");
+								throw new Error("LinkableDynamicObject was locked while referenced global object was disposed.");
 							if (link._internalObject != oldObject)
 								throw new Error("LinkableDynamicObject was pointing to the wrong global object.");
 							
@@ -385,7 +397,15 @@ package weave.core
 
 			// run callbacks for each link after all links have been updated.
 			for each (link in linksThatChanged)
+			{
+				if (objectWasDisposed(link))
+				{
+					// this could possibly happen and is likely no cause for alarm - just a side-effect of triggering callbacks
+					//trace("LinkableDynamicObject was disposed while triggering another one's callbacks");
+					continue;
+				}
 				link.triggerCallbacks();
+			}
 		}
 
 		/**

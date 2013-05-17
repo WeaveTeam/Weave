@@ -72,20 +72,9 @@ LayerListComponent
 							private function openSettingsPanel(plotter:IPlotter):void
 							{
 								// add editor component to layercontrols
-								var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
-								if (editor)
-								{
-									var controls:ControlPanel = newDisposableChild(plotter, ControlPanel);
-									PopUpManager.addPopUp(controls, this);
-									PopUpManager.centerPopUp(controls);
-									controls.targets = [visualization];
-
-									controls.tabNavigator.addChild(editor as DisplayObject);
-								}
-								else
-								{
+								var editor:ILinkableObjectEditor = ControlPanel.openEditor(plotter, [visualization]);
+								if (!editor)
 									SessionStateEditor.openDefaultEditor(plotter);
-								}
 							}
 							
 							[Bindable] public var layerIsVisible:Boolean = true;

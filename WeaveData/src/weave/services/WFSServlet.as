@@ -49,11 +49,20 @@ package weave.services
 		
 		private var delayedInvocations:Array = [];
 		
+		override public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):AsyncToken
+		{
+			if (!methodParameters)
+				methodParameters = {};
+			methodParameters.version = version;
+			methodParameters.service = 'WFS';
+			return super.invokeAsyncMethod(methodName, methodParameters);
+		}
+		
 		public function getCapabilties():AsyncToken
 		{
 			_getCapabilitiesCalled = true;
 			
-			var token:AsyncToken = invokeAsyncMethod("getCapabilities", {version: version});
+			var token:AsyncToken = invokeAsyncMethod("getCapabilities");
 			
 			if (invokeLater)
 			{
@@ -112,7 +121,7 @@ package weave.services
 			if (!_getCapabilitiesCalled)
 				getCapabilties();
 				
-			return invokeAsyncMethod("DescribeFeatureType", {version: version, typeName: layerName});
+			return invokeAsyncMethod("DescribeFeatureType", {typeName: layerName});
 		}
 		
 		public function getFeature(layerName:String, propertyNames:Array = null):AsyncToken
@@ -120,7 +129,7 @@ package weave.services
 			if (!_getCapabilitiesCalled)
 				getCapabilties();
 			
-			var params:Object = {version: version, typeName: layerName};
+			var params:Object = {typeName: layerName};
 			if (propertyNames != null && propertyNames.length != 0)
 				params.propertyName = propertyNames.join(',');
 			
@@ -132,7 +141,7 @@ package weave.services
 			if (!_getCapabilitiesCalled)
 				getCapabilties();
 			
-			var params:Object = {version: version, typeName: layerName, filter: filterQuery};
+			var params:Object = {typeName: layerName, filter: filterQuery};
 			if(propertyNames != null && propertyNames.length != 0)
 				params.propertyName = propertyNames.join(',');
 			

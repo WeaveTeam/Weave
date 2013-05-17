@@ -73,7 +73,7 @@ package weave.visualization.plotters
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
-			xAttributeColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
+			xColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
 			
 			updateFilterEquationColumns(); // sets key source
 		}
@@ -85,12 +85,12 @@ package weave.visualization.plotters
 			if (newColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 			
-				var newtestColumn:IAttributeColumn = xAttributeColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+				var newtestColumn:IAttributeColumn = xColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newtestColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newtestColumn));
 			
 			_columns = columns.getObjects();
-			_xattrObjects = xAttributeColumns.getObjects();
+			_xattrObjects = xColumns.getObjects();
             if(_columns.length != _xattrObjects.length)
 				_xattrObjects.length = 0;
 			// if there is only one column, push a copy of it so lines will be drawn
@@ -112,7 +112,7 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
-		public const xAttributeColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const xColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
@@ -188,7 +188,7 @@ package weave.visualization.plotters
 					columns.removeAllObjects();
 				
 				if(_xattrObjects.length > 0)
-					xAttributeColumns.removeAllObjects();
+					xColumns.removeAllObjects();
 				_in_updateFilterEquationColumns = false;
 				return;
 			}
@@ -588,5 +588,6 @@ package weave.visualization.plotters
 		[Deprecated(replacement="xData")] public function set filterColumn(value:Object):void { setSessionState(xData, value); }
 		[Deprecated(replacement="xValues")] public function set filterValues(value:Object):void { setSessionState(xValues, value); }
 		[Deprecated(replacement="xValues")] public function set groupByValues(value:Object):void { setSessionState(xValues, value); }
+		[Deprecated(replacement="xColumns")] public function set xAttributeColumns(value:Object):void { setSessionState(xColumns, value, true); }
 	}
 }

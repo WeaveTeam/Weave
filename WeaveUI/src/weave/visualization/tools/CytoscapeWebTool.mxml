@@ -34,6 +34,10 @@
 			public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 			public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 
+			//private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;				
+
 			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("Cytoscape-Web Tool"));
 			private var _toolName:String;
 			private var _primitive_edges:Object;
@@ -60,6 +64,67 @@
 						weave.cytoscape[toolname].draw(network);\
 						}",
 						ExternalInterface.objectID, _toolName, _primitive_network);
+			}
+
+			private function keySetToNodesAndEdges(keys:IKeySet):Object
+			{
+				var set_edges:Array = [];
+				var set_nodes:Array = [];
+				var key_idx:int;
+				var key_len:int;
+				var node_keytype:String = nodesColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				var edge_keytype:String = edgeSourceColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				if (node_keytype == null || edge_keytype == null || keys == null)
+					return {nodes: [], edges: []};
+				key_len = keys.keys.length;
+				for (key_idx = 0; key_idx < key_len; key_idx++)
+				{
+					var key:IQualifiedKey = keys.keys[key_idx];
+					if (key.keyType == node_keytype)
+						set_nodes.push(key.localName);
+					else if (key.keyType == edge_keytype)
+						set_edges.push(key.localName);
+					else
+						continue;
+				}
+				return {nodes: set_nodes, edges: set_edges};
+			}
+			private function updateProbeChange():void
+			{
+				var idx:int;
+				var len:int;
+				var result:Object = keySetToNodesAndEdges(_probe);
+				var bypass:Object = {nodes: {}, edges: {}};
+
+				var nodes:Array = result.nodes;
+				len = nodes.length;
+				for (idx = 0; idx < len; idx++)
+				{
+					bypass.nodes[nodes[idx]] = {color: "#d9dafe"}; // TODO, set appropriately from Weave style
+				}
+
+				var edges:Array = result.edges;
+				len = edges.length;
+				for (idx = 0; idx < len; idx++)
+				{
+					bypass.edges[edges[idx]] = {color: "#d9dafe"};
+				}
+				ExternalInterface.call(
+					"function (weaveID, toolname, bypass) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].vis.visualStyleBypass(bypass);\
+						}",
+						ExternalInterface.objectID, _toolName, bypass);
+			}
+			private function updateSelectionChange():void
+			{
+				var result:Object = keySetToNodesAndEdges(_selection);
+				ExternalInterface.call(
+					"function (weaveID, toolname, elements) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].select(elements);\
+						}",
+						ExternalInterface.objectID, _toolName, result);
 			}
 
 			private function buildPrimitiveNodes():void
@@ -139,6 +204,7 @@
 				buildPrimitiveNetwork();
 				sendNetworkToCytoscape();
 			}
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -151,7 +217,8 @@
 				nodeRadiusComponent.dynamicObject = nodeRadiusColumn;
 
 				
-
+				_probe.addImmediateCallback(this, updateProbeChange);
+				_selection.addImmediateCallback(this, updateSelectionChange);
 				_toolName = WeaveAPI.globalHashMap.getName(this);
 
 				launchCytoscape();
