@@ -44,18 +44,34 @@ package weave.ui.infomap.core
 		 * */ 
 		public const dateFilter:DateRangeFilter = newLinkableChild(this,DateRangeFilter);
 		
+		public static var FILTER_BY_BOOKS:String= "Books";
+		public static var FILTER_BY_PAPERS:String= "Papers";
+		public static var FILTER_BY_NONE:String = "None";
 		
+		public static var filterByOptions:Array = [FILTER_BY_NONE,FILTER_BY_BOOKS,FILTER_BY_PAPERS];
+		//a private array of filter options which includes the empty string. 
+		private static var _filterByOptions:Array = [FILTER_BY_BOOKS,FILTER_BY_PAPERS,""];
 		/**
 		 * @public
 		 * This will hold the source names to query on. It is a comma separate list of names
 		 **/
-		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
+		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',function(value:*):Boolean{
+			if(_filterByOptions.indexOf(value) != -1)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+			
+		},false));
 		
-		public static var FILTER_BY_BOOKS:String= "Books";
-		public static var FILTER_BY_PAPERS:String= "Papers";
-		public static var FILTER_BY_NONE:String = "";
+		public static var sortByOptions:Array = [SORT_BY_RELEVANCE,SORT_BY_DATE_PUBLISHED,SORT_BY_DATE_ADDED];
 		
-		public static var filterByOptions:Array = [FILTER_BY_NONE,FILTER_BY_BOOKS,FILTER_BY_PAPERS];
+		public static var SORT_BY_RELEVANCE:String = "Relevance";
+		public static var SORT_BY_DATE_PUBLISHED:String = "Date Published";
+		public static var SORT_BY_DATE_ADDED:String = "Date Added";
 		
 		public const sortBy:LinkableString = registerLinkableChild(this, new LinkableString("Relevance",function(value:*):Boolean{
 			if(sortByOptions.indexOf(value) != -1)
@@ -66,11 +82,7 @@ package weave.ui.infomap.core
 				return false;
 		},false));
 		
-		public static var sortByOptions:Array = [SORT_BY_RELEVANCE,SORT_BY_DATE_PUBLISHED,SORT_BY_DATE_ADDED];
 		
-		public static var SORT_BY_RELEVANCE:String = "Relevance";
-		public static var SORT_BY_DATE_PUBLISHED:String = "Date Published";
-		public static var SORT_BY_DATE_ADDED:String = "Date Added";
 		
 		/*Function to compare 2 QueryObject instances. Ignores sortBy value*/
 		public static function isQueryDifferent(q1:QueryObject, q2:QueryObject):Boolean

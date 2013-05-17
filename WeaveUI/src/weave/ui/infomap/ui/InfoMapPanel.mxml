@@ -225,7 +225,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_infomapSubMenu.addSubSubMenuItems("Show", ["Related Data records","Show related Documents"],[showRelatedDataRecords,showRelatedDocuments]);
 				_infomapSubMenu.addSubSubMenuItems("Sort By", [QueryObject.SORT_BY_RELEVANCE,QueryObject.SORT_BY_DATE_PUBLISHED,QueryObject.SORT_BY_DATE_ADDED],
 					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
-				_infomapSubMenu.addSubSubMenuItems("Filter By",[QueryObject.FILTER_BY_BOOKS],[filterNodesBy],[[QueryObject.FILTER_BY_BOOKS]])
+				_infomapSubMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterNodesBy,filterNodesBy,filterNodesBy],
+						[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
 				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				//_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 				
@@ -250,6 +251,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function filterNodesBy(option:String):void
 			{
+				if(option == QueryObject.FILTER_BY_NONE)
+					option == "";
 				globalFilterByOption.value = option;
 				var nodes:Array = nodes.getObjects();
 				for each (var node:NodeHandler in nodes)
@@ -394,10 +397,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if(entityColumnsHashmap.getObject(objName) ==null)
 						{
 							var col:ReferencedColumn = entityColumnsHashmap.requestObject(objName,ReferencedColumn,false);
+							col.delayCallbacks();
 							var attrCol:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference,false);
-							attrCol.dataSourceName.value = token as String;
 							var attrNode:XML = <attribute weaveEntityId={obj.id}/>;
 							attrCol.hierarchyPath.value = attrNode;
+							attrCol.dataSourceName.value = token as String;
+							col.resumeCallbacks();
 						}
 					}
 					if(obj.publicMetadata.dataType != null && obj.publicMetadata.dataType != 'geometry')

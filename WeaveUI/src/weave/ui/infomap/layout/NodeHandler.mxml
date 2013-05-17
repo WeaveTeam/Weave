@@ -1770,7 +1770,7 @@
 				_showGridFlag = false;
 				if(_showListFlag)
 				{
-					if(listCanvas.alpha == 0)
+					if(!listCanvas.visible)
 					{
 						toggleView(listCanvas);
 					}
@@ -1791,7 +1791,7 @@
 				
 				if(_showGridFlag)
 				{
-					if(listCanvas.alpha == 0)
+					if(!listCanvas.visible)
 					{
 						toggleView(listCanvas);
 					}
@@ -1918,7 +1918,7 @@
 				
 				var object:RadVizTool = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
 				object._plotter.columns.removeAllObjects();
-				object._anchorPlotter.anchors.removeAllObjects();
+//				object._anchorPlotter.anchors.removeAllObjects();
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
 				{
@@ -1932,7 +1932,7 @@
 				}
 				object._anchorPlotter.labelAngleRatio.value = 0.25;
 				object.panelTitle.value = 'Document Clustered by Labels';
-				object.enableProbeLines.value = false;
+				object.enableProbeLines.value = true;
 				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
 				if (object is DraggablePanel)
 					(object as DraggablePanel).restorePanel();
@@ -2207,7 +2207,12 @@
 			
 			private function filterQueryBy(option:String):void
 			{
-				status.text = "Filtering..."
+				if(option == QueryObject.FILTER_BY_NONE)
+					option = "";
+
+				if(previousQuery.sources.value != option)
+					status.text = "Filtering...";
+				
 				previousQuery.sources.value = option;
 			}
 			
@@ -2248,7 +2253,7 @@
 			{
 				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
 				displayObj.mouseChildren = true;
-				if(event.currentTarget == fadeOut)
+				if(event.currentTarget == fadeOut && currentView != displayObj)
 				{
 					displayObj.visible = false;
 					trace("hiding ",displayObj);
