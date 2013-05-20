@@ -25,6 +25,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.controls.Alert;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
@@ -297,6 +299,8 @@ package weave.visualization.plotters
 					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
 					columnIncrementor++;//change
 				}
+				
+				classIncrementor++;
 			}
 				
 			anchors.resumeCallbacks();
@@ -555,27 +559,43 @@ package weave.visualization.plotters
 		[Bindable] public var listOfCsvData:Array = WeaveAPI.globalHashMap.getNames(CSVDataSource);
 		public var sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
 		public var dataSetName:LinkableString = registerLinkableChild(this, new LinkableString(listOfCsvData[0]));
-		public var enableRSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public var sampleSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
+		public var regularSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public var RSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public var sampleSizeRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
+		public var sampleSizeColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
 		public function sampleDataSet():void
 		{
+			// we use the CSVDataSource so we can get the rows.
 			var originalCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.getObject(dataSetName.value) as CSVDataSource;
 			var randomIndex:int = 0; // random index to randomly pick a row.
 			var i:int; // used to iterate over the data.
 			var originalArray:Array = [];
 			var sampledArray:Array = [];
+			var transposedSampledArray:Array = [];
+			var col:int;
+			var row:int;
 			
-			if (!enableRSampling.value) //regular weave sampling
+			if (regularSampling.value && !RSampling.value) // sampling done in actionscript
 			{
-				originalArray = originalCSVDataSource.getCSVData().slice(0); // slice to get a copy. otherwise we modify the original array.				
-				if (originalArray.length < sampleSize.value)
+				// rows first
+				if (originalCSVDataSource)
+				{
+					originalArray = originalCSVDataSource.getCSVData().slice(0); // slice to get a copy. otherwise we modify the original array.				
+				} 
+				else
+				{
+					Alert.show(lang("No data found."))
+					return;
+				}
+				if (originalArray.length < sampleSizeRows.value)
 				{
 					sampledArray = originalArray; // sample size is bigger than the data set.
+					Alert.show(lang("Data sampled successfully."))
 				}
 				else // sampling begins here
 				{
 					var titleRow:Array = originalArray.shift(); // throwing the column names first row.
-					i = sampleSize.value; // we need to reduce this number by one because the title row already accounts for a row
+					i = sampleSizeRows.value; // we need to reduce this number by one because the title row already accounts for a row
 					var length:int = originalArray.length;
 					while( i != 0 )
 					{
@@ -588,18 +608,50 @@ package weave.visualization.plotters
 					sampledArray.unshift(titleRow); // we put the title row back here..
 					originalArray.splice(0); // we clear this array since we don't need it anymore.
 					// Sampling is done. we wrap it back into a CSVDataSource
+					
+					
+					transposedSampledArray = transposeDataArray(sampledArray);
+					var firstColumn:Array = transposedSampledArray.shift(); // assumed to be the Id column
+					var secondColumn:Array = transposedSampledArray.shift(); // assumed to be the class column
+					
+					// proceed as above with a transposed csv... not sure if there is a better way to do this.
+					if (transposedSampledArray.length < sampleSizeColumns.value - 2)
+					{
+						sampledArray = transposeDataArray(transposedSampledArray); // sample size is bigger than the data set.
+					}
+					else // column sampling begins here
+					{
+						i = sampleSizeColumns.value - 2; // we need to reduce this number by one because the title row already accounts for a row
+						length = transposedSampledArray.length; // accounted for the first two columns removed.
+						sampledArray = []; // making this sampled array reusable
+						while( i != 0 )
+						{
+							randomIndex = int(Math.random() * (length));
+							sampledArray.push(transposedSampledArray[randomIndex]);
+							transposedSampledArray.splice(randomIndex, 1);
+							length--;
+							i--;
+						}
+						transposedSampledArray.splice(0);
+						sampledArray.unshift(secondColumn);
+						sampledArray.unshift(firstColumn);
+						var temp:Array = sampledArray; // quick older for the sample array to be transposed again
+						sampledArray = transposeDataArray(temp); // at this stage we should have a complete row and column sample
+					}
+					
 					// begin saving the CSVDataSource.
 					if (sampleTitle.value == "" || sampleTitle.value == "optional")
 					{
-						sampleTitle.value = "Sampled " + WeaveAPI.globalHashMap.getName(originalCSVDataSource);
+						sampleTitle.value = Weave.root.generateUniqueName("Sampled " + WeaveAPI.globalHashMap.getName(originalCSVDataSource));
 					}
-
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
 					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
+					Alert.show(lang("Data sampled successfully"));
 					sampleTitle.value = "";
 				} 
 			}
+			
 			else // Rsampling
 			{
 				// TODO
@@ -612,9 +664,33 @@ package weave.visualization.plotters
 				// replace Should sampling be done with replacement
 				// prob    vector of probability weights (should be null for random sampling)
 			}
-
+			return;			
+		}
+		
+		/**
+		 * @param array must be two dimensional array
+		 * 
+		 * @return transposed array
+		 **/
+		
+		private function transposeDataArray (array:Array):Array
+		{
+			var i:int = 0;
+			var j:int = 0;
+			if(array)
+				var rowLength:int = array.length;
+			if (array[0])
+				var colLength:int = array[0].length;	
+	
+			var transposed:Array = new Array(colLength);
 			
-			
+			for (i = 0; i < colLength; i++)
+			{
+				transposed[i] = new Array(rowLength);
+				for (j = 0; j < rowLength; j++)
+					transposed[i][j] = array[j][i];
+			}
+			return transposed;
 		}
 		
 		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);

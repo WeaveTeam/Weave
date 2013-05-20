@@ -452,14 +452,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:HBox>
 					<mx:CheckBox id="sampleCheckBox" label="Sample Data Set" labelPlacement="left" toolTip="Randomly sample the data set"/>
 					<mx:Label text="Sample Name" />
-					<mx:TextInput id="sampleTitle" text="optional" toolTip="This name will be used for the new sample source"
+					<mx:TextInput id="sampleTitle" toolTip="This name will be used for the new sample source"
 								  enabled="{sampleCheckBox.selected}"
 								  creationComplete="linkBindableProperty(_target._plotter.sampleTitle, event.target, 'text')"/>
 				</mx:HBox>
-				<mx:HBox>					
-					<mx:Label text = "Sample Size" toolTip="Specify a sample size." />
-					<mx:TextInput id ="sampleSize" text="300" enabled="{sampleCheckBox.selected}"
-								  creationComplete="linkBindableProperty(_target._plotter.sampleSize, event.target, 'text')"/>
+				<mx:HBox>
+					<mx:HBox>
+						<mx:Label text = "Sample Size:" toolTip="Specify a sample size." />						
+						<mx:TextInput id ="sampleSizeRows" text="300" enabled="{sampleCheckBox.selected}" width="50" toolTip="Rows"
+									  creationComplete="linkBindableProperty(_target._plotter.sampleSizeRows, event.target, 'text')"/>
+						<mx:Label text = "x"/>						
+						<mx:TextInput id ="sampleSizeColumns" text="20" enabled="{sampleCheckBox.selected}" width="50" toolTip="Columns"
+									  creationComplete="linkBindableProperty(_target._plotter.sampleSizeColumns, event.target, 'text')"/>
+
+						
+					</mx:HBox>
+					
 					
 				</mx:HBox>
 				<mx:VBox>
@@ -470,11 +478,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									 creationComplete="linkBindableProperty(_target._plotter.dataSetName, event.target, 'selectedItem')"/>
 					</mx:HBox>
 					
-					<mx:CheckBox label="Sample using R."
-								 id="enableRSamplingCheckbox"
-								 enabled = "{sampleCheckBox.selected}"
-								 toolTip="This option can be used if you have Rserve running"
-								 creationComplete="linkBindableProperty(_target._plotter.enableRSampling, event.target, 'selected')"/>
+					<!-- <mx:RadioButtonGroup id="sampleOptionRadioGroup"/>
+						<mx:RadioButton paddingLeft="10" groupName="sampleOptionRadioGroup" label="Internal Sampling" id="internalSampling"
+										selected="true" creationComplete="linkBindableProperty(_target._plotter.regularSampling, event.target, 'selected')"/>
+						
+						<mx:RadioButton paddingLeft="10" groupName="sampleOptionRadioGroup" label="R Sampling" id="rSampling" visible="false"
+										creationComplete="linkBindableProperty(_target._plotter.RSampling, event.target, 'selected')"/>
+					-->
 					<mx:Button id= "sampleDataButton" label="Sample"
 							   enabled = "{sampleCheckBox.selected}"
 							   click="_target._plotter.sampleDataSet()"/>
@@ -492,7 +502,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							<mx:String>Select an option</mx:String>
 							<mx:String>t-statistic = variance</mx:String>
 							<mx:String>t-statistic != variance</mx:String>
-							<mx:String>Class Distinction</mx:String>
 						</mx:ArrayCollection>
 					</mx:ComboBox>
 					</ui:Indent>

@@ -77,8 +77,13 @@ package weave.visualization.plotters
 		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
 		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle(SolidFillStyle));
 		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
+		public const innerRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyInnerRadius));
 		
 		private function verifyLabelAngleRatio(value:Number):Boolean
+		{
+			return 0 <= value && value <= 1;
+		}
+		private function verifyInnerRadius(value:Number):Boolean
 		{
 			return 0 <= value && value <= 1;
 		}
@@ -183,7 +188,7 @@ package weave.visualization.plotters
 			graphics.beginFill(color, 1);
 			
 			// move to center point
-			WedgePlotter.drawProjectedWedge(graphics, task.dataBounds, task.screenBounds, beginRadians, spanRadians);
+			WedgePlotter.drawProjectedWedge(graphics, task.dataBounds, task.screenBounds, beginRadians, spanRadians, 0, 0, 1, innerRadius.value);
 			// end fill
 			graphics.endFill();
 		}

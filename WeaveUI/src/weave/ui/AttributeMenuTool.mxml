@@ -188,6 +188,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			private const toolJuggler:CallbackJuggler = new CallbackJuggler(this, handleToolChange, true);
+			private var _attrNames:Array = [];
+			private var _attrs:Array = [];
 			
 			// used to label the choices
 			private function choiceLabelFunction(column:IAttributeColumn):String
@@ -305,12 +307,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// update the list of available attributes
 				if (tool)
 				{
-					var attrNames:Array = tool.getSelectableAttributeNames();
-					targetAttributeCombo.dataProvider = attrNames;
+					var names:Array = tool.getSelectableAttributeNames() || [];
+					var attrs:Array = tool.getSelectableAttributes() || [];
+					if (StandardLib.arrayCompare(names, _attrNames) || StandardLib.arrayCompare(attrs, _attrs))
+					{
+						_attrs = attrs;
+						targetAttributeCombo.dataProvider = _attrNames = names;
+					}
 				}
-				else
+				else if (_attrNames.length)
 				{
-					targetAttributeCombo.dataProvider = [];
+					targetAttributeCombo.dataProvider = _attrNames = [];
 				}
 				
 				// after we set the data provider, we have to make sure the correct item is selected
@@ -324,13 +331,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// only enable the choiceCombo if the target attribute exists in the target tool
 				if (tool)
 				{
-					var attrNames:Array = tool.getSelectableAttributeNames();
-					var index:int = attrNames.indexOf(targetAttribute.value);
+					var index:int = _attrNames.indexOf(targetAttribute.value);
 					if (index >= 0)
 					{
 						// found the attribute name in the list, now check if it's a compatible object
-						var attrObjs:Array = tool.getSelectableAttributes();
-						var obj:Object = attrObjs[index];
+						var obj:Object = _attrs[index];
 						var compatible:Boolean = obj is DynamicColumn || obj is ILinkableHashMap;
 						layoutViewStack.enabled = compatible;
 					}
@@ -347,8 +352,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// make sure the correct item is selected
 				targetAttributeCombo.selectedItem = targetAttribute.value;
 				// clear the choice
-				choiceCombo.selectedIndex = -1;
-				choiceList.selectedIndex = -1;
+//				choiceCombo.selectedIndex = -1;
+//				choiceList.selectedIndex = -1;
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -392,10 +397,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!tool)
 					return;
 				
-				var attrNames:Array = tool.getSelectableAttributeNames();
-				var attrObjs:Array = tool.getSelectableAttributes();
 				// find the index of the tool attribute selected in the control panel
-				var index:int = attrNames.indexOf(targetAttribute.value);
+				var index:int = _attrNames.indexOf(targetAttribute.value);
 				if (index < 0)
 				{
 					// we didn't find the "SelectableAttributeName"
@@ -404,8 +407,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				// using the index, get the corresponding "SelectableAttribute" from the tool
-				var dynamicColumn:DynamicColumn = attrObjs[index] as DynamicColumn;
-				var hashMap:ILinkableHashMap = attrObjs[index] as ILinkableHashMap;
+				var dynamicColumn:DynamicColumn = _attrs[index] as DynamicColumn;
+				var hashMap:ILinkableHashMap = _attrs[index] as ILinkableHashMap;
 				
 				if (hashMap)
 				{

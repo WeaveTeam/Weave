@@ -104,8 +104,6 @@ package weave.data.BinningDefinitions
 		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
 		
 		//variables for getSortedColumn method
-		private var _sortedColumn:Array;
-		private var keys:Array;
 		
 		/**
 		 * getSortedColumn 
@@ -114,14 +112,16 @@ package weave.data.BinningDefinitions
 		 */
 		private function getSortedColumn(column:IAttributeColumn):Array
 		{
-			keys = column ? column.keys : [];
-			_sortedColumn = new Array(keys.length);
+			var keys:Array = column ? column.keys : [];
+			var _sortedColumn:Array = new Array(keys.length);
 			var i:uint = 0;
 			for each (var key:IQualifiedKey in keys)	
 			{
-				_sortedColumn[i] = column.getValueFromKey(key,Number);
-				i = i+1;
+				var n:Number = column.getValueFromKey(key,Number);
+				if (isFinite(n))
+					_sortedColumn[i++] = n;
 			}
+			_sortedColumn.length = i;
 			AsyncSort.sortImmediately(_sortedColumn, ObjectUtil.numericCompare);
 			return _sortedColumn;
 		}
