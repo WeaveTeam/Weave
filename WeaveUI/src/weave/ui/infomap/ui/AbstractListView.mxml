@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is used for handling node operations.
+It has a text area which diplays the keywords.
+It has 4 icons to:
+Close/Delete the node
+Edit the keyword
+Search within the node.
+Filter by Date
+Info to provide a tooltip describing the node (like number of documents found)
+
+-->
+<mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
+	<mx:HBox id="filterStatus" width="100%"/>
+	<mx:Canvas id="view" width="100%" height="100%">
+		
+	</mx:Canvas>
+	<mx:HBox id="navBox" horizontalScrollPolicy="off" clipContent="false" horizontalAlign="center" verticalAlign="middle">
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowLeft.png')"  id="prevButton" toolTip="Prev" click="prev()"/>
+		<mx:Label id="indexText" textAlign="center"/>
+		<mx:Image buttonMode="true" source="@Embed(source='/weave/resources/images/arrowRight.png')"  id="nextButton" toolTip="Next" click="next()"/>
+	</mx:HBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+			import flash.utils.getTimer;
+			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.FilteredKeySet;
+			import mx.controls.listClasses.IListItemRenderer;
+			import mx.core.mx_internal;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.utils.CustomCursorManager;
+			import weave.core.StageUtils;
+			import mx.events.ListEvent;
+			import weave.compiler.StandardLib;
+			import mx.collections.ArrayCollection;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.Weave;
+			import weave.data.KeySets.KeyFilter;
+			import mx.core.DragSource;
+			import mx.managers.DragManager;
+			import mx.events.DragEvent;
+			import weave.utils.VectorUtils;
+			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				startIndex.addGroupedCallback(this,updateList,true);
+			}
+			
+			public static var SELECTION_TEXT:String = "SELECTION";
+			public var parentNode:NodeHandler = null;
+			
+			private var _filters:KeyFilter = new KeyFilter();
+			protected var _filteredKeySet:FilteredKeySet = new FilteredKeySet();
+			
+			public function set keys(value:Array):void
+			{
+				var k:KeySet = new KeySet();
+				k.replaceKeys(value);
+				_filteredKeySet.setSingleKeySource(k);
+				_filters = (_filteredKeySet.keyFilter).requestLocalObject(KeyFilter,false);
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			public function applyFilter(name:String,keys:Array):void
+			{
+				var f:KeyFilter = _filters.filters.getObject(name) as KeyFilter;
+				if(f)
+				{
+					f.replaceKeys(false,true,keys);
+				}
+				else
+				{
+					f= _filters.filters.requestObject(name,KeyFilter,false) as KeyFilter;
+					f.replaceKeys(false,true,keys);
+					var filterLabel:FilterLabelUI = filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
+					filterLabel.filterName.text = name;
+					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,function(event:Event):void{
+						removeFilter(name);
+						if(filterStatus.contains(filterLabel))
+							filterStatus.removeChild(filterLabel);
+						startIndex.value = 0;
+						startIndex.triggerCallbacks();
+					});
+				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			public function removeFilter(name:String):void
+			{
+				_filters.filters.removeObject(name);
+				var filterLabels:Array = filterStatus.getChildren();
+				for each(var d:FilterLabelUI in filterLabels)
+				{
+					if(d.filterName.text == name)
+					{
+						filterStatus.removeChild(d);
+						break;
+					}
+				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+//			public var enableList:Boolean = true;
+//			public function showList():void
+//			{
+//				enableList = true;
+//				updateList();
+//			}
+//			
+//			public function showThumbnails():void
+//			{
+//				enableList = false;
+//				updateList();
+//			}
+			
+			public var startIndex:LinkableNumber = new LinkableNumber(0);
+			
+			private var resultsRowCount:int = 10;
+			private var _spacing:int = 2;
+			
+			/* abstract */protected function updateList():void{}
+			/* abstract*/public function redrawList():void{}
+			
+			private function prev():void
+			{
+				//if startIndex is less than row count we don't want index to go below 0
+				if(startIndex.value <resultsRowCount)
+				{
+					startIndex.value = 0;
+					return;
+				}
+				startIndex.value -= resultsRowCount;
+				
+			}
+			
+			private function next():void
+			{
+				if(startIndex.value + resultsRowCount > _filteredKeySet.keys.length)
+				{
+					return;//nothing more to show
+				}
+				
+				startIndex.value += resultsRowCount;
+			}
+			
+			private var _listMaxLength:int = 10;
+			
+			
+			protected function updateIndexText():void
+			{
+				var includedKeys:Array = _filteredKeySet.keys;
+				if(includedKeys.length == 0)
+				{
+					indexText.text = "No documents found.";
+					return;
+				}
+				var st:int = startIndex.value+1;
+				
+				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
+				
+				if((startIndex.value + resultsRowCount) < includedKeys.length)
+				{
+					var et:int = startIndex.value + resultsRowCount; 					
+					indexText.text += et.toString();
+				}
+				else
+					indexText.text += includedKeys.length;
+				
+				indexText.text += " of " + includedKeys.length;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

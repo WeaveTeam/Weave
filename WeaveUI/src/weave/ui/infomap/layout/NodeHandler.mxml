@@ -11,7 +11,7 @@
 		<mx:Label id="filterStatus"/>
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
 	</mx:HBox>-->
-	<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>
+	<!--<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>-->
 	<!--<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>-->
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
@@ -67,6 +67,8 @@
 			import mx.rpc.Fault;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			
+			import org.igniterealtime.xiff.data.ping.PingExtension;
 			
 			import spark.accessibility.ToggleButtonAccImpl;
 			
@@ -125,10 +127,11 @@
 			import weave.ui.infomap.core.InfoMapNode;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.ui.AbstractListView;
 			import weave.ui.infomap.ui.BasicSettingsComponent;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
-			import weave.ui.infomap.ui.DocumentList;
+			import weave.ui.infomap.ui.DocumentListView;
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
@@ -138,6 +141,7 @@
 			import weave.ui.infomap.ui.TagCloud;
 			import weave.ui.infomap.ui.TagCloudSettingComponent;
 			import weave.ui.infomap.ui.ThumbnailsLayout;
+			import weave.ui.infomap.ui.ThumbnailsListView;
 			import weave.ui.infomap.ui.TopicNodeComponent;
 			import weave.ui.infomap.ui.TopicNodeSettingComponent;
 			import weave.utils.BitmapUtils;
@@ -200,6 +204,21 @@
 					return false;
 				else 
 					return true;},false), handleTopicLayoutSettingChange, true); // ToDo
+			
+			public const enablePinView:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true),handlePinViewChange);
+			
+			public static const LIST_VIEW:String = "List";
+			public static const THUMBNAILS_VIEW:String = "Thumbnails";
+			public static const TOPICS_VIEW:String = "Topics";
+			public static const WORD_CLOUD_VIEW:String = "Word Cloud";
+			public static const POINTS_VIEW:String = "Points";
+			public static const views:Array = [LIST_VIEW,THUMBNAILS_VIEW,TOPICS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW];
+			public const currentView:LinkableString =  registerLinkableChild(this,new LinkableString(LIST_VIEW,function(value:*):Boolean{
+				if(views.indexOf(value) != -1)
+					return true;
+				else
+					return false;
+			},false),handleCurrentViewChange,true);
 			
 			private function handleTopicLayoutSettingChange():void
 			{
@@ -413,13 +432,35 @@
 				
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
-				views =[listCanvas,topicComponent,_pointCanvas];
 				docListComponent.parentNode = this;
+				thumbnailListComponent.parentNode = this;
 				
 				getCallbackCollection(movedThumbNails).addGroupedCallback(this, handleMovedThumbnailsChangesInViews);
 				
 				showNewDocumentsOnTop.addGroupedCallback(this,handleSortNewDocsChange);
+				
+				_pointCanvas.visible = false;
+				_pointCanvas.alpha = 0;
+				_viewToObjectMapping[POINTS_VIEW] = _pointCanvas;
+				
+				thumbnailListComponent.visible = false;
+				thumbnailListComponent.alpha = 0;
+				_viewToObjectMapping[THUMBNAILS_VIEW] = thumbnailListComponent;
+				
+				docListComponent.visible = false;
+				docListComponent.alpha = 0;
+				_viewToObjectMapping[LIST_VIEW] = docListComponent;
+				
+				topicComponent.visible = false;
+				topicComponent.alpha = 0;
+				_viewToObjectMapping[TOPICS_VIEW] = topicComponent;
+				
+				wordCloud.visible = false;
+				wordCloud.alpha = 0;
+				_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
 			}
+			
+			private var _viewToObjectMapping:Dictionary = new Dictionary();
 			
 			private var _nodeName:String = "";
 			
@@ -450,7 +491,7 @@
 				
 				_subMenu.addSubMenuItem("Settings",settings);
 				_subMenu.addSubMenuItem("Close",close);
-				
+				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
 				
 				/* if this is an empty query clear all documents */
 				if(!currentQuery.keywords.value)
@@ -652,6 +693,8 @@
 					Only switch to first page if it is new query*/
 					if(docListComponent)
 						docListComponent.startIndex.value = 0;
+					if(thumbnailListComponent)
+						thumbnailListComponent.startIndex.value = 0;
 				}else
 				{
 					//its an old query
@@ -766,7 +809,7 @@
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
 				
-				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleList,toggleGridView]);
+				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
 				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
 				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
 					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
@@ -777,7 +820,7 @@
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
 				addAllDocumentsToList();
-				showList();
+				showView(LIST_VIEW);
 				status.text = "";
 			}
 			
@@ -794,7 +837,7 @@
 				
 				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
 //				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleWordCloud);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleWordCloud]);				
+				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);				
 			}
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
@@ -902,6 +945,15 @@
 				_menuButton.y = 0
 				if(docListComponent)
 					docListComponent.y = nodeBase.height;
+				if(thumbnailListComponent)
+					thumbnailListComponent.y = nodeBase.height;
+				if(_pinImg)
+				{
+					_pinImg.x = nodeBase.width; 
+					_pinImg.y = _pinImg.height;
+				}
+				/*set pushpin image if required*/
+				
 			}
 			
 			override public function validateDisplayList():void
@@ -924,7 +976,6 @@
 			
 			private function getEntityDistribution():void
 			{
-				trace("calling Entity Distribution");
 				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
 				
 				if(entityColumns.length == 0)
@@ -1114,6 +1165,7 @@
 				
 				_sortedByNewDocsArray = newDocs.concat(oldDocs);
 				docListComponent.keys = _sortedByNewDocsArray;
+				thumbnailListComponent.keys = _sortedByNewDocsArray;
 			}
 			
 			private function sortByNameOrder():void
@@ -1124,57 +1176,159 @@
 					keys.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,_nameOrder[i]));
 				}
 				docListComponent.keys = keys;
+				thumbnailListComponent.keys = keys;
 			}
 			
-			private function showList():void
+			private function handleCurrentViewChange():void
 			{
-				if(currentView == listCanvas)
-					return;
-				else
-					toggleView(listCanvas);
-			}
-			
-			private var views:Array = [];
-			private function toggleView(view:DisplayObject):void
-			{
-				if(view == null)
-					return;
-				
-				if(view == currentView)
+				hideAllViews();
+				if(enablePinView.value)
 				{
-					fadeOut.play([view]);
-					trace("hiding ",view, view.alpha);
+					showCurrentView();
 				}
-				else
-				{	
-					if(currentView)
-						fadeOut.play([currentView]);
-					fadeIn.play([view]);
-					if(view == listCanvas)
+			}
+			
+			private function showCurrentView():void
+			{
+				showView(currentView.value);
+			}
+			
+			private function hideCurrentView():void
+			{
+				hideView(currentView.value);
+			}
+			private function showView(view:String):void
+			{
+				if(view != currentView.value)
+				{
+					currentView.value == view;
+					return;
+				}
+				
+				if(view == LIST_VIEW) //Initialize List Canvas
+				{
+					//if the list is not added yet
+					if(!contains(docListComponent))
 					{
-						//if the list is not added yet
-						if(!listCanvas.contains(docListComponent))
-						{
-							listCanvas.alpha = 0;
-							listCanvas.addChild(docListComponent);
-							docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
-							
-							docListComponent.y = nodeBase.height;
-							
-							return;
-						}
+						docListComponent.alpha = 0;
+						addChild(docListComponent);
+						docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
 						
 						docListComponent.y = nodeBase.height;
 					}
+					docListComponent.y = nodeBase.height;
+					
 				}
+				else if(view == THUMBNAILS_VIEW)
+				{
+					//if the list is not added yet
+					if(!contains(thumbnailListComponent))
+					{
+						thumbnailListComponent.alpha = 0;
+						addChild(thumbnailListComponent);
+						
+						thumbnailListComponent.y = nodeBase.height;
+					}
+					thumbnailListComponent.y = nodeBase.height;
+					
+				}
+				else if(view == TOPICS_VIEW) //Initialize Topics Component
+				{
+					if(flag_init){
+						
+						// ToDo This will not update automatically when new documents come in.
+						//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
+						topicComponent.removeAllChildren();
+						var urls:Array = _topicsResult.urls;
+						var keywords:Array = _topicsResult.keywords;
+						
+						//store all the urls of the uncategoried documents, it is an 1D.
+						var uncategoried:Array = _topicsResult.uncategoried; 
+						
+						//var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+						var parentComponent:UIComponent = new UIComponent();
+						parentComponent.width = 400;
+						parentComponent.height = 230; // ToDo Add extra 20 for displaying spot label
+						parentComponent.y= nodeBase.height;
+						
+						topicComponent.drawTreeMap(urls, keywords, parentComponent, spaceBetwwenTopicRect.value);
+						topicComponents.push(topicComponent);
+						topicComponent.includeInLayout = false;
+						
+						//addChild(topicComponent);
+						
+						flag_init = false;
+						topicComponent.alpha = 0;
+					}
+				}
+				else if(view == WORD_CLOUD_VIEW)//Initialize Word Clould Canvas
+				{
+					status.text = "Loading Word Cloud...";
+					/*Add wordCloud as a child if not added yet*/
+					if(!contains(wordCloud))
+					{
+						wordCloud = new TagCloud();
+						wordCloud.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
+						wordCloud.visible = false;
+						wordCloud.includeInLayout = false;
+						addChild(wordCloud);
+						wordCloud.alpha = 0;
+						_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
+					}
+					wordCloud.y= nodeBase.height;
+					if(StandardLib.arrayCompare(wordCloud.dataProvider,wordCount) != 0)
+					{
+						wordCloud.dataProvider = wordCount;
+						wordCloud.draw(numOfWordsInCloud.value);
+					}
+					
+					status.text = "";
+				}
+				else if(view == POINTS_VIEW)
+				{
+					status.text = "Drawing points...";
+					var topicURLS:Array = [];
+					VectorUtils.copy(_topicsResult.urls,topicURLS);
+					
+					if(!contains(_pointCanvas))
+					{
+						addChild(_pointCanvas);
+						_pointCanvas.alpha = 0; //initializing so that toggle will show the points
+						_pointCanvas.visible = false;
+					}
+					_pointCanvas.y = nodeBase.height;
+					_pointCanvas.drawPoints(topicURLS, keywords, this);
+					
+					status.text = "";
+				}
+
+				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
+				if(viewUI.visible && viewUI.alpha != 0)
+					return;
+				
+				fadeIn.play([viewUI]);
+			}
+			
+			private function hideView(view:String):void
+			{
+				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
+				
+				if(!viewUI.visible && viewUI.alpha !=1)
+					return;
+				
+				fadeOut.play([viewUI]);
 			}
 			
 			private function hideAllViews():void
 			{
-				if(currentView)
+				for each(var value:* in _viewToObjectMapping)
 				{
-					fadeOut.play([currentView]);
-					trace("hiding all views");
+					if(!value)
+						continue;
+					if(value.alpha !=0)
+					{
+						fadeOut.play([value]);
+					}
 				}
 			}
 			
@@ -1195,6 +1349,7 @@
 					}
 				}
 				docListComponent.keys = _reusableThumbnailsToPlotArray;
+				thumbnailListComponent.keys = _reusableThumbnailsToPlotArray;
 			}
 			
 			public function showRelatedRecords():void
@@ -1356,12 +1511,16 @@
 				{
 					return;
 				}
-				if(listCanvas.alpha == 1)
+				var view:String = currentView.value;
+				
+				if( view == THUMBNAILS_VIEW || view == LIST_VIEW)
 				{
+					
+					var listView:AbstractListView = _viewToObjectMapping[view];
 					var keys:Array = _selection.keys;
 					if(keys.length == 0)
 					{
-						docListComponent.removeFilter(DocumentList.SELECTION_TEXT);						
+						listView.removeFilter(AbstractListView.SELECTION_TEXT);
 					}
 					else
 					{
@@ -1374,7 +1533,7 @@
 							}
 						}
 						
-						docListComponent.applyFilter(DocumentList.SELECTION_TEXT,filterByKeys);
+						listView.applyFilter(AbstractListView.SELECTION_TEXT,filterByKeys);
 					}
 				}
 			}
@@ -1382,9 +1541,13 @@
 			/* If there is a change in the moved thumbnails then we redraw the list incase a document was added back to the node. */
 			private function handleMovedThumbnailsChangesInViews():void
 			{
-				if(listCanvas.alpha ==1)
+				if(currentView.value == LIST_VIEW)
 				{
 					docListComponent.redrawList();
+				}
+				else if(currentView.value == THUMBNAILS_VIEW)
+				{
+					thumbnailListComponent.redrawList();
 				}
 			}
 			private function getSelectedDocumentKeys():Array
@@ -1619,6 +1782,38 @@
 //				}
 //			}
 			
+			[Embed( source="/weave/resources/images/pushpin.png")]
+			private var _pinImgClass:Class;
+			private var _pinImgText:String ="Pin Views";
+			private var _pinImg:Image = null;
+			private function togglePinViews(event:Event=null):void
+			{
+				enablePinView.value = !enablePinView.value;
+			}
+			
+			private function handlePinViewChange():void
+			{
+				if(enablePinView.value)
+				{
+					if(!_pinImg)
+					{
+						_pinImg = new Image();
+						_pinImg.source = _pinImgClass;
+						_pinImg.width = _pinImg.height = 14; //width & height is not updated. Bug in Image Class. Needs a listener for Update event.
+					}
+					nodeBase.addChild(_pinImg);
+					_pinImg.x = nodeBase.width; 
+					_pinImg.y = _pinImg.height;
+				}
+				else
+				{
+					if(_pinImg)
+					{
+						removeChild(_pinImg);
+					}
+				}
+			}
+			
 			private var _instance:ControlPanel = null;
 			protected var basicSettingComponent:BasicSettingsComponent;
 			protected var tagCloudSettingComponent:TagCloudSettingComponent;
@@ -1683,127 +1878,48 @@
 			}
 			
 			private var _pointCanvas:PointsLayout = new PointsLayout();
-			private function showPoints(event:Event=null):void
-			{
-				if(contains(_pointCanvas) && _pointCanvas.alpha == 1)
-				{
-					toggleView(_pointCanvas);
-					return;
-				}
-				status.text = "Drawing points...";
-				var urls:Array = [];
-				VectorUtils.copy(_topicsResult.urls,urls);
-				var keywords:Array = _topicsResult.keywords;
-				
-				if(!contains(_pointCanvas))
-				{
-					addChild(_pointCanvas);
-					_pointCanvas.alpha = 0; //initializing so that toggle will show the points
-				}
-				_pointCanvas.y = nodeBase.height;
-				_pointCanvas.drawPoints(urls, keywords, this);
-				
-				toggleView(_pointCanvas);
-				status.text = "";
-			}
 			
-			private var wordCloud:TagCloud = null;
+			private var wordCloud:TagCloud = new TagCloud();;
 			private var colorRamp:ColorRamp = new ColorRamp();
 			private var wordCount:Array = [];
-			private function toggleWordCloud(event:Event=null):void
-			{
-				status.text = "Loading Word Cloud...";
-				if (wordCount == null)
-					return;
-				
-				if(wordCount.length == 0)
-				{
-					var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
-						currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
-					
-					var token:QueryObject = new QueryObject();
-					copySessionState(currentQuery,token);
-					
-					addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
-					
-					return;
-				}
-				
-				//				statusBox.y = nodeBase.height + statusBox.height;
-				if(wordCloud == null)
-				{
-					wordCloud = new TagCloud();
-					wordCloud.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
-					wordCloud.visible = false;
-					wordCloud.includeInLayout = false;
-					addChild(wordCloud);
-					views.push(wordCloud);
-					wordCloud.alpha = 0;
-					wordCloud.visible = true;
-				}
-				wordCloud.y= nodeBase.height;
-				if(StandardLib.arrayCompare(wordCloud.dataProvider,wordCount) != 0)
-				{
-					wordCloud.dataProvider = wordCount;
-					wordCloud.draw(numOfWordsInCloud.value);
-				}
-				
-				status.text = "";
-				
-				toggleView(wordCloud);
-			}
-			
+						
 			private function redrawWordCloud():void
 			{
 				if(wordCloud != null)
 				{
 					removeWordCloud();
-					toggleWordCloud();
+					toggleView(WORD_CLOUD_VIEW);
 				}
 			}
 			
-			private var docListComponent:DocumentList = new DocumentList();
-			private var _showListFlag:Boolean = false;
-			private function toggleList(event:Event=null):void
+			private function toggleView(view:String):void
 			{
-				_showListFlag = ! _showListFlag;
-				_showGridFlag = false;
-				if(_showListFlag)
+				/* if current view is not List then we change it to current view and leave it to handleCurrentViewChange */
+				if(currentView.value != view)
 				{
-					if(!listCanvas.visible)
-					{
-						toggleView(listCanvas);
-					}
-					docListComponent.showList();
+					currentView.value = view
 				}
+				/* if current view is already List view then toggle it*/
 				else
 				{
-					trace("hiding list");
-					toggleView(listCanvas);
+					var v:String = currentView.value;
+					var viewUI:DisplayObject = _viewToObjectMapping[v] as DisplayObject;
+					if(viewUI.visible && viewUI.alpha != 0)
+					{
+						hideView(v);
+					}
+					else
+					{
+						showView(v);
+					}
 				}
-			}
-			
-			private var _showGridFlag:Boolean = false;
-			private function toggleGridView(event:MouseEvent=null):void
-			{
-				_showGridFlag = !_showGridFlag;
-				_showListFlag= false;
 				
-				if(_showGridFlag)
-				{
-					if(!listCanvas.visible)
-					{
-						toggleView(listCanvas);
-					}
-					
-					docListComponent.showThumbnails();
-				}
-				else
-				{
-					toggleView(listCanvas);
-				}
 			}
 			
+			private var docListComponent:DocumentListView = new DocumentListView();
+			private var thumbnailListComponent:ThumbnailsListView = new ThumbnailsListView();
+			
+			private var _showListFlag:Boolean = false;
 //			private var clickedWordKeySet:KeySet = new KeySet();
 			private var filteredWords:LinkableString = new LinkableString("",null,false);
 			private function handleTagCloudClick(event:MouseEvent):void
@@ -1845,7 +1961,6 @@
 			
 			public function filterDocumentsByURLS(urls:Array,filterMessage:String=""):void
 			{
-				toggleView(listCanvas);
 				var keys:Array = [];
 				for (var i:int = 0; i < urls.length; i++)
 				{
@@ -1856,6 +1971,7 @@
 				docListComponent.applyFilter(filterMessage,keys);
 				
 				status.text = "";
+				currentView.value = LIST_VIEW;
 			}
 			
 			private function getTopicsClassification():void
@@ -1889,8 +2005,6 @@
 					flag_init = true;
 					 if(!flag_click){
 						flag_click = true;
-						flag_topicPropertiesChange = true;
-						//showClassificationResults();
 					}  
 				}
 			}
@@ -1942,9 +2056,6 @@
 			private var flag_click:Boolean = true;
 			private var flag_init:Boolean =true;
 			private var _topicsResult:Object = null;
-			private var flag_topicPropertiesChange:Boolean = false;
-			//private var _numOfTopics:int = 5;
-//			public var topicComponent:TopicNodeComponent = new TopicNodeComponent();
 			public const topicComponent:TopicNodeComponent = registerLinkableChild(this, new TopicNodeComponent());
 			public function get topicNodeComponent():TopicNodeComponent // ToDo TopicModelSettingComponent
 			{
@@ -1954,34 +2065,7 @@
 			{   
 				if(_topicsResult == null)
 					return;
-				if(flag_init){
-					
-					// ToDo This will not update automatically when new documents come in.
-					//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
-					topicComponent.removeAllChildren();
-					var urls:Array = _topicsResult.urls;
-					var keywords:Array = _topicsResult.keywords;
-					
-					//store all the urls of the uncategoried documents, it is an 1D.
-					var uncategoried:Array = _topicsResult.uncategoried; 
-					
-					//var topicComponent:TopicNodeComponent = new TopicNodeComponent();
-					var parentComponent:UIComponent = new UIComponent();
-					parentComponent.width = 400;
-					parentComponent.height = 230; // ToDo Add extra 20 for displaying spot label
-					parentComponent.y= nodeBase.height;
-					
-					topicComponent.drawTreeMap(urls, keywords, parentComponent, spaceBetwwenTopicRect.value);
-					topicComponents.push(topicComponent);
-					topicComponent.includeInLayout = false;
-					
-					//addChild(topicComponent);
-					
-					flag_init = false;
-					topicComponent.alpha = 0;
-				}
-				
-				toggleView(topicComponent);
+				toggleView(TOPICS_VIEW);
 			}
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
@@ -2008,12 +2092,7 @@
 				
 				var pointsImg:Bitmap = new PointsImgClass() as Bitmap;
 //				_radialMenu.addMenuItem(pointsImg,_pointsImgText,showPoints);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[showPoints]);
-
-				if(flag_topicPropertiesChange){
-					showClassificationResults();
-					flag_topicPropertiesChange = false;
-				}
+				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
 			}
 			
 			private function handleTopicsQueryFault(event:FaultEvent, token:Object = null):void
@@ -2053,9 +2132,13 @@
 					newDocumentHighlight.stop();//in case node is blinking
 					stopGlow();
 					hideAllViews();
-					if(listCanvas.contains(docListComponent))
+					if(contains(docListComponent))
 					{
 						docListComponent.keys = [];//clearing items in list
+					}
+					if(contains(thumbnailListComponent))
+					{
+						thumbnailListComponent.keys = [];
 					}
 					if(wordCloud)
 					{
@@ -2119,8 +2202,6 @@
 			{
 				wordCloud.clearCloud();
 				wordCloud.dataProvider = [];//clearing word cloud
-				var index:int = views.indexOf(wordCloud);
-				views.splice(index,1);
 				removeChild(wordCloud);
 				wordCloud = null;
 			}
@@ -2231,32 +2312,31 @@
 				}
 			}
 			
-			public var currentView:UIComponent = null;
+//			private var _currentView:UIComponent = null;
 			private function handleEffectsStart(event:EffectEvent):void
 			{
 				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
+				if(!displayObj)
+					return;
+				
 				displayObj.mouseChildren = false;
 				if(event.currentTarget == fadeIn)
 				{
 					displayObj.visible = true;
-					currentView = displayObj;
-					trace("showing ",displayObj);
-				}else
-				{
-					/*if you are fading out of current view set currentView to null*/
-					if(currentView == displayObj)
-						currentView = null;
 				}
 			}
 			
 			private function handleEffectsEnd(event:EffectEvent):void
 			{
 				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
+				
+				if(!displayObj)
+					return;
+				
 				displayObj.mouseChildren = true;
-				if(event.currentTarget == fadeOut && currentView != displayObj)
+				if(event.currentTarget == fadeOut && displayObj != _viewToObjectMapping[currentView.value])
 				{
 					displayObj.visible = false;
-					trace("hiding ",displayObj);
 				}
 			}
 			

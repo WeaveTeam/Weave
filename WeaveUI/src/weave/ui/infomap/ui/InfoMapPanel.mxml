@@ -520,7 +520,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(event.dragInitiator is List)
 				{
 					var list:List = (event.dragInitiator as List);
-					var node:NodeHandler = (list.parent.parent as DocumentList).parentNode;
+					var node:NodeHandler = (list.parent.parent as AbstractListView).parentNode;
 					t = node.thumbnails.getObject((list.selectedItem as IQualifiedKey).localName) as DocThumbnailComponent; 
 				}
 				else{
@@ -729,7 +729,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						{
 							/* Only test for selection of document if it is moved, in which case it is somewhere on  the panel canvas OR
 							   if it belongs to the node and it is in Points view. Selection is enabled only in the points mode currently*/
-							if(node.movedThumbNails.getObject(t.docURL.value) || node.currentView is PointsLayout)
+							if(node.movedThumbNails.getObject(t.docURL.value) || node.currentView.value == NodeHandler.POINTS_VIEW)
 							{
 								var r:Rectangle = t.getRect(map);
 								var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
