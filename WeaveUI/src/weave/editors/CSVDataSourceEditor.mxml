@@ -106,12 +106,16 @@
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
-					var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
-					csvTextArea.text = WeaveAPI.CSVParser.createCSV(rows);
-					csvParser.parseCSV(csvTextArea.text);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
-					showGridButton.enabled = true;
+						
+					handleURLTextChange();
+					if (!url.text)
+					{
+						var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
+						showGridButton.enabled = rows != null;
+						setCSVRows(rows);
+					}
 				}
 			}
 			
@@ -154,7 +158,11 @@
 			// called when parser finishes
 			private function handleCSVParser():void
 			{
-				csvRows = csvParser.parseResult;
+				setCSVRows(csvParser.parseResult);
+			}
+			private function setCSVRows(rows:Array):void
+			{
+				csvRows = rows;
 				headerArray = csvRows[0];
 				//this is showGridButton is disabled only if a file has been loaded as the source
 				showGridButton.enabled = true;
@@ -221,8 +229,9 @@
 			
 			private function handleURLTextChange():void
 			{
-				uploadMessage.visible = false;
-				showGridButton.enabled = false;
+				var hasURL:Boolean = url.text ? true : false;
+				uploadMessage.visible = !hasURL;
+				showGridButton.enabled = !hasURL;
 				csvRows = null;
 				csvTextArea.text = '';
 			}
