@@ -289,8 +289,11 @@ package weave.core
 			while (StringUtil.isWhitespace(script.substr(-1)))
 				script = script.substr(0, -1);
 			var lines:Array = script.split('\n');
-			while (!lines[0])
+			while (!lines[0] && lines.length)
 				lines.shift();
+			
+			if (!lines.length)
+				return '';
 			var indent:int = 0;
 			var line:String = lines[0];
 			while (line.charAt(indent) == '\t')
