@@ -19,15 +19,16 @@
 
 package weave.data.BinClassifiers
 {
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IBinClassifier;
 	import weave.api.data.IPrimitiveColumn;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.StringColumn;
 	
 	/**
-	 * NumberClassifier
 	 * A classifier that uses min,max values for containment tests.
 	 * 
 	 * @author adufilie
@@ -37,6 +38,7 @@ package weave.data.BinClassifiers
 		public function NumberClassifier(min:* = NaN, max:* = NaN, minInclusive:Boolean = true, maxInclusive:Boolean = true)
 		{
 			super();
+			_callbacks = getCallbackCollection(this);
 			this.min.value = min;
 			this.max.value = max;
 			this.minInclusive.value = minInclusive;
@@ -44,40 +46,23 @@ package weave.data.BinClassifiers
 		}
 
 		/**
-		 * min, max
 		 * These values define the bounds of the continuous range contained in this classifier.
 		 */
-		public const min:LinkableNumber = newLinkableChild(this, LinkableNumber, invalidate);
-		public const max:LinkableNumber = newLinkableChild(this, LinkableNumber, invalidate);
+		public const min:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const max:LinkableNumber = newLinkableChild(this, LinkableNumber);
 
 		/**
-		 * minInclusive
 		 * This value is the result of contains(value) when value == min.
 		 */
-		public const minInclusive:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidate);
+		public const minInclusive:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		/**
-		 * maxInclusive
 		 * This value is the result of contains(value) when value == max.
 		 */
-		public const maxInclusive:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidate);
+		public const maxInclusive:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 
-		// called when session state changes
-		private function invalidate():void
-		{
-			_dirty = true;
-		}
-		// true when private variables need to be validated
-		private var _dirty:Boolean = true;
-		// validates private variables
-		private function validate():void
-		{
-			_min = min.value;
-			_max = max.value;
-			_minInclusive = minInclusive.value;
-			_maxInclusive = maxInclusive.value;
-			_dirty = false;
-		}
 		// private variables for holding session state, used for speed
+		private var _callbacks:ICallbackCollection;
+		private var _triggerCount:uint = 0;
 		private var _min:Number, _max:Number;
 		private var _minInclusive:Boolean, _maxInclusive:Boolean;
 
@@ -89,8 +74,14 @@ package weave.data.BinClassifiers
 		public function contains(value:*):Boolean
 		{
 			// validate private variables before trying to use them
-			if (_dirty)
-				validate();
+			if (_triggerCount != _callbacks.triggerCounter)
+			{
+				_min = min.value;
+				_max = max.value;
+				_minInclusive = minInclusive.value;
+				_maxInclusive = maxInclusive.value;
+				_triggerCount = _callbacks.triggerCounter;
+			}
 			// use private variables for speed
 			return (_minInclusive ? value >= _min : value > _min)
 				&& (_maxInclusive ? value <= _max : value < _max);
