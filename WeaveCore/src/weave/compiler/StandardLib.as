@@ -265,6 +265,8 @@ package weave.compiler
 		 */
 		public static function normalize(value:Number, min:Number, max:Number):Number
 		{
+			if (min == max)
+				return 0;
 			if (value < min || value > max)
 				return NaN;
 			return (value - min) / (max - min);
@@ -281,6 +283,8 @@ package weave.compiler
 		 */
 		public static function scale(inputValue:Number, inputMin:Number, inputMax:Number, outputMin:Number, outputMax:Number):Number
 		{
+			if (inputMin == inputMax)
+				return outputMin;
 			return outputMin + (outputMax - outputMin) * (inputValue - inputMin) / (inputMax - inputMin);
 		}
 

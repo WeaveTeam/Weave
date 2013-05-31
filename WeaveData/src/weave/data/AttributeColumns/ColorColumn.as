@@ -100,7 +100,11 @@ package weave.data.AttributeColumns
 				if (isNaN(value) || value < dataMin || value > dataMax)
 					return NaN;
 				
-				var norm:Number = (value - dataMin) / (dataMax - dataMin);
+				var norm:Number;
+				if (dataMin == dataMax)
+					norm = 0;
+				else
+					norm = (value - dataMin) / (dataMax - dataMin);
 				color = ramp.getColorFromNorm(norm);
 			}
 			
