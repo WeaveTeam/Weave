@@ -35,17 +35,11 @@
 			   visible="false" includeInLayout="false"
 			   click="_stateLog.enableLogging.value = recordButton.selected;"
 			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
-	<mx:Button id="playButton" label="{ _playSpeed == 1 ? lang('Replay') : lang('Replay ({0}x)', _playSpeed) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
+	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" styleName="clearButtonStyle"/>
-	<mx:Style>
-		.clearButtonStyle {
-			paddingLeft: 4;
-			paddingRight: 4;
-		}
-	</mx:Style>
+	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" paddingLeft="4" paddingRight="4"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
@@ -76,6 +70,7 @@
 				_clearMenu = new SubMenu(clearButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				_clearMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
 				_clearMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
+				_clearMenu.addSubMenuItem(getTrimMenuLabel, trim);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])
@@ -84,12 +79,61 @@
 			}
 			
 			private var _clearMenu:SubMenu;
+			private var _trimItem:Object;
+			private function getTrimMenuLabel():String
+			{
+				if (_trimItem && (_stateLog.undoHistory.indexOf(_trimItem) >= 0 || _stateLog.redoHistory.indexOf(_trimItem) >= 0))
+					return lang("End squash");
+				if (_stateLog.undoHistory.length)
+					return lang("Begin squash");
+				return '';
+			}
+			private function trim():void
+			{
+				var undoLength:int = _stateLog.undoHistory.length;
+				if (_trimItem)
+				{
+					// perform trim
+					_stateLog.synchronizeNow();
+					
+					// TEMPORARY SOLUTION until bookmarks are implemented
+					SessionStateLog.enableHistoryRewrite = true;
+					
+					var i:int = _stateLog.undoHistory.indexOf(_trimItem);
+					if (i >= 0)
+					{
+						_stateLog.squashHistory(i + 1 - undoLength);
+					}
+					else
+					{
+						i = _stateLog.redoHistory.indexOf(_trimItem);
+						if (i >= 0)
+						{
+							_stateLog.squashHistory(i + 1);
+						}
+					}
+					_trimItem = null;
+				}
+				else if (undoLength)
+				{
+					// begin trim
+					
+					// TEMPORARY SOLUTION until bookmarks are implemented
+					SessionStateLog.enableHistoryRewrite = false; // prevents the _trimItem from being replaced in the history
+					
+					_trimItem = _stateLog.undoHistory[undoLength - 1];
+				}
+			}
 			
 			private var _playMenu:SubMenu;
 			[Bindable] private var _playSpeed:uint = 1;
 			private var _lastReplayTime:int = 0;
 			private var _maxStepDelay:int = 1000;
 			
+			private function getPlayLabel(playSpeed:uint):String
+			{
+				return playSpeed == 1 ? lang('Replay') : lang('Replay ({0}x)', playSpeed);
+			}
 			private function play(speed:int = 0):void
 			{
 				playButton.selected = true;
