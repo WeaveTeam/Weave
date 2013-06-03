@@ -207,7 +207,7 @@
 						linkSessionState(def, localDef);
 						// select the radio button
 						typeGroup.selection = radioButton;
-						overrideNamesCheckBox.visible = (radioButton != catRadio);
+						overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = (radioButton != catRadio);
 						break;
 					}
 				}

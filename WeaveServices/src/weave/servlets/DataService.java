@@ -628,7 +628,12 @@ public class DataService extends GenericServlet
 		DataEntityMetadata query = new DataEntityMetadata();
 		query.publicMetadata = metadata;
 		
+		final String DATATABLE = "dataTable";
+		final String NAME = "name";
+		
 		// exclude these parameters from the query
+		if (metadata.containsKey(NAME))
+			metadata.remove(PublicMetadata.TITLE);
 		String minStr = metadata.remove(PublicMetadata.MIN);
 		String maxStr = metadata.remove(PublicMetadata.MAX);
 		String paramsStr = metadata.remove(PrivateMetadata.SQLPARAMS);
@@ -640,8 +645,6 @@ public class DataService extends GenericServlet
 		// attempt recovery for backwards compatibility
 		if (ids.size() == 0)
 		{
-			final String DATATABLE = "dataTable";
-			final String NAME = "name";
 			String dataType = metadata.get(PublicMetadata.DATATYPE);
 			if (metadata.containsKey(DATATABLE) && metadata.containsKey(NAME))
 			{

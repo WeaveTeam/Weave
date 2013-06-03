@@ -21,8 +21,10 @@ package weave.data.BinningDefinitions
 {
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.core.SessionManager;
 	import weave.data.BinClassifiers.SingleValueClassifier;
 	import weave.utils.AsyncSort;
 
@@ -36,6 +38,7 @@ package weave.data.BinningDefinitions
 		public function CategoryBinningDefinition()
 		{
 			overrideBinNames.lock(); // no bin names allowed
+			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, overrideBinNames);
 		}
 		
 		/**
