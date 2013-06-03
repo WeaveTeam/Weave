@@ -67,38 +67,41 @@ package weave.ui
 			tabEnabled = false;
 			owner = DisplayObjectContainer(WeaveAPI.topLevelApplication);
 			showRoot = false; //test this
+			
+			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
+			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
+			this.labelFunction = getLabel;
+		}
+		
+		private function getLabel(item:SubMenuItem):String
+		{
+			return String(item.label is Function ? item.label() : item.label);
 		}
 		
 		private var _uiParent:UIComponent = null;
-		
-		//		private var subMenu:Menu;
 		
 		private var subMenuDataProvider:Array = [];
 		
 		/**
 		 * Adds an item to the menu.
-		 * @param label The Label string to show when the menu is open
+		 * @param label The Label string (or function that returns a string) to show when the menu is open.
 		 * @param listener The function to call when the item is clicked.
 		 * @param params An Array of parameters to pass to the listener function.
+		 * @return An object containing the three parameters (label, listener, params) which can be modified later.
 		 */
-		public function addSubMenuItem(label:String,listener:Function,params:Array=null):void
+		public function addSubMenuItem(label:Object, listener:Function, params:Array = null):Object
 		{
 			var menuItem:SubMenuItem = new SubMenuItem();
 			menuItem.label = label;
 			menuItem.listener = listener;
 			menuItem.params = params;
-			
 			subMenuDataProvider.push(menuItem);
-			
-			//			subMenu = Menu.createMenu(_uiParent,subMenuDataProvider,false);
-			
-			
-			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
-			
-			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
-			
-			
+			return menuItem;
 		}
+		
+		public static const LABEL:String = 'label';
+		public static const LISTENER:String = 'listener';
+		public static const PARAMS:String = 'params';
 		
 		/**
 		 * Removes all menu items
@@ -132,13 +135,7 @@ package weave.ui
 			
 			toggleSubMenu = true;
 			
-			//			if(subMenuDataProvider.length == 0)
-			//				subMenu = Menu.createMenu(_uiParent,new SubMenuItem(),false);
-			
-			
 			showSubMenu();
-			
-			
 		}
 		
 		private function closeSubMenu(event:Event):void
@@ -181,7 +178,7 @@ package weave.ui
 
 internal class SubMenuItem
 {
-	public var label:String;
+	public var label:Object;
 	public var listener:Function;
 	public var params:Array;
 }
