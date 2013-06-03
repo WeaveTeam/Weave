@@ -385,7 +385,13 @@
 			protected function shareDocumentClick(event:MouseEvent):void
 			{
 				//var docViewer:DocumentViewer = new DocumentViewer();
-				DraggablePanel.openStaticInstance(DocumentViewer);
+				//DraggablePanel.openStaticInstance(DocumentViewer);
+				var name:String = Weave.root.generateUniqueName(className);
+				var object:* = Weave.root.requestObject(name, DocumentViewer, false);
+				if (object is DraggablePanel)
+					(object as DraggablePanel).restorePanel();
+				// put panel in front
+				Weave.root.setNameOrder([name]);
 			}
 			
 		]]>
