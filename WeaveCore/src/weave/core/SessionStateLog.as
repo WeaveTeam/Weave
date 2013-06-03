@@ -31,6 +31,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.
@@ -85,6 +86,56 @@ package weave.core
 		 * When this is set to true, changes in the session state of the subject will be automatically logged.
 		 */
 		public const enableLogging:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), synchronizeNow);
+		
+		/**
+		 * This will squash a sequence of undos or redos into a single undo or redo.
+		 * @param directionalSquashCount Number of undos (negative) or redos (positive) to squash.
+		 */		
+		public function squashHistory(directionalSquashCount:int):void
+		{
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
+			
+			synchronizeNow();
+
+			var count:int = StandardLib.constrain(directionalSquashCount, -_undoHistory.length, _redoHistory.length);
+			if (count < -1 || count > 1)
+			{
+				cc.triggerCallbacks();
+				
+				var entries:Array;
+				if (count < 0)
+					entries = _undoHistory.splice(_undoHistory.length + count, -count);
+				else
+					entries = _redoHistory.splice(0, count);
+				
+				var entry:LogEntry;
+				var squashBackward:Object = null;
+				var squashForward:Object = null;
+				var totalDuration:int = 0;
+				var totalDelay:int = 0;
+				var last:int = entries.length - 1;
+				for (var i:int = 0; i <= last; i++)
+				{
+					entry = entries[last - i] as LogEntry;
+					squashBackward = WeaveAPI.SessionManager.combineDiff(squashBackward, entry.backward);
+					
+					entry = entries[i] as LogEntry;
+					squashForward = WeaveAPI.SessionManager.combineDiff(squashForward, entry.forward);
+					
+					totalDuration += entry.diffDuration;
+					totalDelay += entry.triggerDelay;
+				}
+				
+				entry = new LogEntry(_nextId++, squashForward, squashBackward, totalDelay, totalDuration);
+				if (count < 0)
+					_undoHistory.push(entry);
+				else
+					_redoHistory.unshift(entry);
+			}
+			
+			cc.resumeCallbacks();
+		}
 		
 		/**
 		 * This will clear all undo and redo history.
