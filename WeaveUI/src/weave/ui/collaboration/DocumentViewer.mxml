@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
+				   implements="weave.api.ui.ILinkableContainer"
 				   width="400" height="300" layout="absolute"
 				   resize="draggablepanel1_resizeHandler(event)" title="Document Viewer"
 				   creationComplete="handleCreationComplete(event)">	
@@ -19,6 +20,7 @@
 			import weave.Weave;
 			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IDataRowSource;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
@@ -200,6 +202,11 @@
 				{
 					swfMovieClip.nextFrame();					
 				}
+			}
+			
+			public function getLinkableChildren():ILinkableHashMap
+			{
+				return null;
 			}
 			
 		]]>

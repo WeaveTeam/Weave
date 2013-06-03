@@ -58,6 +58,7 @@ package
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.collaboration.CollaborationCursorManager;
+	import weave.ui.collaboration.DocumentViewer;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
 	import weave.utils.LinkableTextFormat;
@@ -176,6 +177,7 @@ package
 				RamachandranPlotTool,
 				DataStatisticsTool,
 				RInterfaceTool,
+				DocumentViewer,
 				TreeTool
 			]);
 			
@@ -186,6 +188,7 @@ package
 				"weave.editors",
 				"weave.ui",
 				"weave.ui.annotation",
+				"weave.ui.collaboration",
 				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",
