@@ -16,6 +16,8 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import org.osmf.events.TimeEvent;
+			
 			import weave.Weave;
 			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
@@ -29,6 +31,8 @@
 			import weave.services.AMF3Servlet;
 			import weave.services.addAsyncResponder;
 			
+			private var _servlet:AMF3Servlet = null;
+			
 			private var _pdfFile:FileReference = new FileReference();
 			private var _pdfLoader:URLLoader = new URLLoader();
 			private var isURL:Boolean = false;
@@ -36,8 +40,30 @@
 			private var swfMovieClip:MovieClip = new MovieClip();
 			private var totalSlideFrames:int = 0;
 			
+			private var swfLoader:Loader = new Loader();
+			private var loaded:Boolean = false;
+			private var swfLoaderTimer:Timer = new Timer(2000, 1);
+			
 			public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage);
 			public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
+			
+			protected function handleCreationComplete(event:FlexEvent):void
+			{
+				_pdfFile.addEventListener(Event.SELECT, pdfFileSelectedHandler);
+				_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+				_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
+				_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				
+				swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
+				swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
+				swfLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleSWFLoadError);
+				
+				swfMovieClip.width = pdfSpace.width;
+				swfMovieClip.height = pdfSpace.height;
+				this.invalidateDisplayList();
+				
+				swfLoaderTimer.addEventListener(TimerEvent.TIMER_COMPLETE, checkSWFExists);
+			}
 			
 			private function goToPage():void
 			{
@@ -48,7 +74,11 @@
 				}
 			}
 			
-			private var swfLoader:Loader = new Loader();
+			private function checkSWFExists( e:TimerEvent ):void
+			{
+				trace("checking for swf...");
+				loadPDFSWF();
+			}
 			
 			private function loadPDFSWF():void
 			{
@@ -57,32 +87,28 @@
 					if( pdfLink.value != "" && pdfLink.value.length > 5 )
 					{
 						var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
-						swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
-						swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
 						swfLoader.load(pdfReqeust);
 					}
 				}
 			}
 			
-			protected function handleCreationComplete(event:FlexEvent):void
+			private function handleSWFLoadError(e:IOErrorEvent):void
 			{
-				_pdfFile.addEventListener(Event.SELECT, pdfFileSelectedHandler);
-				_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
-				_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
-				_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
-				swfMovieClip.width = pdfSpace.width;
-				swfMovieClip.height = pdfSpace.height;
-				this.invalidateDisplayList();
+				trace("swf not converted yet.");
+				swfLoaderTimer.start();
 			}
+			
 			
 			private function pdfFileSelectedHandler(event:Event):void
 			{
 				if( swfLoader.content != null )
 				{
 					swfLoader.unload();
-					pdfSpace.rawChildren.removeChild(swfMovieClip);
+					if( pdfSpace.rawChildren.contains(swfMovieClip) )
+						pdfSpace.rawChildren.removeChild(swfMovieClip);
 					swfMovieClip = new MovieClip();
 				}
+				loaded = false;
 				_pdfFile.load();
 				WeaveAPI.ProgressIndicator.addTask(_pdfFile);
 			}
@@ -91,8 +117,6 @@
 			{
 				WeaveAPI.ProgressIndicator.updateTask(_pdfFile, event.bytesLoaded / event.bytesTotal);
 			}
-			
-			private var _servlet:AMF3Servlet = null;
 			
 			private function pdfFileLoadCompleteHandler(event:Event):void
 			{
@@ -111,6 +135,7 @@
 				
 				var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[_pdfFile.name,_pdfFile.data]);
 				addAsyncResponder(token, handleServletResponse, handleServletError, token);
+				swfLoaderTimer.start();
 			}
 			
 			private function handleServletResponse(event:ResultEvent, token:Object = null):void
@@ -136,6 +161,9 @@
 			
 			private function handleSWFDownload(e:Event):void
 			{
+				loaded = true;
+				swfLoaderTimer.stop();
+				
 				swfMovieClip = e.currentTarget.content;
 				
 				swfMovieClip.x = pdfSpace.x;
