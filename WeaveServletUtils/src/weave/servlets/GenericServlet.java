@@ -412,7 +412,7 @@ public class GenericServlet extends HttpServlet
 				/* Check to see if JSON-RPC protocol is 2.0*/
 				if (info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals(JSONRPC_VERSION))
 				{
-					sendError(null, JSON_RPC_PROTOCOL_ERROR_MESSAGE);
+					sendJsonError(JSON_RPC_PROTOCOL_ERROR_MESSAGE);
 					continue;
 				}
 				/*Check if ID is a number and if so it has not fractional numbers*/
@@ -421,7 +421,7 @@ public class GenericServlet extends HttpServlet
 					Number number = (Number) info.currentJsonRequest.id;
 					if (number.intValue() != number.doubleValue())
 					{
-						sendError(null, JSON_RPC_ID_ERROR_MESSAGE);
+						sendJsonError(JSON_RPC_ID_ERROR_MESSAGE);
 						continue;
 					}
 					info.currentJsonRequest.id = number.intValue();
@@ -430,7 +430,7 @@ public class GenericServlet extends HttpServlet
 				/*Check if Method exists*/
 				if (!methodMap.containsKey(info.currentJsonRequest.method))
 				{
-					sendError(null, JSON_RPC_METHOD_ERROR_MESSAGE);
+					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE);
 					continue;
 				}
 				
@@ -488,63 +488,51 @@ public class GenericServlet extends HttpServlet
     private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
     private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
     private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
-    private void handleJsonError(Throwable e, String errorMessage)
+    private void sendJsonError(String errorMessage)
     {
     	ServletRequestInfo info = getServletRequestInfo();
-    	JsonRpcResponseModel result = null;
-    	
     	Object id = info.currentJsonRequest.id;
-		/* If ID is empty then it is a notification, we send nothing back */
-		if (id != null)
-		{
-			result = new JsonRpcResponseModel();
-			
-			result.id = id;
-			result.jsonrpc = "2.0";
-			JsonRpcErrorModel jsonErrorObject = new JsonRpcErrorModel();
-			if (errorMessage == null)
-				errorMessage = "";
-			
-			if (errorMessage.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE))
-			{
-				jsonErrorObject.code = "-32600";
-				jsonErrorObject.message = "Invalid Request";
-			}
-			else if (errorMessage.equals(JSON_RPC_ID_ERROR_MESSAGE))
-			{
-				jsonErrorObject.code = "-32600";
-    			jsonErrorObject.message = "Invalid Request";
-			}
-			else if (errorMessage.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
-			{
-				jsonErrorObject.code = "-32601";
-    			jsonErrorObject.message = "Method not found";
-			}
-			else if (errorMessage.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
-			{
-				jsonErrorObject.code = "-32700";
-				jsonErrorObject.message = "Parse error";
-			}
-			else
-			{
-				jsonErrorObject.code = "-32000";
-    			jsonErrorObject.message = "Server error";
-			}
-			
-			if (e != null)
-			{
-				if (errorMessage.length() > 0)
-					errorMessage += '\n';
-				errorMessage += e.getMessage();
-			}
-			
-			jsonErrorObject.data = errorMessage;
-			
-			result.error = jsonErrorObject;
-			
-			info.jsonResponses.add(result);
-		}
     	
+		// If ID is empty then it is a notification and we send nothing back
+		if (id == null)
+			return;
+    	
+	    if (errorMessage == null)
+	    	errorMessage = "";
+	    
+	    JsonRpcResponseModel result = new JsonRpcResponseModel();
+	    result.id = id;
+	    result.jsonrpc = "2.0";
+	    result.error = new JsonRpcErrorModel();
+	    result.error.data = errorMessage;
+	    
+	    if (errorMessage.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE))
+	    {
+	    	result.error.code = "-32600";
+	    	result.error.message = "Invalid Request";
+	    }
+	    else if (errorMessage.equals(JSON_RPC_ID_ERROR_MESSAGE))
+	    {
+	    	result.error.code = "-32600";
+	    	result.error.message = "Invalid Request";
+	    }
+	    else if (errorMessage.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
+	    {
+	    	result.error.code = "-32601";
+	    	result.error.message = "Method not found";
+	    }
+	    else if (errorMessage.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
+	    {
+	    	result.error.code = "-32700";
+	    	result.error.message = "Parse error";
+	    }
+	    else
+	    {
+	    	result.error.code = "-32000";
+	    	result.error.message = "Server error";
+	    }
+	    
+	    info.jsonResponses.add(result);
     }
     
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -613,7 +601,7 @@ public class GenericServlet extends HttpServlet
 		ServletRequestInfo info = getServletRequestInfo();
 		if (!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
 		{
-			sendError(new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)),null);
+			sendError(new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)), null);
 			return;
 		}
 		
@@ -639,7 +627,7 @@ public class GenericServlet extends HttpServlet
 		ExposedMethod exposedMethod = methodMap.get(methodName);
 		if (exposedMethod == null)
 		{
-			sendError(new IllegalArgumentException("Unknown method: "+methodName),null);
+			sendError(new IllegalArgumentException("Unknown method: "+methodName), null);
 			return;
 		}
 		
@@ -687,7 +675,7 @@ public class GenericServlet extends HttpServlet
 		catch (InvocationTargetException e)
 		{
 			System.err.println(methodToString(methodName, params));
-			sendError(e,null);
+			sendError(e, null);
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -932,28 +920,28 @@ public class GenericServlet extends HttpServlet
     	// log errors
     	exception.printStackTrace();
     	
+    	String message;
+    	if (exception instanceof RuntimeException)
+    		message = exception.toString();
+    	else
+    		message = exception.getMessage();
+    	
+    	if (moreInfo != null)
+    		message += "\n" + moreInfo;
+    	
+    	System.err.println("Serializing ErrorMessage: "+message);
+    	
     	ServletRequestInfo info = getServletRequestInfo();
     	if (info.currentJsonRequest == null)
     	{
-    		String message;
-        	if (exception instanceof RuntimeException)
-        		message = exception.toString();
-        	else
-        		message = exception.getMessage();
-        	
-        	if (moreInfo != null)
-        		message += "\n" + moreInfo;
-        	
-        	System.err.println("Serializing ErrorMessage: "+message);
-        	
     		ServletOutputStream servletOutputStream = info.getOutputStream();
         	ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
         	errorMessage.faultCode = exception.getClass().getSimpleName();
-        	serializeCompressedAmf3(errorMessage, servletOutputStream);	
+        	serializeCompressedAmf3(errorMessage, servletOutputStream);
     	}
     	else
     	{
-    		handleJsonError(exception, moreInfo);
+    		sendJsonError(message);
     	}
 	}
     
