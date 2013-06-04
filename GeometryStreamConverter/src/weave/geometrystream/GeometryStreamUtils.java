@@ -47,6 +47,8 @@ public class GeometryStreamUtils
 
 	public static List<StreamTile> groupStreamObjectsIntoTiles(List<StreamObject> streamObjectsList, int tileSize)
 	{
+		//TODO: ignore stream objects with undefined queryBounds and do not include them in the streamObjects Array.
+		
 		StreamObject[] streamObjects = new StreamObject[streamObjectsList.size()];
 		streamObjectsList.toArray(streamObjects);
 		LinkedList<StreamTile> tiles = new LinkedList<StreamTile>();
