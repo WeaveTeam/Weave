@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
-				   implements="weave.api.ui.ILinkableContainer"
-				   width="400" height="300" layout="absolute"
-				   resize="draggablepanel1_resizeHandler(event)" title="Document Viewer"
-				   creationComplete="handleCreationComplete(event)">	
-	<mx:VBox height="100%" width="100%" >
-	<mx:Canvas id="pdfSpace" height="100%" width="100%" />
+				   width="400" height="300" creationComplete="handleCreationComplete(event)"
+				   implements="weave.api.ui.ILinkableContainer" layout="absolute"
+				   resize="draggablepanel1_resizeHandler(event)"  title="Document Viewer">	
+	<mx:VBox width="100%" height="100%">
+	<mx:Canvas id="pdfSpace" width="100%" height="100%"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.Canvas;
@@ -24,6 +23,8 @@
 			import weave.api.data.IDataRowSource;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.services.AMF3Servlet;
 			import weave.services.addAsyncResponder;
@@ -35,6 +36,33 @@
 			private var swfMovieClip:MovieClip = new MovieClip();
 			private var totalSlideFrames:int = 0;
 			
+			public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage);
+			public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
+			
+			private function goToPage():void
+			{
+				if( swfMovieClip.totalFrames > 0 )
+				{
+					swfMovieClip.gotoAndStop(currentPage.value);
+					currentPageLabel.text = currentPage.value.toString();	
+				}
+			}
+			
+			private var swfLoader:Loader = new Loader();
+			
+			private function loadPDFSWF():void
+			{
+				if( pdfLink.value != null  )
+				{
+					if( pdfLink.value != "" && pdfLink.value.length > 5 )
+					{
+						var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+						swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
+						swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
+						swfLoader.load(pdfReqeust);
+					}
+				}
+			}
 			
 			protected function handleCreationComplete(event:FlexEvent):void
 			{
@@ -42,6 +70,9 @@
 				_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
 				_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
 				_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				swfMovieClip.width = pdfSpace.width;
+				swfMovieClip.height = pdfSpace.height;
+				this.invalidateDisplayList();
 			}
 			
 			private function pdfFileSelectedHandler(event:Event):void
@@ -82,26 +113,20 @@
 				addAsyncResponder(token, handleServletResponse, handleServletError, token);
 			}
 			
-			var swfLoader:Loader = new Loader();
-			
 			private function handleServletResponse(event:ResultEvent, token:Object = null):void
 			{
+				var getSWFLink:String;
 				if( isURL )
 				{
-					var getSWFLink:URLRequest = new URLRequest(serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
+					getSWFLink = new String(serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
 					trace( serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
 				}
 				else
 				{
-					var getSWFLink:URLRequest = new URLRequest(serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf");
+					getSWFLink = new String(serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf");
 					trace( serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf" );
 				}
-				swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
-				swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
-				swfLoader.load(getSWFLink);
-				trace(event.message);
-				trace(event.result);
-				trace(token);
+				pdfLink.value = getSWFLink;
 			}
 			
 			private function progress(e:ProgressEvent):void
@@ -120,6 +145,9 @@
 				pdfSpace.rawChildren.addChild(swfMovieClip);
 				
 				totalSlideFrames = swfMovieClip.totalFrames;
+				totalPageLabel.text = totalSlideFrames.toString();
+				currentPageLabel.text = swfMovieClip.currentFrame.toString();
+				currentPage.value = swfMovieClip.currentFrame;
 			}
 			
 			private function handleServletError(event:FaultEvent, token:Object = null):void
@@ -193,6 +221,7 @@
 				if( swfMovieClip.totalFrames > 0 )
 				{
 					swfMovieClip.gotoAndStop(swfMovieClip.currentFrame-1);
+					currentPage.value = swfMovieClip.currentFrame;
 				}				
 			}
 			
@@ -200,7 +229,8 @@
 			{
 				if( swfMovieClip.totalFrames > 0 )
 				{
-					swfMovieClip.nextFrame();					
+					swfMovieClip.nextFrame();				
+					currentPage.value = swfMovieClip.currentFrame;
 				}
 			}
 			
@@ -212,13 +242,17 @@
 		]]>
 	</mx:Script>
 	<mx:HBox width="100%" height="5%" horizontalAlign="center">
+		<mx:Spacer width="100%" />
 		<mx:Image id="leftArrow" width="30" height="100%" click="pageBack(event)"
 				  source="@Embed(source='/weave/resources/images/collab/docViewerArrowLeft.png')"/>
 		<mx:Image id="rightArrow" width="30" height="100%" click="pageForward(event)"
 				  source="@Embed(source='/weave/resources/images/collab/docViewerArrowRight.png')"/>
+		<mx:Spacer width="100%" />
+		<mx:Label id="currentPageLabel" text="0" />
+		<mx:Label text="/" />
+		<mx:Label id="totalPageLabel" text="0" />
 	</mx:HBox>
 	</mx:VBox>
-	
 	<ui:ControlPanel>
 		<mx:VBox>
 			<mx:HBox>
@@ -235,8 +269,8 @@
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Select PDF file:"/>
-				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a CSV file.')}" />
-				<mx:Button label="Load PDF"  click="selectPDFButton(event)"/>
+				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a CSV file.')}"/>
+				<mx:Button label="Load PDF" click="selectPDFButton(event)"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
