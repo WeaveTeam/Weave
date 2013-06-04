@@ -107,7 +107,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for( var k:int = 0; k < controlList.length; k++ )
 				{
 					if( controlList[k] is Number ) continue;
-						
+					if( canvasList == null )
+						return;
 					if( canvasList[controlList[k]] != null )
 					{
 						foundOne = true;
