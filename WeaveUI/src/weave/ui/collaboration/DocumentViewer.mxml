@@ -63,7 +63,10 @@
 					{
 						swfMovieClip.gotoAndStop(currentPage.value);
 						currentPageLabel.text = currentPage.value.toString();	
+						return;
 					}
+					if( currentPage.value > 0 )
+						loadPDFSWF();
 				}
 				
 				private function checkSWFExists( e:TimerEvent ):void
@@ -78,10 +81,19 @@
 					{
 						if( pdfLink.value != "" && pdfLink.value.length > 5 )
 						{
-							var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
-							swfLoader.load(pdfReqeust);
+							//var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+							var testTimer:Timer = new Timer(2000,1);
+							testTimer.addEventListener(TimerEvent.TIMER_COMPLETE, doDownload);
+							testTimer.start();
+							//swfLoader.load(pdfReqeust);
 						}
 					}
+				}
+				
+				private function doDownload(e:TimerEvent):void
+				{
+					var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+					swfLoader.load(pdfReqeust);
 				}
 				
 				private function handleSWFLoadError(e:IOErrorEvent):void
