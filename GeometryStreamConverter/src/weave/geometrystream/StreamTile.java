@@ -59,8 +59,6 @@ public class StreamTile
 		for (int i = startIndex; i < endIndex; i++)
 		{
 			obj = streamObjects[i];
-			if (obj.getQueryBounds().isUndefined())
-				continue;
 			pointBounds.includePoint(obj.getX(), obj.getY());
 			queryBounds.includeBounds(obj.getQueryBounds());
 		}
@@ -70,29 +68,16 @@ public class StreamTile
 	{
 		// binary format: <int negativeTileID, binary stream object beginning with positive int, ...>
 		stream.writeInt(-1 - tileID);
-		StreamObject obj;
 		for (int i = startIndex; i < endIndex; i++)
-		{
-			obj = streamObjects[i];
-			if (!obj.getQueryBounds().isUndefined())
-				streamObjects[i].writeStream(stream);
-		}
+			streamObjects[i].writeStream(stream);
 	}
 	
 	public String toString() // for debugging
 	{
 		int bytes = 0;
-		StreamObject obj;
-		int count = 0;
 		for (int i = startIndex; i < endIndex; i++)
-		{
-			obj = streamObjects[i];
-			if (obj.getQueryBounds().isUndefined())
-				continue;
 			bytes += streamObjects[i].getStreamSize();
-			count++;
-		}
-		return String.format("ShapeStreamTile(%s StreamObjects, %s bytes, %s, %s)", count, bytes, pointBounds, queryBounds);
+		return String.format("ShapeStreamTile(%s StreamObjects, %s bytes, %s, %s)", endIndex - startIndex, bytes, pointBounds, queryBounds);
 	}
 	
 	private StreamObject[] streamObjects;

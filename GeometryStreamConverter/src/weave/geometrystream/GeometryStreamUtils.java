@@ -20,6 +20,7 @@
 package weave.geometrystream;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -45,9 +46,19 @@ public class GeometryStreamUtils
 		return -1;//ShapeType.UNDEFINED;
 	}
 
-	public static List<StreamTile> groupStreamObjectsIntoTiles(List<StreamObject> streamObjectsList, int tileSize)
+	/**
+	 * This will remove all objects from the given streamObjectsList and group them into StreamTile objects.
+	 * @param streamObjectsList This is the list to modify and group.
+	 * @param tileSize The desired approximate tile size, in bytes.
+	 * @return A list of StreamTile objects which contain the items originally in streamObjectsList.
+	 */
+	public static List<StreamTile> groupStreamObjectsIntoTiles(LinkedList<StreamObject> streamObjectsList, int tileSize)
 	{
-		//TODO: ignore stream objects with undefined queryBounds and do not include them in the streamObjects Array.
+		// remove stream objects with undefined queryBounds
+		Iterator<StreamObject> iter = streamObjectsList.iterator();
+		while (iter.hasNext())
+			if (iter.next().getQueryBounds().isUndefined())
+				iter.remove();
 		
 		StreamObject[] streamObjects = new StreamObject[streamObjectsList.size()];
 		streamObjectsList.toArray(streamObjects);

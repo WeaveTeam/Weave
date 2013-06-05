@@ -276,7 +276,6 @@ public class GeometryStreamConverter
 		
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(metadataList, tileSize);
 		destination.writeMetadataTiles(tiles);
-		metadataList.clear();
 		metadataStreamSize = 0;
 
 		long elapsed = System.currentTimeMillis() - startTime;
@@ -297,7 +296,7 @@ public class GeometryStreamConverter
 	{
 		long startTime = System.currentTimeMillis();
 		
-		List<StreamObject> streamObjects = vertexMap.getStreamObjects();
+		LinkedList<StreamObject> streamObjects = vertexMap.getStreamObjects();
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(streamObjects, tileSize);
 		destination.writeGeometryTiles(tiles);
 		vertexMap.clear();
