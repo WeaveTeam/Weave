@@ -343,7 +343,7 @@ package weave.core
 		
 		private function applyDiff(base:Object, diff:Object):Object
 		{
-			if (typeof(base) != 'object')
+			if (base == null || typeof(base) != 'object')
 				return diff;
 			
 			for (var key:String in diff)
