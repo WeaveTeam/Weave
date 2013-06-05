@@ -2,284 +2,271 @@
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   width="400" height="300" creationComplete="handleCreationComplete(event)"
-				   implements="weave.api.ui.ILinkableContainer" layout="absolute"
-				   resize="draggablepanel1_resizeHandler(event)"  title="Document Viewer">	
+				   layout="absolute" resize="draggablepanel1_resizeHandler(event)"
+				   title="Document Viewer">	
 	<mx:VBox width="100%" height="100%">
-	<mx:Canvas id="pdfSpace" width="100%" height="100%"/>
-	<mx:Script>
-		<![CDATA[
-			import mx.containers.Canvas;
-			import mx.effects.Move;
-			import mx.events.FlexEvent;
-			import mx.events.ResizeEvent;
-			import mx.rpc.AsyncToken;
-			import mx.rpc.events.FaultEvent;
-			import mx.rpc.events.ResultEvent;
-			
-			import org.osmf.events.TimeEvent;
-			
-			import weave.Weave;
-			import weave.WeaveProperties;
-			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.data.IDataRowSource;
-			import weave.api.registerLinkableChild;
-			import weave.api.reportError;
-			import weave.core.LinkableNumber;
-			import weave.core.LinkableString;
-			import weave.data.DataSources.WeaveDataSource;
-			import weave.services.AMF3Servlet;
-			import weave.services.addAsyncResponder;
-			
-			private var _servlet:AMF3Servlet = null;
-			
-			private var _pdfFile:FileReference = new FileReference();
-			private var _pdfLoader:URLLoader = new URLLoader();
-			private var isURL:Boolean = false;
-			//Re-useable movieclip object for the converted pdf.
-			private var swfMovieClip:MovieClip = new MovieClip();
-			private var totalSlideFrames:int = 0;
-			
-			private var swfLoader:Loader = new Loader();
-			private var loaded:Boolean = false;
-			private var swfLoaderTimer:Timer = new Timer(2000, 1);
-			
-			public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage);
-			public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
-			
-			protected function handleCreationComplete(event:FlexEvent):void
-			{
-				_pdfFile.addEventListener(Event.SELECT, pdfFileSelectedHandler);
-				_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
-				_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
-				_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+		<mx:Canvas id="pdfSpace" width="100%" height="100%"/>
+		<mx:Script>
+			<![CDATA[
+				import mx.containers.Canvas;
+				import mx.events.FlexEvent;
+				import mx.events.ResizeEvent;
+				import mx.rpc.AsyncToken;
+				import mx.rpc.events.FaultEvent;
+				import mx.rpc.events.ResultEvent;
 				
-				swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
-				swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
-				swfLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleSWFLoadError);
+				import weave.api.WeaveAPI;
+				import weave.api.core.ILinkableHashMap;
+				import weave.api.registerLinkableChild;
+				import weave.api.reportError;
+				import weave.core.LinkableNumber;
+				import weave.core.LinkableString;
+				import weave.services.AMF3Servlet;
+				import weave.services.addAsyncResponder;
 				
-				swfMovieClip.width = pdfSpace.width;
-				swfMovieClip.height = pdfSpace.height;
-				this.invalidateDisplayList();
+				private var _servlet:AMF3Servlet = null;
 				
-				swfLoaderTimer.addEventListener(TimerEvent.TIMER_COMPLETE, checkSWFExists);
-			}
-			
-			private function goToPage():void
-			{
-				if( swfMovieClip.totalFrames > 0 )
+				private var _pdfFile:FileReference = new FileReference();
+				private var _pdfLoader:URLLoader = new URLLoader();
+				private var isURL:Boolean = false;
+				//Re-useable movieclip object for the converted pdf.
+				private var swfMovieClip:MovieClip = new MovieClip();
+				private var totalSlideFrames:int = 0;
+				
+				private var swfLoader:Loader = new Loader();
+				private var loaded:Boolean = false;
+				private var swfLoaderTimer:Timer = new Timer(1000, 1);
+				
+				public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage);
+				public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
+				
+				protected function handleCreationComplete(event:FlexEvent):void
 				{
-					swfMovieClip.gotoAndStop(currentPage.value);
-					currentPageLabel.text = currentPage.value.toString();	
+					_pdfFile.addEventListener(Event.SELECT, pdfFileSelectedHandler);
+					_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+					_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
+					_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					
+					swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
+					swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
+					swfLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleSWFLoadError);
+					
+					swfMovieClip.width = pdfSpace.width;
+					swfMovieClip.height = pdfSpace.height;
+					
+					swfLoaderTimer.addEventListener(TimerEvent.TIMER_COMPLETE, checkSWFExists);
 				}
-			}
-			
-			private function checkSWFExists( e:TimerEvent ):void
-			{
-				trace("checking for swf...");
-				loadPDFSWF();
-			}
-			
-			private function loadPDFSWF():void
-			{
-				if( pdfLink.value != null  )
+				
+				private function goToPage():void
 				{
-					if( pdfLink.value != "" && pdfLink.value.length > 5 )
+					if( swfMovieClip.totalFrames > 0 )
 					{
-						var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
-						swfLoader.load(pdfReqeust);
+						swfMovieClip.gotoAndStop(currentPage.value);
+						currentPageLabel.text = currentPage.value.toString();	
 					}
 				}
-			}
-			
-			private function handleSWFLoadError(e:IOErrorEvent):void
-			{
-				trace("swf not converted yet.");
-				swfLoaderTimer.start();
-			}
-			
-			
-			private function pdfFileSelectedHandler(event:Event):void
-			{
-				if( swfLoader.content != null )
+				
+				private function checkSWFExists( e:TimerEvent ):void
 				{
-					swfLoader.unload();
-					if( pdfSpace.rawChildren.contains(swfMovieClip) )
+					trace("checking for swf...");
+					loadPDFSWF();
+				}
+				
+				private function loadPDFSWF():void
+				{
+					if( pdfLink.value != null  )
+					{
+						if( pdfLink.value != "" && pdfLink.value.length > 5 )
+						{
+							var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+							swfLoader.load(pdfReqeust);
+						}
+					}
+				}
+				
+				private function handleSWFLoadError(e:IOErrorEvent):void
+				{
+					trace("swf not converted yet.");
+					swfLoaderTimer.start();
+				}
+				
+				
+				private function pdfFileSelectedHandler(event:Event):void
+				{
+					if( swfLoader.content != null )
+					{
+						swfLoader.unload();
+						if( pdfSpace.rawChildren.contains(swfMovieClip) )
+							pdfSpace.rawChildren.removeChild(swfMovieClip);
+						swfMovieClip = new MovieClip();
+					}
+					loaded = false;
+					_pdfFile.load();
+					WeaveAPI.ProgressIndicator.addTask(_pdfFile);
+				}
+				
+				private function handleProgress(event:ProgressEvent):void
+				{
+					WeaveAPI.ProgressIndicator.updateTask(_pdfFile, event.bytesLoaded / event.bytesTotal);
+				}
+				
+				private function pdfFileLoadCompleteHandler(event:Event):void
+				{
+					WeaveAPI.ProgressIndicator.removeTask(_pdfFile);
+					if (_pdfFile.data == null)
+					{
+						return;
+					}
+					
+					_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
+					registerLinkableChild(this, _servlet);
+					
+					pdfSelected.text = _pdfFile.name;
+					
+					isURL = false;
+					
+					var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[_pdfFile.name,_pdfFile.data]);
+					addAsyncResponder(token, handleServletResponse, handleServletError, token);
+					swfLoaderTimer.start();
+				}
+				
+				private function handleServletResponse(event:ResultEvent, token:Object = null):void
+				{
+					var getSWFLink:String;
+					if( isURL )
+					{
+						getSWFLink = new String(serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
+						trace( serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
+					}
+					else
+					{
+						getSWFLink = new String(serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf");
+						trace( serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf" );
+					}
+					pdfLink.value = getSWFLink;
+				}
+				
+				private function progress(e:ProgressEvent):void
+				{
+					trace(e.bytesLoaded / e.bytesTotal);
+				}
+				
+				private function handleSWFDownload(e:Event):void
+				{
+					loaded = true;
+					swfLoaderTimer.stop();
+					
+					swfMovieClip = e.currentTarget.content;
+					
+					swfMovieClip.x = pdfSpace.x;
+					swfMovieClip.y = pdfSpace.y;
+					swfMovieClip.width = pdfSpace.width;
+					swfMovieClip.height = pdfSpace.height;
+					pdfSpace.rawChildren.addChild(swfMovieClip);
+					
+					totalSlideFrames = swfMovieClip.totalFrames;
+					totalPageLabel.text = totalSlideFrames.toString();
+					currentPageLabel.text = swfMovieClip.currentFrame.toString();
+					currentPage.value = swfMovieClip.currentFrame;
+				}
+				
+				private function handleServletError(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event);
+				}
+				
+				private function fileErrorHandler(event:IOErrorEvent):void
+				{
+					reportError(event);
+				}
+				
+				protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
+				{
+					swfMovieClip.width = pdfSpace.width;
+					swfMovieClip.height = pdfSpace.height;
+					this.invalidateDisplayList();
+				}
+				
+				protected function selectPDFButton(event:MouseEvent):void
+				{
+					try
+					{
+						var fileTypes:Array = [new FileFilter("PDF Files", "*.pdf")];
+						_pdfFile.browse(fileTypes);
+					}
+					catch(e:Error)
+					{
+						reportError(e);
+					}
+					
+				}
+				
+				protected function loadPDF(event:MouseEvent):void
+				{
+					if( swfLoader.content != null )
+					{
+						swfLoader.unload();
 						pdfSpace.rawChildren.removeChild(swfMovieClip);
-					swfMovieClip = new MovieClip();
-				}
-				loaded = false;
-				_pdfFile.load();
-				WeaveAPI.ProgressIndicator.addTask(_pdfFile);
-			}
-			
-			private function handleProgress(event:ProgressEvent):void
-			{
-				WeaveAPI.ProgressIndicator.updateTask(_pdfFile, event.bytesLoaded / event.bytesTotal);
-			}
-			
-			private function pdfFileLoadCompleteHandler(event:Event):void
-			{
-				WeaveAPI.ProgressIndicator.removeTask(_pdfFile);
-				if (_pdfFile.data == null)
-				{
-					return;
+						swfMovieClip = new MovieClip();
+					}
+					
+					var url:URLRequest = new URLRequest(pdfURL.text); 
+					_pdfLoader.dataFormat = URLLoaderDataFormat.BINARY;				
+					_pdfLoader.addEventListener(Event.COMPLETE, loaderOnComplete);
+					_pdfLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					_pdfLoader.load(url); 
 				}
 				
-				_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
-				registerLinkableChild(this, _servlet);
-				
-				pdfSelected.text = _pdfFile.name;
-				
-				isURL = false;
-				
-				var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[_pdfFile.name,_pdfFile.data]);
-				addAsyncResponder(token, handleServletResponse, handleServletError, token);
-				swfLoaderTimer.start();
-			}
-			
-			private function handleServletResponse(event:ResultEvent, token:Object = null):void
-			{
-				var getSWFLink:String;
-				if( isURL )
+				private function loaderOnComplete(event:Event):void
 				{
-					getSWFLink = new String(serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
-					trace( serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
-				}
-				else
-				{
-					getSWFLink = new String(serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf");
-					trace( serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf" );
-				}
-				pdfLink.value = getSWFLink;
-			}
-			
-			private function progress(e:ProgressEvent):void
-			{
-				trace(e.bytesLoaded / e.bytesTotal);
-			}
-			
-			private function handleSWFDownload(e:Event):void
-			{
-				loaded = true;
-				swfLoaderTimer.stop();
-				
-				swfMovieClip = e.currentTarget.content;
-				
-				swfMovieClip.x = pdfSpace.x;
-				swfMovieClip.y = pdfSpace.y;
-				swfMovieClip.width = pdfSpace.width;
-				swfMovieClip.height = pdfSpace.height;
-				pdfSpace.rawChildren.addChild(swfMovieClip);
-				
-				totalSlideFrames = swfMovieClip.totalFrames;
-				totalPageLabel.text = totalSlideFrames.toString();
-				currentPageLabel.text = swfMovieClip.currentFrame.toString();
-				currentPage.value = swfMovieClip.currentFrame;
-			}
-			
-			private function handleServletError(event:FaultEvent, token:Object = null):void
-			{
-				reportError(event);
-			}
-			
-			private function fileErrorHandler(event:IOErrorEvent):void
-			{
-				reportError(event);
-			}
-			
-			protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
-			{
-				swfMovieClip.width = pdfSpace.width;
-				swfMovieClip.height = pdfSpace.height;
-				this.invalidateDisplayList();
-			}
-			
-			protected function selectPDFButton(event:MouseEvent):void
-			{
-				try
-				{
-					var fileTypes:Array = [new FileFilter("PDF Files", "*.pdf")];
-					_pdfFile.browse(fileTypes);
-				}
-				catch(e:Error)
-				{
-					reportError(e);
+					if (_pdfLoader.data == null)
+					{
+						return;
+					}
+					
+					_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
+					registerLinkableChild(this, _servlet);
+					
+					//get filename.
+					
+					isURL = true;
+					
+					var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[pdfURL.text.substring(pdfURL.text.lastIndexOf("/")),_pdfLoader.data]);
+					addAsyncResponder(token, handleServletResponse, handleServletError, token);
+					
 				}
 				
-			}
-			
-			protected function loadPDF(event:MouseEvent):void
-			{
-				if( swfLoader.content != null )
+				protected function pageBack(event:MouseEvent):void
 				{
-					swfLoader.unload();
-					pdfSpace.rawChildren.removeChild(swfMovieClip);
-					swfMovieClip = new MovieClip();
+					if( swfMovieClip.totalFrames > 0 )
+					{
+						swfMovieClip.gotoAndStop(swfMovieClip.currentFrame-1);
+						currentPage.value = swfMovieClip.currentFrame;
+					}				
 				}
 				
-				var url:URLRequest = new URLRequest(pdfURL.text); 
-				_pdfLoader.dataFormat = URLLoaderDataFormat.BINARY;				
-				_pdfLoader.addEventListener(Event.COMPLETE, loaderOnComplete);
-				_pdfLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
-				_pdfLoader.load(url); 
-			}
-			
-			private function loaderOnComplete(event:Event):void
-			{
-				if (_pdfLoader.data == null)
+				protected function pageForward(event:MouseEvent):void
 				{
-					return;
+					if( swfMovieClip.totalFrames > 0 )
+					{
+						swfMovieClip.nextFrame();				
+						currentPage.value = swfMovieClip.currentFrame;
+					}
 				}
 				
-				_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
-				registerLinkableChild(this, _servlet);
-				
-				//get filename.
-				
-				isURL = true;
-				
-				var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[pdfURL.text.substring(pdfURL.text.lastIndexOf("/")),_pdfLoader.data]);
-				addAsyncResponder(token, handleServletResponse, handleServletError, token);
-			
-			}
-			
-			protected function pageBack(event:MouseEvent):void
-			{
-				if( swfMovieClip.totalFrames > 0 )
-				{
-					swfMovieClip.gotoAndStop(swfMovieClip.currentFrame-1);
-					currentPage.value = swfMovieClip.currentFrame;
-				}				
-			}
-			
-			protected function pageForward(event:MouseEvent):void
-			{
-				if( swfMovieClip.totalFrames > 0 )
-				{
-					swfMovieClip.nextFrame();				
-					currentPage.value = swfMovieClip.currentFrame;
-				}
-			}
-			
-			public function getLinkableChildren():ILinkableHashMap
-			{
-				return null;
-			}
-			
-		]]>
-	</mx:Script>
-	<mx:HBox width="100%" height="5%" horizontalAlign="center">
-		<mx:Spacer width="100%" />
-		<mx:Image id="leftArrow" width="30" height="100%" click="pageBack(event)"
-				  source="@Embed(source='/weave/resources/images/collab/docViewerArrowLeft.png')"/>
-		<mx:Image id="rightArrow" width="30" height="100%" click="pageForward(event)"
-				  source="@Embed(source='/weave/resources/images/collab/docViewerArrowRight.png')"/>
-		<mx:Spacer width="100%" />
-		<mx:Label id="currentPageLabel" text="0" />
-		<mx:Label text="/" />
-		<mx:Label id="totalPageLabel" text="0" />
-	</mx:HBox>
+			]]>
+		</mx:Script>
+		<mx:HBox width="100%" height="5%" horizontalAlign="center">
+			<mx:Spacer width="100%"/>
+			<mx:Image id="leftArrow" width="30" height="100%" click="pageBack(event)"
+					  source="@Embed(source='/weave/resources/images/collab/docViewerArrowLeft.png')"/>
+			<mx:Image id="rightArrow" width="30" height="100%" click="pageForward(event)"
+					  source="@Embed(source='/weave/resources/images/collab/docViewerArrowRight.png')"/>
+			<mx:Spacer width="100%"/>
+			<mx:Label id="currentPageLabel" text="0"/>
+			<mx:Label text="/"/>
+			<mx:Label id="totalPageLabel" text="0"/>
+		</mx:HBox>
 	</mx:VBox>
 	<ui:ControlPanel>
 		<mx:VBox>
