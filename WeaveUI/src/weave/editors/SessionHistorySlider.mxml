@@ -39,9 +39,11 @@
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" paddingLeft="4" paddingRight="4"/>
+	<mx:Button width="24" id="menuButton" icon="@Embed(source='/weave/resources/images/arrowDown.png')"/>
+	<mx:Button id="cancelTempBranchButton" label="Done" click="toggleTempBranch()" visible="false" includeInLayout="false"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -67,10 +69,12 @@
 			{
 				super.childrenCreated();
 				
-				_clearMenu = new SubMenu(clearButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				_clearMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
-				_clearMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
-				_clearMenu.addSubMenuItem(getTrimMenuLabel, trim);
+				_editMenu = new SubMenu(menuButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN]);
+				_editMenu.addSubMenuItem(lang("Temporary branch"), toggleTempBranch);
+				_editMenu.addSubMenuItem(lang("Clear everything"), _stateLog.clearHistory);
+				_editMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
+				_editMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
+				_editMenu.addSubMenuItem(getTrimMenuLabel, trim);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])
@@ -78,14 +82,40 @@
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
 			
-			private var _clearMenu:SubMenu;
+			private var _tempBranchRestoreState:Object;
+			private function toggleTempBranch():void
+			{
+				var enable:Boolean = cancelTempBranchButton.visible;
+				for (var i:int = 0; i < numChildren; i++)
+				{
+					var child:UIComponent = getChildAt(i) as UIComponent;
+					if (child && child != cancelTempBranchButton)
+					{
+						child.enabled = enable;
+						child.alpha = enable ? 1 : 0;
+					}
+				}
+				cancelTempBranchButton.visible = cancelTempBranchButton.includeInLayout = !enable;
+				if (enable)
+				{
+					_stateLog.setSessionState(_tempBranchRestoreState);
+					_tempBranchRestoreState = null;
+				}
+				else
+				{
+					_tempBranchRestoreState = _stateLog.getSessionState();
+					_stateLog.enableLogging.value = false;
+				}
+			}
+			
+			private var _editMenu:SubMenu;
 			private var _trimItem:Object;
 			private function getTrimMenuLabel():String
 			{
 				if (_trimItem && (_stateLog.undoHistory.indexOf(_trimItem) >= 0 || _stateLog.redoHistory.indexOf(_trimItem) >= 0))
-					return lang("End squash");
+					return lang("Compress (Mark out)");
 				if (_stateLog.undoHistory.length)
-					return lang("Begin squash");
+					return lang("Compress (Mark in)");
 				return '';
 			}
 			private function trim():void
