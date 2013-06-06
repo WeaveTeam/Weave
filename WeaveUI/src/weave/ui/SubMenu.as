@@ -59,9 +59,17 @@ package weave.ui
 			
 			var type:String;
 			for each (type in openMenuEventTypes)
-				_uiParent.addEventListener(type, openSubMenu);
+			{
+				if (closeMenuEventTypes && closeMenuEventTypes.indexOf(type) >= 0)
+					_uiParent.addEventListener(type, toggleSubMenu);
+				else
+					_uiParent.addEventListener(type, openSubMenu);
+			}
 			for each (type in closeMenuEventTypes)
-				_uiParent.addEventListener(type, closeSubMenu);
+			{
+				if (openMenuEventTypes && !openMenuEventTypes.indexOf(type) >= 0)
+					_uiParent.addEventListener(type, closeSubMenu);
+			}
 			
 			includeInLayout = false;
 			tabEnabled = false;
@@ -69,7 +77,6 @@ package weave.ui
 			showRoot = false; //test this
 			
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
-			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
 			this.labelFunction = getLabel;
 		}
 		
@@ -117,7 +124,14 @@ package weave.ui
 			item.listener.apply(null, item.params);
 		}
 		
-		private var toggleSubMenu:Boolean =  false;
+		private function toggleSubMenu(event:Event = null):void
+		{
+			if (visible)
+				hide();
+			else
+				openSubMenu(event);
+		}
+		
 		private function openSubMenu(event:Event = null):void
 		{
 			// work around bug where menu doesn't open on mouseDown
@@ -126,14 +140,6 @@ package weave.ui
 				_uiParent.callLater(openSubMenu);
 				return;
 			}
-			
-			if(toggleSubMenu)
-			{
-				toggleSubMenu = false;
-				return;
-			}
-			
-			toggleSubMenu = true;
 			
 			showSubMenu();
 		}
@@ -148,7 +154,6 @@ package weave.ui
 			var menuLocation:Point = _uiParent.localToGlobal(new Point(0,_uiParent.height));
 			
 			var stage:Stage = WeaveAPI.topLevelApplication.stage;
-			var tempBounds:Bounds2D = new Bounds2D();
 			tempBounds.setBounds(0, 0, stage.stageWidth, stage.stageHeight);
 			
 			var xMin:Number = tempBounds.getXNumericMin();
@@ -170,9 +175,10 @@ package weave.ui
 			else if (menuLocation.y + height > yMax)
 				menuLocation.y -= height + _uiParent.height;
 			
-			move(menuLocation.x,menuLocation.y);
+			move(menuLocation.x, menuLocation.y);
 		}
 		
+		private const tempBounds:Bounds2D = new Bounds2D();
 	}
 }
 
