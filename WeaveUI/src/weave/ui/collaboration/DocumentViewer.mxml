@@ -55,6 +55,7 @@
 					swfMovieClip.height = pdfSpace.height;
 					
 					swfLoaderTimer.addEventListener(TimerEvent.TIMER_COMPLETE, checkSWFExists);
+					testTimer.addEventListener(TimerEvent.TIMER_COMPLETE, doDownload);
 				}
 				
 				private function goToPage():void
@@ -65,8 +66,6 @@
 						currentPageLabel.text = currentPage.value.toString();	
 						return;
 					}
-					if( currentPage.value > 0 )
-						loadPDFSWF();
 				}
 				
 				private function checkSWFExists( e:TimerEvent ):void
@@ -75,6 +74,8 @@
 					loadPDFSWF();
 				}
 				
+				private var testTimer:Timer = new Timer(2000,1);
+				
 				private function loadPDFSWF():void
 				{
 					if( pdfLink.value != null  )
@@ -82,8 +83,6 @@
 						if( pdfLink.value != "" && pdfLink.value.length > 5 )
 						{
 							//var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
-							var testTimer:Timer = new Timer(2000,1);
-							testTimer.addEventListener(TimerEvent.TIMER_COMPLETE, doDownload);
 							testTimer.start();
 							//swfLoader.load(pdfReqeust);
 						}
@@ -107,7 +106,8 @@
 				{
 					if( swfLoader.content != null )
 					{
-						swfLoader.unload();
+						swfMovieClip.stop();
+						swfLoader.unloadAndStop();
 						if( pdfSpace.rawChildren.contains(swfMovieClip) )
 							pdfSpace.rawChildren.removeChild(swfMovieClip);
 						swfMovieClip = new MovieClip();
