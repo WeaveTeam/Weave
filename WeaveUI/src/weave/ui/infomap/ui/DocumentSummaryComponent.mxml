@@ -63,6 +63,7 @@ Use the static functions to show this as a popup.
 				
 				private static var instance:DocumentSummaryComponent = null;
 				private static var requestToken:IURLRequestToken = null;
+				private static var  _offset:Number = 20;
 				/**
 				 * Call this function to show a Summary Component as a Popup
 				 * 
@@ -91,6 +92,10 @@ Use the static functions to show this as a popup.
 					{
 						requestToken = WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
 					}
+					if(xPos+instance.width >=parent.stage.stageWidth)
+					{
+						xPos = xPos - instance.width - _offset; 
+					}
 					xPos = Math.min(xPos, parent.stage.stageWidth - instance.width);
 					yPos = Math.min(yPos, parent.stage.stageHeight - instance.height);
 					instance.move(xPos,yPos);
@@ -102,13 +107,8 @@ Use the static functions to show this as a popup.
 						keywords = keywords.concat(node.parentPanel.relatedKeywords.value.split(','));
 					source.getDescriptionForURL(_docURL.value,keywords).addAsyncResponder(handleGetDescriptionResult,handleGetDescriptionFault,_docURL.value);
 					instance.nodeTimeStamp.text = getDateText(_docURL.value);
-//					instance.height = instance.nodeTitle.textHeight +  instance.nodeDescription.textHeight 
-//										+ instance.nodeTimeStamp.textHeight;
-//					instance.invalidateSize();
-//					instance.invalidateDisplayList();
 					instance.fadeIn.play();
-//					trace("TEXT HEIGHT IS ",instance.nodeDescription.textHeight);
-//					trace("HEIGHT IS ",instance.height);
+					trace("showing for ",_docURL.value);
 				}
 				
 				private static function getDateText(url:String):String
@@ -167,9 +167,11 @@ Use the static functions to show this as a popup.
 						{
 							requestToken.cancelRequest(); 
 						}
+						instance.fadeIn.stop();
 						instance.fadeOut.play();
 						PopUpManager.removePopUp(instance);
 					}
+					trace("hiding for" , _docURL.value);
 				}
 				
 				private var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;

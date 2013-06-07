@@ -38,7 +38,7 @@
 		<mx:Component>
 			<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.
 			Setting it to null does not work.-->
-			<ui:CustomLabelTextField doubleClick="handleItemDoubleClick(event)" rollOut="handleItemRollOut(event)" rollOver="handleItemRollOver(event)" 
+			<ui:CustomLabelTextField doubleClick="handleItemDoubleClick(event)" mouseOut="handleItemRollOut(event)" mouseOver="handleItemRollOver(event)" 
 									 toolTip="" width="100%"> 
 				<mx:Script>
 					<![CDATA[
@@ -72,50 +72,50 @@
 					
 					override public function set data(value:Object):void
 					{
-					super.data = value;
-					if(value == null || outerDocument.parentNode == null)
-					return;
-					
-					var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
-					
-					//changing background color if document is new/highlighted
-					t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
-					
-					//removing highlighted background color if any when user clicks on the list item
-					this.addEventListener(MouseEvent.CLICK,handleMouseClick);
-					
-					this.text = infomapDataSource.getTitleForURL(t.docURL.value);
+						super.data = value;
+						if(value == null || outerDocument.parentNode == null)
+						return;
+						
+						var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
+						
+						//changing background color if document is new/highlighted
+						t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
+						
+						//removing highlighted background color if any when user clicks on the list item
+						this.addEventListener(MouseEvent.CLICK,handleMouseClick);
+						
+						this.text = infomapDataSource.getTitleForURL(t.docURL.value);
 					}
 					
 					private function changeBackgroundColor():void
 					{
-					var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(data.localName) as DocThumbnailComponent;
-					if((t as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent) is NodeHandler)
-					{
-					(this as CustomLabelTextField).getTextField().background = true;
-					(this as CustomLabelTextField).getTextField().backgroundColor = 10092492;
-					//TODO:Change this to use sessioned color
-					//										(outerDocument.parent.parent.parent.parent as InfoMapPanel).newThumbnailGlowColor.value;
-					//									(this as CustomLabelTextField).validateDisplayList();
-					}else{
-					//the item renderer will retain the background and only replace the content for the rows. 
-					//So it is necessary to clear the background color 
-					(this as CustomLabelTextField).getTextField().background = false;		
-					}
+						var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(data.localName) as DocThumbnailComponent;
+						if((t as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent.parent) is NodeHandler)
+						{
+							(this as CustomLabelTextField).getTextField().background = true;
+							(this as CustomLabelTextField).getTextField().backgroundColor = 10092492;
+							//TODO:Change this to use sessioned color
+							//										(outerDocument.parent.parent.parent.parent as InfoMapPanel).newThumbnailGlowColor.value;
+							//									(this as CustomLabelTextField).validateDisplayList();
+						}else{
+							//the item renderer will retain the background and only replace the content for the rows. 
+							//So it is necessary to clear the background color 
+							(this as CustomLabelTextField).getTextField().background = false;		
+						}
 					}
 					
 					private var cursorID:int = -1;
 					private function handleItemRollOver(event:MouseEvent):void
 					{
-					cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
-					
-					if(!stageUtils.mouseButtonDown)
-					DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
+						cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
+						
+						if(!stageUtils.mouseButtonDown)
+						DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
 					}
 					private function handleItemRollOut(event:MouseEvent):void
 					{
-					CustomCursorManager.removeCursor(cursorID);
-					DocumentSummaryComponent.hide();
+						CustomCursorManager.removeCursor(cursorID);
+						DocumentSummaryComponent.hide();
 					}
 					private function handleItemDoubleClick(event:MouseEvent):void
 					{

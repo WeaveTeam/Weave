@@ -1,5 +1,6 @@
 package infomap.admin;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
@@ -7,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.solr.common.SolrInputDocument;
 
@@ -22,12 +24,26 @@ import flex.messaging.io.ArrayList;
 
 public class MendeleyDataSource extends AbstractDataSource {
 	
+	public MendeleyDataSource() {
+		
+		Properties prop = new Properties();
+		try{
+			InputStream config = getClass().getClassLoader().getResourceAsStream("infomap/resources/config.properties");
+			prop.load(config);
+			
+			CONSUMER_KEY = prop.getProperty("mendeleyConsumerKey");
+			CONSUMER_SECRET = prop.getProperty("mendeleyConsumerSecret");
+		}catch (Exception e)
+		{
+			System.out.println("Error reading configuration file");
+		}
+	}
 	
 	/** The Constant CONSUMER_KEY. */
-	private static final String CONSUMER_KEY = "badf1bc4f3d583e82a5ae200c5e11f7f050352e2f";
+	private String CONSUMER_KEY = "";
 	
 	/** The Constant CONSUMER_SECRET. */
-	private static final String CONSUMER_SECRET = "62e7dcf66634eb02a2a778e0146de20a";
+	private String CONSUMER_SECRET = "";
 	
 	public static String SOURCE_NAME = "MENDELEY";
 	@Override
@@ -82,6 +98,10 @@ public class MendeleyDataSource extends AbstractDataSource {
 	
 	private long getNumberOfPagesForQuery(String requiredTerm)
 	{
+		if(CONSUMER_KEY.equals("") || CONSUMER_SECRET.equals(""))
+		{
+			return 0;
+		}
 		String queryString = generateQuery(requiredTerm);
 		
 		MendeleyServiceFactory factory = MendeleyServiceFactory.newInstance(CONSUMER_KEY, CONSUMER_SECRET);
@@ -100,7 +120,10 @@ public class MendeleyDataSource extends AbstractDataSource {
 	
 	@Override
 	SolrInputDocument[] searchForQuery() throws ParseException{
-
+		if(CONSUMER_KEY.equals("") || CONSUMER_SECRET.equals(""))
+		{
+			return null;
+		}
 		System.out.println("Calling service on " + getSourceName());
 		MendeleyServiceFactory factory = MendeleyServiceFactory.newInstance(CONSUMER_KEY, CONSUMER_SECRET);
 		SearchService service = factory.createSearchService();

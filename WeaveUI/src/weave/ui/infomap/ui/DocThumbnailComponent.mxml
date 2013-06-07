@@ -12,8 +12,6 @@ so that it can be moved, selected, handle filters.
 				doubleClick="handleDoubleClick(event)"
 				mouseDown="handleMouseDown(event)"
 				mouseUp="handleMouseUp(event)"
-				mouseOver="handleMouseOver(event)"
-				mouseOut="handleMouseOut()"
 				borderStyle="solid"
 				cornerRadius="5"
 				borderColor="black"
@@ -382,18 +380,31 @@ so that it can be moved, selected, handle filters.
 				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation
 				
 				var parentNH:NodeHandler = null;
-				if(event.relatedObject is NodeBaseComponent)
+				/* The relatedObject could be the InfoMapsPanel or 
+				the NodeBaseComponent of the NodeHandler for the query node this belongs to */
+				
+				/* if it is a NodeBaseComponent, "add" it back to the query node and remove from moved thumbnails */
+				if(event.relatedObject is NodeBaseComponent) 
 				{
 					parentNH = event.relatedObject.parent as NodeHandler;
 					parentNH.movedThumbNails.removeObject(docURL.value) as MovedThumbnailPosition;
 					this.parent.removeChild(this);
 					pos.setSessionState({});
-					
-				}else
+					/* If it is not a moved out thumbnail, remove mouse over and out event listeners*/
+					if(hasEventListener(MouseEvent.MOUSE_OVER))
+					{
+						removeEventListener(MouseEvent.MOUSE_OVER,handleMouseOver);
+					}
+					if(hasEventListener(MouseEvent.MOUSE_OUT))
+					{
+						removeEventListener(MouseEvent.MOUSE_OUT,handleMouseOut);
+					}
+				}
+				/* else do a regular move */
+				else
 				{
 					this.move(x- _lastMouseDownPoint.x ,y - _lastMouseDownPoint.y);
-					handleMove();
-					
+					handleMove();					
 				}
 			}
 			
@@ -405,9 +416,6 @@ so that it can be moved, selected, handle filters.
 			/* Made this function public. So that when this component is dragged from a list it is added to the movedThumbnails  */
 			public function handleMove():void
 			{
-//				xPos.value = x;
-//				yPos.value = y;
-				
 				pos.setSessionState({x:x,y:y});
 				
 				var parentNH:NodeHandler = null;
@@ -426,9 +434,10 @@ so that it can be moved, selected, handle filters.
 							break;
 						}
 					}
-				}else if(this.parent.parent is ThumbnailsLayout)
+					
+			}else if(this.parent.parent is ThumbnailsLayout)
 				{
-					parentNH = this.parent.parent.parent as NodeHandler; 
+					parentNH = this.parent.parent.parent as NodeHandler;
 				}
 				
 				//set the movedThumbnailPosition for the thumbnail
@@ -436,6 +445,16 @@ so that it can be moved, selected, handle filters.
 				
 				mtp.xPos.value = x;
 				mtp.yPos.value = y;
+				
+				/* We add en event listener for mouse over and mouse out when it is a moved out thumbnail */
+				if(!hasEventListener(MouseEvent.MOUSE_OVER))
+				{
+					addEventListener(MouseEvent.MOUSE_OVER,handleMouseOver);
+				}
+				if(!hasEventListener(MouseEvent.MOUSE_OUT))
+				{
+					addEventListener(MouseEvent.MOUSE_OUT,handleMouseOut);
+				}
 				
 			}
 			
@@ -519,7 +538,7 @@ so that it can be moved, selected, handle filters.
 			}
 			
 			
-			private function handleMouseOut():void
+			private function handleMouseOut(event:Event=null):void
 			{
 				_mouseOver = false;
 				

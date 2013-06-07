@@ -180,7 +180,7 @@ package weave.ui
 			/* If parentItem doesn't exist create new parent with label and children else concatenate children*/
 			if(!parentItem)
 			{
-				parentItem= new Object();
+				parentItem= new SubMenuItem();
 				parentItem.label = parentLabel;
 				parentItem.children = temp;
 				subMenuDataProvider.push(parentItem);
@@ -279,4 +279,5 @@ internal class SubMenuItem
 	public var label:Object;
 	public var listener:Function;
 	public var params:Array;
+	public var children:Array;
 }

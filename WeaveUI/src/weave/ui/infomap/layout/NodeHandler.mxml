@@ -205,7 +205,7 @@
 				else 
 					return true;},false), handleTopicLayoutSettingChange, true); // ToDo
 			
-			public const enablePinView:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true),handlePinViewChange);
+			public const enablePinView:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			
 			public static const LIST_VIEW:String = "List";
 			public static const THUMBNAILS_VIEW:String = "Thumbnails";
@@ -218,7 +218,7 @@
 					return true;
 				else
 					return false;
-			},false),handleCurrentViewChange,true);
+			},false));
 			
 			private function handleTopicLayoutSettingChange():void
 			{
@@ -352,6 +352,10 @@
 				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,keywordTextAreaKeyDownHandler);
 				nodeBase.addEventListener(DragEvent.DRAG_ENTER,handleDragEnter);
 				
+				nodeBase.addEventListener(MouseEvent.ROLL_OVER,handleViewOnRollOver);
+				nodeBase.addEventListener(MouseEvent.ROLL_OUT,handleViewOnRollOut);
+				
+				
 				//drawing the base which is the node with keywords and icons
 //				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
 				
@@ -395,8 +399,6 @@
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
 //				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
-				
-				filteredWords.addGroupedCallback(this,filterListByKeywords,false);
 				
 //				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
 				prevNewDocsCount.addGroupedCallback(this,handleChangeToPrevQuery);
@@ -449,6 +451,8 @@
 				
 				docListComponent.visible = false;
 				docListComponent.alpha = 0;
+				addChild(docListComponent);
+				docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
 				_viewToObjectMapping[LIST_VIEW] = docListComponent;
 				
 				topicComponent.visible = false;
@@ -458,6 +462,17 @@
 				wordCloud.visible = false;
 				wordCloud.alpha = 0;
 				_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
+				
+				_pinImg = new Image();
+				_pinImg.width = _pinImg.height = 14; //width & height is not updated. Bug in Image Class. Needs a listener for Update event.
+				_pinImg.buttonMode = true;
+				nodeBase.addChild(_pinImg);
+				_pinImg.x = nodeBase.width; 
+				_pinImg.y = _pinImg.height;
+				
+				enablePinView.addGroupedCallback(this,handlePinViewChange,true);
+				_pinImg.addEventListener(MouseEvent.CLICK,togglePinViews);
+				currentView.addGroupedCallback(this,handleCurrentViewChange,true);
 			}
 			
 			private var _viewToObjectMapping:Dictionary = new Dictionary();
@@ -598,7 +613,21 @@
 				
 				var token:QueryObject = new QueryObject();
 				copySessionState(currentQuery,token);
+				
 				addAsyncResponder(wordCountQuery,handleWordCountResult,handleWordCountFault,token);
+				if(currentView.value == WORD_CLOUD_VIEW)
+				{
+					status.text = "Loading Word Cloud...";
+				}
+				else if(currentView.value == TOPICS_VIEW)
+				{
+					status.text = "Loading Topics...";
+				}
+				else if(currentView.value == POINTS_VIEW)
+				{
+					status.text = "Loading Points...";
+				}
+					
 				getEntityDistribution();
 				getTopicsClassification();
 				getClusters();
@@ -678,7 +707,6 @@
 			 **/
 			private function handleDocKeySetChange():void
 			{
-				status.text = "";
 				var response:Array = docKeySet.keys;
 				
 				
@@ -820,8 +848,11 @@
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
 				addAllDocumentsToList();
-				showView(LIST_VIEW);
-				status.text = "";
+				if(currentView.value == THUMBNAILS_VIEW || currentView.value == LIST_VIEW)
+				{
+					status.text = "";
+				}
+				filteredWords.addGroupedCallback(this,filterListByKeywords,true);
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
@@ -837,7 +868,11 @@
 				
 				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
 //				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleWordCloud);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);				
+				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
+				if(currentView.value == WORD_CLOUD_VIEW)
+				{
+					showView(WORD_CLOUD_VIEW);
+				}
 			}
 			
 			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
@@ -1201,23 +1236,13 @@
 			{
 				if(view != currentView.value)
 				{
-					currentView.value == view;
+					currentView.value = view;
 					return;
 				}
 				
 				if(view == LIST_VIEW) //Initialize List Canvas
 				{
-					//if the list is not added yet
-					if(!contains(docListComponent))
-					{
-						docListComponent.alpha = 0;
-						addChild(docListComponent);
-						docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
-						
-						docListComponent.y = nodeBase.height;
-					}
 					docListComponent.y = nodeBase.height;
-					
 				}
 				else if(view == THUMBNAILS_VIEW)
 				{
@@ -1234,6 +1259,14 @@
 				}
 				else if(view == TOPICS_VIEW) //Initialize Topics Component
 				{
+					status.text = "Loading Topics...";
+					
+					/* if topicResult is null but number of matched documents is greater than 0 
+					then we are still waiting to get back topic results*/
+					if(_topicsResult == null && numOfMatchedDocuments.value > 0)
+					{
+						return;
+					}
 					if(flag_init){
 						
 						// ToDo This will not update automatically when new documents come in.
@@ -1264,6 +1297,13 @@
 				else if(view == WORD_CLOUD_VIEW)//Initialize Word Clould Canvas
 				{
 					status.text = "Loading Word Cloud...";
+					
+					/* if wordcount is zero but number of matched documents is greater than 0 
+					then we are still waiting to get back word count results*/
+					if(wordCount.length == 0 && numOfMatchedDocuments.value > 0)
+					{
+						return;
+					}
 					/*Add wordCloud as a child if not added yet*/
 					if(!contains(wordCloud))
 					{
@@ -1281,15 +1321,18 @@
 						wordCloud.dataProvider = wordCount;
 						wordCloud.draw(numOfWordsInCloud.value);
 					}
-					
-					status.text = "";
 				}
 				else if(view == POINTS_VIEW)
 				{
 					status.text = "Drawing points...";
+					/* if topicResult is null but number of matched documents is greater than 0 
+					then we are still waiting to get back topic results*/
+					if(_topicsResult == null && numOfMatchedDocuments.value > 0)
+					{
+						return;
+					}
 					var topicURLS:Array = [];
 					VectorUtils.copy(_topicsResult.urls,topicURLS);
-					
 					if(!contains(_pointCanvas))
 					{
 						addChild(_pointCanvas);
@@ -1297,15 +1340,17 @@
 						_pointCanvas.visible = false;
 					}
 					_pointCanvas.y = nodeBase.height;
-					_pointCanvas.drawPoints(topicURLS, keywords, this);
+					_pointCanvas.drawPoints(topicURLS, _topicsResult.keywords, this);
 					
-					status.text = "";
 				}
 
+				adjustNodeBase();
+				status.text = "";
 				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
-				if(viewUI.visible && viewUI.alpha != 0)
+				trace(viewUI.visible,viewUI.alpha);
+				if(viewUI.visible && viewUI.alpha == 1)
 					return;
-				
+				trace("fading in");
 				fadeIn.play([viewUI]);
 			}
 			
@@ -1313,9 +1358,9 @@
 			{
 				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
 				
-				if(!viewUI.visible && viewUI.alpha !=1)
+				if(!viewUI.visible && viewUI.alpha == 0)
 					return;
-				
+				trace("fading out");
 				fadeOut.play([viewUI]);
 			}
 			
@@ -1758,6 +1803,26 @@
 				}
 			}
 			
+			private function handleViewOnRollOver(event:Event):void
+			{
+				if(!enablePinView.value)
+				{
+					fadeOut.stop();
+					showCurrentView();
+					trace("ROlled Over");
+				}
+			}
+			
+			private function handleViewOnRollOut(event:Event):void
+			{
+				if(!enablePinView.value)
+				{
+					fadeIn.stop();
+					hideCurrentView();
+					trace("rolled out");
+				}
+			}
+			
 			// ToDo ???
 //			private function filter(event:Event):void
 //			{
@@ -1782,8 +1847,12 @@
 //				}
 //			}
 			
+			[Embed( source="/weave/resources/images/pushpinback.png")]
+			private var _pinBackImgClass:Class;
+			
 			[Embed( source="/weave/resources/images/pushpin.png")]
 			private var _pinImgClass:Class;
+			
 			private var _pinImgText:String ="Pin Views";
 			private var _pinImg:Image = null;
 			private function togglePinViews(event:Event=null):void
@@ -1795,22 +1864,13 @@
 			{
 				if(enablePinView.value)
 				{
-					if(!_pinImg)
-					{
-						_pinImg = new Image();
-						_pinImg.source = _pinImgClass;
-						_pinImg.width = _pinImg.height = 14; //width & height is not updated. Bug in Image Class. Needs a listener for Update event.
-					}
-					nodeBase.addChild(_pinImg);
-					_pinImg.x = nodeBase.width; 
-					_pinImg.y = _pinImg.height;
+					_pinImg.source = _pinBackImgClass;
+					showCurrentView();
 				}
 				else
 				{
-					if(_pinImg)
-					{
-						removeChild(_pinImg);
-					}
+					_pinImg.source = _pinImgClass;
+					hideCurrentView();
 				}
 			}
 			
@@ -1916,12 +1976,12 @@
 				
 			}
 			
-			private var docListComponent:DocumentListView = new DocumentListView();
-			private var thumbnailListComponent:ThumbnailsListView = new ThumbnailsListView();
+			public const docListComponent:DocumentListView = registerLinkableChild(this, new DocumentListView());
+			public const thumbnailListComponent:ThumbnailsListView = registerLinkableChild(this,new ThumbnailsListView());
 			
 			private var _showListFlag:Boolean = false;
 //			private var clickedWordKeySet:KeySet = new KeySet();
-			private var filteredWords:LinkableString = new LinkableString("",null,false);
+			public const filteredWords:LinkableString = registerLinkableChild(this,new LinkableString("",null,false));
 			private function handleTagCloudClick(event:MouseEvent):void
 			{
 				//we don't use the event.target for getting the text because this is based on the bounding box clicked and not necessarily the 
@@ -2070,6 +2130,7 @@
 			
 			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
 			{
+				status.text = "";
 				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
 				
 				if(diff)
@@ -2093,6 +2154,10 @@
 				var pointsImg:Bitmap = new PointsImgClass() as Bitmap;
 //				_radialMenu.addMenuItem(pointsImg,_pointsImgText,showPoints);
 				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
+				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
+				{
+					showView(currentView.value);
+				}
 			}
 			
 			private function handleTopicsQueryFault(event:FaultEvent, token:Object = null):void
@@ -2148,6 +2213,7 @@
 						copySessionState(previousQuery,currentQuery);
 					
 					adjustNodeBase();
+					filteredWords.removeCallback(filterListByKeywords);
 					return;
 				}
 				
@@ -2334,7 +2400,7 @@
 					return;
 				
 				displayObj.mouseChildren = true;
-				if(event.currentTarget == fadeOut && displayObj != _viewToObjectMapping[currentView.value])
+				if(event.currentTarget == fadeOut)
 				{
 					displayObj.visible = false;
 				}

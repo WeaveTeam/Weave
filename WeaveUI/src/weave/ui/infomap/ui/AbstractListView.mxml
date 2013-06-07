@@ -11,7 +11,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 -->
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-		width="100%" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false" >
+		width="{view.width}" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 	<mx:HBox id="filterStatus" width="100%"/>
 	<mx:Canvas id="view" width="100%" height="100%">
 		
@@ -24,84 +24,92 @@ Info to provide a tooltip describing the node (like number of documents found)
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.linkBindableProperty;
 			import flash.utils.getTimer;
-			import weave.data.KeySets.KeySet;
-			import weave.data.KeySets.FilteredKeySet;
-			import mx.controls.listClasses.IListItemRenderer;
-			import mx.core.mx_internal;
-			import weave.visualization.layers.InteractiveVisualization;
-			import weave.utils.CustomCursorManager;
-			import weave.core.StageUtils;
-			import mx.events.ListEvent;
-			import weave.compiler.StandardLib;
+			
 			import mx.collections.ArrayCollection;
-			import weave.ui.infomap.layout.NodeHandler;
-			import weave.data.DataSources.InfoMapsDataSource;
+			import mx.controls.listClasses.IListItemRenderer;
+			import mx.core.DragSource;
+			import mx.core.mx_internal;
+			import mx.events.DragEvent;
+			import mx.events.ListEvent;
+			import mx.managers.DragManager;
+			
+			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.Weave;
-			import weave.data.KeySets.KeyFilter;
-			import mx.core.DragSource;
-			import mx.managers.DragManager;
-			import mx.events.DragEvent;
-			import weave.utils.VectorUtils;
-			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
+			import weave.api.registerDisposableChild;
+			import weave.api.registerLinkableChild;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.StageUtils;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.data.KeySets.FilteredKeySet;
+			import weave.data.KeySets.KeyFilter;
+			import weave.data.KeySets.KeySet;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.CustomCursorManager;
+			import weave.utils.VectorUtils;
+			import weave.visualization.layers.InteractiveVisualization;
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				startIndex.addGroupedCallback(this,updateList,true);
+				getCallbackCollection(listFilters).addGroupedCallback(this,handleFilterChanges,true);
 			}
 			
 			public static var SELECTION_TEXT:String = "SELECTION";
 			public var parentNode:NodeHandler = null;
 			
-			private var _filters:KeyFilter = new KeyFilter();
-			protected var _filteredKeySet:FilteredKeySet = new FilteredKeySet();
+			protected function get listFilters():ILinkableHashMap
+			{
+				return ((filteredKeySet.keyFilter).requestLocalObject(KeyFilter,true) as KeyFilter).filters;
+			}
 			
+			
+			public const filteredKeySet:FilteredKeySet = registerLinkableChild(this,new FilteredKeySet());
+			
+			private var _keys:KeySet = null;
 			public function set keys(value:Array):void
 			{
-				var k:KeySet = new KeySet();
-				k.replaceKeys(value);
-				_filteredKeySet.setSingleKeySource(k);
-				_filters = (_filteredKeySet.keyFilter).requestLocalObject(KeyFilter,false);
+				if(_keys == null)
+				{
+					_keys = new KeySet();
+					filteredKeySet.setSingleKeySource(_keys);
+				}
+				_keys.replaceKeys(value);
+				
 				startIndex.value = 0;
 				startIndex.triggerCallbacks();
 			}
 			
 			public function applyFilter(name:String,keys:Array):void
 			{
-				var f:KeyFilter = _filters.filters.getObject(name) as KeyFilter;
+				var f:KeyFilter = listFilters.getObject(name) as KeyFilter;
 				if(f)
 				{
 					f.replaceKeys(false,true,keys);
 				}
 				else
 				{
-					f= _filters.filters.requestObject(name,KeyFilter,false) as KeyFilter;
+					var names:Array = listFilters.getNames();
+					names.push(name);
+					f= listFilters.requestObject(name,KeyFilter,false) as KeyFilter;
 					f.replaceKeys(false,true,keys);
-					var filterLabel:FilterLabelUI = filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
-					filterLabel.filterName.text = name;
-					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,function(event:Event):void{
-						removeFilter(name);
-						if(filterStatus.contains(filterLabel))
-							filterStatus.removeChild(filterLabel);
-						startIndex.value = 0;
-						startIndex.triggerCallbacks();
-					});
+					listFilters.setNameOrder(names);
 				}
-				startIndex.value = 0;
-				startIndex.triggerCallbacks();
 			}
 			
 			public function removeFilter(name:String):void
 			{
-				_filters.filters.removeObject(name);
+				listFilters.removeObject(name);
 				var filterLabels:Array = filterStatus.getChildren();
 				for each(var d:FilterLabelUI in filterLabels)
 				{
@@ -111,6 +119,32 @@ Info to provide a tooltip describing the node (like number of documents found)
 						break;
 					}
 				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			private function handleFilterChanges():void
+			{
+				if(filterStatus == null)
+					return;
+				filterStatus.removeAllChildren();
+				var filterNames:Array = listFilters.getNames(); 
+				for(var i:int = 0; i < filterNames.length; i++)
+				{
+					var filterLabel:FilterLabelUI = filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
+					filterLabel.filterName.text = filterNames[i];
+					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,handleFilterLabelClick);
+				}
+				startIndex.value = 0;
+				startIndex.triggerCallbacks();
+			}
+			
+			private function handleFilterLabelClick(event:MouseEvent):void
+			{
+				var filterLabel:FilterLabelUI = (event.target.parent as FilterLabelUI);
+				removeFilter(filterLabel.filterName.text);
+				if(filterStatus.contains(filterLabel))
+					filterStatus.removeChild(filterLabel);
 				startIndex.value = 0;
 				startIndex.triggerCallbacks();
 			}
@@ -150,7 +184,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			private function next():void
 			{
-				if(startIndex.value + resultsRowCount > _filteredKeySet.keys.length)
+				if(startIndex.value + resultsRowCount > filteredKeySet.keys.length)
 				{
 					return;//nothing more to show
 				}
@@ -163,7 +197,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			protected function updateIndexText():void
 			{
-				var includedKeys:Array = _filteredKeySet.keys;
+				var includedKeys:Array = filteredKeySet.keys;
 				if(includedKeys.length == 0)
 				{
 					indexText.text = "No documents found.";

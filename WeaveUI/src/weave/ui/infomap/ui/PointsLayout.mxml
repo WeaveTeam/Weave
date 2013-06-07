@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="300" height="200"
 		   xmlns:infomap="weave.ui.infomap.*" 
 		   verticalScrollPolicy="off" 
 		   horizontalScrollPolicy="off"
-		   clipContent="false">
+		   clipContent="false"
+		   mouseMove="handleMouseOver(event)"
+		   rollOut="handleRollOut(event)">
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Text;
 			import mx.utils.ArrayUtil;
 			
 			import weave.api.WeaveAPI;
@@ -14,9 +17,11 @@
 			
 			private var _parentNode:NodeHandler = null;
 			
+			private var _keywordsOfEachTopic:Array = [];
 			public function drawPoints(urlsOfEachTopic:Array, keywordsOfEachTopic:Array, parentNode:NodeHandler):void
 			{
 				removeAllChildren();
+				_keywordsOfEachTopic = keywordsOfEachTopic.concat();
 				var g:Graphics = this.graphics;
 				g.clear();
 				
@@ -88,6 +93,8 @@
 			private var _currentIteration:Number;
 			private var _currentXDisplacement:Number;
 			private var _currentYDisplacement:Number;
+			
+			private var _topicsTextWidth:Number = 100;			
 			private function _iterate():Number
 			{
 				//iterating through each topic
@@ -148,10 +155,38 @@
 				 }
 				if(_currentIteration >= _currentURLSToPlot.length)
 				{
+					
+					var topicText:Text = new Text();
+					topicText.text = (_keywordsOfEachTopic[_currentTopic] as Array).join(',');
+					topicText.setStyle("fontSize","10");
+					topicText.width = _topicsTextWidth;
+					topicText.x = _currentXDisplacement - topicText.width/2;
+					topicText.y = _currentYDisplacement;
+					topicText.mouseChildren = false;
+					addChild(topicText);
+					
 					_currentTopic++;
 					_currentIteration = 0;
 				}
 				return _currentTopic/_urlsOfEachTopic.length;
+			}
+			
+			private function handleMouseOver(event:MouseEvent):void
+			{
+				if(event.target is DocThumbnailComponent)
+				{
+					DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,(event.target as DocThumbnailComponent).docURL.value,
+						this,this.parent as NodeHandler);
+				}
+				else
+				{
+					DocumentSummaryComponent.hide();
+				}
+			}
+			
+			private function handleRollOut(event:MouseEvent):void
+			{
+				DocumentSummaryComponent.hide();
 			}
 		]]>
 	</mx:Script>
