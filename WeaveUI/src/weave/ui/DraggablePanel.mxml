@@ -1667,7 +1667,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private static const _instances:Dictionary = new Dictionary();
 			
-			protected const subMenu:SubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
+			protected const subMenu:SubMenu = new SubMenu(subMenuButton, [MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK], [MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 			
 			/**
 			 * Embedded cursors

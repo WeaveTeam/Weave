@@ -44,7 +44,7 @@ public class JTSGeometryVertexStream implements GeometryVertexStream
 	 */
 	public boolean hasNext()
 	{
-		return index < coords.length;
+		return index + 1 < coords.length;
 	}
 	
 	/**
