@@ -126,7 +126,7 @@ package weave.ui
 			
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
 			
-			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
+			addEventListener(MenuEvent.MENU_HIDE,toggleSubMenu);
 			
 			return menuItem;
 		}
@@ -199,7 +199,7 @@ package weave.ui
 			
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
 			
-			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
+			addEventListener(MenuEvent.MENU_HIDE,toggleSubMenu);
 		}
 		
 		/**

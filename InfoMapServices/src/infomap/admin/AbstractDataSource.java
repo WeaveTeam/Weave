@@ -108,6 +108,7 @@ public abstract class AbstractDataSource implements Runnable
 		}
 	}
 	
+	/* why this?*/
 	public String[] getRequiredQueryTerms()
 	{
 		String[] requiredTerms;
