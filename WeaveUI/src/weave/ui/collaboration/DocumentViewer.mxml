@@ -10,6 +10,7 @@
 			<![CDATA[
 				import mx.containers.Canvas;
 				import mx.events.FlexEvent;
+				import mx.events.ItemClickEvent;
 				import mx.events.ResizeEvent;
 				import mx.rpc.AsyncToken;
 				import mx.rpc.events.FaultEvent;
@@ -240,8 +241,6 @@
 					_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
 					registerLinkableChild(this, _servlet);
 					
-					//get filename.
-					
 					isURL = true;
 					
 					var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[pdfURL.text.substring(pdfURL.text.lastIndexOf("/")),_pdfLoader.data]);
@@ -265,6 +264,12 @@
 						swfMovieClip.nextFrame();				
 						currentPage.value = swfMovieClip.currentFrame;
 					}
+				}
+				
+				protected function changeSizing(event:ItemClickEvent):void
+				{
+					// TODO Auto-generated method stub
+					
 				}
 				
 			]]>
@@ -300,6 +305,16 @@
 				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a PDF file.')}"/>
 				<mx:Button label="Load PDF" click="selectPDFButton(event)"/>
 			</mx:HBox>
+			<mx:VBox>
+				<mx:Label text="Sizing Options:" />
+				<mx:RadioButtonGroup id="sizingGroup" itemClick="changeSizing(event)"/>
+				<mx:RadioButton id="sizeByWindow" label="Size to Window" buttonMode="true"
+								group="{sizingGroup}" selected="true"/>
+				<mx:RadioButton id="sizeByHeight" label="Size to Height" buttonMode="true"
+								group="{sizingGroup}" selected="false"/>
+				<mx:RadioButton id="sizeByWidth" label="Size to Width" buttonMode="true"
+								group="{sizingGroup}" selected="false"/>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </ui:DraggablePanel>
