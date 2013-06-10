@@ -1,6 +1,9 @@
 package weave.ui.infomap.ui
 {
+	import flash.events.MouseEvent;
+	
 	import weave.api.data.IQualifiedKey;
+	import weave.ui.infomap.layout.NodeHandler;
 
 	public class ThumbnailsListView extends AbstractListView
 	{
@@ -34,7 +37,17 @@ package weave.ui.infomap.ui
 			
 			var temp:Array = [];
 			
+			for each(var child:DocThumbnailComponent in view.getChildren())
+			{
+				if(child)
+				{
+					child.removeEventListener(MouseEvent.ROLL_OUT,handleMouseRollOut);
+					child.removeEventListener(MouseEvent.ROLL_OVER,handleMouseRollOver);
+				}
+			}
+			
 			view.removeAllChildren();
+			
 			var nextX:Number = 0;
 			var nextY:Number = 0;
 			var count:int = startIndex.value;
@@ -55,6 +68,8 @@ package weave.ui.infomap.ui
 					{
 						view.addChild(doc);
 						doc.positionThumbnail(nextX,nextY);
+						doc.addEventListener(MouseEvent.ROLL_OVER,handleMouseRollOver);
+						doc.addEventListener(MouseEvent.ROLL_OUT,handleMouseRollOut);
 						nextX += doc.width;
 					}
 					
@@ -75,6 +90,16 @@ package weave.ui.infomap.ui
 			}
 			
 			updateIndexText(); 
+		}
+		
+		private function handleMouseRollOver(event:MouseEvent):void
+		{
+			DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,event.target.docURL.value,view,view.parent.parent as NodeHandler);
+		}
+		
+		private function handleMouseRollOut(event:MouseEvent):void
+		{
+			DocumentSummaryComponent.hide();
 		}
 	}
 }

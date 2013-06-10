@@ -43,7 +43,7 @@
 				{
 					var k:RelatedKeywordsListItemObject = new RelatedKeywordsListItemObject();
 					k.label = words[i];
-					k.selected = true;
+					k.selected = false;
 					relatedKeywordsArray.push(k);								
 				}
 				

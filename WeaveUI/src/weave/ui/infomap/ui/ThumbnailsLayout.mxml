@@ -54,6 +54,12 @@
 						if(!pos || isNaN(pos.x) || isNaN(pos.y))
 						{
 							gridCanvas.addChild(doc);
+							doc.addEventListener(MouseEvent.ROLL_OVER,function(event:MouseEvent):void{
+								DocumentSummaryComponent.show(stage.x,stage.y,doc.docURL.value,this,this.parent);
+							});
+							doc.addEventListener(MouseEvent.ROLL_OUT,function(event:MouseEvent):void{
+								DocumentSummaryComponent.hide();
+							});
 							doc.positionThumbnail(nextX,nextY);
 							nextX += doc.width + _spacing;
 						}

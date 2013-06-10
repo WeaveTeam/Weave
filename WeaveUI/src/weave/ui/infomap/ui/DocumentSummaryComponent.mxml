@@ -108,7 +108,6 @@ Use the static functions to show this as a popup.
 					source.getDescriptionForURL(_docURL.value,keywords).addAsyncResponder(handleGetDescriptionResult,handleGetDescriptionFault,_docURL.value);
 					instance.nodeTimeStamp.text = getDateText(_docURL.value);
 					instance.fadeIn.play();
-					trace("showing for ",_docURL.value);
 				}
 				
 				private static function getDateText(url:String):String
@@ -171,7 +170,6 @@ Use the static functions to show this as a popup.
 						instance.fadeOut.play();
 						PopUpManager.removePopUp(instance);
 					}
-					trace("hiding for" , _docURL.value);
 				}
 				
 				private var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;

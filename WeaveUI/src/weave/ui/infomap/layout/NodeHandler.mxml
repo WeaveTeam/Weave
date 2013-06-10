@@ -2268,7 +2268,8 @@
 			{
 				wordCloud.clearCloud();
 				wordCloud.dataProvider = [];//clearing word cloud
-				removeChild(wordCloud);
+				if(contains(wordCloud))
+					removeChild(wordCloud);
 				wordCloud = null;
 			}
 			
@@ -2403,6 +2404,10 @@
 				if(event.currentTarget == fadeOut)
 				{
 					displayObj.visible = false;
+					if(displayObj == _pointCanvas)
+					{
+						_pointCanvas.removeAllChildren();
+					}
 				}
 			}
 			

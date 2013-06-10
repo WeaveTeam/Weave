@@ -110,7 +110,7 @@
 						cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 						
 						if(!stageUtils.mouseButtonDown)
-						DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
+							DocumentSummaryComponent.show(stage.mouseX,stage.mouseY,data.localName,event.currentTarget as DisplayObject,(outerDocument.parentNode));
 					}
 					private function handleItemRollOut(event:MouseEvent):void
 					{

@@ -62,17 +62,9 @@ package weave.ui
 			
 			var type:String;
 			for each (type in openMenuEventTypes)
-			{
-				if (closeMenuEventTypes && closeMenuEventTypes.indexOf(type) >= 0)
-					_uiParent.addEventListener(type, toggleSubMenu);
-				else
-					_uiParent.addEventListener(type, openSubMenu);
-			}
+				_uiParent.addEventListener(type, openSubMenu);
 			for each (type in closeMenuEventTypes)
-			{
-				if (openMenuEventTypes && !openMenuEventTypes.indexOf(type) >= 0)
-					_uiParent.addEventListener(type, closeSubMenu);
-			}
+				_uiParent.addEventListener(type, closeSubMenu);
 			
 			includeInLayout = false;
 			tabEnabled = false;
@@ -126,7 +118,7 @@ package weave.ui
 			
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
 			
-			addEventListener(MenuEvent.MENU_HIDE,toggleSubMenu);
+			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
 			
 			return menuItem;
 		}
@@ -199,7 +191,8 @@ package weave.ui
 			
 			addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
 			
-			addEventListener(MenuEvent.MENU_HIDE,toggleSubMenu);
+			addEventListener(MenuEvent.MENU_HIDE,function():void{toggleSubMenu = false;});
+			
 		}
 		
 		/**
@@ -216,13 +209,7 @@ package weave.ui
 			item.listener.apply(null, item.params);
 		}
 		
-		private function toggleSubMenu(event:Event = null):void
-		{
-			if (visible)
-				hide();
-			else
-				openSubMenu(event);
-		}
+		private var toggleSubMenu:Boolean =  false;
 		
 		private function openSubMenu(event:Event = null):void
 		{
@@ -233,7 +220,21 @@ package weave.ui
 				return;
 			}
 			
+			if(toggleSubMenu)
+			{
+				toggleSubMenu = false;
+				return;
+			}
+			
+			toggleSubMenu = true;
+			
+			//			if(subMenuDataProvider.length == 0)
+			//				subMenu = Menu.createMenu(_uiParent,new SubMenuItem(),false);
+			
+			
 			showSubMenu();
+			
+			
 		}
 		
 		private function closeSubMenu(event:Event):void
@@ -246,6 +247,7 @@ package weave.ui
 			var menuLocation:Point = _uiParent.localToGlobal(new Point(0,_uiParent.height));
 			
 			var stage:Stage = WeaveAPI.topLevelApplication.stage;
+			var tempBounds:Bounds2D = new Bounds2D();
 			tempBounds.setBounds(0, 0, stage.stageWidth, stage.stageHeight);
 			
 			var xMin:Number = tempBounds.getXNumericMin();
@@ -270,7 +272,6 @@ package weave.ui
 			move(menuLocation.x, menuLocation.y);
 		}
 		
-		private const tempBounds:Bounds2D = new Bounds2D();
 	}
 }
 
