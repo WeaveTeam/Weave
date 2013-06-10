@@ -1589,6 +1589,12 @@ public class AdminService extends GenericServlet {
 		gbds.requiredQueryTerms = requiredQueryTerms.clone();
 		gbds.solrServerURL = solrServerUrl;
 		result = result + gbds.getTotalNumberOfQueryResults();
+		
+		BingAcademicSearchDataSource bingds = new BingAcademicSearchDataSource();
+		bingds.requiredQueryTerms = requiredQueryTerms.clone();
+		bingds.solrServerURL = solrServerUrl;
+		result = result + bingds.getTotalNumberOfQueryResults();
+		
 		return result;
 	}
 	
@@ -1625,10 +1631,17 @@ public class AdminService extends GenericServlet {
 			gbds.relatedQueryTerms = relatedQueryTerms.clone();
 		gbds.solrServerURL = solrServerUrl;
 		
+		BingAcademicSearchDataSource bingds = new BingAcademicSearchDataSource();
+		bingds.requiredQueryTerms = requiredQueryTerms.clone();
+		bingds.solrServerURL = solrServerUrl;
+		if(relatedQueryTerms != null)
+			bingds.relatedQueryTerms = relatedQueryTerms.clone();
 		
 		executor.execute(ads);
 		executor.execute(mds);
 		executor.execute(bds);
+		executor.execute(bingds);
+		
 		if(!_testMode)
 		{
 			executor.execute(olds);
