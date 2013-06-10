@@ -65,14 +65,12 @@
 					if( swfMovieClip.totalFrames > 0 )
 					{
 						swfMovieClip.gotoAndStop(currentPage.value);
-						currentPageLabel.text = currentPage.value.toString();	
-						return;
+						currentPageLabel.text = currentPage.value.toString();
 					}
 				}
 				
 				private function checkSWFExists( e:TimerEvent ):void
 				{
-					trace("checking for swf...");
 					loadPDFSWF();
 				}
 				
@@ -93,19 +91,7 @@
 				
 				private function doDownload(e:TimerEvent):void
 				{
-					var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
-					swfLoader.load(pdfReqeust);
-				}
-				
-				private function handleSWFLoadError(e:IOErrorEvent):void
-				{
-					trace("swf not converted yet.");
-					swfLoaderTimer.start();
-				}
-				
-				
-				private function pdfFileSelectedHandler(event:Event):void
-				{
+					
 					if( swfLoader.content != null )
 					{
 						swfMovieClip.stop();
@@ -115,6 +101,18 @@
 						swfMovieClip = null;
 						swfMovieClip = new MovieClip();
 					}
+					var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+					swfLoader.load(pdfReqeust);
+				}
+				
+				private function handleSWFLoadError(e:IOErrorEvent):void
+				{
+					swfLoaderTimer.start();
+				}
+				
+				
+				private function pdfFileSelectedHandler(event:Event):void
+				{
 					loaded = false;
 					_pdfFile.load();
 					WeaveAPI.ProgressIndicator.addTask(_pdfFile);
