@@ -126,6 +126,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   click="cursorButtonClick(event)"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.core.FlexGlobals;
+			import spark.components.Application;
 			import flashx.textLayout.formats.BlockProgression;
 			import mx.managers.PopUpManagerChildList;
 			import mx.core.SpriteAsset;
@@ -184,7 +186,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
 			internal var nickname:String 						= null;
 			
-			private var interactionBlocker1:SpriteAsset = new SpriteAsset();
+			private var weaveApplication:Object = null;
 			private var interactionsBlocked:Boolean = false;
 			
 			public function set userNameList(array:ArrayCollection):void
@@ -385,16 +387,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				
-				//Initialize the interaction blocker sprite.
-				interactionBlocker1.graphics.beginFill(0xff0000, 0);
-				interactionBlocker1.graphics.drawRect(0,0,40,40);
-				interactionBlocker1.graphics.endFill();
-			}
-			
-			private function moveSpriteInteractionBlocker(e:MouseEvent):void
-			{
-				interactionBlocker1.x = e.stageX - 20;
-				interactionBlocker1.y = e.stageY - 20;
+				weaveApplication = WeaveAPI.topLevelApplication;
+				trace( weaveApplication );
 			}
 			
 			/*
@@ -481,8 +475,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.hasControl = false;
 				if( !interactionsBlocked )
 				{
-					PopUpManager.addPopUp(interactionBlocker1, WeaveAPI.topLevelApplication as DisplayObject, false, PopUpManagerChildList.APPLICATION);
-					stage.addEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+					weaveApplication.mouseChildren = false;
 					interactionsBlocked = true;
 				}
 				if( userList.dataProvider.length == 0 )
@@ -509,8 +502,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				cursorButton.enabled = false;
 				if( interactionsBlocked )
 				{
-					PopUpManager.removePopUp(interactionBlocker1);
-					stage.removeEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+					weaveApplication.mouseChildren = true;
 					interactionsBlocked = false;
 				}
 			}
@@ -754,8 +746,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					collabService.hasControl = false;
 					if( !interactionsBlocked )
 					{
-						PopUpManager.addPopUp(interactionBlocker1, WeaveAPI.topLevelApplication as DisplayObject, false, PopUpManagerChildList.APPLICATION);
-						stage.addEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+						weaveApplication.mouseChildren = false;
 						interactionsBlocked = true;
 					}
 					mouseTimer.stop();
@@ -778,8 +769,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					if( interactionsBlocked )
 					{
-						PopUpManager.removePopUp(interactionBlocker1);
-						stage.removeEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+						weaveApplication.mouseChildren = true;
 						interactionsBlocked = false;
 					}
 				}
@@ -792,8 +782,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					if( !interactionsBlocked )
 					{
-						PopUpManager.addPopUp(interactionBlocker1, WeaveAPI.topLevelApplication as DisplayObject, false, PopUpManagerChildList.APPLICATION);
-						stage.addEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+						weaveApplication.mouseChildren = false;
 						interactionsBlocked = true;
 					}
 				}
@@ -812,8 +801,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					if( interactionsBlocked )
 					{
-						PopUpManager.removePopUp(interactionBlocker1);
-						stage.removeEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+						weaveApplication.mouseChildren = true;
 						interactionsBlocked = false;
 					}
 				}
@@ -826,8 +814,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					if( !interactionsBlocked )
 					{
-						PopUpManager.addPopUp(interactionBlocker1, WeaveAPI.topLevelApplication as DisplayObject, false, PopUpManagerChildList.APPLICATION);
-						stage.addEventListener(MouseEvent.MOUSE_MOVE, moveSpriteInteractionBlocker);
+						weaveApplication.mouseChildren = false;
 						interactionsBlocked = true;
 					}
 				}
