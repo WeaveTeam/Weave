@@ -16,7 +16,6 @@
 				import mx.rpc.events.ResultEvent;
 				
 				import weave.api.WeaveAPI;
-				import weave.api.core.ILinkableHashMap;
 				import weave.api.registerLinkableChild;
 				import weave.api.reportError;
 				import weave.core.LinkableNumber;
@@ -26,18 +25,21 @@
 				
 				private var _servlet:AMF3Servlet = null;
 				
+				//For loading file from local machine.
 				private var _pdfFile:FileReference = new FileReference();
+				//For loading file from the internet.
 				private var _pdfLoader:URLLoader = new URLLoader();
 				private var isURL:Boolean = false;
 				//Re-useable movieclip object for the converted pdf.
 				private var swfMovieClip:MovieClip = new MovieClip();
 				private var totalSlideFrames:int = 0;
 				
+				//Loader used to fetch the converted .swf file from the server.
 				private var swfLoader:Loader = new Loader();
 				private var loaded:Boolean = false;
 				private var swfLoaderTimer:Timer = new Timer(1000, 1);
 				
-				public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage);
+				public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage, true);
 				public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
 				
 				protected function handleCreationComplete(event:FlexEvent):void
@@ -107,9 +109,10 @@
 					if( swfLoader.content != null )
 					{
 						swfMovieClip.stop();
-						swfLoader.unloadAndStop();
 						if( pdfSpace.rawChildren.contains(swfMovieClip) )
 							pdfSpace.rawChildren.removeChild(swfMovieClip);
+						swfLoader.unloadAndStop();
+						swfMovieClip = null;
 						swfMovieClip = new MovieClip();
 					}
 					loaded = false;
@@ -296,7 +299,7 @@
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Select PDF file:"/>
-				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a CSV file.')}"/>
+				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a PDF file.')}"/>
 				<mx:Button label="Load PDF" click="selectPDFButton(event)"/>
 			</mx:HBox>
 		</mx:VBox>

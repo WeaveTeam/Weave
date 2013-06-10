@@ -388,7 +388,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				
 				weaveApplication = WeaveAPI.topLevelApplication;
-				trace( weaveApplication );
 			}
 			
 			/*
