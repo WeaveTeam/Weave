@@ -46,7 +46,7 @@ public class RService extends GenericServlet
 	{
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
-//		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
+		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
 		
 	    try {
 	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
@@ -68,7 +68,7 @@ public class RService extends GenericServlet
 	}
 
 	private String docrootPath = "";
-//	private String uploadPath = "";
+	private String uploadPath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
 	private static ServiceType serviceType = ServiceType.JRI;
@@ -111,8 +111,8 @@ public class RService extends GenericServlet
 		//hard coded for now
 			//String cannedScriptLocation = "C:\\Users\\Shweta\\Desktop\\brfss_RRoutine.R";
 			//String csvLocation = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
-		    String csvLocation = "C:\\Users\\Shweta\\Desktop\\"+(queryObject[0]).toString();
-			String cannedScriptLocation = "C:\\Users\\Shweta\\Desktop\\"+(queryObject[1]).toString();
+		    String csvLocation = new File(uploadPath, queryObject[0]).getAbsolutePath();
+			String cannedScriptLocation = new File(uploadPath, queryObject[1]).getAbsolutePath();
 			
 			Object[] inputValues = {cannedScriptLocation,csvLocation };
 			
@@ -120,8 +120,7 @@ public class RService extends GenericServlet
 			String adminScript = "scriptFromFile <- source(cannedScriptPath)\n" +
 			"library(survey)\n" +
 			"columnsReturnedFromCSV <- scriptFromFile$value(csvDatasetPath)\n";
-			//String[] outputNames = {"columnsReturnedFromCSV"};
-			String[] outputNames = {};
+			String[] outputNames = {"columnsReturnedFromCSV"};
 			
 			csvreturnedColumns = this.runScript(null, inputNames, inputValues, outputNames, adminScript, "", false, false, false);
 			
@@ -143,15 +142,15 @@ public class RService extends GenericServlet
 		
 			//String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\CDCSQLQueries.R";
 			//Object[] sqlinputValues = {cannedSQLScriptLocation, query};
-		//"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"Tc1Sgp7nFc\", host = \"129.63.8.210\", port = 3306, dbname = \"resd\")\n"
-		    String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (queryObject[1]).toString();
+		//"con <- dbConnect(dbDriver(\"MySQL\"), user = \"USERNAME\", password = \"PASSWORD\", host = \"IP-ADDRESS\", port = 3306, dbname = \"resd\")\n"
+		    String cannedSQLScriptLocation = new File(uploadPath, queryObject[1]).getAbsolutePath();
 			
 			Object[] sqlinputValues = {cannedSQLScriptLocation, editedQuery};
 			String[] sqlinputNames = {"cannedScriptPath", "query"};
 			
 			String sqlRScript = "scriptFromFile <- source(cannedScriptPath)\n" +
 			"library(RMySQL)\n" +
-			"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"Tc1Sgp7nFc\", host = \"129.63.8.210\", port = 3306, dbname =" + "\"" +schema+"\")\n" +
+			"con <- dbConnect(dbDriver(\"MySQL\"), user = \"USERNAME\", password = \"PASSWORD\", host = \"IP-ADDRESS\", port = 3306, dbname =" + "\"" +schema+"\")\n" +
 			"library(survey)\n" +
 			"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
 			//String[] sqlOutputNames = {"returnedColumnsFromSQL"};
