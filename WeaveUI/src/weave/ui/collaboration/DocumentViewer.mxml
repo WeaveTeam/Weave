@@ -277,6 +277,8 @@
 				
 				private function updateSizing():void
 				{
+					if( swfLoader.content == null )
+						return;
 					//Window
 					if( sizingChoice.value == 0 )
 					{
