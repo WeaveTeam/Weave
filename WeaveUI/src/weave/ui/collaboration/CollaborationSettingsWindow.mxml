@@ -179,12 +179,12 @@
 					connectButton.label = lang("Connecting");
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.CONN_SETTINGS_CONNECT));
 				}
-				else
+				else if( connectButton.label == lang("Disconnect" ) )
 				{
 					connectButton.label = lang("Disconnecting");
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.CONN_SETTINGS_DISCONNECT));
 				}
-				fadeOut.duration = 1500;
+				fadeOut.duration = 1000;
 				hide();
 			}
 			

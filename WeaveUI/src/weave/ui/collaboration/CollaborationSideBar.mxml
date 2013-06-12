@@ -352,7 +352,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.MICROPHONE_ACTIVITY, microphoneActivityBorder);
 				
 				if( stage != null )
-					stage.addEventListener(Event.RESIZE, handleResize);
+					stage.addEventListener(Event.ENTER_FRAME, handleResize);
 	
 				userNameList = collabService.userList;
 				
