@@ -32,7 +32,7 @@ function(objectID)
 	{
 		var array;
 		var n = args.length;
-		if (n && n == option && args[0] && Array.isArray(args[0].constructor))
+		if (n && n == option && args[0] && Array.isArray(args[0]))
 		{
 			array = args[0].concat();
 			for (var i = 1; i < n; i++)
@@ -346,7 +346,7 @@ function(objectID)
 		{
 			if (assertParams('forEach', arguments, 2))
 			{
-				if (Array.isArray(items.constructor))
+				if (Array.isArray(items))
 					items.forEach(visitorFunction, this);
 				else
 					for (var key in items) visitorFunction.call(this, items[key], key, items);
