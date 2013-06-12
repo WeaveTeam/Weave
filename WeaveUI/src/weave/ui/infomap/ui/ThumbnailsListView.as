@@ -26,12 +26,12 @@ package weave.ui.infomap.ui
 		
 		override protected function updateList():void
 		{
-			if(filteredKeySet.keys.length == 0)
+			if(keys.length == 0)
 			{
 				updateIndexText(); 
 				return;
 			}
-			var includedKeys:Array = filteredKeySet.keys;
+			var includedKeys:Array = keys;
 			
 			var listMaxLength:int = 10;
 			

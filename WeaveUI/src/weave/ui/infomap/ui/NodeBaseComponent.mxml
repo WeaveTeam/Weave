@@ -10,8 +10,6 @@ It has 4 icons to:
 
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-	  mouseOver="handleMouseOver()"		   
-	  mouseOut="handleMouseOut()"
 	  autoLayout="false" 
 	  width="100%" minWidth="220" clipContent="false">
 	<!--<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">

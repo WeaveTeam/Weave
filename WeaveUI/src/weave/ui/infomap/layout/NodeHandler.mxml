@@ -504,6 +504,7 @@
 				refreshTimer.reset();
 				refreshTimer.start();
 				
+				_subMenu.addSubMenuItem("Edit Query",editQuery);
 				_subMenu.addSubMenuItem("Settings",settings);
 				_subMenu.addSubMenuItem("Close",close);
 				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
@@ -1305,7 +1306,7 @@
 						return;
 					}
 					/*Add wordCloud as a child if not added yet*/
-					if(!contains(wordCloud))
+					if(wordCloud == null || !contains(wordCloud))
 					{
 						wordCloud = new TagCloud();
 						wordCloud.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
@@ -1793,13 +1794,20 @@
 			
 			private function keywordTextAreaKeyDownHandler(event:KeyboardEvent):void
 			{
-				if(event.keyCode == Keyboard.ENTER)
+				if(event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.ESCAPE)
 				{
 					event.preventDefault();
 					nodeBase.keywordTextArea.editable = false;
 					nodeBase.keywordTextArea.selectable = false;
-					previousQuery.keywords.value = nodeBase.keywordTextArea.text;
-					//getTopicsClassification();
+					if(event.keyCode == Keyboard.ENTER)
+					{
+						previousQuery.keywords.value = nodeBase.keywordTextArea.text;
+					}
+					else
+					{
+						updateTextArea();
+						updateNodeTextOnNewDocuments();
+					}
 				}
 			}
 			
@@ -1939,7 +1947,7 @@
 			
 			private var _pointCanvas:PointsLayout = new PointsLayout();
 			
-			private var wordCloud:TagCloud = new TagCloud();;
+			private var wordCloud:TagCloud = new TagCloud();
 			private var colorRamp:ColorRamp = new ColorRamp();
 			private var wordCount:Array = [];
 						
@@ -2104,7 +2112,6 @@
 					}
 					count++;
 				}
-				object._anchorPlotter.labelAngleRatio.value = 0.25;
 				object.panelTitle.value = 'Document Clustered by Labels';
 				object.enableProbeLines.value = true;
 				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
@@ -2180,7 +2187,17 @@
 //				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
 //			}
 			
-			
+			private function editQuery():void
+			{
+				makeKeywordTextAreaEditable();
+				nodeBase.keywordTextArea.setSelection(0,nodeBase.keywordTextArea.length);
+			}
+			private function makeKeywordTextAreaEditable():void
+			{
+				nodeBase.keywordTextArea.editable = true;
+				nodeBase.keywordTextArea.selectable = true;
+				nodeBase.keywordTextArea.setFocus();
+			}
 			
 			private function handleChangeToPrevQuery():void
 			{
@@ -2189,9 +2206,7 @@
 				
 				if(!previousQuery.keywords.value)
 				{
-					nodeBase.keywordTextArea.editable = true;
-					nodeBase.keywordTextArea.selectable = true;
-					nodeBase.keywordTextArea.setFocus();
+					makeKeywordTextAreaEditable();
 					nodeBase.keywordTextArea.setSelection(0,0);
 					nodeBase.keywordTextArea.htmlText = "";
 					newDocumentHighlight.stop();//in case node is blinking

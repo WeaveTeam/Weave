@@ -40,6 +40,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -53,6 +54,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.SortedKeySet;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.VectorUtils;
@@ -79,17 +81,49 @@ Info to provide a tooltip describing the node (like number of documents found)
 			private var _keys:KeySet = null;
 			public function set keys(value:Array):void
 			{
-				if(_keys == null)
+				if(_keys != null)
 				{
-					_keys = new KeySet();
-					filteredKeySet.setSingleKeySource(_keys);
+					disposeObjects(_keys);
 				}
-				_keys.replaceKeys(value);
+
+				_keys = registerLinkableChild(this,new KeySet());
+				filteredKeySet.setSingleKeySource(_keys);
 				
+				_keys.replaceKeys(value);
+				_orderedKeys = value.concat();
 				startIndex.value = 0;
 				startIndex.triggerCallbacks();
 			}
 			
+			public function get keys():Array
+			{
+				return _orderedKeySet.keys;
+			}
+			
+			private var _orderedKeys:Array = [];
+			/* 0 is both numbers are NaN. 1 if only a is a NaN. -1 if only b is a NaN. 1 if a is less than b. -1 if a is greater than b.*/
+			private function keysCompareFunction(key1:IQualifiedKey, key2:IQualifiedKey):int
+			{
+				var numeric1:int = _orderedKeys.indexOf(key1);
+				var numeric2:int = _orderedKeys.indexOf(key2);
+				if(numeric1 == -1 && numeric2 == -1)
+					return 0;
+				if(numeric1 == -1)
+					return 1;
+				if(numeric2 == -1)
+					return -1;
+				
+				if(numeric1 < numeric2)
+					return -1;
+				if(numeric1 > numeric2)
+					return 1;
+				
+				return 0;
+			}
+			
+			
+			private const _orderedKeySet:SortedKeySet = registerLinkableChild(this, new SortedKeySet(filteredKeySet,keysCompareFunction));
+				
 			public function applyFilter(name:String,keys:Array):void
 			{
 				var f:KeyFilter = listFilters.getObject(name) as KeyFilter;
@@ -184,7 +218,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			private function next():void
 			{
-				if(startIndex.value + resultsRowCount > filteredKeySet.keys.length)
+				if(startIndex.value + resultsRowCount > keys.length)
 				{
 					return;//nothing more to show
 				}
@@ -197,7 +231,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			protected function updateIndexText():void
 			{
-				var includedKeys:Array = filteredKeySet.keys;
+				var includedKeys:Array = keys;
 				if(includedKeys.length == 0)
 				{
 					indexText.text = "No documents found.";

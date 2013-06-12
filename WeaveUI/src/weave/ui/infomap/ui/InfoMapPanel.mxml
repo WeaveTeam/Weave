@@ -228,7 +228,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_infomapSubMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterNodesBy,filterNodesBy,filterNodesBy],
 						[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
 				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-				//_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+				_infomapSubMenu.addSubMenuItem("Extract Entities",extractEntityColumns);
 				
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
@@ -237,7 +237,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				entityColumnsList.reverseButton.enabled = false;
 				entityColumnsList.reverseButton.visible = false;
 				
-				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
+//				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
 				
 				
 				sourceType.dataProvider = ["","Books"];
@@ -270,13 +270,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					node.previousQuery.sortBy.value = option;
 				}
 			}
-			private var _firstLoad:Boolean = true;
-			private function handleEntityColumnHashmap():void
-			{
-				if(entityColumnsHashmap.getObjects().length == 0 && _firstLoad)
-					extractEntityColumns();
-				_firstLoad = false;
-			}
+//			private var _firstLoad:Boolean = true;
+//			private function handleEntityColumnHashmap():void
+//			{
+//				if(entityColumnsHashmap.getObjects().length == 0 && _firstLoad)
+//					extractEntityColumns();
+//				_firstLoad = false;
+//			}
 			private var _loadingText:InfoMapsProgressBar = null;
 			private var _referencedColumns:Array = [];
 			private function extractEntityColumns():void

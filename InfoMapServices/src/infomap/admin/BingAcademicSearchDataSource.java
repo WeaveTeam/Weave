@@ -80,9 +80,10 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 		String queryTerms = "";
 		for(int i =0; i < requiredTerms.length; i++)
 		{
-			try{
+			try
+			{
 				
-				if(relatedQueryTerms.length>0)
+				if(relatedQueryTerms != null || relatedQueryTerms.length>0)
 				{
 					for (int j = 0; j <relatedQueryTerms.length; j++)
 					{
@@ -94,6 +95,17 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 				{
 					queryTerms = URLEncoder.encode(requiredTerms[i], "UTF-8");
 					getDocumentsForResults(queryTerms,results);
+				}
+			}
+			catch (NullPointerException nullE) {
+				/*if relatedTerms is empty*/
+				try
+				{
+					queryTerms = URLEncoder.encode(requiredTerms[i], "UTF-8");
+					getDocumentsForResults(queryTerms,results);
+				}
+				catch (Exception ioError) {
+					ioError.printStackTrace();
 				}
 			}
 			catch(Exception e)
@@ -169,16 +181,25 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 					/* The abstract is incomplete from the API but you can get more from the RSS feeds*/
 					if(documents[k].ID !=null)
 					{
-						tempURL = "http://academic.research.microsoft.com/Rss?cata=9&id="+documents[k].ID;
-						SyndFeedInput input = new SyndFeedInput();
-						URL feedURL = new URL(tempURL);
-						SyndFeed feed = input.build(new XmlReader(feedURL));
-						List<SyndEntryImpl> entries = feed.getEntries();
-						
-						Iterator<SyndEntryImpl> itr = entries.iterator();
-						SyndEntryImpl item = itr.next();
-						tempString = item.getDescription().getValue();
-						d.addField("description", tempString);
+						try{
+							tempURL = "http://academic.research.microsoft.com/Rss?cata=9&id="+documents[k].ID;
+							SyndFeedInput input = new SyndFeedInput();
+							URL feedURL = new URL(tempURL);
+							SyndFeed feed = input.build(new XmlReader(feedURL));
+							List<SyndEntryImpl> entries = feed.getEntries();
+							
+							Iterator<SyndEntryImpl> itr = entries.iterator();
+							SyndEntryImpl item = itr.next();
+							tempString = item.getDescription().getValue();
+							d.addField("description", tempString);
+						}catch(Exception e)
+						{
+							tempString = documents[k].Abstract;
+							if(tempString !=null)
+							{
+								d.addField("description", tempString);
+							}
+						}
 					}
 					else
 					{
@@ -188,6 +209,7 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 							d.addField("description", tempString);
 						}
 					}
+				
 					
 					/* Adding subject areas as keywords */
 					tempString = documents[k].getKeywords();
