@@ -169,6 +169,7 @@
 					Weave.properties.collabRTMPServer.value == "")
 				{
 					Alert.show(lang("There is an error with the server properties."), lang("Error"));
+					return;
 				}
 				collab_NICKNAME = nickname.text;
 				collab_COLOR = picker.selectedColor;
