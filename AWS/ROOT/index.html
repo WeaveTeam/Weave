@@ -1,445 +1,358 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head> 
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-	<title>Draft of a six panel layout using 1st-ui-panel</title>
-
-    <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
-
-	<script type="text/javascript" src="js/jquery-ui-1.8.custom.min.js"></script>
-	<link type="text/css" href="css/ui-darkness/jquery-ui-1.8.custom.css" rel="stylesheet" />
-
-	<script type="text/javascript" src="js/ui.panel.js"></script>
-	<link type="text/css" href="css/ui-darkness/ui.panel.css" rel="stylesheet" />
-
-	<script type="text/javascript" src="js/jquery.cookie.js"></script>
-	
-	<script type="text/javascript">
-// Disable caching of AJAX responses
-$.ajaxSetup({
-    cache: false
-});
+<title>Draft of a six panel layout using 1st-ui-panel</title>
 
 
-// this function gets called when the weave instance is ready.
-function weaveReady(weave)
-{
-	//disableButtons(false);
-	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
-	//resulttextarea.value = 'Weave JavaScript API is ready (id="'+(weave && weave.id)+'").';
-}
 
-//calling Rservice on Weave
-function queryRService(method,params,callback,queryID)
-{
-	console.log('queryRService',method,params);
-	var url = '/WeaveServices/RService';
-	var request = {
-					jsonrpc:"2.0",
-					id:queryID || "no_id",
-					method : method,
-					params : params
-	};
-	
-	$.post(url,JSON.stringify(request), callback, "json");
-	//resulttextarea.value = 'Awaiting Response for ' + method + ' request....';
-}
-
-//calling testServerQuery
-function testServerQuery(secondMethodName)
-{
-	var dataset = "Obesity.csv";
-	var rRoutine = "obesitySQLRoutine.R";
-	queryRService(
-	//method
-	'runScriptOnSQLOnServer',
-	{
-		//params
-		queryObject:[dataset,rRoutine],
-		queryStatement: "PercentObese2002,PercentObese2004",
-		schema: "us"
-		
-	},
-	//callback
-	handleRResult
-	);
-	
-	function handleRResult(response)
-	{
-		if(response.error)
-		{
-			//resulttextarea.value = JSON.stringify(response,null,3);
-			return;
-		}
-		else
-		{
-			var rResult = response.result;
-			setCSVSource(rResult);
-			console.log("retrieved " + rResult.length + "results");
-			//resulttextarea.value = "Success";
-			return;
-		}
-		
-		
+<!-- data-main attribute tells require.js to load
+             js/includes.js after require.js loads. -->
+<script data-main="js/includes" src="js/require.js"></script>
+<link type="text/css" href="css/ui-darkness/jquery-ui-1.8.custom.css"
+	rel="stylesheet" />
+<link type="text/css" href="css/ui-darkness/ui.panel.css"
+	rel="stylesheet" />
+<script type="text/javascript">
+require(['jquery'],
+  function($){
+	//Disable caching of AJAX responses
+	$.ajaxSetup({
+		cache : false
+	});
+	// this function gets called when the weave instance is ready.
+	function weaveReady(weave) {
+		//disableButtons(false);
+		document.getElementById('versionSpan').innerHTML = weave
+				.getSessionState([ 'WeaveProperties', 'version' ]);
+		//resulttextarea.value = 'Weave JavaScript API is ready (id="'+(weave && weave.id)+'").';
 	}
-	
-	
-	function setCSVSource(rResult)
-	{
-		var weave = document.getElementById('weave');
-		weave.path('MyDataSource').request('CSVDataSource').vars({data: rResult[0].value}).exec('setCSVDataString(data)');
-		
-			
-	}
-	
-	
-}
 
+	//calling Rservice on Weave
+	function queryRService(method, params, callback, queryID) {
+		console.log('queryRService', method, params);
+		var url = '/WeaveServices/RService';
+		var request = {
+			jsonrpc : "2.0",
+			id : queryID || "no_id",
+			method : method,
+			params : params
+		};
+
+		$.post(url, JSON.stringify(request), callback, "json");
+		//resulttextarea.value = 'Awaiting Response for ' + method + ' request....';
+	}
+
+	//calling testServerQuery
+	function testServerQuery(secondMethodName) {
+		var dataset = "Obesity.csv";
+		var rRoutine = "obesitySQLRoutine.R";
+		queryRService(
+		//method
+		'runScriptOnSQLOnServer', {
+			//params
+			queryObject : [ dataset, rRoutine ],
+			queryStatement : "PercentObese2002,PercentObese2004",
+			schema : "us"
+
+		},
+		//callback
+		handleRResult);
+
+		function handleRResult(response) {
+			if (response.error) {
+				//resulttextarea.value = JSON.stringify(response,null,3);
+				return;
+			} else {
+				var rResult = response.result;
+				setCSVSource(rResult);
+				console.log("retrieved " + rResult.length + "results");
+				//resulttextarea.value = "Success";
+				return;
+			}
+
+		}
+
+		function setCSVSource(rResult) {
+			var weave = document.getElementById('weave');
+			weave.path('MyDataSource').request('CSVDataSource').vars({
+				data : rResult[0].value
+			}).exec('setCSVDataString(data)');
+
+		}
+
+	}
+}); // end of require
 </script>
-    <script type="text/javascript" src="swfobject.js"></script>
-        <script type="text/javascript">
-            // For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection.
-            var swfVersionStr = "10.2.0";
-            // To use express install, set to playerProductInstall.swf, otherwise the empty string.
-            var xiSwfUrlStr = "playerProductInstall.swf";
-            var flashvars = {};
-            var params = {};
-            params.quality = "high";
-            params.bgcolor = "#869ca7";
-            params.allowscriptaccess = "always";
-            params.allowfullscreen = "true";
-            var attributes = {};
-            attributes.id = "weave";
-            attributes.name = "weave";
-            attributes.align = "middle";
-            swfobject.embedSWF(
-                "weave.swf", "flashContent",
-                "900", "650",
-                swfVersionStr, xiSwfUrlStr,
-                flashvars, params, attributes);
-            // JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
-            swfobject.createCSS("#flashContent", "display:block;text-align:left;");
-    </script>
-    <style type="text/css">
+<script type="text/javascript">
+	require(["jquery","text!../src/GenericPanel.html!strip"],
+			function($, html){
+				var i = $('#panel1');
+				i.append(html);
+			});
+</script>
+<script type="text/javascript">
+require(['swfobject.js'], function(){
+	// For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection.
+	var swfVersionStr = "10.2.0";
+	// To use express install, set to playerProductInstall.swf, otherwise the empty string.
+	var xiSwfUrlStr = "playerProductInstall.swf";
+	var flashvars = {};
+	var params = {};
+	params.quality = "high";
+	params.bgcolor = "#869ca7";
+	params.allowscriptaccess = "always";
+	params.allowfullscreen = "true";
+	var attributes = {};
+	attributes.id = "weave";
+	attributes.name = "weave";
+	attributes.align = "middle";
+	swfobject.embedSWF("weave.swf", "flashContent", "900", "650",
+			swfVersionStr, xiSwfUrlStr, flashvars, params, attributes);
+	// JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
+	swfobject.createCSS("#flashContent", "display:block;text-align:left;");
+});
+</script>
+<style type="text/css">
+html,body {
+	font-size: 10px;
+	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana",
+		"sans-serif";
+	padding: 0;
+	margin: 0;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+}
 
-		html, body{
-		    font-size: 10px;
-		    font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
-		    padding:0;
-		    margin:0;
-            height:100%;
-		}
-		.box { margin: 1em }
-		.navPanel { margin: 0 0.5em 0.5em 0.5em; float:left;}
-                .centralPanel { margin-bottom: 1em; }
-                .fakeLink{ color:navy; cursor:pointer; }
-		#desktop { background-color:#eee; padding:1.5em; padding-bottom:3em; color:#444; }
-		#container{
-		    margin:0; padding:0;
-		}
-		#flashContent { display:none; }
-        
-	} 
+.layout {
+	height: 100%;
+	background-color: rgb(220, 220, 220);
+}
 
-	</style> 
+.box {
+	margin: 1em
+}
 
+.navPanel {
+	margin: 0 0.5em 0.5em 0.5em;
+	float: left;
+}
 
-    <script type="text/javascript">
-       $(document).ready(
-                      
-        function () {
-     $('#panel1').panel({
-                left:'0%',
-                right:'16.67%',
-                width:'16%',
-                overflow:'auto',
-           });
-           
-           console.log($('#panel1'));
-        
-           $('#panel2').panel({
-                width:'16%',
-                left:'33.34%',
-                right:'50.01%',
-           });
-           
-           $('#panel3').panel({
-                width:'16%',
-                left:'50.01%',
-                right:'66.48%',
-           });
-           
-           $('#panel4').panel({
-                width:'16%',
-                left:'50.01%',
-                right:'66.48%',
-           });
-           
-           $('#panel5').panel({
-                width:'16%',
-                left:'66.48%',
-                right:'83.10%',
-           });
-           
-           $('#panel6').panel({
-                width:'16%',
-                left:'83.10%',
-                //collapseType:'slide-right',
-                stackable:'false',
-                draggable:true,
-           
-           });
-           
-           var combobox1 = $('#combobox1');
-           combobox1.append( $("<option/>").val('').text("Select one..."));
-           combobox1.append( $("<option/>").val('CSVDataSource1').text("CSVDataSource1"));
-           combobox1.append( $("<option/>").val('CSVDataSource1').text("Obesity"));
-           combobox1.append( $("<option/>").val('database').text("(Data from server)"));
-      
-      
-           var countryCombobox = $('#countryCombobox');
-           countryCombobox.append( $("<option/>").val('').text("Select one..."));
-           countryCombobox.append( $("<option/>").val('US').text("United States"));
-           
-           var stateCombobox = $('#stateCombobox');
-           stateCombobox.append( $("<option/>").val('').text(""));
-           stateCombobox.append( $("<option/>").val('MA').text("Massachussetts"));
-           stateCombobox.append( $("<option/>").val('RI').text("Rhode Island"));
-           stateCombobox.append( $("<option/>").val('CO').text("Connecticut"));
-           stateCombobox.append( $("<option/>").val('TX').text("Texas"));
-           stateCombobox.append( $("<option/>").val('WA').text("Washington"));
-           stateCombobox.append( $("<option/>").val('OR').text("Oregon"));
-           stateCombobox.append( $("<option/>").val('IL').text("Illinois"));
-           
-           
-           var countyCombobox = $('#countyCombobox');
-           countyCombobox.append( $("<option/>").val('').text(""));
-           countyCombobox.append( $("<option/>").val('Worcester').text("Worcester"));
-           countyCombobox.append( $("<option/>").val('Middlesex').text("Middlesex"));
-           countyCombobox.append( $("<option/>").val('Suffolk').text("Suffolk"));
-           countyCombobox.append( $("<option/>").val('Plymouth').text("Plymouth"));
-           
-           var cityCombobox = $('#cityCombobox');
-           cityCombobox.append( $("<option/>").val('').text(""));
-           cityCombobox.append( $("<option/>").val('Lowell').text("Lowell"));
-           
-           var startYearCombobox = $('#startYearCombobox');
-           startYearCombobox.append( $("<option/>").val('2010').text("2010"));
-            
-           var EndYearCombobox = $('#EndYearCombobox');
-           EndYearCombobox.append( $("<option/>").val('2012').text("2012"));
-           EndYearCombobox.append( $("<option/>").val('2013').text("2013"));
-           
-           var timeTypeCombobox = $('#timeTypeCombobox');
-           timeTypeCombobox.append( $("<option/>").val('byQuarter').text("By Quarter"));
-           timeTypeCombobox.append( $("<option/>").val('byYear').text("By Year"));
-           
-           $('#centerPanel').panel({
-                width:'83.10%',
-           })
-           
-           $('#panel1SubmitButton')
-             .button()
-             .click(function() {
-                console.log('function called');
-             });
-           
-            $('#panel2SubmitButton')
-             .button()
-             .click(function() {
-                console.log('function 2 called');
-             });
-             
-              $('#panel2MapButton')
-             .button()
-             .click(function() {
-                console.log('function 3 called');
-             });
-             
-             $('#panel3SubmitButton')
-             .button()
-             .click(function() {
-                console.log('function called');
-             });
-             
-             $('#panel4SubmitButton')
-             .button()
-             .click(function() {
-                console.log('function called');
-             });
-             
-             $('#panel5SubmitButton')
-             .button()
-             .click(function() {
-               testServerQuery('getRResult');
-             });
-             
-             $('#panel6ImportButton')
-             .button()
-             .click(function() {
-                console.log('function called');
-             });
-             
-             $('#panel6SaveButton')
-             .button()
-             .click(function() {
-                console.log('function called');
-             });
-             
-             $('#panel6EditButton')
-             .button()
-             .click(function() {
-                console.log('function called');
-             });
-           $('#Weave').panel({
-                width:'83.10%',
-                draggable:true,
-            });
-	}); 
+.centralPanel {
+	margin-bottom: 1em;
+}
+
+.fakeLink {
+	color: navy;
+	cursor: pointer;
+}
 
 
-	</script> 
-</head> 
+#container {
+	margin: 0;
+	padding: 0;
+}
+
+#flashContent {
+	display: none;
+}
+
+.west,.east {
+	width: 8%;
+}
+
+.north,.south {
+	height: 10%;
+}
+
+/**
+ * These styles are to create custom resize handles.
+ */
+.ui-resizable-w {
+	left: -8px;
+	width: 8px;
+}
+
+.ui-resizable-e {
+	right: -8px;
+	width: 8px;
+}
+
+.ui-resizable-n {
+	top: -8px;
+	height: 8px;
+}
+
+.ui-resizable-s {
+	bottom: -8px;
+	height: 8px;
+}
+
+.center,.east,.west,.north,.south {
+	background-color: white;
+	border: 1px solid rgb(200, 200, 200);
+	text-align: center;
+	display: inline-block;
+	padding: 1em;
+}
+
+/**
+ * This came from the display-grid sortable demo on jquery-ui.
+ */
+#sortable {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+}
+
+#sortable div {
+	margin: 3px 3px 3px 0;
+	padding: 1px;
+	float: left;
+	width: '33%';
+	height: 90px;
+	font-size: 1em;
+	text-align: center;
+}
+</style>
+
+
+<script type="text/javascript">
+	
+</script>
+</head>
 
 <body>
+	<div class="layout">
+		<div class="center">
+			<div id="sortable" class="box">
+				<div id="panel1" class="navPanel">
+					<!--#include file="src/GenericPanel.html" -->
+				</div>
+				<!-- Panel 1 -->
 
-<div class="box">
-        <div id="panel1" class="navPanel">
-         <h3>Indicators</h3>
-           <div>
-              Data Source:  <select id="combobox1"> </select>
-              <label>Indicators:</label>
-              <input id="indicatorsInput"/>
-            <br></br><select name="listPanel1" size="5" multiple="multiple" style="width: 80%; margin:auto;">
-                <option> Indicator 1 </option>
-                <option> Indicator 2 </option>
-                <option> Indicator 3 </option>
-                <option> Indicator 4 </option>
-                <option> Indicator 5 </option>
-                <option> Indicator 6 </option>
-                <option> Indicator 7 </option>
-            </select>
-              <br></br><input id="panel1SubmitButton" type="submit" value="Send" />
-           </div>
-        
-       </div> <!-- Panel 1 -->
-    
-    <div id="panel2" class="navPanel">
-        <h3>Geography</h3>
-         <div>
-            Country:  <select id="countryCombobox"> </select>
-            <br></br>State:  <select id="stateCombobox"> </select>
-            <br></br>County:  <select id="countyCombobox"> </select>
-            <br></br>City:   <select id="cityCombobox"> </select>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <input id="panel2MapButton" type="submit" value="Select from Map" />
-         
-            <input id="panel2SubmitButton" type="submit" value="Send" />
-         </div>
-     </div> <!-- Panel 2 -->
-     
-       <div id="panel3" class="navPanel">
-        <h3>Time Period</h3>
-        <div>
-            <br></br><select id="startYearCombobox"> </select>
-            <select id="EndYearCombobox"> </select>
-            <br></br><select id="timeTypeCombobox"> </select>
-            <br></br><br></br><br></br><br></br><input id="panel3SubmitButton" type="submit" value="Send" />
-         </div>
-        </div> <!-- Panel 3 -->
-            
-    <div id="panel4" class="navPanel">
-        <h3>By-variables</h3>
-        <div>
-            List of variables:
-                <br></br>
-                <br></br>
-                <select name="listPanel4" size="5" multiple="multiple" style="width: 80%; margin:auto;">
-                <option> variable 1 </option>
-                <option> variable 2 </option>
-                <option> variable 3 </option>
-                <option> variable 4 </option>
-                <option> variable 5 </option>
-                <option> variable 6 </option>
-                <option> variable 7 </option>
-            </select>
-            <br></br><br></br>
-            <input id="panel4SubmitButton" type="submit" value="Send" />
-	    </div>
-     </div> <!-- Panel 4 -->
+				<div id="panel2" class="navPanel">
+					<h3>Geography</h3>
+					<div>
+						Country: <select id="countryCombobox">
+						</select> <br></br>State: <select id="stateCombobox">
+						</select> <br></br>County: <select id="countyCombobox">
+						</select> <br></br>City: <select id="cityCombobox">
+						</select> <br></br> <br></br> <br></br> <br></br> <br></br> <br></br> <br></br>
+						<input id="panel2MapButton" type="submit" value="Select from Map" />
 
-       <div id="panel5" class="navPanel">
-        <h3>Roundtrip Communication</h3>
-        <div>
-            Calls R using Java Servlet:
-            <input id="panel5SubmitButton" type="submit" value="Send" />
-         </div>
-        </div> <!-- Panel 5 -->
-    
-    <div id="panel6" class="navPanel">
-        <h3>Query Object</h3>
-        <div>
-            XML or JSON Query Object
-            <input id="panel6ImportButton" type="submit" value="Import..." />
-            <input id="panel6SaveButton" type="submit" value="Save" />
-            <input id="panel6EditButton" type="submit" value="Edit" />
-         </div>
-    </div> <!-- Panel 6 -->
+						<input id="panel2SubmitButton" type="submit" value="Send" />
+					</div>
+				</div>
+				<!-- Panel 2 -->
 
-</div>
+				<div id="panel3" class="navPanel">
+					<h3>Time Period</h3>
+					<div>
+						<br></br> <select id="startYearCombobox">
+						</select> <select id="EndYearCombobox">
+						</select> <br></br> <select id="timeTypeCombobox">
+						</select> <br></br> <br></br> <br></br> <br></br> <input
+							id="panel3SubmitButton" type="submit" value="Send" />
+					</div>
+				</div>
+				<!-- Panel 3 -->
 
-<div class="box">
-    <div id="centerPanel" class="navPanel">
-        <h3>Selected Parameters and output arrangment</h3>
-        <div>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-        </div>
-    </div>
-</div>
+				<div id="panel4" class="navPanel">
+					<h3>By-variables</h3>
+					<div>
+						List of variables: <br></br> <br></br> <select name="listPanel4"
+							size="5" multiple="multiple" style="width: 80%; margin: auto;">
+							<option>variable 1</option>
+							<option>variable 2</option>
+							<option>variable 3</option>
+							<option>variable 4</option>
+							<option>variable 5</option>
+							<option>variable 6</option>
+							<option>variable 7</option>
+						</select> <br></br> <br></br> <input id="panel4SubmitButton" type="submit"
+							value="Send" />
+					</div>
+				</div>
+				<!-- Panel 4 -->
+
+				<div id="panel5" class="navPanel">
+					<h3>Roundtrip Communication</h3>
+					<div>
+						Calls R using Java Servlet: <input id="panel5SubmitButton"
+							type="submit" value="Send" />
+					</div>
+				</div>
+				<!-- Panel 5 -->
 
 
-<div class="box">
-    <div id="Weave" class="navPanel">
-        <h3>Weave</h3>
-        <!-- SWFObject's dynamic embed method replaces this alternative HTML content with Flash content when enough
+
+			</div>
+		</div>
+		<div class="east">
+			<div id="sortable" class="box">
+				<div id="panel6" class="navPanel">
+					<h3>Query Object</h3>
+					<div>
+						XML or JSON Query Object <input id="panel6ImportButton"
+							type="submit" value="Import..." /> <input id="panel6SaveButton"
+							type="submit" value="Save" /> <input id="panel6EditButton"
+							type="submit" value="Edit" />
+					</div>
+				</div>
+				<!-- Panel 6 -->
+				East
+			</div>
+		</div>
+		<div class="west">West</div>
+		<div class="north">North</div>
+		<div class="south">
+			South
+
+			<div class="box">
+				<div id="centerPanel" class="navPanel">
+					<h3>Selected Parameters and output arrangment</h3>
+					<div>
+						<br></br> <br></br> <br></br> <br></br> <br></br> <br></br> <br></br>
+						<br></br> <br></br>
+					</div>
+				</div>
+			</div>
+
+
+			<div class="box">
+				<div id="Weave" class="navPanel">
+					<h3>Weave</h3>
+					<!-- SWFObject's dynamic embed method replaces this alternative HTML content with Flash content when enough
              JavaScript and Flash plug-in support is available. The div is initially hidden so that it doesn't show
              when JavaScript is disabled.
         -->
-        <div id="flashContent">
-            
-        
+					<div id="flashContent">
 
-        
-                <object type="application/x-shockwave-flash" data="weave.swf" width="100%" height="100%">
-                    <param name="quality" value="high" />
-                    <param name="bgcolor" value="#869ca7" />
-                    <param name="allowScriptAccess" value="sameDomain" />
-                    <param name="allowFullScreen" value="true" />
-               
-                </object>
-                </div>
-               
-    </div>
-</div>
 
-    
+
+
+						<object type="application/x-shockwave-flash" data="weave.swf"
+							width="100%" height="100%">
+							<param name="quality" value="high" />
+							<param name="bgcolor" value="#869ca7" />
+							<param name="allowScriptAccess" value="sameDomain" />
+							<param name="allowFullScreen" value="true" />
+
+						</object>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+
 
 
 </body>
-</html> 
+</html>
 
