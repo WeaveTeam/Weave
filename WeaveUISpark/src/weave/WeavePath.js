@@ -1,6 +1,6 @@
 function(objectID)
 {
-	var weave = objectID ? document.getElementById(objectID) : document;
+	var weave = objectID ? document.getElementById(objectID) : document.body.firstChild;
 	
 	// browser backwards compatibility
 	if (!Array.isArray)
