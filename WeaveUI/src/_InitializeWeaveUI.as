@@ -19,6 +19,8 @@
 
 package
 {
+	import weave.api.WeaveAPI;
+	import weave.api.ui.ICollabCursorManager;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -50,6 +52,8 @@ package
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
 	import weave.ui.RTextEditor;
+	import weave.ui.collaboration.CollaborationCursorManager;
+	import weave.ui.collaboration.DocumentViewer;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -100,6 +104,8 @@ package
 			 * Register all ILinkableObjectEditor implementations.
 			 */
 			//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+		
+			WeaveAPI.registerSingleton(ICollabCursorManager, CollaborationCursorManager);
 			
 			EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
 			
@@ -157,7 +163,8 @@ package
 				TransposedTableTool,
 				RamachandranPlotTool,
 				DataStatisticsTool,
-				RInterfaceTool
+				RInterfaceTool,
+				DocumentViewer
 			]).toString();
 			
 			/**
@@ -166,6 +173,7 @@ package
 			WeaveXMLDecoder.includePackages(
 				"weave.editors",
 				"weave.ui",
+				"weave.ui.collaboration",
 				"weave.utils",
 				"weave.visualization",
 				"weave.visualization.tools",

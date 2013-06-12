@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   width="400" height="300" creationComplete="handleCreationComplete(event)"
+				   layout="absolute" resize="draggablepanel1_resizeHandler(event)"
+				   title="Document Viewer">	
+	<mx:VBox width="100%" height="100%">
+		<mx:Canvas id="pdfSpace" width="100%" height="100%"/>
+		<mx:Script>
+			<![CDATA[
+				import mx.containers.Canvas;
+				import mx.events.FlexEvent;
+				import mx.events.ItemClickEvent;
+				import mx.events.ResizeEvent;
+				import mx.rpc.AsyncToken;
+				import mx.rpc.events.FaultEvent;
+				import mx.rpc.events.ResultEvent;
+				
+				import weave.api.WeaveAPI;
+				import weave.api.registerLinkableChild;
+				import weave.api.reportError;
+				import weave.core.LinkableNumber;
+				import weave.core.LinkableString;
+				import weave.services.AMF3Servlet;
+				import weave.services.addAsyncResponder;
+				
+				private var _servlet:AMF3Servlet = null;
+				
+				//For loading file from local machine.
+				private var _pdfFile:FileReference = new FileReference();
+				//For loading file from the internet.
+				private var _pdfLoader:URLLoader = new URLLoader();
+				private var isURL:Boolean = false;
+				//Re-useable movieclip object for the converted pdf.
+				private var swfMovieClip:MovieClip = new MovieClip();
+				private var totalSlideFrames:int = 0;
+				
+				//Loader used to fetch the converted .swf file from the server.
+				private var swfLoader:Loader = new Loader();
+				private var loaded:Boolean = false;
+				private var swfLoaderTimer:Timer = new Timer(1000, 1);
+				
+				private var originalSWFHeight:Number = 0;
+				private var originalSWFWidth:Number = 0;
+				
+				public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage, true);
+				public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
+				public const sizingChoice:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateSizing);
+				
+				protected function handleCreationComplete(event:FlexEvent):void
+				{
+					_pdfFile.addEventListener(Event.SELECT, pdfFileSelectedHandler);
+					_pdfFile.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+					_pdfFile.addEventListener(Event.COMPLETE, pdfFileLoadCompleteHandler);
+					_pdfFile.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					
+					swfLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleSWFDownload);
+					swfLoader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progress);
+					swfLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleSWFLoadError);
+					
+					swfMovieClip.width = pdfSpace.width;
+					swfMovieClip.height = pdfSpace.height;
+					
+					swfLoaderTimer.addEventListener(TimerEvent.TIMER_COMPLETE, checkSWFExists);
+					testTimer.addEventListener(TimerEvent.TIMER_COMPLETE, doDownload);
+				}
+				
+				private function goToPage():void
+				{
+					if( swfMovieClip.totalFrames > 0 )
+					{
+						swfMovieClip.gotoAndStop(currentPage.value);
+						currentPageLabel.text = currentPage.value.toString();
+					}
+				}
+				
+				private function checkSWFExists( e:TimerEvent ):void
+				{
+					loadPDFSWF();
+				}
+				
+				private var testTimer:Timer = new Timer(2000,1);
+				
+				private function loadPDFSWF():void
+				{
+					if( pdfLink.value != null  )
+					{
+						if( pdfLink.value != "" && pdfLink.value.length > 5 )
+						{
+							//var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+							testTimer.start();
+							//swfLoader.load(pdfReqeust);
+						}
+					}
+				}
+				
+				private function doDownload(e:TimerEvent):void
+				{
+					
+					if( swfLoader.content != null )
+					{
+						swfMovieClip.stop();
+						if( pdfSpace.rawChildren.contains(swfMovieClip) )
+							pdfSpace.rawChildren.removeChild(swfMovieClip);
+						swfLoader.unloadAndStop();
+						swfMovieClip = null;
+						swfMovieClip = new MovieClip();
+					}
+					var pdfReqeust:URLRequest = new URLRequest(pdfLink.value);
+					swfLoader.load(pdfReqeust);
+				}
+				
+				private function handleSWFLoadError(e:IOErrorEvent):void
+				{
+					swfLoaderTimer.start();
+				}
+				
+				
+				private function pdfFileSelectedHandler(event:Event):void
+				{
+					loaded = false;
+					_pdfFile.load();
+					WeaveAPI.ProgressIndicator.addTask(_pdfFile);
+				}
+				
+				private function handleProgress(event:ProgressEvent):void
+				{
+					WeaveAPI.ProgressIndicator.updateTask(_pdfFile, event.bytesLoaded / event.bytesTotal);
+				}
+				
+				private function pdfFileLoadCompleteHandler(event:Event):void
+				{
+					WeaveAPI.ProgressIndicator.removeTask(_pdfFile);
+					if (_pdfFile.data == null)
+					{
+						return;
+					}
+					
+					_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
+					registerLinkableChild(this, _servlet);
+					
+					pdfSelected.text = _pdfFile.name;
+					
+					isURL = false;
+					
+					var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[_pdfFile.name,_pdfFile.data]);
+					addAsyncResponder(token, handleServletResponse, handleServletError, token);
+					swfLoaderTimer.start();
+				}
+				
+				private function handleServletResponse(event:ResultEvent, token:Object = null):void
+				{
+					var getSWFLink:String;
+					if( isURL )
+					{
+						getSWFLink = new String(serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
+						trace( serverIP.text + pdfURL.text.substring(pdfURL.text.lastIndexOf("/"),pdfURL.text.lastIndexOf(".")) + ".swf");
+					}
+					else
+					{
+						getSWFLink = new String(serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf");
+						trace( serverIP.text + _pdfFile.name.substr(0,_pdfFile.name.lastIndexOf(".")) + ".swf" );
+					}
+					pdfLink.value = getSWFLink;
+				}
+				
+				private function progress(e:ProgressEvent):void
+				{
+					trace(e.bytesLoaded / e.bytesTotal);
+				}
+				
+				private function handleSWFDownload(e:Event):void
+				{
+					loaded = true;
+					swfLoaderTimer.stop();
+					
+					swfMovieClip = e.currentTarget.content;
+					
+					originalSWFHeight = swfMovieClip.height;
+					originalSWFWidth = swfMovieClip.width;
+					
+					swfMovieClip.x = pdfSpace.x;
+					swfMovieClip.y = pdfSpace.y;
+					updateSizing();
+					pdfSpace.rawChildren.addChild(swfMovieClip);
+					
+					totalSlideFrames = swfMovieClip.totalFrames;
+					totalPageLabel.text = totalSlideFrames.toString();
+					currentPageLabel.text = swfMovieClip.currentFrame.toString();
+					currentPage.value = swfMovieClip.currentFrame;
+				}
+				
+				private function handleServletError(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event);
+				}
+				
+				private function fileErrorHandler(event:IOErrorEvent):void
+				{
+					reportError(event);
+				}
+				
+				protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
+				{
+					updateSizing();
+				}
+				
+				protected function selectPDFButton(event:MouseEvent):void
+				{
+					try
+					{
+						var fileTypes:Array = [new FileFilter("PDF Files", "*.pdf")];
+						_pdfFile.browse(fileTypes);
+					}
+					catch(e:Error)
+					{
+						reportError(e);
+					}
+					
+				}
+				
+				protected function loadPDF(event:MouseEvent):void
+				{
+					if( swfLoader.content != null )
+					{
+						swfLoader.unload();
+						pdfSpace.rawChildren.removeChild(swfMovieClip);
+						swfMovieClip = new MovieClip();
+					}
+					
+					var url:URLRequest = new URLRequest(pdfURL.text); 
+					_pdfLoader.dataFormat = URLLoaderDataFormat.BINARY;				
+					_pdfLoader.addEventListener(Event.COMPLETE, loaderOnComplete);
+					_pdfLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					_pdfLoader.load(url); 
+				}
+				
+				private function loaderOnComplete(event:Event):void
+				{
+					if (_pdfLoader.data == null)
+					{
+						return;
+					}
+					
+					_servlet = new AMF3Servlet(serverIP.text + "WeaveServices/DataService");
+					registerLinkableChild(this, _servlet);
+					
+					isURL = true;
+					
+					var token:AsyncToken = _servlet.invokeAsyncMethod("convertPDF",[pdfURL.text.substring(pdfURL.text.lastIndexOf("/")),_pdfLoader.data]);
+					addAsyncResponder(token, handleServletResponse, handleServletError, token);
+					
+				}
+				
+				protected function pageBack(event:MouseEvent):void
+				{
+					if( swfMovieClip.totalFrames > 0 )
+					{
+						swfMovieClip.gotoAndStop(swfMovieClip.currentFrame-1);
+						currentPage.value = swfMovieClip.currentFrame;
+					}				
+				}
+				
+				protected function pageForward(event:MouseEvent):void
+				{
+					if( swfMovieClip.totalFrames > 0 )
+					{
+						swfMovieClip.nextFrame();				
+						currentPage.value = swfMovieClip.currentFrame;
+					}
+				}
+				
+				protected function changeSizing(event:ItemClickEvent):void
+				{
+					sizingChoice.value = event.index;
+				}
+				
+				private function updateSizing():void
+				{
+					if( swfLoader.content == null )
+						return;
+					//Window
+					if( sizingChoice.value == 0 )
+					{
+						swfMovieClip.width = pdfSpace.width;
+						swfMovieClip.height = pdfSpace.height;
+						this.enableMoveResize.value = true;
+					}
+					//True Size
+					else if( sizingChoice.value == 1 )
+					{
+						swfMovieClip.height = originalSWFHeight;
+						swfMovieClip.width = originalSWFWidth;
+						this.height = swfMovieClip.height + bottomBar.height + this.borderMetrics.top + this.borderMetrics.bottom;
+						this.width = swfMovieClip.width + this.borderMetrics.left + this.borderMetrics.right;
+						this.enableMoveResize.value = false;
+					}
+					this.invalidateDisplayList();
+				}
+				
+			]]>
+		</mx:Script>
+		<mx:HBox id="bottomBar" width="100%" height="5%" horizontalAlign="center">
+			<mx:Spacer width="100%"/>
+			<mx:Image id="leftArrow" width="30" height="100%" click="pageBack(event)"
+					  source="@Embed(source='/weave/resources/images/collab/docViewerArrowLeft.png')"/>
+			<mx:Image id="rightArrow" width="30" height="100%" click="pageForward(event)"
+					  source="@Embed(source='/weave/resources/images/collab/docViewerArrowRight.png')"/>
+			<mx:Spacer width="100%"/>
+			<mx:Label id="currentPageLabel" text="0"/>
+			<mx:Label text="/"/>
+			<mx:Label id="totalPageLabel" text="0"/>
+		</mx:HBox>
+	</mx:VBox>
+	<ui:ControlPanel>
+		<mx:VBox>
+			<mx:HBox>
+				<mx:Label text="Server IP:"/>
+				<mx:TextInput id="serverIP" text="http://localhost:8080/"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Enter URL of PDF:"/>
+				<mx:TextInput id="pdfURL"/>
+				<mx:Button label="Load" click="loadPDF(event)"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="---  OR  ---"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="Select PDF file:"/>
+				<ui:TextInputWithPrompt id="pdfSelected" prompt="{lang('Select a PDF file.')}"/>
+				<mx:Button label="Load PDF" click="selectPDFButton(event)"/>
+			</mx:HBox>
+			<mx:VBox>
+				<mx:Label text="Sizing Options:" />
+				<mx:RadioButtonGroup id="sizingGroup" itemClick="changeSizing(event)"/>
+				<mx:RadioButton id="sizeByWindow" label="Size to Window" buttonMode="true"
+								group="{sizingGroup}" selected="true"/>
+				<mx:RadioButton id="sizeByTrueSize" label="Size to True Size" buttonMode="true"
+								group="{sizingGroup}" selected="false"/>
+			</mx:VBox>
+		</mx:VBox>
+	</ui:ControlPanel>
+</ui:DraggablePanel>

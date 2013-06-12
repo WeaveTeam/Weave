@@ -19,6 +19,9 @@
 
 package
 {
+	import mx.managers.CursorManager;
+	import mx.managers.ICursorManager;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
@@ -27,6 +30,7 @@ package
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
+	import weave.api.ui.ICollabCursorManager;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableHashMap;
@@ -48,6 +52,7 @@ package
 		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
 		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
+		
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

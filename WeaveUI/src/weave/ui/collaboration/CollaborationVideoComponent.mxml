@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="106" height="86" creationComplete="creationComplete(event)" creationPolicy="all"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:VBox id="borderBox" width="100%" height="100%" borderStyle="solid" borderThickness="3">
+		<mx:UIComponent id="videoArea" width="100%" height="100%"/>
+		<mx:Label id="nameLabel" width="100%" height="3%"/>
+	</mx:VBox>	
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.services.IURLRequestToken;
+
+
+			public var stream:NetStream = null;
+			public var video:Video = new Video();
+			public static var defaultHeight:Number = 86;
+			public static var defaultWidth:Number = 106;
+			private var _labelText:String;
+			private var profilePicture:Bitmap = new Bitmap(new BitmapData(100, 100));
+			private var streamingVid:Boolean = false;
+			
+			override public function set width(value:Number):void
+			{
+				super.width = value;
+			 	if( videoArea != null )
+					videoArea.width = value - 5 - (this.borderMetrics.right * 2);
+			}
+			
+			override public function set height(value:Number):void
+			{
+				super.height = value;
+				if( videoArea != null )
+					videoArea.height = value - nameLabel.height - 14 - (this.borderMetrics.bottom * 2);  
+			}
+			
+			/*
+			* This is used to set the label, since setting the label directly can result in an error sometimes.
+			*/
+			public function set labelText(id:String):void
+			{
+				_labelText = id;
+				invalidateProperties();
+			}
+			
+			/*
+			* Used as part of the set labelText solution.
+			*/
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				nameLabel.text = _labelText;
+			}
+			
+			/*
+			* Plays the camera stream.
+			*/
+			public function play(str:String):void
+			{
+				streamingVid = true;
+				applyImage();
+				stream.play(str);
+				video.attachNetStream(stream);
+			}
+			
+			/*
+			* Stop the camera stream.
+			*/
+			public function close():void
+			{
+				video.attachNetStream(null);
+				if( stream != null )
+					stream.close();
+				video.clear();
+				streamingVid = false;
+				applyImage();
+			}
+			
+			protected function creationComplete(event:FlexEvent):void
+			{
+				video.height = videoArea.height;
+				video.width = videoArea.width;
+				videoArea.addChild(video);
+				cooldownTimer.addEventListener(TimerEvent.TIMER_COMPLETE, resetBorder);
+			}
+			
+			/*
+			* Used for resizing the video object whenever the component gets bigger or smaller.
+			*/
+			public function adjustCamera():void
+			{
+				if( videoArea != null )
+				{
+					video.height = videoArea.height;
+					video.width = videoArea.width;
+					applyImage();
+				}
+			}
+			
+			private var cooldownTimer:Timer = new Timer(500, 1);
+			
+			public function setTalking(vol:int):void
+			{
+				if( vol > 25 )
+				{
+					borderBox.setStyle("borderColor", "0x00F5FF");
+					cooldownTimer.reset();
+					cooldownTimer.start();
+				}
+				else
+				{
+					if( !cooldownTimer.running )
+						borderBox.setStyle("borderColor", "0x000000");
+				}
+			}
+			
+			private function resetBorder(e:TimerEvent):void
+			{
+				borderBox.setStyle("borderColor", "0x000000");
+			}
+			
+			//Temporary object to store a user's picture.
+			private var image:BitmapData = null;
+			private var tempMatrix:Matrix = new Matrix();
+			
+			/*
+			* Gets passed an image URL and then loads the image and inserts it into the UIComponent, videoArea, and if the user is streaming
+			* their cam it will download the image but not show it until the cam is done streaming.
+			*/
+			public function applyImage(imageURL:String = null):void
+			{
+				tempMatrix.identity();
+				if( !streamingVid && profilePicture != null)
+				{
+					profilePicture.height = videoArea.height;
+					profilePicture.width = videoArea.width;
+					if( videoArea.width > 0 && videoArea.height > 0 )
+						profilePicture.bitmapData = new BitmapData( videoArea.width, videoArea.height);
+					//This runs if called by another function to apply the image to the window.
+					if( image != null && imageURL == null)
+					{
+						tempMatrix.scale( 1 / image.width * videoArea.width, 1 / image.height * videoArea.height);
+						profilePicture.bitmapData.draw(image, tempMatrix);
+					}
+					if( !videoArea.contains(profilePicture) )
+						videoArea.addChild(profilePicture);
+					//Downloading and applying image.
+					if( imageURL != null )
+					{
+						image = getImage(imageURL);
+						if( image != null )
+						{
+							tempMatrix.scale( 1 / image.width * videoArea.width, 1 / image.height * videoArea.height);
+							profilePicture.bitmapData.draw(image, tempMatrix);
+						}
+						else
+							//Need to do callLater in case the image hasn't downloaded yet.
+							callLater(applyImage, [imageURL]);
+					}
+				}
+				else if( streamingVid && profilePicture != null && videoArea.contains(profilePicture))
+					videoArea.removeChild(profilePicture);
+			}
+			
+			//The following code is for using an image in place of the typical mouse cursor.
+			
+			[Embed( source="/weave/resources/images/missing.png")]
+			private static var _missingImageClass:Class;
+			private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+			
+			/**
+			 * This is the image cache.
+			 */
+			private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+			
+			private function getImage(url:String):BitmapData
+			{
+				if (url && _urlToImageMap[url] === undefined)
+				{
+					_urlToImageMap[url] = null;
+					var tokencheck:IURLRequestToken = WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(url), handleImageDownload, handleFault, url);
+				}
+				return _urlToImageMap[url] as BitmapData;
+			}
+			
+			private function handleImageDownload(event:ResultEvent, token:Object = null):void
+			{
+				var bitmap:Bitmap = event.result as Bitmap;
+				_urlToImageMap[token] = bitmap.bitmapData;
+				applyImage();
+			}
+			
+			/**
+			 * This function is called when there is an error downloading an image.
+			 */
+			private function handleFault(event:FaultEvent, token:Object=null):void
+			{
+				_urlToImageMap[token] = _missingImage;
+			}
+			
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>
