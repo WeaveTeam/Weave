@@ -40,8 +40,12 @@
 				private var loaded:Boolean = false;
 				private var swfLoaderTimer:Timer = new Timer(1000, 1);
 				
+				private var originalSWFHeight:Number = 0;
+				private var originalSWFWidth:Number = 0;
+				
 				public const currentPage:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), goToPage, true);
 				public const pdfLink:LinkableString = registerLinkableChild(this, new LinkableString(""), loadPDFSWF);
+				public const sizingChoice:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), updateSizing);
 				
 				protected function handleCreationComplete(event:FlexEvent):void
 				{
@@ -172,10 +176,12 @@
 					
 					swfMovieClip = e.currentTarget.content;
 					
+					originalSWFHeight = swfMovieClip.height;
+					originalSWFWidth = swfMovieClip.width;
+					
 					swfMovieClip.x = pdfSpace.x;
 					swfMovieClip.y = pdfSpace.y;
-					swfMovieClip.width = pdfSpace.width;
-					swfMovieClip.height = pdfSpace.height;
+					updateSizing();
 					pdfSpace.rawChildren.addChild(swfMovieClip);
 					
 					totalSlideFrames = swfMovieClip.totalFrames;
@@ -196,9 +202,7 @@
 				
 				protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
 				{
-					swfMovieClip.width = pdfSpace.width;
-					swfMovieClip.height = pdfSpace.height;
-					this.invalidateDisplayList();
+					updateSizing();
 				}
 				
 				protected function selectPDFButton(event:MouseEvent):void
@@ -268,13 +272,33 @@
 				
 				protected function changeSizing(event:ItemClickEvent):void
 				{
-					// TODO Auto-generated method stub
-					
+					sizingChoice.value = event.index;
+				}
+				
+				private function updateSizing():void
+				{
+					//Window
+					if( sizingChoice.value == 0 )
+					{
+						swfMovieClip.width = pdfSpace.width;
+						swfMovieClip.height = pdfSpace.height;
+						this.enableMoveResize.value = true;
+					}
+					//True Size
+					else if( sizingChoice.value == 1 )
+					{
+						swfMovieClip.height = originalSWFHeight;
+						swfMovieClip.width = originalSWFWidth;
+						this.height = swfMovieClip.height + bottomBar.height + this.borderMetrics.top + this.borderMetrics.bottom;
+						this.width = swfMovieClip.width + this.borderMetrics.left + this.borderMetrics.right;
+						this.enableMoveResize.value = false;
+					}
+					this.invalidateDisplayList();
 				}
 				
 			]]>
 		</mx:Script>
-		<mx:HBox width="100%" height="5%" horizontalAlign="center">
+		<mx:HBox id="bottomBar" width="100%" height="5%" horizontalAlign="center">
 			<mx:Spacer width="100%"/>
 			<mx:Image id="leftArrow" width="30" height="100%" click="pageBack(event)"
 					  source="@Embed(source='/weave/resources/images/collab/docViewerArrowLeft.png')"/>
@@ -310,9 +334,7 @@
 				<mx:RadioButtonGroup id="sizingGroup" itemClick="changeSizing(event)"/>
 				<mx:RadioButton id="sizeByWindow" label="Size to Window" buttonMode="true"
 								group="{sizingGroup}" selected="true"/>
-				<mx:RadioButton id="sizeByHeight" label="Size to Height" buttonMode="true"
-								group="{sizingGroup}" selected="false"/>
-				<mx:RadioButton id="sizeByWidth" label="Size to Width" buttonMode="true"
+				<mx:RadioButton id="sizeByTrueSize" label="Size to True Size" buttonMode="true"
 								group="{sizingGroup}" selected="false"/>
 			</mx:VBox>
 		</mx:VBox>
