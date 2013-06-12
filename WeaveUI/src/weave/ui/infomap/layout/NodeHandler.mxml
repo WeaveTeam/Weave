@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-		   implements="weave.api.core.ILinkableObject"
-		   cacheAsBitmap="false"
-		   clipContent="false"
-		   autoLayout="false" xmlns:ui="weave.ui.infomap.ui.*"
-		   creationPolicy="all">
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:ui="weave.ui.infomap.ui.*"
+		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
+		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
+		   verticalScrollPolicy="off">
 	<!--Show this status box only when list is visible-->
-	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}" width="300"/>
+	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}"
+			  width="300"/>
 	<!--<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
 		<mx:Label id="filterStatus"/>
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
 	</mx:HBox>-->
 	<!--<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>-->
 	<!--<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>-->
-	<mx:Glow id="selectedBorder" 
-			 alphaFrom="1.0" alphaTo="1.0"   
-			 blurXFrom="10.0" blurYFrom="10.0" 
-			 blurXTo="10.0" blurYTo="10.0"
-			 duration="0" target="{nodeBase}"/>
-	<mx:Glow id="unselectedBorder" 
-			 alphaFrom="0.0" alphaTo="1.0"   
-			 blurXFrom="10.0" blurYFrom="10.0" 
-			 blurXTo="10.0" blurYTo="10.0"
-			 duration="0" target="{nodeBase}"/>
-	<mx:Fade id="fadeIn" alphaFrom="0.0" effectStart="handleEffectsStart(event)" effectEnd="handleEffectsEnd(event)" alphaTo="1.0" duration="750" />
-	<mx:Fade id="fadeOut" alphaFrom="1.0" effectStart="handleEffectsStart(event)"  effectEnd="handleEffectsEnd(event)" alphaTo="0.0" duration="750" />
+	<mx:Glow id="selectedBorder" alphaFrom="1.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
+			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
+	<mx:Glow id="unselectedBorder" alphaFrom="0.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
+			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
+	<mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="750"
+			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
+	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="750"
+			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
 	<mx:Sequence id="newDocumentHighlight" target="{nodeBase.keywordTextArea}">
-		<mx:Fade id="newDocumentFadeOut" alphaFrom="1.0" alphaTo="0.0" duration="1000" />
-		<mx:Fade id="newDocumentFadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1000" />
+		<mx:Fade id="newDocumentFadeOut" alphaFrom="1.0" alphaTo="0.0" duration="1000"/>
+		<mx:Fade id="newDocumentFadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1000"/>
 	</mx:Sequence>
 	<mx:Script>
 		<![CDATA[
@@ -468,7 +464,7 @@
 				_pinImg.buttonMode = true;
 				nodeBase.addChild(_pinImg);
 				_pinImg.x = nodeBase.width; 
-				_pinImg.y = _pinImg.height;
+				_pinImg.y = 0;
 				
 				enablePinView.addGroupedCallback(this,handlePinViewChange,true);
 				_pinImg.addEventListener(MouseEvent.CLICK,togglePinViews);
@@ -986,7 +982,7 @@
 				if(_pinImg)
 				{
 					_pinImg.x = nodeBase.width; 
-					_pinImg.y = _pinImg.height;
+					_pinImg.y = 0;
 				}
 				/*set pushpin image if required*/
 				
