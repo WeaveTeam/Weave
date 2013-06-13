@@ -207,18 +207,22 @@ package weave.utils
 			outputIntersectionPoint.y = ipy;
 			return outputIntersectionPoint;
 		}
+		
+		public static const NO_OVERLAP:uint = 0;
+		public static const INTERSECTS:uint = 1;
+		public static const CONTAINS:uint = 2;
+		public static const CONTAINED_IN:uint = 3;
 
 		/**
-		 * polygonOverlapsPolygon
 		 * Optimized for situations where polygon2 is contained in polygon1.
 		 * @param polygon1 An array of objects representing vertices, each having x and y properties.
 		 * @param polygon2 An array of objects representing vertices, each having x and y properties.
-		 * @return true if the polygons overlap
+		 * @return One of the constants NO_OVERLAP, INTERSECTS, CONTAINS, CONTAINED_IN
 		 */
-		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):Boolean
+		public static function polygonOverlapsPolygon(polygon1:Object, polygon2:Object):uint
 		{
 			if (polygon1.length == 0 || polygon2.length == 0)
-				return false;
+				return NO_OVERLAP;
 			var a:Object = polygon2[0];
 			var b:Object;
 			for (var i2:int = polygon2.length; i2--;)
@@ -226,14 +230,15 @@ package weave.utils
 				b = a;
 				a = polygon2[i2];
 				if (polygonIntersectsLine(polygon1, a.x, a.y, b.x, b.y))
-					return true;
+					return INTERSECTS;
 			}
 			// if no lines intersect, check for point containment
 			if (polygonOverlapsPoint(polygon1, a.x, a.y))
-				return true;
+				return CONTAINS;
 			a = polygon1[0];
-			return polygonOverlapsPoint(polygon2, a.x, a.y);
-
+			if (polygonOverlapsPoint(polygon2, a.x, a.y))
+				return CONTAINED_IN;
+			return NO_OVERLAP;
 		}
 
 		/**
@@ -270,20 +275,20 @@ package weave.utils
 		 * @param Bx X coordinate of B in line AB
 		 * @param By Y coordinate of B in line AB
 		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
-		 * @return true if the line overlaps the polygon.
+		 * @return One of the constants NO_OVERLAP, INTERSECTS, CONTAINS
 		 */
-		public static function polygonOverlapsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):Boolean
+		public static function polygonOverlapsLine(polygon:Object, Ax:Number, Ay:Number, Bx:Number, By:Number, asSegment:Boolean=true):uint
 		{
 			if (polygonIntersectsLine(polygon, Ax, Ay, Bx, By, asSegment) == true)
-				return true;
+				return INTERSECTS;
 			
 			if (polygonOverlapsPoint(polygon, Ax, Ay) == true)
-				return true;
+				return CONTAINS;
 			
 			if (polygonOverlapsPoint(polygon, Bx, By) == true)
-				return true;
+				return CONTAINS;
 			
-			return false;
+			return NO_OVERLAP;
 		}
 		
 		private static const _tempShape:Shape = new Shape();
