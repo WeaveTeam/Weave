@@ -9,4 +9,68 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
+    <!-- NOTE: An SSI Servlet is also available as an alternative SSI         -->
+  <!-- implementation. Use either the Servlet or the Filter but NOT both.   -->
+  <!--                                                                      -->
+  <!-- Server Side Includes processing filter, which processes SSI          -->
+  <!-- directives in HTML pages consistent with similar support in web      -->
+  <!-- servers like Apache.  Traditionally, this filter is mapped to the    -->
+  <!-- URL pattern "*.shtml", though it can be mapped to "*" as it will     -->
+  <!-- selectively enable/disable SSI processing based on mime types. For   -->
+  <!-- this to work you will need to uncomment the .shtml mime type         -->
+  <!-- definition towards the bottom of this file.                          -->
+  <!-- The contentType init param allows you to apply SSI processing to JSP -->
+  <!-- pages, javascript, or any other content you wish.  This filter       -->
+  <!-- supports the following initialization parameters (default values are -->
+  <!-- in square brackets):                                                 -->
+  <!--                                                                      -->
+  <!--   contentType         A regex pattern that must be matched before    -->
+  <!--                       SSI processing is applied.                     -->
+  <!--                       [text/x-server-parsed-html(;.*)?]              -->
+  <!--                                                                      -->
+  <!--   debug               Debugging detail level for messages logged     -->
+  <!--                       by this servlet.  [0]                          -->
+  <!--                                                                      -->
+  <!--   expires             The number of seconds before a page with SSI   -->
+  <!--                       directives will expire.  [No default]          -->
+  <!--                                                                      -->
+  <!--   isVirtualWebappRelative                                            -->
+  <!--                       Should "virtual" paths be interpreted as       -->
+  <!--                       relative to the context root, instead of       -->
+  <!--                       the server root? [false]                       -->
+  <!--                                                                      -->
+  <!--   allowExec           Is use of the exec command enabled? [false]    -->
+
+<!--
+    <filter>
+        <filter-name>ssi</filter-name>
+        <filter-class>
+          org.apache.catalina.ssi.SSIFilter
+        </filter-class>
+        <init-param>
+          <param-name>contentType</param-name>
+          <param-value>text/x-server-parsed-html(;.*)?</param-value>
+        </init-param>
+        <init-param>
+          <param-name>debug</param-name>
+          <param-value>0</param-value>
+        </init-param>
+        <init-param>
+          <param-name>expires</param-name>
+          <param-value>666</param-value>
+        </init-param>
+        <init-param>
+          <param-name>isVirtualWebappRelative</param-name>
+          <param-value>false</param-value>
+        </init-param>
+    </filter>
+-->
+  <!-- The mapping for the SSI Filter -->
+<!--
+    <filter-mapping>
+        <filter-name>ssi</filter-name>
+        <url-pattern>*.shtml</url-pattern>
+    </filter-mapping>
+-->
+
 </web-app>

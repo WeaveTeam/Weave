@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Sortable - Portlets</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.9.1.js"></script>
+	<script src="../../ui/jquery-ui.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+        portlet { margin: 0 1em 1em 0; }
+        .portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
+        .portlet-header .ui-icon { float: right; }
+        .portlet-content { padding: 0.4em; }
+        .ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
+        .ui-sortable-placeholder * { visibility: hidden; }
+        html, body {
+            width:100%;
+            height:100%;
+            margin: 0;
+            padding: 0;
+            
+        }
+        #container {
+            width: 98%;
+            height: 98%;
+            position: relative;
+            margin-left:auto;
+            margin-right:auto;
+            margin-top:auto;
+            margin-bottom:auto;
+        }
+        
+        #header {
+            width: 100%;
+            height: 8%;
+            position: relative;
+            margin-left:auto;
+            margin-right:auto;
+            margin-top:auto;
+            margin-bottom:auto;
+        }
+        
+        #leftPanel {
+            width: 15%;
+            height: 90%;
+            position: relative;
+        }
+        
+        #weaveThumb {
+            width: 100%;
+            height: 15%;
+            position: absolute;
+            bottom:0;
+            
+        }
+        
+        #center {
+            width: 70%;
+            height: 80%;
+            position: relative;
+        }
+    
+        #queryContent {
+            width:100%;
+            height:83%;
+            position: absolute;
+        }
+	</style>
+    
+	<script>
+        $(document).ready(
+                      
+        function () {
+            $('#projectButton')
+                .button({
+                  icons: {
+                    secondary: "ui-icon-triangle-1-s"
+                  }
+                })
+                
+            $('#dataDialog')
+                .dialog({
+                    autoOpen: false,
+                    height: 500,
+                    width: 750,
+                    modal:true,
+                    buttons: {
+                        Select: function() {
+                            //handleSelectOption();
+                            $(this).dialog("close");
+                        },
+                        Cancel: function() {
+                            //handleCancelOption();
+                            $(this).dialog("close");
+                        },
+                    }
+                
+                });
+            $('#dataButton')
+                .button()
+                .click(function() {
+                    $( '#dataDialog').dialog("open");
+                });
+                
+            $('.portlet').addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" )
+                .find( ".portlet-header" )
+                    .addClass( "ui-widget-header ui-corner-all" )
+                    .prepend( "<span class='ui-icon ui-icon-minusthick'></span>")
+                    .end()
+                .find( ".portlet-content" );
+ 
+            $( ".portlet-header .ui-icon" ).click(function() {
+                $( this ).toggleClass( "ui-icon-minusthick" ).toggleClass( "ui-icon-plusthick" );
+                $( this ).parents( ".portlet:first" ).find( ".portlet-content" ).toggle();
+            });
+
+        });
+    </script>
+</head>
+<body>
+    <div id="dataDialog" title="Data">
+    </div>
+    <div id="container">
+        <div id="header">
+            <button id="projectButton">Project</button>
+            <button id="dataButton">Data...</button>
+        </div>
+        <div id="leftPanel">
+            <div id="queryContent">
+                <div id="Indicators" class="portlet">
+                    <div class="portlet-header">Analysis Builder</div>
+                    <div class="portlet-content">content</div>
+                </div>
+                <div id="Indicators" class="portlet">
+                    <div class="portlet-header">Calculation</div>
+                    <div class="portlet-content">content</div>
+                </div>
+                <div id="Indicators" class="portlet">
+                    <div class="portlet-header">Weave</div>
+                    <div class="portlet-content">Indicators content</div>
+                </div>
+            </div>
+            <div id="weaveThumb">
+            </div>
+        </div>
+        <div id="Center">
+        </div>
+    </div>
+</body>
+</html>
