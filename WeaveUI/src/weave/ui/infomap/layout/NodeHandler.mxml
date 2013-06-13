@@ -1344,10 +1344,8 @@
 				adjustNodeBase();
 				status.text = "";
 				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
-				trace(viewUI.visible,viewUI.alpha);
 				if(viewUI.visible && viewUI.alpha == 1)
 					return;
-				trace("fading in");
 				fadeIn.play([viewUI]);
 			}
 			
@@ -1357,7 +1355,6 @@
 				
 				if(!viewUI.visible && viewUI.alpha == 0)
 					return;
-				trace("fading out");
 				fadeOut.play([viewUI]);
 			}
 			
@@ -1813,7 +1810,6 @@
 				{
 					fadeOut.stop();
 					showCurrentView();
-					trace("ROlled Over");
 				}
 			}
 			
@@ -1823,7 +1819,6 @@
 				{
 					fadeIn.stop();
 					hideCurrentView();
-					trace("rolled out");
 				}
 			}
 			
@@ -2052,7 +2047,6 @@
 					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,
 						_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,2000, numOfTopics.value,
 						numOfKeywordsInEachTopic.value);
-				//trace("Number of Topics and number of keywords in each topic: " + numOfTopics.value + numOfKeywordsInEachTopic.value);
 				}
 				
 				var token:QueryObject = new QueryObject();
@@ -2186,13 +2180,14 @@
 			private function editQuery():void
 			{
 				makeKeywordTextAreaEditable();
-				nodeBase.keywordTextArea.setSelection(0,nodeBase.keywordTextArea.length);
+				nodeBase.keywordTextArea.setSelection(nodeBase.keywordTextArea.length,nodeBase.keywordTextArea.length);
 			}
 			private function makeKeywordTextAreaEditable():void
 			{
 				nodeBase.keywordTextArea.editable = true;
 				nodeBase.keywordTextArea.selectable = true;
 				nodeBase.keywordTextArea.setFocus();
+				stage.focus = nodeBase.keywordTextArea;
 			}
 			
 			private function handleChangeToPrevQuery():void
@@ -2264,6 +2259,8 @@
 			
 			private function updateTextArea():void
 			{
+				if(!previousQuery.keywords.value)
+					return;
 				//we restrict node length to 200.
 				if(previousQuery.keywords.value.length >200)
 				{
@@ -2458,7 +2455,7 @@
 				docKeySet.replaceKeys([]);
 				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
 				wordCount = [];
-				
+				hideCurrentView();
 			}
 			
 			public function dispose():void

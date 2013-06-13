@@ -265,15 +265,22 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 		{
 			try{
 				
-				if(relatedQueryTerms.length>0)
-				{
-					for (int j = 0; j <relatedQueryTerms.length; j++)
+				try{
+					
+					if(relatedQueryTerms.length>0)
 					{
-						query = URLEncoder.encode(requiredTerms[i]+" " +relatedQueryTerms[j] , "UTF-8");
-						result += getNumOfDocumentsForQuery(query);
+						for (int j = 0; j <relatedQueryTerms.length; j++)
+						{
+							query = URLEncoder.encode(requiredTerms[i]+" " +relatedQueryTerms[j] , "UTF-8");
+							result += getNumOfDocumentsForQuery(query);
+						}
 					}
-				}
-				else
+					else
+					{
+						query = URLEncoder.encode(requiredTerms[i], "UTF-8");
+						result += getNumOfDocumentsForQuery(requiredTerms[i]);
+					}
+				}catch (NullPointerException nullE)
 				{
 					query = URLEncoder.encode(requiredTerms[i], "UTF-8");
 					result += getNumOfDocumentsForQuery(requiredTerms[i]);
