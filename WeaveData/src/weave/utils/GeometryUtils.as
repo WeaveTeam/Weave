@@ -39,7 +39,7 @@ package weave.utils
 	 * @author adufilie 
 	 * @author kmonico
 	 */
-	public class ComputationalGeometryUtils
+	public class GeometryUtils
 	{
 
 		/**

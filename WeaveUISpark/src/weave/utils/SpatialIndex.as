@@ -257,7 +257,7 @@ package weave.utils
 		{
 			for (var i:int = 0; i < line.length - 1; ++i)
 			{
-				if (ComputationalGeometryUtils.polygonOverlapsLine(polygon, line[i].x, line[i].y, line[i + 1].x, line[i + 1].y))
+				if (GeometryUtils.polygonOverlapsLine(polygon, line[i].x, line[i].y, line[i + 1].x, line[i + 1].y))
 				{
 					return true;
 				}
@@ -269,7 +269,7 @@ package weave.utils
 		{
 			for (var i:int = 0; i < point.length; ++i)
 			{
-				if (ComputationalGeometryUtils.polygonOverlapsPoint(polygon, point[i].x, point[i].y))
+				if (GeometryUtils.polygonOverlapsPoint(polygon, point[i].x, point[i].y))
 					return true;
 			}
 			
@@ -280,7 +280,7 @@ package weave.utils
 			var min:Number = Number.POSITIVE_INFINITY;
 			for (var i:int = 0; i < line.length - 1; ++i)
 			{
-				var distance:Number = ComputationalGeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y, x, y);
+				var distance:Number = GeometryUtils.getUnscaledDistanceFromLine(line[i].x, line[i].y, line[i + 1].x, line[i + 1].y, x, y);
 				min = Math.min(distance, min);
 			}			
 			return min;
@@ -290,7 +290,7 @@ package weave.utils
 			var min:Number = Number.POSITIVE_INFINITY;
 			for (var i:int = 0; i < points.length; ++i)
 			{
-				var distance:Number = ComputationalGeometryUtils.getDistanceFromPointSq(points[i].x, points[i].y, x, y);
+				var distance:Number = GeometryUtils.getDistanceFromPointSq(points[i].x, points[i].y, x, y);
 				min = Math.min(distance, min);
 			}
 			return min;
@@ -402,12 +402,12 @@ package weave.utils
 							// if a polygon, check for polygon overlap
 							if (genGeomIsPoly)
 							{
-								test = ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, part);
-								if (test == ComputationalGeometryUtils.CONTAINED_IN)
+								test = GeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, part);
+								if (test == GeometryUtils.CONTAINED_IN)
 								{
 									overlapCount++;
 								}
-								else if (test != ComputationalGeometryUtils.NO_OVERLAP)
+								else if (test != GeometryUtils.NO_OVERLAP)
 								{
 									result.push(key);
 									continue keyLoop;
@@ -442,7 +442,7 @@ package weave.utils
 						
 						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, vertices))
+							if (GeometryUtils.polygonOverlapsPolygon(_tempBoundsPolygon, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -544,7 +544,7 @@ package weave.utils
 								{
 									distanceSq = geomDistance;
 									// if the polygon contains the point, this key is probably what we want
-									if (ComputationalGeometryUtils.polygonOverlapsPoint(part, xQueryCenter, yQueryCenter))
+									if (GeometryUtils.polygonOverlapsPoint(part, xQueryCenter, yQueryCenter))
 										overlapCount++;
 								}
 								else if (genGeomIsLine)
@@ -608,7 +608,7 @@ package weave.utils
 							// calculate the distanceSq and overlapsQueryCenter
 							if (simpleGeomIsPoly)
 							{
-								if (ComputationalGeometryUtils.polygonOverlapsPoint(
+								if (GeometryUtils.polygonOverlapsPoint(
 									vertices, xQueryCenter, yQueryCenter))
 								{
 									distanceSq = 0;
@@ -774,12 +774,12 @@ package weave.utils
 					for (var j:int = 0; j < keyBounds.length; j++)
 					{
 						setTempBounds(keyBounds[j]);
-						test = ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices,_tempBoundsPolygon);
-						if (test == ComputationalGeometryUtils.CONTAINED_IN)
+						test = GeometryUtils.polygonOverlapsPolygon(queryGeomVertices,_tempBoundsPolygon);
+						if (test == GeometryUtils.CONTAINED_IN)
 						{
 							overlapCount++;
 						}
-						else if (test != ComputationalGeometryUtils.NO_OVERLAP)
+						else if (test != GeometryUtils.NO_OVERLAP)
 						{
 							result.push(key);
 							continue keyLoop;
@@ -809,7 +809,7 @@ package weave.utils
 							//make the polygon
 							setTempBounds((geom as GeneralizedGeometry).bounds);
 							//check if the lasso polygon overlaps the geometry bounds
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, _tempBoundsPolygon))
+							if (GeometryUtils.polygonOverlapsPolygon(queryGeomVertices, _tempBoundsPolygon))
 							{
 								result.push(key);
 								continue keyLoop;
@@ -827,12 +827,12 @@ package weave.utils
 							// if a polygon, check for polygon overlap
 							if (genGeomIsPoly)
 							{
-								test = ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, part);
-								if (test == ComputationalGeometryUtils.CONTAINED_IN)
+								test = GeometryUtils.polygonOverlapsPolygon(queryGeomVertices, part);
+								if (test == GeometryUtils.CONTAINED_IN)
 								{
 									overlapCount++;
 								}
-								else if (test != ComputationalGeometryUtils.NO_OVERLAP)
+								else if (test != GeometryUtils.NO_OVERLAP)
 								{
 									result.push(key);
 									continue keyLoop;
@@ -867,7 +867,7 @@ package weave.utils
 						
 						if (simpleGeomIsPoly)// a polygon, check for polygon overlap
 						{
-							if (ComputationalGeometryUtils.polygonOverlapsPolygon(queryGeomVertices, vertices))
+							if (GeometryUtils.polygonOverlapsPolygon(queryGeomVertices, vertices))
 							{
 								result.push(key);
 								continue keyLoop;
