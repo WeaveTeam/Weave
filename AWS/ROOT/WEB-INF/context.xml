@@ -1,0 +1,4 @@
+<Context privileged="true">
+
+<WatchedResource>WEB-INF/web.xml</WatchedResource>
+</Context>
