@@ -209,7 +209,7 @@ package weave.api
 					<![CDATA[
 						function(objectID)
 						{
-							var weave = document.getElementById(objectID);
+							var weave = objectID ? document.getElementById(objectID) : document.body.firstChild;
 							if (window && window.weaveReady)
 							{
 								window.weaveReady(weave);
