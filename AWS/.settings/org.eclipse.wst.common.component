@@ -2,7 +2,7 @@
     <wb-module deploy-name="AWS">
         <wb-resource deploy-path="/" source-path="/ROOT" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
-        <property name="context-root" value="AWS"/>
         <property name="java-output-path" value="/AWS/build/classes"/>
+        <property name="context-root" value="ROOT"/>
     </wb-module>
 </project-modules>

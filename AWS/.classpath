@@ -13,5 +13,7 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/WeaveServices"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/WeaveServletUtils"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

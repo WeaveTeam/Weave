@@ -1,0 +1,25 @@
+<project name="AWS" basedir=".">
+    <path id="classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="C:/tomcat7/lib" includes="servlet-api.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target name="build" depends="clean">
+		<echo message="Compiling ${ant.project.name}..."/>
+                <mkdir dir="/bin/classes"/>
+                <javac srcdir="src" destdir="bin/classes" classpathref="classpath"
+                    debug="true"
+                    debuglevel="lines,vars,source"/>
+    </target>
+	<target name="dist" depends="build">
+	        <mkdir dir="bin"/>
+	        <war destfile="bin/AWS.war" webxml="ROOT/WEB-INF/web.xml">
+	            <lib dir="lib/"/>
+	            <classes dir="bin/classes"/>
+	            <webinf dir="ROOT/WEB-INF"/>
+	            <metainf dir="ROOT/META-INF"/>
+	        </war>
+	    </target>
+</project>

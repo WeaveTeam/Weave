@@ -1,6 +1,7 @@
 package stata;
 
-import stata.CommandUtils;
+import weave.utils.CSVParser;
+import weave.utils.CommandUtils;
 
 import java.io.File;
 import java.io.IOException;

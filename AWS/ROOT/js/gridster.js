@@ -19,7 +19,7 @@ require(
 								$(".gridster ul").gridster({
 									widget_margins : [ 10, 10 ],
 									widget_base_dimensions : [ 140, 140 ],
-									max_size_x: 3
+									max_size_x : 3
 								});
 
 								$('#projectButton').button({
@@ -44,7 +44,7 @@ require(
 										},
 									}
 								});
-								
+
 								$('#dataButton').button().click(function() {
 									$('#dataDialog').dialog("open");
 								});
@@ -76,6 +76,76 @@ require(
 												});
 
 							}));
-			
+			// available methods are listed here:
+			// http://ivpr.github.io/Weave-Binaries/javadoc/weave/servlets/DataService.html
+			function queryDataService(method, params, resultHandler, queryId) {
+				// console.log('queryDataService ',method,' ',params);
+				var url = '/WeaveServices/DataService';
+				var request = {
+					jsonrpc : "2.0",
+					id : queryId || "no_id",
+					method : method,
+					params : params
+				};
+				$.post(url, JSON.stringify(request), handleResponse, "json");
+
+				function handleResponse(response) {
+					if (response.error)
+						console.log(JSON.stringify(response, null, 3));
+					else
+						resultHandler(response.result, queryId);
+				}
+			}
+			function test1() {
+				var tableId = 107945;
+				var name = 'Percent Obese (BMI >= 30)';
+
+				// get the IDs of all the fields in a table
+				queryDataService(
+						'getEntityChildIds',
+						[ tableId ],
+						function(ids) {
+
+							console.log("test1 received child ids: ", ids);
+
+							// get the metadata for each child
+							queryDataService(
+									'getEntitiesById',
+									[ ids ],
+									function(entities) {
+
+										console.log("test1 received ",
+												entities.length, " entities");
+
+										// filter by name
+										entities = entities
+												.filter(function(e) {
+													return e.publicMetadata.name == name;
+												});
+										console.log("test1 filtered ",
+												entities.length, " entities");
+										entities.sort(sortBy('publicMetadata',
+												'year'));
+
+										console
+												.log(
+														"test1 filtered by name, sorted by year: ",
+														entities);
+										console
+												.log(
+														"test1 corresponding years: ",
+														entities
+																.map(function(e) {
+																	return e.publicMetadata.year;
+																}));
+										console.log(
+												"test1 corresponding ids: ",
+												entities.map(function(e) {
+													return e.id;
+												}));
+									});
+						});
+			}
+			test1();
 
 		});

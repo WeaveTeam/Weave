@@ -146,7 +146,28 @@ ul, ol {
 </style>
 
 <script>
-	
+//available methods are listed here: http://ivpr.github.io/Weave-Binaries/javadoc/weave/servlets/DataService.html
+function queryDataService(method, params, resultHandler, queryId)
+{
+    //console.log('queryDataService ',method,' ',params);
+    var url = '/WeaveServices/DataService';
+    var request = {
+        jsonrpc: "2.0",
+        id: queryId || "no_id",
+        method: method,
+        params: params
+    };
+    $.post(url, JSON.stringify(request), handleResponse, "json");
+
+    function handleResponse(response)
+    {
+        if (response.error)
+            console.log(JSON.stringify(response, null, 3));
+        else
+            resultHandler(response.result, queryId);
+    }
+}
+
 </script>
 </head>
 <body>
@@ -157,7 +178,7 @@ ul, ol {
 			<button id="dataButton">Data...</button>
 		</div>
 		<div id="leftPanel">
-			<!-- <div id="queryContent">
+			<div id="queryContent">
 				<div id="Indicators" class="portlet">
 					<div class="portlet-header">Analysis Builder</div>
 					<div class="portlet-content">content</div>
@@ -170,7 +191,7 @@ ul, ol {
 					<div class="portlet-header">Weave</div>
 					<div class="portlet-content">Indicators content</div>
 				</div>
-			</div> -->
+			</div> 
 			<div id="weaveThumb"></div>
 		</div>
 		<div id="center">
