@@ -14,16 +14,23 @@
 
 require.config({
 	paths : {
-		// 'jquery' : 'js/jquery',
-		'swfobject' : 'swfobject'
+		 'jquery' : 'js/jquery-1.9.1',
+		 'jquery-ui': 'jquery-ui-1.10.3.custom',
+	},
+	shim: {
+		'jquery.jlayout':['jlayout.border','jlayout.grid','jquery.sizes'],
+								'jquery.sizes':['jquery'],
+		'jquery-ui':['jquery']
 	}
 });
 
 require(
-		[ "js/jquery-1.9.1.js","text!../src/GenericPanel.html!strip", "js/jquery-ui-1.10.3.custom.js",
-				"js/jlayout.border.js", "js/jquery.jlayout.js",
-				"js/jquery.sizes.js", "swfobject" ],
-		function($, html, $, jLayout) {
+		[ 
+		  "text!../src/GenericPanel.html!strip", 
+		  "jquery-ui",
+		  "jquery.jlayout",
+		  "swfobject" ],
+		function( html, $, jLayout) {
 
 			// JLayout script
 			jQuery(function($) {
@@ -45,8 +52,11 @@ require(
 					$('.center').layout({
 						type : 'grid',
 						resize : false,
-						columns : 3,
-						fill : 'horizontal'
+						columns : 2,
+						rows: 4,
+						fill : 'horizontal',
+						//vgap : 4,
+						//hgap : 4
 					});
 					var pan = $(".varPanel");
 						pan.find("span.ui-icon-minusthick").remove();

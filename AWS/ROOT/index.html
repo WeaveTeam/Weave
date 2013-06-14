@@ -140,7 +140,8 @@ html,body {
 }
 
 .west {
-	width: 8%;
+	width: auto;
+	min-width: auto;
 }
 
 .north,.south {
@@ -151,8 +152,8 @@ html,body {
  * These styles are to create custom resize handles.
  */
 .ui-resizable-w {
-	left: -8px;
-	width: 8px;
+	left: -4px;
+	width: 4px;
 }
 
 /* .ui-resizable-e {
@@ -183,7 +184,8 @@ html,body {
 }
 
 .varPanel-header {
-	width: 100%; margin : -0.06em;
+	width: 100%;
+	margin: -0.06em;
 	padding-bottom: 4px;
 	margin: -0.06em;
 }
@@ -313,20 +315,25 @@ html,body {
 
 			</div>
 		</div>
-		<div class="west">West</div>
-		<div class="north">North</div>
+		<div class="west">
+			<div class="varPanel">
+				<div class="varPanel-header">
+					<h3>Selected Parameters and output arrangment</h3>
+				</div>
+				<div class="varPanel-content">
+					<div id="querySummary">query object Here</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="north"><div id="header">
+            <button id="projectButton">Project</button>
+            <button id="dataButton">Data...</button>
+        </div></div>
 		<div class="south">
 			South
 
-			<div class="varPanel">
-				<div class="varPanel-content">
-					<h3>Selected Parameters and output arrangment</h3>
-					<div>
-						<br></br> <br></br> <br></br> <br></br> <br></br> <br></br> <br></br>
-						<br></br> <br></br>
-					</div>
-				</div>
-			</div>
+
 
 
 			<div class="varPanel">
