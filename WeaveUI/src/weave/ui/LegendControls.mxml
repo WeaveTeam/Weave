@@ -30,7 +30,7 @@
 		 xmlns:mx="http://www.adobe.com/2006/mxml"
 		 width="100%" label="{lang('Legend settings')}" clipContent="false" creationPolicy="all"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
-
+	
 	<mx:HBox>
 		<mx:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
 		<mx:CheckBox id="chkColorGradient" label="{lang('Display legend as color gradient')}"/> 
