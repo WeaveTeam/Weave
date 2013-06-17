@@ -2,102 +2,123 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>jQuery UI Sortable - Portlets</title>
+<title>Roundtrip + UI "Round 2"</title>
 <link rel="stylesheet"
-	href="css/ui-lightness/jquery-ui-1.10.3.custom.css">
+  href="css/ui-lightness/jquery-ui-1.10.3.custom.css">
 <script data-main="js/gridster" src="js/require.js"></script>
 <link rel="stylesheet" href="css/demos.css">
 <link rel="stylesheet" href="css/jquery.gridster.css">
 <style>
 .portlet {
-	width: auto;
-	height: auto;
-	top:0;
-	bottom:0;
-	right:0;
-	left: 0;
-	position:absolute;
+  width: auto;
+  height: auto;
+  top:0;
+  bottom:0;
+  right:0;
+  left: 0;
+  position:absolute;
 }
 
 .portlet-header {
-	margin: 0.3em;
-	padding-bottom: 4px;
-	padding-left: 0.2em;
+  margin: 0.3em;
+  padding-bottom: 4px;
+  padding-left: 0.2em;
 }
 
 .portlet-header .ui-icon {
-	float: right;
+  float: right;
 }
 
 .portlet-content {
-	padding: 0.4em;
+  padding: 0.4em;
 }
 
 /* .ui-sortable-placeholder {
-	border: 1px dotted black;
-	visibility: visible !important;
-	height: 50px !important;
+  border: 1px dotted black;
+  visibility: visible !important;
+  height: 50px !important;
 }
 
 .ui-sortable-placeholder * {
-	visibility: hidden;
+  visibility: hidden;
 }  */
 
 html,body {
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 #container {
-	width: 98%;
-	height: 98%;
-	position: relative;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: auto;
-	margin-bottom: auto;
+  width: 98%;
+  height: 98%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 #header {
-	width: 100%;
-	height: 8%;
-	position: relative;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: auto;
-	margin-bottom: auto;
-	float: left;
-	border:solid;
+  width: 100%;
+  height: 8%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+  float: left;
+/* 	border:solid; */
 }
 
 #leftPanel {
-	width: 15%;
-	height: 90%;
-	position: relative;
-	float: left;
+  width: 15%;
+  height: 90%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_1 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_2 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_3 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
 }
 
 #weaveThumb {
-	width: 100%;
-	height: 15%;
-	position: absolute;
-	bottom: 0;
+  width: 100%;
+  height: 15%;
+  position: relative;
+  float: left;
 }
 
 #center {
-	border: solid;
-	width: 70%;
-	height: 80%;
-	position: relative;
-	float: left;
+/* 	border: solid; */
+  width: 70%;
+  height: 80%;
+  position: relative;
+  float: left;
 }
 
 #queryContent {
-	width: 100%;
-	height: 83%;
-	position: absolute;
+  width: 100%;
+  height: 83%;
+  position: absolute;
 }
 ul, ol {
     list-style: none;
@@ -115,7 +136,7 @@ ul, ol {
     transition: opacity .6s;
 }
 .gridster >ul {
-	width:100%;
+  width:100%;
 }
 .gridster .gs_w {
     background: #FFF;
@@ -146,6 +167,7 @@ ul, ol {
 </style>
 
 <script>
+
 //available methods are listed here: http://ivpr.github.io/Weave-Binaries/javadoc/weave/servlets/DataService.html
 function queryDataService(method, params, resultHandler, queryId)
 {
@@ -171,56 +193,113 @@ function queryDataService(method, params, resultHandler, queryId)
 </script>
 </head>
 <body>
-	<div id="dataDialog" title="Data"></div>
-	<div id="container">
-		<div id="header">
-			<button id="projectButton">Project</button>
-			<button id="dataButton">Data...</button>
-		</div>
-		<div id="leftPanel">
-			<div id="queryContent">
-				<div id="Indicators" class="portlet">
-					<div class="portlet-header">Analysis Builder</div>
-					<div class="portlet-content">content</div>
-				</div>
-				<div id="Indicators" class="portlet">
-					<div class="portlet-header">Calculation</div>
-					<div class="portlet-content">content</div>
-				</div>
-				<div id="Indicators" class="portlet">
-					<div class="portlet-header">Weave</div>
-					<div class="portlet-content">Indicators content</div>
-				</div>
-			</div> 
-			<div id="weaveThumb"></div>
-		</div>
-		<div id="center">
-			<div class="gridster">
-				<ul>
-					<li data-row="1" data-col="1" data-sizex="2" data-sizey="1">
-					<div id="Indicators" class="portlet">
-					<div class="portlet-header">Analysis Builder</div>
-					<div class="portlet-content">content</div>
-				</div>
-					</li>
-					<li data-row="2" data-col="1" data-sizex="1" data-sizey="1"></li>
-					<li data-row="3" data-col="1" data-sizex="1" data-sizey="1"></li>
+  <div id="dataDialog" title="Data"></div>
+  
+  
+  <div id="container">
+    <div id="header">
+      <button id="projectButton">Project</button>
+      <button id="dataButton">Data...</button>
+    </div>
+    <div id="leftPanel">
+      <div id="leftPanel_1">
+        <div id="Indicators" class="portlet">
+          <div class="portlet-header">Analysis Builder</div>
+          <div class="portlet-content">Summary of selected parameters</div>
+        </div>
+      </div>
+      <div id="leftPanel_2">
+        <div id="Indicators" class="portlet">
+          <div class="portlet-header">Calculation</div>
+          <div class="portlet-content">Summary of selected calculation script</div>
+        </div>
+      </div>	
+      <div id="leftPanel_3">
+        <div id="Indicators" class="portlet">
+          <div class="portlet-header">Weave</div>
+          <div class="portlet-content">Summary of visualization parameters</div>
+        </div>
+      </div>
+      <div id="weaveThumb">
+      	<div id="Indicators" class="portlet">
+          <div class="portlet-content">
+          	<input id="weaveButton" type="submit" value="Open Weave" />
+		  </div>
+        </div>
+   	 </div>
+    </div>
+    <div id="center">
+      <div class="gridster">
+        <ul>
+          <li data-row="1" data-col="1" data-sizex="2" data-sizey="1">
+          <div id="Indicators" class="portlet">
+            <div class="portlet-header">About the Layout</div>
+            <div class="portlet-content">content</div>
+          </div>
+          </li>
+          <li data-row="2" data-col="1" data-sizex="1" data-sizey="2">
+            <div id="Indicators" class="portlet">
+            <div class="portlet-header">Roundtrip Demo</div>
+            <div class="portlet-content">
+              Content is preloaded <br><br>
+              
+              Script: <select id="scriptCombobox"></select> <br></br>
+              
+              Data: <select
+              id="dataCombobox"></select> <br></br> 
+              
+              <input id="scriptButton"	type="submit" value="Run Script" /> 
+              
+              <input id="callWeaveButton" type="submit" value="Call Weave" />
+            </div>
+          </div>
+          </li>
+          <li data-row="3" data-col="1" data-sizex="1" data-sizey="1"></li>
 
-					<li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li>
-					<li data-row="2" data-col="2" data-sizex="2" data-sizey="2"></li>
+          <li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li>
+          <li data-row="2" data-col="2" data-sizex="2" data-sizey="2">
+            <div id="Indicators" class="portlet">
+            <div class="portlet-header">About the Panels</div>
+            <div class="portlet-content">
+               <p>Panels have custom sizes. This panel is 2x2.
+              <p>Can be rearranged in any desired order.
+            </div>
+            </div>
+          </li>
 
-					<li data-row="1" data-col="4" data-sizex="1" data-sizey="1"></li>
-					<li data-row="2" data-col="4" data-sizex="2" data-sizey="1"></li>
-					<li data-row="3" data-col="4" data-sizex="1" data-sizey="1"></li>
+          <li data-row="1" data-col="4" data-sizex="1" data-sizey="2">
+              <div id="Indicators" class="portlet">
+              <div class="portlet-header">Query Object</div>
+                <div class="portlet-content">
+                  JSON Query Object <input id="panel6ImportButton"
+                  type="submit" value="Import..." /> <input id="panel6SaveButton"
+                  type="submit" value="Save" /> <input id="panel6EditButton"
+                  type="submit" value="Edit" />
+              </div>
+              </div>
+          </li>
+          <li data-row="2" data-col="4" data-sizex="2" data-sizey="1"></li>
+          <li data-row="3" data-col="4" data-sizex="2" data-sizey="1"></li>
 
-					<li data-row="1" data-col="5" data-sizex="1" data-sizey="1"></li>
-					<li data-row="3" data-col="5" data-sizex="1" data-sizey="1"></li>
+          <li data-row="1" data-col="5" data-sizex="1" data-sizey="1"></li>
+          <li data-row="3" data-col="5" data-sizex="1" data-sizey="1">
+            <div id="Indicators" class="portlet">
+              <div class="portlet-header">Script Results</div>
+                <div class="portlet-content" id="scriptResults">
+                  
+                </div>
+            </div>
+          </li>
 
-					<li data-row="1" data-col="6" data-sizex="1" data-sizey="1"></li>
-					<li data-row="2" data-col="6" data-sizex="1" data-sizey="2"></li>
-				</ul>
-			</div>
-		</div>
-	</div>
+          <li data-row="1" data-col="6" data-sizex="1" data-sizey="1"></li>
+          <li data-row="2" data-col="6" data-sizex="1" data-sizey="2"></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div id="weaveDialog" title="Weave">
+    Weave embedded here
+  </div>
+  
 </body>
 </html>
