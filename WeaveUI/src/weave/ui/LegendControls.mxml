@@ -28,16 +28,20 @@
 
 <mx:VBox xmlns="weave.ui.*"
 		 xmlns:mx="http://www.adobe.com/2006/mxml"
-		 creationPolicy="all" clipContent="false"
-		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-		 label="{lang('Legend settings')}" width="100%">
+		 width="100%" label="{lang('Legend settings')}" clipContent="false" creationPolicy="all"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 
+	<mx:HBox>
 		<mx:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
-	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
+		<mx:CheckBox id="chkColorGradient" label="{lang('Display legend as color gradient')}"/> 
+	</mx:HBox>
+	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}"
+					 enabled="{chkShowLegendAttrName.selected}" inputWidth="100%"/>
 	
 	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
 	<Indent id="columnsBox" label="{lang('Number of columns')}">
 		<mx:NumericStepper id="numColumns" minimum="1"/>
 	</Indent>
-	<IndentTextInput id="txtLegendValuesFunction" label="{lang('Item label function:')}" inputWidth="100%"/>
+	<IndentTextInput id="txtLegendValuesFunction" label="{lang('Item label function:')}"
+					 inputWidth="100%"/>
 </mx:VBox>

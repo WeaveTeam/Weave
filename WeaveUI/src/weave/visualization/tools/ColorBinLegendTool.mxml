@@ -32,6 +32,7 @@
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
+			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -81,9 +82,26 @@
 				linkBindableProperty(_plotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
 				linkBindableProperty(_plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				linkBindableProperty(_plotter.drawColorGradient, legendControls.chkColorGradient, 'selected');
+				legendControls.chkColorGradient.addEventListener(Event.CHANGE, adjustSelectionSettings);
 				legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
 				
 				_plotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
+			}
+			
+			private function adjustSelectionSettings(e:Event):void
+			{
+				var settings:Array = visualization.plotManager.layerSettings.getObjects();
+				if( legendControls.chkColorGradient.selected )
+				{
+					if( settings != null )
+						(settings[0].selectable as LinkableBoolean).value = false;
+				}
+				else
+				{
+					if( settings != null )
+						(settings[0].selectable as LinkableBoolean).value = true;
+				}
 			}
 			
 			private var _prevBinnedColumn:BinnedColumn;

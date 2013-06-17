@@ -1,21 +1,21 @@
 
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -25,6 +25,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
+	
+	import mx.containers.Canvas;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -117,6 +119,13 @@ package weave.visualization.plotters
 		 */		
 		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
+		public const drawColorGradient:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), forceSpatialCallbacks);
+		
+		private function forceSpatialCallbacks():void
+		{
+			spatialCallbacks.triggerCallbacks();
+		}
+		
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];
 		public var numBins:int = 0;
@@ -178,7 +187,7 @@ package weave.visualization.plotters
 			drawBinnedPlot(filteredKeySet.keys, dataBounds, screenBounds, destination);
 			_drawBackground = false;
 		}
-
+		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
@@ -194,7 +203,7 @@ package weave.visualization.plotters
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
-			
+		
 		protected function drawContinuousPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			//todo
@@ -220,54 +229,94 @@ package weave.visualization.plotters
 			g.clear();
 			lineStyle.beginLineStyle(null, g);
 			
-			// convert record keys to bin keys
-			// save a mapping of each bin key found to a value of true
-			var binIndexMap:Dictionary = new Dictionary();
-			for (var i:int = 0; i < recordKeys.length; i++)
-				binIndexMap[ binnedColumn.getValueFromKey(recordKeys[i], Number) ] = 1;
-			
-			var margin:int = 4;
-			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
-			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
-			var iconGap:Number = actualShapeSize + margin * 2;
-			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
-			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
-			statsJuggler.target = stats;
-			var internalMin:Number = stats.getMin();
-			var internalMax:Number = stats.getMax();
-			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
-			var binCount:int = binnedColumn.numberOfBins;
-			for (var iBin:int = 0; iBin < binCount; ++iBin)
-			{
-				// if _drawBackground is set, we should draw the bins that have no records in them.
-				if ((_drawBackground?0:1) ^ int(binIndexMap[iBin])) // xor
-					continue;
+			if( !drawColorGradient.value )
+			{			
+				// convert record keys to bin keys
+				// save a mapping of each bin key found to a value of true
+				var binIndexMap:Dictionary = new Dictionary();
+				for (var i:int = 0; i < recordKeys.length; i++)
+					binIndexMap[ binnedColumn.getValueFromKey(recordKeys[i], Number) ] = 1;
 				
-				var binBounds:IBounds2D = _binToBounds[iBin];
-				tempBounds.copyFrom(binBounds);
-				dataBounds.projectCoordsTo(tempBounds, screenBounds);
-//				tempBounds.makeSizePositive();
-				
-				// draw almost invisible rectangle for probe filter
-				tempBounds.getRectangle(tempRectangle);
-				destination.fillRect(tempRectangle, 0x02808080);
-				
-				// draw the text
-				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, iconGap);
-
-				// draw circle
-				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
-				var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
-				var xMin:Number = tempBounds.getXNumericMin(); 
-				var yMin:Number = tempBounds.getYNumericMin();
-				var xMax:Number = tempBounds.getXNumericMax(); 
-				var yMax:Number = tempBounds.getYNumericMax();
-				if (color <= Infinity) // alternative is !isNaN()
-					g.beginFill(color, 1.0);
-				g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
+				var margin:int = 4;
+				var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
+				var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
+				var iconGap:Number = actualShapeSize + margin * 2;
+				var circleCenterOffset:Number = margin + actualShapeSize / 2; 
+				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
+				statsJuggler.target = stats;
+				var internalMin:Number = stats.getMin();
+				var internalMax:Number = stats.getMax();
+				var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
+				var binCount:int = binnedColumn.numberOfBins;
+				for (var iBin:int = 0; iBin < binCount; ++iBin)
+				{
+					// if _drawBackground is set, we should draw the bins that have no records in them.
+					if ((_drawBackground?0:1) ^ int(binIndexMap[iBin])) // xor
+						continue;
+					
+					var binBounds:IBounds2D = _binToBounds[iBin];
+					tempBounds.copyFrom(binBounds);
+					dataBounds.projectCoordsTo(tempBounds, screenBounds);
+					//				tempBounds.makeSizePositive();
+					
+					// draw almost invisible rectangle for probe filter
+					tempBounds.getRectangle(tempRectangle);
+					destination.fillRect(tempRectangle, 0x02808080);
+					
+					// draw the text
+					LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, iconGap);
+					
+					// draw circle
+					var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
+					var color:Number = internalColorRamp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
+					var xMin:Number = tempBounds.getXNumericMin(); 
+					var yMin:Number = tempBounds.getYNumericMin();
+					var xMax:Number = tempBounds.getXNumericMax(); 
+					var yMax:Number = tempBounds.getYNumericMax();
+					if (color <= Infinity) // alternative is !isNaN()
+						g.beginFill(color, 1.0);
+					g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
+				}
+				destination.draw(tempShape);
 			}
-			destination.draw(tempShape);
+			else
+			{
+				var upperLabel:String;
+				var lowerLabel:String;
+				var percentage:Boolean = false;
+				if(binnedColumn.deriveStringFromNumber(0) == null )
+					return;
+				if( binnedColumn.deriveStringFromNumber(0).search("%") != -1 )
+					percentage = true;
+				if( percentage )
+				{
+					upperLabel = String(WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMax()) + "%";
+					lowerLabel = String(WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMin()) + "%";
+				}
+				else
+				{
+					upperLabel = String(WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMax());
+					lowerLabel = String(WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMin());
+				}
+				var firstFontSize:Number = 10 + LinkableTextFormat.defaultTextFormat.size.value * lowerLabel.length; 
+				var secondFontSize:Number = 10 + LinkableTextFormat.defaultTextFormat.size.value * upperLabel.length;
+				var ramp:ColorRamp = getInternalColorColumn().ramp; 
+				getBackgroundDataBounds(tempBounds);
+				tempCanvas.height = 20;
+				var startBounds:IBounds2D = new Bounds2D(screenBounds.getXNumericMin(), screenBounds.getYNumericMin(), firstFontSize, screenBounds.getYNumericMin() + tempCanvas.height );
+				var endBounds:IBounds2D = new Bounds2D(screenBounds.getXNumericMax() - secondFontSize, screenBounds.getYNumericMin(), screenBounds.getXNumericMax(), screenBounds.getYNumericMin() + tempCanvas.height);
+				LegendUtils.renderLegendItemText(destination, lowerLabel, startBounds, 0);
+				LegendUtils.renderLegendItemText(destination, upperLabel, endBounds, 0);
+				tempCanvas.width = destination.width - (secondFontSize + firstFontSize + 10 );
+				tempCanvas.y = screenBounds.getYNumericMin();
+				tempCanvas.x = firstFontSize; 
+				ramp.draw(tempCanvas, false); 
+				
+				destination.draw(tempCanvas, tempCanvas.transform.matrix);
+			}
 		}
+		
+		private const tempCanvas:Canvas = new Canvas();
 		
 		
 		// reusable temporary objects
@@ -279,6 +328,11 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			if( drawColorGradient.value )
+			{
+				initBoundsArray(output,0);
+				return;
+			}
 			initBoundsArray(output);
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (!internalColorColumn)
