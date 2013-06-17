@@ -27,9 +27,9 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.reportError;
 	
 	/**
-	 * XMLDecoder
 	 * This extension of SimpleXMLDecoder adds support for XML objects encoded with XMLEncoder.
 	 * The static methods provided here eliminate the need to create an instance of XMLDecoder.
 	 * 
@@ -60,7 +60,6 @@ package weave.core
 		internal static const defaultPackages:Array = ["weave.core"];
 
 		/**
-		 * getClassDefinition
 		 * This function will check all the packages specified in the static
 		 * defaultPackages Array if the specified packageName returns no result.
 		 * @param className The name of a class.
@@ -81,7 +80,6 @@ package weave.core
 		}
 
 		/**
-		 * decodeTypedSessionState
 		 * This static function eliminates the need to create an instance of XMLDecoder.
 		 * @param xml An XML to decode.
 		 * @return A vector of TypedSessionState objects derived from the XML, which is assumed to be encoded properly.
@@ -94,7 +92,6 @@ package weave.core
 		}
 
 		/**
-		 * decode
 		 * This static function eliminates the need to create an instance of XMLDecoder.
 		 * @param xml An XML to decode.
 		 * @return An object derived from the XML.
@@ -155,49 +152,55 @@ package weave.core
 	    	}
 	    	return result;
 	    }
-
+		
 		/**
-		 * decodeXML
 		 * This implementation adds support for a special attribute named 'encoding' which tells the decoder how it should be decoded.
 		 */	    
 		override public function decodeXML(dataNode:XMLNode):Object
 		{
-			try
+			// handle special cases indicated by the 'encoding' attribute
+			var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
+			if (encoding == WeaveXMLEncoder.JSON_ENCODING)
 			{
-				// handle special cases indicated by the 'encoding' attribute
-				var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
-				if (encoding == WeaveXMLEncoder.XML_ENCODING)
-				{
-					var children:XMLList = XML(dataNode).children();
-					if (children.length() == 0)
-						return null;
-					// return String instead of XML
-					return (children[0] as XML).toXMLString();
-					
-					// make a copy to get rid of the parent node
-					//return children[0].copy();
-				}
-				else if (encoding == WeaveXMLEncoder.CSV_ENCODING || encoding == WeaveXMLEncoder.CSVROW_ENCODING)
-				{
-					// distinguish between null (<tag/>) and "" (<tag>""</tag>)
-					if (dataNode.firstChild == null)
-						return null;
-					var csvString:String = XML(dataNode).text().toXMLString();
-					var rows:Array = WeaveAPI.CSVParser.parseCSV(csvString);
-					if (encoding == WeaveXMLEncoder.CSV_ENCODING)
-						return rows;
-					return rows.length == 0 ? rows : rows[0]; // single row
-				}
-				else if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.DYNAMIC_ENCODING, true) == 0)
-				{
-					return decodeDynamicStateXMLNode(dataNode);
-				}
+				var str:String = dataNode.firstChild.nodeValue;
+				var object:Object = null;
+				var json:Object = ClassUtils.getClassDefinition('JSON');
+				if (json)
+					object = json.parse(str);
+				else
+					reportError("JSON encoding is not supported by your version of Flash Player.");
+				return object;
 			}
-			catch (e:Error)
+			else if (encoding == WeaveXMLEncoder.XML_ENCODING)
 			{
-				trace("Error trying to decode node: " + dataNode + "\n" + e.getStackTrace());
+				var children:XMLList = XML(dataNode).children();
+				if (children.length() == 0)
+					return null;
+				// return String instead of XML
+				return (children[0] as XML).toXMLString();
+				
+				// make a copy to get rid of the parent node
+				//return children[0].copy();
 			}
-			return super.decodeXML(dataNode);
+			else if (encoding == WeaveXMLEncoder.CSV_ENCODING || encoding == WeaveXMLEncoder.CSVROW_ENCODING)
+			{
+				// distinguish between null (<tag/>) and "" (<tag>""</tag>)
+				if (dataNode.firstChild == null)
+					return null;
+				var csvString:String = dataNode.firstChild.nodeValue;
+				var rows:Array = WeaveAPI.CSVParser.parseCSV(csvString);
+				if (encoding == WeaveXMLEncoder.CSV_ENCODING)
+					return rows;
+				return rows.length == 0 ? rows : rows[0]; // single row
+			}
+			else if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.DYNAMIC_ENCODING, true) == 0)
+			{
+				return decodeDynamicStateXMLNode(dataNode);
+			}
+			else
+			{
+				return super.decodeXML(dataNode);
+			}
 		}
 	}
 }
