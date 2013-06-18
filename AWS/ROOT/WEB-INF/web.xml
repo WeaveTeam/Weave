@@ -10,10 +10,5 @@
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
   
-  <servlet-mapping>
-    <servlet-name>Stata</servlet-name>
-    <url-pattern>/StataRoundTrip</url-pattern>
-  </servlet-mapping>
-    
 
 </web-app>
