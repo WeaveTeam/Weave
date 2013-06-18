@@ -28,8 +28,7 @@ require(
 		[ 
 		  "text!../src/GenericPanel.html!strip", 
 		  "jquery-ui",
-		  "jquery.jlayout",
-		  "swfobject" ],
+		  "jquery.jlayout" ],
 		function( html, $, jLayout) {
 
 			// JLayout script

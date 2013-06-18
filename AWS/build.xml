@@ -6,7 +6,7 @@
 	<property name="ROOT" value="${basedir}/ROOT" />
 	<target name="dist">
 		<echo message="Compiling ${ant.project.name}..."/>
-    	<echo message="Deleting Destination Folder ${AWS_OUT"/>
+    	<echo message="Deleting Destination Folder ${AWS_OUT}"/>
 		<delete quiet="false" includeemptydirs="true">
 			<fileset dir="${AWS_OUT}" />
 		</delete>
