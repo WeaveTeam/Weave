@@ -176,7 +176,7 @@ package weave
 			{
 				WeaveAPI.URLRequestUtils.getURL(
 					null,
-					new URLRequest('WeaveFonts.swf'),
+					new URLRequest('../WeaveFonts.swf'),
 					function(event:ResultEvent, token:Object = null):void
 					{
 						var bytes:ByteArray = ByteArray(event.result);
@@ -215,7 +215,7 @@ package weave
 		
 		public const windowSnapGridSize:LinkableString = new LinkableString("1%", verifyWindowSnapGridSize); // window snap grid size in pixels
 		
-		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
+		public const cssStyleSheetName:LinkableString = new LinkableString("../weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
 		
 		// enable/disable advanced features
