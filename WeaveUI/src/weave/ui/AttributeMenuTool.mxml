@@ -69,7 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</Indent>
 					<Indent label="{lang('Visualization attribute:')}">
 						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
+										valueCommit="handleComboChange2(targetAttributeCombo, targetAttribute);" />
 						<HelpComponent content="{lang('Select the visualization attribute that you want the menu to be linked to.')}"/>
 					</Indent>
 					<Indent label="{lang('Menu layout:')}">
@@ -98,6 +98,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
+			import mx.states.OverrideBase;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -119,15 +120,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
-
+			
 			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
-
+			
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			private function handlePlayClick():void
@@ -180,7 +182,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			};
 			
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
-			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
+			public const targetAttribute:LinkableNumber = newLinkableChild(this, LinkableNumber);
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
@@ -190,6 +192,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const toolJuggler:CallbackJuggler = new CallbackJuggler(this, handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
+			[Bindable]
+			public var panelTitleAttr:String;
 			
 			// used to label the choices
 			private function choiceLabelFunction(column:IAttributeColumn):String
@@ -212,7 +216,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
 			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Vertical Slider'), lang('Horizontal Slider')];
 			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
-
+			
 			private function layoutLabelFunction(inputString:String):String
 			{
 				return layoutLabels[layouts.indexOf(inputString)];
@@ -229,7 +233,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 				// have a default dynamic title
-				panelTitle.value = lang('Attribute menu for {0}', '{targetAttribute.value}');
+				panelTitle.value = lang('Attribute menu for {0}', '{panelTitleAttr}');
 				
 				// have some default choices ready when the tool is created
 				copySessionState(ProbeTextUtils.probedColumns, choices);
@@ -331,7 +335,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// only enable the choiceCombo if the target attribute exists in the target tool
 				if (tool)
 				{
-					var index:int = _attrNames.indexOf(targetAttribute.value);
+					var index:int = targetAttribute.value;
 					if (index >= 0)
 					{
 						// found the attribute name in the list, now check if it's a compatible object
@@ -350,10 +354,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				// make sure the correct item is selected
-				targetAttributeCombo.selectedItem = targetAttribute.value;
+				targetAttributeCombo.selectedIndex = targetAttribute.value;
 				// clear the choice
-//				choiceCombo.selectedIndex = -1;
-//				choiceList.selectedIndex = -1;
+				//				choiceCombo.selectedIndex = -1;
+				//				choiceList.selectedIndex = -1;
+				panelTitleAttr = _attrNames[targetAttribute.value];
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -389,6 +394,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					target.value = combo.selectedItem as String;
 			}
 			
+			private function handleComboChange2(combo:ComboBox, target:LinkableNumber):void
+			{
+				if( combo.selectedIndex != -1 )
+					if (UIUtils.hasFocus(combo))
+						target.value = combo.selectedIndex as Number;
+			}
+			
 			// called when the user clicks on the combo in the main AttributeMenuTool window
 			private function handleAttrSelected(selectedIndex:int):void
 			{
@@ -398,11 +410,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				// find the index of the tool attribute selected in the control panel
-				var index:int = _attrNames.indexOf(targetAttribute.value);
+				var index:int = targetAttribute.value;
 				if (index < 0)
 				{
 					// we didn't find the "SelectableAttributeName"
-					reportError(StringUtil.substitute('"{0}" does not have attribute "{1}"', targetTool.value, targetAttribute.value));
+					reportError(StringUtil.substitute('"{0}" does not have attribute "{1}"', targetTool.value, _attrNames[targetAttribute.value]));
 					return;
 				}
 				
@@ -432,7 +444,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
-					reportError('This option is not supported for the attribute "' + targetAttribute.value + '"');
+					reportError('This option is not supported for the attribute "' + _attrNames[targetAttribute.value] + '"');
 				}
 			}
 			
