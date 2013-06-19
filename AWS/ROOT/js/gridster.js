@@ -158,7 +158,7 @@ function queryRService(method,params,callback,queryID)
 
 function scriptOneQuery(secondMethodName)
 {
-	var dataset = "Obesity.csv";
+	var dataset = "obesity.csv";
 	var rRoutine = "Normalization.R";
 	
 	queryRService(
@@ -183,7 +183,7 @@ function scriptOneQuery(secondMethodName)
 		else
 		{
 			var rResult = response.result;
-			$('#scriptResults').html("calling set CSVSource");
+			$('#scriptResults').html(JSON.stringify(rResult));
 			setCSV2Source(rResult);
 			$('#scriptResults').html("retrieved " + rResult.length + "results");
 			return;
@@ -236,8 +236,10 @@ function testServerQuery(secondMethodName)
 		}
 		else
 		{
+			$('#resultScripts').html("Script succeeded");
 			var rResult = response.result;
-			console.log("calling set CSVSource");
+			$('#resultScripts').html("calling set CSVSource");
+			$('#resultScripts').html(JSON.stringify(rResult));
 			setCSVSource(rResult);
 			//console.log("retrieved " + rResult.length + "results");
 			//resulttextarea.value = "Success";
@@ -250,7 +252,7 @@ function testServerQuery(secondMethodName)
 	
 	function setCSVSource(rResult)
 	{
-		console.log(rResult[0].value);
+		$('#resultScripts').html(rResult[0].value);
 		var weave = document.getElementById('weave');
 		weave.path('MyDataSource').request('CSVDataSource').vars({data: rResult[0].value}).exec('setCSVDataString(data)');
 		weave.requestObject(['SPT'], 'ScatterPlotTool');
