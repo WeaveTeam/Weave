@@ -142,7 +142,6 @@
 			import weave.ui.infomap.ui.TopicNodeSettingComponent;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ComputationalGeometryUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
 			import weave.utils.DebugTimer;
@@ -850,6 +849,7 @@
 					status.text = "";
 				}
 				filteredWords.addGroupedCallback(this,filterListByKeywords,true);
+				showCurrentView();
 			}
 			
 			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
