@@ -69,7 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</Indent>
 					<Indent label="{lang('Visualization attribute:')}">
 						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChange2(targetAttributeCombo, targetAttribute);" />
+										valueCommit="handleComboChange2(targetAttributeCombo, targetAttributeNumber);"/>
 						<HelpComponent content="{lang('Select the visualization attribute that you want the menu to be linked to.')}"/>
 					</Indent>
 					<Indent label="{lang('Menu layout:')}">
@@ -98,6 +98,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
+			import mx.events.ListEvent;
 			import mx.states.OverrideBase;
 			import mx.utils.StringUtil;
 			
@@ -182,7 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			};
 			
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
-			public const targetAttribute:LinkableNumber = newLinkableChild(this, LinkableNumber);
+			public const targetAttributeNumber:LinkableNumber = newLinkableChild(this, LinkableNumber);
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
@@ -250,7 +251,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// we don't have to worry about ui components being null inside the callbacks.
 				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
 				targetTool.addGroupedCallback(this, validateToolJugglerTarget, true);
-				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
+				targetAttributeNumber.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addImmediateCallback(this, handleChoicesChange, true);
 				showPlayButton.addImmediateCallback(this, stopPlay);
 				
@@ -276,7 +277,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function showControlPanelIfNothingSelected():void
 			{
 				// when the tool is created and nothing is selected, show the control panel
-				if (!targetTool.value && !targetAttribute.value && !WeaveAPI.StageUtils.mouseButtonDown)
+				if (!targetTool.value && !targetAttributeNumber.value && !WeaveAPI.StageUtils.mouseButtonDown)
 					toggleControlPanel();
 			}
 			
@@ -335,7 +336,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// only enable the choiceCombo if the target attribute exists in the target tool
 				if (tool)
 				{
-					var index:int = targetAttribute.value;
+					var index:int = targetAttributeNumber.value;
 					if (index >= 0)
 					{
 						// found the attribute name in the list, now check if it's a compatible object
@@ -354,11 +355,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				// make sure the correct item is selected
-				targetAttributeCombo.selectedIndex = targetAttribute.value;
+				targetAttributeCombo.selectedIndex = targetAttributeNumber.value;
 				// clear the choice
 				//				choiceCombo.selectedIndex = -1;
 				//				choiceList.selectedIndex = -1;
-				panelTitleAttr = _attrNames[targetAttribute.value];
+				panelTitleAttr = _attrNames[targetAttributeNumber.value];
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -410,11 +411,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				// find the index of the tool attribute selected in the control panel
-				var index:int = targetAttribute.value;
+				var index:int = targetAttributeNumber.value;
 				if (index < 0)
 				{
 					// we didn't find the "SelectableAttributeName"
-					reportError(StringUtil.substitute('"{0}" does not have attribute "{1}"', targetTool.value, _attrNames[targetAttribute.value]));
+					reportError(StringUtil.substitute('"{0}" does not have attribute "{1}"', targetTool.value, _attrNames[targetAttributeNumber.value]));
 					return;
 				}
 				
@@ -444,7 +445,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
-					reportError('This option is not supported for the attribute "' + _attrNames[targetAttribute.value] + '"');
+					reportError('This option is not supported for the attribute "' + _attrNames[targetAttributeNumber.value] + '"');
 				}
 			}
 			
@@ -468,11 +469,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(s:String):void
+			{
+				targetAttributeCombo.selectedItem = s;
+				targetAttributeNumber.value = targetAttributeCombo.selectedIndex;
+			}
+			
 			[Deprecated] public function set hack_showPlayButton(value:Boolean):void
 			{
 				showPlayButton.value = value;
 				panelTitle.value = StandardLib.replace(panelTitle.value, "{hack_showPlayButton=true;''}", "");
 			}
+			
 		]]>
 	</mx:Script>
 </DraggablePanel>
