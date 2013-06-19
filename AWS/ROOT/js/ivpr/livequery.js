@@ -13,24 +13,28 @@ ivpr.LiveQuery = function(url, method, params) {
 	/**
 	 * busy status
 	 * @type {boolean}
+	 * @private
 	 */
 	this.busy = false;
 
 	/**
 	 * "result" listeners
 	 * @type {Array.<function(*)>}
+	 * @private
 	 */
 	this.listeners = [];
 
 	/**
 	 * "busy" listeners
 	 * @type {Array.<function(boolean)>}
+	 * @private
 	 */
 	this.waiters = [];
 
 	/**
 	 * The result of the last RPC call
 	 * @type {*}
+	 * @private
 	 */
 	this.result = null;
 
@@ -50,8 +54,8 @@ ivpr.LiveQuery = function(url, method, params) {
 	this.params = null;
 
 	/**
-	 * @private
 	 * @type {integer}
+	 * @private
 	 */
 	this.last_id = 0;
 
@@ -90,7 +94,7 @@ ivpr.LiveQuery.prototype = {
 		
 				for (var w in self.waiters)
 					self.waiters[w].call(self, self.busy);
-			}
+			};
 			ivpr.LiveQuery.jsonrpc(this.url, this.method, this.params, handleResult, ++this.last_id);
 
 			for (var w in this.waiters)
@@ -169,10 +173,10 @@ ivpr.LiveQuery.detectParamChange = function(oldParams, newParams) {
 /**
  * Queries a JSON RPC service.
  * This function requires jQuery for the $.post() functionality.
- * @param method (String) Name of the method to call on the server.
- * @param params (Array or Object) Parameters for the server method.
- * @param resultHandler Function to call when the RPC call returns.  This function will be passed the result of the method.
- * @param queryId Optional id to be associated with this RPC call.  This will be passed as the second parameter to the resultHandler function.
+ * @param {string} method Name of the method to call on the server.
+ * @param {Object.<string,*>|Array.<*>} params Parameters for the server method.
+ * @param {function(*,?integer)} resultHandler Function to call when the RPC call returns.  This function will be passed the result of the method.
+ * @param {?integer} queryId Optional id to be associated with this RPC call.  This will be passed as the second parameter to the resultHandler function.
  * @private
  */
 ivpr.LiveQuery.jsonrpc = function(url, method, params, resultHandler, queryId)
@@ -216,7 +220,7 @@ ivpr.LiveQuery.test = function() {
 		console.log("result: ", JSON.stringify(result));
 	};
 	var listener1 = function(result) {
-		this.setParams({publicMetadata: {keyType: "US County FIPS Code"}});
+		this.setParams({publicMetadata: {keyType: "test1"}});
 		this.unlisten(listener1);
 	};
 
@@ -228,6 +232,8 @@ ivpr.LiveQuery.test = function() {
 
 
 	/*
+	Sample output:
+	
 	RPC busy: true; params: {"entityType":1,"publicMetadata":{"keyType":"test"}}
 	result: [167685,167686,167687]
 	RPC busy: true; params: {"entityType":1,"publicMetadata":{"keyType":"test1"}}
