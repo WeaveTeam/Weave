@@ -165,7 +165,7 @@ package weave.ui
 			var yMax:Number = tempBounds.getYNumericMax();
 			
 			setStyle("openDuration",0);
-			popUpMenu(this, _uiParent, subMenuDataProvider.filter(isItemEnabled));
+			popUpMenu(this, _uiParent, subMenuDataProvider.filter(isItemShown));
 			show(menuLocation.x, menuLocation.y);
 			
 			if (menuLocation.x < xMin)
@@ -181,7 +181,7 @@ package weave.ui
 			move(menuLocation.x, menuLocation.y);
 		}
 		
-		private function isItemEnabled(item:SubMenuItem, ..._):Boolean
+		private function isItemShown(item:SubMenuItem, ..._):Boolean
 		{
 			return getLabel(item) && (item.shown == null || item.shown());
 		}
