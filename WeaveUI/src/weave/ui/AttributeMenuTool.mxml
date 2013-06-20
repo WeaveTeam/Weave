@@ -100,6 +100,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.core.UIComponent;
 			import mx.events.ListEvent;
 			import mx.states.OverrideBase;
+			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -471,6 +472,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(s:String):void
 			{
+				if( targetAttributeCombo.selectedItem == null )
+				{
+					callLater(setComboBox, [s]);
+					return;
+				}
+				targetAttributeCombo.selectedItem = s;
+				targetAttributeNumber.value = targetAttributeCombo.selectedIndex;
+			}
+			
+			private function setComboBox(s:String):void
+			{
+				if( targetAttributeCombo.selectedItem == null )
+				{
+					callLater(setComboBox, [s]);
+					return;
+				}
 				targetAttributeCombo.selectedItem = s;
 				targetAttributeNumber.value = targetAttributeCombo.selectedIndex;
 			}
