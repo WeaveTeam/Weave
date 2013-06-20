@@ -20,6 +20,8 @@
 			import weave.api.data.ColumnMetadata;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
+			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
@@ -33,6 +35,8 @@
 			public const labelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), handleNodeColumnChange);
 			public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
 			public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+			public const layoutSeed:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleGraphLayoutChange);
+			public const layoutType:LinkableString = registerLinkableChild(this, new LinkableString("ForceDirected"), handleGraphLayoutChange);
 
 			//private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
@@ -65,7 +69,6 @@
 						}",
 						ExternalInterface.objectID, _toolName, _primitive_network);
 			}
-
 			private function keySetToNodesAndEdges(keys:IKeySet):Object
 			{
 				var set_edges:Array = [];
@@ -123,6 +126,7 @@
 					"function (weaveID, toolname, elements) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
 						weave.cytoscape[toolname].select(elements);\
+                        console.log(elements);\
 						}",
 						ExternalInterface.objectID, _toolName, result);
 			}
@@ -186,6 +190,16 @@
 				network.data.nodes = _primitive_nodes;
 				network.data.edges = _primitive_edges;
 				_primitive_network = network;
+			}
+			private function handleGraphLayoutChange():void
+			{
+				ExternalInterface.call(
+					"function (weaveID, toolname, layout_name, seed) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].vis.layout({name: layout_name, options: {seed: seed}});\
+						}",
+						ExternalInterface.objectID, _toolName, layoutType.value, layoutSeed.value);
+
 			}
 			private function handleNodeColumnChange():void
 			{

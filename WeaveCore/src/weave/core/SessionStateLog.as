@@ -218,6 +218,12 @@ package weave.core
 		 */
 		private function saveDiff(immediately:Boolean = false):void
 		{
+			if (!enableLogging.value)
+			{
+				_savePending = false;
+				return;
+			}
+			
 			var currentTime:int = getTimer();
 			
 			// remember how long it's been since the last synchronization
@@ -341,6 +347,15 @@ package weave.core
 				var combine:Boolean = stepsRemaining > 2;
 				var baseDiff:Object = null;
 				getCallbackCollection(_subject).delayCallbacks();
+				// when logging is disabled, revert to previous state before applying diffs
+				if (!enableLogging.value)
+				{
+					var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
+					// baseDiff becomes the change that needs to occur to get back to the previous state
+					baseDiff = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+					if (baseDiff != null)
+						combine = true;
+				}
 				while (stepsRemaining-- > 0)
 				{
 					if (delta < 0)
@@ -358,10 +373,16 @@ package weave.core
 					if (debug)
 						trace('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', ObjectUtil.toString(diff));
 					
+					if (stepsRemaining == 0 && enableLogging.value)
+					{
+						// remember the session state right before applying the last step so we can rewrite the history if necessary
+						_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
+					}
+					
 					if (combine)
 					{
 						baseDiff = WeaveAPI.SessionManager.combineDiff(baseDiff, diff);
-						if (stepsRemaining == 1)
+						if (stepsRemaining <= 1)
 						{
 							WeaveAPI.SessionManager.setSessionState(_subject, baseDiff, false);
 							combine = false;
@@ -369,9 +390,6 @@ package weave.core
 					}
 					else
 					{
-						// remember the session state right before applying the last step
-						if (stepsRemaining == 0)
-							_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
 						WeaveAPI.SessionManager.setSessionState(_subject, diff, false);
 					}
 					
@@ -386,6 +404,8 @@ package weave.core
 				
 				_undoActive = delta < 0 && _savePending;
 				_redoActive = delta > 0 && _savePending;
+				if (!_savePending)
+					_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
