@@ -63,7 +63,6 @@
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/> 
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/> 
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/osmf.swc" append="true"/> 
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/advancedgrids.swc" append="true"/> 
 <!--                    <external-library-path file="${FLEX_HOME}/frameworks/libs/" append="true"/> -->
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
