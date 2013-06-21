@@ -46,20 +46,23 @@
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.mxml"/>
 			<source-path path-element="${SOURCE_DIR}"/>
-<!--			<library-path file="${FLEX_HOME}/frameworks/libs/ />	 -->
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
-			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
-			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/textLayout.swc" append="true"/> 
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/> 
+<!--			<library-path file="${FLEX_HOME}/frameworks/libs/" />	
+			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/> 
+			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/> 
+			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/> 
+ 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_flashflexkit.swc" append="true"/> 
+			<library-path file="${FLEX_HOME}/frameworks/libs/datavisualization.swc" append="true"/> 
+			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/> 
+			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>  
+			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>  -->
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/textLayout.swc" append="true"/>  
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/> 
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/> 
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/> 
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/>  
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/osmf.swc" append="true"/>
+<!--                    <external-library-path file="${FLEX_HOME}/frameworks/libs/" append="true"/>  -->
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
