@@ -134,10 +134,11 @@ public class GeometryStreamConverter
 					
 					// save coord in next vertex object
 					vertex = reusableVertexChainLinks.get(chainLength);
-					vertex.initialize(x, y, firstVertexID + chainLength++);
+					vertex.initialize(x, y, firstVertexID + chainLength);
 					// insert vertex in chain
 					reusableVertexChainLinks.get(0).insert(vertex);
 					
+					chainLength++;
 					prevX = x;
 					prevY = y;
 				}
@@ -177,7 +178,7 @@ public class GeometryStreamConverter
 	}
 
 	/**
-	 * Sorts the current vertexChain by importance value, removes least important points first.
+	 * Iteratively sorts the current vertexChain and removes all points in ascending importance order.
 	 * @param geometryMetadata The metadata for the current geometry.
 	 * @param startingChainLength The number of points in the chain.  Can be derived from the point chain, but the code is faster if this is already known.
 	 */
@@ -198,8 +199,9 @@ public class GeometryStreamConverter
 		}
 		// update geometry bounds to include part bounds
 		geometryMetadata.bounds.includeBounds(partBounds);
-		// get maximum possible importance of vertices in this part
-		double maxImportance = partBounds.getImportance();
+		// Setting the importance of required points equal to the area of the part causes
+		// the part to be rendered whenever its bounding box covers at least one pixel.
+		double partImportance = partBounds.getImportance();
 
 		boolean isPolygon = geometryMetadata.isPolygonType();
 		boolean isLine = geometryMetadata.isLineType();
@@ -213,21 +215,30 @@ public class GeometryStreamConverter
 			int currentChainLength = startingChainLength;
 			while (startingChainLength > minSize)
 			{
-				// sort vertices by importance
-				sortVertexChain(firstVertex, sortArray);
+				// sort vertices by importance, ascending
+				if (sortVertexChain(firstVertex, sortArray))
+					break; // all points are required
 
-				// in sorted order, extract each point as long as its
-				// surrounding points have not been invalidated
+				// In sorted order, extract each point as long as its importance
+				// has not been invalidated by the removal of an adjacent point.
 				for (int index = 0; index < startingChainLength && currentChainLength > minSize; index++)
 				{
 					vertex = sortArray[index];
-					// skip points whose importance needs to be updated
+					
+					// Here, we trade away "best effort" for speed. 
+					// Skip points whose importance needs to be updated due to being adjacent to recently removed points.
+					// Otherwise, we would have to reposition each adjacent point in the sorted array after a removal ( O(log n) ).
 					if (!vertex.importanceIsValid)
 						continue;
+					
+					// we can't remove required points until ALL are required
+					if (vertex.importance == VertexChainLink.IMPORTANCE_REQUIRED)
+						break;
+					
 					// set firstVertex to next one to make sure next loop iteration will work
 					firstVertex = vertex.next;
 					// extract this vertex, invalidating adjacent vertices
-					vertexMap.addPoint(geometryMetadata.shapeID, partBounds, vertex);
+					vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance);
 					vertex.removeFromChain();
 					currentChainLength--;
 				}
@@ -241,8 +252,8 @@ public class GeometryStreamConverter
 		for (int i = 0; i < startingChainLength; i++)
 		{
 			vertex = firstVertex.next;
-			vertex.importance = maxImportance;
-			vertexMap.addPoint(geometryMetadata.shapeID, partBounds, vertex);
+			vertex.importance = VertexChainLink.IMPORTANCE_REQUIRED;
+			vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance);
 			vertex.removeFromChain();
 		}
 	}
@@ -251,19 +262,21 @@ public class GeometryStreamConverter
 	 * Calculates importance values for all points in a chain and then sorts them by importance.
 	 * @param firstVertex The first point in a chain of points.
 	 * @param outputSortArray An array to store the points in sorted order.
-	 * @return The number of points in the chain that were sorted.
+	 * @return A value of true if all points are marked as required (meaning that importance-based processing should stop)
 	 */
-	protected int sortVertexChain(VertexChainLink firstVertex, VertexChainLink[] outputSortArray)
+	protected boolean sortVertexChain(VertexChainLink firstVertex, VertexChainLink[] outputSortArray)
 	{
+		boolean allRequired = true;
 		VertexChainLink vertex = firstVertex;
 		int vertexCount = 0;
 		do {
-			vertex.validateImportance();
+			if (!vertex.validateImportance())
+				allRequired = false;
 			outputSortArray[vertexCount++] = vertex;
 			vertex = vertex.next;
 		} while (vertex != firstVertex);
 		Arrays.sort(outputSortArray, 0, vertexCount, VertexChainLink.sortByImportance);
-		return vertexCount;
+		return allRequired;
 	}
 
 	/**

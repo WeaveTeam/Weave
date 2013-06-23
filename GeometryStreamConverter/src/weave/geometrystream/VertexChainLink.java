@@ -49,11 +49,19 @@ public class VertexChainLink
 		this.prev = newVertex; // this vertex wraps backwards around to the new one
 	}
 
+	/**
+	 * Compares x and y values only
+	 * @param other
+	 * @return
+	 */
 	public boolean equals2D(VertexChainLink other)
 	{
 		return this.x == other.x && this.y == other.y;
 	}
 	
+	/**
+	 * This will invalidate the importance of neighboring vertices
+	 */
 	public void removeFromChain()
 	{
 		// promote adjacent vertices and invalidate their importance
@@ -76,25 +84,28 @@ public class VertexChainLink
 	/**
 	 * This function re-calculates the importance of the current point.
 	 * It may only increase the importance, not decrease it.
+	 * @return true if the point is marked with IMPORTANCE_REQUIRED.
 	 */
-	public void validateImportance()
+	public boolean validateImportance()
 	{
 		importanceIsValid = true;
-		// Removing this point may make the Part intersect itself.
-		// This problem won't be visible if the shape is drawn at the proper quality level.
+		// Removing this point may make the Part intersect itself, but that problem is unlikely
+		// to be noticeable if the shape is drawn at the proper quality level.
 		//TODO: Does this problem matter?  If this is to be avoided, the algorithm needs to be extended.
 		
 		// stop if already marked required
 		if (importance == VertexChainLink.IMPORTANCE_REQUIRED)
-			return;
+			return true;
 
 		// the importance of a point is the area formed by it and its two neighboring points
-		// update importance
 		
 		//TODO: use distance as well as area in determining importance?
 		
+		// update importance
 		double area = areaOfTriangle(prev, this, next);
+		// importance should never decrease from previous value
 		importance = Math.max(importance, area);
+		return false;
 	}
 
 	/**

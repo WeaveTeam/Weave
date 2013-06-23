@@ -48,10 +48,10 @@ public class VertexMap
 	 * This will call CombinedPoint.addPoint() on a CombinedPoint object matching
 	 * the x,y coordinates of the given vertex.
 	 * @param shapeID The ID of the shape in which the vertex exists.
-	 * @param pointQueryBounds The bounds in which that the point is relevant.
 	 * @param point Information about a vertex in the specified shape.
+	 * @param maxImportance Maximum possible importance to use in place of VertexChainLink.IMPORTANCE_REQUIRED
 	 */
-	public void addPoint(int shapeID, Bounds2D pointQueryBounds, VertexChainLink point)
+	public void addPoint(int shapeID, VertexChainLink point, double maxImportance)
 	{
 		// get a new CombinedPoint object to be used when a
 		CombinedPoint newCombinedPoint = CombinedPoint.getUnusedInstance(point.x, point.y);
@@ -73,13 +73,13 @@ public class VertexMap
 
 		// add a VertexIdentifier to the existing CombinedPoint and update total stream size
 		totalStreamSize -= existingCombinedPoint.getStreamSize();
-		existingCombinedPoint.addPoint(shapeID, pointQueryBounds, point);
+		existingCombinedPoint.addPoint(shapeID, point);
 		totalStreamSize += existingCombinedPoint.getStreamSize();
+		
 		// update importance
 		double importance = point.importance;
-		// if point importance is REQUIRED, use part importance instead (area of bounding box).
-		if (importance == Double.POSITIVE_INFINITY)
-			importance = pointQueryBounds.getImportance();
+		if (importance == VertexChainLink.IMPORTANCE_REQUIRED)
+			importance = maxImportance;
 		existingCombinedPoint.updateMinimumImportance(importance);
 	}
 

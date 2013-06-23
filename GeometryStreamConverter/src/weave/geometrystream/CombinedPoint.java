@@ -47,6 +47,7 @@ public class CombinedPoint implements StreamObject
 		clear();
 		this.x = x;
 		this.y = y;
+		queryBounds.includePoint(x, y);
 		return this;
 	}
 	
@@ -58,12 +59,15 @@ public class CombinedPoint implements StreamObject
 		queryBounds.reset();
 	}
 	
-	public void addPoint(int shapeID, Bounds2D pointQueryBounds, VertexChainLink point)
+	public void addPoint(int shapeID, VertexChainLink point)
 	{
 		if (this.x != point.x || this.y != point.y)
 			throw new RuntimeException("CombinedPoint.addPoint(): coordinates of new point do not match");
 		vertexIdentifiers.add(VertexIdentifier.getUnusedInstance(shapeID, point.vertexID));
-		queryBounds.includeBounds(pointQueryBounds);
+		
+		// the point is needed when within the bounds of the triangle formed by the adjacent points
+		queryBounds.includePoint(point.prev.x, point.prev.y);
+		queryBounds.includePoint(point.next.x, point.next.y);
 	}
 	
 	public Bounds2D getQueryBounds()
