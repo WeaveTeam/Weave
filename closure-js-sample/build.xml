@@ -18,7 +18,7 @@
 	</target>
 	<target name="compile-soy-to-js">
 		<echo message="Compiling hello-world.soy template file to JavaScript"/>
-		<java jar="${basedir}/lib/SoyToJsSrcCompiler.jar" fork="true">
+		<java jar="${basedir}/lib/SoyToJsSrcCompiler.jar" fork="true" failonerror="true">
 	    	<arg value="--outputPathFormat"/>
 	    	<arg value="${basedir}/src/output/hello-world.js"/>
 	    	<arg value="--srcs"/>
@@ -28,7 +28,7 @@
 	</target>
 	<target name="compile-simple-js">
 		<echo message="Compiling sample JS code in input/sample-uncompiled.js with Simple Optimizations"/>
-		<java jar="${basedir}/lib/compiler.jar" fork="true">
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
 	    	<arg value="--js"/>
 	    	<arg value="${basedir}/src/input/sample-uncompiled.js"/>
 			<arg value="--compilation_level"/>
@@ -40,7 +40,7 @@
 	</target>
 	<target name="compile-advanced-js">
 		<echo message="Compiling sample JS code in input/sample-uncompiled.js with Advanced Optimizations"/>
-		<java jar="${basedir}/lib/compiler.jar" fork="true">
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
 	    	<arg value="--js"/>
 	    	<arg value="${basedir}/src/input/sample-uncompiled.js"/>
 			<arg value="--compilation_level"/>
@@ -52,7 +52,7 @@
 	</target>
 	<target name="compile-jquery-without-externs">
 		<echo message="Compiling sample JQuery code in input/sample-uncompiled-jquery-code.js without externs"/>
-		<java jar="${basedir}/lib/compiler.jar" fork="true">
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
 	    	<arg value="--js"/>
 	    	<arg value="${basedir}/src/input/sample-uncompiled-jquery-code.js"/>
 			<arg value="--compilation_level"/>
@@ -64,7 +64,7 @@
 	</target>
 	<target name="compile-jquery-with-externs">
 		<echo message="Compiling sample JQuery code in input/sample-uncompiled-jquery-code.js with externs"/>
-		<java jar="${basedir}/lib/compiler.jar" fork="true">
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
 	    	<arg value="--js"/>
 	    	<arg value="${basedir}/src/input/sample-uncompiled-jquery-code.js"/>
 			<arg value="--compilation_level"/>
