@@ -848,7 +848,6 @@
 				{
 					status.text = "";
 				}
-				filteredWords.addGroupedCallback(this,filterListByKeywords,true);
 				showCurrentView();
 			}
 			
@@ -1632,10 +1631,10 @@
 //				filteredWords.value = 
 			}
 			
-			public function filterBy(keywords:String):void
-			{
-				filteredWords.value = keywords;
-			}
+//			public function filterBy(keywords:String):void
+//			{
+//				filteredWords.value = keywords;
+//			}
 			
 			//this function is called when the _searchKeySet is set. 
 			//This sets the thumbnail's visiblity based if its link is included or excluded in the _searchKeySet
@@ -1980,36 +1979,30 @@
 			
 			private var _showListFlag:Boolean = false;
 //			private var clickedWordKeySet:KeySet = new KeySet();
-			public const filteredWords:LinkableString = registerLinkableChild(this,new LinkableString("",null,false));
+//			public const filteredWords:LinkableString = registerLinkableChild(this,new LinkableString("",null,false));
 			private function handleTagCloudClick(event:MouseEvent):void
 			{
 				//we don't use the event.target for getting the text because this is based on the bounding box clicked and not necessarily the 
 				//probed word. So we used the last recorded probed word
 				if(event.target is CustomLabel)
-					filteredWords.value= ((event.target as CustomLabel).parent as TagCloud).lastProbedWord.value;
-				else
-					return;
-			}
-			
-			private function filterListByKeywords():void
-			{
-				if(!filteredWords.value)
 				{
-//					_tagWordSubset.replaceKeys(false,true,[]);					
-					return;
+					var keyword:String = ((event.target as CustomLabel).parent as TagCloud).lastProbedWord.value;
+					var filter:KeyFilter = docListComponent.listFilters.getObject(keyword) as KeyFilter;
+					if(!filter)
+					{
+						var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryTerms,_currentRelatedKeywords,
+							currentQuery.dateFilter,[keyword],2000,currentQuery.operator.value,
+							currentQuery.sources.value,currentQuery.sortBy.value);
+						
+						addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault,keyword);
+					}
 				}
-				
-				var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryTerms,_currentRelatedKeywords,
-					currentQuery.dateFilter,filteredWords.value.split(','),2000,currentQuery.operator.value,
-					currentQuery.sources.value,currentQuery.sortBy.value);
-				
-				addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault);
 			}
 			
 			private function handleFilterQueryResult(event:ResultEvent,token:Object=null):void
 			{
 				var urls:Array = event.result as Array;
-				filterDocumentsByURLS(urls,"'" + filteredWords.value + "'");
+				filterDocumentsByURLS(urls,"'" + token + "'");
 			}
 				
 			private function handleFilterQueryFault(event:FaultEvent,token:Object=null):void
@@ -2219,7 +2212,6 @@
 						copySessionState(previousQuery,currentQuery);
 					
 					adjustNodeBase();
-					filteredWords.removeCallback(filterListByKeywords);
 					return;
 				}
 				

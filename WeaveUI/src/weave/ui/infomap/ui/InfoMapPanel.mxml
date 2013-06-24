@@ -217,7 +217,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
 				
-				globalSearchKeyword.addGroupedCallback(this,handleGlobalSearch);
+//				globalSearchKeyword.addGroupedCallback(this,handleGlobalSearch);
 				
 				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
 				
@@ -495,13 +495,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private function handleGlobalSearch():void
-			{
-				for each(var n:NodeHandler in nodes.getObjects())
-				{
-					n.filterBy(globalSearchKeyword.value);
-				}
-			}
+//			private function handleGlobalSearch():void
+//			{
+//				for each(var n:NodeHandler in nodes.getObjects())
+//				{
+//					n.filterBy(globalSearchKeyword.value);
+//				}
+//			}
 			
 			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void

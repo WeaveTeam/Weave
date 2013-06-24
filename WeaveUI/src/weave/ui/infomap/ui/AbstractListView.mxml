@@ -70,7 +70,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			public static var SELECTION_TEXT:String = "SELECTION";
 			public var parentNode:NodeHandler = null;
 			
-			protected function get listFilters():ILinkableHashMap
+			public function get listFilters():ILinkableHashMap
 			{
 				return ((filteredKeySet.keyFilter).requestLocalObject(KeyFilter,true) as KeyFilter).filters;
 			}
