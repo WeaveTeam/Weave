@@ -54,6 +54,10 @@ public class GeometryStreamConverter
 	 */
 	public int streamFlushInterval = 10 * 1024 * 1024; // default 10 megabytes
 	
+	public int totalVertices = 0;
+	public double totalVertexArea = 0;
+	public double totalQueryArea = 0;
+	
 	protected GeometryStreamDestination destination;
 	protected SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
 	protected int metadataStreamSize = 0;
@@ -104,6 +108,7 @@ public class GeometryStreamConverter
 				int chainLength = 0;
 				while (vertexStream.next())
 				{
+					totalVertices++;
 					x = vertexStream.getX();
 					y = vertexStream.getY();
 					// don't add invalid points
@@ -311,6 +316,13 @@ public class GeometryStreamConverter
 		
 		LinkedList<StreamObject> streamObjects = vertexMap.getStreamObjects();
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(streamObjects, tileSize);
+
+		for (StreamTile tile : tiles)
+		{
+			totalVertexArea += tile.pointBounds.getArea();
+			totalQueryArea += tile.queryBounds.getArea();
+		}
+		
 		destination.writeGeometryTiles(tiles);
 		vertexMap.clear();
 		
@@ -333,5 +345,12 @@ public class GeometryStreamConverter
 		flushMetadataTiles();
 		flushGeometryTiles();
 		destination.commit();
+		System.out.println(String.format(
+				"numVertices %s, pointArea %s, queryArea %s, ratio %s%%",
+				totalVertices,
+				totalVertexArea,
+				totalQueryArea,
+				totalQueryArea/totalVertexArea - 1
+			));
 	}
 }

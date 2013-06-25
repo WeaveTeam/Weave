@@ -273,6 +273,10 @@ package weave.visualization.plotters
 			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
 		}
 		
+		public var debug:Boolean = false;
+		private var keepTrack:Boolean = false;
+		public var totalVertices:int = 0;
+		
 		public const pixellation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
 		private const _destinationToPlotTaskMap:Dictionary = new Dictionary(true);
@@ -285,8 +289,11 @@ package weave.visualization.plotters
 		private const D_ASYNCSTATE:String = 'd_asyncState';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
+			keepTrack = debug && (task['taskType'] == 0);
 			if (task.iteration == 0)
 			{
+				if (keepTrack)
+					totalVertices = 0;
 				task.asyncState[RECORD_INDEX] = 0;
 				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(task.dataBounds, task.screenBounds) * pixellation.value;
 				task.asyncState[D_PROGRESS] = new Dictionary(true);
@@ -346,10 +353,16 @@ package weave.visualization.plotters
 				progress = recordIndex / task.recordKeys.length;
 				task.asyncState[RECORD_INDEX] = ++recordIndex;
 				
+				if (keepTrack)
+					continue;
+				
 				// avoid doing too little or too much work per iteration 
 				if (getTimer() > task.iterationStopTime)
 					break; // not done yet
 			}
+			
+			if (keepTrack)
+				trace('totalVertices',totalVertices);
 			
 			// hack for symbol plotters
 			var symbolPlottersArray:Array = symbolPlotters.getObjects();
@@ -437,16 +450,34 @@ package weave.visualization.plotters
 				tempPoint.x = currentNode.x;
 				tempPoint.y = currentNode.y;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
+				var x:Number = tempPoint.x,
+					y:Number = tempPoint.y;
+				
+				if (debug)
+				{
+					if (keepTrack)
+						totalVertices++;
+					x=int(x),y=int(y);
+					outputGraphics.moveTo(x-1,y);
+					outputGraphics.lineTo(x+1,y);
+					outputGraphics.moveTo(x,y-1);
+					outputGraphics.lineTo(x,y+1);
+					outputGraphics.moveTo(x, y);
+					continue;
+				}
 				
 				if (vIndex == 0)
 				{
-					firstX = tempPoint.x;
-					firstY = tempPoint.y;
-					outputGraphics.moveTo(tempPoint.x, tempPoint.y);
+					firstX = x;
+					firstY = y;
+					outputGraphics.moveTo(x, y);
 					continue;
 				}
-				outputGraphics.lineTo(tempPoint.x, tempPoint.y);
+				outputGraphics.lineTo(x, y);
 			}
+			
+			if (debug)
+				return;
 			
 			if (shapeType == GeometryType.POLYGON)
 				outputGraphics.lineTo(firstX, firstY);
