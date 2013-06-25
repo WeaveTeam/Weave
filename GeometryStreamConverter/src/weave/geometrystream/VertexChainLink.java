@@ -103,9 +103,39 @@ public class VertexChainLink
 		
 		// update importance
 		double area = areaOfTriangle(prev, this, next);
-		// importance should never decrease from previous value
+		//double area = distanceSquared(prev, next, this);
 		importance = Math.max(importance, area);
 		return false;
+	}
+	
+	/**
+	 * @param a Beginning of line segment.
+	 * @param b End of line segment.
+	 * @param c Point to test.
+	 * @return The shortest distance from the line segment AB to the point C.
+	 */
+	private double distanceSquared(VertexChainLink a, VertexChainLink b, VertexChainLink c)
+	{
+		double ax_bx = b.x - a.x;
+		double ay_by = b.y - a.y;
+		double ax_cx = c.x - a.x;
+		double ay_cy = c.y - a.y;
+		double u = (ax_cx * ax_bx + ay_cy * ay_by) / Math.sqrt(ax_bx * ax_bx + ay_by * ay_by);
+
+		if (u < 0) // a is closer
+		{
+		    return ax_cx * ay_cy;
+		}
+		else if (u > 1) // b is closer
+		{
+		    return (c.x - b.x) * (c.y - b.y);
+		}
+		else // use perpendicular distance
+		{
+			double x = a.x + u * (ax_bx);
+			double y = a.y + u * (ay_by);
+			return (c.x - x) * (c.y - y);
+		}
 	}
 
 	/**
