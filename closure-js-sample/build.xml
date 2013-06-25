@@ -1,0 +1,79 @@
+<project basedir="." default="all">
+	
+	<path id="librarypath">
+	    <fileset dir="${basedir}/lib" includes="**/*.jar"/>
+	</path>
+	
+	<target name="all" depends="compile-soy-to-html-using-java,compile-soy-to-js,compile-simple-js,compile-advanced-js,compile-jquery-without-externs,compile-jquery-with-externs">
+	</target>
+	<target name="compile-soy-to-html-using-java">
+		<echo message="Compiling hello-world.soy template file using Java"/>
+		<java classname="HelloWorld">
+			<classpath>
+				<path refid="librarypath"/>
+				<pathelement path="${basedir}/src/"/>
+			</classpath>
+		</java>
+		<echo message="Compiled to output/hello-world.html file"/>
+	</target>
+	<target name="compile-soy-to-js">
+		<echo message="Compiling hello-world.soy template file to JavaScript"/>
+		<java jar="${basedir}/lib/SoyToJsSrcCompiler.jar" fork="true" failonerror="true">
+	    	<arg value="--outputPathFormat"/>
+	    	<arg value="${basedir}/src/output/hello-world.js"/>
+	    	<arg value="--srcs"/>
+	    	<arg value="${basedir}/src/input/hello-world.soy"/>
+		</java>
+		<echo message="Compiled to output/hello-world.js file"/>
+	</target>
+	<target name="compile-simple-js">
+		<echo message="Compiling sample JS code in input/sample-uncompiled.js with Simple Optimizations"/>
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+	    	<arg value="--js"/>
+	    	<arg value="${basedir}/src/input/sample-uncompiled.js"/>
+			<arg value="--compilation_level"/>
+			<arg value="SIMPLE_OPTIMIZATIONS"/>
+			<arg value="--js_output_file"/>
+	    	<arg value="${basedir}/src/output/simple-compiled.js"/>
+		</java>
+		<echo message="Compiled to output/simple-compiled.js"/>
+	</target>
+	<target name="compile-advanced-js">
+		<echo message="Compiling sample JS code in input/sample-uncompiled.js with Advanced Optimizations"/>
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+	    	<arg value="--js"/>
+	    	<arg value="${basedir}/src/input/sample-uncompiled.js"/>
+			<arg value="--compilation_level"/>
+			<arg value="ADVANCED_OPTIMIZATIONS"/>
+			<arg value="--js_output_file"/>
+	    	<arg value="${basedir}/src/output/advanced-compiled.js"/>
+		</java>
+		<echo message="Compiled to output/advanced-compiled.js"/>
+	</target>
+	<target name="compile-jquery-without-externs">
+		<echo message="Compiling sample JQuery code in input/sample-uncompiled-jquery-code.js without externs"/>
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+	    	<arg value="--js"/>
+	    	<arg value="${basedir}/src/input/sample-uncompiled-jquery-code.js"/>
+			<arg value="--compilation_level"/>
+			<arg value="ADVANCED_OPTIMIZATIONS"/>
+			<arg value="--js_output_file"/>
+	    	<arg value="${basedir}/src/output/compiled-jquery-without-externs.js"/>
+		</java>
+		<echo message="Compiled to output/compiled-jquery-without-externs.js"/>
+	</target>
+	<target name="compile-jquery-with-externs">
+		<echo message="Compiling sample JQuery code in input/sample-uncompiled-jquery-code.js with externs"/>
+		<java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+	    	<arg value="--js"/>
+	    	<arg value="${basedir}/src/input/sample-uncompiled-jquery-code.js"/>
+			<arg value="--compilation_level"/>
+			<arg value="ADVANCED_OPTIMIZATIONS"/>
+			<arg value="--externs"/>
+			<arg value="${basedir}/externs/jquery.externs.js"/>
+			<arg value="--js_output_file"/>
+	    	<arg value="${basedir}/src/output/compiled-jquery-with-externs.js"/>
+		</java>
+		<echo message="Compiled to output/compiled-jquery-with-externs.js"/>
+	</target>
+</project>

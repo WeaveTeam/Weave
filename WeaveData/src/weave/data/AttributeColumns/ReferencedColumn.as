@@ -77,13 +77,13 @@ package weave.data.AttributeColumns
 				// do nothing if this is the same column
 				if (_internalColumn != newColumn)
 				{
-					if (_internalColumn)
-						_internalColumn.removeCallback(triggerCallbacks);
-		
+					if (_internalColumn != null)
+						(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _internalColumn);
+
 					_internalColumn = newColumn;
-					
-					if (_internalColumn)
-						_internalColumn.addImmediateCallback(this, triggerCallbacks, false, true);
+			
+					if (_internalColumn != null)
+						registerLinkableChild(this, _internalColumn);
 				}
 			}
 			return _internalColumn;
