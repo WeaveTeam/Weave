@@ -43,6 +43,10 @@ public class Bounds2D
 		return this.xMin <= other.xMax && other.xMin <= this.xMax
 			&& this.yMin <= other.yMax && other.yMin <= this.yMax;
 	}
+	public double getArea()
+	{
+		return Math.abs((xMax - xMin) * (yMax - yMin));
+	}
 	public double getImportance()
 	{
 		// use area if it is > 0
