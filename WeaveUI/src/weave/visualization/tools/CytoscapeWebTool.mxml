@@ -55,7 +55,7 @@
 				 if (weave.cytoscape == undefined) weave.cytoscape = {};\
 				 weave.cytoscape[toolname] = window.open(url, toolname);\
 				  }", 
-					ExternalInterface.objectID, _toolName, "cytoscapeweb/popout.html", _toolName);
+					ExternalInterface.objectID, _toolName, "CytoscapeWebPopout.html", _toolName);
 			}
 			private function sendNetworkToCytoscape():void
 			{
@@ -103,14 +103,14 @@
 				len = nodes.length;
 				for (idx = 0; idx < len; idx++)
 				{
-					bypass.nodes[nodes[idx]] = {color: "#d9dafe"}; // TODO, set appropriately from Weave style
+					bypass.nodes[nodes[idx]] = {color: "#d9dafe", size: 48}; // TODO, set appropriately from Weave style
 				}
 
 				var edges:Array = result.edges;
 				len = edges.length;
 				for (idx = 0; idx < len; idx++)
 				{
-					bypass.edges[edges[idx]] = {color: "#d9dafe"};
+					bypass.edges[edges[idx]] = {color: "#d9dafe", width: 3};
 				}
 				ExternalInterface.call(
 					"function (weaveID, toolname, bypass) {\
@@ -125,8 +125,8 @@
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						console.log(elements);\
 						weave.cytoscape[toolname].select(elements);\
-                        console.log(elements);\
 						}",
 						ExternalInterface.objectID, _toolName, result);
 			}
