@@ -2,22 +2,21 @@
 <html>
     
     <head>
-        <title>Cytoscape Web example</title>
+        <title>Cytoscape Web Tool</title>
         
         <!-- JSON support for IE (needed to use JS API) -->
-        <script type="text/javascript" src="js/min/json2.min.js"></script>
+        <script type="text/javascript" src="cytoscapeweb/js/min/json2.min.js"></script>
         
         <!-- Flash embedding utility (needed to embed Cytoscape Web) -->
-        <script type="text/javascript" src="js/min/AC_OETags.min.js"></script>
+        <script type="text/javascript" src="cytoscapeweb/js/min/AC_OETags.min.js"></script>
         
         <!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
-        <script type="text/javascript" src="js/min/cytoscapeweb.min.js"></script>
+        <script type="text/javascript" src="cytoscapeweb/js/min/cytoscapeweb.min.js"></script>
         
         <script type="text/javascript">
             function select(elements) {
-                nodes = Array.concat([], elements["nodes"]);
-                edges = Array.concat([], elements["edges"]);
-                console.log(nodes);                
+                nodes = [].concat(elements["nodes"]);
+                edges = [].concat(elements["edges"]);
 
                 disable_listeners();
                 vis.deselect();
@@ -37,7 +36,6 @@
                     var qualkey = {localName: data.localName, keyType: data.keyType};
                     key_list.push(qualkey);
                 }
-                console.log(key_list);
                 var path = new WeaveArray;
                 path.push('defaultSelectionKeySet');
                 window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
@@ -50,7 +48,6 @@
                 key_list.push(qualkey);
                 var path = new WeaveArray;
                 path.push('defaultProbeKeySet');
-                console.log(qualkey);
                 window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
             }
             function unprobe_handler(evt) {
@@ -92,9 +89,9 @@
                 // initialization options
                 var options = {
                     // where you have the Cytoscape Web SWF
-                    swfPath: "swf/CytoscapeWeb",
+                    swfPath: "cytoscapeweb/swf/CytoscapeWeb",
                     // where you have the Flash installer SWF
-                    flashInstallerPath: "swf/playerProductInstall"
+                    flashInstallerPath: "cytoscapeweb/swf/playerProductInstall"
                 };
                 
                 // init 

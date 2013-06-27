@@ -93,6 +93,7 @@
                 <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
+                <copy file="${basedir}/${UI}/src/weave/visualization/tools/CytoscapeWebPopout.html" tofile="${WEAVE_DESTROOT}/CytoscapeWebPopout.html"/>
 		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
                 <copy failonerror="false" file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
