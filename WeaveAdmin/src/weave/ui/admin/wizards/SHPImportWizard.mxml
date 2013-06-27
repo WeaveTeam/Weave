@@ -143,15 +143,17 @@
 			private const delayedHandleShpNameChange:Function = EventUtils.generateDelayedCallback(this, handleShpNameChange, 1000);
 			private function handleShpNameChange():void
 			{
-				var name:String = shpFileNameInput.text;
-				if (name)
+				if (shpFileNameInput.text)
 				{
-					_dbfFilesToRequestColumnNamesFrom = [name + '.dbf'];
+					var names:Array = WeaveAPI.CSVParser.parseCSV(shpFileNameInput.text)[0];
+					_dbfFilesToRequestColumnNamesFrom = names.map(
+						function(n:String, i:int, a:Array):String { return n + '.dbf'; }
+					);
 					addAsyncResponder(
 						Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
 						handleDBFColumnNames
 					);
-					tableSelector.activeTable = name;
+					tableSelector.activeTable = names[0];
 				}
 				toggleButtons();
 			}
