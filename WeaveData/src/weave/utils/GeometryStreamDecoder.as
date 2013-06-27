@@ -134,8 +134,8 @@ package weave.utils
 		 * The dimensions are minImportance, maxImportance, xMin, yMin, xMax, yMax.
 		 * The objects contained in the KDNodes are integers representing tile ID numbers.
 		 */
-		private const metadataTiles:KDTree = new KDTree(6);
-		private const geometryTiles:KDTree = new KDTree(6);
+		private const metadataTiles:KDTree = new KDTree(KD_DIMENSIONALITY);
+		private const geometryTiles:KDTree = new KDTree(KD_DIMENSIONALITY);
 		/**
 		 * metadataTileIDToKDNodeMapping & geometryTileIDToKDNodeMapping
 		 * These vectors map a tileID to a KDNode which is used for deleting nodes from the KDTrees.
@@ -148,14 +148,15 @@ package weave.utils
 		/**
 		 * These constants define indices in a KDKey corresponding to the different KDTree dimensions.
 		 */
-		private const IMIN_INDEX:int = 0, IMAX_INDEX:int = 1;
-		private const XMIN_INDEX:int = 2, YMIN_INDEX:int = 3;
-		private const XMAX_INDEX:int = 4, YMAX_INDEX:int = 5;
+		private const XMIN_INDEX:int = 0, YMIN_INDEX:int = 1;
+		private const XMAX_INDEX:int = 2, YMAX_INDEX:int = 3;
+		private const IMAX_INDEX:int = 4;
+		private const KD_DIMENSIONALITY:int = 5;
 		/**
 		 * These KDKey arrays are created once and reused to avoid unnecessary creation of objects.
 		 */
-		private const minKDKey:Array = [-Infinity, -Infinity, -Infinity, -Infinity, -Infinity, -Infinity];
-		private const maxKDKey:Array = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
+		private const minKDKey:Array = [-Infinity, -Infinity, -Infinity, -Infinity, -Infinity];
+		private const maxKDKey:Array = [Infinity, Infinity, Infinity, Infinity, Infinity];
 		
 		/**
 		 * getRequiredMetadataTileIDs, getRequiredGeometryTileIDs, and getRequiredTileIDs
@@ -223,13 +224,12 @@ package weave.utils
 				var tileID:int = 0;
 				while (true)
 				{
-					var kdKey:Array = new Array(6);
-					kdKey[IMIN_INDEX] = stream.readFloat();
-					kdKey[IMAX_INDEX] = stream.readFloat();
+					var kdKey:Array = new Array(KD_DIMENSIONALITY);
 					kdKey[XMIN_INDEX] = stream.readDouble();
 					kdKey[YMIN_INDEX] = stream.readDouble();
 					kdKey[XMAX_INDEX] = stream.readDouble();
 					kdKey[YMAX_INDEX] = stream.readDouble();
+					kdKey[IMAX_INDEX] = stream.readFloat();
 					//trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
 					tileDescriptors.push(new TileDescriptor(kdKey, tileID));
 					collectiveBounds.includeCoords(kdKey[XMIN_INDEX], kdKey[YMIN_INDEX]);

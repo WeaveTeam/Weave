@@ -89,9 +89,9 @@ public class SQLGeometryStreamReader
 					stmt = conn.createStatement();
 					query = "SELECT ";
 					String[] names = new String[]{
-						SQLGeometryStreamDestination.MIN_IMPORTANCE.toLowerCase(), SQLGeometryStreamDestination.MAX_IMPORTANCE.toLowerCase(),
 						SQLGeometryStreamDestination.X_MIN_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MIN_BOUNDS.toLowerCase(),
 						SQLGeometryStreamDestination.X_MAX_BOUNDS.toLowerCase(), SQLGeometryStreamDestination.Y_MAX_BOUNDS.toLowerCase(),
+						SQLGeometryStreamDestination.MAX_IMPORTANCE.toLowerCase(),
 						SQLGeometryStreamDestination.TILE_ID.toLowerCase()
 					};
 					for (int i = 0; i < names.length; i++)
@@ -105,12 +105,11 @@ public class SQLGeometryStreamReader
 					rs = stmt.executeQuery(query);
 					while (rs.next())
 					{
-						data.writeFloat(rs.getFloat(1));
-						data.writeFloat(rs.getFloat(2));
+						data.writeDouble(rs.getDouble(1));
+						data.writeDouble(rs.getDouble(2));
 						data.writeDouble(rs.getDouble(3));
 						data.writeDouble(rs.getDouble(4));
-						data.writeDouble(rs.getDouble(5));
-						data.writeDouble(rs.getDouble(6));
+						data.writeFloat(rs.getFloat(5));
 					}
 					return; // if this succeeds, we don't want to run the second query
 				}
@@ -126,9 +125,9 @@ public class SQLGeometryStreamReader
 			stmt = conn.createStatement();
 			query = "SELECT ";
 			String[] names = new String[]{
-					SQLGeometryStreamDestination.MIN_IMPORTANCE, SQLGeometryStreamDestination.MAX_IMPORTANCE,
 					SQLGeometryStreamDestination.X_MIN_BOUNDS, SQLGeometryStreamDestination.Y_MIN_BOUNDS,
 					SQLGeometryStreamDestination.X_MAX_BOUNDS, SQLGeometryStreamDestination.Y_MAX_BOUNDS,
+					SQLGeometryStreamDestination.MAX_IMPORTANCE,
 					SQLGeometryStreamDestination.TILE_ID
 			};
 			for (int i = 0; i < names.length; i++)
@@ -142,12 +141,11 @@ public class SQLGeometryStreamReader
 			rs = stmt.executeQuery(query);
 			while (rs.next())
 			{
-				data.writeFloat(rs.getFloat(1));
-				data.writeFloat(rs.getFloat(2));
+				data.writeDouble(rs.getDouble(1));
+				data.writeDouble(rs.getDouble(2));
 				data.writeDouble(rs.getDouble(3));
 				data.writeDouble(rs.getDouble(4));
-				data.writeDouble(rs.getDouble(5));
-				data.writeDouble(rs.getDouble(6));
+				data.writeFloat(rs.getFloat(5));
 			}
 		}
 		catch (SQLException e)
