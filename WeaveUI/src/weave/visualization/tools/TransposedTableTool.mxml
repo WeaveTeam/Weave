@@ -26,7 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute"
 				   title="{lang('Transposed Data Table')}" xmlns:editors="weave.editors.*"
-				   implements="weave.api.ui.IVisToolWithSelectableAttributes"
+				   implements="weave.api.ui.IVisToolWithSelectableAttributes,weave.api.data.ICSVExportable"
 				   >
 	
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
@@ -242,6 +242,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// this avoids a crash when clicking the scrollbar after subset changes.
 				if (table.horizontalScrollPosition >= table.columnCount)
 					table.horizontalScrollPosition = 0;
+			}
+			
+			public function exportCSV():String
+			{
+				var cols:Array = columns.getObjects();
+				cols.unshift(headerColumn);
+				return ColumnUtils.generateTableCSV(cols);
 			}
 			
 			[Deprecated(replacement="headerColumnWidth")] public function set headerColumnPercentWidth(value:Number):void
