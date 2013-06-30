@@ -346,11 +346,11 @@ public class GeometryStreamConverter
 		flushGeometryTiles();
 		destination.commit();
 		System.out.println(String.format(
-				"numVertices %s, pointArea %s, queryArea %s, ratio %s%%",
+				"numVertices %s, pointArea %s, queryArea %s, qa/pa %s",
 				totalVertices,
 				totalVertexArea,
 				totalQueryArea,
-				totalQueryArea/totalVertexArea - 1
+				totalQueryArea/totalVertexArea
 			));
 	}
 }
