@@ -19,6 +19,8 @@
 
 package weave.ui
 {
+	import flash.events.MouseEvent;
+	
 	import mx.collections.CursorBookmark;
 	import mx.controls.ComboBox;
 
@@ -29,6 +31,11 @@ package weave.ui
 	 */
 	public class CustomComboBox extends ComboBox
 	{
+		public function CustomComboBox()
+		{
+			addEventListener(MouseEvent.MOUSE_DOWN, function(..._):void { setFocus(); });
+		}
+		
 		/**
 		 * This function will set the selectedItem corresponding to the given label.
 		 * @param value The label of the item to select.
