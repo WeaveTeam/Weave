@@ -63,6 +63,7 @@
 			import mx.rpc.Fault;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
 			
 			import org.igniterealtime.xiff.data.ping.PingExtension;
 			
@@ -931,7 +932,11 @@
 				var uniqueEntityValues:Array = []
 				for each(var prop:String in dict)
 				{
-					uniqueEntityValues.push('"'+prop+'"');	
+					prop = StringUtil.trim(prop);
+					if(prop.split(' ').length >1) //if it has more than 1 word add quotes
+						uniqueEntityValues.push('"'+prop+'"');
+					else
+						uniqueEntityValues.push(prop);
 				}
 				
 				return uniqueEntityValues;
@@ -2173,6 +2178,9 @@
 			private function editQuery():void
 			{
 				makeKeywordTextAreaEditable();
+				/*remove document numbers to edit query*/
+				var cursorPosition:int = nodeBase.keywordTextArea.text.indexOf('(');
+				nodeBase.keywordTextArea.text = nodeBase.keywordTextArea.text.substr(0,cursorPosition); 
 				nodeBase.keywordTextArea.setSelection(nodeBase.keywordTextArea.length,nodeBase.keywordTextArea.length);
 			}
 			private function makeKeywordTextAreaEditable():void
@@ -2318,7 +2326,7 @@
 				}
 				
 				previousQuery.keywords.value = getRequiredKeywords().join(',');
-				previousQuery.operator.value = "OR";
+				previousQuery.operator.value = "AND";
 				if(_parentPanel.relatedKeywords.value)
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
 						_parentPanel.relatedKeywords.value.split(' ');

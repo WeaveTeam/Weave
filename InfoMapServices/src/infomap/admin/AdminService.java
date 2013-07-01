@@ -1106,7 +1106,7 @@ public class AdminService extends GenericServlet {
 			// set field to hasSummary. Just a field with low content. Since we are only interested in the clusters
 			q.setFields("link");
 			
-			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json");
+			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json&LingoClusteringAlgorithm.desiredClusterCountBase=");
 			
 			StringWriter writer = new StringWriter();
 			IOUtils.copy(url.openStream(),writer,"UTF-8");

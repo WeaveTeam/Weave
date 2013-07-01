@@ -10,6 +10,7 @@ package weave.ui.infomap
 	import mx.charts.chartClasses.InstanceCache;
 	import mx.core.IFlexDisplayObject;
 	import mx.managers.PopUpManager;
+	import mx.utils.StringUtil;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
@@ -137,7 +138,11 @@ package weave.ui.infomap
 					var value:String = ColumnUtils.getString(col,k);
 					if(value)
 					{
-						temp.push('"'+value+'"');
+						value = StringUtil.trim(value);
+						if(value.split(' ').length >1) //if it has more than 1 word add quotes
+							temp.push('"'+value+'"');
+						else
+							temp.push(value);
 					}
 					
 					var subject:String = col.getMetadata('subject');
