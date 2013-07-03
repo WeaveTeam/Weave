@@ -115,6 +115,26 @@ html,body {
   float: left;
 }
 
+#dbconnection {
+	width:50%;
+	height:50%;
+	position: relative;
+	float: left;
+}
+
+#dbauthentication {
+	width:50%;
+	height:50%;
+	position: relative;
+	float: right;
+}
+
+#dbhierarchy {
+	width:100&;
+	height:50%;
+	position:relative;
+	float:left;
+}
 #queryContent {
   width: 100%;
   height: 83%;
@@ -216,7 +236,35 @@ require([ 'js/swfobject.js' ], function() {
 </script>
 </head>
 <body>
-  <div id="dataDialog" title="Data"></div>
+  <div id="dataDialog" title="Data">
+  		<div id="dbconnection">
+  			SQL Connection Info<br><br>
+  			SQL Server Type: <select id="dataCombobox">
+  								<option value="MySQL">MySQL</option>
+  								<option value="PostGreSQL">PostGreSQL</option>
+  								<option value="MicrosoftSQL">Microsoft SQL Server</option>
+  								<option value="Oracle">Oracle</option>
+  							 </select> <br>
+  			SQL Server IP:	 <input type="text" name="SQLIP" value="demo.oicweave.org"><br>
+  			SQL Server Port: <input type="text" name="SQLPort" value="3306"><br>
+  			SQL User:		<input type="text" name="SQLUser" value="root"><br>
+  			SQL Password:   <input type="password" name="Password" value="Tc1Sgp7nFc"><br>
+			SQL Database Name: <input type="text" name="" value="">(optional)
+  		</div>
+  		
+  		<div id="dbauthentication">
+  			<br><br>
+  			Connection Name: <input type="text" name="ConnectionName" value=""><br>
+  			Password: <input type="password" name="Password2" value=""><br> 	
+  			<button id="getHierarchy">Connect</button> <br>		
+  		</div>
+
+		<div id="dbhierarchy">
+  			Data Tables <br> <select id="dataTables"></select><br>
+  			Columns	<br>	<select id="columns"></select>		
+  		</div>
+  		
+  </div>
   
   
   <div id="container">
@@ -256,15 +304,15 @@ require([ 'js/swfobject.js' ], function() {
         <ul>
           <li data-row="1" data-col="1" data-sizex="2" data-sizey="1">
           <div id="Indicators" class="portlet">
-            <div class="portlet-header">About the Layout</div>
-            <div class="portlet-content">content</div>
+            <div class="portlet-header" id="panel1">generic header</div>
+            <div class="portlet-content" id="panelcontent1">content</div>
           </div>
           </li>
           <li data-row="2" data-col="1" data-sizex="1" data-sizey="2">
             <div id="Indicators" class="portlet">
             <div class="portlet-header">Roundtrip Demo</div>
             <div class="portlet-content">
-              Content is preloaded <br><br>
+              <br><br>
               
               Script: <select id="scriptCombobox"></select> <br></br>
               
@@ -273,21 +321,23 @@ require([ 'js/swfobject.js' ], function() {
               
               <input id="scriptButton"	type="submit" value="Run Script" /> 
               
-              <input id="callWeaveButton" type="submit" value="Call Weave" />
+              <!-- <input id="scriptButton2" type="submit" value="CDCforQueries.R" /> -->
             </div>
           </div>
           </li>
-          <li data-row="3" data-col="1" data-sizex="1" data-sizey="1"></li>
-
-          <li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li>
+          <li data-row="3" data-col="1" data-sizex="1" data-sizey="2">
+          	<div id="Indicators" class="portlet">
+              <div class="portlet-header" id="panel2">generic header</div>
+          	  <div class="portlet-content" id="panelcontent2">content</div>
+          	</div>
+          </li>
+<!-- 
+          <li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li> -->
           <li data-row="2" data-col="2" data-sizex="2" data-sizey="2">
             <div id="Indicators" class="portlet">
-            <div class="portlet-header">About the Panels</div>
-            <div class="portlet-content">
-               <p>Panels have custom sizes. This panel is 2x2.
-              <p>Can be rearranged in any desired order.
-            </div>
-            </div>
+           		 <div class="portlet-header" id="panel3">generic header</div>
+           		 <div class="portlet-content" id="panelcontent3">content</div>
+         	</div>
           </li>
 
           <li data-row="1" data-col="4" data-sizex="1" data-sizey="2">
@@ -301,10 +351,20 @@ require([ 'js/swfobject.js' ], function() {
               </div>
               </div>
           </li>
-          <li data-row="2" data-col="4" data-sizex="2" data-sizey="1"></li>
-          <li data-row="3" data-col="4" data-sizex="2" data-sizey="1"></li>
-
-          <li data-row="1" data-col="5" data-sizex="1" data-sizey="1"></li>
+          <li data-row="2" data-col="4" data-sizex="1" data-sizey="2">
+          	 <div id="Indicators" class="portlet">
+            <div class="portlet-header" id="panel4">generic header</div>
+            <div class="portlet-content" id="panelcontent4">content</div>
+          </div>
+          </li>
+          <li data-row="3" data-col="4" data-sizex="1" data-sizey="2">
+          	<div id="Indicators" class="portlet">
+            <div class="portlet-header" id="panel5">generic header</div>
+            <div class="portlet-content" id="panelcontent5">content</div>
+          </div>
+          </li>
+<!-- 
+          <li data-row="1" data-col="5" data-sizex="1" data-sizey="1"></li> -->
           <li data-row="3" data-col="5" data-sizex="1" data-sizey="1">
             <div id="Indicators" class="portlet">
               <div class="portlet-header">Script Results</div>
@@ -313,9 +373,14 @@ require([ 'js/swfobject.js' ], function() {
                 </div>
             </div>
           </li>
-
-          <li data-row="1" data-col="6" data-sizex="1" data-sizey="1"></li>
-          <li data-row="2" data-col="6" data-sizex="1" data-sizey="2"></li>
+<!-- 
+          <li data-row="1" data-col="6" data-sizex="1" data-sizey="1"></li> -->
+          <li data-row="2" data-col="6" data-sizex="1" data-sizey="2">
+          	<div id="Indicators" class="portlet">
+            <div class="portlet-header" id="panel6">generic header</div>
+            <div class="portlet-content" id="panelcontent6">content</div>
+          </div>
+          </li>
         </ul>
       </div>
     </div>
