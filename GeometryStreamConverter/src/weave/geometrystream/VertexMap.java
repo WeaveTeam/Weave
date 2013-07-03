@@ -31,7 +31,9 @@ public class VertexMap
 	 * This Map is used as a hash lookup for CombinedPoint objects.
 	 * Using this Map, we can look up a CombinedPoint object and add new vertex IDs to it.
 	 */
-	private HashMap<CombinedPoint, CombinedPoint> map = new HashMap<CombinedPoint, CombinedPoint>();
+	private final HashMap<CombinedPoint, CombinedPoint> map = new HashMap<CombinedPoint, CombinedPoint>();
+	
+	private final LinkedList<PartMarker> partMarkers = new LinkedList<PartMarker>();
 
 	public int getCombinedPointCount()
 	{
@@ -44,6 +46,13 @@ public class VertexMap
 		return totalStreamSize;
 	}
 	
+	public void addPartMarker(int shapeID, int vertexID, int chainLength, Bounds2D partBounds)
+	{
+		partMarkers.add(new PartMarker(shapeID, vertexID, chainLength, partBounds));
+	}
+	
+	private final CombinedPoint searchPoint = new CombinedPoint(Double.NaN, Double.NaN);
+	
 	/**
 	 * This will call CombinedPoint.addPoint() on a CombinedPoint object matching
 	 * the x,y coordinates of the given vertex.
@@ -51,29 +60,26 @@ public class VertexMap
 	 * @param point Information about a vertex in the specified shape.
 	 * @param maxImportance Maximum possible importance to use in place of VertexChainLink.IMPORTANCE_REQUIRED
 	 */
-	public void addPoint(int shapeID, VertexChainLink point, double maxImportance)
+	public void addPoint(int shapeID, VertexChainLink point, double maxImportance, Bounds2D partBounds)
 	{
 		// get a new CombinedPoint object to be used when a
-		CombinedPoint newCombinedPoint = CombinedPoint.getUnusedInstance(point.x, point.y);
+		searchPoint.x = point.x;
+		searchPoint.y = point.y;
 
 		// check the hash map for a matching CombinedPoint object
-		CombinedPoint existingCombinedPoint = map.get(newCombinedPoint);
+		CombinedPoint existingCombinedPoint = map.get(searchPoint);
 		if (existingCombinedPoint == null)
 		{
+			CombinedPoint newCombinedPoint = new CombinedPoint(point.x, point.y);
 			// hash map doesn't have a matching CombinedPoint object, so save the new one
 			map.put(newCombinedPoint, newCombinedPoint);
 			totalStreamSize += newCombinedPoint.getStreamSize(); // include new CombinedPoint in total stream size
 			existingCombinedPoint = newCombinedPoint;
 		}
-		else
-		{
-			// map already has matching CombinedPoint ... save the new one for later use
-			CombinedPoint.saveUnusedInstance(newCombinedPoint);
-		}
 
 		// add a VertexIdentifier to the existing CombinedPoint and update total stream size
 		totalStreamSize -= existingCombinedPoint.getStreamSize();
-		existingCombinedPoint.addPoint(shapeID, point);
+		existingCombinedPoint.addPoint(shapeID, point, partBounds);
 		totalStreamSize += existingCombinedPoint.getStreamSize();
 		
 		// update importance
@@ -89,7 +95,9 @@ public class VertexMap
 	 */
 	public LinkedList<StreamObject> getStreamObjects()
 	{
-		return new LinkedList<StreamObject>(map.values());
+		LinkedList<StreamObject> result = new LinkedList<StreamObject>(map.values());
+		result.addAll(partMarkers);
+		return result;
 	}
 
 	/**
@@ -97,10 +105,8 @@ public class VertexMap
 	 */
 	public void clear()
 	{
-		Object[] values = map.values().toArray();
-		for (int i = 0; i < values.length; i++)
-			CombinedPoint.saveUnusedInstance((CombinedPoint)values[i]);
 		map.clear();
+		partMarkers.clear();
 		totalStreamSize = 0;
 	}
 }

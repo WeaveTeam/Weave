@@ -274,6 +274,7 @@ package weave.visualization.plotters
 		}
 		
 		public var debug:Boolean = false;
+		public var debugGridSkip:Boolean = false;
 		private var keepTrack:Boolean = false;
 		public var totalVertices:int = 0;
 		
@@ -339,7 +340,10 @@ package weave.visualization.plotters
 								line.beginLineStyle(recordKey, graphics);
 								styleSet = true;
 							}
-							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, task.dataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
+							var bounds:IBounds2D = task.dataBounds;
+							if (debugGridSkip)
+								bounds = null;
+							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, bounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
 						}
 					}
 					if (styleSet)

@@ -23,8 +23,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import weave.geometrystream.Bounds2D;
-
 /**
  * Keeps track of a set of StreamObjects along with their pointBounds and queryBounds.
  * The pointBounds contains the coordinates of all the StreamObjects.
@@ -81,9 +79,9 @@ public class StreamTile
 	}
 	
 	private StreamObject[] streamObjects;
-	private  int startIndex, endIndex;
+	private int startIndex, endIndex;
 
 	public double minImportance = 0, maxImportance = 0;
-	public Bounds2D pointBounds = new Bounds2D();
-	public Bounds2D queryBounds = new Bounds2D();
+	public final Bounds2D pointBounds = new Bounds2D();
+	public final Bounds2D queryBounds = new Bounds2D();
 }

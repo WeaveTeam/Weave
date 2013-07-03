@@ -114,7 +114,7 @@ public class VertexChainLink
 	 * @param c Point to test.
 	 * @return The shortest distance from the line segment AB to the point C.
 	 */
-	private double distanceSquared(VertexChainLink a, VertexChainLink b, VertexChainLink c)
+/*	private double distanceSquared(VertexChainLink a, VertexChainLink b, VertexChainLink c)
 	{
 		double ax_bx = b.x - a.x;
 		double ay_by = b.y - a.y;
@@ -136,7 +136,7 @@ public class VertexChainLink
 			double y = a.y + u * (ay_by);
 			return (c.x - x) * (c.y - y);
 		}
-	}
+	}*/
 
 	/**
 	 * @param a First point in a triangle.

@@ -58,11 +58,12 @@ public class GeometryStreamConverter
 	public double totalVertexArea = 0;
 	public double totalQueryArea = 0;
 	
-	protected GeometryStreamDestination destination;
-	protected SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
+	protected final GeometryStreamDestination destination;
+	protected final SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
 	protected int metadataStreamSize = 0;
-	protected LinkedList<StreamObject> metadataList = new LinkedList<StreamObject>();
-	protected VertexMap vertexMap = new VertexMap();
+	protected final LinkedList<StreamObject> metadataList = new LinkedList<StreamObject>();
+	protected final VertexMap vertexMap = new VertexMap();
+	protected final Bounds2D partBounds = new Bounds2D();
 	
 	/**
 	 * These are reused for the life of this object to minimize Java garbage collection activity.
@@ -78,7 +79,6 @@ public class GeometryStreamConverter
 	 */
 	public void convertFeature(FeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
 	{
-
 		// save shape metadata for feature
 		GeometryMetadata geometryMetadata = new GeometryMetadata(shapeIDGenerator.getNext(), shapeKey, shapeType, projectionWKT);
 		metadataList.add(geometryMetadata);
@@ -86,7 +86,7 @@ public class GeometryStreamConverter
 		long startTime = System.currentTimeMillis();
 		
 		// save geometry data for feature
-		int firstVertexID = 0;
+		int firstVertexID = -1; // -1 for first implicit part marker
 		while (geomStream.hasNext())
 		{
 			GeometryVertexStream vertexStream = geomStream.getNext();
@@ -95,8 +95,7 @@ public class GeometryStreamConverter
 				// copy vertices for this geometry part
 
 				// add polygon marker before the next part
-				if (firstVertexID > 0)
-					geometryMetadata.polygonMarkerIndices.add(firstVertexID++);
+				int partMarkerID = firstVertexID++;
 				// loop through coordinates, converting them to VertexChainLink objects
 				double x;
 				double y;
@@ -147,8 +146,12 @@ public class GeometryStreamConverter
 					prevX = x;
 					prevY = y;
 				}
+				
+				if (chainLength == 0)
+					break;
+				
 				// ARC: end points of a part are required points
-				if (geometryMetadata.isLineType() && chainLength > 0)
+				if (geometryMetadata.isLineType())
 				{
 					reusableVertexChainLinks.get(0).importance = VertexChainLink.IMPORTANCE_REQUIRED;
 					reusableVertexChainLinks.get(chainLength - 1).importance = VertexChainLink.IMPORTANCE_REQUIRED;
@@ -156,6 +159,10 @@ public class GeometryStreamConverter
 				
 				// assign importance values to vertices and save them
 				processVertexChain(geometryMetadata, chainLength);
+				
+				// add part marker
+				if (partMarkerID > -1 || vertexStream.hasNext() || geomStream.hasNext())
+					vertexMap.addPartMarker(geometryMetadata.shapeID, partMarkerID, chainLength, partBounds);
 				
 				// done copying points for this part, advance firstVertexID to after the current part
 				firstVertexID += chainLength;
@@ -189,14 +196,14 @@ public class GeometryStreamConverter
 	 */
 	protected void processVertexChain(GeometryMetadata geometryMetadata, int startingChainLength)
 	{
+		partBounds.reset();
 		if (startingChainLength == 0)
 			return;
 		
 		VertexChainLink firstVertex = reusableVertexChainLinks.get(0);
 		VertexChainLink vertex = null;
 
-		// include all vertices from chain in part bounds
-		Bounds2D partBounds = new Bounds2D();
+		// include all vertices from chain in partBounds
 		for (int i = 0; i < startingChainLength; i++)
 		{
 			vertex = reusableVertexChainLinks.get(i);
@@ -243,7 +250,7 @@ public class GeometryStreamConverter
 					// set firstVertex to next one to make sure next loop iteration will work
 					firstVertex = vertex.next;
 					// extract this vertex, invalidating adjacent vertices
-					vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance);
+					vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance, partBounds);
 					vertex.removeFromChain();
 					currentChainLength--;
 				}
@@ -258,7 +265,7 @@ public class GeometryStreamConverter
 		{
 			vertex = firstVertex.next;
 			vertex.importance = VertexChainLink.IMPORTANCE_REQUIRED;
-			vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance);
+			vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance, partBounds);
 			vertex.removeFromChain();
 		}
 	}
@@ -295,6 +302,7 @@ public class GeometryStreamConverter
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(metadataList, tileSize);
 		destination.writeMetadataTiles(tiles);
 		metadataStreamSize = 0;
+		metadataList.clear();
 
 		long elapsed = System.currentTimeMillis() - startTime;
 		if (debugFlush)

@@ -28,6 +28,7 @@ package weave.utils
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -46,18 +47,24 @@ package weave.utils
 	 * Throughout the code, an ID refers to an integer value, while a Key is a string value.
 	 * Binary format:
 	 *   tile descriptor format: [float minImportance, float maxImportance, double xMin, double yMin, double xMax, double yMax]
-	 *       stream tile format: [int negativeTileID, binary stream object beginning with positive int, ...]
-	 *   metadata stream object: [int geometryID, String geometryKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, ..., int vertexID(n), int -1]
-	 *   geometry stream object: [int geometryID1, int vertexID1, int geometryID2, int vertexID2, ..., int geometryID(n-1), int vertexID(n-1), int geometryID(n), int negativeVertexID(n), double x, double y, float importance]
+	 *       stream tile format: [int negativeTileID, negative streamVersion or binary stream object beginning with positive int, ...]
+	 *   metadata stream object: [int geometryID, String geometryKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, ..., int vertexID(n), int -1 if no shapeType follows or -2 if shapeType follows, int optionalShapeType]
+	 *   geometry stream object: [int geometryID1, int vertexID1, ..., int geometryID(n-1), int vertexID(n-1), int geometryID(n), int negativeVertexID(n), double x, double y, float importance]
+	 *   geometry stream marker: [int geometryID1, int vertexID1, ..., int geometryID(n), int vertexID(n), int -1]
 	 * 
 	 * @author adufilie
 	 */
 	public class GeometryStreamDecoder implements ILinkableObject
 	{
 		public static var debug:Boolean = false;
+		public var totalGeomTiles:int = 0;
+		public var totalVertices:int = 0;
+		
+		private var streamVersion:int = 0;
 		
 		public function GeometryStreamDecoder()
 		{
+			getCallbackCollection(this).addImmediateCallback(this, function():void { trace(totalGeomTiles,'geomTiles,',totalVertices,'vertices'); });
 		}
 		
 		/**
@@ -330,6 +337,12 @@ package weave.utils
 							{
 								// remove tile from tree
 								metadataTiles.remove(metadataTileIDToKDNodeMapping[tileID]);
+								
+								flag = stream.readInt();
+								if (flag < 0)
+									streamVersion = -flag;
+								else
+									stream.position -= 4; // version 0; rewind
 	
 								if (debug)
 								{
@@ -359,15 +372,7 @@ package weave.utils
 						{
 							geometryID = flag;
 							// read geometry key (null-terminated string)
-							stringBuffer.clear();
-							while (true)
-							{
-								byte = stream.readByte();
-								if (byte == 0) // if \0 char is found (end of string)
-									break;
-								stringBuffer.writeByte(byte); // copy the byte to the string buffer
-							}
-							key = WeaveAPI.QKeyManager.getQKey(_keyType, stringBuffer.toString()); // get key string from buffer
+							key = WeaveAPI.QKeyManager.getQKey(_keyType, readString(stream));
 							// initialize geometry at geometryID
 							geometry = new GeneralizedGeometry();
 							if (geometries.length <= geometryID)
@@ -401,57 +406,9 @@ package weave.utils
 							// if flag is < -1, it means the shapeType follows
 							if (vertexID < -1)
 							{
-								/*
-									0 	Null Shape 	Empty ST_Geometry
-	
-									1 	Point 	ST_Point
-									21 	PointM 	ST_Point with measures
-	
-									8 	MultiPoint 	ST_MultiPoint
-									28 	MultiPointM 	ST_MultiPoint with measures
-									
-									3 	PolyLine 	ST_MultiLineString
-									23 	PolyLineM 	ST_MultiLineString with measures
-									
-									5 	Polygon 	ST_MultiPolygon
-									25 	PolygonM 	ST_MultiPolygon with measures
-								*/
-								flag = stream.readInt();
-								//trace("shapeType",flag);
-								switch (flag) // read shapeType
-								{
-									//Point
-									case 1:
-									case 21:
-									//MultiPoint
-									case 8:
-									case 28:
-										currentGeometryType = GeometryType.POINT;
-									break;
-									//PolyLine
-									case 3:
-									case 23:
-										currentGeometryType = GeometryType.LINE;
-									break;
-									//Polygon
-									case 5:
-									case 25:
-										currentGeometryType = GeometryType.POLYGON;
-									break;
-									default:
-								}
+								readShapeType(stream);
 								if (vertexID < -2)
-								{
-									stringBuffer.clear();
-									while (true)
-									{
-										byte = stream.readByte();
-										if (byte == 0) // if \0 char is found (end of string)
-											break;
-										stringBuffer.writeByte(byte); // copy the byte to the string buffer
-									}
-									_projectionWKT = stringBuffer.toString(); // get key from buffer
-								}
+									_projectionWKT = readString(stream);
 							}
 							// set geometry type
 							geometry.geomType = currentGeometryType;
@@ -459,7 +416,12 @@ package weave.utils
 							if (geometryID < _idToDelayedAddPointParamsMap.length && _idToDelayedAddPointParamsMap[geometryID] is Array)
 							{
 								for each (var addPointParams:Array in _idToDelayedAddPointParamsMap[geometryID])
-									geometry.addPoint.apply(null, addPointParams);
+								{
+									if (addPointParams[1] == -1)
+										geometry.addPartMarker(addPointParams[0]);
+									else
+										geometry.addPoint.apply(null, addPointParams);
+								}
 								delete _idToDelayedAddPointParamsMap[geometryID];
 							}
 						}
@@ -472,6 +434,59 @@ package weave.utils
 			
 			// Weave automatically triggers callbacks when all tasks complete
 			WeaveAPI.StageUtils.startTask(metadataCallbacks, task, WeaveAPI.TASK_PRIORITY_PARSING);
+		}
+		
+		private function readShapeType(stream:ByteArray):void
+		{
+			/*
+			0 	Null Shape 	Empty ST_Geometry
+			
+			1 	Point 	ST_Point
+			21 	PointM 	ST_Point with measures
+			
+			8 	MultiPoint 	ST_MultiPoint
+			28 	MultiPointM 	ST_MultiPoint with measures
+			
+			3 	PolyLine 	ST_MultiLineString
+			23 	PolyLineM 	ST_MultiLineString with measures
+			
+			5 	Polygon 	ST_MultiPolygon
+			25 	PolygonM 	ST_MultiPolygon with measures
+			*/
+			var type:int = stream.readInt();
+			//trace("shapeType",flag);
+			switch (type) // read shapeType
+			{
+				//Point
+				case 1:
+				case 21:
+					//MultiPoint
+				case 8:
+				case 28:
+					currentGeometryType = GeometryType.POINT;
+				//PolyLine
+				case 3:
+				case 23:
+					currentGeometryType = GeometryType.LINE;
+				//Polygon
+				case 5:
+				case 25:
+					currentGeometryType = GeometryType.POLYGON;
+				default:
+			}
+		}
+		
+		private function readString(stream:ByteArray):String
+		{
+			stringBuffer.clear();
+			while (true)
+			{
+				var byte:int = stream.readByte();
+				if (byte == 0) // if \0 char is found (end of string)
+					break;
+				stringBuffer.writeByte(byte);
+			}
+			return stringBuffer.toString();
 		}
 
 		/**
@@ -497,12 +512,20 @@ package weave.utils
 						//trace("flag",flag);
 						if (flag < 0) // flag is negativeTileID
 						{
+							totalGeomTiles++;
+							
 							var tileID:int = (-1 - flag); // decode negativeTileID
 							if (tileID < geometryTileIDToKDNodeMapping.length)
 							{
 								// remove tile from tree
 								geometryTiles.remove(geometryTileIDToKDNodeMapping[tileID]);
 	
+								flag = stream.readInt();
+								if (flag < 0)
+									streamVersion = -flag;
+								else
+									stream.position -= 4; // version 0; rewind
+
 								if (debug)
 								{
 									trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
@@ -529,6 +552,8 @@ package weave.utils
 						}
 						else // flag is geometryID
 						{
+							totalVertices++;
+							
 							geometryID = flag;
 							// reset lists of IDs
 							geometryIDArray.length = 0;
@@ -545,22 +570,38 @@ package weave.utils
 								}
 	 							vertexIDArray.push(vertexID); // save vertexID for previous geometryID
 	 							geometryID = stream.readInt(); // read next geometryID
+								if (geometryID == -1) // polygon marker?
+									break;
 								geometryIDArray.push(geometryID); // save next geometryID
 							}
-							//trace("geomIDs",geometryIDArray);
-							//trace("vIDs",vertexIDArray);
-							// read coordinates and importance value
-							x = stream.readDouble();
-							y = stream.readDouble();
-							importance = stream.readFloat();
-							//trace("X,Y,I",[x,y,importance]);
+							
+							if (geometryID == -1)
+							{
+								importance = -1; // used as flag for polygon marker
+							}
+							else
+							{
+								//trace("geomIDs",geometryIDArray);
+								//trace("vIDs",vertexIDArray);
+								// read coordinates and importance value
+								x = stream.readDouble();
+								y = stream.readDouble();
+								importance = stream.readFloat();
+								//trace("X,Y,I",[x,y,importance]);
+							}
+
 							// save vertex in all corresponding geometries
 							for (i = geometryIDArray.length; i--;)
 							{
 								//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
 								geometryID = geometryIDArray[i];
 								if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
-									(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
+								{
+									if (importance == -1)
+										(geometries[geometryID] as GeneralizedGeometry).addPartMarker(vertexID);
+									else
+										(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
+								}
 								else
 								{
 									//trace("delay",geometryID,vertexIDArray[i]);
