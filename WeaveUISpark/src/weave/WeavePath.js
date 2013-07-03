@@ -254,16 +254,17 @@ function(objectID)
 		};
 		/**
 		 * Adds a grouped callback to the object at the current path.
-		 * When the callback is called, the Weave instance will be passed as the first parameter.
+		 * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
 		 * First parameter is the callback function.
 		 * Second parameter is a Boolean, when set to true will trigger the callback now.
+		 * Third parameter is a Boolean, when set to true means the callback will receive the session state as a parameter.
 		 * Since this adds a grouped callback, the callback will not run immediately when addCallback() is called.
 		 */
-		this.addCallback = function(callback, triggerCallbackNow)
+		this.addCallback = function(callback, triggerCallbackNow, callbackReceivesState)
 		{
 			if (assertParams('addCallback', arguments))
 			{
-				weave.addCallback(path, callbackToString(callback), triggerCallbackNow)
+				weave.addCallback(path, callbackToString(callback, callbackReceivesState), triggerCallbackNow)
 					|| failObject('addCallback');
 			}
 			return this;
@@ -355,7 +356,7 @@ function(objectID)
 		};
 		
 		// private functions
-		function callbackToString(callback)
+		function callbackToString(callback, callbackReceivesState)
 		{
 			var list = weave.path.callbacks;
 			for (var i in list)
@@ -369,15 +370,21 @@ function(objectID)
 			}
 			catch (e)
 			{
-				idStr = '"' + objectId + '"';
+				idStr = '"' + objectID + '"';
 			}
 			
 			var name = 'function(){' +
-				'  var weave = document.getElementById('+idStr+');' +
-				'  weave.path.callbacks['+list.length+'].callback.call(null, weave);' +
+					'var weave = document.getElementById('+idStr+');' +
+					'var obj = weave.path.callbacks['+list.length+'];' +
+					'obj.callback.call(obj.path, obj.getState ? obj.path.getState() : null);' +
 				'}';
 			
-			list.push({ 'callback': callback, 'name': name });
+			list.push({
+				"callback": callback,
+				"name": name,
+				"path": weave.path(path.concat()),
+				"getState": callbackReceivesState
+			});
 			
 			return name;
 		}
