@@ -379,6 +379,15 @@ package weave.visualization.layers
 			}
 		}
 		
+		public function setCheckedZoomDataBounds(bounds:IBounds2D):void
+		{
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
+			var zoomLevel:Number = ZoomUtils.getZoomLevel(bounds, tempScreenBounds, fullDataBounds, minSize);
+			if( zoomLevel > minZoomLevel.value && zoomLevel < maxZoomLevel.value )
+				zoomBounds.setDataBounds(bounds);
+		}
+		
 		/**
 		 * This function will get all the unique keys that overlap each geometry specified by
 		 * simpleGeometries. 
