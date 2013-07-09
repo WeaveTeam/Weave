@@ -64,7 +64,8 @@ package weave.utils
 		
 		public function GeometryStreamDecoder()
 		{
-			getCallbackCollection(this).addImmediateCallback(this, function():void { trace(totalGeomTiles,'geomTiles,',totalVertices,'vertices'); });
+			if (debug)
+				getCallbackCollection(this).addImmediateCallback(this, function():void { trace(totalGeomTiles,'geomTiles,',totalVertices,'vertices'); });
 		}
 		
 		/**
