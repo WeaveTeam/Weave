@@ -21,6 +21,7 @@ package weave.servlets;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.util.Enumeration;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -39,10 +40,13 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import com.sun.org.apache.xalan.internal.xsltc.util.IntegerArray;
+
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.utils.ListUtils;
+import weave.utils.StringUtils;
 
 
 public class RServiceUsingRserve 
@@ -222,6 +226,58 @@ public class RServiceUsingRserve
 		
 	}
 	
+
+	//testing for JavascriptAPI calls
+	private static Vector<RResult> newEvaluate(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException {
+		REXP evalValue= evalScript(rConnection, script, showWarnings);
+		Object resultArray = rexp2javaObj(evalValue);
+		Object[] tempColumns = (Object[])resultArray;
+		Object[] filling = (Object[])resultArray;
+		
+		String finalresultString = "";
+		Vector<String> names = evalValue.asList().names;
+		
+		
+		String namescheck = StringUtils.join(",", names);
+		finalresultString = finalresultString.concat(namescheck);
+		finalresultString = finalresultString.concat("\n");
+		
+		Object temp = tempColumns[0];
+		double[] sampleColumn = (double[])temp;
+		for (int r= 0; r < sampleColumn.length; r++)					
+		{
+			Vector<Double> row = new Vector<Double>();
+			//row.push(r);
+			//keys.push(r as IQualifiedKey);
+			for(int c= 0 ; c < tempColumns.length; c++){
+				double[] column= (double[])tempColumns[c];
+				row.add(column[r]) ;
+			}
+			
+			String check = StringUtils.join(",", row);	
+			
+			finalresultString = finalresultString.concat(check);
+			finalresultString = finalresultString.concat("\n");
+		}
+		
+	
+		
+		newResultVector.add(new RResult("endResult", finalresultString));
+		
+		//To do find a better way of doing this
+		//if(evalValue.isList())
+		//{
+			//Vector<String> names = evalValue.asList().names;
+			
+			//newResultVector.add(new RResult("columnNames" ,names ));
+			//newResultVector.add(stringEval);
+			//newResultVector.add(new RResult("columnValues" ,rexp2javaObj(evalValue) ));		
+		//}
+		
+		return newResultVector;
+			
+			
+	}
 	
 	
 	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
@@ -234,7 +290,10 @@ public class RServiceUsingRserve
 		{
 			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"			
 			assignNamesToVector(rConnection,inputNames,inputValues);
-			evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			//evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			
+			newEvaluate(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			
 			if (plotScript != ""){// R Script to EVALUATE plotScript
 				String plotEvalValue = plotEvalScript(rConnection,docrootPath, plotScript, showWarnings);
 				resultVector.add(new RResult("Plot Results", plotEvalValue));
@@ -302,7 +361,25 @@ public class RServiceUsingRserve
 				// eg: REXPDouble as Double or Doubles
 				for(int i = 0; i < listOfREXP.length ;  i++){
 					REXP obj = (REXP)listOfREXP[i];
-					listOfREXP[i] =  rexp2javaObj(obj);
+					Object javaObj =  rexp2javaObj(obj);
+					
+					//testing TODO : find better casting
+					if(javaObj  instanceof int[]){
+						System.out.print('f');
+						
+						int[] intObj  = (int[]) javaObj;
+						double[] intToDoubleObj = new double[intObj.length];
+						for(int z= 0; z < intObj.length; z++)
+						{
+							intToDoubleObj[z] = (double) intObj[z];
+						}
+						listOfREXP[i] =  intToDoubleObj;
+					}
+					else{
+						listOfREXP[i] =  javaObj;
+					}
+					//testing end
+					
 				}
 				return listOfREXP;
 			}

@@ -96,7 +96,7 @@ public class RService extends GenericServlet
 	}
 	
 	//handles running canned scripts by pulling data from csv
-	public RResult[] runScriptOnCSVOnServer(String[] queryObject)throws Exception
+	public RResult[] runScriptOnCSVOnServer(Object[] queryObject)throws Exception
 	{
 		RResult[] csvreturnedColumns;
 		//get the upload path for csv (on server)
@@ -151,7 +151,7 @@ public class RService extends GenericServlet
 			String sqlRScript = "scriptFromFile <- source(cannedScriptPath)\n" +
 			"library(RMySQL)\n" +
 			"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"Tc1Sgp7nFc\", host = \"129.63.8.210\", port = 3306, dbname =" + "\"" +schema+"\")\n" +
-			"library(survey)\n" +
+			"library(survey)\n" + 
 			"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
 			//String[] sqlOutputNames = {"returnedColumnsFromSQL"};
 			String[] sqlOutputNames = {};
