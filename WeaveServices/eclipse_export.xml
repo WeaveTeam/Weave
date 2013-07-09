@@ -12,18 +12,19 @@ Whenever you build WeaveServices, this will automatically export the WAR file.
 	<property environment="env"/>
 	<property name="TOMCAT_HOME" value="${env.TOMCAT_HOME}"/>
 	<target name="dist">
-		<echo message="Deploying WeaveServices..."/>	
-		<war destfile="bin/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
-			<lib dir="../WeaveServletUtils/lib"/>
-			<lib dir="lib"/>
-			<classes dir="../WeaveServletUtils/bin/classes"/>
+		<echo message="Deploying WeaveServices..."/>
+		<copy todir="bin/lib">
+		    <fileset dir="lib"/>
+		    <fileset dir="../WeaveServletUtils/lib"/>
+		</copy>
+ 		<copy todir="bin/classes">
+		    <fileset dir="../WeaveServletUtils/bin/classes"/>
+		</copy>
+		<war destfile="${TOMCAT_HOME}/webapps/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml" duplicate="preserve">
+			<lib dir="bin/lib"/>
 			<classes dir="bin/classes"/>
 			<webinf dir="WebContent/WEB-INF"/>
 			<metainf dir="WebContent/META-INF"/>
 		</war>
-		<sleep seconds="1"/>
-		<move file="bin/WeaveServices.war" tofile="${TOMCAT_HOME}/webapps/WeaveServices.war.tmp"/>
-		<sleep seconds="1"/>
-		<move file="${TOMCAT_HOME}/webapps/WeaveServices.war.tmp" tofile="${TOMCAT_HOME}/webapps/WeaveServices.war"/>
 	</target>
 </project>
