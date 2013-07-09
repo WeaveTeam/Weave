@@ -49,6 +49,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.utils.PlotterUtils;
@@ -174,6 +175,10 @@ package weave.visualization.plotters
 			else
 				output.reset(); // undefined
 		}
+		
+		public var debugSimplify:Boolean = false;
+		private var _debugSimplifyDataBounds:IBounds2D;
+		private var _debugSimplifyScreenBounds:IBounds2D;
 
 		/**
 		 * This function calculates the importance of a pixel.
@@ -290,17 +295,38 @@ package weave.visualization.plotters
 		private const D_ASYNCSTATE:String = 'd_asyncState';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
+			var simplifyDataBounds:IBounds2D = task.dataBounds;
+			var simplifyScreenBounds:IBounds2D = task.screenBounds;
+			if (debugSimplify)
+			{
+				if (!_debugSimplifyDataBounds)
+				{
+					_debugSimplifyDataBounds = new Bounds2D();
+					_debugSimplifyDataBounds.copyFrom(task.dataBounds);
+					_debugSimplifyScreenBounds = new Bounds2D();
+					_debugSimplifyScreenBounds.copyFrom(task.screenBounds);
+				}
+				simplifyDataBounds = _debugSimplifyDataBounds;
+				simplifyScreenBounds = _debugSimplifyScreenBounds;
+			}
+			
 			keepTrack = debug && (task['taskType'] == 0);
 			if (task.iteration == 0)
 			{
+				if (!debugSimplify)
+					_debugSimplifyDataBounds = _debugSimplifyScreenBounds = null;
+				
 				if (keepTrack)
 					totalVertices = 0;
 				task.asyncState[RECORD_INDEX] = 0;
-				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(task.dataBounds, task.screenBounds) * pixellation.value;
+				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(simplifyDataBounds, simplifyScreenBounds) * pixellation.value;
 				task.asyncState[D_PROGRESS] = new Dictionary(true);
 				task.asyncState[D_ASYNCSTATE] = new Dictionary(true);
 			}
 			
+			if (debugGridSkip)
+				simplifyDataBounds = null;
+
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
 			var d_progress:Dictionary = task.asyncState[D_PROGRESS];
@@ -340,10 +366,7 @@ package weave.visualization.plotters
 								line.beginLineStyle(recordKey, graphics);
 								styleSet = true;
 							}
-							var bounds:IBounds2D = task.dataBounds;
-							if (debugGridSkip)
-								bounds = null;
-							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, bounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
+							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, simplifyDataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
 						}
 					}
 					if (styleSet)
