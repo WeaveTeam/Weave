@@ -598,7 +598,7 @@ package weave.utils
 								if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
 								{
 									if (importance == -1)
-										(geometries[geometryID] as GeneralizedGeometry).addPartMarker(vertexID);
+										(geometries[geometryID] as GeneralizedGeometry).addPartMarker(vertexIDArray[i]);
 									else
 										(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
 								}
