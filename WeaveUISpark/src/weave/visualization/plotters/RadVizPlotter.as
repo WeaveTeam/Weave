@@ -530,6 +530,7 @@ package weave.visualization.plotters
 			
 			for each( var key:IQualifiedKey in keys)
 			{
+				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
 				if(key.keyType != requiredKeyType)
 				{
 					return;
@@ -546,9 +547,12 @@ package weave.visualization.plotters
 					var column:IAttributeColumn = _cols[i];
 					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 					value = normArray ? normArray[i] : stats.getNorm(key);
+					
+					/*only draw probe line if higher than threshold value*/
 					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
 						continue;
 					
+					/*draw the line from point to anchor*/
 					name = normArray ? columnTitleMap[column] : columns.getName(column);
 					anchor = anchors.getObject(name) as AnchorPoint;
 					tempPoint.x = anchor.x.value;
@@ -558,6 +562,9 @@ package weave.visualization.plotters
 					graphics.moveTo(coordinate.x, coordinate.y);
 					graphics.lineTo(tempPoint.x, tempPoint.y);
 					
+					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
+					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
+					*/
 					graphics.lineStyle(0,0,0);
 					var uit:UITextField = new UITextField();
 					var numberValue:String = ColumnUtils.getNumber(column,key).toString();
