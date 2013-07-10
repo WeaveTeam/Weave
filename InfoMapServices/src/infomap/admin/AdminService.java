@@ -1106,7 +1106,12 @@ public class AdminService extends GenericServlet {
 			// set field to hasSummary. Just a field with low content. Since we are only interested in the clusters
 			q.setFields("link");
 			
-			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json&LingoClusteringAlgorithm.desiredClusterCountBase=");
+			/*For Lingo you can set the desired number of clusters using the following attribute:
+			LingoClusteringAlgorithm.desiredClusterCountBase
+			However, there is no one to one correspondence between the value of this attribute and the number of clusters,
+			the number of clusters created by the algorithm will be proportional to the cluster count base, but not in a linear way*/
+			
+			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json&LingoClusteringAlgorithm.desiredClusterCountBase=10");
 			
 			StringWriter writer = new StringWriter();
 			IOUtils.copy(url.openStream(),writer,"UTF-8");

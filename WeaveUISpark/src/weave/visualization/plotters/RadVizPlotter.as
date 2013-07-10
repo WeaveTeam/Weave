@@ -22,10 +22,14 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.text.TextFieldAutoSize;
 	import flash.utils.Dictionary;
 	
 	import mx.controls.Alert;
+	import mx.core.UITextField;
+	import mx.graphics.ImageSnapshot;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -41,6 +45,7 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -49,6 +54,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
+	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.radviz.BruteForceLayoutAlgorithm;
@@ -57,6 +63,7 @@ package weave.visualization.plotters
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
+	import weave.utils.EquationColumnLib;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -107,7 +114,7 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		
+		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0));
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
@@ -510,32 +517,80 @@ package weave.visualization.plotters
 		public var probedKeys:Array = null;
 		private var _destination:BitmapData = null;
 		
-		public function drawProbeLines(dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		public function drawProbeLines(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
 		{						
 			if(!drawProbe) return;
-			if(!probedKeys) return;
-			try {
-				//PlotterUtils.clear(destination);
-			} catch(e:Error) {return;}
+			if(!keys) return;
+			
 			var graphics:Graphics = destination;
 			graphics.clear();
-			if(probedKeys.length && filteredKeySet.keys.length)
-				if(probedKeys[0].keyType != filteredKeySet.keys[0].keyType) return;
+
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+			var _cols:Array = columns.getObjects();
 			
-			for each( var key:IQualifiedKey in probedKeys)
+			for each( var key:IQualifiedKey in keys)
 			{
+				if(key.keyType != requiredKeyType)
+				{
+					return;
+				}
 				getXYcoordinates(key);
 				dataBounds.projectPointTo(coordinate, screenBounds);
-				
-				for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
+				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+
+				var value:Number;
+				var name:String;
+				var anchor:AnchorPoint;
+				for (var i:int = 0; i < _cols.length; i++)
 				{
+					var column:IAttributeColumn = _cols[i];
+					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					value = normArray ? normArray[i] : stats.getNorm(key);
+					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
+						continue;
+					
+					name = normArray ? columnTitleMap[column] : columns.getName(column);
+					anchor = anchors.getObject(name) as AnchorPoint;
 					tempPoint.x = anchor.x.value;
 					tempPoint.y = anchor.y.value;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
 					graphics.lineStyle(.5, 0xff0000);
 					graphics.moveTo(coordinate.x, coordinate.y);
-					graphics.lineTo(tempPoint.x, tempPoint.y);					
+					graphics.lineTo(tempPoint.x, tempPoint.y);
+					
+					graphics.lineStyle(0,0,0);
+					var uit:UITextField = new UITextField();
+					var numberValue:String = ColumnUtils.getNumber(column,key).toString();
+					numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
+					uit.text = numberValue;
+					uit.autoSize = TextFieldAutoSize.LEFT;
+					var textBitmapData:BitmapData = ImageSnapshot.captureBitmapData(uit);
+					
+					var sizeMatrix:Matrix = new Matrix();
+					var coef:Number =Math.min(uit.measuredWidth/textBitmapData.width,uit.measuredHeight/textBitmapData.height);
+					sizeMatrix.a = coef;
+					sizeMatrix.d = coef;
+					textBitmapData = ImageSnapshot.captureBitmapData(uit,sizeMatrix);
+					
+					var sm:Matrix = new Matrix();
+					sm.tx = (coordinate.x+tempPoint.x)/2;
+					sm.ty = (coordinate.y+tempPoint.y)/2;
+					
+					graphics.beginBitmapFill(textBitmapData, sm, false);
+					graphics.drawRect((coordinate.x+tempPoint.x)/2,(coordinate.y+tempPoint.y)/2,uit.measuredWidth,uit.measuredHeight);
+					graphics.endFill();
+					
 				}
+				
+//				for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
+//				{
+//					tempPoint.x = anchor.x.value;
+//					tempPoint.y = anchor.y.value;
+//					dataBounds.projectPointTo(tempPoint, screenBounds);
+//					graphics.lineStyle(.5, 0xff0000);
+//					graphics.moveTo(coordinate.x, coordinate.y);
+//					graphics.lineTo(tempPoint.x, tempPoint.y);					
+//				}
 			}
 		}
 		

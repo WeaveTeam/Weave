@@ -488,6 +488,12 @@
 			// Query Functions
 			//////////////////////////////
 			
+			public function refreshQuery():void
+			{
+				handleEmptyResultSet();
+				createAndSendQuery();
+			}
+			
 			/**
 			 * @private
 			 * Called when the session state of query is changed
@@ -530,22 +536,11 @@
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
 						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
 
-//				if(isQueryDifferent)
-//				{
-//					/* remove all documents */
-//					handleEmptyResultSet();
-//					
-//					/* Hide any views */
-//					hideAllViews();
-//					
-//					hideIcons();
-//					
-//					prevNewDocsCount.value = 0;
-//					
-//				}
+				var queryString:String = currentQuery.keywords.value.toLowerCase();
 				
-				_currentQueryTerms = currentQuery.keywords.value.indexOf(',') != -1?currentQuery.keywords.value.split(','):
-					currentQuery.keywords.value.split(' ');
+				_currentQueryTerms = queryString.indexOf(',') != -1?queryString.split(','):
+					queryString.split(' ');
+				
 				if(isQueryDifferent || _firstLoad)
 				{
 					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
@@ -2088,6 +2083,8 @@
 				
 				var object:RadVizTool = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
 				object._plotter.columns.removeAllObjects();
+				object._plotter.probeLineNormalizedThreshold.value = 0.5;
+				object._plotter.localNormalization.value = false;
 //				object._anchorPlotter.anchors.removeAllObjects();
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2326,7 +2323,7 @@
 				}
 				
 				previousQuery.keywords.value = getRequiredKeywords().join(',');
-				previousQuery.operator.value = "AND";
+				previousQuery.operator.value = "OR";
 				if(_parentPanel.relatedKeywords.value)
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
 						_parentPanel.relatedKeywords.value.split(' ');

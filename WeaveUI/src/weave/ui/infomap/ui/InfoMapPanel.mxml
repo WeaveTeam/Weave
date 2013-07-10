@@ -478,6 +478,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleRelatedKeywordsContinue(event:Event):void
 			{
 				relatedKeywords.value = _relatedKeywordsList.keywords;
+				updatePanelTitle();
 				if(contains(_loadingText))
 					removeChild(_loadingText);
 				PopUpManager.removePopUp(_relatedKeywordsList);
@@ -886,7 +887,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					nodeHandler.previousQuery.sortBy.value =globalSortByOption.value;
 				if(globalFilterByOption.value)
 					nodeHandler.previousQuery.sources.value = globalFilterByOption.value;
-				
+				updatePanelTitle();
 				nodeHandler.applyKeywordsFromSelection();
 			}
 
@@ -1137,7 +1138,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString("",validateCSVString),updatePanelTitle);
+			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString("",validateCSVString));
 			
 			private function updatePanelTitle():void
 			{
@@ -1155,6 +1156,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return !_csvRegEx.test(value as String);
 				}
 				return true;
+			}
+			
+			private function applyRelatedKeywords():void
+			{
+				if(relatedKeywords.value != StringUtil.trim(relatedKeywordsTextArea.text))
+				{
+					relatedKeywords.value = StringUtil.trim(relatedKeywordsTextArea.text);
+					updatePanelTitle();
+					for each(var node:NodeHandler in nodes.getObjects())
+					{
+						node.refreshQuery();
+					}
+				}
+				relatedKeywordsButton.enabled = false;
 			}
 		]]>
 	</mx:Script>
@@ -1190,6 +1205,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						</mx:HBox>
 				</mx:HBox>
 				
+			<!--<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="{map.height - sideMenu.height}"/>-->
 		
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
@@ -1250,8 +1266,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<mx:Label fontWeight="bold" text="Current Keywords: "/>
 						<ui:HelpComponent content="Add keywords to use as a part of the queries. Separate the keywords by commas"/>
  					</mx:HBox>
-					<mx:TextArea width="100%" cornerRadius="5" creationComplete='{linkBindableProperty(relatedKeywords,event.currentTarget,"text")}'/>
-					<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>
+					<mx:TextArea id="relatedKeywordsTextArea" width="100%" cornerRadius="5" change="{relatedKeywordsButton.enabled = true}" 
+								 creationComplete='{event.currentTarget.text = relatedKeywords.value}'/>
+					<mx:Button id="relatedKeywordsButton" label="Apply" enabled="false" click="applyRelatedKeywords()" />
+					<!--<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>-->
 				</mx:VBox>
 			</mx:Accordion>
 		</mx:VBox>
