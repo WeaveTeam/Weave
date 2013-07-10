@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
@@ -51,6 +51,7 @@
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.CallbackCollection;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.NumberColumn;
@@ -73,9 +74,9 @@
 			[Bindable]
 			public var _plotter:RadVizPlotter ;
 			public var _anchorPlotter:AnchorPlotter ;
-
+			
 			private static const ANCHOR_LAYER:String = "anchorLayer";
-
+			
 			public var normalizedColumns:Array = new Array();//normalized columns returned from R
 			private var normalizedColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
 			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, classDiscriminatorColumnUpdate);//column used as the Class Discriminator
@@ -84,7 +85,7 @@
 			
 			public var latestjoinedColumnKeys:Array = new Array();
 			
-			
+			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -127,14 +128,18 @@
 				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate,true);
 				
 				probeSprite.mouseChildren = false;
+				selectionProbeSprite.mouseChildren = false;
 				//visualization.rawChildren.addChild(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
-				sprCont.addChild(probeSprite)
+				sprCont.addChild(probeSprite);
+				sprCont.addChild(selectionProbeSprite);
 				visualization.addElement(sprCont);
 				
 				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
+				
+				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -147,7 +152,8 @@
 			private var isDragging:Boolean = false;			
 			private var enableAutoZoom:Boolean;
 			
-			private var probeSprite:Sprite = new Sprite() ;			
+			private var probeSprite:Sprite = new Sprite() ;	
+			private var selectionProbeSprite = new Sprite();
 			
 			//this function is called whenver a column is selected to do the class discrimination
 			private function classDiscriminatorColumnUpdate():void
@@ -221,8 +227,8 @@
 			/** Returns the normalized dataset */
 			private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
 			{
-				 normalizedColumns = [];
-                 if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
+				normalizedColumns = [];
+				if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
 				
 				var temRObjects:Array = new Array();
 				//Object to stored returned result - Which is array of object{name: , value: }
@@ -248,8 +254,8 @@
 					//handles cases when R returns a NaN, (for eg when all records have the same value for a column or when the dataset contains one record)
 					/* for(var f:int = 0; f< temRObjects.length; f++)
 					{
-						if(isNaN(temRObjects[f]))
-							return;
+					if(isNaN(temRObjects[f]))
+					return;
 					} */
 					
 				}	
@@ -272,9 +278,20 @@
 				reportError(event);
 			}
 			
+			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			private function handleSelectionKeySetChange():void
+			{
+				if(!Weave.properties.enableProbeLines.value || !enableProbeLines.value) return;
+				
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
+				_plotter.drawProbe = true;
+				_plotter.drawProbeLines(_selection.keys,dataBounds,screenBounds,selectionProbeSprite.graphics);			
+			}
+			
 			private function drawProbeLines():void
 			{ 
-				if(!Weave.properties.enableProbeLines.value) return;
+				if(!Weave.properties.enableProbeLines.value || !enableProbeLines.value) return;
 				
 				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if (!probeKeySet)
@@ -283,10 +300,9 @@
 				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
 				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				
-				_plotter.probedKeys = probeKeySet.keys ;
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
 				
-				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);	
+				_plotter.drawProbeLines(probeKeySet.keys,dataBounds, screenBounds, probeSprite.graphics);	
 				
 			}
 			
