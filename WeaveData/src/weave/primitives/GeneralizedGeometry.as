@@ -19,6 +19,8 @@
 
 package weave.primitives
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.utils.BLGTreeUtils;
@@ -49,8 +51,14 @@ package weave.primitives
 		/**
 		 * Each of these integers corresponds to a vertexID that separates the current part from the next part.
 		 * For example, partMarkers[0] is the vertexID that marks the end of part 0 and the start of part 1.
+		 * If there are no part markers, it is assumed that there is only one part.
 		 */
 		private const partMarkers:Vector.<int> = new Vector.<int>();
+		/**
+		 * This maps BLGTree from the parts Array to a Boolean.
+		 * If there are multiple parts in this geometry, only parts that map to values of true will be included in getSimplifiedGeometry() results.
+		 */
+		private const receivedPartMarkers:Dictionary = new Dictionary(true);
 		/**
 		 * These are the coordinates associated with the geometry.
 		 * Each element in this vector is a separate part of the geometry.
@@ -116,9 +124,16 @@ package weave.primitives
 			if (visibleBounds && visibleBounds.containsBounds(bounds))
 				visibleBounds = null;
 			_simplifiedParts.length = 0;
+			var part:BLGTree;
 			for (var i:int = 0; i < parts.length; i++)
 			{
-				var simplifiedPart:Vector.<BLGNode> = (parts[i] as BLGTree).getPointVector(minImportance, visibleBounds);
+				part = parts[i] as BLGTree;
+				
+				// skip this part if we're not sure it's actually a single part
+				if (parts.length > 1 && !receivedPartMarkers[part])
+					continue;
+				
+				var simplifiedPart:Vector.<BLGNode> = part.getPointVector(minImportance, visibleBounds);
 				// don't include empty parts
 				if (simplifiedPart.length > 0)
 					_simplifiedParts.push(simplifiedPart);
@@ -133,20 +148,39 @@ package weave.primitives
 		 */
 		public function addPoint(vertexID:int, importance:Number, x:Number, y:Number):void
 		{
-			var partID:int = 0;
-			for (; partID < partMarkers.length; partID++)
-				if (vertexID < partMarkers[partID])
-					break;
-			(parts[partID] as BLGTree).insert(vertexID, importance, x, y);
+			var partID:int = VectorUtils.binarySearch(partMarkers, vertexID, false);
+			
+			// special case - if this vertex is exactly at a part marker, it should go to the next part
+			if (partID < partMarkers.length && partMarkers[partID] == vertexID)
+				partID++;
+			
+			var part:BLGTree = parts[partID] as BLGTree;
+			part.insert(vertexID, importance, x, y);
 		}
 
 		/**
-		 * Adds a part marker at the given vertexID and a corresponding geometry part.
-		 * @param vertexID The vertexID that serves as a marker between geometry parts.
+		 * Specifies a range of vertexIDs that correspond to a single part.
+		 * @param beginIndex The index of the first vertex of a geometry part.
+		 * @param endIndex The index after the last vertex of the geometry part.
 		 */
-		public function addPartMarker(vertexID:int):void
+		public function addPartMarker(beginIndex:int, endIndex:int):void
 		{
-			if (vertexID < 0 || VectorUtils.binarySearch(partMarkers, vertexID, true) >= 0)
+			// split BLG trees appropriately.
+			splitAtIndex(beginIndex);
+			splitAtIndex(endIndex);
+			
+			// find the corresponding part and mark it as received.
+			var partID:int = VectorUtils.binarySearch(partMarkers, endIndex, false);
+			var part:BLGTree = parts[partID] as BLGTree;
+			receivedPartMarkers[part] = true;
+		}
+		
+		/**
+		 * If necessary, this will split a BLGTree for a particular part into two and update the partMarkers.
+		 */
+		private function splitAtIndex(vertexID:int):void
+		{
+			if (vertexID <= 0 || vertexID >= int.MAX_VALUE || VectorUtils.binarySearch(partMarkers, vertexID, true) >= 0)
 				return;
 			
 			// partMarkers[i] marks the end of parts[i]
@@ -161,6 +195,8 @@ package weave.primitives
 			
 			partMarkers[i] = vertexID;
 			parts[i + 1] = (parts[i] as BLGTree).splitAtIndex(vertexID);
+			// We don't have to worry about receivedPartMarkers here because if we need
+			// to split an existing part it means we haven't received its partMarker yet.
 		}
 		
 		/**
@@ -173,9 +209,11 @@ package weave.primitives
 			bounds.reset();
 			partMarkers.length = 0;
 			parts.length = 1;
-			(parts[0] as BLGTree).clear();
 			
 			var coordinates:BLGTree = parts[0] as BLGTree;
+			coordinates.clear();
+			receivedPartMarkers[coordinates] = true;
+			
 			var firstVertex:VertexChainLink = null;
 			var newVertex:VertexChainLink;
 			var x:Number, y:Number;
@@ -200,8 +238,9 @@ package weave.primitives
 				{
 					// create new part and add part marker
 					coordinates = new BLGTree();
+					receivedPartMarkers[coordinates] = true;
 					parts.push(coordinates);
-					partMarkers.push(firstVertexID++);
+					partMarkers.push(firstVertexID);
 				}
 				// loop through coordinates
 				var numPoints:int = 0;

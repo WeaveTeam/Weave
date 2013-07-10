@@ -46,9 +46,11 @@ public class VertexMap
 		return totalStreamSize;
 	}
 	
-	public void addPartMarker(int shapeID, int vertexID, int chainLength, Bounds2D partBounds)
+	public void addPartMarker(int shapeID, int firstVertexID, int chainLength, Bounds2D partBounds)
 	{
-		partMarkers.add(new PartMarker(shapeID, vertexID, chainLength, partBounds));
+		PartMarker pm = new PartMarker(shapeID, firstVertexID, chainLength, partBounds);
+		partMarkers.add(pm);
+		totalStreamSize += pm.getStreamSize();
 	}
 	
 	private final CombinedPoint searchPoint = new CombinedPoint(Double.NaN, Double.NaN);

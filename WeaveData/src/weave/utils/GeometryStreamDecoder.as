@@ -51,6 +51,7 @@ package weave.utils
 	 *   metadata stream object: [int geometryID, String geometryKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, ..., int vertexID(n), int -1 if no shapeType follows or -2 if shapeType follows, int optionalShapeType]
 	 *   geometry stream object: [int geometryID1, int vertexID1, ..., int geometryID(n-1), int vertexID(n-1), int geometryID(n), int negativeVertexID(n), double x, double y, float importance]
 	 *   geometry stream marker: [int geometryID1, int vertexID1, ..., int geometryID(n), int vertexID(n), int -1]
+	 *   geometry stream marker: [int geometryID, int vertexID_begin, int -2, int vertexID_end]
 	 * 
 	 * @author adufilie
 	 */
@@ -113,29 +114,6 @@ package weave.utils
 			return _keyToGeometryMapping[geometryKey] as Array;
 		}
 
-		/**
-		 * This maps a geometryID (integer) to an Array of arrays of parameters for GeneralizedGeometry.addPoint().
-		 * For example, idToDelayedAddPointParamsMap[3] may be [[vertexID1,importance1,x1,y1],[vertexID2,importance2,x2,y2]].
-		 */
-		private const _idToDelayedAddPointParamsMap:Array = [];
-		
-		/**
-		 * This function will store a list of parameters for GeneralizedGeometry.addPoint() to be used later.
-		 * @param geometryID The ID of the GeneralizedGeometry the addPoint() parameters are for.
-		 * @param vertexID Parameter for GeneralizedGeometry.addPoint().
-		 * @param importance Parameter for GeneralizedGeometry.addPoint().
-		 * @param x Parameter for GeneralizedGeometry.addPoint().
-		 * @param y Parameter for GeneralizedGeometry.addPoint().
-		 */
-		private function delayAddPointParams(geometryID:int, vertexID:int, importance:Number, x:Number, y:Number):void
-		{
-			if (_idToDelayedAddPointParamsMap.length <= geometryID)
-				_idToDelayedAddPointParamsMap.length = geometryID + 1;
-			if (_idToDelayedAddPointParamsMap[geometryID] == undefined)
-				_idToDelayedAddPointParamsMap[geometryID] = [];
-			(_idToDelayedAddPointParamsMap[geometryID] as Array).push([vertexID, importance, x, y]);
-		}
-		
 		/**
 		 * metadataTiles & geometryTiles
 		 * These are 6-dimensional trees of tiles that are available and have not been downloaded yet.
@@ -244,8 +222,8 @@ package weave.utils
 					collectiveBounds.includeCoords(kdKey[XMAX_INDEX], kdKey[YMAX_INDEX]);
 					tileID++;
 				}
-            }
-            catch(e:EOFError) { }
+			}
+			catch(e:EOFError) { }
 			// randomize the order of tileDescriptors to avoid a possibly
 			// poorly-performing KDTree structure due to the given ordering.
 			VectorUtils.randomSort(tileDescriptors);
@@ -375,10 +353,9 @@ package weave.utils
 							// read geometry key (null-terminated string)
 							key = WeaveAPI.QKeyManager.getQKey(_keyType, readString(stream));
 							// initialize geometry at geometryID
-							geometry = new GeneralizedGeometry();
-							if (geometries.length <= geometryID)
-								geometries.length = geometryID + 1;
-							geometries[geometryID] = geometry;
+							geometry = geometries[geometryID] as GeneralizedGeometry;
+							if (!geometry)
+								geometries[geometryID] = geometry = new GeneralizedGeometry();
 							// save mapping from key to geom
 							var geomsForKey:Array = _keyToGeometryMapping[key] as Array;
 							if (!geomsForKey)
@@ -395,15 +372,21 @@ package weave.utils
 									stream.readDouble()
 								);
 							//trace("got metadata: geometryID=" + flag + " key=" + key + " bounds=" + geometry.bounds);
-							// read vertexIDs (part markers)
+							
+							// read part markers
+							var prev:int = 0;
 							while (true)
 							{
 								vertexID = stream.readInt(); // read next vertexID
 								//trace("vID=",vertexID);
 								if (vertexID < 0)
 									break; // there are no more vertexIDs
-								geometry.addPartMarker(vertexID);
+								geometry.addPartMarker(prev, vertexID);
+								prev = vertexID;
 							}
+							if (prev > 0)
+								geometry.addPartMarker(prev, int.MAX_VALUE);
+							
 							// if flag is < -1, it means the shapeType follows
 							if (vertexID < -1)
 							{
@@ -413,22 +396,10 @@ package weave.utils
 							}
 							// set geometry type
 							geometry.geomType = currentGeometryType;
-							// add delayed points
-							if (geometryID < _idToDelayedAddPointParamsMap.length && _idToDelayedAddPointParamsMap[geometryID] is Array)
-							{
-								for each (var addPointParams:Array in _idToDelayedAddPointParamsMap[geometryID])
-								{
-									if (addPointParams[1] == -1)
-										geometry.addPartMarker(addPointParams[0]);
-									else
-										geometry.addPoint.apply(null, addPointParams);
-								}
-								delete _idToDelayedAddPointParamsMap[geometryID];
-							}
 						}
 					}
-	            } 
-	            catch(e:EOFError) { }
+				} 
+				catch(e:EOFError) { }
 	
 				return 1; // done
 			};
@@ -571,14 +542,18 @@ package weave.utils
 								}
 	 							vertexIDArray.push(vertexID); // save vertexID for previous geometryID
 	 							geometryID = stream.readInt(); // read next geometryID
-								if (geometryID == -1) // polygon marker?
+								if (geometryID == -2) // polygon marker (v2) ?
+									vertexIDArray.push(stream.readInt()); // read end-of-part vertexID
+								if (geometryID < 0) // polygon marker (v1 or v2)?
 									break;
 								geometryIDArray.push(geometryID); // save next geometryID
 							}
 							
-							if (geometryID == -1)
+							if (geometryID < 0)
 							{
-								importance = -1; // used as flag for polygon marker
+								importance = geometryID; // used as flag for polygon marker
+								if (vertexIDArray.length == 1)
+									vertexIDArray.unshift(0);
 							}
 							else
 							{
@@ -596,23 +571,21 @@ package weave.utils
 							{
 								//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
 								geometryID = geometryIDArray[i];
-								if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
-								{
-									if (importance == -1)
-										(geometries[geometryID] as GeneralizedGeometry).addPartMarker(vertexIDArray[i]);
-									else
-										(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
-								}
+								vertexID = vertexIDArray[i];
+								
+								var geometry:GeneralizedGeometry = geometries[geometryID] as GeneralizedGeometry;
+								if (!geometry)
+									geometries[geometryID] = geometry = new GeneralizedGeometry();
+								
+								if (importance < 0) // part marker
+									geometry.addPartMarker(vertexID, vertexIDArray[i + 1]);
 								else
-								{
-									//trace("delay",geometryID,vertexIDArray[i]);
-									delayAddPointParams(geometryID, vertexIDArray[i], importance, x, y);
-								}
+									geometry.addPoint(vertexID, importance, x, y);
 							}
 						}
 					}
-	            }
-	            catch(e:EOFError) { }
+				}
+				catch(e:EOFError) { }
 	            
 				return 1; // done
 			}
