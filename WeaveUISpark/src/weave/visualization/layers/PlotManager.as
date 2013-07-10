@@ -374,12 +374,12 @@ package weave.visualization.layers
 					zoomBounds.getDataBounds(tempDataBounds);
 					tempDataBounds.setWidth(tempDataBounds.getWidth() * scale);
 					tempDataBounds.setHeight(tempDataBounds.getHeight() * scale);
-					zoomBounds.setDataBounds(tempDataBounds);
+					setCheckedZoomDataBounds(tempDataBounds);
 				}
 			}
 		}
 		
-		public function setCheckedZoomDataBounds(bounds:IBounds2D):void
+		public function setCheckedZoomDataBounds(bounds:IBounds2D, zoomOut:Boolean=false):void
 		{
 			zoomBounds.getScreenBounds(tempScreenBounds);
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());

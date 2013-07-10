@@ -491,7 +491,7 @@ package weave.visualization.layers
 				case InteractionController.ZOOM_TO_EXTENT:
 				{
 					if (enableZoomAndPan.value)
-						plotManager.setCheckedZoomDataBounds(plotManager.fullDataBounds); //,true // zoom to full extent
+						plotManager.setCheckedZoomDataBounds(plotManager.fullDataBounds, true); // zoom to full extent
 					break;
 				}
 				case InteractionController.ZOOM_IN:
