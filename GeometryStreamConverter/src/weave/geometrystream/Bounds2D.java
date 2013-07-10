@@ -21,27 +21,19 @@ package weave.geometrystream;
 
 /**
  * The code in this class assumes xMin < xMax and yMin < yMax
- *
+ * Constructor is private because this is intended for use with ObjectPool.
  * @author adufilie
- *
  */
 public class Bounds2D
 {
-	public Bounds2D()
-	{
-		reset();
-	}
-	public Bounds2D(double xMin, double yMin, double xMax, double yMax)
-	{
-		this.xMin = xMin;
-		this.yMin = yMin;
-		this.xMax = xMax;
-		this.yMax = yMax;
-	}
 	public boolean overlaps(Bounds2D other)
 	{
 		return this.xMin <= other.xMax && other.xMin <= this.xMax
 			&& this.yMin <= other.yMax && other.yMin <= this.yMax;
+	}
+	public double getArea()
+	{
+		return Math.abs((xMax - xMin) * (yMax - yMin));
 	}
 	public double getImportance()
 	{
@@ -98,8 +90,8 @@ public class Bounds2D
 		return String.format("(%s, %s, %s, %s)",xMin,yMin,xMax,yMax);
 	}
 
-	public double xMin;
-	public double yMin;
-	public double xMax;
-	public double yMax;
+	public double xMin = Double.NaN;
+	public double yMin = Double.NaN;
+	public double xMax = Double.NaN;
+	public double yMax = Double.NaN;
 }

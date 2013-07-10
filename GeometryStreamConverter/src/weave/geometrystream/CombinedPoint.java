@@ -23,47 +23,40 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Stack;
-
-import weave.geometrystream.StreamObject;
 
 /**
+ * Intended for use with ObjectPool
  * @author adufilie
  */
 public class CombinedPoint implements StreamObject
 {
-	private CombinedPoint()
-	{
-	}
-
-	private LinkedList<VertexIdentifier> vertexIdentifiers = new LinkedList<VertexIdentifier>();
-	Bounds2D queryBounds = new Bounds2D();
+	private final LinkedList<VertexIdentifier> vertexIdentifiers = new LinkedList<VertexIdentifier>();
+	public final Bounds2D queryBounds = new Bounds2D();
 	public double x;
 	public double y;
 	public double importance = VertexChainLink.IMPORTANCE_UNKNOWN;
 	
-	public CombinedPoint initialize(double x, double y)
+	public CombinedPoint(double x, double y)
 	{
-		clear();
 		this.x = x;
 		this.y = y;
-		return this;
+		queryBounds.xMin = queryBounds.xMax = x;
+		queryBounds.yMin = queryBounds.yMax = y;
 	}
 	
-	public void clear()
-	{
-		for (VertexIdentifier vertexIdentifier : vertexIdentifiers)
-			VertexIdentifier.saveUnusedInstance(vertexIdentifier);
-		vertexIdentifiers.clear();
-		queryBounds.reset();
-	}
-	
-	public void addPoint(int shapeID, Bounds2D pointQueryBounds, VertexChainLink point)
+	public void addPoint(int shapeID, VertexChainLink point, Bounds2D pointQueryBounds)
 	{
 		if (this.x != point.x || this.y != point.y)
 			throw new RuntimeException("CombinedPoint.addPoint(): coordinates of new point do not match");
-		vertexIdentifiers.add(VertexIdentifier.getUnusedInstance(shapeID, point.vertexID));
-		queryBounds.includeBounds(pointQueryBounds);
+		vertexIdentifiers.add(new VertexIdentifier(shapeID, point.vertexID));
+		
+		// the point is needed when within the bounds of the triangle formed by the adjacent points
+		// feathered
+		queryBounds.includePoint(point.prev.x, point.prev.y);
+		queryBounds.includePoint(point.next.x, point.next.y);
+
+		// winged
+//		queryBounds.includeBounds(pointQueryBounds);
 	}
 	
 	public Bounds2D getQueryBounds()
@@ -144,22 +137,5 @@ public class CombinedPoint implements StreamObject
 	{
 		CombinedPoint other = (CombinedPoint) obj;
 		return x == other.x && y == other.y;
-	}
-	
-	private static Stack<CombinedPoint> unusedInstances = new Stack<CombinedPoint>();
-	public static void saveUnusedInstance(CombinedPoint combinedPoint)
-	{
-		combinedPoint.clear();
-		unusedInstances.push(combinedPoint);
-	}
-	public static CombinedPoint getUnusedInstance(double x, double y)
-	{
-		CombinedPoint result;
-		if (unusedInstances.size() == 0)
-			result = new CombinedPoint();
-		else
-			result = unusedInstances.pop();
-		result.initialize(x, y);
-		return result;
 	}
 }

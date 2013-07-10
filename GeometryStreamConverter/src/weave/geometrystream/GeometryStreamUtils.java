@@ -47,7 +47,8 @@ public class GeometryStreamUtils
 	}
 
 	/**
-	 * This will remove all objects from the given streamObjectsList and group them into StreamTile objects.
+	 * This will group them into StreamTile objects.
+	 * The streamObjectsList will be modified.
 	 * @param streamObjectsList This is the list to modify and group.
 	 * @param tileSize The desired approximate tile size, in bytes.
 	 * @return A list of StreamTile objects which contain the items originally in streamObjectsList.

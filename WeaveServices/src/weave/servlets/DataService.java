@@ -415,13 +415,13 @@ public class DataService extends GenericServlet
 	/////////////////////
 	// geometry columns
 	
-	public byte[] getGeometryStreamMetadataTiles(int columnId, List<Integer> tileIDs) throws RemoteException
+	public byte[] getGeometryStreamMetadataTiles(int columnId, int[] tileIDs) throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
 		return (byte[]) getGeometryData(entity, GeomStreamComponent.METADATA_TILES, tileIDs);
 	}
 	
-	public byte[] getGeometryStreamGeometryTiles(int columnId, List<Integer> tileIDs) throws RemoteException
+	public byte[] getGeometryStreamGeometryTiles(int columnId, int[] tileIDs) throws RemoteException
 	{
 		DataEntity entity = getColumnEntity(columnId);
 		return (byte[]) getGeometryData(entity, GeomStreamComponent.GEOMETRY_TILES, tileIDs);
@@ -429,7 +429,7 @@ public class DataService extends GenericServlet
 	
 	private static enum GeomStreamComponent { TILE_DESCRIPTORS, METADATA_TILES, GEOMETRY_TILES };
 	
-	private Object getGeometryData(DataEntity entity, GeomStreamComponent component, List<Integer> tileIDs) throws RemoteException
+	private Object getGeometryData(DataEntity entity, GeomStreamComponent component, int[] tileIDs) throws RemoteException
 	{
 		assertStreamingGeometryColumn(entity, true);
 		

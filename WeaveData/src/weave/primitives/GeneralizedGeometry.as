@@ -142,15 +142,25 @@ package weave.primitives
 
 		/**
 		 * Adds a part marker at the given vertexID and a corresponding geometry part.
-		 * This function does not do any error checking, so part markers should be added in ascending order.
-		 * @param vertexID The vertexID that serves as a marker for separating the next geometry part.
+		 * @param vertexID The vertexID that serves as a marker between geometry parts.
 		 */
 		public function addPartMarker(vertexID:int):void
 		{
-			var oldTree:BLGTree = parts[parts.length - 1];
-			var newTree:BLGTree = oldTree.splitAtIndex(vertexID);
-			parts.push(newTree);
-			partMarkers.push(vertexID);
+			if (vertexID < 0 || VectorUtils.binarySearch(partMarkers, vertexID, true) >= 0)
+				return;
+			
+			// partMarkers[i] marks the end of parts[i]
+			for (var i:int = partMarkers.length; i > 0; i--)
+			{
+				if (vertexID > partMarkers[i - 1])
+					break;
+				
+				partMarkers[i] = partMarkers[i - 1];
+				parts[i + 1] = parts[i];
+			}
+			
+			partMarkers[i] = vertexID;
+			parts[i + 1] = (parts[i] as BLGTree).splitAtIndex(vertexID);
 		}
 		
 		/**

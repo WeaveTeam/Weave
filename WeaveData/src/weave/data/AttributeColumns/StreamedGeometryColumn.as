@@ -169,10 +169,8 @@ package weave.data.AttributeColumns
 			}
 			// request metadata tiles
 			var metadataTileIDs:Array = _geometryStreamDecoder.getRequiredMetadataTileIDs(metaRequestBounds, metaRequestImportance, true);
-			AsyncSort.sortImmediately(metadataTileIDs);
 			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
 			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
-			AsyncSort.sortImmediately(geometryTileIDs);
 
 			if (_debug)
 			{
