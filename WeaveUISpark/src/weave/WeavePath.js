@@ -175,7 +175,7 @@ function(objectID)
 			return this;
 		};
 		/**
-		 * Requests that an object be created if it doesn't already exist.
+		 * Requests that an object be created if it doesn't already exist at (or relative to) the current path.
 		 * Accepts an optional list of names relative to the current path.
 		 * The final parameter should be the object type to be passed to weave.requestObject().
 		 */
