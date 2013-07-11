@@ -249,7 +249,7 @@ package weave.visualization.layers
 						tempBounds.setXRange(0, 10);
 					if (tempBounds.getHeight() == 0)
 						tempBounds.setYRange(0, 10);
-					plotManager.zoomBounds.setDataBounds(tempBounds);
+					plotManager.setCheckedZoomDataBounds(tempBounds);
 				}
 			}
 		}

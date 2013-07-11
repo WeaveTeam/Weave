@@ -430,7 +430,7 @@ package weave.visualization.layers
 							projectDragBoundsToDataQueryBounds(false);
 							plotManager.zoomBounds.getDataBounds(tempDataBounds);
 							tempDataBounds.offset(- queryBounds.getWidth(), - queryBounds.getHeight());
-							plotManager.zoomBounds.setDataBounds(tempDataBounds);
+							plotManager.setCheckedZoomDataBounds(tempDataBounds);
 							// set begin point for next pan
 							mouseDragStageCoords.getMaxPoint(tempPoint);
 							mouseDragStageCoords.setMinPoint(tempPoint);
@@ -466,14 +466,14 @@ package weave.visualization.layers
 							plotManager.zoomBounds.getDataBounds(_tempBounds);
 							plotManager.zoomBounds.getScreenBounds(_screenBounds);
 							ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds, _screenBounds, mouseX, mouseY, zoomValue, false);
-							plotManager.zoomBounds.setDataBounds(_tempBounds);
+							plotManager.setCheckedZoomDataBounds(_tempBounds);
 						}
 						else if (dragReleased)
 						{
 							// zoom to selected data bounds if area > 0
 							projectDragBoundsToDataQueryBounds(true); // data bounds in same direction when zooming
 							if (queryBounds.getArea() > 0)
-								plotManager.zoomBounds.setDataBounds(queryBounds);
+								plotManager.setCheckedZoomDataBounds(queryBounds);
 						}	
 					}
 					break;
@@ -491,7 +491,7 @@ package weave.visualization.layers
 				case InteractionController.ZOOM_TO_EXTENT:
 				{
 					if (enableZoomAndPan.value)
-						plotManager.zoomBounds.setDataBounds(plotManager.fullDataBounds, true); // zoom to full extent
+						plotManager.setCheckedZoomDataBounds(plotManager.fullDataBounds, true); // zoom to full extent
 					break;
 				}
 				case InteractionController.ZOOM_IN:
@@ -511,7 +511,7 @@ package weave.visualization.layers
 						
 						_tempBounds.centeredResize(_tempBounds.getWidth() * multiplier, _tempBounds.getHeight() * multiplier);
 						
-						plotManager.zoomBounds.setDataBounds(_tempBounds);
+						plotManager.setCheckedZoomDataBounds(_tempBounds);
 					}
 					break;
 				}
