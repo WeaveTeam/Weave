@@ -383,14 +383,15 @@ package weave.visualization.layers
 		 * This function sets the data bounds for zooming, but checks them against the min and max zoom first.
 		 * @param bounds The bounds that zoomBounds should be set to.
 		 * @param zoomOut Optional parameter for specifying zoomOut in zoomBounds.setDataBounds().
+		 * @see weave.primitives.ZoomBounds#setDataBounds()
 		 */
-		public function setCheckedZoomDataBounds(bounds:IBounds2D, zoomOut:Boolean=false):void
+		public function setCheckedZoomDataBounds(bounds:IBounds2D, zoomOutIfNecessary:Boolean = false):void
 		{
 			zoomBounds.getScreenBounds(tempScreenBounds);
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 			var zoomLevel:Number = ZoomUtils.getZoomLevel(bounds, tempScreenBounds, fullDataBounds, minSize);
 			if( zoomLevel > minZoomLevel.value && zoomLevel < maxZoomLevel.value )
-				zoomBounds.setDataBounds(bounds);
+				zoomBounds.setDataBounds(bounds, zoomOutIfNecessary);
 		}
 		
 		/**
