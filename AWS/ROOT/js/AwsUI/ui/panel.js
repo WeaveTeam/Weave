@@ -2,7 +2,7 @@
 // requires jquery
 
 /**
- * Portlet constructor
+ * Portlet Template/generator.
  * 
  * @param {string} title the title of the portlet. 
  * @param {Number} id The id of the portlet, to be used to identify the portlet.
