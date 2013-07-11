@@ -130,7 +130,7 @@ html,body {
 }
 
 #dbhierarchy {
-	width:100&;
+	width:100%;
 	height:50%;
 	position:relative;
 	float:left;
@@ -302,13 +302,35 @@ require([ 'js/swfobject.js' ], function() {
     <div id="center">
       <div class="gridster">
         <ul>
-          <li data-row="1" data-col="1" data-sizex="2" data-sizey="1">
-          <div id="Indicators" class="portlet">
-            <div class="portlet-header" id="panel1">generic header</div>
-            <div class="portlet-content" id="panelcontent1">content</div>
-          </div>
+<!-- 
+          <li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li> -->
+          
+          
+          <li data-row="2" data-col="2" data-sizex="2" data-sizey="2">
+            <div id="geography-panel" class="portlet">
+           		 <div class="portlet-header">Geography</div>
+           		 <div class="portlet-content" id="geography-content"><br></div>
+         	</div>
           </li>
-          <li data-row="2" data-col="1" data-sizex="1" data-sizey="2">
+		
+		
+		  <li data-row="3" data-col="4" data-sizex="2" data-sizey="2">
+          	<div id="variable-panel" class="portlet">
+           		 <div class="portlet-header">Variables</div>
+             	<div class="portlet-content" id="variable-content"><br></div>
+            </div>
+          </li>
+		
+		
+		 <li data-row="2" data-col="4" data-sizex="1" data-sizey="2">
+          	 <div id="time-period-panel" class="portlet">
+               <div class="portlet-header">Time Period</div>
+               <div class="portlet-content" id="time-period-content"><br></div>
+            </div>
+          </li>
+		 
+		 
+		 <li data-row="2" data-col="1" data-sizex="1" data-sizey="2">
             <div id="Indicators" class="portlet">
             <div class="portlet-header">Roundtrip Demo</div>
             <div class="portlet-content">
@@ -325,21 +347,7 @@ require([ 'js/swfobject.js' ], function() {
             </div>
           </div>
           </li>
-          <li data-row="3" data-col="1" data-sizex="1" data-sizey="2">
-          	<div id="Indicators" class="portlet">
-              <div class="portlet-header" id="panel2">generic header</div>
-          	  <div class="portlet-content" id="panelcontent2">content</div>
-          	</div>
-          </li>
-<!-- 
-          <li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li> -->
-          <li data-row="2" data-col="2" data-sizex="2" data-sizey="2">
-            <div id="Indicators" class="portlet">
-           		 <div class="portlet-header" id="panel3">generic header</div>
-           		 <div class="portlet-content" id="panelcontent3">content</div>
-         	</div>
-          </li>
-
+          
           <li data-row="1" data-col="4" data-sizex="1" data-sizey="2">
               <div id="Indicators" class="portlet">
               <div class="portlet-header">Query Object</div>
@@ -351,23 +359,13 @@ require([ 'js/swfobject.js' ], function() {
               </div>
               </div>
           </li>
-          <li data-row="2" data-col="4" data-sizex="1" data-sizey="2">
-          	 <div id="Indicators" class="portlet">
-            <div class="portlet-header" id="panel4">generic header</div>
-            <div class="portlet-content" id="panelcontent4">content</div>
-          </div>
-          </li>
-          <li data-row="3" data-col="4" data-sizex="1" data-sizey="2">
-          	<div id="Indicators" class="portlet">
-            <div class="portlet-header" id="panel5">generic header</div>
-            <div class="portlet-content" id="panelcontent5">content</div>
-          </div>
-          </li>
+          
+          
 <!-- 
           <li data-row="1" data-col="5" data-sizex="1" data-sizey="1"></li> -->
           <li data-row="3" data-col="5" data-sizex="1" data-sizey="1">
             <div id="Indicators" class="portlet">
-              <div class="portlet-header">Script Results</div>
+              <div class="portlet-header">Debug output</div>
                 <div class="portlet-content" id="scriptResults">
                   
                 </div>
@@ -375,12 +373,6 @@ require([ 'js/swfobject.js' ], function() {
           </li>
 <!-- 
           <li data-row="1" data-col="6" data-sizex="1" data-sizey="1"></li> -->
-          <li data-row="2" data-col="6" data-sizex="1" data-sizey="2">
-          	<div id="Indicators" class="portlet">
-            <div class="portlet-header" id="panel6">generic header</div>
-            <div class="portlet-content" id="panelcontent6">content</div>
-          </div>
-          </li>
         </ul>
       </div>
     </div>

@@ -148,149 +148,80 @@ $.ajaxSetup({
     cache: false
 });
 
-function getDataColumnIds(id) {
-	
-	queryDataService(
-		"getEntityChildIds", // method
-		[id],
-		handleColumnIdsResults
-	);
-}
-
-function getDataColumnEntities(ids) {
-	queryDataService(
-		"getEntitiesById",
-		[ids],
-		handleEntitiesResults
-	
-	);	
-
-}
-
-
-function handleColumnIdsResults(response) {
-	if(response.error)
-		{
-			alert("Error");
-			return;
-		}
-		else
-		{
-			//console.log(response.result);
-			getDataColumnEntities(response.result);
-			return;
-		}
-}
-
-function handleEntitiesResults(response) {
-	var dataColumns = [];
-	if(response.error)
-		{
-			alert("Error");
-			return;
-		}
-		else
-		{
-			$("#columns").empty();
-			$("#dataCombobox").empty();
-			dataColumns = [];
-			for (var i in response.result) {
-				var column = response.result[i];
-				dataColumns.push(column);
-				$("#columns").append($("<option/>").val(column.id.toString())
-							.text(column.publicMetadata.title));
-				$("#dataCombobox").append($("<option/>").val(column.id.toString())
-				.text(column.publicMetadata.title));
-			}
-			populatePanels(dataColumns);
-			return;
-		}
-}
-
-
-function getDataHierarchy() {
-	$('#scriptResults').html("getDataHierarchy Called");
-
-	queryAdminService(
-	   "getEntityHierarchyInfo", //method
-	   [$('input[name="ConnectionName"]').val(), $('input[name="Password2"]').val(), 0], //params
-	   handleDatabaseResult //callback
-	);
-	
-}
-
-function handleDatabaseResult(response){
-	if(response.error)
-		alert("connection failed");
-	else
-	{
-		for (var i in response.result)
-		{
-			var table = response.result[i];
-			$('#dataTables').append($("<option/>").val(table.id.toString())
-						.text(table.title + " (" + table.numChildren + ")"));
-		}
-		
-	}
-	return;
-}
-
 
 function populatePanels(dataColumns) {
 	// this function update panels with metadata from database
-	console.log(dataColumns);
-	for ( var i = 1; i < 7; i++)
-	{
-		$('#panel'+i).html(dataColumns[i-1].publicMetadata.title);
+	//console.log(dataColumns);
+	var demoColumns = [];
+	
+	for (var obj in dataColumns) {
+		//console.log(obj);
+		//console.log(obj["id"]);
+		
+		var column = dataColumns[obj];
+		if (column.hasOwnProperty("id")) {
+			if (column["id"] === 161214) {
+				demoColumns.push(column);
+			}
+			if (column["id"] === 161264) {
+				demoColumns.push(column);
+			}
+			if (column["id"] === 161276) {
+				demoColumns.push(column);
+			}
+			if (column["id"] === 161265) {
+				demoColumns.push(column);
+			}
+			if (column["id"] === 161614) {
+				demoColumns.push(column);
+			}
+			
+		}
+		
 	}
 	
+	// here I have my demo Columns. Iterate over, find the categories.
+	for (var column in demoColumns) {
+		var metadata = demoColumns[column].publicMetadata;
+		// find the panel in which the column would of. For now we only have Geography and variable panel.
+		if (metadata.hasOwnProperty("category")) {
+			if (metadata.category == "geography") {
+				$('#geography-content').append(metadata.vartype + ':&nbsp<select> <option>'+metadata.title + ' ' + metadata.varrange +'</option> </select><br>');
+				$('#geography-content').append('<br>');
+			}
+			if (metadata.category == "variable") {
+				if (metadata.vartype == "continuous") {
+					$('#variable-content').append('<div style="float:left">' + '<input type="checkbox">' + metadata.title + ': &nbsp&nbsp </div>' + '<div style="float:left" id='+metadata.title+'/>');
+					$('#'+metadata.title).slider({
+						range:true,
+						min:metadata.min,
+						max:metadata.max,
+						values: [15, 75],
+						slide:function(ui){
+							$('#scriptResults').html("min:"+ ui.values[0] + "max:" + ui.values[1]);
+						}
+					});
+					$('#variable-content').append('<br><br>');
+				}
+				
+				if (metadata.vartype == "categorical") {
+					$('#variable-content').append('<input type="checkbox">' + metadata.title + ': <select id='+metadata.title+'/>');
+					for (var i = metadata.min; i <= metadata.max; i++) {
+						$('#'+metadata.title).append($("<option/>").text(i));
+					}
+					$('#variable-content').append('<br><br>');
+				}
+				
+			}
+			
+		}
+		
+		
+	}
+	
+	//console.log(demoColumns);
 	return;
 	
-}
-
-function queryAdminService(method, params, callback)
-{
-	var url = '/WeaveServices/AdminService';
-	var request = {
-	               jsonrpc:"2.0",
-	               id:"no_id",
-	               method : method,
-	               params : params
-	};
-	
-	$.post(url, JSON.stringify(request), callback, "json");
-}
-
-function queryDataService(method, params, callback)
-{
-	var url = '/WeaveServices/DataService';
-	var request = {
-	               jsonrpc:"2.0",
-	               id:"no_id",
-	               method : method,
-	               params : params
-	};
-	
-	$.post(url, JSON.stringify(request), callback, "json");
-}
-
-
-
-//calling Rservice on Weave
-function queryRService(method,params,callback,queryID)
-{
-	console.log('queryRService',method,params);
-	var url = '/WeaveServices/RService';
-	var request = {
-					jsonrpc:"2.0",
-					id:queryID || "no_id",
-					method : method,
-					params : params
-	};
-	console.log(JSON.stringify(request));
-	var check = '"' + JSON.stringify(request) + '"' ;
-	$.post(url,request, callback, "json");
-	//resulttextarea.value = 'Awaiting Response for ' + method + ' request....';
 }
 
 //---------------------------------called by scriptOneButton BEGIN--------------------------

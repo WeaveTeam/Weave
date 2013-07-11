@@ -6,7 +6,9 @@
     position:relative;
 
 }
-
+.ui-slider {
+	width: 50%;
+}
 .gridster > * {
 	width:100%;
     margin: 0 auto;
