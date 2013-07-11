@@ -6,7 +6,7 @@
  * 
  * @param {string} title the title of the portlet. 
  * @param {Number} id The id of the portlet, to be used to identify the portlet.
- * @param {Object} content the content of the portlet. Dynamic content. Can be optional
+ * @param {Object} HTML content the content of the portlet. Dynamic content. Can be optional
  * 
  * @return {Portlet} HTML content of a portlet
  * 
@@ -26,43 +26,42 @@ function portlet (title, id, content) {
 /**
  * This function append content to the existing content of the portlet.
  * 
- * @param {Object} portlet
- * @param {Object} content
+ * @param {string} id The id of the portlet to be edited
+ * @param {Object} HTML content
  * 
  * @return void
  */
-function addContent (portlet, content) {
-	
-	
-	
+function addContent (id, content) {
 
+	$('#'+id).append(content);
+
+	return;
 }
 
 /**
  * This function updates the content of the portlet. It will override the existing content.
  * 
- * @param {Object} portlet
+ * @param {String} id The id of the portlet to be edited
  * @param {Object} content
  * 
  */
 
-function updateContent (portlet, content) {
+function updateContent (id, content) {
 	
-
+	$('#'+id).html(content);
 
 }
 
 /**
  * This function updates the content of the portlet. It will override the existing content.
  * 
- * @param {Object} portlet
+ * @param {String} id
  * @param {Object} content
  * 
  */
 function updateTitle (portlet, title) {
 
-	
-
+	// TODO
 
 }
 
