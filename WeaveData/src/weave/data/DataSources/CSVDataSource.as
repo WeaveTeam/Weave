@@ -389,12 +389,19 @@ package weave.data.DataSources
 			{
 				for each (var tag:XML in _attributeHierarchy.value.descendants('attribute'))
 				{
-					if (!String(tag.@title))
+					var title:String = String(tag.@title);
+					if (!title)
 					{
-						var newTitle:String = String(tag.@csvColumn);
-						if (!newTitle && String(tag.@name) && String(tag.@year))
-							newTitle = String(tag.@name) + ' (' + tag.@year + ')';
-						tag.@title = newTitle || 'untitled';
+						var name:String = String(tag.@name);
+						var year:String = String(tag.@year);
+						if (name && year)
+							title = name + ' (' + year + ')';
+						else if (name)
+							title = name;
+						else
+							title = String(tag.@csvColumn) || 'untitled';
+						
+						tag.@title = title;
 					}
 				}
 			}

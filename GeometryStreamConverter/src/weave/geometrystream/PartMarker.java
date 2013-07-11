@@ -27,10 +27,10 @@ import java.io.IOException;
  */
 public class PartMarker implements StreamObject
 {
-	public PartMarker(int shapeID, int vertexID, int chainLength, Bounds2D queryBounds)
+	public PartMarker(int shapeID, int firstVertexID, int chainLength, Bounds2D queryBounds)
 	{
 		this.shapeID = shapeID;
-		this.vertexID = vertexID;
+		this.firstVertexID = firstVertexID;
 		this.chainLength = chainLength;
 		this.partBounds.xMin = queryBounds.xMin;
 		this.partBounds.yMin = queryBounds.yMin;
@@ -38,19 +38,15 @@ public class PartMarker implements StreamObject
 		this.partBounds.yMax = queryBounds.yMax;
 	}
 	
-	public final int shapeID, vertexID, chainLength;
+	public final int shapeID, firstVertexID, chainLength;
 	public final Bounds2D partBounds = new Bounds2D();
 	
 	public void writeStream(DataOutputStream stream) throws IOException
 	{
-		if (vertexID >= 0)
-		{
-			stream.writeInt(shapeID);
-			stream.writeInt(vertexID);
-		}
 		stream.writeInt(shapeID);
-		stream.writeInt(vertexID + chainLength + 1);
-		stream.writeInt(-1);
+		stream.writeInt(firstVertexID);
+		stream.writeInt(-2);
+		stream.writeInt(firstVertexID + chainLength);
 	}
 	public Bounds2D getQueryBounds()
 	{
@@ -58,10 +54,7 @@ public class PartMarker implements StreamObject
 	}
 	public int getStreamSize()
 	{
-		if (vertexID >= 0)
-			return Integer.SIZE/8 * 5;
-		
-		return (Integer.SIZE/8 * 3);
+		return (Integer.SIZE/8) * 4;
 	}
 	public double getX()
 	{

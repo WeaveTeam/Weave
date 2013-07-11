@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -33,7 +33,6 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -114,7 +113,16 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0));
+		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
+		
+		private function verifyThresholdValue(value:*):Boolean
+		{
+			if(0<=Number(value) && Number(value)<=1)
+				return true;
+			else
+				return false;
+		}
+		
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
@@ -122,7 +130,7 @@ package weave.visualization.plotters
 		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
-				
+		
 		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
@@ -134,7 +142,7 @@ package weave.visualization.plotters
 		
 		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
-
+		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
@@ -179,7 +187,7 @@ package weave.visualization.plotters
 			{
 				keySources.unshift(radiusColumn);
 				setColumnKeySources(keySources, [true]);
-			
+				
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					
 					randomArrayIndexMap[key] = i ;										
@@ -229,7 +237,7 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 		}
-	
+		
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
 		{
 			var anchorObjects:Array = anchors.getObjects(AnchorPoint);
@@ -249,7 +257,7 @@ package weave.visualization.plotters
 							tempAnchor.classDiscriminationMetric.value = colValuesArray[c];
 							tempAnchor.classType.value = String(type);
 						}
-							
+						
 					}
 				}
 				
@@ -259,7 +267,7 @@ package weave.visualization.plotters
 		public function setAnchorLocations( ):void
 		{	
 			var _columns:Array = columns.getObjects();
-		
+			
 			var theta:Number = (2*Math.PI)/_columns.length;
 			var anchor:AnchorPoint;
 			anchors.delayCallbacks();
@@ -309,9 +317,9 @@ package weave.visualization.plotters
 				
 				classIncrementor++;
 			}
-				
+			
 			anchors.resumeCallbacks();
-				
+			
 		}
 		
 		
@@ -421,7 +429,7 @@ package weave.visualization.plotters
 			
 			// Get coordinates of record and add jitter (if specified)
 			getXYcoordinates(recordKey);
-
+			
 			if(radiusColumn.getInternalColumn() != null)
 			{
 				if(radius <= Infinity) radius = 2 + (radius *(10-2));
@@ -443,7 +451,7 @@ package weave.visualization.plotters
 			{
 				radius = radiusConstant.value ;
 			}
-					
+			
 			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return; // missing values skipped
 			
 			lineStyle.beginLineStyle(recordKey, graphics);
@@ -466,7 +474,7 @@ package weave.visualization.plotters
 		{
 			var g:Graphics = tempShape.graphics;
 			g.clear();
-
+			
 			coordinate.x = -1;
 			coordinate.y = -1;
 			dataBounds.projectPointTo(coordinate, screenBounds);
@@ -487,7 +495,7 @@ package weave.visualization.plotters
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 		}
-			
+		
 		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.
 		 * 
@@ -524,7 +532,7 @@ package weave.visualization.plotters
 			
 			var graphics:Graphics = destination;
 			graphics.clear();
-
+			
 			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
 			var _cols:Array = columns.getObjects();
 			
@@ -538,7 +546,6 @@ package weave.visualization.plotters
 				getXYcoordinates(key);
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
-
 				var value:Number;
 				var name:String;
 				var anchor:AnchorPoint;
@@ -589,15 +596,15 @@ package weave.visualization.plotters
 					
 				}
 				
-//				for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
-//				{
-//					tempPoint.x = anchor.x.value;
-//					tempPoint.y = anchor.y.value;
-//					dataBounds.projectPointTo(tempPoint, screenBounds);
-//					graphics.lineStyle(.5, 0xff0000);
-//					graphics.moveTo(coordinate.x, coordinate.y);
-//					graphics.lineTo(tempPoint.x, tempPoint.y);					
-//				}
+				//				for each( var anchor:AnchorPoint in anchors.getObjects(AnchorPoint))
+				//				{
+				//					tempPoint.x = anchor.x.value;
+				//					tempPoint.y = anchor.y.value;
+				//					dataBounds.projectPointTo(tempPoint, screenBounds);
+				//					graphics.lineStyle(.5, 0xff0000);
+				//					graphics.moveTo(coordinate.x, coordinate.y);
+				//					graphics.lineTo(tempPoint.x, tempPoint.y);					
+				//				}
 			}
 		}
 		
@@ -618,13 +625,12 @@ package weave.visualization.plotters
 			RadVizUtils.reorderColumns(columns, array);
 		}
 		
-		[Bindable] public var listOfCsvData:Array = WeaveAPI.globalHashMap.getNames(CSVDataSource);
-		public var sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
-		public var dataSetName:LinkableString = registerLinkableChild(this, new LinkableString(listOfCsvData[0]));
-		public var regularSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public var RSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public var sampleSizeRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
-		public var sampleSizeColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
+		public const sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
+		public const dataSetName:LinkableString = registerLinkableChild(this, new LinkableString());
+		public const regularSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const RSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const sampleSizeRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
+		public const sampleSizeColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
 		public function sampleDataSet():void
 		{
 			// we use the CSVDataSource so we can get the rows.
@@ -642,7 +648,7 @@ package weave.visualization.plotters
 				// rows first
 				if (originalCSVDataSource)
 				{
-					originalArray = originalCSVDataSource.getCSVData().slice(0); // slice to get a copy. otherwise we modify the original array.				
+					originalArray = originalCSVDataSource.getCSVData().concat(); // get a copy. otherwise we modify the original array.
 				} 
 				else
 				{
@@ -668,7 +674,7 @@ package weave.visualization.plotters
 						i--;
 					}
 					sampledArray.unshift(titleRow); // we put the title row back here..
-					originalArray.splice(0); // we clear this array since we don't need it anymore.
+					originalArray.length = 0; // we clear this array since we don't need it anymore.
 					// Sampling is done. we wrap it back into a CSVDataSource
 					
 					
@@ -713,7 +719,7 @@ package weave.visualization.plotters
 					sampleTitle.value = "";
 				} 
 			}
-			
+				
 			else // Rsampling
 			{
 				// TODO
@@ -743,7 +749,7 @@ package weave.visualization.plotters
 				var rowLength:int = array.length;
 			if (array[0])
 				var colLength:int = array[0].length;	
-	
+			
 			var transposed:Array = new Array(colLength);
 			
 			for (i = 0; i < colLength; i++)

@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
@@ -74,9 +74,9 @@
 			[Bindable]
 			public var _plotter:RadVizPlotter ;
 			public var _anchorPlotter:AnchorPlotter ;
-
+			
 			private static const ANCHOR_LAYER:String = "anchorLayer";
-
+			
 			public var normalizedColumns:Array = new Array();//normalized columns returned from R
 			private var normalizedColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
 			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, classDiscriminatorColumnUpdate);//column used as the Class Discriminator
@@ -227,8 +227,8 @@
 			/** Returns the normalized dataset */
 			private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
 			{
-				 normalizedColumns = [];
-                 if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
+				normalizedColumns = [];
+				if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
 				
 				var temRObjects:Array = new Array();
 				//Object to stored returned result - Which is array of object{name: , value: }
@@ -254,8 +254,8 @@
 					//handles cases when R returns a NaN, (for eg when all records have the same value for a column or when the dataset contains one record)
 					/* for(var f:int = 0; f< temRObjects.length; f++)
 					{
-						if(isNaN(temRObjects[f]))
-							return;
+					if(isNaN(temRObjects[f]))
+					return;
 					} */
 					
 				}	

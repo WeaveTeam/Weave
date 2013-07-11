@@ -86,7 +86,7 @@ public class GeometryStreamConverter
 		long startTime = System.currentTimeMillis();
 		
 		// save geometry data for feature
-		int firstVertexID = -1; // -1 for first implicit part marker
+		int firstVertexID = 0;
 		while (geomStream.hasNext())
 		{
 			GeometryVertexStream vertexStream = geomStream.getNext();
@@ -94,8 +94,6 @@ public class GeometryStreamConverter
 			{
 				// copy vertices for this geometry part
 
-				// add polygon marker before the next part
-				int partMarkerID = firstVertexID++;
 				// loop through coordinates, converting them to VertexChainLink objects
 				double x;
 				double y;
@@ -161,8 +159,8 @@ public class GeometryStreamConverter
 				processVertexChain(geometryMetadata, chainLength);
 				
 				// add part marker
-				if (partMarkerID > -1 || vertexStream.hasNext() || geomStream.hasNext())
-					vertexMap.addPartMarker(geometryMetadata.shapeID, partMarkerID, chainLength, partBounds);
+				if (firstVertexID > 0 || vertexStream.hasNext() || geomStream.hasNext())
+					vertexMap.addPartMarker(geometryMetadata.shapeID, firstVertexID, chainLength, partBounds);
 				
 				// done copying points for this part, advance firstVertexID to after the current part
 				firstVertexID += chainLength;
