@@ -38,7 +38,7 @@ public class GeometryStreamConverter
 	public static boolean debugTime = true;
 	public static boolean debugCounts = false;
 	
-	public GeometryStreamConverter(GeometryStreamDestination destination)
+	public GeometryStreamConverter(IGeometryStreamDestination destination)
 	{
 		this.destination = destination;
 	}
@@ -58,10 +58,10 @@ public class GeometryStreamConverter
 	public double totalVertexArea = 0;
 	public double totalQueryArea = 0;
 	
-	protected final GeometryStreamDestination destination;
+	protected final IGeometryStreamDestination destination;
 	protected final SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
 	protected int metadataStreamSize = 0;
-	protected final LinkedList<StreamObject> metadataList = new LinkedList<StreamObject>();
+	protected final LinkedList<IStreamObject> metadataList = new LinkedList<IStreamObject>();
 	protected final VertexMap vertexMap = new VertexMap();
 	protected final Bounds2D partBounds = new Bounds2D();
 	
@@ -77,7 +77,7 @@ public class GeometryStreamConverter
 	 * @param projectionWKT Projection info in Well-Known-Text format
 	 * @throws Exception
 	 */
-	public void convertFeature(FeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
+	public void convertFeature(IFeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
 	{
 		// save shape metadata for feature
 		GeometryMetadata geometryMetadata = new GeometryMetadata(shapeIDGenerator.getNext(), shapeKey, shapeType, projectionWKT);
@@ -89,7 +89,7 @@ public class GeometryStreamConverter
 		int firstVertexID = 0;
 		while (geomStream.hasNext())
 		{
-			GeometryVertexStream vertexStream = geomStream.getNext();
+			IGeometryVertexStream vertexStream = geomStream.getNext();
 			while (vertexStream.hasNext())
 			{
 				// copy vertices for this geometry part
@@ -320,7 +320,7 @@ public class GeometryStreamConverter
 	{
 		long startTime = System.currentTimeMillis();
 		
-		LinkedList<StreamObject> streamObjects = vertexMap.getStreamObjects();
+		LinkedList<IStreamObject> streamObjects = vertexMap.getStreamObjects();
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(streamObjects, tileSize);
 
 		for (StreamTile tile : tiles)

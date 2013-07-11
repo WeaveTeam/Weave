@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * @author adufilie
  */
-public class PartMarker implements StreamObject
+public class PartMarker implements IStreamObject
 {
 	public PartMarker(int shapeID, int firstVertexID, int chainLength, Bounds2D queryBounds)
 	{

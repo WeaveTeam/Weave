@@ -24,7 +24,7 @@ package weave.geometrystream;
  * 
  * @author adufilie
  */
-public interface FeatureGeometryStream
+public interface IFeatureGeometryStream
 {
 	/**
 	 * This function checks whether getNext() will return a GeometryVertexStream or not.
@@ -36,5 +36,5 @@ public interface FeatureGeometryStream
 	 * This function will get the next GeometryVertexStream.
 	 * @return The next GeometryVertexStream, or null if there are no more.
 	 */
-	public GeometryVertexStream getNext();
+	public IGeometryVertexStream getNext();
 }

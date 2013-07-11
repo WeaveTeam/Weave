@@ -28,7 +28,7 @@ import java.util.LinkedList;
  * Intended for use with ObjectPool
  * @author adufilie
  */
-public class CombinedPoint implements StreamObject
+public class CombinedPoint implements IStreamObject
 {
 	private final LinkedList<VertexIdentifier> vertexIdentifiers = new LinkedList<VertexIdentifier>();
 	public final Bounds2D queryBounds = new Bounds2D();

@@ -26,7 +26,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * 
  * @author adufilie
  */
-public class JTSFeatureGeometryStream implements FeatureGeometryStream
+public class JTSFeatureGeometryStream implements IFeatureGeometryStream
 {
 	public JTSFeatureGeometryStream(Geometry featureGeom)
 	{
@@ -52,7 +52,7 @@ public class JTSFeatureGeometryStream implements FeatureGeometryStream
 	 * This function will get the next GeometryVertexStream.
 	 * @return The next GeometryVertexStream, or null if there are no more.
 	 */
-	public GeometryVertexStream getNext()
+	public IGeometryVertexStream getNext()
 	{
 		return new JTSGeometryVertexStream(featureGeom.getGeometryN(index++));
 	}
