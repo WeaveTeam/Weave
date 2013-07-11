@@ -33,7 +33,6 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -45,7 +44,6 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -54,7 +52,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.radviz.BruteForceLayoutAlgorithm;
@@ -63,8 +60,6 @@ package weave.visualization.plotters
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
-	import weave.utils.EquationColumnLib;
-	import weave.utils.NumberUtils;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -115,8 +110,7 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0,
-		verifyThresholdValue));
+		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -629,13 +623,12 @@ package weave.visualization.plotters
 			RadVizUtils.reorderColumns(columns, array);
 		}
 		
-		[Bindable] public var listOfCsvData:Array = WeaveAPI.globalHashMap.getNames(CSVDataSource);
-		public var sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
-		public var dataSetName:LinkableString = registerLinkableChild(this, new LinkableString(listOfCsvData[0]));
-		public var regularSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public var RSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public var sampleSizeRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
-		public var sampleSizeColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
+		public const sampleTitle:LinkableString = registerLinkableChild(this, new LinkableString(""));
+		public const dataSetName:LinkableString = registerLinkableChild(this, new LinkableString());
+		public const regularSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const RSampling:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const sampleSizeRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(300));
+		public const sampleSizeColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
 		public function sampleDataSet():void
 		{
 			// we use the CSVDataSource so we can get the rows.
@@ -653,7 +646,7 @@ package weave.visualization.plotters
 				// rows first
 				if (originalCSVDataSource)
 				{
-					originalArray = originalCSVDataSource.getCSVData().slice(0); // slice to get a copy. otherwise we modify the original array.				
+					originalArray = originalCSVDataSource.getCSVData().concat(); // get a copy. otherwise we modify the original array.
 				} 
 				else
 				{
@@ -679,7 +672,7 @@ package weave.visualization.plotters
 						i--;
 					}
 					sampledArray.unshift(titleRow); // we put the title row back here..
-					originalArray.splice(0); // we clear this array since we don't need it anymore.
+					originalArray.length = 0; // we clear this array since we don't need it anymore.
 					// Sampling is done. we wrap it back into a CSVDataSource
 					
 					
