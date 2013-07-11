@@ -224,6 +224,8 @@ function populatePanels(dataColumns) {
 	
 }
 
+
+
 //---------------------------------called by scriptOneButton BEGIN--------------------------
 
 function scriptOneQuery(secondMethodName)

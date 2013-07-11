@@ -8,8 +8,7 @@
  * @return void
  */
 function queryDataService(method, params, callback)
-{
-	var url = '/WeaveServices/DataService';
+{ 
 	var request = {
 	               jsonrpc:"2.0",
 	               id:"no_id",
@@ -17,7 +16,7 @@ function queryDataService(method, params, callback)
 	               params : params
 	};
 	
-	$.post(url, JSON.stringify(request), callback, "json");
+	$.post('/WeaveServices/DataService', JSON.stringify(request), callback, "json");
 }
 
 
