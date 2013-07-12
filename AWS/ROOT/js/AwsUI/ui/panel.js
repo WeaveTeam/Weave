@@ -1,5 +1,6 @@
 // requires jquery ui
 // requires jquery
+// requires css for porlet
 
 /**
  * Portlet Template/generator.
@@ -53,7 +54,7 @@ function updateContent (id, content) {
 }
 
 /**
- * This function updates the content of the portlet. It will override the existing content.
+ * This function updates the title of the portlet. It will override the existing title.
  * 
  * @param {String} id
  * @param {Object} content
@@ -61,7 +62,7 @@ function updateContent (id, content) {
  */
 function updateTitle (portlet, title) {
 
-	// TODO
+	// TODO select the portlet by the id of the content and go up one div in the tree.
 
 }
 
