@@ -26,13 +26,13 @@
  
 // use jquery to add event handling and to customize the UI. May be this should be in a Controller file?
 // http://jqueryui.com/button/#splitbutton
- function initializeProjectMenu (leftButtonId, rightButtonId) {
+ function initializeProjectMenu (id) {
 	 
 	 $('#'+id)
 	 	.button({
 	 		text: true,
 	 		icons: {
-	 			primary: "ui-icon-triangle-1-s"
+	 			secondary: "ui-icon-triangle-1-s"
 	 		}
 	 	})
 	 	.click(function() {

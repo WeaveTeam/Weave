@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Analyst Work Station</title>
+<link rel="stylesheet"
+  href="css/ui-lightness/jquery-ui-1.10.3.custom.css">
+<script data-main="js/gridster" src="js/require.js"></script>
+<link rel="stylesheet" href="css/demos.css">
+<link rel="stylesheet" href="css/jquery.gridster.css">
+<style>
+.portlet {
+  width: auto;
+  height: auto;
+  top:0;
+  bottom:0;
+  right:0;
+  left: 0;
+  position:absolute;
+}
+
+.portlet-header {
+  margin: 0.3em;
+  padding-bottom: 4px;
+  padding-left: 0.2em;
+}
+
+.portlet-header .ui-icon {
+  float: right;
+}
+
+.portlet-content {
+  padding: 0.4em;
+}
+
+/* .ui-sortable-placeholder {
+  border: 1px dotted black;
+  visibility: visible !important;
+  height: 50px !important;
+}
+
+.ui-sortable-placeholder * {
+  visibility: hidden;
+}  */
+
+html,body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#container {
+  width: 98%;
+  height: 98%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+#header {
+  width: 100%;
+  height: 8%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+  float: left;
+/* 	border:solid; */
+}
+
+#leftPanel {
+  width: 15%;
+  height: 90%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_1 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_2 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_3 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#weaveThumb {
+  width: 100%;
+  height: 15%;
+  position: relative;
+  float: left;
+}
+
+#center {
+/* 	border: solid; */
+  width: 70%;
+  height: 80%;
+  position: relative;
+  float: left;
+}
+
+#dbconnection {
+	width:50%;
+	height:50%;
+	position: relative;
+	float: left;
+}
+
+#dbauthentication {
+	width:50%;
+	height:50%;
+	position: relative;
+	float: right;
+}
+
+#dbhierarchy {
+	width:100%;
+	height:50%;
+	position:relative;
+	float:left;
+}
+#queryContent {
+  width: 100%;
+  height: 83%;
+  position: absolute;
+}
+ul, ol {
+    list-style: none;
+}
+.gridster {
+   
+    margin: 0 auto;
+
+    opacity: .8;
+
+    -webkit-transition: opacity .6s;
+    -moz-transition: opacity .6s;
+    -o-transition: opacity .6s;
+    -ms-transition: opacity .6s;
+    transition: opacity .6s;
+}
+.gridster >ul {
+  width:100%;
+}
+.gridster .gs_w {
+    background: #FFF;
+    cursor: pointer;
+    -webkit-box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.gridster .player {
+    -webkit-box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+}
+
+
+.gridster .gs_w.try {
+    background-image: url(../img/sprite.png);
+    background-repeat: no-repeat;
+    background-position: 37px -169px;
+
+}
+
+.gridster .preview-holder {
+    border: none!important;
+    border-radius: 0!important;
+    background: rgba(255,255,255,.2)!important;
+}
+
+</style>
+
+<script>
+
+/* //available methods are listed here: http://ivpr.github.io/Weave-Binaries/javadoc/weave/servlets/DataService.html
+function queryDataService(method, params, resultHandler, queryId)
+{
+    //console.log('queryDataService ',method,' ',params);
+    var url = '/WeaveServices/DataService';
+    var request = {
+        jsonrpc: "2.0",
+        id: queryId || "no_id",
+        method: method,
+        params: params
+    };
+    $.post(url, JSON.stringify(request), handleResponse, "json");
+
+    function handleResponse(response)
+    {
+        if (response.error)
+            console.log(JSON.stringify(response, null, 3));
+        else
+            resultHandler(response.result, queryId);
+    }
+} */
+
+require([ 'js/swfobject.js' ], function() {
+	// For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection.
+	var swfVersionStr = "10.2.0";
+	// To use express install, set to playerProductInstall.swf, otherwise the empty string.
+	var xiSwfUrlStr = "playerProductInstall.swf";
+	var flashvars = {};
+	flashvars.file = "?../file=empty.xml"
+	var params = {};
+	params.quality = "high";
+	params.bgcolor = "#869ca7";
+	params.allowscriptaccess = "always";
+	params.allowfullscreen = "true";
+	params.base = "../";
+	var attributes = {};
+	attributes.id = "weave";
+	attributes.name = "weave";
+	attributes.align = "middle";
+	swfobject.embedSWF("../weave.swf", "flashContent", "900", "650",
+			swfVersionStr, xiSwfUrlStr, flashvars, params, attributes);
+	// JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
+	swfobject.createCSS("#flashContent", "display:block;text-align:left;");
+}); 
+
+</script>
+</head>
+<body>
+  <div id="dataDialog" title="Data">
+  		<div id="dbconnection">
+  			SQL Connection Info<br><br>
+  			SQL Server Type: <select id="dataCombobox">
+  								<option value="MySQL">MySQL</option>
+  								<option value="PostGreSQL">PostGreSQL</option>
+  								<option value="MicrosoftSQL">Microsoft SQL Server</option>
+  								<option value="Oracle">Oracle</option>
+  							 </select> <br>
+  			SQL Server IP:	 <input type="text" name="SQLIP" value="demo.oicweave.org"><br>
+  			SQL Server Port: <input type="text" name="SQLPort" value="3306"><br>
+  			SQL User:		<input type="text" name="SQLUser" value="root"><br>
+  			SQL Password:   <input type="password" name="Password" value="Tc1Sgp7nFc"><br>
+			SQL Database Name: <input type="text" name="" value="">(optional)
+  		</div>
+  		
+  		<div id="dbauthentication">
+  			<br><br>
+  			Connection Name: <input type="text" name="ConnectionName" value=""><br>
+  			Password: <input type="password" name="Password2" value=""><br> 	
+  			<button id="getHierarchy">Connect</button> <br>		
+  		</div>
+
+		<div id="dbhierarchy">
+  			Data Tables <br> <select id="dataTables"></select><br>
+  			Columns	<br>	<select id="columns"></select>		
+  		</div>
+  		
+  </div>
+  
+  
+  <div id="container">
+    <div id="header">
+      <button id="projectButton">Project</button>
+      <button id="dataButton">Data...</button>
+    </div>
+    <div id="leftPanel">
+      <div id="leftPanel_1">
+        <div id="Indicators" class="portlet">
+          <div class="portlet-header">Analysis Builder</div>
+          <div class="portlet-content">Summary of selected parameters</div>
+        </div>
+      </div>
+      <div id="leftPanel_2">
+        <div id="Indicators" class="portlet">
+          <div class="portlet-header">Calculation</div>
+          <div class="portlet-content">Summary of selected calculation script</div>
+        </div>
+      </div>	
+      <div id="leftPanel_3">
+        <div id="Indicators" class="portlet">
+          <div class="portlet-header">Weave</div>
+          <div class="portlet-content">Summary of visualization parameters</div>
+        </div>
+      </div>
+      <div id="weaveThumb">
+      	<div id="Indicators" class="portlet">
+          <div class="portlet-content">
+          	<input id="weaveButton" type="submit" value="Open Weave" />
+		  </div>
+        </div>
+   	 </div>
+    </div>
+    <div id="center">
+      <div class="gridster">
+        <ul>
+<!-- 
+          <li data-row="1" data-col="2" data-sizex="2" data-sizey="1"></li> -->
+          
+          
+          <li data-row="2" data-col="2" data-sizex="2" data-sizey="2">
+            <div id="geography-panel" class="portlet">
+           		 <div class="portlet-header">Geography</div>
+           		 <div class="portlet-content" id="geography-content"><br></div>
+         	</div>
+          </li>
+		
+		
+		  <li data-row="3" data-col="4" data-sizex="2" data-sizey="2">
+          	<div id="variable-panel" class="portlet">
+           		 <div class="portlet-header">Variables</div>
+             	<div class="portlet-content" id="variable-content"><br></div>
+            </div>
+          </li>
+		
+		
+		 <li data-row="2" data-col="4" data-sizex="1" data-sizey="2">
+          	 <div id="time-period-panel" class="portlet">
+               <div class="portlet-header">Time Period</div>
+               <div class="portlet-content" id="time-period-content"><br></div>
+            </div>
+          </li>
+		 
+		 
+		 <li data-row="2" data-col="1" data-sizex="1" data-sizey="2">
+            <div id="Indicators" class="portlet" style={width-'+width'+'+}>
+            <div class="portlet-header">Roundtrip Demo</div>
+            <div class="portlet-content" id="bla">
+              <br><br>
+              
+              $(id).append(portlet-content)
+              
+              Script: <select id="scriptCombobox"></select> <br></br>
+              
+              Data: <select
+              id="dataCombobox"></select> <br></br> 
+              
+              <input id="scriptButton"	type="submit" value="Run Script" /> 
+              
+              <!-- <input id="scriptButton2" type="submit" value="CDCforQueries.R" /> -->
+            </div>
+          </div>
+          </li>
+          
+          <li data-row="1" data-col="4" data-sizex="1" data-sizey="2">
+              <div id="Indicators" class="portlet">
+              <div class="portlet-header">Query Object</div>
+                <div class="portlet-content">
+                  JSON Query Object <input id="panel6ImportButton"
+                  type="submit" value="Import..." /> <input id="panel6SaveButton"
+                  type="submit" value="Save" /> <input id="panel6EditButton"
+                  type="submit" value="Edit" />
+              </div>
+              </div>
+          </li>
+          
+          
+<!-- 
+          <li data-row="1" data-col="5" data-sizex="1" data-sizey="1"></li> -->
+          <li data-row="3" data-col="5" data-sizex="1" data-sizey="1">
+            <div id="Indicators" class="portlet">
+              <div class="portlet-header">Debug output</div>
+                <div class="portlet-content" id="scriptResults">
+                  
+                </div>
+            </div>
+          </li>
+<!-- 
+          <li data-row="1" data-col="6" data-sizex="1" data-sizey="1"></li> -->
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div id="weaveDialog" title="Weave">
+    <div id="flashContent">
+            <p>
+                To view this page ensure that Adobe Flash Player version 
+                10.2.0 or greater is installed. 
+            </p>
+     	<script type="text/javascript"> 
+                var pageHost = ((document.location.protocol == "https:") ? "https://" : "http://"); 
+                document.write("<a href='http://www.adobe.com/go/getflashplayer'><img src='" 
+                                + pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
+        </script> 
+    </div> 
+  </div>
+  
+  
+  <noscript>
+    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="100%" height="100%" id="weave">
+        <param name="movie" value="weave.swf" />
+        <param name="quality" value="high" />
+        <param name="bgcolor" value="#7B96B6" />
+        <param name="allowScriptAccess" value="sameDomain" />
+        <param name="allowFullScreen" value="true" />
+        <!--[if !IE]>-->
+        <object type="application/x-shockwave-flash" data="weave.swf" width="100%" height="100%">
+            <param name="quality" value="high" />
+            <param name="bgcolor" value="#7B96B6" />
+            <param name="allowScriptAccess" value="sameDomain" />
+            <param name="allowFullScreen" value="true" />
+        <!--<![endif]-->
+        <!--[if gte IE 6]>-->
+            <p> 
+                Either scripts and active content are not permitted to run or Adobe Flash Player version
+                10.2.0 or greater is not installed.
+            </p>
+        <!--<![endif]-->
+            <a href="http://www.adobe.com/go/getflashplayer">
+                <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash Player" />
+            </a>
+        <!--[if !IE]>-->
+        </object>
+        <!--<![endif]-->
+    </object>
+</noscript>   
+</body>
+</html>
