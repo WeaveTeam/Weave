@@ -50,7 +50,8 @@ function addContent (id, content) {
 function updateContent (id, content) {
 	
 	$('#'+id).html(content);
-
+	
+	return;
 }
 
 /**

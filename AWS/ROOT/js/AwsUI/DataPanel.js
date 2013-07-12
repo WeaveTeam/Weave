@@ -10,7 +10,7 @@ function dataDialog () {
 						<br><br>	\
 						Connection Name: <input type="text" name="ConnectionName" value=""><br> \
 						Password: <input type="password" name="Password2" value=""><br> \
-						<button id="getHierarchy">Connect</button> <br>	\
+						<button id="dbConnectButton">Connect</button> <br>	\
 					</div> \
 					<div id="dbhierarchy"> \
 						Data Tables <br> <select id="dataTables"></select><br> \
@@ -51,5 +51,7 @@ function initializeDataDialog() {
        }
 	});
 	
-	// TODO jquery and event handling for the data panel content.
+	// TODO jquery and event handling for the data panel content. 
+	$('#dbConnectButton').button()
+		.click( function() { console.log("connect button clicked"); } );
 }
