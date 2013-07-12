@@ -389,9 +389,13 @@ package weave.visualization.layers
 		{
 			zoomBounds.getScreenBounds(tempScreenBounds);
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
-			var zoomLevel:Number = ZoomUtils.getZoomLevel(bounds, tempScreenBounds, fullDataBounds, minSize);
-			if( zoomLevel > minZoomLevel.value && zoomLevel < maxZoomLevel.value )
+			var zoomLevel:Number = Math.round(ZoomUtils.getZoomLevel(bounds, tempScreenBounds, fullDataBounds, minSize));
+			if( zoomLevel >= minZoomLevel.value && zoomLevel <= maxZoomLevel.value )
 				zoomBounds.setDataBounds(bounds, zoomOutIfNecessary);
+			else if( zoomLevel < minZoomLevel.value )
+				setZoomLevel(minZoomLevel.value);
+			else if( zoomLevel > maxZoomLevel.value )
+				setZoomLevel(maxZoomLevel.value);
 		}
 		
 		/**
