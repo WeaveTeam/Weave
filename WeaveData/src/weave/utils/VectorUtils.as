@@ -246,5 +246,32 @@ package weave.utils
 			}
 			return result;
 		}
+		
+		/**
+		 * Performs a binary search on a sorted array with no duplicate values.
+		 * @param array Array or Vector of Numbers
+		 * @param compare A compare function
+		 * @param exactMatchOnly If true, searches for exact match. If false, searches for insertion point.
+		 * @return The index of the matching value or insertion point.
+		 */
+		public static function binarySearch(array:*, item:*, exactMatchOnly:Boolean, compare:Function = null):int
+		{
+			var i:int = 0,
+				imin:int = 0,
+				imax:int = array.length - 1;
+			while (imin <= imax)
+			{
+				i = (imin + imax) / 2;
+				var a:* = array[i];
+				var c:int = compare != null ? compare(item, a) : (item < a ? -1 : (item > a ? 1 : 0));
+				if (c < 0)
+					imax = i - 1;
+				else if (c > 0)
+					imin = ++i; // set i for possible insertion point
+				else
+					return i;
+			}
+			return exactMatchOnly ? -1 : i;
+		}
 	}
 }

@@ -352,7 +352,7 @@
 					_tempBounds.getWidth() / visualization.zoomFactor.value,
 					_tempBounds.getHeight() / visualization.zoomFactor.value
 				);
-				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
+				visualization.plotManager.setCheckedZoomDataBounds(_tempBounds);
 			}
 			
 			private function handleZoomOutClick():void
@@ -362,7 +362,7 @@
 					_tempBounds.getWidth() * visualization.zoomFactor.value,
 					_tempBounds.getHeight() * visualization.zoomFactor.value
 				);
-				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
+				visualization.plotManager.setCheckedZoomDataBounds(_tempBounds);
 			}
 			
 			private function handlePanButtonClick(xPan:Number, yPan:Number):void
@@ -374,7 +374,7 @@
 						_tempBounds.getWidth() * panPercent * xPan,
 						_tempBounds.getHeight() * panPercent * yPan
 					);
-				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
+				visualization.plotManager.setCheckedZoomDataBounds(_tempBounds);
 			}
 			
 			private var _tempBounds:IBounds2D = new Bounds2D();

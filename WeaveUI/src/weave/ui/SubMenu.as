@@ -94,14 +94,16 @@ package weave.ui
 		 * @param label The Label string (or function that returns a string) to show when the menu is open.
 		 * @param listener The function to call when the item is clicked.
 		 * @param params An Array of parameters to pass to the listener function.
+		 * @param shown A function that returns a boolean that determines whether the menu item should be shown.
 		 * @return An object containing the three parameters (label, listener, params) which can be modified later.
 		 */
-		public function addSubMenuItem(label:Object, listener:Function, params:Array = null):Object
+		public function addSubMenuItem(label:Object, listener:Function, params:Array = null, shown:Function = null):Object
 		{
 			var menuItem:SubMenuItem = new SubMenuItem();
 			menuItem.label = label;
 			menuItem.listener = listener;
 			menuItem.params = params;
+			menuItem.shown = shown;
 			subMenuDataProvider.push(menuItem);
 			return menuItem;
 		}
@@ -109,6 +111,7 @@ package weave.ui
 		public static const LABEL:String = 'label';
 		public static const LISTENER:String = 'listener';
 		public static const PARAMS:String = 'params';
+		public static const SHOWN:String = 'shown';
 		
 		/**
 		 * Removes all menu items
@@ -162,7 +165,7 @@ package weave.ui
 			var yMax:Number = tempBounds.getYNumericMax();
 			
 			setStyle("openDuration",0);
-			popUpMenu(this, _uiParent, subMenuDataProvider);
+			popUpMenu(this, _uiParent, subMenuDataProvider.filter(isItemShown));
 			show(menuLocation.x, menuLocation.y);
 			
 			if (menuLocation.x < xMin)
@@ -178,6 +181,11 @@ package weave.ui
 			move(menuLocation.x, menuLocation.y);
 		}
 		
+		private function isItemShown(item:SubMenuItem, ..._):Boolean
+		{
+			return getLabel(item) && (item.shown == null || item.shown());
+		}
+		
 		private const tempBounds:Bounds2D = new Bounds2D();
 	}
 }
@@ -187,4 +195,5 @@ internal class SubMenuItem
 	public var label:Object;
 	public var listener:Function;
 	public var params:Array;
+	public var shown:Function;
 }

@@ -29,7 +29,7 @@ import weave.geometrystream.Bounds2D;
  * A StreamObject is something that can be sorted in three dimensions (x, y, importance).
  * @author adufilie
  */
-public interface StreamObject
+public interface IStreamObject
 {
 	// write the stream object to a DataOutputStream
 	public void writeStream(DataOutputStream stream) throws IOException;
@@ -50,9 +50,9 @@ public interface StreamObject
 	public double getImportance();
 
 	// sort by importance, descending
-	public static final Comparator<StreamObject> sortByImportance = new Comparator<StreamObject>()
+	public static final Comparator<IStreamObject> sortByImportance = new Comparator<IStreamObject>()
 	{
-	    public int compare(StreamObject o1, StreamObject o2)
+	    public int compare(IStreamObject o1, IStreamObject o2)
 	    {
 	    	// descending
 	    	return - Double.compare(o1.getImportance(), o2.getImportance());
@@ -60,9 +60,9 @@ public interface StreamObject
 	};
 
 	// sort by x, ascending
-	public static final Comparator<StreamObject> sortByX = new Comparator<StreamObject>()
+	public static final Comparator<IStreamObject> sortByX = new Comparator<IStreamObject>()
 	{
-		public int compare(StreamObject o1, StreamObject o2)
+		public int compare(IStreamObject o1, IStreamObject o2)
 		{
 			// ascending
 			return Double.compare(o1.getX(), o2.getX());
@@ -70,9 +70,9 @@ public interface StreamObject
 	};
 
 	// sort by y, ascending
-	public static final Comparator<StreamObject> sortByY = new Comparator<StreamObject>()
+	public static final Comparator<IStreamObject> sortByY = new Comparator<IStreamObject>()
 	{
-		public int compare(StreamObject o1, StreamObject o2)
+		public int compare(IStreamObject o1, IStreamObject o2)
 		{
 			// ascending
 			return Double.compare(o1.getY(), o2.getY());

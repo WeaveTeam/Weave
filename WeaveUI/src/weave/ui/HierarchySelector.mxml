@@ -43,7 +43,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.collections.XMLListCollection;
-			import mx.core.mx_internal;
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
@@ -80,8 +79,10 @@ Displays catoegories in a tree view and the attributes in a list.
 
 				categoriesView.selectedItemsCompareFunction = function(a:*,b:*):Boolean { return a == b; };
 				attributesView.selectedItemsCompareFunction = function(a:XML,b:XML):Boolean {
-					return HierarchyUtils.nodeContainsAttributes(a, b)
-						|| HierarchyUtils.nodeContainsAttributes(b, a);
+					return HierarchyUtils.nodeNamesMatch(a, b) && (
+							HierarchyUtils.nodeContainsAttributes(a, b.attributes()) ||
+							HierarchyUtils.nodeContainsAttributes(b, a.attributes())
+						);
 				};
 			}
 			

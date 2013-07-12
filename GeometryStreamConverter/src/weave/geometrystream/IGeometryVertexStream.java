@@ -24,7 +24,7 @@ package weave.geometrystream;
  * 
  * @author adufilie
  */
-public interface GeometryVertexStream
+public interface IGeometryVertexStream
 {
 	/**
 	 * This checks if there is a vertex available from the stream without advancing the pointer.

@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author adufilie
  */
-public interface GeometryStreamDestination
+public interface IGeometryStreamDestination
 {
 	void writeMetadataTiles(List<StreamTile> tiles) throws Exception;
 	void writeGeometryTiles(List<StreamTile> tiles) throws Exception;

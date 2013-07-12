@@ -49,11 +49,19 @@ public class VertexChainLink
 		this.prev = newVertex; // this vertex wraps backwards around to the new one
 	}
 
+	/**
+	 * Compares x and y values only
+	 * @param other
+	 * @return
+	 */
 	public boolean equals2D(VertexChainLink other)
 	{
 		return this.x == other.x && this.y == other.y;
 	}
 	
+	/**
+	 * This will invalidate the importance of neighboring vertices
+	 */
 	public void removeFromChain()
 	{
 		// promote adjacent vertices and invalidate their importance
@@ -76,26 +84,59 @@ public class VertexChainLink
 	/**
 	 * This function re-calculates the importance of the current point.
 	 * It may only increase the importance, not decrease it.
+	 * @return true if the point is marked with IMPORTANCE_REQUIRED.
 	 */
-	public void validateImportance()
+	public boolean validateImportance()
 	{
 		importanceIsValid = true;
-		// Removing this point may make the Part intersect itself.
-		// This problem won't be visible if the shape is drawn at the proper quality level.
+		// Removing this point may make the Part intersect itself, but that problem is unlikely
+		// to be noticeable if the shape is drawn at the proper quality level.
 		//TODO: Does this problem matter?  If this is to be avoided, the algorithm needs to be extended.
 		
 		// stop if already marked required
 		if (importance == VertexChainLink.IMPORTANCE_REQUIRED)
-			return;
+			return true;
 
 		// the importance of a point is the area formed by it and its two neighboring points
-		// update importance
 		
 		//TODO: use distance as well as area in determining importance?
 		
+		// update importance
 		double area = areaOfTriangle(prev, this, next);
+		//double area = distanceSquared(prev, next, this);
 		importance = Math.max(importance, area);
+		return false;
 	}
+	
+	/**
+	 * @param a Beginning of line segment.
+	 * @param b End of line segment.
+	 * @param c Point to test.
+	 * @return The shortest distance from the line segment AB to the point C.
+	 */
+/*	private double distanceSquared(VertexChainLink a, VertexChainLink b, VertexChainLink c)
+	{
+		double ax_bx = b.x - a.x;
+		double ay_by = b.y - a.y;
+		double ax_cx = c.x - a.x;
+		double ay_cy = c.y - a.y;
+		double u = (ax_cx * ax_bx + ay_cy * ay_by) / Math.sqrt(ax_bx * ax_bx + ay_by * ay_by);
+
+		if (u < 0) // a is closer
+		{
+		    return ax_cx * ay_cy;
+		}
+		else if (u > 1) // b is closer
+		{
+		    return (c.x - b.x) * (c.y - b.y);
+		}
+		else // use perpendicular distance
+		{
+			double x = a.x + u * (ax_bx);
+			double y = a.y + u * (ay_by);
+			return (c.x - x) * (c.y - y);
+		}
+	}*/
 
 	/**
 	 * @param a First point in a triangle.

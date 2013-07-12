@@ -235,6 +235,9 @@
 			
 			private function handleItemEdited(event:DataGridEvent):void
 			{
+				if (!overrideBinNames)
+					return;
+
 				var input:TextInput = binNameEditor.itemEditorInstance as TextInput;
 				
 				input.errorString = '';
@@ -252,17 +255,15 @@
 				}
 				
 				var source:Array = gridSource.source;
-				var names:Array = [];
-				for (var i:int = 0; i < source.length; i++)
-				{
-					if (event.rowIndex == i)
-						names.push(input.text);
-					else
-						names.push(source[i] as String);
-				}
+				var names:Array = WeaveAPI.CSVParser.parseCSV(overrideBinNames.value);
+				if (names && names.length)
+					names = names[0];
+				else
+					names = new Array(source.length);
 				
-				if (overrideBinNames)
-					overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
+				names[event.rowIndex] = input.text;
+				
+				overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
 			}
 		]]>
 	</mx:Script>

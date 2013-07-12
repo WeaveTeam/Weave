@@ -21,15 +21,11 @@ package weave.geometrystream;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
-import weave.geometrystream.StreamObject;
 
 /**
  * @author adufilie
  */
-public class GeometryMetadata implements StreamObject
+public class GeometryMetadata implements IStreamObject
 {
 	public GeometryMetadata(int shapeID, String shapeKey, int shapeType, String projectionWKT)
 	{
@@ -37,11 +33,16 @@ public class GeometryMetadata implements StreamObject
 		this.shapeKey = shapeKey;
 		this.shapeType = shapeType;
 		this.projectionWKT = projectionWKT;
-		this.bounds = new Bounds2D();
-		this.polygonMarkerIndices = new LinkedList<Integer>();
 		this.includeGeometryCollectionMetadataInStream = false;
 	}
 	
+	public final int shapeID;
+	public final String shapeKey;
+	public final int shapeType;
+	public final String projectionWKT;
+	public final Bounds2D bounds = new Bounds2D();
+	public boolean includeGeometryCollectionMetadataInStream;
+
 	public boolean isPointType()
 	{
 		return shapeType % 10 == 1 || shapeType % 10 == 8; // 1,21,11,8,28,18
@@ -57,13 +58,18 @@ public class GeometryMetadata implements StreamObject
 	
 	public int getStreamSize()
 	{
-		// int shapeID, String shapeKey, '\0', double xMin, double yMin, double xMax, double yMax, (int vertexID * (numPolygonMarkers + 1))
-		return (Integer.SIZE/8) + shapeKey.length() + 1 + (Double.SIZE/8) * 4 + (Integer.SIZE/8) * (polygonMarkerIndices.size() + 1);
+		// int shapeID, String shapeKey, '\0', double xMin, double yMin, double xMax, double yMax, int -1 or -3
+		int size = (Integer.SIZE/8) + shapeKey.length() + 1 + (Double.SIZE/8) * 4 + (Integer.SIZE/8);
+		
+		if (includeGeometryCollectionMetadataInStream)
+			size += (Integer.SIZE/8) + projectionWKT.length() + 1; // shapeType, projectionWKT, '\0'
+		
+		return size;
 	}
 	
 	public void writeStream(DataOutputStream metadataStream) throws IOException
 	{
-		// binary format: <int shapeID, String shapeKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, int vertexID2, ..., int vertexID(n-1), int VertexID(n), int -1 or -2>
+		// binary format: <int shapeID, String shapeKey, '\0', double xMin, double yMin, double xMax, double yMax, int -1 or (-3,shapeType,projectionWKT,'\0')>
 		// write shapeID
 		metadataStream.writeInt(shapeID);
 		// write shapeKey
@@ -74,9 +80,7 @@ public class GeometryMetadata implements StreamObject
 		metadataStream.writeDouble(bounds.yMin);
 		metadataStream.writeDouble(bounds.xMax);
 		metadataStream.writeDouble(bounds.yMax);
-		// write polygon markers (index values used to separate polygon parts)
-		for (int i : polygonMarkerIndices)
-			metadataStream.writeInt(i);
+		
 		if (includeGeometryCollectionMetadataInStream)
 		{
 			// write the flag to signal the end of the polygon markers and indicate that the shapeType follows
@@ -96,14 +100,6 @@ public class GeometryMetadata implements StreamObject
 			metadataStream.writeInt(-1);
 		}
 	}
-
-	public int shapeID;
-	public String shapeKey;
-	public int shapeType;
-	public String projectionWKT;
-	public Bounds2D bounds;
-	public List<Integer> polygonMarkerIndices;
-	public boolean includeGeometryCollectionMetadataInStream;
 
 	public Bounds2D getQueryBounds()
 	{

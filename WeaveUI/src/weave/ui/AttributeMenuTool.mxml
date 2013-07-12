@@ -69,7 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</Indent>
 					<Indent label="{lang('Visualization attribute:')}">
 						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
+										valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
 						<HelpComponent content="{lang('Select the visualization attribute that you want the menu to be linked to.')}"/>
 					</Indent>
 					<Indent label="{lang('Menu layout:')}">
@@ -103,7 +103,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.IChildListCallbackInterface;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
@@ -119,6 +118,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -180,7 +180,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			};
 			
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
-			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
+			public const targetAttributeNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-1, isFinite));
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
@@ -212,7 +212,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
 			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Vertical Slider'), lang('Horizontal Slider')];
 			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
-
+			
 			private function layoutLabelFunction(inputString:String):String
 			{
 				return layoutLabels[layouts.indexOf(inputString)];
@@ -229,7 +229,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 				// have a default dynamic title
-				panelTitle.value = lang('Attribute menu for {0}', '{targetAttribute.value}');
+				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
 				
 				// have some default choices ready when the tool is created
 				copySessionState(ProbeTextUtils.probedColumns, choices);
@@ -246,7 +246,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// we don't have to worry about ui components being null inside the callbacks.
 				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
 				targetTool.addGroupedCallback(this, validateToolJugglerTarget, true);
-				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
+				targetAttributeNumber.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addImmediateCallback(this, handleChoicesChange, true);
 				showPlayButton.addImmediateCallback(this, stopPlay);
 				
@@ -272,7 +272,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function showControlPanelIfNothingSelected():void
 			{
 				// when the tool is created and nothing is selected, show the control panel
-				if (!targetTool.value && !targetAttribute.value && !WeaveAPI.StageUtils.mouseButtonDown)
+				if (!targetTool.value && targetAttributeNumber.value < 0 && !WeaveAPI.StageUtils.mouseButtonDown)
 					toggleControlPanel();
 			}
 			
@@ -280,6 +280,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function getTargetTool():IVisToolWithSelectableAttributes
 			{
 				return toolJuggler.target as IVisToolWithSelectableAttributes;
+			}
+			
+			public function get targetAttributeName():String
+			{
+				return _attrNames[targetAttributeNumber.value];
 			}
 			
 			// called whenever a global object gets added/removed/reordered
@@ -317,6 +322,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else if (_attrNames.length)
 				{
+					_attrs = [];
 					targetAttributeCombo.dataProvider = _attrNames = [];
 				}
 				
@@ -327,33 +333,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// called when the target attr changes
 			private function handleTargetAttributeChange():void
 			{
-				var tool:IVisToolWithSelectableAttributes = getTargetTool();
-				// only enable the choiceCombo if the target attribute exists in the target tool
-				if (tool)
-				{
-					var index:int = _attrNames.indexOf(targetAttribute.value);
-					if (index >= 0)
-					{
-						// found the attribute name in the list, now check if it's a compatible object
-						var obj:Object = _attrs[index];
-						var compatible:Boolean = obj is DynamicColumn || obj is ILinkableHashMap;
-						layoutViewStack.enabled = compatible;
-					}
-					else
-					{
-						layoutViewStack.enabled = false;
-					}
-				}
-				else
-				{
-					layoutViewStack.enabled = false;
-				}
+				// found the attribute name in the list, now check if it's a compatible object
+				var obj:Object = _attrs[targetAttributeNumber.value];
+				var compatible:Boolean = obj is DynamicColumn || obj is ILinkableHashMap;
+				layoutViewStack.enabled = compatible;
 				
 				// make sure the correct item is selected
-				targetAttributeCombo.selectedItem = targetAttribute.value;
+				targetAttributeCombo.selectedIndex = compatible ? targetAttributeNumber.value : -1;
 				// clear the choice
-//				choiceCombo.selectedIndex = -1;
-//				choiceList.selectedIndex = -1;
+				//				choiceCombo.selectedIndex = -1;
+				//				choiceList.selectedIndex = -1;
 			}
 			
 			// called when the admin alters the choices through the control panel
@@ -389,6 +378,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					target.value = combo.selectedItem as String;
 			}
 			
+			private function handleComboChangeIndex(combo:ComboBox, target:LinkableNumber):void
+			{
+				if (UIUtils.hasFocus(combo))
+					target.value = combo.selectedIndex;
+			}
+			
 			// called when the user clicks on the combo in the main AttributeMenuTool window
 			private function handleAttrSelected(selectedIndex:int):void
 			{
@@ -398,11 +393,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				// find the index of the tool attribute selected in the control panel
-				var index:int = _attrNames.indexOf(targetAttribute.value);
-				if (index < 0)
+				var index:int = targetAttributeNumber.value;
+				if (index < 0 || index >= _attrs.length)
 				{
 					// we didn't find the "SelectableAttributeName"
-					reportError(StringUtil.substitute('"{0}" does not have attribute "{1}"', targetTool.value, targetAttribute.value));
+					reportError(StringUtil.substitute('"{0}" does not have an attribute at index {1}', targetTool.value, index));
 					return;
 				}
 				
@@ -432,7 +427,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
-					reportError('This option is not supported for the attribute "' + targetAttribute.value + '"');
+					reportError('This option is not supported for the attribute "' + targetAttributeName + '"');
 				}
 			}
 			
@@ -454,6 +449,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					choiceVSlider.value = names.length - 1 - selectedIndex;
 					handleAttrSelected(selectedIndex);
 				}
+			}
+			
+			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void
+			{
+				WeaveAPI.StageUtils.callLater(this, function():void{
+					validateToolJugglerTarget();
+					handleToolChange();
+					targetAttributeNumber.value = _attrNames.indexOf(value);
+				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 			
 			[Deprecated] public function set hack_showPlayButton(value:Boolean):void

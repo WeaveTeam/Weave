@@ -195,7 +195,7 @@
 		return dimensionSlider.labels[dimensionSlider.value];
 	}
 	
-	private function initializeLabels():void
+	private function initializeLabels(callingLater:Boolean = false):void
 	{
 		//we'll run through the dimensions to set the defaults
 		//intialize the labels (a list of years concatenated, separated by commas)
@@ -204,7 +204,8 @@
 			getValuesFromCurrentDimensions();
 			if (!labelsLinkableString.value)
 			{
-				callLater(initializeLabels);
+				if (!callingLater || WeaveAPI.ProgressIndicator.getTaskCount() > 0)
+					callLater(initializeLabels, [true]);
 				return;
 			}
 		}

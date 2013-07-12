@@ -38,7 +38,7 @@ public class GeometryStreamConverter
 	public static boolean debugTime = true;
 	public static boolean debugCounts = false;
 	
-	public GeometryStreamConverter(GeometryStreamDestination destination)
+	public GeometryStreamConverter(IGeometryStreamDestination destination)
 	{
 		this.destination = destination;
 	}
@@ -54,11 +54,16 @@ public class GeometryStreamConverter
 	 */
 	public int streamFlushInterval = 10 * 1024 * 1024; // default 10 megabytes
 	
-	protected GeometryStreamDestination destination;
-	protected SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
+	public int totalVertices = 0;
+	public double totalVertexArea = 0;
+	public double totalQueryArea = 0;
+	
+	protected final IGeometryStreamDestination destination;
+	protected final SerialIDGenerator shapeIDGenerator = new SerialIDGenerator();
 	protected int metadataStreamSize = 0;
-	protected LinkedList<StreamObject> metadataList = new LinkedList<StreamObject>();
-	protected VertexMap vertexMap = new VertexMap();
+	protected final LinkedList<IStreamObject> metadataList = new LinkedList<IStreamObject>();
+	protected final VertexMap vertexMap = new VertexMap();
+	protected final Bounds2D partBounds = new Bounds2D();
 	
 	/**
 	 * These are reused for the life of this object to minimize Java garbage collection activity.
@@ -72,9 +77,8 @@ public class GeometryStreamConverter
 	 * @param projectionWKT Projection info in Well-Known-Text format
 	 * @throws Exception
 	 */
-	public void convertFeature(FeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
+	public void convertFeature(IFeatureGeometryStream geomStream, int shapeType, String shapeKey, String projectionWKT) throws Exception
 	{
-
 		// save shape metadata for feature
 		GeometryMetadata geometryMetadata = new GeometryMetadata(shapeIDGenerator.getNext(), shapeKey, shapeType, projectionWKT);
 		metadataList.add(geometryMetadata);
@@ -85,14 +89,11 @@ public class GeometryStreamConverter
 		int firstVertexID = 0;
 		while (geomStream.hasNext())
 		{
-			GeometryVertexStream vertexStream = geomStream.getNext();
+			IGeometryVertexStream vertexStream = geomStream.getNext();
 			while (vertexStream.hasNext())
 			{
 				// copy vertices for this geometry part
 
-				// add polygon marker before the next part
-				if (firstVertexID > 0)
-					geometryMetadata.polygonMarkerIndices.add(firstVertexID++);
 				// loop through coordinates, converting them to VertexChainLink objects
 				double x;
 				double y;
@@ -104,6 +105,7 @@ public class GeometryStreamConverter
 				int chainLength = 0;
 				while (vertexStream.next())
 				{
+					totalVertices++;
 					x = vertexStream.getX();
 					y = vertexStream.getY();
 					// don't add invalid points
@@ -134,15 +136,20 @@ public class GeometryStreamConverter
 					
 					// save coord in next vertex object
 					vertex = reusableVertexChainLinks.get(chainLength);
-					vertex.initialize(x, y, firstVertexID + chainLength++);
+					vertex.initialize(x, y, firstVertexID + chainLength);
 					// insert vertex in chain
 					reusableVertexChainLinks.get(0).insert(vertex);
 					
+					chainLength++;
 					prevX = x;
 					prevY = y;
 				}
+				
+				if (chainLength == 0)
+					break;
+				
 				// ARC: end points of a part are required points
-				if (geometryMetadata.isLineType() && chainLength > 0)
+				if (geometryMetadata.isLineType())
 				{
 					reusableVertexChainLinks.get(0).importance = VertexChainLink.IMPORTANCE_REQUIRED;
 					reusableVertexChainLinks.get(chainLength - 1).importance = VertexChainLink.IMPORTANCE_REQUIRED;
@@ -150,6 +157,10 @@ public class GeometryStreamConverter
 				
 				// assign importance values to vertices and save them
 				processVertexChain(geometryMetadata, chainLength);
+				
+				// add part marker
+				if (firstVertexID > 0 || vertexStream.hasNext() || geomStream.hasNext())
+					vertexMap.addPartMarker(geometryMetadata.shapeID, firstVertexID, chainLength, partBounds);
 				
 				// done copying points for this part, advance firstVertexID to after the current part
 				firstVertexID += chainLength;
@@ -177,20 +188,20 @@ public class GeometryStreamConverter
 	}
 
 	/**
-	 * Sorts the current vertexChain by importance value, removes least important points first.
+	 * Iteratively sorts the current vertexChain and removes all points in ascending importance order.
 	 * @param geometryMetadata The metadata for the current geometry.
 	 * @param startingChainLength The number of points in the chain.  Can be derived from the point chain, but the code is faster if this is already known.
 	 */
 	protected void processVertexChain(GeometryMetadata geometryMetadata, int startingChainLength)
 	{
+		partBounds.reset();
 		if (startingChainLength == 0)
 			return;
 		
 		VertexChainLink firstVertex = reusableVertexChainLinks.get(0);
 		VertexChainLink vertex = null;
 
-		// include all vertices from chain in part bounds
-		Bounds2D partBounds = new Bounds2D();
+		// include all vertices from chain in partBounds
 		for (int i = 0; i < startingChainLength; i++)
 		{
 			vertex = reusableVertexChainLinks.get(i);
@@ -198,8 +209,9 @@ public class GeometryStreamConverter
 		}
 		// update geometry bounds to include part bounds
 		geometryMetadata.bounds.includeBounds(partBounds);
-		// get maximum possible importance of vertices in this part
-		double maxImportance = partBounds.getImportance();
+		// Setting the importance of required points equal to the area of the part causes
+		// the part to be rendered whenever its bounding box covers at least one pixel.
+		double partImportance = partBounds.getImportance();
 
 		boolean isPolygon = geometryMetadata.isPolygonType();
 		boolean isLine = geometryMetadata.isLineType();
@@ -213,21 +225,30 @@ public class GeometryStreamConverter
 			int currentChainLength = startingChainLength;
 			while (startingChainLength > minSize)
 			{
-				// sort vertices by importance
-				sortVertexChain(firstVertex, sortArray);
+				// sort vertices by importance, ascending
+				if (sortVertexChain(firstVertex, sortArray))
+					break; // all points are required
 
-				// in sorted order, extract each point as long as its
-				// surrounding points have not been invalidated
+				// In sorted order, extract each point as long as its importance
+				// has not been invalidated by the removal of an adjacent point.
 				for (int index = 0; index < startingChainLength && currentChainLength > minSize; index++)
 				{
 					vertex = sortArray[index];
-					// skip points whose importance needs to be updated
+					
+					// Here, we trade away "best effort" for speed. 
+					// Skip points whose importance needs to be updated due to being adjacent to recently removed points.
+					// Otherwise, we would have to reposition each adjacent point in the sorted array after a removal ( O(log n) ).
 					if (!vertex.importanceIsValid)
 						continue;
+					
+					// we can't remove required points until ALL are required
+					if (vertex.importance == VertexChainLink.IMPORTANCE_REQUIRED)
+						break;
+					
 					// set firstVertex to next one to make sure next loop iteration will work
 					firstVertex = vertex.next;
 					// extract this vertex, invalidating adjacent vertices
-					vertexMap.addPoint(geometryMetadata.shapeID, partBounds, vertex);
+					vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance, partBounds);
 					vertex.removeFromChain();
 					currentChainLength--;
 				}
@@ -241,8 +262,8 @@ public class GeometryStreamConverter
 		for (int i = 0; i < startingChainLength; i++)
 		{
 			vertex = firstVertex.next;
-			vertex.importance = maxImportance;
-			vertexMap.addPoint(geometryMetadata.shapeID, partBounds, vertex);
+			vertex.importance = VertexChainLink.IMPORTANCE_REQUIRED;
+			vertexMap.addPoint(geometryMetadata.shapeID, vertex, partImportance, partBounds);
 			vertex.removeFromChain();
 		}
 	}
@@ -251,19 +272,21 @@ public class GeometryStreamConverter
 	 * Calculates importance values for all points in a chain and then sorts them by importance.
 	 * @param firstVertex The first point in a chain of points.
 	 * @param outputSortArray An array to store the points in sorted order.
-	 * @return The number of points in the chain that were sorted.
+	 * @return A value of true if all points are marked as required (meaning that importance-based processing should stop)
 	 */
-	protected int sortVertexChain(VertexChainLink firstVertex, VertexChainLink[] outputSortArray)
+	protected boolean sortVertexChain(VertexChainLink firstVertex, VertexChainLink[] outputSortArray)
 	{
+		boolean allRequired = true;
 		VertexChainLink vertex = firstVertex;
 		int vertexCount = 0;
 		do {
-			vertex.validateImportance();
+			if (!vertex.validateImportance())
+				allRequired = false;
 			outputSortArray[vertexCount++] = vertex;
 			vertex = vertex.next;
 		} while (vertex != firstVertex);
 		Arrays.sort(outputSortArray, 0, vertexCount, VertexChainLink.sortByImportance);
-		return vertexCount;
+		return allRequired;
 	}
 
 	/**
@@ -277,6 +300,7 @@ public class GeometryStreamConverter
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(metadataList, tileSize);
 		destination.writeMetadataTiles(tiles);
 		metadataStreamSize = 0;
+		metadataList.clear();
 
 		long elapsed = System.currentTimeMillis() - startTime;
 		if (debugFlush)
@@ -296,8 +320,15 @@ public class GeometryStreamConverter
 	{
 		long startTime = System.currentTimeMillis();
 		
-		LinkedList<StreamObject> streamObjects = vertexMap.getStreamObjects();
+		LinkedList<IStreamObject> streamObjects = vertexMap.getStreamObjects();
 		List<StreamTile> tiles = GeometryStreamUtils.groupStreamObjectsIntoTiles(streamObjects, tileSize);
+
+		for (StreamTile tile : tiles)
+		{
+			totalVertexArea += tile.pointBounds.getArea();
+			totalQueryArea += tile.queryBounds.getArea();
+		}
+		
 		destination.writeGeometryTiles(tiles);
 		vertexMap.clear();
 		
@@ -320,5 +351,12 @@ public class GeometryStreamConverter
 		flushMetadataTiles();
 		flushGeometryTiles();
 		destination.commit();
+		System.out.println(String.format(
+				"numVertices %s, pointArea %s, queryArea %s, qa/pa %s",
+				totalVertices,
+				totalVertexArea,
+				totalQueryArea,
+				totalQueryArea/totalVertexArea
+			));
 	}
 }

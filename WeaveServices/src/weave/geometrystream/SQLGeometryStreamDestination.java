@@ -37,7 +37,7 @@ import weave.utils.SerialIDGenerator;
  * 
  * @author adufilie
  */
-public class SQLGeometryStreamDestination implements GeometryStreamDestination
+public class SQLGeometryStreamDestination implements IGeometryStreamDestination
 {
 	/**
 	 * @param conn The SQL connection to use to create tables.

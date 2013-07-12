@@ -24,14 +24,11 @@ package weave.core
 	import flash.xml.XMLNodeType;
 	
 	import mx.rpc.xml.SimpleXMLEncoder;
-	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 	
 	/**
-	 * XMLEncoder
 	 * This extension of SimpleXMLEncoder adds support for encoding TypedSessionState objects, XML values, and null values.
 	 * The static encode() method eliminates the need to create an instance of XMLEncoder.
 	 * 
@@ -42,13 +39,13 @@ package weave.core
 		/**
 		 * encoding types
 		 */
+		public static const JSON_ENCODING:String = "json";
 		public static const XML_ENCODING:String = "xml";
 		public static const CSV_ENCODING:String = "csv";
 		public static const CSVROW_ENCODING:String = "csv-row";
 		public static const DYNAMIC_ENCODING:String = "dynamic";
 		
 		/**
-		 * encode
 		 * This static function eliminates the need to create an instance of XMLEncoder.
 		 * @param object An object to encode in xml.
 		 * @return The xml encoding of the object.
@@ -57,15 +54,7 @@ package weave.core
 		{
 			var result:XMLNode = _xmlEncoder.encodeValue(object, QName(tagName), _encodedXML);
 			result.removeNode();
-			try
-			{
-				return XML(result);
-			}
-			catch (e:Error)
-			{
-				reportError(e, "XMLEncoder: Unable to convert XMLNode to XML: "+ObjectUtil.toString(result));
-			}
-			return null; // unreachable
+			return XML(result);
 		}
 
 		// reusable objects for static encode() method
@@ -85,16 +74,11 @@ package weave.core
 		
 		override public function encodeValue(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			if (DynamicState.objectHasProperties(obj))
+			if (DynamicState.objectHasProperties(obj) && obj[DynamicState.CLASS_NAME])
 			{
 				var className:String = obj[DynamicState.CLASS_NAME];
 				var objectName:String = obj[DynamicState.OBJECT_NAME];
 				var sessionState:Object = obj[DynamicState.SESSION_STATE];
-				
-				if (className == null)
-				{
-					reportError(StringUtil.substitute("invalid DynamicState: class={0}, name={1}", className, objectName));
-				}
 				var qualifiedClassName:Array = className.split("::");
 				var typedNode:XMLNode = encodeValue(sessionState, new QName("", qualifiedClassName[1]), parentNode);
 				if (objectName != null)
@@ -103,13 +87,6 @@ package weave.core
 					typedNode = setAttributeAndReplaceNode(typedNode, "package", qualifiedClassName[0]);
 				return typedNode;
 			}
-			/*
-			 *
-			
-			<LinkableVariable name="var">
-			<x>3</x>
-			</LinkableVariable>
-			*/
 			if (obj is Array)
 			{
 				var array:Array = obj as Array;
@@ -177,11 +154,30 @@ package weave.core
 			if (obj === Number.POSITIVE_INFINITY || obj === Number.NEGATIVE_INFINITY)
 				obj = obj.toString();
 			
-			return super.encodeValue(obj, qname, parentNode);
+			var node:XMLNode = super.encodeValue(obj, qname, parentNode);
+			try
+			{
+				XML(node);
+			}
+			catch (e:Error)
+			{
+				// bad xml
+				node.removeNode();
+				
+				var str:String = '';
+				var json:Object = ClassUtils.getClassDefinition('JSON');
+				if (json)
+					str = json.stringify(obj, null, 4);
+				else
+					reportError("XMLEncoder: Unable to convert XMLNode to XML: " + node.toString());
+				
+				node = super.encodeValue(str, qname, parentNode);
+				node.attributes["encoding"] = JSON_ENCODING;
+			}
+			return node;
 		}
 		
 		/**
-		 * setAttributeAndReplaceNode
 		 * This function provides a workaround for a bug that occurs when setting an attribute in an XMLNode.
 		 * If you try to do node.attributes.attributeName = "value", sometimes node.toString() will
 		 * return something like  'attributeName="value" <nodeName />'.

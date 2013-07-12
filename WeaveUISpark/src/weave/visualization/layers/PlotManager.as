@@ -22,6 +22,8 @@ package weave.visualization.layers
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.display.Graphics;
+	import flash.display.Shape;
 	import flash.events.Event;
 	import flash.filters.GlowFilter;
 	import flash.geom.ColorTransform;
@@ -372,9 +374,24 @@ package weave.visualization.layers
 					zoomBounds.getDataBounds(tempDataBounds);
 					tempDataBounds.setWidth(tempDataBounds.getWidth() * scale);
 					tempDataBounds.setHeight(tempDataBounds.getHeight() * scale);
-					zoomBounds.setDataBounds(tempDataBounds);
+					setCheckedZoomDataBounds(tempDataBounds);
 				}
 			}
+		}
+		
+		/**
+		 * This function sets the data bounds for zooming, but checks them against the min and max zoom first.
+		 * @param bounds The bounds that zoomBounds should be set to.
+		 * @param zoomOut Optional parameter for specifying zoomOut in zoomBounds.setDataBounds().
+		 * @see weave.primitives.ZoomBounds#setDataBounds()
+		 */
+		public function setCheckedZoomDataBounds(bounds:IBounds2D, zoomOutIfNecessary:Boolean = false):void
+		{
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
+			var zoomLevel:Number = ZoomUtils.getZoomLevel(bounds, tempScreenBounds, fullDataBounds, minSize);
+			if( zoomLevel > minZoomLevel.value && zoomLevel < maxZoomLevel.value )
+				zoomBounds.setDataBounds(bounds, zoomOutIfNecessary);
 		}
 		
 		/**
@@ -723,6 +740,25 @@ package weave.visualization.layers
 									completedReady || task.progress == 0 ? .25 + .75 * task.progress : 1
 								);
 							}
+							
+							if (debugMargins && !task.screenBounds.isUndefined())
+							{
+								var r:Rectangle = bitmap.bitmapData.rect;
+								var g:Graphics = tempShape.graphics;
+								var sb:Bounds2D = task.screenBounds as Bounds2D;
+								g.clear();
+								g.lineStyle(1,0,1);
+								g.beginFill(0xFFFFFF, 0.5);
+								
+								var ax:Array = [0, sb.xMin, sb.xMax, r.width];
+								var ay:Array = [0, sb.yMax, sb.yMin, r.height];
+								for (var ix:int = 0; ix < 3; ix++)
+									for (var iy:int = 0; iy < 3; iy++)
+										if (ix != 1 || iy != 1)
+											g.drawRect(ax[ix], ay[iy], ax[ix+1]-ax[ix], ay[iy+1]-ay[iy]);
+								
+								bitmap.bitmapData.draw(tempShape);
+							}
 						}
 					}
 					else if (debug)
@@ -732,6 +768,10 @@ package weave.visualization.layers
 				}
 			}
 		}
+		
+		public var debugMargins:Boolean = false;
+		private const tempShape:Shape = new Shape();
+		
 		private const _colorTransform:ColorTransform = new ColorTransform();
 		private const _clipRect:Rectangle = new Rectangle();
 		private const _matrix:Matrix = new Matrix();

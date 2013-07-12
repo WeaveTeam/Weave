@@ -34,19 +34,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.net.sendToURL;
-			
 			import mx.controls.Alert;
-			import mx.events.ListEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.reportError;
-			import weave.core.UIUtils;
+			import weave.data.DataSources.CSVDataSource;
 			import weave.radviz.ClassInfoObject;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
@@ -75,9 +73,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_target._plotter.alphaColumn.defaultValue, alphaSlider, "value");
-				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );	
-								
+				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );
+				
+				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalNamesChange, true);
 			} 
+			
+			private function handleGlobalNamesChange():void
+			{
+				if (!csvDataComboBox)
+				{
+					callLater(handleGlobalNamesChange);
+					return;
+				}
+				csvDataComboBox.dataProvider = WeaveAPI.globalHashMap.getNames(CSVDataSource);
+			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
@@ -411,6 +420,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									label="Global"
 									/>
 				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Normalized Threshold value for Probe Lines: "/>
+					<mx:TextInput width="50" creationComplete="linkBindableProperty(_target._plotter.probeLineNormalizedThreshold,event.target,'text')"/>
+					<ui:HelpComponent content="Enter a value between 0 and 1. Probe lines will only be drawn from the point to those dimensions whose normalized corresponding values are equal or higher than this value"/>
+				</mx:HBox>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox>
@@ -473,7 +487,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:VBox>
 					<mx:HBox>
 						<mx:Label text="Source name" />
-						<mx:ComboBox id="csvDataComboBox" dataProvider="{_target._plotter.listOfCsvData}"
+						<mx:ComboBox id="csvDataComboBox"
 									 enabled = "{sampleCheckBox.selected}"
 									 creationComplete="linkBindableProperty(_target._plotter.dataSetName, event.target, 'selectedItem')"/>
 					</mx:HBox>
