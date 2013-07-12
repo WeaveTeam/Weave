@@ -1,0 +1,24 @@
+<project name="AWS" basedir="." default="dist">
+	<property environment="env"/>
+	<property file="${workspace_loc}/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.core.resources.prefs"/>
+	<property name="WEAVE_OUT" value="${pathvariable.WEAVE_DOCROOT}" />
+	<property name="AWS_OUT" value="${WEAVE_OUT}/aws" />
+	<property name="ROOT" value="${basedir}/ROOT" />
+	
+	
+	<target name="dist" >
+		<echo message="Compiling ${ant.project.name}..."/>
+    	<echo message="Deleting Destination Folder ${AWS_OUT}"/>
+		<mkdir dir = "${AWS_OUT}"/>
+		<delete quiet="false" includeemptydirs="true">
+			<fileset dir="${AWS_OUT}" />
+		</delete>
+		<echo message="Copying ${ROOT} to .. ${AWS_OUT}"/>
+		
+		<copy todir="${AWS_OUT}">
+			<fileset dir="${ROOT}"/>
+		</copy>
+		<sleep seconds="1"/>
+		<echo message="Done copying directory ${ROOT}"/>
+	 </target>
+</project>

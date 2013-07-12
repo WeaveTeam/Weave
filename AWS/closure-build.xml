@@ -1,0 +1,38 @@
+<project basedir="." default="compile">
+	
+	<property name="srcdir" value="${basedir}/src"/>
+	
+	<taskdef name="jscomp" classpath="${basedir}/lib/compiler.jar" classname="com.google.javascript.jscomp.ant.CompileTask"/>
+
+	<macrodef name="compile-soy">
+		<attribute name="file"/>
+		<sequential>
+		    
+			<java jar="${basedir}/lib/SoyToJsSrcCompiler.jar" fork="true" failonerror="true">
+		    	<arg value="--outputPathFormat"/>
+		    	<arg value="${basedir}/generated/{file}.js"/>
+		    	<arg value="--srcs"/>
+		    	<arg value="${basedir}/src/{file}.soy"/>
+			</java>
+		</sequential>
+	</macrodef>
+	<!-- <compile-soy file="mytemplate.soy"/> -->
+
+	<target name="compile">
+		<jscomp compilationLevel="simple" warning="verbose" 
+		        debug="false" output="${basedir}/ROOT/aws.js">
+			
+			<externs dir="${basedir}/externs">
+				<file name="jquery-1.9.js"/>
+				<file name="myexterns.js"/>
+			</externs>
+			
+			<sources dir="${basedir}/src">
+				<file name="aws/client/commons.js"/>
+				<file name="aws/client/DataClient.js"/>
+			</sources>
+
+		</jscomp>
+	</target>
+
+</project>
