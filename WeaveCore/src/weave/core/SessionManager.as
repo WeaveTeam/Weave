@@ -294,15 +294,15 @@ package weave.core
 				if (object is ILinkableDynamicObject)
 				{
 					// do not show static object in tree
-					names = (object as ILinkableDynamicObject).globalName ? [] : ["internalObject"];
+					names = (object as ILinkableDynamicObject).globalName ? null : [null];
 				}
 				else if (object)
 				{
 					names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
 				}
-				for (var j:int = 0; j < names.length; j++)
+				for each (var name:String in names)
 				{
-					childObject = object[names[j]];
+					childObject = object[name || 'internalObject'];
 					if (!childObject)
 						continue;
 					if (/* object is ILinkableDynamicObject ||  */childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
@@ -313,7 +313,7 @@ package weave.core
 						ignoreList[childObject] = true;
 						
 						// get subtree
-						tempObject = getSessionStateTree(childObject,names[j],objectTypeFilter);
+						tempObject = getSessionStateTree(childObject, name, objectTypeFilter);
 						if (tempObject != null)
 							result.children.push(tempObject);
 					}
