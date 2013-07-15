@@ -1,0 +1,27 @@
+<div id="leftPanel" > <!--ng controller LeftPanelsCtrl-->
+
+  <div  ng-repeat="panel in panels">
+    <div id="leftPanel_{{panel.id}}">
+      <div id="panel-{{panel.id}}" class="portlet" portlet-panel>
+        <div class="portlet-header">Analysis Builder Add panelTitle</div>
+        <div class="portlet-content">Summary of selected parameters addContent() method</div>
+    </div>
+  </div>
+
+    <div id="weaveThumb">
+          <button id="weaveThumb" class="btn btn-primary" ng-click="">Open Weave</button>
+    </div>
+  </div>
+
+</div>
+
+.directive('sortable', function(){
+  return {
+    link: function(scope, element, attrs){
+      // var e = element.find(".sort");
+      // e.sortable();
+      // element.find(".portlet").disableSelection();
+      $( "#sortable" ).sortable();
+    }
+  }
+}) 

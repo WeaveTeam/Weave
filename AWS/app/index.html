@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" ng-app="myApp">
+<head>
+  <meta charset="utf-8">
+  <title>Angular AWS</title>
+  <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/bootstrap.css"/>
+  <link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.10.3.custom.css"
+</head>
+<body>
+<!--   <div ng-view></div> -->
+
+<div >
+
+
+
+<div id="container" ng-controller="PanelGenericCtrl">
+    <div id="header">
+      <div ng-controller="DialogCtrl" style="display: inline-block">
+          <button id="projectButton" class="btn btn-primary" ng-click="openDialog('project')">Project</button>
+          <button id="dataButton" class="btn btn-primary" ng-click="openDialog('dataDialog')">Data...</button>
+          <input type="text" ng-model="typing">
+      </div>
+    </div>
+
+    <div id="leftPanel">
+      <div id="leftPanel_1">
+        <div id="Indicators" class="portlet" portlet-panel>
+          <div class="portlet-header">Analysis Builder</div>
+          <div class="portlet-content">Summary of selected parameters</div>
+        </div>
+      </div>
+      <div id="leftPanel_2">
+        <div id="Indicators" class="portlet" portlet-panel>
+          <div class="portlet-header">Calculation</div>
+          <div class="portlet-content">Summary of selected calculation script</div>
+        </div>
+      </div>  
+      <div id="leftPanel_3">
+        <div id="Indicators" class="portlet" portlet-panel>
+          <div class="portlet-header">Weave</div>
+          <div class="portlet-content">Summary of visualization parameters
+            
+        </div>
+        {{typing}}<span ng-bind"typing"></span>
+      </div>
+
+      <div id="weaveThumb">
+            <button id="weaveThumb" class="btn btn-primary" ng-click="">Open Weave</button>
+      </div>
+     </div>
+    </div> <!-- end of Left Panel Div -->
+
+
+    <div id="center" sortable>
+      <div id="sortable">
+          <div ng-repeat='a in b' class="panel">
+            <div class="{{a.x}} sort" >
+              <div id="{{a.id}}-panel" class="portlet" portlet-panel>
+                 <div class="portlet-header">{{a.panelTitle}}</div>
+                 <div class="portlet-content"><br>{{addContent(a)}}
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+  -->
+    <script src="lib/jquery/jquery.js"></script>
+  <script src='lib/jquery/jquery-ui.js'></script>
+  <script src="lib/jquery/jquery.gridster.js"></script>
+  <script src="lib/angular/angular.js"></script>
+  <script src="lib/angular/ui-bootstrap-tpls-0.4.0.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/controllers.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/services.js"></script>
+  <script src="lib/angular/angular-resource.js"></script> 
+  <script src="js/dataClient2.js"></script>
+  <script src="js/directives.js"></script>
+</body>
+</html>

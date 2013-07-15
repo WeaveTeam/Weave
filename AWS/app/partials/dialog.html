@@ -1,0 +1,47 @@
+<!-- '<div class="modal-header">'+
+          '<h3>This is the title</h3>'+
+          '</div>'+
+          '<div class="modal-body">'+
+          '<p>Enter a value to pass to <code>close</code> as the result: <input ng-model="conn.result" /></p>'+
+          '</div>'+
+          '<div class="modal-footer">'+
+          '<button ng-click="close(result)" class="btn btn-primary" >Close</button>'+
+          '</div>'; -->
+
+<div class="modal-header">
+  <h4>Database Connection Dialog</h4>
+</div>
+<div class="modal-body">
+<div id="dataDialog" title="Data">
+      <div id="dbconnection">
+        SQL Connection Info<br><br>
+        SQL Server Type: <select id="dataCombobox" ng-model="conn.serverType">
+                  <option value="MySQL">MySQL</option>
+                  <option value="PostGreSQL">PostGreSQL</option>
+                  <option value="MicrosoftSQL">Microsoft SQL Server</option>
+                  <option value="Oracle">Oracle</option>
+                 </select> <br>
+        SQL Server IP:   <input type="text" ng-model="conn.sqlip"><br>
+        SQL Server Port: <input type="text"  ng-model="conn.sqlport"><br>
+        SQL User:   <input type="text" ng-model="conn.sqluser"><br>
+        SQL Password:   <input type="password" ng-model="conn.sqlpass"><br>
+      SQL Database Name: <input type="text" ng-model="conn.sqldbname">(optional)
+      </div>
+      
+      <div id="dbauthentication">
+        <br><br>
+        Connection Name: <input type="text"  ng-model="conn.connectionName"><br>
+        Password: <input type="password"  ng-model="conn.connectionPass"><br>   
+        <button id="getHierarchy" ng-click="connect()">Connect</button> <br>   
+      </div>
+
+    <div id="dbhierarchy">
+        Data Tables <br> <select id="dataTables" ng-model="dataTables"></select><br>
+        Columns <br>  <select id="columns"></select>    
+      </div>
+      
+  </div>
+</div>
+<div class="modal-footer">
+  <button ng-click="close(result)" class="btn btn-primary" >Close</button>
+</div>

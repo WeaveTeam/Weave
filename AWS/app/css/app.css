@@ -1,0 +1,156 @@
+/* app css stylesheet */
+
+body {
+  padding-top: 20px;
+}
+
+h1 {
+  border-bottom: 1px solid gray;
+}
+
+#container {
+  width: 98%;
+  height: 98%;
+  position: relative;
+  margin-left: 20px;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+ /* border:solid;*/
+  display: inline-block;
+}
+
+#header {
+  width: 100%;
+  height: 8%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: 5px;
+  float: left;
+  /*border:solid;*/ 
+}
+
+#leftPanel {
+  width: 15%;
+  height: 90%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_1 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_2 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#leftPanel_3 {
+  width: 100%;
+  height: 28.3%;
+  position: relative;
+  float: left;
+}
+
+#weaveThumb {
+  width: 100%;
+  height: 15%;
+  position: relative;
+  float: left;
+  margin-top: 3px;
+}
+
+#center {
+/*  border: solid; */
+  width: 70%;
+  height: 80%;
+  position: relative;
+  float: left;
+}
+
+#sortable {
+  width: 100%;
+  /*border: 1px solid #ccc;*/
+  height: 600px;
+  padding: 3px;
+  display: inline-block;
+}
+
+div.portlet {
+  margin: 3px;
+  padding: 1px;
+  float: left;
+  height: 100px;
+  width: 100%;
+}
+
+/*.portlet { margin: 0 1em 1em 0; }*/
+.portlet-minimized { height: auto !important; }
+/*.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }*/
+.portlet-header .ui-icon { float: right; }
+/*.portlet-content { padding: 0.4em; }*/
+.portlet-minimized .portlet-content { display: none !important; }
+.ui-sortable-placeholder { 
+  border: 1px black; 
+  visibility: visible !important; 
+  height: 100px !important;
+  clear:both;
+  background:black;
+}
+.ui-sortable-placeholder * { visibility: hidden; }
+
+.panel {
+  vertical-align: top;
+}
+
+ul, ol {
+    list-style: none;
+}
+/*.gridster {
+   
+    margin: 0 auto;
+
+    opacity: .8;
+
+    -webkit-transition: opacity .6s;
+    -moz-transition: opacity .6s;
+    -o-transition: opacity .6s;
+    -ms-transition: opacity .6s;
+    transition: opacity .6s;
+}
+.gridster >ul {
+  width:100%;
+}
+.gridster .gs_w {
+    background: #FFF;
+    cursor: pointer;
+    -webkit-box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.gridster .player {
+    -webkit-box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+}
+
+
+.gridster .gs_w.try {
+    background-image: url(../img/sprite.png);
+    background-repeat: no-repeat;
+    background-position: 37px -169px;
+
+}
+
+.gridster .preview-holder {
+    border: none!important;
+    border-radius: 0!important;
+    background: rgba(255,255,255,.2)!important;
+}*/
