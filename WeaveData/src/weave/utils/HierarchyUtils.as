@@ -20,7 +20,6 @@
 package weave.utils
 {
 	/**
-	 * HierarchyUtils
 	 * An all-static class containing functions for dealing with xml hierarchies and xml hierarchy paths.
 	 * 
 	 * @author adufilie
@@ -28,7 +27,6 @@ package weave.utils
 	public class HierarchyUtils
 	{
 		/**
-		 * addPathToHierarchy
 		 * @param hierarchyRoot An XML hierarchy to traverse and compare with the nodes of pathInHierarchy.
 		 * @param pathInHierarchy An XML path, starting at the level of the hierarchy root, which will be compared with the hierarchy.
 		 * @return The leaf node of the newly added path in the hierarchy.
@@ -39,7 +37,7 @@ package weave.utils
 			if (!isValidPath(pathToAdd))
 				return null;
 			// stop if top-level hierarchy attributes do not match
-			if (!nodeContainsAttributes(hierarchyRoot, pathToAdd, true))
+			if (!nodeNamesMatch(hierarchyRoot, pathToAdd) || !nodeContainsAttributes(hierarchyRoot, pathToAdd.attributes()))
 				return null;
 			var hierarchyNode:XML = hierarchyRoot;
 			while (true)
@@ -75,7 +73,6 @@ package weave.utils
 		}
 		
 		/**
-		 * getNodeFromPath
 		 * @param hierarchyRoot An XML hierarchy to traverse and compare with the nodes of pathInHierarchy.
 		 * @param pathInHierarchy An XML path, starting at the level of the hierarchy root, which will be compared with the hierarchy.
 		 * @param maxDepth The maximum depth to traverse in the path before returning the matching node in the hierarchy.
@@ -87,7 +84,7 @@ package weave.utils
 			if (hierarchyRoot == null || pathInHierarchy == null)
 				return null;
 			// stop if top-level hierarchy attributes do not match
-			if (!nodeContainsAttributes(hierarchyRoot, pathInHierarchy, true))
+			if (!nodeNamesMatch(hierarchyRoot, pathInHierarchy) || !nodeContainsAttributes(hierarchyRoot, pathInHierarchy.attributes()))
 			{
 				//trace("root does not contain "+pathInHierarchy.toXMLString());
 				return null;
@@ -112,7 +109,6 @@ package weave.utils
 		}
 
 		/**
-		 * getPathFromNode
 		 * @param hierarchyPointer A pointer to a node in the hierarchy.
 		 * @return A new XML object defining the path from the root of the hierarchy to the specified node.
 		 */
@@ -137,7 +133,6 @@ package weave.utils
 		}
 		
 		/**
-		 * getPathDepth
 		 * @param pathInHierarchy An XML path in some hierarchy which will be checked for leaf depth.  Any node not having exactly one child will be treated as the end of the path.
 		 * @return The depth of the path, 0 meaning the given root node in the path has no children.
 		 */
@@ -153,7 +148,6 @@ package weave.utils
 		}
 
 		/**
-		 * isValidPath
 		 * If any node in an XML object has more than one child, it does not qualify as an "XML path". 
 		 * @param pathInHierarchy An XML path in some hierarchy which will be verified.
 		 * @return A value of true if all nodes in 'pathInHierarchy' have zero or one child.
@@ -174,92 +168,57 @@ package weave.utils
 			}
 			return false;
 		}
+		
+		/**
+		 * Checks if two node names match.
+		 * @param a First XML node.
+		 * @param b Second XML node.
+		 * @return true if the node names match.
+		 */		
+		public static function nodeNamesMatch(a:XML, b:XML):Boolean
+		{
+			return String(a.name()) == String(b.name());
+		}
 
 		/**
-		 * nodeContainsAttributes
 		 * @param more An XML node that may contain more attributes than those in 'less'.
 		 * @param less An XML node that has attributes to look for in 'more'.
 		 * @return true if the all the attributes of 'less' match the corresponding attributes of 'more'.
 		 */
-		public static function nodeContainsAttributes(more:XML, less:XML, matchNodeName:Boolean = true):Boolean
+		public static function nodeContainsAttributes(more:XML, lessAttrs:XMLList):Boolean
 		{
-			var moreName:String = more.name();
-			var lessName:String = less.name();
-			if (matchNodeName && moreName != lessName)
-				return false;
-			var moreAttrs:XMLList = more.attributes();
-			var lessAttrs:XMLList = less.attributes();
-			for (var iLess:int = 0; iLess < lessAttrs.length(); iLess++)
+			for each (var lessAttr:XML in lessAttrs)
 			{
-				var lessAttr:XML = lessAttrs[iLess] as XML;
-				lessName = lessAttr.name();
-				// skip attributes with empty strings
-				if (lessAttr.toXMLString() == '')
-					continue;
-				
-				var found:Boolean = false;
-				for (var iMore:int = 0; iMore < moreAttrs.length(); iMore++)
-				{
-					var moreAttr:XML = moreAttrs[iMore] as XML;
-					moreName = moreAttr.name();
-					
-					if (moreName == lessName)
-					{
-						// if name and value are equal, we found the attr
-						if (moreAttr.contains(lessAttr))
-						{
-							found = true;
-							break;
-						}
-						// return false if name is equal but value is different
-						return false;
-					}
-				}
-				if (!found)
+				var value:String = lessAttr;
+				if (value && value != String(more.attribute(lessAttr.name())))
 					return false;
 			}
 			return true;
 		}
 
 		/**
-		 * getFirstNodeContainingAttributes
 		 * @param nodes An XMLList of nodes to search.
 		 * @param compareTo An XML node that has attributes to look for in 'nodes'.
 		 * @return The first node in 'nodes' that matches all attributes in 'compareTo'.
 		 */
-		public static function getFirstNodeContainingAttributes(nodes:XMLList, compareTo:XML, matchNodeName:Boolean = true):XML
+		public static function getFirstNodeContainingAttributes(nodes:XMLList, compareTo:XML, matchNodeName:Boolean = true, twoWayCompare:Boolean = true):XML
 		{
-			var i:int;
-			var length:int = nodes.length();
+			var node:XML;
+			var compareToAttrs:XMLList = compareTo.attributes();
 			// first, check if an node contains all the attributes of compareTo
-			for (i = 0; i < length; i++)
-				if (nodeContainsAttributes(nodes[i], compareTo, matchNodeName))
-					return nodes[i];
-			// if no nodes contain all the attributes of compareTo, see if compareTo contains all the attributes of one of the nodes.
-			for (i = 0; i < length; i++)
-				if (nodeContainsAttributes(compareTo, nodes[i], matchNodeName))
-					return nodes[i];
+			for each (node in nodes)
+				if (!matchNodeName || nodeNamesMatch(node, compareTo))
+					if (nodeContainsAttributes(node, compareToAttrs))
+						return node;
+			if (twoWayCompare)
+			{
+				// if no nodes contain all the attributes of compareTo, see if compareTo contains all the attributes of one of the nodes.
+				for each (node in nodes)
+					if (!matchNodeName || nodeNamesMatch(node, compareTo))
+						if (nodeContainsAttributes(compareTo, node.attributes()))
+							return node;
+			}
 			return null;
 		}
-		
-//		/**
-//		 * getCascadedAttribute
-//		 * @param hierarchyNode A node in an xml hierarchy.
-//		 * @param attributeName The name of the attribute to get.
-//		 * @return The attribute value from hierarchyNode or from the first ancestor of hierarchyNode the attribute is defined for.
-//		 */
-//		public static function getCascadedAttribute(hierarchyNode:XML, attributeName:String):String
-//		{
-//			var attributeValue:String;
-//			var node:XML = hierarchyNode;
-//			while (node != null)
-//			{
-//				attributeValue = node.attribute(attributeName).toString();
-//				if (attributeValue != "")
-//					return attributeValue;
-//				node = node.parent();
-//			}
-//			return "";
-//		}
 	}
 }

@@ -138,7 +138,7 @@ public class SHPGeometryStreamUtils
 			Object attributeObject = feature.getAttribute(keyAttributes.get(attrIndex));
 			shapeKey += ShapefileUtilities.forAttribute(attributeObject, String.class);
 		}
-		FeatureGeometryStream geomStream = new JTSFeatureGeometryStream((Geometry)feature.getDefaultGeometry());
+		IFeatureGeometryStream geomStream = new JTSFeatureGeometryStream((Geometry)feature.getDefaultGeometry());
 		converter.convertFeature(geomStream, shapeType, shapeKey, projectionWKT);
 
 		/*

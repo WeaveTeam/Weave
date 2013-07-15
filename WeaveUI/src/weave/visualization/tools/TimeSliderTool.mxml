@@ -138,15 +138,8 @@
 								if (String(search.@name))
 									delete search.@title;
 								var hierarchy:AttributeHierarchy = ref.getDataSource().attributeHierarchy as AttributeHierarchy;
-								var xmlList:XMLList = hierarchy.value.descendants('attribute');
-								for (var j:int = 0; j < xmlList.length(); j++)
-								{
-									if (HierarchyUtils.nodeContainsAttributes(xmlList[j], search))
-									{
-										path = hierarchy.getPathFromNode(xmlList[j]);
-										break;
-									}
-								}
+								var list:XMLList = hierarchy.value.descendants('attribute');
+								path = HierarchyUtils.getFirstNodeContainingAttributes(list, search, true, false) || path;
 							}
 							catch (e:Error) { }
 						}

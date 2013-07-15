@@ -53,15 +53,15 @@ public class GeometryStreamUtils
 	 * @param tileSize The desired approximate tile size, in bytes.
 	 * @return A list of StreamTile objects which contain the items originally in streamObjectsList.
 	 */
-	public static List<StreamTile> groupStreamObjectsIntoTiles(LinkedList<StreamObject> streamObjectsList, int tileSize)
+	public static List<StreamTile> groupStreamObjectsIntoTiles(LinkedList<IStreamObject> streamObjectsList, int tileSize)
 	{
 		// remove stream objects with undefined queryBounds
-		Iterator<StreamObject> iter = streamObjectsList.iterator();
+		Iterator<IStreamObject> iter = streamObjectsList.iterator();
 		while (iter.hasNext())
 			if (iter.next().getQueryBounds().isUndefined())
 				iter.remove();
 		
-		StreamObject[] streamObjects = new StreamObject[streamObjectsList.size()];
+		IStreamObject[] streamObjects = new IStreamObject[streamObjectsList.size()];
 		streamObjectsList.toArray(streamObjects);
 		LinkedList<StreamTile> tiles = new LinkedList<StreamTile>();
 
@@ -70,7 +70,7 @@ public class GeometryStreamUtils
 			return tiles;
 		
 		// sort StreamObjects descending by importance
-		Arrays.sort(streamObjects, 0, streamObjects.length, StreamObject.sortByImportance);
+		Arrays.sort(streamObjects, 0, streamObjects.length, IStreamObject.sortByImportance);
 		// iterate over StreamObjects and generate tiles
 		int thisLevelStartIndex = 0;
 		int thisLevelEndIndex = 0;
@@ -96,7 +96,7 @@ public class GeometryStreamUtils
 		return tiles;
 	}
 	
-	private static void splitStreamObjectsIntoTiles(List<StreamTile> outputTileList, StreamObject[] streamObjects, int startIndex, int endIndex, int tileCount, int totalStreamSize)
+	private static void splitStreamObjectsIntoTiles(List<StreamTile> outputTileList, IStreamObject[] streamObjects, int startIndex, int endIndex, int tileCount, int totalStreamSize)
 	{
 		// do nothing if range is empty
 		if (startIndex == endIndex)
@@ -106,7 +106,7 @@ public class GeometryStreamUtils
 		if (tileCount == 1)
 		{
 			// if the stream objects in these tiles are Shape objects, include the shape type in the stream.
-			StreamObject firstStreamObject = streamObjects[startIndex];
+			IStreamObject firstStreamObject = streamObjects[startIndex];
 			if (firstStreamObject instanceof GeometryMetadata)
 				((GeometryMetadata) firstStreamObject).includeGeometryCollectionMetadataInStream = true;
 			
@@ -115,7 +115,7 @@ public class GeometryStreamUtils
 		}
 		
 		// sort entire range by X
-		Arrays.sort(streamObjects, startIndex, endIndex, StreamObject.sortByX);
+		Arrays.sort(streamObjects, startIndex, endIndex, IStreamObject.sortByX);
 		
 		// find midpoint based on stream size
 		int middleIndex = startIndex;
@@ -125,8 +125,8 @@ public class GeometryStreamUtils
 		int secondHalfStreamSize = totalStreamSize - firstHalfStreamSize;
 
 		// sort each half individually by Y
-		Arrays.sort(streamObjects, startIndex, middleIndex, StreamObject.sortByY);
-		Arrays.sort(streamObjects, middleIndex, endIndex, StreamObject.sortByY);
+		Arrays.sort(streamObjects, startIndex, middleIndex, IStreamObject.sortByY);
+		Arrays.sort(streamObjects, middleIndex, endIndex, IStreamObject.sortByY);
 
 		// find firstQuarterIndex based on stream size
 		int firstQuarterIndex = startIndex;

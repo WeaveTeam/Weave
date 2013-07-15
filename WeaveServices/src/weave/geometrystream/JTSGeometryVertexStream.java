@@ -27,7 +27,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * 
  * @author adufilie
  */
-public class JTSGeometryVertexStream implements GeometryVertexStream
+public class JTSGeometryVertexStream implements IGeometryVertexStream
 {
 	public JTSGeometryVertexStream(Geometry geom)
 	{

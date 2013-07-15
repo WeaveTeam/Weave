@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * @author adufilie
  */
-public class GeometryMetadata implements StreamObject
+public class GeometryMetadata implements IStreamObject
 {
 	public GeometryMetadata(int shapeID, String shapeKey, int shapeType, String projectionWKT)
 	{

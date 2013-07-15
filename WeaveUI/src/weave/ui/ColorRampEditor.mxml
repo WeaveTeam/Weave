@@ -202,6 +202,10 @@
 					dp.addItem(item);
 				}
 				
+				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == colorRamp.name);
+				if (xmlList.length() > 0)
+					colorRampList.selectedItem = xmlList[0];
+				
 				colorRamp.draw(colorRampCanvas, true);
 			}
 			

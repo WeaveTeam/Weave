@@ -38,14 +38,14 @@ public class StreamTile
 	 * @param startIndex The index of the first StreamObject to be included in this tile.
 	 * @param endIndex The index after the last StreamObject to be included in this tile.
 	 */
-	public StreamTile(StreamObject[] streamObjects, int startIndex, int endIndex)
+	public StreamTile(IStreamObject[] streamObjects, int startIndex, int endIndex)
 	{
 		this.streamObjects = streamObjects;
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 
 		// sort specified points by importance
-		Arrays.sort(streamObjects, startIndex, endIndex, StreamObject.sortByImportance);
+		Arrays.sort(streamObjects, startIndex, endIndex, IStreamObject.sortByImportance);
 		// save min,max importance values
 		if (startIndex < endIndex)
 		{
@@ -53,7 +53,7 @@ public class StreamTile
 			minImportance = streamObjects[endIndex - 1].getImportance();
 		}
 		// update both bounds objects to include all the specified CombinedPoints.
-		StreamObject obj;
+		IStreamObject obj;
 		for (int i = startIndex; i < endIndex; i++)
 		{
 			obj = streamObjects[i];
@@ -78,7 +78,7 @@ public class StreamTile
 		return String.format("ShapeStreamTile(%s StreamObjects, %s bytes, %s, %s)", endIndex - startIndex, bytes, pointBounds, queryBounds);
 	}
 	
-	private StreamObject[] streamObjects;
+	private IStreamObject[] streamObjects;
 	private int startIndex, endIndex;
 
 	public double minImportance = 0, maxImportance = 0;
