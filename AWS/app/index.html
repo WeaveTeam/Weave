@@ -19,38 +19,12 @@
       <div ng-controller="DialogCtrl" style="display: inline-block">
           <button id="projectButton" class="btn btn-primary" ng-click="openDialog('project')">Project</button>
           <button id="dataButton" class="btn btn-primary" ng-click="openDialog('dataDialog')">Data...</button>
-          <input type="text" ng-model="typing">
       </div>
     </div>
 
-    <div id="leftPanel">
-      <div id="leftPanel_1">
-        <div id="Indicators" class="portlet" portlet-panel>
-          <div class="portlet-header">Analysis Builder</div>
-          <div class="portlet-content">Summary of selected parameters</div>
-        </div>
-      </div>
-      <div id="leftPanel_2">
-        <div id="Indicators" class="portlet" portlet-panel>
-          <div class="portlet-header">Calculation</div>
-          <div class="portlet-content">Summary of selected calculation script</div>
-        </div>
-      </div>  
-      <div id="leftPanel_3">
-        <div id="Indicators" class="portlet" portlet-panel>
-          <div class="portlet-header">Weave</div>
-          <div class="portlet-content">Summary of visualization parameters
-            
-        </div>
-        {{typing}}<span ng-bind"typing"></span>
-      </div>
-
-      <div id="weaveThumb">
-            <button id="weaveThumb" class="btn btn-primary" ng-click="">Open Weave</button>
-      </div>
-     </div>
-    </div> <!-- end of Left Panel Div -->
-
+<div ng-include src="leftPanelUrl" >
+<!-- left panel goes here -->
+</div>
 
     <div id="center" sortable>
       <div id="sortable">
@@ -83,5 +57,6 @@
   <script src="lib/angular/angular-resource.js"></script> 
   <script src="js/dataClient2.js"></script>
   <script src="js/directives.js"></script>
+  <script src="js/leftPanelCtrl.js"></script>
 </body>
 </html>

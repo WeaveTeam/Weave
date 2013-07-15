@@ -15,11 +15,10 @@
 * Description
 */
 
-var app = angular.module('myApp', ['ui.bootstrap','myApp.filters', 'myApp.services', 'myApp.directives', 'myApp.dataClient']);
-// angular.module('myModule', ["ui.bootstrap"]);
+var app = angular.module('myApp', ['ui.bootstrap','myApp.filters', 'myApp.services', 'myApp.directives', 'myApp.dataClient', 'leftPanel']);
 // .config(['$routeProvider', function($routeProvider){
 // 		$routeProvider.
-// 			when('/phones', {templateUrl: 'partials/phone-list.html', controller: PhoneListCtrl}).
+// 			when('/leftPanel', {templateUrl: 'partials/leftPanel.tlps.html', controller: leftPanelCtrl}).
 // 			when('/phones/:phoneId', {templateUrl: 'partials/phone-detail.html', controller: PhoneDetailCtrl}).
 // 			when('/aws', {
 // 				templateUrl: 'partials/genericPanel.html',
