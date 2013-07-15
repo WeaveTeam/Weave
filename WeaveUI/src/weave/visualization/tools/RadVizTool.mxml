@@ -27,7 +27,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
-			   layout="absolute">
+			   layout="absolute"
+			   resize="handleResize(event)">
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
@@ -92,7 +93,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(RadVizPlotter, false);
-				getCallbackCollection(_plotter).addGroupedCallback(this, handlePanelTitleChange);
+				getCallbackCollection(_plotter).addGroupedCallback(this, handlePlotterChanges);
 				
 				visualization.plotManager.enableAutoZoomToExtent.value = true;
 				visualization.plotManager.enableFixedAspectRatio.value = true;
@@ -139,7 +140,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 				
-				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
+				_selection.addGroupedCallback(this,drawProbeLinesForSelectionKeySet);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -170,6 +171,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				cdLayout.fillingClassToColumnMap(classDiscriminatorColumn,colObjects,_plotter.columns.getNames(),normalizedColumns);
 				
 				
+			}
+			
+			private function handleResize(event:Event):void
+			{
+				drawProbeLinesForSelectionKeySet();
+			}
+			
+			private function handlePlotterChanges():void
+			{
+				handlePanelTitleChange();
+				
+				drawProbeLinesForSelectionKeySet();
 			}
 			
 			//returns two columns with common keys
@@ -279,7 +292,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			private function handleSelectionKeySetChange():void
+			private function drawProbeLinesForSelectionKeySet():void
 			{
 				if(!Weave.properties.enableProbeLines.value || !enableProbeLines.value) return;
 				

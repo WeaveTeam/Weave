@@ -19,6 +19,8 @@
 
 package weave.visualization.layers
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.utils.Dictionary;
@@ -27,21 +29,19 @@ package weave.visualization.layers
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import avmplus.getQualifiedClassName;
-	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IKeyFilter;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IKeyFilter;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
@@ -237,13 +237,8 @@ package weave.visualization.layers
 				// HACK - begin validating spatial index if necessary, because this may affect zoomBounds
 				if (detectLinkableObjectChange(_spatialIndex.createIndex, _plotter.spatialCallbacks))
 					_spatialIndex.createIndex(_plotter, _layerSettings.hack_includeMissingRecordBounds);
-				
-				var min:Number = _layerSettings.minVisibleScale.value;
-				var max:Number = _layerSettings.maxVisibleScale.value;
-				var xScale:Number = _zoomBounds.getXScale();
-				var yScale:Number = _zoomBounds.getYScale();
-				visible = min <= xScale && xScale <= max
-					&& min <= yScale && yScale <= max;
+
+				visible = _layerSettings.isZoomBoundsWithinVisibleScale(_zoomBounds);
 			}
 			
 			if (!visible && linkableObjectIsBusy(this))

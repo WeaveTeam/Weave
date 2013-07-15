@@ -533,6 +533,8 @@ package weave.visualization.plotters
 			var graphics:Graphics = destination;
 			graphics.clear();
 			
+			if(filteredKeySet.keys.length == 0)
+				return;
 			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
 			var _cols:Array = columns.getObjects();
 			

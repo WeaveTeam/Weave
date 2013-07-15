@@ -19,9 +19,6 @@
 
 package weave.utils
 {
-	import flash.geom.Matrix;
-	import flash.geom.Point;
-	
 	import weave.api.primitives.IBounds2D;
 	import weave.primitives.Bounds2D;
 	
