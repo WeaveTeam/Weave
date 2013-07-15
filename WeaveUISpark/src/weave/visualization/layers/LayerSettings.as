@@ -23,11 +23,12 @@ package weave.visualization.layers
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.newDisposableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.KeySets.DynamicKeyFilter;
+	import weave.primitives.ZoomBounds;
 	
 	/**
 	 * Settings for a single plot layer.
@@ -62,6 +63,16 @@ package weave.visualization.layers
 		 * Sets the maximum scale at which the layer should be rendered. Scale is defined by pixels per data unit.
 		 */
 		public const maxVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity, verifyVisibleScaleValue));
+		
+		public function isZoomBoundsWithinVisibleScale(zoomBounds:ZoomBounds):Boolean
+		{
+			var min:Number = StandardLib.roundSignificant(minVisibleScale.value);
+			var max:Number = StandardLib.roundSignificant(maxVisibleScale.value);
+			var xScale:Number = StandardLib.roundSignificant(zoomBounds.getXScale());
+			var yScale:Number = StandardLib.roundSignificant(zoomBounds.getYScale());
+			return min <= xScale && xScale <= max
+				&& min <= yScale && yScale <= max;
+		}
 		
 		/**
 		 * @private
