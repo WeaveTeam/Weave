@@ -37,7 +37,7 @@
 		    	warning="verbose" 
 		        debug="true"
 		        prettyPrint="true"
-		        sourceMapOutputFile="${build-dir}/blah.map"
+		        sourceMapOutputFile="${build-dir}/aws.map"
 		        output="${build-dir}/aws.js">
 			
 			<externs dir="${basedir}/externs">
@@ -61,7 +61,7 @@
 		</jscomp>
 		
 		<!-- TEMPORARY SOLUTION - copy all files to build folder -->
-		<copy todir="${build-dir}">
+		<copy todir="${build-dir}/js">
 			<fileset dir="${src-dir}"/>
 		</copy>
 <!-- 		<copy todir="${build-dir}" file="${src-dir}/test.html"/> -->
