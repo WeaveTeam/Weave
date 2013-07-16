@@ -1,62 +1,11 @@
 'use strict';
 
-/* Controllers */
-
-/*angular.module('myApp.controllers', []).
-  controller('MyCtrl1', [function() {
-  }])
-  .controller('MyCtrl2', [function() {
-  }]);*/
-
-function LeftPanelsCtrl($scope) {
-	
-	$scope.panels = [
-		{
-			panelTitle: "Analysis Builder",
-			content: "Summary of selected parameters",
-			id: 1
-		},
-		{
-			panelTitle: "Calculation",
-			content: "Summary of selected calculation script",
-			id: 2
-		},
-		{
-			panelTitle: "Weave",
-			content: "Summary of visualization parameters",
-			id: 3
-		}
-	];
-
-	$scope.addContent = function(elem){
-		$("#" + elem.id + "-panel").find(".portlet-content").html(elem.content);
-	};
-}
-
-function DialogCtrl($scope, $dialog){
-  $scope.opts = {
-    backdrop: true,
-    keyboard: true,
-    backdropClick: true,
-    templateUrl: 'partials/dialog.html',
-    controller: 'DataClientCtrl' //found in the dataClient.js. in the "myApp.dataClient" module
-  };
-
-  $scope.openDialog = function(partial){
-  	if(partial){
-		$scope.opts.templateUrl = 'partials/' + partial + '.html';
-	}
-	var d = $dialog.dialog($scope.opts);
-    d.open().then(function(result){
-      if(result)
-      {
-        alert('dialog closed with result: ' + result);
-      }
-    });
-  };
-}
-
-
+/**
+ * Main AWS Application Controller
+ * LayoutCtrl - TODO
+ * WeaveLaunchCtrl - TODO 
+ * PanelGenericCtrl <TODO rename> - Displays the dashboard portlets and their data. 
+ */
 function PanelGenericCtrl($scope){
 	$scope.typing = "first";
 	$scope.b = [

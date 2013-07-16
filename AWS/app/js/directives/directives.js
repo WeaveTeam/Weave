@@ -15,7 +15,7 @@ angular.module('myApp.directives', []).
 *
 * Description
 */
-angular.module('myApp.directives', [])
+angular.module('aws.directives', [])
 .directive('sortable', function(){
 	return {
 		link: function(scope, element, attrs){
