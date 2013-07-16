@@ -1,4 +1,7 @@
 goog.provide('aws.client');
+
+goog.exportSymbol('aws', aws);
+
 /**
  * @typedef {{
  * 	name: string,
@@ -8,7 +11,7 @@ goog.provide('aws.client');
  *  is_superuser: boolean
  * }}
  */
-aws.client.ConnectionInfo;
+aws.ConnectionInfo;
 
 /**
  * @typedef {{
@@ -17,7 +20,7 @@ aws.client.ConnectionInfo;
  *  numChildren: number
  * }}
  */
-aws.client.EntityHierarchyInfo;
+aws.EntityHierarchyInfo;
 
 
 /**
@@ -27,7 +30,7 @@ aws.client.EntityHierarchyInfo;
  *  privateMetadata: Object
  * }}
  */
-aws.client.DataEntity;
+aws.DataEntity;
 
 
 /**
@@ -39,7 +42,7 @@ aws.client.DataEntity;
  * @param {Function} resultHandler A callback function that handles the servlet result
  * @param {string|number=}queryId
  */
-aws.client.queryService = function(url, method, params, resultHandler, queryId)
+aws.queryService = function(url, method, params, resultHandler, queryId)
 {
     var request = {
         jsonrpc: "2.0",
@@ -52,7 +55,7 @@ aws.client.queryService = function(url, method, params, resultHandler, queryId)
     function handleResponse(response)
     {
         if (response.error)
-            alert(JSON.stringify(response, null, 3));
+            console.log(JSON.stringify(response, null, 3));
         else if (resultHandler)
             resultHandler(response.result, queryId);
     }
