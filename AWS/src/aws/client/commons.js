@@ -35,9 +35,9 @@ aws.client.DataEntity;
  * 
  * @param {string} url
  * @param {string} method The method name to be passed to the servlet
- * @param {Array.<Object>} params An array of object to be passed as parameters to the method 
+ * @param {?Array|Object} params An array of object to be passed as parameters to the method 
  * @param {Function} resultHandler A callback function that handles the servlet result
- * @param {number=}queryId
+ * @param {string|number=}queryId
  */
 aws.client.queryService = function(url, method, params, resultHandler, queryId)
 {
