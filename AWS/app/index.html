@@ -1,24 +1,6 @@
 <!doctype html>
 <html lang="en" ng-app="aws">
 <head>
-  <meta charset="utf-8">
-  <title>Angular AWS</title>
-  <link rel="stylesheet" href="css/app.css"/>
-  <link rel="stylesheet" href="css/bootstrap.css"/>
-  <link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.10.3.custom.css"
-</head>
-<body>
-	<!--   <div ng-view></div> -->
-	<div>
-		<div id="container" ng-controller="PanelGenericCtrl">
-			<div id="header">
-				<div ng-controller="DataDialogCtrl" style="display: inline-block">
-					<button id="projectButton" class="btn btn-primary"
-						ng-click="openDialog('project')">Project</button>
-					<button id="dataButton" class="btn btn-primary"
-						ng-click="openDialog('dataDialog')">Data...</button>
-				</div>
-			</div>
 <meta charset="utf-8">
 <script>
   // include angular loader, which allows the files to load in any order
@@ -30,26 +12,7 @@
     (function(i){'use strict';function d(c,b,e){return c[b]||(c[b]=e())}return d(d(i,"angular",Object),"module",function(){var c={};return function(b,e,f){e&&c.hasOwnProperty(b)&&(c[b]=null);return d(c,b,function(){function a(a,b,d){return function(){c[d||"push"]([a,b,arguments]);return g}}if(!e)throw Error("No module: "+b);var c=[],d=[],h=a("$injector","invoke"),g={_invokeQueue:c,_runBlocks:d,requires:e,name:b,provider:a("$provide","provider"),factory:a("$provide","factory"),service:a("$provide","service"),
     value:a("$provide","value"),constant:a("$provide","constant","unshift"),filter:a("$filterProvider","register"),controller:a("$controllerProvider","register"),directive:a("$compileProvider","directive"),config:h,run:function(a){d.push(a);return this}};f&&h(f);return g})}})})(window);
 
-			<div ng-include src="leftPanelUrl">
-				<!-- left panel goes here -->
-			</div>
 
-			<div id="center" sortable>
-				<div id="sortable">
-					<div ng-repeat='a in b' class="panel">
-						<div class="{{a.x}} sort">
-							<div id="{{a.id}}-panel" class="portlet" portlet-panel>
-								<div class="portlet-header">{{a.panelTitle}}</div>
-								<div class="portlet-content">
-									<br>{{addContent(a)}}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
     // include a third-party async loader library
     /*
      * $script.js v1.3
@@ -98,14 +61,6 @@
 				</div>
 			</div>
 
-<div id="container" ng-controller="PanelGenericCtrl">
-    <div id="header">
-      <div ng-controller="DialogCtrl" style="display: inline-block">
-          <button id="projectButton" class="btn btn-primary" ng-click="openDialog('project')">Project</button>
-          <button id="dataButton" class="btn btn-primary" ng-click="openDialog('dataDialog')">Data...</button>
-          <button id ="RCheck" class "btn btn-primary" ng-click="callingR()">Calling R</button>
-      </div>
-    </div>
 			<div ng-include src="leftPanelUrl">
 				<!-- left panel goes here -->
 			</div>
@@ -130,19 +85,6 @@
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   -->
-    <script src="lib/jquery/jquery.js"></script>
-  <script src='lib/jquery/jquery-ui.js'></script>
-  <script src="lib/jquery/jquery.gridster.js"></script>
-  <script src="lib/angular/angular.js"></script>
-  <script src="lib/angular/ui-bootstrap-tpls-0.4.0.js"></script>
-  <script src="js/app.js"></script>
-  <script src ="js/RCalls.js"></script>
-  <script src="js/controllers.js"></script>
-  <script src="js/filters.js"></script>
-  <script src="js/services.js"></script>
-  <script src="lib/angular/angular-resource.js"></script> 
-  <script src="js/dataClient2.js"></script>
-  <script src="js/directives.js"></script>
-  <script src="js/leftPanelCtrl.js"></script>
+
 </body>
 </html>
