@@ -24,12 +24,18 @@
 		<!--
 			Using the <path> element allows us to specify wildcards for the jscomp command.
 			http://stackoverflow.com/questions/14164325/use-wildcards-in-a-google-closure-compiler-ant-build
+			http://stackoverflow.com/a/11798110
 		-->
-		<path id="aws.js.fileset">
-			<fileset dir="${src-dir}/aws">
-				<include name="**/*.js" />
-			</fileset>
-		</path>
+		<pathconvert property="aws.js.files" pathsep="," dirsep="/">
+			<path>
+				<fileset dir="${src-dir}/aws">
+					<include name="**/*.js" />
+				</fileset>
+			</path>
+		    <map from="${src-dir}/" to=""/>
+		</pathconvert>
+		
+		<echo>${aws.js.files}</echo>
 		
 		<!-- jscomp: google closure compiler command -->
 		<jscomp
@@ -37,7 +43,8 @@
 		    	warning="verbose" 
 		        debug="true"
 		        prettyPrint="true"
-		        sourceMapOutputFile="${build-dir}/aws.map"
+		        sourceMapOutputFile="${build-dir}/aws-source-map.json"
+		        sourceMapFormat="V3"
 		        output="${build-dir}/aws.js">
 			
 			<externs dir="${basedir}/externs">
@@ -45,23 +52,23 @@
 				<file name="myexterns.js"/>
 			</externs>
 
-			<path refid="aws.js.fileset"/>
+<!-- 			<path refid="${test.dir}"/> -->
+			
+			<sources dir="${src-dir}" files="${aws.js.files}" />
 			
 			<sources dir="${src-dir}">
 			    <file name="goog/base.js"/>
 			</sources>
 
-			<!--
-			<sources dir="${basedir}/src">
-				<file name="aws/client/commons.js"/>
-				<file name="aws/client/DataClient.js"/>
-			</sources>
-			-->
+<!-- 			<sources dir="${basedir}/src"> -->
+<!-- 				<file name="aws/commons.js"/> -->
+<!-- 				<file name="aws/DataClient.js"/> -->
+<!-- 			</sources> -->
 
 		</jscomp>
 		
 		<!-- TEMPORARY SOLUTION - copy all files to build folder -->
-		<copy todir="${build-dir}/js">
+		<copy todir="${build-dir}">
 			<fileset dir="${src-dir}"/>
 		</copy>
 <!-- 		<copy todir="${build-dir}" file="${src-dir}/test.html"/> -->
