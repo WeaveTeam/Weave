@@ -24,7 +24,7 @@
 			http://stackoverflow.com/questions/14164325/use-wildcards-in-a-google-closure-compiler-ant-build
 		-->
 		<path id="aws.js.fileset">
-			<fileset dir="${basedir}/src/aws">
+			<fileset dir="${basedir}/src/aws/client">
 				<include name="**/*.js" />
 			</fileset>
 		</path>

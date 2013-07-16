@@ -21,14 +21,20 @@ package weave.servlets;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import com.google.gson.Gson;
+
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
+import weave.beans.RequestObject;
 import weave.config.WeaveContextParams;
+import weave.config.ConnectionConfig.ConnectionInfo;
 
 
  
@@ -129,6 +135,33 @@ public class RService extends GenericServlet
 		
 	}		
 	
+	//TO DO write to and retrieve computation results from database
+	//TO DO make it a map of the entire queryObject, of which the results is a property
+	//temporary fix storing computation results in a hashmap
+	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
+	
+	public void runScriptOnSQLColumns(String requestObjectString) throws Exception
+	{
+		Gson gson = new Gson();
+		RequestObject rqstObj = gson.fromJson(requestObjectString,RequestObject.class);
+		
+//		RResult[] returnedColumns;
+//		String query;
+//		String connectionObject;
+//		String scriptName;
+//		
+//		//ConnectionInfo connectionObject = rqstObj.c
+//		
+//		String finalScript;
+//		String[] requestObjectInputNames;
+//		String[] requestObjectInputValues;
+//		String[] requestObjectOutputNames = {};
+//		
+//		returnedColumns =  this.runScript(null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+		
+		//compResultLookMap.put(scriptName, returnedColumns);
+	}
+	
 	//handles running canned scripts by pulling data from SQl database
 	public RResult[] runScriptOnSQLOnServer(String[] queryObject, String queryStatement, String schema) throws Exception
 	{
@@ -208,28 +241,7 @@ public class RService extends GenericServlet
 		throw new RemoteException("Unable to connect to RServe & Unable to initialize REngine", exception);
 	}
 	
-	//testing for AWS java script API calls 
-	//@spurushe
-	public RResult[] runScriptTesting(String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
-	{
-		Exception exception = null;
-		
-			try
-			{
-				return RServiceUsingRserve.runScript( docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
-			}
-			
-			
-			catch (RServiceUsingRserve.RserveConnectionException e)
-			{
-				e.printStackTrace();
-					exception = e;
-			}
-		
-		throw new RemoteException("Unable to connect to RServe & Unable to initialize REngine", exception);
-	}
-	//testing for AWS java script API calls 
-
+	
 	public LinearRegressionResult linearRegression(double[] dataX, double[] dataY) throws RemoteException
 	{
 		
