@@ -5,34 +5,38 @@ var rServiceURL = '/WeaveServices/RService';
 var adminServiceURL = '/WeaveServices/AdminService';
 
 var connectionObject;
-//var displayWritingStatus;
-//var displayResultsInViz;
-//var storeConnection;
-
-
 
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
  *  @param {Object} connectionObject the connection info to allow R to connect to the database retrieved from Admin Service
  *  @param {Object} requestObject the collection of parameters chosen by User via UI
- * 
  *
  */
 aws.client.RClient.runScriptOnSQLdata = function(connectionObject, requestObject,displayResultsInViz){
 	aws.client.queryService(rServiceURL,'runScriptOnSQLOnServer',[connectionObject, requestObject],displayResultsInViz);
 };
 
+/**
+ *  This function returns the connection from the AdminServie servlet
+ * 
+ *  @param {String} user 
+ *  @param {String} passwd
+ *  @param {Function} storeConnection once the connection has been retrieved, it is stored for further Rservice servlet calls
+ *
+ */
 aws.client.RClient.getConnectionObject = function(user, passwd,storeConnection){
 	aws.client.queryService(adminServiceURL, 'getConnectionInfo',[user, passwd],storeConnection);
 };
 
 
-
+/*-----------------CALLBAKCS------------------------------------------------------------------*/
+//stores the connection to be used in later R servlet calls
 aws.client.RClient.storeConnection= function(result, queryId){
 	connectionObject = result;
 };
 
+//writes results to the database if they do not exist in the database
 aws.client.RClient.writeResultsToDatabase = function(requestObject,displayWritingStatus){
 	aws.client.queryService(rServiceURL, 'writeResultsToDatabase',requestObject, displayWritingStatus);
 };
