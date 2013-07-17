@@ -134,9 +134,16 @@ package weave.primitives
 					continue;
 				
 				var simplifiedPart:Vector.<BLGNode> = part.getPointVector(minImportance, visibleBounds);
-				// don't include empty parts
-				if (simplifiedPart.length > 0)
-					_simplifiedParts.push(simplifiedPart);
+				
+				// skip parts without enough vertices
+				if (simplifiedPart.length == 0)
+					continue;
+				if (simplifiedPart.length == 1 && geomType != GeometryType.POINT)
+					continue;
+				if (simplifiedPart.length == 2 && geomType == GeometryType.POLYGON)
+					continue;
+				
+				_simplifiedParts.push(simplifiedPart);
 			}
 			return _simplifiedParts;
 		}
