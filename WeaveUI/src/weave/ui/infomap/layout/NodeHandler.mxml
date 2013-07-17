@@ -469,6 +469,15 @@
 				enablePinView.addGroupedCallback(this,handlePinViewChange,true);
 				_pinImg.addEventListener(MouseEvent.CLICK,togglePinViews);
 				currentView.addGroupedCallback(this,handleCurrentViewChange,true);
+				
+				_subMenu.addSubMenuItem("Edit Query",editQuery);
+				_subMenu.addSubMenuItem("Settings",settings);
+				_subMenu.addSubMenuItem("Close",close);
+				
+				/* pointing the currentNode in the InfoMaps panel to this so that a new query node becomes the current node.
+				When loading from a session state the last created node becomes the current node.
+				*/
+				parentPanel.currentNode = this;
 			}
 			
 			private var _viewToObjectMapping:Dictionary = new Dictionary();
@@ -506,9 +515,6 @@
 				refreshTimer.reset();
 				refreshTimer.start();
 				
-				_subMenu.addSubMenuItem("Edit Query",editQuery);
-				_subMenu.addSubMenuItem("Settings",settings);
-				_subMenu.addSubMenuItem("Close",close);
 				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
 				
 				/* if this is an empty query clear all documents */
@@ -1751,6 +1757,8 @@
 			private var handCursorID:int = -1;
 			protected function canvas1_mouseDownHandler(event:MouseEvent):void
 			{
+				/* the last ndoe in focus (or clicked) becomes current node of InfoMaps panel */
+				parentPanel.currentNode = this;
 				event.stopImmediatePropagation();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
 				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);

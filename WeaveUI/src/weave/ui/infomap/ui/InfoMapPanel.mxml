@@ -74,6 +74,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.utils.StringUtil;
 			import mx.utils.XMLUtil;
 			
+			import spark.components.Label;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
@@ -224,11 +226,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_infomapSubMenu.addSubSubMenuItems("Add",["Query Node","Map Node"],[addInfoMapNode,addInfoMapLink]);
 				_infomapSubMenu.addSubSubMenuItems("Show", ["Related Data records","Show related Documents"],[showRelatedDataRecords,showRelatedDocuments]);
 				_infomapSubMenu.addSubSubMenuItems("Sort By", [QueryObject.SORT_BY_RELEVANCE,QueryObject.SORT_BY_DATE_PUBLISHED,QueryObject.SORT_BY_DATE_ADDED],
-					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+					[sortNodesBy,sortNodesBy,sortNodesBy],[[QueryObject.SORT_BY_RELEVANCE,nodes.getObjects()],[QueryObject.SORT_BY_DATE_PUBLISHED,nodes.getObjects()],[QueryObject.SORT_BY_DATE_ADDED,nodes.getObjects()]]);
 				_infomapSubMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterNodesBy,filterNodesBy,filterNodesBy],
-						[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
+						[[QueryObject.FILTER_BY_NONE,nodes.getObjects()],[QueryObject.FILTER_BY_BOOKS,nodes.getObjects()],[QueryObject.FILTER_BY_PAPERS,nodes.getObjects()]]);
 				//_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				_infomapSubMenu.addSubMenuItem("Extract Entities",extractEntityColumns);
+				
+				sideMenu.addQueryButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{addInfoMapNode();})
+				sideMenu.extractEntitiesButton.addEventListener(MouseEvent.CLICK,function(event:MouseEvent):void{extractEntityColumns();})
 				
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
@@ -237,9 +242,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				entityColumnsList.reverseButton.enabled = false;
 				entityColumnsList.reverseButton.visible = false;
 				
-//				entityColumnsHashmap.addGroupedCallback(this,handleEntityColumnHashmap,true);
-				
-				
 				sourceType.dataProvider = ["","Books"];
 				sourceType.selectedItem = globalFilterByOption.value;
 				linkBindableProperty(globalFilterByOption,sourceType,"selectedItem");
@@ -247,25 +249,108 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				sortByComboBox.dataProvider = QueryObject.sortByOptions
 				sortByComboBox.selectedItem = globalSortByOption.value;
 				linkBindableProperty(globalSortByOption,sortByComboBox,"selectedItem");
+				
+				nodes.addGroupedCallback(this,handleNodes,true);
+				sideMenu.addEventListener(MouseEvent.CLICK,handleMouseClickOnSideMenu);
 			}
 			
-			private function filterNodesBy(option:String):void
+			/* points to the current selected to apply the sidemenu operations on */
+			public var currentNode:NodeHandler = null;
+			
+			private function handleNodes():void
+			{
+				var n:Array =nodes.getObjects();
+				
+				/* check if current node is removed, if so point it to null */
+				if(currentNode !=null)
+				{
+					//if current node is not found
+					if(!nodes.getName(currentNode))
+					{
+						currentNode = null;
+					}
+				}
+				
+				/* if only one node is present in the panel make it the current node */
+				if(n.length == 1)
+				{
+					currentNode = n[0];
+				}
+				
+				if(n.length >0)
+				{
+					sideMenu.nodeSelector.visible = true;
+					sideMenu.m.visible = true;
+				}
+				else
+				{
+					sideMenu.nodeSelector.visible = false;
+					sideMenu.m.visible = false;
+				}
+			}
+			
+			private function handleMouseClickOnSideMenu(event:Event=null):void
+			{
+				/* added a call to handleNodes to hide the toggle button */
+				handleNodes();
+				
+				var nodesToOperateOn:Array = [];
+				
+				if(sideMenu.nodeSelector.label == "All Nodes") // apply to all nodes
+				{
+					nodesToOperateOn = nodes.getObjects();	
+				}
+				else // appluy to current node only
+				{
+					if(currentNode == null) //if current node is empty 
+						return;
+					
+					nodesToOperateOn = [currentNode];
+				}
+				
+				if(event.target is spark.components.Label)
+				{
+					var labelText:String = event.target.text;
+					
+					if(QueryObject.filterByOptions.indexOf(labelText) != -1)
+					{
+						filterNodesBy(labelText,nodesToOperateOn);
+						return;
+					}
+					
+					if(QueryObject.sortByOptions.indexOf(labelText) != -1)
+					{
+						sortNodesBy(labelText,nodesToOperateOn);
+						return;
+					}
+					
+					if(NodeHandler.views.indexOf(labelText) != -1)
+					{
+						for each (var node:NodeHandler in nodesToOperateOn)
+						{
+							if(node.enablePinView.value)
+							{
+								node.currentView.value = labelText;
+							}
+						}
+					}
+				}
+			}
+			private function filterNodesBy(option:String,nodesArray:Array):void
 			{
 				if(option == QueryObject.FILTER_BY_NONE)
 					option == "";
 				globalFilterByOption.value = option;
-				var nodes:Array = nodes.getObjects();
-				for each (var node:NodeHandler in nodes)
+				for each (var node:NodeHandler in nodesArray)
 				{
 					node.previousQuery.sources.value = option;
 				}
 			}
 			
-			private function sortNodesBy(option:String):void
+			private function sortNodesBy(option:String,nodesArray:Array):void
 			{
 				globalSortByOption.value = option;
-				var nodes:Array = nodes.getObjects();
-				for each (var node:NodeHandler in nodes)
+				for each (var node:NodeHandler in nodesArray)
 				{
 					node.previousQuery.sortBy.value = option;
 				}
@@ -1205,7 +1290,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						</mx:HBox>
 				</mx:HBox>
 				
-			<!--<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="{map.height - sideMenu.height}"/>-->
+			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="{map.height - sideMenu.height}"/>
 		
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">

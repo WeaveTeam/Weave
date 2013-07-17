@@ -1,43 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" height="250" width="150" verticalGap="0">
-	<mx:Button label="Set KeyWords" textAlign="left" width="{this.width}"/>
-	<mx:Button label="Add Query"  textAlign="left" width="{this.width}"/>
-	<mx:Accordion width="100%" click="handleClick(event)">
-		<mx:Script>
-			<![CDATA[
-				import mx.containers.accordionClasses.AccordionHeader;
-				import mx.core.UIComponent;
+<mx:VBox xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.infomap.ui.*"
+		 height="{_maxHieght}" borderStyle="solid" borderThickness="1" cornerRadius="5"
+		 creationComplete="handleCreationComplete()" horizontalScrollPolicy="off"
+		 verticalScrollPolicy="off">
+		<s:Resize id="minimizeEffect" heightTo="{menuBox.height}" target="{this}"/>
+		<s:Resize id="maximizeEffect" heightTo="{_maxHieght}" target="{this}"/>
+	<mx:Script>
+		<![CDATA[
+			[Embed( source="/weave/resources/images/maximize_icon.png")]
+			private var maximizeImgClass:Class;
+			private var _maxImgText:String ="Show Menu";
+			
+			[Embed( source="/weave/resources/images/minimize_icon.png")]
+			private var minimizeImgClass:Class;
+			private var _minImgText:String ="Hide Menu";
+			
+			private function handleCreationComplete():void
+			{
+				nodeSelector.setStyle("chromeColor", "haloOrange");
+				minmaxIcon.source = minimizeImgClass;
+				minmaxIcon.addEventListener(MouseEvent.CLICK,handleMaxMinClick);
 				
-				import weave.ui.infomap.core.QueryObject;
-				import weave.ui.infomap.layout.NodeHandler;
+				m.dataProvider = new ArrayCollection();
+				(m.dataProvider as ArrayCollection).source= [];
+				(m.dataProvider as ArrayCollection).source.push({label:"Show View",children:NodeHandler.views});
+				(m.dataProvider as ArrayCollection).source.push({label:"Sort By",children:QueryObject.sortByOptions});
+				(m.dataProvider as ArrayCollection).source.push({label:"Filter By",children:QueryObject.filterByOptions});
 				
-				private function handleClick(event:MouseEvent):void
+			}
+			[Bindable]
+			private var _maxHieght:int = 250;
+			
+			private var _labelWidth:int = 100;
+			private function handleMaxMinClick(event:MouseEvent):void
+			{
+				/* if menu is maximized */
+				if(minmaxText.visible)
 				{
-					var child:VBox = (event.currentTarget.selectedChild) as VBox;
-					(child.getChildAt(0) as List).includeInLayout = (child.getChildAt(0) as List).visible  = true
+					minmaxText.visible = false;
+					minmaxText.width = 0;
+					nodeSelector.width = _labelWidth;
+					
+					minmaxIcon.source = minimizeImgClass;
+					minmaxIcon.toolTip = _minImgText;
+						
+					minimizeEffect.end();
+					maximizeEffect.end();
+					maximizeEffect.play();
+					
 				}
-			]]>
-		</mx:Script>
-		<mx:VBox label="Show View" click="handleClick(event)" mouseUp="handleClick(event)">
-			<mx:List includeInLayout="false" visible="false" width="100%" height="100%" borderStyle="none" dataProvider="{NodeHandler.views}" />
-			<!--<mx:Button label="List"/>
-			<mx:Button label="Thumbnails"/>
-			<mx:Button label="Word Cloud"/>
-			<mx:Button label="Topics"/>
-			<mx:Button label="Clusters"/>-->
-		</mx:VBox>
-		<mx:VBox label="Sort By">
-			<mx:List includeInLayout="false" visible="false" width="100%" height="100%" borderStyle="none" dataProvider="{QueryObject.sortByOptions}" />
-			<!--<mx:Button label="Relevance"/>
-			<mx:Button label="Date Published"/>
-			<mx:Button label="Date Added"/>
-			<mx:Button label="New Documents"/>-->
-		</mx:VBox>
-		<mx:VBox label="Filter By">
-			<mx:List includeInLayout="false" visible="false"  width="100%" height="100%" borderStyle="none" dataProvider="{QueryObject.filterByOptions}" />
-			<!--<mx:Button label="None"/>
-			<mx:Button label="Papers"/>
-			<mx:Button label="Books"/>-->
-		</mx:VBox>
-	</mx:Accordion>
+				/* if menu is minimized */
+				else
+				{
+					minmaxText.visible = true;
+					minmaxText.width = _labelWidth;
+					nodeSelector.width = 0;
+					
+					minmaxIcon.source = maximizeImgClass;
+					minmaxIcon.toolTip = _maxImgText;
+					
+					maximizeEffect.end();
+					minimizeEffect.end();
+					minimizeEffect.play();
+					
+				}
+			}
+			
+			public static const ALL_NODES:String = "All Nodes";
+			public static const CURRENT_NODE:String = "Current Node";
+			private function handleNodeSelectorClick():void
+			{
+				nodeSelector.setStyle("chromeColor", "haloOrange");
+				if(nodeSelector.selected)
+				{
+					nodeSelector.label = ALL_NODES;
+				}
+				else
+				{
+					nodeSelector.label = CURRENT_NODE;
+				}
+			}
+		]]>
+	</mx:Script>
+<mx:HBox top="10" id="menuBox" width="100%" horizontalAlign="right" >
+	<s:ToggleButton id="nodeSelector" label="Current Node" visible="{!minmaxText.visible}" click="handleNodeSelectorClick()"/>
+	<mx:Label id="minmaxText" width="0" visible="false" text="Show Menu"/>
+	<mx:Image toolTip="{_minImgText}" id="minmaxIcon" buttonMode="true"/>
+	<s:Spacer width="10%"/>
+</mx:HBox>
+<s:Button id="addQueryButton" label="Add Query"/>
+<s:Button id="extractEntitiesButton" label="Extract Entities"/>
+<s:List height="100%" id="m" borderVisible="false" itemRenderer="weave.ui.infomap.ui.ExpandingItemRenderer"
+		verticalScrollPolicy="off" creationComplete="handleListCreationComplete()">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			import weave.ui.infomap.core.QueryObject;
+			import weave.ui.infomap.layout.NodeHandler;
+			private function handleListCreationComplete():void
+			{
+				m.selectedIndex=0;
+			}
+		]]>
+	</mx:Script>
+</s:List>
+
 </mx:VBox>
