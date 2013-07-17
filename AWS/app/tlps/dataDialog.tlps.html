@@ -1,22 +1,16 @@
 <!-- Data Dialog Template
-		Allows for configuration of connection information. 
+		Shows the data tables from the Weave hierarchies 
  -->
 
 <div class="modal-header">
-  <h4>Database Connection Dialog</h4>
+  <h4>Data Hierarchies</h4>
 </div>
 <div id="dataDialog" title="Data" class="modal-body"> 
-          <div id="dbauthentication">  
-            <br><br>  
-            Connection Name: <input type="text" name="ConnectionName" value=""><br> 
-            Password: <input type="password" name="Password2" value=""><br> 
-            <button id="dbConnectButton" ng-click="connect()">Connect</button> <br>  
-          </div> 
           <div id="dbhierarchy"> 
-            Data Tables <br> <select id="dataTables"></select><br> 
-            Columns <br><select id="columns"></select>  
+            Data Tables: <br> <select id="dataTables" ng-model="data.dataTables"></select><br> 
+            Columns: <br><select id="columns" ng-model="data.dataColumns"></select>  
           </div> 
 </div>
 <div class="modal-footer">
-  <button ng-click="close(result)" class="btn btn-primary" >Close</button>
+  <button ng-click="close()" class="btn btn-primary" >Close</button>
 </div>
