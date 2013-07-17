@@ -15,7 +15,7 @@
 * Description
 */
 
-var app = angular.module('aws', ['ui.bootstrap','aws.filters', 'aws.services', 'aws.directives', 'aws.project', 'myApp.DataDialog', 'aws.leftPanel']);
+var app = angular.module('aws', ['aws.Main', 'ui.bootstrap','aws.filters', 'aws.services', 'aws.directives', 'aws.project', 'aws.DataDialog', 'aws.leftPanel']);
 // .config(['$routeProvider', function($routeProvider){
 // 		$routeProvider.
 // 			when('/leftPanel', {templateUrl: 'partials/leftPanel.tlps.html', controller: leftPanelCtrl}).

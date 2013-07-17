@@ -15,7 +15,7 @@ angular.module('aws.DataDialog', [])
 
   $scope.openDialog = function(partial){
   	if(partial){
-		$scope.opts.templateUrl = 'partials/' + partial + '.html';
+		$scope.opts.templateUrl = 'tlps/' + partial + '.tlps.html';
 	}
 	var d = $dialog.dialog($scope.opts);
     d.open().then(function(result){
