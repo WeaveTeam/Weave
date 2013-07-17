@@ -21,6 +21,9 @@ package weave.tests;
 
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import weave.beans.RResult;
 import weave.servlets.RService;
@@ -154,8 +157,23 @@ public class test
 //		"return(Clusters)}}\n" +
 //		"ans <- hello1(inputColumns, EMModel)\n";
 		
-		resultNames = new String[]{"runscript"};
-		call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
+		RResult testObject = new RResult("Shweta", 50);
+		RResult testObject2 = new RResult("Purushe",100);
+		
+		Map<String, Object> check = new HashMap<String, Object>();
+		check.put("first", testObject);
+		check.put("second", testObject2);
+		
+		Set keys = check.keySet();
+		Object ans = check.get("first");
+		
+		
+		System.out.print(testObject);
+		System.out.print(check);
+		System.out.print(ans);
+		System.out.print(keys);
+		//resultNames = new String[]{"runscript"};
+		//call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
 	}	
 }		
 		

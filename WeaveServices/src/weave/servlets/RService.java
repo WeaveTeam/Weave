@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -140,10 +141,16 @@ public class RService extends GenericServlet
 	//temporary fix storing computation results in a hashmap
 	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
 	
-	public void runScriptOnSQLColumns(String requestObjectString) throws Exception
+	public void runScriptOnSQLColumns(Map<String,Object> requestObjectString) throws Exception
 	{
+		Set<String> keys = requestObjectString.keySet();
+		
+		System.out.print(keys + "\n");
+		
+		System.out.print(requestObjectString);
+		Object data = requestObjectString.get("dataset");
 		Gson gson = new Gson();
-		RequestObject rqstObj = gson.fromJson(requestObjectString,RequestObject.class);
+		//RequestObject rqstObj = gson.fromJson(requestObjectString,RequestObject.class);
 		
 //		RResult[] returnedColumns;
 //		String query;

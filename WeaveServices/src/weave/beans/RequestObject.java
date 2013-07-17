@@ -28,7 +28,7 @@ public class RequestObject
 	
 	private String databaseName;
 	private String schema;
-	private String scriptLocation;
+	//private String scriptLocation;
 	private String[] columns;
 	private String script;
 	private ConnectionInfo connection;
@@ -77,10 +77,9 @@ public class RequestObject
 	
 	class ConnectionInfo 
 	{
-	 public String name = "";
+	 public String user = "";
 	 public String pass = "";
-	 public String folderName = "" ;
-	 public String connectString = "" ;
-	public Boolean is_superuser = false;
+	 public String host = "" ;
+	 
 	}
 }
