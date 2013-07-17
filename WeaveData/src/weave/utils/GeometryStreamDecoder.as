@@ -270,11 +270,7 @@ package weave.utils
 		 */
 		
 		private var _currentGeometryType:String = GeometryType.POLYGON;
-		private function get currentGeometryType():String
-		{
-			return _currentGeometryType;
-		}
-		private function set currentGeometryType(value:String):void
+		private function setGeometryType(value:String):void
 		{
 			if (_currentGeometryType == value)
 				return;
@@ -355,7 +351,7 @@ package weave.utils
 							// initialize geometry at geometryID
 							geometry = geometries[geometryID] as GeneralizedGeometry;
 							if (!geometry)
-								geometries[geometryID] = geometry = new GeneralizedGeometry();
+								geometries[geometryID] = geometry = new GeneralizedGeometry(_currentGeometryType);
 							// save mapping from key to geom
 							var geomsForKey:Array = _keyToGeometryMapping[key] as Array;
 							if (!geomsForKey)
@@ -394,8 +390,6 @@ package weave.utils
 								if (vertexID < -2)
 									_projectionWKT = readString(stream);
 							}
-							// set geometry type
-							geometry.geomType = currentGeometryType;
 						}
 					}
 				} 
@@ -435,15 +429,18 @@ package weave.utils
 					//MultiPoint
 				case 8:
 				case 28:
-					currentGeometryType = GeometryType.POINT;
+					setGeometryType(GeometryType.POINT);
+					break;
 				//PolyLine
 				case 3:
 				case 23:
-					currentGeometryType = GeometryType.LINE;
+					setGeometryType(GeometryType.LINE);
+					break;
 				//Polygon
 				case 5:
 				case 25:
-					currentGeometryType = GeometryType.POLYGON;
+					setGeometryType(GeometryType.POLYGON);
+					break;
 				default:
 			}
 		}
@@ -575,7 +572,7 @@ package weave.utils
 								
 								var geometry:GeneralizedGeometry = geometries[geometryID] as GeneralizedGeometry;
 								if (!geometry)
-									geometries[geometryID] = geometry = new GeneralizedGeometry();
+									geometries[geometryID] = geometry = new GeneralizedGeometry(_currentGeometryType);
 								
 								if (importance < 0) // part marker
 									geometry.addPartMarker(vertexID, vertexIDArray[i + 1]);

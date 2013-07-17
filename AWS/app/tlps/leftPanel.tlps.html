@@ -1,4 +1,9 @@
-<div ng-controller="leftPanelCtrl">
+<!-- Left Panel Template. 
+	We can allow quite a bit of hard-coding here for our purposes.
+	Dynamic content will just include display of the query object.
+ -->
+
+<div ng-controller="LeftPanelCtrl">
 <accordion id="leftPanel" close-others="oneAtATime"> 
 	<accordion-group heading='Analysis Builder' id="analysisBuilder">
 		{{analysisBuilderModel}} 

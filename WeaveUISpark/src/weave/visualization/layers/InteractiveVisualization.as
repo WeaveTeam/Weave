@@ -429,8 +429,8 @@ package weave.visualization.layers
 							// pan the dragged distance
 							projectDragBoundsToDataQueryBounds(false);
 							plotManager.zoomBounds.getDataBounds(tempDataBounds);
-							tempDataBounds.offset(- queryBounds.getWidth(), - queryBounds.getHeight());
-							plotManager.setCheckedZoomDataBounds(tempDataBounds);
+							tempDataBounds.offset(-queryBounds.getWidth(), -queryBounds.getHeight());
+							plotManager.zoomBounds.setDataBounds(tempDataBounds);
 							// set begin point for next pan
 							mouseDragStageCoords.getMaxPoint(tempPoint);
 							mouseDragStageCoords.setMinPoint(tempPoint);
@@ -491,7 +491,7 @@ package weave.visualization.layers
 				case InteractionController.ZOOM_TO_EXTENT:
 				{
 					if (enableZoomAndPan.value)
-						plotManager.setCheckedZoomDataBounds(plotManager.fullDataBounds, true); // zoom to full extent
+						plotManager.zoomBounds.setDataBounds(plotManager.fullDataBounds, true); // zoom to full extent
 					break;
 				}
 				case InteractionController.ZOOM_IN:

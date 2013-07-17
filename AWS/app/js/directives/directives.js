@@ -15,7 +15,7 @@ angular.module('myApp.directives', []).
 *
 * Description
 */
-angular.module('myApp.directives', [])
+angular.module('aws.directives', ['aws.Main'])
 .directive('sortable', function(){
 	return {
 		link: function(scope, element, attrs){
@@ -42,6 +42,7 @@ angular.module('myApp.directives', [])
       			$( elem ).find("span").toggleClass( "ui-icon-minusthick" ).toggleClass( "ui-icon-plusthick" );
       			$( elem ).find("span").parents( ".portlet:first" ).find( ".portlet-content" ).toggle();
     		});
+		    
 		}
 	};
 })

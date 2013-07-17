@@ -1,6 +1,6 @@
 goog.require('aws.client');
 
-goog.provide('aws.client.LiveQuery');
+goog.provide('aws.LiveQuery');
 
 /**
  * Automatically makes JSON RPC calls.  Requires jQuery for ajax.
@@ -9,7 +9,7 @@ goog.provide('aws.client.LiveQuery');
  * @param {string} method The name of the RPC call
  * @param {?Object.<string,*>|Array.<?>} params Initial parameters for the RPC call
  */
-aws.client.LiveQuery = function(url, method, params) {
+aws.LiveQuery = function(url, method, params) {
 	/**
 	 * busy status
 	 * @type {boolean}
@@ -67,8 +67,8 @@ aws.client.LiveQuery = function(url, method, params) {
  * Updates the parameters and makes a new RPC call if necessary
  * @param {?Object.<string,*>|Array.<?>} newParams New parameter values, which may be partially specified
  */
-aws.client.LiveQuery.prototype.setParams = function(newParams) {
-	if (aws.client.LiveQuery.detectParamChange(this.params, newParams))
+aws.LiveQuery.prototype.setParams = function(newParams) {
+	if (aws.LiveQuery.detectParamChange(this.params, newParams))
 	{
 		// params are different, so copy new values and make new rpc call
 		if (this.params) {
@@ -95,7 +95,7 @@ aws.client.LiveQuery.prototype.setParams = function(newParams) {
 			for (var w in self.waiters)
 				self.waiters[w].call(self, self.busy);
 		};
-		aws.client.queryService(this.url, this.method, this.params, handleResult, ++this.last_id);
+		aws.queryService(this.url, this.method, this.params, handleResult, ++this.last_id);
 
 		for (var w in this.waiters)
 			this.waiters[w].call(this, this.busy);
@@ -107,7 +107,7 @@ aws.client.LiveQuery.prototype.setParams = function(newParams) {
  * @param {!function(*)} listener Gets passed the result of the RPC call
  * @param {!boolean=} callNow If true, calls the listener now if the current RPC call already finished (default true)
  */
-aws.client.LiveQuery.prototype.listen = function(listener, callNow) {
+aws.LiveQuery.prototype.listen = function(listener, callNow) {
 	this.listeners.push(listener);
 	if (callNow === false)
 		return;
@@ -120,7 +120,7 @@ aws.client.LiveQuery.prototype.listen = function(listener, callNow) {
  * @param {!function(boolean)} waiter Function that takes a boolean specifying if the RPC call is busy
  * @param {!boolean=} callNow If true, calls the waiter now (default true)
  */
-aws.client.LiveQuery.prototype.wait = function(waiter, callNow) {
+aws.LiveQuery.prototype.wait = function(waiter, callNow) {
 	this.waiters.push(waiter);
 	if (callNow === false)
 		return;
@@ -132,7 +132,7 @@ aws.client.LiveQuery.prototype.wait = function(waiter, callNow) {
  * Removes a "result" listener
  * @param {function(*)} listener Function that was previously passed to listen()
  */
-aws.client.LiveQuery.prototype.unlisten = function(listener) {
+aws.LiveQuery.prototype.unlisten = function(listener) {
 	delete this.listeners[this.listeners.indexOf(listener)];
 };
 
@@ -140,7 +140,7 @@ aws.client.LiveQuery.prototype.unlisten = function(listener) {
  * Removes a "busy" listener
  * @param {function(boolean)} waiter Function that was previously passed to wait()
  */
-aws.client.LiveQuery.prototype.unwait = function(waiter) {
+aws.LiveQuery.prototype.unwait = function(waiter) {
 	delete this.waiters[this.waiters.indexOf(waiter)];
 };
 
@@ -151,7 +151,7 @@ aws.client.LiveQuery.prototype.unwait = function(waiter) {
  * @return {boolean}
  * @private
  */
-aws.client.LiveQuery.detectParamChange = function(oldParams, newParams) {
+aws.LiveQuery.detectParamChange = function(oldParams, newParams) {
 	if (oldParams === undefined)
 		oldParams = null;
 	if (newParams === undefined)
@@ -164,7 +164,7 @@ aws.client.LiveQuery.detectParamChange = function(oldParams, newParams) {
 	if (!oldParams != !newParams)
 		return true;
 	for (var k in newParams)
-		if (aws.client.LiveQuery.detectParamChange(oldParams[k], newParams[k]))
+		if (aws.LiveQuery.detectParamChange(oldParams[k], newParams[k]))
 			return true;
 	return false;
 };
@@ -172,7 +172,7 @@ aws.client.LiveQuery.detectParamChange = function(oldParams, newParams) {
 /**
  * @private
  */
-aws.client.LiveQuery.test = function() {
+aws.LiveQuery.test = function() {
 	
 
 	/**
@@ -181,17 +181,17 @@ aws.client.LiveQuery.test = function() {
 	 */
 	function newDataQuery(method, params)
 	{
-		return new aws.client.LiveQuery("/WeaveServices/DataService", method, params);
+		return new aws.LiveQuery("/WeaveServices/DataService", method, params);
 	}
 
-	/** @this {aws.client.LiveQuery} */
+	/** @this {aws.LiveQuery} */
 	var waiter1 = function(busy) {
 		console.log("RPC busy: ", busy, "; params: ", JSON.stringify(this.params));
 	};
 	var printResult = function(result) {
 		console.log("result: ", JSON.stringify(result));
 	};
-	/** @this {aws.client.LiveQuery} */
+	/** @this {aws.LiveQuery} */
 	var listener1 = function(result) {
 		this.setParams({publicMetadata: {keyType: "test1"}});
 		this.unlisten(listener1);

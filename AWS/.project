@@ -38,17 +38,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/Ant closure-build.xml.launch</value>
-				</dictionary>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
-			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
-			<triggers>full,incremental,</triggers>
-			<arguments>
-				<dictionary>
-					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/Ant dist-build.xml.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/Ant Build.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>

@@ -36,6 +36,7 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -364,6 +365,7 @@ package weave.visualization.layers
 		 */
 		public function setZoomLevel(newZoomLevel:Number):void
 		{
+			newZoomLevel = StandardLib.roundSignificant(newZoomLevel);
 			var currentZoomLevel:Number = getZoomLevel();
 			var newConstrainedZoomLevel:Number = StandardLib.constrain(newZoomLevel, minZoomLevel.value, maxZoomLevel.value);
 			if (newConstrainedZoomLevel != currentZoomLevel)
@@ -374,7 +376,7 @@ package weave.visualization.layers
 					zoomBounds.getDataBounds(tempDataBounds);
 					tempDataBounds.setWidth(tempDataBounds.getWidth() * scale);
 					tempDataBounds.setHeight(tempDataBounds.getHeight() * scale);
-					setCheckedZoomDataBounds(tempDataBounds);
+					zoomBounds.setDataBounds(tempDataBounds);
 				}
 			}
 		}
@@ -382,16 +384,35 @@ package weave.visualization.layers
 		/**
 		 * This function sets the data bounds for zooming, but checks them against the min and max zoom first.
 		 * @param bounds The bounds that zoomBounds should be set to.
-		 * @param zoomOut Optional parameter for specifying zoomOut in zoomBounds.setDataBounds().
 		 * @see weave.primitives.ZoomBounds#setDataBounds()
 		 */
-		public function setCheckedZoomDataBounds(bounds:IBounds2D, zoomOutIfNecessary:Boolean = false):void
+		public function setCheckedZoomDataBounds(dataBounds:IBounds2D):void
 		{
-			zoomBounds.getScreenBounds(tempScreenBounds);
+			// instead of calling zoomBounds.setDataBounds() directly, we use setZoomLevel() because it's easier to constrain between min and max zoom.
+			
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
-			var zoomLevel:Number = ZoomUtils.getZoomLevel(bounds, tempScreenBounds, fullDataBounds, minSize);
-			if( zoomLevel > minZoomLevel.value && zoomLevel < maxZoomLevel.value )
-				zoomBounds.setDataBounds(bounds, zoomOutIfNecessary);
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			var newZoomLevel:Number = StandardLib.roundSignificant(
+				StandardLib.constrain(
+					ZoomUtils.getZoomLevel(dataBounds, tempScreenBounds, fullDataBounds, minSize),
+					minZoomLevel.value,
+					maxZoomLevel.value
+				)
+			);
+			
+			// stop if constrained zoom level doesn't change
+			if (getZoomLevel() == newZoomLevel)
+				return;
+			
+			var cc:ICallbackCollection = getCallbackCollection(zoomBounds);
+			cc.delayCallbacks();
+			
+			setZoomLevel(newZoomLevel);
+			zoomBounds.getDataBounds(tempDataBounds);
+			tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
+			zoomBounds.setDataBounds(tempDataBounds);
+			
+			cc.resumeCallbacks();
 		}
 		
 		/**
@@ -636,15 +657,8 @@ package weave.visualization.layers
 		public function layerShouldBeRendered(layerName:String):Boolean
 		{
 			var settings:LayerSettings = layerSettings.getObject(layerName) as LayerSettings;
-			if (!settings.visible.value)
-				return false;
-			
-			var min:Number = settings.minVisibleScale.value;
-			var max:Number = settings.maxVisibleScale.value;
-			var xScale:Number = zoomBounds.getXScale();
-			var yScale:Number = zoomBounds.getYScale();
-			return min <= xScale && xScale <= max
-				&& min <= yScale && yScale <= max;
+			return settings.visible.value
+				&& settings.isZoomBoundsWithinVisibleScale(zoomBounds);
 		}
 		
 		public function hack_getSpatialIndex(layerName:String):SpatialIndex

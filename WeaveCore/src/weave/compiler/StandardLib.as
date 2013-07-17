@@ -302,8 +302,8 @@ package weave.compiler
 		 */
 		public static function roundSignificant(value:Number, significantDigits:uint = 14):Number
 		{
-			// it doesn't make sense to round infinity
-			if (isNaN(value) || value == Number.NEGATIVE_INFINITY || value == Number.POSITIVE_INFINITY)
+			// it doesn't make sense to round infinity or NaN
+			if (!isFinite(value))
 				return value;
 			
 			var sign:Number = (value < 0) ? -1 : 1;
