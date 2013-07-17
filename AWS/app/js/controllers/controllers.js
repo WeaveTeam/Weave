@@ -57,6 +57,11 @@ angular.module("aws.Main", [])
 	angular.forEach($scope.panel, function(value){
 		 value.id = "a" + Math.floor((Math.random()*1000)+1);
 	});
+	aws.stataTest(function(result, queryId){
+		console.log("handleResponse fcn sent to aws.stataTest()");
+		console.log(result);
+		console.log(queryId);
+	});
 	$scope.leftPanelUrl = "./tlps/leftPanel.tlps.html";
 	$scope.addPanelContent = function(elem){
 		//var e = $(elem).find(".portlet-content");

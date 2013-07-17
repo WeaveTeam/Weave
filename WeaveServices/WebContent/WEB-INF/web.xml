@@ -73,4 +73,12 @@
     <servlet-name>JRIService</servlet-name>
     <url-pattern>/JRIService</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>StataServlet</servlet-name>
+    <servlet-class>weave.servlets.StataServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>StataServlet</servlet-name>
+    <url-pattern>/StataServlet</url-pattern>
+  </servlet-mapping>
 </web-app>
