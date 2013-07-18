@@ -933,6 +933,13 @@ package weave.application
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
 		}
 		
+		public function CSVWizardWithData(content:Object):void
+		{
+			var newUserWiz:NewUserWizard = new NewUserWizard();
+			WizardPanel.createWizard(this, newUserWiz);
+			newUserWiz.CSVFileDrop(content as ByteArray);
+		}
+		
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
