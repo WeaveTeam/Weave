@@ -393,9 +393,10 @@
 				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
-					visualization.graphics.lineStyle(0,0,0);
-					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
-					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
+					//Needs to be called on the next frame, due to the background getting cleared afterwards by the super functions.
+					callLater(visualization.graphics.lineStyle,[0,0,0]);
+					callLater(visualization.graphics.beginBitmapFill,[backgroundImageBitmapData]);
+					callLater(visualization.graphics.drawRect,[0, 0, visualization.width, visualization.height]);
 				}
 			}
 			
