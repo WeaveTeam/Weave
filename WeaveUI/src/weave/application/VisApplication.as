@@ -759,6 +759,17 @@ package weave.application
 					);
 				}
 				
+				if (Weave.properties.enableBrowseData.value)
+				{
+					_weaveMenu.addMenuItemToMenu(_dataMenu,
+						new WeaveMenuItem(lang("Browse Data"),
+							function ():void {
+								AttributeSelectorPanel.openDefaultSelector();
+							}
+						)
+					);
+				}
+				
 				if (Weave.properties.enableRefreshHierarchies.value)
 				{
 					_weaveMenu.addMenuItemToMenu(_dataMenu,
