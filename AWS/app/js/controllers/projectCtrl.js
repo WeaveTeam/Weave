@@ -5,8 +5,15 @@
  */
 angular.module('aws.project', [])
 .controller('ProjectButtonCtrl', function(){
+
+	$scope.opts = {
+	    templateUrl: 'tlps/ProjectMenu.tlps.html'
+	}
 	
-})
-.controller('ProjectContentCtrl', function(){
-	
+	$scope.items = [
+	  "New...",
+	  "Open",
+	  "Save",
+	  "Quit"
+	];
 })

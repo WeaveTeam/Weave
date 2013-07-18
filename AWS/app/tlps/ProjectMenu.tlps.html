@@ -1,0 +1,14 @@
+<!-- Peoject Menu Template
+		Shows the different project options 
+ -->
+
+<li class="dropdowmn" ng-controller="projectCtrl">
+	<button id="projectButton" class="btn btn-primary"
+		ng-click="openDialog('project')">Project</button>
+	
+	<ul class="dropdown-menu">
+		<li ng-repeat="choice in items">
+			<a>{{choice}}</a>
+		</li>
+	</ul>
+</li>

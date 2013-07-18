@@ -32,6 +32,15 @@ aws.EntityHierarchyInfo;
  */
 aws.DataEntity;
 
+/**
+ * @typedef {{}}
+ */
+aws.WeaveObject;
+
+/**
+ * @typedef {string}
+ */
+aws.Column;
 
 /**
  * This function is a wrapper for making a request to a JSON RPC servlet
