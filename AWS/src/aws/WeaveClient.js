@@ -9,8 +9,8 @@ goog.provide('aws.Client.WeaveClient');
  * @constructor
  */
 aws.Client.WeaveClient = function (weave) {
-	
-	this.uniqueName = "";
+
+	// the weave client only has this weave property.
 	this.weave = weave;
 }
 
@@ -25,9 +25,8 @@ aws.Client.WeaveClient = function (weave) {
  * 		   // the path in the weave hashmap.
  */
 aws.Client.WeaveClient.prototype.newMap = function (shapes){
-	this.weave.path().exec('generateUniqueName("MapTool"), this.uniqueName');
-	this.weave.requestObject([weave.path().getValue(this.uniqueName)], 'MapTool');
-	return this.weave.path().getValue(this.uniqueName);
+
+	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("MapTool")')], 'MapTool');
 }
 
 /**
@@ -42,8 +41,9 @@ aws.Client.WeaveClient.prototype.newMap = function (shapes){
  * 		   // the key in the weave hashmap.
  */
 aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumn, yColumn) {
-	this.weave.path().exec('generateUniqueName("ScatterPlotTool", this.uniqueName)');
-	this.weave.requestObject([this.weave.path().getValue(this.uniqueName)], 'ScatterPlotTool');
+
+	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("ScatterPlotTool")')], 'ScatterPlotTool');
+
 }
 
 /**
@@ -56,9 +56,9 @@ aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumn, yColumn) {
  * @return // should return a "pointer" to the visualization, or more precisely
  * 		   // the key in the weave hashmap.
  */
-aws.Client.WeaveClient.prototype.newBarChart = function (weave, label, sort, heights) {
-	this.weave.path().exec('generateUniqueName("CompoundBarChartTool", this.uniqueName)');
-	this.weave.requestObject([this.weave.path().getValue(this.uniqueName)], 'CompoundBarChartTool');
+aws.Client.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
+
+	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")')], 'CompoundBarChartTool');
 }
 
 /**
@@ -69,7 +69,7 @@ aws.Client.WeaveClient.prototype.newBarChart = function (weave, label, sort, hei
  * 
  * @return void
  */
-aws.Client.WeaveClient.prototype.setColorAttribute = function(weave, colorColumn) {
+aws.Client.WeaveClient.prototype.setColorAttribute = function(colorColumn) {
 	
 
 }
@@ -85,7 +85,7 @@ aws.Client.WeaveClient.prototype.setColorAttribute = function(weave, colorColumn
  * @return void
  * 
  */
-aws.Client.WeaveClient.prototype.setPosition = function (weave, panel, posX, posY) {
+aws.Client.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
 	
 
 }
@@ -100,7 +100,7 @@ aws.Client.WeaveClient.prototype.setPosition = function (weave, panel, posX, pos
  * @return void
  * TODO // is this function necessary??
  */
-aws.Cient.WeaveClient.prototype.updateVisualization = function(weave, panel, update) {
+aws.Cient.WeaveClient.prototype.updateVisualization = function(panel, update) {
 	update(panel);
 }
 
@@ -112,7 +112,7 @@ aws.Cient.WeaveClient.prototype.updateVisualization = function(weave, panel, upd
  * @return void
  * 
  */
-aws.Client.WeaveClient.prototype.addCSVDataSourceFromString = function (weave, dataSource, dataSourceName) {
+aws.Client.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSource, dataSourceName) {
 	this.weave.path(dataSourceName)
 		 .request('CSVDataSource')
 		 .vars({data: dataSource})
@@ -128,17 +128,16 @@ aws.Client.WeaveClient.prototype.addCSVDataSourceFromString = function (weave, d
  * 
  */
 aws.Client.WeaveClient.prototype.addCSVDataSourceFromRows = function (weave, dataSource, dataSourceName) {
-	if (dataSourceName == "") {
-		this.weave.path().exec('generateUniqueName("CSVDataSource"), this.uniqueName');
-		this.weave.path(weave.path().getValue(this.uniqueName)).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}
-	
-	else {
-		this.weave.path(dataSourceName).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}	
+//	if (dataSourceName == "") {
+//		this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")')).request('CSVDataSource')
+//		 .vars({data: dataSource})
+//		 .exec('setCSVData(data)');
+//	}
+//	
+//	else {
+//		this.weave.path(dataSourceName).request('CSVDataSource')
+//		 .vars({data: dataSource})
+//		 .exec('setCSVData(data)');
+//	}	
 		
 }
