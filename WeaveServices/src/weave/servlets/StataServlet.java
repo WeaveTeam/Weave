@@ -57,7 +57,7 @@ public class StataServlet extends GenericServlet {
 				e.printStackTrace();
 			}
 		}
-		return "gobbldygook";
+		return "gobbldygook2";
 	}
 
 	/**

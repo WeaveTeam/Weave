@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="css/bootstrap.css" />
 <link rel="stylesheet"
 	href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
+	<style>ol {margin: 0px 0px 0px 0px;}</style>
 </head>
 <body>
 	<!--   <div ng-view></div> -->
@@ -26,7 +27,9 @@
 			<div ng-include src="leftPanelUrl">
 				<!-- left panel goes here -->
 			</div>
-
+			<div style="display: inline-block" ng-include src="genericPortlet">
+				<!-- test of generic portlet -->
+			</div>
 			<div id="center" ng-controller="PanelGenericCtrl">
 				<div id="sortable" ng-model="panels">
 					<div ng-repeat='a in panels'>
@@ -59,6 +62,7 @@
 	<script src='js/controllers/projectCtrl.js'></script>
 	<script src='js/filters/filters.js'></script>
 	<script src='js/directives/directives.js'></script>
+	<script src='js/controllers/indicatorPanelCtrl.js'></script>
 	<script src='lib/angular/angular-resource.js'></script>
 	<script src='../aws/aws.js'></script>
 </body>

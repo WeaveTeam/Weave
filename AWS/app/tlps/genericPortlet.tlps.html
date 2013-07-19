@@ -1,17 +1,15 @@
 <!-- Portlet Template
 		TODO Implement for each type of portlet/panel
  -->
-
-<div  class="portlet span2" portlet-panel> 
-	<div class ="portlet-header">
-	 {{panelTitle}} 
-	</div> 
-	<div class="portlet">
-		<p>listings</p>
-		<ul>
-		<li ng-repeat='control in controls'>
-			{{control.name}} wonderful
-		</li>
-	</ul>
-	</div> 
+<div ng-controller="IndicatorPanelCtrl">
+	<div class="portlet span2" portlet-panel>
+		<div class="portlet-header">Test multiselect</div>
+		<div class="portlet-content">
+			<div >
+				<select multiple ng-model="selection" >
+					<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+				</select>
+			</div>
+		</div>
+	</div>
 </div>

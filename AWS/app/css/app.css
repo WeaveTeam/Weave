@@ -111,9 +111,14 @@ div.portlet {
   vertical-align: top;
 }
 
-ul, ol {
-    list-style: none;
-}
+ol {margin: 0px 0px 0px 0px;}
+
+#feedback { font-size: .5em; }
+  .ui-selecting { background: #FECA40; }
+  .ui-selected { background: #F39814; color: white; }
+  #selectable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #selectable li { margin: 0px; padding: 0em; font-size: .7em; height: 10px; }
+  
 /*.gridster {
    
     margin: 0 auto;

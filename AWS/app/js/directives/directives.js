@@ -16,15 +16,39 @@ angular.module('myApp.directives', []).
 * Description
 */
 angular.module('aws.directives', ['aws.Main'])
-.directive('sortable', function(){
+.directive('selectable', function(){
 	return {
-		link: function(scope, element, attrs){
+		link: function(scope, elem, attrs){
+			$(elem).selectable({
+				selected: function(event, ui){
+					// nothing
+					var temp = event;
+				}
+			});
+//			{
+//				stop: function(event, ui){
+//					
+//					var result = $( "#select-result" ).empty();
+//			        $( ".ui-selected", this ).each(function() {
+//			          var index = $( "#selectable li" ).index( this );
+//			          result.append( " #" + ( index + 1 ) );
+//			        });
+//										// Not sure if this will work or if it should be $(elem)
+////					var par = scope.$parent;
+////					 var temp = $( ".ui-selected", par );
+////					 scope.$parent.selectedResult = temp;
+////					.each(function() {
+////				          var index = $( "#selectable li" ).index( this );
+////				          scope.$parent.selectedResult.push( index + 1 );
+////				        });
+//				}
+//			}
 			// var e = element.find(".sort");
 			// e.sortable();
 			// element.find(".portlet").disableSelection();
-			$( "#sortable" ).sortable();
+			//$( "#sortable" ).sortable();
 		}
-	}
+	};
 }) 
 .directive('portletPanel', function(){
 	return {
@@ -46,4 +70,5 @@ angular.module('aws.directives', ['aws.Main'])
 		}
 	};
 })
+
 
