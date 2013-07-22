@@ -840,8 +840,8 @@
 				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
 					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
 				
-				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy],
-					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS]]);
+				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy,filterQueryBy],
+					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS],[QueryObject.FILTER_BY_RSSFEEDS]]);
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();

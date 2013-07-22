@@ -46,11 +46,12 @@ package weave.ui.infomap.core
 		
 		public static var FILTER_BY_BOOKS:String= "Books";
 		public static var FILTER_BY_PAPERS:String= "Papers";
+		public static var FILTER_BY_RSSFEEDS:String = "RssFeeds";
 		public static var FILTER_BY_NONE:String = "None";
 		
-		public static var filterByOptions:Array = [FILTER_BY_NONE,FILTER_BY_BOOKS,FILTER_BY_PAPERS];
+		public static var filterByOptions:Array = [FILTER_BY_NONE,FILTER_BY_BOOKS,FILTER_BY_PAPERS,FILTER_BY_RSSFEEDS];
 		//a private array of filter options which includes the empty string. 
-		private static var _filterByOptions:Array = [FILTER_BY_BOOKS,FILTER_BY_PAPERS,""];
+		private static var _filterByOptions:Array = [FILTER_BY_BOOKS,FILTER_BY_PAPERS,FILTER_BY_RSSFEEDS,""];
 		/**
 		 * @public
 		 * This will hold the source names to query on. It is a comma separate list of names
