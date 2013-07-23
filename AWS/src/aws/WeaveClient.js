@@ -144,7 +144,7 @@ aws.Client.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
  * @return void
  * TODO // is this function necessary??
  */
-aws.Cient.WeaveClient.prototype.updateVisualization = function(panel, update) {
+aws.Client.WeaveClient.prototype.updateVisualization = function(weave, panel, update) {
 	update(panel);
 };
 

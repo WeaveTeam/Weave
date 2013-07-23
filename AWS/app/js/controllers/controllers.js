@@ -72,8 +72,12 @@ angular.module("aws.Main", [])
 	};
 
 })
-.controller("LayoutCtrl", function($scope){
+.controller("LayoutCtrl", function($scope, queryobj){
 	$scope.leftPanelUrl = "./tlps/leftPanel.tlps.html";
 	$scope.genericPortlet = "./tlps/genericPortlet.tlps.html";
-	$scope.QueryObjectModel = {title:"title", titleContent: "titleContent"};
+	$scope.QueryObjectModel = queryobj;
+	$scope.$watch('queryobj.selectedColumns' , function(){
+		$scope.$broadcast("requestingQueryObject");
+	});
+	
 })

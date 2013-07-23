@@ -110,7 +110,10 @@ div.portlet {
 .panel {
   vertical-align: top;
 }
-
+.panel-title-margins{
+	margin-left: 7px;
+}
+select {margin: 5px 3px 3px 5px}
 ol {margin: 0px 0px 0px 0px;}
 
 #feedback { font-size: .5em; }

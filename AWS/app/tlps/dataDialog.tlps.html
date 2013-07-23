@@ -8,7 +8,9 @@
 <div id="dataDialog" title="Data" class="modal-body"> 
           <div id="dbhierarchy"> 
             Data Tables: <br> <select id="dataTables" ng-model="data.dataTables"></select><br> 
-            Columns: <br><select id="columns" ng-model="data.dataColumns"></select>  
+            Columns: <br><select id="columns" ng-model="data.dataColumns">
+            	<option value="{{opt}}" ng-repeat="opt in a">{{opt}}</option>
+            </select>  
           </div> 
 </div>
 <div class="modal-footer">
