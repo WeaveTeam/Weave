@@ -21,7 +21,9 @@ package weave.servlets;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -141,32 +143,69 @@ public class RService extends GenericServlet
 	//temporary fix storing computation results in a hashmap
 	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
 	
-	public void runScriptOnSQLColumns(Map<String,Object> requestObjectString) throws Exception
+	/**
+	 * 
+	 * @param requestObject sent from the AWS UI collection of parameters to run a computation
+	 * @param connectionObject send from the AWS UI parameters needed for connection Rserve to the db
+	 * @return returnedColumns result columns from the computation
+	 * @throws Exception
+	 */
+	public RResult[] runScriptOnSQLColumns(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
 	{
-		Set<String> keys = requestObjectString.keySet();
+		RResult[] returnedColumns;
 		
-		System.out.print(keys + "\n");
+		//Set<String> keys = connectionObject.keySet();
+		String user = connectionObject.get("user");
+		String password = connectionObject.get("password");
+		String schemaName = connectionObject.get("schema");
+		String hostName = connectionObject.get("host");
 		
-		System.out.print(requestObjectString);
-		Object data = requestObjectString.get("dataset");
-		Gson gson = new Gson();
-		//RequestObject rqstObj = gson.fromJson(requestObjectString,RequestObject.class);
 		
-//		RResult[] returnedColumns;
-//		String query;
-//		String connectionObject;
-//		String scriptName;
-//		
-//		//ConnectionInfo connectionObject = rqstObj.c
-//		
-//		String finalScript;
-//		String[] requestObjectInputNames;
-//		String[] requestObjectInputValues;
-//		String[] requestObjectOutputNames = {};
-//		
-//		returnedColumns =  this.runScript(null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
 		
-		//compResultLookMap.put(scriptName, returnedColumns);
+		
+		
+		String dataset = requestObject.get("dataset").toString();
+		String scriptName = requestObject.get("rRoutine").toString();
+		//TO DO Find better way to do this? full proof queries?
+		//query construction
+		Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
+		ArrayList<String> columns = new ArrayList<String>();
+		columns = (ArrayList)columnNames;
+		
+		int counter = columns.size();
+		String tempQuery = "";
+		
+		for(int i=0; i < counter; i++)
+		{
+			String tempColumnName = columns.get(i);
+			if(i == (counter-1))
+			{
+				tempQuery = tempQuery.concat(tempColumnName);
+			}
+			else
+				tempQuery = tempQuery.concat(tempColumnName + ", ");
+		}
+		
+		String query = "select " + tempQuery + " from " + (dataset).toString();
+		
+		 String cannedSQLScriptLocation = "/Users/Shweta/Desktop" + (scriptName).toString();//hard coded for now
+		 
+		 Object[] requestObjectInputValues = {cannedSQLScriptLocation, query};
+		 String[] requestObjectInputNames = {"cannedScriptPath", "query"};
+		
+		
+		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+		"library(RMySQL)\n" +
+		"con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
+		"library(survey)\n" +
+		"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
+		String[] requestObjectOutputNames = {};
+		
+		returnedColumns = this.runScript(null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+		
+		compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
+		return returnedColumns;
+		
 	}
 	
 	//handles running canned scripts by pulling data from SQl database

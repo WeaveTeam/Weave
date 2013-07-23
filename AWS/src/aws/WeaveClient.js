@@ -12,22 +12,36 @@ aws.Client.WeaveClient = function (weave) {
 
 	// the weave client only has this weave property.
 	this.weave = weave;
-}
+};
 
 	
 /**
- * This function accesses the weave instance and create a new map, regardless of wether or not 
+ * This function accesses the weave instance and create a new map, regardless of whether or not 
  * there is an existing map
- * 
- * @param {Object} shapes an Array of geometry shapes. // TODO specify the type
- * 
+ * TO DO : figure out which plotter according to geometry and label layer
+ * @param {Object} geometry an Array of geometry shapes. // TODO specify the type
+ * @param String
  * @return // should return a "pointer" to the visualization, or more precisely
  * 		   // the path in the weave hashmap.
  */
-aws.Client.WeaveClient.prototype.newMap = function (shapes){
+aws.Client.WeaveClient.prototype.newMap = function (geometry, geometryDatasource){
 
-	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("MapTool")')], 'MapTool');
-}
+	var toolName = [this.weave.path().getValue('generateUniqueName("MapTool")')];
+	this.weave.requestObject(toolName, 'MapTool');
+	
+	
+	//state plot layer
+	var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
+	stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
+	
+	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
+						   .push('internalObject').request('ReferencedColumn')
+						   .push('dynamicCOlumnReference', null).request('HierarchyColumnReference');
+	
+	//TO DO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+	stPlot.state('dataSourceName','WeaveDataSource')
+		  .state('hierarchyPath', '<attribute keyType="US State FIPS Code" weaveEntityId="162429" title="brfss_state_2010" projection="EPSG:2964" dataType="geometry"/>');
+};
 
 /**
  * This function accesses the weave instance and create a new scatter plot, regardless of wether or not 
@@ -35,16 +49,45 @@ aws.Client.WeaveClient.prototype.newMap = function (shapes){
  * 
  * @param {aws.Column} xColumn A column for the X value on the scatter plot. // TODO specify the type
  * @param {aws.Column} yColumn A column for the Y value on the scatter plot. // TODO specify the type
- * 
+ * @param {aws.Column} sizeColumnName
+ * @param {string} csvDataSource
  * TODO add more parameters (optionals) for the scatterplot. e.g. point size, regression...
  * @return // should return a "pointer" to the visualization, or more precisely
  * 		   // the key in the weave hashmap.
  */
-aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumn, yColumn) {
+aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, sizeColumnName, csvDataSource) {
 
-	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("ScatterPlotTool")')], 'ScatterPlotTool');
+	var toolName = [this.weave.path().getValue('generateUniqueName("ScatterPlotTool")')];//returns a string
+	this.weave.requestObject([toolName], 'ScatterPlotTool');
+	
+	var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
+	var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
+	
+	aws.Client.WeaveClient.setCSVColumn(csvDataSource,columnPathX, xColumnName );//setting the X column
+	aws.Client.WeavClient.setCSVColumn(csvDataSource, columnPathY, yColumnName )//setting the Y column
+	
+	//aws.Client.WeaveClient.prototype.setColorAttribute(colorColumnName,);// TO DO: use setCSVColumn directly?
+};
 
-}
+/**
+ * 
+ * @param {string} columnPath
+ * @param columnNames array of columns to put in the table
+ * @param dataSource name of datasource to pull data from
+ */
+aws.Client.WeaveClient.prototype.newDatatableTool = function(columnPath, columnNames, dataSource){
+	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
+	this.weave.requestObject([toolName], 'DataTableTool');
+	
+	//to do loop through the columns requested
+	
+	for (var i = 0; i < columnNames.length; i++)
+		{
+			aws.Client.WeaveClient.setCSVColumn([toolName,'columns',columnNames[i]], dataSource, columnNames);
+			
+		}
+	
+};
 
 /**
  * This function accesses the weave instance and create a new bar chart, regardless of wether or not 
@@ -59,20 +102,21 @@ aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumn, yColumn) {
 aws.Client.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
 
 	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")')], 'CompoundBarChartTool');
-}
+};
 
 /**
  * This function accesses the weave instance and sets the global color attribute column
  * 
- * @param {aws.WeaveObject} weave An instance of weave
- * @param {aws.Column} colorColumn the column used for the attribute color column. // TODO specify the type
+ * @param {string} colorColumnName
+ * @param {string}csvDataSource // TODO specify the type
  * 
  * @return void
  */
-aws.Client.WeaveClient.prototype.setColorAttribute = function(colorColumn) {
+aws.Client.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
 	
+	aws.Client.WeaveClient.setCSVColumn(['defaultColorDataColumn', 'internalDynamicColumn'], csvDataSource, colorColumnName);
 
-}
+};
 
 /**
  * This function accesses the weave instance and sets the position of a given visualization
@@ -88,7 +132,7 @@ aws.Client.WeaveClient.prototype.setColorAttribute = function(colorColumn) {
 aws.Client.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
 	
 
-}
+};
 
 /**
  * This function accesses the weave instance and sets the position of a given visualization
@@ -102,7 +146,7 @@ aws.Client.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
  */
 aws.Cient.WeaveClient.prototype.updateVisualization = function(panel, update) {
 	update(panel);
-}
+};
 
 /**
  * This function accesses the weave instance and creates a new data source.
@@ -117,13 +161,30 @@ aws.Client.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSour
 		 .request('CSVDataSource')
 		 .vars({data: dataSource})
 		 .exec('setCSVDataString(data)');
-}
+};
+
+
+/**
+ * This function sets the session state of a column from another in the Weava instance
+ * @param {string}csvDataSourceName CSV Datasource to choose column from
+ * @param {string}columnPath relative path of the column
+ * @param {string}columnName name of the column
+ * @return void
+ */
+aws.Client.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath, columnName){
+	this.weave.path(csvDataSourceName)
+			  .vars({i:columnName, p:columnPath})
+			  .exec('putColumn(i,p)');
+};
+
+
 
 /**
  * This function accesses the weave instance and creates a new data source.
  * 
- * @param {Array.Array.<number>} dataSource CSV data source // TODO specify the type
- *
+ * @param {Array<number>} dataSource CSV data source // TODO specify the type
+ * @param {string} dataSource
+ * @param {string} dataSourceName
  * @return void
  * 
  */
@@ -140,4 +201,4 @@ aws.Client.WeaveClient.prototype.addCSVDataSourceFromRows = function (weave, dat
 //		 .exec('setCSVData(data)');
 //	}	
 		
-}
+};

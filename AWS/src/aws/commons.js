@@ -35,7 +35,7 @@ aws.DataEntity;
 /**
  * @typedef {{}}
  */
-aws.WeaveObject;
+//aws.WeaveObject;
 
 /**
  * @typedef {string}

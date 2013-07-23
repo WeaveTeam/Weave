@@ -36,7 +36,7 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
-		public static var debug:Boolean = false;
+		public static var debug:Boolean = true;
 		
 		/**
 		 * @inheritDoc
@@ -143,6 +143,15 @@ package weave.core
 			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage
 			return sum / _maxTaskCount;
+		}
+		
+		public function test():void
+		{
+			for(var i:Object in _taskToProgressMap)
+			{
+				var stackTrace:String = _taskToStackTraceMap[i]; // check this when debugging
+				trace(stackTrace);
+			}
 		}
 
 		private var _taskCount:int = 0;

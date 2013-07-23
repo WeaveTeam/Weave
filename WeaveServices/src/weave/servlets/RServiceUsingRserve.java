@@ -302,7 +302,25 @@ public class RServiceUsingRserve
 				// eg: REXPDouble as Double or Doubles
 				for(int i = 0; i < listOfREXP.length ;  i++){
 					REXP obj = (REXP)listOfREXP[i];
-					listOfREXP[i] =  rexp2javaObj(obj);
+					Object javaObj =  rexp2javaObj(obj);
+					
+					//testing TODO : find better casting
+					if(javaObj  instanceof int[]){
+						System.out.print('f');
+						
+						int[] intObj  = (int[]) javaObj;
+						double[] intToDoubleObj = new double[intObj.length];
+						for(int z= 0; z < intObj.length; z++)
+						{
+							intToDoubleObj[z] = (double) intObj[z];
+						}
+						listOfREXP[i] =  intToDoubleObj;
+					}
+					else{
+						listOfREXP[i] =  javaObj;
+					}
+					//testing end
+					
 				}
 				return listOfREXP;
 			}
