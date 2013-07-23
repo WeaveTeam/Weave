@@ -168,7 +168,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
-			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000), updateKeysColumnsDataProviderAndSelection);
 			
 			override protected function constructor():void
 			{

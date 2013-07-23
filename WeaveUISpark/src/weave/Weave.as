@@ -394,6 +394,11 @@ package weave
 				properties.runStartupJavaScript();
 		}
 		
+		public static function loadDraggedCSV(content:Object):void
+		{
+			WeaveAPI.topLevelApplication.visApp.CSVWizardWithData(content);
+		}
+		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
 		
 		/**

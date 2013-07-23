@@ -7,6 +7,8 @@ function(objectID)
 	weave.addEventListener("dragover", dragOver, false);
 	weave.addEventListener("drop", drop, false);
 	
+	var isCSV = false;
+	
 	function dragEnter(evt) {
 		evt.stopPropagation();
 		evt.preventDefault();
@@ -37,7 +39,10 @@ function(objectID)
 	
 	function handleFiles(files) {
 		var file = files[0];
-		//console.log(file.name);
+		if( file.name.indexOf(".csv") != -1)
+			isCSV = true;
+		else
+			isCSV = false;
 	
 		var reader = new FileReader();
 	
@@ -61,7 +66,11 @@ function(objectID)
 		var data = evt.target.result;
 		data = data.substr(data.indexOf('base64,') + 7);
 		var libs = ['mx.utils.Base64Decoder', 'weave.Weave'];
-		var script = "var ba = new Base64Decoder(); ba.decode(data); Weave.loadWeaveFileContent(ba.flush())";
+		var script;
+		if( isCSV )
+			script = "var ba = new Base64Decoder(); ba.decode(data); Weave.loadDraggedCSV(ba.flush())";
+		else
+			script = "var ba = new Base64Decoder(); ba.decode(data); Weave.loadWeaveFileContent(ba.flush())";
 		weave.evaluateExpression([], script, {"data": data}, libs);
 	}
 }
