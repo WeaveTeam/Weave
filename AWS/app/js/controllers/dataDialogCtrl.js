@@ -20,11 +20,18 @@ $scope.openDialog = function(partial){
 	}
 	
 	var d = $dialog.dialog($scope.opts);
-    
-	d.open().then(aws.DataClient.getDataTableList(function(result){console.log(result)}));
+	var a = aws.DataClient.getEntityChildIds(161213, function(result){
+		return result;
+	});
+    var list = aws.DataClient.getDataTableList(function(result){
+    	console.log(result);
+    	return result;
+    	});
+    console.log(list);
+	d.open().then(list);
 	
 	$scope.dataTables = [];
-	$scope.dataColumns = [];
+	$scope.dataColumns = a;
 	
   };
 })

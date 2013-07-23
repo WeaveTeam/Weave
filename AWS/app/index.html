@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>Angular AWS</title>
-<link rel="stylesheet" href="css/app.css" />
+
 <link rel="stylesheet" href="css/bootstrap.css" />
 <link rel="stylesheet"
 	href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
-	<style>ol {margin: 0px 0px 0px 0px;}</style>
+<link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
 	<!--   <div ng-view></div> -->
@@ -27,12 +27,22 @@
 			<div ng-include src="leftPanelUrl">
 				<!-- left panel goes here -->
 			</div>
-			<div style="display: inline-block" ng-include src="genericPortlet">
-				<!-- test of generic portlet -->
-			</div>
 			<div id="center" ng-controller="PanelGenericCtrl">
 				<div id="sortable" ng-model="panels">
+					<panel id="Indicators">
+					
+					</panel>
+					<panel id="By-Variables">
+					
+					</panel>
+					<panel id="Geography">
+					
+					</panel>
+					<panel id="Demographics">
+					
+					</panel>
 					<div ng-repeat='a in panels'>
+					
 						<div class="{{a.size}} sort" class='panel'>
 							<div id="{{a.id}}" class="portlet" portlet-panel>
 								<div class="portlet-header">{{a.panelTitle}}</div>
@@ -43,6 +53,7 @@
 						</div>
 					</div>
 				</div>
+				
 			</div>
 		</div>
 	</div>

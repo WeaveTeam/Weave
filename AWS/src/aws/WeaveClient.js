@@ -26,7 +26,7 @@ aws.Client.WeaveClient = function (weave) {
  */
 aws.Client.WeaveClient.prototype.newMap = function (shapes){
 	this.weave.path().exec('generateUniqueName("MapTool"), this.uniqueName');
-	this.weave.requestObject([weave.path().getValue(this.uniqueName)], 'MapTool');
+	this.weave.requestObject([this.weave.path().getValue(this.uniqueName)], 'MapTool');
 	return this.weave.path().getValue(this.uniqueName);
 }
 
@@ -100,7 +100,7 @@ aws.Client.WeaveClient.prototype.setPosition = function (weave, panel, posX, pos
  * @return void
  * TODO // is this function necessary??
  */
-aws.Cient.WeaveClient.prototype.updateVisualization = function(weave, panel, update) {
+aws.Client.WeaveClient.prototype.updateVisualization = function(weave, panel, update) {
 	update(panel);
 }
 
