@@ -2,20 +2,6 @@
 
 /* Services */
 
-// Demonstrate how to register services
-// In this case it is a simple value service.
-angular.module('aws.services', [ 'ngResource' ]).factory('Phone',
-		function($resource) {
-			return $resource('phones/:phoneId.json', {}, {
-				query : {
-					method : 'GET',
-					params : {
-						phoneId : 'phones'
-					},
-					isArray : true
-				}
-			});
-		});
 
 /**
  * Query Object Service provides access to the main "singleton" query object.
@@ -23,14 +9,14 @@ angular.module('aws.services', [ 'ngResource' ]).factory('Phone',
  * Don't worry, it will be possible to manage more than one query object in the
  * future.
  */
-angular.module("aws").service("queryobj", function() {
+angular.module("aws.services", []).service("queryobj", function() {
 	this.queryObject = {
 		connectionDB : "exampleProperty"
 	};
 
 })
 
-angular.module("aws").service("Data", function($q, $timeout){
+angular.module("aws.services").service("Data", function($q, $timeout){
 
 	return {
 		getColNamesFromDb: function(panel, scope){
@@ -80,7 +66,7 @@ angular.module("aws").service("Data", function($q, $timeout){
 				aws.DataClient.getEntityChildIds(161213, callbk);
 
 				deferred.promise.then(function(res){
-					aws.DataClient.getDataColumnEntities([res], callbk2);
+					aws.DataClient.getDataColumnEntities(res, callbk2);
 				});
 				prom = deferred2.promise.then(function(response){
 					console.log(response);

@@ -1,6 +1,7 @@
 goog.provide('aws.QueryHandler');
 
 goog.require('aws.client');
+goog.require('aws.RClient');
 //will distribute the required data to the different clients(brokers)
 //takes an object literal as an argument which is updated with ui interaction at runtime
 var title; 
@@ -13,7 +14,7 @@ var dataset = "";
 //script to be run R, STATA
 var computationScript;
 var columnString;
-var columns = columnString.split(",");//should we do this?
+var columns;  // = columnString.split(",");//should we do this?
 var scriptLocation;
 //connection information
 var host;
@@ -55,8 +56,8 @@ connObject.schema = schema;
 
 
 /* ----------------------------INSTANTIATING THE CLIENTS------------------------------------------------------------------*/
-var rBroker = new aws.Client.RClient(connObject, rDataObject);
+//var rBroker = new aws.RClient(connObject, rDataObject);
 //var vizBroker = new aws.Client.WeaveClient(weave);//need a pointer to the weave instance
-var stataBroker = new aws.Client.StataClient();
+//var stataBroker = new aws.Client.StataClient();
 
-rBroker.runScriptOnSQLdata();
+//rBroker.runScriptOnSQLdata();

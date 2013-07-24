@@ -65,9 +65,11 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
     function handleResponse(response)
     {
         if (response.error)
-            console.log(JSON.stringify(response, null, 3));
-        else if (resultHandler)
-            resultHandler(response.result, queryId);
+        {   console.log(JSON.stringify(response, null, 3));}
+        else if (resultHandler){
+        	console.log("about to call result handler" + resultHandler.toString());
+            return resultHandler(response.result, queryId);
+        }
     }
 };
 
