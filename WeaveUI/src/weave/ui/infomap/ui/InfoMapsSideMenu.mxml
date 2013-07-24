@@ -33,7 +33,7 @@
 			[Bindable]
 			private var _maxHieght:int = 250;
 			
-			private var _labelWidth:int = 100;
+			private var _labelWidth:int = 165;
 			private function handleMaxMinClick(event:MouseEvent):void
 			{
 				/* if menu is maximized */
@@ -68,12 +68,12 @@
 				}
 			}
 			
-			public static const ALL_NODES:String = "All Nodes";
-			public static const CURRENT_NODE:String = "Current Node";
+			public static const ALL_NODES:String = "All";
+			public static const CURRENT_NODE:String = "Current";
 			private function handleNodeSelectorClick():void
 			{
-				nodeSelector.setStyle("chromeColor", "haloOrange");
-				if(nodeSelector.selected)
+//				nodeSelector.setStyle("chromeColor", "haloOrange");
+				if(nodeSelectorGroup.selectedValue)
 				{
 					nodeSelector.label = ALL_NODES;
 				}
@@ -85,7 +85,13 @@
 		]]>
 	</mx:Script>
 <mx:HBox top="10" id="menuBox" width="100%" horizontalAlign="right" >
-	<s:ToggleButton id="nodeSelector" label="Current Node" visible="{!minmaxText.visible}" click="handleNodeSelectorClick()"/>
+	<!--<s:ToggleButton id="nodeSelector" label="Current Node" visible="{!minmaxText.visible}" click="handleNodeSelectorClick()"/>-->
+	<mx:HBox id="nodeSelector" width="100%" horizontalScrollPolicy="off">
+		<mx:Label text="Nodes: "/>
+		<mx:RadioButtonGroup id="nodeSelectorGroup"/>
+		<mx:RadioButton selected="true" groupName="nodeSelectorGroup" label="{CURRENT_NODE}" value="{CURRENT_NODE}"/>
+		<mx:RadioButton groupName="nodeSelectorGroup" label="{ALL_NODES}" value="{ALL_NODES}"/>
+	</mx:HBox>
 	<mx:Label id="minmaxText" width="0" visible="false" text="Show Menu"/>
 	<mx:Image toolTip="{_minImgText}" id="minmaxIcon" buttonMode="true"/>
 	<s:Spacer width="10%"/>

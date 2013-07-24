@@ -296,7 +296,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var nodesToOperateOn:Array = [];
 				
-				if(sideMenu.nodeSelector.label == "All Nodes") // apply to all nodes
+				if(sideMenu.nodeSelectorGroup.selectedValue == "All") // apply to all nodes
 				{
 					nodesToOperateOn = nodes.getObjects();	
 				}
@@ -1290,7 +1290,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						</mx:HBox>
 				</mx:HBox>
 				
-			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="{map.height - sideMenu.height}"/>
+			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="0"/>
 		
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">

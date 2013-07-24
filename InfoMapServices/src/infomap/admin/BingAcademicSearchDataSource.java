@@ -244,7 +244,8 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				System.out.println("Error getting documents from Bing Service");
+//				e.printStackTrace();
 			}
 	
 		}
