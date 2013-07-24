@@ -13,7 +13,12 @@ angular.module('aws.weave', ['aws'])
   };
 
 $scope.openDialog = function(partial){
-	
+	console.log("hello");
+	if(partial){
+		$scope.opts.templateUrl = 'tlps/' + partial + '.tlps.html';
+	}
+	var d = $dialog.dialog($scope.opts);
+	d.open();
   };
 })
 

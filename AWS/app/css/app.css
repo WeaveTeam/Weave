@@ -74,6 +74,7 @@ h1 {
   height: 80%;
   position: relative;
   float: left;
+  display: inline-block;
 }
 
 #sortable {

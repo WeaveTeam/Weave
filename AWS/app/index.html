@@ -20,7 +20,7 @@
 					<button id="dataButton" class="btn btn-primary"
 						ng-click="openDialog('dataDialog')">Data Tables...</button>
 					<button id="weaveButton" class="btn btn-primary"
-						ng-click="opendialog('weaveDialog')">Open Weave...</button>
+						ng-click="openDialog('weave')">Open Weave...</button>
 				</div>
 			</div>
 
@@ -29,20 +29,12 @@
 			</div>
 			<div id="center" ng-controller="PanelGenericCtrl">
 				<div id="sortable" ng-model="panels">
-					<panel id="Indicators">
-					
-					</panel>
-					<panel id="By-Variables">
-					
-					</panel>
-					<panel id="Geography">
-					
-					</panel>
-					<panel id="Demographics">
-					
-					</panel>
+					<panel id="Indicators"> </panel>
+					<panel id="By-Variables"> </panel>
+					<panel id="Geography"> </panel>
+					<panel id="Demographics"> </panel>
 					<div ng-repeat='a in panels'>
-					
+
 						<div class="{{a.size}} sort" class='panel'>
 							<div id="{{a.id}}" class="portlet" portlet-panel>
 								<div class="portlet-header">{{a.panelTitle}}</div>
@@ -53,14 +45,18 @@
 						</div>
 					</div>
 				</div>
-				
+
+
+			</div>
+			<div style="display:inline-block" ng-include src="weaveInstancePanel">
+				<!-- weave panel goes here -->
 			</div>
 		</div>
+
+
 	</div>
-	
-<div ng-include src="weaveInstancePanel">
-				<!-- left panel goes here -->
-			</div>
+
+
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   -->

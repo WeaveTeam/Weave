@@ -44,6 +44,7 @@ import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
+import weave.utils.StringUtils;
 
 
 public class RServiceUsingRserve 
@@ -81,7 +82,7 @@ public class RServiceUsingRserve
 		}
 	}
 
-	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException
+	private static String plotEvalScript( RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException
 	{
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
@@ -109,21 +110,33 @@ public class RServiceUsingRserve
 		return rFolderName + "/" + file;
 	}
 	
+	private static String timeLogString = "";
+	private static DebugTimer debugger = new DebugTimer();
+	private static boolean clearCacheTimeLog;
+	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
-		DebugTimer db = new DebugTimer();
-		System.out.print("Sending data from servlet to R\n");
-		db.report();
+		debugger.start();
 		
 		REXP evalValue = null;
+		debugger.report("Calling R\n");
+		if(!clearCacheTimeLog)
+		{
+			timeLogString = timeLogString +"\nSending call to R : "+ debugger.get();
+		}
+		
 		if (showWarnings)			
 			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
 		else
 			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
+		if(!clearCacheTimeLog){
+			
+			timeLogString = timeLogString + "\nResults received From R : " + debugger.get();
+		}
+		debugger.report("Results received From R\n");
+		debugger.stop("End");
 		
-		System.out.print("Received data from R\n");
-		db.report();
 		return evalValue;
 	}
 	
@@ -200,9 +213,9 @@ public class RServiceUsingRserve
 	
 	
 	private static  void evaluvateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException{
-		/* REXP evalValue = */ evalScript(rConnection, script, showWarnings);
+		/* REXP evalValue = */ evalScript( rConnection, script, showWarnings);
 		if (showIntermediateResults){
-			Object storedRdatas = evalScript(rConnection, "ls()", showWarnings);
+			Object storedRdatas = evalScript( rConnection, "ls()", showWarnings);
 			if(storedRdatas instanceof REXPString){
 				String[] Rdatas =((REXPString) storedRdatas).asStrings();
 				for(int i=0;i<Rdatas.length;i++){
@@ -240,18 +253,23 @@ public class RServiceUsingRserve
 		{
 			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"			
 			assignNamesToVector(rConnection,inputNames,inputValues);
-			evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			
+			//evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			
+			newEvaluate( rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			
 			if (plotScript != ""){// R Script to EVALUATE plotScript
 				String plotEvalValue = plotEvalScript(rConnection,docrootPath, plotScript, showWarnings);
 				resultVector.add(new RResult("Plot Results", plotEvalValue));
 			}
 			for (int i = 0; i < outputNames.length; i++){// R Script to EVALUATE output Script
 				String name = outputNames[i];						
-				REXP evalValue = evalScript(rConnection, name, showWarnings);	
+				REXP evalValue = evalScript( rConnection, name, showWarnings);	
 				resultVector.add(new RResult(name, rexp2javaObj(evalValue)));					
 			}
 			// clear R objects
-			evalScript(rConnection, "rm(list=ls())", false);
+			clearCacheTimeLog = true;
+			evalScript( rConnection, "rm(list=ls())", false);
 			
 		}
 		catch (Exception e)	{
@@ -270,6 +288,61 @@ public class RServiceUsingRserve
 			rConnection.close();
 		}
 		return results;
+	}
+	
+	//testing for JavascriptAPI calls
+	private static Vector<RResult> newEvaluate(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException {
+		clearCacheTimeLog = false;
+		
+		REXP evalValue= evalScript( rConnection, script, showWarnings);
+		Object resultArray = rexp2javaObj(evalValue);
+		Object[] tempColumns = (Object[])resultArray;
+		Object[] filling = (Object[])resultArray;
+		
+		String finalresultString = "";
+		Vector<String> names = evalValue.asList().names;
+		
+		
+		String namescheck = StringUtils.join(",", names);
+		finalresultString = finalresultString.concat(namescheck);
+		finalresultString = finalresultString.concat("\n");
+		
+		Object temp = tempColumns[0];
+		double[] sampleColumn = (double[])temp;
+		for (int r= 0; r < sampleColumn.length; r++)					
+		{
+			Vector<Double> row = new Vector<Double>();
+			//row.push(r);
+			//keys.push(r as IQualifiedKey);
+			for(int c= 0 ; c < tempColumns.length; c++){
+				double[] column= (double[])tempColumns[c];
+				row.add(column[r]) ;
+			}
+			
+			String check = StringUtils.join(",", row);	
+			
+			finalresultString = finalresultString.concat(check);
+			finalresultString = finalresultString.concat("\n");
+		}
+		
+	
+		
+		newResultVector.add(new RResult("endResult", finalresultString));
+		newResultVector.add(new RResult("timeString",timeLogString));
+		
+		//To do find a better way of doing this
+		//if(evalValue.isList())
+		//{
+			//Vector<String> names = evalValue.asList().names;
+			
+			//newResultVector.add(new RResult("columnNames" ,names ));
+			//newResultVector.add(stringEval);
+			//newResultVector.add(new RResult("columnValues" ,rexp2javaObj(evalValue) ));		
+		//}
+		
+		return newResultVector;
+			
+			
 	}
 	
 	
@@ -492,7 +565,7 @@ public class RServiceUsingRserve
 					name = outputNames[i];
 				}
 				// Script to get R - output
-				evalValue = evalScript(rConnection, name, showWarnings);				
+				evalValue = evalScript( rConnection, name, showWarnings);				
 //				System.out.println(evalValue);
 				if (evalValue.isVector()){
 					if (evalValue instanceof REXPString)
@@ -662,7 +735,7 @@ public class RServiceUsingRserve
 					name = outputNames[i];
 				}
 				// Script to get R - output
-				evalValue = evalScript(rConnection, name, showWarnings);				
+				evalValue = evalScript( rConnection, name, showWarnings);				
 //				System.out.println(evalValue);
 				if (evalValue.isVector()){
 					if (evalValue instanceof REXPString)

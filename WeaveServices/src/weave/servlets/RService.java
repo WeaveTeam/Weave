@@ -132,12 +132,13 @@ public class RService extends GenericServlet
 			//String[] outputNames = {"columnsReturnedFromCSV"};
 			String[] outputNames = {};
 			
-			csvreturnedColumns = this.runScript(null, inputNames, inputValues, outputNames, adminScript, "", false, false, false);
+			csvreturnedColumns = this.runScript( null, inputNames, inputValues, outputNames, adminScript, "", false, false, false);
 			
 		
 		return csvreturnedColumns;
 		
 	}		
+	
 	
 	//TO DO write to and retrieve computation results from database
 	//TO DO make it a map of the entire queryObject, of which the results is a property
@@ -153,70 +154,67 @@ public class RService extends GenericServlet
 	 */
 	public RResult[] runScriptOnSQLColumns(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
 	{
-		System.out.print("Reached the Rservlet\n");
-		DebugTimer db = new DebugTimer();
-		db.report();
-		
 		RResult[] returnedColumns;
-		
-		//Set<String> keys = connectionObject.keySet();
-//		String user = connectionObject.get("user");
-//		String password = connectionObject.get("password");
-//		String schemaName = connectionObject.get("schema");
-//		String hostName = connectionObject.get("host");
-		
-		//hard coded finish before 31st
-		String user = "root";
-		String password = "shweta";
-		String dataset = "test";
-		String hostName = "localhost";
-		String schemaName = "data";
-		
-		
-		//String dataset = requestObject.get("dataset").toString();
 		String scriptName = requestObject.get("rRoutine").toString();
-		//TO DO Find better way to do this? full proof queries?
-		//query construction
-		Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
-		ArrayList<String> columns = new ArrayList<String>();
-		columns = (ArrayList)columnNames;
 		
-		int counter = columns.size();
-		String tempQuery = "";
-		
-		for(int i=0; i < counter; i++)
+		//if the computation result has been stored then computation is not run
+		//the stored results are simply returned
+		if(compResultLookMap.containsKey(scriptName))
 		{
-			String tempColumnName = columns.get(i);
-			if(i == (counter-1))
-			{
-				tempQuery = tempQuery.concat(tempColumnName);
-			}
-			else
-				tempQuery = tempQuery.concat(tempColumnName + ", ");
+			return compResultLookMap.get(scriptName);
 		}
 		
-		String query = "select " + tempQuery + " from " + (dataset).toString();
-		
-		 String cannedSQLScriptLocation = "/Users/Shweta/Desktop" + (scriptName).toString();//hard coded for now
-		 
-		 Object[] requestObjectInputValues = {cannedSQLScriptLocation, query};
-		 String[] requestObjectInputNames = {"cannedScriptPath", "query"};
-		
-		
-		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-		"library(RMySQL)\n" +
-		"con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
-		"library(survey)\n" +
-		"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
-		String[] requestObjectOutputNames = {};
-		
-		returnedColumns = this.runScript(null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
-		
-		System.out.print("Results leaving servlet\n");
-		db.report();
-		
-		compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
-		return returnedColumns;
+		else
+		{
+			//Set<String> keys = connectionObject.keySet();
+			String user = connectionObject.get("user");
+			String password = connectionObject.get("password");
+			String schemaName = connectionObject.get("schema");
+			String hostName = connectionObject.get("host");
+			
+				
+			String dataset = requestObject.get("dataset").toString();
+			//TO DO Find better way to do this? full proof queries?
+			//query construction
+			Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
+			ArrayList<String> columns = new ArrayList<String>();
+			columns = (ArrayList)columnNames;
+			
+			int counter = columns.size();
+			String tempQuery = "";
+			
+			for(int i=0; i < counter; i++)
+			{
+				String tempColumnName = columns.get(i);
+				if(i == (counter-1))
+				{
+					tempQuery = tempQuery.concat(tempColumnName);
+				}
+				else
+					tempQuery = tempQuery.concat(tempColumnName + ", ");
+			}
+			
+			String query = "select " + tempQuery + " from " + (dataset).toString();
+			
+			 String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
+			 
+			 Object[] requestObjectInputValues = {cannedSQLScriptLocation, query};
+			 String[] requestObjectInputNames = {"cannedScriptPath", "query"};
+			
+			
+			String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+			"library(RMySQL)\n" +
+			"con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
+			"library(survey)\n" +
+			"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
+			String[] requestObjectOutputNames = {};
+			
+			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+			
+			//rewriting?
+			compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
+			return returnedColumns;
+		}
 		
 	}
 	
@@ -247,12 +245,12 @@ public class RService extends GenericServlet
 			//String[] sqlOutputNames = {"returnedColumnsFromSQL"};
 			String[] sqlOutputNames = {};
 			
-			sqlreturnedColumns = this.runScript(null, sqlinputNames, sqlinputValues, sqlOutputNames, sqlRScript, "", false, false, false);
-			
+			sqlreturnedColumns = this.runScript( null, sqlinputNames, sqlinputValues, sqlOutputNames, sqlRScript, "", false, false, false);
+			//db.report("Result Returned\n");
 		return sqlreturnedColumns;
 	}
 	
-	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
+	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
 		Exception exception = null;
 		
@@ -268,7 +266,7 @@ public class RService extends GenericServlet
 			try
 			{
 				if (type == ServiceType.RSERVE)
-					return RServiceUsingRserve.runScript( docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+					return RServiceUsingRserve.runScript(docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
 				
 				// this crashes Tomcat
 				if (type == ServiceType.JRI)
@@ -306,7 +304,7 @@ public class RService extends GenericServlet
 		return RServiceUsingRserve.linearRegression( docrootPath, dataX, dataY);
 	}
 
-	public RResult[] kMeansClustering(String[] inputNames, Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
+	public RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
 	{
 		
 		//return RServiceUsingRserve.kMeansClustering( docrootPath, dataX, dataY, numberOfClusters);
@@ -318,7 +316,7 @@ public class RService extends GenericServlet
 		return RServiceUsingRserve.hierarchicalClustering( docrootPath, dataX, dataY);
 	}
 
-	public RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
+	public RResult[] handlingMissingData( String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
 	{
 		return RServiceUsingRserve.handlingMissingData(inputNames, inputValues, outputNames,showIntermediateResults, showWarnings, completeProcess);
 	}

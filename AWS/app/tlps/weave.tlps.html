@@ -1,17 +1,19 @@
-<!-- Left Panel Template. 
+<!-- Weave Panel Template. 
 	We can allow quite a bit of hard-coding here for our purposes.
 	Dynamic content will just include display of the query object.
  -->
-<script type="text/javascript" src="swfobject.js"></script>
+<script type="text/javascript" src="./lib/swfobject.js"></script>
         <script type="text/javascript">
             // For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection.
             var swfVersionStr = "10.2.0";
             // To use express install, set to playerProductInstall.swf, otherwise the empty string.
             var xiSwfUrlStr = "playerProductInstall.swf";
             var flashvars = {};
+            flashvars.file = "empty.xml";
             var params = {};
             params.quality = "high";
             params.bgcolor = "#869ca7";
+            params.base = "../";
             params.allowscriptaccess = "always";
             params.allowfullscreen = "true";
             var attributes = {};
@@ -19,7 +21,7 @@
             attributes.name = "weave";
             attributes.align = "middle";
             swfobject.embedSWF(
-                "weave.swf", "flashContent",
+                "../weave.swf", "flashContent",
                 "900", "650",
                 swfVersionStr, xiSwfUrlStr,
                 flashvars, params, attributes);
@@ -33,7 +35,7 @@
 
 <div id="weaveDialog" title="weaveD" class="modal-body"> 
           <div id="flashContent">
-                <object type="application/x-shockwave-flash" data="weave.swf" width="100%" height="100%">
+                <object type="application/x-shockwave-flash" data="../weave.swf" width="100%" height="100%">
                     <param name="quality" value="high" />
                     <param name="bgcolor" value="#869ca7" />
                     <param name="allowScriptAccess" value="sameDomain" />
