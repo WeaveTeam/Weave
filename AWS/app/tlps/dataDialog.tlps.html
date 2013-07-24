@@ -3,16 +3,31 @@
  -->
 
 <div class="modal-header">
-  <h4>Data Hierarchies</h4>
+	<h4>Data Hierarchies</h4>
 </div>
-<div id="dataDialog" title="Data" class="modal-body"> 
-          <div id="dbhierarchy"> 
-            Data Tables: <br> <select id="dataTables" ng-model="data.dataTables"></select><br> 
-            Columns: <br><select id="columns" ng-model="data.dataColumns">
-            	<option value="{{opt}}" ng-repeat="opt in a">{{opt}}</option>
-            </select>  
-          </div> 
+<div id="dataDialog" title="Data" class="modal-body">
+
+	<div id="dbauthentication">
+		Connection Name: <input type="text" ng-model="conn.connectionName"><br>
+		Password: <input type="password" ng-model="conn.connectionPass"><br>
+		<br>
+	</div>
+
+	<div id="dbconnection">
+		SQL Connection Info<br> <br> SQL Server Type: <select
+			id="dataCombobox" ng-model="conn.serverType">
+			<option value="MySQL">MySQL</option>
+			<option value="PostGreSQL">PostGreSQL</option>
+			<option value="MicrosoftSQL">Microsoft SQL Server</option>
+			<option value="Oracle">Oracle</option>
+		</select> <br> SQL Server IP: <input type="text" ng-model="conn.sqlip"><br>
+		SQL Server Port: <input type="text" ng-model="conn.sqlport"><br>
+		SQL Database Name: <input type="text" ng-model="conn.sqldbname">(optional)<br>
+		SQL User: <input type="text" ng-model="conn.sqluser"><br>
+		SQL Password: <input type="password" ng-model="conn.sqlpass"><br>
+		<br>
+	</div>
 </div>
 <div class="modal-footer">
-  <button ng-click="close()" class="btn btn-primary" >Close</button>
+	<button ng-click="close()" class="btn btn-primary">Close</button>
 </div>
