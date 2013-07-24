@@ -64,7 +64,7 @@ aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumn
 	var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
 	
 	aws.Client.WeaveClient.setCSVColumn(csvDataSource,columnPathX, xColumnName );//setting the X column
-	aws.Client.WeavClient.setCSVColumn(csvDataSource, columnPathY, yColumnName )//setting the Y column
+	aws.Client.WeavClient.setCSVColumn(csvDataSource, columnPathY, yColumnName );//setting the Y column
 	
 	//aws.Client.WeaveClient.prototype.setColorAttribute(colorColumnName,);// TO DO: use setCSVColumn directly?
 };

@@ -38,6 +38,7 @@ import weave.beans.RResult;
 import weave.beans.RequestObject;
 import weave.config.WeaveContextParams;
 import weave.config.ConnectionConfig.ConnectionInfo;
+import weave.utils.DebugTimer;
 
 
  
@@ -152,19 +153,27 @@ public class RService extends GenericServlet
 	 */
 	public RResult[] runScriptOnSQLColumns(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
 	{
+		System.out.print("Reached the Rservlet\n");
+		DebugTimer db = new DebugTimer();
+		db.report();
+		
 		RResult[] returnedColumns;
 		
 		//Set<String> keys = connectionObject.keySet();
-		String user = connectionObject.get("user");
-		String password = connectionObject.get("password");
-		String schemaName = connectionObject.get("schema");
-		String hostName = connectionObject.get("host");
+//		String user = connectionObject.get("user");
+//		String password = connectionObject.get("password");
+//		String schemaName = connectionObject.get("schema");
+//		String hostName = connectionObject.get("host");
+		
+		//hard coded finish before 31st
+		String user = "root";
+		String password = "shweta";
+		String dataset = "test";
+		String hostName = "localhost";
+		String schemaName = "data";
 		
 		
-		
-		
-		
-		String dataset = requestObject.get("dataset").toString();
+		//String dataset = requestObject.get("dataset").toString();
 		String scriptName = requestObject.get("rRoutine").toString();
 		//TO DO Find better way to do this? full proof queries?
 		//query construction
@@ -202,6 +211,9 @@ public class RService extends GenericServlet
 		String[] requestObjectOutputNames = {};
 		
 		returnedColumns = this.runScript(null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+		
+		System.out.print("Results leaving servlet\n");
+		db.report();
 		
 		compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
 		return returnedColumns;

@@ -92,7 +92,7 @@ angular.module('aws.directives', ['aws.Main'])
 
 		}
 		
-	}
-})
+	};
+});
 
 

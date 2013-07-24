@@ -38,10 +38,8 @@ $scope.openDialog = function(partial){
 
 .controller('DataDialogConnectCtrl', function($scope, $http, dialog){
 
-	
-	
 	$scope.close = function(){
 	    dialog.close();
 	 };
 
-})
+});

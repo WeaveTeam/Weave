@@ -42,6 +42,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
+import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 
 
@@ -110,6 +111,9 @@ public class RServiceUsingRserve
 	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
+		DebugTimer db = new DebugTimer();
+		System.out.print("Sending data from servlet to R\n");
+		db.report();
 		
 		REXP evalValue = null;
 		if (showWarnings)			
@@ -118,6 +122,8 @@ public class RServiceUsingRserve
 			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
 		
+		System.out.print("Received data from R\n");
+		db.report();
 		return evalValue;
 	}
 	

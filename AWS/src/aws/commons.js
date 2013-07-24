@@ -59,6 +59,7 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         method: method,
         params: params
     };
+    
     $.post(url, JSON.stringify(request), handleResponse, "json");
 
     function handleResponse(response)
@@ -68,4 +69,22 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         else if (resultHandler)
             resultHandler(response.result, queryId);
     }
+};
+
+/**
+ * returns the current time to the console
+ */
+aws.reportTime = function()
+{
+	Date.prototype.today = function(){ 
+		return ((this.getDate() < 10)?"0":"") + this.getDate() +"/"+(((this.getMonth()+1) < 10)?"0":"") + (this.getMonth()+1) +"/"+ this.getFullYear(); 
+	};
+	//For the time now
+	Date.prototype.timeNow = function(){
+		return ((this.getHours() < 10)?"0":"") + this.getHours() +":"+ ((this.getMinutes() < 10)?"0":"") + this.getMinutes() +":"+ ((this.getSeconds() < 10)?"0":"") + this.getSeconds();
+	};
+	var currentTime = new Date();
+	
+	return "Current time :" + currentTime.today() + "@" + currentTime.timeNow();
+	
 };
