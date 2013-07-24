@@ -95,6 +95,7 @@ import infomap.beans.QueryResultWithWordCount;
 import infomap.beans.SolrClusterObject;
 import infomap.beans.SolrClusterResponseModel;
 import infomap.beans.TopicClassificationResults;
+import infomap.scheduler.RssFeedsJob;
 import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
@@ -116,11 +117,13 @@ import java.util.regex.Pattern;
 public class AdminService extends GenericServlet {
 	private static final long serialVersionUID = 1L;
 
+	// Set connection parameters in config.properties
 	private static String username = null;
 	private static String password = null;
 	private static String host = "localhost";
 	private static String port = "3306";
 	private static String database = "solr_sources";
+	private static String table = "rss_feeds";
 	private Connection conn = null;
 
 	public static HttpSolrServer solrInstance = null;
@@ -131,7 +134,7 @@ public class AdminService extends GenericServlet {
 	
 	public static String serverURL = null;
 
-	public static ConcurrentUpdateSolrServer streamingSolrserver = null;
+	public static ConcurrentUpdateSolrServer streamingSolrserver = null; // Thread safe
 	
 	private static Boolean _testMode = false;
 
@@ -143,6 +146,8 @@ public class AdminService extends GenericServlet {
 			
 			solrServerUrl = prop.getProperty("solrServerURL");
 			serverURL = prop.getProperty("serverURL");
+			database = prop.getProperty("feedSourcesDB");
+			table = prop.getProperty("feedSourcesTable");
 			username = prop.getProperty("dbUsername");
 			password = prop.getProperty("dbPassword");
 			host = prop.getProperty("feedSourcesDBServerURL");
@@ -303,7 +308,7 @@ public class AdminService extends GenericServlet {
 	}
 
 	synchronized public Object[][] getRssFeeds() {
-		String query = "SELECT title, url FROM %s";
+		String query = String.format("SELECT title, url FROM %s", table);
 		SQLResult result = null;
 		Connection connection = null;
 		try {
@@ -328,7 +333,7 @@ public class AdminService extends GenericServlet {
 					database, username, password);
 			conn = SQLUtils.getConnection(connURL);
 
-			String query = "SELECT * FROM rss_feeds WHERE url = ?";
+			String query = String.format("SELECT * FROM %s WHERE url = ?", table);
 			
 			String[] params = new String[1];
 			params[0]= url;
@@ -353,7 +358,7 @@ public class AdminService extends GenericServlet {
 			valueMap.put("title", title);
 			valueMap.put("url", url);
 
-			SQLUtils.insertRow(conn, database, "rss_feeds", valueMap);
+			SQLUtils.insertRow(conn, database, table, valueMap);
 
 			return "RSS Feed added successfully";
 		} catch (Exception e) {
@@ -370,7 +375,7 @@ public class AdminService extends GenericServlet {
 					database, username, password);
 			conn = SQLUtils.getConnection(connURL);
 			
-			String query = "DELETE FROM rss_feeds WHERE url = '" + url + "'";
+			String query = String.format("DELETE FROM %s WHERE url = '%s'", table, url);
 
 			int result = SQLUtils.getRowCountFromUpdateQuery(conn, query);
 
@@ -382,6 +387,16 @@ public class AdminService extends GenericServlet {
 
 	}
 
+	// ToDo This is called when the user clicks index now. (Mannually indexing)
+	public void indexRssFeeds() throws RemoteException {
+		try {
+			RssFeedsJob.triggerRssFeedsIndexing();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			throw new RemoteException(ex.getMessage());
+		}
+	}
+	
 //	public String addAtomFeed(String url, String title) throws RemoteException {
 //		try {
 //
@@ -1832,7 +1847,7 @@ public class AdminService extends GenericServlet {
 		setStreamingSolrServer(solrURL);
 		try {
 			streamingSolrserver.add(d);
-			System.out.println("ADDING DOCUMENTS WITH Num Of DOcs: " + docs.length);
+			System.out.println("ADDING DOCUMENTS WITH Num Of Docs: " + docs.length);
 		} catch (Exception e) {
 			System.out
 					.println("Error when adding " + docs.length + "documents");

@@ -1375,7 +1375,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				</mx:columns>
 			</mx:DataGrid>
 		<mx:HBox width="100%">
-			<mx:Button label="Index Now" click="infoMapsDataSource.startIndexing()" />
+			<!--mx:Button label="Index Now" click="infoMapsDataSource.startIndexing()" / ToDo yenfu-->
+			<mx:Button label="Index Now" click="InfoMapAdminInterface.instance.indexRssFeeds()" />
 			<mx:Spacer width="100%"/>
 			<mx:Button  label="Delete Selected Feed" click="deleteRssFeed()"/>
 		</mx:HBox>

@@ -256,8 +256,7 @@ package weave.primitives
 			if (minImportance == previousTraversalMinImportance && previousTraversalVisibleBounds.equals(visibleBounds))
 				return traversalVector; // avoid redundant computation
 
-			var visible:Boolean = (visibleBounds == null);
-			var resultCount:int = 0; // the number of nodes that have been stored in the traversalVector
+ 			var resultCount:int = 0; // the number of nodes that have been stored in the traversalVector
 			if (rootNode != null)
 			{
 				// traverse the tree
@@ -335,9 +334,6 @@ package weave.primitives
 							}
 							else
 							{
-								if (resultCount >= 2) // polygon should be rendered if at least 3 vertices exist
-									visible = true;
-								
 								// Don't drop previous node.  Shift prev grid test values.
 								prevPrevGridTest = prevGridTest;
 							}
@@ -365,10 +361,6 @@ package weave.primitives
 				prev = traversalVector[i].index;
 			}
 			*/
-			
-			// if nothing is visible, don't return anything
-			if (!visible)
-				traversalVector.length = 0;
 			
 			return traversalVector;
 		}

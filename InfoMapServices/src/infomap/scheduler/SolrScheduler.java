@@ -24,18 +24,20 @@ import org.quartz.TriggerBuilder;
 import org.quartz.DateBuilder;
 
 import static org.quartz.SimpleScheduleBuilder.*;
+import static org.quartz.TriggerBuilder.*;
 import org.quartz.impl.StdSchedulerFactory;
 
 public final class SolrScheduler extends HttpServlet{
 	
 	private static final long serialVersionUID = 1L;
-	
-	
+		
 	private static String jobNameForIndexing = "INDEXING_JOB";
 	
 	private static String jobNameForThumbnaiil = "THUMBNAIL_JOB";
 	
 	private static String jobNameForSummarization = "SUMMARIZATION_JOB";
+	
+	private static String jobNameForRssFeeds = "RSSFEEDS_JOB";
 	
 	private static String jobGroupName = "SOLR";
 	
@@ -66,12 +68,11 @@ public final class SolrScheduler extends HttpServlet{
 	
 	@Override
 	public void init() throws ServletException {
-		// TODO Auto-generated method stub
 		super.init();
-
+		
 		schedThread = new SchedulerThread();
 		
-		ExecutorService executor = Executors.newFixedThreadPool(2);
+		executor = Executors.newFixedThreadPool(2); // ToDo why set to 2?
 		
 		schedFuture =  executor.submit(schedThread);
 	}
@@ -105,7 +106,6 @@ public final class SolrScheduler extends HttpServlet{
 		public Boolean call() 
 		{
 			System.out.println("RUNNING SOLRSCHEDULER THREAD WITH NAME " + Thread.currentThread().getName());
-			// TODO Auto-generated method stub
 			System.out.println("Setting up Scheduler...");
 			System.out.println("RUNNING WITH MEMORY SIZE " + Runtime.getRuntime().maxMemory());
 			
@@ -163,10 +163,34 @@ public final class SolrScheduler extends HttpServlet{
 				{
 					keepRunning = false;
 				}
+				
+				// Index RSS Feeds Job
+				String enableRssFeeds = prop.getProperty("enableRssFeeds");
+				int feedSourcesUpdateIntervalMins = Integer.parseInt(prop.getProperty("feedSourcesUpdateIntervalMins"));
+				JobKey rssFeedsJobKey = JobKey.jobKey(jobNameForRssFeeds, jobGroupName);
+				if(enableRssFeeds.equalsIgnoreCase("true"))
+				{
+					JobDetail rssFeedsJob = JobBuilder.newJob(RssFeedsJob.class).withIdentity(rssFeedsJobKey)
+														.storeDurably()
+														.build();
+					
+					// Trigger the job to run now, and then repeat every 60 mins
+					Trigger trigger = newTrigger()
+					.withIdentity("rssFeedsTrigger", jobGroupName)
+					.startNow()
+					.withSchedule(simpleSchedule()
+							.withIntervalInMinutes(feedSourcesUpdateIntervalMins)
+							.repeatForever())            
+							.build();
+					
+					sched.start();
+					sched.scheduleJob(rssFeedsJob, trigger);
+				}
+				
 				//Sleep for a minute before going into while loop
 				waitForMinutes(1, "first trigger of jobs");
 				while(keepRunning)
-				{
+				{	
 					
 					List<JobExecutionContext> currentJobs = sched.getCurrentlyExecutingJobs();
 					
@@ -200,7 +224,6 @@ public final class SolrScheduler extends HttpServlet{
 								System.out.println("Triggering Summarization Job");
 							}
 						}catch (Exception e) {
-							// TODO: handle exception
 							System.out.println("Jobs found but could not be triggered. Possibly shut down.");
 						}
 						
@@ -209,10 +232,12 @@ public final class SolrScheduler extends HttpServlet{
 					
 				}
 				
-			}catch (SchedulerException e)
-			{
+			} catch (InterruptedException ex) {
+				return false;
+			}
+			catch (SchedulerException e) {
 				System.out.println("Error Scheduling jobs");
-					e.printStackTrace();
+				e.printStackTrace();
 			}
 			
 			return keepRunning;
@@ -234,8 +259,15 @@ public final class SolrScheduler extends HttpServlet{
 				sched.pauseAll();
 				sched.clear();
 				keepRunning = false;
-//				sched.shutdown(false);
-				waitForMinutes(1, "stopJobs");
+				try {
+					// Wait 1 min for stopping and finish jobs and one 1 for shutting down scheduler
+					waitForMinutes(1, "Stop Jobs");
+					sched.shutdown(false);
+					waitForMinutes(1, "Shut Down Scheduler");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					return;
+				}
 				System.out.println("Shutting Down All jobs");
 				}catch (SchedulerException e){
 					e.printStackTrace();
@@ -243,14 +275,10 @@ public final class SolrScheduler extends HttpServlet{
 			return;
 		}
 		
-		private void waitForMinutes(int i,String processName)
+		private void waitForMinutes(int i,String processName) throws InterruptedException
 		{
-			try {
 				System.out.println("going to sleep for " + processName);
 			    Thread.sleep(1000*60*i);
-			} catch(InterruptedException ex) {
-			    Thread.currentThread().interrupt();
-			}
 		}
 	}
 }

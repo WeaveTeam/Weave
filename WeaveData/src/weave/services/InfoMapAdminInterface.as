@@ -51,7 +51,7 @@ package weave.services
 			{
 				service = new AMF3Servlet(url + "/AdminService");
 				queue = new AsyncInvocationQueue();
-//				getRssFeeds();
+				getRssFeeds();
 			}
 			
 			private var queue:AsyncInvocationQueue;
@@ -140,6 +140,12 @@ package weave.services
 					Alert.show(event.result.toString());
 					getRssFeeds();
 				}
+			}
+			
+			// ToDo This is called when the user clicks index now. (Mannually indexing)
+			public function indexRssFeeds():void
+			{
+				generateQueryAndAddToQueue("indexRssFeeds", []);
 			}
 			
 			public function renameFile(filePath:String,newFileName:String,overwrite:Boolean=false):void
