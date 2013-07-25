@@ -11,27 +11,6 @@ angular.module("aws.Main", [])
 	$scope.typing = "first";
 	$scope.panels = [
 		{
-			panelTitle: "Indicator",
-			size: "span3",
-			id: "a1",
-			content: '<input type="text" ng-model="typing">'
-		},
-		{
-			panelTitle: "Geography",
-			size: "span4",
-			id: "a2",
-			content: '{{typing}}'
-		},
-		{
-			panelTitle: "By-Variables",
-			size: "span6",
-			id: "a3",
-			content: 'JSON Query Object <input id="panel6ImportButton"' +
-                  'type="submit" value="Import..." /> <input id="panel6SaveButton"' +
-                  'type="submit" value="Save" /> <input id="panel6EditButton"' +
-                  'type="submit" value="Edit" />'
-		},
-		{
 			panelTitle: "Time Period",
 			size: "span2",
 			id: "a4"},
@@ -74,8 +53,6 @@ angular.module("aws.Main", [])
 })
 .controller("LayoutCtrl", function($scope, queryobj){
 	$scope.leftPanelUrl = "./tlps/leftPanel.tlps.html";
-	$scope.weaveInstancePanel = "./tlps/weave.tlps.html";
-	
 	$scope.genericPortlet = "./tlps/genericPortlet.tlps.html";
 	$scope.QueryObjectModel = queryobj;
 	$scope.$watch('queryobj.selectedColumns' , function(){

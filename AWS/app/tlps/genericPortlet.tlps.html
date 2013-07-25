@@ -9,7 +9,7 @@
 <div class="portlet-content">
 
 	<select multiple ng-model="selection">
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+		<option value="{{opt.publicMetadata.title}}" ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
 	</select>
 
 </div>
