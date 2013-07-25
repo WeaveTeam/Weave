@@ -16,7 +16,7 @@
 			<div id="header">
 				<div ng-controller="DataDialogCtrl" style="display: inline-block">
 					<button id="projectButton" class="btn btn-primary"
-						ng-click="openDialog('project')">Project</button>
+						ng-click="openDialog('ProjectMenu')">Project</button>
 					<button id="dataButton" class="btn btn-primary"
 						ng-click="openDialog('dataDialog')">Data Tables...</button>
 					<button id="weaveButton" class="btn btn-primary"
@@ -74,6 +74,7 @@
 	<script src='js/directives/directives.js'></script>
 	<script src='js/controllers/indicatorPanelCtrl.js'></script>
 	<script src='lib/angular/angular-resource.js'></script>
+	<script src='lib/FileSaver.min.js'></script>
 	<script src='../aws/aws.js'></script>
 </body>
 </html>
