@@ -21,11 +21,13 @@ package weave.servlets;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.Vector;
 
 import javax.script.ScriptException;
 
+import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -333,7 +335,7 @@ public class RServiceUsingRserve
 		//To do find a better way of doing this
 		//if(evalValue.isList())
 		//{
-			//Vector<String> names = evalValue.asList().names;
+			//Vector<String> knames = evalValue.asList().names;
 			
 			//newResultVector.add(new RResult("columnNames" ,names ));
 			//newResultVector.add(stringEval);
@@ -349,8 +351,12 @@ public class RServiceUsingRserve
 	/*
 	 * Taken from rJava Opensource code and 
 	 * added support for  Rlist
+	 * added support for RFactor(REngine)
 	 */
 	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
+		
+		int specialIndex = 0;
+		
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
 			return null;
 		}
@@ -358,6 +364,9 @@ public class RServiceUsingRserve
 			int len = rexp.length();
 			if(rexp.isString()) {
 				return len == 1 ? rexp.asString() : rexp.asStrings();
+			}
+			if(rexp.isFactor()){
+				return rexp.asFactor();
 			}
 			if(rexp.isInteger()) {
 				return len == 1 ? rexp.asInteger() : rexp.asIntegers();
@@ -374,17 +383,58 @@ public class RServiceUsingRserve
 			if(rexp.isRaw()) {
 				return rexp.asBytes();
 			}
+			
+			
 			if(rexp.isList()) {
 				RList rList = rexp.asList();
+				
 				Object[] listOfREXP = rList.toArray() ;
 				//convert object in List as Java Objects
 				// eg: REXPDouble as Double or Doubles
 				for(int i = 0; i < listOfREXP.length ;  i++){
-					REXP obj = (REXP)listOfREXP[i];
-					Object javaObj =  rexp2javaObj(obj);
+					Vector<String> namesVector = rexp.asList().names;
+					String [] namesArray = namesVector.toArray(new String[namesVector.size()]);
 					
+					REXP obj = (REXP)listOfREXP[i];
+					
+					Object javaObj =  rexp2javaObj(obj);
+					//handling fips TODO change this
+					
+					if(namesArray[i].matches("fips"))
+					{
+						double [] fips = (double[])javaObj;
+						int [] newFips = new int[fips.length];
+						for(int s = 0; s < fips.length; s++)
+						{
+							newFips[s] = (int) fips[s];
+						}
+						
+						listOfREXP[i] = newFips;
+					}
+					
+					//TODO find better way of casting? avoid loops?
+					//do this only for levels
+					else if(javaObj instanceof RFactor)
+					{
+						if(!(namesArray[i].matches("State")))
+						{
+							// cast it initially as the RFactor
+							RFactor factorjavaObj = (RFactor)javaObj;
+							String[] levels = factorjavaObj.levels();
+							Integer [] intArray = new Integer[levels.length];
+							for(int x = 0; x < levels.length; x++)
+							{
+								intArray[x] = Integer.parseInt(levels[x]);
+							}
+							listOfREXP[i] = intArray;
+						}
+						else
+							listOfREXP[i] = javaObj;
+						
+					}
+				
 					//testing TODO : find better casting
-					if(javaObj  instanceof int[]){
+					else if(javaObj  instanceof int[]){
 						System.out.print('f');
 						
 						int[] intObj  = (int[]) javaObj;
@@ -395,7 +445,9 @@ public class RServiceUsingRserve
 						}
 						listOfREXP[i] =  intToDoubleObj;
 					}
-					else{
+					
+					
+					else {
 						listOfREXP[i] =  javaObj;
 					}
 					//testing end

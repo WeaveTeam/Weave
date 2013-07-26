@@ -50,4 +50,4 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		sqluser : 'tester',
 		sqlpass : 'test1'
 	};
-})
+});

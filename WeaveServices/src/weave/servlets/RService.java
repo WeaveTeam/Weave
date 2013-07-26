@@ -174,7 +174,8 @@ public class RService extends GenericServlet
 			
 				
 			String dataset = requestObject.get("dataset").toString();
-			//TO DO Find better way to do this? full proof queries?
+			String scriptPath = requestObject.get("scriptPath").toString();
+			//TODO Find better way to do this? full proof queries?
 			//query construction
 			Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
 			ArrayList<String> columns = new ArrayList<String>();
@@ -196,9 +197,10 @@ public class RService extends GenericServlet
 			
 			String query = "select " + tempQuery + " from " + (dataset).toString();
 			
-			 String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
+			String cannedScriptLocation = scriptPath + scriptName;
+			 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
 			 
-			 Object[] requestObjectInputValues = {cannedSQLScriptLocation, query};
+			 Object[] requestObjectInputValues = {cannedScriptLocation, query};
 			 String[] requestObjectInputNames = {"cannedScriptPath", "query"};
 			
 			
