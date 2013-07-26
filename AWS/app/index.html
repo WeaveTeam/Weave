@@ -13,7 +13,7 @@
 	<!--   <div ng-view></div> -->
 	<div>
 		<div id="container" ng-controller="LayoutCtrl">
- 			<div id="header">
+			<div id="header">
 				<div ng-controller="DataDialogCtrl" style="display: inline-block">
 					<button id="projectButton" class="btn btn-primary"
 						ng-click="openDialog('ProjectMenu')">Project</button>
@@ -29,17 +29,11 @@
 			</div>
 			<div id="center" ng-controller="PanelGenericCtrl">
 				<div id="sortable" ng-model="panels">
-<<<<<<< HEAD
 					<panel id="indicators" name="Indicators"> </panel>
 					<panel id="byvars" name="By-Variables"> </panel>
 					<panel id="geography" name="Geography"> </panel>
 					<panel id="timeperiods" name="Time Period"> </panel>
-=======
-					<panel id="Indicators"> </panel>
-					<panel id="By-Variables"> </panel>
-					<panel id="Geography"> </panel>
-					<panel id="Demographics"> </panel>
->>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
+
 					<div ng-repeat='a in panels'>
 
 						<div class="{{a.size}} sort" class='panel'>
@@ -52,31 +46,19 @@
 						</div>
 					</div>
 				</div>
-<<<<<<< HEAD
- 
+
+
 			</div>
-			
+
 
 			<div ng-include src="weaveInstancePanel">
 				<!-- left panel goes here -->
-=======
 
-
-			</div>
-			<div style="display:inline-block" ng-include src="weaveInstancePanel">
-				<!-- weave panel goes here -->
->>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
 			</div>
 		</div>
 
 
 	</div>
-<<<<<<< HEAD
-	
-=======
-
-
->>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   -->
