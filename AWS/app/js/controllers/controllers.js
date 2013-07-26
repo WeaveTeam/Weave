@@ -54,9 +54,13 @@ angular.module("aws.Main", [])
 .controller("LayoutCtrl", function($scope, queryobj){
 	$scope.leftPanelUrl = "./tlps/leftPanel.tlps.html";
 	$scope.genericPortlet = "./tlps/genericPortlet.tlps.html";
-	$scope.QueryObjectModel = queryobj;
-	$scope.$watch('queryobj.selectedColumns' , function(){
+	$scope.QueryObjectModel = function(){ 
+		return JSON.stringify(queryobj, undefined, 2);
+	}
+	/*$scope.$watch('queryobj.selectedColumns' , function(){
 		$scope.$broadcast("requestingQueryObject");
-	});
+	});*/
+	
+	
 	
 })

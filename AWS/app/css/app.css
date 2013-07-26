@@ -68,11 +68,20 @@ h1 {
 }
 
 #center {
+<<<<<<< HEAD
 	/*  border: solid; */
 	width: 70%;
 	height: 80%;
 	position: relative;
 	float: left;
+=======
+/*  border: solid; */
+  width: 70%;
+  height: 80%;
+  position: relative;
+  float: left;
+  display: inline-block;
+>>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
 }
 
 #sortable {

@@ -4540,26 +4540,26 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini {
 }
 
 .modal {
-	position: fixed;
-	left: 50%;
-	top: 40%;
-	z-index: 1050;
-	width: 560px;
-	margin: -250px 0 0 -280px;
-	overflow: auto;
-	background-color: #ffffff;
-	border: 1px solid #999;
-	border: 1px solid rgba(0, 0, 0, 0.3);
-	*border: 1px solid #999;
-	-webkit-border-radius: 6px;
-	-moz-border-radius: 6px;
-	border-radius: 6px;
-	-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-	-moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-	-webkit-background-clip: padding-box;
-	-moz-background-clip: padding-box;
-	background-clip: padding-box;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1050;
+  width: 560px;
+  margin: -250px 0 0 -280px;
+  overflow: auto;
+  background-color: #ffffff;
+  border: 1px solid #999;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  *border: 1px solid #999;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+     -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+  -webkit-background-clip: padding-box;
+     -moz-background-clip: padding-box;
+          background-clip: padding-box;
 }
 
 .modal.fade {
@@ -4589,9 +4589,11 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini {
 }
 
 .modal-body {
-	max-height: 400px;
-	padding: 15px;
-	overflow-y: auto;
+  max-height: 1000px;
+  max-width: 800px;
+  padding: 15px;
+  overflow-y: auto;
+
 }
 
 .modal-form {
