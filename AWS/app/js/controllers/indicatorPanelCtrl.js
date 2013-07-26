@@ -16,3 +16,12 @@ angular.module("aws.IndicatorPanel", [])
 	});
 
 })
+.controller("AnalysisCtrl", function($scope){
+	
+})
+.controller("CalculationCtrl", function($scope){
+	
+})
+.controller("VisualizationCtrl", function($scope){
+	
+})
