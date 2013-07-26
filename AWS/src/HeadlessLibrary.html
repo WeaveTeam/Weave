@@ -1,37 +1,114 @@
 <html>
 <script src="lib/jquery/jquery.js"></script>
 <script src="aws.js"></script>
+<script src="lib/swfobject.js"></script>
 <body>
-This page intends to demonstrate the decoupling of the AWS Library from any particular UI.<br>
-Use the file picker to select a local Query Object JSON file. Click ""Run" to upload the JSON file
-and send the query to R. When the data returns it will automatically be loaded into Weave using the 
-visualization parameters in the uploaded JSON file.
+	This page intends to demonstrate the decoupling of the AWS Library from
+	any particular UI.
+	<br> Use the file picker to select a local Query Object JSON file.
+	Click ""Run" to upload the JSON file and send the query to R. When the
+	data returns it will automatically be loaded into Weave using the
+	visualization parameters in the uploaded JSON file.
 
+	<script>
+		var timer = null;
+		var base_url = document.location.protocol + "//" + document.location.host + "/";
+				
+		function weaveReady( weave )
+		{
+			console.log( "Weave Ready" );
+		}
+		
+		function resizeWeave( t )
+		{
+			if( typeof t == 'undefined' ) t = 3;
+			if( t == 0 ) { timer = null; return; }
+			if( timer != null ) {
+				clearTimeout(timer);
+				timer = null;
+			}
+
+			var dh = $(window).height() - 10;
+			var wh = $("#weaveBox").position().top;
+			var h =  dh - wh;
+			$("#weaveBox").height( h );
+			
+			timer = setTimeout(
+				function() {
+					resizeWeave(t - 1);
+				},
+				300
+			);
+		}
+	</script>
 
 	<input type="file" name="query" />
 	<div id="file"></div>
 	<button id="run">Run</button>
 
+	<script>
+		$(window).ready(function() {
+			resizeWeave();
+		});
+		$(window).resize(function() {
+			resizeWeave();
+		});
+		$('#run').click(function() {
 
-<script>
+			var files = $('input');
+			var file = files[0].files[0];
+			var reader = new FileReader();
+			var obj;
+			reader.onload = function(e) {
+				$('#file').html(e.target.result);
+				obj = $.parseJSON(e.target.result);
+				console.log($.parseJSON(e.target.result));
+			}
+			reader.readAsText(file);
 
-$('#run').click(function(){
+			aws.QueryHandler.run(obj);
+		});
+	</script>
 	
-    	var files = $('input');
-    	var file = files[0].files[0];           
-        var reader = new FileReader();
-        var obj;
-        reader.onload = function(e) {
-          $('#file').html(e.target.result);
-          obj = $.parseJSON(e.target.result);
-          console.log($.parseJSON(e.target.result));
-        }
-        reader.readAsText(file)
-	
-        aws.QueryHandler.run(obj);
- });
+	<script type="text/javascript">
+		// For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection. 
+		var swfVersionStr = "10.2.0";
+		// To use express install, set to playerProductInstall.swf, otherwise the empty string. 
+		var xiSwfUrlStr = "playerProductInstall.swf";
+		var flashvars = {};
+		flashvars.file = "obesity.xml";
+		flashvars.allowDomain = "*";
+		var params = {};
+		params.base = base_url;
+		params.quality = "high";
+		params.bgcolor = "#7B96B6";
+		params.allowscriptaccess = "always";
+		params.allowfullscreen = "true";
+		var attributes = {};
+		attributes.id = "weave";
+		attributes.name = "weave";
+		attributes.align = "middle";
+		swfobject.embedSWF(
+			base_url + "weave.swf", "flashContent", 
+			"100%", "100%", 
+			swfVersionStr, xiSwfUrlStr, 
+			flashvars, params, attributes);
+		// JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
+		swfobject.createCSS("#flashContent", "display:block;text-align:left;width:100%;height:100%;");
+	</script>
 
-
-</script>
+	<div id="weaveBox" style="width:100%; height:50%; overflow: hidden; margin: 0 auto;">
+		<div id="flashContent">
+			<p>
+				To view this page ensure that Adobe Flash Player version 
+				10.2.0 or greater is installed. 
+			</p>
+			<script type="text/javascript"> 
+				var pageHost = ((document.location.protocol == "https:") ? "https://" : "http://"); 
+				document.write("<a href='http://www.adobe.com/go/getflashplayer'><img src='" 
+								+ pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
+			</script> 
+		</div>
+	</div>
 </body>
 </html>
