@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
-	<!--   <div ng-view></div> -->
+	
 	<div>
 		<div id="container" ng-controller="LayoutCtrl">
 			<div id="header">
@@ -27,8 +27,11 @@
 			<div ng-include src="leftPanelUrl">
 				<!-- left panel goes here -->
 			</div>
+			
+			
 			<div id="center" ng-controller="PanelGenericCtrl">
-				<div id="sortable" ng-model="panels">
+			<div ng-view></div>
+				<!-- <div id="sortable" ng-model="panels">
 					<panel id="indicators" name="Indicators"> </panel>
 					<panel id="byvars" name="By-Variables"> </panel>
 					<panel id="geography" name="Geography"> </panel>
@@ -45,7 +48,7 @@
 							</div>
 						</div>
 					</div>
-				</div>
+				</div> -->
 
 
 			</div>
