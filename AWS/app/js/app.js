@@ -23,16 +23,16 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.project', 
                                  'aws.DataDialog', 
                                  'aws.leftPanel',
-                                 'aws.IndicatorPanel']);
-// .config(['$routeProvider', function($routeProvider){
-// 		$routeProvider.
-// 			when('/leftPanel', {templateUrl: 'partials/leftPanel.tlps.html', controller: leftPanelCtrl}).
-// 			when('/phones/:phoneId', {templateUrl: 'partials/phone-detail.html', controller: PhoneDetailCtrl}).
-// 			when('/aws', {
-// 				templateUrl: 'partials/genericPanel.html',
-// 				controller: PanelGenericCtrl
-// 			}).
-// 			otherwise({redirectTo: '/aws'});
+                                 'aws.IndicatorPanel'])
+ .config(['$routeProvider', function($routeProvider){
+ 		$routeProvider.
+ 			when('/analysis', {templateUrl: 'tlps/analysis.tlps.html', controller: 'AnalysisCtrl'}).
+ 			when('/calculation', {templateUrl: 'tlps/calculation.tlps.html', controller: 'CalculationCtrl'}).
+ 			when('/visualization', {
+ 				templateUrl: 'tlps/visualization.tlps.html',
+ 				controller: 'VisualizationCtrl'
+ 			}).
+ 			otherwise({redirectTo: '/analysis'});
 			
-// 	}]);
+ 	}]);
 
