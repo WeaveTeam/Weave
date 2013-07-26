@@ -95,6 +95,13 @@ public class test
 				"library(survey)\n" +
 				"runscript <- scriptFromFile$value(csvPath)\n";
 		
+		String [] names = {"hello", "hi", "shweta"};
+		for(int g=0; g < names.length; g++)
+		{
+			if(names[g].matches("shweta"))
+				System.out.print("done");
+		}
+		
 		//inputValues1 = new Object[0];
 		//inputNames = new String[]{"myMatrix"};
 		//Object[] array4 = {"ji", "hello"};
@@ -157,21 +164,21 @@ public class test
 //		"return(Clusters)}}\n" +
 //		"ans <- hello1(inputColumns, EMModel)\n";
 		
-		RResult testObject = new RResult("Shweta", 50);
-		RResult testObject2 = new RResult("Purushe",100);
-		
-		Map<String, Object> check = new HashMap<String, Object>();
-		check.put("first", testObject);
-		check.put("second", testObject2);
-		
-		Set keys = check.keySet();
-		Object ans = check.get("first");
-		
-		
-		System.out.print(testObject);
-		System.out.print(check);
-		System.out.print(ans);
-		System.out.print(keys);
+//		RResult testObject = new RResult("Shweta", 50);
+//		RResult testObject2 = new RResult("Purushe",100);
+//		
+//		Map<String, Object> check = new HashMap<String, Object>();
+//		check.put("first", testObject);
+//		check.put("second", testObject2);
+//		
+//		Set keys = check.keySet();
+//		Object ans = check.get("first");
+//		
+//		
+//		System.out.print(testObject);
+//		System.out.print(check);
+//		System.out.print(ans);
+//		System.out.print(keys);
 		//resultNames = new String[]{"runscript"};
 		//call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
 	}	

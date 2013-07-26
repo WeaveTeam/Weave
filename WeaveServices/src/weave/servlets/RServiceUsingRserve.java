@@ -310,23 +310,41 @@ public class RServiceUsingRserve
 		finalresultString = finalresultString.concat("\n");
 		
 		Object temp = tempColumns[0];
-		double[] sampleColumn = (double[])temp;
-		for (int r= 0; r < sampleColumn.length; r++)					
-		{
-			Vector<Double> row = new Vector<Double>();
-			//row.push(r);
-			//keys.push(r as IQualifiedKey);
-			for(int c= 0 ; c < tempColumns.length; c++){
-				double[] column= (double[])tempColumns[c];
-				row.add(column[r]) ;
-			}
-			
-			String check = StringUtils.join(",", row);	
-			
-			finalresultString = finalresultString.concat(check);
-			finalresultString = finalresultString.concat("\n");
-		}
 		
+		double[] sampleColumn = (double[])temp;
+//		for (int r= 0; r < sampleColumn.length; r++)					
+//		{
+//			Vector<?> row = new Vector();
+//			if(temp instanceof double[])
+//			{
+//				row = new Vector<Double>();
+//				for(int c= 0 ; c < tempColumns.length; c++){
+//					double[] column= (double[])tempColumns[c];
+//					row.add(column[r]) ;
+//				}
+//			}
+//			
+//			String check = StringUtils.join(",", row);	
+//			
+//			finalresultString = finalresultString.concat(check);
+//			finalresultString = finalresultString.concat("\n");
+//		}
+	
+//		double[] sampleColumn = (double[])temp;
+//		for (int r= 0; r < sampleColumn.length; r++)					
+//		{
+//			Vector<Double> row = new Vector<Double>();
+//			for(int c= 0 ; c < tempColumns.length; c++){
+//				double[] column= (double[])tempColumns[c];
+//				row.add(column[r]) ;
+//			}
+//			
+//			String check = StringUtils.join(",", row);	
+//			
+//			finalresultString = finalresultString.concat(check);
+//			finalresultString = finalresultString.concat("\n");
+//		}
+//		
 	
 		
 		newResultVector.add(new RResult("endResult", finalresultString));
