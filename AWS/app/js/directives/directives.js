@@ -2,19 +2,6 @@
 
 /* Directives */
 
-/*
-angular.module('myApp.directives', []).
-  directive('appVersion', ['version', function(version) {
-    return function(scope, elm, attrs) {
-      elm.text(version);
-    };
-  }]);*/
-
-/**
-* myApp Module
-*
-* Description
-*/
 angular.module('aws.directives', ['aws.Main'])
 .directive('selectable', function(){
 	return {
@@ -80,19 +67,18 @@ angular.module('aws.directives', ['aws.Main'])
 		controller: 'IndicatorPanelCtrl',
 		link: function(scope, element, attrs, controller){
 			//Adding CSS classes to make a panel
-			$(element).addClass("ui-widget portlet ui-widget-content span4 ui-corner-all ui-helper-clearfix")
+			$(element).addClass("ui-widget portlet ui-widget-content span4 ui-corner-all ui-helper-clearfix panel")
 				.find( ".portlet-header" )
 		        .addClass( "ui-widget-header ui-helper-clearfix" )
 		        .find("span")
 		        .addClass("panel-title-margins");
-			scope.panelTitle = attrs.id;
-//		    $(element).find(".portlet-content")
-//		        .addClass("ui-widget ui-widget-content ui-helper-clearfix ui-corner-all");
-//			
+			scope.panelTitle = attrs.name;
+			scope.selectorId = attrs.id;
+		
 
 		}
 		
 	};
-});
+})
 
 

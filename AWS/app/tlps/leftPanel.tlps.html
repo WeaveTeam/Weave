@@ -3,15 +3,18 @@
 	Dynamic content will just include display of the query object.
  -->
 
-<div ng-controller="LeftPanelCtrl">
-<accordion id="leftPanel" close-others="oneAtATime"> 
-	<accordion-group heading='Analysis Builder' id="analysisBuilder">
-		{{QueryObjectModel}} 
-	</accordion-group>
-	<accordion-group heading='Calculation' id="calculationAccordion">
-	</accordion-group>
-	<accordion-group heading="Weave" id="weaveAccordion">
-	</accordion-group>
-</accordion>
+<div ng-controller="LeftPanelCtrl" class=" span3">
+	<!-- <accordion id="leftPanel" close-others="oneAtATime"> <accordion-group
+		heading='Analysis Builder' id="analysisBuilder">
+	{{QueryObjectModel}} </accordion-group> <accordion-group heading='Calculation'
+		id="calculationAccordion"> </accordion-group> <accordion-group
+		heading="Weave" id="weaveAccordion"> </accordion-group> </accordion> -->
+	
+	<ul class="nav nav-tabs nav-stacked">
+		<li class="active"><a href="#">Analysis Builder</a></li>
+		<li><a href="#">Calculations</a></li>
+		<li><a href="#">Visualizations</a></li>
+	</ul>
+	<div>{{QueryObjectModel()}}</div>
 </div>
 

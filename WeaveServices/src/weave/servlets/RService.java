@@ -40,6 +40,8 @@ import weave.config.WeaveContextParams;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.utils.DebugTimer;
 
+import weave.utils.SQLUtils;
+
 
  
 public class RService extends GenericServlet
@@ -104,40 +106,7 @@ public class RService extends GenericServlet
 		
 		return jriStatus;
 	}
-	
-	//handles running canned scripts by pulling data from csv
-	public RResult[] runScriptOnCSVOnServer(String[] queryObject)throws Exception
-	{
-		RResult[] csvreturnedColumns;
-		//get the upload path for csv (on server)
-		//get the upload path for canned RScript (on server)
-		//if using run on csv
-		//TO DO: check for server side code?
-//		String cannedScriptLocation = (uploadPath  + scriptName).replace('/', '\\');
-//		String csvLocation = (uploadPath + datasetName).replace('/', '\\');
 		
-		//To Do check if queryObject is null
-		//hard coded for now
-			//String cannedScriptLocation = "C:\\Users\\Shweta\\Desktop\\brfss_RRoutine.R";
-			//String csvLocation = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
-		    String csvLocation = "/Users/franckamayou/Desktop/"+(queryObject[0]).toString();
-			String cannedScriptLocation = "/Users/franckamayou/Desktop/"+(queryObject[1]).toString();
-			
-			Object[] inputValues = {cannedScriptLocation,csvLocation };
-			
-			String[] inputNames = {"cannedScriptPath", "csvDatasetPath"};
-			String adminScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-			"library(survey)\n" +
-			"columnsReturnedFromCSV <- scriptFromFile$value(csvDatasetPath)\n";
-			//String[] outputNames = {"columnsReturnedFromCSV"};
-			String[] outputNames = {};
-			
-			csvreturnedColumns = this.runScript( null, inputNames, inputValues, outputNames, adminScript, "", false, false, false);
-			
-		
-		return csvreturnedColumns;
-		
-	}		
 	
 	
 	//TO DO write to and retrieve computation results from database
@@ -186,7 +155,8 @@ public class RService extends GenericServlet
 			
 			for(int i=0; i < counter; i++)
 			{
-				String tempColumnName = columns.get(i);
+				String tempColumnName = SQLUtils.quoteSymbol(SQLUtils.MYSQL, columns.get(i));
+
 				if(i == (counter-1))
 				{
 					tempQuery = tempQuery.concat(tempColumnName);
@@ -195,7 +165,7 @@ public class RService extends GenericServlet
 					tempQuery = tempQuery.concat(tempColumnName + ", ");
 			}
 			
-			String query = "select " + tempQuery + " from " + (dataset).toString();
+			String query = "select " + tempQuery + " from " + SQLUtils.quoteSymbol(SQLUtils.MYSQL, dataset);
 			
 			String cannedScriptLocation = scriptPath + scriptName;
 			 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
@@ -220,37 +190,6 @@ public class RService extends GenericServlet
 		
 	}
 	
-	//handles running canned scripts by pulling data from SQl database
-	public RResult[] runScriptOnSQLOnServer(String[] queryObject, String queryStatement, String schema) throws Exception
-	{
-		RResult[] sqlreturnedColumns;
-		//hard coding the query TO DO: has to be defined by user input and UI
-		//To Do check if queryObject is null
-		//String query = "select `@_STATE`,`@_PSU`,`@_STSTR`,`@_FINALWT`,DIABETE2 from sdoh2010q";
-		//String query = "select `@_STATE`,`@_PSU`,`@_STSTR`,`@_FINALWT`,DIABETE2 from "+ (queryObject[0]).toString();
-		String query = "select " + queryStatement + " from " + (queryObject[0]).toString();
-		String editedQuery = query.replace(".csv", "");
-		
-			//String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\CDCSQLQueries.R";
-			//Object[] sqlinputValues = {cannedSQLScriptLocation, query};
-		//"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"Tc1Sgp7nFc\", host = \"129.63.8.210\", port = 3306, dbname = \"resd\")\n"
-		    String cannedSQLScriptLocation = "/Users/franckamayou/Desktop" + (queryObject[1]).toString();
-			
-			Object[] sqlinputValues = {cannedSQLScriptLocation, editedQuery};
-			String[] sqlinputNames = {"cannedScriptPath", "query"};
-			
-			String sqlRScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-			"library(RMySQL)\n" +
-			"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"Tc1Sgp7nFc\", host = \"129.63.8.210\", port = 3306, dbname =" + "\"" +schema+"\")\n" +
-			"library(survey)\n" +
-			"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
-			//String[] sqlOutputNames = {"returnedColumnsFromSQL"};
-			String[] sqlOutputNames = {};
-			
-			sqlreturnedColumns = this.runScript( null, sqlinputNames, sqlinputValues, sqlOutputNames, sqlRScript, "", false, false, false);
-			//db.report("Result Returned\n");
-		return sqlreturnedColumns;
-	}
 	
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
