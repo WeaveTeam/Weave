@@ -320,6 +320,7 @@ public class AdminService extends GenericServlet {
 		} catch (Exception e) {
 			System.out.println(query);
 			e.printStackTrace();
+			return null;
 		} finally {
 			SQLUtils.cleanup(connection);
 		}

@@ -107,7 +107,8 @@ package weave.services
 				generateQueryAndAddToQueue("getRssFeeds",[]).addAsyncResponder(handleGetRssFeeds);
 				function handleGetRssFeeds(event:ResultEvent,token:Object=null):void
 				{
-					rssFeeds = event.result as Array || [];
+					if (event.result != null)
+						rssFeeds = event.result as Array || [];
 				}
 			}
 			
