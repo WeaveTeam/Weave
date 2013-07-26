@@ -1,127 +1,171 @@
 /* app css stylesheet */
-
 body {
-  padding-top: 20px;
+	padding-top: 20px;
 }
 
 h1 {
-  border-bottom: 1px solid gray;
+	border-bottom: 1px solid gray;
 }
 
 #container {
-  width: 98%;
-  height: 98%;
-  position: relative;
-  margin-left: 20px;
-  margin-right: auto;
-  margin-top: auto;
-  margin-bottom: auto;
- /* border:solid;*/
-  display: inline-block;
+	width: 98%;
+	height: 98%;
+	position: relative;
+	margin-left: 20px;
+	margin-right: auto;
+	margin-top: auto;
+	margin-bottom: auto;
+	/* border:solid;*/
+	display: inline-block;
 }
 
 #header {
-  width: 100%;
-  height: 8%;
-  position: relative;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: auto;
-  margin-bottom: 5px;
-  float: left;
-  /*border:solid;*/ 
+	width: 100%;
+	height: 8%;
+	position: relative;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: auto;
+	margin-bottom: 5px;
+	float: left;
+	/*border:solid;*/
 }
 
 #leftPanel {
-  width: 15%;
-  height: 90%;
-  position: relative;
-  float: left;
+	width: 15%;
+	height: 90%;
+	position: relative;
+	float: left;
 }
 
 #leftPanel_1 {
-  width: 100%;
-  height: 28.3%;
-  position: relative;
-  float: left;
+	width: 100%;
+	height: 28.3%;
+	position: relative;
+	float: left;
 }
 
 #leftPanel_2 {
-  width: 100%;
-  height: 28.3%;
-  position: relative;
-  float: left;
+	width: 100%;
+	height: 28.3%;
+	position: relative;
+	float: left;
 }
 
 #leftPanel_3 {
-  width: 100%;
-  height: 28.3%;
-  position: relative;
-  float: left;
+	width: 100%;
+	height: 28.3%;
+	position: relative;
+	float: left;
 }
 
 #weaveThumb {
-  width: 100%;
-  height: 15%;
-  position: relative;
-  float: left;
-  margin-top: 3px;
+	width: 100%;
+	height: 15%;
+	position: relative;
+	float: left;
+	margin-top: 3px;
 }
 
 #center {
-/*  border: solid; */
-  width: 70%;
-  height: 80%;
-  position: relative;
-  float: left;
+	/*  border: solid; */
+	width: 70%;
+	height: 80%;
+	position: relative;
+	float: left;
 }
 
 #sortable {
-  width: 100%;
-  /*border: 1px solid #ccc;*/
-  height: 600px;
-  padding: 3px;
-  display: inline-block;
+	width: 100%;
+	/*border: 1px solid #ccc;*/
+	height: 600px;
+	padding: 3px;
+	display: inline-block;
 }
 
 div.portlet {
-  margin: 3px;
-  padding: 1px;
-  float: left;
-  height: 100px;
-  width: 100%;
+	margin: 3px;
+	padding: 1px;
+	float: left;
+	height: 100px;
+	width: 100%;
 }
 
 /*.portlet { margin: 0 1em 1em 0; }*/
-.portlet-minimized { height: auto !important; }
-/*.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }*/
-.portlet-header .ui-icon { float: right; }
-/*.portlet-content { padding: 0.4em; }*/
-.portlet-minimized .portlet-content { display: none !important; }
-.ui-sortable-placeholder { 
-  border: 1px black; 
-  visibility: visible !important; 
-  height: 100px !important;
-  clear:both;
-  background:black;
+
+.portlet-minimized {
+	height: auto !important;
 }
-.ui-sortable-placeholder * { visibility: hidden; }
+
+/*.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }*/
+
+.portlet-header .ui-icon {
+	float: right;
+}
+
+.portlet-content { padding-right: 10px; }
+
+.portlet-minimized .portlet-content {
+	display: none !important;
+}
+
+.ui-sortable-placeholder {
+	border: 1px black;
+	visibility: visible !important;
+	height: 100px !important;
+	clear: both;
+	background: black;
+}
+
+.ui-sortable-placeholder * {
+	visibility: hidden;
+}
 
 .panel {
-  vertical-align: top;
+	vertical-align: top;
+	margin-bottom: 20px;
 }
-.panel-title-margins{
+
+.panel-title-margins {
 	margin-left: 7px;
 }
-select {margin: 5px 3px 3px 5px}
-ol {margin: 0px 0px 0px 0px;}
 
-#feedback { font-size: .5em; }
-  .ui-selecting { background: #FECA40; }
-  .ui-selected { background: #F39814; color: white; }
-  #selectable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-  #selectable li { margin: 0px; padding: 0em; font-size: .7em; height: 10px; }
-  
+select {
+	margin: 5px 3px 3px 5px;
+	width: 100%;
+}
+
+ol {
+	margin: 0px 0px 0px 0px;
+}
+
+#feedback {
+	font-size: .5em;
+}
+
+.ui-selecting {
+	background: #FECA40;
+}
+
+.ui-selected {
+	background: #F39814;
+	color: white;
+}
+
+#selectable {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	width: 60%;
+}
+
+#selectable li {
+	margin: 0px;
+	padding: 0em;
+	font-size: .7em;
+	height: 10px;
+}
+
 /*.gridster {
    
     margin: 0 auto;
