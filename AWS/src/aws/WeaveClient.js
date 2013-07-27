@@ -1,6 +1,6 @@
 goog.require('aws.client');
 
-goog.provide('aws.Client.WeaveClient');
+goog.provide('aws.WeaveClient');
 	
 /**
  * This is the constructor for the weave client class.
@@ -8,7 +8,7 @@ goog.provide('aws.Client.WeaveClient');
  * @param {aws.WeaveObject} weave An instance of weave
  * @constructor
  */
-aws.Client.WeaveClient = function (weave) {
+aws.WeaveClient = function (weave) {
 
 	// the weave client only has this weave property.
 	this.weave = weave;
@@ -24,7 +24,7 @@ aws.Client.WeaveClient = function (weave) {
  * @return // should return a "pointer" to the visualization, or more precisely
  * 		   // the path in the weave hashmap.
  */
-aws.Client.WeaveClient.prototype.newMap = function (geometry, geometryDatasource){
+aws.WeaveClient.prototype.newMap = function (geometry, geometryDatasource){
 
 	var toolName = [this.weave.path().getValue('generateUniqueName("MapTool")')];
 	this.weave.requestObject(toolName, 'MapTool');
@@ -55,7 +55,7 @@ aws.Client.WeaveClient.prototype.newMap = function (geometry, geometryDatasource
  * @return // should return a "pointer" to the visualization, or more precisely
  * 		   // the key in the weave hashmap.
  */
-aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, sizeColumnName, csvDataSource) {
+aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, sizeColumnName, csvDataSource) {
 
 	var toolName = [this.weave.path().getValue('generateUniqueName("ScatterPlotTool")')];//returns a string
 	this.weave.requestObject([toolName], 'ScatterPlotTool');
@@ -63,10 +63,10 @@ aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumn
 	var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
 	var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
 	
-	aws.Client.WeaveClient.setCSVColumn(csvDataSource,columnPathX, xColumnName );//setting the X column
-	aws.Client.WeavClient.setCSVColumn(csvDataSource, columnPathY, yColumnName );//setting the Y column
+	aws.WeaveClient.setCSVColumn(csvDataSource,columnPathX, xColumnName );//setting the X column
+	aws.WeavClient.setCSVColumn(csvDataSource, columnPathY, yColumnName );//setting the Y column
 	
-	//aws.Client.WeaveClient.prototype.setColorAttribute(colorColumnName,);// TO DO: use setCSVColumn directly?
+	//aws.WeaveClient.prototype.setColorAttribute(colorColumnName,);// TO DO: use setCSVColumn directly?
 };
 
 /**
@@ -75,7 +75,7 @@ aws.Client.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumn
  * @param columnNames array of columns to put in the table
  * @param dataSource name of datasource to pull data from
  */
-aws.Client.WeaveClient.prototype.newDatatableTool = function(columnPath, columnNames, dataSource){
+aws.WeaveClient.prototype.newDatatableTool = function(columnPath, columnNames, dataSource){
 	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
 	this.weave.requestObject([toolName], 'DataTableTool');
 	
@@ -83,7 +83,7 @@ aws.Client.WeaveClient.prototype.newDatatableTool = function(columnPath, columnN
 	
 	for (var i = 0; i < columnNames.length; i++)
 		{
-			aws.Client.WeaveClient.setCSVColumn([toolName,'columns',columnNames[i]], dataSource, columnNames);
+			aws.WeaveClient.setCSVColumn([toolName,'columns',columnNames[i]], dataSource, columnNames);
 			
 		}
 	
@@ -99,7 +99,7 @@ aws.Client.WeaveClient.prototype.newDatatableTool = function(columnPath, columnN
  * @return // should return a "pointer" to the visualization, or more precisely
  * 		   // the key in the weave hashmap.
  */
-aws.Client.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
+aws.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
 
 	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")')], 'CompoundBarChartTool');
 };
@@ -112,9 +112,9 @@ aws.Client.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
  * 
  * @return void
  */
-aws.Client.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
+aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
 	
-	aws.Client.WeaveClient.setCSVColumn(['defaultColorDataColumn', 'internalDynamicColumn'], csvDataSource, colorColumnName);
+	aws.WeaveClient.setCSVColumn(['defaultColorDataColumn', 'internalDynamicColumn'], csvDataSource, colorColumnName);
 
 };
 
@@ -129,7 +129,7 @@ aws.Client.WeaveClient.prototype.setColorAttribute = function(colorColumnName, c
  * @return void
  * 
  */
-aws.Client.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
+aws.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
 	
 
 };
@@ -144,7 +144,7 @@ aws.Client.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
  * @return void
  * TODO // is this function necessary??
  */
-aws.Client.WeaveClient.prototype.updateVisualization = function(weave, panel, update) {
+aws.WeaveClient.prototype.updateVisualization = function(weave, panel, update) {
 	update(panel);
 };
 
@@ -156,7 +156,7 @@ aws.Client.WeaveClient.prototype.updateVisualization = function(weave, panel, up
  * @return void
  * 
  */
-aws.Client.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSource, dataSourceName) {
+aws.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSource, dataSourceName) {
 	this.weave.path(dataSourceName)
 		 .request('CSVDataSource')
 		 .vars({data: dataSource})
@@ -171,7 +171,7 @@ aws.Client.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSour
  * @param {string}columnName name of the column
  * @return void
  */
-aws.Client.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath, columnName){
+aws.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath, columnName){
 	this.weave.path(csvDataSourceName)
 			  .vars({i:columnName, p:columnPath})
 			  .exec('putColumn(i,p)');
@@ -188,17 +188,18 @@ aws.Client.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, col
  * @return void
  * 
  */
-aws.Client.WeaveClient.prototype.addCSVDataSourceFromRows = function (weave, dataSource, dataSourceName) {
-//	if (dataSourceName == "") {
-//		this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")')).request('CSVDataSource')
-//		 .vars({data: dataSource})
-//		 .exec('setCSVData(data)');
-//	}
-//	
-//	else {
-//		this.weave.path(dataSourceName).request('CSVDataSource')
-//		 .vars({data: dataSource})
-//		 .exec('setCSVData(data)');
-//	}	
+aws.WeaveClient.prototype.addCSVDataSource = function (weave, dataSource, dataSourceName) {
+
+	if (dataSourceName == "") {
+		this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")')).request('CSVDataSource')
+		 .vars({data: dataSource})
+		 .exec('setCSVData(data)');
+	}
+	
+	else {
+		this.weave.path(dataSourceName).request('CSVDataSource')
+		 .vars({data: dataSource})
+		 .exec('setCSVData(data)');
+	}	
 		
 };
