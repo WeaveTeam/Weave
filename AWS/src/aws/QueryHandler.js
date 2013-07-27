@@ -2,62 +2,73 @@ goog.provide('aws.QueryHandler');
 
 goog.require('aws.client');
 goog.require('aws.RClient');
-//will distribute the required data to the different clients(brokers)
-//takes an object literal as an argument which is updated with ui interaction at runtime
-var title; 
-var dategenerated;
-var creator;
-//Rserve requirements
-//data set to pull columns from
-var computationEngine;//(either R or STATA)
-var dataset = "";
-//script to be run R, STATA
-var computationScript;
-var columnString;
-var columns;  // = columnString.split(",");//should we do this?
-var scriptLocation;
-//connection information
-var host;
-var user;
-var password;
-var schema;
-//visualization parameters(map or array?)
-var vizTools = [];
-var vizParameters;
+goog.require('aws.StataClient');
+goog.require('aws.WeaveClient');
 
-/**@constructor*/
-function QueryHandler(queryObject)
+/**
+ * This class is designed to receive a query object and interpret its content.
+ * 
+ * @constructor
+ * 
+ * @param {Object} queryObject. The query object obtained from the UI, or alternatively, from a file.
+ *
+ **/
+aws.QueryHandler = function(queryObject)
 {
+	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
-	this.title = queryObject.nameofqueryObject;
-	this.dategenerated = queryObject.date;
-	this.creator = queryObject.creator;
-	this.computationEngine = queryObject.computationEngine;
-	this.dataset = queryObject.dataset;
-	this.computationScript = queryObject.scriptName;
-	this.scriptLocation = queryObject.scriptPath;
-	this.columnString = queryObject.listofColumns;
+	this.title = queryObject.title;
+	
+	this.dateGenerated = queryObject.date;
+	this.author = queryObject.author;
+	
+	this.computationInfo = {
+	     scriptType : queryObject.scriptType,
+	     scriptName : queryObject.scriptName,
+	     scriptLocation : queryObject.scriptLocation
+	};
+	
+	this.dbConnectionInfo = queryObject.conn;
+	this.weaveOptions = queryObject.weaveOptions;
+	
 };
 
-
-/*-------------------------------BROKER ARGUMENTS----------------------------------------------------------------------*/
-var rDataObject = new Object();
-rDataObject.dataset = dataset;
-rDataObject.computationScript = computationScript;
-rDataObject.columns = columns;
-rDataObject.scriptLocation = scriptLocation;
-
-
-var connObject = new Object();
-connObject.host = host;
-connObject.user = user;
-connObject.password = password;
-connObject.schema = schema;
-
-
-/* ----------------------------INSTANTIATING THE CLIENTS------------------------------------------------------------------*/
-//var rBroker = new aws.RClient(connObject, rDataObject);
-//var vizBroker = new aws.Client.WeaveClient(weave);//need a pointer to the weave instance
-//var stataBroker = new aws.Client.StataClient();
-
-//rBroker.runScriptOnSQLdata();
+/**
+ * This function is the golden evaluator of the query.
+ * 1- create a new computation engine and initialize it.
+ * 2- run the scripts against the data
+ * 3- handle the results
+ * 4- call weave, create the visualizations and set the parameters
+ */
+aws.QueryHandler.prototype.runQuery = function() {
+	
+	// check what type of computation engine we have, to create the appropriate
+	// computation client
+	var computationEngine;
+	var visualization;
+	
+	// step 1
+	if(this.computation.scriptType == 'r') {
+		computationEngine = new aws.Client.RClient(this.dbConnectionInfo, this.rRequestObject);
+	} else if (this.computation.scriptType == 'stata') {
+		// computationEngine = new aws.Client.StataClient();
+	}
+	
+	// step 2
+	var result = computationEngine.run(); // this should be a 2D array data set regardless of the computation engine
+	var weaveClient = new aws.Client.WeaveClient(this.weave);
+	
+	// step 3
+	// TODO provide a way to store the result directly on the data base?
+	// How do I tell the UI what results were returned?
+	weaveClient.addCSVDataSource(result);
+	
+	// step 4
+	for (visualization in this.WeaveOptions.visualizations) {
+		weaveClient.newVisualization(visualization);
+	}
+	
+	if (this.WeaveOptions.colorColumn) {
+		weaveClient.setColorAttribute(this.WeaveOptions.colorColumn);
+	}	
+}
