@@ -8,14 +8,14 @@ angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 			backdrop : true,
 			keyboard : true,
 			backdropClick : true,
-			templateUrl : 'tlps/ProjectMenu.tlps.html',
+			templateUrl : 'tpls/ProjectMenu.tpls.html',
 			controller : 'ProjectButtonCtrl'
 	};
 
 	$scope.openDialog = function(partial) {
 		console.log("hello");
 		if (partial) {
-			$scope.opts.templateUrl = 'tlps/' + partial + '.tlps.html';
+			$scope.opts.templateUrl = 'tpls/' + partial + '.tpls.html';
 		}
 
 		var d = $dialog.dialog($scope.opts);
