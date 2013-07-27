@@ -24,6 +24,8 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +45,20 @@ import weave.utils.DebugTimer;
 import weave.utils.SQLUtils;
 
 
+import weave.config.ConnectionConfig;
+import weave.config.ConnectionConfig.ConnectionInfo;
+import weave.config.DataConfig;
+import weave.config.DataConfig.DataEntity;
+import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataEntityWithChildren;
+import weave.config.DataConfig.DataType;
+import weave.config.DataConfig.EntityHierarchyInfo;
+import weave.config.DataConfig.PrivateMetadata;
+import weave.config.DataConfig.PublicMetadata;
+
+import static weave.config.WeaveConfig.getConnectionConfig;
+import static weave.config.WeaveConfig.getDataConfig;
+import static weave.config.WeaveConfig.initWeaveConfig;
  
 public class RService extends GenericServlet
 {
@@ -50,6 +66,7 @@ public class RService extends GenericServlet
 
 	public RService()
 	{
+
 	}
 
 	private static Process rProcess = null;
@@ -114,6 +131,52 @@ public class RService extends GenericServlet
 	//temporary fix storing computation results in a hashmap
 	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
 	
+
+	/**
+	 * Secure retrieval of data and execution of R scripts.
+	 * @param columns Mapping of column IDs to R variable names.
+	 * @param scriptPath Path to the R script to execute.
+	 * @param returnNames R variables to return.
+	 * @return returnedColumns result columns from the R script.
+	 */
+	public RResult[] runScriptViaSQL(int[] columns, String scriptPath, String[] returnValues) throws RemoteException
+	{
+		DataConfig dc = getDataConfig();
+		ConnectionInfo info;
+		DataEntity ent;
+		List<String> columnNames = new LinkedList<String>(); 
+
+		String connectionName = null; /* There should only be one connectionName/tableName used, for now. */
+		String tableName = null;
+		
+		for (int col_id : columns)
+		{
+			String tmpTableName, tmpConnectionName, tmpColumnName;
+			ent = dc.getEntity(col_id);
+			tmpConnectionName = ent.privateMetadata.get(DataConfig.PrivateMetadata.CONNECTION);
+			tmpTableName = ent.privateMetadata.get(DataConfig.PrivateMetadata.SQLTABLE);
+			tmpColumnName = ent.privateMetadata.get(DataConfig.PrivateMetadata.SQLCOLUMN);
+
+			if (tableName == null) tableName = tmpTableName;
+			if (connectionName == null) connectionName = tmpConnectionName;
+
+			if (tableName != tmpTableName)
+			{
+				throw new RemoteException("Columns are not members of the same table.", null); 
+			}
+			if (connectionName != tmpConnectionName)
+			{
+				throw new RemoteException("Columns are not members of the same connection.", null);
+			}
+
+			columnNames.add(tmpColumnName);
+		}
+
+		ConnectionConfig cc = getConnectionConfig();
+		info = cc.getConnectionInfo(connectionName);
+		info = cc.getConnectionInfo(connectionName);
+		return null;
+	}
 	/**
 	 * 
 	 * @param requestObject sent from the AWS UI collection of parameters to run a computation
