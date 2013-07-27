@@ -5,65 +5,75 @@ var rServiceURL = '/WeaveServices/RService';
 var adminServiceURL = '/WeaveServices/AdminService';
 
 //parameters sent from the QueryHandler.js
-function RClient(connectionObject, requestObject)
-{
+/** 
+ * @param {Object} weave An instance of weave
+ * @param {Object} connectionObject required for R to make a connection to the db; given by the QueryHandler.js
+ * @constructor {Object} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
+ */
+aws.client.RClient = function(connectionObject, rDataRequestObject){
+	
 	this.connectionObject = connectionObject;
-	this.rDataRequestObject = requestObject;
-	
-	//define get methods for both objects
-	
-	/**
-	 *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
-	 * 
-	 *  @param {Object} connectionObject the connection info to allow R to connect to the database retrieved from Admin Service
-	 *  @param {Object} requestObject the collection of parameters chosen by User via UI
-	 *
-	 */
-	aws.RClient.runScriptOnSQLdata = function(connectionObject, requestObject,displayResultsInViz){
-		aws.queryService(rServiceURL,'runScriptOnSQLOnServer',[this.connectionObject, this.rDataRequestObject],displayResultsInViz);
-	};
-
-	/**
-	 *  This function returns the connection from the AdminServie servlet
-	 * 
-	 *  @param {string} user 
-	 *  @param {string} passwd
-	 *  @param {Function} storeConnection once the connection has been retrieved, it is stored for further Rservice servlet calls
-	 *
-	 */
-	aws.RClient.getConnectionObject = function(user, passwd,storeConnection){
-		aws.queryService(adminServiceURL, 'getConnectionInfo',[user, passwd, user],storeConnection);
-	};
-
-
-	/*-----------------CALLBACKS------------------------------------------------------------------*/
-	//stores the connection to be used in later R servlet calls
-	aws.RClient.storeConnection= function(result, queryId){
-		connectionObject = result;
-	};
-
-	//writes results to the database if they do not exist in the database
-	aws.RClient.writeResultsToDatabase = function(requestObject,displayWritingStatus){
-		aws.queryService(rServiceURL, 'writeResultsToDatabase',requestObject, displayWritingStatus);
-	};
-
-	aws.RClient.displayWritingStatus = function(result, queryId){
-		
-	};
-
-	aws.RClient.displayResultsInViz = function(requestObject){
-		//1. check if the result property of the request object has been successfully added(done in Rservice servlet)
-		//2. write the columns to the database
-		//3. retrieve the results from the database if already in db
-		//4. add the required viz to Weave
-	};
-
-	aws.RClient.retriveResultsFromDatabase = function(requestObject){
-		//identify the id of requestObject
-		//check for the existence of a connection
-		//construct a query and pull out the results using point # 1
-		//display in viz
-	};
-
+	this.rDataRequestObject = rDataRequestObject;
 };
+
+//define get methods for both objects
+
+aws.RClient.prototype.run = function(){
+	var resultString = "notReplacedYet";
+	var callbk = function(result){
+		resultString = result;
+	};
+	aws.RClient.runScriptOnSQLdata(this.connectionObject, this.rDataRequestObject, callbk);
+	return resultString;
+};
+
+/**
+ *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
+ * 
+ *  @param {Object} connectionObject the connection info to allow R to connect to the database retrieved from Admin Service
+ *  @param {Object} requestObject the collection of parameters chosen by User via UI
+ *  @param {Function} A callback function that handles the servlet result
+ *
+ */
+aws.RClient.prototype.runScriptOnSQLdata = function(connectionObject, requestObject,handleComputationResult){
+	aws.queryService(rServiceURL,'runScriptOnSQLOnServer',[connectionObject, requestObject],handleComputationResult);
+};
+
+
+/**
+ *  This function returns the connection from the AdminServie servlet
+ * 
+ *  @param {string} user 
+ *  @param {string} passwd
+ *  @param {Function} storeConnection once the connection has been retrieved, it is stored for further Rservice servlet calls
+ *
+ */
+aws.RClient.prototype.getConnectionObject = function(user, passwd,storeConnection){
+	aws.queryService(adminServiceURL, 'getConnectionInfo',[user, passwd, user],storeConnection);
+};
+
+
+/*-----------------CALLBACKS------------------------------------------------------------------*/
+//stores the connection to be used in later R servlet calls
+aws.RClient.prototype.storeConnection= function(result, queryId){
+	connectionObject = result;
+};
+
+//writes results to the database if they do not exist in the database
+aws.RClient.prototype.writeResultsToDatabase = function(requestObject,displayWritingStatus){
+	aws.queryService(rServiceURL, 'writeResultsToDatabase',requestObject, displayWritingStatus);
+};
+
+aws.RClient.prototype.displayWritingStatus = function(result, queryId){
+	
+};
+
+
+aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
+	//identify the id of requestObject
+	//check for the existence of a connection
+	//construct a query and pull out the results using point # 1
+	//display in viz
+};
+
 
