@@ -1,5 +1,4 @@
 goog.require('aws.client');
-
 goog.provide('aws.WeaveClient');
 	
 /**
@@ -13,6 +12,32 @@ aws.WeaveClient = function (weave) {
 	// the weave client only has this weave property.
 	this.weave = weave;
 };
+
+/**
+ * This function should be the public function 
+ * 
+ * @param {Object} visualization. A visualization object containing a title and appropriate parameters.
+ * 
+ * 
+ */
+aws.WeaveClient.prototype.newVisualization = function (visualization) {
+	
+	switch(visualization.type) {
+		case 'MapTool':
+			this.newMap(visualization.geometry);
+			break;
+		case 'ScatterPlotTool':
+			this.newScatterPlot(visualization.xColumnName, visualization.yColumnName, visualization.sizeColumnName, visualization.csvDataSource);
+			break;
+		case 'DataTableTool':
+			this.newDataTable(visualization.columnPath, visualization.columnNames, visualization.dataSource);
+		case 'CompoundBarChartTool' :
+			this.newBarChart(visualization.label, visualization.sort, visualization.heights);
+		default:
+			return;
+}
+	
+}
 
 	
 /**
@@ -36,7 +61,7 @@ aws.WeaveClient.prototype.newMap = function (geometry, geometryDatasource){
 	
 	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
 						   .push('internalObject').request('ReferencedColumn')
-						   .push('dynamicCOlumnReference', null).request('HierarchyColumnReference');
+						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
 	
 	//TO DO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state('dataSourceName','WeaveDataSource')
