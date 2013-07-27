@@ -52,9 +52,9 @@ angular.module("aws.Main", [])
 
 })
 .controller("LayoutCtrl", function($scope, queryobj){
-	$scope.leftPanelUrl = "./tlps/leftPanel.tlps.html";
-	$scope.genericPortlet = "./tlps/genericPortlet.tlps.html";
-	$scope.weaveInstancePanel = "./tlps/weave.tlps.html";
+	$scope.leftPanelUrl = "./tpls/leftPanel.tpls.html";
+	$scope.genericPortlet = "./tpls/genericPortlet.tpls.html";
+	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
 	$scope.QueryObjectModel = function(){ 
 		return JSON.stringify(queryobj, undefined, 2);
 	}

@@ -26,10 +26,10 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.IndicatorPanel'])
  .config(['$routeProvider', function($routeProvider){
  		$routeProvider.
- 			when('/analysis', {templateUrl: 'tlps/analysis.tlps.html', controller: 'AnalysisCtrl'}).
- 			when('/calculation', {templateUrl: 'tlps/calculation.tlps.html', controller: 'CalculationCtrl'}).
+ 			when('/analysis', {templateUrl: 'tpls/analysis.tpls.html', controller: 'AnalysisCtrl'}).
+ 			when('/calculation', {templateUrl: 'tpls/calculation.tpls.html', controller: 'CalculationCtrl'}).
  			when('/visualization', {
- 				templateUrl: 'tlps/visualization.tlps.html',
+ 				templateUrl: 'tpls/visualization.tpls.html',
  				controller: 'VisualizationCtrl'
  			}).
  			otherwise({redirectTo: '/analysis'});

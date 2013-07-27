@@ -8,14 +8,14 @@ angular.module('aws.weave', ['aws'])
     backdrop: true,
     keyboard: true,
     backdropClick: true,
-    templateUrl: 'tlps/weave.tlps.html',
+    templateUrl: 'tpls/weave.tpls.html',
     controller: 'weaveContentCtrl'
   };
 
 $scope.openDialog = function(partial){
 	console.log("hello");
 	if(partial){
-		$scope.opts.templateUrl = 'tlps/' + partial + '.tlps.html';
+		$scope.opts.templateUrl = 'tpls/' + partial + '.tpls.html';
 	}
 	var d = $dialog.dialog($scope.opts);
 	d.open();
