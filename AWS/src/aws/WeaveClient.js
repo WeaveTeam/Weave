@@ -1,5 +1,4 @@
 goog.require('aws.client');
-
 goog.provide('aws.WeaveClient');
 	
 /**
@@ -17,11 +16,11 @@ aws.WeaveClient = function (weave) {
 /**
  * This function should be the public function 
  * 
- * @param
+ * @param {Object} visualization. A visualization object containing a title and appropriate parameters.
  * 
  * 
  */
-aws.WeaveClient.prototype.newVisualization(visualization) {
+aws.WeaveClient.prototype.newVisualization = function (visualization) {
 	
 	switch(visualization.type) {
 		case 'MapTool':
@@ -31,7 +30,9 @@ aws.WeaveClient.prototype.newVisualization(visualization) {
 			this.newScatterPlot(visualization.xColumnName, visualization.yColumnName, visualization.sizeColumnName, visualization.csvDataSource);
 			break;
 		case 'DataTableTool':
-			this.newDataTable
+			this.newDataTable(visualization.columnPath, visualization.columnNames, visualization.dataSource);
+		case 'CompoundBarChartTool' :
+			this.newBarChart(visualization.label, visualization.sort, visualization.heights);
 		default:
 			return;
 }
