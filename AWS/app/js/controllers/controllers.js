@@ -54,6 +54,7 @@ angular.module("aws.Main", [])
 .controller("LayoutCtrl", function($scope, queryobj){
 	$scope.leftPanelUrl = "./tlps/leftPanel.tlps.html";
 	$scope.genericPortlet = "./tlps/genericPortlet.tlps.html";
+	$scope.weaveInstancePanel = "./tlps/weave.tlps.html";
 	$scope.QueryObjectModel = function(){ 
 		return JSON.stringify(queryobj, undefined, 2);
 	}
