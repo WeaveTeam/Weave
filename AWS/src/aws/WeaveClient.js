@@ -14,6 +14,30 @@ aws.WeaveClient = function (weave) {
 	this.weave = weave;
 };
 
+/**
+ * This function should be the public function 
+ * 
+ * @param
+ * 
+ * 
+ */
+aws.WeaveClient.prototype.newVisualization(visualization) {
+	
+	switch(visualization.type) {
+		case 'MapTool':
+			this.newMap(visualization.geometry);
+			break;
+		case 'ScatterPlotTool':
+			this.newScatterPlot(visualization.xColumnName, visualization.yColumnName, visualization.sizeColumnName, visualization.csvDataSource);
+			break;
+		case 'DataTableTool':
+			this.newDataTable
+		default:
+			return;
+}
+	
+}
+
 	
 /**
  * This function accesses the weave instance and create a new map, regardless of whether or not 
