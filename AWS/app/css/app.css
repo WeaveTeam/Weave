@@ -7,6 +7,10 @@ h1 {
 	border-bottom: 1px solid gray;
 }
 
+#Log {
+	/* display:inline-block; */
+}
+
 #container {
 	width: 98%;
 	height: 98%;
@@ -38,25 +42,8 @@ h1 {
 	float: left;
 }
 
-#leftPanel_1 {
-	width: 100%;
-	height: 28.3%;
-	position: relative;
-	float: left;
-}
-
-#leftPanel_2 {
-	width: 100%;
-	height: 28.3%;
-	position: relative;
-	float: left;
-}
-
-#leftPanel_3 {
-	width: 100%;
-	height: 28.3%;
-	position: relative;
-	float: left;
+#weave {
+	display:inline-block;
 }
 
 #weaveThumb {

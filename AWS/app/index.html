@@ -10,9 +10,9 @@
 <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
-	
-	<div>
-		<div id="container" ng-controller="LayoutCtrl">
+
+	<div ng-controller="LayoutCtrl">
+		<div id="container">
 			<div id="header">
 				<div ng-controller="DataDialogCtrl" style="display: inline-block">
 					<button id="projectButton" class="btn btn-primary"
@@ -27,10 +27,10 @@
 			<div ng-include src="leftPanelUrl">
 				<!-- left panel goes here -->
 			</div>
-			
-			
+
+
 			<div id="center" ng-controller="PanelGenericCtrl">
-			<div ng-view></div>
+				<div ng-view></div>
 				<!-- <div id="sortable" ng-model="panels">
 					<panel id="indicators" name="Indicators"> </panel>
 					<panel id="byvars" name="By-Variables"> </panel>
@@ -53,13 +53,15 @@
 
 			</div>
 
-
-			<div ng-include src="weaveInstancePanel">
-				<!-- left panel goes here -->
-
-			</div>
 		</div>
+		<div id="weave" ng-include src="weaveInstancePanel">
+			<!-- left panel goes here -->
 
+		</div>
+		<div id="Log">
+			<h3>Log Box for errors and timing</h3>
+			<div id="LogBox"></div>
+		</div>
 
 	</div>
 	<!-- In production use:
