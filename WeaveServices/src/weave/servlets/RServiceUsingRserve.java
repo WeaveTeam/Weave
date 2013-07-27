@@ -22,6 +22,7 @@ package weave.servlets;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -44,6 +45,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
+import weave.servlets.AdminService.ColumnInfo;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.StringUtils;
@@ -258,7 +260,7 @@ public class RServiceUsingRserve
 			
 			//evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
 			
-			newEvaluate( rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			evaluateWithTypeChecking( rConnection, script, resultVector, showIntermediateResults, showWarnings);
 			
 			if (plotScript != ""){// R Script to EVALUATE plotScript
 				String plotEvalValue = plotEvalScript(rConnection,docrootPath, plotScript, showWarnings);
@@ -292,196 +294,8 @@ public class RServiceUsingRserve
 		return results;
 	}
 	
-	//testing for JavascriptAPI calls
-	private static Vector<RResult> newEvaluate(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException {
-		clearCacheTimeLog = false;
-		
-		REXP evalValue= evalScript( rConnection, script, showWarnings);
-		Object resultArray = rexp2javaObj(evalValue);
-		Object[] tempColumns = (Object[])resultArray;
-		Object[] filling = (Object[])resultArray;
-		
-		String finalresultString = "";
-		Vector<String> names = evalValue.asList().names;
-		
-		
-		String namescheck = StringUtils.join(",", names);
-		finalresultString = finalresultString.concat(namescheck);
-		finalresultString = finalresultString.concat("\n");
-		
-		Object temp = tempColumns[0];
-		
-		double[] sampleColumn = (double[])temp;
-//		for (int r= 0; r < sampleColumn.length; r++)					
-//		{
-//			Vector<?> row = new Vector();
-//			if(temp instanceof double[])
-//			{
-//				row = new Vector<Double>();
-//				for(int c= 0 ; c < tempColumns.length; c++){
-//					double[] column= (double[])tempColumns[c];
-//					row.add(column[r]) ;
-//				}
-//			}
-//			
-//			String check = StringUtils.join(",", row);	
-//			
-//			finalresultString = finalresultString.concat(check);
-//			finalresultString = finalresultString.concat("\n");
-//		}
-	
-//		double[] sampleColumn = (double[])temp;
-//		for (int r= 0; r < sampleColumn.length; r++)					
-//		{
-//			Vector<Double> row = new Vector<Double>();
-//			for(int c= 0 ; c < tempColumns.length; c++){
-//				double[] column= (double[])tempColumns[c];
-//				row.add(column[r]) ;
-//			}
-//			
-//			String check = StringUtils.join(",", row);	
-//			
-//			finalresultString = finalresultString.concat(check);
-//			finalresultString = finalresultString.concat("\n");
-//		}
-//		
-	
-		
-		newResultVector.add(new RResult("endResult", finalresultString));
-		newResultVector.add(new RResult("timeString",timeLogString));
-		
-		//To do find a better way of doing this
-		//if(evalValue.isList())
-		//{
-			//Vector<String> knames = evalValue.asList().names;
-			
-			//newResultVector.add(new RResult("columnNames" ,names ));
-			//newResultVector.add(stringEval);
-			//newResultVector.add(new RResult("columnValues" ,rexp2javaObj(evalValue) ));		
-		//}
-		
-		return newResultVector;
-			
-			
-	}
 	
 	
-	/*
-	 * Taken from rJava Opensource code and 
-	 * added support for  Rlist
-	 * added support for RFactor(REngine)
-	 */
-	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
-		
-		int specialIndex = 0;
-		
-		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
-			return null;
-		}
-		if(rexp.isVector()) {
-			int len = rexp.length();
-			if(rexp.isString()) {
-				return len == 1 ? rexp.asString() : rexp.asStrings();
-			}
-			if(rexp.isFactor()){
-				return rexp.asFactor();
-			}
-			if(rexp.isInteger()) {
-				return len == 1 ? rexp.asInteger() : rexp.asIntegers();
-			}
-			if(rexp.isNumeric()) {
-				int[] dim = rexp.dim();
-				return (dim != null && dim.length == 2) ? rexp.asDoubleMatrix() :
-					(len == 1) ? rexp.asDouble() : rexp.asDoubles();
-			}
-			if(rexp.isLogical()) {
-				boolean[] bools = ((REXPLogical)rexp).isTRUE();
-				return len == 1 ? bools[0] : bools;
-			}
-			if(rexp.isRaw()) {
-				return rexp.asBytes();
-			}
-			
-			
-			if(rexp.isList()) {
-				RList rList = rexp.asList();
-				
-				Object[] listOfREXP = rList.toArray() ;
-				//convert object in List as Java Objects
-				// eg: REXPDouble as Double or Doubles
-				for(int i = 0; i < listOfREXP.length ;  i++){
-					Vector<String> namesVector = rexp.asList().names;
-					String [] namesArray = namesVector.toArray(new String[namesVector.size()]);
-					
-					REXP obj = (REXP)listOfREXP[i];
-					
-					Object javaObj =  rexp2javaObj(obj);
-					//handling fips TODO change this
-					
-					if(namesArray[i].matches("fips"))
-					{
-						double [] fips = (double[])javaObj;
-						int [] newFips = new int[fips.length];
-						for(int s = 0; s < fips.length; s++)
-						{
-							newFips[s] = (int) fips[s];
-						}
-						
-						listOfREXP[i] = newFips;
-					}
-					
-					//TODO find better way of casting? avoid loops?
-					//do this only for levels
-					else if(javaObj instanceof RFactor)
-					{
-						if(!(namesArray[i].matches("State")))
-						{
-							// cast it initially as the RFactor
-							RFactor factorjavaObj = (RFactor)javaObj;
-							String[] levels = factorjavaObj.levels();
-							Integer [] intArray = new Integer[levels.length];
-							for(int x = 0; x < levels.length; x++)
-							{
-								intArray[x] = Integer.parseInt(levels[x]);
-							}
-							listOfREXP[i] = intArray;
-						}
-						else
-							listOfREXP[i] = javaObj;
-						
-					}
-				
-					//testing TODO : find better casting
-					else if(javaObj  instanceof int[]){
-						System.out.print('f');
-						
-						int[] intObj  = (int[]) javaObj;
-						double[] intToDoubleObj = new double[intObj.length];
-						for(int z= 0; z < intObj.length; z++)
-						{
-							intToDoubleObj[z] = (double) intObj[z];
-						}
-						listOfREXP[i] =  intToDoubleObj;
-					}
-					
-					
-					else {
-						listOfREXP[i] =  javaObj;
-					}
-					//testing end
-					
-				}
-				return listOfREXP;
-			}
-		}
-		else{//rlist
-			
-			return rexp.toDebugString();
-		}
-		return rexp;
-		
-		
-	}
 
 	public static LinearRegressionResult linearRegression(String docrootPath,double[] dataX, double[] dataY) throws RemoteException
 	{
@@ -530,7 +344,224 @@ public class RServiceUsingRserve
 		}
 		return result;
 	}
+	
+	/*
+	 * Taken from rJava Opensource code and 
+	 * added support for  Rlist
+	 * added support for RFactor(REngine)
+	 */
+	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
+		
+		int specialIndex = 0;
+		
+		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
+			return null;
+		}
+		if(rexp.isVector()) {
+			int len = rexp.length();
+			if(rexp.isString()) {
+				return len == 1 ? rexp.asString() : rexp.asStrings();
+			}
+			if(rexp.isFactor()){
+				return rexp.asFactor();
+			}
+			if(rexp.isInteger()) {
+				return len == 1 ? rexp.asInteger() : rexp.asIntegers();
+			}
+			if(rexp.isNumeric()) {
+				int[] dim = rexp.dim();
+				return (dim != null && dim.length == 2) ? rexp.asDoubleMatrix() :
+					(len == 1) ? rexp.asDouble() : rexp.asDoubles();
+			}
+			if(rexp.isLogical()) {
+				boolean[] bools = ((REXPLogical)rexp).isTRUE();
+				return len == 1 ? bools[0] : bools;
+			}
+			if(rexp.isRaw()) {
+				return rexp.asBytes();
+			}
+			
+			
+			if(rexp.isList()) {
+				
+				Vector<String> namesVector = rexp.asList().names;
+				String [] namesArray = namesVector.toArray(new String[namesVector.size()]);
+				
+				RList rList = rexp.asList();
+				Object[] listOfREXP = rList.toArray() ;
+				//convert object in List as Java Objects
+				// eg: REXPDouble as Double or Doubles
+				for(int i = 0; i < listOfREXP.length ;  i++){
+					
+					REXP obj = (REXP)listOfREXP[i];
+					
+					Object javaObj =  rexp2javaObj(obj);
+					//handling fips TODO change this
+					
+						if(namesArray[i].contains("fips"))
+						{
+							double [] fips = (double[])javaObj;
+							int [] newFips = new int[fips.length];
+							for(int s = 0; s < fips.length; s++)
+							{
+								newFips[s] = (int) fips[s];
+							}
+							
+							listOfREXP[i] = newFips;
+						}
+					
+						//TODO find better way of casting? avoid loops?
+						//hack for state change this
+						else if(javaObj instanceof RFactor)
+						{
+							RFactor factorjavaObj = (RFactor)javaObj;
+							String[] levels = factorjavaObj.asStrings();
+							if(namesArray[i].contains("State"))
+							{
+								listOfREXP[i] = levels;
+							}
+							
+							if(!(namesArray[i].contains("State")))
+							{	
+								Integer [] intArray = new Integer[levels.length];
+								for(int x = 0; x < levels.length; x++)
+								{
+									intArray[x] = Integer.parseInt(levels[x]);
+								}
+								
+								listOfREXP[i] = intArray;
+							}
+							
+						}
+				
+						//testing TODO : find better casting
+						else if(javaObj  instanceof int[])
+						{
+							System.out.print('f');
+							
+							int[] intObj  = (int[]) javaObj;
+							double[] intToDoubleObj = new double[intObj.length];
+							for(int z= 0; z < intObj.length; z++)
+							{
+								intToDoubleObj[z] = (double) intObj[z];
+							}
+							listOfREXP[i] =  intToDoubleObj;
+						}
+					
+					
+						else {
+							listOfREXP[i] =  javaObj;
+						}
+					//testing end
+					
+				}
+				return listOfREXP;
+			}
+		}
+		else{//rlist
+			
+			return rexp.toDebugString();
+		}
+		return rexp;
+		
+		
+	}
 
+	//testing for JavascriptAPI calls
+	private static Vector<RResult> evaluateWithTypeChecking(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException {
+		REXP evalValue= evalScript(rConnection, script, showWarnings);
+		Object resultArray = rexp2javaObj(evalValue);
+		Object[] columns = (Object[])resultArray;
+		Object[] filling = (Object[])resultArray;
+
+		String finalresultString = "";
+		Vector<String> names = evalValue.asList().names;
+
+
+		String namescheck = StringUtils.join(",", names);
+		finalresultString = finalresultString.concat(namescheck);
+		finalresultString = finalresultString.concat("\n");
+
+		
+
+		int numberOfRows = 0;
+		
+		Vector<Object> row = new Vector<Object>();
+		Vector<String[]> columnsInStrings = new Vector<String[]>();
+		
+		String[] tempStringArray = new String[0];
+		
+		try
+		{
+			for (int r= 0; r < columns.length; r++)					
+			{
+				Object currentColumn = columns[r];
+						
+						if(currentColumn instanceof int[])
+						{
+							 int[] columnAsIntArray = (int[])currentColumn;
+							 tempStringArray = new String[columnAsIntArray.length] ; 
+							 for(int g = 0; g < columnAsIntArray.length; g++)
+							 {
+								 tempStringArray[g] = ((Integer)columnAsIntArray[g]).toString();
+							 }
+						}
+						
+						else if (currentColumn instanceof Integer[])
+						{
+							 Integer[] columnAsIntegerArray = (Integer[])currentColumn;
+							 tempStringArray = new String[columnAsIntegerArray.length] ;  
+							 for(int g = 0; g < columnAsIntegerArray.length; g++)
+							 {
+								 tempStringArray[g] = columnAsIntegerArray[g].toString();
+							 }
+						}
+						
+						else if(currentColumn instanceof double[])
+						{
+							double[] columnAsDoubleArray = (double[])currentColumn;
+							 tempStringArray = new String[columnAsDoubleArray.length] ;  
+							 for(int g = 0; g < columnAsDoubleArray.length; g++)
+							 {
+								 tempStringArray[g] = ((Double)columnAsDoubleArray[g]).toString();
+							 }
+						}
+						else if(currentColumn instanceof RFactor)
+						{
+							tempStringArray = ((RFactor)currentColumn).levels();
+						}
+						
+						columnsInStrings.add(tempStringArray);
+						numberOfRows = tempStringArray.length;
+			}
+			
+			
+			//if(rowresult.charAt(rowresult.length()-1) == ',')
+				//rowresult.substring(0, rowresult.length()-1);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		for(int currentRow =0; currentRow <numberOfRows; currentRow ++)
+		{
+			for(int currentColumn= 0; currentColumn < columnsInStrings.size(); currentColumn++)
+			{
+				finalresultString += columnsInStrings.get(currentColumn)[currentRow] + ',';
+			}
+			
+			/*remove last comma and  new line*/
+			finalresultString = finalresultString.substring(0, finalresultString.length()-1);
+			finalresultString += '\n';
+		}
+		
+		newResultVector.add(new RResult("endResult", finalresultString));
+		newResultVector.add(new RResult("timeLogString", timeLogString));
+
+		return newResultVector;
+
+
+	}
 	
 	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, 
 													      boolean showWarnings,
