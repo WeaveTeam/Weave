@@ -9,13 +9,13 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 				backdrop : true,
 				keyboard : true,
 				backdropClick : true,
-				templateUrl : 'tlps/dataDialog.tlps.html',
+				templateUrl : 'tpls/dataDialog.tpls.html',
 				controller : 'DataDialogConnectCtrl'
 			};
 
 			$scope.openDialog = function(partial) {
 				if (partial) {
-					$scope.opts.templateUrl = 'tlps/' + partial + '.tlps.html';
+					$scope.opts.templateUrl = 'tpls/' + partial + '.tpls.html';
 				}
 
 				var d = $dialog.dialog($scope.opts);
@@ -50,4 +50,4 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		sqluser : 'tester',
 		sqlpass : 'test1'
 	};
-})
+});

@@ -4,27 +4,32 @@
  */
 angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 		function($scope, $dialog) {
-			$scope.opts = {
-				backdrop : true,
-				keyboard : true,
-				backdropClick : true,
-				templateUrl : 'tlps/ProjectMenu.tlps.html',
-				controller : 'ProjectButtonCtrl'
-			};
+	$scope.opts = {
+			backdrop : true,
+			keyboard : true,
+			backdropClick : true,
+			templateUrl : 'tpls/ProjectMenu.tpls.html',
+			controller : 'ProjectButtonCtrl'
+	};
 
-			$scope.openDialog = function(partial) {
-				console.log("hello");
-				if (partial) {
-					$scope.opts.templateUrl = 'tlps/' + partial + '.tlps.html';
-				}
+	$scope.openDialog = function(partial) {
+		console.log("hello");
+		if (partial) {
+			$scope.opts.templateUrl = 'tpls/' + partial + '.tpls.html';
+		}
 
-				var d = $dialog.dialog($scope.opts);
-				d.open();
-			};
-		})
+		var d = $dialog.dialog($scope.opts);
+		d.open();
+	};
+})
 
 .controller('ProjectButtonCtrl', function($scope, $http, dialog) {
 	$scope.close = function() {
 		dialog.close();
 	};
 })
+
+function saveJSON() {
+	var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, "hello world.txt");
+}
