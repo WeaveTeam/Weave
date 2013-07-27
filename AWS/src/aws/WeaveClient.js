@@ -36,7 +36,7 @@ aws.Client.WeaveClient.prototype.newMap = function (geometry, geometryDatasource
 	
 	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
 						   .push('internalObject').request('ReferencedColumn')
-						   .push('dynamicCOlumnReference', null).request('HierarchyColumnReference');
+						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
 	
 	//TO DO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state('dataSourceName','WeaveDataSource')
