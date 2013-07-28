@@ -26,10 +26,14 @@ angular.module("aws.panelControllers", [])
 	
 })
 .controller("RunPanelCtrl", function($scope, queryobj, dataService){
+	
+	
 	$scope.underdog = 0;
 	console.log("reading the RunPanelCtrl");
-	$scope.clicked = function(){
-		alert("clicked");
+	$scope.runQ = function(){
+		alert("Running Query");
+		var qh = new aws.QueryHandler(queryobj);
+		qh.runQuery();
 	}
 })
 .controller("GenericPanelCtrl", function($scope){
