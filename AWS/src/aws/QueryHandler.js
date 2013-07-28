@@ -33,6 +33,8 @@ aws.QueryHandler = function(queryObject)
 	
 };
 
+var timeLogString= "";
+
 /**
  * This function is the golden evaluator of the query.
  * 1- create a new computation engine and initialize it.
@@ -56,12 +58,23 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 2
 	var result = computationEngine.run(); // this should be a 2D array data set regardless of the computation engine
+	var numericalResult = result[0].value;//get rid of hard coded (for later)
+	//updating the log
+	timeLogString = result[1].value;//get rid of hard coded (for later)
+	try{
+		$("#LogBox").append(timeLogString);
+	}catch(e){
+		//ignore
+	}
+	
 	var weaveClient = new aws.Client.WeaveClient(this.weave);
+	
+	
 	
 	// step 3
 	// TODO provide a way to store the result directly on the data base?
 	// How do I tell the UI what results were returned?
-	weaveClient.addCSVDataSource(result);
+	weaveClient.addCSVDataSourceFromString(result);
 	
 	// step 4
 	for (visualization in this.WeaveOptions.visualizations) {

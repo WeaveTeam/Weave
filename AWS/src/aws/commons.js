@@ -91,14 +91,3 @@ aws.reportTime = function()
 	return currentTime.today()+ "@ " + currentTime.timeNow();
 	
 };
-/**
- * this function can be added as a callback to any visualization to get a log of time for every interaction involving that tool
- * @param {Object} pointer to the Weave instance
- * 
- */
-aws.reportIntercationTime = function(weave){
-	var time = aws.reportTime();
-	console.log(time);
-	weave.evaluateExpression([], "WeaveAPI.ProgressIndictor.getNormalizedProgress()", {},['weave.api.WeaveAPI']); 
-	
-};
