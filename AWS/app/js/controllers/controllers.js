@@ -57,12 +57,12 @@ angular.module("aws.Main", [])
 	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
 	$scope.QueryObjectModel = function(){ 
 		return JSON.stringify(queryobj, undefined, 2);
-	}
+	};
 	/*$scope.$watch('queryobj.selectedColumns' , function(){
 		$scope.$broadcast("requestingQueryObject");
 	});*/
 	
 	
 	
-})
+});
 

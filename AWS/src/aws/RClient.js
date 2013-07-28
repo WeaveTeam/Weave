@@ -17,13 +17,14 @@ aws.RClient = function(connectionObject, rDataRequestObject){
 };
 
 //define get methods for both objects
-
+var resultString = "notReplacedYet";
+var callbk = function(result){
+	console.log(result);
+	resultString = result;
+};
 aws.RClient.prototype.run = function(){
-	var resultString = "notReplacedYet";
-	var callbk = function(result){
-		resultString = result;
-	};
-	aws.RClient.runScriptOnSQLdata(this.connectionObject, this.rDataRequestObject, callbk);
+	
+	aws.RClient.prototype.runScriptOnSQLdata(this.connectionObject,this.rDataRequestObject, callbk);
 	return resultString;
 };
 
@@ -36,7 +37,7 @@ aws.RClient.prototype.run = function(){
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(connectionObject, requestObject,handleComputationResult){
-	aws.queryService(rServiceURL,'runScriptOnSQLOnServer',[connectionObject, requestObject],handleComputationResult);
+	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[connectionObject, requestObject],handleComputationResult);
 };
 
 

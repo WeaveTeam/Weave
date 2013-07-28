@@ -228,3 +228,20 @@ aws.WeaveClient.prototype.addCSVDataSource = function (weave, dataSource, dataSo
 	}	
 		
 };
+
+/**
+ * this function can be added as a callback to any visualization to get a log of time for every interaction involving that tool
+ * @param {Object} pointer to the Weave instance
+ * 
+ */
+aws.WeaveClient.prototype.reportInteractionTime = function(weave){
+	var time = aws.reportTime();
+	console.log(time);
+	try{
+		$("#LogBox").append(time);
+	}catch(e){
+		//ignore
+	}
+	weave.evaluateExpression([], "WeaveAPI.ProgressIndictor.getNormalizedProgress()", {},['weave.api.WeaveAPI']); 
+	
+};
