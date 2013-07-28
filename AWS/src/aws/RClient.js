@@ -10,7 +10,7 @@ var adminServiceURL = '/WeaveServices/AdminService';
  * @param {Object} connectionObject required for R to make a connection to the db; given by the QueryHandler.js
  * @constructor {Object} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
  */
-aws.client.RClient = function(connectionObject, rDataRequestObject){
+aws.RClient = function(connectionObject, rDataRequestObject){
 	
 	this.connectionObject = connectionObject;
 	this.rDataRequestObject = rDataRequestObject;
@@ -56,7 +56,7 @@ aws.RClient.prototype.getConnectionObject = function(user, passwd,storeConnectio
 /*-----------------CALLBACKS------------------------------------------------------------------*/
 //stores the connection to be used in later R servlet calls
 aws.RClient.prototype.storeConnection= function(result, queryId){
-	connectionObject = result;
+	this.connectionObject = result;
 };
 
 //writes results to the database if they do not exist in the database

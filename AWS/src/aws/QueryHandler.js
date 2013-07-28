@@ -55,13 +55,15 @@ aws.QueryHandler.prototype.runQuery = function() {
 	}
 	
 	// step 2
-	var result = computationEngine.run(); // this should be a 2D array data set regardless of the computation engine
+	var results;
+	
+	//computationEngine.run(function() { results = result }); // this should be a 2D array data set regardless of the computation engine
 	var weaveClient = new aws.Client.WeaveClient(this.weave);
 	
 	// step 3
 	// TODO provide a way to store the result directly on the data base?
 	// How do I tell the UI what results were returned?
-	weaveClient.addCSVDataSource(result);
+	weaveClient.addCSVDataSourceFromString(results);
 	
 	// step 4
 	for (visualization in this.WeaveOptions.visualizations) {
