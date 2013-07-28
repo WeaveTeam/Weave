@@ -39,6 +39,34 @@ aws.QueryHandler = function(queryObject)
 
 var timeLogString= "";
 
+
+/**
+ * after the asynchronous R call is returned, send the results to the Weave Client and update the time log
+ */
+aws.QueryHandler.prototype.resultHandlingCallback = function(result){
+	var numericalResultString = result[0].value;//get rid of hard coded (for later)
+	
+	//updating the log
+	console.log(numericalResultString);
+	
+	timeLogString = result[1].value;//get rid of hard coded (for later)
+	try{
+		$("#LogBox").append(timeLogString);
+	}catch(e){
+		//ignore
+	}
+	
+	//only after the asynchromous call completes and result is returned, send the results to the Weave client for making into a CSVDatasource
+	//TODO make weaveClient a class member variable?
+
+	// step 3
+	// TODO provide a way to store the result directly on the data base?
+	// How do I tell the UI what results were returned?
+	weaveClient.addCSVDataSourceFromString(numericalResultString);
+	
+};	
+
+
 /**
  * This function is the golden evaluator of the query.
  * 1- create a new computation engine and initialize it.
@@ -79,25 +107,12 @@ aws.QueryHandler.prototype.runQuery = function() {
 		// computationEngine = new aws.Client.StataClient();
 	}
 	
+
 	// step 2
-	var result = computationEngine.run(); // this should be a 2D array data set regardless of the computation engine
-	var numericalResult = result[0].value;//get rid of hard coded (for later)
-	//updating the log
-	timeLogString = result[1].value;//get rid of hard coded (for later)
-	try{
-		$("#LogBox").append(timeLogString);
-	}catch(e){
-		//ignore
-	}
+	var result = computationEngine.run(aws.QueryHandler.prototype.resultHandlingCallback); // this should be a 2D array data set regardless of the computation engine
 	
+
 	var weaveClient = new aws.Client.WeaveClient(this.weaveOptions.weaveObject);
-	
-	
-	
-	// step 3
-	// TODO provide a way to store the result directly on the data base?
-	// How do I tell the UI what results were returned?
-	weaveClient.addCSVDataSourceFromString(result);
 	
 	// step 4
 	for (visualization in this.WeaveOptions.visualizations) {
@@ -107,4 +122,6 @@ aws.QueryHandler.prototype.runQuery = function() {
 	if (this.WeaveOptions.colorColumn) {
 		weaveClient.setColorAttribute(this.WeaveOptions.colorColumn);
 	}	
-}
+};
+
+
