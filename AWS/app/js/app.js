@@ -23,7 +23,8 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.project', 
                                  'aws.DataDialog', 
                                  'aws.leftPanel',
-                                 'aws.IndicatorPanel'])
+                                 'aws.IndicatorPanel',
+                                 'aws.panelControllers'])
  .config(['$routeProvider', function($routeProvider){
  		$routeProvider.
  			when('/analysis', {templateUrl: 'tpls/analysis.tpls.html', controller: 'AnalysisCtrl'}).

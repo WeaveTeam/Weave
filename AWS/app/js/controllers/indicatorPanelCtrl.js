@@ -1,9 +1,9 @@
 angular.module("aws.IndicatorPanel", [])
-.controller("IndicatorPanelCtrl", function($scope, queryobj, Data){
+.controller("IndicatorPanelCtrl", function($scope, queryobj, dataService){
 
 	$scope.options = ["Values are not", "yet returned", "from the server"];
 
-	var promise = Data.getColNamesFromDb("indicator", $scope);
+	var promise = dataService.giveMeColObjs();
 	
 	//$scope.$watch('promise', function(){
 		$scope.options = promise;

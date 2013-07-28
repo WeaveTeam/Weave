@@ -87,6 +87,7 @@ aws.reportTime = function()
 	};
 	var currentTime = new Date();
 	
-	return "Current time :" + currentTime.today() + "@" + currentTime.timeNow();
+	//return "Current time :" + currentTime.today() + "@" + currentTime.timeNow();
+	return currentTime.today()+ "@ " + currentTime.timeNow();
 	
 };

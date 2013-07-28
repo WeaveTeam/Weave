@@ -16,79 +16,75 @@ angular.module("aws.services", []).service("queryobj", function() {
 
 })
 
-angular.module("aws.services").service("Data", function($q, $timeout){
+angular.module("aws.services").service("dataService", ['$q', '$rootScope', function($q, scope){
+	var fetchColumns = function(scope){
 
-	return {
-		getColNamesFromDb: function(panel, scope){
-			// aws.DataClient.getIndicators()??
-			var deferred = $q.defer();
-			var prom = deferred.promise;
-			var deferred2 = $q.defer();
-//			var intermediate;
-//	//		var childIds = deferred.promise;
-//			var out = function(result){
-//				console.log("out handler");
-//				console.log(result);
-//				//deferred.promise.result = result;
-//				if(result){
-//					deferred.resolve(result);
-//					//deferred.reject();
-//				}else{
-//					
-//				}
-//				//$rootScope.$apply();
-//			};
-			
-			function safeApply( fn ) {
-                if ( !scope.$$phase ) {
-                    scope.$apply( fn );
-                }
-                else {
-                    fn();
-                }
+		var deferred = $q.defer();
+		var prom = deferred.promise;
+		var deferred2 = $q.defer();
+
+		
+		function safeApply( fn ) {
+            if ( !scope.$$phase ) {
+                scope.$apply( fn );
             }
-			var callbk = function(result){
-				safeApply(function(){
-					console.log(result);
-					deferred.resolve(result);
-				});
-			};
-			var callbk2 = function(result){
-				safeApply(function(){
-					console.log(result);
-					deferred2.resolve(result);
-				});
-			};
-//			var safeApply = function(scope, fn) {
-//			    (scope.$$phase || scope.$root.$$phase) ? fn() : scope.$apply(fn);
-//			};
-			
-				aws.DataClient.getEntityChildIds(161213, callbk);
+            else {
+                fn();
+            }
+        }
+		var callbk = function(result){
+			safeApply(function(){
+				console.log(result);
+				deferred.resolve(result);
+			});
+		};
+		var callbk2 = function(result){
+			safeApply(function(){
+				console.log(result);
+				deferred2.resolve(result);
+			});
+		};
+		
+		aws.DataClient.getEntityChildIds(161213, callbk);
 
-				deferred.promise.then(function(res){
-					aws.DataClient.getDataColumnEntities(res, callbk2);
+		deferred.promise.then(function(res){
+			aws.DataClient.getDataColumnEntities(res, callbk2);
+		});
+		
+		prom = deferred2.promise.then(function(response){
+			//console.log(response);
+			return response;
+		},function(response){
+			console.log("error " + response);
+		});
+		
+		return prom;
+	};
+	
+	var fullColumnObjs = fetchColumns(scope);
+	var filter = function(data, type){
+		var toFilter = data;
+		var filtered = [];
+		for(var i = 0; i < 100; i++){
+			try{
+				if(toFilter[i].publicMetadata.ui_type == type){
+					filtered.push(toFilter[i]);
+				}
+			}catch(e){
+				console.log(e);
+			}
+		}
+		return filtered;
+	};
+	
+	return {
+		giveMeColObjs: function(type){
+			return fullColumnObjs.then(function(response){
+					return filter(response, type);
 				});
-				prom = deferred2.promise.then(function(response){
-					console.log(response);
-					//$scope.options = response;
-					return response;
-				},function(response){
-					console.log("error " + response);
-				});
-			
-			//deferred2.resolve(aws.DataClient.getDataColumnEntities(childIds));
-	//		var temp = deferred.promise.then(function(result){
-	//			return result;
-	//		});
-//			deferred.promise.then(function(response){
-//				deferred.resolve(intermediate);
-//			});
-			//deferred.promise.result = intermediate;
-			return prom;
 		},
-		secondMethod: function(bogus){
-			console.log("bogus");
-			return "blah";
+		refreshObjects: function(){
+			fullColumnObjs = fetchColumns(scope);
 		}
 	};
-});
+}]);

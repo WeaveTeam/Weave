@@ -71,11 +71,7 @@ angular
 .directive(
 		'panel',
 		function($compile, $templateCache) {
-			var templatefcn = function(panelType) {
-				var tim = $templateCache.get("tpls/" + panelType + ".tpls.html");
-				return tim;
-			};
-			//var indicator = "IndicatorPanel";
+						
 			return {
 				restrict : "E",
 				scope : {
@@ -83,17 +79,13 @@ angular
 				},
 				templateUrl: function(tElement, tAttrs){
 					var te = tAttrs.paneltype;
-					this.controller = "IndicatorPanelCtrl";
+					this.controller = tAttrs.paneltype + 'Ctrl';
 					return "tpls/"+te+".tpls.html";
 				},
 				//template: $templateCache.get('./tpls/genericPortlet.tpls.html'),
 				//controller : indicator +'Ctrl',
 				compile : function(element, attrs) {
-
-					//$templateCache.put("tpls/" + attrs.paneltype + ".tpls.html");
 					return function(scope, element, attrs, controller) {
-						//element.append(templatefcn(attrs.paneltype));
-						//$compile(element.contents())(scope);
 						// Adding CSS classes to make a panel
 						$(element)
 								.addClass(
@@ -105,6 +97,7 @@ angular
 										"panel-title-margins");
 						scope.panelTitle = attrs.name;
 						scope.selectorId = attrs.id;
+						scope.panelType = attrs.type;
 
 					}
 				}

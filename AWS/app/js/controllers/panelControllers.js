@@ -3,24 +3,49 @@
  *  These controllers will be specified via the panel directive
  */
 angular.module("aws.panelControllers", [])
-.controller("SelectColumnCtrl", function($scope, queryobj){
+.controller("SelectColumnPanelCtrl", function($scope, queryobj, dataService){
+	$scope.options = ["Values are not", "yet returned", "from the server"];
+
+	var promise = dataService.giveMeColObjs('byvar');
+	
+	//$scope.$watch('promise', function(){
+		$scope.options = promise;
+	//});
+	
+	$scope.selection;
+	
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
 
 })
-/*.controller("CategoryFilterCrtl", function($scope, queryobj, Data){
+.controller("SelectScriptPanelCtrl", function($scope, queryobj, dataService){
 	
 })
-.controller("ContinuousFilterCtrl", function($scope, queryobj, Data){
+.controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
+	
+})
+.controller("RunPanelCtrl", function($scope, queryobj, dataService){
+	
+	
+	$scope.underdog = 0;
+	console.log("reading the RunPanelCtrl");
+	$scope.runQ = function(){
+		alert("Running Query");
+		var qh = new aws.QueryHandler(queryobj);
+		qh.runQuery();
+	}
+})
+.controller("GenericPanelCtrl", function($scope){
+	
+})
+
+/*.controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
+	
+})
+.controller("ContinuousFilterPanelCtrl", function($scope, queryobj, dataService){
 	
 })*/
-.controller("SelectScriptCtrl", function($scope, queryobj, Data){
-	
-})
-/*.controller("ScriptOptionsCtrl", function($scope, queryobj, Data){
+/*.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, dataService){
 	
 })*/
-.controller("WeaveVisSelectorCtrl", function($scope, queryobj, Data){
-	
-})
-.controller("RunPanelCtrl", function($scope, queryobj, Data){
-	
-})

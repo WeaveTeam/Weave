@@ -2,8 +2,7 @@
 <html lang="en" ng-app="aws">
 <head>
 <meta charset="utf-8">
-<title>Angular AWS</title>
-
+<title>Analyst Work Station</title>
 <link rel="stylesheet" href="css/bootstrap.css" />
 <link rel="stylesheet"
 	href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
@@ -31,30 +30,10 @@
 
 			<div id="center" ng-controller="PanelGenericCtrl">
 				<div ng-view></div>
-				<!-- <div id="sortable" ng-model="panels">
-					<panel id="indicators" name="Indicators"> </panel>
-					<panel id="byvars" name="By-Variables"> </panel>
-					<panel id="geography" name="Geography"> </panel>
-					<panel id="timeperiods" name="Time Period"> </panel>
-
-					<div ng-repeat='a in panels'>
-
-						<div class="{{a.size}} sort" class='panel'>
-							<div id="{{a.id}}" class="portlet" portlet-panel>
-								<div class="portlet-header">{{a.panelTitle}}</div>
-								<div class="portlet-content">
-									<br>{{addPanelContent(a)}}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div> -->
-
-
 			</div>
 
 		</div>
-		<div id="weave" ng-include src="weaveInstancePanel">
+		<div id="weavePanel" ng-include src="weaveInstancePanel">
 			<!-- left panel goes here -->
 
 		</div>
@@ -64,6 +43,8 @@
 		</div>
 
 	</div>
+	
+	
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   -->
@@ -80,6 +61,7 @@
 	<script src='js/filters/filters.js'></script>
 	<script src='js/directives/directives.js'></script>
 	<script src='js/controllers/indicatorPanelCtrl.js'></script>
+	<script src='js/controllers/panelControllers.js'></script>
 	<script src='lib/angular/angular-resource.js'></script>
 	<script src='lib/FileSaver.min.js'></script>
 	<script src='../aws/aws.js'></script>

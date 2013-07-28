@@ -188,12 +188,12 @@ public class RService extends GenericServlet
 	{
 		RResult[] returnedColumns;
 		String scriptName = requestObject.get("rRoutine").toString();
-		
+		System.out.print(requestObject.toString());
 		//if the computation result has been stored then computation is not run
 		//the stored results are simply returned
-		if(compResultLookMap.containsKey(scriptName))
+		if(compResultLookMap.containsKey(requestObject.toString()))
 		{
-			return compResultLookMap.get(scriptName);
+			return compResultLookMap.get(requestObject.toString());
 		}
 		
 		else
