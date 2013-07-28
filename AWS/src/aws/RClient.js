@@ -17,7 +17,11 @@ aws.RClient = function(connectionObject, rDataRequestObject){
 };
 
 //define get methods for both objects
+
+// these variabes should be changed to this.resultString inside the constructor.
+// because declaring it like this makes it global. but we can leave for now.
 var resultString = "notReplacedYet";
+
 var callbk = function(result){
 	console.log(result);
 	resultString = result;

@@ -22,6 +22,10 @@ aws.QueryHandler = function(queryObject)
 	this.dateGenerated = queryObject.date;
 	this.author = queryObject.author;
 	
+	this.dataset = queryObject.dataTable;
+	
+	this.dataColumns = queryObject.dataColumns;
+	
 	this.computationInfo = {
 	     scriptType : queryObject.scriptType,
 	     scriptName : queryObject.scriptName,
@@ -48,10 +52,29 @@ aws.QueryHandler.prototype.runQuery = function() {
 	// computation client
 	var computationEngine;
 	var visualization;
+	var column;
+	var columnsToBeRetrieved = [];
+	
+	var rRequestObject = {};
+	rRequestObject.dataset = this.dataset;
+	rRequestObject.scriptPath = this.computationInfo.scriptLocation;
+	
+	for (column in this.dataColumns) {
+		columnsToBeRetrieved.push(column.name);
+	}
+	
+	rRequestObject.columnsToBeRetrieved = columnsToBeRetrieved;
+	
+	var connectionObject = {};
+	connectionObject.user = this.dbConnectionInfo.sqluser;
+	connectionObject.password = this.dbConnectionInfo.sqlpass;
+	connectionObject.schema = this.dbConnectionInfo.serverType;
+	connectionObject.host = this.dbConnectionInfo.sqlip;
+	connectionObject.port = this.dbConnectionInfo.sqlport;
 	
 	// step 1
 	if(this.computation.scriptType == 'r') {
-		computationEngine = new aws.Client.RClient(this.dbConnectionInfo, this.rRequestObject);
+		computationEngine = new aws.Client.RClient(connectionObject, rRequestObject);
 	} else if (this.computation.scriptType == 'stata') {
 		// computationEngine = new aws.Client.StataClient();
 	}
@@ -67,7 +90,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		//ignore
 	}
 	
-	var weaveClient = new aws.Client.WeaveClient(this.weave);
+	var weaveClient = new aws.Client.WeaveClient(this.weaveOptions.weaveObject);
 	
 	
 	

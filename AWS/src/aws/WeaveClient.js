@@ -190,7 +190,7 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSource, dat
 
 
 /**
- * This function sets the session state of a column from another in the Weava instance
+ * This function sets the session state of a colwumn from another in the Weava instance
  * @param {string}csvDataSourceName CSV Datasource to choose column from
  * @param {string}columnPath relative path of the column
  * @param {string}columnName name of the column
