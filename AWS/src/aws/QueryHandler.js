@@ -26,6 +26,8 @@ aws.QueryHandler = function(queryObject)
 	
 	this.dataColumns = queryObject.dataColumns;
 	
+	this.scriptName = queryObject.scriptName;
+	
 	this.computationInfo = {
 	     scriptType : queryObject.scriptType,
 	     scriptName : queryObject.scriptName,
@@ -38,33 +40,32 @@ aws.QueryHandler = function(queryObject)
 };
 
 var timeLogString= "";
-
+var checkString = "";
 
 /**
  * after the asynchronous R call is returned, send the results to the Weave Client and update the time log
  */
 aws.QueryHandler.prototype.resultHandlingCallback = function(result){
-	var numericalResultString = result[0].value;//get rid of hard coded (for later)
-	
-	//updating the log
-	console.log(numericalResultString);
-	
-	timeLogString = result[1].value;//get rid of hard coded (for later)
-	try{
-		$("#LogBox").append(timeLogString);
-	}catch(e){
-		//ignore
-	}
-	
-	//only after the asynchromous call completes and result is returned, send the results to the Weave client for making into a CSVDatasource
-	//TODO make weaveClient a class member variable?
-
-	// step 3
-	// TODO provide a way to store the result directly on the data base?
-	// How do I tell the UI what results were returned?
-	var weaveClient = new aws.WeaveClient(weave);
-	weaveClient.addCSVDataSourceFromString(numericalResultString);
-	
+//	console.log("callback called");
+//	
+//	var numericalResultString = result[0].value;//get rid of hard coded (for later)
+//	
+//	//updating the log
+//	checkString = numericalResultString;
+//	timeLogString = result[1].value;//get rid of hard coded (for later)
+//	try{
+//		$("#LogBox").append(timeLogString);
+//	}catch(e){
+//		//ignore
+//	}
+//	
+//	//only after the asynchromous call completes and result is returned, send the results to the Weave client for making into a CSVDatasource
+//	//TODO make weaveClient a class member variable?
+//
+//	// step 3
+//	// TODO provide a way to store the result directly on the data base?
+//	// How do I tell the UI what results were returned?
+//	//weaveClient.addCSVDataSourceFromString(numericalResultString);
 };	
 
 
@@ -82,17 +83,14 @@ aws.QueryHandler.prototype.runQuery = function() {
 	var computationEngine;
 	var visualization;
 	var column;
-	var columnsToBeRetrieved = [];
+	var columnsToBeRetrieved = this.dataColumns;
 	
 	var rRequestObject = {};
 	rRequestObject.dataset = this.dataset;
 	rRequestObject.scriptPath = this.computationInfo.scriptLocation;
 	
-	for (column in this.dataColumns) {
-		columnsToBeRetrieved.push(column.name);
-	}
-	
 	rRequestObject.columnsToBeRetrieved = columnsToBeRetrieved;
+	rRequestObject.scriptName = this.scriptName;
 	
 	var connectionObject = {};
 	connectionObject.user = this.dbConnectionInfo.sqluser;
@@ -102,27 +100,39 @@ aws.QueryHandler.prototype.runQuery = function() {
 	connectionObject.port = this.dbConnectionInfo.sqlport;
 	
 	// step 1
-	if(this.computation.scriptType == 'r') {
-		computationEngine = new aws.Client.RClient(connectionObject, rRequestObject);
-	} else if (this.computation.scriptType == 'stata') {
-		// computationEngine = new aws.Client.StataClient();
+	if(this.computationInfo.scriptType == 'r') {
+		computationEngine = new aws.RClient(connectionObject, rRequestObject);
+		console.log(computationEngine);
+	} else if (this.computationInfo.scriptType == 'stata') {
+		// computationEngine = new aws.StataClient();
 	}
 	
-
-	// step 2
-	var result = computationEngine.run(aws.QueryHandler.prototype.resultHandlingCallback); // this should be a 2D array data set regardless of the computation engine
+	var weaveClient = new aws.WeaveClient(this.weaveOptions.weaveObject);
 	
-
-	var weaveClient = new aws.Client.WeaveClient(this.weaveOptions.weaveObject);
 	
-	// step 4
-	for (visualization in this.WeaveOptions.visualizations) {
-		weaveClient.newVisualization(visualization);
-	}
-	
-	if (this.WeaveOptions.colorColumn) {
-		weaveClient.setColorAttribute(this.WeaveOptions.colorColumn);
-	}	
+	computationEngine.runScriptOnSQLdata(connectionObject, rRequestObject, function(result) {
+		console.log("callback called");
+		
+		var resultDataSet = result[0].value;//get rid of hard coded (for later)
+		
+		//updating the log
+		try{
+			$("#LogBox").append(timeLogString);
+		}catch(e){
+			//ignore
+		}
+		
+		weaveClient.addCSVDataSourceFromString(resultDataSet);
+		// step 4
+		for (visualization in this.weaveOptions.visualizations) {
+			weaveClient.newVisualization(visualization);
+		}
+		
+		if (this.weaveOptions.colorColumn) {
+			weaveClient.setColorAttribute(this.weaveOptions.colorColumn);
+		}	
+	}); // this should be a 2D array data set regardless of the computation engine	
 };
+	
 
 

@@ -124,7 +124,7 @@ public class RService extends GenericServlet
 	public RResult[] runScriptOnSQLColumns(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
 	{
 		RResult[] returnedColumns;
-		String scriptName = requestObject.get("rRoutine").toString();
+		String scriptName = requestObject.get("scriptName").toString();
 		System.out.print(requestObject.toString());
 		//if the computation result has been stored then computation is not run
 		//the stored results are simply returned

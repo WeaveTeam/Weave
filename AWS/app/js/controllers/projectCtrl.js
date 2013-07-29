@@ -20,12 +20,7 @@ angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 
 		var d = $dialog.dialog($scope.opts);
 		d.open();
-	};
-	
-	$scope.save = function(){
-		saveJSON($scope.query);
-	};
-	
+	};	
 })
 .controller('ProjectButtonContentCtrl', function($scope, queryobj, $dialog) {
 	$scope.close = function() {
@@ -35,9 +30,3 @@ angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 	$scope.query = queryobj;
 	
 });
-	
-function saveJSON(queryobj) {
-	//var query = $rootScope;
-	var blob = new Blob([JSON.stringify(queryobj)], {type: "text/plain;charset=utf-8"});
-	saveAs(blob, "queryObject.json");
-}
