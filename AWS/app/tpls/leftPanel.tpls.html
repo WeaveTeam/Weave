@@ -16,5 +16,6 @@
 		<li ng-class="{active: isActive('/visualization')}"><a href="#/visualization">Visualizations</a></li>
 	</ul>
 	<div>{{QueryObjectModel()}}</div>
+	<button onclick="saveJSON({{QueryObjectModel()}})">Export JSON</button>
 </div>
 

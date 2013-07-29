@@ -9,3 +9,8 @@ angular.module("aws.leftPanel", [])
 	};
 	
 });
+
+function saveJSON(query) {
+	var blob = new Blob([JSON.stringify(query)], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, "Query Object.txt");
+}
