@@ -32,7 +32,8 @@ var resultString = "notReplacedYet";
 //	}
 //};
 aws.RClient.prototype.run = function(handleResultCallback){
-	
+	console.log(this.connectionObject);
+	console.log(this.rDataRequestObject);
 	aws.RClient.prototype.runScriptOnSQLdata(this.connectionObject,this.rDataRequestObject, handleResultCallback);
 	//return resultString;
 };
@@ -46,6 +47,8 @@ aws.RClient.prototype.run = function(handleResultCallback){
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(connectionObject, requestObject,handleComputationResult){
+	console.log(this.connectionObject);
+	console.log(this.rDataRequestObject);
 	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[connectionObject, requestObject],handleComputationResult);
 };
 
