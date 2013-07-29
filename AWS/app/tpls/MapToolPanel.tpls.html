@@ -2,13 +2,17 @@
 		TODO Implement for each type of portlet/panel
  -->
 
-
+<div ng-controller="MapToolPanelCtrl">
 <div class="portlet-header">
 	<span>{{panelTitle}}</span>
 </div>
 <div class="portlet-content">
 
-	Empty Generic Content
+	<input type="checkbox" name="enableMapTool"/> Enable Map Tool?</br>
+	Map to use: <select ng-model="selection" >
+					<option value="{{opt.publicMetadata.title}}" ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
+				</select>
 	
 </div>
 
+</div>

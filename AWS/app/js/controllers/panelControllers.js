@@ -76,13 +76,27 @@ angular.module("aws.panelControllers", [])
 .controller("GenericPanelCtrl", function($scope){
 	
 })
-
-/*.controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
+.controller("MapToolPanelCtrl", function($scope, queryobj, dataService){
+	$scope.options = dataService.giveMeGeomObjs($scope);
+	
+	$scope.selection;
+	
+	// selectorId should be "mapPanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+})
+.controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
 	
 })
 .controller("ContinuousFilterPanelCtrl", function($scope, queryobj, dataService){
 	
-})*/
-/*.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, dataService){
+})
+.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, dataService){
 	
-})*/
+})
