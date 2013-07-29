@@ -4,50 +4,72 @@
  */
 angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		'DataDialogCtrl',
-		function($scope, $dialog) {
+		function($scope, queryobj, $dialog) {
+			$scope.connection;
+			var defaults = {
+				scriptLocation : 'C:\\RScripts\\',
+				connectionName : 'demo',
+				connectionPass : 'pass',
+				serverType : 'MySQL',
+				sqlip : 'localhost',
+				sqlport : '3306',
+				sqldbname : '',
+				sqluser : 'root',
+				sqlpass : 'pass'
+			};
+			
+			if(queryobj['conn']){
+				$scope.connection = queryobj['conn'];
+			}else{
+				queryobj['conn'] = defaults;
+			}
+
 			$scope.opts = {
 				backdrop : true,
 				keyboard : true,
 				backdropClick : true,
 				templateUrl : 'tpls/dataDialog.tpls.html',
-				controller : 'DataDialogConnectCtrl'
+				controller : 'DataDialogConnectCtrl',
+				resolve : {
+					conn : function() {
+						return angular.copy($scope.conn);
+					}
+				}
 			};
-
+			
+			
+		
 			$scope.openDialog = function(partial) {
 				if (partial) {
 					$scope.opts.templateUrl = 'tpls/' + partial + '.tpls.html';
 				}
 
 				var d = $dialog.dialog($scope.opts);
-				var a = aws.DataClient.getEntityChildIds(161213, function(
-						result) {
-					return result;
-				});
-				var list = aws.DataClient.getDataTableList(function(result) {
-					// console.log(result);
-					return result;
-				});
-				// console.log(list);
-				d.open().then(list);
-
-				$scope.dataTables = [];
-				$scope.dataColumns = a;
-
+				d.open();
 			};
 		})
 
-.controller('DataDialogConnectCtrl', function($scope, $http, dialog) {
+.controller('DataDialogConnectCtrl', function($scope, queryobj, dialog) {
 	$scope.close = function() {
 		dialog.close();
 	};
-	$scope.conn = {
-		connectionName : 'test',
-		connectionPass : 'pass',
-		serverType : 'MySQL',
-		sqlip : '192.1.1.1',
-		sqlport : '3388',
-		sqldbname : 'test',
-		sqluser : 'tester',
-		sqlpass : 'test1'
-	};
+	
+	
+	$scope.conn = queryobj['conn'];
+	
+	$scope.$watch(function(){
+			return queryobj['conn']; 
+		}, 
+		function(connection){
+			$scope.conn = queryobj['conn'];
+	});
+	
+	$scope.$watch('conn', function(connection){
+		queryobj['conn'] = $scope.conn;
+	});
+	
+	
+//	$scope.$watch('conn', function() {
+//		queryobj['conn'] = conn;
+//	});
 });

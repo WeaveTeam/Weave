@@ -9,7 +9,7 @@ angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 			keyboard : true,
 			backdropClick : true,
 			templateUrl : 'tpls/ProjectMenu.tpls.html',
-			controller : 'ProjectButtonCtrl'
+			controller : 'ProjectButtonContentCtrl'
 	};
 
 	$scope.openDialog = function(partial) {
@@ -20,16 +20,13 @@ angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 
 		var d = $dialog.dialog($scope.opts);
 		d.open();
-	};
+	};	
 })
-
-.controller('ProjectButtonCtrl', function($scope, $http, dialog) {
+.controller('ProjectButtonContentCtrl', function($scope, queryobj, $dialog) {
 	$scope.close = function() {
-		dialog.close();
+		$dialog.close();
 	};
-})
 
-function saveJSON() {
-	var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
-	saveAs(blob, "hello world.txt");
-}
+	$scope.query = queryobj;
+	
+});

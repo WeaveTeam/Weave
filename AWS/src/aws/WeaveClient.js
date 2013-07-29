@@ -1,6 +1,7 @@
 goog.require('aws.client');
 goog.provide('aws.WeaveClient');
 	
+var weave;
 /**
  * This is the constructor for the weave client class.
  *  we initialize the properties here. 

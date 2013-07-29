@@ -3,12 +3,14 @@
  * LeftPanelCtrl - Manages the model for the left panel.
  */
 angular.module("aws.leftPanel", [])
-.controller("LeftPanelCtrl", function($scope, queryobj){
-	$scope.oneAtATime = true; // for accordion settings
-	
-	/*$scope.QueryObjectModel = JSON.stringify(queryobj, undefined, 2);
-	$scope.$watch('queryobj', function(){
-		$scope.QueryObjectModel = JSON.stringify(queryobj, undefined, 2); 
-	}, true);*/
+.controller("LeftPanelCtrl", function($scope, $location){
+	$scope.isActive = function(route){
+		return route == $location.path();
+	};
 	
 });
+
+function saveJSON(query) {
+	var blob = new Blob([JSON.stringify(query)], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, "Query Object.txt");
+}
