@@ -91,6 +91,52 @@ angular.module("aws.panelControllers", [])
 		queryobj[$scope.selectorId] = $scope.selection;
 	});
 })
+.controller("BarChartToolPanelCtrl", function($scope, queryobj){
+	
+	// TODO: Get from queryobj later
+	$scope.options = [
+	                  {
+	                	  result:"Result Column #1"  
+	                  },
+	                  {
+	                	  result:"Result Column #2"
+	                  }
+			];
+	$scope.selection;
+	// selectorId should be "barChartPanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+})
+.controller("DataTablePanelCtrl", function($scope, queryobj){
+	// TODO: get from queryobj
+	$scope.options = [
+	                  {
+	                	  result:"Result Column #1"  
+	                  },
+	                  {
+	                	  result:"Result Column #2"
+	                  }
+			];
+	$scope.selection;
+	// selectorId should be "dataTablePanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+})
+.controller("ColorColumnPanelCtrl", function($scope, queryobj){
+	
+})
 .controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
 	
 })

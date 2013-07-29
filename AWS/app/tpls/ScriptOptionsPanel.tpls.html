@@ -1,13 +1,11 @@
-<div ng-controller="DataTablePanelCtrl">
+<div ng-controller="ScriptOptionsPanelCtrl">
 <div class="portlet-header">
 	<span>{{panelTitle}}</span>
 </div>
 <div class="portlet-content">
 
-	<input type="checkbox" name="enableBarChartTool"/> Enable Bar Chart Tool?</br>
-	<select multiple ng-model="selection">
+	<select ng-model="selection">
 		<option value="{{opt.result}}" ng-repeat="opt in options">{{opt.result}}</option>
 	</select>
-
 </div>
 </div>
