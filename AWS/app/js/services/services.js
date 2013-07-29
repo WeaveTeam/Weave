@@ -17,21 +17,21 @@ angular.module("aws.services", []).service("queryobj", function() {
 })
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', function($q, scope){
+	function safeApply( fn ) {
+        if ( !scope.$$phase ) {
+            scope.$apply( fn );
+        }
+        else {
+            fn();
+        }
+    }
+	
 	var fetchColumns = function(scope){
 
 		var deferred = $q.defer();
 		var prom = deferred.promise;
 		var deferred2 = $q.defer();
-
 		
-		function safeApply( fn ) {
-            if ( !scope.$$phase ) {
-                scope.$apply( fn );
-            }
-            else {
-                fn();
-            }
-        }
 		var callbk = function(result){
 			safeApply(function(){
 				//console.log(result);
@@ -62,7 +62,41 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 		return prom;
 	};
 	
+	var fetchGeoms = function(){
+		var deferred = $q.defer();
+		var prom = deferred.promise;
+		var deferred2 = $q.defer();
+		var callbk = function(result){
+			safeApply(function(){
+				console.log(result);
+				deferred.resolve(result);
+			});
+		};
+		var callbk2 = function(result){
+			safeApply(function(){
+				
+				console.log(result);
+				deferred2.resolve(result);
+			});
+		};
+		aws.DataClient.getEntityIdsByMetadata({"dataType":"geometry"}, callbk);
+		deferred.promise.then(function(res){
+			aws.DataClient.getDataColumnEntities(res, callbk2);
+		});
+		
+		prom = deferred2.promise.then(function(response){
+			//console.log(response);
+			return response;
+		},function(response){
+			console.log("error " + response);
+		});
+		
+		return prom;
+	};
+	
+	
 	var fullColumnObjs = fetchColumns(scope);
+	var fullGeomObjs = fetchGeoms();
 	var filter = function(data, type){
 		var toFilter = data;
 		var filtered = [];
@@ -87,6 +121,11 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 		},
 		refreshObjects: function(){
 			fullColumnObjs = fetchColumns(scope);
+		},
+		giveMeGeomObjs: function(){
+			return fullGeomObjs.then(function(response){
+				return response;
+			});
 		}
 	};
 }]);
