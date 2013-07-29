@@ -4,32 +4,69 @@
  */
 angular.module("aws.panelControllers", [])
 .controller("SelectColumnPanelCtrl", function($scope, queryobj, dataService){
-	$scope.options = ["Values are not", "yet returned", "from the server"];
-
-	var promise = dataService.giveMeColObjs('byvar');
+	// get the promise of future values
 	
-	//$scope.$watch('promise', function(){
-		$scope.options = promise;
-	//});
+	$scope.options = dataService.giveMeColObjs($scope);
 	
 	$scope.selection;
 	
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
 		queryobj[$scope.selectorId] = $scope.selection;
 	});
+/*	$scope.$watch(function(){
+		return queryobj[$scope.selectorId];
+	},
+		function(select){
+			$scope.selection = queryobj[$scope.selectorId];
+	});*/
 
 })
 .controller("SelectScriptPanelCtrl", function($scope, queryobj, dataService){
+	$scope.selection;
+	
+	if(queryobj['scriptSelected']){
+		$scope.selection = queryobj['scriptSelected'];
+	}else{
+		queryobj['scriptSelected'] = "No Selection";
+	}
+	
+	$scope.$watch('selection', function(){
+		queryobj['scriptSelected'] = $scope.selection;
+	});
+	$scope.$watch(function(){
+		return queryobj['scriptSelected'];
+	},
+		function(select){
+			$scope.selection = queryobj['scriptSelected'];
+	});
 	
 })
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
+	// set defaults or retrieve from queryobject
+	if(queryobj['selectedVisualization']){
+		$scope.vis = queryobj['selectedVisualization'];
+	}else{
+		queryobj['selectedVisualization'] = {'maptool':false, 'barchart':true, 'datatable':false};
+	}
 	
+	// set up watch functions
+	$scope.$watch('vis', function(){
+		queryobj['selectedVisualization'] = $scope.vis;
+	});
+	$scope.$watch(function(){
+		return queryobj['selectedVisualization'];
+	},
+		function(select){
+			$scope.vis = queryobj['selectedVisualization'];
+	});
+
 })
 .controller("RunPanelCtrl", function($scope, queryobj, dataService){
-	
-	
-	$scope.underdog = 0;
-	console.log("reading the RunPanelCtrl");
 	$scope.runQ = function(){
 		alert("Running Query");
 		var qh = new aws.QueryHandler(queryobj);

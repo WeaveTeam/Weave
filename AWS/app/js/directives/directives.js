@@ -78,15 +78,33 @@ angular
 				// selectionWidgets: '@'
 				},
 				templateUrl: function(tElement, tAttrs){
-					var te = tAttrs.paneltype;
-					this.controller = tAttrs.paneltype + 'Ctrl';
-					return "tpls/"+te+".tpls.html";
+					return "tpls/"+tAttrs.paneltype+".tpls.html";
 				},
 				//template: $templateCache.get('./tpls/genericPortlet.tpls.html'),
 				//controller : indicator +'Ctrl',
-				compile : function(element, attrs) {
+				link: function(scope, element, attrs, controller) {
+					// Adding CSS classes to make a panel
+					//controller = attrs.paneltype + 'Ctrl';
+					$(element)
+							.addClass(
+									"ui-widget portlet ui-widget-content span4 ui-corner-all ui-helper-clearfix panel")
+							.find(".portlet-header")
+							.addClass(
+									"ui-widget-header ui-helper-clearfix")
+							.find("span").addClass(
+									"panel-title-margins");
+					scope.panelTitle = attrs.name;
+					scope.selectorId = attrs.id;
+					scope.panelType = attrs.type;
+					 $compile(element.contents())(scope);
+
+				}
+				/*compile : function(element, attrs) {
+					console.log(attrs);
+					//this.controller = attrs.paneltype + 'Ctrl';
 					return function(scope, element, attrs, controller) {
 						// Adding CSS classes to make a panel
+						controller = attrs.paneltype + 'Ctrl';
 						$(element)
 								.addClass(
 										"ui-widget portlet ui-widget-content span4 ui-corner-all ui-helper-clearfix panel")
@@ -98,9 +116,10 @@ angular
 						scope.panelTitle = attrs.name;
 						scope.selectorId = attrs.id;
 						scope.panelType = attrs.type;
+						 $compile(element.contents())(scope);
 
 					}
-				}
+				}*/
 
 			};
 		})

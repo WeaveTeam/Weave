@@ -34,12 +34,13 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
         }
 		var callbk = function(result){
 			safeApply(function(){
-				console.log(result);
+				//console.log(result);
 				deferred.resolve(result);
 			});
 		};
 		var callbk2 = function(result){
 			safeApply(function(){
+				
 				console.log(result);
 				deferred2.resolve(result);
 			});
@@ -65,7 +66,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	var filter = function(data, type){
 		var toFilter = data;
 		var filtered = [];
-		for(var i = 0; i < 100; i++){
+		for(var i = 0; i < data.length; i++){
 			try{
 				if(toFilter[i].publicMetadata.ui_type == type){
 					filtered.push(toFilter[i]);
@@ -78,8 +79,9 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	};
 	
 	return {
-		giveMeColObjs: function(type){
+		giveMeColObjs: function(scopeobj){
 			return fullColumnObjs.then(function(response){
+					var type = scopeobj.panelType;
 					return filter(response, type);
 				});
 		},

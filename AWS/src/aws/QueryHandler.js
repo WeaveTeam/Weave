@@ -62,6 +62,7 @@ aws.QueryHandler.prototype.resultHandlingCallback = function(result){
 	// step 3
 	// TODO provide a way to store the result directly on the data base?
 	// How do I tell the UI what results were returned?
+	var weaveClient = new aws.WeaveClient(weave);
 	weaveClient.addCSVDataSourceFromString(numericalResultString);
 	
 };	

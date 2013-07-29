@@ -11,9 +11,9 @@
 		heading="Weave" id="weaveAccordion"> </accordion-group> </accordion> -->
 	
 	<ul class="nav nav-tabs nav-stacked">
-		<li class="active"><a href="#/analysis">Analysis Builder</a></li>
-		<li><a href="#/calculation">Calculations</a></li>
-		<li><a href="#/visualization">Visualizations</a></li>
+		<li ng-class="{active: isActive('/analysis')}"><a href="#/analysis">Analysis Builder</a></li>
+		<li ng-class="{active: isActive('/calculation')}"><a href="#/calculation">Calculations</a></li>
+		<li ng-class="{active: isActive('/visualization')}"><a href="#/visualization">Visualizations</a></li>
 	</ul>
 	<div>{{QueryObjectModel()}}</div>
 </div>
