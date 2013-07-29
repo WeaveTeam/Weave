@@ -69,7 +69,7 @@ public class test
 	public static void main(String[] args) throws Exception
 	{
 		ws = new RService();
-		String[] inputNames = {};
+		
 		//Object[] inputValues1 = {};	
 		//Object[] inputValues = {};
 		String plotscript = "";
@@ -77,30 +77,33 @@ public class test
 		String script1 = "";
 		//Object[] parameters = {};
 		String [] resultNames = {};	
-		String scriptFilePath = "C:\\Users\\Shweta\\Desktop\\Rtest.R";
-		String csvPath = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
-		
+		String scriptFilePath = "C:\\Users\\Shweta\\Desktop\\Parameterized.R";
+		//String csvPath = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
+		String mystate = "_STATE";
+		String mypsu = "_PSU";
+		String myfinalwt = "_FINALWT";
+		String myststr = "_STSTR";
+		String myindicator = "DIABETE2";
+			String[] inputNames  = {"cannedScriptPath","query", "mystate", "mypsu","myststr","myfinalwt", "myindicator"};
+			String query = "select `_STATE`,`_PSU`,`_STSTR`,`_FINALWT`,DIABETE2 from brfss2010";
 //		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
 //		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 //		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
-		Object[]inputValues1 = {scriptFilePath, csvPath};
-		inputNames = new String[]{"scriptPath", "csvPath"};
-		
+		String []inputValues1 = {scriptFilePath,query,mystate, mypsu,myststr, myfinalwt,myindicator};
+		//inputNames = new String[]{"scriptPath", "csvPath"};
 		//works
 //		script = "scriptFromFile <- source(scriptPath)\n" +
 //				"answer <- scriptFromFile$value(col1, col2)\n";
 		
 		//testing
-		script1 = "scriptFromFile <- source(scriptPath)\n" +
-				"library(survey)\n" +
-				"runscript <- scriptFromFile$value(csvPath)\n";
+		script1 ="params <- c(mystate, mypsu, myststr, myfinalwt, myindicator)\n" +
+		"scriptFromFile <- source(cannedScriptPath)\n" +
+		"library(RMySQL)\n" +
+		"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"shweta\", host = \"localhost\", port = 3306, dbname = \"data\")\n" +
+		"library(survey)\n" +
+		"returnedColumnsFromSQL <- scriptFromFile$value(query,params)\n";
 		
-		String [] names = {"hello", "hi", "shweta"};
-		for(int g=0; g < names.length; g++)
-		{
-			if(names[g].matches("shweta"))
-				System.out.print("done");
-		}
+		
 		
 		//inputValues1 = new Object[0];
 		//inputNames = new String[]{"myMatrix"};
@@ -179,8 +182,8 @@ public class test
 //		System.out.print(check);
 //		System.out.print(ans);
 //		System.out.print(keys);
-		//resultNames = new String[]{"runscript"};
-		//call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
+		resultNames = new String[0];
+		call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
 	}	
 }		
 		

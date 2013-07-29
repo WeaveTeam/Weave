@@ -75,8 +75,10 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
 
 /**
  * returns the current time to the console
+ * @param {string} report the message (activity) with the time
+ * @returns {string} a time log for activity
  */
-aws.reportTime = function()
+aws.reportTime = function(message)
 {
 	Date.prototype.today = function(){ 
 		return ((this.getDate() < 10)?"0":"") + this.getDate() +"/"+(((this.getMonth()+1) < 10)?"0":"") + (this.getMonth()+1) +"/"+ this.getFullYear(); 
@@ -88,6 +90,6 @@ aws.reportTime = function()
 	var currentTime = new Date();
 	
 	//return "Current time :" + currentTime.today() + "@" + currentTime.timeNow();
-	return currentTime.today()+ "@ " + currentTime.timeNow();
+	return message + ": " + currentTime.today()+ "@ " + currentTime.timeNow() + "\n";
 	
 };

@@ -6,7 +6,6 @@ var adminServiceURL = '/WeaveServices/AdminService';
 
 //parameters sent from the QueryHandler.js
 /** 
- * @param {Object} weave An instance of weave
  * @param {Object} connectionObject required for R to make a connection to the db; given by the QueryHandler.js
  * @constructor {Object} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
  */
@@ -22,14 +21,20 @@ aws.RClient = function(connectionObject, rDataRequestObject){
 // because declaring it like this makes it global. but we can leave for now.
 var resultString = "notReplacedYet";
 
-var callbk = function(result){
-	console.log(result);
-	resultString = result;
-};
-aws.RClient.prototype.run = function(){
+//var callbk = function(result){
+//	console.log(result);
+//	resultString = result;
+//	timeLogString = resultString[1].value;
+//	try{
+//		$("#LogBox").append(timeLogString);
+//	}catch(e){
+//		//ignore
+//	}
+//};
+aws.RClient.prototype.run = function(handleResultCallback){
 	
-	aws.RClient.prototype.runScriptOnSQLdata(this.connectionObject,this.rDataRequestObject, callbk);
-	return resultString;
+	aws.RClient.prototype.runScriptOnSQLdata(this.connectionObject,this.rDataRequestObject, handleResultCallback);
+	//return resultString;
 };
 
 /**
