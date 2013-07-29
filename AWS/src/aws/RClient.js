@@ -31,10 +31,11 @@ var resultString = "notReplacedYet";
 //		//ignore
 //	}
 //};
-aws.RClient.prototype.run = function(handleResultCallback){
-	console.log(this.connectionObject);
-	console.log(this.rDataRequestObject);
-	aws.RClient.prototype.runScriptOnSQLdata(this.connectionObject,this.rDataRequestObject, handleResultCallback);
+aws.RClient.prototype.run = function(type, callback) {
+	
+	if (type == "SQLData") {
+		aws.RClient.prototype.runScriptOnSQLdata(callback);
+	}
 	//return resultString;
 };
 
@@ -46,10 +47,8 @@ aws.RClient.prototype.run = function(handleResultCallback){
  *  @param {Function} A callback function that handles the servlet result
  *
  */
-aws.RClient.prototype.runScriptOnSQLdata = function(connectionObject, requestObject,handleComputationResult){
-	console.log(this.connectionObject);
-	console.log(this.rDataRequestObject);
-	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[connectionObject, requestObject],handleComputationResult);
+aws.RClient.prototype.runScriptOnSQLdata = function(handleComputationResult){
+	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.requestObject],handleComputationResult);
 };
 
 
