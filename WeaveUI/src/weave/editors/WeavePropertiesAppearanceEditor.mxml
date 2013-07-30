@@ -41,6 +41,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</ui:Indent>
 			<s:CheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
 						creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+			<s:CheckBox label="{lang('Enable dashboard mode with borders')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode with borders. Enabling this will show the borders around the tool and the bar on the top of the tool, but not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
+						creationComplete="linkBindableProperty(Weave.properties.dashboardModeWithBorders, event.target, 'selected');"/>
 			<s:CheckBox label="{lang('Show copyright')}"
 						creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
 			<s:CheckBox label="{lang('Show revert and save buttons in control panels')}"
