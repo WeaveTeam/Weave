@@ -62,12 +62,13 @@
 			reader.onload = function(e) {
 				$('#file').html(e.target.result);
 				obj = $.parseJSON(e.target.result);
+				var qh = new aws.QueryHandler(obj);
+				qh.runQuery();
 				console.log($.parseJSON(e.target.result));
 			}
 			reader.readAsText(file);
 
-			var qh = new aws.QueryHandler(queryobj);
-			qh.runQuery();
+			
 		});
 	</script>
 	
