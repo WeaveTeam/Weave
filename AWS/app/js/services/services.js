@@ -16,6 +16,20 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.scriptType = "r";
 	this.weaveOptions = {};
 	this.weaveOptions.weaveObject = "Not Defined here";
+	this.conn = {};
+	this.conn.dataTable = 161213;
+	var defaults = {
+			scriptLocation : 'C:\\RScripts\\',
+			dataTable: 161213,
+			/*connectionName : 'demo',
+			connectionPass : 'pass',*/
+			serverType : 'MySQL',
+			sqlip : 'localhost',
+			sqlport : '3306',
+			sqldbname : 'sdoh2010',
+			sqluser : 'root',
+			sqlpass : 'pass'
+		};
 	
 })
 .service("scriptobj", function(){
@@ -37,7 +51,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	
 	var fetchColumns = function(id){
 		if(!id){
-			id = 161213;
+			alert("No DataTable Id Specified. Please update in the Data Dialog");
 		}
 		var deferred = $q.defer();
 		var prom = deferred.promise;

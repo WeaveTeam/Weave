@@ -4,11 +4,14 @@
  */
 angular.module("aws.panelControllers", [])
 .controller("SelectColumnPanelCtrl", function($scope, queryobj, dataService){
-	// get the promise of future values
-	var id = queryobj.conn.dataTable;
-	$scope.options = dataService.giveMeColObjs($scope, id);
 	
+	$scope.options; // initialize
 	$scope.selection;
+	
+	
+	// fetch Columns using current dataTable
+	//refreshColumns($scope, queryobj.conn.dataTable);
+	$scope.options = dataService.giveMeColObjs($scope,  queryobj.conn.dataTable);
 	
 	if(queryobj[$scope.selectorId]){
 		$scope.selection = queryobj[$scope.selectorId];
@@ -19,13 +22,10 @@ angular.module("aws.panelControllers", [])
 		queryobj[$scope.selectorId] = $scope.selection;
 	});
 	
-	// Refreshes the columns if the dataTable changes. 
-	$scope.$watch(function(){
-		return queryobj.conn['dataTable'];
-	},
-		function(){
-			$scope.options = dataService.giveMeColObjs($scope, queryobj.conn['dataTable']);
+	$scope.$on("refreshColumns", function(e){
+		$scope.options = dataService.giveMeColObjs($scope,  queryobj.conn.dataTable);
 	});
+	
 /*	$scope.$watch(function(){
 		return queryobj[$scope.selectorId];
 	},

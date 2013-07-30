@@ -75,11 +75,12 @@ angular
 			return {
 				restrict : "E",
 				scope : {
-				// selectionWidgets: '@'
+					//refreshColumns: '='
 				},
 				templateUrl: function(tElement, tAttrs){
 					return "tpls/"+tAttrs.paneltype+".tpls.html";
 				},
+				//transclude: true,
 				//template: $templateCache.get('./tpls/genericPortlet.tpls.html'),
 				//controller : indicator +'Ctrl',
 				link: function(scope, element, attrs, controller) {
@@ -96,7 +97,7 @@ angular
 					scope.panelTitle = attrs.name;
 					scope.selectorId = attrs.id;
 					scope.panelType = attrs.type;
-					 $compile(element.contents())(scope);
+					//$compile(element.contents())(scope);
 
 				}
 				/*compile : function(element, attrs) {

@@ -6,23 +6,10 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		'DataDialogCtrl',
 		function($scope, queryobj, $dialog) {
 			$scope.connection;
-			var defaults = {
-				scriptLocation : 'C:\\RScripts\\',
-				dataTable: 161213
-				/*connectionName : 'demo',
-				connectionPass : 'pass',
-				serverType : 'MySQL',
-				sqlip : 'localhost',
-				sqlport : '3306',
-				sqldbname : '',
-				sqluser : 'root',
-				sqlpass : 'pass'*/
-			};
+			
 			
 			if(queryobj['conn']){
 				$scope.connection = queryobj['conn'];
-			}else{
-				queryobj['conn'] = defaults;
 			}
 
 			$scope.opts = {
@@ -58,18 +45,20 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	
 	$scope.conn = queryobj['conn'];
 	
-	$scope.$watch(function(){
+	/*$scope.$watch(function(){
 			return queryobj['conn']; 
 		}, 
 		function(connection){
 			$scope.conn = queryobj['conn'];
-	});
+	});*/
 	
 	$scope.$watch('conn', function(connection){
 		queryobj['conn'] = $scope.conn;
 	});
-	$scope.$watch('entityOverride', function(){
-		$scope.conn.dataTable = $scope.entityOverride;
+	$scope.$watch('entityOverride', function(oldVal, newVal){
+		if(newVal != undefined){
+			$scope.conn.dataTable = $scope.entityOverride;
+		}
 	});
 	
 	
