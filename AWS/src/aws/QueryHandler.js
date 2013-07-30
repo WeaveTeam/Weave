@@ -41,8 +41,6 @@ aws.QueryHandler = function(queryObject)
 	
 	for (var visualization in queryObject.selectedVisualization) {
 		//if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
-			console.log(queryObject[visualization]);
-			console.log(queryObject.selectedVisualization[visualization]);
 			if (queryObject.selectedVisualization[visualization]) {
 				this.visualizations.push( { type : visualization, parameters : queryObject[visualization] });
 			}			
@@ -90,6 +88,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
 		for (var i in that.visualizations) {
+			console.log("creating visualization", that.visualizations[i].type);
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
 		}
 		

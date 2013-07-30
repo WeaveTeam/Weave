@@ -24,20 +24,23 @@ aws.WeaveClient = function (weave) {
 aws.WeaveClient.prototype.newVisualization = function (visualization, dataSourceName) {
 	
 	var parameters = visualization.parameters;
-	
+	var toolName;
 	switch(visualization.type) {
 		case 'maptool':
-			console.log(parameters);
-			console.log(dataSourceName);
-			this.newMap(parameters.weaveEntityId, parameters.title, parameters.keyType);
+			toolName = this.newMap(parameters.weaveEntityId, parameters.title, parameters.keyType);
+			this.setPosition(toolName, "0%", "0%");
 			break;
 		case 'scatterplot':
-			this.newScatterPlot(parameters.xColumnName, parameters.yColumnName, parameters.sizeColumnName, dataSourceName);
+			toolName = this.newScatterPlot(parameters.xColumnName, parameters.yColumnName, parameters.sizeColumnName, dataSourceName);
 			break;
 		case 'datatable':
-			this.newDatatable( parameters, dataSourceName);
+			toolName = this.newDatatable( parameters, dataSourceName);
+			this.setPosition(toolName, "50%", "0%");
+			break;
 		case 'barchart' :
-			this.newBarChart("", "", parameters, dataSourceName);
+			toolName = this.newBarChart("", "", parameters, dataSourceName);
+			this.setPosition(toolName, "0%", "50%");
+			break;
 		default:
 			return;
 }
@@ -72,7 +75,8 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state('dataSourceName','WeaveDataSource')
 		  .state('hierarchyPath', '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>');
-		  
+	
+	return toolName;
 };
 
 /**
@@ -100,6 +104,8 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, s
 	this.setCSVColumn(csvDataSource, columnPathY, yColumnName );//setting the Y column
 	
 	//aws.WeaveClient.prototype.setColorAttribute(colorColumnName,);// TO DO: use setCSVColumn directly?
+	
+	return toolName;
 };
 
 /**
@@ -120,6 +126,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSource){
 		}
 	aws.reportTime("New DataTable added");
 	
+	return toolName;
 };
 
 /**
@@ -149,8 +156,15 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
 	   			  .state('dataSourceName', dataSourceName)
 	   			  .state('hierarchyPath', sort);
 	
+    
+    for (var i in heights)
+	{
+		this.setCSVColumn(dataSourceName, [toolName,'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns', heights[i]], heights[i]);
+		
+	}
 	aws.reportTime("New BarChart added");
 	
+	return toolName;
 };
 
 
@@ -166,9 +180,8 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
  * @return void
  * 
  */
-aws.WeaveClient.prototype.setPosition = function (panel, posX, posY) {
-	
-
+aws.WeaveClient.prototype.setPosition = function (toolName, posX, posY) {
+	this.weave.path(toolName).push('panelX').state(posX).pop().push('panelY').state(posY);
 };
 
 /**
