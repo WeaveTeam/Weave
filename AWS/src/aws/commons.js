@@ -3,6 +3,12 @@ goog.provide('aws.client');
 goog.exportSymbol('aws', aws);
 
 /**
+ * 
+ * @type {string} timeLogString the time log string.
+ */
+aws.timeLogString= "";
+
+/**
  * @typedef {{
  * 	name: string,
  *  pass: string,

@@ -124,8 +124,6 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSource){
 			this.setCSVColumn(dataSource, [toolName,'columns',columnNames[i]], columnNames[i]);
 			
 		}
-	aws.reportTime("New DataTable added");
-	
 	return toolName;
 };
 
@@ -162,8 +160,6 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
 		this.setCSVColumn(dataSourceName, [toolName,'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns', heights[i]], heights[i]);
 		
 	}
-	aws.reportTime("New BarChart added");
-	
 	return toolName;
 };
 
@@ -248,8 +244,6 @@ aws.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath
 aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
 	
 	this.setCSVColumn(csvDataSource,['defaultColorDataColumn', 'internalDynamicColumn'], colorColumnName);
-	aws.reportTime("Color Attribute set");
-
 };
 
 /**
@@ -282,14 +276,16 @@ aws.WeaveClient.prototype.addCSVDataSource = function (dataSource, dataSourceNam
  * @param {string} message to append; activity to report time for
  * 
  */
-aws.WeaveClient.prototype.reportToolInteractionTime = function(weave, message){
+aws.WeaveClient.prototype.reportToolInteractionTime = function(message){
 	var time = aws.reportTime();
+	
+	this.weave.evaluateExpression([], "WeaveAPI.ProgressIndictor.getNormalizedProgress()", {},['weave.api.WeaveAPI']); 
+	
 	console.log(time);
 	try{
 		$("#LogBox").append(time + message + "\n");
 	}catch(e){
 		//ignore
 	}
-	weave.evaluateExpression([], "WeaveAPI.ProgressIndictor.getNormalizedProgress()", {},['weave.api.WeaveAPI']); 
 	
 };
