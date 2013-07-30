@@ -3,9 +3,9 @@
 	<span>{{panelTitle}}</span>
 </div>
 <div class="portlet-content">
-
-	<select ng-model="selection">
-		<option value="{{opt.result}}" ng-repeat="opt in options">{{opt.result}}</option>
+	<div ng-repeat="label in labels">
+	Select column for {{label}}:<select ng-model="$parent.selection[label]">
+		<option ng-repeat="opt in options" value="{{opt}}" >{{opt}}</option>
 	</select>
 </div>
 </div>

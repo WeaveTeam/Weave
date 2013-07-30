@@ -26,7 +26,7 @@ aws.QueryHandler = function(queryObject)
 		dataset : queryObject.dataTable,
 		scriptPath : queryObject.scriptLocation,
 		columnsToBeRetrieved : queryObject.dataColumns,
-		scriptName : queryObject.scriptName
+		scriptName : queryObject.scriptSelected
 	};
 	
 	this.connectionObject = {

@@ -30,20 +30,19 @@
 
 			<div id="center" ng-controller="PanelGenericCtrl">
 				<div ng-view></div>
+				<div id="weavePanel" ng-include src="weaveInstancePanel"></div>
+				<div id="Log">
+					<h4>Log Box for errors and timing</h4>
+					<div id="LogBox"></div>
+				</div>
 			</div>
 
 		</div>
-		<div id="weavePanel" ng-include src="weaveInstancePanel">
 
-		</div>
-		<div id="Log">
-			<h4>Log Box for errors and timing</h4>
-			<div id="LogBox"></div>
-		</div>
 
 	</div>
-	
-	
+
+
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   -->
@@ -51,6 +50,8 @@
 	<script src='lib/jquery/jquery-ui.js'></script>
 	<script src='lib/angular/angular.js'></script>
 	<script src='lib/angular/ui-bootstrap-tpls-0.4.0.js'></script>
+	<script type="text/javascript"
+		src="http://balupton.github.com/jquery-syntaxhighlighter/scripts/jquery.syntaxhighlighter.min.js"></script>
 	<script src='js/app.js'></script>
 	<script src='js/services/services.js'></script>
 	<script src='js/controllers/controllers.js'></script>

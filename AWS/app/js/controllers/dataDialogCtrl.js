@@ -8,14 +8,15 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 			$scope.connection;
 			var defaults = {
 				scriptLocation : 'C:\\RScripts\\',
-				connectionName : 'demo',
+				dataTable: 161213
+				/*connectionName : 'demo',
 				connectionPass : 'pass',
 				serverType : 'MySQL',
 				sqlip : 'localhost',
 				sqlport : '3306',
 				sqldbname : '',
 				sqluser : 'root',
-				sqlpass : 'pass'
+				sqlpass : 'pass'*/
 			};
 			
 			if(queryobj['conn']){
@@ -66,6 +67,9 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	
 	$scope.$watch('conn', function(connection){
 		queryobj['conn'] = $scope.conn;
+	});
+	$scope.$watch('entityOverride', function(){
+		$scope.conn.dataTable = $scope.entityOverride;
 	});
 	
 	

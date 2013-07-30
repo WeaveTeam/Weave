@@ -10,10 +10,19 @@
  * future.
  */
 angular.module("aws.services", []).service("queryobj", function() {
-	this.queryObject = {
-		connectionDB : "exampleProperty"
+	this.title = "AlphaQueryObject";
+	this.date = new Date();
+	this.author = "UML IVPR AWS Team";
+	this.scriptType = "r";
+	this.weaveOptions = {};
+	this.weaveOptions.weaveObject = "Not Defined here";
+	
+})
+.service("scriptobj", function(){
+	this.scriptMetadata = {
+			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
+			outputs: ["Fips (binningVar)", "Response", "Prevalence Percentage", "CI Low", "CI Hi"]
 	};
-
 })
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', function($q, scope){
@@ -26,8 +35,10 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
         }
     }
 	
-	var fetchColumns = function(scope){
-
+	var fetchColumns = function(id){
+		if(!id){
+			id = 161213;
+		}
 		var deferred = $q.defer();
 		var prom = deferred.promise;
 		var deferred2 = $q.defer();
@@ -46,7 +57,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 			});
 		};
 		
-		aws.DataClient.getEntityChildIds(161213, callbk);
+		aws.DataClient.getEntityChildIds(id, callbk);
 
 		deferred.promise.then(function(res){
 			aws.DataClient.getDataColumnEntities(res, callbk2);
@@ -95,7 +106,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	};
 	
 	
-	var fullColumnObjs = fetchColumns(scope);
+	//var fullColumnObjs = fetchColumns(scope, datatable);
 	var fullGeomObjs = fetchGeoms();
 	var filter = function(data, type){
 		var toFilter = data;
@@ -113,14 +124,14 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	};
 	
 	return {
-		giveMeColObjs: function(scopeobj){
-			return fullColumnObjs.then(function(response){
+		giveMeColObjs: function(scopeobj, id){
+			return fetchColumns(id).then(function(response){
 					var type = scopeobj.panelType;
 					return filter(response, type);
 				});
 		},
-		refreshObjects: function(){
-			fullColumnObjs = fetchColumns(scope);
+		refreshObjects: function(id){
+			fullColumnObjs = fetchColumns(id);
 		},
 		giveMeGeomObjs: function(){
 			return fullGeomObjs.then(function(response){

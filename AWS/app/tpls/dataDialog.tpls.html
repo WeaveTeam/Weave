@@ -10,27 +10,44 @@
 	<div id="scriptlocation">
 		Script Folder Location: <input type="text" ng-model="conn.scriptLocation"><br>
 	</div>
+	
+	<div id="entityIdOverride">
+		Datatable Entity Id Override: <input type="text" ng-model="entityOverride"/><br>
+	</div>
+	
+	<div>
+		Select a database table: <select ng-model="conn.dataTable">
+			<option value="161213">Demo Server sdoh</option>
+			<option value="169602">Demo Server brfss Shell</option>
+			<option value="1">Kat's Machine brfss</option>
+			<option value="48">Kat's Machine sdoh</option>
+		</select>
+	</div>
 
-	<div id="dbauthentication">
+ <!-- 	<div id="dbauthentication">
 		Connection Name: <input type="text" ng-model="conn.connectionName"><br>
 		Password: <input type="password" ng-model="conn.connectionPass"><br>
 		<br>
-	</div>
+	</div> -->
 
 	<div id="dbconnection">
-		SQL Connection Info<br> <br> SQL Server Type: <select
+		SQL Connection Info<br> <br> 
+		SQL Server Type: <select
 			id="dataCombobox" ng-model="conn.serverType">
 			<option value="MySQL">MySQL</option>
 			<option value="PostGreSQL">PostGreSQL</option>
 			<option value="MicrosoftSQL">Microsoft SQL Server</option>
 			<option value="Oracle">Oracle</option>
-		</select> <br> SQL Server IP: <input type="text" ng-model="conn.sqlip"><br>
-		SQL Server Port: <input type="text" ng-model="conn.sqlport"><br>
-		SQL Database Name: <input type="text" ng-model="conn.sqldbname">(optional)<br>
+		</select> <br> 
+		
 		SQL User: <input type="text" ng-model="conn.sqluser"><br>
 		SQL Password: <input type="password" ng-model="conn.sqlpass"><br>
+		SQL Server IP: <input type="text" ng-model="conn.sqlip"><br>
+		SQL Server Port: <input type="text" ng-model="conn.sqlport"><br>
+		SQL Database Name: <input type="text" ng-model="conn.sqldbname">(optional)<br>
+
 		<br>
-	</div>
+	</div> 
 </div>
 <div class="modal-footer">
 	<button ng-click="close()" class="btn btn-primary">Close</button>
