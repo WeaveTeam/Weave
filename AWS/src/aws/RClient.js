@@ -34,7 +34,7 @@ var resultString = "notReplacedYet";
 aws.RClient.prototype.run = function(type, callback) {
 	
 	if (type == "SQLData") {
-		aws.RClient.prototype.runScriptOnSQLdata(callback);
+		this.runScriptOnSQLdata(callback);
 	}
 	//return resultString;
 };
@@ -42,13 +42,12 @@ aws.RClient.prototype.run = function(type, callback) {
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
- *  @param {Object} connectionObject the connection info to allow R to connect to the database retrieved from Admin Service
- *  @param {Object} requestObject the collection of parameters chosen by User via UI
  *  @param {Function} A callback function that handles the servlet result
  *
  */
-aws.RClient.prototype.runScriptOnSQLdata = function(handleComputationResult){
-	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.requestObject],handleComputationResult);
+aws.RClient.prototype.runScriptOnSQLdata = function(callback){
+	console.log(this.rDataRequestObject);
+	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.rDataRequestObject], callback);
 };
 
 

@@ -17,10 +17,10 @@ aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
-	this.title = queryObject.title;
+	//this.title = queryObject.title;
 	
-	this.dateGenerated = queryObject.date;
-	this.author = queryObject.author;
+	//this.dateGenerated = queryObject.date;
+	//this.author = queryObject.author;
 	
 	this.rRequestObject = {
 		dataset : queryObject.dataTable,
@@ -50,7 +50,7 @@ aws.QueryHandler = function(queryObject)
 	} else if (queryObject.scriptType == 'stata') {
 		// computationEngine = new aws.StataClient();
 	}
-	
+	this.resultDataSet = "";
 };
 
 var timeLogString= "";
@@ -64,11 +64,12 @@ var timeLogString= "";
 aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
-		
+	var that = this;
+	
 	this.computationEngine.run("SQLData", function(result) {
 		
-		var resultDataSet = result[0].value;//get rid of hard coded (for later)
-		//updating the log
+		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
+
 		try{
 			$("#LogBox").append(timeLogString);
 		}catch(e){
@@ -76,14 +77,14 @@ aws.QueryHandler.prototype.runQuery = function() {
 		}
 		
 		// step 2
-		this.weaveClient.addCSVDataSourceFromString(resultDataSet, "WOOHOO");
+		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "WOOHOO");
 		// step 3
-		for (var visualization in this.weaveOptions.visualizations) {
-			this.weaveClient.newVisualization(visualization);
+		for (var i in that.visualizations) {
+			that.weaveClient.newVisualization(that.visualizations[i]);
 		}
 		
-		if (this.weaveOptions.colorColumn) {
-			this.weaveClient.setColorAttribute(this.weaveOptions.colorColumn);
+		if (that.colorColumn) {
+			that.weaveClient.setColorAttribute(that.colorColumn);
 		}	
 	});
 };
