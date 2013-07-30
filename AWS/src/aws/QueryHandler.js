@@ -17,10 +17,10 @@ aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
-	//this.title = queryObject.title;
+	this.title = queryObject.title;
 	
-	//this.dateGenerated = queryObject.date;
-	//this.author = queryObject.author;
+	this.dateGenerated = queryObject.date;
+	this.author = queryObject.author;
 	
 	this.rRequestObject = {
 		dataset : queryObject.dataTable,
@@ -87,7 +87,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		}
 		
 		// step 2
-		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "" );
+		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i]);
