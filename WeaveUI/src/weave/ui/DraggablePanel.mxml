@@ -99,6 +99,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				return Weave.root.getObjects(DraggablePanel).pop();
 			}
+			public static function getTopPanelName():String
+			{
+				return Weave.root.getName(getTopPanel());
+			}
 			
 			/**
 			 * panelX, panelY, panelWidth, panelHeight
