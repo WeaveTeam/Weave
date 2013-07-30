@@ -90,13 +90,22 @@ angular.module("aws.panelControllers", [])
 	$scope.selection;
 	
 	// selectorId should be "mapPanel"
-	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj[$scope.selectorId];
+	if(queryobj['maptool']){
+		$scope.selection = queryobj['maptool'];
 	}
 	
 	// watch functions for two-way binding
-	$scope.$watch('selection', function(){
-		queryobj[$scope.selectorId] = $scope.selection;
+	$scope.$watch('selection', function(oldVal, newVal){
+		// TODO Bad hack to access results
+		//console.log(oldVal, newVal);
+		if($scope.options.$$v != undefined){
+			var obj = $scope.options.$$v[$scope.selection];
+			var send = {};
+			send.id = obj.id;
+			send.keytype = obj.publicMetadata.keyType;
+			send.name = obj.publicMetadata.title;
+			queryobj['maptool'] = send;
+		}
 	});
 	$scope.$watch('enabled', function(){
 		queryobj.selectedVisualization['maptool'] = $scope.enabled;
