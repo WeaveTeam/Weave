@@ -4,7 +4,7 @@
 </div>
 <div class="portlet-content">
 
-	<input type="checkbox" name="enableBarChartTool"/> Enable Data Table Tool?</br>
+	<input type="checkbox" name="enableBarChartTool" ng-model="enabled"/> Enable Data Table Tool?</br>
 	<select multiple ng-model="selection">
 		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 	</select>

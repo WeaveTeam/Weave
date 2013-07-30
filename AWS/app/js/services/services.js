@@ -17,7 +17,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.weaveOptions = {};
 	this.weaveOptions.weaveObject = "Not Defined here";
 	this.conn = {};
-	this.conn.dataTable = 161213;
+	this.conn.dataTable = 169602;
 	var defaults = {
 			scriptLocation : 'C:\\RScripts\\',
 			dataTable: 161213,
@@ -134,6 +134,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 				console.log(e);
 			}
 		}
+		filtered.sort();
 		return filtered;
 	};
 	

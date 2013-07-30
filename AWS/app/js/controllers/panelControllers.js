@@ -56,11 +56,10 @@ angular.module("aws.panelControllers", [])
 })
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
 	// set defaults or retrieve from queryobject
-	if(queryobj['selectedVisualization']){
-		$scope.vis = queryobj['selectedVisualization'];
-	}else{
-		queryobj['selectedVisualization'] = {'maptool':false, 'barchart':true, 'datatable':false};
+	if(!queryobj['selectedVisualization']){
+		queryobj['selectedVisualization'] = {'maptool':false, 'barchart':false, 'datatable':false};
 	}
+	$scope.vis = queryobj['selectedVisualization'];
 	
 	// set up watch functions
 	$scope.$watch('vis', function(){
@@ -116,12 +115,12 @@ angular.module("aws.panelControllers", [])
 	$scope.selection;
 	// selectorId should be "barChartPanel"
 	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj[$scope.selectorId];
+		$scope.selection = queryobj['barchart'];
 	}
 	
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
-		queryobj[$scope.selectorId] = $scope.selection;
+		queryobj['barchart'] = $scope.selection;
 	});
 	$scope.$watch('enabled', function(){
 		queryobj.selectedVisualization['barchart'] = $scope.enabled;
@@ -139,12 +138,12 @@ angular.module("aws.panelControllers", [])
 	$scope.selection;
 	// selectorId should be "dataTablePanel"
 	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj[$scope.selectorId];
+		$scope.selection = queryobj["datatable"];
 	}
 	
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
-		queryobj[$scope.selectorId] = $scope.selection;
+		queryobj["datatable"] = $scope.selection;
 	});
 	$scope.$watch('enabled', function(){
 		queryobj.selectedVisualization['datatable'] = $scope.enabled;
@@ -161,12 +160,12 @@ angular.module("aws.panelControllers", [])
 	
 	// selectorId should be "ColorColumnPanel"
 	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj[$scope.selectorId];
+		$scope.selection = queryobj["colorcolumn"];
 	}
 	$scope.options = scriptobj.scriptMetadata['outputs'];
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
-		queryobj[$scope.selectorId] = $scope.selection;
+		queryobj["colorcolumn"] = $scope.selection;
 	});
 })
 .controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
@@ -183,9 +182,9 @@ angular.module("aws.panelControllers", [])
 	
 	
 	// Populate options from Analysis Builder queryobj
-	var col = ["geography", "indicators", "byvars", "timeperiods"];
+	var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
 	var columns = [];
-	for(var i = 0; i<4; i++){
+	for(var i = 0; i<col.length; i++){
 		if(queryobj[col[i]]){
 			$.merge(columns, queryobj[col[i]]);
 		}

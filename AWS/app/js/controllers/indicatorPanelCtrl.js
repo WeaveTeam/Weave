@@ -30,17 +30,12 @@ angular.module("aws.IndicatorPanel", [])
 	};
 	$timeout(function(){
 		$scope.$watch(function(){
-			var t = queryobj.conn['dataTable'];
-			console.log(t);
-			if(!t){
-				console.log(this);
-			}
-			return t;
+			return queryobj.conn['dataTable'];
 		},
 			function(newVal, oldVal){
 				if(newVal != oldVal){
 					$scope.refreshButton="btn-danger";
-					console.log("danger button");
+					//console.log("danger button");
 				}
 		});
 	},0);
