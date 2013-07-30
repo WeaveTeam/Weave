@@ -9,13 +9,34 @@
 	{{QueryObjectModel}} </accordion-group> <accordion-group heading='Calculation'
 		id="calculationAccordion"> </accordion-group> <accordion-group
 		heading="Weave" id="weaveAccordion"> </accordion-group> </accordion> -->
-	
+
 	<ul class="nav nav-tabs nav-stacked">
-		<li ng-class="{active: isActive('/analysis')}"><a href="#/analysis">Analysis Builder</a></li>
-		<li ng-class="{active: isActive('/calculation')}"><a href="#/calculation">Calculations</a></li>
-		<li ng-class="{active: isActive('/visualization')}"><a href="#/visualization">Visualizations</a></li>
+		<li ng-class="{active: isActive('/analysis')}"><a
+			href="#/analysis">Analysis Builder</a></li>
+		<li ng-class="{active: isActive('/calculation')}"><a
+			href="#/calculation">Calculations</a></li>
+		<li ng-class="{active: isActive('/visualization')}"><a
+			href="#/visualization">Visualizations</a></li>
 	</ul>
 	<pre class="language-">{{QueryObjectModel()}}</pre>
-	<button onclick="saveJSON({{QueryObjectModel()}})" class="btn btn-primary">Export JSON</button>
+	<button onclick="saveJSON({{QueryObjectModel()}})"
+		class="btn btn-primary">Export JSON</button>
+	<br> <label>Import JSON</label> <input type="file"
+		id="queryImport" onsubmit="uploadQuery()" />
+	<button id="run">Apply Query</button>
+	<script>
+		$('#run').click(function() {
+			var files = $('input');
+			var file = files[0].files[0];
+			var reader = new FileReader();
+			var obj;
+			reader.onload = function(e) {
+				$('#file').html(e.target.result);
+				obj = $.parseJSON(e.target.result);
+				var qh = new aws.QueryHandler(obj);
+				qh.runQuery();
+			}
+			reader.readAsText(file);
+		});
+		</script>
 </div>
-
