@@ -37,10 +37,20 @@ aws.QueryHandler = function(queryObject)
 			port : queryObject.conn.sqlport
 	};
 	
-	this.visualizations = queryObject.weaveOptions.visualizations;
+	this.visualizations = [];
 	
-	this.colorColumn = queryObject.weaveOptions.colorColumn;
-	this.weaveClient = new aws.WeaveClient(queryObject.weaveOptions.weaveObject);
+	for (var visualization in queryObject.selectedVisualization) {
+		if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
+			if (queryObject.selectedVisualization[visualization] === true) {
+				this.visualizations.push( { type : visualization, parameters : queryObject.visualization });
+			}
+			
+		}
+	}
+		
+	this.colorColumn = queryObject.colorColumn;
+	
+	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
 	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
@@ -77,7 +87,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		}
 		
 		// step 2
-		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "WOOHOO");
+		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "" );
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i]);

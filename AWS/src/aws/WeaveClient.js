@@ -23,17 +23,19 @@ aws.WeaveClient = function (weave) {
  */
 aws.WeaveClient.prototype.newVisualization = function (visualization) {
 	
+	var parameters = visualization.parameters;
+	
 	switch(visualization.type) {
 		case 'MapTool':
-			this.newMap(visualization.geometry);
+			this.newMap(parameters.weaveEntityId, parameters.keyType);
 			break;
 		case 'ScatterPlotTool':
-			this.newScatterPlot(visualization.xColumnName, visualization.yColumnName, visualization.sizeColumnName, visualization.csvDataSource);
+			this.newScatterPlot(parameters.xColumnName, parameters.yColumnName, parameters.sizeColumnName, parameters.csvDataSource);
 			break;
 		case 'DataTableTool':
-			this.newDataTable(visualization.columnPath, visualization.columnNames, visualization.dataSource);
+			this.newDataTable( parameters.columnNames, parameters.dataSource);
 		case 'CompoundBarChartTool' :
-			this.newBarChart(visualization.label, visualization.sort, visualization.heights);
+			this.newBarChart("", "", parameters);
 		default:
 			return;
 }
@@ -65,7 +67,7 @@ aws.WeaveClient.prototype.newMap = function (geometry, geometryDatasource){
 						   .push('internalObject').request('ReferencedColumn')
 						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
 	
-	//TO DO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state('dataSourceName','WeaveDataSource')
 		  .state('hierarchyPath', '<attribute keyType="US State FIPS Code" weaveEntityId="162429" title="brfss_state_2010" projection="EPSG:2964" dataType="geometry"/>');
 };
@@ -99,11 +101,10 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, s
 
 /**
  * 
- * @param {string} columnPath
  * @param columnNames array of columns to put in the table
  * @param dataSource name of datasource to pull data from
  */
-aws.WeaveClient.prototype.newDatatableTool = function(columnPath, columnNames, dataSource){
+aws.WeaveClient.prototype.newDatatableTool = function(columnNames, dataSource){
 	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
 	this.weave.requestObject([toolName], 'DataTableTool');
 	aws.reportTime("New DataTable added");
