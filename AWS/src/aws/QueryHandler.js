@@ -23,7 +23,7 @@ aws.QueryHandler = function(queryObject)
 	this.author = queryObject.author;
 	
 	this.rRequestObject = {
-		dataset : queryObject.dataTable,
+		dataset : queryObject.conn.dataTable,
 		scriptPath : queryObject.scriptLocation,
 		columnsToBeRetrieved : queryObject.dataColumns,
 		scriptName : queryObject.scriptSelected
@@ -40,13 +40,14 @@ aws.QueryHandler = function(queryObject)
 	this.visualizations = [];
 	
 	for (var visualization in queryObject.selectedVisualization) {
-		if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
-			if (queryObject.selectedVisualization[visualization] === true) {
-				this.visualizations.push( { type : visualization, parameters : queryObject.visualization });
+		//if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
+			console.log(queryObject[visualization]);
+			console.log(queryObject.selectedVisualization[visualization]);
+			if (queryObject.selectedVisualization[visualization]) {
+				this.visualizations.push( { type : visualization, parameters : queryObject[visualization] });
 			}			
-		}
 	}
-		
+	console.log(this.visualizations)	;
 	this.colorColumn = queryObject.colorColumn;
 	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
