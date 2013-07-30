@@ -21,21 +21,21 @@ aws.WeaveClient = function (weave) {
  * 
  * 
  */
-aws.WeaveClient.prototype.newVisualization = function (visualization) {
+aws.WeaveClient.prototype.newVisualization = function (visualization, dataSourceName) {
 	
 	var parameters = visualization.parameters;
 	
 	switch(visualization.type) {
-		case 'MapTool':
+		case 'maptool':
 			this.newMap(parameters.weaveEntityId, parameters.keyType);
 			break;
-		case 'ScatterPlotTool':
-			this.newScatterPlot(parameters.xColumnName, parameters.yColumnName, parameters.sizeColumnName, parameters.csvDataSource);
+		case 'scatterplot':
+			this.newScatterPlot(parameters.xColumnName, parameters.yColumnName, parameters.sizeColumnName, dataSourceName);
 			break;
-		case 'DataTableTool':
-			this.newDataTable( parameters.columnNames, parameters.dataSource);
-		case 'CompoundBarChartTool' :
-			this.newBarChart("", "", parameters);
+		case 'datatable':
+			this.newDataTable( parameters.columnNames, dataSourceName);
+		case 'barchart' :
+			this.newBarChart("", "", parameters, dataSourceName);
 		default:
 			return;
 }
@@ -136,12 +136,12 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
 	this.weave.requestObject([toolName], 'CompoundBarChartTool');
 	
 	//setting the label column
-	var labelPath = weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
+	var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
 	labelPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
 		   .state('dataSourceName', dataSourceName)
 		   .state('hierarchyPath', '');
 		   
-    var sortColumnPath = weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
+    var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
     sortColumnPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
 	   			  .state('dataSourceName', dataSourceName)
 	   			  .state('hierarchyPath', '');
@@ -207,23 +207,17 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (dataSource, dat
 	
 	var csvPath = "";
 	if (dataSourceName == "") {
-		 csvPath = this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")'));		 
-		 this.weave.path(csvPath).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-		 this.weave.path(csvPath).state('keyType', keyType);
-		 this.weave.path(csvPath).state('keyColName', keyColName);
+		 dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
 	}
 	
-	else {
-		this.weave.path(dataSourceName)
-		 .request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVDataString(data)');
-		 this.weave.path(csvPath).state('keyType', keyType);
-		 this.weave.path(csvPath).state('keyColName', keyColName);
-	}
+	this.weave.path(dataSourceName)
+		.request('CSVDataSource')
+		.vars({data: dataSource})
+		.exec('setCSVDataString(data)');
+		this.weave.path(csvPath).state('keyType', keyType);
+		this.weave.path(csvPath).state('keyColName', keyColName);
 	
+	return dataSourceName;
 	
 };
 

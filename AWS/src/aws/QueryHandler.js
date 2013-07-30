@@ -43,8 +43,7 @@ aws.QueryHandler = function(queryObject)
 		if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
 			if (queryObject.selectedVisualization[visualization] === true) {
 				this.visualizations.push( { type : visualization, parameters : queryObject.visualization });
-			}
-			
+			}			
 		}
 	}
 		
@@ -87,14 +86,14 @@ aws.QueryHandler.prototype.runQuery = function() {
 		}
 		
 		// step 2
-		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
+		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
 		for (var i in that.visualizations) {
-			that.weaveClient.newVisualization(that.visualizations[i]);
+			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
 		}
 		
 		if (that.colorColumn) {
-			that.weaveClient.setColorAttribute(that.colorColumn);
+			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
 		}	
 	});
 };
