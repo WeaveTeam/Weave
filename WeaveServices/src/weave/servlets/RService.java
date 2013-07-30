@@ -20,6 +20,7 @@
 package weave.servlets;
 
 import java.io.IOException;
+import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.net.URI;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -76,7 +78,7 @@ public class RService extends GenericServlet
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
 		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
-		
+		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	    try {
 	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
 	    	if (rServePath != null && rServePath.length() > 0)
@@ -132,6 +134,12 @@ public class RService extends GenericServlet
 	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
 	
 
+	public void runTest() throws Exception
+	{
+		int[] col_args = {45};
+		String[] ret_args = {};
+		runScriptViaSQL(col_args, "test.r", ret_args);
+	}
 	/**
 	 * Secure retrieval of data and execution of R scripts.
 	 * @param columns Mapping of column IDs to R variable names.
@@ -139,12 +147,13 @@ public class RService extends GenericServlet
 	 * @param returnNames R variables to return.
 	 * @return returnedColumns result columns from the R script.
 	 */
-	public RResult[] runScriptViaSQL(int[] columns, String scriptPath, String[] returnValues) throws RemoteException
+	public RResult[] runScriptViaSQL(int[] columns, String scriptName, String[] returnNames) throws Exception
 	{
 		DataConfig dc = getDataConfig();
 		ConnectionInfo info;
 		DataEntity ent;
 		List<String> columnNames = new LinkedList<String>(); 
+		File script_path = new File(uploadPath, scriptName);
 
 		String connectionName = null; /* There should only be one connectionName/tableName used, for now. */
 		String tableName = null;
@@ -174,8 +183,84 @@ public class RService extends GenericServlet
 
 		ConnectionConfig cc = getConnectionConfig();
 		info = cc.getConnectionInfo(connectionName);
-		info = cc.getConnectionInfo(connectionName);
-		return null;
+
+		String cleanConnectString = info.connectString.substring(5);
+		URI connectionUri;
+		try 
+		{
+			connectionUri = new URI(cleanConnectString);
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to parse jdbc connect string.", e);
+		}
+		String username, password, hostname, db_name, args, db_type;
+		Integer db_port;
+		Map<String,String> query_map;
+		hostname = connectionUri.getHost();
+		db_name = connectionUri.getPath().substring(1); // Remove leading slash to get dbname
+		db_port = connectionUri.getPort();
+		args = connectionUri.getQuery(); // Decompose URL-encoded params
+		query_map = queryToMap(args);
+		username = query_map.get("user");
+		password = query_map.get("password");
+		db_type = connectionUri.getScheme(); // DB type
+		String sql_query = buildSelectQuery(columnNames, tableName);
+
+		System.out.println(db_type);
+		if (!db_type.equals("mysql"))
+			throw new RemoteException("Only MySQL-sourced columns are supported in RServe queries.", null);
+
+		String[] inputNames = {"username", "password", "hostname", "db_name", "db_port", "sql_query", "column_names", "script_path"};
+		Object[] inputValues = {username, password, hostname, db_name, db_port, sql_query, columnNames, script_path.getAbsolutePath() };
+		String[] outputNames = {"ingest_start", "process_start", "process_complete"};
+		String r_script = 
+			"library(RMySQL)\n"+
+			"ingest_start <- as.numeric(Sys.time())\n"+
+			"connection <- dbConnect(dbDriver('MySQL'), user = username, password = password, host = hostname, port = db_port, dbname = db_name)\n"+
+			"input_data <- dbGetQuery(connection, sql_query)\n"+
+			"rm(username, password, hostname, db_port, db_name, connection, sql_query) # Delete sensitive info from the workspace before executing untrusted script.\n"+
+			"process_start <- as.numeric(Sys.time())\n"+
+			"source(script_path)\n"+
+			"process_complete <- as.numeric(Sys.time())\n";
+		RResult[] returnedColumns = runScript( null, inputNames, inputValues, outputNames, r_script, "", false, false, false );
+		return returnedColumns;
+	}
+
+	private Map<String,String> queryToMap(String query)
+	{
+		// Split it along &
+		String[] pairs = query.split("&");
+		Map<String,String> query_map = new HashMap<String,String>();
+		for (String pair_str: pairs)
+		{
+			String[] pair = pair_str.split("=", 2);
+
+			query_map.put(pair[0], pair[1]);
+		}
+
+		return query_map;
+	}
+
+	private String buildSelectQuery(List<String> columns, String tableName)
+	{
+			int counter = columns.size();
+			String tempQuery = "";
+			
+			for(int i=0; i < counter; i++)
+			{
+				String tempColumnName = SQLUtils.quoteSymbol(SQLUtils.MYSQL, columns.get(i));
+
+				if(i == (counter-1))
+				{
+					tempQuery = tempQuery.concat(tempColumnName);
+				}
+				else
+					tempQuery = tempQuery.concat(tempColumnName + ", ");
+			}
+			
+			String query = "select " + tempQuery + " from " + SQLUtils.quoteSymbol(SQLUtils.MYSQL, tableName);
+			return query;
 	}
 	/**
 	 * 
@@ -213,22 +298,7 @@ public class RService extends GenericServlet
 			ArrayList<String> columns = new ArrayList<String>();
 			columns = (ArrayList)columnNames;
 			
-			int counter = columns.size();
-			String tempQuery = "";
-			
-			for(int i=0; i < counter; i++)
-			{
-				String tempColumnName = SQLUtils.quoteSymbol(SQLUtils.MYSQL, columns.get(i));
-
-				if(i == (counter-1))
-				{
-					tempQuery = tempQuery.concat(tempColumnName);
-				}
-				else
-					tempQuery = tempQuery.concat(tempColumnName + ", ");
-			}
-			
-			String query = "select " + tempQuery + " from " + SQLUtils.quoteSymbol(SQLUtils.MYSQL, dataset);
+			String query = buildSelectQuery(columns, dataset);
 			
 			String cannedScriptLocation = scriptPath + scriptName;
 			 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
