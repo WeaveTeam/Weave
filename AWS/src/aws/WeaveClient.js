@@ -1,6 +1,7 @@
 goog.require('aws.client');
 goog.provide('aws.WeaveClient');
 	
+
 /**
  * This is the constructor for the weave client class.
  *  we initialize the properties here. 
@@ -53,6 +54,7 @@ aws.WeaveClient.prototype.newMap = function (geometry, geometryDatasource){
 
 	var toolName = [this.weave.path().getValue('generateUniqueName("MapTool")')];
 	this.weave.requestObject(toolName, 'MapTool');
+	aws.reportTime("New Map added");
 	
 	
 	//state plot layer
@@ -84,12 +86,13 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, s
 
 	var toolName = [this.weave.path().getValue('generateUniqueName("ScatterPlotTool")')];//returns a string
 	this.weave.requestObject([toolName], 'ScatterPlotTool');
+	aws.reportTime("New ScatterPlot added");
 	
 	var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
 	var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
 	
-	aws.WeaveClient.setCSVColumn(csvDataSource,columnPathX, xColumnName );//setting the X column
-	aws.WeavClient.setCSVColumn(csvDataSource, columnPathY, yColumnName );//setting the Y column
+	this.setCSVColumn(csvDataSource,columnPathX, xColumnName );//setting the X column
+	this.setCSVColumn(csvDataSource, columnPathY, yColumnName );//setting the Y column
 	
 	//aws.WeaveClient.prototype.setColorAttribute(colorColumnName,);// TO DO: use setCSVColumn directly?
 };
@@ -103,6 +106,7 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, s
 aws.WeaveClient.prototype.newDatatableTool = function(columnPath, columnNames, dataSource){
 	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
 	this.weave.requestObject([toolName], 'DataTableTool');
+	aws.reportTime("New DataTable added");
 	
 	//to do loop through the columns requested
 	
@@ -127,6 +131,8 @@ aws.WeaveClient.prototype.newDatatableTool = function(columnPath, columnNames, d
 aws.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
 
 	this.weave.requestObject([this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")')], 'CompoundBarChartTool');
+	aws.reportTime("New BarChart added");
+	
 };
 
 /**
@@ -140,6 +146,7 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights) {
 aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
 	
 	aws.WeaveClient.setCSVColumn(['defaultColorDataColumn', 'internalDynamicColumn'], csvDataSource, colorColumnName);
+	aws.reportTime("Color Attribute set");
 
 };
 
@@ -232,13 +239,14 @@ aws.WeaveClient.prototype.addCSVDataSource = function (weave, dataSource, dataSo
 /**
  * this function can be added as a callback to any visualization to get a log of time for every interaction involving that tool
  * @param {Object} pointer to the Weave instance
+ * @param {string} message to append; activity to report time for
  * 
  */
-aws.WeaveClient.prototype.reportInteractionTime = function(weave){
+aws.WeaveClient.prototype.reportToolInteractionTime = function(weave, message){
 	var time = aws.reportTime();
 	console.log(time);
 	try{
-		$("#LogBox").append(time);
+		$("#LogBox").append(time + message + "\n");
 	}catch(e){
 		//ignore
 	}

@@ -56,7 +56,8 @@ angular.module("aws.Main", [])
 	$scope.genericPortlet = "./tpls/genericPortlet.tpls.html";
 	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
 	$scope.QueryObjectModel = function(){ 
-		return JSON.stringify(queryobj, undefined, 2);
+		var test = angular.toJson(queryobj, true);
+		return test // JSON.stringify(queryobj, undefined, 2);
 	};
 	/*$scope.$watch('queryobj.selectedColumns' , function(){
 		$scope.$broadcast("requestingQueryObject");

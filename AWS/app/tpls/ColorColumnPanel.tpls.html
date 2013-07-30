@@ -1,0 +1,11 @@
+<div ng-controller="ColorColumnPanelCtrl">
+<div class="portlet-header">
+	<span>{{panelTitle}}</span>
+</div>
+<div class="portlet-content">
+
+	<select ng-model="selection">
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+	</select>
+</div>
+</div>

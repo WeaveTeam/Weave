@@ -6,7 +6,6 @@ var adminServiceURL = '/WeaveServices/AdminService';
 
 //parameters sent from the QueryHandler.js
 /** 
- * @param {Object} weave An instance of weave
  * @param {Object} connectionObject required for R to make a connection to the db; given by the QueryHandler.js
  * @constructor {Object} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
  */
@@ -22,26 +21,33 @@ aws.RClient = function(connectionObject, rDataRequestObject){
 // because declaring it like this makes it global. but we can leave for now.
 var resultString = "notReplacedYet";
 
-var callbk = function(result){
-	console.log(result);
-	resultString = result;
-};
-aws.RClient.prototype.run = function(){
+//var callbk = function(result){
+//	console.log(result);
+//	resultString = result;
+//	timeLogString = resultString[1].value;
+//	try{
+//		$("#LogBox").append(timeLogString);
+//	}catch(e){
+//		//ignore
+//	}
+//};
+aws.RClient.prototype.run = function(type, callback) {
 	
-	aws.RClient.prototype.runScriptOnSQLdata(this.connectionObject,this.rDataRequestObject, callbk);
-	return resultString;
+	if (type == "SQLData") {
+		this.runScriptOnSQLdata(callback);
+	}
+	//return resultString;
 };
 
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
- *  @param {Object} connectionObject the connection info to allow R to connect to the database retrieved from Admin Service
- *  @param {Object} requestObject the collection of parameters chosen by User via UI
  *  @param {Function} A callback function that handles the servlet result
  *
  */
-aws.RClient.prototype.runScriptOnSQLdata = function(connectionObject, requestObject,handleComputationResult){
-	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[connectionObject, requestObject],handleComputationResult);
+aws.RClient.prototype.runScriptOnSQLdata = function(callback){
+	console.log(this.rDataRequestObject);
+	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.rDataRequestObject], callback);
 };
 
 

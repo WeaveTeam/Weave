@@ -17,94 +17,74 @@ aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
-	this.title = queryObject.title;
+	//this.title = queryObject.title;
 	
-	this.dateGenerated = queryObject.date;
-	this.author = queryObject.author;
+	//this.dateGenerated = queryObject.date;
+	//this.author = queryObject.author;
 	
-	this.dataset = queryObject.dataTable;
-	
-	this.dataColumns = queryObject.dataColumns;
-	
-	this.computationInfo = {
-	     scriptType : queryObject.scriptType,
-	     scriptName : queryObject.scriptName,
-	     scriptLocation : queryObject.scriptLocation
+	this.rRequestObject = {
+		dataset : queryObject.dataTable,
+		scriptPath : queryObject.scriptLocation,
+		columnsToBeRetrieved : queryObject.dataColumns,
+		scriptName : queryObject.scriptSelected
 	};
 	
-	this.dbConnectionInfo = queryObject.conn;
-	this.weaveOptions = queryObject.weaveOptions;
+	this.connectionObject = {
+			user : queryObject.conn.sqluser,
+			password : queryObject.conn.sqlpass,
+			schema : queryObject.conn.serverType,
+			host : queryObject.conn.sqlip,
+			port : queryObject.conn.sqlport
+	};
 	
+	this.visualizations = queryObject.weaveOptions.visualizations;
+	
+	this.colorColumn = queryObject.weaveOptions.colorColumn;
+	this.weaveClient = new aws.WeaveClient(queryObject.weaveOptions.weaveObject);
+	
+	// check what type of computation engine we have, to create the appropriate
+	// computation client
+	this.computationEngine;
+	if(queryObject.scriptType == 'r') {
+		this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
+	} else if (queryObject.scriptType == 'stata') {
+		// computationEngine = new aws.StataClient();
+	}
+	this.resultDataSet = "";
 };
 
 var timeLogString= "";
 
 /**
  * This function is the golden evaluator of the query.
- * 1- create a new computation engine and initialize it.
- * 2- run the scripts against the data
- * 3- handle the results
- * 4- call weave, create the visualizations and set the parameters
+ * 1- run the scripts against the data
+ * 2- send the results to weave
+ * 3- call weave, create the visualizations and set the parameters
  */
 aws.QueryHandler.prototype.runQuery = function() {
 	
-	// check what type of computation engine we have, to create the appropriate
-	// computation client
-	var computationEngine;
-	var visualization;
-	var column;
-	var columnsToBeRetrieved = [];
-	
-	var rRequestObject = {};
-	rRequestObject.dataset = this.dataset;
-	rRequestObject.scriptPath = this.computationInfo.scriptLocation;
-	
-	for (column in this.dataColumns) {
-		columnsToBeRetrieved.push(column.name);
-	}
-	
-	rRequestObject.columnsToBeRetrieved = columnsToBeRetrieved;
-	
-	var connectionObject = {};
-	connectionObject.user = this.dbConnectionInfo.sqluser;
-	connectionObject.password = this.dbConnectionInfo.sqlpass;
-	connectionObject.schema = this.dbConnectionInfo.serverType;
-	connectionObject.host = this.dbConnectionInfo.sqlip;
-	connectionObject.port = this.dbConnectionInfo.sqlport;
-	
 	// step 1
-	if(this.computation.scriptType == 'r') {
-		computationEngine = new aws.Client.RClient(connectionObject, rRequestObject);
-	} else if (this.computation.scriptType == 'stata') {
-		// computationEngine = new aws.Client.StataClient();
-	}
+	var that = this;
 	
-	// step 2
-	var result = computationEngine.run(); // this should be a 2D array data set regardless of the computation engine
-	var numericalResult = result[0].value;//get rid of hard coded (for later)
-	//updating the log
-	timeLogString = result[1].value;//get rid of hard coded (for later)
-	try{
-		$("#LogBox").append(timeLogString);
-	}catch(e){
-		//ignore
-	}
-	
-	var weaveClient = new aws.Client.WeaveClient(this.weaveOptions.weaveObject);
-	
-	
-	
-	// step 3
-	// TODO provide a way to store the result directly on the data base?
-	// How do I tell the UI what results were returned?
-	weaveClient.addCSVDataSourceFromString(result);
-	
-	// step 4
-	for (visualization in this.WeaveOptions.visualizations) {
-		weaveClient.newVisualization(visualization);
-	}
-	
-	if (this.WeaveOptions.colorColumn) {
-		weaveClient.setColorAttribute(this.WeaveOptions.colorColumn);
-	}	
-}
+	this.computationEngine.run("SQLData", function(result) {
+		
+		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
+
+		try{
+			$("#LogBox").append(timeLogString);
+		}catch(e){
+			//ignore
+		}
+		
+		// step 2
+		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "WOOHOO");
+		// step 3
+		for (var i in that.visualizations) {
+			that.weaveClient.newVisualization(that.visualizations[i]);
+		}
+		
+		if (that.colorColumn) {
+			that.weaveClient.setColorAttribute(that.colorColumn);
+		}	
+	});
+};

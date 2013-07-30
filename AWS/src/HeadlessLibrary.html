@@ -62,11 +62,13 @@
 			reader.onload = function(e) {
 				$('#file').html(e.target.result);
 				obj = $.parseJSON(e.target.result);
+				var qh = new aws.QueryHandler(obj);
+				qh.runQuery();
 				console.log($.parseJSON(e.target.result));
 			}
 			reader.readAsText(file);
 
-			aws.QueryHandler.run(obj);
+			
 		});
 	</script>
 	
@@ -76,7 +78,7 @@
 		// To use express install, set to playerProductInstall.swf, otherwise the empty string. 
 		var xiSwfUrlStr = "playerProductInstall.swf";
 		var flashvars = {};
-		flashvars.file = "obesity.xml";
+		flashvars.file = "minimal.xml";
 		flashvars.allowDomain = "*";
 		var params = {};
 		params.base = base_url;

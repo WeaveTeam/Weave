@@ -4,48 +4,212 @@
  */
 angular.module("aws.panelControllers", [])
 .controller("SelectColumnPanelCtrl", function($scope, queryobj, dataService){
-	$scope.options = ["Values are not", "yet returned", "from the server"];
-
-	var promise = dataService.giveMeColObjs('byvar');
 	
-	//$scope.$watch('promise', function(){
-		$scope.options = promise;
-	//});
-	
+	$scope.options; // initialize
 	$scope.selection;
 	
+	
+	// fetch Columns using current dataTable
+	//refreshColumns($scope, queryobj.conn.dataTable);
+	$scope.options = dataService.giveMeColObjs($scope,  queryobj.conn.dataTable);
+	
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
 		queryobj[$scope.selectorId] = $scope.selection;
 	});
+	
+	$scope.$on("refreshColumns", function(e){
+		$scope.options = dataService.giveMeColObjs($scope,  queryobj.conn.dataTable);
+	});
+	
+/*	$scope.$watch(function(){
+		return queryobj[$scope.selectorId];
+	},
+		function(select){
+			$scope.selection = queryobj[$scope.selectorId];
+	});*/
 
 })
 .controller("SelectScriptPanelCtrl", function($scope, queryobj, dataService){
+	$scope.selection;
+	
+	if(queryobj['scriptSelected']){
+		$scope.selection = queryobj['scriptSelected'];
+	}else{
+		queryobj['scriptSelected'] = "No Selection";
+	}
+	
+	$scope.$watch('selection', function(){
+		queryobj['scriptSelected'] = $scope.selection;
+	});
+	$scope.$watch(function(){
+		return queryobj['scriptSelected'];
+	},
+		function(select){
+			$scope.selection = queryobj['scriptSelected'];
+	});
 	
 })
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
+	// set defaults or retrieve from queryobject
+	if(queryobj['selectedVisualization']){
+		$scope.vis = queryobj['selectedVisualization'];
+	}else{
+		queryobj['selectedVisualization'] = {'maptool':false, 'barchart':true, 'datatable':false};
+	}
 	
+	// set up watch functions
+	$scope.$watch('vis', function(){
+		queryobj['selectedVisualization'] = $scope.vis;
+	});
+	$scope.$watch(function(){
+		return queryobj['selectedVisualization'];
+	},
+		function(select){
+			$scope.vis = queryobj['selectedVisualization'];
+	});
+
 })
 .controller("RunPanelCtrl", function($scope, queryobj, dataService){
-	
-	
-	$scope.underdog = 0;
-	console.log("reading the RunPanelCtrl");
 	$scope.runQ = function(){
 		alert("Running Query");
 		var qh = new aws.QueryHandler(queryobj);
 		qh.runQuery();
-	}
+	};
 })
 .controller("GenericPanelCtrl", function($scope){
 	
 })
-
-/*.controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
+.controller("MapToolPanelCtrl", function($scope, queryobj, dataService){
+	$scope.enabled = queryobj.selectedVisualization['maptool'];
+	$scope.options = dataService.giveMeGeomObjs($scope);
+	
+	$scope.selection;
+	
+	// selectorId should be "mapPanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+	$scope.$watch('enabled', function(){
+		queryobj.selectedVisualization['maptool'] = $scope.enabled;
+	});
+	$scope.$watch(function(){
+		return queryobj.selectedVisualization['maptool'];
+	},
+		function(select){
+			$scope.enabled = queryobj.selectedVisualization['maptool'];
+	});
+})
+.controller("BarChartToolPanelCtrl", function($scope, queryobj, scriptobj){
+	$scope.enabled = queryobj.selectedVisualization['barchart'];
+	
+	$scope.options = scriptobj.scriptMetadata['outputs'];
+	$scope.selection;
+	// selectorId should be "barChartPanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+	$scope.$watch('enabled', function(){
+		queryobj.selectedVisualization['barchart'] = $scope.enabled;
+	});
+	$scope.$watch(function(){
+		return queryobj.selectedVisualization['barchart'];
+	},
+		function(select){
+			$scope.enabled = queryobj.selectedVisualization['barchart'];
+	});
+})
+.controller("DataTablePanelCtrl", function($scope, queryobj, scriptobj){
+	$scope.enabled = queryobj.selectedVisualization['datatable'];
+	$scope.options = scriptobj.scriptMetadata['outputs'];
+	$scope.selection;
+	// selectorId should be "dataTablePanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+	$scope.$watch('enabled', function(){
+		queryobj.selectedVisualization['datatable'] = $scope.enabled;
+	});
+	$scope.$watch(function(){
+		return queryobj.selectedVisualization['datatable'];
+	},
+		function(select){
+			$scope.enabled = queryobj.selectedVisualization['datatable'];
+	});
+})
+.controller("ColorColumnPanelCtrl", function($scope, queryobj, scriptobj){
+	$scope.selection;
+	
+	// selectorId should be "ColorColumnPanel"
+	if(queryobj[$scope.selectorId]){
+		$scope.selection = queryobj[$scope.selectorId];
+	}
+	$scope.options = scriptobj.scriptMetadata['outputs'];
+	// watch functions for two-way binding
+	$scope.$watch('selection', function(){
+		queryobj[$scope.selectorId] = $scope.selection;
+	});
+})
+.controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
 	
 })
 .controller("ContinuousFilterPanelCtrl", function($scope, queryobj, dataService){
 	
-})*/
-/*.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, dataService){
+})
+.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
 	
-})*/
+	// Populate Labels
+	var metadata = scriptobj.scriptMetadata;
+	$scope.labels = metadata['inputs'];
+	
+	
+	// Populate options from Analysis Builder queryobj
+	var col = ["geography", "indicators", "byvars", "timeperiods"];
+	var columns = [];
+	for(var i = 0; i<4; i++){
+		if(queryobj[col[i]]){
+			$.merge(columns, queryobj[col[i]]);
+		}
+	}
+	$scope.options = columns;
+	$scope.selection = {};
+	
+	// retrieve selections, else create blanks;
+	if(queryobj['scriptOptions']){
+		$scope.selection = queryobj['scriptOptions'];
+	}else{
+		angular.forEach($scope.labels, function(label){
+			$scope.selection[label] = {};
+		});
+	}
+	
+	// set up watch functions
+	$scope.$watch('selection', function(){
+		queryobj['scriptOptions'] = $scope.selection;
+	}, true);
+/*	$scope.$watch(function(){
+		return queryobj['scriptOption'];
+	},
+		function(select){
+			$scope.selection = queryobj['scriptOption'];
+	});*/
+})
