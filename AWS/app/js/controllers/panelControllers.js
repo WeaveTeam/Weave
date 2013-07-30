@@ -101,7 +101,7 @@ angular.module("aws.panelControllers", [])
 		if($scope.options.$$v != undefined){
 			var obj = $scope.options.$$v[$scope.selection];
 			var send = {};
-			send.id = obj.id;
+			send.weaveEntityId = obj.id;
 			send.keytype = obj.publicMetadata.keyType;
 			send.name = obj.publicMetadata.title;
 			queryobj['maptool'] = send;
