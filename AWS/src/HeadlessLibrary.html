@@ -47,6 +47,8 @@
 	<button id="run">Run</button>
 
 	<script>
+		var obj;
+		var qh;
 		$(window).ready(function() {
 			resizeWeave();
 		});
@@ -54,17 +56,16 @@
 			resizeWeave();
 		});
 		$('#run').click(function() {
-
+			console.log('run button clicked');
 			var files = $('input');
 			var file = files[0].files[0];
 			var reader = new FileReader();
-			var obj;
 			reader.onload = function(e) {
 				$('#file').html(e.target.result);
 				obj = $.parseJSON(e.target.result);
-				var qh = new aws.QueryHandler(obj);
+				qh = new aws.QueryHandler(obj);
+				console.log(obj);
 				qh.runQuery();
-				console.log($.parseJSON(e.target.result));
 			}
 			reader.readAsText(file);
 
