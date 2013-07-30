@@ -8,8 +8,8 @@ h1 {
 }
 
 pre {
-	font-size: 12px;
-	line-height: 14px;
+	font-size: 11px;
+	line-height: 13px;
 }
 
 #Log {
@@ -126,6 +126,12 @@ div.portlet {
 
 .panel-title-margins {
 	margin-left: 7px;
+}
+
+.centered-button {
+	margin-left: 108px;
+	margin-top: 20px;
+	margin-bottom: 20px;
 }
 
 select {

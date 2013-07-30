@@ -39,7 +39,8 @@ angular.module("aws.services", []).service("queryobj", function() {
 	};
 })
 
-angular.module("aws.services").service("dataService", ['$q', '$rootScope', function($q, scope){
+angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', 
+                                                       function($q, scope, queryobj){
 	function safeApply( fn ) {
         if ( !scope.$$phase ) {
             scope.$apply( fn );
@@ -120,7 +121,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	};
 	
 	
-	//var fullColumnObjs = fetchColumns(scope, datatable);
+	var fullColumnObjs = fetchColumns(queryobj.conn.dataTable);
 	var fullGeomObjs = fetchGeoms();
 	var filter = function(data, type){
 		var toFilter = data;
@@ -139,11 +140,11 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', funct
 	};
 	
 	return {
-		giveMeColObjs: function(scopeobj, id){
-			return fetchColumns(id).then(function(response){
+		giveMeColObjs: function(scopeobj){
+			return fullColumnObjs.then(function(response){
 					var type = scopeobj.panelType;
 					return filter(response, type);
-				});
+			});
 		},
 		refreshObjects: function(id){
 			fullColumnObjs = fetchColumns(id);
