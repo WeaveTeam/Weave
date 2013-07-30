@@ -2338,7 +2338,7 @@
 				_selection.clearKeys();
 			}
 			
-			private function toggleShowNewDocsOnTop():void
+			public function toggleShowNewDocsOnTop():void
 			{
 				showNewDocumentsOnTop.value = !showNewDocumentsOnTop.value
 			}

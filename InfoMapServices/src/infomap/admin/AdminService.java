@@ -1333,7 +1333,7 @@ public class AdminService extends GenericServlet {
 				}
 			}
 			//Show sentences with containing query words
-			if (response.getHighlighting().get(url)
+			if (response.getHighlighting().get(url) !=null && response.getHighlighting().get(url)
 					.get("description") != null) {
 				List<String> highlightsList = response.getHighlighting()
 						.get(url).get("description");

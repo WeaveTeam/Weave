@@ -26,7 +26,7 @@
 				m.dataProvider = new ArrayCollection();
 				(m.dataProvider as ArrayCollection).source= [];
 				(m.dataProvider as ArrayCollection).source.push({label:"Show View",children:NodeHandler.views});
-				(m.dataProvider as ArrayCollection).source.push({label:"Sort By",children:QueryObject.sortByOptions});
+				(m.dataProvider as ArrayCollection).source.push({label:"Sort By",children:QueryObject.sortByOptions.concat(["New Documents"])});
 				(m.dataProvider as ArrayCollection).source.push({label:"Filter By",children:QueryObject.filterByOptions});
 				
 			}

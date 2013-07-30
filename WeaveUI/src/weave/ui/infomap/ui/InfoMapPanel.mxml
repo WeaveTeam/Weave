@@ -300,7 +300,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					nodesToOperateOn = nodes.getObjects();	
 				}
-				else // appluy to current node only
+				else // apply to current node only
 				{
 					if(currentNode == null) //if current node is empty 
 						return;
@@ -318,13 +318,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						return;
 					}
 					
-					if(QueryObject.sortByOptions.indexOf(labelText) != -1)
+					else if(QueryObject.sortByOptions.indexOf(labelText) != -1)
 					{
 						sortNodesBy(labelText,nodesToOperateOn);
 						return;
 					}
 					
-					if(NodeHandler.views.indexOf(labelText) != -1)
+					else if(NodeHandler.views.indexOf(labelText) != -1)
 					{
 						for each (var node:NodeHandler in nodesToOperateOn)
 						{
@@ -334,6 +334,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 						}
 					}
+					
+					else if (labelText == "New Documents")
+					{
+						for each (var n:NodeHandler in nodesToOperateOn)
+						{
+							if(n.enablePinView.value)
+							{
+								n.toggleShowNewDocsOnTop();
+							}
+						}
+					}
+					
 				}
 			}
 			private function filterNodesBy(option:String,nodesArray:Array):void
