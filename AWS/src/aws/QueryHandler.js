@@ -17,10 +17,10 @@ aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
 	/**@type {string}*/
-	//this.title = queryObject.title;
+	this.title = queryObject.title;
 	
-	//this.dateGenerated = queryObject.date;
-	//this.author = queryObject.author;
+	this.dateGenerated = queryObject.date;
+	this.author = queryObject.author;
 	
 	this.rRequestObject = {
 		dataset : queryObject.dataTable,
@@ -37,10 +37,19 @@ aws.QueryHandler = function(queryObject)
 			port : queryObject.conn.sqlport
 	};
 	
-	this.visualizations = queryObject.weaveOptions.visualizations;
+	this.visualizations = [];
 	
-	this.colorColumn = queryObject.weaveOptions.colorColumn;
-	this.weaveClient = new aws.WeaveClient(queryObject.weaveOptions.weaveObject);
+	for (var visualization in queryObject.selectedVisualization) {
+		if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
+			if (queryObject.selectedVisualization[visualization] === true) {
+				this.visualizations.push( { type : visualization, parameters : queryObject.visualization });
+			}			
+		}
+	}
+		
+	this.colorColumn = queryObject.colorColumn;
+	
+	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
 	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
@@ -77,14 +86,14 @@ aws.QueryHandler.prototype.runQuery = function() {
 		}
 		
 		// step 2
-		that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "WOOHOO");
+		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
 		for (var i in that.visualizations) {
-			that.weaveClient.newVisualization(that.visualizations[i]);
+			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
 		}
 		
 		if (that.colorColumn) {
-			that.weaveClient.setColorAttribute(that.colorColumn);
+			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
 		}	
 	});
 };
