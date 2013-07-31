@@ -25,6 +25,7 @@ angular.module("aws.IndicatorPanel", [])
 //		}
 //		// get the promise of future values
 //		scope.options = dataService.giveMeColObjs(scope, id);
+		dataService.refreshColumns();
 		$scope.$broadcast("refreshColumns");
 		$scope.refreshButton= "btn-primary";
 	};

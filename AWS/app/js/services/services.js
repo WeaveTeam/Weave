@@ -139,8 +139,8 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 					return filter(response, type);
 			});
 		},
-		refreshObjects: function(id){
-			fullColumnObjs = fetchColumns(id);
+		refreshColumns: function(scopeobj){
+			fullColumnObjs = fetchColumns(queryobj.dataTable);
 		},
 		giveMeGeomObjs: function(){
 			return fullGeomObjs.then(function(response){

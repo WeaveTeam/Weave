@@ -11,7 +11,7 @@ angular.module("aws.panelControllers", [])
 	
 	// fetch Columns using current dataTable
 	//refreshColumns($scope, queryobj.conn.dataTable);
-	$scope.options = dataService.giveMeColObjs($scope,  queryobj.dataTable);
+	$scope.options = dataService.giveMeColObjs($scope);
 	
 	if(queryobj[$scope.selectorId]){
 		$scope.selection = queryobj[$scope.selectorId];
@@ -23,7 +23,7 @@ angular.module("aws.panelControllers", [])
 	});
 	
 	$scope.$on("refreshColumns", function(e){
-		$scope.options = dataService.giveMeColObjs($scope,  queryobj.dataTable);
+		$scope.options = dataService.giveMeColObjs($scope);
 	});
 	
 /*	$scope.$watch(function(){
