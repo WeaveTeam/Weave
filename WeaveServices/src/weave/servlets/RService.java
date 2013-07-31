@@ -327,7 +327,7 @@ public class RService extends GenericServlet
 			compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
 			return returnedColumns;
 		}
-		
+		 
 	}
 	
 	
