@@ -2,10 +2,16 @@
  * Left Panel Module LeftPanelCtrl - Manages the model for the left panel.
  */
 angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
-		function($scope, $location) {
+		function($scope, $location, queryobj) {
 			$scope.isActive = function(route) {
 				return route == $location.path();
 			};
+			
+			function uploadQuery(){
+				if(importedobjectfromjson != undefined){
+					queryobj = importedobjectfromjson;
+				}
+			}
 
 		});
 

@@ -81,6 +81,15 @@ pre {
 	display: inline-block;
 }
 
+#dataButton {
+	margin-left: 21px;
+	margin-bottom: 10px;
+}
+
+#refreshButton {
+	margin-left: 20px;
+}
+
 div.portlet {
 	margin: 3px;
 	padding: 1px;
@@ -101,7 +110,12 @@ div.portlet {
 	float: right;
 }
 
-.portlet-content { padding-right: 10px; }
+.portlet-content { 
+	padding-right: 10px;
+	padding-left: 7px;
+	padding-bottom: 5px;
+	padding-top: 3px; 
+}
 
 .portlet-minimized .portlet-content {
 	display: none !important;
@@ -135,14 +149,16 @@ div.portlet {
 }
 
 select {
-	margin: 5px 3px 3px 5px;
+	margin: 5px 3px 3px 0px;
 	width: 100%;
 }
 
 ol {
 	margin: 0px 0px 0px 0px;
 }
-
+input[type="checkbox"] {
+	margin: -2px 0 0;
+}
 #feedback {
 	font-size: .5em;
 }

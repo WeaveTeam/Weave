@@ -4,29 +4,16 @@
  */
 angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		'DataDialogCtrl',
-		function($scope, queryobj, $dialog) {
-			$scope.connection;
-			
-			
-			if(queryobj['conn']){
-				$scope.connection = queryobj['conn'];
-			}
+		function($scope, $dialog) {
 
 			$scope.opts = {
 				backdrop : true,
 				keyboard : true,
 				backdropClick : true,
 				templateUrl : 'tpls/dataDialog.tpls.html',
-				controller : 'DataDialogConnectCtrl',
-				resolve : {
-					conn : function() {
-						return angular.copy($scope.conn);
-					}
-				}
+				controller : 'DataDialogConnectCtrl'
 			};
-			
-			
-		
+
 			$scope.openDialog = function(partial) {
 				if (partial) {
 					$scope.opts.templateUrl = 'tpls/' + partial + '.tpls.html';
@@ -43,26 +30,16 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	};
 	
 	
-	$scope.conn = queryobj['conn'];
+	$scope.dataTableSelect = queryobj['dataTable'];
 	
-	/*$scope.$watch(function(){
-			return queryobj['conn']; 
-		}, 
-		function(connection){
-			$scope.conn = queryobj['conn'];
-	});*/
-	
-	$scope.$watch('conn', function(connection){
-		queryobj['conn'] = $scope.conn;
+
+	$scope.$watch('dataTableSelect', function(connection){
+		queryobj['dataTable'] = $scope.dataTableSelect;
 	});
 	$scope.$watch('entityOverride', function(oldVal, newVal){
 		if(newVal != undefined){
-			$scope.conn.dataTable = $scope.entityOverride;
+			$scope.dataTableSelect = $scope.entityOverride;
 		}
 	});
 	
-	
-//	$scope.$watch('conn', function() {
-//		queryobj['conn'] = conn;
-//	});
 });

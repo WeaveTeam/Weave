@@ -16,7 +16,7 @@ angular.module("aws.IndicatorPanel", [])
 	});
 
 })
-.controller("AnalysisCtrl", function($scope, queryobj, dataService, $timeout){
+.controller("AnalysisCtrl", function($scope, queryobj, dataService){
 	$scope.refreshButton = "btn-primary";
 	
 	$scope.refreshColumns = function(scope, id){
@@ -28,17 +28,17 @@ angular.module("aws.IndicatorPanel", [])
 		$scope.$broadcast("refreshColumns");
 		$scope.refreshButton= "btn-primary";
 	};
-	$timeout(function(){
-		$scope.$watch(function(){
-			return queryobj.conn['dataTable'];
-		},
-			function(newVal, oldVal){
-				if(newVal != oldVal){
-					$scope.refreshButton="btn-danger";
-					//console.log("danger button");
-				}
-		});
-	},0);
+	
+	$scope.$watch(function(){
+		return queryobj.conn['dataTable'];
+	},
+		function(newVal, oldVal){
+			if(newVal != oldVal){
+				$scope.refreshButton="btn-danger";
+				//console.log("danger button");
+			}
+	});
+	
 })
 .controller("CalculationCtrl", function($scope){
 	

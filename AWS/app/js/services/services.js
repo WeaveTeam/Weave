@@ -14,28 +14,21 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.date = new Date();
 	this.author = "UML IVPR AWS Team";
 	this.scriptType = "r";
-	this.weaveOptions = {};
-	this.weaveOptions.weaveObject = "Not Defined here";
-	this.conn = {};
-	this.conn.dataTable = 169602;
-	var defaults = {
+	this.dataTable = 169602;
+	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
-			dataTable: 161213,
-			/*connectionName : 'demo',
-			connectionPass : 'pass',*/
 			serverType : 'MySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
 			sqldbname : 'sdoh2010',
 			sqluser : 'root',
 			sqlpass : 'pass'
-		};
-	
+	};
 })
 .service("scriptobj", function(){
 	this.scriptMetadata = {
 			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
-			outputs: ["Fips (binningVar)", "Response", "Prevalence Percentage", "CI Low", "CI Hi"]
+			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
 	};
 })
 
@@ -121,7 +114,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 	};
 	
 	
-	var fullColumnObjs = fetchColumns(queryobj.conn.dataTable);
+	var fullColumnObjs = fetchColumns(queryobj.dataTable);
 	var fullGeomObjs = fetchGeoms();
 	var filter = function(data, type){
 		var toFilter = data;

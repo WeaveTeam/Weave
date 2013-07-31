@@ -199,14 +199,14 @@ angular.module("aws.panelControllers", [])
 		}
 	}
 	$scope.options = columns;
-	$scope.selection = {};
+	$scope.selection = [];
 	
 	// retrieve selections, else create blanks;
 	if(queryobj['scriptOptions']){
 		$scope.selection = queryobj['scriptOptions'];
 	}else{
-		angular.forEach($scope.labels, function(label){
-			$scope.selection[label] = {};
+		angular.forEach($scope.labels, function(label, i){
+			$scope.selection[i] = "";
 		});
 	}
 	
@@ -214,10 +214,16 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('selection', function(){
 		queryobj['scriptOptions'] = $scope.selection;
 	}, true);
-/*	$scope.$watch(function(){
-		return queryobj['scriptOption'];
-	},
-		function(select){
-			$scope.selection = queryobj['scriptOption'];
-	});*/
+
+})
+.controller("RDBPanelCtrl", function($scope, queryobj){
+	
+	if(queryobj["conn"]){
+		$scope.conn = queryobj["conn"];
+	}else{
+		$scope.conn = {};
+	}
+	$scope.$watch('conn', function(){
+		queryobj['conn'] = $scope.conn;
+	}, true);
 })

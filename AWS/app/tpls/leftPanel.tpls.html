@@ -22,18 +22,17 @@
 	<button onclick="saveJSON({{QueryObjectModel()}})"
 		class="btn btn-primary">Export JSON</button>
 	<br> <label>Import JSON</label> <input type="file"
-		id="queryImport" onsubmit="uploadQuery()" />
+		id="queryImport" ng-submit="uploadQuery()" />
 	<button id="run" class="btn btn-primary">Apply Query</button>
 	<script>
+	var importedobjectfromjson;
 		$('#run').click(function() {
 			var files = $('input');
 			var file = files[0].files[0];
 			var reader = new FileReader();
-			var obj;
 			reader.onload = function(e) {
-				$('#file').html(e.target.result);
-				obj = $.parseJSON(e.target.result);
-				var qh = new aws.QueryHandler(obj);
+				importedobjectfromjson = $.parseJSON(e.target.result);
+				var qh = new aws.QueryHandler(importedobjectfromjson);
 				qh.runQuery();
 			}
 			reader.readAsText(file);
