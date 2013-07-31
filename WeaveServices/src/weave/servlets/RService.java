@@ -324,7 +324,7 @@ public class RService extends GenericServlet
 			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
 			
 			//rewriting?
-			compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
+			compResultLookMap.put(requestObject.toString(), returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
 			return returnedColumns;
 		}
 		 
