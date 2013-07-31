@@ -41,8 +41,6 @@ aws.QueryHandler = function(queryObject)
 	
 	for (var visualization in queryObject.selectedVisualization) {
 		//if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
-			console.log(queryObject[visualization]);
-			console.log(queryObject.selectedVisualization[visualization]);
 			if (queryObject.selectedVisualization[visualization]) {
 				this.visualizations.push( { type : visualization, parameters : queryObject[visualization] });
 			}			
@@ -63,8 +61,6 @@ aws.QueryHandler = function(queryObject)
 	this.resultDataSet = "";
 };
 
-var timeLogString= "";
-
 /**
  * This function is the golden evaluator of the query.
  * 1- run the scripts against the data
@@ -79,22 +75,19 @@ aws.QueryHandler.prototype.runQuery = function() {
 	this.computationEngine.run("SQLData", function(result) {
 		
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
-
-		try{
-			$("#LogBox").append(timeLogString);
-		}catch(e){
-			//ignore
-		}
+		aws.timeLogString = result[1].value;
 		
 		// step 2
 		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
+			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
 		}
 		
 		if (that.colorColumn) {
 			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
+			aws.timeLogString = aws.reportTime('color column added');
 		}	
 	});
 };
