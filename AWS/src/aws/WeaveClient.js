@@ -62,20 +62,20 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
 	this.weave.requestObject([toolName], 'MapTool');
 	aws.reportTime("New Map added");
-	
-	
+
+
 	//state plot layer
 	var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
 	stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
-	
+
 	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
 						   .push('internalObject').request('ReferencedColumn')
 						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
-	
+
 	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state('dataSourceName','WeaveDataSource')
 		  .state('hierarchyPath', '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>');
-	
+
 	return toolName;
 };
 

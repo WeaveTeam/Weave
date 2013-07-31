@@ -71,7 +71,6 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
 	var that = this;
-	
 	this.computationEngine.run("SQLData", function(result) {
 		
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
@@ -80,14 +79,14 @@ aws.QueryHandler.prototype.runQuery = function() {
 		// step 2
 		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
+		if (that.colorColumn) {
+			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
+			aws.timeLogString = aws.reportTime('color column added');
+		}	
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
 			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
 		}
 		
-		if (that.colorColumn) {
-			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
-			aws.timeLogString = aws.reportTime('color column added');
-		}	
 	});
 };
