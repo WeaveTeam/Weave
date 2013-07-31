@@ -169,12 +169,12 @@ angular.module("aws.panelControllers", [])
 	
 	// selectorId should be "ColorColumnPanel"
 	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj["colorcolumn"];
+		$scope.selection = queryobj["colorColumn"];
 	}
 	$scope.options = scriptobj.scriptMetadata['outputs'];
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
-		queryobj["colorcolumn"] = $scope.selection;
+		queryobj["colorColumn"] = $scope.selection;
 	});
 })
 .controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){
