@@ -20,9 +20,10 @@ angular.module("aws.services", []).service("queryobj", function() {
 			serverType : 'MySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
-			sqldbname : 'sdoh2010',
+			sqldbname : 'test2010_new',
 			sqluser : 'root',
-			sqlpass : 'pass'
+			sqlpass : 'pass',
+			schema : 'data'
 	};
 })
 .service("scriptobj", function(){

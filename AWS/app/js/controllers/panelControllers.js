@@ -102,8 +102,8 @@ angular.module("aws.panelControllers", [])
 			var obj = $scope.options.$$v[$scope.selection];
 			var send = {};
 			send.weaveEntityId = obj.id;
-			send.keytype = obj.publicMetadata.keyType;
-			send.name = obj.publicMetadata.title;
+			send.keyType = obj.publicMetadata.keyType;
+			send.title = obj.publicMetadata.title;
 			queryobj['maptool'] = send;
 		}
 	});
