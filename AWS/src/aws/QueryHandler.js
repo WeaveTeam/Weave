@@ -32,7 +32,7 @@ aws.QueryHandler = function(queryObject)
 	this.connectionObject = {
 			user : queryObject.conn.sqluser,
 			password : queryObject.conn.sqlpass,
-			schema : queryObject.conn.serverType,
+			schema : queryObject.conn.schema,
 			host : queryObject.conn.sqlip,
 			port : queryObject.conn.sqlport
 	};
