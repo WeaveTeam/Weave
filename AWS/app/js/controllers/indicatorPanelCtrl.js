@@ -30,7 +30,7 @@ angular.module("aws.IndicatorPanel", [])
 	};
 	
 	$scope.$watch(function(){
-		return queryobj.conn['dataTable'];
+		return queryobj.dataTable;
 	},
 		function(newVal, oldVal){
 			if(newVal != oldVal){
