@@ -56,12 +56,13 @@ angular.module("aws.Main", [])
 	$scope.genericPortlet = "./tpls/genericPortlet.tpls.html";
 	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
 	$scope.QueryObjectModel = function(){ 
-		var test = angular.toJson(queryobj, true);
-		return test // JSON.stringify(queryobj, undefined, 2);
+		return angular.toJson(queryobj, true);
 	};
-	/*$scope.$watch('queryobj.selectedColumns' , function(){
-		$scope.$broadcast("requestingQueryObject");
-	});*/
+	$scope.$watch(function(){
+		return aws.timeLogString;
+	},function(oldVal, newVal){
+		$("#LogBox").append(newVal);
+	});
 	
 	
 	
