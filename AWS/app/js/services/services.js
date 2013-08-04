@@ -20,9 +20,10 @@ angular.module("aws.services", []).service("queryobj", function() {
 			serverType : 'MySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
-			sqldbname : 'sdoh2010',
+			sqldbname : 'test2010_new',
 			sqluser : 'root',
-			sqlpass : 'pass'
+			sqlpass : 'pass',
+			schema : 'data'
 	};
 })
 .service("scriptobj", function(){
@@ -139,8 +140,8 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 					return filter(response, type);
 			});
 		},
-		refreshObjects: function(id){
-			fullColumnObjs = fetchColumns(id);
+		refreshColumns: function(scopeobj){
+			fullColumnObjs = fetchColumns(queryobj.dataTable);
 		},
 		giveMeGeomObjs: function(){
 			return fullGeomObjs.then(function(response){

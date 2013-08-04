@@ -32,7 +32,7 @@ aws.QueryHandler = function(queryObject)
 	this.connectionObject = {
 			user : queryObject.conn.sqluser,
 			password : queryObject.conn.sqlpass,
-			schema : queryObject.conn.serverType,
+			schema : queryObject.conn.schema,
 			host : queryObject.conn.sqlip,
 			port : queryObject.conn.sqlport
 	};
@@ -71,23 +71,27 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
 	var that = this;
-	
 	this.computationEngine.run("SQLData", function(result) {
 		
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
-		//aws.timeLogString = result[1].value;
+		console.log(result[0].value);
+		aws.timeLogString = result[1].value;
+		console.log(result[1].value);
+		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		
 		// step 2
 		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
-		for (var i in that.visualizations) {
-			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
-			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
-		}
-		
 		if (that.colorColumn) {
 			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
 			aws.timeLogString = aws.reportTime('color column added');
-		}	
+			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
+			}	
+		for (var i in that.visualizations) {
+			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
+			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
+			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+		}
+		
 	});
 };

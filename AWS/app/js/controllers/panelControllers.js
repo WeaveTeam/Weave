@@ -11,7 +11,7 @@ angular.module("aws.panelControllers", [])
 	
 	// fetch Columns using current dataTable
 	//refreshColumns($scope, queryobj.conn.dataTable);
-	$scope.options = dataService.giveMeColObjs($scope,  queryobj.dataTable);
+	$scope.options = dataService.giveMeColObjs($scope);
 	
 	if(queryobj[$scope.selectorId]){
 		$scope.selection = queryobj[$scope.selectorId];
@@ -23,7 +23,7 @@ angular.module("aws.panelControllers", [])
 	});
 	
 	$scope.$on("refreshColumns", function(e){
-		$scope.options = dataService.giveMeColObjs($scope,  queryobj.dataTable);
+		$scope.options = dataService.giveMeColObjs($scope);
 	});
 	
 /*	$scope.$watch(function(){
@@ -102,8 +102,8 @@ angular.module("aws.panelControllers", [])
 			var obj = $scope.options.$$v[$scope.selection];
 			var send = {};
 			send.weaveEntityId = obj.id;
-			send.keytype = obj.publicMetadata.keyType;
-			send.name = obj.publicMetadata.title;
+			send.keyType = obj.publicMetadata.keyType;
+			send.title = obj.publicMetadata.title;
 			queryobj['maptool'] = send;
 		}
 	});
@@ -169,12 +169,12 @@ angular.module("aws.panelControllers", [])
 	
 	// selectorId should be "ColorColumnPanel"
 	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj["colorcolumn"];
+		$scope.selection = queryobj["colorColumn"];
 	}
 	$scope.options = scriptobj.scriptMetadata['outputs'];
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
-		queryobj["colorcolumn"] = $scope.selection;
+		queryobj["colorColumn"] = $scope.selection;
 	});
 })
 .controller("CategoryFilterPanelCrtl", function($scope, queryobj, dataService){

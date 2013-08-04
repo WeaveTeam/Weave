@@ -136,7 +136,7 @@ public class RServiceUsingRserve
 		
 		if(!clearCacheTimeLog){
 			
-			timeLogString = timeLogString + "\nResults received From R : " + debugger.get();
+			timeLogString = timeLogString + "\nResults received From R : " + debugger.get() + " ms";
 		}
 		debugger.report("Results received From R\n");
 		debugger.stop("End");

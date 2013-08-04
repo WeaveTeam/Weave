@@ -298,29 +298,36 @@ public class RService extends GenericServlet
 			ArrayList<String> columns = new ArrayList<String>();
 			columns = (ArrayList)columnNames;
 			
+			String col1 = columns.get(0);
+			String col2 = columns.get(1);
+			String col3 = columns.get(2);
+			String col4 = columns.get(3);
+			String col5 = columns.get(4);
+			
+			System.out.println(col1 + col2 + col3  + col4 + col5);
 			String query = buildSelectQuery(columns, dataset);
 			
 			String cannedScriptLocation = scriptPath + scriptName;
 			 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
 			 
-			 Object[] requestObjectInputValues = {cannedScriptLocation, query};
-			 String[] requestObjectInputNames = {"cannedScriptPath", "query"};
+			 Object[] requestObjectInputValues = {cannedScriptLocation, query, col1, col2, col3, col4, col5};
+			 String[] requestObjectInputNames = {"cannedScriptPath", "query", "col1", "col2", "col3", "col4", "col5"};
 			
 			
 			String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
 			"library(RMySQL)\n" +
 			"con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
 			"library(survey)\n" +
-			"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
+			"returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 			String[] requestObjectOutputNames = {};
 			
 			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
 			
 			//rewriting?
-			compResultLookMap.put(scriptName, returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
+			compResultLookMap.put(requestObject.toString(), returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
 			return returnedColumns;
 		}
-		
+		 
 	}
 	
 	
