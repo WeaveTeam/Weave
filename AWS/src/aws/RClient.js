@@ -42,11 +42,11 @@ aws.RClient.prototype.run = function(type, callback) {
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
- *  @param {Function} A callback function that handles the servlet result
+ *  @param {Function} callback function that handles the servlet result
+ *	@return void.
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(callback){
-	console.log(this.rDataRequestObject);
 	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.rDataRequestObject], callback);
 };
 

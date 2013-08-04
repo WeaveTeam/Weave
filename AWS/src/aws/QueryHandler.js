@@ -10,7 +10,7 @@ goog.require('aws.WeaveClient');
  * 
  * @constructor
  * 
- * @param {Object} queryObject. The query object obtained from the UI, or alternatively, from a file.
+ * @param {aws.queryObject} queryObject. The query object obtained from the UI, or alternatively, from a file.
  *
  **/
 aws.QueryHandler = function(queryObject)

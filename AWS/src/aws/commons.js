@@ -28,7 +28,25 @@ aws.ConnectionInfo;
  */
 aws.EntityHierarchyInfo;
 
-
+/** @typedef {{
+ * 	  date: string, 
+ *    author : string,
+ *    conn : {sqldbname : string,
+ *    		  scriptLocation : string,
+ *    		  sqluser : string,
+ *    		  sqlpass : string,
+ *    		  serverType : string,
+ *    	 	  sqlip : string,
+ *    		  sqlport : string},
+ *    		 
+ *    scriptOptions : Array,
+ *    scriptSelected : string,
+ *    selectedVisualization : Object,
+ *    colorColumn : string,
+ *    scriptType : string
+ *  }}
+ * */
+aws.queryObject;
 /**
  * @typedef {{
  * 	id: number,
@@ -38,15 +56,6 @@ aws.EntityHierarchyInfo;
  */
 aws.DataEntity;
 
-/**
- * @typedef {{}}
- */
-//aws.WeaveObject;
-
-/**
- * @typedef {string}
- */
-aws.Column;
 
 /**
  * This function is a wrapper for making a request to a JSON RPC servlet
