@@ -106,7 +106,7 @@ public class DataService extends GenericServlet
 		return entity;
 	}
 	
-	private boolean isEmpty(String str)
+	private static boolean isEmpty(String str)
 	{
 		return str == null || str.length() == 0;
 	}
@@ -188,7 +188,7 @@ public class DataService extends GenericServlet
 	////////////
 	// Columns
 	
-	private ConnectionInfo getColumnConnectionInfo(DataEntity entity) throws RemoteException
+	private static ConnectionInfo getColumnConnectionInfo(DataEntity entity) throws RemoteException
 	{
 		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
 		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
@@ -466,33 +466,63 @@ public class DataService extends GenericServlet
 	////////////////////////////
 	// Row query
 	
-	@SuppressWarnings("unchecked")
 	public WeaveRecordList getRows(String keyType, String[] keysArray) throws RemoteException
 	{
-		List<String> keys = new ArrayList<String>();
-		keys = ListUtils.copyArrayToList(keysArray, keys);
-		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
-		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex++)
-			keyMap.put(keysArray[keyIndex], keyIndex);
-		
 		DataConfig dataConfig = getDataConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
 		params.publicMetadata.put(PublicMetadata.KEYTYPE,keyType);
-		Collection<Integer> columnIds = dataConfig.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN);
-		List<DataEntity> infoList = new ArrayList<DataEntity>(dataConfig.getEntitiesById(columnIds));
-		
-		if (infoList.size() < 1)
-			throw new RemoteException("No matching column found. "+params);
-		if (infoList.size() > 100)
-			infoList = infoList.subList(0, 100);
-		
-		Object recordData[][] =  new Object[keys.size()][infoList.size()];
-		
-		Map<String,String> metadataList[] = new Map[infoList.size()];
-		for (int colIndex = 0; colIndex < infoList.size(); colIndex++)
+		List<Integer> columnIds = new ArrayList<Integer>( dataConfig.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN) );
+
+		if (columnIds.size() > 100)
+			columnIds = columnIds.subList(0, 100);
+
+		return DataService.getRows(columnIds, keysArray);
+	}
+	
+	public static WeaveRecordList getRows(List<Integer> columnIds) throws RemoteException
+	{
+		return getRows(columnIds, null);
+	}
+	public static WeaveRecordList getRows(List<Integer> columnIds, String[] keysArray) throws RemoteException
+	{
+		DataConfig dataConfig = getDataConfig();
+		DataEntity[] entities;
 		{
-			DataEntity info = infoList.get(colIndex);
+			Collection<DataEntity> unordered = dataConfig.getEntitiesById(columnIds);
+			Map<Integer, DataEntity> lookup = new HashMap<Integer, DataEntity>();
+			for (DataEntity de : unordered)
+				lookup.put(de.id, de);
+			
+			int n = columnIds.size();
+			entities = new DataEntity[n];
+			for (int i = 0; i < n; i++)
+				entities[i] = lookup.get(columnIds.get(i));
+		}
+		
+		if (entities.length < 1)
+			throw new RemoteException("No columns found matching specified ids: "+columnIds);
+		
+		String keyType = entities[0].publicMetadata.get(PublicMetadata.KEYTYPE);
+		for (DataEntity entity : entities)
+		{
+			String keyType2 = entity.publicMetadata.get(PublicMetadata.KEYTYPE);
+			if (keyType != keyType2 && (keyType == null || keyType2 == null || !keyType.equals(keyType2)))
+				throw new RemoteException("Specified columns must all have same keyType.");
+		}
+		
+		Object recordData[][] =  new Object[keysArray.length][entities.length];
+		
+		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
+		if (keysArray != null)
+			for (String key : keysArray)
+				keyMap.put(key, keyMap.size());
+		
+		@SuppressWarnings("unchecked")
+		Map<String,String> metadataList[] = new Map[entities.length];
+		for (int colIndex = 0; colIndex < entities.length; colIndex++)
+		{
+			DataEntity info = entities[colIndex];
 			String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 			String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
 			metadataList[colIndex] = info.publicMetadata;
@@ -500,8 +530,6 @@ public class DataService extends GenericServlet
 			//if (dataWithKeysQuery.length() == 0)
 			//	throw new RemoteException(String.format("No SQL query is associated with column \"%s\" in dataTable \"%s\"", attributeColumnName, dataTableName));
 			
-			List<Double> numericData = null;
-			List<String> stringData = null;
 			String dataType = info.publicMetadata.get(PublicMetadata.DATATYPE);
 			
 			// use config min,max or param min,max to filter the data
@@ -540,10 +568,7 @@ public class DataService extends GenericServlet
 				// otherwise, derive it from the sql result.
 				if (isEmpty(dataType))
 					dataType = DataType.fromSQLType(result.columnTypes[1]);
-				if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
-					numericData = new ArrayList<Double>();
-				else // for every other dataType, use String
-					stringData = new ArrayList<String>();
+				boolean isNumeric = dataType != null && dataType.equalsIgnoreCase(DataType.NUMBER);
 				
 				Object keyObj, dataObj;
 				double value;
@@ -551,42 +576,45 @@ public class DataService extends GenericServlet
 				for (int i = 0; i < result.rows.length; i++)
 				{
 					keyObj = result.rows[i][0];
-					if (keyMap.get(keyObj) != null)
+					if (keyObj == null)
+						continue;
+					
+					Integer integer = keyMap.get(keyObj);
+					if (integer == null)
 					{
-						rowIndex = keyMap.get(keyObj);
-						if (keyObj == null)
+						// filter the data using keysArray if specified
+						if (keysArray != null)
 							continue;
 						
-						if (numericData != null)
+						keyMap.put(keyObj.toString(), rowIndex = keyMap.size());
+					}
+					else
+						rowIndex = integer;
+					
+					if (isNumeric)
+					{
+						dataObj = result.rows[i][1];
+						if (dataObj == null)
+							continue;
+						try
 						{
-							if (result.rows[i][1] == null)
-								continue;
-							try
-							{
-								value = ((Double)result.rows[i][1]).doubleValue();
-							}
-							catch (Exception e)
-							{
-								continue;
-							}
-							
+							value = ((Number)dataObj).doubleValue();
 							// filter the data based on the min,max values
-							if (minValue <= value && value <= maxValue){
-								numericData.add(value);
+							if (minValue <= value && value <= maxValue)
 								recordData[rowIndex][colIndex] = value;
-							}								
-							else
-								continue;
 						}
-						else
+						catch (Exception e)
 						{
-							dataObj = result.rows[i][1];
-							if (dataObj == null)
-								continue;
-							
-							stringData.add(dataObj.toString());
-							recordData[rowIndex][colIndex] = dataObj;
+							// ignore error and treat as missing data
 						}
+					}
+					else
+					{
+						dataObj = result.rows[i][1];
+						if (dataObj == null)
+							continue;
+						
+						recordData[rowIndex][colIndex] = dataObj;
 					}
 				}
 			}
