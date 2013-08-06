@@ -759,6 +759,17 @@ package weave.application
 					);
 				}
 				
+				if (Weave.properties.enableBrowseData.value)
+				{
+					_weaveMenu.addMenuItemToMenu(_dataMenu,
+						new WeaveMenuItem(lang("Browse Data"),
+							function ():void {
+								AttributeSelectorPanel.openDefaultSelector();
+							}
+						)
+					);
+				}
+				
 				if (Weave.properties.enableRefreshHierarchies.value)
 				{
 					_weaveMenu.addMenuItemToMenu(_dataMenu,
@@ -931,6 +942,13 @@ package weave.application
 		{
 			if (toggle.value)
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
+		}
+		
+		public function CSVWizardWithData(content:Object):void
+		{
+			var newUserWiz:NewUserWizard = new NewUserWizard();
+			WizardPanel.createWizard(this, newUserWiz);
+			newUserWiz.CSVFileDrop(content as ByteArray);
 		}
 		
 		public function loadSessionState(fileContent:Object, fileName:String):void

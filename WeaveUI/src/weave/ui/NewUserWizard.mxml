@@ -425,6 +425,18 @@
 				
 			}
 			
+			public function CSVFileDrop(data:ByteArray):void
+			{
+				delimiterBox.visible = false;
+				_tempArray = WeaveAPI.CSVParser.parseCSV(data.toString());
+				updateCSVDataStringFromArray(_tempArray);		
+				
+				keyColumnSelector.dataProvider = uniqueColumns;
+				uploadMessage.text = lang("Loaded!");
+				_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
+				this.next();
+			}
+			
 			private function convertSheetsToArrays(xlsSheet:Sheet):Array
 			{
 				var paramArray:Array = new Array();
