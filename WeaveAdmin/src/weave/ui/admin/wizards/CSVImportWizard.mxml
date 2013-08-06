@@ -42,7 +42,7 @@
 		</mx:VBox>
 	</mx:VBox>
 	
-	<mx:VBox id="optionalSettingsPage" horizontalScrollPolicy="off" label="{lang('Configure data for Weave')}">
+	<mx:VBox id="optionalSettingsPage" label="{lang('Configure data for Weave')}">
 		<ui:Indent label="{lang('Table display name')}">
 			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
 			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
