@@ -391,6 +391,12 @@
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
 				visualization.graphics.clear();
+				//Needs to be called on the next frame, due to the background getting cleared afterwards by the super functions.
+				callLater(drawBackground);
+			}
+			
+			private function drawBackground():void
+			{
 				if (enableBackground.value)
 				{
 					visualization.graphics.lineStyle(0,0,0);

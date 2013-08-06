@@ -82,16 +82,16 @@ aws.QueryHandler.prototype.runQuery = function() {
 		// step 2
 		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
 		// step 3
-		if (that.colorColumn) {
-			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
-			aws.timeLogString = aws.reportTime('color column added');
-			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
-			}	
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
 			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
 			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		}
 		
+		if (that.colorColumn) {
+			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
+			aws.timeLogString = aws.reportTime('color column added');
+			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
+		}	
 	});
 };
