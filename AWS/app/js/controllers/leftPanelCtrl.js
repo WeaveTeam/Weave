@@ -6,14 +6,23 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 			$scope.isActive = function(route) {
 				return route == $location.path();
 			};
-			
-			function uploadQuery(){
-				if(importedobjectfromjson != undefined){
-					queryobj = importedobjectfromjson;
+			$scope.uploadQuery = function(){
+						
+			};
+			$("#queryImport").fileReader({"debugMode":true,"filereader":"lib/jquery/filereader.swf"});
+			$("#queryImport").on("change", function(evt){
+				console.log(evt.target.files);
+				var file = evt.target.files[0];
+				var reader = new FileReader();
+				reader.onload = function(e) {
+					//importedobjectfromjson = $.parseJSON(e.target.result);
+					console.log(e.target.result);
+					//var qh = new aws.QueryHandler(importedobjectfromjson);
+					//qh.runQuery();
 				}
-			}
-
-		});
+				reader.readAsText(file);
+			});
+});
 
 function saveJSON(query) {
 	var blob = new Blob([ JSON.stringify(query, undefined, 2) ], {
