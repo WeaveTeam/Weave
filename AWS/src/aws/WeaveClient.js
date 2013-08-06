@@ -17,7 +17,7 @@ aws.WeaveClient = function (weave) {
 /**
  * This function should be the public function 
  * 
- * @param {object} visualization. A visualization object containing a title and appropriate parameters.
+ * @param {Object} visualization. A visualization object containing a title and appropriate parameters.
  * @param {string} dataSourceName The name of the data source where the data will come from.
  * 
  */
