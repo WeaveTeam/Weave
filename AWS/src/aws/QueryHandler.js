@@ -52,7 +52,7 @@ aws.QueryHandler = function(queryObject)
 	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
-	this.computationEngine;
+	this.computationEngine = null;
 	if(queryObject.scriptType == 'r') {
 		this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
 	} else if (queryObject.scriptType == 'stata') {

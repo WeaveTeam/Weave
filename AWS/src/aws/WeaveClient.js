@@ -154,7 +154,11 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
     sortColumnPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
 	   			  .state('dataSourceName', dataSourceName)
 	   			  .state('hierarchyPath', sort);
-
+    
+    // We clear the content of height columns before setting a new one.
+    var heightPath = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns'])
+    						   .state("");
+    
     for (var i in heights)
 	{
 		this.setCSVColumn(dataSourceName, [toolName,'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns', heights[i]], heights[i]);
