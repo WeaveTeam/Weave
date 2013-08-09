@@ -285,10 +285,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					updateColumnWidths();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, _subset))
-				{
-					showFilters.value = false;
-				}
 				if (detectLinkableObjectChange(updateDisplayList, showFilters))
 				{
 					updateFilters();
