@@ -8,25 +8,18 @@
 /**
  * @typedef {Array.<string>}
  */
-var WeaveObjectPath;
+var WeavePathArray;
 
 /**
+ * @private
  * @constructor
  * @return {!Weave}
  */
 function Weave() {}
 
 /**
- * Creates a WeavePath object.
- * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
- * @param basePath {WeaveObjectPath=}
- * @return {WeavePath}
- */
-Weave.prototype.path = function(basePath){};
-
-/**
  * This function will add a grouped callback to an ILinkableObject.
- * @param objectPathOrExpressionName {WeaveObjectPath|string}
+ * @param objectPathOrExpressionName {WeavePathArray|string}
  * @param callback {string}
  * @param triggerCallbackNow {boolean=}
  * @return {boolean}
@@ -35,7 +28,7 @@ Weave.prototype.addCallback = function(objectPathOrExpressionName, callback, tri
 
 /**
  * This function will evaluate an expression using the compiler.
- * @param scopeObjectPathOrExpressionName {WeaveObjectPath|string}
+ * @param scopeObjectPathOrExpressionName {WeavePathArray|string}
  * @param expression {string}
  * @param variables {Object.<string,*>=}
  * @param libraries {Array.<string>=}
@@ -46,28 +39,28 @@ Weave.prototype.evaluateExpression = function(scopeObjectPathOrExpressionName, e
 
 /**
  * This function gets a list of names of children of an object appearing in the session state.
- * @param objectPath {WeaveObjectPath}
+ * @param objectPath {WeavePathArray}
  * @return {Array.<String>}
  */
 Weave.prototype.getChildNames = function(objectPath){};
 
 /**
  * This function will get the qualified class name of an object appearing in the session state.
- * @param objectPath {WeaveObjectPath}
+ * @param objectPath {WeavePathArray}
  * @return {string}
  */
 Weave.prototype.getObjectType = function(objectPath){};
 
 /**
  * This function gets the current session state of a linkable object.
- * @param objectPath {WeaveObjectPath}
+ * @param objectPath {WeavePathArray}
  * @return {*}
  */
 Weave.prototype.getSessionState = function(objectPath){};
 
 /**
  * This function will remove a callback that was previously added.
- * @param scopeObjectPathOrExpressionName {WeaveObjectPath|string}
+ * @param scopeObjectPathOrExpressionName {WeavePathArray|string}
  * @param callback {string}
  * @return {boolean}
  */
@@ -75,14 +68,14 @@ Weave.prototype.removeCallback = function(objectPathOrExpressionName, callback){
 
 /**
  * This function will remove a dynamically created object if it is the child of an ILinkableCompositeObject.
- * @param objectPath {WeaveObjectPath}
+ * @param objectPath {WeavePathArray}
  * @return {boolean}
  */
 Weave.prototype.removeObject = function(objectPath){};
 
 /**
  * This function will dynamically create an object at the specified location in the session state if its parent implements ILinkableCompositeObject.
- * @param objectPath {WeaveObjectPath}
+ * @param objectPath {WeavePathArray}
  * @param objectType {string}
  * @return {boolean}
  */
@@ -90,7 +83,7 @@ Weave.prototype.requestObject = function(objectPath, objectType){};
 
 /**
  * This function will reorder children of an object implementing ILinkableHashMap.
- * @param hashMapPath {WeaveObjectPath}
+ * @param hashMapPath {WeavePathArray}
  * @param orderedChildNames {Array.<string>}
  * @return {boolean}
  */
@@ -98,7 +91,7 @@ Weave.prototype.setChildNameOrder = function(hashMapPath, orderedChildNames){};
 
 /**
  * This function updates the current session state of an object.
- * @param objectPath WeaveObjectPath
+ * @param objectPath {WeavePathArray}
  * @param newState {*}
  * @param removeMissingObjects {boolean=}
  * @return {boolean}
@@ -106,19 +99,39 @@ Weave.prototype.setChildNameOrder = function(hashMapPath, orderedChildNames){};
 Weave.prototype.setSessionState = function(objectPath, newState, removeMissingObjects){};
 
 
-///******** WeavePath chainable methods ********/
-//
-///**
-// * Specify any number of names to push on to the end of the path.
-// * Accepts a list of names relative to the current path.
-// */
-//function push(...relativePath)
-//
-///**
-// * Pops off all names from previous call to push().  No arguments.
-// */
-//function pop()
-//
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Creates a WeavePath object.
+ * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
+ * @param basePath {WeavePathArray=}
+ * @return {WeavePath}
+ */
+Weave.prototype.path = function(basePath){};
+
+/**
+ * @private
+ * @constructor
+ * @returns {WeavePath}
+ */
+function WeavePath(){};
+
+/******** WeavePath chainable methods ********/
+
+/**
+ * Specify any number of names to push on to the end of the path.
+ * Accepts a list of names relative to the current path.
+ * @param relativePath {WeavePathArray=}
+ */
+WeavePath.prototype.push = function(relativePath){};
+
+/**
+ * Pops off all names from previous call to push().  No arguments.
+ */
+WeavePath.prototype.pop = function(){};
+
 ///**
 // * Requests that an object be created if it doesn't already exist at (or relative to) the current path.
 // * Accepts an optional list of names relative to the current path.
