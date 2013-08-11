@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -511,7 +512,7 @@ public class DataService extends GenericServlet
 				throw new RemoteException("Specified columns must all have same keyType.");
 		}
 		
-		Object recordData[][] =  new Object[keysArray == null ? 0 : keysArray.length][entities.length];
+		List<Object[]> rows = new Vector<Object[]>();
 		
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		if (keysArray != null)
@@ -586,10 +587,13 @@ public class DataService extends GenericServlet
 						if (keysArray != null)
 							continue;
 						
-						keyMap.put(keyObj.toString(), rowIndex = keyMap.size());
+						keyMap.put(keyObj.toString(), rowIndex = rows.size());
 					}
 					else
 						rowIndex = integer;
+					
+					if (rowIndex == rows.size())
+						rows.add(new String[entities.length]);
 					
 					if (isNumeric)
 					{
@@ -601,7 +605,7 @@ public class DataService extends GenericServlet
 							value = ((Number)dataObj).doubleValue();
 							// filter the data based on the min,max values
 							if (minValue <= value && value <= maxValue)
-								recordData[rowIndex][colIndex] = value;
+								rows.get(rowIndex)[colIndex] = value;
 						}
 						catch (Exception e)
 						{
@@ -614,7 +618,7 @@ public class DataService extends GenericServlet
 						if (dataObj == null)
 							continue;
 						
-						recordData[rowIndex][colIndex] = dataObj;
+						rows.get(rowIndex)[colIndex] = dataObj;
 					}
 				}
 			}
@@ -630,7 +634,7 @@ public class DataService extends GenericServlet
 		}
 		
 		WeaveRecordList result = new WeaveRecordList();
-		result.recordData = recordData;
+		result.recordData = rows.toArray(new Object[rows.size()][]);
 		result.keyType = keyType;
 		result.recordKeys = keysArray;
 		result.attributeColumnMetadata = metadataList;
