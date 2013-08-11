@@ -593,7 +593,7 @@ public class DataService extends GenericServlet
 						rowIndex = integer;
 					
 					if (rowIndex == rows.size())
-						rows.add(new String[entities.length]);
+						rows.add(new Object[entities.length]);
 					
 					if (isNumeric)
 					{
@@ -614,11 +614,7 @@ public class DataService extends GenericServlet
 					}
 					else
 					{
-						dataObj = result.rows[i][1];
-						if (dataObj == null)
-							continue;
-						
-						rows.get(rowIndex)[colIndex] = dataObj;
+						rows.get(rowIndex)[colIndex] = result.rows[i][1];
 					}
 				}
 			}
