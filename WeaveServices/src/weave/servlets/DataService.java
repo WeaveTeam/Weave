@@ -580,19 +580,24 @@ public class DataService extends GenericServlet
 					if (keyObj == null)
 						continue;
 					
-					Integer integer = keyMap.get(keyObj);
-					if (integer == null)
+					keyObj = keyObj.toString();
+					
+					if (keyMap.containsKey(keyObj))
+					{
+						rowIndex = keyMap.get(keyObj);
+					}
+					else
 					{
 						// filter the data using keysArray if specified
 						if (keysArray != null)
 							continue;
 						
-						keyMap.put(keyObj.toString(), rowIndex = rows.size());
+						// key not seen before, create new row for it
+						rowIndex = rows.size();
+						keyMap.put((String)keyObj, rowIndex);
 					}
-					else
-						rowIndex = integer;
 					
-					if (rowIndex == rows.size())
+					while (rows.size() <= rowIndex)
 						rows.add(new Object[entities.length]);
 					
 					if (isNumeric)
@@ -614,6 +619,9 @@ public class DataService extends GenericServlet
 					}
 					else
 					{
+						System.out.println(String.format("[%s],[%s]",
+								Arrays.deepToString(new Object[]{"rowIndex","colIndex","result.rows.length","rows.size()","keyMap"}),
+								Arrays.deepToString(new Object[]{rowIndex,colIndex, result.rows.length,rows.size(),keyMap})));
 						rows.get(rowIndex)[colIndex] = result.rows[i][1];
 					}
 				}
