@@ -477,14 +477,14 @@ public class DataService extends GenericServlet
 		if (columnIds.size() > 100)
 			columnIds = columnIds.subList(0, 100);
 
-		return DataService.getRows(columnIds, keysArray);
+		return DataService.getRowsFromIdsAndKeys(columnIds, keysArray);
 	}
 	
-	public static WeaveRecordList getRows(List<Integer> columnIds) throws RemoteException
+	public static WeaveRecordList getRowsFromIds(List<Integer> columnIds) throws RemoteException
 	{
-		return getRows(columnIds, null);
+		return getRowsFromIdsAndKeys(columnIds, null);
 	}
-	public static WeaveRecordList getRows(List<Integer> columnIds, String[] keysArray) throws RemoteException
+	public static WeaveRecordList getRowsFromIdsAndKeys(List<Integer> columnIds, String[] keysArray) throws RemoteException
 	{
 		DataConfig dataConfig = getDataConfig();
 		DataEntity[] entities;
@@ -511,7 +511,7 @@ public class DataService extends GenericServlet
 				throw new RemoteException("Specified columns must all have same keyType.");
 		}
 		
-		Object recordData[][] =  new Object[keysArray.length][entities.length];
+		Object recordData[][] =  new Object[keysArray == null ? 0 : keysArray.length][entities.length];
 		
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		if (keysArray != null)
