@@ -69,6 +69,7 @@
 						break;
 					}
 				}
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 
 				_plotter.data.addImmediateCallback(this, updateProbeColumns, true);
 				
@@ -110,13 +111,16 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList.indexOf(false) > -1)
+				if(attributesChecklist)
 				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
-					probeColumnsCheckBox.selected = true;
+					if(attrToIncludeCheckList.indexOf(false) > -1)
+					{
+						probeColumnsCheckBox.selected = false;
+					}
+					else
+					{
+						probeColumnsCheckBox.selected = true;
+					}
 				}
 				
 				
@@ -145,7 +149,10 @@
 					visualization.additionalProbeColumns = null;
 				}
 				
-				updateAttributesChecklist();
+				if(attributesChecklist)
+				{
+					updateAttributesChecklist();
+				}
 				
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
 			}
@@ -192,6 +199,24 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Pie Chart')}">
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
+			<mx:HBox width="100%">
+				<mx:Label text="{lang('Label angle')}" fontWeight="bold"/>
+				<mx:HSlider
+						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+						dataTipFormatFunction="{function(v:Number):String { return lang('{0}%', Math.round(100 * v)); }}"
+						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
+			</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:Label text="{lang('Inner radius')}" fontWeight="bold"/>
+				<mx:HSlider
+						snapInterval="0.05" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+						creationComplete="linkBindableProperty(_plotter.innerRadius, event.target, 'value')"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="{lang('Probe')}">
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
@@ -216,22 +241,6 @@
 					</mx:Component>
 				</mx:itemRenderer>
 			</mx:List>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
-			<mx:HBox width="100%">
-				<mx:Label text="{lang('Label angle')}" fontWeight="bold"/>
-				<mx:HSlider
-						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-						dataTipFormatFunction="{function(v:Number):String { return lang('{0}%', Math.round(100 * v)); }}"
-						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
-			</mx:HBox>
-			<mx:HBox width="100%">
-				<mx:Label text="{lang('Inner radius')}" fontWeight="bold"/>
-				<mx:HSlider
-						snapInterval="0.05" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-						creationComplete="linkBindableProperty(_plotter.innerRadius, event.target, 'value')"/>
-			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

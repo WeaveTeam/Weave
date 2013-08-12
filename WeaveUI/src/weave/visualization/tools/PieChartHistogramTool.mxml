@@ -55,6 +55,7 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 				
 				initColumnDefaults(_plotter.unfilteredData);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,true);
@@ -114,15 +115,17 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList.indexOf(false) > -1)
+				if(attributesChecklist)
 				{
-					probeColumnsCheckBox.selected = false;
+					if(attrToIncludeCheckList.indexOf(false) > -1)
+					{
+						probeColumnsCheckBox.selected = false;
+					}
+					else
+					{
+						probeColumnsCheckBox.selected = true;
+					}
 				}
-				else
-				{
-					probeColumnsCheckBox.selected = true;
-				}
-				
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
 				
@@ -139,7 +142,10 @@
 					visualization.additionalProbeColumns = null;
 				}
 				
-				updateAttributesChecklist();
+				if(attributesChecklist)
+				{
+					updateAttributesChecklist();
+				}
 			}
 			
 			private function updateAttributesChecklist():void
@@ -175,7 +181,7 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox id="attributesPanel" label="{lang('Display')}">
+		<mx:VBox label="{lang('Probe')}">
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
@@ -200,6 +206,8 @@
 					</mx:Component>
 				</mx:itemRenderer>
 			</mx:List>
+		</mx:VBox>
+		<mx:VBox id="attributesPanel" label="{lang('Display')}">
 			<ui:Indent label="{lang('Label angle')}">
 				<mx:HSlider
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"

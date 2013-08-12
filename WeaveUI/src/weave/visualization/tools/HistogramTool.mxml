@@ -77,6 +77,7 @@
 				initColumnDefaults(fc.internalDynamicColumn);
 				
 				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
 			override protected function childrenCreated():void
@@ -230,7 +231,7 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="20" height="100%">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">

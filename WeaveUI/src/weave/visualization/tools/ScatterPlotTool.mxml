@@ -139,6 +139,7 @@
 				initRegressionLayer();
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
 			private function handleChildrenChildList():void

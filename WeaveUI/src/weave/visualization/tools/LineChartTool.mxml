@@ -125,6 +125,7 @@
 				_plotter.xValues.addGroupedCallback(this, updateFilterText, true);
 				
 				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
@@ -176,13 +177,13 @@
 				{
 					var xColIndex:int = attributes.indexOf(_plotter.xColumns);
 					if(attrToIncludeCheckList[xColIndex])
-						columns.push(_plotter.xColumns.getObjects(IAttributeColumn));
+						columns = _plotter.xColumns.getObjects(IAttributeColumn);
 				}
 				else
 				{
 					var colsIndex:int = attributes.indexOf(_plotter.columns);
 					if(attrToIncludeCheckList[colsIndex])
-						columns.push(visualization.additionalProbeColumns = _plotter.columns.getObjects(IAttributeColumn));
+						columns = _plotter.columns.getObjects(IAttributeColumn);
 				}
 				
 				var colorIndex:int = attributes.indexOf(colorColumn);
@@ -496,32 +497,32 @@
 			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 <!--			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.xAttributeColumns"/>	
 			</mx:TabNavigator>-->
-			<mx:HBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-							 toolTip="{lang('Checking this box makes all of the tool\'s attributes visible in this tool\'s probe tooltip')}"
-							 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-				<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
-					<mx:itemRenderer>
-						<mx:Component>
-							<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
-								
-								<mx:Script>
-									<![CDATA[
-										private function handleSelectionChange():void
-										{
-											data.selected = this.selected;
-											var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-											var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-											currentState[index]= this.selected;
-											outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-										}
-									]]>
-								</mx:Script>
-							</mx:CheckBox>
-						</mx:Component>
-					</mx:itemRenderer>
-				</mx:List>
-			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox  label="{lang('Probe')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the tool\'s attributes visible in this tool\'s probe tooltip')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+							
+							<mx:Script>
+								<![CDATA[
+									private function handleSelectionChange():void
+									{
+										data.selected = this.selected;
+										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
+										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
+										currentState[index]= this.selected;
+										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
+									}
+								]]>
+							</mx:Script>
+						</mx:CheckBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
 			<mx:HBox verticalAlign="middle">

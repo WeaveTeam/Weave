@@ -125,6 +125,7 @@
 				if (columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
 			protected function creationComplete():void
@@ -530,8 +531,7 @@
 				<ui:ColumnListComponent visTool="{this}" label="{lang('Negative error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
 		</mx:VBox>
-		
-		<mx:VBox label="{lang('Labeling')}">
+		<mx:VBox label="{lang('Probe')}">
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
@@ -557,6 +557,8 @@
 					</mx:Component>
 				</mx:itemRenderer>
 			</mx:List>
+		</mx:VBox>
+		<mx:VBox label="{lang('Labeling')}">
 			<mx:CheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
 			<mx:HBox width="100%">
 				<mx:VBox width="100%">
