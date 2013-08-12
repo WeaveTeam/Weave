@@ -1,5 +1,4 @@
-goog.provide('aws.client');
-
+goog.provide('aws');
 goog.exportSymbol('aws', aws);
 
 /**
@@ -28,6 +27,11 @@ aws.ConnectionInfo;
  */
 aws.EntityHierarchyInfo;
 
+/**
+ * @typedef {*}
+ */
+aws.Visualization;
+
 /** @typedef {{
  * 	  date: string, 
  *    author : string,
@@ -41,7 +45,7 @@ aws.EntityHierarchyInfo;
  *    		 
  *    scriptOptions : Array,
  *    scriptSelected : string,
- *    selectedVisualization : Object,
+ *    selectedVisualization : aws.Visualization,
  *    colorColumn : string,
  *    scriptType : string
  *  }}
@@ -90,7 +94,7 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
 
 /**
  * returns the current time to the console
- * @param {string} report the message (activity) with the time
+ * @param {string=} message (activity) with the time
  * @returns {string} a time log for activity
  */
 aws.reportTime = function(message)

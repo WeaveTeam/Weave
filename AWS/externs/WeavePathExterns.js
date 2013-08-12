@@ -106,7 +106,7 @@ Weave.prototype.setSessionState = function(objectPath, newState, removeMissingOb
 /**
  * Creates a WeavePath object.
  * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
- * @param {WeavePathArray=} basePath
+ * @param {...string|WeavePathArray} basePath
  * @return {WeavePath}
  */
 Weave.prototype.path = function(basePath){};
@@ -282,21 +282,18 @@ WeavePath.prototype.getType = function(relativePath){};
  * Gets the session state of an object at the current path or relative to the current path.
  * Accepts an optional list of names relative to the current path.
  * @param {...string|WeavePathArray} relativePath
- * @return {*}
  */
 WeavePath.prototype.getState = function(relativePath){};
 
 /**
  * Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
  * @param {*} previousState
- * @return {*}
  */
 WeavePath.prototype.getDiff = function(previousState){};
 
 /**
  * Gets the changes that would have to occur to get to another state for the object at the current path or relative to the current path.
  * @param {*} otherState
- * @return {*}
  */
 WeavePath.prototype.getReverseDiff = function(otherState){};
 
@@ -304,6 +301,5 @@ WeavePath.prototype.getReverseDiff = function(otherState){};
  * Calls weave.evaluateExpression() using the current path, vars, and libs and returns the resulting value.
  * First parameter is the script to be evaluated by Weave at the current path, or simply a variable name.
  * @param {string} script_or_variableName
- * @return {*}
  */
 WeavePath.prototype.getValue = function(script_or_variableName){};

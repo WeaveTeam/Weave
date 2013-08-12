@@ -1,6 +1,6 @@
 goog.provide('aws.DataClient');
 
-goog.require('aws.client');
+goog.require('aws');
 
 var dataServiceURL = '/WeaveServices/DataService';
 
