@@ -412,7 +412,7 @@ public class GenericServlet extends HttpServlet
 				/* Check to see if JSON-RPC protocol is 2.0*/
 				if (info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals(JSONRPC_VERSION))
 				{
-					sendJsonError(JSON_RPC_PROTOCOL_ERROR_MESSAGE);
+					sendJsonError(JSON_RPC_PROTOCOL_ERROR_MESSAGE, info.currentJsonRequest.jsonrpc);
 					continue;
 				}
 				/*Check if ID is a number and if so it has not fractional numbers*/
@@ -421,7 +421,7 @@ public class GenericServlet extends HttpServlet
 					Number number = (Number) info.currentJsonRequest.id;
 					if (number.intValue() != number.doubleValue())
 					{
-						sendJsonError(JSON_RPC_ID_ERROR_MESSAGE);
+						sendJsonError(JSON_RPC_ID_ERROR_MESSAGE, info.currentJsonRequest.id);
 						continue;
 					}
 					info.currentJsonRequest.id = number.intValue();
@@ -430,7 +430,7 @@ public class GenericServlet extends HttpServlet
 				/*Check if Method exists*/
 				if (!methodMap.containsKey(info.currentJsonRequest.method))
 				{
-					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE);
+					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE, info.currentJsonRequest.method);
 					continue;
 				}
 				
@@ -488,7 +488,7 @@ public class GenericServlet extends HttpServlet
     private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
     private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
     private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
-    private void sendJsonError(String errorMessage)
+    private void sendJsonError(String message, Object data)
     {
     	ServletRequestInfo info = getServletRequestInfo();
     	Object id = info.currentJsonRequest.id;
@@ -497,39 +497,29 @@ public class GenericServlet extends HttpServlet
 		if (id == null)
 			return;
     	
-	    if (errorMessage == null)
-	    	errorMessage = "";
-	    
 	    JsonRpcResponseModel result = new JsonRpcResponseModel();
 	    result.id = id;
 	    result.jsonrpc = "2.0";
 	    result.error = new JsonRpcErrorModel();
-	    result.error.data = errorMessage;
+	    result.error.message = message;
+	    result.error.data = data;
 	    
-	    if (errorMessage.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE))
+	    if (message.equals(JSON_RPC_PROTOCOL_ERROR_MESSAGE)
+	    		|| message.equals(JSON_RPC_ID_ERROR_MESSAGE))
 	    {
 	    	result.error.code = "-32600";
-	    	result.error.message = "Invalid Request";
 	    }
-	    else if (errorMessage.equals(JSON_RPC_ID_ERROR_MESSAGE))
-	    {
-	    	result.error.code = "-32600";
-	    	result.error.message = "Invalid Request";
-	    }
-	    else if (errorMessage.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
+	    else if (message.equals(JSON_RPC_METHOD_ERROR_MESSAGE))
 	    {
 	    	result.error.code = "-32601";
-	    	result.error.message = "Method not found";
 	    }
-	    else if (errorMessage.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
+	    else if (message.equals(JSON_RPC_PARSE_ERROR_MESSAGE))
 	    {
 	    	result.error.code = "-32700";
-	    	result.error.message = "Parse error";
 	    }
 	    else
 	    {
 	    	result.error.code = "-32000";
-	    	result.error.message = "Server error";
 	    }
 	    
 	    info.jsonResponses.add(result);
@@ -941,7 +931,7 @@ public class GenericServlet extends HttpServlet
     	}
     	else
     	{
-    		sendJsonError(message);
+    		sendJsonError(message, null);
     	}
 	}
     
