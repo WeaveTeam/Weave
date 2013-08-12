@@ -27,6 +27,8 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -35,6 +37,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.IPlotter;
@@ -42,6 +45,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
+			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.primitives.ColorRamp;
@@ -60,7 +64,8 @@
 			public const showAllLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateAxisLabels, true);
 			public const sizeAxisTickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5), sizeAxisTickCountRequestedChanged, true);
 			public const linkHeightAndSortColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleHeightColumnsChange);
-			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
+			
 			
 			private var _plotter:CompoundBarChartPlotter = null;
 			private var _showYAxisLabels:Boolean = false;
@@ -160,32 +165,111 @@
 			public function get heightColumns():ILinkableHashMap { return _plotter.heightColumns; }
 			public function get chartColors():ColorRamp { return _plotter.chartColors; }
 			
+			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
+			{
+				handleSelectAllAttrInProbe(value);
+			}
+			
+			private function handleSelectAllAttrInProbe(setAll:Boolean):void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var valuesToSet:Array = [];
+				if(setAll)
+				{
+					for each (var name:String in attributes)
+					{
+						valuesToSet.push(true);
+					}
+				}
+				else
+				{
+					for each (var name2:String in attributes)
+					{
+						valuesToSet.push(false);
+					}
+				}
+				attributesToIncludeInProbe.setSessionState(valuesToSet);
+			}
+			
 			private function updateProbeColumns():void
 			{
-				if (includeToolAttributesInProbe.value)
+				/* first check to see if select all should be disabled or not */
+				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+
+				if(attrToIncludeCheckList.indexOf(false) > -1)
 				{
-					var columns:Array = [];
-					var _heightColumns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-					var _posErrColumns:Array = _plotter.positiveErrorColumns.getObjects(IAttributeColumn);
-					var _negErrColumns:Array = _plotter.negativeErrorColumns.getObjects(IAttributeColumn);
-					for (var i:int = 0; i < _heightColumns.length; i++)
-					{
-						columns.push(_heightColumns[i]);
-						if (_posErrColumns.length > i && _negErrColumns.length > i)
-							columns.push(_posErrColumns[i], _negErrColumns[i]);
-					}
-					if (_heightColumns.length <= 1)
-					{
-						// get all ReferencedColumn objects
-						var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(_plotter.colorColumn, ReferencedColumn);
-						for each (var col:IAttributeColumn in refCols)
-							columns.unshift(col);
-					}
-					columns.unshift(_plotter.labelColumn, _plotter.sortColumn);
+					probeColumnsCheckBox.selected = false;
+				}
+				else
+				{
+					probeColumnsCheckBox.selected = true;
+				}
+				
+				var attributes:Array = getSelectableAttributes();
+				var columns:Array = [];
+				
+				//check if height columns should be added in probe
+				var heightColIndex:int = attributes.indexOf(_plotter.heightColumns);
+				var heightColumns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
+				
+				var posErrColumns:Array = _plotter.positiveErrorColumns.getObjects(IAttributeColumn);
+				var negErrColumns:Array = _plotter.negativeErrorColumns.getObjects(IAttributeColumn);
+				
+				var posErrColIndex:int = attributes.indexOf(_plotter.positiveErrorColumns);
+				var negErrColIndex:int = attributes.indexOf(_plotter.negativeErrorColumns);
+				
+				for (var i:int = 0; i < heightColumns.length; i++)
+				{
+					if(attrToIncludeCheckList[heightColIndex])
+						columns.push(heightColumns[i]);
+					
+					//check if positive and negative error should be added in probe for each height column
+					if (posErrColumns.length > i && attrToIncludeCheckList[posErrColIndex])
+						columns.push(posErrColumns[i]);
+					
+					if (negErrColumns.length > i && attrToIncludeCheckList[negErrColIndex])
+						columns.push(negErrColumns[i]);
+				}
+				
+				//check if color column should be added in probe
+				var colorColIndex:int = attributes.indexOf(colorColumn);
+				if(attrToIncludeCheckList[colorColIndex])
+					columns.unshift(colorColumn);
+				
+				//check if label column should be added in probe
+				var labelColIndex:int = attributes.indexOf(_plotter.labelColumn);
+				if(attrToIncludeCheckList[labelColIndex])
+					columns.unshift(_plotter.labelColumn);
+				//check if sort column should be added in probe
+				var sortColIndex:int = attributes.indexOf(_plotter.sortColumn);
+				if(attrToIncludeCheckList[sortColIndex])
+					columns.unshift(_plotter.sortColumn);
+				
+				if(columns.length>0)
+				{
 					visualization.additionalProbeColumns = columns;
 				}
 				else
+				{
 					visualization.additionalProbeColumns = null;
+				}
+				
+				updateAttributesChecklist();
+			}
+			
+			private function updateAttributesChecklist():void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				var temp:Array = [];
+				for (var i:int = 0; i < attributes.length; i++)
+				{
+					var obj:Object = new Object();
+					obj.label = attributes[i];
+					obj.selected = attrCheckList[i];
+					temp.push(obj);
+				}
+				attributesChecklist.dataProvider = temp;
 			}
 			
 			private function numberToString(value:Number):String
@@ -451,7 +535,28 @@
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+							
+							<mx:Script>
+								<![CDATA[
+									private function handleSelectionChange():void
+									{
+										data.selected = this.selected;
+										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
+										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
+										currentState[index]= this.selected;
+										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
+									}
+								]]>
+							</mx:Script>
+						</mx:CheckBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
 			<mx:CheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
 			<mx:HBox width="100%">
 				<mx:VBox width="100%">
