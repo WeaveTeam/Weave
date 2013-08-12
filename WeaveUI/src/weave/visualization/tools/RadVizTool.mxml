@@ -154,7 +154,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var enableAutoZoom:Boolean;
 			
 			private var probeSprite:Sprite = new Sprite() ;	
-			private var selectionProbeSprite = new Sprite();
+			private var selectionProbeSprite:Sprite = new Sprite();
 			
 			//this function is called whenver a column is selected to do the class discrimination
 			private function classDiscriminatorColumnUpdate():void
