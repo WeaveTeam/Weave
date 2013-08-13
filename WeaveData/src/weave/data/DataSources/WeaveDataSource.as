@@ -553,6 +553,7 @@ package weave.data.DataSources
 					{
 						// hack for dimension slider
 						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
+						newColumn.baseTitle = String(hierarchyNode.@baseTitle);
 						var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
 						newColumn.updateRecords(keysVector, secKeyVector, result.data);
 						proxyColumn.setInternalColumn(newColumn);
