@@ -1491,6 +1491,14 @@ public class AdminService
 				// System.out.println(query);
 				// System.out.println(filteredValues);
 			}
+			
+			String queryFormat = "SELECT %s,%s FROM %s";
+			if (SQLUtils.isOracleServer(conn))
+			{
+				// workaround for ambiguous column name when filtering by rownum
+				queryFormat = "SELECT %s thekey, %s thevalue FROM %s";
+			}
+			
 			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
 				String sqlColumn = sqlColumnNames[iCol];
@@ -1505,13 +1513,6 @@ public class AdminService
 				if (!isEmpty(secondarySqlKeyColumn))
 					sqlColumn += "," + secondarySqlKeyColumn;
 
-				String queryFormat = "SELECT %s,%s FROM %s";
-				if (SQLUtils.isOracleServer(conn))
-				{
-					// workaround for ambiguous column name when filtering by rownum
-					queryFormat = "SELECT %s thekey, %s thevalue FROM %s";
-				}
-				
 				// generate column query
 				query = String.format(
 						queryFormat,
