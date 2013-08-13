@@ -1505,9 +1505,16 @@ public class AdminService
 				if (!isEmpty(secondarySqlKeyColumn))
 					sqlColumn += "," + secondarySqlKeyColumn;
 
+				String queryFormat = "SELECT %s,%s FROM %s";
+				if (SQLUtils.isOracleServer(conn))
+				{
+					// workaround for ambiguous column name when filtering by rownum
+					queryFormat = "SELECT %s thekey, %s thevalue FROM %s";
+				}
+				
 				// generate column query
 				query = String.format(
-						"SELECT %s,%s FROM %s",
+						queryFormat,
 						keyColumnName,
 						sqlColumn,
 						SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable)
@@ -1701,8 +1708,21 @@ public class AdminService
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+			
+			if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
+			{
+				String select_ = "select ";
+				if (testQuery.toLowerCase().startsWith(select_))
+					testQuery = "select top 1 " + testQuery.substring(select_.length());
+			}
+			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+			{
+				testQuery = "select * from (" + testQuery + ") where rownum = 1";
+			}
+			else
+			{
 				testQuery += " LIMIT 1";
+			}
 
 			if (info.sqlParamsArray == null || info.sqlParamsArray.length == 0)
 			{
