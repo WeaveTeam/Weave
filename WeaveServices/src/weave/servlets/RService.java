@@ -133,6 +133,9 @@ public class RService extends GenericServlet
 	//temporary fix storing computation results in a hashmap
 	public Map<String,RResult[]> compResultLookMap = new HashMap<String,RResult[]>();
 	
+	public void clearCache() {
+		compResultLookMap.clear();
+	}
 
 	public void runTest() throws Exception
 	{
