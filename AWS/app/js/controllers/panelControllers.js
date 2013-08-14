@@ -79,6 +79,12 @@ angular.module("aws.panelControllers", [])
 		var qh = new aws.QueryHandler(queryobj);
 		qh.runQuery();
 	};
+	
+	$scope.clearCache = function(){
+		alert("Cache cleared");
+		aws.RClient.clearCache();
+	}
+	
 })
 .controller("GenericPanelCtrl", function($scope){
 	

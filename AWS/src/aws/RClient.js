@@ -44,7 +44,7 @@ aws.RClient.prototype.run = function(type, callback) {
  * We do not need an instance of a RClient to call this function.
  * 
  */	
-aws.RClient.clearCache() = function() {
+aws.RClient.clearCache = function() {
 	aws.queryService(rServiceURL,'clearCache');
 }
 

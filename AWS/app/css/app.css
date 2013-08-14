@@ -186,4 +186,8 @@ input[type="checkbox"] {
 	height: 10px;
 }
 
+#busyIndicator {
+	height: 20px;
+	width: 20px;
+}
 
