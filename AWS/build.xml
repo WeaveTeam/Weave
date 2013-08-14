@@ -50,6 +50,7 @@
 			<externs dir="${basedir}/externs">
 				<file name="jquery-1.9.js"/>
 				<file name="myexterns.js"/>
+				<file name="WeavePathExterns.js"/>
 			</externs>
 
 <!-- 			<path refid="${test.dir}"/> -->

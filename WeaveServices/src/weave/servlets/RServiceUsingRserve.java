@@ -471,8 +471,15 @@ public class RServiceUsingRserve
 	private static Vector<RResult> evaluateWithTypeChecking(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException {
 		REXP evalValue= evalScript(rConnection, script, showWarnings);
 		Object resultArray = rexp2javaObj(evalValue);
-		Object[] columns = (Object[])resultArray;
-		Object[] filling = (Object[])resultArray;
+		Object[] columns;
+		if (resultArray instanceof Object[])
+		{
+			columns = (Object[])resultArray;
+		}
+		else
+		{
+			throw new ScriptException(String.format("Script result is not an Array as expected: \"%s\"", resultArray));
+		}
 
 		String finalresultString = "";
 		Vector<String> names = evalValue.asList().names;

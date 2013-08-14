@@ -1,6 +1,6 @@
 goog.provide('aws.QueryHandler');
 
-goog.require('aws.client');
+goog.require('aws');
 goog.require('aws.RClient');
 goog.require('aws.StataClient');
 goog.require('aws.WeaveClient');
@@ -45,19 +45,19 @@ aws.QueryHandler = function(queryObject)
 				this.visualizations.push( { type : visualization, parameters : queryObject[visualization] });
 			}			
 	}
-	console.log(this.visualizations)	;
 	this.colorColumn = queryObject.colorColumn;
 	
+	console.log(this);
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
 	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
-	this.computationEngine;
+	this.computationEngine = null;
 	if(queryObject.scriptType == 'r') {
 		this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
-	} else if (queryObject.scriptType == 'stata') {
-		// computationEngine = new aws.StataClient();
-	}
+	}// else if (queryObject.scriptType == 'stata') {
+//		// computationEngine = new aws.StataClient();
+//	}
 	this.resultDataSet = "";
 };
 

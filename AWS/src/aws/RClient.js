@@ -1,4 +1,4 @@
-goog.require('aws.client');
+goog.require('aws');
 goog.provide('aws.RClient');
 
 var rServiceURL = '/WeaveServices/RService';

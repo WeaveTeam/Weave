@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -477,14 +478,14 @@ public class DataService extends GenericServlet
 		if (columnIds.size() > 100)
 			columnIds = columnIds.subList(0, 100);
 
-		return DataService.getRows(columnIds, keysArray);
+		return DataService.getRowsFromIdsAndKeys(columnIds, keysArray);
 	}
 	
-	public static WeaveRecordList getRows(List<Integer> columnIds) throws RemoteException
+	public static WeaveRecordList getRowsFromIds(List<Integer> columnIds) throws RemoteException
 	{
-		return getRows(columnIds, null);
+		return getRowsFromIdsAndKeys(columnIds, null);
 	}
-	public static WeaveRecordList getRows(List<Integer> columnIds, String[] keysArray) throws RemoteException
+	public static WeaveRecordList getRowsFromIdsAndKeys(List<Integer> columnIds, String[] keysArray) throws RemoteException
 	{
 		DataConfig dataConfig = getDataConfig();
 		DataEntity[] entities;
@@ -511,7 +512,7 @@ public class DataService extends GenericServlet
 				throw new RemoteException("Specified columns must all have same keyType.");
 		}
 		
-		Object recordData[][] =  new Object[keysArray.length][entities.length];
+		List<Object[]> rows = new Vector<Object[]>();
 		
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		if (keysArray != null)
@@ -579,17 +580,25 @@ public class DataService extends GenericServlet
 					if (keyObj == null)
 						continue;
 					
-					Integer integer = keyMap.get(keyObj);
-					if (integer == null)
+					keyObj = keyObj.toString();
+					
+					if (keyMap.containsKey(keyObj))
+					{
+						rowIndex = keyMap.get(keyObj);
+					}
+					else
 					{
 						// filter the data using keysArray if specified
 						if (keysArray != null)
 							continue;
 						
-						keyMap.put(keyObj.toString(), rowIndex = keyMap.size());
+						// key not seen before, create new row for it
+						rowIndex = rows.size();
+						keyMap.put((String)keyObj, rowIndex);
 					}
-					else
-						rowIndex = integer;
+					
+					while (rows.size() <= rowIndex)
+						rows.add(new Object[entities.length]);
 					
 					if (isNumeric)
 					{
@@ -601,7 +610,7 @@ public class DataService extends GenericServlet
 							value = ((Number)dataObj).doubleValue();
 							// filter the data based on the min,max values
 							if (minValue <= value && value <= maxValue)
-								recordData[rowIndex][colIndex] = value;
+								rows.get(rowIndex)[colIndex] = value;
 						}
 						catch (Exception e)
 						{
@@ -610,11 +619,10 @@ public class DataService extends GenericServlet
 					}
 					else
 					{
-						dataObj = result.rows[i][1];
-						if (dataObj == null)
-							continue;
-						
-						recordData[rowIndex][colIndex] = dataObj;
+						System.out.println(String.format("[%s],[%s]",
+								Arrays.deepToString(new Object[]{"rowIndex","colIndex","result.rows.length","rows.size()","keyMap"}),
+								Arrays.deepToString(new Object[]{rowIndex,colIndex, result.rows.length,rows.size(),keyMap})));
+						rows.get(rowIndex)[colIndex] = result.rows[i][1];
 					}
 				}
 			}
@@ -630,7 +638,7 @@ public class DataService extends GenericServlet
 		}
 		
 		WeaveRecordList result = new WeaveRecordList();
-		result.recordData = recordData;
+		result.recordData = rows.toArray(new Object[rows.size()][]);
 		result.keyType = keyType;
 		result.recordKeys = keysArray;
 		result.attributeColumnMetadata = metadataList;
