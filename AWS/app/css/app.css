@@ -217,3 +217,7 @@ input[type="checkbox"] {
  /* The animation code itself */
  opacity: 1;
 }
+
+.select2-container {
+	width: 100%;
+}
