@@ -108,8 +108,8 @@ package weave.data.AttributeColumns
 		public static const secondaryKeyFilter:LinkableString = new LinkableString();
 		public static const useGlobalMinMaxValues:LinkableBoolean = new LinkableBoolean(true);
 		
-		protected static const _uniqueSecondaryKeys:Array = new Array();
-		public static function get secondaryKeys():Array
+		protected const _uniqueSecondaryKeys:Array = new Array();
+		public function get secondaryKeys():Array
 		{
 			return _uniqueSecondaryKeys;
 		}
