@@ -40,6 +40,15 @@ aws.RClient.prototype.run = function(type, callback) {
 };
 
 /**
+ * This function calls the clearCache function on the servlet.
+ * We do not need an instance of a RClient to call this function.
+ * 
+ */	
+aws.RClient.clearCache() = function() {
+	aws.queryService(rServiceURL,'clearCache');
+}
+
+/**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
  *  @param {Function} callback function that handles the servlet result
@@ -62,7 +71,6 @@ aws.RClient.prototype.runScriptOnSQLdata = function(callback){
 aws.RClient.prototype.getConnectionObject = function(user, passwd,storeConnection){
 	aws.queryService(adminServiceURL, 'getConnectionInfo',[user, passwd, user],storeConnection);
 };
-
 
 /*-----------------CALLBACKS------------------------------------------------------------------*/
 //stores the connection to be used in later R servlet calls
