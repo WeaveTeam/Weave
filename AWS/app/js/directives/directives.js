@@ -39,33 +39,18 @@ angular
 	};
 })
 .directive(
-		'portletPanel',
+		'megaSelect',
 		function() {
 			return {
 				link : function($scope, elem, attr) {
-					$(elem)
-							.addClass(
-									"ui-widget ui-widget-content ui-helper-clearfix ui-corner-all")
-							.find(".portlet-header")
-							.addClass("ui-widget-header ui-corner-all")
-							.prepend(
-									"<span class='ui-icon ui-icon-minusthick'></span>")
-							.end().find(".portlet-content");
-
-					$(elem).find(".portlet-header").click(
-							function() {
-								console.log(element);
-
-								$(elem).find("span").toggleClass(
-										"ui-icon-minusthick")
-										.toggleClass(
-												"ui-icon-plusthick");
-								$(elem).find("span").parents(
-										".portlet:first").find(
-										".portlet-content").toggle();
-							});
-
-				}
+					$(elem).find("select").megaselectlist(	{
+						animate: true, 
+						multiple: true, 
+						animateevent: "click"
+						});
+					
+					}
+			
 			};
 		})
 .directive(
@@ -80,7 +65,7 @@ angular
 				templateUrl: function(tElement, tAttrs){
 					return "tpls/"+tAttrs.paneltype+".tpls.html";
 				},
-				//transclude: true,
+				transclude: true,
 				//template: $templateCache.get('./tpls/genericPortlet.tpls.html'),
 				//controller : indicator +'Ctrl',
 				link: function(scope, element, attrs, controller) {

@@ -187,3 +187,29 @@ input[type="checkbox"] {
 }
 
 
+/** ng-grid styles */
+.gridStyle {
+    border: 1px solid rgb(212,212,212);
+    width: 100%; 
+    height: 300px
+}
+
+.animate-enter {
+ -webkit-transition: height 1s linear all; /* Safari/Chrome */
+ -moz-transition: 1s linear all; /* Firefox */
+ -o-transition: 1s linear all; /* Opera */
+ transition: height 1s linear all; /* IE10+ and Future Browsers */
+ 
+ /* The animation preparation code */
+ opacity: 0;
+}
+ 
+/*
+ Keep in mind that you want to combine both CSS
+ classes together to avoid any CSS-specificity
+ conflicts
+*/
+.animate-enter.animate-enter-active {
+ /* The animation code itself */
+ opacity: 1;
+}

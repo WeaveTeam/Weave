@@ -7,7 +7,11 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.options; // initialize
 	$scope.selection;
-	
+	$scope.gridOptions = {
+			data: 'getOptions',
+			enableCellSelection: true,
+			enableRowSelection: false
+	};
 	
 	// fetch Columns using current dataTable
 	//refreshColumns($scope, queryobj.conn.dataTable);
@@ -21,10 +25,30 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('selection', function(){
 		queryobj[$scope.selectorId] = $scope.selection;
 	});
+	$scope.$watch('gridOptions.selectedItem', function(){
+		queryobj[$scope.selectorId] = $gridOptions.selectedItem;
+	});
+	
 	
 	$scope.$on("refreshColumns", function(e){
 		$scope.options = dataService.giveMeColObjs($scope);
 	});
+	
+	$scope.getOptions;
+	
+	$scope.options.then(function(res){
+		 var arr = $.map(res, function(n){
+			return {"column": n.publicMetadata.title};
+		});	
+		$scope.getOptions = arr;
+	});
+	
+	$scope.showGrid = false;
+	$scope.toggleShowGrid = function(){
+		$scope.showGrid = (!$scope.showGrid);
+	};
+	
+
 	
 /*	$scope.$watch(function(){
 		return queryobj[$scope.selectorId];
