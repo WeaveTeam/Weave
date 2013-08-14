@@ -7,24 +7,59 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.options; // initialize
 	$scope.selection;
-	
+	$scope.gridOptions = {
+			data: 'getOptions',
+			enableCellSelection: true,
+			enableRowSelection: false
+	};
+	$scope.getOptions;
+	function getOpts(res){
+		var arr = $.map(res, function(n){
+			return {"column": n.publicMetadata.title};
+		});	
+		$scope.getOptions = arr;
+		$scope.gridOptions['data'] = "getOptions";
+	}
+	function setSelect(){
+		if(queryobj[$scope.selectorId]){
+			$scope.selection = queryobj[$scope.selectorId];
+			$scope.gridOptions.selectedItem = queryobj[$scope.selectorId];
+		}
+	}
 	
 	// fetch Columns using current dataTable
-	//refreshColumns($scope, queryobj.conn.dataTable);
 	$scope.options = dataService.giveMeColObjs($scope);
+	$scope.options.then(function(res){
+		 getOpts(res);
+		 setSelect();
+	});
 	
-	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj[$scope.selectorId];
-	}
+	
 	
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
 		queryobj[$scope.selectorId] = $scope.selection;
 	});
+	$scope.$watch('gridOptions.selectedItem', function(){
+		queryobj[$scope.selectorId] = $scope.gridOptions.selectedItem;
+	});
+	
 	
 	$scope.$on("refreshColumns", function(e){
 		$scope.options = dataService.giveMeColObjs($scope);
+		getOpts($scope.options);
 	});
+	
+	
+	
+	
+	
+	$scope.showGrid = false;
+	$scope.toggleShowGrid = function(){
+		$scope.showGrid = (!$scope.showGrid);
+	};
+	
+
 	
 /*	$scope.$watch(function(){
 		return queryobj[$scope.selectorId];

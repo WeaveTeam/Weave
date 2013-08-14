@@ -14,7 +14,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.date = new Date();
 	this.author = "UML IVPR AWS Team";
 	this.scriptType = "r";
-	this.dataTable = 1;
+	this.dataTable = 169602;
 	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
 			serverType : 'MySQL',
