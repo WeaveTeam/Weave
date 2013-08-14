@@ -599,7 +599,7 @@ A text editor to change the Session State on the fly.
 							tempValue = getSessionState(childObject);
 							if (tempValue === null || (tempValue as String) === '')
 								tempValue = ' ';
-							if (typeof tempValue is Object)
+							if (typeof tempValue == 'object')
 								continue;
 							var item:Object = {};
 							item[NAME_FIELD] = node.label;
