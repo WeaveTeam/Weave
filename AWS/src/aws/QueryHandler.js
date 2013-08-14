@@ -47,7 +47,6 @@ aws.QueryHandler = function(queryObject)
 	}
 	this.colorColumn = queryObject.colorColumn;
 	
-	console.log(this);
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
 	
 	// check what type of computation engine we have, to create the appropriate

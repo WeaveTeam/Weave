@@ -24,6 +24,10 @@
 	<br> <label>Import JSON</label> <input type="file"
 		id="queryImport" ng-submit="uploadQuery()" />
 	<button id="run" class="btn btn-primary">Run Query</button>
+	<br>
+	<div id="busyIndicator">
+		busy...
+	</div>
 	<script>
 	var importedobjectfromjson;
 		$('#run').click(function() {
@@ -37,5 +41,13 @@
 			}
 			reader.readAsText(file);
 		});
-		</script>
+	aws.addBusyListener(function(numRpcCalls){
+		if(numRpcCalls) {
+			$('#busyIndicator').show();
+		} else {
+			$('#busyIndicator').hide();
+		}
+		
+	})	
+	</script>
 </div>
