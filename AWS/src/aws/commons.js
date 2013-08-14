@@ -60,7 +60,6 @@ aws.queryObject;
  */
 aws.DataEntity;
 
-
 /**
  * This function is a wrapper for making a request to a JSON RPC servlet
  * 
@@ -69,6 +68,7 @@ aws.DataEntity;
  * @param {?Array|Object} params An array of object to be passed as parameters to the method 
  * @param {Function} resultHandler A callback function that handles the servlet result
  * @param {string|number=}queryId
+ * @see aws.addBusyListener
  */
 aws.queryService = function(url, method, params, resultHandler, queryId)
 {
@@ -79,17 +79,62 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         params: params
     };
     
+    aws.activeQueryCount++;
+    aws.broadcastBusyStatus();
+    
     $.post(url, JSON.stringify(request), handleResponse, "json");
 
     function handleResponse(response)
     {
+    	aws.activeQueryCount--;
+    	aws.broadcastBusyStatus();
+    	
         if (response.error)
-        {   console.log(JSON.stringify(response, null, 3));}
+        {
+        	console.log(JSON.stringify(response, null, 3));
+        }
         else if (resultHandler){
         	console.log("about to call result handler" + resultHandler.toString());
             return resultHandler(response.result, queryId);
         }
     }
+};
+
+/**
+ * @see aws.queryService
+ * @see aws.addBusyListener
+ * @private
+ * @type {number}
+ */
+aws.activeQueryCount = 0;
+
+/**
+ * @see aws.queryService
+ * @see aws.addBusyListener
+ * @private
+ * @type {Array.<function(number)>}
+ */
+aws.rpcBusyListeners = [];
+
+/**
+ * @see aws.queryService
+ * @see aws.addBusyListener
+ * @private
+ */
+aws.broadcastBusyStatus = function()
+{
+	aws.rpcBusyListeners.forEach(function(listener){ listener(aws.activeQueryCount); });
+};
+
+/**
+ * Adds a listener that will receive a number corresponding to the number of active RPC calls.
+ * @param {function(number)} callback Receives a number corresponding to the number of active RPC calls.
+ * @return {void}
+ * @see aws.queryService
+ */
+aws.addBusyListener = function(callback)
+{
+	aws.rpcBusyListeners.push(callback);
 };
 
 /**
