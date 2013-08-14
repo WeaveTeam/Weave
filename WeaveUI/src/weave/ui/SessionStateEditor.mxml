@@ -79,6 +79,7 @@ A text editor to change the Session State on the fly.
 					<mx:HBox width="100%">
 						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
 									 selected="true"/>
+						<mx:CheckBox id="useJSON" label="{lang('Edit as JSON')}" click="loadSessionStateInView()" selected="false"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
 					</mx:HBox>
@@ -571,7 +572,7 @@ A text editor to change the Session State on the fly.
 					}
 					else
 					{
-						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"SessionState");
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState, "SessionState", useJSON.selected);
 						textEditor.text = _currentSessionStateXML.children().toXMLString();
 						
 						var xmlCopy:XML = _currentSessionStateXML.copy();
@@ -598,6 +599,8 @@ A text editor to change the Session State on the fly.
 							tempValue = getSessionState(childObject);
 							if (tempValue === null || (tempValue as String) === '')
 								tempValue = ' ';
+							if (typeof tempValue is Object)
+								continue;
 							var item:Object = {};
 							item[NAME_FIELD] = node.label;
 							item[VALUE_FIELD] = tempValue.toString();
