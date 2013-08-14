@@ -1,6 +1,6 @@
 function(objectID)
 {
-	var weave = objectID ? document.getElementById(objectID) : document;
+	var weave = objectID ? document.getElementById(objectID) : document.body.firstChild;
 	// init event handlers
 	weave.addEventListener("dragenter", dragEnter, false);
 	weave.addEventListener("dragexit", dragExit, false);
