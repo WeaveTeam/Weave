@@ -2,7 +2,7 @@
  * Left Panel Module LeftPanelCtrl - Manages the model for the left panel.
  */
 angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
-		function($scope, $location, queryobj) {
+		function($scope, $location, queryobj, $q) {
 			$scope.isActive = function(route) {
 				return route == $location.path();
 			};
@@ -22,6 +22,16 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 				}
 				reader.readAsText(file);
 			});
+			
+			$scope.shouldShow = false;
+			
+			var setCount = function(res){
+				$scope.shouldShow = res;
+			};
+			
+			
+			aws.addBusyListener(setCount);
+		
 });
 
 function saveJSON(query) {

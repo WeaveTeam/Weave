@@ -25,7 +25,7 @@
 		id="queryImport" ng-submit="uploadQuery()" />
 	<button id="run" class="btn btn-primary">Run Query</button>
 	<br>
-	<img id="busyIndicator" src="img/busy.gif"/>
+	<img id="busyIndicator" src="img/busy.gif" ng-show='shouldShow'/>
 
 	<script>
 	var importedobjectfromjson;
@@ -40,13 +40,5 @@
 			}
 			reader.readAsText(file);
 		});
-	aws.addBusyListener(function(numRpcCalls){
-		if(numRpcCalls) {
-			$('#busyIndicator').show();
-		} else {
-			$('#busyIndicator').hide();
-		}
-		
-	})	
 	</script>
 </div>
