@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -63,6 +64,7 @@ import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 /**
@@ -89,6 +91,30 @@ public class DataService extends GenericServlet
 	@Override
 	protected Object cast(Object value, Class<?> type)
 	{
+		if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
+		{
+			FilteredColumnRequest fcr = new FilteredColumnRequest();
+			fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
+			fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
+			if (fcr.filters != null)
+				for (int i = 0; i < fcr.filters.length; i++)
+				{
+					Object item = fcr.filters[i];
+					if (item != null && item.getClass() == ArrayList.class)
+						fcr.filters[i] = cast(item, Object[].class);
+				}
+			return fcr;
+		}
+		if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
+		{
+			Object[] input = (Object[]) value;
+			FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
+			for (int i = 0; i < input.length; i++)
+			{
+				output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
+			}
+			value = output;
+		}
 		if (type == DataEntityMetadata.class && value != null && value instanceof Map)
 		{
 			return DataEntityMetadata.fromMap((Map)value);
@@ -478,15 +504,46 @@ public class DataService extends GenericServlet
 		if (columnIds.size() > 100)
 			columnIds = columnIds.subList(0, 100);
 
-		return DataService.getRowsFromIdsAndKeys(columnIds, keysArray);
+		FilteredColumnRequest[] requestedColumns = new FilteredColumnRequest[columnIds.size()];
+		for (int i = 0; i < requestedColumns.length; i++)
+		{
+			FilteredColumnRequest fcr = new FilteredColumnRequest();
+			fcr.id = columnIds.get(i);
+			requestedColumns[i] = fcr;
+		}
+		return DataService.getFilteredRows(requestedColumns, keysArray);
 	}
 	
-	public static WeaveRecordList getRowsFromIds(List<Integer> columnIds) throws RemoteException
+	public class FilteredColumnRequest
 	{
-		return getRowsFromIdsAndKeys(columnIds, null);
+		public int id;
+		
+		/**
+		 * Either [[min,max],[min2,max2],...] for numeric values or ["a","b",...] for string values.
+		 */
+		public Object[] filters;
 	}
-	public static WeaveRecordList getRowsFromIdsAndKeys(List<Integer> columnIds, String[] keysArray) throws RemoteException
+	
+//	public WeaveRecordList getFilteredData(FilteredColumnRequest[] columns) throws RemoteException
+//	{
+//		return getFilteredRows(columns, null);
+//	}
+	
+	/*
+	
+	[
+		{id: 1, filters: ["a","b"]},
+		{id: 2, filters: [[min,max],[min2,max2]]}
+	]
+	
+	 */
+	
+	public static WeaveRecordList getFilteredRows(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
 	{
+		List<Integer> columnIds = new Vector<Integer>();
+		for (FilteredColumnRequest fcr : columns)
+			columnIds.add(fcr.id);
+		
 		DataConfig dataConfig = getDataConfig();
 		DataEntity[] entities;
 		{
@@ -512,17 +569,16 @@ public class DataService extends GenericServlet
 				throw new RemoteException("Specified columns must all have same keyType.");
 		}
 		
-		List<Object[]> rows = new Vector<Object[]>();
-		
-		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
+		HashMap<String,Object[]> data = new HashMap<String,Object[]>();
 		if (keysArray != null)
 			for (String key : keysArray)
-				keyMap.put(key, keyMap.size());
+				data.put(key, new Object[entities.length]);
 		
 		@SuppressWarnings("unchecked")
 		Map<String,String> metadataList[] = new Map[entities.length];
 		for (int colIndex = 0; colIndex < entities.length; colIndex++)
 		{
+			Object[] filters = columns[colIndex].filters;
 			DataEntity info = entities[colIndex];
 			String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 			String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
@@ -556,6 +612,7 @@ public class DataService extends GenericServlet
 			try
 			{
 				//timer.start();
+				boolean errorReported = false;
 				
 				Connection conn = getColumnConnectionInfo(info).getStaticReadOnlyConnection();
 				String[] sqlParamsArray = null;
@@ -572,57 +629,121 @@ public class DataService extends GenericServlet
 				boolean isNumeric = dataType != null && dataType.equalsIgnoreCase(DataType.NUMBER);
 				
 				Object keyObj, dataObj;
-				double value;
-				int rowIndex;
-				for (int i = 0; i < result.rows.length; i++)
+				for (int iRow = 0; iRow < result.rows.length; iRow++)
 				{
-					keyObj = result.rows[i][0];
-					if (keyObj == null)
-						continue;
+					keyObj = result.rows[iRow][0];
+					dataObj = result.rows[iRow][1];
 					
+					if (keyObj == null || dataObj == null)
+						continue;
 					keyObj = keyObj.toString();
 					
-					if (keyMap.containsKey(keyObj))
+					if (data.containsKey(keyObj))
 					{
-						rowIndex = keyMap.get(keyObj);
+						// if row has been set to null, skip
+						if (data.get(keyObj) == null)
+							continue;
 					}
 					else
 					{
-						// filter the data using keysArray if specified
+						// if keys are specified and row is not present, skip
 						if (keysArray != null)
 							continue;
+					}
+					
+					try
+					{
+						boolean passedFilters = true;
 						
-						// key not seen before, create new row for it
-						rowIndex = rows.size();
-						keyMap.put((String)keyObj, rowIndex);
-					}
-					
-					while (rows.size() <= rowIndex)
-						rows.add(new Object[entities.length]);
-					
-					if (isNumeric)
-					{
-						dataObj = result.rows[i][1];
-						if (dataObj == null)
-							continue;
-						try
+						// convert the data to the appropriate type, then filter by value
+						if (isNumeric)
 						{
-							value = ((Number)dataObj).doubleValue();
-							// filter the data based on the min,max values
-							if (minValue <= value && value <= maxValue)
-								rows.get(rowIndex)[colIndex] = value;
+							if (dataObj instanceof Number) // TEMPORARY SOLUTION - FIX ME
+							{
+								double doubleValue = ((Number)dataObj).doubleValue();
+								// filter the data based on the min,max values
+								if (minValue <= doubleValue && doubleValue <= maxValue)
+								{
+									// filter the value
+									if (filters != null)
+									{
+										passedFilters = false;
+										for (Object range : filters)
+										{
+											Number min = (Number)((Object[])range)[0];
+											Number max = (Number)((Object[])range)[1];
+											if (min.doubleValue() <= doubleValue && doubleValue <= max.doubleValue())
+											{
+												passedFilters = true;
+												break;
+											}
+										}
+									}
+								}
+								else
+									passedFilters = false;
+							}
+							else
+								passedFilters = false;
 						}
-						catch (Exception e)
+						else
 						{
-							// ignore error and treat as missing data
+							String stringValue = dataObj.toString();
+							dataObj = stringValue;
+							// filter the value
+							if (filters != null)
+							{
+								passedFilters = false;
+								for (Object filter : filters)
+								{
+									if (filter.equals(stringValue))
+									{
+										passedFilters = true;
+										break;
+									}
+								}
+							}
+						}
+						
+						Object[] row = data.get(keyObj);
+						
+						if (passedFilters)
+						{
+							// add existing row if it has not been added yet
+							if (!data.containsKey(keyObj))
+							{
+								for (int i = 0; i < colIndex; i++)
+								{
+									Object[] prevFilters = columns[i].filters;
+									if (prevFilters != null)
+									{
+										passedFilters = false;
+										break;
+									}
+								}
+								if (passedFilters)
+									row = new Object[entities.length];
+								
+								data.put((String)keyObj, row);
+							}
+							
+							if (row != null)
+								row[colIndex] = dataObj;
+						}
+						else
+						{
+							// remove existing row if value did not pass filters
+							if (row != null || !data.containsKey(keyObj))
+								data.put((String)keyObj, null);
 						}
 					}
-					else
+					catch (Exception e)
 					{
-						System.out.println(String.format("[%s],[%s]",
-								Arrays.deepToString(new Object[]{"rowIndex","colIndex","result.rows.length","rows.size()","keyMap"}),
-								Arrays.deepToString(new Object[]{rowIndex,colIndex, result.rows.length,rows.size(),keyMap})));
-						rows.get(rowIndex)[colIndex] = result.rows[i][1];
+						if (!errorReported)
+						{
+							errorReported = true;
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -637,8 +758,21 @@ public class DataService extends GenericServlet
 			}
 		}
 		
+		if (keysArray == null)
+		{
+			LinkedList<String> keys = new LinkedList<String>();
+			for (Entry<String,Object[]> entry : data.entrySet())
+				if (entry.getValue() != null)
+					keys.add(entry.getKey());
+			keysArray = keys.toArray(new String[keys.size()]);
+		}
+		
+		Object[][] rows = new Object[keysArray.length][];
+		for (int iKey = 0; iKey < keysArray.length; iKey++)
+			rows[iKey] = data.get(keysArray[iKey]);
+		
 		WeaveRecordList result = new WeaveRecordList();
-		result.recordData = rows.toArray(new Object[rows.size()][]);
+		result.recordData = rows;
 		result.keyType = keyType;
 		result.recordKeys = keysArray;
 		result.attributeColumnMetadata = metadataList;
