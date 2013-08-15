@@ -89,9 +89,12 @@
 		{
 			var internalColumn:SecondaryKeyNumColumn = dimensionColumn.getInternalColumn() as SecondaryKeyNumColumn;
 			if (internalColumn)
+			{
 				addToListOfDims(ref);
+				return internalColumn.secondaryKeys;
+			}
 		}
-		return internalColumn.secondaryKeys;
+		return [];
 	}
 
 	/**
