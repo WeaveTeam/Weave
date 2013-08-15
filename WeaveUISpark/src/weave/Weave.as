@@ -522,7 +522,7 @@ package weave
 		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
 		private static const WeavePath:Class;
 
-		public static function initJavaScriptDragDrop():void
+		public static function initWeavePathAPI():void
 		{
 			if (!ExternalInterface.available)
 				return;

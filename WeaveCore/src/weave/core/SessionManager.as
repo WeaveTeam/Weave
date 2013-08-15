@@ -1592,7 +1592,7 @@ package weave.core
 					typedState = oldState[i];
 					
 					// if we see a string in oldState, assume both oldState and newState are String Arrays.
-					if (typedState is String || typedState is Array)
+					if (typeof typedState != 'object' || typedState is Array)
 					{
 						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
 							return undefined; // no diff
@@ -1614,7 +1614,7 @@ package weave.core
 					typedState = newState[i];
 					
 					// if we see a string, assume both are String Arrays.
-					if (typedState is String || typedState is Array)
+					if (typeof typedState != 'object' || typedState is Array)
 					{
 						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
 							return undefined; // no diff

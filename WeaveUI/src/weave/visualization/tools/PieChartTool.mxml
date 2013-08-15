@@ -33,6 +33,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
@@ -68,6 +69,7 @@
 						break;
 					}
 				}
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 
 				_plotter.data.addImmediateCallback(this, updateProbeColumns, true);
 				
@@ -77,23 +79,97 @@
 				visualization.plotManager.marginRight.value = "85";
 			}
 			
-			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
+			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
+			{
+				handleSelectAllAttrInProbe(value);
+			}
+			
+			private function handleSelectAllAttrInProbe(setAll:Boolean):void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var valuesToSet:Array = [];
+				if(setAll)
+				{
+					for each (var name:String in attributes)
+					{
+						valuesToSet.push(true);
+					}
+				}
+				else
+				{
+					for each (var name2:String in attributes)
+					{
+						valuesToSet.push(false);
+					}
+				}
+				attributesToIncludeInProbe.setSessionState(valuesToSet);
+			}
 			
 			private function updateProbeColumns():void
 			{
-				if(includeToolAttributesInProbe.value)
+				/* first check to see if select all should be disabled or not */
+				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				
+				if(attributesChecklist)
 				{
-					visualization.additionalProbeColumns = [];
-					if (_plotter.data.getInternalColumn())
-						visualization.additionalProbeColumns.push(_plotter.data.getInternalColumn());
-					if (colorColumn.getInternalColumn())	
-						visualization.additionalProbeColumns.push(colorColumn);
-					if (visualization.additionalProbeColumns.length == 0)
-						visualization.additionalProbeColumns = null;
+					if(attrToIncludeCheckList.indexOf(false) > -1)
+					{
+						probeColumnsCheckBox.selected = false;
+					}
+					else
+					{
+						probeColumnsCheckBox.selected = true;
+					}
+				}
+				
+				
+				var attributes:Array = getSelectableAttributes();
+				var columns:Array = [];
+				
+				var datColIndex:int = attributes.indexOf(_plotter.data);
+				if (_plotter.data.getInternalColumn() && attrToIncludeCheckList[datColIndex])
+					columns.push(_plotter.data.getInternalColumn());
+				
+				var colorColIndex:int = attributes.indexOf(colorColumn);
+				if (colorColumn.getInternalColumn() && attrToIncludeCheckList[colorColIndex])	
+					columns.push(colorColumn);
+				
+				var labelColIndex:int = attributes.indexOf(_plotter.label);
+				if (_plotter.label.getInternalColumn() && attrToIncludeCheckList[labelColIndex])	
+					columns.push(_plotter.label.getInternalColumn());
+				
+				
+				if(columns.length>0)
+				{
+					visualization.additionalProbeColumns = columns;
 				}
 				else
+				{
 					visualization.additionalProbeColumns = null;
+				}
+				
+				if(attributesChecklist)
+				{
+					updateAttributesChecklist();
+				}
+				
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
+			}
+			
+			private function updateAttributesChecklist():void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				var temp:Array = [];
+				for (var i:int = 0; i < attributes.length; i++)
+				{
+					var obj:Object = new Object();
+					obj.label = attributes[i];
+					obj.selected = attrCheckList[i];
+					temp.push(obj);
+				}
+				attributesChecklist.dataProvider = temp;
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -123,9 +199,6 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Pie Chart')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
@@ -142,6 +215,32 @@
 						snapInterval="0.05" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						creationComplete="linkBindableProperty(_plotter.innerRadius, event.target, 'value')"/>
 			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="{lang('Probe')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+							
+							<mx:Script>
+								<![CDATA[
+									private function handleSelectionChange():void
+									{
+										data.selected = this.selected;
+										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
+										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
+										currentState[index]= this.selected;
+										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
+									}
+								]]>
+							</mx:Script>
+						</mx:CheckBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

@@ -19,11 +19,13 @@
 
 package weave.core
 {
+	import flash.external.ExternalInterface;
 	import flash.xml.XMLDocument;
 	import flash.xml.XMLNode;
 	import flash.xml.XMLNodeType;
 	
 	import mx.rpc.xml.SimpleXMLEncoder;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
@@ -50,9 +52,13 @@ package weave.core
 		 * @param object An object to encode in xml.
 		 * @return The xml encoding of the object.
 		 */
-		public static function encode(object:Object, tagName:*):XML
+		public static function encode(object:Object, tagName:*, useJSON:Boolean = false):XML
 		{
-			var result:XMLNode = _xmlEncoder.encodeValue(object, QName(tagName), _encodedXML);
+			var result:XMLNode;
+			if (useJSON)
+				result = _xmlEncoder.encodeJSON(object, QName(tagName), _encodedXML);
+			else
+				result = _xmlEncoder.encodeValue(object, QName(tagName), _encodedXML);
 			result.removeNode();
 			return XML(result);
 		}
@@ -106,21 +112,28 @@ package weave.core
 						encoding = CSVROW_ENCODING;
 						break;
 					}
+					if (typeof item != 'object')
+					{
+						var jsonNode:XMLNode = encodeJSON(obj, qname, parentNode);
+						if (jsonNode == null)
+							reportError("Unable to encode Array as XML: " + ObjectUtil.toString(obj));
+						return jsonNode;
+					}
 				}
 				
 				var arrayNode:XMLNode = new XMLNode(XMLNodeType.ELEMENT_NODE, qname.localName);
 				arrayNode.attributes["encoding"] = encoding;
 				
-				if (encoding != DYNAMIC_ENCODING) // CSV or CSVROW
+				if (encoding == DYNAMIC_ENCODING)
+				{
+					for (var i:int = 0; i < array.length; i++)
+						encodeValue(array[i], null, arrayNode);
+				}
+				else // CSV or CSVROW
 				{
 					var csvString:String = WeaveAPI.CSVParser.createCSV(array);
 					var textNode:XMLNode = new XMLNode(XMLNodeType.TEXT_NODE, csvString);
 					arrayNode.appendChild(textNode);
-				}
-				else
-				{
-					for (var i:int = 0; i < array.length; i++)
-						encodeValue(array[i], null, arrayNode);
 				}
 				parentNode.appendChild(arrayNode);
 				return arrayNode;
@@ -161,19 +174,29 @@ package weave.core
 			}
 			catch (e:Error)
 			{
-				// bad xml
+				var badNode:XMLNode = node;
 				node.removeNode();
 				
-				var str:String = '';
-				var json:Object = ClassUtils.getClassDefinition('JSON');
-				if (json)
-					str = json.stringify(obj, null, 4);
-				else
-					reportError("XMLEncoder: Unable to convert XMLNode to XML: " + node.toString());
-				
-				node = super.encodeValue(str, qname, parentNode);
-				node.attributes["encoding"] = JSON_ENCODING;
+				node = encodeJSON(obj, qname, parentNode);
+				if (node == null)
+					reportError("XMLEncoder: Unable to convert XMLNode to XML: " + badNode.toString());
 			}
+			return node;
+		}
+		
+		private function encodeJSON(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
+		{
+			var str:String;
+			var json:Object = ClassUtils.getClassDefinition('JSON');
+			if (!json)
+				str = json.stringify(obj, null, 2);
+			else if (ExternalInterface.available)
+				str = ExternalInterface.call('JSON.stringify', obj, null, 2);
+			else
+				return null;
+			
+			var node:XMLNode = super.encodeValue(str, qname, parentNode);
+			node.attributes["encoding"] = JSON_ENCODING;
 			return node;
 		}
 		

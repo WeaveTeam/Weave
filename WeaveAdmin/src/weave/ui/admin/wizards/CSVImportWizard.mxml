@@ -42,7 +42,7 @@
 		</mx:VBox>
 	</mx:VBox>
 	
-	<mx:VBox id="optionalSettingsPage" horizontalScrollPolicy="off" label="{lang('Configure data for Weave')}">
+	<mx:VBox id="optionalSettingsPage" label="{lang('Configure data for Weave')}">
 		<ui:Indent label="{lang('Table display name')}">
 			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
 			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
@@ -59,7 +59,7 @@
 				This will generate a new unique key for each row.  It is the simplest option, but will not allow you to link the data to other data sets.
 			</ui:HelpComponent>
 		</mx:HBox>
-		<mx:VBox paddingLeft="{paddingIndent}" visible="{!generateKeyColumnCheckBox.selected}">
+		<mx:VBox paddingLeft="{paddingIndent}" width="100%" visible="{!generateKeyColumnCheckBox.selected}">
 			<ui:Indent label="{lang('Key column')}" grouped="false">
 				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true"/><!-- editable because user may have typed in a file name manually -->
 				<ui:HelpComponent>
@@ -89,8 +89,8 @@
 					Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<ui:Indent label="{lang('Columns to use as filters')}" paddingLeft="{paddingIndent}" visible="{generateFilterColumnsCheckBox.selected}">
-				<mx:TextInput id="filterColumnsInput"/>
+			<ui:Indent label="{lang('Columns to use as filters')}" paddingLeft="{paddingIndent}" width="100%" visible="{generateFilterColumnsCheckBox.selected}">
+				<mx:TextInput id="filterColumnsInput" width="100%"/>
 				<ui:HelpComponent>
 					Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
 				</ui:HelpComponent>

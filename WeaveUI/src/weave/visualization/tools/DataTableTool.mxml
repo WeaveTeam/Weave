@@ -85,17 +85,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
-			import mx.controls.Alert;
-			import mx.controls.DataGrid;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
 			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
-			import mx.events.ResizeEvent;
 			import mx.events.ListEvent;
-
+			import mx.events.ResizeEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -103,12 +100,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnWrapper;
-			import weave.api.data.IPrimitiveColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -125,7 +119,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ImageColumn;
 			import weave.data.AttributeColumns.KeyColumn;
-			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
@@ -168,7 +161,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
-			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000), updateKeysColumnsDataProviderAndSelection);
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
 			
 			override protected function constructor():void
 			{
@@ -280,7 +273,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					updateKeyTypeComboBox();
 					updateDataGridColumns();					
 				}
-				if (detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType) || columnsChanged)
+				if (detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType, maxRows) || columnsChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
 				}
@@ -291,10 +284,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (detectLinkableObjectChange(updateDisplayList, columnWidths))
 				{
 					updateColumnWidths();
-				}
-				if (detectLinkableObjectChange(updateDisplayList, _subset))
-				{
-					showFilters.value = false;
 				}
 				if (detectLinkableObjectChange(updateDisplayList, showFilters))
 				{
