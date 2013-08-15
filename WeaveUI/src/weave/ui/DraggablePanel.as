@@ -32,11 +32,7 @@ package weave.ui
 	import spark.components.supportClasses.ButtonBase;
 	
 	import weave.Weave;
-	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableOwner;
 	import weave.api.newDisposableChild;
@@ -44,6 +40,9 @@ package weave.ui
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -250,7 +249,6 @@ package weave.ui
 			
 			getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 			Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
-			Weave.properties.dashboardModeWithBorders.addGroupedCallback(this, handleDashboardModeWithBorders);
 			Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 			getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 		}
@@ -551,19 +549,10 @@ package weave.ui
 			}
 		}
 		
-		private function handleDashboardModeWithBorders():void
-		{
-			var val:Boolean = !Weave.properties.dashboardModeWithBorders.value;
-			minimizable.value = maximizable.value = closeable.value = pinnable.value = enableMoveResize.value= val;
-			Weave.properties.enableToolControls.value = val;
-		}
-		
 		private function panelNeedsUpdate():void
 		{
 			if (!parent)
 				return;
-			
-			enableBorders.value = !Weave.properties.dashboardMode.value;
 			
 			// disable highlight when borders are disabled (avoids display bug when corners are rounded)
 			setStyle('highlightAlphas', enableBorders.value ? undefined : [0,0]);
