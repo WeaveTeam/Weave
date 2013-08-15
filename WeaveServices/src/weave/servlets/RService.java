@@ -42,6 +42,7 @@ import weave.beans.RResult;
 import weave.beans.RequestObject;
 import weave.config.WeaveContextParams;
 import weave.config.ConnectionConfig.ConnectionInfo;
+import weave.utils.CommandUtils;
 import weave.utils.DebugTimer;
 
 import weave.utils.SQLUtils;
@@ -62,6 +63,8 @@ import static weave.config.WeaveConfig.getConnectionConfig;
 import static weave.config.WeaveConfig.getDataConfig;
 import static weave.config.WeaveConfig.initWeaveConfig;
  
+import weave.servlets.DataService;
+
 public class RService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
@@ -333,6 +336,58 @@ public class RService extends GenericServlet
 		 
 	}
 	
+	public int startRServe(String OSType, String RServePath) throws IOException {
+		// TODO Auto-generated method stub
+		int status = -9999;
+		if (OSType.equals("Windows")) 
+		{
+			String[] args = {RServePath};
+			try 
+			{
+				status = CommandUtils.runCommand(args);
+			} catch (Exception e) 
+			
+			{
+				e.printStackTrace();
+			}
+		}
+		else 
+		{
+			String[] args = {"R", "CMD", "RServe", "--vanilla"};
+			try {
+				status = CommandUtils.runCommand(args);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		return status;
+	}
+	
+	public int stopRServe(String OSType) throws IOException {
+		int status = -9999;
+		if (OSType.equals("Windows")) 
+		{
+			String[] args = {"Taskkill", "/IM", "RServe.exe"};
+			try 
+			{
+				status = CommandUtils.runCommand(args);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			String[] args = {"killall", "RServe"};
+			try {
+				status = CommandUtils.runCommand(args);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return status;
+	}
+
 	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) 
 	{
 		RResult[] returnedColumns;
@@ -342,9 +397,10 @@ public class RService extends GenericServlet
 		String cannedScript = scriptPath + scriptName;
 		
 		String[] inputNames = {"cannedScriptPath", "dataset"};
-		FilterColumnRequest filterColumnRequest = requestObject.get("filteredColumnsRequest");
 		
-		Object[][] recordData = getRows(filterColumnRequest);
+		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
+		
+		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
 
 		Object[] inputValues = {cannedScript, recordData};
 		

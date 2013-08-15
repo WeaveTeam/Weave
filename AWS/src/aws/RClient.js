@@ -51,6 +51,31 @@ aws.RClient.clearCache = function() {
 }
 
 /**
+ * This function calls the startRServe function on the servlet
+ * It finds out the right version of the OS and calls the appropriate
+ * command on the server.
+ * @param {string} OSType the type of operating system "Windows" | "Unix"
+ * @param {string} RServePath the Path to RServe
+ * @param {Function} callback callback function
+ */
+aws.RClient.startRServe = function(OSType, RServePath, callback) {
+	// we can use the call back to handle whether or not the service was started.
+	aws.queryService(rServiceURL, 'startRServe', [OSType, RServePath], callback);
+}
+
+/**
+ * This function calls the stopRServe function on the servlet
+ * It finds out the right version of the OS and calls the appropriate
+ * command on the server.
+ * @param {string} OSType the type of operating system "Windows" | "Unix"s
+ * @param {Function} callback callback function
+ */
+aws.RClient.stopRServe = function(OSType, callback) {
+	// we can use the call back to handle whether or not the service was started.
+	aws.queryService(rServiceURL, 'stopRServe', [OSType], callback);
+}
+
+/**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
  *  @param {Function} callback function that handles the servlet result
