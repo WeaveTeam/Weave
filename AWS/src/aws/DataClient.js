@@ -52,4 +52,3 @@ aws.DataClient.getEntityIdsByMetadata = function(meta, handleResult){
 	// Assuming we want a column back, the dataEntity Type should be 1.
 	aws.queryService(dataServiceURL, "getEntityIdsByMetadata", [meta, 1], handleResult);
 };
-

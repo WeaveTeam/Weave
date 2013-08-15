@@ -4,10 +4,12 @@ goog.provide('aws.RClient');
 var rServiceURL = '/WeaveServices/RService';
 var adminServiceURL = '/WeaveServices/AdminService';
 
+
+
 //parameters sent from the QueryHandler.js
 /** 
  * @param {Object} connectionObject required for R to make a connection to the db; given by the QueryHandler.js
- * @constructor {Object} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
+ * @constructor {aws.rDataRequestObject} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
  */
 aws.RClient = function(connectionObject, rDataRequestObject){
 	
@@ -45,7 +47,7 @@ aws.RClient.prototype.run = function(type, callback) {
  * 
  */	
 aws.RClient.clearCache = function() {
-	aws.queryService(rServiceURL,'clearCache');
+	aws.queryService(rServiceURL,'clearCache', null, null);
 }
 
 /**
@@ -94,5 +96,17 @@ aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
 	//construct a query and pull out the results using point # 1
 	//display in viz
 };
+
+/**
+ *  This function mirrors the runScriptWithFilteredColumns function on the RService. It runs a script using R and getting the filtered columns using Java..
+ * 
+ *  @param {Function} callback function that handles the servlet result
+ *	@return void.
+ *
+ */
+aws.RClient.prototype.runScriptWithFilteredColumns = function(callback) {
+	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', this.rDataRequestObject, callback);
+}
+
 
 

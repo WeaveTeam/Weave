@@ -333,6 +333,30 @@ public class RService extends GenericServlet
 		 
 	}
 	
+	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) 
+	{
+		RResult[] returnedColumns;
+		
+		String scriptPath = requestObject.get("scriptPath").toString();
+		String scriptName = requestObject.get("scriptName").toString();
+		String cannedScript = scriptPath + scriptName;
+		
+		String[] inputNames = {"cannedScriptPath", "dataset"};
+		FilterColumnRequest filterColumnRequest = requestObject.get("filteredColumnsRequest");
+		
+		Object[][] recordData = getRows(filterColumnRequest);
+
+		Object[] inputValues = {cannedScript, recordData};
+		
+		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+					         "dataSet <- data.frame(recordData)"; 
+		
+		String[] outputNames = {};
+		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript,"", false, false, false);
+		
+		return returnedColumns;
+		
+	}
 	
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{

@@ -61,6 +61,20 @@ aws.queryObject;
 aws.DataEntity;
 
 /**
+ * @typedef{{
+ * 				
+ * 		columnsToBeRetrieved : Array.<string>,
+ *		scriptPath : string,
+ *		scriptName : string,
+ * 		filteredColumnRequest : {
+ * 			id: number,
+ * 			filter: (Array.<string> | Array.<Array.<number>>)
+ * 		}
+ * }}
+ */
+aws.rDataRequestObject;
+
+/**
  * This function is a wrapper for making a request to a JSON RPC servlet
  * 
  * @param {string} url
