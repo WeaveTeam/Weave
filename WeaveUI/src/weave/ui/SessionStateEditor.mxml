@@ -64,17 +64,22 @@ A text editor to change the Session State on the fly.
 							<mx:HBox width="100%">
 								<mx:Label id="firstLine" fontFamily="_typewriter"/>
 								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy" click="copyToClipboard();"/>
+								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
+								<mx:Button label="Copy state" click="copyToClipboard();"/>
 							</mx:HBox>
 							<mx:TextArea id="textEditor" wordWrap="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%"/>
 							<mx:Label id="lastLine" fontFamily="_typewriter"/>
 						</mx:VBox>
-						<mx:Canvas width="100%" height="100%">
+						<mx:VBox width="100%" height="100%">
+							<mx:HBox width="100%">
+								<mx:Spacer width="100%"/>
+								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
+							</mx:HBox>
 							<mx:DataGrid id="gridEditor" wordWrap="false" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
 										 horizontalScrollPolicy="auto" variableRowHeight="false" rowHeight="24"/> 
-						</mx:Canvas>
+						</mx:VBox>
 					</mx:ViewStack>
 					<mx:HBox width="100%">
 						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
@@ -99,7 +104,6 @@ A text editor to change the Session State on the fly.
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.INavigatorContent;
-			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
@@ -120,6 +124,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
+			import weave.compiler.Compiler;
 			import weave.core.DynamicState;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -461,15 +466,6 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
-			private function getItemLabel(item:Object):String
-			{
-				var node:XML = XML(item);
-				
-				if (node.@name.toString() != "")
-					return node.@name.toString();
-				else
-					return node.name().toString();
-			}
 			private function confirmDeleteSelectedItem(event:KeyboardEvent):void
 			{
 				if (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE)
@@ -747,6 +743,16 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			private function copyPathToClipboard():void
+			{
+				var path:Array = sessionNav.getSelectedPath().map(
+					function(item:*, i:*, a:*):*
+					{
+						return item ? Compiler.encodeString(item) : 'null';
+					}
+				);
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, "[" + path.join(", ") + "]");
+			}
 			private function copyToClipboard():void
 			{
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, textEditor.text);
