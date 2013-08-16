@@ -8,8 +8,9 @@
 </div>
 <div class="portlet-content">
 
-	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Enable Map Tool?</br>
-	Map to use: <select ng-model="selection" >
+	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Enable Map Tool</br>
+	Map to use: <select ui-select2 ng-model="selection" >
+					<option></option>
 					<option value="{{$index}}" ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
 				</select>
 	

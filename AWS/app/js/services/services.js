@@ -26,7 +26,8 @@ angular.module("aws.services", []).service("queryobj", function() {
 			schema : 'data'
 	};
 })
-.service("scriptobj",['queryobj'], function(queryobj){
+
+angular.module("aws.services").service("scriptobj", ['queryobj', function(queryobj){
 	this.scriptMetadata = {
 			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
 			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
@@ -37,7 +38,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 			$scope.availableScripts = result;
 		});
 	};
-})
+}]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', 
    function($q, scope, queryobj){

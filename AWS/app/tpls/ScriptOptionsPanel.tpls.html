@@ -4,7 +4,7 @@
 </div>
 <div class="portlet-content">
 	<div ng-repeat="label in labels">
-	Select column for {{label}}:<select ng-model="$parent.selection[$index]">
+	Select column for {{label}}:<select ui-select2 ng-model="$parent.selection[$index]">
 		<option ng-repeat="opt in options" value="{{opt}}" >{{opt}}</option>
 	</select>
 </div>
