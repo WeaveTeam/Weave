@@ -23,13 +23,11 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 				reader.readAsText(file);
 			});
 			
+			// Show logic for the Busy Indicator
 			$scope.shouldShow = false;
-			
 			var setCount = function(res){
 				$scope.shouldShow = res;
 			};
-			
-			
 			aws.addBusyListener(setCount);
 		
 });

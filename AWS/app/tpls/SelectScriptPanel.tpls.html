@@ -4,11 +4,14 @@
 </div>
 <div class="portlet-content">
 
-	<select ng-model="selection">
+	<select ui-select2 ng-model="selection" data-placeholder="Choose a Script">
+		<option></option>
 		<option value="parameterizedState1Year.R">Diabetes 1 Year by State</option>
 		<option value="parameterizedTenYear.R">Diabetes in US by Year</option>
 		<option value="EmptyRScript.R">Empty R Script File</option>
-		<option disabled value="ageadjusted.R">Diabetes Age Adjusted</option>
+		<option value="ageadjusted.R">Diabetes Age Adjusted</option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 	</select>
 </div>
 </div>
+

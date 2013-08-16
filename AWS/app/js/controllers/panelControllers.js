@@ -69,8 +69,10 @@ angular.module("aws.panelControllers", [])
 	});*/
 
 })
-.controller("SelectScriptPanelCtrl", function($scope, queryobj, dataService){
+.controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
 	$scope.selection;
+	//scriptobj.refreshScripts();
+	$scope.options = scriptobj.availableScripts;
 	
 	if(queryobj['scriptSelected']){
 		$scope.selection = queryobj['scriptSelected'];
@@ -160,17 +162,28 @@ angular.module("aws.panelControllers", [])
 })
 .controller("BarChartToolPanelCtrl", function($scope, queryobj, scriptobj){
 	$scope.enabled = queryobj.selectedVisualization['barchart'];
-	
 	$scope.options = scriptobj.scriptMetadata['outputs'];
-	$scope.selection;
-	// selectorId should be "barChartPanel"
-	if(queryobj[$scope.selectorId]){
-		$scope.selection = queryobj['barchart'];
+	$scope.sortSelection;
+	$scope.heightSelection;
+	$scope.labelSelection;
+	
+	if(queryobj.barchart){
+		$scope.sortSelection = queryobj.barchart.sort;
+		$scope.heightSelection = queryobj.barchart.height;
+		$scope.labelSelection = queryobj.barchart.label;
+	}else{
+		queryobj['barchart'] = {};
 	}
 	
 	// watch functions for two-way binding
-	$scope.$watch('selection', function(){
-		queryobj['barchart'] = $scope.selection;
+	$scope.$watch('sortSelection', function(){
+		queryobj.barchart.sort = $scope.sortSelection;
+	});
+	$scope.$watch('labelSelection', function(){
+		queryobj.barchart.label = $scope.labelSelection;
+	});
+	$scope.$watch('heightSelection', function(){
+		queryobj.barchart.height = $scope.heightSelection;
 	});
 	$scope.$watch('enabled', function(){
 		queryobj.selectedVisualization['barchart'] = $scope.enabled;
@@ -267,4 +280,8 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('conn', function(){
 		queryobj['conn'] = $scope.conn;
 	}, true);
+})
+.controller("FilterPanelCtrl", function($scope, queryobj){
+	$scope.toFilter;
+	
 })

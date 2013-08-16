@@ -4,10 +4,20 @@
 </div>
 <div class="portlet-content">
 
-	<input type="checkbox" name="enableBarChartTool" ng-model='enabled'/> Enable Bar Chart Tool?</br>
-	<select multiple ng-model="selection">
+	<input type="checkbox" name="enableBarChartTool" ng-model='enabled'/> Enable Bar Chart Tool</br>
+	Height Column(s)<br>
+	<select ui-select2 multiple ng-model="heightSelection" data-placeholder="Choose Height Column(s)">
 		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
 	</select>
-
+	<br>Sort Column<br>
+	<select ui-select2 ng-model="sortSelection" data-placeholder="Choose a Sort Column">
+		<option></option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+	</select>
+	<br>Label Column<br>
+	<select ui-select2 ng-model="labelSelection" data-placeholder="Choose a Label Column">
+		<option></option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+	</select>
 </div>
 </div>

@@ -26,15 +26,21 @@ angular.module("aws.services", []).service("queryobj", function() {
 			schema : 'data'
 	};
 })
-.service("scriptobj", function(){
+.service("scriptobj",['queryobj'], function(queryobj){
 	this.scriptMetadata = {
 			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
 			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
 	};
+	this.availableScripts = [];
+	var refreshScripts = function(){
+		aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, function(result){
+			$scope.availableScripts = result;
+		});
+	};
 })
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', 
-                                                       function($q, scope, queryobj){
+   function($q, scope, queryobj){
 	function safeApply( fn ) {
         if ( !scope.$$phase ) {
             scope.$apply( fn );
