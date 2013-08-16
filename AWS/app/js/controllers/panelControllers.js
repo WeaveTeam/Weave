@@ -133,7 +133,7 @@ angular.module("aws.panelControllers", [])
 })
 .controller("MapToolPanelCtrl", function($scope, queryobj, dataService){
 	$scope.enabled = queryobj.selectedVisualization['maptool'];
-	$scope.options = dataService.giveMeGeomObjs($scope);
+	$scope.options = dataService.giveMeGeomObjs();
 	
 	$scope.selection;
 	
@@ -146,7 +146,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('selection', function(oldVal, newVal){
 		// TODO Bad hack to access results
 		//console.log(oldVal, newVal);
-		if($scope.options.$$v != undefined){
+		if(($scope.options.$$v != undefined) && ($scope.options.$$v != null)){
 			var obj = $scope.options.$$v[$scope.selection];
 			var send = {};
 			send.weaveEntityId = obj.id;
