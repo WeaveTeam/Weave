@@ -27,17 +27,41 @@ angular.module("aws.services", []).service("queryobj", function() {
 	};
 })
 
-angular.module("aws.services").service("scriptobj", ['queryobj', function(queryobj){
+angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q){
 	this.scriptMetadata = {
 			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
 			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
 	};
 	this.availableScripts = [];
-	var refreshScripts = function(){
-		aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, function(result){
-			$scope.availableScripts = result;
+	
+	function safeApply( fn ) {
+        if ( !scope.$$phase ) {
+            scope.$apply( fn );
+        }
+        else {
+            fn();
+        }
+    }
+	
+	this.getScriptsFromServer = function(){
+		var deferred = $q.defer();
+		var prom = deferred.promise;
+		
+		var callbk = function(result){
+			safeApply(function(){
+				console.log(result);
+				deferred.resolve(result);
+			});
+		};
+
+		aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, callbk );
+		prom.then(function(result){
+			//this.availableScripts = result;
+			return result;
 		});
+		return prom;
 	};
+	 this.availableScripts = this.getScriptsFromServer();
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', 

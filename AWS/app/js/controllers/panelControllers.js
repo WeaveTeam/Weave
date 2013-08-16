@@ -71,7 +71,6 @@ angular.module("aws.panelControllers", [])
 })
 .controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
 	$scope.selection;
-	//scriptobj.refreshScripts();
 	$scope.options = scriptobj.availableScripts;
 	
 	if(queryobj['scriptSelected']){
@@ -89,6 +88,12 @@ angular.module("aws.panelControllers", [])
 		function(select){
 			$scope.selection = queryobj['scriptSelected'];
 	});
+	/*$scope.$watch(function(){
+		return queryobj.conn.scriptLocation;
+	},
+		function(){
+		$scope.options = scriptobj.getScriptsFromServer();
+	});*/
 	
 })
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
