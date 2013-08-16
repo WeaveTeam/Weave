@@ -336,12 +336,12 @@ public class RService extends GenericServlet
 		 
 	}
 	
-	public int startRServe(String OSType, String RServePath) throws IOException {
-		// TODO Auto-generated method stub
+	public int startRServe() throws IOException {
 		int status = -9999;
-		if (OSType.equals("Windows")) 
+		
+		if (System.getProperty("os.name").startsWith("Windows")) 
 		{
-			String[] args = {RServePath};
+			String[] args = {"C:\\Program Files\\R\\R-3.0.1\\library\\Rserve.exe"};
 			try 
 			{
 				status = CommandUtils.runCommand(args);
@@ -364,9 +364,9 @@ public class RService extends GenericServlet
 		return status;
 	}
 	
-	public int stopRServe(String OSType) throws IOException {
+	public int stopRServe() throws IOException {
 		int status = -9999;
-		if (OSType.equals("Windows")) 
+		if (System.getProperty("os.name").startsWith("Windows")) 
 		{
 			String[] args = {"Taskkill", "/IM", "RServe.exe"};
 			try 
@@ -388,30 +388,47 @@ public class RService extends GenericServlet
 		return status;
 	}
 
-	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) 
+//	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) 
+//	{
+//		RResult[] returnedColumns;
+//		
+//		String scriptPath = requestObject.get("scriptPath").toString();
+//		String scriptName = requestObject.get("scriptName").toString();
+//		String cannedScript = scriptPath + scriptName;
+//		
+//		String[] inputNames = {"cannedScriptPath", "dataset"};
+//		
+//		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
+//		
+//		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
+//
+//		Object[] inputValues = {cannedScript, recordData};
+//		
+//		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+//					         "dataSet <- data.frame(recordData)" +
+//					         "scriptFromFile$value(dataSet)"; 
+//		
+//		String[] outputNames = {};
+//		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript,"", false, false, false);
+//		
+//		return returnedColumns;
+//		
+//	}
+	
+	public String[] getListOfScripts(String folderPath)
 	{
-		RResult[] returnedColumns;
+		File directory = new File(folderPath);
+		String[] files = directory.list();
+		List<String> rFiles = new ArrayList<String>();
+		String extension = "";
 		
-		String scriptPath = requestObject.get("scriptPath").toString();
-		String scriptName = requestObject.get("scriptName").toString();
-		String cannedScript = scriptPath + scriptName;
-		
-		String[] inputNames = {"cannedScriptPath", "dataset"};
-		
-		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
-		
-		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
-
-		Object[] inputValues = {cannedScript, recordData};
-		
-		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-					         "dataSet <- data.frame(recordData)"; 
-		
-		String[] outputNames = {};
-		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript,"", false, false, false);
-		
-		return returnedColumns;
-		
+		for (int i = 0; i < files.length; i++)
+		{
+			extension = files[i].substring(files[i].lastIndexOf(".") + 1, files[i].length());
+			if(extension.equalsIgnoreCase("r"))
+				rFiles.add(files[i]);
+		}
+		return rFiles.toArray(new String[0]);
 	}
 	
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception

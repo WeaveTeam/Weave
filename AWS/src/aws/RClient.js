@@ -54,25 +54,32 @@ aws.RClient.clearCache = function() {
  * This function calls the startRServe function on the servlet
  * It finds out the right version of the OS and calls the appropriate
  * command on the server.
- * @param {string} OSType the type of operating system "Windows" | "Unix"
- * @param {string} RServePath the Path to RServe
  * @param {Function} callback callback function
  */
-aws.RClient.startRServe = function(OSType, RServePath, callback) {
+aws.RClient.startRServe = function(callback) {
 	// we can use the call back to handle whether or not the service was started.
-	aws.queryService(rServiceURL, 'startRServe', [OSType, RServePath], callback);
+	aws.queryService(rServiceURL, 'startRServe', null, callback);
 }
 
 /**
  * This function calls the stopRServe function on the servlet
  * It finds out the right version of the OS and calls the appropriate
  * command on the server.
- * @param {string} OSType the type of operating system "Windows" | "Unix"s
  * @param {Function} callback callback function
  */
-aws.RClient.stopRServe = function(OSType, callback) {
+aws.RClient.stopRServe = function(callback) {
 	// we can use the call back to handle whether or not the service was started.
-	aws.queryService(rServiceURL, 'stopRServe', [OSType], callback);
+	aws.queryService(rServiceURL, 'stopRServe', null, callback);
+}
+
+/**
+ * This function calls the getListOfScripts function on the servlet
+ * it will get the list of files in the directory
+ * @param {string} directoryPath the directory where the scripts are located
+ * @param {Function} callback callback function
+ */
+aws.RClient.getListOfScripts = function(directoryPath, callback) {
+	aws.queryService(rServiceURL, 'getListOfScripts', [directoryPath], callback);
 }
 
 /**
