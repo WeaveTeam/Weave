@@ -39,7 +39,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 			this.setPosition(toolName, "50%", "0%");
 			break;
 		case 'barchart' :
-			toolName = this.newBarChart("", "", parameters, dataSourceName);
+			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["height"], dataSourceName);
 			this.setPosition(toolName, "0%", "50%");
 			break;
 		default:

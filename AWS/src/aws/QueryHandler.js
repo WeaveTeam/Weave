@@ -47,6 +47,8 @@ aws.QueryHandler = function(queryObject)
 	}
 	this.colorColumn = queryObject.colorColumn;
 	
+	this.keyType = queryObject.maptool.keyType;
+	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
 	
 	// check what type of computation engine we have, to create the appropriate
@@ -79,7 +81,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		
 		// step 2
-		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", "US State FIPS Code", "fips");
+		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);

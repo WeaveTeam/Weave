@@ -47,7 +47,10 @@ aws.Visualization;
  *    scriptSelected : string,
  *    selectedVisualization : aws.Visualization,
  *    colorColumn : string,
- *    scriptType : string
+ *    scriptType : string,
+ *    maptool : Object,
+ *    barchart : Object,
+ *    datatable : Object
  *  }}
  * */
 aws.queryObject;
