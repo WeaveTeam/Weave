@@ -28,6 +28,14 @@ import java.util.Collection;
  */
 public class StringUtils
 {
+	public static boolean equal(String a, String b)
+	{
+		if (a == null)
+			return b == null;
+		if (b == null)
+			return a == null;
+		return a.equals(b);
+	}
 	public static boolean isEmpty(String str)
 	{
 		return str == null || str.length() == 0;
