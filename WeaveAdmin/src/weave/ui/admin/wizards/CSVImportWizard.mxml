@@ -231,6 +231,12 @@
 				finishEnabled = true;
 			}
 			
+			override public function next():void
+			{
+				super.next();
+			}
+			
+			
 			//enables next and finish buttons(if they are not enabled already) if _csvdata is not empty.
 			//This means the user has already loaded a file and might want to upload a new file or hit the back button by mistake
 			override public function back():void
@@ -256,6 +262,42 @@
 					keyType = keyOptions.keyTypeSelector.selectedKeyType;
 				
 				disable();
+				
+				/* if filtered column is selected check to see if subsets of the filtered data have unique key column values */
+				if(generateFilterColumnsCheckBox.selected)
+				{
+					addAsyncResponder(
+					Admin.service.checkKeyColumnForCSVImportWithFilteredColumns(
+						csvFileNameInput.text,
+						keyColumn,
+						filterColumnsInput.text.split(",")
+					),
+					function handleResultCheckKeyColumnForFilteredColumns(event:ResultEvent, token:Object = null):void
+					{
+						if(event.result == true)
+						{
+							clearErrors();
+							importCSVQuery(keyColumn,secondKeyColumn,configTableName,keyType);
+						}
+						else
+						{
+							csvKeyColumnCombo.errorString = "Key values are not unique for selected filtered columns";
+							enable();
+							selectedIndex = 1;
+						}
+					},
+					enable //if fault result
+					);
+				
+				}
+				else
+				{
+					importCSVQuery(keyColumn,secondKeyColumn,configTableName,keyType);	
+				}
+			}
+			
+			private function importCSVQuery(keyColumn:String,secondKeyColumn:String,configTableName:String,keyType:String):void
+			{
 				addAsyncResponder(
 					Admin.service.importCSV(
 						csvFileNameInput.text,

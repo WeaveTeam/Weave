@@ -126,6 +126,44 @@
 					filterColumns = WeaveAPI.CSVParser.parseCSV(keyOptions.filterColumnsInput.text)[0];
 				
 				disable();
+				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
+				{
+					addAsyncResponder(
+						Admin.service.checkKeyColumnForSQLImportWithFilteredColumns(
+							tableSelector.activeSchema,
+							tableSelector.activeTable,
+							keyColumnComboBox.selectedLabel,
+							filterColumns
+						),
+						function handleKeyColCheck(event:ResultEvent,token:Object=null):void
+						{
+							if(event.result == true)
+							{
+								keyColumnComboBox.errorString = '';
+								importSQLData();
+							}
+							else
+							{
+								keyColumnComboBox.errorString = "Key values are not unique for selected filtered columns";
+								enable();
+							}
+						}
+						,enable	
+					);
+				}
+				else
+				{
+					importSQLData();
+				}
+				
+			}
+			
+			private function importSQLData():void
+			{
+				var filterColumns:Array = null;
+				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
+					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
+				
 				addAsyncResponder(
 					Admin.service.importSQL(
 						tableSelector.activeSchema,
