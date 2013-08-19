@@ -977,7 +977,7 @@ package weave.compiler
 		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
 		 * @return The given String formatted for ActionScript.
 		 */
-		public function encodeString(string:String, quote:String = '"'):String
+		public static function encodeString(string:String, quote:String = '"'):String
 		{
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)

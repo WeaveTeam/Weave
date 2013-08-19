@@ -119,18 +119,29 @@ package weave.visualization.plotters
 		{
 			var geoms:Array = null;
 			var column:IAttributeColumn = geometryColumn; 
+			var notGeoms:Boolean = false;
 			
 			// the column value may contain a single geom or an array of geoms
 			var value:* = column.getValueFromKey(recordKey);
 			if (value is Array)
+			{
 				geoms = value; // array of geoms
+				//Need to ensure that it is an array of geoms
+				for( var j:int = 0; j < geoms.length; j++)
+					if( !(geoms[j] is GeneralizedGeometry) )
+					{
+						notGeoms = true;
+						break;
+					}
+			}
 			else if (value is GeneralizedGeometry)
 				geoms = [value as GeneralizedGeometry]; // single geom -- create array
 
 			var i:int = 0;
-			if (geoms != null)
-				for each (var geom:GeneralizedGeometry in geoms)
-					output[i++] = geom.bounds;
+			if( !notGeoms )
+				if (geoms != null)
+					for each (var geom:GeneralizedGeometry in geoms)
+						output[i++] = geom.bounds;
 			output.length = i;
 		}
 		
@@ -138,16 +149,27 @@ package weave.visualization.plotters
 		{
 			var value:* = geometryColumn.getValueFromKey(recordKey);
 			var geoms:Array = null;
+			var notGeoms:Boolean = false;
 			
 			if (value is Array)
+			{
 				geoms = value;
+				//Need to ensure that it is an array of geoms
+				for( var j:int = 0; j < geoms.length; j++)
+					if( !(geoms[j] is GeneralizedGeometry) )
+					{
+						notGeoms = true;
+						break;
+					}
+			}
 			else if (value is GeneralizedGeometry)
 				geoms = [ value as GeneralizedGeometry ];
 			
 			var results:Array = [];
-			if (geoms != null)
-				for each (var geom:GeneralizedGeometry in geoms)
-					results.push(geom);
+			if( !notGeoms )
+				if (geoms != null)
+					for each (var geom:GeneralizedGeometry in geoms)
+						results.push(geom);
 			
 			return results;
 		}

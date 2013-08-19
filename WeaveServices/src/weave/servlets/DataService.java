@@ -67,6 +67,9 @@ import weave.utils.ListUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.SQLUtils.WhereClause;
+import weave.utils.SQLUtils.WhereClause.ColumnFilter;
+import weave.utils.StringUtils;
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -537,7 +540,32 @@ public class DataService extends GenericServlet
 	]
 	
 	 */
+
+	private static SQLResult getFilteredRowsFromSQL(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
+	{
+		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
+		String[] quotedFields = new String[columns.length];
+		for (int i = 0; i < columns.length; i++)
+		{
+			cfArray[i] = new ColumnFilter();
+			cfArray[i].field = entities[i].privateMetadata.get(PrivateMetadata.SQLCOLUMN);
+			cfArray[i].filters = columns[i].filters;
+			quotedFields[i] = SQLUtils.quoteSymbol(conn, cfArray[i].field);
+		}
+		
+		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
+
+		String query = String.format(
+			"SELECT %s FROM %s %s",
+			StringUtils.join(",", quotedFields),
+			SQLUtils.quoteSchemaTable(conn, schema, table),
+			where.clause
+		);
+		
+		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
+	}
 	
+	@SuppressWarnings("unchecked")
 	public static WeaveRecordList getFilteredRows(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
 	{
 		List<Integer> columnIds = new Vector<Integer>();
@@ -546,6 +574,7 @@ public class DataService extends GenericServlet
 		
 		DataConfig dataConfig = getDataConfig();
 		DataEntity[] entities;
+		Map<String,String>[] metadataList;
 		{
 			Collection<DataEntity> unordered = dataConfig.getEntitiesById(columnIds);
 			Map<Integer, DataEntity> lookup = new HashMap<Integer, DataEntity>();
@@ -554,8 +583,12 @@ public class DataService extends GenericServlet
 			
 			int n = columnIds.size();
 			entities = new DataEntity[n];
+			metadataList = new Map[n];
 			for (int i = 0; i < n; i++)
+			{
 				entities[i] = lookup.get(columnIds.get(i));
+				metadataList[i] = entities[i].publicMetadata;
+			}
 		}
 		
 		if (entities.length < 1)
@@ -568,211 +601,252 @@ public class DataService extends GenericServlet
 			if (keyType != keyType2 && (keyType == null || keyType2 == null || !keyType.equals(keyType2)))
 				throw new RemoteException("Specified columns must all have same keyType.");
 		}
-		
-		HashMap<String,Object[]> data = new HashMap<String,Object[]>();
-		if (keysArray != null)
-			for (String key : keysArray)
-				data.put(key, new Object[entities.length]);
-		
-		@SuppressWarnings("unchecked")
-		Map<String,String> metadataList[] = new Map[entities.length];
-		for (int colIndex = 0; colIndex < entities.length; colIndex++)
+
+		WeaveRecordList result = new WeaveRecordList();
+
+		if (keysArray == null)
 		{
-			Object[] filters = columns[colIndex].filters;
-			DataEntity info = entities[colIndex];
-			String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
-			String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
-			metadataList[colIndex] = info.publicMetadata;
-			
-			//if (dataWithKeysQuery.length() == 0)
-			//	throw new RemoteException(String.format("No SQL query is associated with column \"%s\" in dataTable \"%s\"", attributeColumnName, dataTableName));
-			
-			String dataType = info.publicMetadata.get(PublicMetadata.DATATYPE);
-			
-			// use config min,max or param min,max to filter the data
-			String infoMinStr = info.publicMetadata.get(PublicMetadata.MIN);
-			String infoMaxStr = info.publicMetadata.get(PublicMetadata.MAX);
-			double minValue = Double.NEGATIVE_INFINITY;
-			double maxValue = Double.POSITIVE_INFINITY;
-			// first try parsing config min,max values
-			try { minValue = Double.parseDouble(infoMinStr); } catch (Exception e) { }
-			try { maxValue = Double.parseDouble(infoMaxStr); } catch (Exception e) { }
-			// override config min,max with param values if given
-			
-			/**
-			 * columnInfoArray = config.getDataEntity(params);
-			 * for each info in columnInfoArray
-			 *      get sql data
-			 *      for each row in sql data
-			 *            if key is in keys array,
-			 *                  add this value to the result
-			 * return result
-			 */
-			
-			try
+			boolean canGenerateSQL = true;
+			// check to see if all the columns are from the same SQL table.
+			String connection = null;
+			String sqlSchema = null;
+			String sqlTable = null;
+			for (DataEntity entity : entities)
 			{
-				//timer.start();
-				boolean errorReported = false;
+				String c = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+				String s = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
+				String t = entity.privateMetadata.get(PrivateMetadata.SQLTABLE);
+				if (connection == null)
+					connection = c;
+				if (sqlSchema == null)
+					sqlSchema = s;
+				if (sqlTable == null)
+					sqlTable = t;
 				
-				Connection conn = getColumnConnectionInfo(info).getStaticReadOnlyConnection();
-				String[] sqlParamsArray = null;
-				if (sqlParams != null && sqlParams.length() > 0)
-					sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
-				
-				SQLResult result = SQLUtils.getResultFromQuery(conn, sqlQuery, sqlParamsArray, false);
-				
-				//timer.lap("get row set");
-				// if dataType is defined in the config file, use that value.
-				// otherwise, derive it from the sql result.
-				if (isEmpty(dataType))
-					dataType = DataType.fromSQLType(result.columnTypes[1]);
-				boolean isNumeric = dataType != null && dataType.equalsIgnoreCase(DataType.NUMBER);
-				
-				Object keyObj, dataObj;
-				for (int iRow = 0; iRow < result.rows.length; iRow++)
+				if (!StringUtils.equal(connection, c) || !StringUtils.equal(sqlSchema, s) || !StringUtils.equal(sqlTable, t))
 				{
-					keyObj = result.rows[iRow][0];
-					dataObj = result.rows[iRow][1];
+					canGenerateSQL = false;
+					break;
+				}
+			}
+			if (canGenerateSQL)
+			{
+				Connection conn = getColumnConnectionInfo(entities[0]).getStaticReadOnlyConnection();
+				try
+				{
+					result.recordData = getFilteredRowsFromSQL(conn, sqlSchema, sqlTable, columns, entities).rows;
+				}
+				catch (SQLException e)
+				{
+					throw new RemoteException("getFilteredRows() failed.", e);
+				}
+			}
+		}
+		
+		if (result.recordData == null)
+		{
+			HashMap<String,Object[]> data = new HashMap<String,Object[]>();
+			if (keysArray != null)
+				for (String key : keysArray)
+					data.put(key, new Object[entities.length]);
+			
+			for (int colIndex = 0; colIndex < entities.length; colIndex++)
+			{
+				Object[] filters = columns[colIndex].filters;
+				DataEntity info = entities[colIndex];
+				String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
+				String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
+				
+				//if (dataWithKeysQuery.length() == 0)
+				//	throw new RemoteException(String.format("No SQL query is associated with column \"%s\" in dataTable \"%s\"", attributeColumnName, dataTableName));
+				
+				String dataType = info.publicMetadata.get(PublicMetadata.DATATYPE);
+				
+				// use config min,max or param min,max to filter the data
+				String infoMinStr = info.publicMetadata.get(PublicMetadata.MIN);
+				String infoMaxStr = info.publicMetadata.get(PublicMetadata.MAX);
+				double minValue = Double.NEGATIVE_INFINITY;
+				double maxValue = Double.POSITIVE_INFINITY;
+				// first try parsing config min,max values
+				try { minValue = Double.parseDouble(infoMinStr); } catch (Exception e) { }
+				try { maxValue = Double.parseDouble(infoMaxStr); } catch (Exception e) { }
+				// override config min,max with param values if given
+				
+				/**
+				 * columnInfoArray = config.getDataEntity(params);
+				 * for each info in columnInfoArray
+				 *      get sql data
+				 *      for each row in sql data
+				 *            if key is in keys array,
+				 *                  add this value to the result
+				 * return result
+				 */
+				
+				try
+				{
+					//timer.start();
+					boolean errorReported = false;
 					
-					if (keyObj == null || dataObj == null)
-						continue;
-					keyObj = keyObj.toString();
+					Connection conn = getColumnConnectionInfo(info).getStaticReadOnlyConnection();
+					String[] sqlParamsArray = null;
+					if (sqlParams != null && sqlParams.length() > 0)
+						sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
 					
-					if (data.containsKey(keyObj))
-					{
-						// if row has been set to null, skip
-						if (data.get(keyObj) == null)
-							continue;
-					}
-					else
-					{
-						// if keys are specified and row is not present, skip
-						if (keysArray != null)
-							continue;
-					}
+					SQLResult sqlResult = SQLUtils.getResultFromQuery(conn, sqlQuery, sqlParamsArray, false);
 					
-					try
+					//timer.lap("get row set");
+					// if dataType is defined in the config file, use that value.
+					// otherwise, derive it from the sql result.
+					if (isEmpty(dataType))
+						dataType = DataType.fromSQLType(sqlResult.columnTypes[1]);
+					boolean isNumeric = dataType != null && dataType.equalsIgnoreCase(DataType.NUMBER);
+					
+					Object keyObj, dataObj;
+					for (int iRow = 0; iRow < sqlResult.rows.length; iRow++)
 					{
-						boolean passedFilters = true;
+						keyObj = sqlResult.rows[iRow][0];
+						dataObj = sqlResult.rows[iRow][1];
 						
-						// convert the data to the appropriate type, then filter by value
-						if (isNumeric)
+						if (keyObj == null || dataObj == null)
+							continue;
+						keyObj = keyObj.toString();
+						
+						if (data.containsKey(keyObj))
 						{
-							if (dataObj instanceof Number) // TEMPORARY SOLUTION - FIX ME
+							// if row has been set to null, skip
+							if (data.get(keyObj) == null)
+								continue;
+						}
+						else
+						{
+							// if keys are specified and row is not present, skip
+							if (keysArray != null)
+								continue;
+						}
+						
+						try
+						{
+							boolean passedFilters = true;
+							
+							// convert the data to the appropriate type, then filter by value
+							if (isNumeric)
 							{
-								double doubleValue = ((Number)dataObj).doubleValue();
-								// filter the data based on the min,max values
-								if (minValue <= doubleValue && doubleValue <= maxValue)
+								if (dataObj instanceof Number) // TEMPORARY SOLUTION - FIX ME
 								{
-									// filter the value
-									if (filters != null)
+									double doubleValue = ((Number)dataObj).doubleValue();
+									// filter the data based on the min,max values
+									if (minValue <= doubleValue && doubleValue <= maxValue)
 									{
-										passedFilters = false;
-										for (Object range : filters)
+										// filter the value
+										if (filters != null)
 										{
-											Number min = (Number)((Object[])range)[0];
-											Number max = (Number)((Object[])range)[1];
-											if (min.doubleValue() <= doubleValue && doubleValue <= max.doubleValue())
+											passedFilters = false;
+											for (Object range : filters)
 											{
-												passedFilters = true;
-												break;
+												Number min = (Number)((Object[])range)[0];
+												Number max = (Number)((Object[])range)[1];
+												if (min.doubleValue() <= doubleValue && doubleValue <= max.doubleValue())
+												{
+													passedFilters = true;
+													break;
+												}
 											}
 										}
 									}
+									else
+										passedFilters = false;
 								}
 								else
 									passedFilters = false;
 							}
 							else
-								passedFilters = false;
-						}
-						else
-						{
-							String stringValue = dataObj.toString();
-							dataObj = stringValue;
-							// filter the value
-							if (filters != null)
 							{
-								passedFilters = false;
-								for (Object filter : filters)
+								String stringValue = dataObj.toString();
+								dataObj = stringValue;
+								// filter the value
+								if (filters != null)
 								{
-									if (filter.equals(stringValue))
+									passedFilters = false;
+									for (Object filter : filters)
 									{
-										passedFilters = true;
-										break;
+										if (filter.equals(stringValue))
+										{
+											passedFilters = true;
+											break;
+										}
 									}
 								}
-							}
-						}
-						
-						Object[] row = data.get(keyObj);
-						
-						if (passedFilters)
-						{
-							// add existing row if it has not been added yet
-							if (!data.containsKey(keyObj))
-							{
-								for (int i = 0; i < colIndex; i++)
-								{
-									Object[] prevFilters = columns[i].filters;
-									if (prevFilters != null)
-									{
-										passedFilters = false;
-										break;
-									}
-								}
-								if (passedFilters)
-									row = new Object[entities.length];
-								
-								data.put((String)keyObj, row);
 							}
 							
-							if (row != null)
-								row[colIndex] = dataObj;
+							Object[] row = data.get(keyObj);
+							
+							if (passedFilters)
+							{
+								// add existing row if it has not been added yet
+								if (!data.containsKey(keyObj))
+								{
+									for (int i = 0; i < colIndex; i++)
+									{
+										Object[] prevFilters = columns[i].filters;
+										if (prevFilters != null)
+										{
+											passedFilters = false;
+											break;
+										}
+									}
+									if (passedFilters)
+										row = new Object[entities.length];
+									
+									data.put((String)keyObj, row);
+								}
+								
+								if (row != null)
+									row[colIndex] = dataObj;
+							}
+							else
+							{
+								// remove existing row if value did not pass filters
+								if (row != null || !data.containsKey(keyObj))
+									data.put((String)keyObj, null);
+							}
 						}
-						else
+						catch (Exception e)
 						{
-							// remove existing row if value did not pass filters
-							if (row != null || !data.containsKey(keyObj))
-								data.put((String)keyObj, null);
-						}
-					}
-					catch (Exception e)
-					{
-						if (!errorReported)
-						{
-							errorReported = true;
-							e.printStackTrace();
+							if (!errorReported)
+							{
+								errorReported = true;
+								e.printStackTrace();
+							}
 						}
 					}
 				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+				catch (NullPointerException e)
+				{
+					e.printStackTrace();
+					throw new RemoteException(e.getMessage());
+				}
 			}
-			catch (SQLException e)
+			
+			if (keysArray == null)
 			{
-				e.printStackTrace();
+				LinkedList<String> keys = new LinkedList<String>();
+				for (Entry<String,Object[]> entry : data.entrySet())
+					if (entry.getValue() != null)
+						keys.add(entry.getKey());
+				keysArray = keys.toArray(new String[keys.size()]);
 			}
-			catch (NullPointerException e)
-			{
-				e.printStackTrace();
-				throw new RemoteException(e.getMessage());
-			}
+			
+			Object[][] rows = new Object[keysArray.length][];
+			for (int iKey = 0; iKey < keysArray.length; iKey++)
+				rows[iKey] = data.get(keysArray[iKey]);
+			
+			result.recordData = rows;
 		}
 		
-		if (keysArray == null)
-		{
-			LinkedList<String> keys = new LinkedList<String>();
-			for (Entry<String,Object[]> entry : data.entrySet())
-				if (entry.getValue() != null)
-					keys.add(entry.getKey());
-			keysArray = keys.toArray(new String[keys.size()]);
-		}
-		
-		Object[][] rows = new Object[keysArray.length][];
-		for (int iKey = 0; iKey < keysArray.length; iKey++)
-			rows[iKey] = data.get(keysArray[iKey]);
-		
-		WeaveRecordList result = new WeaveRecordList();
-		result.recordData = rows;
 		result.keyType = keyType;
 		result.recordKeys = keysArray;
 		result.attributeColumnMetadata = metadataList;

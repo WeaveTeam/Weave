@@ -127,6 +127,15 @@
 				refresh();
 			}
 			
+			public function getSelectedPath():Array
+			{
+				var path:Array = [];
+				try {
+					findCorrespondingNode(dataProvider[0], getSelectedLinkableObject(), false, path);
+				} catch (e:Error) { }
+				return path;
+			}
+			
 			public function getSelectedLinkableObject():ILinkableObject
 			{
 				return selectedItem ? selectedItem.object : null;
@@ -152,14 +161,15 @@
 				var prevExpandedItems:Array = openItems.concat();
 				
 				var rootItem:Object = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(rootObject, _linkableObjectName, _sessionObjectTypeFilter);
-				this.dataProvider = rootItem
+				this.dataProvider = rootItem;
 				this.dataProvider.refresh();
 				validateNow();
+				
 				// expand previously-expanded items
 				for each (var item:Object in prevExpandedItems)
-					findCorrespondingNode(item.object, true);
+					findCorrespondingNode(rootItem, item.object, true);
 				// select previously-selected item
-				selectedItem = findCorrespondingNode(selectedObject, true);
+				selectedItem = findCorrespondingNode(rootItem, selectedObject, true);
 				if (selectedIndex >= 0)
 					scrollToIndex(selectedIndex);
 				expandItem(rootItem, true);
@@ -171,34 +181,29 @@
 			 * This function recursively checks subtree nodes for a matching sessioned object.
 			 * @return The node object corresponding to the sessioned object, or null if no node was found.
 			 */
-			private function findCorrespondingNode(sessionedObject:ILinkableObject, expand:Boolean, subtree:Object = null):Object
+			private function findCorrespondingNode(tree:Object, sessionedObject:ILinkableObject, expand:Boolean, pathOutput:Array = null):Object
 			{
-				if (subtree == null)
-				{
-					try
-					{
-						subtree = dataProvider[0];
-					}
-					catch (e:Error)
-					{
-						return null;
-					}
-				}
-				if (subtree.object == sessionedObject)
+				if (pathOutput)
+					pathOutput.length = 0;
+				if (tree == null)
+					return null;
+				if (tree.object == sessionedObject)
 				{
 					if (expand)
-						expandItem(subtree, true);
-					return subtree;
+						expandItem(tree, true);
+					return tree;
 				}
-				if (subtree.children == null)
+				if (tree.children == null)
 					return null;
-				for each (var child:Object in subtree.children)
+				for each (var child:Object in tree.children)
 				{
-					var result:Object = findCorrespondingNode(sessionedObject, expand, child);
+					var result:Object = findCorrespondingNode(child, sessionedObject, expand, pathOutput);
 					if (result != null)
 					{
 						/*if (expand)
 							expandItem(subtree, true);*/
+						if (pathOutput)
+							pathOutput.unshift(child.label || null);
 						return result;
 					}
 				}

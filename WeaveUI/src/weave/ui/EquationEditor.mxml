@@ -86,6 +86,7 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
+			import weave.compiler.Compiler;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
 			import weave.utils.EventUtils;
@@ -268,7 +269,7 @@
 				{
 					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
 				
-					eqName = "get(" + EquationColumn.compiler.encodeString(eqName) + ")";
+					eqName = "get(" + Compiler.encodeString(eqName) + ")";
 					
 					event.draggedItem = eqName;
 				}

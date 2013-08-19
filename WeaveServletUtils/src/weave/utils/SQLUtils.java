@@ -1968,6 +1968,66 @@ public class SQLUtils
 		public String clause;
 		public List<V> params;
 		
+		
+		public static class ColumnFilter
+		{
+			public String field;
+			/**
+			 * Contains a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+			 */
+			public Object[] filters;
+		}
+		
+		/**
+		 * @param conn
+		 * @param filters Either a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+		 */
+		public static WhereClause<Object> fromFilters(Connection conn, ColumnFilter[] filters) throws SQLException
+		{
+			WhereClause<Object> result = new WhereClause<Object>("", new Vector<Object>());
+			StringBuilder sb = new StringBuilder();
+			for (ColumnFilter filter : filters)
+			{
+				if (filter.filters == null || filter.filters.length == 0)
+					continue;
+				
+				if (sb.length() == 0)
+					sb.append(" WHERE ");
+				else
+					sb.append(" AND ");
+				
+				sb.append("(");
+				String quotedField = quoteSymbol(conn, filter.field);
+				String stringCompare = null;
+				for (int i = 0; i < filter.filters.length; i++)
+				{
+					Object filterValue = filter.filters[i];
+					if (i > 0)
+						sb.append(" OR ");
+					
+					if (filterValue.getClass() == Object[].class)
+					{
+						// numeric range
+						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
+						Object[] range = (Object[])filterValue;
+						result.params.add(range[0]);
+						result.params.add(range[1]);
+					}
+					else
+					{
+						// string value
+						if (stringCompare == null)
+							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
+						sb.append(stringCompare);
+						result.params.add(filterValue);
+					}
+				}
+				sb.append(")");
+			}
+			result.clause = sb.toString();
+			return result;
+		}
+		
 		public WhereClause(String whereClause, List<V> params)
 		{
 			this.clause = whereClause;
@@ -1988,6 +2048,7 @@ public class SQLUtils
 			// we have to negate our conjunctive parameter because we have just nested our conditions
 			init(conn, list, caseSensitiveFields, !conjunctive);
 		}
+		
 		public WhereClause(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
 			init(conn, conditions, caseSensitiveFields, conjunctive);
