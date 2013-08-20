@@ -47,7 +47,13 @@ aws.QueryHandler = function(queryObject)
 	}
 	this.colorColumn = queryObject.colorColumn;
 	
-	this.keyType = queryObject.maptool.keyType;
+	this.keyType = "";
+	if (queryObject.maptool){;
+		if(queryObject.maptool.keyType) {
+			this.keyType = queryObject.maptool.keyType;
+		}
+	}
+	
 	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
 	
