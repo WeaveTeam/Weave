@@ -34,21 +34,13 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 	};
 	this.availableScripts = [];
 	
-	function safeApply( fn ) {
-        if ( !scope.$$phase ) {
-            scope.$apply( fn );
-        }
-        else {
-            fn();
-        }
-    }
 	
 	this.getScriptsFromServer = function(){
 		var deferred = $q.defer();
 		var prom = deferred.promise;
 		
 		var callbk = function(result){
-			safeApply(function(){
+			scope.$safeApply(function(){
 				console.log(result);
 				deferred.resolve(result);
 			});
@@ -66,14 +58,7 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', 
    function($q, scope, queryobj){
-	function safeApply( fn ) {
-        if ( !scope.$$phase ) {
-            scope.$apply( fn );
-        }
-        else {
-            fn();
-        }
-    }
+
 	
 	var fetchColumns = function(id){
 		if(!id){
@@ -84,13 +69,13 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 		var deferred2 = $q.defer();
 		
 		var callbk = function(result){
-			safeApply(function(){
+			scope.$safeApply(function(){
 				//console.log(result);
 				deferred.resolve(result);
 			});
 		};
 		var callbk2 = function(result){
-			safeApply(function(){
+			scope.$safeApply(function(){
 				
 				console.log(result);
 				deferred2.resolve(result);
@@ -118,13 +103,13 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 		var prom = deferred.promise;
 		var deferred2 = $q.defer();
 		var callbk = function(result){
-			safeApply(function(){
+			scope.$safeApply(function(){
 				console.log(result);
 				deferred.resolve(result);
 			});
 		};
 		var callbk2 = function(result){
-			safeApply(function(){
+			scope.$safeApply(function(){
 				
 				console.log(result);
 				deferred2.resolve(result);
