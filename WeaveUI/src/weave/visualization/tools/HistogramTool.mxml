@@ -234,10 +234,16 @@
 			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="20" height="100%">
 				<mx:itemRenderer>
 					<mx:Component>
-						<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+						<mx:CheckBox change="handleSelectionChange()">
 							
 							<mx:Script>
 								<![CDATA[
+									override public function set data(d:Object):void
+									{
+										super.data = d;
+										selected = d.selected;
+										label = d ? d.label : '';
+									}
 									private function handleSelectionChange():void
 									{
 										data.selected = this.selected;
