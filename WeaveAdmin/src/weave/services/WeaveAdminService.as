@@ -19,6 +19,8 @@
 
 package weave.services
 {
+	import avmplus.DescribeType;
+	
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
@@ -37,10 +39,8 @@ package weave.services
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import avmplus.DescribeType;
-	
-	import weave.api.registerLinkableChild;
 	import weave.api.core.ILinkableObject;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.services.beans.ConnectionInfo;
@@ -342,10 +342,6 @@ package weave.services
 		//////////////////////////////
 		// ConnectionInfo management
 		
-		public function getConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String):AsyncToken
-		{
-			return invokeAdmin(getConnectString, arguments, false);
-		}
 		public function getConnectionNames():AsyncToken
 		{
 			return invokeAdminWithLogin(getConnectionNames, arguments);

@@ -375,11 +375,6 @@ public class AdminService
 
 	//////////////////////////////
 	// ConnectionInfo management
-
-	public String getConnectString(String dbms, String ip, String port, String database, String user, String pass)
-	{
-		return SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
-	}
 	
 	public String[] getConnectionNames(String user, String password)
 		throws RemoteException

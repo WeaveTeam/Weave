@@ -28,14 +28,14 @@
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="SQL Server type" group="{indentGroup}">
-		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
+		<ui:CustomComboBox id="dbmsCombo" change="{generateDatabaseChange()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
 	<ui:IndentTextInput label="SQL Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
 	<ui:IndentTextInput label="SQL Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
-	<ui:Indent label="SQL Database name" group="{indentGroup}">
+	<ui:Indent id="sqlDatabaseName" label="SQL Database name" group="{indentGroup}">
 		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
-		<mx:Label text="(Optional)"/>
-		<ui:HelpComponent>
+		<mx:Label id="optionalText" text="(Optional)"/>
+		<ui:HelpComponent id="optionalHelp">
 			This field is optional.  You can specify the name of a default database to connect to.
 			For SQL Server, this is an instance name.
 			Similarly in PostGreSQL, databases are different from schemas.
@@ -53,6 +53,7 @@
 		<![CDATA[
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
@@ -65,6 +66,11 @@
 			[Bindable] public var indentGroup:Object = this;
 			
 			[Bindable] public var connectString:String = '';
+			
+			private static const MYSQL:String = 'MySQL';
+			private static const POSTGRESQL:String = 'PostGreSQL';
+			private static const SQLSERVER:String = 'Microsoft SQL Server';
+			private static const ORACLE:String = 'Oracle';
 			
 			private function get hostUrl():String
 			{
@@ -86,6 +92,44 @@
 					connectString = "jdbc:mysql://localhost:3306/?user=&password=";
 			}
 			
+			private function generateDatabaseChange():void
+			{
+				switch(dbmsCombo.text)
+				{
+					case MYSQL:
+					{
+						sqlDatabaseName.label = "SQL Database name";
+						optionalHelp.visible = true;
+						optionalText.visible = true;
+						break;
+					}
+					case POSTGRESQL:
+					{
+						sqlDatabaseName.label = "SQL Database name";
+						optionalHelp.visible = true;
+						optionalText.visible = true;
+						break;
+					}
+					case SQLSERVER:
+					{
+						sqlDatabaseName.label = "Instance Name";
+						optionalHelp.visible = false;
+						optionalText.visible = false;
+						break;
+					}
+					case ORACLE:
+					{
+						sqlDatabaseName.label = "SQL Database name";
+						optionalHelp.visible = true;
+						optionalText.visible = true;
+						break;
+					}
+				}
+				WeaveAPI.SessionManager.assignBusyTask(_generate, this);
+				_delayedGenerate();
+				triggerCallbacks();
+			}
+			
 			private function generate():void
 			{
 				WeaveAPI.SessionManager.assignBusyTask(_generate, this);
@@ -104,20 +148,67 @@
 				WeaveAPI.SessionManager.unassignBusyTask(_generate);
 				
 				connectString = '';
-				var token:AsyncToken = Admin.service.getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
-				WeaveAPI.SessionManager.assignBusyTask(token, this);
-				addAsyncResponder(
-					token,
-					function(event:ResultEvent, _:*):void
+				connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
+				triggerCallbacks();
+			}
+			
+			/**
+			 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
+			 * @param ip The IP address of the DBMS.
+			 * @param port The port the DBMS is on (optional, can be "" to use default).
+			 * @param database The name of a database to connect to (can be "" for MySQL)
+			 * @param user The username to use when connecting.
+			 * @param pass The password associated with the username.
+			 * @return A connect string that can be used in the getConnection() function.
+			 */
+			private function getConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String):String
+			{
+				var host:String;
+				if (port == null || port.length == 0)
+					host = ip; // default port for specific dbms will be used
+				else
+					host = ip + ":" + port;
+				
+				var format:String = null;
+				if (SQLSERVER == dbms)
+				{
+					dbms = "sqlserver"; // this will be put in the format string
+					format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4}";
+				}
+				else if (ORACLE == dbms)
+				{
+					format = "jdbc:{0}:thin:{1}/{2}@{3}:{4}";
+					//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
+				}
+				else // MySQL or PostGreSQL
+				{
+					format = "jdbc:{0}://{1}/{2}?user={3}&password={4}";
+				}
+				
+				// MySQL connect string uses % as an escape character, so we must use URLEncoder.
+				// PostGreSQL does not support % as an escape character, and does not work with the & character.
+				if (dbms == MYSQL)
+				{
+					try
 					{
-						connectString = event.result as String;
-						triggerCallbacks();
-					},
-					function(..._):void
-					{
-						triggerCallbacks();
+						database = encodeURIComponent(database);
+						user = encodeURIComponent(user);
+						pass = encodeURIComponent(pass);
 					}
-				);
+					catch (e:Error)
+					{
+						// this should never happen
+						throw new Error(e);
+					}
+				}
+				
+				var result:String = "";
+				if (dbms == ORACLE)
+					result = StringUtil.substitute(format, dbms.toLowerCase(), user, pass, host, database);
+				else
+					result = StringUtil.substitute(format, dbms.toLowerCase(), host, database, user, pass);
+				
+				return result;
 			}
 		]]>
 	</mx:Script>
