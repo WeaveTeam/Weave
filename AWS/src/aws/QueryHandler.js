@@ -36,7 +36,7 @@ aws.QueryHandler = function(queryObject)
 			schema : queryObject.conn.schema,
 			host : queryObject.conn.sqlip,
 			port : queryObject.conn.sqlport,
-			dsn : queryObject.conn.dsn,
+			dsn : queryObject.conn.dsn
 	};
 	
 	this.visualizations = [];
