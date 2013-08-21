@@ -35,13 +35,15 @@ aws.Visualization;
 /** @typedef {{
  * 	  date: string, 
  *    author : string,
- *    conn : {sqldbname : string,
+ *    conn : {connectionType : string,
+ *    		  sqldbname : string,
  *    		  scriptLocation : string,
  *    		  sqluser : string,
  *    		  sqlpass : string,
  *    		  serverType : string,
  *    	 	  sqlip : string,
- *    		  sqlport : string},
+ *    		  sqlport : string,
+ *    		  dsn : string}
  *    		 
  *    scriptOptions : Array,
  *    scriptSelected : string,

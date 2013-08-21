@@ -8,7 +8,7 @@
 				ng-model="conn.scriptLocation"><br>
 		</div><br>
 		<div id="dbconnection">
-			<b>R DB Connection</b><br>
+			<b>R Data Base Connection</b><br>
 			SQL Server Type: <select ui-select2
 				id="dataCombobox" ng-model="conn.serverType">
 				<option value="MySQL">MySQL</option>
@@ -21,7 +21,7 @@
 			SQL Server Port: <input type="text" ng-model="conn.sqlport"><br>
 			SQL Datatable Name: <input type="text" ng-model="conn.sqldbname"><br>
 			SQL Schema name: <input type="text" ng-model="conn.schema"><br>
-
+			ODBC data source name: <input type="text" ng-model="conn.dsn"><br>
 			<br>
 		</div>
 	</div>
