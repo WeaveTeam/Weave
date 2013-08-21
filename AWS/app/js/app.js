@@ -26,8 +26,9 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.DataDialog', 
                                  'aws.leftPanel',
                                  'aws.IndicatorPanel',
-                                 'aws.panelControllers'])
- .config(['$routeProvider', function($routeProvider){
+                                 'aws.panelControllers']);
+
+app.config(['$routeProvider', function($routeProvider){
  		$routeProvider.
  			when('/analysis', {templateUrl: 'tpls/analysis.tpls.html', controller: 'AnalysisCtrl'}).
  			when('/calculation', {templateUrl: 'tpls/calculation.tpls.html', controller: 'CalculationCtrl'}).
@@ -38,4 +39,21 @@ var app = angular.module('aws', ['aws.Main',
  			otherwise({redirectTo: '/analysis'});
 			
  	}]);
+
+app.run(['$rootScope', function($rootScope){
+	$rootScope.$safeApply = function(fn, $scope) {
+			if($scope == undefined){
+				$scope = $rootScope;
+			}
+			
+			fn = fn || function() {};
+			if ( !$scope.$$phase ) {
+        	$scope.$apply( fn );
+    	}
+    	else {
+        	fn();
+    	}
+		};
+}]);
+
 
