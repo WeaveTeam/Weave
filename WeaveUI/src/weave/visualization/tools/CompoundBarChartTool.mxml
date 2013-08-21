@@ -296,7 +296,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
+				return _plotter.colorColumn.internalDynamicColumn;
 			}
 			
 			private var sizeAxisTickChange:Boolean = false;

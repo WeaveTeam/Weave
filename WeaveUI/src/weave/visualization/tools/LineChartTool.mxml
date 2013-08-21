@@ -320,7 +320,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
+				return _plotter.lineStyle.color.internalDynamicColumn;
 			}
 			
 			private function getColumnObjects():Array

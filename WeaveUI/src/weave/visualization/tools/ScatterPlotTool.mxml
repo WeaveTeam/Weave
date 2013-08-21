@@ -535,7 +535,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
+				return plotter.fill.color.internalDynamicColumn;
 			}
 			
 			protected function createLegend():void
