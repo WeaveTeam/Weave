@@ -480,6 +480,8 @@
 				parentPanel.currentNode = this;
 			}
 			
+			private var _numOfDocuments:int = 500;
+			
 			private var _viewToObjectMapping:Dictionary = new Dictionary();
 			
 			private var _nodeName:String = "";
@@ -583,7 +585,7 @@
 					adjustNodeBase();
 					return;						
 				}
-				
+				/* If not loading the page for the first time and if the same number of documents are found */
 				if(!_firstLoad && numOfMatchedDocuments.value == numOfDocs)
 				{
 					status.text = "";
@@ -602,7 +604,7 @@
 				
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
 					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
-					currentQuery.dateFilter,2000,currentQuery.sortBy.value);
+					currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 				
@@ -846,6 +848,7 @@
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
 				addAllDocumentsToList();
+				handleSortNewDocsChange();
 				if(currentView.value == THUMBNAILS_VIEW || currentView.value == LIST_VIEW)
 				{
 					status.text = "";
@@ -1077,7 +1080,7 @@
 				
 				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(_currentQueryTerms,
 															_currentRelatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
-															currentQuery.dateFilter,2000,currentQuery.sortBy.value);
+															currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 				
 				var token:QueryObject = new QueryObject();
 				copySessionState(currentQuery,token);
@@ -1999,7 +2002,7 @@
 					if(!filter)
 					{
 						var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryTerms,_currentRelatedKeywords,
-							currentQuery.dateFilter,[keyword],2000,currentQuery.operator.value,
+							currentQuery.dateFilter,[keyword],_numOfDocuments,currentQuery.operator.value,
 							currentQuery.sources.value,currentQuery.sortBy.value);
 						
 						addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault,keyword);
@@ -2040,13 +2043,13 @@
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
 					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,_currentRelatedKeywords,
-						currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,2000, 3,
+						currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, 3,
 						numOfKeywordsInEachTopic.value);
 				}
 				else
 				{
 					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,
-						_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,2000, numOfTopics.value,
+						_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, numOfTopics.value,
 						numOfKeywordsInEachTopic.value);
 				}
 				
@@ -2074,7 +2077,7 @@
 				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
 				var servletParam:Object = new Object();
 				servletParam.method = "getClustersForQueryWithRelatedKeywords";
-				servletParam.params = [_currentQueryTerms,_currentRelatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),2000,
+				servletParam.params = [_currentQueryTerms,_currentRelatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
 					currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value];
 				clusterCSVDataSource.servletParams.value = servletParam;
 				clusterCSVDataSource.keyColName.value = "document";
@@ -2253,7 +2256,7 @@
 					copySessionState(currentQuery,token);
 					var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
 						_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
-						currentQuery.dateFilter,2000,currentQuery.sortBy.value);
+						currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 					
 					addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 				}
