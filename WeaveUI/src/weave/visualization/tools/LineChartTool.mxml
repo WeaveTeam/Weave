@@ -512,8 +512,8 @@
 									override public function set data(d:Object):void
 									{
 										super.data = d;
-										selected = d.selected;
-										label = d ? d.label : '';
+										selected = d && d.selected;
+										label = d && d.label;
 									}
 									private function handleSelectionChange():void
 									{
