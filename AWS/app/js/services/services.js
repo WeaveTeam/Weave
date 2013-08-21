@@ -20,10 +20,15 @@ angular.module("aws.services", []).service("queryobj", function() {
 			serverType : 'MySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
+<<<<<<< HEAD
 			sqldbname : 'sdoh_2010q',
+=======
+			sqldbname : 'brfss_ten_year_2002_2011',
+>>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
 			sqluser : 'root',
 			sqlpass : 'pass',
-			schema : 'data'
+			schema : 'data',
+			dsn : 'brfss'
 	};
 	this.setQueryObject = function(jsonObj){
 		if (!jsonObj){
