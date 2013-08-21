@@ -27,12 +27,12 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
-	<ui:Indent label="SQL Server type" group="{indentGroup}">
+	<ui:Indent label="Server type" group="{indentGroup}">
 		<ui:CustomComboBox id="dbmsCombo" change="{generateDatabaseChange()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
-	<ui:IndentTextInput label="SQL Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="SQL Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
-	<ui:Indent id="sqlDatabaseName" label="SQL Database name" group="{indentGroup}">
+	<ui:IndentTextInput label="Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
+	<ui:Indent id="sqlDatabaseName" label="Database name" group="{indentGroup}">
 		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
 		<mx:Label id="optionalText" text="(Optional)"/>
 		<ui:HelpComponent id="optionalHelp">
@@ -47,30 +47,19 @@
 			If there is no instance name for your server, you may leave this blank.
 		-->
 	</ui:Indent>
-	<ui:IndentTextInput label="SQL User Name" id="userInput" change="{generate()}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="SQL Password" id="passInput" change="{generate()}" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="User Name" id="userInput" change="{generate()}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="Password" id="passInput" change="{generate()}" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.rpc.AsyncToken;
-			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
 			import weave.api.WeaveAPI;
-			import weave.api.core.ICallbackCollection;
 			import weave.api.getCallbackCollection;
-			import weave.services.Admin;
-			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
-			import weave.utils.EventUtils;
 			
 			[Bindable] public var indentGroup:Object = this;
 			
 			[Bindable] public var connectString:String = '';
-			
-			private static const MYSQL:String = 'MySQL';
-			private static const POSTGRESQL:String = 'PostGreSQL';
-			private static const SQLSERVER:String = 'Microsoft SQL Server';
-			private static const ORACLE:String = 'Oracle';
 			
 			private function get hostUrl():String
 			{
@@ -89,67 +78,38 @@
 				userInput.text = "";
 				passInput.text = "";
 				if (resetConnectString)
-					connectString = "jdbc:mysql://localhost:3306/?user=&password=";
+					generate();
 			}
 			
 			private function generateDatabaseChange():void
 			{
 				switch(dbmsCombo.text)
 				{
-					case MYSQL:
-					{
-						sqlDatabaseName.label = "SQL Database name";
+					case ConnectionInfo.ORACLE:
+					case ConnectionInfo.POSTGRESQL:
+					case ConnectionInfo.MYSQL:
+						sqlDatabaseName.label = "Database name";
 						optionalHelp.visible = true;
 						optionalText.visible = true;
 						break;
-					}
-					case POSTGRESQL:
-					{
-						sqlDatabaseName.label = "SQL Database name";
-						optionalHelp.visible = true;
-						optionalText.visible = true;
-						break;
-					}
-					case SQLSERVER:
-					{
+					case ConnectionInfo.SQLSERVER:
 						sqlDatabaseName.label = "Instance Name";
 						optionalHelp.visible = false;
 						optionalText.visible = false;
 						break;
-					}
-					case ORACLE:
-					{
-						sqlDatabaseName.label = "SQL Database name";
-						optionalHelp.visible = true;
-						optionalText.visible = true;
-						break;
-					}
 				}
-				WeaveAPI.SessionManager.assignBusyTask(_generate, this);
-				_delayedGenerate();
-				triggerCallbacks();
+				generate();
 			}
 			
 			private function generate():void
 			{
-				WeaveAPI.SessionManager.assignBusyTask(_generate, this);
-				_delayedGenerate();
+				connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
 				triggerCallbacks();
 			}
-			
-			private var _delayedGenerate:Function = EventUtils.generateDelayedCallback(this, _generate, 500);
 			
 			private function triggerCallbacks():void
 			{
 				getCallbackCollection(this).triggerCallbacks();
-			}
-			private function _generate():void
-			{
-				WeaveAPI.SessionManager.unassignBusyTask(_generate);
-				
-				connectString = '';
-				connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
-				triggerCallbacks();
 			}
 			
 			/**
@@ -164,20 +124,22 @@
 			private function getConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String):String
 			{
 				var host:String;
-				if (port == null || port.length == 0)
+				if (!port)
 					host = ip; // default port for specific dbms will be used
 				else
 					host = ip + ":" + port;
 				
+				// in format strings: 0=dbms,1=host,2=database,3=user,4=pass
+				
 				var format:String = null;
-				if (SQLSERVER == dbms)
+				if (dbms == ConnectionInfo.SQLSERVER)
 				{
 					dbms = "sqlserver"; // this will be put in the format string
 					format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4}";
 				}
-				else if (ORACLE == dbms)
+				else if (dbms == ConnectionInfo.ORACLE)
 				{
-					format = "jdbc:{0}:thin:{1}/{2}@{3}:{4}";
+					format = "jdbc:{0}:thin:{3}/{4}@{1}:{2}";
 					//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 				}
 				else // MySQL or PostGreSQL
@@ -187,26 +149,14 @@
 				
 				// MySQL connect string uses % as an escape character, so we must use URLEncoder.
 				// PostGreSQL does not support % as an escape character, and does not work with the & character.
-				if (dbms == MYSQL)
+				if (dbms == ConnectionInfo.MYSQL)
 				{
-					try
-					{
-						database = encodeURIComponent(database);
-						user = encodeURIComponent(user);
-						pass = encodeURIComponent(pass);
-					}
-					catch (e:Error)
-					{
-						// this should never happen
-						throw new Error(e);
-					}
+					database = encodeURIComponent(database);
+					user = encodeURIComponent(user);
+					pass = encodeURIComponent(pass);
 				}
 				
-				var result:String = "";
-				if (dbms == ORACLE)
-					result = StringUtil.substitute(format, dbms.toLowerCase(), user, pass, host, database);
-				else
-					result = StringUtil.substitute(format, dbms.toLowerCase(), host, database, user, pass);
+				var result:String = StringUtil.substitute(format, dbms.toLowerCase(), host, database, user, pass);
 				
 				return result;
 			}
