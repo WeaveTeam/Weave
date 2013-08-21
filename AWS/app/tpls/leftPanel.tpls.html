@@ -22,7 +22,7 @@
 	<button onclick="saveJSON({{QueryObjectModel()}})"
 		class="btn btn-primary">Export JSON</button>
 	<br> <label>Import JSON</label> <input type="file"
-		id="queryImport" ng-submit="uploadQuery()" />
+		id="queryImport" ng-submit="uploadQuery()" file-upload/>
 	<button id="run" class="btn btn-primary">Run Query</button>
 	<br>
 	<img id="busyIndicator" src="img/busy.gif" ng-show='shouldShow'/>

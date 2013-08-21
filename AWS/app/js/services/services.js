@@ -25,6 +25,30 @@ angular.module("aws.services", []).service("queryobj", function() {
 			sqlpass : 'pass',
 			schema : 'data'
 	};
+	this.setQueryObject = function(jsonObj){
+		if (!jsonObj){
+			return undefined;
+		}
+		this.title = jsonObj.title;
+		this.date = jsonObj.data;
+		this.author = jsonObj.author;
+		this.scriptType = jsonObj.scriptType;
+		this.dataTable = jsonObj.dataTable;
+		this.conn = jsonObj.conn;
+		this.selectedVisualization = jsonObj.selectedVisualization;
+		this.barchart = jsonObj.barchart;
+		this.datatable = jsonObj.datatable;
+		this.colorColumn = jsonObj.colorColumn;
+		this.byvars = jsonObj.byvars;
+		this.indicators = jsonObj.indicators;
+		this.geography = jsonObj.geography;
+		this.timeperiods = jsonObj.timeperiods;
+		this.analytics = jsonObj.analytics;
+		this.scriptOptions = jsonObj.scriptOptions;
+		this.scriptSelected = jsonObj.scriptSelected;
+		this.maptool = jsonObj.maptool;
+	};
+		
 })
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q){

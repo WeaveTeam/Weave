@@ -6,31 +6,26 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 			$scope.isActive = function(route) {
 				return route == $location.path();
 			};
-			$scope.uploadQuery = function(){
-						
+			$scope.uploadQuery = function() {
+
 			};
-			$("#queryImport").fileReader({"debugMode":true,"filereader":"lib/jquery/filereader.swf"});
-			$("#queryImport").on("change", function(evt){
-				console.log(evt.target.files);
-				var file = evt.target.files[0];
-				var reader = new FileReader();
-				reader.onload = function(e) {
-					//importedobjectfromjson = $.parseJSON(e.target.result);
-					console.log(e.target.result);
-					//var qh = new aws.QueryHandler(importedobjectfromjson);
-					//qh.runQuery();
-				}
-				reader.readAsText(file);
+			$scope.$on('newQueryLoaded', function(e) {
+				$scope.$safeApply(function() {
+					if ($scope.jsonText) {
+						//queryobj = $scope.jsonText;
+						queryobj.setQueryObject($scope.jsonText);
+					}
+				});
 			});
-			
+
 			// Show logic for the Busy Indicator
 			$scope.shouldShow = false;
-			var setCount = function(res){
+			var setCount = function(res) {
 				$scope.shouldShow = res;
 			};
 			aws.addBusyListener(setCount);
-		
-});
+
+		});
 
 function saveJSON(query) {
 	var blob = new Blob([ JSON.stringify(query, undefined, 2) ], {
