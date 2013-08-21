@@ -231,7 +231,7 @@
 									{
 										super.data = d;
 										selected = d && d.selected;
-										label = d && d.label;
+										label = (d && d.label) as String;
 									}
 
 									private function handleSelectionChange():void
