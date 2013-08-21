@@ -39,6 +39,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
+			import weave.visualization.plotters.styles.SolidFillStyle;
 
 			WeaveAPI.registerImplementation(IVisTool, PieChartTool, lang("Pie Chart"));
 			
@@ -174,7 +175,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn
+				return (_plotter.fillStyle.internalObject as SolidFillStyle).color.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -223,10 +224,17 @@
 			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
 				<mx:itemRenderer>
 					<mx:Component>
-						<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+						<mx:CheckBox change="handleSelectionChange()">
 							
 							<mx:Script>
 								<![CDATA[
+									override public function set data(d:Object):void
+									{
+										super.data = d;
+										selected = d && d.selected;
+										label = (d && d.label) as String;
+									}
+
 									private function handleSelectionChange():void
 									{
 										data.selected = this.selected;
