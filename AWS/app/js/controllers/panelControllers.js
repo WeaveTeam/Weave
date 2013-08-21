@@ -7,66 +7,62 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.options; // initialize
 	$scope.selection;
-	$scope.gridOptions = {
-			data: 'getOptions',
-			enableCellSelection: true,
-			enableRowSelection: false
+	
+	var getOptions = function getOptions(){
+		// fetch Columns using current dataTable
+		$scope.options = dataService.giveMeColObjs($scope);
+		$scope.options.then(function(res){
+			 //getOpts(res);
+			 setSelect();
+		});
 	};
-	$scope.getOptions;
-	function getOpts(res){
-		var arr = $.map(res, function(n){
-			return {"column": n.publicMetadata.title};
-		});	
-		$scope.getOptions = arr;
-		$scope.gridOptions['data'] = "getOptions";
-	}
+	getOptions(); // call immediately
+	
 	function setSelect(){
 		if(queryobj[$scope.selectorId]){
 			$scope.selection = queryobj[$scope.selectorId];
-			$scope.gridOptions.selectedItem = queryobj[$scope.selectorId];
 		}
+		//$scope.gridOptions.selectedItem = queryobj[$scope.selectorId];
+		$scope.$watch('selection', function(newVal, oldVal){
+			if(newVal != oldVal){
+				queryobj[$scope.selectorId] = $scope.selection;
+			}
+		});
 	}
-	
-	// fetch Columns using current dataTable
-	$scope.options = dataService.giveMeColObjs($scope);
-	$scope.options.then(function(res){
-		 getOpts(res);
-		 setSelect();
+
+	$scope.$on("refreshColumns", function(e){
+		getOptions();
 	});
+//	$scope.gridOptions = {
+//			data: 'getOptions',
+//			enableCellSelection: true,
+//			enableRowSelection: false
+//	};
+//	$scope.getOptions;
+//	function getOpts(res){
+//		var arr = $.map(res, function(n){
+//			return {"column": n.publicMetadata.title};
+//		});	
+//		$scope.getOptions = arr;
+//		$scope.gridOptions['data'] = "getOptions";
+//	}
+	
 	
 	
 	
 	// watch functions for two-way binding
-	$scope.$watch('selection', function(){
-		queryobj[$scope.selectorId] = $scope.selection;
-	});
-	$scope.$watch('gridOptions.selectedItem', function(){
-		queryobj[$scope.selectorId] = $scope.gridOptions.selectedItem;
-	});
+	 
+//	$scope.$watch('gridOptions.selectedItem', function(){
+//		queryobj[$scope.selectorId] = $scope.gridOptions.selectedItem;
+//	});
+//	
 	
-	
-	$scope.$on("refreshColumns", function(e){
-		$scope.options = dataService.giveMeColObjs($scope);
-		getOpts($scope.options);
-	});
-	
-	
-	
-	
-	
+
+
 	$scope.showGrid = false;
 	$scope.toggleShowGrid = function(){
 		$scope.showGrid = (!$scope.showGrid);
 	};
-	
-
-	
-/*	$scope.$watch(function(){
-		return queryobj[$scope.selectorId];
-	},
-		function(select){
-			$scope.selection = queryobj[$scope.selectorId];
-	});*/
 
 })
 .controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
@@ -88,12 +84,12 @@ angular.module("aws.panelControllers", [])
 		function(select){
 			$scope.selection = queryobj['scriptSelected'];
 	});
-	/*$scope.$watch(function(){
+	$scope.$watch(function(){
 		return queryobj.conn.scriptLocation;
 	},
 		function(){
 		$scope.options = scriptobj.getScriptsFromServer();
-	});*/
+	});
 	
 })
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
@@ -117,14 +113,14 @@ angular.module("aws.panelControllers", [])
 })
 .controller("RunPanelCtrl", function($scope, queryobj, dataService){
 	$scope.runQ = function(){
-		alert("Running Query");
 		var qh = new aws.QueryHandler(queryobj);
 		qh.runQuery();
+		alert("Running Query");
 	};
 	
 	$scope.clearCache = function(){
-		alert("Cache cleared");
 		aws.RClient.clearCache();
+		alert("Cache cleared");
 	}
 	
 })
@@ -148,11 +144,13 @@ angular.module("aws.panelControllers", [])
 		//console.log(oldVal, newVal);
 		if(($scope.options.$$v != undefined) && ($scope.options.$$v != null)){
 			var obj = $scope.options.$$v[$scope.selection];
-			var send = {};
-			send.weaveEntityId = obj.id;
-			send.keyType = obj.publicMetadata.keyType;
-			send.title = obj.publicMetadata.title;
-			queryobj['maptool'] = send;
+			if(obj){
+				var send = {};
+				send.weaveEntityId = obj.id;
+				send.keyType = obj.publicMetadata.keyType;
+				send.title = obj.publicMetadata.title;
+				queryobj['maptool'] = send;
+			}
 		}
 	});
 	$scope.$watch('enabled', function(){
@@ -205,7 +203,7 @@ angular.module("aws.panelControllers", [])
 	$scope.options = scriptobj.scriptMetadata['outputs'];
 	$scope.selection;
 	// selectorId should be "dataTablePanel"
-	if(queryobj[$scope.selectorId]){
+	if(queryobj['datatable']){
 		$scope.selection = queryobj["datatable"];
 	}
 	
@@ -227,7 +225,7 @@ angular.module("aws.panelControllers", [])
 	$scope.selection;
 	
 	// selectorId should be "ColorColumnPanel"
-	if(queryobj[$scope.selectorId]){
+	if(queryobj['colorColumn']){
 		$scope.selection = queryobj["colorColumn"];
 	}
 	$scope.options = scriptobj.scriptMetadata['outputs'];

@@ -36,7 +36,7 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	$scope.$watch('dataTableSelect', function(connection){
 		queryobj['dataTable'] = $scope.dataTableSelect;
 	});
-	$scope.$watch('entityOverride', function(oldVal, newVal){
+	$scope.$watch('entityOverride', function(newVal, oldVal){
 		if(newVal != undefined){
 			$scope.dataTableSelect = $scope.entityOverride;
 		}

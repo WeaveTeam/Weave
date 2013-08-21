@@ -25,7 +25,7 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.project', 
                                  'aws.DataDialog', 
                                  'aws.leftPanel',
-                                 'aws.IndicatorPanel',
+                                 'aws.viewControllers',
                                  'aws.panelControllers']);
 
 app.config(['$routeProvider', function($routeProvider){
