@@ -63,6 +63,7 @@ import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
+import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLResult;
@@ -563,6 +564,16 @@ public class DataService extends GenericServlet
 		);
 		
 		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
+	}
+	
+	public void test(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
+	{
+		DebugTimer.go();
+		
+		getFilteredRows(columns, keysArray);
+		
+		DebugTimer.stop("finished");
+	
 	}
 	
 	@SuppressWarnings("unchecked")

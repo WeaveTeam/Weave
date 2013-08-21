@@ -19,8 +19,11 @@
 
 package weave.servlets;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,17 +78,18 @@ public class RService extends GenericServlet
 	}
 
 	private static Process rProcess = null;
-	
+	private String rServePath = "";
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
 		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+		rServePath =  WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
 	    try {
-	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
-	    	if (rServePath != null && rServePath.length() > 0)
-	    		rProcess = Runtime.getRuntime().exec(new String[]{ rServePath });
+	    	if (rProcess == null) {
+	    		startRServe();
+	    	}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -278,6 +282,7 @@ public class RService extends GenericServlet
 	public RResult[] runScriptOnSQLColumns(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
 	{
 		RResult[] returnedColumns;
+		String connectionType = connectionObject.get("connectionType").toString();
 		String scriptName = requestObject.get("scriptName").toString();
 		System.out.print(requestObject.toString());
 		//if the computation result has been stored then computation is not run
@@ -319,12 +324,23 @@ public class RService extends GenericServlet
 			 Object[] requestObjectInputValues = {cannedScriptLocation, query, col1, col2, col3, col4, col5};
 			 String[] requestObjectInputNames = {"cannedScriptPath", "query", "col1", "col2", "col3", "col4", "col5"};
 			
-			
-			String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-			"library(RMySQL)\n" +
-			"con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
-			"library(survey)\n" +
-			"returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+			 String finalScript = "";
+			 String dsn = connectionObject.get("dsn").toString();
+			if(connectionType.equalsIgnoreCase("RMySQL"))
+			{
+				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+							  "library(RMySQL)\n" +
+							  "con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
+							  "library(survey)\n" +
+							  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+			} else if (connectionType.equalsIgnoreCase("RODBC"))
+			{
+				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+							 "library(RODBC)\n" +
+							 "con <- odbcConnect(dsn= \"" + dsn + "\", user =" + "\"" +user+"\" , pwd =" + "\"" +password+")\n" +
+							 "library(survey)\n" +
+							 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+			}
 			String[] requestObjectOutputNames = {};
 			
 			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
@@ -336,84 +352,69 @@ public class RService extends GenericServlet
 		 
 	}
 	
-	public int startRServe() throws IOException {
-		int status = -9999;
+	public void startRServe() throws IOException {
 		
-		if (System.getProperty("os.name").startsWith("Windows")) 
+		if (rProcess == null)
 		{
-			String[] args = {"C:\\Program Files\\R\\R-3.0.1\\library\\Rserve.exe"};
-			try 
+			if (System.getProperty("os.name").startsWith("Windows")) 
 			{
-				status = CommandUtils.runCommand(args);
-			} catch (Exception e) 
+				try 
+				{
+					rProcess = Runtime.getRuntime().exec(rServePath);
+				} catch (Exception e) 
 			
+				{
+					e.printStackTrace();
+				}
+			}
+			else 
 			{
-				e.printStackTrace();
+				String[] args = {"R", "CMD", "RServe", "--vanilla"};
+				try {
+					rProcess = Runtime.getRuntime().exec(args);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
-		else 
-		{
-			String[] args = {"R", "CMD", "RServe", "--vanilla"};
-			try {
-				status = CommandUtils.runCommand(args);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-		}
-		return status;
 	}
 	
-	public int stopRServe() throws IOException {
-		int status = -9999;
-		if (System.getProperty("os.name").startsWith("Windows")) 
+	public void stopRServe() throws IOException {
+	 try {
+		if (rProcess != null )
 		{
-			String[] args = {"Taskkill", "/IM", "RServe.exe"};
-			try 
-			{
-				status = CommandUtils.runCommand(args);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			rProcess.destroy();
 		}
-		else
-		{
-			String[] args = {"killall", "RServe"};
-			try {
-				status = CommandUtils.runCommand(args);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return status;
+	 } catch (Exception e) {
+		e.printStackTrace();
+	 }
 	}
 
-//	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) 
-//	{
-//		RResult[] returnedColumns;
-//		
-//		String scriptPath = requestObject.get("scriptPath").toString();
-//		String scriptName = requestObject.get("scriptName").toString();
-//		String cannedScript = scriptPath + scriptName;
-//		
-//		String[] inputNames = {"cannedScriptPath", "dataset"};
-//		
-//		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
-//		
-//		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
-//
-//		Object[] inputValues = {cannedScript, recordData};
-//		
-//		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-//					         "dataSet <- data.frame(recordData)" +
-//					         "scriptFromFile$value(dataSet)"; 
-//		
-//		String[] outputNames = {};
-//		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript,"", false, false, false);
-//		
-//		return returnedColumns;
-//		
-//	}
+	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
+	{
+		RResult[] returnedColumns;
+		
+		String scriptPath = requestObject.get("scriptPath").toString();
+		String scriptName = requestObject.get("scriptName").toString();
+		String cannedScript = scriptPath + scriptName;
+		
+		String[] inputNames = {"cannedScriptPath", "dataset"};
+		
+		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
+		
+		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
+
+		Object[] inputValues = {cannedScript, recordData};
+		
+		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+					         "scriptFromFile$value(dataset)"; 
+		
+		String[] outputNames = {};
+		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false, false);
+			
+		return returnedColumns;
+		
+	}
 	
 	public String[] getListOfScripts(String folderPath)
 	{
@@ -429,6 +430,20 @@ public class RService extends GenericServlet
 				rFiles.add(files[i]);
 		}
 		return rFiles.toArray(new String[0]);
+	}
+	
+	public class ScriptMetadata
+	{
+		// input variables
+		public String[] inputs;
+		// description of the input variables
+		public String[] inputDescriptions;
+		
+		// output variables
+		public String[] outputs;
+		// description of the output variables
+		public String[] outputDescriptions;
+
 	}
 	
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
