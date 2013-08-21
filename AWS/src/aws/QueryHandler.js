@@ -30,11 +30,13 @@ aws.QueryHandler = function(queryObject)
 	};
 	
 	this.connectionObject = {
+	        connectionType : queryObject.conn.connectionType,
 			user : queryObject.conn.sqluser,
 			password : queryObject.conn.sqlpass,
 			schema : queryObject.conn.schema,
 			host : queryObject.conn.sqlip,
-			port : queryObject.conn.sqlport
+			port : queryObject.conn.sqlport,
+			dsn : queryObject.conn.dsn,
 	};
 	
 	this.visualizations = [];
