@@ -76,7 +76,7 @@ package weave.utils
 			{
 				// It's important to know when this occurs because if it does, most likely some code is incorrect.
 				// If this is ignored, the code will seem to behave randomly if the same object is being used for multiple purposes.
-				// Make sure that when returnObject() is called that any code that uses it clears all references to it.
+				// Make sure when returnObject() is called that any code using the object clears all references to it.
 				throw new Error("object was passed to returnObject() more times than necessary");
 			}
 			
