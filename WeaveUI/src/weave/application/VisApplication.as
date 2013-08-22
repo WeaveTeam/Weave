@@ -268,7 +268,7 @@ package weave.application
 			}
 			else
 			{
-				if (Capabilities.localFileReadDisable == false)
+				if (Capabilities.playerType == "Desktop")
 					WeaveAPI.URLRequestUtils.setBaseURL(fileName);
 				loadSessionState(event.result, fileName);
 			}
