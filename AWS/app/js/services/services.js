@@ -26,6 +26,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 			schema : 'data',
 			dsn : 'brfss'
 	};
+	this.slideFilter = {values: [10,25]}
 	this.setQueryObject = function(jsonObj){
 		if (!jsonObj){
 			return undefined;
@@ -49,6 +50,14 @@ angular.module("aws.services", []).service("queryobj", function() {
 		this.scriptSelected = jsonObj.scriptSelected;
 		this.maptool = jsonObj.maptool;
 	};
+	//var slideFilterI = {values: [10,25]};
+	return {
+		//getSlideFilter: this.slideFilterI,
+		//setSlideFilter: function(dat){ this.slideFilterI = dat; return this.slideFilterI;},
+		q: this,
+		dataTable: function(){return this.dataTable;}
+	}
+	
 		
 })
 

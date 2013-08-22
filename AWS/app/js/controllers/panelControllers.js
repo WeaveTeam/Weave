@@ -285,6 +285,20 @@ angular.module("aws.panelControllers", [])
 	}, true);
 })
 .controller("FilterPanelCtrl", function($scope, queryobj){
-	$scope.toFilter;
+	$scope.slideFilter = queryobj.q.slideFilter.values;
+	$scope.sliderOptions = {
+			range: true,
+			//max/min: querobj['some property']
+			max: 99,
+			min: 1,
+			values: [10,25],
+			animate: 2000
+	};
+	
+	$scope.$watch('slideFilter', function(newVal, oldVal){
+		if(newVal){
+			queryobj.q.slideFilter.values = newVal;
+		}
+	}, true); //by val
 	
 })

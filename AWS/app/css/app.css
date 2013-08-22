@@ -221,3 +221,10 @@ input[type="checkbox"] {
 .select2-container {
 	width: 100%;
 }
+
+.ui-slider{
+	margin-top: 10px;
+	margin-left: 7px;
+	margin-right: 7px;
+	margin-bottom: 5px;
+}
