@@ -59,43 +59,11 @@
 				This will generate a new unique key for each row.  It is the simplest option, but will not allow you to link the data to other data sets.
 			</ui:HelpComponent>
 		</mx:HBox>
-		<mx:VBox paddingLeft="{paddingIndent}" width="100%" visible="{!generateKeyColumnCheckBox.selected}">
-			<ui:Indent label="{lang('Key column')}" grouped="false">
-				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true"/><!-- editable because user may have typed in a file name manually -->
-				<ui:HelpComponent>
-					Select the column whose values uniquely identify the rows in the table.  If there is no such column, you can either use the option to generate a new primary key column, or one of the advanced options below.
-				</ui:HelpComponent>
-			</ui:Indent>
-			
-			<admin:KeyTypeDialog id="keytypeSelector" defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
-			
-			<mx:RadioButtonGroup id="radioGroup"/>
-			<mx:RadioButton label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
-			
-			<mx:RadioButton id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false" group="{radioGroup}"/>
-			<ui:Indent label="{lang('Secondary key column')}"
-					   paddingLeft="{paddingIndent}"
-					   grouped="false"
-					   visible="{secondaryKeyColumnCheckBox.selected}"
-					   includeInLayout="{secondaryKeyColumnCheckBox.selected}">
-				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="{lang('Select a secondary key column for use with the Dimension Slider')}" />
-			</ui:Indent>
-			
-			<mx:HBox>
-				<mx:RadioButton id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false" group="{radioGroup}"/>
-				<ui:HelpComponent>
-					This option is to be used when the new data table has a column that refers to keys in another data table but the keys do not uniquely identify rows in the new table.
-					
-					Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
-				</ui:HelpComponent>
-			</mx:HBox>
-			<ui:Indent label="{lang('Columns to use as filters')}" paddingLeft="{paddingIndent}" width="100%" visible="{generateFilterColumnsCheckBox.selected}">
-				<mx:TextInput id="filterColumnsInput" width="100%"/>
-				<ui:HelpComponent>
-					Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
-				</ui:HelpComponent>
-			</ui:Indent>
-		</mx:VBox>
+		<admin:ImportTableKeyOptions id="keyOptions"
+									 paddingLeft="{paddingIndent}"
+									 visible="{!generateKeyColumnCheckBox.selected}"
+									 keyColumnEditable="true"
+									 defaultKeyType="{dataTableNameInput.text}"/>
 	</mx:VBox>
 	
 	<mx:VBox id="dublinCorePage" width="100%" label="{lang('Specify Dublin Core metadata')}">
@@ -150,11 +118,8 @@
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
 				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 				
-				csvKeyColumnCombo.addEventListener(Event.CHANGE,keyColumnChange);
-				csvSecondaryKeyColumnCombo.addEventListener(Event.CHANGE,keyColumnChange);
-				
 				generateKeyColumnCheckBox.addEventListener(Event.CHANGE, handleGenerateKeyColumnChange);
-				secondaryKeyColumnCheckBox.addEventListener(Event.CHANGE,keyColumnChange);
+				keyOptions.addEventListener(Event.CHANGE, handleKeyColumnChange);
 					
 				backEnabled = false;
 				nextEnabled = false;
@@ -214,7 +179,7 @@
 				try
 				{
 					generateKeyColumnCheckBox.selected = true;
-					secondaryKeyColumnCheckBox.selected = false;
+					keyOptions.secondaryKeyColumnRadio.selected = false;
 					var fileTypes:Array = [new FileFilter("CSV Files", "*.csv")];
 					_csvFileReference.browse(fileTypes);
 				}
@@ -248,11 +213,7 @@
 			private function handleGetCSVColumnNames(e:ResultEvent, token:Object = null):void
 			{
 //				trace("handleGetCSVColumnNames: success - " + e.result);
-				csvKeyColumnCombo.dataProvider = e.result;
-				csvSecondaryKeyColumnCombo.dataProvider = e.result;
-				
-				csvSecondaryKeyColumnCombo.selectedIndex = -1;
-				filterColumnsInput.text = WeaveAPI.CSVParser.createCSV([e.result]);
+				keyOptions.columnNames = e.result as Array;
 				
 				var tableName:String = token as String;
 				
@@ -283,8 +244,8 @@
 			 */
 			override public function finish():void
 			{
-				var keyColumn:String = generateKeyColumnCheckBox.selected ? '' : csvKeyColumnCombo.text;
-				var secondKeyColumn:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null;
+				var keyColumn:String = generateKeyColumnCheckBox.selected ? '' : keyOptions.keyColumnCombo.text;
+				var secondKeyColumn:String = keyOptions.secondaryKeyColumnRadio.selected ? keyOptions.secondaryKeyColumnCombo.text : null;
 				var configTableName:String = dataTableNameInput.text
 				var geometryCollection:String = '';
 				var keyType:String = "";
@@ -292,7 +253,7 @@
 				if(generateKeyColumnCheckBox.selected)
 					keyType = configTableName;
 				else
-					keyType = keytypeSelector.selectedKeyType;
+					keyType = keyOptions.keyTypeSelector.selectedKeyType;
 				
 				disable();
 				addAsyncResponder(
@@ -306,7 +267,9 @@
 						configTableName,
 						keyType,
 						nullFlagInput.text,
-						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null,
+						(keyOptions.generateFilterColumnsRadio.selected && keyOptions.filterColumnsInput.text)
+							? keyOptions.filterColumnsInput.text.split(",")
+							: null,
 						!noAppendCheckBox.selected
 					),
 					function handleImportCSV(event:ResultEvent, token:Object = null):void
@@ -353,7 +316,7 @@
 			{
 				if (!generateKeyColumnCheckBox.selected)
 				{
-					keyColumnChange(event);
+					handleKeyColumnChange(event);
 				}
 				else
 				{
@@ -367,8 +330,8 @@
 			
 			private function clearErrors():void
 			{
-				csvKeyColumnCombo.errorString = '';
-				csvSecondaryKeyColumnCombo.errorString = '';
+				keyOptions.keyColumnCombo.errorString = '';
+				keyOptions.secondaryKeyColumnCombo.errorString = '';
 				finishEnabled = true;
 				nextEnabled = true;
 			}
@@ -378,9 +341,9 @@
 			 * If the column does not have unique values we set the errorString on the primary and secondary key
 			 * combo boxes and disable the next and finish buttons.
 			 * */
-			private function keyColumnChange(event:Event=null):void
+			private function handleKeyColumnChange(event:Event=null):void
 			{
-				if (generateFilterColumnsCheckBox.selected || generateKeyColumnCheckBox.selected)
+				if (keyOptions.generateFilterColumnsRadio.selected || generateKeyColumnCheckBox.selected)
 				{
 					clearErrors();
 					return;
@@ -389,8 +352,10 @@
 				finishEnabled = false;
 				nextEnabled = false;
 				
-				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
-				var secKeyColName:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.selectedItem as String : null;
+				var keyColName:String = keyOptions.keyColumnCombo.selectedItem as String;
+				var secKeyColName:String = keyOptions.secondaryKeyColumnRadio.selected
+					? keyOptions.secondaryKeyColumnCombo.selectedItem as String
+					: null;
 				addAsyncResponder(
 					Admin.service.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
 					handleKeyColumnCheck,
@@ -400,16 +365,16 @@
 			
 			private function handleKeyColumnCheck(e:ResultEvent,token:Object=null):void
 			{
-				if (generateFilterColumnsCheckBox.selected || generateKeyColumnCheckBox.selected)
+				if (keyOptions.generateFilterColumnsRadio.selected || generateKeyColumnCheckBox.selected)
 				{
 					return; //we don't clear errors because because this is an asynchronous call, so we don't want it to update UI, if the result is late.
 				}
 				
 				if (!e.result)
 				{
-					csvKeyColumnCombo.errorString = "Key values are not unique";
+					keyOptions.keyColumnCombo.errorString = "Key values are not unique";
 					
-					csvSecondaryKeyColumnCombo.errorString = "Key values are not unique";
+					keyOptions.secondaryKeyColumnCombo.errorString = "Key values are not unique";
 					
 					finishEnabled = false;
 					nextEnabled = false;
@@ -420,8 +385,8 @@
 					clearErrors();
 				}
 				
-				csvKeyColumnCombo.invalidateDisplayList();
-				csvSecondaryKeyColumnCombo.invalidateDisplayList();
+				keyOptions.keyColumnCombo.invalidateDisplayList();
+				keyOptions.secondaryKeyColumnCombo.invalidateDisplayList();
 			}
 			
 			private function handleKeyColumnCheckFault(e:FaultEvent,token:Object=null):void
