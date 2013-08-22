@@ -28,14 +28,14 @@
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="Server type" group="{indentGroup}">
-		<ui:CustomComboBox id="dbmsCombo" change="{generateDatabaseChange()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
+		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
 	<ui:IndentTextInput label="Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
 	<ui:IndentTextInput label="Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
-	<ui:Indent id="sqlDatabaseName" label="Database name" group="{indentGroup}">
+	<ui:Indent id="sqlDatabaseName" label="{dbmsCombo.text == ConnectionInfo.SQLSERVER ? 'Instance name' : 'Database name'}" group="{indentGroup}">
 		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
-		<mx:Label id="optionalText" text="(Optional)"/>
-		<ui:HelpComponent id="optionalHelp">
+		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}"/>
+		<ui:HelpComponent id="optionalHelp" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}">
 			This field is optional.  You can specify the name of a default database to connect to.
 			For SQL Server, this is an instance name.
 			Similarly in PostGreSQL, databases are different from schemas.
@@ -81,28 +81,13 @@
 					generate();
 			}
 			
-			private function generateDatabaseChange():void
+			private function generate(callingLater:Boolean = false):void
 			{
-				switch(dbmsCombo.text)
+				if (!callingLater)
 				{
-					case ConnectionInfo.ORACLE:
-					case ConnectionInfo.POSTGRESQL:
-					case ConnectionInfo.MYSQL:
-						sqlDatabaseName.label = "Database name";
-						optionalHelp.visible = true;
-						optionalText.visible = true;
-						break;
-					case ConnectionInfo.SQLSERVER:
-						sqlDatabaseName.label = "Instance Name";
-						optionalHelp.visible = false;
-						optionalText.visible = false;
-						break;
+					callLater(generate, [true]);
+					return;
 				}
-				generate();
-			}
-			
-			private function generate():void
-			{
 				connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
 				triggerCallbacks();
 			}
