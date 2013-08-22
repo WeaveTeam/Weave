@@ -139,6 +139,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					f.replaceKeys(false,true,keys);
 					listFilters.setNameOrder(names);
 				}
+				updateList(); /* the callback for listfilters does call updateList but before the keys are replaced. So we force call updateList */
 			}
 			
 			public function removeFilter(name:String):void

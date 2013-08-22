@@ -1510,16 +1510,43 @@
 			 **/
 			private function handleSelectionKeySetChange():void
 			{
+				var keys:Array = _selection.keys;
+				
+				/* Check to see if the selection is made from Rad Viz tool for clusters*/
+				var rTool:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
+				
+				if(rTool && rTool == DraggablePanel.activePanel)
+				{
+					var temp:Array = [];
+					for each(var key:IQualifiedKey in keys)
+					{
+						if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						{
+							temp.push(key);
+						}
+					}
+					if(temp.length>0)
+					{
+						docListComponent.applyFilter("SELECTION",temp);
+					}
+					else
+					{
+						docListComponent.removeFilter("SELECTION");
+					}
+					return;
+				}
+				
+				/* if the selection is made from an InfoMaps Panel, then show related data records */
 				if(parentPanel == DraggablePanel.activePanel)
 				{
 					showRelatedRecords();	
 				}
-				else
+				/* else the selection is made other visual tools. We assume that selected keys are data records so we show related documents */
+				else 
 				{
 					showRelatedDocuments();
 				}
 				
-				var keys:Array = _selection.keys;
 				var docs:Array = thumbnails.getNames();
 				
 				
