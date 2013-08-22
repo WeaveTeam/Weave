@@ -106,15 +106,20 @@
 				addAsyncResponder(
 					Admin.service.getSQLSchemaNames(),
 					handler,
-					handler
+					handler,
+					schemas
 				);
 				
 				schemasRefreshButton.enabled = false;
-				function handler(event:Event, token:Object = null):void
+				function handler(event:Event, currentSchemas:Array):void
 				{
-					if (event is ResultEvent)
-						schemas = (event as ResultEvent).result as Array;
-					schemasRefreshButton.enabled = true;
+					// avoid handling results from old requests
+					if (schemas == currentSchemas)
+					{
+						if (event is ResultEvent)
+							schemas = (event as ResultEvent).result as Array;
+						schemasRefreshButton.enabled = true;
+					}
 				}
 			}
 			
@@ -144,15 +149,20 @@
 					addAsyncResponder(
 						Admin.service.getSQLTableNames(activeSchema),
 						handler,
-						handler
+						handler,
+						tables
 					);
 					
 					refreshingTables = true;
-					function handler(event:Event, token:Object = null):void
+					function handler(event:Event, currentTables:Array):void
 					{
-						if (event is ResultEvent)
-							tables = (event as ResultEvent).result as Array;
-						refreshingTables = false;
+						// avoid handling results from old requests
+						if (tables == currentTables)
+						{
+							if (event is ResultEvent)
+								tables = (event as ResultEvent).result as Array;
+							refreshingTables = false;
+						}
 					}
 				}
 				
@@ -182,13 +192,15 @@
 				{
 					addAsyncResponder(
 						Admin.service.getSQLColumnNames(activeSchema, activeTable),
-						handleGetColumns
+						handleGetColumns, null, columns
 					);
 				}
 				
-				function handleGetColumns(event:ResultEvent, token:Object = null):void
+				function handleGetColumns(event:ResultEvent, currentColumns:Array):void
 				{
-					columns = event.result as Array;
+					// avoid handling results from old requests
+					if (columns == currentColumns)
+						columns = event.result as Array;
 				}
 			}
 		]]>
