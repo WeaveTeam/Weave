@@ -195,6 +195,7 @@ package weave.application
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 			
 			getFlashVars();
+			handleFlashVarPresentation();
 			handleFlashVarAllowDomain();
 			
 			// disable application until it's ready
@@ -332,6 +333,12 @@ package weave.application
 		 */
 		private var _flashVars:Object;
 		public function get flashVars():Object { return _flashVars; }
+		
+		private function handleFlashVarPresentation():void
+		{
+			var presentationMode:Boolean = StandardLib.asBoolean(_flashVars['presentation'] as String);
+			Weave.history.enableLogging.value = !presentationMode;
+		}
 		
 		private function handleFlashVarAllowDomain():void
 		{
