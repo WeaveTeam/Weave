@@ -553,6 +553,30 @@ public class DataService extends GenericServlet
 			cfArray[i].filters = columns[i].filters;
 			quotedFields[i] = SQLUtils.quoteSymbol(conn, cfArray[i].field);
 		}
+		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
+
+		String query = String.format(
+				"SELECT %s FROM %s %s",
+				StringUtils.join(",", quotedFields),
+				SQLUtils.quoteSchemaTable(conn, schema, table),
+				where.clause
+			);
+		
+		SQLResult result = SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
+		return result;
+	}
+	
+	private static String getQuery(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
+	{
+		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
+		String[] quotedFields = new String[columns.length];
+		for (int i = 0; i < columns.length; i++)
+		{
+			cfArray[i] = new ColumnFilter();
+			cfArray[i].field = entities[i].privateMetadata.get(PrivateMetadata.SQLCOLUMN);
+			cfArray[i].filters = columns[i].filters;
+			quotedFields[i] = SQLUtils.quoteSymbol(conn, cfArray[i].field);
+		}
 		
 		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
 
@@ -563,17 +587,12 @@ public class DataService extends GenericServlet
 			where.clause
 		);
 		
-		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
+		return query;
+		
 	}
-	
 	public void test(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
 	{
-		DebugTimer.go();
-		
 		getFilteredRows(columns, keysArray);
-		
-		DebugTimer.stop("finished");
-	
 	}
 	
 	@SuppressWarnings("unchecked")
