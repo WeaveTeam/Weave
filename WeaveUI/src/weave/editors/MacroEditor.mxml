@@ -44,8 +44,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   itemClick="macroList_itemClickHandler(event)"/>
 			</mx:VBox>
 			<mx:VBox width="100%" height="100%">
-				<mx:TextArea id="funcValues" width="100%" height="100%"
-							 change="funcValues_changeHandler(event)"/>
+				<mx:TextArea id="funcValues" width="100%" height="100%" fontFamily="_typewriter"/>
 				<mx:Text text="{lang('Macro Result:')}"/>
 				<mx:TextArea id="macroResult" width="100%" height="20%" editable="false"/>
 			</mx:VBox>
@@ -61,6 +60,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableHashMap;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
+			import weave.utils.EventUtils;
 			
 			//Used for enabling/disabling the delete and rename button based on whether this macroList has at least one item.
 			[Bindable]
@@ -79,6 +79,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				this.targets = macroList.hashMap.getObjects(LinkableFunction);
 				(macroList.hashMap as LinkableHashMap).addImmediateCallback(this, enableButtonsCheck, true);
+				funcValues.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown, true);
+				EventUtils.addDelayedEventCallback(funcValues, Event.CHANGE, funcValues_changeHandler);
+			}
+			
+			private function handleKeyDown(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.TAB)
+				{
+					// insert tab character
+					event.preventDefault();
+					var str:String = funcValues.text;
+					var begin:int = funcValues.selectionBeginIndex;
+					var end:int = funcValues.selectionEndIndex;
+					funcValues.text = str.substring(0, begin) + '\t' + str.substring(end);
+					funcValues.setSelection(end, end);
+				}
 			}
 			
 			protected function deleteEntry(event:MouseEvent):void
@@ -168,20 +184,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			protected function funcValues_changeHandler(event:Event):void
+			protected function funcValues_changeHandler(event:Event = null):void
 			{
-				if(macroList.selectedIndex > -1)
+				if (macroList.selectedIndex > -1)
 				{
-					try{
+					try
+					{
 						var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
 						funcToSave.value = funcValues.text;
 						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
-						if( macroResult.text == "" )
-							macroResult.text = lang("Please input the function in the text area above.");
 					}
 					catch(e:Error)
 					{
-						macroResult.text = lang("Error.");
+						macroResult.text = e.toString();
 					}
 				}
 			}
