@@ -69,7 +69,7 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
 import weave.utils.SQLUtils.WhereClause.ColumnFilter;
-import weave.utils.StringUtils;
+import weave.utils.Strings;
 /**
  * This class connects to a database and gets data
  * uses xml configuration file to get connection/query info
@@ -557,7 +557,7 @@ public class DataService extends GenericServlet
 
 		String query = String.format(
 			"SELECT %s FROM %s %s",
-			StringUtils.join(",", quotedFields),
+			Strings.join(",", quotedFields),
 			SQLUtils.quoteSchemaTable(conn, schema, table),
 			where.clause
 		);
@@ -623,7 +623,7 @@ public class DataService extends GenericServlet
 				if (sqlTable == null)
 					sqlTable = t;
 				
-				if (!StringUtils.equal(connection, c) || !StringUtils.equal(sqlSchema, s) || !StringUtils.equal(sqlTable, t))
+				if (!Strings.equal(connection, c) || !Strings.equal(sqlSchema, s) || !Strings.equal(sqlTable, t))
 				{
 					canGenerateSQL = false;
 					break;

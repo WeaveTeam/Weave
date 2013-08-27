@@ -99,9 +99,9 @@ public abstract class BulkSQLLoader
 				for (int i = 0; i < fieldNames.length; i++)
 					columns[i] = SQLUtils.quoteSymbol(conn, fieldNames[i]);
 			    
-				baseQuery = String.format("INSERT INTO %s(%s) VALUES ", quotedTable, StringUtils.join(",", columns));
+				baseQuery = String.format("INSERT INTO %s(%s) VALUES ", quotedTable, Strings.join(",", columns));
 			    
-			    rowQuery = "(" + StringUtils.mult(",", "?", fieldNames.length) + ")";
+			    rowQuery = "(" + Strings.mult(",", "?", fieldNames.length) + ")";
 			    
 			    rowBuffer = new Vector<Object[]>(setQueryRowCount(DEFAULT_BUFFER_SIZE));
 			}
@@ -127,7 +127,7 @@ public abstract class BulkSQLLoader
 					
 					try
 					{
-						String query = baseQuery + StringUtils.mult(",", rowQuery, rowCount);
+						String query = baseQuery + Strings.mult(",", rowQuery, rowCount);
 						stmt = conn.prepareStatement(query);
 						_queryRowCount = rowCount;
 						break; // success
