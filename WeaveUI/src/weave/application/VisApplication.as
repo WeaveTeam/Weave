@@ -58,6 +58,7 @@ package weave.application
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
@@ -534,9 +535,12 @@ package weave.application
 		private static const RECOVER_SHARED_OBJECT:String = "WeaveAdminConsoleRecover";
 		private function saveRecoverPoint(event:Event = null):void
 		{
-			var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
-			cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
-			cookie.flush();
+			if (detectLinkableObjectChange(saveRecoverPoint, WeaveAPI.globalHashMap))
+			{
+				var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
+				cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
+				cookie.flush();
+			}
 		}
 		private function getRecoverPoint():ByteArray
 		{
