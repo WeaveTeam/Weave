@@ -136,10 +136,7 @@ function(objectID)
 		 */
 		this.getValue = function(script_or_variableName)
 		{
-			var vars = weave.path.vars;
-			if (vars.hasOwnProperty(script_or_variableName))
-				return vars[script_or_variableName];
-			return weave.evaluateExpression(path, script_or_variableName, vars);
+			return weave.evaluateExpression(path, script_or_variableName, weave.path.vars);
 		};
 		
 		
@@ -318,12 +315,15 @@ function(objectID)
 		 */
 		this.exec = function(script, callback_or_variableName)
 		{
+			var type = typeof callback_or_variableName;
+			var callback = type == 'function' ? callback_or_variableName : null;
+			// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
+			var variableName = type == 'string' ? callback_or_variableName : "";
 			var vars = weave.path.vars;
-			var result = weave.evaluateExpression(path, script, vars);
-			if (typeof callback_or_variableName == 'function')
-				callback_or_variableName.apply(this, [result]);
-			else
-				vars[callback_or_variableName] = result;
+			var result = weave.evaluateExpression(path, script, vars, null, variableName);
+			if (callback)
+				callback.apply(this, [result]);
+			
 			return this;
 		};
 		/**
