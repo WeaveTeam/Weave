@@ -334,7 +334,7 @@ public class RService extends GenericServlet
 							  "library(survey)\n" +
 							  "getColumns <- function(query)\n" +
 							  "{\n" +
-							  "return(dbGetQuery(con, paste(query))\n" +
+							  "return(dbGetQuery(con, paste(query)))\n" +
 							  "}\n" +
 							  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 			} else if (connectionType.equalsIgnoreCase("RODBC"))
@@ -345,7 +345,7 @@ public class RService extends GenericServlet
 							 "library(survey)\n" +
 							 "getColumns <- function(query)\n" +
 							 "{\n" +
-							 "return(sqlQuery(con, paste(query))\n" +
+							 "return(sqlQuery(con, paste(query)))\n" +
 							 "}\n" +
 							 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 			}
