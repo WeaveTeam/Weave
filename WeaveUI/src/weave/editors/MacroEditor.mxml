@@ -25,7 +25,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				 xmlns:ui="weave.ui.*"
-				 width="400" height="300" backgroundColor="#EFF4BC" layout="absolute"
+				 backgroundColor="#EFF4BC"
 				 title="{lang('Macro Editor')}">
 	<mx:VBox width="100%" height="100%" paddingBottom="5" paddingLeft="5" paddingRight="5"
 			 paddingTop="5">
