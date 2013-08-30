@@ -320,7 +320,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return _plotter.lineStyle.color.internalDynamicColumn;
+				return AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.lineStyle.color);
 			}
 			
 			private function getColumnObjects():Array

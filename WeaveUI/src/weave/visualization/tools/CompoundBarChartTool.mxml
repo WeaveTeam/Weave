@@ -296,7 +296,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return _plotter.colorColumn.internalDynamicColumn;
+				return AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.colorColumn);
 			}
 			
 			private var sizeAxisTickChange:Boolean = false;

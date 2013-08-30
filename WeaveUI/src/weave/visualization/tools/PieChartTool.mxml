@@ -36,6 +36,7 @@
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
@@ -175,7 +176,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return (_plotter.fillStyle.internalObject as SolidFillStyle).color.internalDynamicColumn;
+				return AttributeSelectorPanel.hack_findInternalDynamicColumn((_plotter.fillStyle.internalObject as SolidFillStyle).color);
 			}
 			
 			override public function getSelectableAttributeNames():Array
