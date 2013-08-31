@@ -566,7 +566,7 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	private static String getQuery(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
+	public static String getQuery(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
 	{
 		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
 		String[] quotedFields = new String[columns.length];

@@ -53,12 +53,28 @@ angular.module("aws.services", []).service("queryobj", function() {
 })
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q){
-	this.scriptMetadata = {
-			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
-			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
-	};
+	this.scriptMetadata = [];
 	this.availableScripts = [];
 	
+	var that = this;
+	this.getScriptMetadata = function(){
+		var deferred = $q.defer();
+		var promise = deferred.promise;
+		
+		var callback = function(result){
+			scope.$safeApply(function(){
+				console.log(result);
+				deferred.resolve(result);
+			});
+		};
+		
+		aws.RClient.getScriptMetadata(queryobj.conn.scripLocation, queryobj.scriptSelected, callback);
+		prom.then(function(result){
+			return result;
+		});
+		
+		return prom;
+	};
 	
 	this.getScriptsFromServer = function(){
 		var deferred = $q.defer();
@@ -79,6 +95,8 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 		return prom;
 	};
 	 this.availableScripts = this.getScriptsFromServer();
+	 this.scriptMetadata = this.getScriptMetadata();
+	 
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', 

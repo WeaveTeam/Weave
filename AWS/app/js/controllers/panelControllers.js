@@ -65,6 +65,18 @@ angular.module("aws.panelControllers", [])
 	};
 
 })
+
+.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
+	$scope.selection;
+	$scope.inputParams = [];
+    $scope.inputDescriptions = [];
+  
+    for (var i = 0; i < scriptobj.scriptMetadata.inputs.length; i++) {
+    	$scope.inputParams.push = scriptMetadata.inputs[i].param;
+    	$scope.inputDescriptions = scriptMetadata.inputs[i].param;
+    }
+})
+
 .controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
 	$scope.selection;
 	$scope.options = scriptobj.availableScripts;
@@ -92,6 +104,8 @@ angular.module("aws.panelControllers", [])
 	});
 	
 })
+
+
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
 	// set defaults or retrieve from queryobject
 	if(!queryobj['selectedVisualization']){
