@@ -858,20 +858,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return callLater(updateFilters);
 				try
 				{
-					if (showFilters.value){
-						if (!filterControls.parent){
-							lockedColumns.value = 0;
-							
+					if (showFilters.value)
+					{
+						lockedColumns.value = 0;
+						if (!filterControls.parent)
+						{
 							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
 							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);							
-							dataGrid.enableFilters = true;
 						}
+						dataGrid.enableFilters = true;
 					}
-					else{						
-						if (filterControls.parent){							
+					else
+					{						
+						if (filterControls.parent)
+						{							
 							tableArea.removeChild(filterControls);
-							dataGrid.enableFilters = false;
 						}
+						dataGrid.enableFilters = false;
 					}
 				}
 				catch (e:Error) 

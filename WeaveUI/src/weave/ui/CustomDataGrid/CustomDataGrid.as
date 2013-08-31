@@ -114,11 +114,11 @@ package weave.ui.CustomDataGrid
 		
 		
 		public function invalidateFilters():void
-		{	
+		{
 			_filtersInValid = true;	
 			invalidateDisplayList();
 		}
-		private var _filtersInValid:Boolean = false;
+		private var _filtersInValid:Boolean = true;
 		
 		private var selectedKeySet:KeySet = Weave.defaultSelectionKeySet;
 		
