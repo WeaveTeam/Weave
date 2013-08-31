@@ -8,13 +8,26 @@ angular.module("aws.panelControllers", [])
 	$scope.options; // initialize
 	$scope.selection;
 	
-	var getOptions = function getOptions(){
+	 var filter = function(data, type) {
+            var filtered = [];
+            for (var i = 0; i < data.length; i++) {
+                try {
+                    if (data[i].publicMetadata.ui_type == type) {
+                        filtered.push(data[i]);
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+            filtered.sort();
+            return filtered;
+     };
+
+	var getOptions = function(){
 		// fetch Columns using current dataTable
-		$scope.options = dataService.giveMeColObjs($scope);
-		$scope.options.then(function(res){
-			 //getOpts(res);
-			 setSelect();
-		});
+		$scope.options = filter(dataService.getDataColumnsEntitiesFromId(queryobj.dataTable), $scope.panelType);
+		
+		setSelect();
 	};
 	getOptions(); // call immediately
 	
@@ -61,8 +74,6 @@ angular.module("aws.panelControllers", [])
 //	});
 //	
 	
-
-
 	$scope.showGrid = false;
 	$scope.toggleShowGrid = function(){
 		$scope.showGrid = (!$scope.showGrid);

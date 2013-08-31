@@ -9,7 +9,7 @@
  * Don't worry, it will be possible to manage more than one query object in the
  * future.
  */
-angular.module("aws.services", []).service("queryobj", function () {
+angular.module("aws.services", []).service("queryobj", function() {
     this.title = "AlphaQueryObject";
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
@@ -27,7 +27,7 @@ angular.module("aws.services", []).service("queryobj", function () {
         dsn: 'brfss'
     };
     this.slideFilter = {values: [10, 25]}
-    this.setQueryObject = function (jsonObj) {
+    this.setQueryObject = function(jsonObj) {
         if (!jsonObj) {
             return undefined;
         }
@@ -57,13 +57,13 @@ angular.module("aws.services", []).service("queryobj", function () {
         title: this.title,
         date: this.date,
         author: this.author,
-        dataTable: function () {
+        dataTable: function() {
             return this.dataTable;
         },
         conn: this.conn,
         scriptType: this.scriptType,
         slideFilter: this.slideFilter,
-        getSelectedColumns: function () {
+        getSelectedColumns: function() {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
             var columns = [];
@@ -86,25 +86,23 @@ angular.module("aws.services", []).service("queryobj", function () {
         }
 
     }
-
-
 })
 
-angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function (queryobj, scope, $q) {
+angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q) {
    
     /**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.getListOfScripts = function () {
+    this.getListOfScripts = function() {
         
     	var deferred = $q.defer();
 
-        aws.RClient.getListOfScripts(function (result) {
+        aws.RClient.getListOfScripts(function(result) {
             
         	// since this function executes async in a future turn of the event loop, we need to wrap
             // our code into an $apply call so that the model changes are properly observed.
-        	scope.$safeApply(function () {
+        	scope.$safeApply(function() {
                 deferred.resolve(result);
             });
         	
@@ -122,14 +120,14 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.getScriptMetadata = function () {
+    this.getScriptMetadata = function() {
         var deferred = $q.defer();
 
-        aws.RClient.getScriptMetadata(queryobj.scriptSelected, function (result) {
+        aws.RClient.getScriptMetadata(queryobj.scriptSelected, function(result) {
         	
         	// since this function executes async in a future turn of the event loop, we need to wrap
             // our code into an $apply call so that the model changes are properly observed.
-            scope.$safeApply(function () {
+            scope.$safeApply(function() {
                 deferred.resolve(result);
             });
         });
@@ -141,133 +139,89 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
         	return result;
         });
     };
+    
 }]);
 
-angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj',
-    function ($q, scope, queryobj) {
-
-
-        var fetchColumns = function (table) {
-            var deferred = $q.defer();
-            var prom = deferred.promise;
-            var deferred2 = $q.defer();
-            if (!table.id) {
-            	return deferred2.promise;
-            }
-            var id = table.id;
-            var callbk = function (result) {
-                scope.$safeApply(function () {
-                    //console.log(result);
-                    deferred.resolve(result);
+angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', function($q, scope, queryobj) {
+    	 /**
+    	  * This function makes nested async calls to the aws function getEntityChildIds and
+    	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
+    	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
+    	  */
+    	this.getDataColumnsEntitiesFromId = function(id) {
+            
+    		var deferred = $q.defer();
+    		
+            aws.DataClient.getEntityChildIds(id, function(idsArray) {
+                scope.$safeApply(function() {
+                    deferred.resolve(idsArray);
                 });
-            };
-            var callbk2 = function (result) {
-                scope.$safeApply(function () {
-
-                    console.log(result);
-                    deferred2.resolve(result);
-                });
-            };
-
-            aws.DataClient.getEntityChildIds(id, callbk);
-
-            deferred.promise.then(function (res) {
-                aws.DataClient.getDataColumnEntities(res, callbk2);
             });
 
-            prom = deferred2.promise.then(function (response) {
-                //console.log(response);
-                return response;
-            }, function (response) {
-                console.log("error " + response);
+            return deferred.promise.then(function(idsArray) {
+
+            	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
+                    scope.$safeApply(function() {
+                    	deferred.resolve(dataEntityArray);
+                    });
+                });
+            	
+            	return deferred.promise.then(function(dataEntityArray) {
+            		return dataEntityArray;
+            	});
             });
 
-            return prom;
         };
 
-        var fetchGeoms = function () {
-            var deferred = $q.defer();
-            var prom = deferred.promise;
-            var deferred2 = $q.defer();
-            var callbk = function (result) {
-                scope.$safeApply(function () {
-                    console.log(result);
-                    deferred.resolve(result);
+        
+        /**
+    	  * This function makes nested async calls to the aws function getEntityIdsByMetadata and
+    	  * getDataColumnEntities in order to get an array of dataColumnEntities children that have metadata of type geometry.
+    	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
+    	  */
+    	this.getGeometryDataColumnsEntities = function() {
+            
+    		var deferred = $q.defer();
+    		
+            aws.DataClient.getEntityIdsByMetadata({"dataType":"geometry"}, function(idsArray) {
+                scope.$safeApply(function() {
+                    deferred.resolve(idsArray);
                 });
-            };
-            var callbk2 = function (result) {
-                scope.$safeApply(function () {
-
-                    console.log(result);
-                    deferred2.resolve(result);
-                });
-            };
-            aws.DataClient.getEntityIdsByMetadata({"dataType": "geometry"}, callbk);
-            deferred.promise.then(function (res) {
-                aws.DataClient.getDataColumnEntities(res, callbk2);
             });
 
-            prom = deferred2.promise.then(function (response) {
-                //console.log(response);
-                return response;
-            }, function (response) {
-                console.log("error " + response);
+            return deferred.promise.then(function(idsArray) {
+
+            	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
+                    scope.$safeApply(function() {
+                    	deferred.resolve(dataEntityArray);
+                    });
+                });
+            	
+            	return deferred.promise.then(function(dataEntityArray) {
+            		return dataEntityArray;
+            	});
             });
 
-            return prom;
         };
-
-        var fetchTables = function(){
-            var deferred = $q.defer();
-            var callback = function(result){
+        
+        /**
+         * This function wraps the async aws getDataTableList to get the list of all data tables
+         * again angular defer/promise so that the UI asynchronously wait for the data to be available...
+         */
+        this.getDataTableList = function(){
+            
+        	var deferred = $q.defer();
+            
+            aws.DataClient.getDataTableList(function(EntityHierarchyInfoArray){
                 scope.$safeApply(function(){
-                	// fetching tables callback
-                    console.log(result);
-                    deferred.resolve(result);
+                    deferred.resolve(EntityHierarchyInfoArray);
                 });
-            };
-            aws.DataClient.getDataTableList(callback);
-            return deferred.promise;
+            });
+                
+            return deferred.promise.then(function(EntityHierarchyInfoArray){
+            	return EntityHierarchyInfoArray;
+            });
+
         };
 
-        var fullColumnObjs = fetchColumns(queryobj.dataTable);
-        var fullGeomObjs = fetchGeoms();
-        var databaseTables = fetchTables();
-        var filter = function (data, type) {
-            var filtered = [];
-            for (var i = 0; i < data.length; i++) {
-                try {
-                    if (data[i].publicMetadata.ui_type == type) {
-                        filtered.push(data[i]);
-                    }
-                } catch (e) {
-                    console.log(e);
-                }
-            }
-            filtered.sort();
-            return filtered;
-        };
-
-        return {
-            giveMeColObjs: function (scopeobj) {
-                return fullColumnObjs.then(function (response) {
-                    var type = scopeobj.panelType;
-                    return filter(response, type);
-                });
-            },
-            refreshColumns: function (scopeobj) {
-                fullColumnObjs = fetchColumns(queryobj.dataTable);
-            },
-            giveMeGeomObjs: function () {
-                return fullGeomObjs.then(function (response) {
-                    return response;
-                });
-            },
-            giveMeTables: function(){
-                return databaseTables.then(function(response)
-                {
-                    return response;
-                });
-            }
-        };
-    }]);
+}]);
