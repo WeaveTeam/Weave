@@ -549,8 +549,7 @@ package weave.application
 		}
 		
 		private var _useWeaveExtensionWhenSavingToServer:Boolean;
-		private var _firstTimeSaveToServer:Boolean=true;
-		private var _previousFileNameStore:String;
+		private var _previousSavedFileName:String;
 		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
 		{
 			if (adminService == null)
@@ -561,10 +560,8 @@ package weave.application
 			
 			_useWeaveExtensionWhenSavingToServer = useWeaveExtension;
 			
-			var fileName:String = getFlashVarFile().split("/").pop();
+			var fileName:String = _previousSavedFileName || getFlashVarFile().split("/").pop();
 			fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
-			if (!_firstTimeSaveToServer)
-				fileName=_previousFileNameStore;
 			
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
@@ -579,10 +576,9 @@ package weave.application
 		{
 			if (event.confirm)
 			{
-				_firstTimeSaveToServer=false;
 				var fileName:String = event.textInput;
 				fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
-				_previousFileNameStore = fileName;
+				_previousSavedFileName = fileName;
 				
 				var content:ByteArray;
 				if (_useWeaveExtensionWhenSavingToServer)
@@ -976,6 +972,7 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
+				_previousSavedFileName = fileName;
 			}
 			catch (error:Error)
 			{
@@ -1045,6 +1042,7 @@ package weave.application
 					}
 					
 					Weave.loadWeaveFileContent(xml);
+					_previousSavedFileName = fileName;
 					
 //					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
 //					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
