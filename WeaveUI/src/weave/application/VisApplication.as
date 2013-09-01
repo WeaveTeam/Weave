@@ -261,9 +261,8 @@ package weave.application
 				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
-		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
+		private function handleConfigFileDownloaded(event:ResultEvent = null, fileName:String = null):void
 		{
-			var fileName:String = token as String;
 			if (!event)
 			{
 				loadSessionState(null, null);
@@ -294,25 +293,26 @@ package weave.application
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
-		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
+		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
-			// When creating a new file through the admin console, don't report an error for the missing file.
-			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarFile());
-			if (adminDefault)
+			// don't report an error if no filename was specified
+			var noFileName:Boolean = !getFlashVarFile();
+			if (noFileName)
 			{
-				// The admin hasn't created a default configuration yet.
-				// When we're creating a new config through the admin console, create a
-				// WeaveDataSource so the admin doesn't have to add it manually every time.
+				// for default fallback configuration, create a WeaveDataSource
 				Weave.root.requestObject(null, WeaveDataSource, false);
+				
+				// if not opened from admin console, enable interface now
+				if (!getFlashVarAdminConnectionName())
+					this.enabled = true;
 			}
 			else
 			{
 				reportError(event);
+				if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
+					Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 			}
-			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
-				Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 		}
-		
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
