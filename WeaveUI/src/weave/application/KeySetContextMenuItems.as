@@ -77,9 +77,9 @@ package weave.application
 		private static const groupName:String = "1 subsetMenuItems";
 		
 		private static const SUBSET_CREATE_SELECTION_CAPTION:String = lang("Create subset from selected record(s)");
-		private static const SUBSET_CREATE_PROBE_CAPTION:String     = lang("Create subset from probed record(s)");
+		private static const SUBSET_CREATE_PROBE_CAPTION:String     = lang("Create subset from highlighted record(s)");
 		private static const SUBSET_REMOVE_SELECTION_CAPTION:String = lang("Remove selected record(s) from subset");
-		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove probed record(s) from subset");
+		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove highlighted record(s) from subset");
 		
 /*
 		private static const SUBSET_RUN_CLUSTERING_CAPTION:String           = lang("Run clustering on subset");
@@ -134,7 +134,7 @@ package weave.application
 						else if(_localProbeKeySet.keys.length > 0)
 						{
 							_viewRecordCMI.enabled = true;
-							_viewRecordCMI.caption = lang("Show data for probed record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
+							_viewRecordCMI.caption = lang("Show data for highlighted record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_PROBE_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_PROBE_CAPTION;
 						}
@@ -280,7 +280,7 @@ package weave.application
 
 			// create and add the view record(s) context menu item
 			_viewRecordCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
-				lang("Show data for probed record"),
+				lang("Show data for highlighted record"),
 				destination,
 				function (e:Event):void
 				{

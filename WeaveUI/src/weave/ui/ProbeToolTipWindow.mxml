@@ -25,7 +25,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Probe Information");
+				return lang("Mouseover Information");
 			}
 			
 			private var probeKeySet:KeySet = null;
@@ -34,9 +34,9 @@
 			{
 				super.createChildren();
 				var button:Button = new Button();
-				button.label = lang("Open probe tool tip editor");
+				button.label = lang("Open mouseover info editor");
 				button.addEventListener(MouseEvent.CLICK, openToolTipEditor);
-				settingsEditor.addChild(button); 
+				settingsEditor.addChild(button);
 			}
 			
 			override protected function childrenCreated():void

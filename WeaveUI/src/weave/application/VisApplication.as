@@ -804,8 +804,8 @@ package weave.application
 
 
 				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
-				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Probe Info Editor"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
+				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Edit Mouseover Info"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
+				createToolMenuItem(Weave.properties.showProbeWindow, lang("Mouseover Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
 				if(getFlashVarEditable())
