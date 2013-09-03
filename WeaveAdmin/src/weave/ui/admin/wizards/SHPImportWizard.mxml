@@ -250,6 +250,7 @@
 			private function openServerBrowser():void
 			{
 				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_SHP);
+				_serverFileBrowser.datagrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
@@ -326,7 +327,7 @@
 				var keyCols:Array = trimmedKeyCols.split(","); 
 				
 				addAsyncResponder(
-					Admin.service.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols),
+					Admin.service.checkKeyColumnsForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols),
 					keyColumnsCheckedForUniqueness
 				);
 			}

@@ -24,12 +24,16 @@
 		 width="100%"
 		 creationComplete="getSchemas()"
 		 xmlns:ui="weave.ui.*">
+	<mx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</mx:Metadata>
 	<ui:IndentGroup id="indentGroup"/>
 	<ui:Indent group="{indentGroup}" label="{lang('SQL schema')}">
 		<ui:CustomComboBox id="schemaInput"
+						   width="100%"
 						   enabled="{schemaInput.dataProvider.length > 0}"
 						   prompt="{lang('Select a schema...')}"
-						   text="{activeSchema}"
+						   selectedItem="{activeSchema}"
 						   dataProvider="{schemas}"
 						   change="activeSchema = schemaInput.text;"/>
 		<mx:Button id="schemasRefreshButton"
@@ -38,9 +42,10 @@
 	</ui:Indent>
 	<ui:Indent id="tableControls" group="{indentGroup}" label="{lang('SQL table')}">
 		<ui:CustomComboBox id="_tableCombo"
+						   width="100%"
 						   enabled="{_tableCombo.dataProvider.length > 0}"
 						   prompt="{lang('Select a table...')}"
-						   text="{activeTable}"
+						   selectedItem="{activeTable}"
 						   dataProvider="{tables}"
 						   change="activeTable = _tableCombo.text;"
 						   toolTip="{lang('Tables shown in this dropdown menu are those that exist in the schema selected above.')}"/>
@@ -49,6 +54,7 @@
 				   enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}"
 				   click="getTables()"/>
 		<ui:TextInputWithPrompt id="_tableInput"
+								width="100%"
 								editable="true"
 								text="{activeTable}"
 								prompt="{lang('Enter a table name')}"
@@ -66,11 +72,12 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
-			
+
 			// values returned by the server that depend on the active selected values
 			[Bindable] public var schemas:Array = [];
 			[Bindable] public var tables:Array = [];
@@ -98,6 +105,11 @@
 				}
 			}
 
+			private function handleChange():void
+			{
+				dispatchEvent(new Event(Event.CHANGE));
+			}
+
 			public function getSchemas():void
 			{
 				activeSchema = '';
@@ -123,7 +135,7 @@
 				}
 			}
 			
-			[Bindable] public function get activeSchema():String
+			[Bindable(event="change")] public function get activeSchema():String
 			{
 				return _activeSchema;
 			}
@@ -133,6 +145,7 @@
 				{
 					_activeSchema = value;
 					getTables();
+					handleChange();
 				}
 			}
 			
@@ -168,7 +181,7 @@
 				
 			}
 			
-			[Bindable] public function get activeTable():String
+			[Bindable(event="change")] public function get activeTable():String
 			{
 				return _activeTable;
 			}
@@ -178,6 +191,7 @@
 				{
 					_activeTable = value;
 					getColumns();
+					handleChange();
 				}
 			}
 			

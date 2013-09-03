@@ -29,150 +29,87 @@
 			>
 	<mx:VBox width="100%" height="100%">
 		<mx:CheckBox id="noAppendCheckBox" label="{lang('Create new Weave table entry even if a matching one already exists')}"/>
-		<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="true" tableOverwriteCheckVisible="false"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" change="handleChange()" showTableCombo="true" tableOverwriteCheckVisible="false" width="100%"/>
 		<mx:VBox width="100%">
 			<ui:Indent group="{tableSelector.indentGroup}" label="{lang('Table display name')}">
-				<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{lang('Type in a name for the table that is chosen above. This is the name that will be visible in Weave and will be visible to users.')}"/>
+				<mx:TextInput id="tableNameInput"
+							  text="{tableSelector.activeTable}"
+							  toolTip="{lang('Type in a name for the table that is chosen above. This is the name that will be visible in Weave and will be visible to users.')}"/>
 			</ui:Indent>
 			<admin:ImportTableKeyOptions id="keyOptions"
+										 initialize="keyOptions.keyColumnIndent.group = tableSelector.indentGroup;"
 										 visible="{Boolean(tableSelector.activeTable)}"
 										 includeInLayout="{Boolean(tableSelector.activeTable)}"
 										 columnNames="{tableSelector.columns}"
-										 defaultKeyType="{tableSelector.activeTable}"
-										 initialize="keyOptions.keyColumnIndent.group = tableSelector.indentGroup;"/>
+										 keyColumnCheck="{checkKeyColumns}"
+										 defaultKeyType="{tableSelector.activeTable}"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
-			import weave.services.beans.EntityHierarchyInfo;
 			
 			private static const paddingIndent:int = 20;
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
-				tableSelector.schemaInput.addEventListener(Event.CHANGE, handleChange);
-				tableSelector._tableCombo.addEventListener(Event.CHANGE, handleChange);
-				keyOptions.addEventListener(Event.CHANGE, handleChange);
+			}
+			private function handleChange():void
+			{
+				finishEnabled = tableSelector.activeSchema && tableSelector.activeTable;
+				keyOptions.keyColumnOk = false;
 			}
 			
-			private function handleChange(event:Event = null):void
+			private function checkKeyColumns(onSuccess:Function = null):void
 			{
-				keyOptions.keyColumnCombo.errorString = '';
-				keyOptions.secondaryKeyColumnCombo.errorString = '';
-				
-				if (keyOptions.generateFilterColumnsRadio.selected)
-				{
-					finishEnabled = true;
-					nextEnabled = true;
-					return;
-				}
-				
-				finishEnabled = false;
-				
-				var schema:String = tableSelector.activeSchema;
-				var table:String = tableSelector.activeTable;
-				var column:String = keyOptions.keyColumnCombo.text;
-				var secondaryColumn:String = keyOptions.secondaryKeyColumnRadio.selected
-					? keyOptions.secondaryKeyColumnCombo.text
-					: null;
-				if (tableSelector.columns.length && schema && table && column)
-				{
-					addAsyncResponder(
-						_latestQuery = Admin.service.checkKeyColumnForSQLImport(schema, table, column, secondaryColumn),
-						function(event:ResultEvent, query:AsyncToken):void
-						{
-							// avoid handling old results
-							if (query != _latestQuery)
-								return;
-							
-							if (!event.result as Boolean)
-							{
-								var err:String = lang("Key values are not unique");
-								keyOptions.secondaryKeyColumnCombo.errorString = err;
-								keyOptions.keyColumnCombo.errorString = err;
-								
-								finishEnabled = false;
-							}
-							else
-							{
-								keyOptions.keyColumnCombo.errorString = '';
-								keyOptions.secondaryKeyColumnCombo.errorString = '';
-								
-								finishEnabled = true;
-							}
-							
-							keyOptions.keyColumnCombo.invalidateDisplayList();
-							keyOptions.secondaryKeyColumnCombo.invalidateDisplayList();
-						},
-						null,
-						_latestQuery
-					);
-				}
-			}
-			private var _latestQuery:AsyncToken;
-			
-			override public function finish():void
-			{
-				var filterColumns:Array = null;
-				if (keyOptions.generateFilterColumnsRadio.selected && keyOptions.filterColumnsInput.text)
-					filterColumns = WeaveAPI.CSVParser.parseCSV(keyOptions.filterColumnsInput.text)[0];
+				keyOptions.keyColumnOk = false;
+				keyOptions.keyError = '';
 				
 				disable();
-				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
-				{
-					addAsyncResponder(
-						Admin.service.checkKeyColumnForSQLImportWithFilteredColumns(
-							tableSelector.activeSchema,
-							tableSelector.activeTable,
-							keyColumnComboBox.selectedLabel,
-							filterColumns
-						),
-						function handleKeyColCheck(event:ResultEvent,token:Object=null):void
-						{
-							if(event.result == true)
-							{
-								keyColumnComboBox.errorString = '';
-								importSQLData();
-							}
-							else
-							{
-								keyColumnComboBox.errorString = "Key values are not unique for selected filtered columns";
-								enable();
-							}
-						}
-						,enable	
-					);
-				}
-				else
-				{
-					importSQLData();
-				}
-				
+				addAsyncResponder(
+					Admin.service.checkKeyColumnsForSQLImport(
+						tableSelector.activeSchema,
+						tableSelector.activeTable,
+						keyOptions.selectedKeyColumns
+					),
+					function(event:ResultEvent, token:Object = null):void
+					{
+						enable();
+						keyOptions.keyColumnOk = true;
+						if (onSuccess != null)
+							onSuccess();
+					},
+					function(event:FaultEvent, token:Object = null):void
+					{
+						enable();
+						keyOptions.keyError = lang("Values in selected columns do not uniquely identify rows in the table");
+					}
+				);
+			}
+
+			override public function finish():void
+			{
+				checkKeyColumns(importSQLData);
 			}
 			
 			private function importSQLData():void
 			{
-				var filterColumns:Array = null;
-				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
-					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
-				
+				disable();
 				addAsyncResponder(
 					Admin.service.importSQL(
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
-						keyOptions.keyColumnCombo.text,
-						keyOptions.secondaryKeyColumnRadio.selected ? keyOptions.secondaryKeyColumnCombo.text : null,
+						keyOptions.mainKeyColumn,
+						keyOptions.secondaryKeyColumn,
 						tableNameInput.text,
 						keyOptions.keyTypeSelector.selectedKeyType,
-						filterColumns,
+						keyOptions.filteredKeyColumns,
 						!noAppendCheckBox.selected
 					),
 					function(..._):void { close(); },

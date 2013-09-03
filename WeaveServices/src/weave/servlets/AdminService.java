@@ -79,6 +79,8 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.SQLExceptionWithQuery;
+import weave.utils.Strings;
 import weave.utils.ProgressManager.ProgressPrinter;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -695,6 +697,23 @@ public class AdminService
 		}
 	}
 
+	/**
+	 * @param values A list of string values which may contain duplicates.
+	 * @param moveEmptyStringToEnd If set to true and "" is at the front of the list, "" is moved to the end.
+	 * @return A sorted list of unique values found in the given list.
+	 */
+	private List<String> getSortedUniqueValues(List<String> values, boolean moveEmptyStringToEnd)
+	{
+		Set<String> uniqueValues = new HashSet<String>();
+		uniqueValues.addAll(values);
+		Vector<String> result = new Vector<String>(uniqueValues);
+		Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
+		// if empty string is at beginning of sorted list, move it to the end of the list
+		if (moveEmptyStringToEnd && result.size() > 0 && result.get(0).equals(""))
+			result.add(result.remove(0));
+		return result;
+	}
+
 	/////////////////
 	// File uploads
 
@@ -870,26 +889,7 @@ public class AdminService
 	/////////////////////////////////
 	// Key column uniqueness checks
 
-	/**
-	 * @param values A list of string values which may contain duplicates.
-	 * @param moveEmptyStringToEnd If set to true and "" is at the front of the list, "" is moved to the end.
-	 * @return A sorted list of unique values found in the given list.
-	 */
-	private List<String> getSortedUniqueValues(List<String> values, boolean moveEmptyStringToEnd)
-	{
-		Set<String> uniqueValues = new HashSet<String>();
-		uniqueValues.addAll(values);
-		Vector<String> result = new Vector<String>(uniqueValues);
-		Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
-		// if empty string is at beginning of sorted list, move it to the end of the list
-		if (moveEmptyStringToEnd && result.size() > 0 && result.get(0).equals(""))
-			result.add(result.remove(0));
-		return result;
-	}
-	
-	public boolean checkKeyColumnForSQLImport(
-			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
-			String secondaryKeyColumnName)
+	public void checkKeyColumnsForSQLImport(String connectionName, String password, String schemaName, String tableName, String[] keyColumns)
 		throws RemoteException
 	{
 		ConnectionInfo info = getConnectionInfo(connectionName, password);
@@ -897,337 +897,112 @@ public class AdminService
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 
-		Boolean isUnique = true;
 		Connection conn = null;
+		String query = null;
 		try
 		{
 			conn = info.getConnection();
 			
-			List<String> columnNames = SQLUtils.getColumns(conn, schemaName, tableName);
-	
-			// if key column is actually the name of a column, put quotes around it.
-			// otherwise, don't.
-			int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames);
-			int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
-	
-			if (iKey >= 0)
-			{
-				keyColumnName = SQLUtils.quoteSymbol(conn, columnNames.get(iKey));
-			}
-			else
-			{
-				// get the original column name
-				keyColumnName = SQLUtils.unquoteSymbol(conn, keyColumnName);
-			}
-	
-			if (iSecondaryKey >= 0)
-				secondaryKeyColumnName = SQLUtils.quoteSymbol(conn, columnNames.get(iSecondaryKey));
-
-			if (isEmpty(secondaryKeyColumnName))
-			{
-				String totalRowsQuery = String.format(
-						"select count(%s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
-								conn, schemaName, tableName));
-				SQLResult totalRowsResult = SQLUtils.getResultFromQuery(conn, totalRowsQuery, null, false);
-
-				String distinctRowsQuery = String.format(
-						"select count(distinct %s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
-								conn, schemaName, tableName));
-				SQLResult distinctRowsResult = SQLUtils.getResultFromQuery(conn, distinctRowsQuery, null, false);
-				isUnique = distinctRowsResult.rows[0][0].equals(totalRowsResult.rows[0][0]);
-			}
-			else
-			{
-				String query = String.format(
-						"select %s,%s from %s", keyColumnName, secondaryKeyColumnName, SQLUtils.quoteSchemaTable(
-								conn, schemaName, tableName));
-
-				SQLResult result = SQLUtils.getResultFromQuery(conn, query, null, false);
-				Set<String> keySet = new HashSet<String>();
-				for (int i = 0; i < result.rows.length; i++)
-				{
-					String key = result.rows[i][0].toString() + ',' + result.rows[i][1].toString();
-					if (keySet.contains(key))
-					{
-						isUnique = false;
-						break;
-					}
-					keySet.add(key);
-				}
-			}
-
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Error querying key columns", e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
-
-		return isUnique;
-	}
-	
-	
-	public boolean checkKeyColumnForSQLImportWithFilteredColumns(
-			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
-			String[] filteredColumns)
-		throws RemoteException
-	{
-		ConnectionInfo info = getConnectionInfo(connectionName, password);
-		
-		if (info == null)
-			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
-
-		Boolean isUnique = true;
-		Connection conn = null;
-		try
-		{
-			conn = info.getConnection();
+			String quotedSchemaTable = SQLUtils.quoteSchemaTable(conn, schemaName, tableName);
 			
 			List<String> columnNames = SQLUtils.getColumns(conn, schemaName, tableName);
+			for (String col : keyColumns)
+				if (ListUtils.findString(col, columnNames) < 0)
+					throw new RemoteException(String.format("SQL table %s does not have a column named \"%s\"", quotedSchemaTable, col));
 	
-			// if key column is actually the name of a column, put quotes around it.
-			// otherwise, don't.
-			int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames);
-	
-			if (iKey >= 0)
-			{
-				keyColumnName = SQLUtils.quoteSymbol(conn, columnNames.get(iKey));
-			}
-			else
-			{
-				// get the original column name
-				keyColumnName = SQLUtils.unquoteSymbol(conn, keyColumnName);
-			}
+			/* arguments to pass to String.format().*/
+			Object[] formatArgs = new String[keyColumns.length + 1]; 
+			formatArgs[0] = quotedSchemaTable;
+			for (int i = 0; i < keyColumns.length; i++)
+				formatArgs[i + 1] = SQLUtils.quoteSymbol(conn, keyColumns[i]);
 			
-			int currentFilterColIndex = -1;
-			String groupBy = " group by %s";/* for preparing the group by statement*/
-			
-			/* arguments to pass to the query.*/
-			Object[] queryArgs = new String[filteredColumns.length+2]; 
-			
-			queryArgs[0] = SQLUtils.quoteSchemaTable(conn, schemaName, tableName);
-			queryArgs[1] = keyColumnName;
-			for (int i =0; i < filteredColumns.length; i++)
-			{
-				currentFilterColIndex = -1;
-				currentFilterColIndex = ListUtils.findIgnoreCase(filteredColumns[i], columnNames);
-				if (currentFilterColIndex >= 0)
-					filteredColumns[i] = SQLUtils.quoteSymbol(conn, columnNames.get(currentFilterColIndex));
-				
-				groupBy += ",%s";
-				
-				queryArgs[i+2] = filteredColumns[i];
-				
-								
-			}
-			
-			String queryFormat = "select count(*) from %s" + groupBy + " having count(*)>1";
-			String query = String.format(queryFormat,queryArgs);
+			query = String.format(
+					"select count(*) from %s group by " + Strings.mult(",", "%s", keyColumns.length) + " having count(*)>1",
+					formatArgs
+				);
 
 			SQLResult result = SQLUtils.getResultFromQuery(conn, query, null, false);
-			
-			if(result.rows.length >0)
-				isUnique = false;
-
+			if (result.rows.length > 0)
+				throw new RemoteException(String.format(
+						"Values in the selected column%s do not uniquely identify rows in the table.",
+						keyColumns.length == 1 ? "" : "s"
+					));
 		}
-		catch (Exception e)
+		catch (SQLException cause)
 		{
-			throw new RemoteException("Error querying key columns", e);
+			throw new RemoteException("Error querying key columns", new SQLExceptionWithQuery(query, cause));
 		}
 		finally
 		{
 			SQLUtils.cleanup(conn);
 		}
-
-		return isUnique;
 	}
 	
 	/**
 	 * Check if selected key column from CSV data has unique values
-	 * 
 	 * @param csvFile The CSV file to check
-	 * 
-	 * @param keyColumn The column name to check for unique values
-	 * 
-	 * @return A list of common header files or null if none exist encoded using
-	 * 
+	 * @param keyColumns The column names to check for unique values
+	 * @return true if the values in the columns uniquely identify rows in the CSV file.
 	 */
-	public Boolean checkKeyColumnForCSVImport(String csvFile, String keyColumn, String secondaryKeyColumn)
-		throws RemoteException
+	public void checkKeyColumnsForCSVImport(String csvFile, String[] keyColumns) throws RemoteException
 	{
+		if (keyColumns.length == 0)
+			throw new RemoteException("No key columns specified");
+		
+		final CSVParser csvParser = CSVParser.defaultParser;
 
-		Boolean isUnique = true;
+		String[][] rows;
 		try
 		{
-			String[] headers = getCSVColumnNames(csvFile);
-
-			int keyColIndex = 0;
-			int secKeyColIndex = 0;
-
-			for (int i = 0; i < headers.length; i++)
-			{
-				if (headers[i].equals(keyColumn))
-				{
-					keyColIndex = i;
-					break;
-				}
-			}
-
-			String[][] rows = CSVParser.defaultParser.parseCSV(new File(getUploadPath(), csvFile), true);
-
-			HashMap<String, Boolean> map = new HashMap<String, Boolean>();
+			rows = csvParser.parseCSV(new File(getUploadPath(), csvFile), true);
+		}
+		catch (IOException cause)
+		{
+			if (cause instanceof RemoteException)
+				throw (RemoteException)cause;
+			throw new RemoteException(String.format("Unable to read file \"%s\"", csvFile), cause);
+		}
+		String[] headers = rows[0];
+		
+		HashMap<String, Integer> map = new HashMap<String, Integer>();
+		int[] keyColumnIndices = new int[keyColumns.length];
 			
-			if (secondaryKeyColumn == null)
+		for (int i = 0; i < keyColumns.length;i++)
+		{
+			keyColumnIndices[i] = ListUtils.findString(keyColumns[i], headers);
+			if (keyColumnIndices[i] < 0)
+				throw new RemoteException(String.format("CSV file \"%s\" does not have a column named \"%s\"", csvFile, keyColumns[i]));
+		}
+		
+		for (int row = 1; row < rows.length; row++)
+		{
+			String[] keyArray = new String[keyColumns.length];
+			for (int col = 0; col < keyColumns.length; col++)
+				keyArray[col] = rows[row][keyColumnIndices[col]];
+			
+			String key = csvParser.createCSVRow(keyArray, true);
+			if (!map.containsKey(key))
 			{
-				
-				for (int i = 1; i < rows.length; i++)
-				{
-					String key = rows[i][keyColIndex].toString();
-					if (map.get(key) == null)
-					{
-						map.put(key, true);
-					}
-					else
-					{
-						System.out.println(String.format("Duplicate key: \"%s\" in column %s/%s, row %s of %s", key, csvFile, keyColumn, i, rows.length));
-						System.out.println(Arrays.asList(rows[i]));
-						isUnique = false;
-						break;
-					}
-
-				}
+				map.put(key, row);
 			}
 			else
 			{
-				for (int i = 0; i < headers.length; i++)
-				{
-					if (headers[i].equals(secondaryKeyColumn))
-					{
-						secKeyColIndex = i;
-						break;
-					}
-				}
-				
-				
-				for(int i = 0; i < rows.length; i++)
-				{
-					String key = rows[i][keyColIndex].toString() + ',' + rows[i][secKeyColIndex].toString();
-					if (map.get(key) == null)
-					{
-						map.put(key, true);
-					}
-					else
-					{
-						System.out.println(String.format("Duplicate key: \"%s\" in column %s/%s/%s, row %s of %s", key, csvFile, keyColumn, secondaryKeyColumn, i, rows.length));
-						System.out.println(Arrays.asList(rows[i]));
-						isUnique = false;
-						break;
-					}
-
-				}
+				String msg = String.format(
+						"Found duplicate key on rows %s and %s of \"%s\": %s\nRow %s: %s\nRow %s: %s",
+						map.get(key),
+						row,
+						csvFile,
+						csvParser.createCSVToken(key, true),
+						map.get(key),
+						csvParser.createCSVRow(rows[map.get(key)], true),
+						row,
+						csvParser.createCSVRow(rows[row], true)
+					);
+				throw new RemoteException(msg);
 			}
 		}
-		catch (FileNotFoundException e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-
-		return isUnique;
 	}
-	
-	/**
-	 * Check if selected key column from CSV data has unique values
-	 * 
-	 * @param csvFile The CSV file to check
-	 * 
-	 * @param keyColumn The column name to check for unique values
-	 * 
-	 * @return A list of common header files or null if none exist encoded using
-	 * 
-	 */
-	public Boolean checkKeyColumnForCSVImportWithFilteredColumns(String csvFile, String keyColumn, String[] filteredColumns)
-		throws RemoteException
-	{
-
-		Boolean isUnique = true;
-		CSVParser parser = new CSVParser();
-		try
-		{
-			String[] headers = getCSVColumnNames(csvFile);
-
-			int keyColIndex = 0;
-
-			for (int i = 0; i < headers.length; i++)
-			{
-				if (headers[i].equals(keyColumn))
-				{
-					keyColIndex = i;
-					break;
-				}
-			}
-
-			String[][] rows = CSVParser.defaultParser.parseCSV(new File(getUploadPath(), csvFile), true);
-
-			HashMap<String, Boolean> map = new HashMap<String, Boolean>();
-			
-			/* get index of all the filtered columns*/
-			int[] filteredColumnIndices = new int[filteredColumns.length]; 
-				
-			for(int i = 0; i < filteredColumns.length;i++)
-			{
-				for (int j = 0; j < headers.length; j++)
-				{
-					if (headers[j].equals(filteredColumns[i]))
-					{
-						filteredColumnIndices[i] = j;
-						break;
-					}
-				}
-			}
-			
-			for (int row = 1; row < rows.length; row++)
-			{
-				String[] key = new String[filteredColumns.length+1];
-				key[0] = rows[row][keyColIndex].toString();
-				for(int cols = 0; cols < filteredColumns.length;cols++)
-				{
-					key[cols+1] = rows[row][filteredColumnIndices[cols]].toString();
-				}
-				String currentKey =  parser.createCSVRow(key, true);
-				if (map.get(currentKey) == null)
-				{
-					map.put(currentKey, true);
-				}
-				else
-				{
-					System.out.println(String.format("Duplicate key: \"%s\" in column %s/%s, row %s of %s", key, csvFile, keyColumn, row, rows.length));
-					System.out.println(Arrays.asList(rows[row]));
-					isUnique = false;
-					break;
-				}
-
-			}
-			
-		}
-		catch (FileNotFoundException e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-
-		return isUnique;
-	}
-	public Boolean checkKeyColumnForDBFImport(String[] fileNames, String[] keyColumnNames) throws IOException
+	public Boolean checkKeyColumnsForDBFImport(String[] fileNames, String[] keyColumnNames) throws IOException
 	{
 		if( fileNames.length == 0 || keyColumnNames.length == 0 )
 			return false;

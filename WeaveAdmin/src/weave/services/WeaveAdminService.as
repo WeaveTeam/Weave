@@ -478,26 +478,17 @@ package weave.services
 		/////////////////////////////////
 		// Key column uniqueness checks
 		
-		public function checkKeyColumnForSQLImport(schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String):AsyncToken
+		public function checkKeyColumnsForSQLImport(schemaName:String, tableName:String, keyColumns:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(checkKeyColumnForSQLImport, arguments);
+			return invokeAdminWithLogin(checkKeyColumnsForSQLImport, arguments);
 		}
-		public function checkKeyColumnForSQLImportWithFilteredColumns(schemaName:String, tableName:String, keyColumnName:String, filteredColumns:Array):AsyncToken
+		public function checkKeyColumnsForCSVImport(csvFileName:String, keyColumns:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(checkKeyColumnForSQLImportWithFilteredColumns, arguments);
+			return invokeAdmin(checkKeyColumnsForCSVImport, arguments);
 		}
-			
-		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumnName:String, secondaryKeyColumnName:String):AsyncToken
+		public function checkKeyColumnsForDBFImport(dbfFileNames:Array, keyColumns:Array):AsyncToken
 		{
-			return invokeAdmin(checkKeyColumnForCSVImport,arguments);
-		}
-		public function checkKeyColumnForCSVImportWithFilteredColumns(csvFileName:String, keyColumnName:String, filteredColumns:Array):AsyncToken
-		{
-			return invokeAdmin(checkKeyColumnForCSVImportWithFilteredColumns,arguments);
-		}
-		public function checkKeyColumnForDBFImport(dbfFileNames:Array, keyColumnNames:Array):DelayedAsyncInvocation
-		{
-			return invokeAdmin(checkKeyColumnForDBFImport, arguments);
+			return invokeAdmin(checkKeyColumnsForDBFImport, arguments);
 		}
 		
 		////////////////

@@ -29,16 +29,17 @@
 		[Event(name="change", type="flash.events.Event")]
 	</fx:Metadata>
 	<ui:Indent label="{lang('Key column')}" grouped="false" id="keyColumnIndent">
-		<ui:CustomComboBox id="keyColumnCombo" valueCommit="dispatchChangeEvent();" dataProvider="{columnNames}" editable="{keyColumnEditable}"/>
+		<ui:CustomComboBox id="keyColumnCombo" valueCommit="handleChange();" dataProvider="{columnNames}" editable="{keyColumnEditable}" errorString="{keyError}"/>
 		<ui:HelpComponent>
 			Select the column whose values uniquely identify the rows in the table.  If there is no such column, you can either use the option to generate a new primary key column, or one of the advanced options below.
 		</ui:HelpComponent>
+		<TestButton test="{keyColumnCheck}" ok="{keyColumnOk}" enabled="{singleKeyColumnRadio.selected}"/>
 	</ui:Indent>
 	<mx:VBox visible="{Boolean(keyColumnCombo.text)}" includeInLayout="{Boolean(keyColumnCombo.text)}" width="100%">
 		<KeyTypeDialog id="keyTypeSelector" defaultKeyType="{defaultKeyType}"/>
 		
-		<mx:RadioButtonGroup id="radioGroup" change="dispatchChangeEvent();"/>
-		<mx:RadioButton label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
+		<mx:RadioButtonGroup id="radioGroup" change="handleChange();"/>
+		<mx:RadioButton id="singleKeyColumnRadio" label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
 		
 		<mx:RadioButton id="secondaryKeyColumnRadio" label="{lang('Format data for Dimension Slider')}" selected="false" group="{radioGroup}"/>
 		<ui:Indent label="{lang('Secondary key column')}"
@@ -47,11 +48,14 @@
 				   visible="{secondaryKeyColumnRadio.selected}"
 				   includeInLayout="{secondaryKeyColumnRadio.selected}">
 			<ui:CustomComboBox id="secondaryKeyColumnCombo"
-							   valueCommit="dispatchChangeEvent();"
+							   width="100%"
+							   valueCommit="handleChange();"
 							   dataProvider="{columnNames}"
-							   selectedIndex="-1"
+							   selectedIndex="2"
 							   editable="{keyColumnEditable}"
-							   toolTip="{lang('Select a secondary key column for use with the Dimension Slider')}" />
+							   toolTip="{lang('Select a secondary key column for use with the Dimension Slider')}"
+							   errorString="{keyError}"/>
+			<TestButton test="{keyColumnCheck}" ok="{keyColumnOk}"/>
 		</ui:Indent>
 		
 		<mx:HBox>
@@ -62,11 +66,20 @@
 				Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
 			</ui:HelpComponent>
 		</mx:HBox>
-		<ui:Indent label="{lang('Columns to use as filters')}" paddingLeft="{paddingIndent}" width="100%" visible="{generateFilterColumnsRadio.selected}">
-			<mx:TextInput id="filterColumnsInput" width="100%" text="{toCSV(columnNames)}" change="dispatchEvent(event)"/>
+		<ui:Indent label="{lang('Columns to use as filters')}"
+				   paddingLeft="{paddingIndent}"
+				   width="100%"
+				   visible="{generateFilterColumnsRadio.selected}"
+				   includeInLayout="{generateFilterColumnsRadio.selected}">
+			<mx:TextInput id="filterColumnsInput"
+						  width="100%"
+						  text="{WeaveAPI.CSVParser.createCSV([columnNames])}"
+						  change="handleChange();"
+						  errorString="{keyError}"/>
 			<ui:HelpComponent>
 				Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
 			</ui:HelpComponent>
+			<TestButton test="{keyColumnCheck}" ok="{keyColumnOk}"/>
 		</ui:Indent>
 	</mx:VBox>
 	<fx:Script>
@@ -77,11 +90,17 @@
 			
 			[Bindable] public var defaultKeyType:String = '';
 			[Bindable] public var keyColumnEditable:Boolean = false;
+			[Bindable] public var keyColumnCheck:Function = null;
+			[Bindable] public var keyColumnOk:Boolean = false;
+			[Bindable] public var keyError:String = '';
+			
+			private static const testToolTip:String = lang('Verify that individual rows can be uniquely identified by the selected column(s)');
 			
 			private var _names:Array;
 			
-			private function dispatchChangeEvent():void
+			private function handleChange():void
 			{
+				keyColumnOk = false;
 				dispatchEvent(new Event(Event.CHANGE));
 			}
 			
@@ -92,16 +111,39 @@
 				keyColumnCombo.invalidateProperties();
 				keyColumnCombo.validateNow();
 				secondaryKeyColumnCombo.selectedIndex = -1;
-				dispatchChangeEvent();
+				handleChange();
 			}
 			public function get columnNames():Array
 			{
 				return _names;
 			}
 			
-			private function toCSV(array:Array):String
+			public function get mainKeyColumn():String
 			{
-				return WeaveAPI.CSVParser.createCSV([array]);
+				return keyColumnCombo.text;
+			}
+			
+			public function get secondaryKeyColumn():String
+			{
+				return secondaryKeyColumnRadio.selected ? secondaryKeyColumnCombo.text : null;
+			}
+			
+			public function get filteredKeyColumns():Array
+			{
+				return WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
+			}
+			
+			public function get selectedKeyColumns():Array
+			{
+				var keyColumns:Array = [keyColumnCombo.text];
+				
+				if (secondaryKeyColumnRadio.selected)
+					keyColumns.push(secondaryKeyColumnCombo.text);
+				
+				if (generateFilterColumnsRadio.selected && filterColumnsInput.text)
+					keyColumns = keyColumns.concat(filteredKeyColumns);
+				
+				return keyColumns.filter(function(item:*):*{ return item ? true : false; }); 
 			}
 		]]>
 	</fx:Script>

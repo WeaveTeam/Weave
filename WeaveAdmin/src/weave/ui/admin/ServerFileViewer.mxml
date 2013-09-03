@@ -42,7 +42,7 @@
 		</mx:ControlBar>
 		
 		<TextInputWithPrompt id="searchTerm" width="100%" clear="search()" change="search()" prompt="{prompt}"/>
-		<mx:DataGrid id="datagrid" paddingBottom="0" paddingTop="0"
+		<mx:DataGrid id="datagrid" paddingBottom="0" paddingTop="0" doubleClickEnabled="true"
 					 editable="false" itemClick="itemClickHandler(event)"
 					 width="100%" height="100%">
 			
