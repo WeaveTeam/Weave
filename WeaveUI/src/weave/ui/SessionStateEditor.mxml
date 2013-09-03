@@ -800,7 +800,12 @@ A text editor to change the Session State on the fly.
 			{
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				if (event.stageX == 0 && event.stageY == 0)
+				{
 					openConsole();
+					Weave.properties.enableMenuBar.value = true;
+					Weave.properties.enableSessionMenu.value = true;
+					Weave.properties.showSessionHistoryControls.value = true;
+				}
 			}
 			private static function handleKeyDown():void
 			{
