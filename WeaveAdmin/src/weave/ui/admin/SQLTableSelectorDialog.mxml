@@ -24,9 +24,6 @@
 		 width="100%"
 		 creationComplete="getSchemas()"
 		 xmlns:ui="weave.ui.*">
-	<mx:Metadata>
-		[Event(name="change", type="flash.events.Event")]
-	</mx:Metadata>
 	<ui:IndentGroup id="indentGroup"/>
 	<ui:Indent group="{indentGroup}" label="{lang('SQL schema')}">
 		<ui:CustomComboBox id="schemaInput"
@@ -66,7 +63,7 @@
 					 includeInLayout="{tableOverwriteCheckVisible}"/>
 	</ui:Indent>
 	<mx:Metadata>
-		[Event(name="propertyChange", type="flash.events.Event")]
+		[Event(name="change", type="flash.events.Event")]
 		[Exclude(name="_tableCombo", kind="property")]
 		[Exclude(name="_tableInput", kind="property")]
 	</mx:Metadata>

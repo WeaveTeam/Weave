@@ -39,7 +39,7 @@
 		</ui:Indent>
 		<admin:SQLTableSelectorDialog
 			id="tableSelector"
-			propertyChange="toggleButtons();"
+			change="toggleButtons();"
 			enabled="false"
 			showTableCombo="false"
 			creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';"
