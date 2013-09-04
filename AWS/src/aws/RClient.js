@@ -86,12 +86,23 @@ aws.RClient.getListOfScripts = function(directoryPath, callback) {
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
  * 
  *  @param {Function} callback function that handles the servlet result
- *	@return void.
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(callback){
 	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.rDataRequestObject], callback);
 };
+
+/**
+ * This will call the getScriptMetadata function on the RService and asynchronously return script metadata information loaded form a json file
+ * 
+ * @param {String} folderPath the name of the folder where the script is located
+ * @param {String} scriptName the name of the script that we are looking the metadata for
+ * @param {Function} callback function that handles the servlet result
+ * 
+ */
+aws.RClient.getScriptMetadata = function(folderPath, scriptName, callback) {
+	aws.queryService(rServiceURL, 'getScriptMetadata', [folderPath, scriptName], callback);
+}
 
 
 /**
