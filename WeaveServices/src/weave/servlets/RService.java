@@ -332,6 +332,10 @@ public class RService extends GenericServlet
 							  "library(RMySQL)\n" +
 							  "con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
 							  "library(survey)\n" +
+							  "getColumns <- function(query)\n" +
+							  "{\n" +
+							  "return(dbGetQuery(con, paste(query)))\n" +
+							  "}\n" +
 							  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 			} else if (connectionType.equalsIgnoreCase("RODBC"))
 			{
@@ -339,6 +343,10 @@ public class RService extends GenericServlet
 							 "library(RODBC)\n" +
 							 "con <- odbcConnect(dsn =" + "\"" +dsn+"\", uid =" + "\"" +user+"\" , pwd =" + "\"" +password+"\")\n" +
 							 "library(survey)\n" +
+							 "getColumns <- function(query)\n" +
+							 "{\n" +
+							 "return(sqlQuery(con, paste(query)))\n" +
+							 "}\n" +
 							 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 			}
 			String[] requestObjectOutputNames = {};

@@ -16,7 +16,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.scriptType = "r";
 	this.dataTable = 1;
 	this.conn = {
-			scriptLocation : '/Users/franckamayou/Desktop/RScripts/',
+			scriptLocation : 'C:\\RScripts\\',
 			serverType : 'MySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
