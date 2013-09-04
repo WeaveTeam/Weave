@@ -77,6 +77,7 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch('selection', function(){
 		queryobj['scriptSelected'] = $scope.selection;
+		scriptobj.scriptMetadata = scriptobj.getScriptMetadata();
 	});
 	$scope.$watch(function(){
 		return queryobj['scriptSelected'];
@@ -243,9 +244,9 @@ angular.module("aws.panelControllers", [])
 .controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
 	
 	// Populate Labels
-//	var metadata = scriptobj.scriptMetadata;
+	$scope.metadata = scriptobj.scriptMetadata;
 //	$scope.labels = metadata['inputs'];
-	$scope.inputs = scriptobj.scripMetadata.inputs 
+	//$scope.inputs = [];
 	
 	
 	// Populate options from Analysis Builder queryobj
@@ -262,18 +263,23 @@ angular.module("aws.panelControllers", [])
 	// retrieve selections, else create blanks;
 	if(queryobj['scriptOptions']){
 		$scope.selection = queryobj['scriptOptions'];
-	}else{
-		scriptobj.scriptMetadata.then(function(inputs){
-			angular.forEach($scope.inputs, function(input, i){
-					$scope.selection[i] = "";
-				});
-			}, function(){console.log("I Failed");
-		);
 	}
+	$scope.metadata.then(
+			function(results){
+				$scope.inputs = results.inputs;
+				angular.forEach($scope.inputs, 
+						function(input, i){
+							$scope.selection[i] = "";
+						});
+			}, 
+			function(){
+				console.log("I Failed");
+	});
+	
 	
 	// set up watch functions
 	$scope.$watch('selection', function(){
-		queryobj['scriptOptions'] = $scope.selection;
+		queryobj.scriptOptions = $scope.selection;
 	}, true);
 
 })

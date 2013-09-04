@@ -53,8 +53,31 @@ angular.module("aws.services", []).service("queryobj", function() {
 })
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q){
-	this.scriptMetadata = [];
+	this.scriptMetadata = {"inputs":[],
+	                       "outputs":[]
+	};
+	
 	this.availableScripts = [];
+	
+	this.getScriptsFromServer = function(){
+		var deferred = $q.defer();
+		var prom = deferred.promise;
+		
+		var callbk = function(result){
+			scope.$safeApply(function(){
+				console.log(result);
+				deferred.resolve(result);
+			});
+		};
+	
+		aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, callbk );
+		prom.then(function(result){
+			//this.availableScripts = result;
+			return result;
+		});
+		return prom;
+	};
+	this.availableScripts = this.getScriptsFromServer();
 	
 	var that = this;
 	this.getScriptMetadata = function(){
@@ -68,34 +91,13 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 			});
 		};
 		
-		aws.RClient.getScriptMetadata(queryobj.conn.scripLocation, queryobj.scriptSelected, callback);
-		prom.then(function(result){
+		aws.RClient.getScriptMetadata(queryobj.conn.scriptLocation, queryobj.scriptSelected, callback);
+		promise.then(function(result){
 			return result;
 		});
-		
-		return prom;
+		return promise;
 	};
-	
-	this.getScriptsFromServer = function(){
-		var deferred = $q.defer();
-		var prom = deferred.promise;
-		
-		var callbk = function(result){
-			scope.$safeApply(function(){
-				console.log(result);
-				deferred.resolve(result);
-			});
-		};
-
-		aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, callbk );
-		prom.then(function(result){
-			//this.availableScripts = result;
-			return result;
-		});
-		return prom;
-	};
-	 this.availableScripts = this.getScriptsFromServer();
-	 this.scriptMetadata = this.getScriptMetadata();
+	this.scriptMetadata = this.getScriptMetadata();  
 	 
 }]);
 
