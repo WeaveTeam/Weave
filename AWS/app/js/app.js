@@ -18,6 +18,7 @@
 var app = angular.module('aws', ['aws.Main', 
                                  'ui.bootstrap',
                                  'ui.select2',
+                                 'ui.slider',
                                  'ngGrid',
                                  'aws.filters', 
                                  'aws.services', 
