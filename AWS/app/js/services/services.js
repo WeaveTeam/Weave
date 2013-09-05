@@ -14,14 +14,14 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.date = new Date();
 	this.author = "UML IVPR AWS Team";
 	this.scriptType = "r";
-	this.dataTable = 1;
+	this.dataTable = 600;
 	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
 			serverType : 'MySQL',
 			connectionType: 'RMySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
-			sqldbname : 'sdoh2010q',
+			sqldbname : 'highered',
 			sqluser : 'root',
 			sqlpass : 'pass',
 			schema : 'data',
@@ -55,8 +55,8 @@ angular.module("aws.services", []).service("queryobj", function() {
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q){
 	this.scriptMetadata = {
-			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
-			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
+			inputs: ["COL_1", "COL_2", "COL_3", "COL_4", "COL_5"],
+			outputs: ["COL_1", "COL_2", "COL_3", "COL_4", "COL_5"]
 	};
 	this.availableScripts = [];
 	
