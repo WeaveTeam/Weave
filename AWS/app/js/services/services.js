@@ -18,6 +18,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
 			serverType : 'MySQL',
+			connectionType: 'RMySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
 			sqldbname : 'sdoh2010q',

@@ -537,6 +537,19 @@ public class RServiceUsingRserve
 						{
 							tempStringArray = ((RFactor)currentColumn).levels();
 						}
+						else if(currentColumn instanceof String[]){
+							 int lent = ((Object[]) currentColumn).length;
+							 //String[] columnAsStringArray = currentColumn;
+							 tempStringArray = new String[lent];  
+							 for(int g = 0; g < lent; g++)
+							 {
+								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
+							 }
+						/*	String[] temp = (String[])
+							int arrsize = ((String[])currentColumn).length;
+							tempStringArray = new String[arrsize];
+							tempStringArray = (String[])currentColumn;*/
+						}
 						
 						columnsInStrings.add(tempStringArray);
 						numberOfRows = tempStringArray.length;
