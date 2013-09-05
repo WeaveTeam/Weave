@@ -55,7 +55,8 @@ angular.module("aws.services", []).service("queryobj", function() {
 		//getSlideFilter: this.slideFilterI,
 		//setSlideFilter: function(dat){ this.slideFilterI = dat; return this.slideFilterI;},
 		q: this,
-		dataTable: function(){return this.dataTable;}
+		dataTable: function(){return this.dataTable;},
+		conn: this.conn
 	}
 	
 		
