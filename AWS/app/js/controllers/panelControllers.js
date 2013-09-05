@@ -270,7 +270,7 @@ angular.module("aws.panelControllers", [])
 	// set up watch functions
 	$scope.$watch('selection', function(){
 		queryobj['scriptOptions'] = $scope.selection;
-		scriptobj.scriptMetadata.outputs = $scope.selection;
+		//scriptobj.scriptMetadata.outputs = $scope.selection;
 	}, true);
 
 })

@@ -14,14 +14,14 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.date = new Date();
 	this.author = "UML IVPR AWS Team";
 	this.scriptType = "r";
-	this.dataTable = 600;
+	this.dataTable = 1;
 	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
 			serverType : 'MySQL',
 			connectionType: 'RMySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
-			sqldbname : 'highered',
+			sqldbname : 'sdoh2010q',
 			sqluser : 'root',
 			sqlpass : 'pass',
 			schema : 'data',
