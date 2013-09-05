@@ -942,7 +942,7 @@ public class AdminService
 	 * Check if selected key column from CSV data has unique values
 	 * @param csvFile The CSV file to check
 	 * @param keyColumns The column names to check for unique values
-	 * @return true if the values in the columns uniquely identify rows in the CSV file.
+	 * @throws RemoteException if the values in the key columns cannot be used to uniquely identify records.
 	 */
 	public void checkKeyColumnsForCSVImport(String csvFile, String[] keyColumns) throws RemoteException
 	{
