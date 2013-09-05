@@ -55,8 +55,8 @@ angular.module("aws.services", []).service("queryobj", function() {
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q){
 	this.scriptMetadata = {
-			inputs: ["COL_1", "COL_2", "COL_3", "COL_4", "COL_5"],
-			outputs: ["COL_1", "COL_2", "COL_3", "COL_4", "COL_5"]
+			inputs: ["State(binning Var)", "PSU", "FinalWt", "StStr", "Diabetes indicator"],
+			outputs: ["fips", "response", "prev.percent", "CI_LOW", "CI_HI"]
 	};
 	this.availableScripts = [];
 	
