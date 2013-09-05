@@ -130,10 +130,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				probeSprite.mouseChildren = false;
 				selectionProbeSprite.mouseChildren = false;
+				anchorProbeSprite.mouseChildren = false;
 				//visualization.rawChildren.addChild(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
 				sprCont.addChild(probeSprite);
 				sprCont.addChild(selectionProbeSprite);
+				sprCont.addChild(anchorProbeSprite);
 				visualization.addElement(sprCont);
 				
 				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
@@ -154,7 +156,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var enableAutoZoom:Boolean;
 			
 			private var probeSprite:Sprite = new Sprite() ;	
-			private var selectionProbeSprite = new Sprite();
+			private var selectionProbeSprite:Sprite = new Sprite();
+			private var anchorProbeSprite:Sprite = new Sprite();
 			
 			//this function is called whenver a column is selected to do the class discrimination
 			private function classDiscriminatorColumnUpdate():void
@@ -332,17 +335,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
 				if (!_probedKeys.length)
+				{
+					anchorProbeSprite.graphics.clear();					
 					return;
+				}
 				
 				event.stopPropagation();
 				
 				var key:IQualifiedKey = _probedKeys[0];
 				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
-				
+				 
 				visualization.enableSelection.value = false;
 				enableAutoZoom = visualization.plotManager.enableAutoZoomToExtent.value;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
+				_plotter.drawProbeLinesForSelectedAnchors(_probedKeys,dataBounds,screenBounds,anchorProbeSprite.graphics);
 			}
 			
 			private function handleMouseUp():void

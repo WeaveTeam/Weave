@@ -26,6 +26,8 @@ It has 4 icons to:
 	</mx:HBox>-->
 	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
 				 focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
+	<mx:HBox id="filterStatus" width="100%" clipContent="false" minHeight="10"/>
+	
 	<!--<mx:Canvas id="keywordCanvas" horizontalScrollPolicy="off" verticalScrollPolicy="off"  width="100%">
 		<mx:Image id="editImage" source="@Embed(source='/weave/resources/images/editButton.png')" 
 				  toolTip="click image to add comments" y="{keywordTextArea.height - editImage.height}" />		
@@ -38,73 +40,36 @@ It has 4 icons to:
 	</mx:Canvas>-->
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Text;
 			
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			keywordTextArea.minWidth = 20;
-			keywordTextArea.verticalScrollPolicy = "off";
+			import weave.ui.SubMenu;
+			import weave.ui.infomap.core.QueryObject;
 			
-//			tickImg.width = 12;
-//			tickImg.height = 12;
-//			tickImg.buttonMode = true; //you need this for click event to work on an image!
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				keywordTextArea.minWidth = 20;
+				keywordTextArea.verticalScrollPolicy = "off";
+				
+				filterLabel.selectable = false;
+				filterLabel.alpha = 0.5;
+				filterStatus.addChild(filterLabel);
+				
+				sortLabel.selectable = false;
+				sortLabel.alpha = 0.5;
+				filterStatus.addChild(sortLabel);
+				
+				//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
+				//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
+				//sphere icon: http://www.iconfinder.com/icondetails/29260/16/
+			}
+			public var filterLabel:Text = new Text();
+			public var filterSubMenu:SubMenu = new SubMenu(filterLabel,[MouseEvent.CLICK]);
 			
-//			closeImg.toolTip = "Remove this node";
-//			closeImg.width = 16;
-//			closeImg.height = 16;
-//			closeImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			listImg.toolTip = "Show List";
-//			listImg.width = 16;
-//			listImg.height = 16;
-//			listImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			pointsImg.toolTip = "Show points";
-//			pointsImg.width = 16;
-//			pointsImg.height = 16;
-//			pointsImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			filterImg.toolTip = "Show Word Cloud";
-//			filterImg.width = 16;
-//			filterImg.height = 16;
-//			filterImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			
-//			settingsImg.toolTip = "Settings";
-//			settingsImg.width = 12;
-//			settingsImg.height = 12;
-//			settingsImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			distributionImg.toolTip = "Show Entity Distribution";
-//			distributionImg.width = 12;
-//			distributionImg.height = 12;
-//			distributionImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			topicsImg.toolTip = "Classify Documents";
-//			topicsImg.width = 12;
-//			topicsImg.height = 12;
-//			topicsImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			
-//			gridImg.toolTip = "Show Grid View";
-//			gridImg.width = 12;
-//			gridImg.height = 12;
-//			gridImg.buttonMode = true; //you need this for click event to work on an image!
-			//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
-			//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
-			//sphere icon: http://www.iconfinder.com/icondetails/29260/16/
-		}
-		private function handleMouseOver():void
-		{
+			public var sortLabel:Text = new Text();
+			public var sortSubMenu:SubMenu = new SubMenu(sortLabel,[MouseEvent.CLICK]);
 			
-		}
 		
-		private function handleMouseOut():void
-		{
-			
-		}
-			
-			
 		]]>
 	</mx:Script>
 </mx:VBox>

@@ -3,7 +3,7 @@
 		   xmlns:ui="weave.ui.infomap.ui.*"
 		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
 		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
-		   verticalScrollPolicy="off">
+		   verticalScrollPolicy="off" creationComplete="updatePinImage(event)">
 	<!--Show this status box only when list is visible-->
 	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}"
 			  width="300"/>
@@ -208,7 +208,7 @@
 			public static const TOPICS_VIEW:String = "Topics";
 			public static const WORD_CLOUD_VIEW:String = "Word Cloud";
 			public static const POINTS_VIEW:String = "Points";
-			public static const views:Array = [LIST_VIEW,THUMBNAILS_VIEW,TOPICS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW];
+			public static const views:Array = [LIST_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW];
 			public const currentView:LinkableString =  registerLinkableChild(this,new LinkableString(LIST_VIEW,function(value:*):Boolean{
 				if(views.indexOf(value) != -1)
 					return true;
@@ -294,7 +294,9 @@
 			
 			[Embed( source="/weave/resources/images/topics.png")]
 			private var TopicsImgClass:Class;
+			private var _topicsClustersImgText:String = "Topic Clusters";
 			private var _topicsImgText:String = "Topics View";
+			
 			
 			[Embed( source="/weave/resources/images/grid.png")]
 			private var GridImgClass:Class;
@@ -306,41 +308,31 @@
 			
 			[Embed( source="/weave/resources/images/arrowDown.png")]
 			private var _subMenuIcon:Class;
-			private var _menuButton:Image = new Image();
-			private var _subMenu:SubMenu;
+//			private var _menuButton:Image = new Image();
+//			private var _subMenu:SubMenu;
+			private var _radialMenu:RadialMenu;
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-//				getCallbackCollection(currentQuery).addGroupedCallback(this,createAndSendQuery,false);//currentQuery should always be triggered by change in previousQuery
+				for each(var filterOption:String in QueryObject.filterByOptions)
+				{
+					nodeBase.filterSubMenu.addSubMenuItem(filterOption,filterNodeBy);
+				}
+				
+				for each(var sortOption:String in QueryObject.sortByOptions.concat(["New Documents"]))
+				{
+					nodeBase.sortSubMenu.addSubMenuItem(sortOption,sortNodeBy);
+				}
+				
+				
 				getCallbackCollection(previousQuery).addGroupedCallback(this,handleChangeToPrevQuery,true);
 				
-				//if node is selected we highlight the nodeBase
-				//				node.selected.addGroupedCallback(this,highlightNode);
-				
-				//for now defaulting to Random Layout
-//				if(layout.internalObject == null)
-//					layout.requestLocalObject(RandomLayout,false);
-//				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
-				
 				//opens the settings panel
-				_menuButton.source = _subMenuIcon;
-				nodeBase.addChildAt(_menuButton,0);
-				_menuButton.x = 0 - _menuButton.height;
-				_subMenu = new SubMenu(_menuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
-				
-//				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
-//				nodeBase.addChildAt(_radialMenu,0);
-//				_radialMenu.x = (0-_radialMenu.height);
-				
-//				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(closeImg,_closeImgText,close);
-				
-//				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
-				
-				//removes the node from the panel after confirmation
-//				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings);
+//				_menuButton.source = _subMenuIcon;
+//				nodeBase.addChildAt(_menuButton,0);
+//				_menuButton.x = 0 - _menuButton.contentHeight;//height doesn't get updated correctly
+//				_subMenu = new SubMenu(_menuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -351,9 +343,6 @@
 				nodeBase.addEventListener(MouseEvent.ROLL_OVER,handleViewOnRollOver);
 				nodeBase.addEventListener(MouseEvent.ROLL_OUT,handleViewOnRollOut);
 				
-				
-				//drawing the base which is the node with keywords and icons
-//				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
 				
 				//sessioning the x and y positions of this node
 				linkBindableProperty(xPos,this,"x");
@@ -368,10 +357,6 @@
 					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
 				}
 				
-				//adding a callback to the Global Search keyword. This will set the visibility of the thumbnails to true or false
-				//based on keyword match
-//				_parentPanel.globalSearchKeyword.addImmediateCallback(this,handleGlobalSearch);
-				
 				//adding a callback to the Global Date Filter
 				//TODO: needs to be tested
 				_parentPanel.globalDateFilter.startDate.addGroupedCallback(this,handleGlobalDateChange);
@@ -380,10 +365,6 @@
 				//adding listener to Click event to toggle node selection
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
-//				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,handleTagWordSubsetChange);
-				
-				//calling function to highlight the node based on node.selected.value
-				//				highlightNode();
 				
 				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
@@ -404,10 +385,6 @@
 //				refreshTimer.start();
 				//call event for each tick of refreshTimer
 				refreshTimer.addEventListener(TimerEvent.TIMER, createAndSendQuery);
-				
-				//				comments.addImmediateCallback(this,handleCommentsChange,true);
-				
-				//				createAndSendQuery();
 				
 				glowFilter.color = thumbnailsDefaultColor.value;
 				
@@ -463,16 +440,22 @@
 				_pinImg.width = _pinImg.height = 14; //width & height is not updated. Bug in Image Class. Needs a listener for Update event.
 				_pinImg.buttonMode = true;
 				nodeBase.addChild(_pinImg);
-				_pinImg.x = nodeBase.width; 
-				_pinImg.y = 0;
 				
 				enablePinView.addGroupedCallback(this,handlePinViewChange,true);
 				_pinImg.addEventListener(MouseEvent.CLICK,togglePinViews);
 				currentView.addGroupedCallback(this,handleCurrentViewChange,true);
 				
-				_subMenu.addSubMenuItem("Edit Query",editQuery);
-				_subMenu.addSubMenuItem("Settings",settings);
-				_subMenu.addSubMenuItem("Close",close);
+				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
+				nodeBase.addChildAt(_radialMenu,0);
+				
+				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
+				_radialMenu.addMenuItem(closeImg,_closeImgText,close,null);
+				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
+				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings,null);
+				
+//				_subMenu.addSubMenuItem("Edit Query",editQuery);
+//				_subMenu.addSubMenuItem("Settings",settings);
+//				_subMenu.addSubMenuItem("Close",close);
 				
 				/* pointing the currentNode in the InfoMaps panel to this so that a new query node becomes the current node.
 				When loading from a session state the last created node becomes the current node.
@@ -480,6 +463,28 @@
 				parentPanel.currentNode = this;
 			}
 			
+			private function filterNodeBy():void
+			{
+				nodeBase.filterLabel.text = "Filter: " + (nodeBase.filterSubMenu.selectedItem).label;
+				previousQuery.sources.value = (nodeBase.filterSubMenu.selectedItem).label;
+			}
+			
+			private function sortNodeBy():void
+			{
+				nodeBase.sortLabel.text = "Sort: "+nodeBase.sortSubMenu.selectedItem.label;
+				previousQuery.sortBy.value = nodeBase.sortSubMenu.selectedItem.label;
+			}
+			
+			
+			private var _count:int = 0;
+			private function updatePinImage(event:Event):void
+			{
+				_pinImg.x = nodeBase.width; 
+				_pinImg.y = 0;
+				nodeBase.keywordTextArea.y = 0;
+				nodeBase.filterStatus.y = nodeBase.keywordTextArea.y+nodeBase.keywordTextArea.height;
+				_radialMenu.y = -_radialMenu.iconSize;
+			}
 			private var _numOfDocuments:int = 500;
 			
 			private var _viewToObjectMapping:Dictionary = new Dictionary();
@@ -517,7 +522,7 @@
 				refreshTimer.reset();
 				refreshTimer.start();
 				
-				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
+//				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
 				
 				/* if this is an empty query clear all documents */
 				if(!currentQuery.keywords.value)
@@ -549,11 +554,11 @@
 				_currentQueryTerms = queryString.indexOf(',') != -1?queryString.split(','):
 					queryString.split(' ');
 				
-				if(isQueryDifferent || _firstLoad)
-				{
-					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
-						_currentRelatedKeywords);
-				}
+//				if(isQueryDifferent || _firstLoad)
+//				{
+//					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+//						_currentRelatedKeywords);
+//				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
 					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);
@@ -582,7 +587,6 @@
 					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
 						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
-					adjustNodeBase();
 					return;						
 				}
 				/* If not loading the page for the first time and if the same number of documents are found */
@@ -629,7 +633,7 @@
 				}
 					
 				getEntityDistribution();
-				getTopicsClassification();
+//				getTopicsClassification();
 				getClusters();
 			}
 			
@@ -837,13 +841,18 @@
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
 				
-				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
-				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
-				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
-					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+				var listImg:Bitmap = new ListImgClass() as Bitmap;
+				_radialMenu.addMenuItem(listImg,_listImgText,toggleView,[LIST_VIEW]);
 				
-				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy,filterQueryBy],
-					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS],[QueryObject.FILTER_BY_RSSFEEDS]]);
+				var gridImg:Bitmap = new GridImgClass() as Bitmap;
+				_radialMenu.addMenuItem(gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
+//				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
+//				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
+//				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
+//					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+//				
+//				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy,filterQueryBy],
+//					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS],[QueryObject.FILTER_BY_RSSFEEDS]]);
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
@@ -868,8 +877,8 @@
 				wordCount = event.result as Array;
 				
 				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleWordCloud);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
+				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleView,[WORD_CLOUD_VIEW]);
+//				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
 				if(currentView.value == WORD_CLOUD_VIEW)
 				{
 					showView(WORD_CLOUD_VIEW);
@@ -979,18 +988,18 @@
 					nodeBase.width = 220;
 				nodeBase.keywordTextArea.width = nodeBase.width;
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
-				nodeBase.height = nodeBase.keywordTextArea.height + _menuButton.height;
-				nodeBase.keywordTextArea.y = _menuButton.height;
-//				_radialMenu.y = 0;
-				_menuButton.y = 0
+//				nodeBase.height = nodeBase.keywordTextArea.height+nodeBase.filterStatus.height + _menuButton.contentHeight;
+//				_menuButton.y = 0
+				nodeBase.keywordTextArea.y = 0;
+				nodeBase.filterStatus.y = nodeBase.keywordTextArea.y+nodeBase.keywordTextArea.height;
+				_radialMenu.y = -_radialMenu.iconSize;
 				if(docListComponent)
-					docListComponent.y = nodeBase.height;
+					docListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 				if(thumbnailListComponent)
-					thumbnailListComponent.y = nodeBase.height;
+					thumbnailListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 				if(_pinImg)
 				{
-					_pinImg.x = nodeBase.width; 
-					_pinImg.y = 0;
+					_pinImg.move(nodeBase.width,0);
 				}
 				/*set pushpin image if required*/
 				
@@ -1138,8 +1147,8 @@
 				}
 				
 				var entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(entityDistributionImg,_entityDistributionImgText,showDistributionChart);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
+				_radialMenu.addMenuItem(entityDistributionImg,_entityDistributionImgText,showDistributionChart,null);
+//				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
 
 			}
 			
@@ -1245,11 +1254,7 @@
 					return;
 				}
 				
-				if(view == LIST_VIEW) //Initialize List Canvas
-				{
-					docListComponent.y = nodeBase.height;
-				}
-				else if(view == THUMBNAILS_VIEW)
+				if(view == THUMBNAILS_VIEW)
 				{
 					//if the list is not added yet
 					if(!contains(thumbnailListComponent))
@@ -1257,10 +1262,7 @@
 						thumbnailListComponent.alpha = 0;
 						addChild(thumbnailListComponent);
 						
-						thumbnailListComponent.y = nodeBase.height;
 					}
-					thumbnailListComponent.y = nodeBase.height;
-					
 				}
 				else if(view == TOPICS_VIEW) //Initialize Topics Component
 				{
@@ -1320,7 +1322,7 @@
 						wordCloud.alpha = 0;
 						_viewToObjectMapping[WORD_CLOUD_VIEW] = wordCloud;
 					}
-					wordCloud.y= nodeBase.height;
+					wordCloud.y= nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 					if(StandardLib.arrayCompare(wordCloud.dataProvider,wordCount) != 0)
 					{
 						wordCloud.dataProvider = wordCount;
@@ -2109,13 +2111,14 @@
 				clusterCSVDataSource.servletParams.value = servletParam;
 				clusterCSVDataSource.keyColName.value = "document";
 				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
-				var clusterImg:Bitmap = new ClusterImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(clusterImg,_clusterImgText,showClusters);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Clusters"],[showClusters]);
+				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
+				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
+				//				
+//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
 			}
 			
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
-			private function showClusters(event:Event=null):void
+			public function showClusters(event:Event=null):void
 			{
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
@@ -2178,12 +2181,12 @@
 				}
 				
 				var topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(topicsImg,_topicsImgText,showClassificationResults);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
+				_radialMenu.addMenuItem(topicsImg,_topicsImgText,showClassificationResults,null);
+//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
 				
 				var pointsImg:Bitmap = new PointsImgClass() as Bitmap;
-//				_radialMenu.addMenuItem(pointsImg,_pointsImgText,showPoints);
-				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
+				_radialMenu.addMenuItem(pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
+//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
 				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
 				{
 					showView(currentView.value);
@@ -2231,6 +2234,17 @@
 				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery) || 
 										QueryObject.isSortByDifferent(previousQuery, currentQuery);
 				
+				if(previousQuery.sources.value == '')
+				{
+					nodeBase.filterLabel.text = "Filter: " + QueryObject.FILTER_BY_NONE;
+				}
+				else
+				{
+					nodeBase.filterLabel.text = "Filter: " + previousQuery.sources.value;
+				}
+				
+				nodeBase.sortLabel.text = "Sort: " + previousQuery.sortBy.value;
+				
 				if(!previousQuery.keywords.value)
 				{
 					makeKeywordTextAreaEditable();
@@ -2238,7 +2252,8 @@
 					nodeBase.keywordTextArea.htmlText = "";
 					newDocumentHighlight.stop();//in case node is blinking
 					stopGlow();
-					hideAllViews();
+					hideView(WORD_CLOUD_VIEW);
+					hideView(POINTS_VIEW);
 					if(contains(docListComponent))
 					{
 						docListComponent.keys = [];//clearing items in list
@@ -2476,8 +2491,13 @@
 			
 			private function hideIcons():void
 			{
-//				_radialMenu.removeAllMenuItems();
-				_subMenu.removeAllSubMenuItems();
+				_radialMenu.removeAllMenuItems();
+//				_subMenu.removeAllSubMenuItems();
+//				_subMenu.addSubMenuItem("Edit Query",editQuery);
+//				_subMenu.addSubMenuItem("Settings",settings);
+//				_subMenu.addSubMenuItem("Close",close);
+				
+				
 			}
 			
 			private function handleEmptyResultSet():void
@@ -2491,6 +2511,7 @@
 				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
 				wordCount = [];
 				hideCurrentView();
+				adjustNodeBase();
 			}
 			
 			public function dispose():void

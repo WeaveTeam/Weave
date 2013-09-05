@@ -61,9 +61,6 @@ package weave.ui.infomap.ui
 			_uiParent.addEventListener(openEventType,showMenu);
 			_uiParent.addEventListener(closeEventType,hideMenu);
 			
-//			addEventListener(MouseEvent.ROLL_OVER,showMenu);
-//			addEventListener(MouseEvent.ROLL_OUT,hideMenu);
-			
 			_style = style;
 			
 		}
@@ -93,7 +90,7 @@ package weave.ui.infomap.ui
 		private var _fadeOut:Fade = new Fade(this);
 		
 		private var _menuItems:Array = [];
-		public function addMenuItem(bitmap:Bitmap,label:String,listener:Function,postion:Number=NaN):void
+		public function addMenuItem(bitmap:Bitmap,label:String,listener:Function,params:Array):void
 		{
 			removeMenuitem(label);
 			var item:RadialMenuItem = new RadialMenuItem();
@@ -104,15 +101,39 @@ package weave.ui.infomap.ui
 			item.label = label;
 			
 			item.img.buttonMode = true;
-			item.img.addEventListener(MouseEvent.CLICK,listener);
+			item.img.addEventListener(MouseEvent.CLICK,handleImageClick);
 			
-			if(!isNaN(postion))
+			item.listener = listener;
+			item.params = params;
+			_menuItems.push(item);
+//			if(!isNaN(postion))
+//			{
+//				_menuItems.splice(postion,0,item);
+//			}
+//			else
+//			{
+//				_menuItems.push(item);
+//			}
+		}
+		
+		private function handleImageClick(event:MouseEvent):void
+		{
+			var item:RadialMenuItem;
+			for each(var m:RadialMenuItem in _menuItems)
 			{
-				_menuItems.splice(postion,0,item);
+				if(m.img == event.currentTarget)
+				{
+					item = m;
+					break;
+				}
+			}
+			if(item.params)
+			{
+				item.listener.apply(null,item.params);
 			}
 			else
 			{
-				_menuItems.push(item);
+				item.listener.apply();
 			}
 		}
 		
@@ -123,6 +144,7 @@ package weave.ui.infomap.ui
 		private var _radius:int = 50;
 		private function showMenu(event:Event):void
 		{
+			graphics.clear();
 			var numOfItems:Number = _menuItems.length;
 			
 			if(_style == RADIAL_STYLE)
@@ -152,7 +174,9 @@ package weave.ui.infomap.ui
 					item.img.toolTip = item.label;
 				}
 			}
-			
+			graphics.beginFill(0,0);//draw a rectangle to detect this menu even when mouse is hovering between icons.
+			graphics.drawRect(0,0,120,height);//hack to use maximum width of 120. 
+			graphics.endFill();
 			_fadeIn.play();
 		}
 		
@@ -226,4 +250,7 @@ internal class RadialMenuItem
 {
 	public var img:Image;
 	public var label:String;
+	public var listener:Function;
+	public var params:Array;
+	
 }

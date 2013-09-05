@@ -12,7 +12,6 @@ Info to provide a tooltip describing the node (like number of documents found)
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		width="{view.width}" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
-	<mx:HBox id="filterStatus" width="100%"/>
 	<mx:Canvas id="view" width="100%" height="100%">
 		
 	</mx:Canvas>
@@ -27,8 +26,11 @@ Info to provide a tooltip describing the node (like number of documents found)
 			import flash.utils.getTimer;
 			
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Text;
 			import mx.controls.listClasses.IListItemRenderer;
 			import mx.core.DragSource;
+			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.DragEvent;
 			import mx.events.ListEvent;
@@ -55,6 +57,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.KeySets.SortedKeySet;
+			import weave.ui.SubMenu;
+			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.VectorUtils;
@@ -145,13 +149,16 @@ Info to provide a tooltip describing the node (like number of documents found)
 			public function removeFilter(name:String):void
 			{
 				listFilters.removeObject(name);
-				var filterLabels:Array = filterStatus.getChildren();
-				for each(var d:FilterLabelUI in filterLabels)
+				var filterLabels:Array = parentNode.nodeBase.filterStatus.getChildren();
+				for each(var d:DisplayObject in filterLabels)
 				{
-					if(d.filterName.text == name)
+					if(d is FilterLabelUI)
 					{
-						filterStatus.removeChild(d);
-						break;
+						if((d as FilterLabelUI).filterName.text == name)
+						{
+							parentNode.nodeBase.filterStatus.removeChild(d);
+							break;
+						}
 					}
 				}
 				startIndex.value = 0;
@@ -160,13 +167,20 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			private function handleFilterChanges():void
 			{
-				if(filterStatus == null)
+				if(parentNode.nodeBase.filterStatus == null)
 					return;
-				filterStatus.removeAllChildren();
+				var fls:Array = parentNode.nodeBase.filterStatus.getChildren();
+				for each(var fl:DisplayObject in fls)
+				{
+					if(fl is FilterLabelUI)
+					{
+						parentNode.nodeBase.filterStatus.removeChild(fl);
+					}
+				}
 				var filterNames:Array = listFilters.getNames(); 
 				for(var i:int = 0; i < filterNames.length; i++)
 				{
-					var filterLabel:FilterLabelUI = filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
+					var filterLabel:FilterLabelUI = parentNode.nodeBase.filterStatus.addChild(new FilterLabelUI()) as FilterLabelUI;
 					filterLabel.filterName.text = filterNames[i];
 					filterLabel.deleteButton.addEventListener(MouseEvent.CLICK,handleFilterLabelClick);
 				}
@@ -178,8 +192,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 			{
 				var filterLabel:FilterLabelUI = (event.target.parent as FilterLabelUI);
 				removeFilter(filterLabel.filterName.text);
-				if(filterStatus.contains(filterLabel))
-					filterStatus.removeChild(filterLabel);
+				if(parentNode.nodeBase.filterStatus.contains(filterLabel))
+					parentNode.nodeBase.filterStatus.removeChild(filterLabel);
 				startIndex.value = 0;
 				startIndex.triggerCallbacks();
 			}
@@ -235,9 +249,12 @@ Info to provide a tooltip describing the node (like number of documents found)
 				var includedKeys:Array = keys;
 				if(includedKeys.length == 0)
 				{
-					indexText.text = "No documents found.";
+					navBox.visible = false;
+					//indexText.text = "No documents found.";
 					return;
 				}
+				navBox.visible = true;
+				
 				var st:int = startIndex.value+1;
 				
 				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0

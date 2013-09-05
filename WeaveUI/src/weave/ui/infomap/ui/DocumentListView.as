@@ -14,7 +14,7 @@ package weave.ui.infomap.ui
 		override protected function childrenCreated():void
 		{
 			super.childrenCreated();
-			view.width = 400;
+			view.width = 500;
 			view.height = 250;
 		}
 		
@@ -59,7 +59,7 @@ package weave.ui.infomap.ui
 			}
 			navBox.percentWidth = 100;
 			
-			navBox.y = view.y + view.height + filterStatus.y + filterStatus.height;
+			navBox.y = view.y + view.height;
 			if(!nextButton || !prevButton)
 			{
 				return;

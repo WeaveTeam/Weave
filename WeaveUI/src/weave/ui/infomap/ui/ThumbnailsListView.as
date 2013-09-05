@@ -83,7 +83,7 @@ package weave.ui.infomap.ui
 				navBox.width = _imageSize * (_gridSize);
 			}
 			
-			navBox.y = view.y + view.height + filterStatus.y + filterStatus.height;
+			navBox.y = view.y + view.height;
 			if(!nextButton || !prevButton)
 			{
 				return;

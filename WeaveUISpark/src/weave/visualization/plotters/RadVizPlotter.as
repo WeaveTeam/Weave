@@ -610,7 +610,76 @@ package weave.visualization.plotters
 			}
 		}
 		
-		
+		public function drawProbeLinesForSelectedAnchors(anchorKeys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{
+			if(!drawProbe) return;
+			if(!anchorKeys) return;
+			
+			var graphics:Graphics = destination;
+			graphics.clear();
+			
+			if(filteredKeySet.keys.length == 0)
+				return;
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+			var keys:Array = filteredKeySet.keys;
+			var _cols:Array = columns.getObjects();
+			
+			for each( var anchorKey :IQualifiedKey in anchorKeys)
+			{
+				for each(var key:IQualifiedKey in keys)
+				{
+					
+					getXYcoordinates(key);
+					dataBounds.projectPointTo(coordinate, screenBounds);
+					var value:Number;
+					var name:String;
+					var anchor:AnchorPoint;
+					var column:IAttributeColumn = columns.getObject(anchorKey.localName) as IAttributeColumn;
+					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					value = stats.getNorm(key);
+					
+					/*only draw probe line if higher than threshold value*/
+					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
+						continue;
+					
+					/*draw the line from point to anchor*/
+					name = columns.getName(column);
+					anchor = anchors.getObject(name) as AnchorPoint;
+					tempPoint.x = anchor.x.value;
+					tempPoint.y = anchor.y.value;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.lineStyle(.5, 0xff0000);
+					graphics.moveTo(coordinate.x, coordinate.y);
+					graphics.lineTo(tempPoint.x, tempPoint.y);
+					
+					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
+					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
+					*/
+					graphics.lineStyle(0,0,0);
+					var uit:UITextField = new UITextField();
+					var numberValue:String = ColumnUtils.getNumber(column,key).toString();
+					numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
+					uit.text = numberValue;
+					uit.autoSize = TextFieldAutoSize.LEFT;
+					var textBitmapData:BitmapData = ImageSnapshot.captureBitmapData(uit);
+					
+					var sizeMatrix:Matrix = new Matrix();
+					var coef:Number =Math.min(uit.measuredWidth/textBitmapData.width,uit.measuredHeight/textBitmapData.height);
+					sizeMatrix.a = coef;
+					sizeMatrix.d = coef;
+					textBitmapData = ImageSnapshot.captureBitmapData(uit,sizeMatrix);
+					
+					var sm:Matrix = new Matrix();
+					sm.tx = (coordinate.x+tempPoint.x)/2;
+					sm.ty = (coordinate.y+tempPoint.y)/2;
+					
+					graphics.beginBitmapFill(textBitmapData, sm, false);
+					graphics.drawRect((coordinate.x+tempPoint.x)/2,(coordinate.y+tempPoint.y)/2,uit.measuredWidth,uit.measuredHeight);
+					graphics.endFill();
+					
+				}
+			}
+		}
 		private function changeAlgorithm():void
 		{
 			if(_currentScreenBounds.isEmpty()) return;

@@ -47,7 +47,7 @@ package weave.ui.infomap.core
 		public static var FILTER_BY_BOOKS:String= "Books";
 		public static var FILTER_BY_PAPERS:String= "Papers";
 		public static var FILTER_BY_RSSFEEDS:String = "RssFeeds";
-		public static var FILTER_BY_NONE:String = "None";
+		public static var FILTER_BY_NONE:String = "Show All";
 		
 		public static var filterByOptions:Array = [FILTER_BY_NONE,FILTER_BY_BOOKS,FILTER_BY_PAPERS,FILTER_BY_RSSFEEDS];
 		//a private array of filter options which includes the empty string. 
