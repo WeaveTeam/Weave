@@ -69,7 +69,6 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.Admin;

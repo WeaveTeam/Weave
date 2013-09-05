@@ -37,7 +37,7 @@
 			<mx:Button label="{lang('Choose File on Server')}" click="openServerBrowser();" />
 			<mx:Text id="fileStatus"/>
 		</ui:Indent>
-		<mx:VBox visible="{csvFileNameInput.asTextInput().text ? true : false}">
+		<mx:VBox visible="{arrayNotEmpty(keyOptions.columnNames)}">
 			<admin:SQLTableSelectorDialog id="tableSelector"
 										  change="handleChange()"
 										  showTableCombo="false"
@@ -68,6 +68,7 @@
 		<admin:ImportTableKeyOptions id="keyOptions"
 									 visible="{!generateKeyColumnCheckBox.selected}"
 									 includeInLayout="{!generateKeyColumnCheckBox.selected}"
+									 change="handleChange()"
 									 paddingLeft="{paddingIndent}"
 									 keyColumnCheck="{checkKeyColumns}"
 									 defaultKeyType="{dataTableNameInput.text}"/>
@@ -108,37 +109,45 @@
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;
 
-			
 			private static const paddingIndent:int = 20;
 			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerFileViewer = null;
 			
+			private function handleCreationComplete():void
+			{
+				csvUploadPage.addChild(busyIndicator);
+				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
+				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				generateKeyColumnCheckBox.addEventListener(Event.CHANGE, handleChange);
+				EventUtils.addDelayedEventCallback(csvFileNameInput, Event.CHANGE, getColumnNames);
+				hideBusy();
+			}
+			
 			private function handleChange(..._):void
 			{
-				var step1:Boolean = !busyIndicator.visible
+				var step1:Boolean = (
+					!busyIndicator.visible
 					&& csvFileNameInput.text
 					&& tableSelector.activeSchema
 					&& tableSelector.activeTable
-					&& keyOptions.columnNames.length;
-				var step2:Boolean = Boolean(dataTableNameInput.text);
+					&& keyOptions.columnNames.length
+				);
+				var step2:Boolean = (
+					dataTableNameInput.text
+					&& keyOptions.keyTypeSelector.selectedKeyType
+				);
 				var step3:Boolean = true;
 				
 				stepsCompleted = [step1,step2,step3];
 			}
 			
-			private function handleCreationComplete():void
+			private function arrayNotEmpty(array:Array):Boolean
 			{
-				csvUploadPage.addChild(busyIndicator);
-				hideBusy();
-				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
-				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
-				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
-				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
-				
-				generateKeyColumnCheckBox.addEventListener(Event.CHANGE, handleChange);
-				EventUtils.addDelayedEventCallback(csvFileNameInput, Event.CHANGE, getColumnNames);
+				return array && array.length;
 			}
 			
 			private function showBusy():void
@@ -231,12 +240,17 @@
 						query = Admin.service.getCSVColumnNames(fileName),
 						function(e:ResultEvent, fileName:String):void
 						{
+							if (fileName != csvFileNameInput.text)
+								return;
 							keyOptions.columnNames = e.result as Array;
 							handleChange();
 						},
 						function(e:FaultEvent, fileName:String):void
 						{
+							if (fileName != csvFileNameInput.text)
+								return;
 							csvFileNameInput.errorString = e.fault.faultString;
+							selectedIndex = 0;
 							handleChange();
 						},
 						fileName

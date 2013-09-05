@@ -36,7 +36,7 @@
 		<TestButton test="{keyColumnCheck}" ok="{keyColumnOk}" enabled="{singleKeyColumnRadio.selected}"/>
 	</ui:Indent>
 	<mx:VBox visible="{Boolean(keyColumnCombo.text)}" includeInLayout="{Boolean(keyColumnCombo.text)}" width="100%">
-		<KeyTypeDialog id="keyTypeSelector" defaultKeyType="{defaultKeyType}"/>
+		<KeyTypeDialog id="keyTypeSelector" defaultKeyType="{defaultKeyType}" change="handleChange();"/>
 		
 		<mx:RadioButtonGroup id="radioGroup" change="handleChange();"/>
 		<mx:RadioButton id="singleKeyColumnRadio" label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>

@@ -32,6 +32,7 @@
 		<mx:VBox width="100%">
 			<ui:Indent group="{tableSelector.indentGroup}" label="{lang('Table display name')}">
 				<mx:TextInput id="tableNameInput"
+							  change="handleChange();"
 							  text="{tableSelector.activeTable}"
 							  toolTip="{lang('Type in a name for the table that is chosen above. This is the name that will be visible in Weave and will be visible to users.')}"/>
 			</ui:Indent>
@@ -39,6 +40,7 @@
 										 initialize="keyOptions.keyColumnIndent.group = tableSelector.indentGroup;"
 										 visible="{Boolean(tableSelector.activeTable)}"
 										 includeInLayout="{Boolean(tableSelector.activeTable)}"
+										 change="handleChange()"
 										 columnNames="{tableSelector.columns}"
 										 keyColumnCheck="{checkKeyColumns}"
 										 defaultKeyType="{tableSelector.activeTable}"/>
@@ -49,7 +51,6 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 			
@@ -60,11 +61,17 @@
 				super.childrenCreated();
 				handleChange();
 			}
+			
 			private function handleChange():void
 			{
 				keyOptions.keyColumnOk = false;
 				
-				var step1:Boolean = tableSelector.activeSchema && tableSelector.activeTable;
+				var step1:Boolean = (
+					tableSelector.activeSchema
+					&& tableSelector.activeTable
+					&& keyOptions.keyTypeSelector.selectedKeyType
+					&& tableNameInput.text
+				);
 				stepsCompleted = [step1];
 			}
 			
