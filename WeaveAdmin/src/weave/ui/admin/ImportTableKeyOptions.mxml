@@ -49,6 +49,7 @@
 				   includeInLayout="{secondaryKeyColumnRadio.selected}">
 			<ui:CustomComboBox id="secondaryKeyColumnCombo"
 							   width="100%"
+							   prompt="{lang('Select a column to use as a filter...')}"
 							   valueCommit="handleChange();"
 							   dataProvider="{columnNames}"
 							   selectedIndex="2"
@@ -96,7 +97,7 @@
 			
 			private static const testToolTip:String = lang('Verify that individual rows can be uniquely identified by the selected column(s)');
 			
-			private var _names:Array;
+			private var _names:Array = [];
 			
 			private function handleChange():void
 			{
@@ -110,7 +111,7 @@
 				keyColumnCombo.selectedIndex = 0;
 				keyColumnCombo.invalidateProperties();
 				keyColumnCombo.validateNow();
-				secondaryKeyColumnCombo.selectedIndex = -1;
+				secondaryKeyColumnCombo.selectedIndex = 1;
 				handleChange();
 			}
 			public function get columnNames():Array
@@ -125,12 +126,16 @@
 			
 			public function get secondaryKeyColumn():String
 			{
-				return secondaryKeyColumnRadio.selected ? secondaryKeyColumnCombo.text : null;
+				return secondaryKeyColumnRadio.selected
+					? secondaryKeyColumnCombo.text
+					: null;
 			}
 			
 			public function get filteredKeyColumns():Array
 			{
-				return WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
+				return generateFilterColumnsRadio.selected
+					? WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0] || ['']
+					: null;
 			}
 			
 			public function get selectedKeyColumns():Array
@@ -140,10 +145,10 @@
 				if (secondaryKeyColumnRadio.selected)
 					keyColumns.push(secondaryKeyColumnCombo.text);
 				
-				if (generateFilterColumnsRadio.selected && filterColumnsInput.text)
+				if (generateFilterColumnsRadio.selected)
 					keyColumns = keyColumns.concat(filteredKeyColumns);
 				
-				return keyColumns.filter(function(item:*):*{ return item ? true : false; }); 
+				return keyColumns; 
 			}
 		]]>
 	</fx:Script>

@@ -104,23 +104,22 @@
 			[Bindable] public var indentGroup:IndentGroup = new IndentGroup();
 			
 			
-			private function disableButtons():void
-			{
-				nextEnabled = finishEnabled = false;
-			}
-			
 			private function toggleButtons():void
 			{
 				// step 1
 				var shpSelected:Boolean = Boolean(shpFileNameInput.text);
 				tableSelector.enabled = shpSelected;
-				var step1:Boolean = (shpSelected && tableSelector.activeSchema && tableSelector.activeTable);
+				var step1:Boolean = (
+					shpSelected
+					&& tableSelector.activeSchema
+					&& tableSelector.activeTable
+					&& fileUploadCount >= targetFileUploadCount
+				);
 				
 				// step 2
 				var step2:Boolean = dbfKeyColumnsCombo && !dbfKeyColumnsCombo.errorString;
-								
-				nextEnabled = [step1,step2][selectedIndex];
-				finishEnabled = step1 && step2;
+				
+				stepsCompleted = [step1,step2];
 			}
 			
 			private static const DEFAULT_PROJECTION:String = 'defaultProjectionSRS';
@@ -189,7 +188,7 @@
 					fileRef.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 					fileRef.addEventListener(Event.COMPLETE, handleFileLoadComplete);
 					fileRef.load();
-					disableButtons();
+					stepsCompleted = [false,false];
 				}
 			}
 			
@@ -255,6 +254,8 @@
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{
+				fileUploadCount = targetFileUploadCount = 0;
+				
 				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
 				

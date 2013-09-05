@@ -962,6 +962,9 @@ public class AdminService
 				throw (RemoteException)cause;
 			throw new RemoteException(String.format("Unable to read file \"%s\"", csvFile), cause);
 		}
+		if (rows.length == 0)
+			throw new RemoteException(String.format("File is empty: %s", csvFile));
+		
 		String[] headers = rows[0];
 		
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
@@ -976,10 +979,7 @@ public class AdminService
 		
 		for (int row = 1; row < rows.length; row++)
 		{
-			String[] keyArray = new String[keyColumns.length];
-			for (int col = 0; col < keyColumns.length; col++)
-				keyArray[col] = rows[row][keyColumnIndices[col]];
-			
+			String[] keyArray = ListUtils.getItems(rows[row], keyColumnIndices);
 			String key = csvParser.createCSVRow(keyArray, true);
 			if (!map.containsKey(key))
 			{
@@ -987,16 +987,14 @@ public class AdminService
 			}
 			else
 			{
+				int prevRow = map.get(key);
 				String msg = String.format(
-						"Found duplicate key on rows %s and %s of \"%s\": %s\nRow %s: %s\nRow %s: %s",
-						map.get(key),
-						row,
-						csvFile,
-						csvParser.createCSVToken(key, true),
-						map.get(key),
-						csvParser.createCSVRow(rows[map.get(key)], true),
-						row,
-						csvParser.createCSVRow(rows[row], true)
+						"Found duplicate key (%s) on rows %s and %s of \"%s\"\n" +
+						"Row %s: %s\n" +
+						"Row %s: %s",
+						key, prevRow, row, csvFile,
+						prevRow, csvParser.createCSVRow(rows[prevRow], true),
+						row, csvParser.createCSVRow(rows[row], true)
 					);
 				throw new RemoteException(msg);
 			}
@@ -1083,8 +1081,8 @@ public class AdminService
 
 			sqlTable = sqlTable.toLowerCase(); // bug fix for MySQL running under Linux
 
-			String[] columnNames = null;
-			String[] originalColumnNames = null;
+			String[] sqlColumnNames = null;
+			String[] csvColumnNames = null;
 			int fieldLengths[] = null;
 
 			// Load the CSV file and reformat it
@@ -1126,36 +1124,48 @@ public class AdminService
 
 			// Read the column names
 
-			columnNames = rows[0];
-			originalColumnNames = new String[columnNames.length];
-			fieldLengths = new int[columnNames.length];
+			sqlColumnNames = rows[0];
+			csvColumnNames = new String[sqlColumnNames.length];
+			fieldLengths = new int[sqlColumnNames.length];
 			int keyColumnIndex = -1;
 			// first, fix all column names
-			for (int iCol = 0; iCol < columnNames.length; iCol++)
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
-				String colName = columnNames[iCol];
+				String colName = sqlColumnNames[iCol];
 				if (isEmpty(colName))
 					colName = "Column " + (iCol + 1);
 				// save original column name
-				originalColumnNames[iCol] = colName;
+				csvColumnNames[iCol] = colName;
 				// remember key col index
 				if (csvKeyColumn.equalsIgnoreCase(colName))
 					keyColumnIndex = iCol;
 				
-				columnNames[iCol] = SQLUtils.fixColumnName(colName, "");
+				sqlColumnNames[iCol] = SQLUtils.fixColumnName(colName, "");
 			}
+           	int[] filterColumnIndices = null;
+           	if (filterColumnNames != null)
+           	{
+           		filterColumnIndices = new int[filterColumnNames.length];
+           		for (int i = 0; i < filterColumnNames.length; i++)
+           		{
+           			int index = ListUtils.findString(filterColumnNames[i], csvColumnNames);
+           			if (index < 0)
+           				throw new RemoteException(String.format("CSV file \"%s\" has no column named \"%s\"", csvFile, filterColumnNames[i]));
+           			filterColumnIndices[i] = index;
+           		}
+           	}
 			
 			// next, make sure there are no duplicates
-			for (int iCol = 0; iCol < columnNames.length; iCol++)
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
-				if (isDuplicateItem(columnNames, iCol))
+				if (isDuplicateItem(sqlColumnNames, iCol))
 				{
-					String match = columnNames[iCol];
-					for (int i = 0; i < columnNames.length; i++)
+					String match = sqlColumnNames[iCol];
+					for (int i = 0; i < sqlColumnNames.length; i++)
 					{
-						if (match.equals(columnNames[i]))
+						if (match.equals(sqlColumnNames[i]))
 						{
-							columnNames[i] = SQLUtils.fixColumnName(match, "_" + i);
+							sqlColumnNames[i] = SQLUtils.fixColumnName(match, "_" + i);
 						}
 					}
 					// need to re-check all columns
@@ -1164,12 +1174,12 @@ public class AdminService
 			}
 			// copy new key column name
 			if (keyColumnIndex >= 0)
-				csvKeyColumn = columnNames[keyColumnIndex];
+				csvKeyColumn = sqlColumnNames[keyColumnIndex];
 
 			// Initialize the types of columns as int (will be changed inside
 			// loop if necessary)
-			types = new int[columnNames.length];
-			for (int iCol = 0; iCol < columnNames.length; iCol++)
+			types = new int[sqlColumnNames.length];
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
 				fieldLengths[iCol] = 0;
 				types[iCol] = IntType;
@@ -1180,7 +1190,7 @@ public class AdminService
 			{
 				String[] nextLine = rows[iRow];
 				// Format each line
-				for (int iCol = 0; iCol < columnNames.length && iCol < nextLine.length; iCol++)
+				for (int iCol = 0; iCol < sqlColumnNames.length && iCol < nextLine.length; iCol++)
 				{
 					// keep track of the longest String value found in this column
 					fieldLengths[iCol] = Math.max(fieldLengths[iCol], nextLine[iCol].length());
@@ -1245,7 +1255,7 @@ public class AdminService
 			{
 				String[] nextLine = rows[iRow];
 				// Format each line
-				for (int iCol = 0; iCol < columnNames.length && iCol < nextLine.length; iCol++)
+				for (int iCol = 0; iCol < sqlColumnNames.length && iCol < nextLine.length; iCol++)
 				{
 					if (nextLine[iCol] == null)
 						continue;
@@ -1272,9 +1282,9 @@ public class AdminService
 
 			// create a list of the column types
 			List<String> columnTypesList = new Vector<String>();
-			for (int iCol = 0; iCol < columnNames.length; iCol++)
+			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
-				if (types[iCol] == StringType || csvKeyColumn.equalsIgnoreCase(columnNames[iCol]))
+				if (types[iCol] == StringType || csvKeyColumn.equalsIgnoreCase(sqlColumnNames[iCol]))
 					columnTypesList.add(SQLUtils.getVarcharTypeString(conn, fieldLengths[iCol]));
 				else if (types[iCol] == IntType)
 					columnTypesList.add(SQLUtils.getIntTypeString(conn));
@@ -1282,10 +1292,10 @@ public class AdminService
 					columnTypesList.add(SQLUtils.getDoubleTypeString(conn));
 			}
 			// create the table
-			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList, null);
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(sqlColumnNames), columnTypesList, null);
 
 			// import the data
-			BulkSQLLoader loader = BulkSQLLoader.newInstance(conn, sqlSchema, sqlTable, columnNames);
+			BulkSQLLoader loader = BulkSQLLoader.newInstance(conn, sqlSchema, sqlTable, sqlColumnNames);
 			for (int iRow = 1; iRow < rows.length; iRow++) // skip header row
 				loader.addRow((Object[])rows[iRow]);
 			loader.flush();
@@ -1299,8 +1309,8 @@ public class AdminService
             );
 			int table_id = addConfigDataTable(
 					configDataTableName, connectionName,
-					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames, columnNames, sqlSchema,
-					sqlTable, ignoreKeyColumnQueries, filterColumnNames, tableInfo, configAppend);
+					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, csvColumnNames, sqlColumnNames, sqlSchema,
+					sqlTable, ignoreKeyColumnQueries, filterColumnIndices, tableInfo, configAppend);
 
             return table_id;
 		}
@@ -1346,10 +1356,29 @@ public class AdminService
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
         DataEntityMetadata tableInfo = new DataEntityMetadata();
        	tableInfo.setPrivateMetadata(PrivateMetadata.IMPORTMETHOD, "importSQL");
+       	int[] filterColumnIndices = null;
+       	if (filterColumnNames != null)
+       	{
+       		filterColumnIndices = new int[filterColumnNames.length];
+       		for (int i = 0; i < filterColumnNames.length; i++)
+       		{
+       			filterColumnIndices[i] = ListUtils.findString(filterColumnNames[i], columnNames);
+       			if (filterColumnIndices[i] < 0)
+       			{
+       				throw new RemoteException(String.format(
+       						"SQL table \"%s\" in schema \"%s\" has no column named \"%s\"",
+       						tableName,
+       						schemaName,
+       						filterColumnNames[i]
+       					));
+       			}
+       		}
+       	}
+       	
         int tableId = addConfigDataTable(
 				configDataTableName, connectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
-				filterColumnNames, tableInfo, append);
+				filterColumnIndices, tableInfo, append);
         return tableId;
 	}
 
@@ -1357,24 +1386,23 @@ public class AdminService
 			String configDataTableName, String connectionName,
 			String keyType, String keyColumnName, String secondarySqlKeyColumn,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
-			boolean ignoreKeyColumnQueries, String[] filterColumnNames, DataEntityMetadata tableImportInfo, boolean configAppend)
+			boolean ignoreKeyColumnQueries, int[] filterColumnIndices, DataEntityMetadata tableImportInfo, boolean configAppend)
 		throws RemoteException
 	{
 	    int table_id = DataConfig.NULL;	
 		DataConfig dataConfig = getDataConfig();
-		ConnectionConfig connConfig = getConnectionConfig();
 		
-		String failMessage = String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		if (sqlColumnNames == null || sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connectionName);
 		if (connInfo == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		
+		String failMessage = String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		String query = null;
 		try
 		{
-			Connection conn = connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection();
+			Connection conn = connInfo.getStaticReadOnlyConnection();
 			
 			// if key column is actually the name of a column, put quotes around it.
 			// otherwise, don't.
@@ -1405,19 +1433,23 @@ public class AdminService
 			boolean foundMatchingColumnIds = false;
 			
 			SQLResult filteredValues = null;
-			if (filterColumnNames != null && filterColumnNames.length > 0)
+			if (filterColumnIndices != null && filterColumnIndices.length > 0)
 			{
 				// get a list of unique combinations of filter values
 				String columnList = "";
-				for (int i = 0; i < filterColumnNames.length; i++)
+				for (int i = 0; i < filterColumnIndices.length; i++)
 				{
 					if (i > 0)
 						columnList += ",";
-					columnList += SQLUtils.quoteSymbol(conn, filterColumnNames[i]);
+					columnList += SQLUtils.quoteSymbol(conn, sqlColumnNames[filterColumnIndices[i]]);
 				}
 				
-				query = String.format("select distinct %s from %s order by %s", columnList, SQLUtils.quoteSchemaTable(
-						conn, sqlSchema, sqlTable), columnList);
+				query = String.format(
+						"select distinct %s from %s order by %s",
+						columnList,
+						SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable),
+						columnList
+					);
 				filteredValues = SQLUtils.getResultFromQuery(conn, query, null, true);
 				// System.out.println(query);
 				// System.out.println(filteredValues);
@@ -1588,7 +1620,7 @@ public class AdminService
 				{
 					newMeta.setPrivateMetadata(
 						PrivateMetadata.SQLPARAMS, info.sqlParamsStr,
-						PrivateMetadata.SQLFILTERCOLUMNS, CSVParser.defaultParser.createCSVRow(filterColumnNames, true)
+						PrivateMetadata.SQLFILTERCOLUMNS, CSVParser.defaultParser.createCSVRow(ListUtils.getItems(sqlColumnNames, filterColumnIndices), true)
 					);
 				}
 

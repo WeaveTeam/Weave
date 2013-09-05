@@ -25,7 +25,6 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*"
 			label="{lang('Import SQL tables to Weave')}"
-			finishEnabled="false"
 			>
 	<mx:VBox width="100%" height="100%">
 		<mx:CheckBox id="noAppendCheckBox" label="{lang('Create new Weave table entry even if a matching one already exists')}"/>
@@ -59,11 +58,14 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				handleChange();
 			}
 			private function handleChange():void
 			{
-				finishEnabled = tableSelector.activeSchema && tableSelector.activeTable;
 				keyOptions.keyColumnOk = false;
+				
+				var step1:Boolean = tableSelector.activeSchema && tableSelector.activeTable;
+				stepsCompleted = [step1];
 			}
 			
 			private function checkKeyColumns(onSuccess:Function = null):void
