@@ -44,7 +44,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   itemClick="macroList_itemClickHandler(event)"/>
 			</mx:VBox>
 			<mx:VBox width="75%" height="100%">
-				<mx:TextArea id="funcValues" width="100%" height="100%" fontFamily="_typewriter" fontSize="11"/>
+				<ui:CodeEditor id="editor"/>
 				<mx:Text text="{lang('Macro Result:')}"/>
 				<mx:TextArea id="macroResult" width="100%" height="20%" editable="false"/>
 			</mx:VBox>
@@ -74,27 +74,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					buttonsEnabled = true;
 					macroList.selectedIndex = 0;
-					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
-					funcValues_changeHandler(null);
+					editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					handleChange();
 				}
 				this.targets = [macroList.hashMap];
 				(macroList.hashMap as LinkableHashMap).addImmediateCallback(this, enableButtonsCheck, true);
-				funcValues.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown, true);
-				EventUtils.addDelayedEventCallback(funcValues, Event.CHANGE, funcValues_changeHandler);
-			}
-			
-			private function handleKeyDown(event:KeyboardEvent):void
-			{
-				if (event.keyCode == Keyboard.TAB)
-				{
-					// insert tab character
-					var str:String = funcValues.text;
-					var begin:int = funcValues.selectionBeginIndex;
-					var end:int = funcValues.selectionEndIndex;
-					funcValues.text = str.substring(0, begin) + '\t' + str.substring(end);
-					funcValues.setSelection(begin + 1, begin + 1);
-					callLater(funcValues.setFocus);
-				}
+				EventUtils.addDelayedEventCallback(editor, Event.CHANGE, handleChange);
 			}
 			
 			protected function deleteEntry(event:MouseEvent):void
@@ -106,17 +91,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				    if( macroList.hashMap.getNames().length > 0 )
 			    	{
 				    	macroList.selectedIndex = 0;
-					    funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					    editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
 				    }
 				    else
 				   {
-					    funcValues.text = "";
+					    editor.text = "";
 					    macroResult.text = "";
 				   }
 				   if( macroList.hashMap.getNames().length == 0 )
 				  {
-					   funcValues.editable = false;
+					   editor.editable = false;
 				  }	
 				}
 				else
@@ -156,14 +141,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(event.textInput, LinkableFunction, false);
 					macroList.selectedIndex = macroList.hashMap.getNames().length - 1;
-					funcValues.text = "";
+					editor.text = "";
 					if( macroList.hashMap.getNames().length == 1 )
 					{
 						macroList.selectedIndex = 0;
-						funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+						editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 					}
 					if( macroList.hashMap.getNames().length > 0 )
-						funcValues.editable = true;
+						editor.editable = true;
 				}
 			}
 			
@@ -171,27 +156,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( macroList.selectedIndex > -1 )
 				{
-					funcValues.editable = true;
+					editor.editable = true;
 					macroResult.text = "";
-					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;	
-					funcValues_changeHandler(null);
+					editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;	
+					handleChange(null);
 				}
 				else
 				{
-					funcValues.editable = false;
-					funcValues.text = "";
+					editor.editable = false;
+					editor.text = "";
 					macroResult.text = "";
 				}
 			}
 			
-			protected function funcValues_changeHandler(event:Event = null):void
+			protected function handleChange(event:Event = null):void
 			{
 				if (macroList.selectedIndex > -1)
 				{
 					try
 					{
 						var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
-						funcToSave.value = funcValues.text;
+						funcToSave.value = editor.text;
 						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
 					}
 					catch(e:Error)
@@ -225,7 +210,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.revert();
 				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
-					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 			}
 			
 			protected function enableButtonsCheck():void
@@ -233,12 +218,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
 				{
 					buttonsEnabled = true;
-					funcValues.editable = true;
+					editor.editable = true;
 				}
 				else
 				{
 					buttonsEnabled = false;	
-					funcValues.editable = false;
+					editor.editable = false;
 				}
 			}
 			

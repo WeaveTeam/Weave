@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This is a TextArea with typewriter font that accepts the tab key as character input and fixes tab stops.
+-->
+<mx:TextArea xmlns:mx="http://www.adobe.com/2006/mxml"
+			 width="100%"
+			 height="100%"
+			 fontFamily="_typewriter"
+			 fontSize="11"
+			 keyFocusChange="handleKeyFocusChange(event)"
+			 change="fixTabStops()"
+			 wordWrap="false">
+	<mx:Script>
+		<![CDATA[
+			
+			public var tabWidth:int = 28; // in _typewriter size 11, each character is 7 pixels
+			
+			private function fixTabStops():void
+			{
+				var ts:Array = [];
+				var max:int = textField.textWidth + tabWidth * 2;
+				for (var i:int = tabWidth; i < max; i += tabWidth)
+					ts.push(i);
+				var tf:TextFormat = new TextFormat();
+				tf.tabStops = ts;
+				textField.setTextFormat(tf);
+			}
+			
+			private function handleKeyFocusChange(event:*):void
+			{
+				event.preventDefault();
+				textField.replaceSelectedText('\t');
+				if (text != null)
+					text = textField.text;
+				else
+					htmlText = textField.htmlText;
+				dispatchEvent(new Event(Event.CHANGE));
+			}
+		]]>
+	</mx:Script>
+</mx:TextArea>

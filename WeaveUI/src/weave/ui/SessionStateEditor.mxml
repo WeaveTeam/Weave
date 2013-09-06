@@ -67,8 +67,7 @@ A text editor to change the Session State on the fly.
 								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
 								<mx:Button label="Copy state" click="copyToClipboard();"/>
 							</mx:HBox>
-							<mx:TextArea id="textEditor" wordWrap="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
-										 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%"/>
+							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()"/>
 							<mx:Label id="lastLine" fontFamily="_typewriter"/>
 						</mx:VBox>
 						<mx:VBox width="100%" height="100%">
