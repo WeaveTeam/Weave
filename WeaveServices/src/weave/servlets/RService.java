@@ -344,6 +344,7 @@ public class RService extends GenericServlet
 				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
 							 "library(RODBC)\n" +
 							 "con <- odbcConnect(dsn =" + "\"" +dsn+"\", uid =" + "\"" +user+"\" , pwd =" + "\"" +password+"\")\n" +
+							 "sqlQuery(con, \"USE " + schemaName + "\")\n" +
 							 "library(survey)\n" +
 							 "getColumns <- function(query)\n" +
 							 "{\n" +
