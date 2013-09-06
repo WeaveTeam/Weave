@@ -252,6 +252,8 @@ public class RService extends GenericServlet
 		return query_map;
 	}
 
+	// this select query is the first version without filtering
+	// we need to eventually replace it with the getQuery function in the DataService
 	private String buildSelectQuery(List<String> columns, String tableName)
 	{
 			int counter = columns.size();
@@ -360,6 +362,10 @@ public class RService extends GenericServlet
 		 
 	}
 	
+	// this functions makes a command line call on the server machine.
+	// the command executed starts the Rserve on windows or unix
+	// On windows: the rServePath needs to be given in the configuration file
+	// On mac: the command R CMD RServe needs to work http://dev.mygrid.org.uk/blog/?p=34
 	public void startRServe() throws IOException {
 		
 		if (rProcess == null)
@@ -387,6 +393,7 @@ public class RService extends GenericServlet
 		}
 	}
 	
+	// this function should stop the Rserve... needs revision
 	public void stopRServe() throws IOException {
 	 try {
 		if (rProcess != null )
@@ -398,6 +405,11 @@ public class RService extends GenericServlet
 	 }
 	}
 
+	// this functions intends to run a script with filtered.
+	// essentially this function should eventually be our main run script function.
+	// in the request object, there will be: the script path, the script name
+	// and the columns, along with their filters.
+	// TODO not completed
 	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
 	{
 		RResult[] returnedColumns;
@@ -439,20 +451,22 @@ public class RService extends GenericServlet
 		}
 		return rFiles.toArray(new String[0]);
 	}
-	
-	public class ScriptMetadata
-	{
-		// input variables
-		public String[] inputs;
-		// description of the input variables
-		public String[] inputDescriptions;
-		
-		// output variables
-		public String[] outputs;
-		// description of the output variables
-		public String[] outputDescriptions;
 
-	}
+// not needed for now.
+	
+//	public class ScriptMetadata
+//	{
+//		// input variables
+//		public String[] inputs;
+//		// description of the input variables
+//		public String[] inputDescriptions;
+//		
+//		// output variables
+//		public String[] outputs;
+//		// description of the output variables
+//		public String[] outputDescriptions;
+//
+//	}
 	
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
