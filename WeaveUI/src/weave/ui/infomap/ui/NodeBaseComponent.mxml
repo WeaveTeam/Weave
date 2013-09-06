@@ -40,10 +40,14 @@ It has 4 icons to:
 	</mx:Canvas>-->
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Label;
 			import mx.controls.Text;
+			import mx.managers.CursorManager;
 			
 			import weave.ui.SubMenu;
 			import weave.ui.infomap.core.QueryObject;
+			import weave.utils.CustomCursorManager;
+			import weave.visualization.layers.InteractiveVisualization;
 			
 			override protected function childrenCreated():void
 			{
@@ -53,23 +57,28 @@ It has 4 icons to:
 				
 				filterLabel.selectable = false;
 				filterLabel.alpha = 0.5;
+				filterLabel.buttonMode = true;
+				filterLabel.useHandCursor = true;
+				filterLabel.mouseChildren = false;
 				filterStatus.addChild(filterLabel);
 				
 				sortLabel.selectable = false;
 				sortLabel.alpha = 0.5;
+				sortLabel.buttonMode = true;
+				sortLabel.useHandCursor = true;
+				sortLabel.mouseChildren = false;
 				filterStatus.addChild(sortLabel);
 				
 				//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
 				//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
 				//sphere icon: http://www.iconfinder.com/icondetails/29260/16/
 			}
-			public var filterLabel:Text = new Text();
+			public var filterLabel:Label = new Label();
 			public var filterSubMenu:SubMenu = new SubMenu(filterLabel,[MouseEvent.CLICK]);
 			
-			public var sortLabel:Text = new Text();
+			public var sortLabel:Label = new Label();
 			public var sortSubMenu:SubMenu = new SubMenu(sortLabel,[MouseEvent.CLICK]);
 			
-		
 		]]>
 	</mx:Script>
 </mx:VBox>

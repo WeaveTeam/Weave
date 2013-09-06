@@ -62,7 +62,8 @@ package weave.ui.infomap.ui
 					if(count >= includedKeys.length)
 						break;
 					doc = parentNode.thumbnails.getObject((includedKeys[count] as IQualifiedKey).localName) as DocThumbnailComponent;
-					//						trace(debugId(doc));
+					if(!doc)
+						continue;
 					var pos:Object = doc.pos.getSessionState();
 					if(!pos || isNaN(pos.x) || isNaN(pos.y))
 					{
@@ -75,6 +76,8 @@ package weave.ui.infomap.ui
 					
 					count++;
 				}
+				if(!doc)
+					continue;
 				nextX = 0;
 				nextY += doc.height;
 				

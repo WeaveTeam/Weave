@@ -127,6 +127,8 @@ package weave.ui.infomap.ui
 					break;
 				}
 			}
+			if(!item)
+				return;
 			if(item.params)
 			{
 				item.listener.apply(null,item.params);

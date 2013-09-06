@@ -306,11 +306,20 @@
 			private var PointsImgClass:Class;
 			private var _pointsImgText:String = "Points View";
 			
+			[Embed( source="/weave/resources/images/editButton.png")]
+			private var EditImgClass:Class;
+			private var _editImgText:String = "Edit Query";
+			
+			
 			[Embed( source="/weave/resources/images/arrowDown.png")]
 			private var _subMenuIcon:Class;
 //			private var _menuButton:Image = new Image();
 //			private var _subMenu:SubMenu;
 			private var _radialMenu:RadialMenu;
+			private var _closeImg:Bitmap = new CloseImgClass() as Bitmap;
+			private var _settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
+			private var _editImg:Bitmap = new EditImgClass() as Bitmap;
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -448,11 +457,9 @@
 				_radialMenu =  new RadialMenu(nodeBase as UIComponent,MouseEvent.ROLL_OVER, MouseEvent.ROLL_OUT,RadialMenu.LINE_STYLE);
 				nodeBase.addChildAt(_radialMenu,0);
 				
-				var closeImg:Bitmap = new CloseImgClass() as Bitmap;
-				_radialMenu.addMenuItem(closeImg,_closeImgText,close,null);
-				var settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(settingsImg,_settingsImgText,settings,null);
-				
+				_radialMenu.addMenuItem(_closeImg,_closeImgText,close,null);
+				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
+				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
 //				_subMenu.addSubMenuItem("Edit Query",editQuery);
 //				_subMenu.addSubMenuItem("Settings",settings);
 //				_subMenu.addSubMenuItem("Close",close);
@@ -835,17 +842,18 @@
 				return _thumbnailCount/docKeySet.keys.length;
 			}
 			
+			private var _listImg:Bitmap = new ListImgClass() as Bitmap;
+			private var _gridImg:Bitmap = new GridImgClass() as Bitmap;
+			
 			private function _completeThumbnailsIteration():void
 			{
 				thumbnails.setNameOrder(_nameOrder);
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
 				
-				var listImg:Bitmap = new ListImgClass() as Bitmap;
-				_radialMenu.addMenuItem(listImg,_listImgText,toggleView,[LIST_VIEW]);
+				_radialMenu.addMenuItem(_listImg,_listImgText,toggleView,[LIST_VIEW]);
 				
-				var gridImg:Bitmap = new GridImgClass() as Bitmap;
-				_radialMenu.addMenuItem(gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
+				_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
 //				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
 //				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
 //				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
@@ -865,6 +873,7 @@
 				showCurrentView();
 			}
 			
+			private var _wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
 			private function handleWordCountResult(event:ResultEvent,token:QueryObject=null):void
 			{
 				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
@@ -876,8 +885,7 @@
 				
 				wordCount = event.result as Array;
 				
-				var wordCloudImg:Bitmap = new WordCloudImgClass() as Bitmap;
-				_radialMenu.addMenuItem(wordCloudImg,_wordCloudText,toggleView,[WORD_CLOUD_VIEW]);
+				_radialMenu.addMenuItem(_wordCloudImg,_wordCloudText,toggleView,[WORD_CLOUD_VIEW]);
 //				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
 				if(currentView.value == WORD_CLOUD_VIEW)
 				{
@@ -1100,6 +1108,8 @@
 			//TODO: clear/invalidate them when the attirbute column changes.
 			private var _entitiesToURLsHashMap:Dictionary = new Dictionary();
 			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
+			private var _entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
+			
 			private function handleEntityQueryResults(event:ResultEvent,token:QueryObject=null):void
 			{
 				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
@@ -1146,8 +1156,7 @@
 					}
 				}
 				
-				var entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
-				_radialMenu.addMenuItem(entityDistributionImg,_entityDistributionImgText,showDistributionChart,null);
+				_radialMenu.addMenuItem(_entityDistributionImg,_entityDistributionImgText,showDistributionChart,null);
 //				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
 
 			}
@@ -2161,6 +2170,8 @@
 				toggleView(TOPICS_VIEW);
 			}
 			
+			private var _topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
+			private var _pointsImg:Bitmap = new PointsImgClass() as Bitmap;
 			private function handleTopicsQueryResult(event:ResultEvent, token:QueryObject = null):void
 			{
 				status.text = "";
@@ -2180,12 +2191,10 @@
 					
 				}
 				
-				var topicsImg:Bitmap = new TopicsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(topicsImg,_topicsImgText,showClassificationResults,null);
+				_radialMenu.addMenuItem(_topicsImg,_topicsImgText,showClassificationResults,null);
 //				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
 				
-				var pointsImg:Bitmap = new PointsImgClass() as Bitmap;
-				_radialMenu.addMenuItem(pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
+				_radialMenu.addMenuItem(_pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
 //				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
 				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
 				{
@@ -2324,8 +2333,11 @@
 			}
 			private function removeWordCloud():void
 			{
+				if(!wordCloud)
+					return;
 				wordCloud.clearCloud();
 				wordCloud.dataProvider = [];//clearing word cloud
+				wordCount = [];
 				if(contains(wordCloud))
 					removeChild(wordCloud);
 				wordCloud = null;
@@ -2492,6 +2504,9 @@
 			private function hideIcons():void
 			{
 				_radialMenu.removeAllMenuItems();
+				_radialMenu.addMenuItem(_closeImg,_closeImgText,close,null);
+				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
+				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
 //				_subMenu.removeAllSubMenuItems();
 //				_subMenu.addSubMenuItem("Edit Query",editQuery);
 //				_subMenu.addSubMenuItem("Settings",settings);
@@ -2506,11 +2521,11 @@
 				numOfMatchedDocuments.value = 0;
 				_currentNewDocsCount = 0;
 				prevNewDocsCount.value = 0;
+				hideCurrentView();
 				updateTextArea();
 				docKeySet.replaceKeys([]);
-				/* emptying wordCount before sending it. I am using concat in the InfoMapDataSource. */
-				wordCount = [];
-				hideCurrentView();
+				
+				removeWordCloud();
 				adjustNodeBase();
 			}
 			
