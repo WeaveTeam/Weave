@@ -330,7 +330,8 @@ public class RService extends GenericServlet
 			 String dsn = connectionObject.get("dsn").toString();
 			if(connectionType.equalsIgnoreCase("RMySQL"))
 			{
-				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+				finalScript = "rm(list = ls())\n" +
+							  "scriptFromFile <- source(cannedScriptPath)\n" +
 							  "library(RMySQL)\n" +
 							  "con <- dbConnect(dbDriver(\"MySQL\"), user =" + "\"" +user+"\" , password =" + "\"" +password+"\", host =" + "\"" +hostName+"\", port = 3306, dbname =" + "\"" +schemaName+"\")\n" +
 							  "library(survey)\n" +
@@ -341,7 +342,8 @@ public class RService extends GenericServlet
 							  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 			} else if (connectionType.equalsIgnoreCase("RODBC"))
 			{
-				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+				finalScript = "rm(list = ls())\n" +  
+							 "scriptFromFile <- source(cannedScriptPath)\n" +
 							 "library(RODBC)\n" +
 							 "con <- odbcConnect(dsn =" + "\"" +dsn+"\", uid =" + "\"" +user+"\" , pwd =" + "\"" +password+"\")\n" +
 							 "sqlQuery(con, \"USE " + schemaName + "\")\n" +
