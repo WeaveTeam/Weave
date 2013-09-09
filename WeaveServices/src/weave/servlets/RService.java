@@ -21,6 +21,7 @@ package weave.servlets;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -468,6 +469,49 @@ public class RService extends GenericServlet
 //		public String[] outputDescriptions;
 //
 //	}
+	public Object getScriptMetadata(String folderPath, String scriptName) throws Exception
+	{
+		File directory = new File(folderPath);
+		String[] files = directory.list();
+		int filecount = 0;
+		// this object will get the metadata from the json file
+		Object scriptMetadata = new Object();
+		
+		// we replace scriptname.R with scriptname.json
+		String jsonFileName = scriptName.substring(0, scriptName.lastIndexOf('.')).concat(".json");
+
+		// we will check if there is a json file with the same name in the directory.
+		for (int i = 0; i < files.length; i++)
+		{
+			if (jsonFileName.equalsIgnoreCase(files[i]))
+			{
+				filecount++;
+				// do the work
+				Gson gson = new Gson();
+				
+				if(filecount > 1) {
+					throw new RemoteException("multiple copies of " + jsonFileName + "found!");
+				}
+				
+				try {
+					
+					BufferedReader br = new BufferedReader(new FileReader(new File(directory, jsonFileName)));
+					
+					scriptMetadata = gson.fromJson(br, Object.class);
+					
+					System.out.println(scriptMetadata);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		// 
+		if(filecount == 0) {
+			throw new RemoteException("Could not find the file " + jsonFileName + "!");
+		}
+		
+		return scriptMetadata;
+	}
 	
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
