@@ -48,6 +48,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.reportError;
 			import weave.core.CallbackJuggler;
 			import weave.core.SessionStateLog;
@@ -69,7 +70,7 @@
 				super.childrenCreated();
 				
 				_editMenu = new SubMenu(menuButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN]);
-				_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
+				//_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
 				_editMenu.addSubMenuItem(lang("Clear everything"), _stateLog.clearHistory);
 				_editMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
 				_editMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
@@ -79,11 +80,6 @@
 				for each (var speed:int in [1,2,4,8,16])
 					_playMenu.addSubMenuItem(speed + 'x', play, [speed]);
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
-			}
-			
-			private function isRecordingMode():Boolean
-			{
-				return _stateLog.enableLogging.value;
 			}
 			
 			private function togglePresentationMode():void
@@ -239,6 +235,10 @@
 					callLater(handleStateLogChange);
 					return;
 				}
+				
+				if (detectLinkableObjectChange(handleStateLogChange, _stateLog.enableLogging))
+					menuButton.visible = menuButton.includeInLayout = _stateLog.enableLogging.value;
+				
 				recordButton.selected = _stateLog.enableLogging.value;
 				slider.maximum = _stateLog.undoHistory.length + _stateLog.redoHistory.length;
 				slider.value = _stateLog.undoHistory.length;

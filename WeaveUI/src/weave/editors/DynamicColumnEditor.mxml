@@ -425,20 +425,18 @@
 				{
 					linkSessionState(_currentTarget, dynamicColumn);
 					
+					var path:LinkableXML = hierarchySelector.selectedPath;
 					// if newly linked object doesn't have an internal column,
 					// keep the currently selected path except for the leaf node
 					if (_currentTarget.getInternalColumn() == null)
 					{
-						var path:LinkableXML = hierarchySelector.selectedPath;
 						if (!path.value)
 							return;
 						var attr:XMLList = path.value.descendants("attribute");
 						if (attr.length() > 0)
-						{
 							delete attr[0];
-							path.detectChanges();
-						}
 					}
+					path.triggerCallbacks(); // always trigger so refresh occurs
 				}
 			}
 			public function applyChanges():void { }

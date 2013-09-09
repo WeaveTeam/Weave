@@ -39,17 +39,9 @@
 			import mx.events.CloseEvent;
 			
 			/**
-			 * This tells the WizardPanel when to enable the "Back" button.
+			 * This tells the WizardPanel which steps have been completed using an Array of Boolean values.
 			 */
-			[Bindable] public var backEnabled:Boolean = true;
-			/**
-			 * This tells the WizardPanel when to enable the "Next" button.
-			 */
-			[Bindable] public var nextEnabled:Boolean = true;
-			/**
-			 * This tells the WizardPanel when to enable the "Finish" button.
-			 */
-			[Bindable] public var finishEnabled:Boolean = true;
+			[Bindable] public var stepsCompleted:Array;
 			/**
 			 * This tells the WizardPanel when to enable the control bar with all the buttons.
 			 */

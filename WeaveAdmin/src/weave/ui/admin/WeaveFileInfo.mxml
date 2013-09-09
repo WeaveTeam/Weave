@@ -88,7 +88,7 @@
 				}
 				
 				_lastMod = StandardLib.formatDate(_LM, "MM/DD/YYYY L:NN A", false);
-				_fileSize = new FileUtils().parse(_FS, 2);
+				_fileSize = FileUtils.parse(_FS, 2);
 			}
 			
 		]]>

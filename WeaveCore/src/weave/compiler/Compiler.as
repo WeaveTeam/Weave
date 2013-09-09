@@ -248,7 +248,7 @@ package weave.compiler
 		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
 		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
-		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed outside the function after compiling.
+		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression. Multiple lookup tables can be specified in an Array. The values in the lookup tables may be changed outside the function after compiling.
 		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
@@ -977,7 +977,7 @@ package weave.compiler
 		 * @param useDoubleQuotes If this is true, double-quote will be used.  If false, single-quote will be used.
 		 * @return The given String formatted for ActionScript.
 		 */
-		public function encodeString(string:String, quote:String = '"'):String
+		public static function encodeString(string:String, quote:String = '"'):String
 		{
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)
@@ -2123,7 +2123,7 @@ package weave.compiler
 		/**
 		 * This function is for internal use only.
 		 * @param compiledObject Either a CompiledConstant or a CompiledFunctionCall.
-		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression.  These values may be changed after compiling.
+		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression. Multiple lookup tables can be specified in an Array. The values in the lookup tables may be changed outside the function after compiling.
 		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.  This may be set to null, which will cause the Error to be thrown.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
@@ -2521,7 +2521,7 @@ package weave.compiler
 			};
 			
 			// if the compiled object is a function definition, return that function definition instead of the wrapper.
-			if (compiledObjectIsFunction(compiledObject))
+			if (compiledObjectIsFunctionDefinition(compiledObject))
 				return wrapperFunction() as Function;
 			
 			return wrapperFunction;
@@ -2532,7 +2532,7 @@ package weave.compiler
 		 * @param compiledObject A compiled object returned by compileToObject().
 		 * @return true if the compiledObject is a function definition.
 		 */		
-		public function compiledObjectIsFunction(compiledObject:ICompiledObject):Boolean
+		public function compiledObjectIsFunctionDefinition(compiledObject:ICompiledObject):Boolean
 		{
 			return compiledObject is CompiledFunctionCall && (compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION];
 		}

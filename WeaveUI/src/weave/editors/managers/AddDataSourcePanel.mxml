@@ -30,8 +30,6 @@
 	verticalScrollPolicy="auto"
 	horizontalScrollPolicy="off"
 	roundedBottomCorners="true"
-	height="564"
-	width="184"
 	escapeKeyClosesPanel="true"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
 	<mx:HBox height="100%" width="100%" horizontalGap="0">

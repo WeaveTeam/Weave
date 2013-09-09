@@ -49,6 +49,11 @@ package weave.data.AttributeColumns
 		}
 
 		/**
+		 * This overrides the base title value
+		 */
+		public var baseTitle:String;
+
+		/**
 		 * This function overrides the min,max values.
 		 */
 		override public function getMetadata(propertyName:String):String
@@ -66,6 +71,7 @@ package weave.data.AttributeColumns
 			switch (propertyName)
 			{
 				case ColumnMetadata.TITLE:
+					value = baseTitle || value;
 					if (value != null && secondaryKeyFilter.value && !allKeysHack)
 						return value + ' (' + secondaryKeyFilter.value + ')';
 					break;
@@ -102,8 +108,8 @@ package weave.data.AttributeColumns
 		public static const secondaryKeyFilter:LinkableString = new LinkableString();
 		public static const useGlobalMinMaxValues:LinkableBoolean = new LinkableBoolean(true);
 		
-		protected static const _uniqueSecondaryKeys:Array = new Array();
-		public static function get secondaryKeys():Array
+		protected const _uniqueSecondaryKeys:Array = new Array();
+		public function get secondaryKeys():Array
 		{
 			return _uniqueSecondaryKeys;
 		}

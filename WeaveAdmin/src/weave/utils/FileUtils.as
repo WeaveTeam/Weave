@@ -1,44 +1,29 @@
 package weave.utils
 {
+	import mx.collections.ArrayList;
+	import mx.controls.List;
 	import mx.formatters.NumberFormatter;
 
 	public class FileUtils
 	{
-		private var _size:Number;
-		private var formater:NumberFormatter = new NumberFormatter();
+		private static var formater:NumberFormatter = new NumberFormatter();
 		
 		public function FileUtils()
 		{
 			
 		}
-		public function get size():Number
+		public static function parse(size:Number, precision:Number):String
 		{
-			return _size;
-		}
-		public function set size(s:Number):void
-		{
-			_size = s;
-		}
-		public function parse(size:Number, precision:Number):String
-		{
-			if( size < 1024 ) 
-				return size + (( size == 1 ) ? " Byte" : " Bytes");
+			var i:int = 0;
+			var sizes:Array = ["B", "KB", "MB", "GB", "TB"];
 			
-			size = size / 1024;
-			if( size < 1024 ) {
-				formater.precision = precision;
-				return formater.format(size) + (( size == 1 ) ? " Kilobyte" : " Kilobytes");
+			while( (size/1024) > 1 ) {
+				size /= 1024;
+				i++;
 			}
 			
-			size = size / 1024;
-			if( size < 1024 ) {
-				formater.precision = precision;
-				return formater.format(size) + (( size == 1 ) ? " Megabyte" : " Megabytes");
-			}
-			
-			size = size / 1024;
 			formater.precision = precision;
-			return formater.format(size) + (( size == 1 ) ? " Gigabyte" : " Gigabytes");
+			return formater.format(size) + " " + sizes[i];
 		}
 	}
 }

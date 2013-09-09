@@ -367,16 +367,17 @@ public class SQLUtils
 		
 		colName = sb.toString();
 		
-		// if the length of the column name is longer than the 64-character limit
-		int max = 64 - 4; // leave space for "_123" if there end up being duplicate column names
+		// if the length of the column name is longer than the 30-character limit in oracle (MySQL limit is 64 characters)
+		int max = 30;
 		// if name too long, remove spaces
 		if (colName.length() > max)
 			colName = colName.replace(" ", "");
 		// if still too long, truncate
 		if (colName.length() > max)
 		{
-			int half = max / 2 - 1;
-			colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
+			int halfLeft = max / 2;
+			int halfRight = max / 2 - 1 + max % 2; // subtract 1 for the "_" unless max is odd
+			colName = colName.substring(0, halfLeft) + "_" + colName.substring(colName.length() - halfRight);
 		}
 		return colName;
 	}
@@ -1063,7 +1064,7 @@ public class SQLUtils
 				String.format(
 					", CONSTRAINT %s PRIMARY KEY (%s)",
 					quoteSymbol(conn, pkName),
-					StringUtils.join(",", quotedKeyColumns)
+					Strings.join(",", quotedKeyColumns)
 				)
 			);
 		}
@@ -1235,7 +1236,7 @@ public class SQLUtils
 		        updateBlockList.add(String.format("%s=?", data.getKey()));
 		        queryParams.add(data.getValue());
 		    }
-			updateBlock = StringUtils.join(",", updateBlockList);
+			updateBlock = Strings.join(",", updateBlockList);
 		    
 			// build where clause
 		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields, true);
@@ -1327,8 +1328,8 @@ public class SQLUtils
 			columns.add(quoteSymbol(conn, entry.getKey()));
 			values.add(entry.getValue());
 		}
-		String column_string = StringUtils.join(",", columns);
-		String qmark_string = StringUtils.mult(",", "?", values.size());
+		String column_string = Strings.join(",", columns);
+		String qmark_string = Strings.mult(",", "?", values.size());
 		
 		String quotedIdField = quoteSymbol(conn, idField);
 		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
@@ -1687,11 +1688,11 @@ public class SQLUtils
 				fieldNames.set(i, quoteSymbol(conn, fieldNames.get(i)));
 			
 			String quotedSchemaTable = quoteSchemaTable(conn, schemaName, tableName);
-			String fieldNamesStr = StringUtils.join(",", fieldNames);
+			String fieldNamesStr = Strings.join(",", fieldNames);
 			
 			// construct query
-			String recordClause = String.format("(%s)", StringUtils.mult(",", "?", fieldNames.size()));
-			String valuesClause = StringUtils.mult(",", recordClause, records.size());
+			String recordClause = String.format("(%s)", Strings.mult(",", "?", fieldNames.size()));
+			String valuesClause = Strings.mult(",", recordClause, records.size());
 			query = String.format(
 				"INSERT INTO %s (%s) VALUES %s",
 				quotedSchemaTable,
@@ -1968,6 +1969,66 @@ public class SQLUtils
 		public String clause;
 		public List<V> params;
 		
+		
+		public static class ColumnFilter
+		{
+			public String field;
+			/**
+			 * Contains a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+			 */
+			public Object[] filters;
+		}
+		
+		/**
+		 * @param conn
+		 * @param filters Either a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+		 */
+		public static WhereClause<Object> fromFilters(Connection conn, ColumnFilter[] filters) throws SQLException
+		{
+			WhereClause<Object> result = new WhereClause<Object>("", new Vector<Object>());
+			StringBuilder sb = new StringBuilder();
+			for (ColumnFilter filter : filters)
+			{
+				if (filter.filters == null || filter.filters.length == 0)
+					continue;
+				
+				if (sb.length() == 0)
+					sb.append(" WHERE ");
+				else
+					sb.append(" AND ");
+				
+				sb.append("(");
+				String quotedField = quoteSymbol(conn, filter.field);
+				String stringCompare = null;
+				for (int i = 0; i < filter.filters.length; i++)
+				{
+					Object filterValue = filter.filters[i];
+					if (i > 0)
+						sb.append(" OR ");
+					
+					if (filterValue.getClass() == Object[].class)
+					{
+						// numeric range
+						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
+						Object[] range = (Object[])filterValue;
+						result.params.add(range[0]);
+						result.params.add(range[1]);
+					}
+					else
+					{
+						// string value
+						if (stringCompare == null)
+							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
+						sb.append(stringCompare);
+						result.params.add(filterValue);
+					}
+				}
+				sb.append(")");
+			}
+			result.clause = sb.toString();
+			return result;
+		}
+		
 		public WhereClause(String whereClause, List<V> params)
 		{
 			this.clause = whereClause;
@@ -1988,6 +2049,7 @@ public class SQLUtils
 			// we have to negate our conjunctive parameter because we have just nested our conditions
 			init(conn, list, caseSensitiveFields, !conjunctive);
 		}
+		
 		public WhereClause(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
 			init(conn, conditions, caseSensitiveFields, conjunctive);
@@ -2044,9 +2106,9 @@ public class SQLUtils
 		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
 		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
 		        }
-		        junctions.add(String.format("(%s)", StringUtils.join(innerJunction, juncList)));
+		        junctions.add(String.format("(%s)", Strings.join(innerJunction, juncList)));
 		    }
-	        return StringUtils.join(outerJunction, junctions);
+	        return Strings.join(outerJunction, junctions);
 		}
 		
 		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException

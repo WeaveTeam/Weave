@@ -23,7 +23,7 @@ import java.io.File;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import weave.utils.StringUtils;
+import weave.utils.Strings;
 
 /**
  * This class contains several parameters derived from the servlet context params in web.xml.
@@ -76,7 +76,7 @@ public class WeaveContextParams
 		rServePath = context.getInitParameter("RServePath");
 		
 		// if RServePath is not specified, keep it empty
-		if (!StringUtils.isEmpty(rServePath))
+		if (!Strings.isEmpty(rServePath))
 			rServePath = context.getRealPath(rServePath).replace('\\', '/');
 		
 		// make sure folders exist

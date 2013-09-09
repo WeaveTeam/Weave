@@ -27,9 +27,10 @@
 	<ui:IndentGroup id="indentGroup"/>
 	<ui:Indent group="{indentGroup}" label="{lang('SQL schema')}">
 		<ui:CustomComboBox id="schemaInput"
+						   width="100%"
 						   enabled="{schemaInput.dataProvider.length > 0}"
 						   prompt="{lang('Select a schema...')}"
-						   text="{activeSchema}"
+						   selectedItem="{activeSchema}"
 						   dataProvider="{schemas}"
 						   change="activeSchema = schemaInput.text;"/>
 		<mx:Button id="schemasRefreshButton"
@@ -38,9 +39,10 @@
 	</ui:Indent>
 	<ui:Indent id="tableControls" group="{indentGroup}" label="{lang('SQL table')}">
 		<ui:CustomComboBox id="_tableCombo"
+						   width="100%"
 						   enabled="{_tableCombo.dataProvider.length > 0}"
 						   prompt="{lang('Select a table...')}"
-						   text="{activeTable}"
+						   selectedItem="{activeTable}"
 						   dataProvider="{tables}"
 						   change="activeTable = _tableCombo.text;"
 						   toolTip="{lang('Tables shown in this dropdown menu are those that exist in the schema selected above.')}"/>
@@ -49,6 +51,7 @@
 				   enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}"
 				   click="getTables()"/>
 		<ui:TextInputWithPrompt id="_tableInput"
+								width="100%"
 								editable="true"
 								text="{activeTable}"
 								prompt="{lang('Enter a table name')}"
@@ -60,7 +63,7 @@
 					 includeInLayout="{tableOverwriteCheckVisible}"/>
 	</ui:Indent>
 	<mx:Metadata>
-		[Event(name="propertyChange", type="flash.events.Event")]
+		[Event(name="change", type="flash.events.Event")]
 		[Exclude(name="_tableCombo", kind="property")]
 		[Exclude(name="_tableInput", kind="property")]
 	</mx:Metadata>
@@ -70,7 +73,7 @@
 			
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
-			
+
 			// values returned by the server that depend on the active selected values
 			[Bindable] public var schemas:Array = [];
 			[Bindable] public var tables:Array = [];
@@ -98,6 +101,11 @@
 				}
 			}
 
+			private function handleChange():void
+			{
+				dispatchEvent(new Event(Event.CHANGE));
+			}
+
 			public function getSchemas():void
 			{
 				activeSchema = '';
@@ -106,19 +114,24 @@
 				addAsyncResponder(
 					Admin.service.getSQLSchemaNames(),
 					handler,
-					handler
+					handler,
+					schemas
 				);
 				
 				schemasRefreshButton.enabled = false;
-				function handler(event:Event, token:Object = null):void
+				function handler(event:Event, currentSchemas:Array):void
 				{
-					if (event is ResultEvent)
-						schemas = (event as ResultEvent).result as Array;
-					schemasRefreshButton.enabled = true;
+					// avoid handling results from old requests
+					if (schemas == currentSchemas)
+					{
+						if (event is ResultEvent)
+							schemas = (event as ResultEvent).result as Array;
+						schemasRefreshButton.enabled = true;
+					}
 				}
 			}
 			
-			[Bindable] public function get activeSchema():String
+			[Bindable(event="change")] public function get activeSchema():String
 			{
 				return _activeSchema;
 			}
@@ -128,6 +141,7 @@
 				{
 					_activeSchema = value;
 					getTables();
+					handleChange();
 				}
 			}
 			
@@ -144,21 +158,26 @@
 					addAsyncResponder(
 						Admin.service.getSQLTableNames(activeSchema),
 						handler,
-						handler
+						handler,
+						tables
 					);
 					
 					refreshingTables = true;
-					function handler(event:Event, token:Object = null):void
+					function handler(event:Event, currentTables:Array):void
 					{
-						if (event is ResultEvent)
-							tables = (event as ResultEvent).result as Array;
-						refreshingTables = false;
+						// avoid handling results from old requests
+						if (tables == currentTables)
+						{
+							if (event is ResultEvent)
+								tables = (event as ResultEvent).result as Array;
+							refreshingTables = false;
+						}
 					}
 				}
 				
 			}
 			
-			[Bindable] public function get activeTable():String
+			[Bindable(event="change")] public function get activeTable():String
 			{
 				return _activeTable;
 			}
@@ -168,6 +187,7 @@
 				{
 					_activeTable = value;
 					getColumns();
+					handleChange();
 				}
 			}
 			
@@ -182,13 +202,15 @@
 				{
 					addAsyncResponder(
 						Admin.service.getSQLColumnNames(activeSchema, activeTable),
-						handleGetColumns
+						handleGetColumns, null, columns
 					);
 				}
 				
-				function handleGetColumns(event:ResultEvent, token:Object = null):void
+				function handleGetColumns(event:ResultEvent, currentColumns:Array):void
 				{
-					columns = event.result as Array;
+					// avoid handling results from old requests
+					if (columns == currentColumns)
+						columns = event.result as Array;
 				}
 			}
 		]]>

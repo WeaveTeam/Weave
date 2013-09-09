@@ -64,21 +64,26 @@ A text editor to change the Session State on the fly.
 							<mx:HBox width="100%">
 								<mx:Label id="firstLine" fontFamily="_typewriter"/>
 								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy" click="copyToClipboard();"/>
+								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
+								<mx:Button label="Copy state" click="copyToClipboard();"/>
 							</mx:HBox>
-							<mx:TextArea id="textEditor" wordWrap="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
-										 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%"/>
+							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()"/>
 							<mx:Label id="lastLine" fontFamily="_typewriter"/>
 						</mx:VBox>
-						<mx:Canvas width="100%" height="100%">
+						<mx:VBox width="100%" height="100%">
+							<mx:HBox width="100%">
+								<mx:Spacer width="100%"/>
+								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
+							</mx:HBox>
 							<mx:DataGrid id="gridEditor" wordWrap="false" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
 										 horizontalScrollPolicy="auto" variableRowHeight="false" rowHeight="24"/> 
-						</mx:Canvas>
+						</mx:VBox>
 					</mx:ViewStack>
 					<mx:HBox width="100%">
 						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
 									 selected="true"/>
+						<mx:CheckBox id="useJSON" label="{lang('Edit as JSON')}" click="loadSessionStateInView()" selected="false"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
 					</mx:HBox>
@@ -98,7 +103,6 @@ A text editor to change the Session State on the fly.
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.INavigatorContent;
-			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
@@ -119,6 +123,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
+			import weave.compiler.Compiler;
 			import weave.core.DynamicState;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -460,15 +465,6 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
-			private function getItemLabel(item:Object):String
-			{
-				var node:XML = XML(item);
-				
-				if (node.@name.toString() != "")
-					return node.@name.toString();
-				else
-					return node.name().toString();
-			}
 			private function confirmDeleteSelectedItem(event:KeyboardEvent):void
 			{
 				if (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE)
@@ -571,7 +567,7 @@ A text editor to change the Session State on the fly.
 					}
 					else
 					{
-						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"SessionState");
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState, "SessionState", useJSON.selected);
 						textEditor.text = _currentSessionStateXML.children().toXMLString();
 						
 						var xmlCopy:XML = _currentSessionStateXML.copy();
@@ -598,6 +594,8 @@ A text editor to change the Session State on the fly.
 							tempValue = getSessionState(childObject);
 							if (tempValue === null || (tempValue as String) === '')
 								tempValue = ' ';
+							if (typeof tempValue == 'object')
+								continue;
 							var item:Object = {};
 							item[NAME_FIELD] = node.label;
 							item[VALUE_FIELD] = tempValue.toString();
@@ -744,6 +742,16 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			private function copyPathToClipboard():void
+			{
+				var path:Array = sessionNav.getSelectedPath().map(
+					function(item:*, i:*, a:*):*
+					{
+						return item ? Compiler.encodeString(item) : 'null';
+					}
+				);
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, "[" + path.join(", ") + "]");
+			}
 			private function copyToClipboard():void
 			{
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, textEditor.text);
@@ -791,7 +799,12 @@ A text editor to change the Session State on the fly.
 			{
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				if (event.stageX == 0 && event.stageY == 0)
+				{
 					openConsole();
+					Weave.properties.enableMenuBar.value = true;
+					Weave.properties.enableSessionMenu.value = true;
+					Weave.properties.showSessionHistoryControls.value = true;
+				}
 			}
 			private static function handleKeyDown():void
 			{

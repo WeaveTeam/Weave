@@ -105,7 +105,7 @@ package weave.visualization.plotters
 						// cleanup
 						for each (bounds in reusableBoundsObjects)
 							ObjectPool.returnObject(bounds);
-						reusableBoundsObjects.length = 0;
+						reusableBoundsObjects.length = 0; // important so we don't return the same bounds later
 					}
 					
 					if (task.iteration < task.recordKeys.length)
@@ -187,6 +187,7 @@ package weave.visualization.plotters
 					// cleanup
 					for each (bounds in reusableBoundsObjects)
 						ObjectPool.returnObject(bounds);
+					reusableBoundsObjects.length = 0; // important so we don't return the same bounds later
 					
 					return 1; // avoids divide-by-zero when there are no record keys
 				}; // end task function

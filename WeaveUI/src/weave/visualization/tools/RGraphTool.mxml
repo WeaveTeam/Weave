@@ -1,0 +1,348 @@
+<SimpleVisTool xmlns="weave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="weave.ui.*" 
+		 xmlns:userControls="weave.ui.userControls.*"
+		 layout="vertical">
+		<mx:VBox>
+
+		<mx:Button id="reinitButton" label="Launch External Tool" click="reloadCytoscape()"/>
+		<mx:Button id="raiseButton" label="Focus External Tool" enabled="{_cytoscapeReady}" click="raiseCytoscape()"/>
+
+		</mx:VBox>
+		
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
+			import weave.api.graphs.IGraphAlgorithm;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.api.primitives.IBounds2D;
+			import weave.api.registerLinkableChild;
+			import weave.api.registerDisposableChild;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
+			import weave.core.LinkableNumber;
+			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.KeySet;
+			import weave.primitives.Bounds2D;
+			import mx.controls.Alert;
+			import flash.external.ExternalInterface;
+			import flash.utils.Dictionary;
+			import flash.utils.Timer;
+			import flash.events.TimerEvent; 
+
+			public const colorColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleNodeColumnChange);
+			public const nodesColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleNodeColumnChange);
+			public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleEdgeColumnChange);
+			public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleEdgeColumnChange);
+			public const labelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), handleNodeColumnChange);
+			public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+			public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn());
+			public const layoutSeed:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleGraphLayoutChange);
+			public const layoutType:LinkableString = registerLinkableChild(this, new LinkableString("ForceDirected"), handleGraphLayoutChange);
+
+			//private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var _probe:KeySet = Weave.defaultProbeKeySet;				
+
+			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("R Graph Tool"));
+			private var _toolName:String;
+			private var _primitive_edges:Object;
+			private var _primitive_nodes:Object;
+			private var _primitive_network:Object;
+			private var _primitive_layout:Object;
+			private var _pendingChanges:Array;
+
+			private var deferredFuncs:Dictionary = new Dictionary();
+
+			[Bindable] public var _cytoscapeBlocked:Boolean = false;
+			[Bindable] public var _cytoscapeReady:Boolean = false;
+
+			public function cytoscapeReady():void
+			{
+				_cytoscapeReady = true;
+				_cytoscapeBlocked = false;
+
+				// Process all our deferred functions.
+				for (var key:Object in deferredFuncs)
+				{
+					var func:Function = key as Function;
+					if (func != null)
+						func();
+				}
+
+				deferredFuncs = new Dictionary(); // Clear the deferred functions.
+			}
+
+			private function raiseCytoscape():void
+			{
+				ExternalInterface.call(
+				"function (weaveID, toolname) {\
+					var weave = weaveID ? document.getElementById(weaveID) : document;\
+					weave.cytoscape[toolname].focus();\
+					}", 
+						ExternalInterface.objectID, _toolName);
+			}
+			private function launchTimeout(event:TimerEvent):void
+			{
+				if (!_cytoscapeReady)
+				{
+					_cytoscapeBlocked = true;
+					Alert.show(lang("This external tool failed to load. Try disabling your popup blocker for this site to prevent this from happening in the future."), _toolName + " " + lang("Error"), Alert.OK);
+				}
+			}
+			private function reloadCytoscape():void
+			{
+				launchCytoscape();
+				handleGraphLayoutChange();
+				handleNodeColumnChange();
+				handleEdgeColumnChange();
+			}
+			private function launchCytoscape():void
+			{
+				var windowFeatures:String = "menubar=no,status=no,toolbar=no";
+				ExternalInterface.call(
+				"function (weaveID, toolname, url, name, features) {\
+				 var weave = weaveID ? document.getElementById(weaveID) : document;\
+				 if (weave.cytoscape == undefined) weave.cytoscape = {};\
+				 weave.cytoscape[toolname] = window.open(url, toolname, features);\
+				}", 
+					ExternalInterface.objectID, _toolName, "CytoscapeWebPopout.html", _toolName, windowFeatures);
+
+				var launchTimer:Timer = new Timer(5000, 1);
+				launchTimer.addEventListener(TimerEvent.TIMER, launchTimeout);
+				launchTimer.start();
+			}
+			private function sendNetworkToCytoscape():void
+			{
+				ExternalInterface.call(
+					"function (weaveID, toolname, network, layout) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].draw(network, layout);\
+						}",
+						ExternalInterface.objectID, _toolName, _primitive_network, _primitive_layout);
+			}
+			private function keySetToNodesAndEdges(keys:IKeySet):Object
+			{
+				var set_edges:Array = [];
+				var set_nodes:Array = [];
+				var key_idx:int;
+				var key_len:int;
+				var node_keytype:String = nodesColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				var edge_keytype:String = edgeSourceColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				if (node_keytype == null || edge_keytype == null || keys == null)
+					return {nodes: [], edges: []};
+				key_len = keys.keys.length;
+				for (key_idx = 0; key_idx < key_len; key_idx++)
+				{
+					var key:IQualifiedKey = keys.keys[key_idx];
+					if (key.keyType == node_keytype)
+						set_nodes.push(key.localName);
+					else if (key.keyType == edge_keytype)
+						set_edges.push(key.localName);
+					else
+						continue;
+				}
+				return {nodes: set_nodes, edges: set_edges};
+			}
+			private function updateProbeChange():void
+			{
+				var idx:int;
+				var len:int;
+				var result:Object = keySetToNodesAndEdges(_probe);
+				var bypass:Object = {nodes: {}, edges: {}};
+
+				var nodes:Array = result.nodes;
+				len = nodes.length;
+				for (idx = 0; idx < len; idx++)
+				{
+					bypass.nodes[nodes[idx]] = {color: "#d9dafe", size: 48}; // TODO, set appropriately from Weave style
+				}
+
+				var edges:Array = result.edges;
+				len = edges.length;
+				for (idx = 0; idx < len; idx++)
+				{
+					bypass.edges[edges[idx]] = {color: "#d9dafe", width: 10};
+				}
+				ExternalInterface.call(
+					"function (weaveID, toolname, bypass) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].vis.visualStyleBypass(bypass);\
+						}",
+						ExternalInterface.objectID, _toolName, bypass);
+			}
+			private function updateSelectionChange():void
+			{
+				var result:Object = keySetToNodesAndEdges(_selection);
+				ExternalInterface.call(
+					"function (weaveID, toolname, elements) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						console.log(elements);\
+						weave.cytoscape[toolname].select(elements);\
+						}",
+						ExternalInterface.objectID, _toolName, result);
+			}
+
+			private function buildPrimitiveNodes():void
+			{
+				var nodesKeys:Array = nodesColumn.keys;
+				var numNodes:int = nodesKeys.length;
+				var key_idx:int;
+				var key:IQualifiedKey;
+				var id:String;
+				var label:String;
+				var node:Object;
+				var nodes:Array = [];
+				for (key_idx = 0; key_idx < numNodes; key_idx++)
+				{
+					node = {};
+					key = nodesKeys[key_idx];
+					node.id = nodesColumn.getValueFromKey(key, String);
+					node.label = labelColumn.getValueFromKey(key, String);
+					node.keyType = key.keyType;
+					node.localName = key.localName;
+					nodes.push(node);
+				}
+				
+				_primitive_nodes = nodes;
+			}
+
+			private function buildPrimitiveEdges():void
+			{
+				var edgeKeys:Array = edgeSourceColumn.keys;
+				var numEdges:int = edgeKeys.length;
+				var key_idx:int;
+				var key:IQualifiedKey;
+				var id:String;
+				var label:String;
+				var edge:Object;
+				var edges:Array = [];
+				for (key_idx = 0; key_idx < numEdges; key_idx++)
+				{
+					edge = {};
+					key = edgeKeys[key_idx];
+					edge.id = key.localName;
+					edge.source = edgeSourceColumn.getValueFromKey(key, String);
+					edge.target = edgeTargetColumn.getValueFromKey(key, String);
+					edge.keyType = key.keyType;
+					edge.localName = key.localName;
+					edges.push(edge);
+				}
+				
+				_primitive_edges = edges;
+			}
+
+			public function buildPrimitiveNetwork():void
+			{
+				var network:Object = {data: {nodes: [], edges: []}};
+				network.dataSchema = {
+					nodes: [{name: "label", type: "string"}, {name: "keyType", type: "string"}, {name: "localName", type: "string"}],
+					edges: [{name: "label", type: "string"}, {name: "keyType", type: "string"}, {name: "localName", type: "string"}]
+				};
+				network.data.nodes = _primitive_nodes;
+				network.data.edges = _primitive_edges;
+				_primitive_network = network;
+			}
+
+			private function handleGraphLayoutChange():void
+			{
+				if (!_cytoscapeReady) 
+				{
+					deferredFuncs[handleGraphLayoutChange] = true;
+					return;
+				}
+				_primitive_layout = {name: layoutType.value, options: {seed: layoutSeed.value}};
+				ExternalInterface.call(
+					"function (weaveID, toolname, layout) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.cytoscape[toolname].vis.layout(layout);\
+						}",
+						ExternalInterface.objectID, _toolName, _primitive_layout);
+
+			}
+			private function handleNodeColumnChange():void
+			{
+				if (!_cytoscapeReady)
+				{
+					deferredFuncs[handleNodeColumnChange] = true;
+					return;
+				}
+				/* We have no real way of validating that a given nodelist corresponds to a given edgelist, so we just assume this is right. */
+				buildPrimitiveNodes();
+				buildPrimitiveNetwork();
+				sendNetworkToCytoscape();
+			}
+			private function handleEdgeColumnChange():void
+			{
+				if (!_cytoscapeReady) 
+				{
+					deferredFuncs[handleEdgeColumnChange] = true;
+					return;
+				}
+				/* If edgesource and edgetarget don't share a common keytype, don't bother rebuilding the edges; the result will be garbage. */
+				var srcKeyType:String = edgeSourceColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				var targetKeyType:String = edgeTargetColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				if (srcKeyType != targetKeyType) return;
+				buildPrimitiveEdges();
+				buildPrimitiveNetwork();
+				sendNetworkToCytoscape();
+			}
+
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+//				colorComponent.dynamicObject = colorColumn;
+				nodeComponent.dynamicObject = nodesColumn;
+				labelComponent.dynamicObject = labelColumn;
+				edgeSourceComponent.dynamicObject = edgeSourceColumn;
+				edgeTargetComponent.dynamicObject = edgeTargetColumn;
+//				nodeRadiusComponent.dynamicObject = nodeRadiusColumn;
+
+				
+				_probe.addImmediateCallback(this, updateProbeChange);
+				_selection.addImmediateCallback(this, updateSelectionChange);
+				_toolName = WeaveAPI.globalHashMap.getName(this);
+
+//				launchCytoscape();
+			}
+			/*
+			override public function getSelectableAttributeNames():Array
+			{
+				return [lang("Color"), lang("Node IDs"), lang("Label"), lang("Edge Source IDs"), lang("Edge Target IDs"), lang("Edge Color Column")];
+			}
+			*/
+
+		]]>
+	</mx:Script>
+		<ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
+			<!-- <ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Node Color')}"/>  -->
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
+			<!-- <ui:DynamicColumnComponent visTool="{this}" id="nodeRadiusComponent" label="{lang('Node Size')}"/> -->
+			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="{lang('Labels')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
+		</mx:VBox>
+		<!-- <mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<mx:HBox>
+				<mx:Label text="{lang('Radius Size')}"
+						  toolTip="{lang('Use this option to control the default size of the each node in the graph.')}"/>
+				<mx:NumericStepper id="numRadiusSize" minimum="1"/>
+			</mx:HBox>
+
+			 <mx:CheckBox id="undirectedCheckBox" label="{lang('Undirected edges.')}" 
+				toolTip="{lang('Use this option if you want your graph data to be assumed as undirected.')}"/> 
+		</mx:VBox>	-->
+	</ui:ControlPanel>
+</SimpleVisTool>

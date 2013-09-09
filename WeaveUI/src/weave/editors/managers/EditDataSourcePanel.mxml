@@ -30,9 +30,8 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	roundedBottomCorners="true"
-	height="564"
 	escapeKeyClosesPanel="true"
-	creationComplete="handleCreationComplete()" width="184" xmlns:ui="weave.ui.*">
+	creationComplete="handleCreationComplete()" xmlns:ui="weave.ui.*">
 	<mx:HBox height="100%" width="100%" horizontalGap="0">
 		<mx:List id="sourceList" change="handleSourceSelect()" borderThickness="0"
 				 dataProvider="{sources}" labelFunction="getLabel"

@@ -32,6 +32,14 @@ import java.util.List;
  */
 public class ListUtils
 {
+	public static <T> T[] getItems(T[] items, int[] indices)
+	{
+		T[] result = Arrays.copyOf(items, indices.length);
+		for (int i = 0; i < indices.length; i++)
+			result[i] = items[indices[i]];
+		return result;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static <T> List<T> copyArrayToList(Object[] input, List<T> output)
 	{

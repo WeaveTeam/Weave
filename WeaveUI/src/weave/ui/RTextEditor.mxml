@@ -48,6 +48,7 @@ RTextEditor
 	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:VBox width="20%" height="100%" verticalGap="0">
 			<mx:Label text="{lang('(1) Select data to use in your script')}"/>
+			<mx:CheckBox id="allowMissingCheckBox" label="{lang('Allow missing values.')}" selected="false"/>
 			<ColumnListComponent id="inputColumnList" label="{lang('Input columns')}" hashMap="{variables}" width="100%" height="100%"   />			
 		</mx:VBox>
 		<mx:VBox width="55%" height="100%" verticalGap="0">
@@ -180,7 +181,7 @@ RTextEditor
 				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
 				//make dataype Null, so that columns will be sent as exact dataype to R
 				//if mentioned as String or NUmber ,will convert all columns to String or Number .
-				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
+				var result:Array = ColumnUtils.joinColumns(columns,null, allowMissingCheckBox.selected, keys);
 				return [result.shift(), result];
 			}
 			
