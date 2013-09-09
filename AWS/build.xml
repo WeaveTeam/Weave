@@ -86,7 +86,10 @@
 	
 	<target name="dist" >
 		<echo message="Dist-Build ${ant.project.name} ... ${dist-dir}"/>
-		
+		<tstamp>
+		    <format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+		</tstamp>
+		<echo message="${current.time}" />
 		<mkdir dir="${dist-dir}"/>
 		<delete quiet="false" includeemptydirs="true">
 			<fileset dir="${dist-dir}" />
@@ -95,7 +98,6 @@
 			<fileset dir="${build-dir}"/>
 		</copy>
 	 </target>
-	 
 
 	<macrodef name="compile-soy">
 		<attribute name="file"/>

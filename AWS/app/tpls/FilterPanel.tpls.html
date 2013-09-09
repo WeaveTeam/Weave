@@ -3,8 +3,11 @@
 	<span>{{panelTitle}}</span>
 </div>
 <div class="portlet-content">
-
-	<div ui-slider="sliderOptions" ng-model="slideFilter"></div>
+	<select ui-select2 ng-model="column">
+		<option></option>
+		<option ng-repeat="opt in options" value="{{opt}}" >{{opt}}</option>
+	</select>
+	<div ui-slider="sliderOptions" ng-model="slideFilter.values"></div>
 	 {{slideFilter}}<br>
 	
 

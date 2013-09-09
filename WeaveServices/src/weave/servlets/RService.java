@@ -326,7 +326,7 @@ public class RService extends GenericServlet
 			 String[] requestObjectInputNames = {"cannedScriptPath", "query", "col1", "col2", "col3", "col4", "col5"};
 			
 			 String finalScript = "";
-			 String dsn = connectionObject.get("dsn").toString();
+			 String dsn = connectionObject.get("dsn").toString(); //DSN is Data Source Name
 			if(connectionType.equalsIgnoreCase("RMySQL"))
 			{
 				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +

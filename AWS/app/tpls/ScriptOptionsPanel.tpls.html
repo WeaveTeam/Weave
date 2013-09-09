@@ -3,7 +3,7 @@
 	<span>{{panelTitle}}</span>
 </div>
 <div class="portlet-content">
-	<div ng-repeat="input in metadata.inputs">
+	<div ng-repeat="input in inputs">
 	Select column for {{input.param}}:<select ui-select2 ng-model="$parent.selection[$index]">
 		<option></option>
 		<option ng-repeat="opt in options" value="{{opt}}" >{{opt}}</option>

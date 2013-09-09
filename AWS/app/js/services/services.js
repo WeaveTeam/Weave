@@ -17,6 +17,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.dataTable = 1;
 	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
+			connectionType: 'RMySQL',
 			serverType : 'MySQL',
 			sqlip : 'localhost',
 			sqlport : '3306',
@@ -50,13 +51,28 @@ angular.module("aws.services", []).service("queryobj", function() {
 		this.scriptSelected = jsonObj.scriptSelected;
 		this.maptool = jsonObj.maptool;
 	};
-	//var slideFilterI = {values: [10,25]};
 	return {
 		//getSlideFilter: this.slideFilterI,
 		//setSlideFilter: function(dat){ this.slideFilterI = dat; return this.slideFilterI;},
-		q: this,
+		//q: this,
+		title: this.title,
+		date: this.date,
+		author: this.author,
 		dataTable: function(){return this.dataTable;},
-		conn: this.conn
+		conn: this.conn,
+		slideFilter: this.slideFilter,
+		getSelectedColumns: function(){
+			//TODO hackity hack hack
+			var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
+			var columns = [];
+			for(var i = 0; i<col.length; i++){
+				if(this[col[i]]){
+					$.merge(columns, this[col[i]]);
+				}
+			}
+			return columns;
+		}
+		
 	}
 	
 		
@@ -67,7 +83,10 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 	                       "outputs":[]
 	};
 	
-	this.availableScripts = [];
+	//this.availableScripts = [];
+	this.updateMetadata = function(){
+		this.scriptMetadata = this.getScriptMetadata();
+	}
 	
 	this.getScriptsFromServer = function(){
 		var deferred = $q.defer();
@@ -81,30 +100,31 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 		};
 	
 		aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, callbk );
-		prom.then(function(result){
-			//this.availableScripts = result;
-			return result;
-		});
+//		prom.then(function(result){
+//			//this.availableScripts = result;
+//			return result;
+//		}); 
 		return prom;
 	};
 	this.availableScripts = this.getScriptsFromServer();
 	
 	var that = this;
 	this.getScriptMetadata = function(){
-		var deferred = $q.defer();
-		var promise = deferred.promise;
+		var deferred2 = $q.defer();
+		var promise = deferred2.promise;
 		
 		var callback = function(result){
 			scope.$safeApply(function(){
 				console.log(result);
-				deferred.resolve(result);
+				deferred2.resolve(result);
 			});
 		};
 		
 		aws.RClient.getScriptMetadata(queryobj.conn.scriptLocation, queryobj.scriptSelected, callback);
-		promise.then(function(result){
-			return result;
-		});
+// 		promise.then(function(result){
+// 			//return result;
+// 		});
+		//scope.$apply(); // testing if kicking off a digest cycle will update the UI properly. 
 		return promise;
 	};
 	this.scriptMetadata = this.getScriptMetadata();  
