@@ -78,6 +78,7 @@ public abstract class BulkSQLLoader
 		public static int DEFAULT_BUFFER_SIZE = 100;
 		private String baseQuery;
 		private String rowQuery;
+		private String rowSeparator;
 		private PreparedStatement stmt;
 		private boolean prevAutoCommit;
 		private Vector<Object[]> rowBuffer = null;
@@ -99,9 +100,35 @@ public abstract class BulkSQLLoader
 				for (int i = 0; i < fieldNames.length; i++)
 					columns[i] = SQLUtils.quoteSymbol(conn, fieldNames[i]);
 			    
-				baseQuery = String.format("INSERT INTO %s(%s) VALUES ", quotedTable, StringUtils.join(",", columns));
-			    
-			    rowQuery = "(" + StringUtils.mult(",", "?", fieldNames.length) + ")";
+				String baseFormat = "INSERT INTO %s(%s) ";
+				String paramsStr = Strings.mult(",", "?", fieldNames.length);
+				if (SQLUtils.isOracleServer(conn))
+				{
+					// workaround for error ORA-00933: SQL command not properly ended
+					// query solutions:
+					/*
+					insert into t (col1,col2,col3)
+						select ?,?,? from dual
+						union all
+						select ?,?,? from dual
+										
+					INSERT ALL
+						INTO t (col1, col2, col3) VALUES (?,?,?)
+						INTO t (col1, col2, col3) VALUES (?,?,?)
+						INTO t (col1, col2, col3) VALUES (?,?,?)
+					SELECT 1 FROM DUAL;
+					 */
+					rowQuery = "SELECT " + paramsStr + " FROM DUAL";
+					rowSeparator = " UNION ALL ";
+				}
+				else
+				{
+					baseFormat += "VALUES ";
+					rowQuery = "(" + paramsStr + ")";
+					rowSeparator = ",";
+				}
+				
+				baseQuery = String.format(baseFormat, quotedTable, Strings.join(",", columns));
 			    
 			    rowBuffer = new Vector<Object[]>(setQueryRowCount(DEFAULT_BUFFER_SIZE));
 			}
@@ -127,7 +154,7 @@ public abstract class BulkSQLLoader
 					
 					try
 					{
-						String query = baseQuery + StringUtils.mult(",", rowQuery, rowCount);
+						String query = baseQuery + Strings.mult(rowSeparator, rowQuery, rowCount);
 						stmt = conn.prepareStatement(query);
 						_queryRowCount = rowCount;
 						break; // success

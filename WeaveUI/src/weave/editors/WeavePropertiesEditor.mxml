@@ -32,7 +32,7 @@
 	<WeavePropertiesMenuEditor label="{lang('Menus')}"/>
 	
 	<mx:VBox label="Interactivity">
-		<mx:CheckBox label="{lang('Enable probing')}"
+		<mx:CheckBox label="{lang('Enable mouseover')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')"/>
 		<mx:CheckBox label="{lang('Enable selection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolSelection, event.target, 'selected');"/>
@@ -42,14 +42,14 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableAxisToolTips, event.target, 'selected');"/>
 	</mx:VBox>
 	
-	<WeavePropertiesProbingEditor label="{lang('Probing')}"/>
+	<WeavePropertiesProbingEditor label="{lang('Mouseover')}"/>
 	
 	<WeavePropertiesSelectionEditor label="{lang('Selection')}"/>
 	
 	<mx:VBox label="{lang('Advanced')}" width="100%" height="100%">
 		<ui:Indent label="{lang('Streaming geometry bounding box request mode')}">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
-			<ui:HelpComponent>This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.</ui:HelpComponent>
+			<ui:HelpComponent>This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and mouseover on the map will not catch the shapes that are too small to be seen.</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent label="{lang('Do not render geometry detail with pixel area less than')}">
 			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>

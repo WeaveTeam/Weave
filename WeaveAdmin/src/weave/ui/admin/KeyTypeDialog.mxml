@@ -40,7 +40,8 @@
 							   editable="true"
 							   text="{_defaultKeyType}"
 							   dataProvider="{Admin.instance.keyTypes}"
-							   valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"
+							   change="handleChange()"
+							   valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true; handleChange()"
 							   toolTip="{lang('Choose a key type that describes the identifiers in the key column.')}"/>
 			<mx:Button id="keyTypeRefresh"
 					   label="Refresh"
@@ -48,14 +49,13 @@
 					   toolTip="{lang('This button updates the list of key types - use it if you think the list of key types may have changed since you first opened the admin console.')}"/>
 		</ui:Indent>
 	</mx:VBox>
-	
+	<mx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import mx.rpc.AsyncToken;
-			
 			import weave.core.UIUtils;
 			import weave.services.Admin;
-			import weave.services.addAsyncResponder;
 			
 			[Bindable] public var paddingIndent:int = 20;
 			[Bindable] private var _indent:Number = NaN;
@@ -83,6 +83,11 @@
 			
 			private var keyTypeIsSet:Boolean = false;
 			[Bindable] private var refreshingKeyTypes:Boolean = false;
+			
+			private function handleChange():void
+			{
+				dispatchEvent(new Event(Event.CHANGE));
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

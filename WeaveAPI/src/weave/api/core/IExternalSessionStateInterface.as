@@ -120,32 +120,32 @@ package weave.api.core
 		 * Note that any code written for this function depends on the implementation of the ActionScript
 		 * code inside Weave, which is subject to change. 
 		 *  
-		 * @param scopeObjectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression, which will be used as the <code>this</code> pointer when evaluating the expression.
+		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression, which will be used as the <code>this</code> pointer when evaluating the expression.
 		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
 		 * @param staticLibraries An array of fully qualified class names which contain static methods to include for future expressions, including this one.
-		 * @param assignExpressionName An optional name to associate with this expression.  If specified, the expression will not be immediately evaluated.
-		 * @return The value of the evaluated expression, or undefined if assignExpressionName was specified.
+		 * @param assignVariableName An optional variable name to associate with the result of evaluating this expression.
+		 * @return The value of the evaluated expression, or undefined if assignVariableName was specified.
 		 * @see weave.compiler.Compiler
 		 */
-		function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, libraries:Array = null, assignExpressionName:String = null):*;
+		function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, libraries:Array = null, assignVariableName:String = null):*;
 		
 		/**
 		 * This function will add a grouped callback to an ILinkableObject.
-		 * @param objectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
+		 * @param objectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 * @return true if objectPath refers to an existing object in the session state.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
-		function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
+		function addCallback(scopeObjectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.
-		 * @param objectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
+		 * @param scopeObjectPathOrVariableName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression result.
 		 * @param callback The function to remove from the list of callbacks, which must be specified as a String.
 		 * @return true if objectPath refers to an existing object in the session state.
 		 */
-		function removeCallback(objectPathOrExpressionName:Object, callback:String):Boolean;
+		function removeCallback(scopeObjectPathOrVariableName:Object, callback:String):Boolean;
 	}
 }

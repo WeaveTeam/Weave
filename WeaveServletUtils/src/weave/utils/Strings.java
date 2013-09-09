@@ -26,7 +26,7 @@ import java.util.Collection;
  * @author pkovac
  * @author adufilie
  */
-public class StringUtils
+public class Strings
 {
 	public static boolean equal(String a, String b)
 	{

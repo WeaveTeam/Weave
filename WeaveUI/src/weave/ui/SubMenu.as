@@ -67,7 +67,7 @@ package weave.ui
 			}
 			for each (type in closeMenuEventTypes)
 			{
-				if (openMenuEventTypes && !openMenuEventTypes.indexOf(type) >= 0)
+				if (openMenuEventTypes && openMenuEventTypes.indexOf(type) < 0)
 					_uiParent.addEventListener(type, closeSubMenu);
 			}
 			

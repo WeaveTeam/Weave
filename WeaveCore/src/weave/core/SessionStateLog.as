@@ -461,8 +461,8 @@ package weave.core
 				"currentState": _prevState,
 				"undoHistory": _undoHistory.concat(),
 				"redoHistory": _redoHistory.concat(),
-				"nextId": _nextId,
-				"enableLogging": enableLogging.value
+				"nextId": _nextId
+				// not including enableLogging
 			};
 			
 			cc.resumeCallbacks();
@@ -486,11 +486,12 @@ package weave.core
 				{
 					case 0:
 					{
+						// note: some states from version 0 may include enableLogging, but here we ignore it
+						
 						_prevState = state.currentState;
 						_undoHistory = LogEntry.convertGenericObjectsToLogEntries(state.undoHistory, _syncDelay);
 						_redoHistory = LogEntry.convertGenericObjectsToLogEntries(state.redoHistory, _syncDelay);
 						_nextId = state.nextId;
-						enableLogging.value = state.enableLogging;
 						
 						break;
 					}

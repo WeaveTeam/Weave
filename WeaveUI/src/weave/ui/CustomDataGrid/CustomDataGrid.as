@@ -114,11 +114,11 @@ package weave.ui.CustomDataGrid
 		
 		
 		public function invalidateFilters():void
-		{	
+		{
 			_filtersInValid = true;	
 			invalidateDisplayList();
 		}
-		private var _filtersInValid:Boolean = false;
+		private var _filtersInValid:Boolean = true;
 		
 		private var selectedKeySet:KeySet = Weave.defaultSelectionKeySet;
 		
@@ -130,17 +130,21 @@ package weave.ui.CustomDataGrid
 				_filtersInValid = false;	
 				if(_filtersEnabled){
 					filteredKeys = [];
+					filterContainsAllKeys = true;
 					columnFilterFunctions = getAllFilterFunctions();
 					collection.filterFunction = callAllFilterFunctions;
 					//refresh call the respective function(**callAllFilterFunctions**) through internalrefresh in listCollectionView 
-					collection.refresh();				
-					selectedKeySet.replaceKeys(filteredKeys);
+					collection.refresh();
+					if (filterContainsAllKeys)
+						selectedKeySet.clearKeys();
+					else
+						selectedKeySet.replaceKeys(filteredKeys);
 					filteredKeys = null;
 				}				
 				else{					
 					collection.filterFunction = filterKeys;
 					collection.refresh();
-					selectedKeySet.replaceKeys([]);
+					selectedKeySet.clearKeys();
 				}
 			}			
 		}
@@ -152,6 +156,7 @@ package weave.ui.CustomDataGrid
 		// contains keys filtered by filterfunctions in each WeaveCustomDataGridColumn
 		private var filteredKeys:Array;		
 		private var columnFilterFunctions:Array;
+		private var filterContainsAllKeys:Boolean;
 		
 		/**
 		 * This function is a logical AND of each WeaveCustomDataGridColumn filter function
@@ -162,7 +167,7 @@ package weave.ui.CustomDataGrid
 		{
 			for each (var cff:Function in columnFilterFunctions)
 				if (!cff(key))
-					return false;
+					return filterContainsAllKeys = false;
 			if (filteredKeys)
 				filteredKeys.push(key);
 			return true;
