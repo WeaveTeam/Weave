@@ -557,7 +557,7 @@ public class DataService extends GenericServlet
 
 		String query = String.format(
 				"SELECT %s FROM %s %s",
-				StringUtils.join(",", quotedFields),
+				Strings.join(",", quotedFields),
 				SQLUtils.quoteSchemaTable(conn, schema, table),
 				where.clause
 			);
