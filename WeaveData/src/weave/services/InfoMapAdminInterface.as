@@ -204,6 +204,13 @@ package weave.services
 				return query;
 			}
 			
+			// ToDo yenfu google
+			public function getGoogleSearchResult(requiredKeywords:String):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("getGoogleSearchResult", [requiredKeywords]);
+				return query;
+			}
+			
 			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,
 													  operator:String,sources:String,sortBy:String,numOfTopics:int=5,numOfKeywords:int=5):AsyncToken
 			{

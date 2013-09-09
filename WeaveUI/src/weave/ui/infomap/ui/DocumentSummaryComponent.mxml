@@ -84,7 +84,8 @@ Use the static functions to show this as a popup.
 					
 					_bitmap = null;
 					
-					var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+					var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource; // ToDo yenfu
+//					var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
 					
 					var imgURL:String = source.getImageURLForURL(_docURL.value);
 					

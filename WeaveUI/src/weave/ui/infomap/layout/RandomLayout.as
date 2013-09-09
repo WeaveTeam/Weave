@@ -81,7 +81,8 @@ package weave.ui.infomap.layout
 		
 		public var numOfPoints:Number = 10;
 		
-		private var source:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+		private var source:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource; // ToDo yenfu
+//		private var source:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject("InfoMaps Data Source") as InfoMapsDataSource;
 		
 		public function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void
 		{

@@ -33,7 +33,7 @@
 		 label="{lang('Legend settings')}" width="100%">
 
 		<mx:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
-	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
+	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label functionss:')}" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
 	
 	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
 	<Indent id="columnsBox" label="{lang('Number of columns')}">

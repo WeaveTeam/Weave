@@ -42,7 +42,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Style>
 	<mx:Script>
 		<![CDATA[
+			import weave.ui.infomap.layout.GoogleSearchNodeHandler;
 			import com.as3xls.cdf.Directory;
+			
+			import spark.components.mediaClasses.VolumeBar;
+			
 			import com.cartogrammar.drawing.DashedLine;
 			
 			import mx.binding.utils.BindingUtils;
@@ -142,7 +146,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * */
 			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
-			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true);
+			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true); // ToDo yenfu
+//			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject("InfoMaps Data Source", InfoMapsDataSource, true);
 			
 			public const defaultNodeBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(13421772),null,true);
 			
@@ -828,7 +833,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						if(currentNodes[i] is LinkToInfoMapComponent)
 							continue;
-						var node:NodeHandler = currentNodes[i];
+//						var node:NodeHandler = currentNodes[i]; // ToDo yenfu original
+						var node:NodeHandler = null;
+						if (currentNodes[i] is NodeHandler) node = currentNodes[i]; // ToDo yenfu
 						var currentDocs:Array = node.thumbnails.getObjects();
 						
 						
@@ -933,6 +940,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handlePanelResize():void
 			{
 				map.validateNow();
+			}
+			
+			// ToDo yenfu ==> using javascript table as an exteranl package to search and display result
+			private function addGoogleSearchNode(query:String=null):void
+			{
+				var className:String = getQualifiedClassName(GoogleSearchNodeHandler).split("::")[1];
+				var googleSearchNodeName:String = nodes.generateUniqueName(className);
+				
+				var googleSearchNodeHandler:GoogleSearchNodeHandler = new GoogleSearchNodeHandler();
+				this.addChild(googleSearchNodeHandler);
+//				var googleSearchNodeHandler:GoogleSearchNodeHandler = nodes.requestObject(googleSearchNodeName, GoogleSearchNodeHandler, false);
+				
+//				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+//				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+//				
+//				if(globalSortByOption.value)
+//					nodeHandler.previousQuery.sortBy.value =globalSortByOption.value;
+//				if(globalFilterByOption.value)
+//					nodeHandler.previousQuery.sources.value = globalFilterByOption.value;
+				
+				if(query)
+				{
+					googleSearchNodeHandler.applyKeywords(query);
+				}
 			}
 			
 			private function addInfoMapLink(mapName:String=null):void
@@ -1312,7 +1343,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				</mx:HBox>
 				
 			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="0"/>
-		
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
 		<mx:VBox label="Basic Settings">

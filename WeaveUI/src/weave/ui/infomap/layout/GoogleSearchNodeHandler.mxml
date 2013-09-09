@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:ui="weave.ui.infomap.ui.*"
+		   autoLayout="false" cacheAsBitmap="false" clipContent="false" creationPolicy="all"
+		   horizontalScrollPolicy="off" implements="weave.api.core.ILinkableObject"
+		   verticalScrollPolicy="off">
+	<!--Show this status box only when list is visible-->
+	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}"
+			  width="300"/>
+	<!--<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
+		<mx:Label id="filterStatus"/>
+		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
+	</mx:HBox>-->
+	<!--<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>-->
+	<!--<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>-->
+	<mx:Glow id="selectedBorder" alphaFrom="1.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
+			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
+	<mx:Glow id="unselectedBorder" alphaFrom="0.0" alphaTo="1.0" blurXFrom="10.0" blurXTo="10.0"
+			 blurYFrom="10.0" blurYTo="10.0" duration="0" target="{nodeBase}"/>
+	<!-- ToDo yenfu mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="750"
+			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/>
+	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="750"
+			 effectEnd="handleEffectsEnd(event)" effectStart="handleEffectsStart(event)"/-->
+	<mx:Sequence id="newDocumentHighlight" target="{nodeBase.keywordTextArea}">
+		<mx:Fade id="newDocumentFadeOut" alphaFrom="1.0" alphaTo="0.0" duration="1000"/>
+		<mx:Fade id="newDocumentFadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1000"/>
+	</mx:Sequence>
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.ui.infomap.ui.NodeBaseComponent;
+			
+			// ToDo yenfu Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);;
+			public var googleSearchCSVDataSource:CSVDataSource = Weave.root.requestObject("googleSearchDataSource",CSVDataSource,false);;
+			
+			[Bindable]
+			public var nodeBase:NodeBaseComponent = new NodeBaseComponent();
+			override protected function createChildren():void
+			{
+				
+				super.createChildren();
+				this.addChild(nodeBase);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN, keywordTextAreaKeyDownHandler);
+			}
+			
+			private function keywordTextAreaKeyDownHandler(event:KeyboardEvent):void {
+
+				if(event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.ESCAPE)
+				{
+					if (event.cancelable) event.preventDefault();
+					
+					nodeBase.keywordTextArea.editable = false;
+					nodeBase.keywordTextArea.selectable = false;
+					
+					if(event.keyCode == Keyboard.ENTER) {
+//						applyKeywords(nodeBase.keywordTextArea.text); // ToDo yenfu
+						applyKeywords("Machine learning");
+					}
+				}
+			}
+			
+			public function applyKeywords(keywords:String):void
+			{
+//				private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+//				
+//				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,csvData);
+//				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,keyColName);
+//				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,keyType);
+				
+				googleSearchCSVDataSource.url.value = "/InfoMapServices/AdminService";
+				var servletParam:Object = new Object();
+				servletParam.method = "getGoogleSearchResult";
+				servletParam.params = [keywords];
+				googleSearchCSVDataSource.servletParams.value = servletParam;
+				googleSearchCSVDataSource.keyColName.value = "url";
+				googleSearchCSVDataSource.keyType.value = "Google_Doc";
+				
+//				mx.controls.Alert.show();
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

@@ -58,6 +58,14 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.carrot2.clustering.kmeans.BisectingKMeansClusteringAlgorithm;
+import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
+import org.carrot2.core.Cluster;
+import org.carrot2.core.Controller;
+import org.carrot2.core.ControllerFactory;
+import org.carrot2.core.ProcessingResult;
+import org.carrot2.util.CloseableUtils;
+import org.carrot2.util.attribute.AttributeValueSets;
 import org.w3c.dom.Document;
 
 import cc.mallet.types.*;
@@ -76,6 +84,14 @@ import com.dropbox.client2.session.RequestTokenPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.customsearch.Customsearch;
+import com.google.api.services.customsearch.Customsearch.Cse;
+import com.google.api.services.customsearch.CustomsearchRequestInitializer;
+import com.google.api.services.customsearch.model.Result;
+import com.google.api.services.customsearch.model.Search;
 import com.google.gson.Gson;
 
 import edu.mit.jwi.Dictionary;
@@ -94,8 +110,10 @@ import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
 import infomap.beans.SolrClusterObject;
 import infomap.beans.SolrClusterResponseModel;
+import infomap.beans.SolrClusterResponseModel.LinkObject;
 import infomap.beans.TopicClassificationResults;
 import infomap.scheduler.RssFeedsJob;
+import infomap.test.ConsoleFormatter;
 import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
@@ -1119,8 +1137,8 @@ public class AdminService extends GenericServlet {
 			// set number of rows
 			q.setRows(rows);
 
-			// set field to hasSummary. Just a field with low content. Since we are only interested in the clusters
-			q.setFields("link");
+			// title is requested for clustering RadViz labels
+			q.setFields("link title");
 			
 			/*For Lingo you can set the desired number of clusters using the following attribute:
 			LingoClusteringAlgorithm.desiredClusterCountBase
@@ -1137,6 +1155,111 @@ public class AdminService extends GenericServlet {
 			int numOfDocs = clusterResponse.response.docs.length;
 			int numOfLabels = clusterResponse.clusters.length;
 			
+			// This code includes software developed by the Carrot2 Project
+			// Cluster RadViz labels for better layout ==> Currently use concatenated titles for clustering.
+			InputStream xmlStream = null;
+			Map<String, Object> defaultAttributes = null;
+			try {
+
+				xmlStream = getClass().getClassLoader().getResourceAsStream("infomap/resources/clustering-attributes.xml");
+
+				// Load attribute value sets from the XML stream
+				AttributeValueSets attributeValueSets = AttributeValueSets.deserialize(xmlStream);
+
+				// Get the default set of attribute values for use with further processing
+				defaultAttributes = attributeValueSets.getDefaultAttributeValueSet().getAttributeValues();        		
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				System.out.println("Error reading lingo attributes file");}
+			finally {CloseableUtils.close(xmlStream);}
+
+			Controller controller = ControllerFactory.createSimple();
+
+			controller.init(defaultAttributes); // Initialize the controller with default attribute set
+			
+            // ToDo Snippet of the description "might" be used for clustering
+			ArrayList<org.carrot2.core.Document> documents = new ArrayList<org.carrot2.core.Document>();
+			for (int i=0; i < numOfLabels; i++) {
+				String label = clusterResponse.clusters[i].labels[0];
+				String concatenatedTitles = "";
+				for (int j = 0; j < clusterResponse.response.docs.length; j++) {
+					if (clusterResponse.clusters[i].docs.contains((String) clusterResponse.response.docs[j].link))
+						concatenatedTitles = concatenatedTitles + " " + (String) clusterResponse.response.docs[j].title; // Concatenate titles for clustering
+				}
+				concatenatedTitles = concatenatedTitles.trim();
+				documents.add(new org.carrot2.core.Document(concatenatedTitles, null, label)); // ToDo Use label as contentUrl ==> Possible duplicate labels?
+			}
+			
+			String keyWords = "";
+			if (relatedKeywords != null)
+				for (int i = 0; i < relatedKeywords.length; i++) keyWords = keyWords + " " + relatedKeywords[i];
+			if (requiredKeywords != null)
+				for (int i = 0; i < requiredKeywords.length; i++) keyWords = keyWords + " " + requiredKeywords[i];
+			keyWords = keyWords.trim();
+			
+//			// Use K-means algorithm to produce non-overlapping clusters (Not Deterministic)
+//			// ToDo Not sure whether keyWords will be useful in K-means algorithm?
+//			ProcessingResult byKmeansClusters = controller.process(documents, keyWords, BisectingKMeansClusteringAlgorithm.class);
+//			List<Cluster> clustersByKmeans = byKmeansClusters.getClusters();
+//			
+//			// Retrieve clustering result
+//			String[] clusteredLabels = new String[numOfLabels + 1]; // Include "document" as key column
+//			int tempNumOfDocs = 0;
+//			for (int i = 0 ; i < clustersByKmeans.size(); i++) {
+//				for (org.carrot2.core.Document doc : clustersByKmeans.get(i).getDocuments())
+//				{
+//					clusteredLabels[tempNumOfDocs] = (String) doc.getField(org.carrot2.core.Document.CONTENT_URL);
+//					tempNumOfDocs++;
+//				}
+//			}
+//			clusteredLabels[numOfLabels] = "document";
+			
+			// Use lingo algorithm. It produces overlapping clusters (Deterministic)
+			ProcessingResult byLingoClusters = controller.process(documents, keyWords, LingoClusteringAlgorithm.class);
+			List<Cluster> clustersByLingo = byLingoClusters.getClusters();
+			
+			// Get the order of the cluster by score descending
+			class ValueComparator implements Comparator<Object> {
+				Map<Integer, Double> map;
+
+				public ValueComparator(Map<Integer, Double> map) {
+					this.map = map;
+				}
+
+				// Descending
+				public int compare(Object key1, Object key2){
+					if (map.get(key1) < map.get(key2)) return 1;
+					else if (map.get(key1) > map.get(key2)) return -1;
+					else return 0;
+				}
+			}
+			
+			Map<Integer, Double> unsortedMap = new HashMap<Integer, Double>();
+			for (int i = 0; i < clustersByLingo.size(); i++) unsortedMap.put(i, clustersByLingo.get(i).getScore());
+			TreeMap<Integer, Double> orderOfClustersbyScore = new TreeMap<Integer, Double>(new ValueComparator(unsortedMap));
+			orderOfClustersbyScore.putAll(unsortedMap);
+			
+			// Retrieve clustering result ==> Old code: there us no boundary between label clusters. Used as order parameter in CSVParser().convertRecordsToRows
+//			ArrayList<String> tempClusteredLabels = new ArrayList<String>();
+//			int tempLabelIndex = 0;
+//			for (Integer clusterIndex : orderOfClustersbyScore.keySet()) {
+//				for (org.carrot2.core.Document doc : clustersByLingo.get(clusterIndex).getDocuments())
+//				{
+//					if (!tempClusteredLabels.contains((String) doc.getField(org.carrot2.core.Document.CONTENT_URL)))
+//					{
+//						tempClusteredLabels.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
+//						tempLabelIndex++;
+//					}
+//				}
+//			}
+//			tempClusteredLabels.add("document"); // Include "document" as key column
+//			String[] clusteredLabels = tempClusteredLabels.toArray(new String[tempClusteredLabels.size()]);
+	        
+			// ToDo Is it possible that two or more labels will be the same?
+			// ToDo What if there exists another label called "document"? Which one will be used as key column?
+			
+			// Clustering documents			
 			Map<String,Object> docsToLabel = new HashMap<String, Object>();
 			
 			for (int i=0; i < numOfDocs; i++)
@@ -1172,16 +1295,97 @@ public class AdminService extends GenericServlet {
 				records.add(recordObject);
 			}
 			
+			// Retrieve label clustering result
+			// ToDo yenfu Should "other topics" needs to be removed before label clustering
+			Map<Integer, ArrayList<String>> labelClusterLinkedHashMap = new LinkedHashMap<Integer, ArrayList<String>>();
+//			Map<Integer, ArrayList<String>> labelClusterHashMap = new HashMap<Integer, ArrayList<String>>();
+			ArrayList<String> tempLabels = new ArrayList<String>(); // labels ...
+			for (Integer clusterIndex : orderOfClustersbyScore.keySet()) {
+				ArrayList<String> clusterContent = new ArrayList<String>();
+				for (org.carrot2.core.Document doc : clustersByLingo.get(clusterIndex).getDocuments())
+				{
+					if (!tempLabels.contains((String) doc.getField(org.carrot2.core.Document.CONTENT_URL)))
+					{
+						clusterContent.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
+						tempLabels.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
+					}
+				}
+				labelClusterLinkedHashMap.put(clusterIndex, clusterContent);
+			}
+			
+			// ToDo yenfu Attach label clustering info as last row for drawing label cluster boundaries
+//			Map<String, String> recordObject = new HashMap<String, String>();
+//			recordObject.put("document", "label_clustering");
+//			for (Integer key : labelClusterLinkedHashMap.keySet())
+//			{
+//				for (String label : labelClusterLinkedHashMap.get(key))
+//					recordObject.put(label, key.toString());
+//			}
+//			records.add(recordObject);
+			
 			Map<String, String>[] rs = records.toArray(new HashMap[records.size()]);
 			
+//			result = new CSVParser().convertRecordsToRows(rs, clusteredLabels);
 			result = new CSVParser().convertRecordsToRows(rs);
+			// ToDo yenfu Attach sub clustering info for drawing clusters boundaries
+			// Concatenate clustering info with label
+			for (int i = 0; i < result[0].length - 1; i++) // Loop through first row (labels) and attach cluster info ; skip the last one "document"
+			{
+				for (Integer key : labelClusterLinkedHashMap.keySet())
+				{
+					// ToDo Need to deal with special case: document and Other Topics
+					if (labelClusterLinkedHashMap.get(key).contains(result[0][i]) && !result[0][i].equalsIgnoreCase("Other Topics"))
+						result[0][i] = result[0][i] + "_cluster_" + key.toString();
+				}
+			}
 			
+			System.out.println("");
+			
+
 		}catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 		}
 		
 		return result;
+	}
+	
+	// ToDo yenfu
+//	public String[][] getGoogleSearchResultForQueryWithRelatedKeywords(String[] requiredKeywords, String[] relatedKeywords, String dateFilter, int rows,String operator,String sources,String sortBy)
+	private static final GoogleClientRequestInitializer KEY_INITIALIZER = new CustomsearchRequestInitializer("AIzaSyDddFvCRxCICI1Ks-S155hOjvpaQ6js_Hg");
+	
+	private static final String CX = "013468534357605574089:fieu4lccp9u";
+	private static final String APPLICATION_NAME = "InfoMap/Beta";
+	public String[][] getGoogleSearchResult(String query) {
+		String[][] returnValue = null;
+		try {
+			JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+			Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, null)
+			.setApplicationName(APPLICATION_NAME)
+			.setGoogleClientRequestInitializer(KEY_INITIALIZER)
+			.build();
+
+			Cse.List list = cs.cse().list(query);
+			list.setCx(CX);
+			Search searchResults = list.execute();
+			List<Result> items = searchResults.getItems();
+
+			// ToDo yenfu Possible the same urls from google search result
+			// ToDo Check Exception
+//			returnValue = new String[items.size() + 1][5];
+			returnValue = new String[items.size()][5];
+//			String[] header = {"url","title","imgURL","date_published","date_added"};
+//			returnValue[0] = header;
+//			int counter = 1;
+			int counter = 0;
+			for(Result searchResult:items)
+			{
+				String[] temp = {searchResult.getLink(),searchResult.getTitle(),null,null,null};
+				returnValue[counter] = temp;
+				counter++;
+			}
+		}
+		catch (Exception ex) {ex.printStackTrace();}
+		return returnValue;
 	}
 	
 	public Object[] getResultsForQueryWithRelatedKeywords(
@@ -1215,7 +1419,6 @@ public class AdminService extends GenericServlet {
 
 			// set fields to title,date and summary only
 			q.setFields("link,title,date_added,date_published,imgName");
-
 			QueryResponse response = solrInstance.query(q);
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 

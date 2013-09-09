@@ -60,7 +60,8 @@ package weave.data.DataSources
 		
 		public static const DOC_KEYTYPE:String = "infoMapsDoc";
 		
-		public static const SOURCE_NAME:String = "InfoMaps Data Source";
+		public static const SOURCE_NAME:String = "InfoMaps Data Source"; // ToDo yenfu
+//		private  SOURCE_NAME
 		
 		public static const defaultNumberOfDocumentsPerRequest:int = 2000;
 		

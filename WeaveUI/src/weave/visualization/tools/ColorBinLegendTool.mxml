@@ -156,7 +156,7 @@
 				var colTitle:String = ColumnUtils.getTitle(_plotter.dynamicColorColumn);
 				try
 				{
-					marginLabel.text = _plotter.legendTitleFunction.apply(null, [colTitle]);   
+					marginLabel.text = _plotter.legendTitleFunction.apply(null, [colTitle]); 
 				}
 				catch (e:Error)
 				{

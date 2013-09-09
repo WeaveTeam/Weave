@@ -1,5 +1,7 @@
 package infomap.beans;
 
+import java.util.ArrayList;
+
 public class SolrClusterResponseModel {
 	public SolrResponseHeader responseHeader;
 	public SolrResponseModel response;
@@ -16,6 +18,7 @@ public class SolrClusterResponseModel {
 	}
 	public class LinkObject{
 		public Object link;
+		public Object title;
 	}
 
 }

@@ -1,0 +1,32 @@
+<attribute-sets default="lingo-fewer-clusters">
+  <attribute-set id="kmeans-fewer-clusters">
+    <value-set>
+      <label>kmeans fewer clusters</label>
+      <attribute key="BisectingKMeansClusteringAlgorithm.clusterCount">
+        <value type="java.lang.Integer" value="5"/>
+      </attribute>
+    </value-set>
+  </attribute-set>
+  <attribute-set id="lingo-fewer-clusters">
+    <value-set>
+      <label>lingo fewer clusters</label>
+      <attribute key="LingoClusteringAlgorithm.desiredClusterCountBase">
+        <value type="java.lang.Integer" value="10"/>
+      </attribute>
+    </value-set>
+  </attribute-set>
+  <attribute-set id="faster-clustering">
+    <value-set>
+      <label>Faster clustering</label>
+      <attribute key="LingoClusteringAlgorithm.desiredClusterCountBase">
+        <value type="java.lang.Integer" value="20"/>
+      </attribute>
+      <attribute key="LingoClusteringAlgorithm.factorizationQuality">
+        <value type="org.carrot2.matrix.factorization.IterationNumberGuesser$FactorizationQuality" value="LOW"/>
+      </attribute>
+      <attribute key="TermDocumentMatrixBuilder.maximumMatrixSize">
+        <value type="java.lang.Integer" value="30000"/>
+      </attribute>
+    </value-set>
+  </attribute-set>
+</attribute-sets>

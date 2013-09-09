@@ -47,6 +47,7 @@ package weave.visualization.plotters
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -159,6 +160,8 @@ package weave.visualization.plotters
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
+		public const doCDLayoutFlag:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // ToDo yenfu temporary flag to fix the code
+		
 		private function handleColumnsChange():void
 		{
 			if (linkableObjectIsBusy(columns) || linkableObjectIsBusy(spatialCallbacks))
@@ -236,6 +239,8 @@ package weave.visualization.plotters
 			}
 			
 			setAnchorLocations();
+			
+			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
 		}
 		
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
@@ -264,6 +269,9 @@ package weave.visualization.plotters
 			}
 			
 		}
+		
+//		public const anchorLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("Class('weave.utils.ColumnUtils').getTitle(column)", true, false, ['column']), setAnchorLocations); // ToDo yenfu
+		
 		public function setAnchorLocations( ):void
 		{	
 			var _columns:Array = columns.getObjects();
@@ -280,9 +288,12 @@ package weave.visualization.plotters
 				anchor.y.value = Math.sin(theta*i);	
 				//trace(anchor.y.value);
 				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
+//				anchor.title.value = anchorLabelFunction.apply(null, [_columns[i]]); // ToDo yenfu
 			}
 			anchors.resumeCallbacks();
 		}
+		
+		public const anchorLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("Class('weave.utils.ColumnUtils').getTitle(column)", true, false, ['column']), setClassDiscriminationAnchorsLocations);
 		
 		//this function sets the anchor locations for the Class Discrimination Layout algorithm and marks the Class locations
 		public function setClassDiscriminationAnchorsLocations():void
@@ -311,7 +322,8 @@ package weave.visualization.plotters
 					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
 					cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
 					cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
-					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
+//					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
+					cdAnchor.title.value = anchorLabelFunction.apply(null, [columns.getObject(colNames[g]) as IAttributeColumn]); // ToDo yenfu
 					columnIncrementor++;//change
 				}
 				

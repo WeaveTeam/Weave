@@ -74,6 +74,7 @@
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
@@ -83,6 +84,7 @@
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.linkableObjectIsBusy;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
@@ -97,6 +99,7 @@
 			import weave.core.SessionStateLog;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.KeyColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
@@ -149,6 +152,7 @@
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.RadVizTool;
 			
@@ -162,6 +166,8 @@
 //			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			
+			public const googleThumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap); // ToDo yenfu
 			
 			public const thumbnailsDefaultColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0));
 			
@@ -204,11 +210,12 @@
 			public const enablePinView:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			
 			public static const LIST_VIEW:String = "List";
+			public static const GOOGLE_LIST_VIEW:String = "Google"; // ToDo yenfu
 			public static const THUMBNAILS_VIEW:String = "Thumbnails";
 			public static const TOPICS_VIEW:String = "Topics";
 			public static const WORD_CLOUD_VIEW:String = "Word Cloud";
 			public static const POINTS_VIEW:String = "Points";
-			public static const views:Array = [LIST_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW];
+			public static const views:Array = [LIST_VIEW,GOOGLE_LIST_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW]; // ToDo yenfu
 			public const currentView:LinkableString =  registerLinkableChild(this,new LinkableString(LIST_VIEW,function(value:*):Boolean{
 				if(views.indexOf(value) != -1)
 					return true;
@@ -382,6 +389,9 @@
 				//when the results are stored in this keySet a callback is triggered for parsing the results
 				docKeySet.addGroupedCallback(this,handleDocKeySetChange,false);
 				
+				// ToDo yenfu google
+				googleDocKeySet.addGroupedCallback(this,handleGoogleDocKeySetChange,false);
+				
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
 //				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
@@ -409,6 +419,8 @@
 				clusterCSVDataSource = Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
 				_clusterRadVizName = Weave.root.generateUniqueName(_nodeName + "Clusters");
 				
+				googleSearchCSVDataSource = Weave.root.requestObject(_nodeName + "googleSearchDataSource", InfoMapsDataSource, false); // ToDo yenfu
+				
 				addChild(topicComponent);
 				topicComponent.rectColors.addImmediateCallback(this, handleTopicLayoutSettingChange); // ToDo
 				
@@ -417,6 +429,7 @@
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
 				docListComponent.parentNode = this;
+				googleDocListComponent.parentNode = this; // ToDo yenfu
 				thumbnailListComponent.parentNode = this;
 				
 				getCallbackCollection(movedThumbNails).addGroupedCallback(this, handleMovedThumbnailsChangesInViews);
@@ -436,6 +449,13 @@
 				addChild(docListComponent);
 				docListComponent.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
 				_viewToObjectMapping[LIST_VIEW] = docListComponent;
+				
+				// ToDo yenfu
+				googleDocListComponent.visible = false;
+				googleDocListComponent.alpha = 0;
+				addChild(googleDocListComponent);
+//				googleDocListComponent.docList.addEventListener(ListEvent.ITEM_CLICK ,handleDocumentSelectedFromList); // ToDo yenfu ???
+				_viewToObjectMapping[GOOGLE_LIST_VIEW] = googleDocListComponent;
 				
 				topicComponent.visible = false;
 				topicComponent.alpha = 0;
@@ -506,6 +526,7 @@
 			public var nodeBase:NodeBaseComponent = new NodeBaseComponent();
 			
 			private var docKeySet:KeySet = new KeySet();
+			private var googleDocKeySet:KeySet = new KeySet(); // ToDo yenfu
 			
 			//////////////////////////////
 			// Query Functions
@@ -619,6 +640,10 @@
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 				
+				// ToDo yenfu google
+				var googleDocSetQuery:AsyncToken = InfoMapAdminInterface.instance.getGoogleSearchResult("Machine Learning");
+				addAsyncResponder(googleDocSetQuery, handleGoogleQueryWithRelatedKeywordsResults, handleGoogleQueryWithRelatedKeywordsFault, token);
+				
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
 					currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
 				
@@ -642,6 +667,7 @@
 				getEntityDistribution();
 //				getTopicsClassification();
 				getClusters();
+//				getGoogleSearchResult(); // ToDo yenfu Remove
 			}
 			
 			private function handleTotalResults(event:ResultEvent,token:Object=null):void
@@ -712,6 +738,56 @@
 				reportError("Error making query");
 			}
 			
+			// ToDo yenfu
+			private function handleGoogleQueryWithRelatedKeywordsResults(event:ResultEvent,token:QueryObject=null):void
+			{
+				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery)
+					|| QueryObject.isSortByDifferent(token as QueryObject, currentQuery);
+				
+				if(diff)
+				{
+					return;
+				}
+				
+				var docsArray:Array = event.result as Array;
+				var docsToAdd:Array = [];
+				var keys:Array = [];
+				
+				var urlCol:IAttributeColumn =_parentPanel.infoMapsDataSource.getColumnByName('url'); 
+				
+				for (var i:int = 0; i < docsArray.length; i++)
+				{
+					var link:String = docsArray[i][0];
+					
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
+					
+					/*if the key is already present in the column, then we only add it to the keys keyset
+					we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString */
+					if(urlCol.containsKey(key))
+					{
+						keys.push(link);
+						continue;
+					}
+					
+					docsToAdd.push(docsArray[i]);
+					
+					keys.push(link);
+				}
+				
+				_parentPanel.infoMapsDataSource.csvData.setSessionState(
+					(_parentPanel.infoMapsDataSource.csvData.getSessionState() as Array).concat(docsToAdd));			
+//				VectorUtils.copy(keys,_nameOrder); // ToDo yenfu ???
+				googleDocKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+				
+				/* we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called */
+				googleDocKeySet.triggerCallbacks(); 
+			}
+			
+			// ToDo yenfu google
+			private function handleGoogleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
+			{
+				reportError("Error making query");
+			}
 			
 			/**
 			 * @private
@@ -732,6 +808,7 @@
 					Only switch to first page if it is new query*/
 					if(docListComponent)
 						docListComponent.startIndex.value = 0;
+					// ToDo yenfu
 					if(thumbnailListComponent)
 						thumbnailListComponent.startIndex.value = 0;
 				}else
@@ -758,7 +835,40 @@
 				_reusableThumbnailsToPlotArray = [];
 				_currentNewDocsCount = 0;
 				_thumbnailCount = 0;
-				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_PARSING,_completeThumbnailsIteration);
+				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_PARSING,_completeThumbnailsIteration); // ToDo yenfu ToRead
+			}
+			
+			// ToDo yenfu google ==> refer to function handleDocKeySetChange
+			private function handleGoogleDocKeySetChange():void
+			{
+				var response:Array = googleDocKeySet.keys;
+				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery);
+				
+				if(diff)
+				{
+					//its a new query
+					googleThumbnails.removeAllObjects();
+					if(googleDocListComponent)
+						googleDocListComponent.startIndex.value = 0;
+					if(googleThumbnailListComponent)
+						googleThumbnailListComponent.startIndex.value = 0;
+				}
+				
+				/* we test the text because htmlText has tags with '/' */
+				if(nodeBase.keywordTextArea.text && nodeBase.keywordTextArea.text.indexOf("/") >-1)
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" +
+						numOfMatchedDocuments.value);
+				else
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" +
+						numOfMatchedDocuments.value);
+				
+				// ToDo yenfu google read and refactor this code
+//				_reusableThumbnailsToPlotArray = [];
+//				_currentNewDocsCount = 0;
+//				_thumbnailCount = 0;
+//				WeaveAPI.StageUtils.startTask(this,_iterateEachThumbnail,WeaveAPI.TASK_PRIORITY_PARSING,_completeThumbnailsIteration); // ToDo yenfu ToRead
+				googleThumbnailListComponent.keys = response;
+				googleDocListComponent.keys = response;
 			}
 			
 			private var _thumbnailCount:Number = 0;
@@ -1003,6 +1113,11 @@
 				_radialMenu.y = -_radialMenu.iconSize;
 				if(docListComponent)
 					docListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+
+				// ToDo yenfu
+				if(googleDocListComponent)
+					googleDocListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
+
 				if(thumbnailListComponent)
 					thumbnailListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 				if(_pinImg)
@@ -1223,6 +1338,7 @@
 				
 				_sortedByNewDocsArray = newDocs.concat(oldDocs);
 				docListComponent.keys = _sortedByNewDocsArray;
+				// ToDo yenfu
 				thumbnailListComponent.keys = _sortedByNewDocsArray;
 			}
 			
@@ -1234,6 +1350,7 @@
 					keys.push(WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,_nameOrder[i]));
 				}
 				docListComponent.keys = keys;
+				// ToDo yenfu
 				thumbnailListComponent.keys = keys;
 			}
 			
@@ -1272,6 +1389,10 @@
 						addChild(thumbnailListComponent);
 						
 					}
+				}
+				else if (view == GOOGLE_LIST_VIEW) // ToDo yenfu
+				{
+				googleDocListComponent.y = nodeBase.height;
 				}
 				else if(view == TOPICS_VIEW) //Initialize Topics Component
 				{
@@ -1407,6 +1528,7 @@
 					}
 				}
 				docListComponent.keys = _reusableThumbnailsToPlotArray;
+				// ToDo yenfu
 				thumbnailListComponent.keys = _reusableThumbnailsToPlotArray;
 			}
 			
@@ -1629,6 +1751,7 @@
 				if(currentView.value == LIST_VIEW)
 				{
 					docListComponent.redrawList();
+					// ToDo yenfu
 				}
 				else if(currentView.value == THUMBNAILS_VIEW)
 				{
@@ -2024,7 +2147,9 @@
 			}
 			
 			public const docListComponent:DocumentListView = registerLinkableChild(this, new DocumentListView());
+			public const googleDocListComponent:DocumentListView = registerLinkableChild(this, new DocumentListView()); // ToDo yenfu
 			public const thumbnailListComponent:ThumbnailsListView = registerLinkableChild(this,new ThumbnailsListView());
+			public const googleThumbnailListComponent:ThumbnailsListView = registerLinkableChild(this,new ThumbnailsListView()); // ToDo yenfu
 			
 			private var _showListFlag:Boolean = false;
 //			private var clickedWordKeySet:KeySet = new KeySet();
@@ -2037,6 +2162,7 @@
 				{
 					var keyword:String = ((event.target as CustomLabel).parent as TagCloud).lastProbedWord.value;
 					var filter:KeyFilter = docListComponent.listFilters.getObject(keyword) as KeyFilter;
+					// ToDo yenfu
 					if(!filter)
 					{
 						var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryTerms,_currentRelatedKeywords,
@@ -2070,6 +2196,7 @@
 				}
 				
 				docListComponent.applyFilter(filterMessage,keys);
+				// ToDo yenfu
 				
 				status.text = "";
 				currentView.value = LIST_VIEW;
@@ -2109,6 +2236,19 @@
 				}
 			}
 			
+			public var googleSearchCSVDataSource:InfoMapsDataSource;
+			private function getGoogleSearchResult():void
+			{
+				googleSearchCSVDataSource.url.value = "/InfoMapServices/AdminService";
+				var servletParam:Object = new Object();
+				servletParam.method = "getGoogleSearchResult";
+				servletParam.params = ["Machine Learning"]; // ToDo yenfu make this compatabile with related and required keywords
+				googleSearchCSVDataSource.servletParams.value = servletParam;
+				// ToDo yenfu it is possible that google provides urls are duplicate???
+//				_subMenu.addSubSubMenuItems("Show / Hide",["Google_Search"],[showGoogleSearchResult]);
+//				SOURCE_NAME // ToDo need to change source name defined in InfoMapsDataSource
+			}
+			
 			private var _clusterRadVizName:String;
 			private function getClusters():void
 			{
@@ -2129,12 +2269,14 @@
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
 			public function showClusters(event:Event=null):void
 			{
+				
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
 				var object:RadVizTool = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
 				object._plotter.columns.removeAllObjects();
 				object._plotter.probeLineNormalizedThreshold.value = 0.5;
 				object._plotter.localNormalization.value = false;
+				object._plotter.anchorLabelFunction.value = "Class('weave.utils.ColumnUtils').getTitle(column).substring(0,Class('weave.utils.ColumnUtils').getTitle(column).lastIndexOf('_cluster_'))"; // ToDo yenfu make it simple
 //				object._anchorPlotter.anchors.removeAllObjects();
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2149,10 +2291,57 @@
 				}
 				object.panelTitle.value = 'Document Clustered by Labels';
 				object.enableProbeLines.value = true;
-				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
+				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap); // ToDo yenfu where is title from???
 				if (object is DraggablePanel)
 					(object as DraggablePanel).restorePanel();
+				
+				var tempDictionary:Dictionary = new Dictionary();
+				var tempColumnNames:Array = object._plotter.columns.getNames();
+				var tempLabelCluster:String = "";
+				var tempLabelWithCluster:String = "";
+				for (var i:int = 0; i < tempColumnNames.length; i++)
+				{
+//					var haha:String = ColumnUtils.getTitle(object._plotter.columns.getObject(tempColumnNames[i]) as IAttributeColumn); // ToDo yenfu a better way to get column title???
+//					tempLabelWithCluster = object._plotter.columns.getObject(tempColumnNames[i]).internalColumnReference.getMetadata("title");
+					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).internalColumnReference.getMetadata("title");
+					tempLabelCluster = tempLabelWithCluster.substring(tempLabelWithCluster.lastIndexOf('_cluster_') + 9); // ToDo yenfu this is a bad hack
+					if(!tempDictionary.hasOwnProperty(tempLabelCluster))
+						tempDictionary[tempLabelCluster] = new Array();
+					
+					(tempDictionary[tempLabelCluster] as Array).push(tempColumnNames[i]);
+				}
+				
+				object._anchorPlotter.drawingClassLines = true;//cd coloring
+				object._anchorPlotter.doCDLayout = true;//cd layout needed for tstat rendering
+				object.cdLayout.tAndpMapping = tempDictionary;
+				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping;
+				object._anchorPlotter.anchorClasses = object.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors accorsing to the class they belong to
+//				object._plotter.setclassDiscriminationMetric(object.cdLayout.tAndpMapping, null);
+				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping; //for setting cd dimensional anchor  locations
+				object._plotter.doCDLayoutFlag.value = true;
+				
+				object._plotter.setClassDiscriminationAnchorsLocations();//cd layout
+				
+////				ColumnMetadata.TITLE(object._plotter.columns.getObject("") as IAttributeColumn)
+//					
+//				if (linkableObjectIsBusy(object._plotter.columns) || linkableObjectIsBusy(object._plotter.spatialCallbacks) || linkableObjectIsBusy(object._plotter.filteredKeySet) || linkableObjectIsBusy(getCallbackCollection(object._plotter)))
+////				if (linkableObjectIsBusy(object._plotter))
+//					callLater(changeTitle, [object]);
 			}
+			
+//			private function changeTitle(object:RadVizTool):void
+//			{
+//				if (linkableObjectIsBusy(object._plotter.columns) || linkableObjectIsBusy(object._plotter.spatialCallbacks) || linkableObjectIsBusy(object._plotter.filteredKeySet) || linkableObjectIsBusy(getCallbackCollection(object._plotter)))
+////				if (linkableObjectIsBusy(object._plotter))
+//				{
+//					callLater(changeTitle, [object]);
+//					return;
+//				}
+//				for (var i:int = 0; i < object._plotter.anchors.getNames().length; i++)
+//				{
+//					(object._plotter.anchors.getObject(object._plotter.anchors.getNames()[i]) as AnchorPoint).title.value = i.toString();
+//				}
+//			}
 
 			private var topicComponents:Array = new Array();
 			private var flag_click:Boolean = true;
@@ -2267,6 +2456,11 @@
 					{
 						docListComponent.keys = [];//clearing items in list
 					}
+					// ToDo yenfu
+					if(contains(googleDocListComponent))
+					{
+						googleDocListComponent.keys = [];//clearing items in list
+					}
 					if(contains(thumbnailListComponent))
 					{
 						thumbnailListComponent.keys = [];
@@ -2301,6 +2495,7 @@
 				}
 				else if(QueryObject.isSortByDifferent(previousQuery,currentQuery))
 				{
+					// ToDo yenfu sort by applied to google search???
 					status.text = "Sorting...";
 					copySessionState(previousQuery,currentQuery);
 					var token:QueryObject = new QueryObject();
