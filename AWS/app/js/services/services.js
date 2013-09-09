@@ -17,7 +17,6 @@ angular.module("aws.services", []).service("queryobj", function() {
 	this.dataTable = 1;
 	this.conn = {
 			scriptLocation : 'C:\\RScripts\\',
-			connectionType: 'RMySQL',
 			serverType : 'MySQL',
 			connectionType: 'RMySQL',
 			sqlip : 'localhost',
@@ -61,6 +60,7 @@ angular.module("aws.services", []).service("queryobj", function() {
 		author: this.author,
 		dataTable: function(){return this.dataTable;},
 		conn: this.conn,
+		scriptType: this.scriptType,
 		slideFilter: this.slideFilter,
 		getSelectedColumns: function(){
 			//TODO hackity hack hack

@@ -281,12 +281,8 @@ angular.module("aws.panelControllers", [])
 
 	// set up watch functions
 	$scope.$watch('selection', function(){
-<<<<<<< HEAD
 		queryobj.scriptOptions = $scope.selection;
-=======
-		queryobj['scriptOptions'] = $scope.selection;
 		//scriptobj.scriptMetadata.outputs = $scope.selection;
->>>>>>> refs/heads/aws
 	}, true);
 	$scope.$watch(function(){
 		return queryobj.scriptSelected;
