@@ -367,16 +367,17 @@ public class SQLUtils
 		
 		colName = sb.toString();
 		
-		// if the length of the column name is longer than the 64-character limit
-		int max = 64 - 4; // leave space for "_123" if there end up being duplicate column names
+		// if the length of the column name is longer than the 30-character limit in oracle (MySQL limit is 64 characters)
+		int max = 30;
 		// if name too long, remove spaces
 		if (colName.length() > max)
 			colName = colName.replace(" ", "");
 		// if still too long, truncate
 		if (colName.length() > max)
 		{
-			int half = max / 2 - 1;
-			colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
+			int halfLeft = max / 2;
+			int halfRight = max / 2 - 1 + max % 2; // subtract 1 for the "_" unless max is odd
+			colName = colName.substring(0, halfLeft) + "_" + colName.substring(colName.length() - halfRight);
 		}
 		return colName;
 	}
