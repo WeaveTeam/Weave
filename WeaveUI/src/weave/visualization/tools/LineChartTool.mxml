@@ -155,11 +155,6 @@
 				attributesToIncludeInProbe.setSessionState(valuesToSet);
 			}
 			
-			public function getPlotter():ParallelCoordinatesPlotter
-			{
-				return _plotter;
-			}
-			
 			private function updateProbeColumns():void
 			{
 				/* first check to see if select all should be disabled or not */

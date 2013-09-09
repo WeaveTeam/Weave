@@ -21,6 +21,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <!---
+@author fkamayou
 @author mervetuccar
 @author hgranz
 @spurushe
@@ -29,45 +30,71 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"		 
 		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*"
-		 label="Disability"
+		 label="Alt Text"
 		 implements="weave.api.core.ILinkableObject"
-		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark"	>
+		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark">
 	
-	<mx:Label text="User generated visualization description text:"
+	<mx:Label text="Custom description:"
 			  textAlign="left"/>
 	
-	<mx:TextArea id="manualToolDescTextBox" 
-				 width="100%" 
-				 height="40%" 
+	<mx:TextArea id="customDescriptionTextBox" 
+				 width="80%" 
+				 height="30%" 
 				 minWidth="5" 
 				 minHeight="5"
 				 borderStyle="solid" 
 				 editable="true"  
-				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
-				 toolTip="changeme"
-				 creationComplete="handleCreationComplete(event);" 
-				 wordWrap="true"/>
+				 toolTip="Enter a custom description here for the visualization."
+				 wordWrap="true"
+				 creationComplete="linkBindableProperty(customDescription, event.target, 'text')"/>
 	
-	<mx:Label text="System generated visualization description text:"
+	<mx:Label text="Automatic description:"
 			  textAlign="left"/>
 	
-	<mx:TextArea id="automaticToolDescTextBox" 
-				 width="100%" 
-				 height="40%" 
-				 minWidth="5" 
-				 minHeight="5"
-				 borderStyle="solid" 
-				 editable="false"  
-				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
-				 toolTip="changeme"
-				 wordWrap="true" text="before button clicked"/>
+	<mx:HBox width="100%" height="30%">
+		<mx:TextArea id="automaticDescriptionTextBox" 
+					 width="95%" 
+					 height="100%" 
+					 minWidth="5" 
+					 minHeight="5"
+					 borderStyle="solid" 
+					 editable="true"  
+					 toolTip="System generated description."
+					 wordWrap="true" 
+					 enabled="false"
+					 creationComplete="linkBindableProperty(automaticDescription, event.target, 'text')"/>
+		
+		<mx:Button label="Refresh"
+				   id="automaticDescRefreshButton" 
+				   click="updateAutomaticDescription();"
+				   enabled="false"/>
+	</mx:HBox>
 	
-	<mx:Button label="Refresh Description"
-			   id="automaticDescRefreshButton" 
-			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
+	<mx:Label text="Tool description:"
+			  textAlign="left"/>
+	
+	<mx:HBox width="100%" height="30%">
+		<mx:TextArea id="toolDescriptionTextBox" 
+					 width="100%" 
+					 height="100%" 
+					 minWidth="5" 
+					 minHeight="5"
+					 borderStyle="solid" 
+					 editable="false"  
+					 toolTip="The text here will be used for the tool description."
+					 wordWrap="true"
+					 creationComplete="linkBindableProperty(toolDescription, event.target, 'text')"/>
 
+		
+		<mx:VBox>
+			<mx:RadioButtonGroup id="textOption" itemClick="updateToolDescription()"/>
+			<mx:RadioButton paddingLeft="10" groupName="textOption" label="Custom" id="customDescriptionRadioButton"/>
+			<mx:RadioButton paddingLeft="10" groupName="textOption" label="Automatic" id="automaticDescriptionRadioButton"/>
+			
+		</mx:VBox>
+	</mx:HBox>
 	
-	
+
 	<mx:Script>
 		<![CDATA[
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
@@ -98,8 +125,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.IPlotter;
 			import weave.api.unlinkBindableProperty;
 			import weave.api.unlinkSessionState;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.data.KeySets.KeySet;
@@ -112,215 +141,48 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
-			import weave.visualization.plotters.ParallelCoordinatesPlotter;
-			import weave.visualization.tools.LineChartTool;
-			
+			import weave.visualization.layers.PlotManager;
+			import weave.visualization.layers.Visualization;
 			
 			
 			[Bindable] private var _panel:DraggablePanel = null;
+			
+			public const automaticDescription:LinkableString = registerLinkableChild(this,new LinkableString());
+			public const customDescription:LinkableString = registerLinkableChild(this,new LinkableString());
+			public const toolDescription:LinkableString = registerLinkableChild(this,new LinkableString());
+			public const includeInDesc:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean("false"));
 
-			
-			public var vizEntities:Array = WeaveAPI.globalHashMap.getObjects(LineChartTool);//collect all the visualization tools
-			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);
-		
-			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();
-			
-
-			public var variables:LinkableHashMap; 
-
-			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-			
-			//public var joinedColsforRArrayUnsplit:Array = new Array();
-			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
-			public var joinKeysRArray:Array = new Array();
-			public var joinColsRArray:Array = new Array();
-			public var columnNames:Array = new Array();
-			
+			// not sure if this piece of code if being used.
 			public function set target(panel:DraggablePanel):void
 			{
 				if (_panel)
-					throw new Error("target should not be set more than once");
+					throw new Error(lang("target should not be set more than once"));
 				
 				_panel = panel;
 			}
-			
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
 			}
-			
-			public function getSystemGeneratedText():void
-			{
-			}
-		
-			private function handleCreationComplete(event:Event) : void
-			{
-				variables = lineChartPlotter.columns;
-				checkingPlotterObjects();
-				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
-				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
-				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
 				
-				if( HashDisabilityText == null)
-					reportError("Error Creating request object from Disability Options");
-				else
-					linkBindableProperty(HashDisabilityText, event.target, "text");
-				
+			private function updateAutomaticDescription():void
+			{
+				automaticDescriptionTextBox.text = "Not yet available.";
 			}
 			
-			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
+			private function updateToolDescription():void
 			{
-				automaticToolDescTextBox.text = "after button clicked";
-				var dictionaryType:String;
-				var vizType:String;
-				var rResult:Array;
-		//		rResult = getInfoForR(/*columns???*/);
-				vizType = "lineChart";
-
-			}
-			
-			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
-			public function checkingPlotterObjects():void{
-				
-				if(WeaveAPI.SessionManager.linkableObjectIsBusy(variables)) return;
-				columnPreprocessing();
-			}
-			
-			//getting the columns ready for R
-			protected function columnPreprocessing():void
-			{
-				//use this function to gather the appropriate information that will be sent to R 
-				//we have the columns in columnObjects
-				var numericCols:Array = new Array();
-				//below whatever cols are plotted it picks them up as individual objects
-
-				var colObjects:Array = variables.getObjects(IAttributeColumn)
-					
-					//pick only numeric columns to be sent to R
-					for(var i:int =0 ; i < colObjects.length; i++)
-					{
-						var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
-						var dataType:String = ColumnUtils.getDataType(col);
-						
-						if (dataType == "number")
-						{
-							numericCols.push(col);
-							columnNames.push(ColumnUtils.getTitle(col));
-						}
-					}
-					
-					
-				//joining columns returns columns only complete records (no incomplete records)
-			    var joinedColumns:Array = joinColumns(numericCols);
-				
-				joinKeysRArray = joinedColumns[0]; 
-				joinColsRArray = joinedColumns[1];
-			
-				//todo: getting axis, title, color, scale, etc
-				sendColumnsToR();
-				
-			
-				
-			}
-			private function joinColumns(columns:Array):Array
-			{
-				var selection:KeySet = Weave.defaultSelectionKeySet;
-				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
-				//make dataype Null, so that columns will be sent as exact dataype to R
-				//if mentioned as String or NUmber ,will convert all columns to String or Number .
-				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
-				return [result.shift(), result];
-			}
-
-			protected function sendColumnsToR():void
-			{
-				//send the columns and variables returned from getInfoForR to R using this function
-				
-				var computeScript:String = "mySlope <- y2 -y1";
-				//inputValues is a matrix of all of the columns that are to be sent to R
-				
-				var inputValues:Array = new Array();
-				var tempArray:Array = new Array();
-				
-				for (var i:int = 0; i<joinColsRArray.length; i++){
-					inputValues.push(joinColsRArray[i][0].valueOf());
-				}
-			
-			/* for(var j:int = 0; j < 	joinColsRArray.length; j++)
-			{
-				for(var i :int = 0; i < joinColsRArray[j].length; i++)
+				if (textOption.selectedValue == customDescriptionRadioButton.label)
 				{
-					inputValues.push(joinColsRArray[j][1]);
-				}
-				
-			} */
-				
-			    //inputValues = joinColsRArray; //use this
-				var outputNames:Array = ["mySlope"];
-				//default name to be used in R
-				var inputName:Array = ["y1", "y2"];
-				
-				 var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 
-				
-			}
-			public function handleRunScriptResult(event:ResultEvent, token:Object):void
-			{
-				//if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
-				// to do handle multiple asynchronous calls
-				var rObject:Array = new Array();
-				rObject = event.result as Array;
-				var finalRObject:Array = new Array();//collects all the RResult objects after being returned from R
-				
-				if (rObject == null){ 
-					reportError("R Servlet did not return an Array of results as expected.");
-					return;
-				}
-				
-				for (var i:int=0; i < rObject.length; i++)
+					toolDescription.value = customDescription.value; 
+				} 
+
+				else if (textOption.selectedValue == automaticDescriptionRadioButton.label)
 				{
-					
-					if (rObject[i] == null)
-					{
-						trace("WARNING! R Service returned null in results array at index "+i);
-						continue;
-					}
-					
-					var rResult:RResult = new RResult(rObject[i]);
-					finalRObject[i] = rResult.value;
-			
-				}
-				
-				processingRResult(finalRObject);
-			
-			}
-			private function handleRunScriptFault(event:FaultEvent, token:Object):void
-			{
-				trace(["fault", token, event.message].join("\n"));
-				reportError(event);
-			}
-			
-			public var checkLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
-			
-			public function processingRResult(_sentpropertiesValues:Array):void
-			{
-				//var mockSlope : Number = 1;
-				var tempProperties:Array = new Array();
-				//var mockpropertiesValues:Array = new Array();//array of values of properties returned from R
-				tempProperties.push(_sentpropertiesValues);//returned from R
-				
-				//one DisabilityObject is made for every tool is one Weave instance
-			    var tempDisabilityObject :DisabilityObject = new DisabilityObject();
-				tempDisabilityObject.properties = _sentpropertiesValues;
-				/* structure for vizDetails                 title
-														   Attributes */
-				tempDisabilityObject.vizDetails.push(_target.title);
-				tempDisabilityObject.vizDetails.push(columnNames);
-				
-				//this gives us the final array of text messages
-				var finalTextMessages:Array = checkLookUpDict.collectMessageCategoryID(tempDisabilityObject);
-				automaticToolDescTextBox.text = finalTextMessages[0];
+					toolDescription.value = automaticDescription.value;
+				} 
 			}
 			
 		]]>

@@ -21,6 +21,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <!---
+@author fkamayou
 @author mervetuccar
 @author hbyrne
 -->
@@ -33,60 +34,140 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			  title="Disability Options" verticalScrollPolicy="off">
 	<mx:HDividedBox id="disabilityOptions" width="100%" height="100%" paddingBottom="{padding}"
 					paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}">
+		
 		<mx:TabNavigator height="100%" borderStyle="inset">
-			<mx:VBox width="100%" height="100%" label="Basic" horizontalAlign="left"
+			
+			<mx:VBox width="100%" height="100%" label="General Description" horizontalAlign="left"
 					 verticalAlign="top">
-				<mx:Label text="HTML Alt Text:" textAlign="left"/>
-				<mx:TextInput id="altTextInputBox" width="100%" height="30%"
+				<mx:TextArea id="generalDescriptionTextInputBox" width="80%" height="30%"
 							  backgroundColor="#EEEEEE" editable="true" horizontalCenter="true"
-							  toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."/>
+							  wordWrap="true" text="Weave Visualization."
+							  toolTip="Enter a general desciption of your visualizations."
+							  creationComplete="linkBindableProperty(generalDescription, event.target,'text')"/>
 			</mx:VBox>
-			<mx:VBox width="100%" height="100%" label="Advanced" horizontalAlign="left"
+			
+			<mx:VBox width="100%" height="100%" label="Detailed Description" horizontalAlign="left"
 					 verticalAlign="top">
-				<mx:Label text="longdesc text" textAlign="left"/>
-				<mx:TextInput id="longDescTextInputBox" width="100%" height="30%"
+
+				<mx:TextArea id="detailedDescriptionTextInputBox" width="80%" height="30% "
 							  backgroundColor="#EEEEEE" enabled="true" horizontalCenter="true"
-							  toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."/>
-				<mx:Button label="Refresh" click="updateCheckBoxes()" paddingLeft="5"
-						   paddingRight="5" toolTip="Refresh the list of visualizations"/>
-				<mx:CheckBox id="shortDescriptionCheckbox" label="Short Description"/>
-				<mx:VBox id="menuToggleVBox" verticalScrollPolicy="on">
+							  wordWrap="true"
+							  editable="false" toolTip="Select the detailed description available from the visualizations below."
+							  creationComplete="linkBindableProperty(detailedDescription, event.target, 'text')"/>
+				
+			<!--	<mx:Button label="Refresh Visualizations" click="updateCheckBoxes()" paddingLeft="2"
+						   paddingRight="2" toolTip="Refresh the list of visualizations"/>	-->			
+				
+				<mx:List id="VisCheckboxes">
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:CheckBox>
+								<mx:Script>
+									<![CDATA[
+										import weave.api.WeaveAPI;
+										import weave.api.linkBindableProperty;
+										import weave.api.unlinkBindableProperty;
+										import weave.visualization.tools.SimpleVisTool;
+										
+										private function get tool():SimpleVisTool
+										{
+											return data as SimpleVisTool;
+										}
+										
+										override public function set data(value:Object):void
+										{
+											if (tool)
+												unlinkBindableProperty(tool.disability.includeInDesc, this, 'selected');
+											super.data = value;
+											if (tool)
+												linkBindableProperty(tool.disability.includeInDesc, this, 'selected');
+											this.label = WeaveAPI.globalHashMap.getName(tool);
+										}
+									]]>
+								</mx:Script>
+							</mx:CheckBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:List>
+				
+			</mx:VBox>
+				
+			<mx:VBox width="100%" height="100%" label="Alt Text" horizontalAlign="left"
+					 verticalAlign="top">
+
+				<mx:CheckBox id="useGeneralDescriptionCheckBox" toolTip="Add the general description to the Alt Text"
+							 label="General Description" selected="true"
+							 creationComplete="linkBindableProperty(useGeneralDescription, event.target, 'selected')"/>
+				<mx:CheckBox id="useDetailedDescriptionCheckBox" toolTip="Add the detailed description to the Alt Text"
+							 label="Detailed Description"
+							 creationComplete="linkBindableProperty(useDetailedDescription, event.target, 'selected')"/>
+				<mx:TextArea id="AltTextTextArea" width="80%" height="50%"
+							 backgroundColor="#EEEEEE" editable="false" text="{generalDescriptionTextInputBox.text}"
+							 toolTip="This is the text that will be available for accessibility."/>
+			</mx:VBox>
 					
 					<mx:Script>
 						<![CDATA[
+							import flash.external.ExternalInterface;
+							
+							import mx.accessibility.CheckBoxAccImpl;
 							import mx.controls.CheckBox;
+							import mx.controls.ComboBox;
+							import mx.controls.List;
+							import mx.controls.Menu;
+							import mx.controls.TextArea;
 							import mx.controls.TextInput;
+							import mx.core.IUIComponent;
+							import mx.events.DragEvent;
 							import mx.events.FlexEvent;
+							import mx.managers.DragManager;
 							
 							import weave.Weave;
 							import weave.api.WeaveAPI;
+							import weave.api.core.IDisposableObject;
 							import weave.api.core.ILinkableObject;
+							import weave.api.detectLinkableObjectChange;
 							import weave.api.linkBindableProperty;
+							import weave.api.linkSessionState;
+							import weave.api.newDisposableChild;
+							import weave.api.newLinkableChild;
+							import weave.api.registerLinkableChild;
+							import weave.api.reportError;
+							import weave.api.ui.ILinkableObjectEditor;
+							import weave.core.DynamicState;
+							import weave.core.LinkableBoolean;
+							import weave.core.LinkableHashMap;
 							import weave.core.LinkableString;
+							import weave.core.SessionManager;
+							import weave.editors.Disability;
+							import weave.ui.ControlPanel;
+							import weave.ui.SessionStateEditor;
+							import weave.visualization.tools.SimpleVisTool;							
 							
+							private const useGeneralDescription:LinkableBoolean = new LinkableBoolean(false);
+							private const useDetailedDescription:LinkableBoolean = new LinkableBoolean(false);
+							
+							public const generalDescription:LinkableString = registerLinkableChild(this,new LinkableString("Weave instance"));
+							public const detailedDescription:LinkableString = registerLinkableChild(this, new LinkableString());
+							public const AltText:LinkableString = registerLinkableChild(this, new LinkableString());
 							
 							private const padding:int = 5;
-							private var cbArray:Array = [];
-							private var selectedCB : CheckBox;
-							private var _controlPanel:ControlPanel = null;
-							private var panel:DraggablePanel;
+							private var _visTools:Array = null;	
 							
-							private var appendBasic:Boolean = false;
-							
-							static public var Instance : DisabilityOptions;
-							
-							private var selectedCheckBoxLabelArray : Array = [];
+							//private var _controlPanel:ControlPanel = null;
+							//private var panel:DraggablePanel;
+						
+							private var _description:String = "";
+							private var _selectedCheckBoxLabelArray : Array = [];
 							
 							override protected function constructor():void
 							{
 								super.constructor();
-								
+								WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, setVisTools, true);
 								panelWidth.value = "70%";
 								panelHeight.value = "70%";
 								panelX.value = "15%";
 								panelY.value = "15%";
-								
-								Instance = this;
 								
 							}
 						
@@ -94,139 +175,126 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							{
 								super.childrenCreated();
 								
-								linkBindableProperty(Weave.properties.disabilityAltText, altTextInputBox, "text");
-								linkBindableProperty(Weave.properties.disabilityLongAltText, longDescTextInputBox, "text");
-						//		linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
-								
 								Weave.properties.disabilityAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
-								
-								updateCheckBoxes();	
-								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);	
-								shortDescriptionCheckbox.addEventListener(MouseEvent.CLICK, shortDescriptioncCheckBoxClickHandler);
-								Weave.properties.disabilityHashMap.addDisposeCallback(label,updateCheckBoxes );
-								
-								
+								useGeneralDescription.addImmediateCallback(this, handleAltText);
+								useDetailedDescription.addImmediateCallback(this, handleAltText);
+								//addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);	
+								//Weave.properties.disabilityHashMap.addDisposeCallback(label, updateCheckBoxes);
 							}
 							protected function handleDisabilityAltTextChange() : void
 							{
-								ExternalInterface.call("getAltText()");
-									  
+								ExternalInterface.call("function(altText) { var weaveAltImg = document.getElementById(\"weaveAltImg\"); weaveAltImg.alt = altText;}",
+									Weave.properties.disabilityAltText.value
+								);									  
 							}
 						
-							
-							protected function panelRemovedEventHandler(event:Event):void
-							{	
-								var Name : String = WeaveAPI.getRegisteredImplementationDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop();
-								
-								updateCheckBoxes();		
+							private function setVisTools() : void
+							{
+								VisCheckboxes.dataProvider = _visTools = WeaveAPI.globalHashMap.getObjects(SimpleVisTool);
 							}
 							
-							private function updateCheckBoxes():void
+//							/**
+//							 * 
+//							 *	This function dynamically update the checkboxes, based on open panels on stage. 
+//							 * 
+//							 */
+//							private function updateCheckBoxes():void
+//							{
+//								
+//								var checkBox:CheckBox   = null;
+//								checkBoxArray.splice(0); // empty the checkbox array.
+//								//panels = getWindowsOnStage();
+//								menuToggleVBox.removeAllChildren();
+//								
+//								// we could use panel on stage but might not be necessary
+//								panels = Weave.root.getObjects(SimpleVisTool);
+//								
+//								for each(panel in panels)
+//								{
+//									delete panelMessages[panel];
+//									checkBox = new CheckBox();
+//									checkBox.label = panel.title;
+//									checkBox.toolTip = "Checking this box appends its description to the advanced description";
+//									checkBox.addEventListener(MouseEvent.CLICK, handleCheckBoxesSelection(panel))
+//									menuToggleVBox.addChild(checkBox);
+//								}             
+//								
+//								updateDetailedDescription();
+//																
+//							}
+//							
+							
+//							// http://stackoverflow.com/questions/13486230/to-pass-a-parameter-to-event-listener-in-as3-the-simple-way-does-it-exist
+//							protected function handleCheckBoxesSelection(panel:DraggablePanel):Function {
+//								return function(event:MouseEvent):void {
+//									if ( event.target.selected == true ) 
+//									{
+//										panelMessages[panel] = true;
+//										updateDetailedDescription();
+//									}
+//									else
+//									{
+//										delete panelMessages[panel];
+//										updateDetailedDescription();
+//									}
+//									
+//								}
+//							}
+							
+							private function updateDetailedDescription():void
 							{
+								var text:String = "";
 								
-								var panels:Array = [];
-								var cb:CheckBox   = null;
-								cbArray = [];
-								panels = getWindowsOnStage();
-								
-								menuToggleVBox.removeAllChildren();
-								
-								for each(var panel:DraggablePanel in panels)
-								{
-									
-									cb = new CheckBox();
-									cb.label=panel.title;
-									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
-									cbArray.push(cb);
-									
-								}             
-								
-								cbArray.sortOn('label');
-								for each (cb in cbArray)
-								{
-									menuToggleVBox.addChild(cb);
-									cb.addEventListener(MouseEvent.CLICK, checkBoxClickHandler);		
-								}
-								
+								for each (var visTool:SimpleVisTool in _visTools)
+									if (visTool.disability.includeInDesc)
+										detailedDescriptionTextInputBox.text += visTool.disability.toolDescription.value  + "\n";
 							}
 							
-							protected function checkBoxClickHandler(event:MouseEvent):void
+							protected function handleAltText():void
 							{
-								if(appendBasic == true)
-									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " ";
-								else
-									longDescTextInputBox.text = "";
-								
-								if(event.target.selected == true) // checkbox selected
+								if (useGeneralDescription.value)
 								{
-									
-									selectedCheckBoxLabelArray.push(event.target.label);
-									
-								}
-									
-								else if(event.target.selected == false) // checkbox deselected
-								{
-									selectedCheckBoxLabelArray.splice(selectedCheckBoxLabelArray.indexOf(event.target.label), 1);
-									
-								}
-								
-								
-								for each(var label:String in selectedCheckBoxLabelArray)
-								{
-									longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
-								}
-						
-								
-							}
-					
-							private function shortDescriptioncCheckBoxClickHandler(event:MouseEvent):void
-							{
-								longDescTextInputBox.text = "";
-								
-								var label:String;
-								
-								if (shortDescriptionCheckbox.selected == true)
-								{
-									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " ";
-									for each (label in selectedCheckBoxLabelArray)
+									if(useDetailedDescription.value)
 									{
-										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
-									}
-									appendBasic = true;
-									
-								}
-								else 
-								{
-									for each (label in selectedCheckBoxLabelArray)
+		
+										Weave.properties.disabilityAltText.value = generalDescriptionTextInputBox.text + "\n" + detailedDescriptionTextInputBox.text;
+										AltTextTextArea.text = Weave.properties.disabilityAltText.value;
+									} else
 									{
-										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
+										Weave.properties.disabilityAltText.value = generalDescriptionTextInputBox.text;
+										AltTextTextArea.text = Weave.properties.disabilityAltText.value;
 									}
-								
-									appendBasic = false;
-								}
-							
-							}
-							
-							
-							private function getWindowsOnStage(): Array
-							{
-								var panels:Array = Weave.root.getObjects(DraggablePanel);
-								var panelsOnStage:Array = [];
-								
-								for each (var panel:DraggablePanel in panels)
+								} else
 								{
-									if (!panel.minimized.value)
-										panelsOnStage.push(panel);
-									
+									if(useDetailedDescription.value)
+									{
+										Weave.properties.disabilityAltText.value = detailedDescriptionTextInputBox.text;
+										AltTextTextArea.text = Weave.properties.disabilityAltText.value;
+									} else
+									{
+										Weave.properties.disabilityAltText.value = "";
+										AltTextTextArea.text ="";
+									}
 								}
-								
-								return panelsOnStage;
 							}
+							
+//							private function getWindowsOnStage(): Array
+//							{
+//								var panels:Array = Weave.root.getObjects(DraggablePanel);
+//								var panelsOnStage:Array = [];
+//								
+//								for each ( panel in panels)
+//								{
+//									if (!panel.minimized.value)
+//										panelsOnStage.push(panel);
+//									
+//								}
+//								
+//								return panelsOnStage;
+//							}
 							
 						]]>
 					</mx:Script>	
-				</mx:VBox>	
-			</mx:VBox>
 		</mx:TabNavigator>
 	</mx:HDividedBox>
 </ControlPanel>

@@ -28,7 +28,6 @@ package weave.visualization.tools
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
@@ -38,6 +37,7 @@ package weave.visualization.tools
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -98,7 +98,7 @@ package weave.visualization.tools
 		protected var layerListComponent:LayerListComponent;
 		protected var simpleAxisEditor:SimpleAxisEditor;
 		protected var windowSettingsEditor:WindowSettingsEditor;
-		protected var disability : Disability;
+		public const disability : Disability = newLinkableChild(this, Disability); // for the disability panel.
 		
 		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
@@ -152,7 +152,6 @@ package weave.visualization.tools
 			windowSettingsEditor = new WindowSettingsEditor();
 			windowSettingsEditor.target = this;
 			
-			disability = new Disability();
 			disability.target = this;
 			
 			if (controlPanel)

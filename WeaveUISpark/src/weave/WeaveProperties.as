@@ -28,6 +28,7 @@ package weave
 	import flash.net.URLRequest;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
@@ -238,11 +239,9 @@ package weave
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu
-
-		public const disabilityAltText:LinkableString = new LinkableString();
-		public const disabilityHashMap:LinkableHashMap = new LinkableHashMap();
-		public const disabilityLongAltText:LinkableString = new LinkableString();
-		public const disabilitySystemText:LinkableString = new LinkableString();
+		
+		public const disabilityAltText:LinkableString = new LinkableString("Weave Visualization."); // text used for the Alt property in html for accessibility.
+		public const disabilityHashMap:Dictionary = new Dictionary(); // Dictionary used to save each vis message at top level.          
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
 		public function getToolToggle(classDef:Class):LinkableBoolean

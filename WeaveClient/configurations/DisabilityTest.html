@@ -73,31 +73,10 @@
 <script language="JavaScript" type="text/javascript">
 
 
-//sets the "altText" of the current Weave instance using the text from the basic disability UI
- function getAltText(){
-
- 	var weave = document.getElementById('weave');
- 	var altPath = ['WeaveProperties', 'disabilityAltText'];
- 	var dAltText = weave.getSessionState(altPath);
- 	var demoText =  document.getElementById('demo');
- 	demoText.innerHTML = dAltText;
-  	weave.alt = dAltText;	
- 
- }
-
 function weaveReady(weave)
 {
-	disableButtons(false);
 	alert('Weave JavaScript API is ready (id="'+(weave && weave.id)+'").');
-	getAltText();
-	
 }
-
-//this function will enable or disable the api test buttons.
-function disableButtons(disabled)
-{
-}
-disableButtons(true);
 
 function runStartupScript()
 {
@@ -106,8 +85,9 @@ function runStartupScript()
 	
 
 </script>
+		<img id="weaveAltImg" alt="this is a test for screen readers" src="test.png"/>
         
-        <div id="flashContent">
+        <div id="flashContent" >
             <p>
                 To view this page ensure that Adobe Flash Player version 
                 10.2.0 or greater is installed. 
@@ -118,7 +98,6 @@ function runStartupScript()
                                 + pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
             </script> 
         </div>
-        
         <noscript>
             <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="100%" height="100%" id="weave">
                 <param name="movie" value="weave.swf" />
