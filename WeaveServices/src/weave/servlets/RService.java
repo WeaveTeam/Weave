@@ -456,6 +456,19 @@ public class RService extends GenericServlet
 
 // not needed for now.
 	
+//	public class ScriptMetadata
+//	{
+//		// input variables
+//		public String[] inputs;
+//		// description of the input variables
+//		public String[] inputDescriptions;
+//		
+//		// output variables
+//		public String[] outputs;
+//		// description of the output variables
+//		public String[] outputDescriptions;
+//
+//	}
 	public Object getScriptMetadata(String folderPath, String scriptName) throws Exception
 	{
 		File directory = new File(folderPath);
