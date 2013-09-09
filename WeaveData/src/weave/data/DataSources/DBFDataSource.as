@@ -33,6 +33,7 @@ package weave.data.DataSources
 	import org.vanrijkom.dbf.DbfTools;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -202,6 +203,8 @@ package weave.data.DataSources
 				
 			//The column names
 			var colName:String = proxyColumn.getMetadata('name');
+			if (!proxyColumn.getMetadata(ColumnMetadata.TITLE))
+				leafNode['@'+ColumnMetadata.TITLE] = colName;
 			var _keyColName:String = this.keyColName.value;
 			if (_keyColName == null)
 				_keyColName = (dbf.fields[0] as DbfField).name;

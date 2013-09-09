@@ -32,50 +32,55 @@
 		<mx:CheckBox id="noAppendCheckBox" label="{lang('Create new Weave table entry even if a matching one already exists')}"/>
 		
 		<ui:Indent width="100%" label="Load Shape files" group="{tableSelector.indentGroup}">
-			<mx:TextInput id="shpFileNameInput" enabled="true" width="240"/>
-			<mx:Button label="Upload ..." click="browseAndUploadShapeFiles();"/>
-			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
-			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
+			<mx:TextInput id="shpFileNameInput" width="240"/>
+			<mx:Button label="{lang('Upload ...')}" click="browseAndUploadShapeFiles();"/>
+			<mx:Button label="{lang('Choose File on Server')}" click="openServerBrowser();" />
+			<mx:Label text="{fileUploadCount > 0 ? lang('{0} of {1} files uploaded', fileUploadCount, targetFileUploadCount) : ''}"/>
 		</ui:Indent>
 		<admin:SQLTableSelectorDialog
 			id="tableSelector"
-			propertyChange="toggleButtons();"
-			enabled="false"
+			visible="{arrayNotEmpty(dbfColumns)}"
+			change="handleChange();"
 			showTableCombo="false"
-			creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';"
+			creationComplete="tableSelector.tableControls.label = lang('SQL Table Prefix');"
 			activeTable="{shpFileNameInput.text}"
 			tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	
 	<mx:VBox width="100%" height="100%">
 		<ui:Indent label="{lang('Table display name')}" group="{indentGroup}">
-			<ui:TextInputWithPrompt id="tableTitleInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
+			<ui:TextInputWithPrompt id="tableTitleInput"
+									change="handleChange();"
+									prompt="{lang('Enter a table name')}"
+									text="{tableSelector.activeTable}"/>
 			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
 		</ui:Indent>
 		
 		<mx:HBox>
-			<mx:CheckBox id="dbfImportCheckBox" label="Publish DBF data as Weave attribute columns" selected="true" change="handleKeyColumnsChange()" />
+			<mx:CheckBox id="dbfImportCheckBox" label="{lang('Publish DBF data as Weave attribute columns')}" selected="true" change="handleKeyColumnsChange()" />
 			<ui:HelpComponent>
 				The DBF file is used to generate record identifiers for the geometries contained in the SHP file.
 				Creating attribute columns for the rest of the DBF data is optional, but requires a key column or set of columns with values that uniquely identify rows in the DBF table.
 			</ui:HelpComponent>
 		</mx:HBox>
-		<ui:IndentTextInput label="Null flag values" enabled="{dbfImportCheckBox.selected}" id="nullFlagInput" group="{indentGroup}"
+		<ui:IndentTextInput label="{lang('Null flag values')}" id="nullFlagInput" group="{indentGroup}"
 				visible="{dbfImportCheckBox.selected}" includeInLayout="{dbfImportCheckBox.selected}"
-				toolTip="Specify flag values to treat as missing data, separated by commas"/>
+				toolTip="{lang('Specify flag values to treat as missing data, separated by commas')}"/>
 		
-		<ui:Indent id="projectionCode" label="Projection SRS" group="{indentGroup}">
+		<ui:Indent id="projectionCode" label="{lang('Projection SRS')}" group="{indentGroup}">
 			<mx:TextInput id="srsProjectionTxtInput" change="validateProjectionSRS()"/>
 		</ui:Indent>
 		
-		<ui:Indent id="dbfColumnNames" label="DBF Key column(s)" group="{indentGroup}">
+		<ui:Indent label="{lang('DBF Key column(s)')}" group="{indentGroup}">
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{dbfColumns}" change="handleKeyColumnsChange()" editable="true" width="240"/>
 			<ui:HelpComponent>
 				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
 		</ui:Indent>
 		
-		<admin:KeyTypeDialog id="keyTypeDialog" defaultKeyType="{tableSelector.activeTable}"
+		<admin:KeyTypeDialog id="keyTypeDialog"
+							 defaultKeyType="{tableSelector.activeTable}"
+							 change="handleChange()"
 							 includeInLayout="{dbfKeyColumnsCombo.text &amp;&amp; !dbfKeyColumnsCombo.errorString}"
 							 visible="{dbfKeyColumnsCombo.text &amp;&amp; !dbfKeyColumnsCombo.errorString}"/>
 	</mx:VBox>
@@ -88,6 +93,7 @@
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
@@ -103,26 +109,6 @@
 			private static const paddingIndent:int = 20;
 			[Bindable] public var indentGroup:IndentGroup = new IndentGroup();
 			
-			
-			private function disableButtons():void
-			{
-				nextEnabled = finishEnabled = false;
-			}
-			
-			private function toggleButtons():void
-			{
-				// step 1
-				var shpSelected:Boolean = Boolean(shpFileNameInput.text);
-				tableSelector.enabled = shpSelected;
-				var step1:Boolean = (shpSelected && tableSelector.activeSchema && tableSelector.activeTable);
-				
-				// step 2
-				var step2:Boolean = dbfKeyColumnsCombo && !dbfKeyColumnsCombo.errorString;
-								
-				nextEnabled = [step1,step2][selectedIndex];
-				finishEnabled = step1 && step2;
-			}
-			
 			private static const DEFAULT_PROJECTION:String = 'defaultProjectionSRS';
 			private const sharedObject:SharedObject = SharedObject.getLocal(getQualifiedClassName(this).split('::').join('.'));
 			private function handleCreationComplete():void
@@ -137,25 +123,105 @@
 					}
 				);
 				srsProjectionTxtInput.text = sharedObject.data[DEFAULT_PROJECTION] || "EPSG:4326";
-				toggleButtons();
+				handleChange();
 			}
 			
-			private const delayedHandleShpNameChange:Function = EventUtils.generateDelayedCallback(this, handleShpNameChange, 1000);
+			private function handleChange():void
+			{
+				var step1:Boolean = (
+					shpFileNameInput.text
+					&& tableSelector.activeSchema
+					&& tableSelector.activeTable
+					&& fileUploadCount >= targetFileUploadCount
+					&& dbfColumns.length > 0
+					&& tableTitleInput.text
+				);
+				var step2:Boolean = (
+					dbfKeyColumnsCombo.text
+					&& !dbfKeyColumnsCombo.errorString
+					&& keyTypeDialog.selectedKeyType
+				);
+				stepsCompleted = [step1,step2];
+			}
+			
+			private function arrayNotEmpty(array:Array):Boolean
+			{
+				return array && array.length;
+			}
+			
+			private const delayedHandleShpNameChange:Function = EventUtils.generateDelayedCallback(this, handleShpNameChange);
 			private function handleShpNameChange():void
 			{
-				if (shpFileNameInput.text)
+				var names:Array = WeaveAPI.CSVParser.parseCSV(shpFileNameInput.text)[0] || [];
+				_dbfFilesToRequestColumnNamesFrom = names.map(
+					function(n:String, i:int, a:Array):String { return n + '.dbf'; }
+				);
+				tableSelector.activeTable = names.length ? names[0] : '';
+				
+				getColumnNames();
+			}
+			
+			private function getColumnNames():void
+			{
+				dbfColumns = [];
+				shpFileNameInput.errorString = '';
+				
+				if (_dbfFilesToRequestColumnNamesFrom.length > 0)
 				{
-					var names:Array = WeaveAPI.CSVParser.parseCSV(shpFileNameInput.text)[0];
-					_dbfFilesToRequestColumnNamesFrom = names.map(
-						function(n:String, i:int, a:Array):String { return n + '.dbf'; }
-					);
+					var query:AsyncToken;
 					addAsyncResponder(
-						Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
-						handleDBFColumnNames
+						query = Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
+						function(event:ResultEvent, files:Array):void
+						{
+							if (files != _dbfFilesToRequestColumnNamesFrom)
+								return;
+							dbfColumns = event.result as Array || [];
+							handleKeyColumnsChange();
+						},
+						function(event:FaultEvent, files:Array):void
+						{
+							if (files != _dbfFilesToRequestColumnNamesFrom)
+								return;
+							
+							shpFileNameInput.errorString = event.fault.faultString;
+							selectedIndex = 0;
+							handleKeyColumnsChange();
+						},
+						_dbfFilesToRequestColumnNamesFrom
 					);
-					tableSelector.activeTable = names[0];
+					Admin.service.hideFaultMessage(query);
 				}
-				toggleButtons();
+				
+				handleChange();
+			}
+			
+			/**
+			 * This function is called to check if the selected key column has unique values.
+			 * If the column does not have unique values we set the errorString on the key column
+			 * combo box and disable the next and finish buttons.
+			 * */
+			private function handleKeyColumnsChange():void
+			{
+				handleChange();
+				if (dbfKeyColumnsCombo.dataProvider == null || (dbfKeyColumnsCombo.dataProvider as ArrayCollection).length == 0)
+				{
+					return;
+				}
+				
+				if (!dbfImportCheckBox.selected)
+				{
+					dbfKeyColumnsCombo.errorString = '';
+					handleChange();
+					return;
+				}
+				
+				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
+				var keyCols:Array = trimmedKeyCols.split(","); 
+				
+				addAsyncResponder(
+					Admin.service.checkKeyColumnsForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols),
+					keyColumnsCheckedForUniqueness
+				);
 			}
 			
 			[Bindable] public var dbfColumns:Array = [];
@@ -167,7 +233,7 @@
 				fileUploadCount = 0;
 				targetFileUploadCount = shapeFileReferenceList.fileList.length;
 				shpFileNameInput.text = '';
-				_dbfFilesToRequestColumnNamesFrom.length = 0;
+				_dbfFilesToRequestColumnNamesFrom = [];
 				
 				for each (var fileRef:FileReference in shapeFileReferenceList.fileList)
 				{
@@ -189,7 +255,7 @@
 					fileRef.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 					fileRef.addEventListener(Event.COMPLETE, handleFileLoadComplete);
 					fileRef.load();
-					disableButtons();
+					stepsCompleted = [false,false];
 				}
 			}
 			
@@ -230,30 +296,21 @@
 					fileUploadCount++;
 					
 					if( fileUploadCount == targetFileUploadCount )
-					{
-						addAsyncResponder(
-							Admin.service.getDBFColumnNames(_dbfFilesToRequestColumnNamesFrom),
-							handleDBFColumnNames
-						);
-						toggleButtons();
-					}
+						getColumnNames();
 				}
 			}
 			
-			private function handleDBFColumnNames(event:ResultEvent, token:Object):void
-			{
-				dbfColumns = event.result as Array || [];
-				handleKeyColumnsChange();
-			}
-						
 			private var _serverFileBrowser:ServerFileViewer = null;
 			private function openServerBrowser():void
 			{
 				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_SHP);
+				_serverFileBrowser.datagrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{
+				fileUploadCount = targetFileUploadCount = 0;
+				
 				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
 				
@@ -261,7 +318,7 @@
 				handleShpNameChange();
 
 				PopUpManager.removePopUp(_serverFileBrowser);
-				toggleButtons();
+				handleChange();
 			}
 			
 			override public function finish():void
@@ -301,35 +358,6 @@
 					);
 				}
 			}
-			
-			/**
-			 * This function is called to check if the selected key column has unique values.
-			 * If the column does not have unique values we set the errorString on the key column
-			 * combo box and disable the next and finish buttons.
-			 * */
-			private function handleKeyColumnsChange():void
-			{
-				toggleButtons();
-				if (dbfKeyColumnsCombo.dataProvider == null || (dbfKeyColumnsCombo.dataProvider as ArrayCollection).length == 0)
-				{
-					return;
-				}
-				
-				if (!dbfImportCheckBox.selected)
-				{
-					dbfKeyColumnsCombo.errorString = '';
-					toggleButtons();
-					return;
-				}
-				
-				var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
-				var keyCols:Array = trimmedKeyCols.split(","); 
-				
-				addAsyncResponder(
-					Admin.service.checkKeyColumnForDBFImport(_dbfFilesToRequestColumnNamesFrom, keyCols),
-					keyColumnsCheckedForUniqueness
-				);
-			}
 			private function keyColumnsCheckedForUniqueness(event:ResultEvent, token:Object = null):void
 			{
 				if (event.result)
@@ -338,7 +366,7 @@
 					dbfKeyColumnsCombo.errorString = 'Key values are not unique';
 				
 				dbfKeyColumnsCombo.invalidateDisplayList();
-				toggleButtons();
+				handleChange();
 			}
 			
 			private function validateProjectionSRS():void

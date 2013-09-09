@@ -40,7 +40,7 @@ import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
-import weave.utils.StringUtils;
+import weave.utils.Strings;
 
 
 /**
@@ -175,7 +175,7 @@ public class MetadataTable extends AbstractTable
 					SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, FIELD_NAME), "?")
 				);
 			if (ids != null)
-				query += String.format(" AND %s IN (%s)", quotedIdField, StringUtils.join(",", ids));
+				query += String.format(" AND %s IN (%s)", quotedIdField, Strings.join(",", ids));
 			
 			// make query and get values
 			stmt = SQLUtils.prepareStatement(conn, query, Arrays.asList(property));
@@ -216,7 +216,7 @@ public class MetadataTable extends AbstractTable
 					"SELECT * FROM %s WHERE %s IN (%s)",
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
 					SQLUtils.quoteSymbol(conn, FIELD_ID),
-					StringUtils.join(",", ids)
+					Strings.join(",", ids)
 				);
 			stmt = conn.prepareStatement(query);
 			rs = stmt.executeQuery();

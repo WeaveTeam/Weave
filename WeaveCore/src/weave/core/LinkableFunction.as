@@ -96,7 +96,7 @@ package weave.core
 				if (_macroProxy == null)
 					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
 				var object:ICompiledObject = _compiler.compileToObject(value);
-				_isFunctionDefinition = _compiler.compiledObjectIsFunction(object);
+				_isFunctionDefinition = _compiler.compiledObjectIsFunctionDefinition(object);
 				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, errorHandler, _useThisScope, _paramNames);
 			}
 		}

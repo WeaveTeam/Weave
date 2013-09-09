@@ -21,7 +21,7 @@
 -->
 <!--- @author kmanohar -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
-				title="{lang('Probed Records Table')}"
+				title="{lang('Highlighted Records Table')}"
 				>
 	<mx:HDividedBox  height="100%" width="100%">
 		<mx:VBox height="100%" width="20%">

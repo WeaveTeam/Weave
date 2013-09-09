@@ -21,14 +21,11 @@ package weave.servlets;
 
 import java.io.File;
 import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.UUID;
 import java.util.Vector;
 
 import javax.script.ScriptException;
 
-import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -38,6 +35,7 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
 import org.rosuda.REngine.REngineException;
+import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -45,10 +43,9 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
-import weave.servlets.AdminService.ColumnInfo;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
-import weave.utils.StringUtils;
+import weave.utils.Strings;
 
 
 public class RServiceUsingRserve 
@@ -485,7 +482,7 @@ public class RServiceUsingRserve
 		Vector<String> names = evalValue.asList().names;
 
 
-		String namescheck = StringUtils.join(",", names);
+		String namescheck = Strings.join(",", names);
 		finalresultString = finalresultString.concat(namescheck);
 		finalresultString = finalresultString.concat("\n");
 
@@ -536,6 +533,19 @@ public class RServiceUsingRserve
 						else if(currentColumn instanceof RFactor)
 						{
 							tempStringArray = ((RFactor)currentColumn).levels();
+						}
+						else if(currentColumn instanceof String[]){
+							 int lent = ((Object[]) currentColumn).length;
+							 //String[] columnAsStringArray = currentColumn;
+							 tempStringArray = new String[lent];  
+							 for(int g = 0; g < lent; g++)
+							 {
+								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
+							 }
+						/*	String[] temp = (String[])
+							int arrsize = ((String[])currentColumn).length;
+							tempStringArray = new String[arrsize];
+							tempStringArray = (String[])currentColumn;*/
 						}
 						
 						columnsInStrings.add(tempStringArray);
