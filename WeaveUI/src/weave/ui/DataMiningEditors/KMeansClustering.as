@@ -119,7 +119,7 @@ package weave.ui.DataMiningEditors
 			 this contains all the different metrics of a single Kmeans clustering object*/
 			 if(algoCaller is DataMiningChannelToR)
 			 {
-				 finalResult = new KMeansClusteringResult(clusterResult, token);
+				 finalResult = new KMeansClusteringResult(clusterResult, keys);
 				 if(checkingIfFilled != null )
 					 checkingIfFilled(finalResult);
 			 }

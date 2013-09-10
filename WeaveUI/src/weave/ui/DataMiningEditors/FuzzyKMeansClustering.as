@@ -116,7 +116,7 @@ package weave.ui.DataMiningEditors
 			
 			if(algoCaller is DataMiningChannelToR)
 			{
-				finalResult = new FuzzyKMeansClusteringResult(clusterArray,token);
+				finalResult = new FuzzyKMeansClusteringResult(clusterArray,keys);
 				if(checkingIfFilled != null)
 					checkingIfFilled(finalResult);
 			}

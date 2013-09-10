@@ -257,11 +257,11 @@ package weave.services
 			query.invoke(); // temporary?  perform query now instead of using global queue
 		}
 		
-		override protected function handleQueryResultOrFault(event:Event, token:Object = null):void
+		override protected function handleQueryResultOrFault(event:Event, query:DelayedAsyncInvocation):void
 		{
 			//trace(token, (event is ResultEvent) ? "SUCCESS" : "FAIL");
 
-			super.handleQueryResultOrFault(event, token);
+			super.handleQueryResultOrFault(event, query);
 		}
 		
 		public var alertEnabled:Boolean = true; // true to enable alert boxes

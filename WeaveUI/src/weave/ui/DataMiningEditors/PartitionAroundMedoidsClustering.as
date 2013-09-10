@@ -116,7 +116,7 @@ package weave.ui.DataMiningEditors
 				
 				if(algoCaller is DataMiningChannelToR)
 				{
-					finalResult = new PartitionAroundMedoidsClusteringResult(clusterResult,token);
+					finalResult = new PartitionAroundMedoidsClusteringResult(clusterResult,keys);
 					if(checkingIfFilled != null)
 						checkingIfFilled(finalResult);
 				}
