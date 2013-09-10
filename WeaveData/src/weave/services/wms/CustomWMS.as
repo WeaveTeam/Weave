@@ -354,10 +354,8 @@ package weave.services.wms
 		 * @param event The result event.
 		 * @param token The tile.
 		 */
-		private function handleImageDownload(event:ResultEvent, token:Object = null):void
+		private function handleImageDownload(event:ResultEvent, tile:WMSTile):void
 		{
-			var tile:WMSTile = token as WMSTile;
-			
 			tile.bitmapData = (event.result as Bitmap).bitmapData;
 			handleTileDownload(tile);
 		}
@@ -368,10 +366,8 @@ package weave.services.wms
 		 * @param event The fault event.
 		 * @param token The tile.
 		 */
-		private function handleImageDownloadFault(event:FaultEvent, token:Object = null):void
+		private function handleImageDownloadFault(event:FaultEvent, tile:WMSTile):void
 		{
-			var tile:WMSTile = token as WMSTile;
-			
 			tile.bitmapData = null; // a plotter should handle this
 			reportError(event);
 			

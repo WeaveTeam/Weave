@@ -273,10 +273,8 @@ package weave.services
 		 * It will notify the user with an Alert box and set 'alerted' = true.
 		 * If 'alerted' is already true, it will not display an Alert box.
 		 */
-		protected function handleDownloadFault(event:FaultEvent, token:Object = null):void
+		protected function handleDownloadFault(event:FaultEvent, query:DelayedAsyncInvocation):void
 		{
-			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
-
 			//trace("###################### Web service fault:", query, event.toString());
 			if (alertEnabled)
 			{

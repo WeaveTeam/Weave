@@ -148,12 +148,11 @@ package weave.services
 		}
 		
 		// This function gets called when a query has been downloaded.  It will download the next query if available
-		protected function handleQueryResultOrFault(event:Event, token:Object = null):void
+		protected function handleQueryResultOrFault(event:Event, query:DelayedAsyncInvocation):void
 		{
 			if (objectWasDisposed(this))
 				return;
 			
-			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
 			WeaveAPI.ProgressIndicator.removeTask(query);
 			
 			// see if the query is in the queue
