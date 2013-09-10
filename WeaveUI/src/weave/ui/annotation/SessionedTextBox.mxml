@@ -25,7 +25,7 @@
 				   width="25%" height="25%" backgroundAlpha="0" borderThickness="0"
 				   horizontalScrollPolicy="off" layout="absolute" verticalScrollPolicy="off">
 	<mx:TextArea id="textArea" width="100%" height="100%" minWidth="5" minHeight="5"
-				 borderStyle="solid" editable="false" wordWrap="true" keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');" />
+				 borderStyle="solid" editable="false" wordWrap="true"/>
 	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
 					 width="360" height="260"
 					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
@@ -185,20 +185,7 @@
 				fontControls.underlineButton.addEventListener(Event.CHANGE, applyTextFormat);
 				
 				applyStyle();
-			//	textArea.addEventListener(KeyboardEvent.KEY_DOWN,tabSpace);
 			}
-			
-			/*protected function tabSpace(event:KeyboardEvent):void
-			{
-			if(event.keyCode == Keyboard.TAB){
-				event.preventDefault();
-			//	keyFocusChange="event.preventDefault();event.target.replaceSelectedText('\t');"
-					event.target.replaceSelectedText('\t');
-			
-					
-				}
-			}*/
-			
 
 			private function handleTextAreaChange(value:String):void
 			{
