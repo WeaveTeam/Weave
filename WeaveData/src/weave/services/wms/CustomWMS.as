@@ -103,7 +103,7 @@ package weave.services.wms
 		
 		}
 		
-		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array
+		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array
 		{
 			if(_currentTileIndex == null || !wmsURL.value || !imageAttributesSet)
 				return [];
@@ -113,7 +113,7 @@ package weave.services.wms
 			
 			
 			// first determine zoom level using all of the data bounds in lat/lon
-			setTempCoordZoomLevel(dataBounds, screenBounds, lowerQuality); // this sets _tempCoord.zoom 
+			setTempCoordZoomLevel(dataBounds, screenBounds, preferLowerQuality); // this sets _tempCoord.zoom 
 			
 			// cancel all pending requests which aren't of this zoom level
 			for (i = 0; i < _pendingTiles.length; ++i)
@@ -153,8 +153,8 @@ package weave.services.wms
 			
 			
 			// get tiles we need using the map's mercator projection because the tiles' bounds must be in this projection
-			var lowerQualTiles:Array = _currentTileIndex.getTilesWithinBoundsAndZoomLevels(mercatorTileXYBounds, 0, _tempCoord.zoom - 1);
-			var completedTiles:Array = _currentTileIndex.getTilesWithinBounds(mercatorTileXYBounds, _tempCoord.zoom);
+			var lowerQualTiles:Array = _currentTileIndex.getTiles(mercatorTileXYBounds, 0, _tempCoord.zoom - 1);
+			var completedTiles:Array = _currentTileIndex.getTiles(mercatorTileXYBounds, _tempCoord.zoom, _tempCoord.zoom);
 			for (var x:int = xTileMin; x < xTileMax; ++x)
 			{
 				for (var y:int = yTileMin; y < yTileMax; ++y)
@@ -190,9 +190,13 @@ package weave.services.wms
 				}
 			}
 			
-			lowerQualTiles = lowerQualTiles.concat(completedTiles);
-			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
-			return lowerQualTiles;
+			var tiles:Array;
+			if (layerLowerQuality)
+				tiles = lowerQualTiles.concat(completedTiles);
+			else
+				tiles = completedTiles;
+			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			return tiles;
 		}
 		
 		
