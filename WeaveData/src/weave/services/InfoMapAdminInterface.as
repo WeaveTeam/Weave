@@ -275,6 +275,11 @@ package weave.services
 				return query;
 			}
 			
+			public function saveWeaveFile(content:ByteArray,fileName:String):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("saveWeaveFile",[content,fileName]);
+				return query;
+			}
 			
 		}
 }

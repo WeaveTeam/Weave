@@ -73,6 +73,8 @@ package weave.application
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
+	import weave.services.DelayedAsyncInvocation;
+	import weave.services.InfoMapAdminInterface;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.AlertTextBox;
@@ -488,14 +490,19 @@ package weave.application
 			_selectionIndicatorText.setStyle("left", 0);
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
-			
-			//			if(Weave.properties.enableAutoSave.value)
-			//			{
-			//				saveSessionTimer = new Timer(5000);
-			//				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
-			//				saveSessionTimer.start();
-			//			}
-			
+
+			saveSessionTimer.addEventListener(TimerEvent.TIMER,saveInfoMapsSessionState);
+			Weave.properties.enableAutoSave.addGroupedCallback(this,function():void{
+				if(Weave.properties.enableAutoSave.value)
+				{
+					saveSessionTimer.start();
+				}
+				else
+				{
+					saveSessionTimer.stop();
+				}
+			},true);
+				
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
 		}
@@ -581,41 +588,38 @@ package weave.application
 			PopUpManager.centerPopUp(fileSaveDialogBox);
 		}
 		
-//		private const _service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
-//		
-//		private var saveSessionTimer:Timer = null;
-//		private function saveSessionState(event:TimerEvent):void
-//		{
-//			if(!Weave.properties.enableAutoSave.value)
-//				return;
-//			if (detectLinkableObjectChange(saveSessionState,Weave.history))
-//				saveInfoMapsSessionState();
-//		}
+		private var saveSessionTimer:Timer = new Timer(5000);
 		
-		private function saveInfoMapsSessionState():void
+		private function saveInfoMapsSessionState(event:Event=null):void
 		{
-//			if(!Weave.properties.enableInfoMap.value)
-//				return;
-//			
-//			var fileName:String = getFlashVarFile().split("/").pop();
-//			fileName = Weave.fixWeaveFileName(fileName, true);
-//			
-//			var content:ByteArray;
-//			content = Weave.createWeaveFileContent();
-//			
-//			var token:DelayedAsyncInvocation = _service.saveWeaveFile("infomaps","infomaps",content,fileName,true);
-//			
-//			token.addAsyncResponder(
-//				function(event:ResultEvent, token:Object = null):void
-//				{
-////					reportError("Session State Saved");
-//				},
-//				function(event:FaultEvent, token:Object = null):void
-//				{
-//					reportError(event.fault, "Unable to Save Session State");
-//				},
-//				null
-//			);
+			if(!Weave.properties.enableAutoSave.value)
+				return;
+			
+			if (!detectLinkableObjectChange(saveInfoMapsSessionState,Weave.history))
+				return;
+			
+			var fileName:String = getFlashVarFile().split("/").pop();
+			
+			if(fileName == '')
+				return;
+			
+			fileName = Weave.fixWeaveFileName(fileName, true);
+			
+			var content:ByteArray= Weave.createWeaveFileContent();
+			
+			var token:AsyncToken = InfoMapAdminInterface.instance.saveWeaveFile(content,fileName);
+			
+			token.addAsyncResponder(
+				function(event:ResultEvent, token:Object = null):void
+				{
+					//reportError("Session State Saved" + event.result);
+				},
+				function(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event.fault, "Unable to Save Session State");
+				},
+				null
+			);
 		}
 		
 		private function handleFileSaveClose(event:AlertTextBoxEvent):void

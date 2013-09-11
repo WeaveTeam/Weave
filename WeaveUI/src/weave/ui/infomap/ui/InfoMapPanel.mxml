@@ -1331,7 +1331,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="Sorted By: " fontWeight="bold" width="150"/>
 				<mx:ComboBox id="sortByComboBox"/>
 			</mx:HBox>
-			<!--<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"/>-->
+			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically" 
+						 creationComplete="linkBindableProperty(Weave.properties.enableAutoSave,event.target,'selected')"/>
 			<mx:Spacer height="50"/>
 			<mx:HBox>
 				<mx:VBox>

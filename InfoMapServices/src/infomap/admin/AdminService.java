@@ -1,8 +1,10 @@
 package infomap.admin;
 
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -99,6 +101,7 @@ import infomap.scheduler.RssFeedsJob;
 import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
+import weave.utils.FileUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
@@ -124,6 +127,7 @@ public class AdminService extends GenericServlet {
 	private static String port = "3306";
 	private static String database = "solr_sources";
 	private static String table = "rss_feeds";
+	private static String tomcatPath = "tomcatPath";
 	private Connection conn = null;
 
 	public static HttpSolrServer solrInstance = null;
@@ -150,6 +154,7 @@ public class AdminService extends GenericServlet {
 			table = prop.getProperty("feedSourcesTable");
 			username = prop.getProperty("dbUsername");
 			password = prop.getProperty("dbPassword");
+			tomcatPath = prop.getProperty("tomcatPath");
 			host = prop.getProperty("feedSourcesDBServerURL");
 			_testMode = prop.getProperty("testMode").equals("true");
 		}catch (Exception e)
@@ -1900,6 +1905,38 @@ public class AdminService extends GenericServlet {
 		// }
 
 		addDoc(doc, solrURL, true);
+	}
+	
+	/**
+	 * @param user
+	 * @param password
+	 * @param fileContent
+	 * @param fileName
+	 * @param overwriteFile
+	 * @return A description of the success or failure of this function.
+	 * @throws RemoteException
+	 */
+	public String saveWeaveFile(
+			InputStream fileContent, String fileName)
+		throws RemoteException
+	{
+		try
+		{
+			// remove special characters
+			fileName = fileName.replace("\\", "").replace("/", "");
+
+			String path = tomcatPath + "webapps/ROOT/";
+
+			File file = new File(path + fileName);
+
+			FileUtils.copy(fileContent, new FileOutputStream(file));
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Error occurred while saving file", e);
+		}
+
+		return "Successfully saved " + fileName + ".";
 	}
 
 	private static void addDoc(SolrInputDocument d, String solrURL,

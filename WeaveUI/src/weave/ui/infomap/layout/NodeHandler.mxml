@@ -720,7 +720,8 @@
 			{
 				var response:Array = docKeySet.keys;
 				
-				
+				/* Sometimes the dockeys are triggered for old queries because new documents might have been added. So we do a test to see for
+				old vs. new queries and update the list accordingly.*/
 				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery);
 				
 				if(diff)
@@ -728,7 +729,7 @@
 					//its a new query
 					thumbnails.removeAllObjects();
 					highlightNewDocuments = false;
-					/* We do this because we list to remain on the same page if it is the same query. 
+					/* We do this because we want to remain on the same page if it is the same query. 
 					Only switch to first page if it is new query*/
 					if(docListComponent)
 						docListComponent.startIndex.value = 0;
@@ -1924,7 +1925,7 @@
 			private var _instance:ControlPanel = null;
 			protected var basicSettingComponent:BasicSettingsComponent;
 			protected var tagCloudSettingComponent:TagCloudSettingComponent;
-			protected var topicModelSettingComponent:TopicNodeSettingComponent
+			//protected var topicModelSettingComponent:TopicNodeSettingComponent
 			private function settings(event:Event=null):void
 			{
 				
@@ -1944,11 +1945,12 @@
 					tagCloudSettingComponent = new TagCloudSettingComponent();
 					tagCloudSettingComponent.nodeHandler = this;
 					
-					topicModelSettingComponent = new TopicNodeSettingComponent();
-					topicModelSettingComponent.nodeHandler = this;
+					//topicModelSettingComponent = new TopicNodeSettingComponent();
+					//topicModelSettingComponent.nodeHandler = this;
 					
-				_instance.targets = [basicSettingComponent.query.keywords,basicSettingComponent.query.sources, basicSettingComponent.dateFilter.startDate, basicSettingComponent.dateFilter.endDate, numOfWordsInCloud, numOfTopics, numOfKeywordsInEachTopic, spaceBetwwenTopicRect, topicNodeComponent.rectColors]
-					_instance.children = [basicSettingComponent, tagCloudSettingComponent, topicModelSettingComponent];
+					_instance.targets = [basicSettingComponent.query.keywords,basicSettingComponent.query.sources, basicSettingComponent.dateFilter.startDate, basicSettingComponent.dateFilter.endDate, numOfWordsInCloud, numOfTopics, numOfKeywordsInEachTopic, spaceBetwwenTopicRect, topicNodeComponent.rectColors]
+					//_instance.children = [basicSettingComponent, tagCloudSettingComponent, topicModelSettingComponent];
+					_instance.children = [basicSettingComponent, tagCloudSettingComponent];
 					
 					PopUpManager.addPopUp(_instance,this);
 				}
@@ -2303,6 +2305,9 @@
 				{
 					status.text = "Sorting...";
 					copySessionState(previousQuery,currentQuery);
+					/* this is not a new query but only a new order of documents. So we don't handle it as empty result 
+					but still clear thumbnails so that they are not treated as new documents.*/
+					thumbnails.removeAllObjects(); 
 					var token:QueryObject = new QueryObject();
 					copySessionState(currentQuery,token);
 					var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
