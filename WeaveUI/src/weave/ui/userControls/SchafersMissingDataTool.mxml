@@ -185,7 +185,7 @@ SchafersMissingDataImputation
 			private var dataTB:DataTableTool ;
 			
 			
-			 private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			 private function handleRunScriptResult(event:ResultEvent, keys:Array):void
 			{
 				 var finalImputedRColumns:Array = new Array();
 				 var missingCountInEachColumn:Array = new Array();
@@ -228,9 +228,6 @@ SchafersMissingDataImputation
 					We use the localName property because otherwise it casts the same key for all the values and thus 
 					each key is not unique
 					*/
-				
-				//To make availabe for Weave -Mapping with key returned from Token
-				var keys:Array = token as Array;
 				
 				missingCountInEachColumn = [];
 				finalImputedRColumns = []; 
@@ -310,7 +307,7 @@ SchafersMissingDataImputation
 			}
 			
 		/* 	
-			private function handleClusterScriptResult(event:ResultEvent, token:Object = null):void
+			private function handleClusterScriptResult(event:ResultEvent, keys:Array):void
 			{
 				//Object to stored returned result - Which is array of object{name: , value: }
 				var Robj:Array = event.result as Array;
@@ -334,11 +331,6 @@ SchafersMissingDataImputation
 					var rResult:RResult = new RResult(Robj[i]);
 					RresultArray.push(rResult);				
 				}
-				
-				
-				
-				//To make availabe for Weave -Mapping with key returned from Token
-				var keys:Array = token as Array;
 				
 				//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
 				for (var p:int = 0;p < RresultArray.length; p++)

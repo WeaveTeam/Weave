@@ -361,16 +361,15 @@ package weave.graphs
 			return edgesString;
 		}
 		
-		protected function handleLayoutResult(event:ResultEvent, token:Object = null):void
+		protected function handleLayoutResult(event:ResultEvent, token:RToken):void
 		{
 			// do nothing if this wasn't the last R call
-			var rId:int = (token as RToken).id;
-			if (rId != _rId)
+			if (token.id != _rId)
 				return;
 			
 			var i:int;
 			var node:IGraphNode;
-			var constrainingBounds:IBounds2D = (token as RToken).bounds;
+			var constrainingBounds:IBounds2D = token.bounds;
 			
 			var array:Array = event.result as Array;
 			if (!array || array.length < 3)

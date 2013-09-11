@@ -19,6 +19,8 @@
 
 package weave.servlets;
 
+import static weave.config.WeaveConfig.initWeaveConfig;
+
 import java.io.IOException;
 import java.rmi.RemoteException;
 
@@ -45,13 +47,16 @@ public class RService extends GenericServlet
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
+		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
 		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
 		
 	    try {
 	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
 	    	if (rServePath != null && rServePath.length() > 0)
+	    	{
 	    		rProcess = Runtime.getRuntime().exec(new String[]{ rServePath });
+	    	}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
