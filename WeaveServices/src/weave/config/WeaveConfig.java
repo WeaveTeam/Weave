@@ -48,10 +48,15 @@ public class WeaveConfig
 		return weaveContextParams;
 	}
 	
+	public static String getConnectionConfigFilePath()
+	{
+		return weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME;
+	}
+	
 	synchronized public static ConnectionConfig getConnectionConfig() throws RemoteException
 	{
 		if (_connConfig == null)
-			_connConfig = new ConnectionConfig(new File(weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME));
+			_connConfig = new ConnectionConfig(new File(getConnectionConfigFilePath()));
 		return _connConfig;
 	}
 	
