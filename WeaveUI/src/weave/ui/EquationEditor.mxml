@@ -47,7 +47,7 @@
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
 				<mx:Canvas label="{lang('Equation Text')}">
-					<mx:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
+					<CodeEditor id="textEditor" errorString="{baseEquationUIComp.errorString}"/>
 				</mx:Canvas>
 				<mx:Canvas label="{lang('Equation Tree')}" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
 					<EquationUIComponent id="baseEquationUIComp"/>
