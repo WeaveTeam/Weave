@@ -45,6 +45,7 @@ import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.config.WeaveConfig;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 
 
 public class RServiceUsingRserve 
@@ -336,42 +337,56 @@ public class RServiceUsingRserve
 		
 	}
 
-	public static LinearRegressionResult linearRegression(String docrootPath,double[] dataX, double[] dataY) throws RemoteException
+	public static LinearRegressionResult linearRegression(String docrootPath, String method, double[] dataX, double[] dataY, int polynomialDegree) throws RemoteException
 	{
 		RConnection rConnection = getRConnection();
 		if (dataX.length == 0 || dataY.length == 0)
 			throw new RemoteException("Unable to run computation on zero-length arrays.");
 		if (dataX.length != dataY.length)
-			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
-					+ " != " + dataY.length + ").");
-		// System.out.println("entering linearRegression()");
-		// System.out.println("got r connection");
+			throw new RemoteException(String.format(
+					"Unable to run computation on two arrays with different lengths (%s != %s).",
+					dataX.length,
+					dataY.length
+				));
+		
 		LinearRegressionResult result = new LinearRegressionResult();
 		try
 		{
-
+			String equation = (String)MapUtils.fromPairs(
+					"Linear", "y~x",
+					"Polynomial", "y ~ poly(x, deg, raw = TRUE)",
+					"Logarithmic", "y ~ log(x)",
+					"Exponential", "log(y) ~ x",
+					"Power", "log(y) ~ log(x)"
+				).get(method);
+			
+			String script = String.format(
+				"fit <- lm(%s)\n"
+				+ "coef <- coefficients(fit)\n"
+				+ "rSquared <- summary(fit)$r.squared\n",
+				equation
+			);
+			
 			// Push the data to R
 			rConnection.assign("x", dataX);
 			rConnection.assign("y", dataY);
+			rConnection.assign("deg", new int[]{polynomialDegree});
 
 			// Perform the calculation
-			rConnection.eval("fit <- lm(y~x)");
+			rConnection.eval(script);
 
 			// option to draw the plot, regression line and store the image
-
+			/*
 			rConnection.assign(".tmp.", docrootPath + rFolderName + "/Linear_Regression.jpg");
 			rConnection.eval("jpeg(.tmp.)");
 			rConnection.eval("plot(x,y)");
 			rConnection.eval("abline(fit)");
 			rConnection.eval("dev.off()");
+			 */
 
 			// Get the data from R
-			result.setIntercept(rConnection.eval("coefficients(fit)[1]").asDouble());
-			result.setSlope(rConnection.eval("coefficients(fit)[2]").asDouble());
-			result.setRSquared(rConnection.eval("summary(fit)$r.squared").asDouble());
-			result.setSummary("");// rConnection.eval("summary(fit)").asString());
-			result.setResidual(rConnection.eval("resid(fit)").asDoubles());
-
+			result.coefficients = rConnection.eval("coef").asDoubles();
+			result.rSquared = rConnection.eval("rSquared").asDouble();
 		}
 		catch (Exception e)
 		{

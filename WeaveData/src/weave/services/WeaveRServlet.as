@@ -78,7 +78,7 @@ package weave.services
 		{
 			return servlet.invokeAsyncMethod("densityBasedClustering", arguments);
 		}*/		
-		public function linearRegression(dataX:Array, dataY:Array):AsyncToken
+		public function linearRegression(method:String, dataX:Array, dataY:Array, polynomialDegree:int):AsyncToken
 		{
 			return servlet.invokeAsyncMethod("linearRegression", arguments);
 		}
