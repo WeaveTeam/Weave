@@ -89,6 +89,7 @@ public class RServiceUsingRserve
 			rConnection.assign(".tmp.", WeaveConfig.getConnectionConfigFilePath());
 			REXP result = rConnection.eval("length(readLines(.tmp.))");
 			rConnection.assign(".tmp.", new REXPNull());
+			rConnection.close();
 			if (result.isNumeric())
 				throw new RemoteException("R script access is not allowed because it is unsafe (The user running Rserve has file read/write access).");
 			throw new RemoteException("Unexpected result in requestScriptAccess(): " + result);
