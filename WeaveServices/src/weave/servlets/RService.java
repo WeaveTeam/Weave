@@ -31,15 +31,15 @@ import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.config.WeaveContextParams;
+import weave.utils.Strings;
 
-
- 
 public class RService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
 
 	public RService()
 	{
+
 	}
 
 	private static Process rProcess = null;
@@ -50,16 +50,9 @@ public class RService extends GenericServlet
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
 		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
-		
-	    try {
-	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
-	    	if (rServePath != null && rServePath.length() > 0)
-	    	{
-	    		rProcess = Runtime.getRuntime().exec(new String[]{ rServePath });
-	    	}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
+		rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
+		startRServe();
 	}
 	
 	public void destroy()
@@ -74,6 +67,7 @@ public class RService extends GenericServlet
 
 	private String docrootPath = "";
 	private String uploadPath = "";
+	private String rServePath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
 	private static ServiceType serviceType = ServiceType.JRI;
@@ -100,74 +94,49 @@ public class RService extends GenericServlet
 		return jriStatus;
 	}
 	
-	/*
-	//handles running canned scripts by pulling data from csv
-	public RResult[] runScriptOnCSVOnServer(String[] queryObject)throws Exception
-	{
-		RResult[] csvreturnedColumns;
-		//get the upload path for csv (on server)
-		//get the upload path for canned RScript (on server)
-		//if using run on csv
-		//TO DO: check for server side code?
-//		String cannedScriptLocation = (uploadPath  + scriptName).replace('/', '\\');
-//		String csvLocation = (uploadPath + datasetName).replace('/', '\\');
+	// this functions makes a command line call on the server machine.
+	// the command executed starts the Rserve on windows or unix
+	// On windows: the rServePath needs to be given in the configuration file
+	// On mac: the command R CMD RServe needs to work http://dev.mygrid.org.uk/blog/?p=34
+	private void startRServe() {
 		
-		//To Do check if queryObject is null
-		//hard coded for now
-			//String cannedScriptLocation = "C:\\Users\\Shweta\\Desktop\\brfss_RRoutine.R";
-			//String csvLocation = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
-		    String csvLocation = new File(uploadPath, queryObject[0]).getAbsolutePath();
-			String cannedScriptLocation = new File(uploadPath, queryObject[1]).getAbsolutePath();
-			
-			Object[] inputValues = {cannedScriptLocation,csvLocation };
-			
-			String[] inputNames = {"cannedScriptPath", "csvDatasetPath"};
-			String adminScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-			"library(survey)\n" +
-			"columnsReturnedFromCSV <- scriptFromFile$value(csvDatasetPath)\n";
-			String[] outputNames = {"columnsReturnedFromCSV"};
-			
-			csvreturnedColumns = this.runScript(null, inputNames, inputValues, outputNames, adminScript, "", false, false, false);
-			
-		
-		return csvreturnedColumns;
-		
-	}		
-	
-	//handles running canned scripts by pulling data from SQl database
-	public RResult[] runScriptOnSQLOnServer(String[] queryObject, String queryStatement, String schema) throws Exception
-	{
-		RResult[] sqlreturnedColumns;
-		//hard coding the query TO DO: has to be defined by user input and UI
-		//To Do check if queryObject is null
-		//String query = "select `@_STATE`,`@_PSU`,`@_STSTR`,`@_FINALWT`,DIABETE2 from sdoh2010q";
-		//String query = "select `@_STATE`,`@_PSU`,`@_STSTR`,`@_FINALWT`,DIABETE2 from "+ (queryObject[0]).toString();
-		String query = "select " + queryStatement + " from " + (queryObject[0]).toString();
-		String editedQuery = query.replace(".csv", "");
-		
-			//String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\CDCSQLQueries.R";
-			//Object[] sqlinputValues = {cannedSQLScriptLocation, query};
-		//"con <- dbConnect(dbDriver(\"MySQL\"), user = \"USERNAME\", password = \"PASSWORD\", host = \"IP-ADDRESS\", port = 3306, dbname = \"resd\")\n"
-		    String cannedSQLScriptLocation = new File(uploadPath, queryObject[1]).getAbsolutePath();
-			
-			Object[] sqlinputValues = {cannedSQLScriptLocation, editedQuery};
-			String[] sqlinputNames = {"cannedScriptPath", "query"};
-			
-			String sqlRScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-			"library(RMySQL)\n" +
-			"con <- dbConnect(dbDriver(\"MySQL\"), user = \"USERNAME\", password = \"PASSWORD\", host = \"IP-ADDRESS\", port = 3306, dbname =" + "\"" +schema+"\")\n" +
-			"library(survey)\n" +
-			"returnedColumnsFromSQL <- scriptFromFile$value(query)\n";
-			//String[] sqlOutputNames = {"returnedColumnsFromSQL"};
-			String[] sqlOutputNames = {};
-			
-			sqlreturnedColumns = this.runScript(null, sqlinputNames, sqlinputValues, sqlOutputNames, sqlRScript, "", false, false, false);
-			
-		return sqlreturnedColumns;
+		if (rProcess == null && !Strings.isEmpty(rServePath))
+		{
+			if (System.getProperty("os.name").startsWith("Windows")) 
+			{
+				try 
+				{
+					rProcess = Runtime.getRuntime().exec(rServePath);
+				} catch (Exception e) 
+				{
+					e.printStackTrace();
+				}
+			}
+			else 
+			{
+				String[] args = {"R", "CMD", "RServe", "--vanilla"};
+				try {
+					rProcess = Runtime.getRuntime().exec(args);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
-	*/
 	
-	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
+	// this function should stop the Rserve... needs revision
+	private void stopRServe() throws IOException {
+	 try {
+		if (rProcess != null )
+		{
+			rProcess.destroy();
+		}
+	 } catch (Exception e) {
+		e.printStackTrace();
+	 }
+	}
+
+	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
 		Exception exception = null;
 		
@@ -183,7 +152,7 @@ public class RService extends GenericServlet
 			try
 			{
 				if (type == ServiceType.RSERVE)
-					return RServiceUsingRserve.runScript( docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+					return RServiceUsingRserve.runScript(docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
 				
 				// this crashes Tomcat
 				if (type == ServiceType.JRI)
@@ -215,7 +184,6 @@ public class RService extends GenericServlet
 	}
 	
 	
-
 	public LinearRegressionResult linearRegression(String method, double[] dataX, double[] dataY, int polynomialDegree) throws RemoteException
 	{
 		return RServiceUsingRserve.linearRegression( docrootPath, method, dataX, dataY, polynomialDegree);
