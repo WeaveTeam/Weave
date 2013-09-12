@@ -1761,7 +1761,7 @@ public class AdminService
 				query += " and ";
 			
 			// use case insensitive compare because that's what SELECT DISTINCT does.
-			query += SQLUtils.quoteSymbol(conn, columnNames[j]) + "=?";
+			query += SQLUtils.stringCast(conn, SQLUtils.quoteSymbol(conn, columnNames[j])) + "=?";
 			//query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
 		}
 		return query;
