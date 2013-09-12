@@ -42,6 +42,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
 	import weave.utils.ColumnUtils;
+	import weave.utils.Dictionary2D;
 	import weave.utils.EquationColumnLib;
 	
 	/**
@@ -124,7 +125,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This is a mapping from keys to cached data values.
 		 */
-		private var _equationResultCache:Dictionary = new Dictionary();
+		private const _equationResultCache:Dictionary2D = new Dictionary2D();
 		/**
 		 * This is used to determine when to clear the cache.
 		 */		
@@ -314,7 +315,7 @@ package weave.data.AttributeColumns
 					{
 						// save the constant result of the function
 						_equationIsConstant = true;
-						_equationResultCache = null; // we don't need a cache
+						_equationResultCache.dictionary = null; // we don't need a cache
 						_constantResult = (compiledObject as CompiledConstant).value;
 					}
 					else
@@ -322,7 +323,7 @@ package weave.data.AttributeColumns
 						// compile into a function
 						compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, errorHandler, false, ['key', 'dataType']);
 						_equationIsConstant = false;
-						_equationResultCache = new Dictionary(); // create a new cache
+						_equationResultCache.dictionary = new Dictionary(); // create a new cache
 						_constantResult = undefined;
 					}
 				}
@@ -338,12 +339,12 @@ package weave.data.AttributeColumns
 			if (!_equationIsConstant)
 			{
 				// check the cache
-				value = _equationResultCache[key];
+				value = _equationResultCache.get(key, dataType);
 				// define cached value if missing
 				if (value === undefined)
 				{
 					// prevent recursion caused by compiledEquation
-					_equationResultCache[key] = UNDEFINED;
+					_equationResultCache.set(key, dataType, UNDEFINED);
 					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
 					EquationColumnLib.currentRecordKey = key;
@@ -351,7 +352,7 @@ package weave.data.AttributeColumns
 					{
 						value = compiledEquation.apply(this, arguments);
 						if (debug)
-							trace(this,key.localName,value);
+							trace(this,key.localName,dataType,value);
 					}
 					catch (e:Error)
 					{
@@ -364,7 +365,7 @@ package weave.data.AttributeColumns
 					}
 					
 					// save value in cache
-					_equationResultCache[key] = value;
+					_equationResultCache.set(key, dataType, value);
 					//trace('('+equation.value+')@"'+key+'" = '+value);
 				}
 				else if (value === UNDEFINED)
