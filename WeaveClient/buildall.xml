@@ -36,7 +36,6 @@
         <property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
         <property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
     <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
-	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
 	<!-- These are the projects -->
 	<property name="API" value="WeaveAPI"/>
@@ -81,10 +80,13 @@
                     </fileset>
                 </copy> 
 	</target>
+
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
 	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
+		<build-html-wrapper project="${CLIENT}" swf="weave"/>
+		<build-html-wrapper project="${ADMIN}" swf="AdminConsole"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
@@ -101,8 +103,6 @@
                 <copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
                 <copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
                 <copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
-		<antcall target="admin_wrapper"/>
-		<antcall target="client_wrapper"/>
 	</target>
 
 	<!-- These targets will build each project -->
@@ -156,39 +156,22 @@
 		<ant dir="${basedir}/${SERVLETUTILS}" target="clean" />
 	</target>
 
-	<target name="admin_wrapper">
-		<html-wrapper 
-			output="${WEAVE_DESTROOT}"
-			file="AdminConsole.html"
-			swf="AdminConsole"
-			history="false"
-			version-major="10"
-			version-minor="2"
-			version-revision="0"
-			height="100%"
-			width="100%"
-			title="AdminConsole"
-			express-install="true"
-			bgcolor="#7B96B6"
-		/>
-	</target>
-
-	<target name="client_wrapper">
-		<html-wrapper 
-			output="${WEAVE_DESTROOT}"
-			file="weave.html"
-			swf="weave"
-			history="false"
-			version-major="10"
-			version-minor="2"
-			version-revision="0"
-			height="100%"
-			width="100%"
-			title="weave"
-			express-install="true"
-			bgcolor="#7B96B6"
-		/>
-	</target>
+	<macrodef name="build-html-wrapper">
+		<attribute name="project"/>
+		<attribute name="swf"/>
+		<sequential>
+			<copy file="${basedir}/@{project}/html-template/index.template.html"
+				tofile="${WEAVE_DESTROOT}/@{swf}.html" />
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${swf}" value="@{swf}"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${width}" value="100%"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${height}" value="100%"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${bgcolor}" value="#FFFFFF"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${application}" value="@{swf}"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${version_major}" value="10"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${version_minor}" value="2"/>
+			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${version_revision}" value="0"/>
+		</sequential>
+	</macrodef>
 
 	<macrodef name="extract_swc">
 		<attribute name="swc"/>
