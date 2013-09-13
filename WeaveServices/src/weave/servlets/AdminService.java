@@ -1128,6 +1128,7 @@ public class AdminService
 			csvColumnNames = new String[sqlColumnNames.length];
 			fieldLengths = new int[sqlColumnNames.length];
 			int keyColumnIndex = -1;
+			int secondKeyColumnIndex = -1;
 			// first, fix all column names
 			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
@@ -1139,6 +1140,8 @@ public class AdminService
 				// remember key col index
 				if (csvKeyColumn.equalsIgnoreCase(colName))
 					keyColumnIndex = iCol;
+				if (csvSecondaryKeyColumn.equalsIgnoreCase(colName))
+					secondKeyColumnIndex = iCol;
 				
 				sqlColumnNames[iCol] = SQLUtils.fixColumnName(colName, "");
 			}
@@ -1172,9 +1175,6 @@ public class AdminService
 					iCol = -1;
 				}
 			}
-			// copy new key column name
-			if (keyColumnIndex >= 0)
-				csvKeyColumn = sqlColumnNames[keyColumnIndex];
 
 			// Initialize the types of columns as int (will be changed inside
 			// loop if necessary)
@@ -1309,7 +1309,7 @@ public class AdminService
             );
 			int table_id = addConfigDataTable(
 					configDataTableName, connectionName,
-					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, csvColumnNames, sqlColumnNames, sqlSchema,
+					configKeyType, sqlColumnNames[keyColumnIndex], secondKeyColumnIndex, csvColumnNames, sqlColumnNames, sqlSchema,
 					sqlTable, ignoreKeyColumnQueries, filterColumnIndices, tableInfo, configAppend);
 
             return table_id;
@@ -1376,15 +1376,26 @@ public class AdminService
        	}
        	
         int tableId = addConfigDataTable(
-				configDataTableName, connectionName, keyType,
-				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
-				filterColumnIndices, tableInfo, append);
+				configDataTableName,
+				connectionName,
+				keyType,
+				keyColumnName,
+				ListUtils.findString(secondaryKeyColumnName, columnNames),
+				columnNames,
+				columnNames,
+				schemaName,
+				tableName,
+				false,
+				filterColumnIndices,
+				tableInfo,
+				append
+			);
         return tableId;
 	}
 
 	private int addConfigDataTable(
 			String configDataTableName, String connectionName,
-			String keyType, String keyColumnName, String secondarySqlKeyColumn,
+			String keyType, String sqlKeyColumn, int secondKeyColumnIndex,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
 			boolean ignoreKeyColumnQueries, int[] filterColumnIndices, DataEntityMetadata tableImportInfo, boolean configAppend)
 		throws RemoteException
@@ -1404,28 +1415,17 @@ public class AdminService
 		{
 			Connection conn = connInfo.getStaticReadOnlyConnection();
 			
-			// if key column is actually the name of a column, put quotes around it.
-			// otherwise, don't.
-			int iKey = ListUtils.findIgnoreCase(keyColumnName, sqlColumnNames);
-			int iSecondaryKey = ListUtils.findIgnoreCase(secondarySqlKeyColumn, sqlColumnNames);
-			
-			String sqlKeyColumn; // save the original column name
-			if (iKey >= 0)
-			{
-				sqlKeyColumn = keyColumnName; // before quoting, save the column
-				// name
-				keyColumnName = SQLUtils.quoteSymbol(conn, sqlColumnNames[iKey]);
-			}
+			// If key column is actually the name of a column, put quotes around it.  Otherwise, don't.
+			String q_sqlKeyColumn;
+			if (ListUtils.findString(sqlKeyColumn, sqlColumnNames) >= 0)
+				q_sqlKeyColumn = SQLUtils.quoteSymbol(conn, sqlKeyColumn);
 			else
-			{
-				sqlKeyColumn = SQLUtils.unquoteSymbol(conn, keyColumnName); // get
-				// the
-				// original
-				// columnname
-			}
+				q_sqlKeyColumn = sqlKeyColumn;
 			
-			if (iSecondaryKey >= 0)
-				secondarySqlKeyColumn = SQLUtils.quoteSymbol(conn, sqlColumnNames[iSecondaryKey]);
+			String q_sqlSecondKeyColumn = secondKeyColumnIndex >= 0
+					? SQLUtils.quoteSymbol(conn, sqlColumnNames[secondKeyColumnIndex])
+					: null;
+
 			// Write SQL statements into sqlconfig.
 			
 			// generate and test each query before modifying config file
@@ -1464,23 +1464,23 @@ public class AdminService
 			
 			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
-				String sqlColumn = sqlColumnNames[iCol];
+				String q_sqlColumn = sqlColumnNames[iCol];
 				// System.out.println("columnName: " + columnName +
 				// "\tkeyColumnName: " + keyColumnName + "\toriginalKeyCol: " +
 				// originalKeyColumName);
-				if (ignoreKeyColumnQueries && sqlKeyColumn.equals(sqlColumn))
+				if (ignoreKeyColumnQueries && sqlKeyColumn.equals(q_sqlColumn))
 					continue;
-				sqlColumn = SQLUtils.quoteSymbol(conn, sqlColumn);
+				q_sqlColumn = SQLUtils.quoteSymbol(conn, q_sqlColumn);
 
 				// hack
-				if (!isEmpty(secondarySqlKeyColumn))
-					sqlColumn += "," + secondarySqlKeyColumn;
+				if (secondKeyColumnIndex >= 0)
+					q_sqlColumn += "," + q_sqlSecondKeyColumn;
 
 				// generate column query
 				query = String.format(
 						queryFormat,
-						keyColumnName,
-						sqlColumn,
+						q_sqlKeyColumn,
+						q_sqlColumn,
 						SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable)
 					);
 
@@ -1861,7 +1861,7 @@ public class AdminService
 			String[] columnNames = getSQLColumnNames(configConnectionName, password, sqlSchema, dbfTableName);
 			tableId = addConfigDataTable(
 					configTitle, configConnectionName,
-					configKeyType, keyColumnsString, null, columnNames, columnNames,
+					configKeyType, keyColumnsString, -1, columnNames, columnNames,
 					sqlSchema, dbfTableName, false, null, tableInfo, append);
 		}
 		else
