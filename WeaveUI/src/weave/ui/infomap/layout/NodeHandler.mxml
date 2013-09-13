@@ -147,6 +147,7 @@
 			import weave.utils.DateUtils;
 			import weave.utils.DebugTimer;
 			import weave.utils.EventUtils;
+			import weave.utils.TickMarkUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.tools.CompoundBarChartTool;
@@ -310,6 +311,10 @@
 			private var EditImgClass:Class;
 			private var _editImgText:String = "Edit Query";
 			
+			[Embed( source="/weave/resources/images/tick-icon.png")]
+			private var TickImgClass:Class;
+			private var _tickImgText:String = "Clear new documents";
+			
 			
 			[Embed( source="/weave/resources/images/arrowDown.png")]
 			private var _subMenuIcon:Class;
@@ -319,6 +324,7 @@
 			private var _closeImg:Bitmap = new CloseImgClass() as Bitmap;
 			private var _settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
 			private var _editImg:Bitmap = new EditImgClass() as Bitmap;
+			private var _tickImg:Bitmap = new TickImgClass() as Bitmap;
 			
 			override protected function childrenCreated():void
 			{
@@ -472,8 +478,16 @@
 			
 			private function filterNodeBy():void
 			{
-				nodeBase.filterLabel.text = "Filter: " + (nodeBase.filterSubMenu.selectedItem).label;
-				previousQuery.sources.value = (nodeBase.filterSubMenu.selectedItem).label;
+				var ftext:String = (nodeBase.filterSubMenu.selectedItem).label;
+				nodeBase.filterLabel.text = "Filter: " + ftext;
+				if(ftext == QueryObject.FILTER_BY_NONE)
+				{
+					previousQuery.sources.value = "";
+				}
+				else
+				{
+					previousQuery.sources.value = ftext;
+				}
 			}
 			
 			private function sortNodeBy():void
@@ -852,9 +866,12 @@
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = _currentNewDocsCount;
 				
-				_radialMenu.addMenuItem(_listImg,_listImgText,toggleView,[LIST_VIEW]);
-				
-				_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
+				if(_nameOrder.length>0)
+				{
+					_radialMenu.addMenuItem(_listImg,_listImgText,toggleView,[LIST_VIEW]);
+					_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
+					_radialMenu.addMenuItem(_tickImg,_tickImgText,clearAllNewDocuments,null);
+				}
 //				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
 //				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
 //				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
@@ -915,20 +932,42 @@
 			//			private var _firstLoad:Boolean = true;
 			
 
-			
+			private var _currTCount:int = 0;
+			private var _totalT:int = 0;
 			private function clearAllNewDocuments(event:Event=null):void
 			{
-				_currentNewDocsCount = 0;
+				if(_currentNewDocsCount ==0)
+					return;
 				
-				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
-				{
-					t.highlighted.value = false;
-				}
-				stopGlow();
-				prevNewDocsCount.value = 0;
-				_currentNewDocsCount = 0;
+				_totalT = docKeySet.keys.length;
+				WeaveAPI.StageUtils.startTask(this,_iterateClearDocs,WeaveAPI.TASK_PRIORITY_PARSING,_finalClearDocs);
+				//stopGlow();
 			}
 			
+			private function _iterateClearDocs():int
+			{
+				if(_currTCount >= _totalT)
+					return 1;
+				
+				var link:String = (docKeySet.keys[_currTCount] as IQualifiedKey).localName;					
+				var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
+				
+				if(thumbnail)
+				{
+					thumbnail.highlighted.value = false;
+				}
+				_currTCount++;
+				return _currTCount/_totalT;
+				
+			}
+			
+			private function _finalClearDocs():void
+			{
+				prevNewDocsCount.value = 0;
+				_currentNewDocsCount = 0;
+				showNewDocumentsOnTop.value = false;
+			}
+				
 			private function getRequiredKeywords():Array
 			{
 				var selectedKeys:Array = _selection.keys;
@@ -2483,6 +2522,10 @@
 					{
 						_pointCanvas.removeAllChildren();
 					}
+				}else
+				{
+					if(!displayObj.visible)
+						displayObj.visible = true;
 				}
 			}
 			
@@ -2523,6 +2566,7 @@
 			private function handleEmptyResultSet():void
 			{
 				thumbnails.removeAllObjects();
+				_nameOrder = [];
 				numOfMatchedDocuments.value = 0;
 				_currentNewDocsCount = 0;
 				prevNewDocsCount.value = 0;
