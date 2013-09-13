@@ -1138,9 +1138,9 @@ public class AdminService
 				// save original column name
 				csvColumnNames[iCol] = colName;
 				// remember key col index
-				if (csvKeyColumn.equalsIgnoreCase(colName))
+				if (Strings.equal(csvKeyColumn, colName))
 					keyColumnIndex = iCol;
-				if (csvSecondaryKeyColumn.equalsIgnoreCase(colName))
+				if (Strings.equal(csvSecondaryKeyColumn, colName))
 					secondKeyColumnIndex = iCol;
 				
 				sqlColumnNames[iCol] = SQLUtils.fixColumnName(colName, "");
@@ -1284,7 +1284,7 @@ public class AdminService
 			List<String> columnTypesList = new Vector<String>();
 			for (int iCol = 0; iCol < sqlColumnNames.length; iCol++)
 			{
-				if (types[iCol] == StringType || csvKeyColumn.equalsIgnoreCase(sqlColumnNames[iCol]))
+				if (types[iCol] == StringType || iCol == keyColumnIndex)
 					columnTypesList.add(SQLUtils.getVarcharTypeString(conn, fieldLengths[iCol]));
 				else if (types[iCol] == IntType)
 					columnTypesList.add(SQLUtils.getIntTypeString(conn));
@@ -1671,15 +1671,13 @@ public class AdminService
 		ResultSet rs = null;
 		try
 		{
-			String dbms = conn.getMetaData().getDatabaseProductName();
-			
-			if (dbms.equalsIgnoreCase(SQLUtils.SQLSERVER))
+			if (SQLUtils.isSQLServer(conn))
 			{
 				String select_ = "select ";
 				if (testQuery.toLowerCase().startsWith(select_))
 					testQuery = "select top 1 " + testQuery.substring(select_.length());
 			}
-			else if (dbms.equalsIgnoreCase(SQLUtils.ORACLE))
+			else if (SQLUtils.isOracleServer(conn))
 			{
 				testQuery = "select * from (" + testQuery + ") where rownum = 1";
 			}
