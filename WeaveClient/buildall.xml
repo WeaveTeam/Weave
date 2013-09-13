@@ -162,7 +162,7 @@
 		<attribute name="title"/>
 		<sequential>
 			<copy file="${basedir}/@{project}/html-template/index.template.html"
-				tofile="${WEAVE_DESTROOT}/@{swf}.html" />
+				tofile="${WEAVE_DESTROOT}/@{swf}.html" overwrite="true"/>
 			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${title}" value="@{title}"/>
 			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${swf}" value="@{swf}"/>
 			<replace file="${WEAVE_DESTROOT}/@{swf}.html" token="$${width}" value="100%"/>
