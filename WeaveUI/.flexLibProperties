@@ -6,6 +6,8 @@
     <classEntry path="weave.ui.infomap.core.QueryObject"/>
     <classEntry path="weave.ui.infomap.ui.TagCloud"/>
     <classEntry path="weave.ui.infomap.ui.DocumentList"/>
+    <classEntry path="weave.ui.RadioButtonRenderer"/>
+    <classEntry path="weave.ui.ListCheckBoxRadioComponent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

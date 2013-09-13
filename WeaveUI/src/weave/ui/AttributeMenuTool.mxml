@@ -38,6 +38,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					 backgroundAlpha="0" borderStyle="none"
 					 />
 		</mx:Canvas>
+		<mx:Canvas label="{lang('Multi')}">
+			<ListCheckBoxRadioComponent id="multiList" width="100%" height="100%"
+					 change="handleAttrSelected(multiList.selectedIndex);"
+					 backgroundAlpha="0" borderStyle="none"
+					 />
+		</mx:Canvas>
 		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
@@ -120,6 +126,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -184,7 +191,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
-			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
+			public const selectedAttributes:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleSelectedAttributesChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			private const toolJuggler:CallbackJuggler = new CallbackJuggler(this, handleToolChange, true);
@@ -209,8 +216,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return result;
 			}
 			
-			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
-			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Vertical Slider'), lang('Horizontal Slider')];
+			private static const layouts:Array = ["ComboBox", "List", "Multi", "VSlider", "HSlider"];
+			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Multi'), lang('Vertical Slider'), lang('Horizontal Slider')];
 			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
 			
 			private function layoutLabelFunction(inputString:String):String
@@ -254,6 +261,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				layoutMode.addImmediateCallback(this, handleLayoutMode);
+				
+				multiList.setDisplayMode(true);
 				
 				callLater(showControlPanelIfNothingSelected);
 			}
@@ -364,6 +373,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for (var i:uint = 0; i < columns.length; i++)
 					names[i] = choiceLabelFunction(columns[i]);
 				
+				//Give the multilist an array of the choices and a field to indicate which ones have been selected.
+				var data:Object = new Array();
+				for( var j:int = 0; j < names.length; j++ )
+					data[j] = [names[j],false];
+				//for (var j:int = 0; j < data.isSelected.length; j++ )
+					//data.isSelected[j] = false;
+				multiList.dataProvider = data;
+				
+				
 				// special case for VSlider -- reverse order
 				choiceVSlider.labels = names.concat().reverse();
 				choiceHSlider.labels = names;
@@ -422,7 +440,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (selectedAttr)
 					{
 						dynamicColumn.requestLocalObjectCopy(selectedAttr);
-						selectedAttribute.value = choices.getName(selectedAttr);
+						selectedAttributes.setSessionState([choices.getName(selectedAttr)]);
 					}
 				}
 				else
@@ -431,18 +449,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private function handleSelectedAttributeChange():void
+			private function handleSelectedAttributesChange():void
 			{
 				if (!parent)
 				{
-					callLater(handleSelectedAttributeChange)
+					callLater(handleSelectedAttributesChange)
 					return;
 				}
 				
 				var names:Array = choices.getNames();
-				var selectedIndex:int = names.indexOf(selectedAttribute.value);
+				var selectedIndex:int = names.indexOf((selectedAttributes.getSessionState() as Array)[0]);
 				choiceCombo.selectedIndex = selectedIndex;
 				choiceList.selectedIndex = selectedIndex;
+				multiList.selectedIndex = selectedIndex;
 				if (selectedIndex >= 0)
 				{
 					choiceHSlider.value = selectedIndex;
@@ -459,6 +478,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					targetAttributeNumber.value = _attrNames.indexOf(value);
 				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
+			
+			[Deprecated(replacement="selectedAttributes")] public function set selectedAttribute(value:String):void{selectedAttributes.setSessionState([value]);}
 			
 			[Deprecated] public function set hack_showPlayButton(value:Boolean):void
 			{
