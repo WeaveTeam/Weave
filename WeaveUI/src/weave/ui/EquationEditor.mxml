@@ -101,6 +101,8 @@
 				panelHeight.value = "70%";
 				panelX.value = "15%";
 				panelY.value = "15%";
+				minimizable.value = true;
+				maximizable.value = true;
 			}
 			
 			/**
