@@ -106,6 +106,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.rpc.AsyncToken;
 			import mx.binding.utils.BindingUtils;
 			import mx.rpc.events.ResultEvent;
 			
@@ -197,10 +198,12 @@
 				this.selectedChild = simpleSetting;
 				
 				var name:String = treeWithSearch.tree.selectedItem.label;
-				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult);
+				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult, null, name);
 
-				function handleResult(event:ResultEvent, token:Object = null):void
+				function handleResult(event:ResultEvent, name:String):void
 				{
+					if (treeWithSearch.tree.selectedItem.label != name)
+						return;
 					clearConnectionFields(false);
 					var info:ConnectionInfo = new ConnectionInfo(event.result);
 					connectionNameInput.text = info.name;

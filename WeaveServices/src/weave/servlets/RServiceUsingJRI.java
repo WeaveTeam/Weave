@@ -32,6 +32,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import weave.beans.RResult;
+import weave.config.WeaveConfig;
 
 
  
@@ -45,20 +46,13 @@ public class RServiceUsingJRI
 	
 	private static ScriptEngine engine = null;
 	
-	public  static class JRIConnectionException extends RemoteException{
-			/**
-		 * 
-		 */
+	public  static class JRIConnectionException extends RemoteException
+	{
 		private static final long serialVersionUID = 1L;
 
-		public  JRIConnectionException(Exception e){
+		public JRIConnectionException(Throwable e)
+		{
 			super("Unable to initialize REngine",e);
-		}
-		public  JRIConnectionException(NoClassDefFoundError ncdfe){
-			super("Unable to initialize REngine",ncdfe);
-		}
-		public  JRIConnectionException(Error error){
-			super("Unable to initialize REngine",error);
 		}
 	}
 	
@@ -77,34 +71,37 @@ public class RServiceUsingJRI
 			}
 			return engine;
 		}
-		catch(UnsatisfiedLinkError linkError){
-			throw new JRIConnectionException(linkError);
-		}
-		catch (NullPointerException e)	{
-			throw new JRIConnectionException( e);
-		}
-		catch(RuntimeException runtimeEx){
-			throw new JRIConnectionException(runtimeEx);
-		}
-		catch (Error error){
-			throw new JRIConnectionException(error);
-		}
-		catch (Exception e)
+		catch (Throwable e)
 		{
-			throw new JRIConnectionException( e);
+			throw new JRIConnectionException(e);
 		}
-		
-		
-		
-		
-		
-		
-		
 	}
+
+	/**
+	 * Use this as a security measure. This will fail if Rserve has file access to sqlconfig.xml.
+	 */
+	private static void requestScriptAccess(ScriptEngine engine) throws RemoteException
+	{
+		try
+		{
+			assignNamesToVector(new String[]{".tmp"}, new Object[]{WeaveConfig.getConnectionConfigFilePath()}, null, false);
+			Object result = engine.eval("length(readLines(.tmp.))");
+			assignNamesToVector(new String[]{".tmp"}, new Object[]{null}, null, false);
+			if (result instanceof Number)
+				throw new RemoteException("R script access is not allowed because it is unsafe (The user running Rserve has file read/write access).");
+			throw new RemoteException("Unexpected result in requestScriptAccess(): " + result);
+		}
+		catch (ScriptException e)
+		{
+			// this exception is desired because we don't want users to be able to read or write files.
+		}
+	}
+	
 	public static RResult[] runScript(String docrootPath, String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
 	{	
 		engine = null;
 		engine = getREngine();
+		requestScriptAccess(engine);
 		
 		synchronized (engine) {		
 			RResult[] results = null;
@@ -112,7 +109,7 @@ public class RServiceUsingJRI
 			try
 			{
 				assignNamesToVector( inputNames, inputValues, keys, useColumnAsList);
-				evaluvateInputScript( script, resultVector, showIntermediateResults, showWarnings );
+				evaluateInputScript( script, resultVector, showIntermediateResults, showWarnings );
 				if (plotScript != ""){// R Script to EVALUATE plotScript
 					String plotEvalValue = plotEvalScript(engine,docrootPath, plotScript, showWarnings);
 					resultVector.add(new RResult("Plot Results", plotEvalValue));
@@ -148,7 +145,8 @@ public class RServiceUsingJRI
 	
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private  static void assignNamesToVector(String[] inputNames,Object[] inputValues,String[] keys,boolean useColumnAsList){
+	private  static void assignNamesToVector(String[] inputNames,Object[] inputValues,String[] keys,boolean useColumnAsList)
+	{
 		// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
 		Bindings bindedVectors = engine.createBindings();//engine needs to be static , otherwise throws null point error
 		for (int i = 0; i < inputNames.length; i++){
@@ -169,7 +167,8 @@ public class RServiceUsingJRI
 		}
 		engine.setBindings(bindedVectors, ScriptContext.ENGINE_SCOPE);	
 	}
-	private static  void evaluvateInputScript(String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException{
+	private static  void evaluateInputScript(String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException
+	{
 		evalScript(engine, script, showWarnings);
 		if (showIntermediateResults){
 			Object storedRdatas = evalScript(engine, "ls()", showWarnings);
@@ -190,7 +189,8 @@ public class RServiceUsingJRI
 	}
 	
 	
-	private static Object evalScript(ScriptEngine engine, String script, boolean showWarnings) throws ScriptException {
+	private static Object evalScript(ScriptEngine engine, String script, boolean showWarnings) throws ScriptException
+	{
 		Object evalValue = null;
 		if(showWarnings)			
 			evalValue =  engine.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");			
@@ -200,7 +200,8 @@ public class RServiceUsingJRI
 		
 	}
 	
-	private static String plotEvalScript(ScriptEngine engine,String docrootPath,String script, boolean showWarnings) throws ScriptException {
+	private static String plotEvalScript(ScriptEngine engine,String docrootPath,String script, boolean showWarnings) throws ScriptException
+	{
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();

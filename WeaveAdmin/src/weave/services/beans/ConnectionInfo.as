@@ -42,10 +42,10 @@ package weave.services.beans
 			return [MYSQL, POSTGRESQL, SQLSERVER, ORACLE];
 		}
 		
-		private static const MYSQL:String = 'MySQL';
-		private static const POSTGRESQL:String = 'PostGreSQL';
-		private static const SQLSERVER:String = 'Microsoft SQL Server';
-		private static const ORACLE:String = 'Oracle';
+		public static const MYSQL:String = 'MySQL';
+		public static const POSTGRESQL:String = 'PostGreSQL';
+		public static const SQLSERVER:String = 'Microsoft SQL Server';
+		public static const ORACLE:String = 'Oracle';
 		
 		/**
 		 * This function will get the default port for a DBMS.

@@ -458,10 +458,10 @@ package weave.data.DataSources
 			var colName:String = proxyColumn.getMetadata("csvColumn");
 			
 			// backwards compatibility
-			if (colName == '')
+			if (!colName)
 				colName = proxyColumn.getMetadata("name");
-			if (proxyColumn.getMetadata(ColumnMetadata.TITLE))
-				
+			if (!proxyColumn.getMetadata(ColumnMetadata.TITLE))
+				leafNode['@' + ColumnMetadata.TITLE] = colName;
 			if (parsedRows.length == 0)
 			{
 				throw new Error('no rows!');

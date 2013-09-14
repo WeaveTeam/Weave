@@ -407,11 +407,11 @@ package weave.services
 		}
 
 		private var oldWeaveServices:Dictionary = new Dictionary(); // the keys are pointers to old service objects
-		private function handleCloseWeavePopup(event:ResultEvent, token:Object = null):void
+		private function handleCloseWeavePopup(event:ResultEvent, service:LocalAsyncService):void
 		{
 			trace("handleCloseWeavePopup");
-			(token as LocalAsyncService).dispose();
-			delete oldWeaveServices[token];
+			service.dispose();
+			delete oldWeaveServices[service];
 		}
 		// End of LocalConnection Code
 		//////////////////////////////////////////

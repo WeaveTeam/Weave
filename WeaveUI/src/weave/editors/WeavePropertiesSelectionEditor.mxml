@@ -39,12 +39,14 @@
 		<ui:CustomComboBox id="recordsTooltip" enabled="{showSelectedRecordsText.selected}"
 						   toolTip="{lang('Select the location for the selected records tooltip')}"/>
 	</mx:HBox>
-	<mx:CheckBox toolTip="{lang('Check this box to enable bitmap filters used when probing or selecting')}"
-				 id="enableBitmapFilters"
-				 label="{lang('Enable extra bitmap filters')}"
-				 selected="true"
-				 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
-				 />
+	<mx:HBox verticalAlign="middle">
+		<mx:CheckBox id="enableBitmapFilters"
+					 label="{lang('Enable extra bitmap filters')}"
+					 selected="true"
+					 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
+					 />
+		<ui:HelpComponent>Check this box to enable extra bitmap filters used with mouseover and selection</ui:HelpComponent>
+	</mx:HBox>
 	<mx:VBox enabled="{enableBitmapFilters.selected}" paddingLeft="24">			
 		<mx:HBox>
 			<mx:Label text="{lang('Shadow Color')}" 

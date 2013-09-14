@@ -32,6 +32,7 @@ import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
 import org.rosuda.REngine.REngineException;
@@ -42,6 +43,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
+import weave.config.WeaveConfig;
 import weave.utils.ListUtils;
 
 
@@ -55,8 +57,6 @@ public class RServiceUsingRserve
 	
 	private static RConnection getRConnection() throws RemoteException
 	{
-		
-		
 		RConnection rConnection = null; // establishing R connection		
 		try
 		{
@@ -69,10 +69,9 @@ public class RServiceUsingRserve
 		}
 		return rConnection;
 	}
-	public  static class RserveConnectionException extends RemoteException{
-		/**
-		 * 
-		 */
+	
+	public static class RserveConnectionException extends RemoteException
+	{
 		private static final long serialVersionUID = 1L;
 
 		public  RserveConnectionException(Exception e){
@@ -80,8 +79,29 @@ public class RServiceUsingRserve
 		}
 	}
 
-	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException
+	/**
+	 * Use this as a security measure. This will fail if Rserve has file access to sqlconfig.xml.
+	 */
+	private static void requestScriptAccess(RConnection rConnection) throws RemoteException
 	{
+		try
+		{
+			rConnection.assign(".tmp.", WeaveConfig.getConnectionConfigFilePath());
+			REXP result = rConnection.eval("length(readLines(.tmp.))");
+			rConnection.assign(".tmp.", new REXPNull());
+			if (result.isNumeric())
+				throw new RemoteException("R script access is not allowed because it is unsafe (The user running Rserve has file read/write access).");
+			throw new RemoteException("Unexpected result in requestScriptAccess(): " + result);
+		}
+		catch (RserveException e)
+		{
+			// this exception is desired because we don't want users to be able to read or write files.
+		}
+	}
+	
+	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException, RemoteException
+	{
+		requestScriptAccess(rConnection);
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
@@ -222,11 +242,10 @@ public class RServiceUsingRserve
 		
 	}
 	
-	
-	
 	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
-	{		
+	{
 		RConnection rConnection = getRConnection();
+		requestScriptAccess(rConnection); // important to run this before allowing end-user scripting
 		
 		RResult[] results = null;
 		Vector<RResult> resultVector = new Vector<RResult>();
@@ -339,7 +358,8 @@ public class RServiceUsingRserve
 
 			// option to draw the plot, regression line and store the image
 
-			rConnection.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Linear_Regression.jpg"));
+			rConnection.assign(".tmp.", docrootPath + rFolderName + "/Linear_Regression.jpg");
+			rConnection.eval("jpeg(.tmp.)");
 			rConnection.eval("plot(x,y)");
 			rConnection.eval("abline(fit)");
 			rConnection.eval("dev.off()");
@@ -370,6 +390,7 @@ public class RServiceUsingRserve
 													     	int numberOfClusters, int iterations)throws RemoteException
 	{
 		RConnection rConnection = getRConnection();	
+		requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
 
 		int []noOfClusters = new int [1];
 		noOfClusters[0] = numberOfClusters;
@@ -426,7 +447,7 @@ public class RServiceUsingRserve
 		
 				dataframeInput = "data.frame(" + names + ")";
 			}
-			evalValue = rConnection.eval(dataframeInput);
+			evalValue = rConnection.eval(dataframeInput); // NOT SAFE - script was built using user-specified strings
 		
 			rConnection.assign("frame",evalValue);
 			rConnection.assign("clusternumber", noOfClusters);
@@ -551,7 +572,8 @@ public class RServiceUsingRserve
 			rConnection.eval("HCluster <- hclust(d = dist(dataframe1), method)");
 
 			// option for drawing the hierarchical tree and storing the image
-			rConnection.eval(String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Hierarchical_Clustering.jpg"));
+			rConnection.assign(".tmp.", docrootPath + rFolderName + "/Hierarchical_Clustering.jpg");
+			rConnection.eval("jpeg(.tmp.)");
 			rConnection.eval("plot(HCluster, main = \"Hierarchical Clustering\")");
 			rConnection.eval("dev.off()");
 
@@ -579,6 +601,7 @@ public class RServiceUsingRserve
 	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
 	{
 		RConnection rConnection = getRConnection();
+		requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
 		
 		String output = "";
 		String script= "";
@@ -604,7 +627,7 @@ public class RServiceUsingRserve
 				bindingInput = "cbind(" + names + ")";
 			}
 			
-			evalValue = rConnection.eval(bindingInput);
+			evalValue = rConnection.eval(bindingInput); // NOT SAFE - bindingInput was built with string concat using user-specified strings
 			rConnection.assign("Bind",evalValue);
 			
 			//Built in script

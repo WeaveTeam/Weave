@@ -343,7 +343,7 @@
 			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
 
-			WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, lang("RInterface"));
+			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, lang("RInterface"));
 			
 			[Bindable]
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();
@@ -617,7 +617,7 @@
 			
 			public var scriptResultValueExhibitMap:Dictionary = new Dictionary();
 			public var a:int = 0;//checks number of times asynchronous calls are made
-			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			private function handleRunScriptResult(event:ResultEvent, keys:Array):void
 			{
 				a++;
 				//var valueExhibitMap:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
@@ -711,9 +711,6 @@
 				}
 				
 				RResultConsole.text = resultString;
-				
-				//To make availabe for Weave -Mapping with key returned from Token
-				var keys:Array = token as Array;
 				
 				//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
 				for (var p:int = 0;p < RresultArray.length; p++)

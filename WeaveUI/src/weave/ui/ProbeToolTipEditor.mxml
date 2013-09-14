@@ -22,7 +22,7 @@
 <ControlPanel xmlns="weave.ui.*"
 			  xmlns:mx="http://www.adobe.com/2006/mxml"
 			  backgroundColor="#EFF4BC" horizontalScrollPolicy="off" layout="absolute"
-			  title="{lang('Probe ToolTip Editor')}" verticalScrollPolicy="off">
+			  title="{lang('Mouseover Info Editor')}" verticalScrollPolicy="off">
 	<mx:VBox label="{lang('Header Columns')}">
 		<mx:HBox width="100%" verticalAlign="middle">
 			<HelpComponent label="{lang('Header Columns')}">
@@ -38,25 +38,25 @@
 		</mx:HBox>
 		<ColumnListComponent id="headerList" width="100%" height="100%" label="{lang('Header Columns')}"
 							 hashMap="{ProbeTextUtils.probeHeaderColumns}"/>		
-		<mx:CheckBox label="{lang('Enable probe ToolTips')}"
+		<mx:CheckBox label="{lang('Enable mouseover ToolTips')}"
 					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
 	
-	<mx:VDividedBox label="{lang('Probed Columns')}">
+	<mx:VDividedBox label="{lang('Data Columns')}">
 		<mx:VBox width="100%" height="100%">
 			<mx:HBox width="100%" verticalAlign="middle">
-				<HelpComponent label="{lang('Probed Columns')}">
+				<HelpComponent label="{lang('Data Columns')}">
 					<mx:Label text="{lang('Example tooltip:')}"/>
 					<mx:HBox styleName="exampleStyle">
 						<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
 					</mx:HBox>
-					<mx:Label text="{lang('The attributes highlighted in green are the probed columns')}"/>
+					<mx:Label text="{lang('The attributes highlighted in green are the data columns')}"/>
 				</HelpComponent>
 				<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
 							 text="{lang('The values from these columns will be displayed under the header line along with the column names.')}"
 							 wordWrap="true"/>
 			</mx:HBox>
-			<ColumnListComponent id="columnList" width="100%" height="100%" label="{lang('Probed columns')}"
+			<ColumnListComponent id="columnList" width="100%" height="100%" label="{lang('Data columns')}"
 								 hashMap="{ProbeTextUtils.probedColumns}"/>
 		</mx:VBox>
 		<mx:VBox width="100%">
@@ -67,13 +67,13 @@
 				<HelpComponent>
 					<htmlText>
 						<![CDATA[
-							This expression will be used to format each line corresponding to a probed column. <!--
+							This expression will be used to format each line corresponding to a data column. <!--
 							-->Available variables are <b>column</b>, <b>key</b>, <b>string</b>, and <b>title</b>.
 						]]>
 					</htmlText>
 				</HelpComponent>
 			</Indent>
-			<mx:CheckBox label="{lang('Enable probe ToolTips')}"
+			<mx:CheckBox label="{lang('Enable mouseover ToolTips')}"
 						 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 		</mx:VBox>
 	</mx:VDividedBox>

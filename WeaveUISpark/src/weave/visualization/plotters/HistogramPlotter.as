@@ -131,8 +131,7 @@ package weave.visualization.plotters
 			}
 			
 			var binHeight:int = binCol.getKeysFromBinIndex(binIndex).length;
-			initBoundsArray(output);
-			(output[0] as IBounds2D).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
+			initBoundsArray(output).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
 		}
 		
 		/**

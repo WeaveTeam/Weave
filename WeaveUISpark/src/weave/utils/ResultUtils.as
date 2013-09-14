@@ -125,10 +125,8 @@ package weave.utils
 		return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 		}
 		
-		public static function rResultToColumn(token:Array, RresultArray:Array,Robj:Array):void
+		public static function rResultToColumn(keys:Array, RresultArray:Array,Robj:Array):void
 		{
-			var keys:Array = token as Array;
-			
 			//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
 			for (var p:int = 0;p < RresultArray.length; p++)
 			{

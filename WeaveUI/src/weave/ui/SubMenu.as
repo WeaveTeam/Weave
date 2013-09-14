@@ -64,7 +64,10 @@ package weave.ui
 			for each (type in openMenuEventTypes)
 				_uiParent.addEventListener(type, openSubMenu);
 			for each (type in closeMenuEventTypes)
-				_uiParent.addEventListener(type, closeSubMenu);
+			{
+				if (openMenuEventTypes && openMenuEventTypes.indexOf(type) < 0)
+					_uiParent.addEventListener(type, closeSubMenu);
+			}
 			
 			includeInLayout = false;
 			tabEnabled = false;

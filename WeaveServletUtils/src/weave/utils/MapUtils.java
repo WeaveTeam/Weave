@@ -46,4 +46,12 @@ public class MapUtils
 		for (int i = 1; i < pairs.length; i += 2)
 			map.put((K)pairs[i - 1], (V)pairs[i]);
 	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T> T getValue(Map map, String key, T defaultValue)
+	{
+		if (map.containsKey(key))
+			return (T)map.get(key);
+		return defaultValue;
+	}
 }

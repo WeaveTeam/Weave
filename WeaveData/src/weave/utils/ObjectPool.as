@@ -38,7 +38,7 @@ package weave.utils
 		 * This Dictionary maps a Class definition to a Dictionary whose keys are instances of that class.
 		 * A Dictionary is used instead of an Array to avoid having multiple pointers to the same object.
 		 */
-		private static const pool:Dictionary = new Dictionary();
+		private static const pool:Dictionary = new Dictionary(true);
 		
 		/**
 		 * This function asks the pool for an object with the intention of returning it when it is no longer needed.
@@ -63,15 +63,22 @@ package weave.utils
 		 * the pool so some other code can use it.  This function should only be used on objects that you
 		 * are sure no other code is still using.  Also, any object you pass in here should not contain any
 		 * pointers to other objects. If your code never uses borrowObject(), there is no reason to call
-		 * returnObject().  If returnObject() is called more often than borrowObject(), that is basically
-		 * a memory leak.
+		 * returnObject().  An Error will be thrown if returnObject() is called more than once on the same object
+		 * before it is returned from borrowObject() in order to alert the developer that the code is misbehaving.
+		 * If this Error is ignored, unexpected results may occur similar to a buffer overflow because multiple
+		 * parts of the code may end up using the same object.
 		 * @param object A simple reusable object that is no longer in use.
 		 */		
 		public static function returnObject(object:Object):void
 		{
 			// stop if the object was already returned (this will prevent returning the same object twice from borrowObject)
 			if (pool[object])
-				return;
+			{
+				// It's important to know when this occurs because if it does, most likely some code is incorrect.
+				// If this is ignored, the code will seem to behave randomly if the same object is being used for multiple purposes.
+				// Make sure when returnObject() is called that any code using the object clears all references to it.
+				throw new Error("object was passed to returnObject() more times than necessary");
+			}
 			
 			var objectType:Class = Object(object).constructor; //ClassUtils.getClassDefinition(getQualifiedClassName(object)) as Class;
 			var objects:Array = pool[objectType] as Array;

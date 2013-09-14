@@ -58,6 +58,7 @@ package weave.application
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
@@ -72,6 +73,8 @@ package weave.application
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
+	import weave.services.DelayedAsyncInvocation;
+	import weave.services.InfoMapAdminInterface;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.AlertTextBox;
@@ -80,7 +83,6 @@ package weave.application
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
-	import weave.ui.DisabilityOptions;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
@@ -197,6 +199,7 @@ package weave.application
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 			
 			getFlashVars();
+			handleFlashVarPresentation();
 			handleFlashVarAllowDomain();
 			
 			// disable application until it's ready
@@ -261,16 +264,15 @@ package weave.application
 				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
-		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
+		private function handleConfigFileDownloaded(event:ResultEvent = null, fileName:String = null):void
 		{
-			var fileName:String = token as String;
 			if (!event)
 			{
 				loadSessionState(null, null);
 			}
 			else
 			{
-				if (Capabilities.localFileReadDisable == false)
+				if (Capabilities.playerType == "Desktop")
 					WeaveAPI.URLRequestUtils.setBaseURL(fileName);
 				loadSessionState(event.result, fileName);
 			}
@@ -290,29 +292,30 @@ package weave.application
 			
 			// enable JavaScript API after initial session state has loaded.
 			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
+			Weave.initWeavePathAPI();
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
-			Weave.initJavaScriptDragDrop();
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
-		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
+		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
-			// When creating a new file through the admin console, don't report an error for the missing file.
-			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarFile());
-			if (adminDefault)
+			// don't report an error if no filename was specified
+			var noFileName:Boolean = !getFlashVarFile();
+			if (noFileName)
 			{
-				// The admin hasn't created a default configuration yet.
-				// When we're creating a new config through the admin console, create a
-				// WeaveDataSource so the admin doesn't have to add it manually every time.
+				// for default fallback configuration, create a WeaveDataSource
 				Weave.root.requestObject(null, WeaveDataSource, false);
+				
+				// if not opened from admin console, enable interface now
+				if (!getFlashVarAdminConnectionName())
+					this.enabled = true;
 			}
 			else
 			{
 				reportError(event);
+				if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
+					Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 			}
-			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
-				Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 		}
-		
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
@@ -334,6 +337,12 @@ package weave.application
 		 */
 		private var _flashVars:Object;
 		public function get flashVars():Object { return _flashVars; }
+		
+		private function handleFlashVarPresentation():void
+		{
+			var presentationMode:Boolean = StandardLib.asBoolean(_flashVars['presentation'] as String);
+			Weave.history.enableLogging.value = !presentationMode;
+		}
 		
 		private function handleFlashVarAllowDomain():void
 		{
@@ -480,14 +489,19 @@ package weave.application
 			_selectionIndicatorText.setStyle("left", 0);
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
-			
-			//			if(Weave.properties.enableAutoSave.value)
-			//			{
-			//				saveSessionTimer = new Timer(5000);
-			//				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
-			//				saveSessionTimer.start();
-			//			}
-			
+
+			saveSessionTimer.addEventListener(TimerEvent.TIMER,saveInfoMapsSessionState);
+			Weave.properties.enableAutoSave.addGroupedCallback(this,function():void{
+				if(Weave.properties.enableAutoSave.value)
+				{
+					saveSessionTimer.start();
+				}
+				else
+				{
+					saveSessionTimer.stop();
+				}
+			},true);
+				
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
 		}
@@ -536,9 +550,12 @@ package weave.application
 		private static const RECOVER_SHARED_OBJECT:String = "WeaveAdminConsoleRecover";
 		private function saveRecoverPoint(event:Event = null):void
 		{
-			var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
-			cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
-			cookie.flush();
+			if (detectLinkableObjectChange(saveRecoverPoint, WeaveAPI.globalHashMap))
+			{
+				var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
+				cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
+				cookie.flush();
+			}
 		}
 		private function getRecoverPoint():ByteArray
 		{
@@ -547,8 +564,7 @@ package weave.application
 		}
 		
 		private var _useWeaveExtensionWhenSavingToServer:Boolean;
-		private var _firstTimeSaveToServer:Boolean=true;
-		private var _previousFileNameStore:String;
+		private var _previousSavedFileName:String;
 		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
 		{
 			if (adminService == null)
@@ -559,10 +575,8 @@ package weave.application
 			
 			_useWeaveExtensionWhenSavingToServer = useWeaveExtension;
 			
-			var fileName:String = getFlashVarFile().split("/").pop();
+			var fileName:String = _previousSavedFileName || getFlashVarFile().split("/").pop();
 			fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
-			if (!_firstTimeSaveToServer)
-				fileName=_previousFileNameStore;
 			
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
@@ -573,51 +587,47 @@ package weave.application
 			PopUpManager.centerPopUp(fileSaveDialogBox);
 		}
 		
-//		private const _service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
-//		
-//		private var saveSessionTimer:Timer = null;
-//		private function saveSessionState(event:TimerEvent):void
-//		{
-//			if(!Weave.properties.enableAutoSave.value)
-//				return;
-//			if (detectLinkableObjectChange(saveSessionState,Weave.history))
-//				saveInfoMapsSessionState();
-//		}
+		private var saveSessionTimer:Timer = new Timer(5000);
 		
-		private function saveInfoMapsSessionState():void
+		private function saveInfoMapsSessionState(event:Event=null):void
 		{
-//			if(!Weave.properties.enableInfoMap.value)
-//				return;
-//			
-//			var fileName:String = getFlashVarFile().split("/").pop();
-//			fileName = Weave.fixWeaveFileName(fileName, true);
-//			
-//			var content:ByteArray;
-//			content = Weave.createWeaveFileContent();
-//			
-//			var token:DelayedAsyncInvocation = _service.saveWeaveFile("infomaps","infomaps",content,fileName,true);
-//			
-//			token.addAsyncResponder(
-//				function(event:ResultEvent, token:Object = null):void
-//				{
-////					reportError("Session State Saved");
-//				},
-//				function(event:FaultEvent, token:Object = null):void
-//				{
-//					reportError(event.fault, "Unable to Save Session State");
-//				},
-//				null
-//			);
+			if(!Weave.properties.enableAutoSave.value)
+				return;
+			
+			if (!detectLinkableObjectChange(saveInfoMapsSessionState,Weave.history))
+				return;
+			
+			var fileName:String = getFlashVarFile().split("/").pop();
+			
+			if(fileName == '')
+				return;
+			
+			fileName = Weave.fixWeaveFileName(fileName, true);
+			
+			var content:ByteArray= Weave.createWeaveFileContent();
+			
+			var token:AsyncToken = InfoMapAdminInterface.instance.saveWeaveFile(content,fileName);
+			
+			token.addAsyncResponder(
+				function(event:ResultEvent, token:Object = null):void
+				{
+					//reportError("Session State Saved" + event.result);
+				},
+				function(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event.fault, "Unable to Save Session State");
+				},
+				null
+			);
 		}
 		
 		private function handleFileSaveClose(event:AlertTextBoxEvent):void
 		{
 			if (event.confirm)
 			{
-				_firstTimeSaveToServer=false;
 				var fileName:String = event.textInput;
 				fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
-				_previousFileNameStore = fileName;
+				_previousSavedFileName = fileName;
 				
 				var content:ByteArray;
 				if (_useWeaveExtensionWhenSavingToServer)
@@ -843,12 +853,10 @@ package weave.application
 
 
 				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
-				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Probe Info Editor"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
+				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Edit Mouseover Info"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
+				createToolMenuItem(Weave.properties.showProbeWindow, lang("Mouseover Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
-				if(getFlashVarEditable())
-					createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
 
 				var _this:VisApplication = this;
 
@@ -1011,6 +1019,7 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
+				_previousSavedFileName = fileName;
 			}
 			catch (error:Error)
 			{
@@ -1080,6 +1089,7 @@ package weave.application
 					}
 					
 					Weave.loadWeaveFileContent(xml);
+					_previousSavedFileName = fileName;
 					
 //					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
 //					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;

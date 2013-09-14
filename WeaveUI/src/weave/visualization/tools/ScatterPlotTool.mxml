@@ -42,6 +42,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
+			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.primitives.Bounds2D;
@@ -138,6 +139,7 @@
 				initRegressionLayer();
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
+				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
 			}
 			
 			private function handleChildrenChildList():void
@@ -311,25 +313,94 @@
 			}
 			/*END UNDEFINED LAYER CODE*/
 			
-			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
+			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
+			{
+				handleSelectAllAttrInProbe(value);
+			}
+			
+			private function handleSelectAllAttrInProbe(setAll:Boolean):void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var valuesToSet:Array = [];
+				if(setAll)
+				{
+					for each (var name:String in attributes)
+					{
+						valuesToSet.push(true);
+					}
+				}
+				else
+				{
+					for each (var name2:String in attributes)
+					{
+						valuesToSet.push(false);
+					}
+				}
+				attributesToIncludeInProbe.setSessionState(valuesToSet);
+			}
+			
 			
 			private function updateProbeColumns():void
 			{
-				if(includeToolAttributesInProbe.value)
+				/* first check to see if select all should be disabled or not */
+				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				
+				if(attrToIncludeCheckList.indexOf(false) > -1)
 				{
-					visualization.additionalProbeColumns = [];
-					if (plotter.dataX.getInternalColumn())
-						visualization.additionalProbeColumns.push(plotter.dataX.getInternalColumn());
-					if (plotter.dataY.getInternalColumn())
-						visualization.additionalProbeColumns.push(plotter.dataY.getInternalColumn());
-					if (colorColumn.getInternalColumn())
-						visualization.additionalProbeColumns.push(colorColumn.getInternalColumn());
-					if (visualization.additionalProbeColumns.length == 0)
-						visualization.additionalProbeColumns = null ;
+					probeColumnsCheckBox.selected = false;
 				}
-				else visualization.additionalProbeColumns = null;
+				else
+				{
+					probeColumnsCheckBox.selected = true;
+				}
+				
+				var attributes:Array = getSelectableAttributes();
+				var columns:Array = [];
+				
+				var dataXColIndex:int = attributes.indexOf(plotter.dataX);
+				if (plotter.dataX.getInternalColumn() && attrToIncludeCheckList[dataXColIndex])
+					columns.push(plotter.dataX.getInternalColumn());
+				
+				var dataYColIndex:int = attributes.indexOf(plotter.dataY);
+				if (plotter.dataY.getInternalColumn() && attrToIncludeCheckList[dataYColIndex])
+					columns.push(plotter.dataY.getInternalColumn());
+				
+				var colorColIndex:int = attributes.indexOf(colorColumn);
+				if (colorColumn.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
+					columns.push(colorColumn.getInternalColumn());
+				
+				var sizeColIndex:int = attributes.indexOf(plotter.screenRadius);
+				if(plotter.screenRadius.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
+					columns.push(plotter.screenRadius.getInternalColumn());
+				
+				if(columns.length>0)
+				{
+					visualization.additionalProbeColumns = columns;
+				}
+				else
+				{
+					visualization.additionalProbeColumns = null;
+				}
+				
+				updateAttributesChecklist();
 			}
 			
+			
+			private function updateAttributesChecklist():void
+			{
+				var attributes:Array = getSelectableAttributeNames();
+				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
+				var temp:Array = [];
+				for (var i:int = 0; i < attributes.length; i++)
+				{
+					var obj:Object = new Object();
+					obj.label = attributes[i];
+					obj.selected = attrCheckList[i];
+					temp.push(obj);
+				}
+				attributesChecklist.dataProvider = temp;
+			}
 			override protected function get defaultPanelTitle():String
 			{
 				return lang("Scatter Plot of {0} -vs- {1}", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
@@ -464,7 +535,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
+				return AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color.internalDynamicColumn);
 			}
 			
 			protected function createLegend():void
@@ -604,7 +675,34 @@
 			</mx:HBox>
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:CheckBox change="handleSelectionChange()">
+							
+							<mx:Script>
+								<![CDATA[
+									override public function set data(d:Object):void
+									{
+										super.data = d;
+										selected = d && d.selected;
+										label = (d && d.label) as String;
+									}
+									private function handleSelectionChange():void
+									{
+										data.selected = this.selected;
+										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
+										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
+										currentState[index]= this.selected;
+										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
+									}
+								]]>
+							</mx:Script>
+						</mx:CheckBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
