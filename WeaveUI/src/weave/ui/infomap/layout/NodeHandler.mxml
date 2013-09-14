@@ -211,12 +211,12 @@
 			public const enablePinView:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
 			
 			public static const LIST_VIEW:String = "List";
-			public static const GOOGLE_LIST_VIEW:String = "Google"; // ToDo yenfu
+			public static const GOOGLE_SEARCH_VIEW:String = "Google"; // ToDo yenfu
 			public static const THUMBNAILS_VIEW:String = "Thumbnails";
 			public static const TOPICS_VIEW:String = "Topics";
 			public static const WORD_CLOUD_VIEW:String = "Word Cloud";
 			public static const POINTS_VIEW:String = "Points";
-			public static const views:Array = [LIST_VIEW,GOOGLE_LIST_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW]; // ToDo yenfu
+			public static const views:Array = [LIST_VIEW,GOOGLE_SEARCH_VIEW,THUMBNAILS_VIEW,WORD_CLOUD_VIEW,POINTS_VIEW]; // ToDo yenfu
 			public const currentView:LinkableString =  registerLinkableChild(this,new LinkableString(LIST_VIEW,function(value:*):Boolean{
 				if(views.indexOf(value) != -1)
 					return true;
@@ -286,6 +286,11 @@
 			[Embed( source="/weave/resources/images/list.png")]
 			private var ListImgClass:Class;
 			private var _listImgText:String = "List View";
+			
+			// ToDo yenfu
+			[Embed( source="/weave/resources/images/google.png")]
+			private var GoogleImgClass:Class;
+			private var _googleImgText:String ="Google Search View";
 			
 			[Embed( source="/weave/resources/images/cloud.png")]
 			private var WordCloudImgClass:Class;
@@ -461,7 +466,7 @@
 				googleDocListComponent.alpha = 0;
 				addChild(googleDocListComponent);
 //				googleDocListComponent.docList.addEventListener(ListEvent.ITEM_CLICK ,handleDocumentSelectedFromList); // ToDo yenfu ???
-				_viewToObjectMapping[GOOGLE_LIST_VIEW] = googleDocListComponent;
+				_viewToObjectMapping[GOOGLE_SEARCH_VIEW] = googleDocListComponent;
 				
 				topicComponent.visible = false;
 				topicComponent.alpha = 0;
@@ -655,7 +660,7 @@
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 				
 				// ToDo yenfu google
-				var googleDocSetQuery:AsyncToken = InfoMapAdminInterface.instance.getGoogleSearchResult("Machine Learning");
+				var googleDocSetQuery:AsyncToken = InfoMapAdminInterface.instance.getGoogleSearchResultWithRelatedKeywords(_currentQueryTerms,_currentRelatedKeywords, currentQuery.operator.value);
 				addAsyncResponder(googleDocSetQuery, handleGoogleQueryWithRelatedKeywordsResults, handleGoogleQueryWithRelatedKeywordsFault, token);
 				
 				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
@@ -968,6 +973,7 @@
 			}
 			
 			private var _listImg:Bitmap = new ListImgClass() as Bitmap;
+			private var _googleImg:Bitmap = new GoogleImgClass() as Bitmap; // ToDo yenfu
 			private var _gridImg:Bitmap = new GridImgClass() as Bitmap;
 			
 			private function _completeThumbnailsIteration():void
@@ -981,6 +987,7 @@
 					_radialMenu.addMenuItem(_listImg,_listImgText,toggleView,[LIST_VIEW]);
 					_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
 					_radialMenu.addMenuItem(_tickImg,_tickImgText,clearAllNewDocuments,null);
+					_radialMenu.addMenuItem(_googleImg,_googleImgText,toggleView,[GOOGLE_SEARCH_VIEW]); // ToDo yenfu google toggleView
 				}
 //				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
 //				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
@@ -1430,7 +1437,7 @@
 						
 					}
 				}
-				else if (view == GOOGLE_LIST_VIEW) // ToDo yenfu
+				else if (view == GOOGLE_SEARCH_VIEW) // ToDo yenfu
 				{
 				googleDocListComponent.y = nodeBase.height;
 				}
@@ -2501,6 +2508,7 @@
 					if(contains(googleDocListComponent))
 					{
 						googleDocListComponent.keys = [];//clearing items in list
+						googleDocListComponent.docList.dragEnabled = false; // ToDo yenfu google
 					}
 					if(contains(thumbnailListComponent))
 					{
