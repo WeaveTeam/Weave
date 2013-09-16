@@ -499,6 +499,7 @@ package weave.application
 				else
 				{
 					saveSessionTimer.stop();
+					saveCurrentSession();//to make sure the enableAutoSave value is saved.
 				}
 			},true);
 				
@@ -597,6 +598,11 @@ package weave.application
 			if (!detectLinkableObjectChange(saveInfoMapsSessionState,Weave.history))
 				return;
 			
+			saveCurrentSession();
+		}
+		
+		private function saveCurrentSession():void
+		{
 			var fileName:String = getFlashVarFile().split("/").pop();
 			
 			if(fileName == '')
