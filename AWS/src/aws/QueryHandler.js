@@ -50,7 +50,7 @@ aws.QueryHandler = function(queryObject)
 	this.colorColumn = queryObject.colorColumn;
 	
 	this.keyType = "";
-	if (queryObject.maptool){;
+	if (queryObject.maptool){
 		if(queryObject.maptool.keyType) {
 			this.keyType = queryObject.maptool.keyType;
 		}
@@ -58,7 +58,7 @@ aws.QueryHandler = function(queryObject)
 	
 	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
-	
+
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
 	this.computationEngine = null;
