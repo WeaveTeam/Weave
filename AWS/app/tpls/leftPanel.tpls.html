@@ -4,12 +4,15 @@
  -->
 
 <div ng-controller="LeftPanelCtrl" class=" span3">
-	<!-- <accordion id="leftPanel" close-others="oneAtATime"> <accordion-group
-		heading='Analysis Builder' id="analysisBuilder">
-	{{QueryObjectModel}} </accordion-group> <accordion-group heading='Calculation'
-		id="calculationAccordion"> </accordion-group> <accordion-group
-		heading="Weave" id="weaveAccordion"> </accordion-group> </accordion> -->
 
+	<button onclick="saveJSON({{QueryObjectModel()}})"
+		class="btn btn-primary">Save Query</button>
+	<br>
+	<div class="file-upload">
+		<label for="queryImport">Load Query</label> 
+		<input type="file" id="queryImport" name="queryImport"
+			ng-submit="uploadQuery()" file-upload />
+	</div>
 	<ul class="nav nav-tabs nav-stacked">
 		<li ng-class="{active: isActive('/analysis')}"><a
 			href="#/analysis">Analysis Builder</a></li>
@@ -19,13 +22,10 @@
 			href="#/visualization">Visualizations</a></li>
 	</ul>
 	<pre class="language-">{{QueryObjectModel()}}</pre>
-	<button onclick="saveJSON({{QueryObjectModel()}})"
-		class="btn btn-primary">Export JSON</button>
-	<br> <label>Import JSON</label> <input type="file"
-		id="queryImport" ng-submit="uploadQuery()" file-upload/>
-	<button id="run" class="btn btn-primary">Run Query</button>
-	<br>
-	<img id="busyIndicator" src="img/busy.gif" ng-show='shouldShow'/>
+
+	<!-- <button id="run" class="btn btn-primary">Run Query</button> -->
+	<br> <img id="busyIndicator" src="img/busy.gif"
+		ng-show='shouldShow' />
 
 	<script>
 	var importedobjectfromjson;
