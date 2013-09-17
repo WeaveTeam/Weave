@@ -28,22 +28,21 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
-			
-			import weave.api.data.IKeySet;
-			
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
-			import weave.api.registerLinkableChild;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.primitives.IBounds2D;
+			import weave.api.registerLinkableChild;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
@@ -60,6 +59,7 @@
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.ui.SubMenu;
+			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
@@ -75,6 +75,7 @@
 			
 			protected static const locationsList:Array = [lang("Top left"), lang("Top right"), lang("Bottom left"), lang("Bottom right")];
 			public const maptoolsLocation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLocationChange, true);
+			private const visibleScaleController:VariableListController = newDisposableChild(this, VariableListController);
 			
 			// no main plotter
 			override protected function get mainPlotter():IPlotter { return null; }
@@ -270,6 +271,10 @@
 				selectionSubMenu.addSubMenuItem(lang("Lasso Selection"),function():void{
 					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
 					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;});
+				
+				
+				visibleScaleController.view = visibleScaleRangesList;
+				visibleScaleController.hashMap = visualization.plotManager.layerSettings
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
@@ -903,12 +908,11 @@
 							maximum="{zoomSliderMaximum}"
 							liveDragging="true" />
 			</ui:Indent>
-			<ui:LinkableObjectList id="visibleScaleRangesList"
+			<mx:List id="visibleScaleRangesList"
 								   width="100%" height="100%"
-								   initialize="visibleScaleRangesList.hashMap = visualization.plotManager.layerSettings"
 								   borderStyle="none"
 								   paddingLeft="0">
-				<ui:itemRenderer>
+				<mx:itemRenderer>
 					<mx:Component>
 						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
 							<mx:Script>
@@ -1001,8 +1005,8 @@
 										width="100%"/>
 						</ui:Indent>
 					</mx:Component>			
-				</ui:itemRenderer>
-			</ui:LinkableObjectList>
+				</mx:itemRenderer>
+			</mx:List>
 		</mx:VBox>
 	</ui:ControlPanel>
 	<ui:IndentGroup id="scaleRangeIndentGroup"/>

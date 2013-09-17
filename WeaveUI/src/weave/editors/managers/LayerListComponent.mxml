@@ -39,16 +39,16 @@ LayerListComponent
 			<!--<mx:Button label="{lang('Open editor...')}" click="openSelector()"/>-->
 		</mx:HBox>
 	</mx:HBox>
-	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}">
-		<ui:itemRenderer>
+	<mx:List id="internalList" width="100%" height="100%">
+		<mx:itemRenderer>
 			<mx:Component>
 				<mx:HBox width="100%" horizontalScrollPolicy="off">
 					<mx:Script>
 						<![CDATA[
 							import mx.managers.PopUpManager;
 							
+							import weave.api.core.ILinkableObject;
 							import weave.api.linkBindableProperty;
-							import weave.api.newDisposableChild;
 							import weave.api.objectWasDisposed;
 							import weave.api.ui.ILinkableObjectEditor;
 							import weave.api.ui.IPlotter;
@@ -57,7 +57,7 @@ LayerListComponent
 							import weave.ui.AlertTextBoxEvent;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
-							import weave.utils.EditorManager;
+							import weave.ui.VariableListController;
 							import weave.visualization.layers.LayerSettings;
 							import weave.visualization.layers.PlotManager;
 							import weave.visualization.layers.Visualization;
@@ -113,7 +113,7 @@ LayerListComponent
 							
 							protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
 							{
-								var defaultInputString:String = outerDocument.internalList.getItemLabel(data);
+								var defaultInputString:String = outerDocument.controller.getItemName(data);
 								var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"), lang("Please enter a new layer name:"), defaultInputString);
 								
 								alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
@@ -124,7 +124,7 @@ LayerListComponent
 										
 										//Alert.show("Input was " + e.textInput);
 										
-										outerDocument.internalList.hashMap.renameObject(defaultInputString,e.textInput);
+										outerDocument.controller.hashMap.renameObject(defaultInputString,e.textInput);
 									}
 								);
 							}
@@ -133,19 +133,19 @@ LayerListComponent
 					</mx:Script>
 					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
 					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-					<mx:Label textAlign="center" width="100%" text="{outerDocument.internalList.getItemLabel(data)}"/>
+					<mx:Label textAlign="center" width="100%" text="{outerDocument.controller.getItemName(data)}"/>
 					<mx:Button label="{lang('Rename...')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
 					<mx:Button label="{lang('Settings...')}" click="openSettingsPanel(data as IPlotter)"/>
 				</mx:HBox>
 			</mx:Component>
-		</ui:itemRenderer>
-	</ui:LinkableObjectList>
+		</mx:itemRenderer>
+	</mx:List>
 	<mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button
 			label="{lang('Remove selected')}"
 			toolTip="{lang('Click here to remove one or more selected layers in the list above.')}"
-			click="internalList.removeSelectedItem()"
+			click="controller.removeSelectedItems()"
 			enabled="{internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
 	<!--
@@ -165,6 +165,8 @@ LayerListComponent
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.newDisposableChild;
+			import weave.ui.VariableListController;
 			import weave.visualization.layers.Visualization;
 			import mx.managers.PopUpManager;
 			import weave.api.core.ILinkableHashMap;
@@ -174,13 +176,13 @@ LayerListComponent
 			private static const boundsInputWidth:int = 64;
 			
 			[Bindable] private var _visualization:Visualization = null;
-			[Bindable] private var _hashMap:ILinkableHashMap = null;
+			public const controller:VariableListController = newDisposableChild(this, VariableListController);
 			
 			[Inspectable]
 			public function set visualization(value:Visualization):void
 			{
 				_visualization = value;
-				_hashMap = _visualization.plotManager.plotters;
+				controller.hashMap = _visualization.plotManager.plotters;
 			}
 			public function get visualization():Visualization
 			{
@@ -199,6 +201,8 @@ LayerListComponent
 					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
 					_visualization.plotManager.enableAutoZoomToExtent.addGroupedCallback(this, handleAutoZoomToggle, true);
 				}
+				
+				controller.view = internalList;
 			}
 			
 			private function handleAutoZoomToggle():void
@@ -211,9 +215,9 @@ LayerListComponent
 			private function openSelector():void
 			{
 				if (_visualization)
-					SessionStateEditor.openDefaultEditor(internalList.hashMap);
+					SessionStateEditor.openDefaultEditor(controller.hashMap);
 				else
-					SessionStateEditor.openDefaultEditor(internalList.hashMap);
+					SessionStateEditor.openDefaultEditor(controller.hashMap);
 			}
 			
 			[Bindable]

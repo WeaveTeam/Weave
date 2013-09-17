@@ -30,12 +30,11 @@
 		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
 		 horizontalGap="4">
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
-	<LinkableObjectList id="internalList" 
-						variableRowHeight="false"
-			 			dynamicObject="{_dynamicObject}"
-		 				doubleClickEnabled="true" 
-		 				doubleClick="openAttributeSelector()"
-		 				width="100%" rowCount="1" height="24"/>
+	<mx:List id="internalList"
+			 variableRowHeight="false"
+			 doubleClickEnabled="true" 
+		 	 doubleClick="openAttributeSelector()"
+		 	 width="100%" rowCount="1" height="24"/>
 	<CenteredImage source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true" height="24"
 		       toolTip="{lang('Click here to select the column used for this property.')}"
 			   click="openAttributeSelector()"/>
@@ -74,9 +73,11 @@
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.core.CallbackJuggler;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.utils.ColumnUtils;
 			
 			[Bindable] public var showLabel:Boolean = true;
 			[Bindable] public var showLinkControl:Boolean = true;
@@ -92,24 +93,25 @@
 			{
 				super.createChildren();
 				linkDropDown.parent.removeChild(linkDropDown);
+				
+				controller.view = internalList;
+				controller.allowMultipleSelection = false;
+				controller.labelFunction = ColumnUtils.getColumnListLabel;
 			}
+			
+			private const controller:VariableListController = newLinkableChild(this, VariableListController);
+			private const dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, toggleLinkDropDown, false);
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				if (_dynamicObject == value)
+				if (controller.dynamicObject == value)
 					return;
 				
-				if (_dynamicObject)
-					getCallbackCollection(_dynamicObject).removeCallback(toggleLinkDropDown);
-				
-				_dynamicObject = value;
-				
-				if (value)
-					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
+				controller.dynamicObject = value;
+				dynamicObjectJuggler.target = value;
 				
 				updateLabel();
 			}
-			[Bindable] private var _dynamicObject:ILinkableDynamicObject
 			private var _visTool:IVisToolWithSelectableAttributes = null;
 			public function set visTool(value:IVisToolWithSelectableAttributes):void
 			{
@@ -123,7 +125,7 @@
 					return;
 				var names:Array = _visTool.getSelectableAttributeNames();
 				var attrs:Array = _visTool.getSelectableAttributes();
-				var index:int = attrs.indexOf(_dynamicObject);
+				var index:int = attrs.indexOf(controller.dynamicObject);
 				if (index >= 0)
 					label = names[index];
 			}
@@ -131,14 +133,14 @@
 			private function openAttributeSelector():void
 			{
 				if (_visTool)
-					AttributeSelectorPanel.openToolSelector(_visTool, internalList.dynamicObject);
+					AttributeSelectorPanel.openToolSelector(_visTool, controller.dynamicObject);
 				else
-					AttributeSelectorPanel.openDefaultSelector(internalList.dynamicObject, label);
+					AttributeSelectorPanel.openDefaultSelector(controller.dynamicObject, label);
 			}
 			
 			private function clearAttribute():void
 			{
-				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(internalList.dynamicObject as DynamicColumn);
+				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(controller.dynamicObject as DynamicColumn);
 				if (dc)
 					dc.removeObject();
 			}
@@ -149,8 +151,8 @@
 					return;
 				
 				var globalName:String = null;
-				if (internalList.dynamicObject)
-					globalName = internalList.dynamicObject.globalName;
+				if (controller.dynamicObject)
+					globalName = controller.dynamicObject.globalName;
 				else
 					show = false;
 				if (globalName)
@@ -189,7 +191,7 @@
 			
 			private function linkTo(globalName:String):void
 			{
-				internalList.dynamicObject.globalName = globalName;
+				controller.dynamicObject.globalName = globalName;
 				toggleLinkDropDown();
 			}
 		]]>
