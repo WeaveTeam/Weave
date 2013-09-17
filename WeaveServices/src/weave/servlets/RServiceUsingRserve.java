@@ -87,6 +87,9 @@ public class RServiceUsingRserve
 	{
 		try
 		{
+			if (WeaveConfig.allowRserveRootAccess())
+				return;
+			
 			rConnection.assign(".tmp.", WeaveConfig.getConnectionConfigFilePath());
 			REXP result = rConnection.eval("length(readLines(.tmp.))");
 			rConnection.assign(".tmp.", new REXPNull());
