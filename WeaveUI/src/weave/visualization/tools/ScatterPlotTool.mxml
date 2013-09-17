@@ -25,7 +25,8 @@
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 			   xmlns:userControls="weave.ui.userControls.*"
-			   layout="absolute">
+			   layout="absolute"
+			   implements="weave.api.ui.IAltText">
 	<mx:Script>
 		<![CDATA[
 			import mx.events.SliderEvent;
@@ -628,6 +629,11 @@
 				{
 					plotter.defaultScreenRadius.value = event.value;
 				}
+			}
+			
+			public function getAltText():String
+			{
+				return "I am a scatter plot";
 			}
 		]]>
 	</mx:Script>

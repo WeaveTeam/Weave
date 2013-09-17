@@ -32,7 +32,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		 xmlns:ui="weave.ui.*"
 		 label="Alt Text"
 		 implements="weave.api.core.ILinkableObject"
-		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark">
+		 enabled="{_tool != null}" xmlns:s="library://ns.adobe.com/flex/spark">
 	
 	<mx:Label text="Custom description:"
 			  textAlign="left"/>
@@ -61,13 +61,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					 editable="true"  
 					 toolTip="System generated description."
 					 wordWrap="true" 
-					 enabled="false"
 					 creationComplete="linkBindableProperty(automaticDescription, event.target, 'text')"/>
 		
 		<mx:Button label="Refresh"
 				   id="automaticDescRefreshButton" 
 				   click="updateAutomaticDescription();"
-				   enabled="false"/>
+				   />
 	</mx:HBox>
 	
 	<mx:Label text="Tool description:"
@@ -124,6 +123,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
+			import weave.api.ui.IAltText;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IPlotter;
 			import weave.api.unlinkBindableProperty;
@@ -145,20 +145,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.visualization.layers.Visualization;
 			
 			
-			[Bindable] private var _panel:DraggablePanel = null;
+			[Bindable] private var _tool:IAltText = null;
 			
 			public const automaticDescription:LinkableString = registerLinkableChild(this,new LinkableString());
 			public const customDescription:LinkableString = registerLinkableChild(this,new LinkableString());
 			public const toolDescription:LinkableString = registerLinkableChild(this,new LinkableString());
 			public const includeInDesc:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean("false"));
-
-			// not sure if this piece of code if being used.
-			public function set target(panel:DraggablePanel):void
+			
+			public function set target(tool:IAltText):void
 			{
-				if (_panel)
-					throw new Error(lang("target should not be set more than once"));
-				
-				_panel = panel;
+				_tool = tool;
 			}
 
 			override protected function childrenCreated():void
@@ -169,7 +165,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			private function updateAutomaticDescription():void
 			{
-				automaticDescriptionTextBox.text = "Not yet available.";
+				automaticDescriptionTextBox.text = _tool.getAltText();
 			}
 			
 			private function updateToolDescription():void

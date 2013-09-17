@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IAltText;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
@@ -204,6 +205,7 @@ package weave.visualization.plotters
 //			graphics.moveTo(tempPoint.x, tempPoint.y);
 		}
 		private static const tempPoint:Point = new Point(); // reusable object
+		
 	}
 }
 

@@ -37,6 +37,7 @@ package weave.visualization.tools
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IAltText;
 	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -101,6 +102,7 @@ package weave.visualization.tools
 		public const disability : Disability = newLinkableChild(this, Disability); // for the disability panel.
 		
 		private var createdChildren:Boolean = false;
+		
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -152,11 +154,18 @@ package weave.visualization.tools
 			windowSettingsEditor = new WindowSettingsEditor();
 			windowSettingsEditor.target = this;
 			
-			disability.target = this;
+			disability.target = this as IAltText;
+			
+			var options:Array = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
+			
+			if(this is IAltText)
+			{
+				options.push(disability);
+			}
 			
 			if (controlPanel)
 			{
-				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor, disability];
+				controlPanel.children = options;
 			}
 			
 			//DisabilityOptions.Instance.disabilityArray.push(disability);
