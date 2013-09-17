@@ -239,36 +239,160 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="lib/attributes-binder-1.2.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/carrot2-core-3.7.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/colt.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-lang.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/guava-14.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/guava.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/hppc-0.4.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/hppc.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/hppc.thirdparty.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/jackson-core-asl-1.7.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jackson-mapper-asl-1.7.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jackson.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.16.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/log4j.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/lucene-analyzers-common-4.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/lucene-analyzers-smartcn-4.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/mahout-collections-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/mahout-math-0.6.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/mahout.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/simple-xml-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/simple-xml.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/slf4j.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/carrot2.LICENSE"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-api-client-1.16.0-rc.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-api-services-customsearch-v1-rev24-1.16.0-rc.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-http-client-1.16.0-rc.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-http-client-jackson2-1.16.0-rc.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-1.16.0-rc.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jackson-core-2.1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jsr305-1.3.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/attributes-binder-1.2.0.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/carrot2-core-3.7.1.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/colt.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/commons-lang.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/guava-14.0.1.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/guava.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/hppc-0.4.3.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/hppc.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/hppc.thirdparty.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-core-asl-1.7.4.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-mapper-asl-1.7.4.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/jackson.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.16.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/log4j.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/lucene-analyzers-common-4.2.1.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/lucene-analyzers-smartcn-4.2.1.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/mahout-collections-1.0.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/mahout-math-0.6.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/mahout.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/simple-xml-2.6.4.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/simple-xml.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/carrot2.LICENSE">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/google-api-client-1.16.0-rc.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/google-api-services-customsearch-v1-rev24-1.16.0-rc.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/google-http-client-1.16.0-rc.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/google-http-client-jackson2-1.16.0-rc.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-1.16.0-rc.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-core-2.1.3.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/jsr305-1.3.9.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
