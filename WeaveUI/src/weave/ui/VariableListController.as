@@ -112,7 +112,7 @@ package weave.ui
 				_editor.labelFunction = getItemLabel;
 			}
 			
-			if (dynamicObject)
+			if (dynamicObject && _editor)
 				_editor.rowCount = 1;
 			updateDataProvider();
 		}
