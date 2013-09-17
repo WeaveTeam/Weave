@@ -28,7 +28,7 @@ package weave.services.beans
 		public function LinearRegressionResult(result:Object)
 		{
 			this.coefficients = result.coefficients;
-			this.rSquared = result.RSquared;
+			this.rSquared = result.rSquared;
 		}
 		
 		public var coefficients:Array;
