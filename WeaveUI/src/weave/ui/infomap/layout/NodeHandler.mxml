@@ -2181,6 +2181,13 @@
 			{
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
+				if(WeaveAPI.SessionManager.linkableObjectIsBusy(clusterCSVDataSource.getColumnByName("document")))
+				{
+					status.text = "Loading topics...";
+					callLater(showClusters);					
+					return;
+				}
+				status.text = "";
 				var object:RadVizTool = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
 				object._plotter.columns.removeAllObjects();
 				object._plotter.probeLineNormalizedThreshold.value = 0.5;
@@ -2191,7 +2198,7 @@
 				{
 					if(count >30)
 						break;
-					if(columnName != "document" && columnName != "Other Topics")
+					if(columnName != "document")
 					{
 						clusterCSVDataSource.putColumnInHashMap(columnName,object._plotter.columns);
 					}

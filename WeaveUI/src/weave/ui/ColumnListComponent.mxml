@@ -27,7 +27,7 @@
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Reverse')}"
+			<mx:Button label="{lang('Reverse')}" id="reverseButton" 
 					   click="controller.hashMap.setNameOrder(controller.hashMap.getNames().reverse());"
 					   toolTip="{lang('Reverse the order of the attributes')}"/>
 			<mx:Button label="{lang('Open selector...')}" click="openSelector()"/>
