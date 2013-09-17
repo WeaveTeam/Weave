@@ -59,7 +59,7 @@ aws.QueryHandler = function(queryObject)
 	
 	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
-	
+
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
 	this.computationEngine = null;

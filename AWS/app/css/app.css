@@ -228,3 +228,79 @@ input[type="checkbox"] {
 	margin-right: 7px;
 	margin-bottom: 5px;
 }
+
+/* These .file-upload classes have been altered to match the bootstrap .btn classes */
+.file-upload {
+	overflow: hidden;
+	display: inline-block;
+	position: relative;	
+	vertical-align: middle;
+	text-align: center;
+	cursor: pointer;
+
+	/* Cosmetics */
+	color: #fff;
+	border-top-color: rgba(0, 0, 0, 0.1);
+	border-right-color: rgba(0, 0, 0, 0.1);
+	border-bottom-color: rgba(0, 0, 0, 0.25);
+	border-left-color: rgba(0, 0, 0, 0.1);
+	text-shadow: 0px -1px 0px rgba(0,0,0,0.25);
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-left-width: 1px;
+	border-left-style: solid;
+	background: rgb(0, 109, 204);
+	background-image: linear-gradient(rgb(0, 136, 204), rgb(0, 68, 204));
+	background-repeat: repeat-x;
+	padding: 4px 14px 4px 14px;
+	height: 20px;
+
+	/* Nice if your browser can do it */
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+    }
+	
+.file-upload:hover { 
+	background: #ffffff;
+	background-color: rgb(0, 68, 204);
+	}
+
+.file-upload.focus { 
+	outline-width: thin;
+	outline-style: dotted;
+	outline-color: #333;
+	}
+
+.file-upload input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 0;
+	font-size: 40px;
+
+	/* Loses tab index in webkit if width is set to 0 */
+	opacity: 0;
+	filter: alpha(opacity=0);
+	}
+
+/* .file-upload strong { 
+	font: normal 1.75em arial,sans-serif; 
+	}	
+	
+.file-upload span {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: inline-block;
+
+	Adjust button text vertical alignment
+	padding-top: .45em;
+	} */
+/* 
+/* Adjust the button size */	
+/*.file-upload {  } */
