@@ -124,7 +124,7 @@ package weave.core
 				else if (array.length == 0 || arrayType == Object || arrayType == DynamicState)
 				{
 					encoding = DYNAMIC_ENCODING;
-					for each (var item:Object in array)
+					for each (item in array)
 					{
 						if (!DynamicState.objectHasProperties(item) || !item[DynamicState.CLASS_NAME])
 						{
