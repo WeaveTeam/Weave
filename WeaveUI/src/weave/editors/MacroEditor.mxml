@@ -42,9 +42,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:VBox>
 			<mx:VDividedBox width="75%" height="100%">
 				<ui:CodeEditor id="editor"/>
-				<mx:VBox height="20%" width="100%">
+				<mx:VBox height="25%" width="100%">
 					<mx:Text text="{lang('Macro Result:')}"/>
-					<mx:TextArea id="macroResult" width="100%" height="100%" editable="false"/>
+					<mx:TextArea id="macroResult" width="100%" height="100%" minHeight="24" editable="false"/>
 				</mx:VBox>
 			</mx:VDividedBox>
 		</mx:HDividedBox>
