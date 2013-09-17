@@ -28,18 +28,21 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	$scope.close = function() {
 		dialog.close();
 	};
-	
-	
-	$scope.dataTableSelect = queryobj['dataTable'];
-	$scope.options = dataService.giveMeTables();
 
-//    $scope.$watch('dataTableSelect1', function(newVal, oldVal){
-//        queryobj['dataTable1'] = $scope.dataTableSelect1;
-//    });
+	if(queryobj.dataTable){
+		$scope.dataTableSelect = queryobj.dataTable;
+	}
+	
+	$scope.options = dataService.giveMeTables();
 
 	$scope.$watch('dataTableSelect', function(newVal, oldVal){
 		if($scope.options.hasOwnProperty("$$v")){
-			queryobj['dataTable'] = $scope.dataTableSelect;
+			var temp = angular.fromJson($scope.dataTableSelect);
+			queryobj.dataTable = {
+			                      id: temp.id,
+			                      title: temp.title
+			};
+			
 		}
 	});
 	$scope.$watch('entityOverride', function(newVal, oldVal){

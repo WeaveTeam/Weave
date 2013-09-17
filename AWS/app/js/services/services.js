@@ -139,14 +139,13 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 
 
         var fetchColumns = function (table) {
-            if (!table.id) {
-                alert("No DataTable Id Specified. Please update in the Data Dialog");
-            }
-            var id = table.id;
             var deferred = $q.defer();
             var prom = deferred.promise;
             var deferred2 = $q.defer();
-
+            if (!table.id) {
+            	return deferred2.promise;
+            }
+            var id = table.id;
             var callbk = function (result) {
                 scope.$safeApply(function () {
                     //console.log(result);

@@ -6,25 +6,17 @@
 	<h4>Data Hierarchies</h4>
 </div>
 <div id="dataDialog" title="Data" class="modal-body">
-	
+
+	Select a database table: <select ui-select2 ng-model="dataTableSelect">
+		<option value="{{ opt }}" ng-repeat="opt in options">
+		{{ opt.title }}</option>
+	</select><br><br>
 	<div id="entityIdOverride">
-		Datatable Entity Id Override: <input type="text" ng-model="entityOverride"/><br>
+		Datatable Entity Id Override: <input type="text"
+			ng-model="entityOverride" /><br>
 	</div>
-	
-<!-- 	<div> This selector should be modified with the available entity Ids for your 
-	own database.  We have left these defaults as an example and to assist with testing.
-		Select a database table: <select ng-model="dataTableSelect">
-			<option value="">
-			<option value="161213">Demo Server sdoh</option>
-			<option value="169602">Demo Server brfss Shell</option>
-			<option value="1">Kat's Machine brfss</option>
-			<option value="48">Kat's Machine sdoh</option>
-		</select>
-	</div> -->
-	<select select2 ng-model="dataTableSelect">
-        <option value="{{ opt.id }}" ng-repeat="opt in options">{{ opt.title }}</option>
-	</select>
 </div>
+
 <div class="modal-footer">
 	<button ng-click="close()" class="btn btn-primary">Close</button>
 </div>
