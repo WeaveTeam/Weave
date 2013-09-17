@@ -21,7 +21,9 @@
 			<option value="48">Kat's Machine sdoh</option>
 		</select>
 	</div>
-	
+	<select select2 ng-model="dataTableSelect1">
+        <option value="{{ opt }}" ng-repeat="opt in options">{{ opt }}</option>
+	</select>
 </div>
 <div class="modal-footer">
 	<button ng-click="close()" class="btn btn-primary">Close</button>

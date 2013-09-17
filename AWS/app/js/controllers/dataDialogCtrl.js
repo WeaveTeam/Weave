@@ -24,14 +24,18 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 			};
 		})
 
-.controller('DataDialogConnectCtrl', function($scope, queryobj, dialog) {
+.controller('DataDialogConnectCtrl', function($scope, queryobj, dialog, dataService) {
 	$scope.close = function() {
 		dialog.close();
 	};
 	
 	
 	$scope.dataTableSelect = queryobj['dataTable'];
-	
+	$scope.options = dataService.giveMeTables();
+
+    $scope.$watch('dataTableSelect1', function(newVal, oldVal){
+        queryobj['dataTable1'] = $scope.dataTableSelect1;
+    });
 
 	$scope.$watch('dataTableSelect', function(connection){
 		queryobj['dataTable'] = $scope.dataTableSelect;
