@@ -39,6 +39,7 @@
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:Label text="Active equation"/>
 				<CustomComboBox id="activeEquationCombo" prompt="{lang('Select an equation')}" labelFunction="{getActiveEquationLabel}" change="handleActiveEquationSelect()" width="100%"/>
+				<mx:Button label="{lang('Remove')}" enabled="{activeEquationCombo.selectedItem != null}" click="removeActiveEquation()"/>
 			</mx:HBox>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:Label text="Title"/>
@@ -74,6 +75,7 @@
 			import mx.managers.DragManager;
 			
 			import weave.Weave;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.linkSessionState;
@@ -213,7 +215,10 @@
 				if (activeEquationCombo.selectedItem == equationColumn)
 				{
 					var newEquation:EquationColumn = Weave.root.requestObject(null, EquationColumn, false);
-					newEquation.setMetadata(ColumnMetadata.TITLE, Weave.root.getName(newEquation));
+					if (dynamicColumn.globalName) // if something is selected, create a blank column
+						newEquation.setMetadata(ColumnMetadata.TITLE, Weave.root.getName(newEquation));
+					else // when nothing is selected, copy session state to new column so nothing is lost
+						copySessionState(equationColumn, newEquation);
 					activeEquationCombo.selectedItem = newEquation;
 				}
 				dynamicColumn.globalName = Weave.root.getName(activeEquationCombo.selectedItem as EquationColumn);
@@ -222,6 +227,10 @@
 			{
 				activeEquationCombo.dataProvider = Weave.root.getObjects(EquationColumn).concat(equationColumn); // 'new equation' at end of list
 				activeEquationCombo.selectedItem = dynamicColumn.getInternalColumn();
+			}
+			private function removeActiveEquation():void
+			{
+				Weave.root.removeObject(dynamicColumn.globalName);
 			}
 			
 			private var _previousGlobalColumn:EquationColumn = null;
