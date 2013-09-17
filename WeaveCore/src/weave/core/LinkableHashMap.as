@@ -242,7 +242,7 @@ package weave.core
 				className = _deprecatedClassReplacements[className] || className;
 				
 				// if no name is specified, generate a unique one now.
-				if (name == null)
+				if (!name)
 				{
 					if (className.indexOf("::") >= 0)
 						name = generateUniqueName(className.split("::")[1]);

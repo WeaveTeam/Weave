@@ -48,6 +48,11 @@ public class WeaveConfig
 		return weaveContextParams;
 	}
 	
+	public static boolean allowRserveRootAccess()
+	{
+		return new File(weaveContextParams.getConfigPath() + "/" + "allow-rserve-root-access").exists();
+	}
+	
 	public static String getConnectionConfigFilePath()
 	{
 		return weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME;

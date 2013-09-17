@@ -1244,7 +1244,14 @@ public class AdminService extends GenericServlet {
 					
 					if(clusterResponse.clusters[j].docs.contains(link))
 					{
-						lScore.put(label, String.valueOf(clusterResponse.clusters[j].score));
+						if(label.equals("Other Topics"))
+						{
+							lScore.put(label, "1.0");//Solr returns 0.0 for Other Topics but to show it on Rad Viz tool we give a minimal score of 1.0.
+						}
+						else
+						{
+							lScore.put(label, String.valueOf(clusterResponse.clusters[j].score));
+						}
 					}
 					else
 					{

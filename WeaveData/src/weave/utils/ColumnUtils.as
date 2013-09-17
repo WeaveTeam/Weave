@@ -22,6 +22,8 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
@@ -68,6 +70,27 @@ package weave.utils
 					title += " (No key type)";
 			}
 
+			return title;
+		}
+		
+		/**
+		 * Generates a label to use when displaying the column in a list.
+		 * @param column
+		 * @return The column title followed by its dataType and/or keyType metadata.
+		 */		
+		public static function getColumnListLabel(column:IAttributeColumn):String
+		{
+			var title:String = ColumnUtils.getTitle(column);
+			var keyType:String = ColumnUtils.getKeyType(column);
+			var dataType:String = ColumnUtils.getDataType(column);
+			
+			if (dataType && keyType)
+				return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
+			if (keyType)
+				return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
+			if (dataType)
+				return StringUtil.substitute("{0} (Data Type: {1})", title, dataType);
+			
 			return title;
 		}
 		
