@@ -38,16 +38,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:HBox>
 		<mx:HDividedBox width="100%" height="100%">
 			<mx:VBox width="25%" height="100%">
-				<ui:LinkableObjectList id="macroList" width="100%" height="100%"
-									   allowMultipleSelection="false"
-									   hashMap="{LinkableFunction.macros}"
-									   itemClick="macroList_itemClickHandler(event)"/>
+				<mx:List id="macroList" width="100%" height="100%" itemClick="macroList_itemClickHandler(event)"/>
 			</mx:VBox>
-			<mx:VBox width="75%" height="100%">
+			<mx:VDividedBox width="75%" height="100%">
 				<ui:CodeEditor id="editor"/>
-				<mx:Text text="{lang('Macro Result:')}"/>
-				<mx:TextArea id="macroResult" width="100%" height="20%" editable="false"/>
-			</mx:VBox>
+				<mx:VBox height="25%" width="100%">
+					<mx:Text text="{lang('Macro Result:')}"/>
+					<mx:TextArea id="macroResult" width="100%" height="100%" minHeight="24" editable="false"/>
+				</mx:VBox>
+			</mx:VDividedBox>
 		</mx:HDividedBox>
 	</mx:VBox>
 	<mx:Script>
@@ -56,59 +55,80 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			
+			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
+			import weave.ui.VariableListController;
 			import weave.utils.EventUtils;
 			
 			//Used for enabling/disabling the delete and rename button based on whether this macroList has at least one item.
 			[Bindable]
 			private var buttonsEnabled:Boolean = false;
-			
+			private var controller:VariableListController = newLinkableChild(this, VariableListController);
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				if( macroList.hashMap.getNames().length > 0 )
+				
+				controller.hashMap = LinkableFunction.macros;
+				controller.allowMultipleSelection = false;
+				controller.view = macroList;
+				
+				if (controller.hashMap.getNames().length > 0)
 				{
 					buttonsEnabled = true;
 					macroList.selectedIndex = 0;
-					editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					editor.text = selectedFunction.value;
 					handleChange();
 				}
-				this.targets = [macroList.hashMap];
-				(macroList.hashMap as LinkableHashMap).addImmediateCallback(this, enableButtonsCheck, true);
+				this.targets = [controller.hashMap];
+				getCallbackCollection(controller.hashMap).addImmediateCallback(this, enableButtonsCheck, true);
 				EventUtils.addDelayedEventCallback(editor, Event.CHANGE, handleChange);
+			}
+			
+			public function get selectedFunction():LinkableFunction
+			{
+				return macroList.selectedItem as LinkableFunction
+					|| (macroList.selectedIndex >= 0
+						? controller.hashMap.getObjects()[macroList.selectedIndex]
+						: null);
+			}
+			
+			public function get selectedFunctionName():String
+			{
+				return controller.hashMap.getName(selectedFunction);
 			}
 			
 			protected function deleteEntry(event:MouseEvent):void
 			{
-				if( macroList.selectedIndex > -1)
+				if (selectedFunction)
 				{
-					LinkableFunction.macros.removeObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+					controller.hashMap.removeObject(selectedFunctionName);
 			
-				    if( macroList.hashMap.getNames().length > 0 )
+				    if (controller.hashMap.getNames().length > 0)
 			    	{
 				    	macroList.selectedIndex = 0;
-					    editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
-						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+					    editor.text = selectedFunction.value;
+						try
+						{
+							macroResult.text = LinkableFunction.evaluateMacro(selectedFunctionName);
+						}
+						catch(e:Error)
+						{
+							macroResult.text = e.toString();
+						}
 				    }
 				    else
-				   {
-					    editor.text = "";
-					    macroResult.text = "";
-				   }
-				   if( macroList.hashMap.getNames().length == 0 )
-				  {
-					   editor.editable = false;
-				  }	
+					{
+						editor.text = "";
+						macroResult.text = "";
+					}
+					if (controller.hashMap.getNames().length == 0)
+						editor.editable = false;
 				}
-				else
-				{
-					mx.controls.Alert.show("Please select one item to delete.");
-				}
-				
 			}
 			
 			protected function newMacroEntry(event:MouseEvent):void
@@ -122,7 +142,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( event.confirm == true )
 				{
-					var macroNames:Array = LinkableFunction.macros.getNames();
+					var macroNames:Array = controller.hashMap.getNames();
 					for( var i:int = 0; i < macroNames.length; i++)
 					{
 						if( event.textInput == macroNames[i])
@@ -134,31 +154,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					if( renaming )
 					{
-						macroList.hashMap.renameObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction), event.textInput);
+						controller.hashMap.renameObject(selectedFunctionName, event.textInput);
 						macroList.selectedIndex = lastSelectedIndex;
 						renaming = false;
 						return;
 					}
-					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(event.textInput, LinkableFunction, false);
-					macroList.selectedIndex = macroList.hashMap.getNames().length - 1;
+					controller.hashMap.requestObject(event.textInput, LinkableFunction, false);
 					editor.text = "";
-					if( macroList.hashMap.getNames().length == 1 )
-					{
-						macroList.selectedIndex = 0;
-						editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
-					}
-					if( macroList.hashMap.getNames().length > 0 )
+					macroList.selectedIndex = controller.hashMap.getNames().length - 1;
+					if (selectedFunction)
 						editor.editable = true;
 				}
 			}
 			
 			protected function macroList_itemClickHandler(event:ListEvent):void
 			{
-				if( macroList.selectedIndex > -1 )
+				if (selectedFunction)
 				{
 					editor.editable = true;
 					macroResult.text = "";
-					editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;	
+					editor.text = selectedFunction.value;	
 					handleChange(null);
 				}
 				else
@@ -171,13 +186,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function handleChange(event:Event = null):void
 			{
-				if (macroList.selectedIndex > -1)
+				if (selectedFunction)
 				{
 					try
 					{
-						var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
+						var funcToSave:LinkableFunction = selectedFunction;	
 						funcToSave.value = editor.text;
-						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+						macroResult.text = LinkableFunction.evaluateMacro(selectedFunctionName);
 					}
 					catch(e:Error)
 					{
@@ -193,7 +208,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function renameMacroEntry(event:MouseEvent):void
 			{
-				if( macroList.selectedIndex > -1 )
+				if (selectedFunction)
 				{
 					renaming = true;
 					lastSelectedIndex = macroList.selectedIndex;
@@ -209,13 +224,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override public function revert():void
 			{
 				super.revert();
-				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
-					editor.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+				if( controller.hashMap.getNames(LinkableFunction).length > 0 )
+					editor.text = selectedFunction.value;
 			}
 			
 			protected function enableButtonsCheck():void
 			{
-				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
+				if( controller.hashMap.getNames(LinkableFunction).length > 0 )
 				{
 					buttonsEnabled = true;
 					editor.editable = true;

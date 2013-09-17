@@ -19,39 +19,15 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				width="312" height="300" 
-				initialize="init()" 
-				title="{lang('Saved Subsets')}"
-				layout="vertical">
-
-	
-	<!--<LinkableObjectList id="savedSubsetsList"
-						width="100%" height="100%"
-						hashMap="{_hashMap}" 
-						labelFunction="subsetsListLabelFunction"
-						allowMultipleSelection="false">
-		
-	</LinkableObjectList>
-	-->
-	<mx:List id="savedSubsetsList"
-			 width="100%" height="100%"
-			 dataProvider="{Weave.savedSubsetsKeyFilters.getObjects()}"
-			 labelFunction="subsetsListLabelFunction"
-			 allowMultipleSelection="false" />
-	
-	<mx:HBox>
-		<mx:Button label="{lang('Delete')}" 
-				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
-				   click="deleteSubset()"/>
-		<mx:Button label="{lang('Rename')}" 
-				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
-				   click="renameSubset()"/>
-	</mx:HBox>
-	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
-		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
-	</mx:ControlBar>
+<ControlPanel xmlns="weave.ui.*"
+			  xmlns:mx="http://www.adobe.com/2006/mxml" 
+			  title="{lang('Saved Subsets')}">
+	<mx:VBox horizontalAlign="center">
+		<mx:DataGrid id="editor" width="100%" height="100%" />
+		<mx:Button label="{lang('Delete selected')}"
+				   enabled="{editor.selectedIndex >= 0}" 
+				   click="controller.removeSelectedItems();"/>
+	</mx:VBox>
 	
 	<mx:Script>
 		<![CDATA[
@@ -61,37 +37,40 @@
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
+			import weave.api.newDisposableChild;
 			import weave.data.KeySets.KeyFilter;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
 			
-			private static var _popupManager:SubsetManager = null;
-			
-			/**
-			 * Function used solely to get the label for each list item
-			 **/
-			private static function subsetsListLabelFunction(item:Object):String
+			override protected function childrenCreated():void
 			{
-				// the label will be the name of the item followed by the included/excluded records count
-				var label:String = Weave.savedSubsetsKeyFilters.getName(item as ILinkableObject);
-				return label + " (" + getKeyFilterRecordsText(label) + ")";
-			}
-			
-			/**
-			 * Function used solely to get a string that says the number of records in either the included or excluded key sets
-			 **/
-			private static function getKeyFilterRecordsText(keyFilterName:String):String
-			{
-				// get the subset by its name
-				var keyFilter:KeyFilter = (Weave.savedSubsetsKeyFilters.getObject(keyFilterName) as KeyFilter);
+				super.childrenCreated();
 				
-				// create a string for the number of included keys followed by " records"
-				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
-				if (keyFilter.includeMissingKeys.value)
-					return keyFilter.excluded.keys.length + ' excluded records';
-				else
-					return keyFilter.included.keys.length + ' records';
+				targets = [Weave.savedSubsetsKeyFilters];
+				controller.view = editor;
+				controller.hashMap = Weave.savedSubsetsKeyFilters;
+				controller.labelFunction = getRecordsText;
 			}
+			
+			private const controller:VariableListController = newDisposableChild(this, VariableListController);
+			
+			private static function getItemLabel(item:Object):String
+			{
+				return lang("{0} ({1})",
+					Weave.savedSubsetsKeyFilters.getName(item as ILinkableObject),
+					getRecordsText(item as KeyFilter)
+				);
+			}
+			
+			private static function getRecordsText(keyFilter:KeyFilter):String
+			{
+				if (keyFilter.includeMissingKeys.value)
+					return lang("{0} excluded records", keyFilter.excluded.keys.length);
+				else
+					return lang("{0} records", keyFilter.included.keys.length);
+			}
+			
+			private static var _popupManager:SubsetManager = null;
 			
 			/**
 			 * Create the menu items used for the WeaveMenuItem associated with this class
@@ -211,56 +190,10 @@
 				
 				for (var i:int = 0; i < subsets.length; i++)
 				{
-					var label:String = subsetsListLabelFunction(subsets[i]);
+					var label:String = getItemLabel(subsets[i]);
 					menuItem = new WeaveMenuItem(label, copySessionState, [subsets[i], Weave.defaultSubsetKeyFilter]);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
-			}
-			
-			private function init():void
-			{
-				// Disable certain features on this manager so that it is purely modal and has to be closed manually
-				// before doing anything else
-				minimizable.value = false;
-				enableMoveResize.value = false;
-				maximizable.value = false;
-				closeable.value = false;
-			}
-			
-			/**
-			 * Handle deleting of an existing subset
-			 **/
-			private function deleteSubset():void
-			{
-				Weave.savedSubsetsKeyFilters.removeObject(Weave.savedSubsetsKeyFilters.getName(savedSubsetsList.selectedItem as KeyFilter));
-			}
-			
-			/**
-			 * Handle renaming of an existing subset
-			 **/
-			private function renameSubset():void
-			{
-				var alertBox:AlertTextBox = AlertTextBox.show(lang("Subset Name"), lang("Please enter a name for the subset: "));
-				
-				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
-					if( !e.confirm )
-						return;
-						
-					var oldSubset:KeyFilter = savedSubsetsList.selectedItem as KeyFilter;
-					var oldName:String = Weave.savedSubsetsKeyFilters.getName(oldSubset);
-					var newName:String = e.textInput;
-
-					// we want to put the new subset in the same position the old subset was
-					var nameOrder:Array = Weave.savedSubsetsKeyFilters.getNames();
-					nameOrder[nameOrder.indexOf(oldName)] = newName;
-					
-					Weave.savedSubsetsKeyFilters.requestObjectCopy(newName, oldSubset);
-					Weave.savedSubsetsKeyFilters.removeObject(oldName);
-					Weave.savedSubsetsKeyFilters.setNameOrder(nameOrder);
-
-					// invalidate the list so we see it update
-					savedSubsetsList.invalidateList();
-				});
 			}
 			
 			/**
@@ -286,4 +219,4 @@
 			}
 		]]>
 	</mx:Script>
-</DraggablePanel>
+</ControlPanel>

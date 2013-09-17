@@ -19,9 +19,6 @@
 
 package weave.services.beans
 {
-	import weave.data.AttributeColumns.NumberColumn;
-	import weave.utils.VectorUtils;
-	
 	/**
 	 * LinearRegressionResult
 	 * The result of a call to a LinearRegression webservice call
@@ -30,19 +27,11 @@ package weave.services.beans
 	{
 		public function LinearRegressionResult(result:Object)
 		{
-			this.slope = result.slope;
-			this.intercept = result.intercept;
+			this.coefficients = result.coefficients;
 			this.rSquared = result.RSquared;
-
-			// convert arrays to vectors and store the residual values			
-			//TODO: need residual.keyType
-			//this.residual.updateRecords(Vector.<String>(result.keys), Vector.<Number>(result.residual), true);
 		}
 		
-		public var slope:Number;
-		public var intercept:Number;
+		public var coefficients:Array;
 		public var rSquared:Number;
-		//public var summary:String;
-		//public var residual:NumberColumn = new NumberColumn(<attribute name="Residual values"/>);
 	}
 }

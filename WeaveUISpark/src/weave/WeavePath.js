@@ -106,8 +106,8 @@ function(objectID)
 				var otherState = args.pop();
 				var pathcopy = path.concat(args);
 				var script = "import 'weave.api.WeaveAPI';"
-					+ "var sm = WeaveAPI.SessionManager, thisState = sm.getSessionState(this);"
-					+ "return sm.computeDiff(otherState, thisState);";
+					+ "import 'weave.api.core.ILinkableObject';"
+					+ "return WeaveAPI.SessionManager.computeDiff(otherState, this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null);";
 				return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 			}
 			return null;
@@ -124,8 +124,8 @@ function(objectID)
 				var otherState = args.pop();
 				var pathcopy = path.concat(args);
 				var script = "import 'weave.api.WeaveAPI';"
-					+ "var sm = WeaveAPI.SessionManager, thisState = sm.getSessionState(this);"
-					+ "return sm.computeDiff(thisState, otherState);";
+					+ "import 'weave.api.core.ILinkableObject';"
+					+ "return WeaveAPI.SessionManager.computeDiff(this is ILinkableObject ? WeaveAPI.SessionManager.getSessionState(this) : null, otherState);";
 				return weave.evaluateExpression(pathcopy, script, {"otherState": otherState});
 			}
 			return null;

@@ -506,7 +506,7 @@ public class SQLUtils
 	 * @param queryExpression An expression to be used in a SQL Query.
 	 * @return The query expression wrapped in a string cast.
 	 */
-	protected static String stringCast(Connection conn, String queryExpression) throws SQLException
+	public static String stringCast(Connection conn, String queryExpression) throws SQLException
 	{
 		String dbms = getDbmsFromConnection(conn);
 		if (dbms.equals(MYSQL))

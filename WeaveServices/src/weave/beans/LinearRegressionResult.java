@@ -19,71 +19,8 @@
 
 package weave.beans;
 
-public class LinearRegressionResult {
-	private double slope, intercept, rSquared;
-	private String summary;
-	private String[] keys;
-	private double[] residual;
-	
-	public LinearRegressionResult() {
-	}
-
-	public LinearRegressionResult(double slope, double intercept,
-			double rSquared, String summary, String[] keys, double[] residual) {
-		this.slope = slope;
-		this.intercept = intercept;
-		this.rSquared = rSquared;
-		this.summary = summary;
-		this.keys = keys;
-		this.residual = residual;
-	}
-	
-	public void setSummary(String summary) {
-		this.summary = summary;
-	}
-	
-	public void setResidual(double[] residual) {
-		this.residual = residual;
-	}
-	
-	public String[] getKeys() {
-		return keys;
-	}
-	
-	public void setKeys(String[] keys) {
-		this.keys = keys;
-	}
-	
-	public double getSlope() {
-		return slope;
-	}
-
-	public void setSlope(double slope) {
-		this.slope = slope;
-	}
-
-	public double getIntercept() {
-		return intercept;
-	}
-
-	public void setIntercept(double intercept) {
-		this.intercept = intercept;
-	}
-
-	public double getRSquared() {
-		return rSquared;
-	}
-
-	public void setRSquared(double squared) {
-		rSquared = squared;
-	}
-	
-	public String getSummary() {
-		return summary;
-	}
-    
-	public double[] getResidual() {
-		return residual;
-	}
-
+public class LinearRegressionResult
+{
+	public double[] coefficients;
+	public double rSquared;
 }

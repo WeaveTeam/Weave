@@ -28,7 +28,9 @@ package weave.data.AttributeColumns
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
@@ -42,6 +44,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
 	import weave.utils.ColumnUtils;
+	import weave.utils.Dictionary2D;
 	import weave.utils.EquationColumnLib;
 	
 	/**
@@ -49,7 +52,7 @@ package weave.data.AttributeColumns
 	 * 
 	 * @author adufilie
 	 */
-	public class EquationColumn extends AbstractAttributeColumn
+	public class EquationColumn extends AbstractAttributeColumn implements IPrimitiveColumn
 	{
 		public static var debug:Boolean = false;
 		
@@ -124,7 +127,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This is a mapping from keys to cached data values.
 		 */
-		private var _equationResultCache:Dictionary = new Dictionary();
+		private const _equationResultCache:Dictionary2D = new Dictionary2D();
 		/**
 		 * This is used to determine when to clear the cache.
 		 */		
@@ -215,7 +218,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This function gets called when dataType changes and sets _defaultDataType.
 		 */
-		private function handleDataTypeChange():void
+		private function cacheDefaultDataType():void
 		{
 			var _dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
 			if (ObjectUtil.stringCompare(_dataType, DataTypes.GEOMETRY, true) == 0) // treat values as geometries
@@ -296,6 +299,50 @@ package weave.data.AttributeColumns
 				|| LinkableFunction.macros.getObject(name) != null;
 		}
 		
+		private function handleChange():void
+		{
+			_cacheTriggerCount = triggerCounter;
+			try
+			{
+				// check if the equation evaluates to a constant
+				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
+				if (compiledObject is CompiledConstant)
+				{
+					// save the constant result of the function
+					_equationIsConstant = true;
+					_equationResultCache.dictionary = null; // we don't need a cache
+					_constantResult = (compiledObject as CompiledConstant).value;
+				}
+				else
+				{
+					// compile into a function
+					compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, errorHandler, false, ['key', 'dataType']);
+					_equationIsConstant = false;
+					_equationResultCache.dictionary = new Dictionary(); // create a new cache
+					_constantResult = undefined;
+				}
+			}
+			catch (e:Error)
+			{
+				// if compiling fails
+				_equationIsConstant = true;
+				_constantResult = undefined;
+			}
+			cacheDefaultDataType();
+			
+			try
+			{
+				_numberToStringFunction = StandardLib.formatNumber;
+				var n2s:String = getMetadata(ColumnMetadata.STRING);
+				if (n2s)
+					_numberToStringFunction = compiler.compileToFunction(n2s, _symbolTableProxy, errorHandler, false, ['number']);
+			}
+			catch (e:*)
+			{
+				errorHandler(e);
+			}
+		}
+		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 * @see weave.api.data.IAttributeColumn
@@ -304,46 +351,22 @@ package weave.data.AttributeColumns
 		{
 			// reset cached values if necessary
 			if (_cacheTriggerCount != triggerCounter)
-			{
-				_cacheTriggerCount = triggerCounter;
-				try
-				{
-					// check if the equation evaluates to a constant
-					var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
-					if (compiledObject is CompiledConstant)
-					{
-						// save the constant result of the function
-						_equationIsConstant = true;
-						_equationResultCache = null; // we don't need a cache
-						_constantResult = (compiledObject as CompiledConstant).value;
-					}
-					else
-					{
-						// compile into a function
-						compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, errorHandler, false, ['key', 'dataType']);
-						_equationIsConstant = false;
-						_equationResultCache = new Dictionary(); // create a new cache
-						_constantResult = undefined;
-					}
-				}
-				catch (e:Error)
-				{
-					// if compiling fails
-					_equationIsConstant = true;
-					_constantResult = undefined;
-				}
-			}
+				handleChange();
+			
+			// if dataType not specified, use default type specified in metadata
+			if (dataType == null)
+				dataType = _defaultDataType;
 			
 			var value:* = _constantResult;
 			if (!_equationIsConstant)
 			{
 				// check the cache
-				value = _equationResultCache[key];
+				value = _equationResultCache.get(key, dataType);
 				// define cached value if missing
 				if (value === undefined)
 				{
 					// prevent recursion caused by compiledEquation
-					_equationResultCache[key] = UNDEFINED;
+					_equationResultCache.set(key, dataType, UNDEFINED);
 					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
 					EquationColumnLib.currentRecordKey = key;
@@ -351,7 +374,7 @@ package weave.data.AttributeColumns
 					{
 						value = compiledEquation.apply(this, arguments);
 						if (debug)
-							trace(this,key.localName,value);
+							trace(debugId(this),getMetadata(ColumnMetadata.TITLE),key.keyType,key.localName,dataType,value);
 					}
 					catch (e:Error)
 					{
@@ -364,18 +387,17 @@ package weave.data.AttributeColumns
 					}
 					
 					// save value in cache
-					_equationResultCache[key] = value;
+					if (value !== undefined)
+						_equationResultCache.set(key, dataType, value);
 					//trace('('+equation.value+')@"'+key+'" = '+value);
 				}
 				else if (value === UNDEFINED)
 				{
 					value = undefined;
 				}
+				else if (debug)
+					trace('>',debugId(this),getMetadata(ColumnMetadata.TITLE),key.keyType,key.localName,dataType,value);
 			}
-			
-			// if dataType not specified, use default type specified by this.dataType.value
-			if (dataType == null)
-				dataType = _defaultDataType;
 			
 			if (dataType == IQualifiedKey)
 			{
@@ -392,6 +414,30 @@ package weave.data.AttributeColumns
 			}
 			
 			return value;
+		}
+		
+		private var _numberToStringFunction:Function = null;
+		public function deriveStringFromNumber(number:Number):String
+		{
+			// reset cached values if necessary
+			if (_cacheTriggerCount != triggerCounter)
+				handleChange();
+			
+			if (_numberToStringFunction != null)
+			{
+				try
+				{
+					var string:String = _numberToStringFunction.apply(this, arguments);
+					if (debug)
+						trace(debugId(this),getMetadata(ColumnMetadata.TITLE),'deriveStringFromNumber',number,string);
+					return string;
+				}
+				catch (e:Error)
+				{
+					errorHandler(e);
+				}
+			}
+			return '';
 		}
 
 		override public function toString():String

@@ -437,21 +437,21 @@
 				{
 					if (equationText.parent != visCanvas)
 						visCanvas.addChild(equationText);
-					if (regressionPlotter.getCoefficients() != null)
+					if (regressionPlotter.coefficients != null)
 					{
 						if (regressionPlotter.currentTrendline.value == "Linear")
 						{	
-							var slope:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
-							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							var rsquared:Number = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							var slope:Number = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4);
+							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4);
+							var rsquared:Number = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
 							str = lang("y = {0}x + {1}\nR^2 = {2}", slope, intercept, rsquared);					
 						}
 					
 						else if( regressionPlotter.currentTrendline.value == "Polynomial")
 						{
-							var rawCoefficients:Array = regressionPlotter.getCoefficients();
+							var rawCoefficients:Array = regressionPlotter.coefficients;
 							var roundedCoefficients:Array = [];
-							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
 							str = lang("y = ");
 							var i:int = 0;
 						
@@ -471,23 +471,23 @@
 						}
 						else if (regressionPlotter.currentTrendline.value == "Exponential")
 						{
-							var base:Number = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							var exponent:Number = StandardLib.roundSignificant(Math.exp(regressionPlotter.getCoefficients()[1]), 4);
-							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							var base:Number = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4);
+							var exponent:Number = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[1]), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
 							str = lang("y = {0}e^{1}x\nR^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Power")
 						{
-							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0], 4);
-							exponent = StandardLib.roundSignificant(Math.exp(regressionPlotter.getCoefficients()[1]), 4);
-							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							base = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4);
+							exponent = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[1]), 4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
 							str = lang("y = {0}x^{1}\nR^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
 						{
-							base = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[1], 4);
-							exponent = StandardLib.roundSignificant(regressionPlotter.getCoefficients()[0],4);
-							rsquared = StandardLib.roundSignificant(regressionPlotter.getrSquared(), 4);
+							base = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4);
+							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[0],4);
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
 							str = lang("y = {0}ln(x)+{1}\nR^2 = {2}", base, exponent, rsquared);
 						}
 					}
@@ -682,7 +682,7 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
