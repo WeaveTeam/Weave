@@ -70,7 +70,7 @@ aws.RClient.startRServe = function(callback) {
 aws.RClient.stopRServe = function(callback) {
 	// we can use the call back to handle whether or not the service was started.
 	aws.queryService(rServiceURL, 'stopRServe', null, callback);
-}
+};
 
 /**
  * This function calls the getListOfScripts function on the servlet
@@ -80,7 +80,7 @@ aws.RClient.stopRServe = function(callback) {
  */
 aws.RClient.getListOfScripts = function(directoryPath, callback) {
 	aws.queryService(rServiceURL, 'getListOfScripts', [directoryPath], callback);
-}
+};
 
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
@@ -89,7 +89,7 @@ aws.RClient.getListOfScripts = function(directoryPath, callback) {
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(callback){
-	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.rDataRequestObject], callback);
+	aws.queryService(rServiceURL,'runScriptwithScriptMetadata',[this.connectionObject, this.rDataRequestObject], callback);
 };
 
 /**
@@ -102,7 +102,7 @@ aws.RClient.prototype.runScriptOnSQLdata = function(callback){
  */
 aws.RClient.getScriptMetadata = function(folderPath, scriptName, callback) {
 	aws.queryService(rServiceURL, 'getScriptMetadata', [folderPath, scriptName], callback);
-}
+};
 
 
 /**

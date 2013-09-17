@@ -41,6 +41,7 @@ aws.QueryHandler = function(queryObject)
 	
 	this.visualizations = [];
 	
+	
 	for (var visualization in queryObject.selectedVisualization) {
 		//if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
 			if (queryObject.selectedVisualization[visualization]) {
@@ -50,7 +51,7 @@ aws.QueryHandler = function(queryObject)
 	this.colorColumn = queryObject.colorColumn;
 	
 	this.keyType = "";
-	if (queryObject.maptool){;
+	if (queryObject.maptool){
 		if(queryObject.maptool.keyType) {
 			this.keyType = queryObject.maptool.keyType;
 		}

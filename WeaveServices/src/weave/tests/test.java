@@ -73,35 +73,49 @@ public class test
 		//Object[] inputValues1 = {};	
 		//Object[] inputValues = {};
 		String plotscript = "";
-//		String script = "";		
-		String script1 = "";
 		//Object[] parameters = {};
 		String [] resultNames = {};	
-		String scriptFilePath = "C:\\Users\\Shweta\\Desktop\\Parameterized.R";
+		String scriptFilePath = "C:\\RScripts\\TestingAWS_RODBC.R";
 		//String csvPath = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
-		String mystate = "_STATE";
-		String mypsu = "_PSU";
-		String myfinalwt = "_FINALWT";
-		String myststr = "_STSTR";
-		String myindicator = "DIABETE2";
-			String[] inputNames  = {"cannedScriptPath","query", "mystate", "mypsu","myststr","myfinalwt", "myindicator"};
-			String query = "select `_STATE`,`_PSU`,`_STSTR`,`_FINALWT`,DIABETE2 from brfss2010";
+		String user = "root";
+		String password = "shweta";
+		String hostName = "localhost";
+		String schemaName = "data";
+		String dsn = "myCDC";
+		String [] columns = {"X_STATE", "X_PSU", "X_STSTR", "X_FINALWT", "DIABETE2"};
+		String query = "select `X_STATE`,`X_PSU`,`X_STSTR`,`X_FINALWT`,DIABETE2 from sdoh2010q";
+		
+		 Object[] inputValues = {scriptFilePath, query, columns, user, password, hostName, schemaName, dsn};
+		 String[] inputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
+		
+		String script =  "scriptFromFile <- source(cannedScriptPath)\n" +
+		  "library(RMySQL)\n" +
+		  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
+		  "library(survey)\n" +
+		  "getColumns <- function(query)\n" +
+		  "{\n" +
+		  "return(dbGetQuery(con, paste(query)))\n" +
+		  "}\n" +
+		  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+		
+			//String[] inputNames  = {"cannedScriptPath","query", "mystate", "mypsu","myststr","myfinalwt", "myindicator"};
+		//Object[] inputValues = {checkstrings};
 //		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
 //		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 //		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
-		String []inputValues1 = {scriptFilePath,query,mystate, mypsu,myststr, myfinalwt,myindicator};
+		//String []inputValues1 = {scriptFilePath,query,mystate, mypsu,myststr, myfinalwt,myindicator};
 		//inputNames = new String[]{"scriptPath", "csvPath"};
 		//works
 //		script = "scriptFromFile <- source(scriptPath)\n" +
 //				"answer <- scriptFromFile$value(col1, col2)\n";
 		
 		//testing
-		script1 ="params <- c(mystate, mypsu, myststr, myfinalwt, myindicator)\n" +
-		"scriptFromFile <- source(cannedScriptPath)\n" +
-		"library(RMySQL)\n" +
-		"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"shweta\", host = \"localhost\", port = 3306, dbname = \"data\")\n" +
-		"library(survey)\n" +
-		"returnedColumnsFromSQL <- scriptFromFile$value(query,params)\n";
+//		script1 ="params <- c(mystate, mypsu, myststr, myfinalwt, myindicator)\n" +
+//		"scriptFromFile <- source(cannedScriptPath)\n" +
+//		"library(RMySQL)\n" +
+//		"con <- dbConnect(dbDriver(\"MySQL\"), user = \"root\", password = \"shweta\", host = \"localhost\", port = 3306, dbname = \"data\")\n" +
+//		"library(survey)\n" +
+//		"returnedColumnsFromSQL <- scriptFromFile$value(query,params)\n";
 		
 		
 		
@@ -167,23 +181,8 @@ public class test
 //		"return(Clusters)}}\n" +
 //		"ans <- hello1(inputColumns, EMModel)\n";
 		
-//		RResult testObject = new RResult("Shweta", 50);
-//		RResult testObject2 = new RResult("Purushe",100);
 //		
-//		Map<String, Object> check = new HashMap<String, Object>();
-//		check.put("first", testObject);
-//		check.put("second", testObject2);
-//		
-//		Set keys = check.keySet();
-//		Object ans = check.get("first");
-//		
-//		
-//		System.out.print(testObject);
-//		System.out.print(check);
-//		System.out.print(ans);
-//		System.out.print(keys);
-		resultNames = new String[0];
-		call(null,inputNames, inputValues1,resultNames,script1,plotscript, false,false,false);
+		call(null,inputNames, inputValues,resultNames,script,plotscript, false,false,false);
 	}	
 }		
 		

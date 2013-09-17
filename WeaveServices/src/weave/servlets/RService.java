@@ -19,55 +19,35 @@
 
 package weave.servlets;
 
+import static weave.config.WeaveConfig.getConnectionConfig;
+import static weave.config.WeaveConfig.getDataConfig;
+import static weave.config.WeaveConfig.initWeaveConfig;
+
 import java.io.BufferedReader;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.File;
-import java.io.InputStreamReader;
+import java.net.URI;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.ListIterator;
 import java.util.List;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
-import java.net.URI;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import com.google.gson.Gson;
-
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
-import weave.beans.RequestObject;
-import weave.config.WeaveContextParams;
-import weave.config.ConnectionConfig.ConnectionInfo;
-import weave.utils.CommandUtils;
-import weave.utils.DebugTimer;
-
-import weave.utils.SQLUtils;
-
-
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
-import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityWithChildren;
-import weave.config.DataConfig.DataType;
-import weave.config.DataConfig.EntityHierarchyInfo;
-import weave.config.DataConfig.PrivateMetadata;
-import weave.config.DataConfig.PublicMetadata;
+import weave.config.WeaveContextParams;
+import weave.utils.SQLUtils;
 
-import static weave.config.WeaveConfig.getConnectionConfig;
-import static weave.config.WeaveConfig.getDataConfig;
-import static weave.config.WeaveConfig.initWeaveConfig;
- 
-import weave.servlets.DataService;
+import com.google.gson.Gson;
 
 public class RService extends GenericServlet
 {
@@ -163,7 +143,7 @@ public class RService extends GenericServlet
 		DataConfig dc = getDataConfig();
 		ConnectionInfo info;
 		DataEntity ent;
-		List<String> columnNames = new LinkedList<String>(); 
+		String[] columnNames = new String[columns.length]; 
 		File script_path = new File(uploadPath, scriptName);
 
 		String connectionName = null; /* There should only be one connectionName/tableName used, for now. */
@@ -189,9 +169,10 @@ public class RService extends GenericServlet
 				throw new RemoteException("Columns are not members of the same connection.", null);
 			}
 
-			columnNames.add(tmpColumnName);
+			columnNames[col_id] = (tmpColumnName);
 		}
 
+		
 		ConnectionConfig cc = getConnectionConfig();
 		info = cc.getConnectionInfo(connectionName);
 
@@ -255,14 +236,14 @@ public class RService extends GenericServlet
 
 	// this select query is the first version without filtering
 	// we need to eventually replace it with the getQuery function in the DataService
-	private String buildSelectQuery(List<String> columns, String tableName)
+	private String buildSelectQuery(String [] columns, String tableName)
 	{
-			int counter = columns.size();
+			int counter = columns.length;
 			String tempQuery = "";
 			
 			for(int i=0; i < counter; i++)
 			{
-				String tempColumnName = SQLUtils.quoteSymbol(SQLUtils.MYSQL, columns.get(i));
+				String tempColumnName = SQLUtils.quoteSymbol(SQLUtils.MYSQL, columns[i]);
 
 				if(i == (counter-1))
 				{
@@ -319,7 +300,8 @@ public class RService extends GenericServlet
 			String col5 = columns.get(4);
 			
 			System.out.println(col1 + col2 + col3  + col4 + col5);
-			String query = buildSelectQuery(columns, dataset);
+			String query = "";
+			//String query = buildSelectQuery(columns, dataset);
 			
 			String cannedScriptLocation = scriptPath + scriptName;
 			 //String cannedSQLScriptLocation = "C:\\Users\\Shweta\\Desktop\\" + (scriptName).toString();//hard coded for now
@@ -363,6 +345,96 @@ public class RService extends GenericServlet
 		}
 		 
 	}
+	
+	/**
+	 * 
+	 * @param requestObject sent from the AWS UI collection of parameters to run a computation
+	 * @param connectionObject send from the AWS UI parameters needed for connection Rserve to the db
+	 * @return returnedColumns result columns from the computation
+	 * @throws Exception
+	 */
+	public RResult[] runScriptwithScriptMetadata(Map<String,String> connectionObject, Map<String,Object> requestObject) throws Exception
+	{
+		RResult[] returnedColumns;
+		String connectionType = connectionObject.get("connectionType").toString();
+		String scriptName = requestObject.get("scriptName").toString();
+		System.out.print(requestObject.toString());
+		//if the computation result has been stored then computation is not run
+		//the stored results are simply returned
+		if(compResultLookMap.containsKey(requestObject.toString()))
+		{
+			return compResultLookMap.get(requestObject.toString());
+		}
+		
+		else
+		{
+			//Set<String> keys = connectionObject.keySet();
+			String user = connectionObject.get("user");
+			String password = connectionObject.get("password");
+			String schemaName = connectionObject.get("schema");
+			String hostName = connectionObject.get("host");
+			String dsn = connectionObject.get("dsn").toString();
+			
+			String dataset = requestObject.get("dataset").toString();
+			String scriptPath = requestObject.get("scriptPath").toString();
+			
+			
+			//TODO Find better way to do this? full proof queries?
+			//query construction
+			Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
+			ArrayList<String> columnslist = new ArrayList<String>();
+			columnslist = (ArrayList)columnNames;
+			
+			String [] columns = new String[columnslist.size()];
+			columns = columnslist.toArray(columns);
+			
+			String query = buildSelectQuery(columns, dataset);
+			
+			String cannedScriptLocation = scriptPath + scriptName;
+			 
+			/*sending all necessary parameters to the database
+			 * getting rid of string concatenation
+			 * */
+			 Object[] requestObjectInputValues = {cannedScriptLocation, query, columns, user, password, hostName, schemaName, dsn};
+			 String[] requestObjectInputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
+			
+			 String finalScript = "";
+			if(connectionType.equalsIgnoreCase("RMySQL"))
+			{
+				finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+							  "library(RMySQL)\n" +
+							  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
+							  "library(survey)\n" +
+							  "getColumns <- function(query)\n" +
+							  "{\n" +
+							  "return(dbGetQuery(con, paste(query)))\n" +
+							  "}\n" +
+							  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+			} else if (connectionType.equalsIgnoreCase("RODBC"))
+			{
+				finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
+							 "library(RODBC)\n" +
+							 "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
+							 "sqlQuery(con, \"USE myschemaName\")\n" +
+							 "library(survey)\n" +
+							 "getColumns <- function(query)\n" +
+							 "{\n" +
+							 "return(sqlQuery(con, paste(query)))\n" +
+							 "}\n" +
+							 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+			}
+			String[] requestObjectOutputNames = {};
+			
+			returnedColumns = this.runScript( null, requestObjectInputNames, requestObjectInputValues, requestObjectOutputNames, finalScript, "", false, false, false);
+			
+			//rewriting?
+			compResultLookMap.put(requestObject.toString(), returnedColumns);//temporary solution for caching. To be replaced by retrieval of computation results from db
+			return returnedColumns;
+		}
+		 
+	}	
+	
+	
 	
 	// this functions makes a command line call on the server machine.
 	// the command executed starts the Rserve on windows or unix

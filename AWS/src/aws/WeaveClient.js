@@ -70,10 +70,6 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 
 	//state plot layer
 	/** @type {WeavePath} */
-	var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
-	stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
-	
-	/** @type {WeavePath} */
 	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
 						   .push('internalObject').request('ReferencedColumn')
 						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
@@ -81,6 +77,8 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state({dataSourceName :"WeaveDataSource",
 		  		  hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+	
+	//labellayer
 
 	return toolName;
 };
@@ -127,7 +125,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 	this.weave.requestObject([toolName], 'DataTableTool');
 	
 	//loop through the columns requested
-	for (var i = 0; i < columnNames.length; i++)
+	for (var i in columnNames)
 		{
 			this.setCSVColumn(dataSourceName, [toolName,'columns',columnNames[i]], columnNames[i]);
 			
