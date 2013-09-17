@@ -33,12 +33,14 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	$scope.dataTableSelect = queryobj['dataTable'];
 	$scope.options = dataService.giveMeTables();
 
-    $scope.$watch('dataTableSelect1', function(newVal, oldVal){
-        queryobj['dataTable1'] = $scope.dataTableSelect1;
-    });
+//    $scope.$watch('dataTableSelect1', function(newVal, oldVal){
+//        queryobj['dataTable1'] = $scope.dataTableSelect1;
+//    });
 
-	$scope.$watch('dataTableSelect', function(connection){
-		queryobj['dataTable'] = $scope.dataTableSelect;
+	$scope.$watch('dataTableSelect', function(newVal, oldVal){
+		if($scope.options.hasOwnProperty("$$v")){
+			queryobj['dataTable'] = $scope.dataTableSelect;
+		}
 	});
 	$scope.$watch('entityOverride', function(newVal, oldVal){
 		if(newVal != undefined){
