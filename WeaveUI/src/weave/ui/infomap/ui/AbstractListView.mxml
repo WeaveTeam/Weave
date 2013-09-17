@@ -165,7 +165,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				startIndex.triggerCallbacks();
 			}
 			
-			private function handleFilterChanges():void
+			protected function handleFilterChanges():void
 			{
 				if(parentNode.nodeBase.filterStatus == null)
 					return;
@@ -188,7 +188,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				startIndex.triggerCallbacks();
 			}
 			
-			private function handleFilterLabelClick(event:MouseEvent):void
+			protected function handleFilterLabelClick(event:MouseEvent):void
 			{
 				var filterLabel:FilterLabelUI = (event.target.parent as FilterLabelUI);
 				removeFilter(filterLabel.filterName.text);
@@ -233,7 +233,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 			
 			private function next():void
 			{
-				if(startIndex.value + resultsRowCount > keys.length)
+				if(startIndex.value + resultsRowCount >= keys.length)
 				{
 					return;//nothing more to show
 				}

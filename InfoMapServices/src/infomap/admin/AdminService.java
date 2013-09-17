@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -60,7 +61,6 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.carrot2.clustering.kmeans.BisectingKMeansClusteringAlgorithm;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
@@ -87,11 +87,9 @@ import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.WebAuthSession;
 import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.customsearch.Customsearch;
 import com.google.api.services.customsearch.Customsearch.Cse;
-import com.google.api.services.customsearch.CustomsearchRequestInitializer;
 import com.google.api.services.customsearch.model.Result;
 import com.google.api.services.customsearch.model.Search;
 import com.google.gson.Gson;
@@ -112,10 +110,8 @@ import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
 import infomap.beans.SolrClusterObject;
 import infomap.beans.SolrClusterResponseModel;
-import infomap.beans.SolrClusterResponseModel.LinkObject;
 import infomap.beans.TopicClassificationResults;
 import infomap.scheduler.RssFeedsJob;
-import infomap.test.ConsoleFormatter;
 import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
@@ -147,6 +143,8 @@ public class AdminService extends GenericServlet {
 	private static String table = "rss_feeds";
 	private static String tomcatPath = "tomcatPath";
 	private Connection conn = null;
+	private static String CX = null; // Google Custom Search Engine ID
+	private static String googleCustomSearchAPIKey = null; // Google Custom Search API Key
 
 	public static HttpSolrServer solrInstance = null;
 	private static int bufferSize = 20;
@@ -175,6 +173,8 @@ public class AdminService extends GenericServlet {
 			tomcatPath = prop.getProperty("tomcatPath");
 			host = prop.getProperty("feedSourcesDBServerURL");
 			_testMode = prop.getProperty("testMode").equals("true");
+			CX = prop.getProperty("googleCustomSearchEngineID");
+			googleCustomSearchAPIKey = prop.getProperty("googleCustomSearchAPIKey");
 		}catch (Exception e)
 		{
 			System.out.println("Error reading configuration file");
@@ -1203,23 +1203,6 @@ public class AdminService extends GenericServlet {
 				for (int i = 0; i < requiredKeywords.length; i++) keyWords = keyWords + " " + requiredKeywords[i];
 			keyWords = keyWords.trim();
 			
-//			// Use K-means algorithm to produce non-overlapping clusters (Not Deterministic)
-//			// ToDo Not sure whether keyWords will be useful in K-means algorithm?
-//			ProcessingResult byKmeansClusters = controller.process(documents, keyWords, BisectingKMeansClusteringAlgorithm.class);
-//			List<Cluster> clustersByKmeans = byKmeansClusters.getClusters();
-//			
-//			// Retrieve clustering result
-//			String[] clusteredLabels = new String[numOfLabels + 1]; // Include "document" as key column
-//			int tempNumOfDocs = 0;
-//			for (int i = 0 ; i < clustersByKmeans.size(); i++) {
-//				for (org.carrot2.core.Document doc : clustersByKmeans.get(i).getDocuments())
-//				{
-//					clusteredLabels[tempNumOfDocs] = (String) doc.getField(org.carrot2.core.Document.CONTENT_URL);
-//					tempNumOfDocs++;
-//				}
-//			}
-//			clusteredLabels[numOfLabels] = "document";
-			
 			// Use lingo algorithm. It produces overlapping clusters (Deterministic)
 			ProcessingResult byLingoClusters = controller.process(documents, keyWords, LingoClusteringAlgorithm.class);
 			List<Cluster> clustersByLingo = byLingoClusters.getClusters();
@@ -1244,22 +1227,6 @@ public class AdminService extends GenericServlet {
 			for (int i = 0; i < clustersByLingo.size(); i++) unsortedMap.put(i, clustersByLingo.get(i).getScore());
 			TreeMap<Integer, Double> orderOfClustersbyScore = new TreeMap<Integer, Double>(new ValueComparator(unsortedMap));
 			orderOfClustersbyScore.putAll(unsortedMap);
-			
-			// Retrieve clustering result ==> Old code: there us no boundary between label clusters. Used as order parameter in CSVParser().convertRecordsToRows
-//			ArrayList<String> tempClusteredLabels = new ArrayList<String>();
-//			int tempLabelIndex = 0;
-//			for (Integer clusterIndex : orderOfClustersbyScore.keySet()) {
-//				for (org.carrot2.core.Document doc : clustersByLingo.get(clusterIndex).getDocuments())
-//				{
-//					if (!tempClusteredLabels.contains((String) doc.getField(org.carrot2.core.Document.CONTENT_URL)))
-//					{
-//						tempClusteredLabels.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
-//						tempLabelIndex++;
-//					}
-//				}
-//			}
-//			tempClusteredLabels.add("document"); // Include "document" as key column
-//			String[] clusteredLabels = tempClusteredLabels.toArray(new String[tempClusteredLabels.size()]);
 	        
 			// ToDo Is it possible that two or more labels will be the same?
 			// ToDo What if there exists another label called "document"? Which one will be used as key column?
@@ -1303,7 +1270,6 @@ public class AdminService extends GenericServlet {
 			// Retrieve label clustering result
 			// ToDo yenfu Should "other topics" needs to be removed before label clustering
 			Map<Integer, ArrayList<String>> labelClusterLinkedHashMap = new LinkedHashMap<Integer, ArrayList<String>>();
-//			Map<Integer, ArrayList<String>> labelClusterHashMap = new HashMap<Integer, ArrayList<String>>();
 			ArrayList<String> tempLabels = new ArrayList<String>(); // labels ...
 			for (Integer clusterIndex : orderOfClustersbyScore.keySet()) {
 				ArrayList<String> clusterContent = new ArrayList<String>();
@@ -1318,22 +1284,11 @@ public class AdminService extends GenericServlet {
 				labelClusterLinkedHashMap.put(clusterIndex, clusterContent);
 			}
 			
-			// ToDo yenfu Attach label clustering info as last row for drawing label cluster boundaries
-//			Map<String, String> recordObject = new HashMap<String, String>();
-//			recordObject.put("document", "label_clustering");
-//			for (Integer key : labelClusterLinkedHashMap.keySet())
-//			{
-//				for (String label : labelClusterLinkedHashMap.get(key))
-//					recordObject.put(label, key.toString());
-//			}
-//			records.add(recordObject);
-			
 			Map<String, String>[] rs = records.toArray(new HashMap[records.size()]);
 			
-//			result = new CSVParser().convertRecordsToRows(rs, clusteredLabels);
 			result = new CSVParser().convertRecordsToRows(rs);
-			// ToDo yenfu Attach sub clustering info for drawing clusters boundaries
-			// Concatenate clustering info with label
+
+			// Concatenate clustering info with label for drawing clusters boundaries
 			for (int i = 0; i < result[0].length - 1; i++) // Loop through first row (labels) and attach cluster info ; skip the last one "document"
 			{
 				for (Integer key : labelClusterLinkedHashMap.keySet())
@@ -1343,10 +1298,6 @@ public class AdminService extends GenericServlet {
 						result[0][i] = result[0][i] + "_cluster_" + key.toString();
 				}
 			}
-			
-			System.out.println("");
-			
-
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1354,43 +1305,91 @@ public class AdminService extends GenericServlet {
 		return result;
 	}
 	
-	// ToDo yenfu
-//	public String[][] getGoogleSearchResultForQueryWithRelatedKeywords(String[] requiredKeywords, String[] relatedKeywords, String dateFilter, int rows,String operator,String sources,String sortBy)
-	private static final GoogleClientRequestInitializer KEY_INITIALIZER = new CustomsearchRequestInitializer("AIzaSyDddFvCRxCICI1Ks-S155hOjvpaQ6js_Hg");
-	
-	private static final String CX = "013468534357605574089:fieu4lccp9u";
-	private static final String APPLICATION_NAME = "InfoMap/Beta";
-	public String[][] getGoogleSearchResult(String query) {
-		String[][] returnValue = null;
-		try {
-			JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-			Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, null)
-			.setApplicationName(APPLICATION_NAME)
-			.setGoogleClientRequestInitializer(KEY_INITIALIZER)
-			.build();
-
-			Cse.List list = cs.cse().list(query);
-			list.setCx(CX);
-			Search searchResults = list.execute();
-			List<Result> items = searchResults.getItems();
-
-			// ToDo yenfu Possible the same urls from google search result
-			// ToDo Check Exception
-//			returnValue = new String[items.size() + 1][5];
-			returnValue = new String[items.size()][5];
-//			String[] header = {"url","title","imgURL","date_published","date_added"};
-//			returnValue[0] = header;
-//			int counter = 1;
-			int counter = 0;
-			for(Result searchResult:items)
-			{
-				String[] temp = {searchResult.getLink(),searchResult.getTitle(),null,null,null};
-				returnValue[counter] = temp;
-				counter++;
-			}
+	// Google Custom Search Engine
+	// Use the same signature for possible future work.
+	// Reference ==> https://developers.google.com/custom-search/v1/cse/list
+	// Reference ==> https://developers.google.com/custom-search/v1/using_rest
+	// Reference ==> http://www.google.ca/advanced_search
+	// requiredKeywords ==> q (query)
+	// relatedKeywords ==> orTerms
+	// dateFilter ==> dateRestrict(temporary inapplicable)
+	// rows ==> start and num
+	// operator (temporary inapplicable)
+	// sources (temporary inapplicable)
+	// sortBy ==> sort (temporary inapplicable) default setting is relevance and date
+	public Object[] getGoogleSearchResultWithRelatedKeywords(String[] requiredKeywords, String[] relatedKeywords,
+			String dateFilter, int rows, String operator, String sources, String sortBy) {
+		
+		if (requiredKeywords == null || requiredKeywords.length == 0) return null; // ToDo Handle null value exception in the caller
+		
+		// Each google query is allowed to return 10 results. In addition, it only provides first 100 results
+		// Default rows value is 10
+		if (rows <= 10) rows = 10;
+		if (rows >= 100) rows = 100;
+		if ((rows % 10) != 0) {
+			if ((rows % 10) >= 5) rows = rows + (10 - (rows % 10));
+			else rows = rows - (rows % 10);
 		}
-		catch (Exception ex) {ex.printStackTrace();}
-		return returnValue;
+		
+		int numOfResultPerQuery = 10;
+		int numOfQuery = rows / numOfResultPerQuery;
+		ArrayList<String[]> docs = new ArrayList<String[]>();
+		// For checking possible duplicate urls from google search result
+		HashSet<String> urlSet = new HashSet<String>();
+		for (int i = 0; i < numOfQuery; i++) {
+			try {
+				JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+				Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, null).
+				setApplicationName("InfoMaps").build();
+				Cse.List list = cs.cse().list(parseKeywordsArray(requiredKeywords)); // Create list and initialize with query
+				list.setKey(googleCustomSearchAPIKey); // Set up api key
+				list.setCx(CX); // Set up custom engine id
+				list.setOrTerms(parseKeywordsArray(relatedKeywords)); // any of these words
+				list.setStart(new Long(i * numOfResultPerQuery + 1));
+//				list.setNum(new Long(numOfResultPerQuery));
+//				list.setQ(""); // all these words (query)
+//				list.setExactTerms(""); // this exact word or phrase ==> Search Machine Learnings != Search Machine Learning
+//				list.setSort(""); // date or relevance
+//				list.setDateRestrict(""); // See reference format
+				
+				Search searchResults = list.execute();
+				List<Result> items = searchResults.getItems();
+				if (items == null) return null; // No search result
+				
+				for(Result searchResult:items) {
+					if (!urlSet.contains(searchResult.getLink()))
+					{
+						String doc[] = new String[3]; // url, title, snippest
+						urlSet.add(searchResult.getLink());
+						doc[0] = searchResult.getLink();
+						doc[1] = searchResult.getTitle();
+						doc[2] = searchResult.getSnippet();
+						docs.add(doc);
+					}
+				}
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+				return null;
+				}
+		}
+		return docs.toArray();
+	}
+	
+	// Remove OR AND in keywords array
+	public static String parseKeywordsArray(String[] keywords) {
+		if (keywords == null || keywords.length == 0) return "";
+		
+		String keywordsString = "";
+		for (int i = 0; i < keywords.length; i++)
+		{
+			if (!keywords[i].trim().equalsIgnoreCase("or") && !keywords[i].trim().equalsIgnoreCase("and"))
+				keywordsString = keywordsString + " " + keywords[i].trim();
+		}
+		
+		keywordsString = keywordsString.trim(); // Remove first empty space
+//		System.out.println("GOOGLE: " + keywordsString); // ToDo Test
+		return keywordsString;
 	}
 	
 	public Object[] getResultsForQueryWithRelatedKeywords(
@@ -1424,6 +1423,7 @@ public class AdminService extends GenericServlet {
 
 			// set fields to title,date and summary only
 			q.setFields("link,title,date_added,date_published,imgName");
+
 			QueryResponse response = solrInstance.query(q);
 			Iterator<SolrDocument> iter = response.getResults().iterator();
 

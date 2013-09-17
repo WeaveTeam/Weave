@@ -98,7 +98,7 @@ package weave.visualization.plotters
 
 		public var anchorThreshold:Number;
 		public var doCDLayout:Boolean = false;// this displays the tstat value with every dimensional anchor name (displayed only when CD layout is done)
-		public var doCDLayoutMetric:Boolean = false; // ToDo yenfu whether display metric info ; decide whether to use LinkableVariable carefully.
+		public var doCDLayoutMetric:Boolean = true; // ToDo yenfu whether display metric info
 		
 		private function getClassFromAnchor(anchorName:String):String
 		{
@@ -213,8 +213,7 @@ package weave.visualization.plotters
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
 				
-//				if(doCDLayout)//displays the class discrimination metric used, either tstat or pvalue
-				if(doCDLayoutMetric)//displays the class discrimination metric used, either tstat or pvalue // ToDo yenfu
+				if(doCDLayout && doCDLayoutMetric)//displays the class discrimination metric used, either tstat or pvalue
 					_bitmapText.text = _bitmapText.text + "\n"+ "  Metric : " + 
 						Math.round(anchor.classDiscriminationMetric.value *100)/100 +"\n" + "  Class :" + anchor.classType.value;
 				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;

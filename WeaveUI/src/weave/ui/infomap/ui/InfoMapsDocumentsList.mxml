@@ -7,9 +7,7 @@
 		<![CDATA[
 			import mx.events.DragEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.data.IQualifiedKey;
-			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.ui.infomap.layout.NodeHandler;
 			private function handleMouseDown(event:MouseEvent):void
 			{
@@ -34,7 +32,6 @@
 					t.handleMove();
 				}
 			}
-			
 		]]>
 	</mx:Script>
 	<mx:itemRenderer>
@@ -60,7 +57,7 @@
 					import weave.utils.CustomCursorManager;
 					import weave.visualization.layers.InteractiveVisualization;
 					
-					private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource; // ToDo yenfu
+					private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
 					
 					override protected function childrenCreated():void
 					{
@@ -79,22 +76,15 @@
 						if(value == null || outerDocument.parentNode == null)
 						return;
 						
-						// ToDo yenfu google why it is necessary to have thumbnail component in list view ??? The following code is not flexible
 						var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
-						if (t != null) // ToDo yenfu
-						{
-							//changing background color if document is new/highlighted
-							t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
-							
-							//removing highlighted background color if any when user clicks on the list item
-							this.addEventListener(MouseEvent.CLICK,handleMouseClick);
-							
-							this.text = infomapDataSource.getTitleForURL(t.docURL.value);
-						}
-						else
-						{
-//							this.text = infomapDataSource.getTitleForURL(value);
-						}
+						
+						//changing background color if document is new/highlighted
+						t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
+						
+						//removing highlighted background color if any when user clicks on the list item
+						this.addEventListener(MouseEvent.CLICK,handleMouseClick);
+						
+						this.text = infomapDataSource.getTitleForURL(t.docURL.value);
 					}
 					
 					private function changeBackgroundColor():void

@@ -109,5 +109,11 @@ package weave.ui.infomap.core
 				return false;
 		}
 		
+		/*Function to compare 2 QueryObject instances. Ignores sortBy, filterBy, sources, and operator value*/
+		public static function isQueryKeywordsDifferent(q1:QueryObject, q2:QueryObject):Boolean
+		{
+			if(q1.keywords.value != q2.keywords.value) return true;
+			else return false;
+		}
 	}
 }

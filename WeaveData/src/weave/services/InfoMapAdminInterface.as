@@ -204,10 +204,10 @@ package weave.services
 				return query;
 			}
 			
-			// ToDo yenfu google
-			public function getGoogleSearchResult(requiredKeywords:String):AsyncToken
+			public function getGoogleSearchResultWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String=null,rows:int=10,operator:String=null,sources:String=null,sortyBy:String=null):AsyncToken
 			{
-				var query:AsyncToken = generateQueryAndRun("getGoogleSearchResult", [requiredKeywords]);
+				var query:AsyncToken = generateQueryAndRun("getGoogleSearchResultWithRelatedKeywords", [requiredKeywords,
+					relatedKeywords,dateFilter,rows,operator,sources,sortyBy]);
 				return query;
 			}
 			

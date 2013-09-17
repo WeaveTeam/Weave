@@ -25,9 +25,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-	
-	import mx.controls.Alert;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -116,23 +113,9 @@ package weave.visualization.plotters
 		/**
 		 * This is the compiled function to apply to the title of the tool.
 		 * 
-		 * @default str
+		 * @default string  
 		 */		
-//		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']),testingFunction);
-		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('str', true, false, ['aaa']),testingFunction);
-//		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('number', true, false, ['string']));
-//		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('number', true, false, ['string']));
-//		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('test(arg)', true, false, ['arg']));
-//		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("test", false, true, []));
-		
-		public function testingFunction():void{
-//			trace(legendTitleFunction.value);
-			trace("TEST " + (getDefinitionByName("String") as Class).toString());
-		}
-		public function test():String
-		{
-			return "haha";
-		}
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];

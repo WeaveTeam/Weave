@@ -290,25 +290,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_target._plotter.setAnchorLocations();
 				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
 			}
-
-			protected function anchorClustering_clickHandler(event:MouseEvent):void
-			{
-				//testing
-				//check if columns are present
-				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-				if (colObjects.length == 0)
-					return;
 				
-				var columnNumPerClass:Number;
-				_target.cdLayout.performClassDiscrimination(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue,columnNumPerClass);
-				_target._anchorPlotter.drawingClassLines = true;//cd coloring
-				_target._anchorPlotter.doCDLayout = true;//cd layout needed for tstat rendering
-				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors according to the class they belong to
-//				_target._plotter.setclassDiscriminationMetric(_target.cdLayout.tAndpMapping, _target.cdLayout.tandpValuesMapping);
-				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; //for setting cd dimensional anchor  locations
-				//_target._plotter.setAnchorLocations();
-				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
-			}
 			//restoring the default ordering
 			protected function defaultDAs_clickHandler(event:MouseEvent):void
 			{
@@ -557,7 +539,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:VBox>
 					<mx:HBox paddingLeft="10">
 						<mx:Button id="DOcd" label="Do Class Discrimiation" click="DOcdButton_clickHandler(event)"/>
-						<mx:Button id="anchorClustering" label="Anchor Clustering" click="anchorClustering_clickHandler(event)"/>
 						<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
 					</mx:HBox>
 					

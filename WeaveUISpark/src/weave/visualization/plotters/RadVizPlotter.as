@@ -160,7 +160,7 @@ package weave.visualization.plotters
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
-		public const doCDLayoutFlag:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // ToDo yenfu temporary flag to fix the code
+		public var doCDLayoutFlag:Boolean = false; // ToDo yenfu temporary flag to fix the code
 		
 		private function handleColumnsChange():void
 		{
@@ -269,9 +269,6 @@ package weave.visualization.plotters
 			}
 			
 		}
-		
-//		public const anchorLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("Class('weave.utils.ColumnUtils').getTitle(column)", true, false, ['column']), setAnchorLocations); // ToDo yenfu
-		
 		public function setAnchorLocations( ):void
 		{	
 			var _columns:Array = columns.getObjects();
@@ -288,7 +285,6 @@ package weave.visualization.plotters
 				anchor.y.value = Math.sin(theta*i);	
 				//trace(anchor.y.value);
 				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
-//				anchor.title.value = anchorLabelFunction.apply(null, [_columns[i]]); // ToDo yenfu
 			}
 			anchors.resumeCallbacks();
 		}
@@ -322,8 +318,7 @@ package weave.visualization.plotters
 					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
 					cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
 					cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
-//					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
-					cdAnchor.title.value = anchorLabelFunction.apply(null, [columns.getObject(colNames[g]) as IAttributeColumn]); // ToDo yenfu
+					cdAnchor.title.value = anchorLabelFunction.apply(null, [columns.getObject(colNames[g]) as IAttributeColumn]);
 					columnIncrementor++;//change
 				}
 				
