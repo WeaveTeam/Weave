@@ -537,7 +537,7 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
+			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">

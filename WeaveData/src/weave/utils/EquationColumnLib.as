@@ -28,6 +28,7 @@ package weave.utils
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -227,7 +228,7 @@ package weave.utils
 				result = StandardLib.asNumber((object as ILinkableVariable).getSessionState());
 			}
 			else
-				result = NaN;
+				throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
 			
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
@@ -249,7 +250,7 @@ package weave.utils
 			if (key == null)
 				key = currentRecordKey;
 
-			var result:String;
+			var result:String = '';
 			var column:IAttributeColumn = object as IAttributeColumn;
 			if (column != null)
 			{
@@ -260,7 +261,7 @@ package weave.utils
 				result = StandardLib.asString((object as ILinkableVariable).getSessionState());
 			}
 			else
-				result = '';
+				throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
@@ -292,6 +293,8 @@ package weave.utils
 			{
 				result = StandardLib.asBoolean((object as ILinkableVariable).getSessionState());
 			}
+			else
+				throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
@@ -317,6 +320,8 @@ package weave.utils
 			var result:Number = NaN;
 			if (column != null)
 				result = WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key);
+			else
+				throw new Error('first parameter must be an IAttributeColumn');
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;

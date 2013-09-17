@@ -1427,6 +1427,11 @@
 					return;
 				}
 				
+				if(!enablePinView.value)
+				{
+					return;
+				}
+				
 				if(view == THUMBNAILS_VIEW)
 				{
 					//if the list is not added yet
@@ -1708,6 +1713,7 @@
 					if(temp.length>0)
 					{
 						docListComponent.applyFilter("SELECTION",temp);
+						showRelatedRecords();
 					}
 					else
 					{
@@ -2027,7 +2033,10 @@
 				if(!enablePinView.value)
 				{
 					fadeOut.stop();
-					showCurrentView();
+					var viewUI:DisplayObject = _viewToObjectMapping[currentView.value] as DisplayObject;
+					if(viewUI.visible && viewUI.alpha == 1)
+						return;
+					fadeIn.play([viewUI]);
 				}
 			}
 			
