@@ -120,7 +120,7 @@ package weave.core
 		 */
 		private const _priorityCallLaterQueues:Array = [[], [], [], []];
 		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
-		private const _priorityElapsedTimes:Array = [0, 0, 0, 0]; // An Array of elapsed times corresponding to callLater queues.
+		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
 		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 100, 65, 35]; // An Array of allocated times corresponding to callLater queues.
 
 		/**
@@ -362,8 +362,7 @@ package weave.core
 			var lastPriority:int = _activePriority == minPriority ? _priorityCallLaterQueues.length - 1 : _activePriority - 1;
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
-			var pElapsed:int = int(_priorityElapsedTimes[_activePriority]);
-			var pStop:int = Math.min(allStop, pStart + pAlloc - pElapsed); // account for overtime from previous frame
+			var pStop:int = Math.min(allStop, pStart + pAlloc - _activePriorityElapsedTime); // continue where we left off
 			queue = _priorityCallLaterQueues[_activePriority] as Array;
 			countdown = queue.length;
 			while (true)
@@ -374,9 +373,8 @@ package weave.core
 				now = getTimer();
 				if (countdown == 0 || now > pStop)
 				{
-					// keep track of the actual elapsed time for this priority
-					// if we went overtime, let the overflow value carry over to the next frame (but not after that)
-					_priorityElapsedTimes[_activePriority] = Math.min(Math.max(0, now - pStart), pAlloc);
+					// add the time we just spent on this priority
+					_activePriorityElapsedTime += now - pStart;
 					
 					// if max computation time was reached for this frame or we have visited all priorities, stop now
 					if (now > allStop || _activePriority == lastPriority)
@@ -390,14 +388,14 @@ package weave.core
 					if (remaining == 0)
 						break;
 					
-					// switch to next priority
+					// switch to next priority, reset elapsed time
 					_activePriority++;
+					_activePriorityElapsedTime = 0;
 					if (_activePriority == _priorityCallLaterQueues.length)
 						_activePriority = minPriority;
 					pStart = now;
 					pAlloc = int(_priorityAllocatedTimes[_activePriority]);
-					pElapsed = int(_priorityElapsedTimes[_activePriority]);
-					pStop = Math.min(allStop, pStart + pAlloc - pElapsed);
+					pStop = Math.min(allStop, pStart + pAlloc);
 					queue = _priorityCallLaterQueues[_activePriority] as Array;
 					countdown = queue.length;
 					
