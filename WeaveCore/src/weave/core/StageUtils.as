@@ -363,7 +363,7 @@ package weave.core
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
 			var pElapsed:int = int(_priorityElapsedTimes[_activePriority]);
-			var pStop:int = Math.min(allStop, pStart + pAlloc - pElapsed);
+			var pStop:int = Math.min(allStop, pStart + pAlloc - pElapsed); // account for overtime from previous frame
 			queue = _priorityCallLaterQueues[_activePriority] as Array;
 			countdown = queue.length;
 			while (true)
@@ -374,9 +374,9 @@ package weave.core
 				now = getTimer();
 				if (countdown == 0 || now > pStop)
 				{
-					// keep track of elapsed time for this priority
-					pElapsed += now - pStart;
-					_priorityElapsedTimes[_activePriority] = pElapsed;
+					// keep track of the actual elapsed time for this priority
+					// if we went overtime, let the overflow value carry over to the next frame (but not after that)
+					_priorityElapsedTimes[_activePriority] = Math.min(Math.max(0, now - pStart), pAlloc);
 					
 					// if max computation time was reached for this frame or we have visited all priorities, stop now
 					if (now > allStop || _activePriority == lastPriority)
@@ -389,11 +389,6 @@ package weave.core
 					// stop if no more entries
 					if (remaining == 0)
 						break;
-					
-					// reset elapsed counter for next time
-					// if we went overtime, let the overflow value carry over
-					pElapsed = Math.max(0, pElapsed - pAlloc);
-					_priorityElapsedTimes[_activePriority] = pElapsed;
 					
 					// switch to next priority
 					_activePriority++;
