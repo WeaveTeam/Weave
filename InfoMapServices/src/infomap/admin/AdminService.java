@@ -141,6 +141,7 @@ public class AdminService extends GenericServlet {
 	private static String port = "3306";
 	private static String database = "solr_sources";
 	private static String table = "rss_feeds";
+	private static Boolean enableRssFeeds = null;
 	private static String tomcatPath = "tomcatPath";
 	private Connection conn = null;
 	private static String CX = null; // Google Custom Search Engine ID
@@ -168,6 +169,7 @@ public class AdminService extends GenericServlet {
 			serverURL = prop.getProperty("serverURL");
 			database = prop.getProperty("feedSourcesDB");
 			table = prop.getProperty("feedSourcesTable");
+			enableRssFeeds = Boolean.parseBoolean(prop.getProperty("enableRssFeeds"));
 			username = prop.getProperty("dbUsername");
 			password = prop.getProperty("dbPassword");
 			tomcatPath = prop.getProperty("tomcatPath");
@@ -331,6 +333,8 @@ public class AdminService extends GenericServlet {
 	}
 
 	synchronized public Object[][] getRssFeeds() {
+		if (!enableRssFeeds) return null;
+		
 		String query = String.format("SELECT title, url FROM %s", table);
 		SQLResult result = null;
 		Connection connection = null;
