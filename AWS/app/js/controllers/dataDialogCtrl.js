@@ -4,8 +4,9 @@
  */
 angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		'DataDialogCtrl',
-		function($scope, $dialog) {
+		function($scope, $dialog, queryobj) {
 
+            $scope.dataTable = queryobj.datatable;
 			$scope.opts = {
 				backdrop : true,
 				keyboard : true,
@@ -36,14 +37,15 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 	$scope.options = dataService.giveMeTables();
 
 	$scope.$watch('dataTableSelect', function(newVal, oldVal){
-		if($scope.options.hasOwnProperty("$$v")){
-			var temp = angular.fromJson($scope.dataTableSelect);
-			queryobj.dataTable = {
-			                      id: temp.id,
-			                      title: temp.title
-			};
-			
-		}
+        if ($scope.options.hasOwnProperty("$$v")) {
+            var temp = angular.fromJson($scope.dataTableSelect);
+            if (temp){
+                queryobj.dataTable = {
+                    id: temp.id,
+                    title: temp.title
+                };
+            }
+        }
 	});
 	$scope.$watch('entityOverride', function(newVal, oldVal){
 		if(newVal != undefined){
