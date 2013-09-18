@@ -356,13 +356,14 @@ public class AdminService extends GenericServlet {
 
 	public String addRssFeed(String title, String url) throws RemoteException {
 		try {
-
+			if (!enableRssFeeds) return "RSS Feed is not enabled";
+			
 			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
 					database, username, password);
 			conn = SQLUtils.getConnection(connURL);
 
 			String query = String.format("SELECT * FROM %s WHERE url = ?", table);
-			
+
 			String[] params = new String[1];
 			params[0]= url;
 			SQLResult checkResult = SQLUtils.getResultFromQuery(conn,query, params, true);
@@ -398,7 +399,8 @@ public class AdminService extends GenericServlet {
 
 	public String deleteRssFeed(String url) throws RemoteException {
 		try {
-
+			if (!enableRssFeeds) return "RSS Feed is not enabled";
+			
 			String connURL = SQLUtils.getConnectString(SQLUtils.MYSQL, host, port,
 					database, username, password);
 			conn = SQLUtils.getConnection(connURL);
@@ -418,6 +420,8 @@ public class AdminService extends GenericServlet {
 	// ToDo This is called when the user clicks index now. (Mannually indexing)
 	public void indexRssFeeds() throws RemoteException {
 		try {
+			if (!enableRssFeeds) return;
+			
 			RssFeedsJob.triggerRssFeedsIndexing();
 		} catch (Exception ex) {
 			ex.printStackTrace();
