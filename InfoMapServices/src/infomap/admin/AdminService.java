@@ -1283,7 +1283,6 @@ public class AdminService extends GenericServlet {
 			}
 			
 			// Retrieve label clustering result
-			// ToDo yenfu Should "other topics" needs to be removed before label clustering
 			Map<Integer, ArrayList<String>> labelClusterLinkedHashMap = new LinkedHashMap<Integer, ArrayList<String>>();
 			ArrayList<String> tempLabels = new ArrayList<String>(); // labels ...
 			for (Integer clusterIndex : orderOfClustersbyScore.keySet()) {
@@ -1308,8 +1307,8 @@ public class AdminService extends GenericServlet {
 			{
 				for (Integer key : labelClusterLinkedHashMap.keySet())
 				{
-					// ToDo Need to deal with special case: document and Other Topics
-					if (labelClusterLinkedHashMap.get(key).contains(result[0][i]) && !result[0][i].equalsIgnoreCase("Other Topics"))
+					// Since document column is not in labelClusterLinkedHashMap, this step will skip it.
+					if (labelClusterLinkedHashMap.get(key).contains(result[0][i]))
 						result[0][i] = result[0][i] + "_cluster_" + key.toString();
 				}
 			}
