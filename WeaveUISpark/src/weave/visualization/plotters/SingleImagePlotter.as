@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -192,11 +193,11 @@ package weave.visualization.plotters
 			return [simpleGeom];
 		}
 
-		private function handleImageRequest(event:ResultEvent,token:Object=null):void
+		private function handleImageRequest(event:ResultEvent, url:String):void
 		{
-			if((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(this))
+			if (objectWasDisposed(this))
 				return;
-			if((token as String)== imageURL.value)
+			if (url == imageURL.value)
 			{
 				imageBitmapData = (event.result as Bitmap).bitmapData;
 				getCallbackCollection(this).triggerCallbacks();

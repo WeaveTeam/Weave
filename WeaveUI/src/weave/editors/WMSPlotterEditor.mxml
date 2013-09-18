@@ -84,7 +84,7 @@
 				super.childrenCreated();
 				setWMSLayerServiceOnPlotterChange();
 				handleWMSProviderChange();
-				wmsURLText.toolTip =  "Enclose x,y,z in curly braces as shown in this sample URL: http://tile.openstreetmap.org/{z}/{x}/{y}.png";
+				wmsURLText.toolTip =  "Enclose z,y,x in curly braces as shown in this sample URL: http://tile.openstreetmap.org/{z}/{y}/{x}.png\n{bbox} and {size} are also supported";
 			}
 			
 			private function handleStyleInputChange():void

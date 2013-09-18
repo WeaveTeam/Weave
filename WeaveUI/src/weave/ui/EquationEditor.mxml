@@ -47,23 +47,17 @@
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
 				<mx:Canvas label="{lang('Equation Text')}">
-					<mx:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
+					<CodeEditor id="textEditor" errorString="{baseEquationUIComp.errorString}"/>
 				</mx:Canvas>
 				<mx:Canvas label="{lang('Equation Tree')}" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
 					<EquationUIComponent id="baseEquationUIComp"/>
 				</mx:Canvas>
 			</mx:TabNavigator>
-			<mx:TabNavigator width="100%" height="100%"
-							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<ColumnListComponent label="{lang('Edit Variables')}" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				<mx:Canvas label="{lang('Edit Variable Names')}" width="100%" height="100%">
-					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				</mx:Canvas>
-			</mx:TabNavigator>
+			<ColumnListComponent label="{lang('Edit Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 		</mx:VBox>
 		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 			<mx:Label text="{lang('Available functions')}"/>
-			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
+			<mx:Accordion id="functionLists" height="100%" width="100%"/>
 		</mx:VBox>
 	</mx:HDividedBox>
 	<mx:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>
@@ -101,6 +95,8 @@
 				panelHeight.value = "70%";
 				panelX.value = "15%";
 				panelY.value = "15%";
+				minimizable.value = true;
+				maximizable.value = true;
 			}
 			
 			/**
@@ -154,7 +150,7 @@
 					var functionList:List = new List();
 					functionList.dataProvider = functions; 
 					functionList.labelFunction= getLabel;
-					functionList.minHeight = 300;
+					functionList.minHeight = 0;
 					functionList.percentWidth = 100;
 					functionList.dragEnabled = true;
 					functionList.doubleClickEnabled = true;
@@ -171,7 +167,7 @@
 				var constantsList:List = new List();
 				constantsList.dataProvider = constants; 
 				constantsList.labelFunction = getLabel;
-				constantsList.minHeight = 300;
+				constantsList.minHeight = 0;
 				constantsList.percentWidth = 100;
 				constantsList.dragEnabled = true;
 				constantsList.rowCount = constantsList.dataProvider.length;
@@ -179,6 +175,7 @@
 				constantVBox.addChild(constantsList);
 				
 				functionLists.addChild(constantVBox);
+				functionLists.minHeight = 256;
 				
 				equationBox.addEventListener(DragEvent.DRAG_DROP, captureDragDrop, true);
 

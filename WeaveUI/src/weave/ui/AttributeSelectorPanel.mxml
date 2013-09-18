@@ -51,12 +51,10 @@
 		<![CDATA[
 			import mx.collections.ListCollectionView;
 			import mx.controls.Label;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
@@ -197,7 +195,10 @@
 					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);
 					if (columns.length > 0)
 					{
-						copySessionState(columns[0], editor.dynamicColumn);
+						var columnToCopy:IAttributeColumn = columns[0] is DynamicColumn
+							? (columns[0] as DynamicColumn).getInternalColumn()
+							: columns[0];
+						editor.dynamicColumn.requestLocalObjectCopy(columnToCopy);
 					}
 					else
 					{
@@ -230,12 +231,12 @@
 				return _defaultSelector;
 			}
 			public static var _defaultSelector:AttributeSelectorPanel;
-			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject):void
+			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject, showVariableNames:Boolean = false):void
 			{
 				if (!Weave.properties.enableToolControls.value)
 					return;
 				
-				openDefaultSelector();
+				openDefaultSelector(null, null, showVariableNames);
 				
 				defaultSelector.selectableAttributes = tool.getSelectableAttributes();
 				if (defaultSelector.selectableAttributes.indexOf(attributeToLinkTo) >= 0)
@@ -243,7 +244,7 @@
 				defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
 				defaultSelector.linkToObject(attributeToLinkTo);
 			}
-			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null):void
+			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):void
 			{
 				if (!Weave.properties.enableToolControls.value)
 					return;
@@ -251,6 +252,7 @@
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
 
+				defaultSelector.columnList.showVariableNames = showVariableNames;
 				defaultSelector.editor.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);

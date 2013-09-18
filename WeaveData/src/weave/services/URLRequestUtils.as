@@ -175,9 +175,8 @@ package weave.services
 		 * but it is ok because nothing outside this class has access to the internal CustomURLLoader
 		 * and the result and fault functions added internally do not cause problems when both are called.
 		 */
-		private function handleGetContentResult(resultEvent:ResultEvent, token:Object = null):void
+		private function handleGetContentResult(resultEvent:ResultEvent, url:String):void
 		{
-			var url:String = token as String;
 			var customURLLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
 			
 			var bytes:ByteArray = resultEvent.result as ByteArray;

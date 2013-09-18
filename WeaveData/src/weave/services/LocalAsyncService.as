@@ -187,9 +187,8 @@ package weave.services
 		 * @param event The event from an AsyncToken.
 		 * @param token The commandID associated with an AsyncToken.
 		 */
-		private function handleAsyncResult(event:ResultEvent, token:Object = null):void
+		private function handleAsyncResult(event:ResultEvent, commandID:String):void
 		{
-			var commandID:String = token as String;
 			handleResult(commandID, event.result);
 		}
 		
@@ -199,9 +198,8 @@ package weave.services
 		 * @param event The event from an AsyncToken.
 		 * @param token The commandID associated with an AsyncToken.
 		 */
-		private function handleAsyncFault(event:FaultEvent, token:Object = null):void
+		private function handleAsyncFault(event:FaultEvent, commandID:String):void
 		{
-			var commandID:String = token as String;
 			handleFault(commandID, event.fault);
 		}
 		

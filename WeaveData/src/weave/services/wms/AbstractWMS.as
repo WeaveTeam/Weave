@@ -145,7 +145,7 @@ package weave.services.wms
 		 * Request the images.
 		 * @see weave.api.core.IWMSService#requestImages
 		 */		 
-		/* abstract */ public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array 
+		/* abstract */ public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array
 		{
 			return null;
 		}
