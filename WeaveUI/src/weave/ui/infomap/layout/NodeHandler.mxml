@@ -2262,7 +2262,12 @@
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
 			public function showClusters(event:Event=null):void
 			{
-				
+				var object:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
+				if(object)
+				{
+					object.restorePanel();
+					return;
+				}
 				var columnNames:Array = clusterCSVDataSource.getColumnNames();
 				
 				if(WeaveAPI.SessionManager.linkableObjectIsBusy(clusterCSVDataSource.getColumnByName("document")))
@@ -2272,7 +2277,7 @@
 					return;
 				}
 				status.text = "";
-				var object:RadVizTool = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
+				object = Weave.root.requestObject(_clusterRadVizName, RadVizTool, false);
 				object._plotter.columns.removeAllObjects();
 				object._plotter.probeLineNormalizedThreshold.value = 0.5;
 				object._plotter.localNormalization.value = false;
@@ -2731,6 +2736,7 @@
 				docKeySet.replaceKeys([]);
 				
 				removeWordCloud();
+				Weave.root.removeObject(_clusterRadVizName);
 				adjustNodeBase();
 			}
 			
