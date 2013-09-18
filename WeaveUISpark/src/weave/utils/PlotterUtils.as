@@ -71,8 +71,19 @@ package weave.utils
 		 */		
 		public static function bitmapDataSizeEquals(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
 		{
-			var bd:BitmapData = bitmap.bitmapData;
-			return bd && bd.width == Math.round(unscaledWidth) && bd.height == Math.round(unscaledHeight);
+			try
+			{
+				// accessing width/height may crash if the BitmapData is invalid.
+				var bd:BitmapData = bitmap.bitmapData;
+				return bd
+					&& bd.width == Math.round(unscaledWidth)
+					&& bd.height == Math.round(unscaledHeight);
+			}
+			catch (e:Error)
+			{
+				// invalid BitmapData, ignore error
+			}
+			return false;
 		}
 		
 		/**
@@ -86,6 +97,7 @@ package weave.utils
 		 */
 		public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number, fillColor:uint = 0x00000000):Boolean
 		{
+			// avoid comparing integers to non-integers
 			unscaledWidth = Math.round(unscaledWidth);
 			unscaledHeight = Math.round(unscaledHeight);
 			
@@ -95,7 +107,11 @@ package weave.utils
 			try
 			{
 				// this may crash if the BitmapData is invalid.
-				sizeChanged = (oldBitmapData == null || oldBitmapData.width != unscaledWidth || oldBitmapData.height != unscaledHeight);
+				sizeChanged = (
+					oldBitmapData == null
+					|| oldBitmapData.width != unscaledWidth
+					|| oldBitmapData.height != unscaledHeight
+				);
 			}
 			catch (e:Error)
 			{
