@@ -1124,20 +1124,20 @@ public class AdminService extends GenericServlet {
 	public String[][] getClustersForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows,String operator,String sources,String sortBy) throws IOException, SolrServerException
-	{
+			{
 		String[][] result = null;
-		
+
 		setSolrServer(solrServerUrl);
-		
+
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
 		if (queryString == null)
 			return null;
 		try{
 			// Query Results are always sorted by descending order of relevance
 			SolrQuery q = new SolrQuery().setQuery(queryString);
-			
+
 			setSortField(q, sortBy);
-			
+
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
 					q.setFilterQueries(dateFilter);
@@ -1146,102 +1146,30 @@ public class AdminService extends GenericServlet {
 			{
 				q.setFilterQueries("source:"+sources);
 			}
-			
+
 			// set number of rows
 			q.setRows(rows);
 
-			// title is requested for clustering RadViz labels
-			q.setFields("link title");
-			
+			// set field to hasSummary. Just a field with low content. Since we are only interested in the clusters
+			q.setFields("link");
+
 			/*For Lingo you can set the desired number of clusters using the following attribute:
 			LingoClusteringAlgorithm.desiredClusterCountBase
 			However, there is no one to one correspondence between the value of this attribute and the number of clusters,
 			the number of clusters created by the algorithm will be proportional to the cluster count base, but not in a linear way*/
-			
+
 			URL url = new URL(solrInstance.getBaseURL()+ "/" + "clustering?" + q.toString()+"&wt=json&LingoClusteringAlgorithm.desiredClusterCountBase=10");
-			
+
 			StringWriter writer = new StringWriter();
 			IOUtils.copy(url.openStream(),writer,"UTF-8");
 			Gson gson = new Gson();
 			SolrClusterResponseModel clusterResponse = gson.fromJson(writer.toString(), SolrClusterResponseModel.class);
-			
+
 			int numOfDocs = clusterResponse.response.docs.length;
 			int numOfLabels = clusterResponse.clusters.length;
-			
-			// This code includes software developed by the Carrot2 Project
-			// Cluster RadViz labels for better layout ==> Currently use concatenated titles for clustering.
-			InputStream xmlStream = null;
-			Map<String, Object> defaultAttributes = null;
-			try {
 
-				xmlStream = getClass().getClassLoader().getResourceAsStream("infomap/resources/clustering-attributes.xml");
-
-				// Load attribute value sets from the XML stream
-				AttributeValueSets attributeValueSets = AttributeValueSets.deserialize(xmlStream);
-
-				// Get the default set of attribute values for use with further processing
-				defaultAttributes = attributeValueSets.getDefaultAttributeValueSet().getAttributeValues();        		
-
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				System.out.println("Error reading lingo attributes file");}
-			finally {CloseableUtils.close(xmlStream);}
-
-			Controller controller = ControllerFactory.createSimple();
-
-			controller.init(defaultAttributes); // Initialize the controller with default attribute set
-			
-            // ToDo Snippet of the description "might" be used for clustering
-			ArrayList<org.carrot2.core.Document> documents = new ArrayList<org.carrot2.core.Document>();
-			for (int i=0; i < numOfLabels; i++) {
-				String label = clusterResponse.clusters[i].labels[0];
-				String concatenatedTitles = "";
-				for (int j = 0; j < clusterResponse.response.docs.length; j++) {
-					if (clusterResponse.clusters[i].docs.contains((String) clusterResponse.response.docs[j].link))
-						concatenatedTitles = concatenatedTitles + " " + (String) clusterResponse.response.docs[j].title; // Concatenate titles for clustering
-				}
-				concatenatedTitles = concatenatedTitles.trim();
-				documents.add(new org.carrot2.core.Document(concatenatedTitles, null, label)); // ToDo Use label as contentUrl ==> Possible duplicate labels?
-			}
-			
-			String keyWords = "";
-			if (relatedKeywords != null)
-				for (int i = 0; i < relatedKeywords.length; i++) keyWords = keyWords + " " + relatedKeywords[i];
-			if (requiredKeywords != null)
-				for (int i = 0; i < requiredKeywords.length; i++) keyWords = keyWords + " " + requiredKeywords[i];
-			keyWords = keyWords.trim();
-			
-			// Use lingo algorithm. It produces overlapping clusters (Deterministic)
-			ProcessingResult byLingoClusters = controller.process(documents, keyWords, LingoClusteringAlgorithm.class);
-			List<Cluster> clustersByLingo = byLingoClusters.getClusters();
-			
-			// Get the order of the cluster by score descending
-			class ValueComparator implements Comparator<Object> {
-				Map<Integer, Double> map;
-
-				public ValueComparator(Map<Integer, Double> map) {
-					this.map = map;
-				}
-
-				// Descending
-				public int compare(Object key1, Object key2){
-					if (map.get(key1) < map.get(key2)) return 1;
-					else if (map.get(key1) > map.get(key2)) return -1;
-					else return 0;
-				}
-			}
-			
-			Map<Integer, Double> unsortedMap = new HashMap<Integer, Double>();
-			for (int i = 0; i < clustersByLingo.size(); i++) unsortedMap.put(i, clustersByLingo.get(i).getScore());
-			TreeMap<Integer, Double> orderOfClustersbyScore = new TreeMap<Integer, Double>(new ValueComparator(unsortedMap));
-			orderOfClustersbyScore.putAll(unsortedMap);
-	        
-			// ToDo Is it possible that two or more labels will be the same?
-			// ToDo What if there exists another label called "document"? Which one will be used as key column?
-			
-			// Clustering documents			
 			Map<String,Object> docsToLabel = new HashMap<String, Object>();
-			
+
 			for (int i=0; i < numOfDocs; i++)
 			{
 				String link = (String)clusterResponse.response.docs[i].link;
@@ -1249,7 +1177,7 @@ public class AdminService extends GenericServlet {
 				for (int j=0; j < numOfLabels; j++)
 				{
 					String label = clusterResponse.clusters[j].labels[0];
-					
+
 					if(clusterResponse.clusters[j].docs.contains(link))
 					{
 						if(label.equals("Other Topics"))
@@ -1269,10 +1197,10 @@ public class AdminService extends GenericServlet {
 				docsToLabel.put(link, lScore);
 			}
 			Set<String> docs = docsToLabel.keySet();
-			
+
 			Iterator<String> docIterator = docs.iterator();
 			List<Map<String, String>> records = new ArrayList<Map<String,String>>();
-			
+
 			while(docIterator.hasNext())
 			{
 				String doc = docIterator.next();
@@ -1281,43 +1209,18 @@ public class AdminService extends GenericServlet {
 				recordObject.putAll((Map<String, String>)docsToLabel.get(doc));
 				records.add(recordObject);
 			}
-			
-			// Retrieve label clustering result
-			Map<Integer, ArrayList<String>> labelClusterLinkedHashMap = new LinkedHashMap<Integer, ArrayList<String>>();
-			ArrayList<String> tempLabels = new ArrayList<String>(); // labels ...
-			for (Integer clusterIndex : orderOfClustersbyScore.keySet()) {
-				ArrayList<String> clusterContent = new ArrayList<String>();
-				for (org.carrot2.core.Document doc : clustersByLingo.get(clusterIndex).getDocuments())
-				{
-					if (!tempLabels.contains((String) doc.getField(org.carrot2.core.Document.CONTENT_URL)))
-					{
-						clusterContent.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
-						tempLabels.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
-					}
-				}
-				labelClusterLinkedHashMap.put(clusterIndex, clusterContent);
-			}
-			
+
 			Map<String, String>[] rs = records.toArray(new HashMap[records.size()]);
-			
+
 			result = new CSVParser().convertRecordsToRows(rs);
 
-			// Concatenate clustering info with label for drawing clusters boundaries
-			for (int i = 0; i < result[0].length - 1; i++) // Loop through first row (labels) and attach cluster info ; skip the last one "document"
-			{
-				for (Integer key : labelClusterLinkedHashMap.keySet())
-				{
-					// Since document column is not in labelClusterLinkedHashMap, this step will skip it.
-					if (labelClusterLinkedHashMap.get(key).contains(result[0][i]))
-						result[0][i] = result[0][i] + "_cluster_" + key.toString();
-				}
-			}
 		}catch (Exception e) {
+			// TODO: handle exception
 			e.printStackTrace();
 		}
-		
+
 		return result;
-	}
+			}
 	
 	// Google Custom Search Engine
 	// Use the same signature for possible future work.
