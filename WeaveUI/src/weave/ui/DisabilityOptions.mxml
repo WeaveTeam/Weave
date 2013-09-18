@@ -35,12 +35,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:HDividedBox id="disabilityOptions" width="100%" height="100%" paddingBottom="{padding}"
 					paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}">
 		
-		<mx:TabNavigator height="100%" borderStyle="inset">
+		<mx:TabNavigator y="11" width="331" height="341" borderStyle="inset">
 			
 			<mx:VBox width="100%" height="100%" label="General Description" horizontalAlign="left"
 					 verticalAlign="top">
-				<mx:TextArea id="generalDescriptionTextInputBox" width="80%" height="30%"
-							  backgroundColor="#EEEEEE" editable="true" horizontalCenter="true"
+				<mx:TextArea id="generalDescriptionTextInputBox" width="367" height="93"
+							  backgroundColor="#EEEEEE" editable="true" horizontalCenter="-1"
 							  wordWrap="true" text="Weave Visualization."
 							  toolTip="Enter a general desciption of your visualizations."
 							  creationComplete="linkBindableProperty(generalDescription, event.target,'text')"/>
@@ -49,8 +49,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:VBox width="100%" height="100%" label="Detailed Description" horizontalAlign="left"
 					 verticalAlign="top">
 
-				<mx:TextArea id="detailedDescriptionTextInputBox" width="80%" height="30% "
-							  backgroundColor="#EEEEEE" enabled="true" horizontalCenter="true"
+				<mx:TextArea id="detailedDescriptionTextInputBox" width="350" height="95"
+							  backgroundColor="#EEEEEE" enabled="true" horizontalCenter="-9"
 							  wordWrap="true"
 							  editable="false" toolTip="Select the detailed description available from the visualizations below."
 							  creationComplete="linkBindableProperty(detailedDescription, event.target, 'text')"/>
@@ -58,10 +58,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<!--	<mx:Button label="Refresh Visualizations" click="updateCheckBoxes()" paddingLeft="2"
 						   paddingRight="2" toolTip="Refresh the list of visualizations"/>	-->			
 				
-				<mx:List id="VisCheckboxes">
+				<mx:List id="VisCheckboxes" width="350" height="189">
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:CheckBox>
+							<mx:CheckBox
+								change="outerDocument.updateDetailedDescription()">
 								<mx:Script>
 									<![CDATA[
 										import weave.api.WeaveAPI;
@@ -108,6 +109,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					<mx:Script>
 						<![CDATA[
+							import weave.api.ui.IAltText;
 							import flash.external.ExternalInterface;
 							
 							import mx.accessibility.CheckBoxAccImpl;
@@ -153,9 +155,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							private const padding:int = 5;
 							private var _visTools:Array = null;	
-							
-							//private var _controlPanel:ControlPanel = null;
-							//private var panel:DraggablePanel;
 						
 							private var _description:String = "";
 							private var _selectedCheckBoxLabelArray : Array = [];
@@ -190,58 +189,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 							private function setVisTools() : void
 							{
-								VisCheckboxes.dataProvider = _visTools = WeaveAPI.globalHashMap.getObjects(SimpleVisTool);
+								VisCheckboxes.dataProvider = _visTools = WeaveAPI.globalHashMap.getObjects(IAltText);
 							}
 							
-//							/**
-//							 * 
-//							 *	This function dynamically update the checkboxes, based on open panels on stage. 
-//							 * 
-//							 */
-//							private function updateCheckBoxes():void
-//							{
-//								
-//								var checkBox:CheckBox   = null;
-//								checkBoxArray.splice(0); // empty the checkbox array.
-//								//panels = getWindowsOnStage();
-//								menuToggleVBox.removeAllChildren();
-//								
-//								// we could use panel on stage but might not be necessary
-//								panels = Weave.root.getObjects(SimpleVisTool);
-//								
-//								for each(panel in panels)
-//								{
-//									delete panelMessages[panel];
-//									checkBox = new CheckBox();
-//									checkBox.label = panel.title;
-//									checkBox.toolTip = "Checking this box appends its description to the advanced description";
-//									checkBox.addEventListener(MouseEvent.CLICK, handleCheckBoxesSelection(panel))
-//									menuToggleVBox.addChild(checkBox);
-//								}             
-//								
-//								updateDetailedDescription();
-//																
-//							}
-//							
-							
-//							// http://stackoverflow.com/questions/13486230/to-pass-a-parameter-to-event-listener-in-as3-the-simple-way-does-it-exist
-//							protected function handleCheckBoxesSelection(panel:DraggablePanel):Function {
-//								return function(event:MouseEvent):void {
-//									if ( event.target.selected == true ) 
-//									{
-//										panelMessages[panel] = true;
-//										updateDetailedDescription();
-//									}
-//									else
-//									{
-//										delete panelMessages[panel];
-//										updateDetailedDescription();
-//									}
-//									
-//								}
-//							}
-							
-							private function updateDetailedDescription():void
+							public function updateDetailedDescription():void
 							{
 								var text:String = "";
 								
@@ -277,21 +228,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									}
 								}
 							}
-							
-//							private function getWindowsOnStage(): Array
-//							{
-//								var panels:Array = Weave.root.getObjects(DraggablePanel);
-//								var panelsOnStage:Array = [];
-//								
-//								for each ( panel in panels)
-//								{
-//									if (!panel.minimized.value)
-//										panelsOnStage.push(panel);
-//									
-//								}
-//								
-//								return panelsOnStage;
-//							}
 							
 						]]>
 					</mx:Script>	
