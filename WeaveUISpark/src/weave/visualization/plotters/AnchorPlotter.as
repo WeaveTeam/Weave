@@ -419,6 +419,8 @@ package weave.visualization.plotters
 				var p:Point = new Point(anchor.x.value, anchor.y.value);
 				dataBounds.projectPointTo(p, screenBounds);
 				vertices.push(p);
+				p.x += 0.0000001 * vertices.length;
+				p.y += 0.0000001 * vertices.length;
 				counter++;
 			}
 			
@@ -427,7 +429,7 @@ package weave.visualization.plotters
 			dataBounds.projectPointTo(barycenter, screenBounds);
 			
 			vertices.push(barycenter);
-			
+
 			edges = v.GetEdges(vertices, screenBounds.getWidth(), screenBounds.getHeight());
 			
 			graphics.lineStyle(1, 0x888888);
@@ -436,7 +438,6 @@ package weave.visualization.plotters
 			   graphics.moveTo(edges[i].start.x, edges[i].start.y);
 			   graphics.lineTo(edges[i].end  .x, edges[i].end  .y);
 			}
-			
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
