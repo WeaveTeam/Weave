@@ -85,15 +85,21 @@ public class RServiceUsingRserve
 	 */
 	private static void requestScriptAccess(RConnection rConnection) throws RemoteException
 	{
+		if (!WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_R_SCRIPT_ACCESS))
+		{
+			rConnection.close(); // must close before throwing exception
+			throw new RemoteException("R script access is not permitted on this server.");
+		}
+		
+		if (WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_RSERVE_ROOT_ACCESS))
+			return;
+		
 		try
 		{
-			if (WeaveConfig.allowRserveRootAccess())
-				return;
-			
 			rConnection.assign(".tmp.", WeaveConfig.getConnectionConfigFilePath());
 			REXP result = rConnection.eval("length(readLines(.tmp.))");
 			rConnection.assign(".tmp.", new REXPNull());
-			rConnection.close();
+			rConnection.close(); // must close before throwing exception
 			if (result.isNumeric())
 				throw new RemoteException("R script access is not allowed because it is unsafe (The user running Rserve has file read/write access).");
 			throw new RemoteException("Unexpected result in requestScriptAccess(): " + result);
