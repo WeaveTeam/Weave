@@ -165,7 +165,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			private function updateAutomaticDescription():void
 			{
-				automaticDescriptionTextBox.text = _tool.getAltText();
+				_tool.getAltText();
 			}
 			
 			private function updateToolDescription():void

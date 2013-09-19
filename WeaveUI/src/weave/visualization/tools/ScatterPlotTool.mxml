@@ -29,7 +29,10 @@
 			   implements="weave.api.ui.IAltText">
 	<mx:Script>
 		<![CDATA[
+			import mx.effects.easing.Linear;
 			import mx.events.SliderEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -39,6 +42,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -47,6 +51,9 @@
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.primitives.Bounds2D;
+			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
+			import weave.services.beans.LinearRegressionResult;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
@@ -141,6 +148,8 @@
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+				
+				Weave.properties.rServiceURL.addImmediateCallback(this, resetRService, true);
 			}
 			
 			private function handleChildrenChildList():void
@@ -631,10 +640,55 @@
 				}
 			}
 			
-			public function getAltText():String
+			private var requestID:int = 0;
+			private var rService:WeaveRServlet = null;
+			
+			private function resetRService():void
 			{
-				return "I am a scatter plot";
+				rService = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			}
+			
+			public function getAltText():void
+			{
+				
+				var data:Array = ColumnUtils.joinColumns([plotter.dataX, plotter.dataY], Number);
+				// try linear regression
+				addAsyncResponder(
+					rService.linearRegression("linear", data[0], data[1], 1),
+					handleLinearRegressionResult,
+					handleLinearRegressionFault,
+					++requestID
+				);
+				
+				return;
+			}
+			
+			private function handleLinearRegressionResult(event:ResultEvent, token:Object=null):void
+			{
+				if (this.requestID != int(token))
+				{
+					// ignore outdated results
+					return;
+				}
+				
+				var result:LinearRegressionResult = new LinearRegressionResult(event.result);
+				// do stuff
+			    disability.automaticDescription.value = lang("coefficients are {0} and error is {1}", result.coefficients, result.rSquared);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			
+			private function handleLinearRegressionFault(event:FaultEvent, token:Object = null):void
+			{
+				if (this.requestID != int(token))
+				{
+					// ignore outdated results
+					return;
+				}
+				
+				reportError(event);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			
 		]]>
 	</mx:Script>
 	<ui:AutoResizingTextArea id="equationText"
