@@ -87,6 +87,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var latestjoinedColumnKeys:Array = new Array();
 			
 			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
+
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -116,6 +117,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_anchorPlotter.setRadViz(_plotter);
 				
 				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawProbeLines);
+				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawAnnuliCircles);
 				
 				visualization.plotManager.marginTop.value =	visualization.plotManager.marginBottom.value = "20";
 				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
@@ -317,6 +319,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_plotter.drawProbeLines(probeKeySet.keys,dataBounds, screenBounds, probeSprite.graphics);	
 				
+			}
+			
+			private function drawAnnuliCircles():void
+			{
+				_plotter.drawProbe = false;
+				
+				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
+				if (!probeKeySet)
+					return;	
+				
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
+				
+				_plotter.drawAnnuli = (this as DraggablePanel) == DraggablePanel.activePanel;
+				_plotter.drawAnnuliCircles(probeKeySet.keys, dataBounds, screenBounds, probeSprite.graphics);
+					
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void

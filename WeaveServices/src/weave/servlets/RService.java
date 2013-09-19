@@ -125,7 +125,7 @@ public class RService extends GenericServlet
 	}
 	
 	// this function should stop the Rserve... needs revision
-	private void stopRServe() throws IOException {
+	public void stopRServe() throws IOException {
 	 try {
 		if (rProcess != null )
 		{

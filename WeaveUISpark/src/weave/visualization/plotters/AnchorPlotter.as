@@ -44,6 +44,8 @@ package weave.visualization.plotters
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
+	import weave.radviz.voronoi.VEdge;
+	import weave.radviz.voronoi.Voronoi;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -121,6 +123,12 @@ package weave.visualization.plotters
 		public const anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		
+		public const showBarycenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const barycenterRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const barycenterFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
+		public const barycenterLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
+		
+		public const showVoronoi:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public function handleAnchorsChange():void
 		{
@@ -244,8 +252,15 @@ package weave.visualization.plotters
 				// draw bitmap text
 				_bitmapText.draw(destination);								
 			}
+			if(showBarycenter.value)
+			{
+				drawBarycenter(recordKeys, dataBounds, screenBounds, graphics, destination);
+			}
 			
-			
+			if(showVoronoi.value)
+			{
+				drawVoronoi(recordKeys, dataBounds, screenBounds, graphics, destination);
+			}
 			destination.draw(tempShape);							
 			
 			_currentScreenBounds.copyFrom(screenBounds);
@@ -344,6 +359,84 @@ package weave.visualization.plotters
 				
 				_bitmapText.draw(destination);*/
 			}
+		}
+		
+		public function drawBarycenter(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		{
+			var graphics:Graphics = g;
+			
+			var barycenter:Point = new Point();
+			var counter:int = 0;
+			var anchor:AnchorPoint;;
+			for each(var key:IQualifiedKey in recordKeys)
+			{
+				anchor = anchors.getObject(key.localName) as AnchorPoint;
+				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
+				barycenter.x += anchor.x.value;
+				barycenter.y += anchor.y.value;
+				counter++;
+			}
+			
+			barycenter.x = barycenter.x / counter;
+			barycenter.y = barycenter.y / counter;
+			
+			barycenterLineStyle.beginLineStyle(null, graphics);
+			barycenterFillStyle.beginFillStyle(null, graphics);
+			
+			dataBounds.projectPointTo(barycenter, screenBounds);
+			
+			graphics.drawCircle(barycenter.x, barycenter.y, barycenterRadius.value);
+			
+			graphics.endFill();
+			
+		}
+		
+		public function drawVoronoi(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		{
+			// http://blog.ivank.net/voronoi-diagram-in-as3.html
+			var graphics:Graphics = g;
+			
+			var i:int;
+			var edges:Vector.<VEdge>; // vector  for edges
+			var v:Voronoi = new Voronoi();
+			var vertices:Vector.<Point> = new Vector.<Point>();
+			
+			var counter:int = 0;
+			
+			var barycenter:Point = new Point();
+			
+			var anchor:AnchorPoint;
+			for each(var key:IQualifiedKey in recordKeys)
+			{
+				anchor = anchors.getObject(key.localName) as AnchorPoint;
+				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
+				barycenter.x += anchor.x.value;
+				barycenter.y += anchor.y.value;
+				var p:Point = new Point(anchor.x.value, anchor.y.value);
+				dataBounds.projectPointTo(p, screenBounds);
+				vertices.push(p);
+				counter++;
+			}
+			
+			barycenter.x = barycenter.x / counter;
+			barycenter.y = barycenter.y / counter;
+			dataBounds.projectPointTo(barycenter, screenBounds);
+			
+			vertices.push(barycenter);
+			
+			edges = v.GetEdges(vertices, screenBounds.getWidth(), screenBounds.getHeight());
+			
+			graphics.lineStyle(1, 0x888888);
+			for(i = 0; i< edges.length; i++)
+			{
+			   graphics.moveTo(edges[i].start.x, edges[i].start.y);
+			   graphics.lineTo(edges[i].end  .x, edges[i].end  .y);
+			}
+			
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void

@@ -85,6 +85,8 @@ package weave.visualization.plotters
 			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
+
+			pointSensitivityColumns.addGroupedCallback(this, handlePointSensitivityColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -112,6 +114,8 @@ package weave.visualization.plotters
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		
+		public const pointSensitivityColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
 		private function verifyThresholdValue(value:*):Boolean
 		{
 			if(0<=Number(value) && Number(value)<=1)
@@ -127,6 +131,9 @@ package weave.visualization.plotters
 		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
+		
+		private var annulusInnerRadius:Number; // reusable Number
+		private var annulusOuterRadius:Number; // reusable Number
 		
 		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
@@ -155,6 +162,8 @@ package weave.visualization.plotters
 		private var columnTitleMap:Dictionary;
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
+		
+		
 		
 		private function handleColumnsChange():void
 		{
@@ -234,7 +243,10 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 		}
-		
+		private function handlePointSensitivityColumnsChange():void
+		{
+			
+		}
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
 		{
 			var anchorObjects:Array = anchors.getObjects(AnchorPoint);
@@ -608,6 +620,16 @@ package weave.visualization.plotters
 			}
 		}
 		
+		public var drawAnnuli:Boolean = false;
+		
+		public function drawAnnuliCircles(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{
+			if(!drawAnnuli) return;
+			if(!keys) return;
+			
+			var graphics:Graphics = destination;
+			graphics.clear();
+		}
 		
 		private function changeAlgorithm():void
 		{

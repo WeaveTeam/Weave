@@ -21,8 +21,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
 <!---
-
 @author spurushe
+@author fkamayou
 -->
 <mx:TabNavigator xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -35,6 +35,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.events.FlexEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -49,7 +50,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
-			
 			
 			
 			[Bindable] public var _target:RadVizTool = null;
@@ -69,6 +69,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				(size as DynamicColumnComponent).dynamicObject = _target._plotter.radiusColumn ;
 				(colorComponent as DynamicColumnComponent).dynamicObject = _target.colorColumn;
 				columnList.hashMap = _target._plotter.columns;
+
+				// this will set the columns for the point sensitivity
+				poinstSensitivityColumnList.hashMap = _target._plotter.pointSensitivityColumns;
+				
+				
 				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
@@ -307,7 +312,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!useThresholdCB.selected){ thresholdValue.enabled = false; thrValLabel.enabled = false;}
 				
 			}
-			
 			
 		]]>
 	</mx:Script>
@@ -548,6 +552,47 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 		</mx:VBox>
 			
+	</mx:VBox>
+	<mx:VBox id="pointsensitivity" label="Point Sensitivity" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox width="100%">
+			<mx:HBox width="100%">
+				
+				<mx:CheckBox id="barycenterCheckBox" label="Show Barycenter" labelPlacement="left" toolTip="Enabling this will show the DAs barycenter"
+							 creationComplete="linkBindableProperty(_target._anchorPlotter.showBarycenter, event.target, 'selected')"
+							 paddingLeft="40"/>
+			
+				<mx:CheckBox id="voronoiCheckBox" label="Draw Voronoi Diagram" labelPlacement="left" toolTip="Enabling this will draw the DAs voronoi diagram"
+							 creationComplete="linkBindableProperty(_target._anchorPlotter.showVoronoi, event.target, 'selected')"
+							 paddingLeft="40"/>
+			</mx:HBox>
+			
+			<ui:Indent label="Barycenter point radius" width="100%">
+				<mx:HSlider width="100%"
+							alpha="1.0"
+							tickInterval="1" 
+							minimum="1" maximum="10" 
+							creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterRadius, event.target, 'value')"/>
+				
+			</ui:Indent>
+			
+			
+			<ui:Indent label="Barycenter point opacity">
+				<mx:HSlider id="barycennterOpacitySlider" width="100%" value="0.0"
+							creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.alpha.defaultValue, event.target, 'value')"
+							minimum="0" maximum="1" snapInterval="0.1" liveDragging="true"
+							tickInterval="0.1"/>
+				
+			</ui:Indent>
+			
+			<ui:Indent label="Barycenter point color">
+				<mx:ColorPicker id="barycenterColorPicker"
+								selectedColor="0xFFFFFF"
+								creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.color.defaultValue, event.target, 'selectedColor')" />
+			</ui:Indent>
+
+			<ui:ColumnListComponent visTool="{_target}" id="poinstSensitivityColumnList" label="Point Sentivity Dimensions"/>
+
+		</mx:VBox>
 	</mx:VBox>
 		
 	
