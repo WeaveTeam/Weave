@@ -133,14 +133,17 @@ package weave.core
 				// ignore child nodes that do not have tag names (whitespace)
 				if (className == null)
 					continue;
-				var qualifiedClassName:String = getQualifiedClassName(getClassDefinition(className, packageName));
-				if (qualifiedClassName == null || qualifiedClassName == "")
+				var classDef:Class = getClassDefinition(className, packageName);
+				var qualifiedClassName:String;
+				if (classDef)
+					qualifiedClassName = getQualifiedClassName(classDef);
+				else
 				{
-					trace("Class not found: " + packageName + "::" + className +" in "+dataNode.toString());
-					continue;
+					qualifiedClassName = packageName ? (packageName + "::" + className) : className;
+					trace("Class not found: " + qualifiedClassName +" in "+childNode.toString());
 				}
-				var name:String = childNode.attributes["name"] as String;
 				
+				var name:String = childNode.attributes["name"] as String;
 				if (name == '')
 					name = null;
 				

@@ -31,6 +31,7 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import mx.utils.StringUtil;
 	
@@ -59,6 +60,7 @@ package weave.visualization.layers
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.ZoomBounds;
@@ -685,6 +687,8 @@ package weave.visualization.layers
 				refreshLayers(true);
 		}
 		
+		private var prevFrame:int = 0;
+		
 		private var shouldRender:Boolean = false;
 		
 		public static var fade:Boolean = true; // Class('weave.visualization.layers.PlotManager').fade
@@ -694,12 +698,16 @@ package weave.visualization.layers
 		 */
 		private function refreshLayers(immediately:Boolean = false):void
 		{
-			if (!immediately)
+			var now:int = getTimer();
+			var tooEarly:Boolean = now < prevFrame + (WeaveAPI.StageUtils as StageUtils).getMaxComputationTimePerFrame()
+				&& PlotterUtils.bitmapDataSizeEquals(bitmap, _unscaledWidth, _unscaledHeight);
+			if (!immediately || tooEarly)
 			{
 				shouldRender = true;
 				return;
 			}
 			
+			prevFrame = now;
 			shouldRender = false;
 			
 			zoomBounds.getDataBounds(tempDataBounds);
