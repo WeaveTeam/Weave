@@ -2281,7 +2281,6 @@
 				object._plotter.columns.removeAllObjects();
 				object._plotter.probeLineNormalizedThreshold.value = 0.5;
 				object._plotter.localNormalization.value = false;
-				object._plotter.anchorLabelFunction.value = "Class('weave.utils.ColumnUtils').getTitle(column).substring(0,Class('weave.utils.ColumnUtils').getTitle(column).lastIndexOf('_cluster_'))"; // ToDo make it simple
 //				object._anchorPlotter.anchors.removeAllObjects();
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
@@ -2299,31 +2298,6 @@
 				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
 				if (object is DraggablePanel)
 					(object as DraggablePanel).restorePanel();
-				
-				var tempDictionary:Dictionary = new Dictionary();
-				var tempColumnNames:Array = object._plotter.columns.getNames();
-				var tempLabelCluster:String = "";
-				var tempLabelWithCluster:String = "";
-				for (var i:int = 0; i < tempColumnNames.length; i++)
-				{
-					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).internalColumnReference.getMetadata("title");
-					tempLabelCluster = tempLabelWithCluster.substring(tempLabelWithCluster.lastIndexOf('_cluster_') + 9); // ToDo temp hack to remove label cluster string
-					if(!tempDictionary.hasOwnProperty(tempLabelCluster))
-						tempDictionary[tempLabelCluster] = new Array();
-					
-					(tempDictionary[tempLabelCluster] as Array).push(tempColumnNames[i]);
-				}
-				
-				object._anchorPlotter.doCDLayoutMetric = false; // Disable display metric information
-				object._anchorPlotter.drawingClassLines = true;//cd coloring
-				object._anchorPlotter.doCDLayout = true;//cd layout needed for tstat rendering
-				object.cdLayout.tAndpMapping = tempDictionary;
-				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping;
-				object._anchorPlotter.anchorClasses = object.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors accorsing to the class they belong to
-				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping; //for setting cd dimensional anchor locations
-				object._plotter.doCDLayoutFlag = true; // ToDo yenfu temporary flag to fix the RadVizPlotter code
-				
-				object._plotter.setClassDiscriminationAnchorsLocations();//cd layout
 			}
 
 			private var topicComponents:Array = new Array();
