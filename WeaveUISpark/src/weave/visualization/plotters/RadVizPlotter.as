@@ -550,7 +550,7 @@ package weave.visualization.plotters
 				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
 				if(key.keyType != requiredKeyType)
 				{
-					return;
+					continue;
 				}
 				getXYcoordinates(key);
 				dataBounds.projectPointTo(coordinate, screenBounds);

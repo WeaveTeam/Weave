@@ -498,8 +498,11 @@ package weave.application
 				}
 				else
 				{
-					saveSessionTimer.stop();
-					saveCurrentSession();//to make sure the enableAutoSave value is saved.
+					if(saveSessionTimer.running)
+					{
+						saveSessionTimer.stop();
+						saveCurrentSession();//to make sure the enableAutoSave value is saved.
+					}
 				}
 			},true);
 				
