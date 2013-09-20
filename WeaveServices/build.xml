@@ -2,6 +2,7 @@
     <path id="classpath">
         <fileset dir="lib" includes="**/*.jar"/>
         <fileset dir="../WeaveServletUtils/lib/" includes="**/*.jar"/>
+        <fileset dir="/usr/share/java/" includes="jgraphx.jar"/>
         <pathelement path="../WeaveServletUtils/bin/classes"/>
         <fileset dir="/usr/share/java/" includes="junit4.jar"/>
         <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>

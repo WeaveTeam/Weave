@@ -56,7 +56,6 @@
     <servlet-name>AdminService</servlet-name>
     <url-pattern>/AdminService</url-pattern>
   </servlet-mapping>
-
   <servlet>
     <servlet-name>RService</servlet-name>
     <servlet-class>weave.servlets.RService</servlet-class>
@@ -72,5 +71,13 @@
   <servlet-mapping>
     <servlet-name>JRIService</servlet-name>
     <url-pattern>/JRIService</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>RenderService</servlet-name>
+    <servlet-class>weave.servlets.RenderService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RenderService</servlet-name>
+    <url-pattern>/RenderService</url-pattern>
   </servlet-mapping>
 </web-app>
