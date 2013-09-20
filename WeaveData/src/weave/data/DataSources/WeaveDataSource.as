@@ -179,7 +179,6 @@ package weave.data.DataSources
 		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
 		{
 			_convertOldHierarchyFormat(subtreeNode);
-			var query:AsyncToken;
 			
 			//trace("requestHierarchyFromSource("+(subtreeNode?attributeHierarchy.getPathFromNode(subtreeNode).toXMLString():'')+")");
 
@@ -204,14 +203,22 @@ package weave.data.DataSources
 				var _tableEntities:Array = null;
 				var _geometryEntities:Array = null;
 				
-				query = dataService.getEntityIdsByMetadata(null, EntityType.TABLE);
-				addAsyncResponder(query, handleRootIds, handleFault, EntityType.TABLE);
+				addAsyncResponder(
+					dataService.getEntityIdsByMetadata(null, EntityType.TABLE),
+					handleRootIds,
+					handleFault,
+					EntityType.TABLE
+				);
 				
 				// get all geometry columns
 				var param:Object = {};
 				param[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
-				query = dataService.getEntityIdsByMetadata(param, EntityType.COLUMN);
-				addAsyncResponder(query, handleRootIds, handleFault, EntityType.COLUMN);
+				addAsyncResponder(
+					dataService.getEntityIdsByMetadata(param, EntityType.COLUMN),
+					handleRootIds,
+					handleFault,
+					EntityType.COLUMN
+				);
 				
 				function handleRootIds(event:ResultEvent, entityType:int):void
 				{
@@ -251,15 +258,42 @@ package weave.data.DataSources
 				var idStr:String = subtreeNode.attribute(ENTITY_ID);
 				if (idStr)
 				{
-					query = dataService.getEntityChildIds(int(idStr));
+					addAsyncResponder(
+						dataService.getEntityChildIds(int(idStr)),
+						handleColumnIds,
+						handleFault,
+						subtreeNode
+					);
 				}
 				else
 				{
 					// backwards compatibility - get columns with matching dataTable metadata
 					var dataTableName:String = subtreeNode.attribute("name");
-					query = dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN);
+					addAsyncResponder(
+						dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN),
+						function(event:ResultEvent, subtreeNode:XML):void
+						{
+							var ids:Array = event.result as Array;
+							addAsyncResponder(
+								dataService.getParents(ids[0]),
+								function(event:ResultEvent, subtreeNode:XML):void
+								{
+									var ids:Array = event.result as Array;
+									addAsyncResponder(
+										dataService.getEntityChildIds(ids[0]),
+										handleColumnIds,
+										handleFault,
+										subtreeNode
+									);
+								},
+								handleFault,
+								subtreeNode
+							);
+						},
+						handleFault,
+						subtreeNode
+					);
 				}
-				addAsyncResponder(query, handleColumnIds, handleFault, subtreeNode);
 				function handleColumnIds(event:ResultEvent, subtreeNode:XML):void
 				{
 					var ids:Array = event.result as Array;

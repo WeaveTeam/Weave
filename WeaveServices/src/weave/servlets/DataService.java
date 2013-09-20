@@ -189,7 +189,9 @@ public class DataService extends GenericServlet
 	{
 		DataEntityMetadata dem = new DataEntityMetadata();
 		dem.publicMetadata = publicMetadata;
-		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		Arrays.sort(ids);
+		return ids;
 	}
 
 	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
@@ -210,9 +212,11 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	public Collection<Integer> getParents(int childId) throws RemoteException
+	public int[] getParents(int childId) throws RemoteException
 	{
-		return getDataConfig().getParentIds(Arrays.asList(childId));
+		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
+		Arrays.sort(ids);
+		return ids;
 	}
 	
 	////////////
