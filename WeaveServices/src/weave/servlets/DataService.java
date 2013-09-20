@@ -932,8 +932,9 @@ public class DataService extends GenericServlet
 		
 		// return first column
 		int id = ListUtils.getFirstSortedItem(ids, DataConfig.NULL);
-		double min = (Double)cast(minStr, double.class);
-		double max = (Double)cast(maxStr, double.class);
+		double min = Double.NaN, max = Double.NaN;
+		try { min = (Double)cast(minStr, double.class); } catch (Throwable t) { }
+		try { max = (Double)cast(maxStr, double.class); } catch (Throwable t) { }
 		String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
 		return getColumn(id, min, max, sqlParams);
 	}
