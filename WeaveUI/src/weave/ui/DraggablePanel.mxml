@@ -216,7 +216,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setStyle("paddingBottom", pad);
 				setStyle("paddingTop", pad);
 				
-				userControlButton.setStyle("downIcon", _userControlIconDown);
+				userControlButton.setStyle("overIcon", _userControlIcon2);
+				userControlButton.setStyle("downIcon", _userControlIcon);
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
@@ -719,7 +720,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Embed(source="/weave/resources/images/gear6_13x13_h.png")]
 			private var _userControlIcon:Class;
 			[Embed(source="/weave/resources/images/gear6_13x13_v.png")]
-			private var _userControlIconDown:Class;
+			private var _userControlIcon2:Class;
 			[Embed(source="/weave/resources/images/menu_9x7.png")]
 			private var _subMenuIcon:Class;
 			[Embed(source="/weave/resources/images/pushpin.png")]
