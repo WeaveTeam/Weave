@@ -54,7 +54,7 @@
 					<EquationUIComponent id="baseEquationUIComp"/>
 				</mx:Canvas>
 			</mx:TabNavigator>
-			<ColumnListComponent label="{lang('Edit Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
+			<ColumnListComponent label="{lang('Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 		</mx:VBox>
 		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 			<mx:Label text="{lang('Available functions')}"/>
