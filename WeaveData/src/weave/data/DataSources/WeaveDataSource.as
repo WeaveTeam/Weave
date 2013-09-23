@@ -69,7 +69,10 @@ package weave.data.DataSources
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
 		}
-		
+
+		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
+
 		public function getRows(keys:Array):AsyncToken
 		{
 			return dataService.getRows(keys);
@@ -167,8 +170,6 @@ package weave.data.DataSources
 			return super.getAttributeColumn(columnReference);
 		}
 		
-		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
-
 		private var dataService:WeaveDataServlet = null;
 		
 		/**
