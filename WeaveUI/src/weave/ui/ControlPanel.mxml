@@ -28,6 +28,7 @@
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
 				escapeKeyClosesPanel="true"
+				titleStyleName="weave-panel-title-style"
 				>
 	<mx:Metadata>
 		[DefaultProperty("children")]

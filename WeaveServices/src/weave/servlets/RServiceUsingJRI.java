@@ -44,7 +44,7 @@ public class RServiceUsingJRI
 
 	private static String rFolderName = "R_output";
 	
-	private static ScriptEngine engine = null;
+	private static RScriptEngine engine = null;
 	
 	public  static class JRIConnectionException extends RemoteException
 	{
@@ -56,13 +56,13 @@ public class RServiceUsingJRI
 		}
 	}
 	
-	public static  ScriptEngine getREngine() throws RemoteException
+	public static  RScriptEngine getREngine() throws RemoteException
 	{
 		try
 		{
 			String extension = "R";
 			ScriptEngineManager manager = new ScriptEngineManager();
-			ScriptEngine engine = manager.getEngineByExtension(extension);
+			RScriptEngine engine = (RScriptEngine)manager.getEngineByExtension(extension);
 			//Happens when JRI native Library not found - engine will be null
 			// as We set System.setProperty("jri.ignore.ule", "yes");
 			// in getScriptEngine method of RScriptFactory class 
@@ -80,14 +80,23 @@ public class RServiceUsingJRI
 	/**
 	 * Use this as a security measure. This will fail if Rserve has file access to sqlconfig.xml.
 	 */
-	private static void requestScriptAccess(ScriptEngine engine) throws RemoteException
+	private static void requestScriptAccess(RScriptEngine engine) throws RemoteException
 	{
+		if (!WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_R_SCRIPT_ACCESS))
+		{
+			engine.close(); // must close before throwing exception
+			throw new RemoteException("R script access is not permitted on this server.");
+		}
+		
+		if (WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_RSERVE_ROOT_ACCESS))
+			return;
+		
 		try
 		{
 			assignNamesToVector(new String[]{".tmp"}, new Object[]{WeaveConfig.getConnectionConfigFilePath()}, null, false);
 			Object result = engine.eval("length(readLines(.tmp.))");
 			assignNamesToVector(new String[]{".tmp"}, new Object[]{null}, null, false);
-			((RScriptEngine)engine).close();			
+			engine.close(); // must close before throwing exception
 			if (result instanceof Number)
 				throw new RemoteException("R script access is not allowed because it is unsafe (The user running Rserve has file read/write access).");
 			throw new RemoteException("Unexpected result in requestScriptAccess(): " + result);

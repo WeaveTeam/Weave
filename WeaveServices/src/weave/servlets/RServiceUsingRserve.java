@@ -75,7 +75,7 @@ public class RServiceUsingRserve
 	{
 		private static final long serialVersionUID = 1L;
 
-		public  RserveConnectionException(Exception e){
+		public RserveConnectionException(Exception e){
 			super("Unable to connect to RServe",e);
 		}
 	}
@@ -85,15 +85,21 @@ public class RServiceUsingRserve
 	 */
 	private static void requestScriptAccess(RConnection rConnection) throws RemoteException
 	{
+		if (!WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_R_SCRIPT_ACCESS))
+		{
+			rConnection.close(); // must close before throwing exception
+			throw new RemoteException("R script access is not permitted on this server.");
+		}
+		
+		if (WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_RSERVE_ROOT_ACCESS))
+			return;
+		
 		try
 		{
-			if (WeaveConfig.allowRserveRootAccess())
-				return;
-			
 			rConnection.assign(".tmp.", WeaveConfig.getConnectionConfigFilePath());
 			REXP result = rConnection.eval("length(readLines(.tmp.))");
 			rConnection.assign(".tmp.", new REXPNull());
-			rConnection.close();
+			rConnection.close(); // must close before throwing exception
 			if (result.isNumeric())
 				throw new RemoteException("R script access is not allowed because it is unsafe (The user running Rserve has file read/write access).");
 			throw new RemoteException("Unexpected result in requestScriptAccess(): " + result);
@@ -218,19 +224,23 @@ public class RServiceUsingRserve
 	}
 	
 	
-	private static  void evaluvateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException{
+	private static  void evaluateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException
+	{
 		/* REXP evalValue = */ evalScript(rConnection, script, showWarnings);
-		if (showIntermediateResults){
+		if (showIntermediateResults)
+		{
 			Object storedRdatas = evalScript(rConnection, "ls()", showWarnings);
-			if(storedRdatas instanceof REXPString){
+			if (storedRdatas instanceof REXPString)
+			{
 				String[] Rdatas =((REXPString) storedRdatas).asStrings();
-				for(int i=0;i<Rdatas.length;i++){
+				for (int i = 0; i < Rdatas.length; i++)
+				{
 					String scriptToAcessRObj = Rdatas[i];
-					if(scriptToAcessRObj.compareTo("mycache") == 0)
+					if (scriptToAcessRObj.compareTo("mycache") == 0)
 						continue;
 					REXP RobjValue = evalScript(rConnection, scriptToAcessRObj, false);
 					//When function reference is called returns null
-					if(RobjValue == null)
+					if (RobjValue == null)
 						continue;
 					resultVector.add(new RResult(scriptToAcessRObj, rexp2javaObj(RobjValue)));	
 				}
@@ -249,17 +259,19 @@ public class RServiceUsingRserve
 	
 	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
 	{
-		RConnection rConnection = getRConnection();
-		requestScriptAccess(rConnection); // important to run this before allowing end-user scripting
-		
-		RResult[] results = null;
+		RConnection rConnection = null;
 		Vector<RResult> resultVector = new Vector<RResult>();
 		try
 		{
+			rConnection = getRConnection();	
+			requestScriptAccess(rConnection); // important to run this before allowing end-user scripting
+			
 			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"			
 			assignNamesToVector(rConnection,inputNames,inputValues);
-			evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
-			if (plotScript != ""){// R Script to EVALUATE plotScript
+			evaluateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			if (plotScript != "")
+			{
+				// R Script to EVALUATE plotScript
 				String plotEvalValue = plotEvalScript(rConnection,docrootPath, plotScript, showWarnings);
 				resultVector.add(new RResult("Plot Results", plotEvalValue));
 			}
@@ -283,11 +295,10 @@ public class RServiceUsingRserve
 		}
 		finally
 		{
-			results = new RResult[resultVector.size()];
-			resultVector.toArray(results);
-			rConnection.close();
+			if (rConnection != null)
+				rConnection.close();
 		}
-		return results;
+		return resultVector.toArray(new RResult[resultVector.size()]);
 	}
 	
 	
@@ -342,7 +353,6 @@ public class RServiceUsingRserve
 
 	public static LinearRegressionResult linearRegression(String docrootPath, String method, double[] dataX, double[] dataY, int polynomialDegree) throws RemoteException
 	{
-		RConnection rConnection = getRConnection();
 		if (dataX.length == 0 || dataY.length == 0)
 			throw new RemoteException("Unable to run computation on zero-length arrays.");
 		if (dataX.length != dataY.length)
@@ -352,9 +362,12 @@ public class RServiceUsingRserve
 					dataY.length
 				));
 		
+		RConnection rConnection = null;
 		LinearRegressionResult result = new LinearRegressionResult();
 		try
 		{
+			rConnection = getRConnection();
+			
 			String equation = (String)MapUtils.fromPairs(
 					"Linear", "y~x",
 					"Polynomial", "y ~ poly(x, deg, raw = TRUE)",
@@ -398,7 +411,8 @@ public class RServiceUsingRserve
 		}
 		finally
 		{
-			rConnection.close();
+			if (rConnection != null)
+				rConnection.close();
 		}
 		return result;
 	}
@@ -408,49 +422,45 @@ public class RServiceUsingRserve
 													      boolean showWarnings,
 													     	int numberOfClusters, int iterations)throws RemoteException
 	{
-		RConnection rConnection = getRConnection();	
-		requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
-
-		int []noOfClusters = new int [1];
-		noOfClusters[0] = numberOfClusters;
-		
-		int[]iterationNumber = new int[1];
-		iterationNumber[0] = iterations;
-		
-		
-		try {
-			rConnection.assign("clusternumber", noOfClusters);
-		} catch (REngineException e1) {
-			throw new RemoteException ("",e1);
-			
-		}
-		
-		
-		//storing column length
-		int columnLength = inputValues[0].length; 
-		
-		//to check if columns are not empty and if all columns are of the same length
-	for (int j = 1; j < inputValues.length; j++)
-		{
-			if (columnLength == 0 || inputValues[j].length == 0)
-			throw new RemoteException("Unable to run computation on zero-length arrays.");
-			if (inputValues[j].length != columnLength)
-			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + columnLength
-				+ " != " + inputValues[j].length + ").");
-			
-		}
-		
-		
-	
-	
-		String output = "";
-		REXP evalValue;	
-		RResult [] kClusteringResult;
-		String dataframeInput = new String();
-		String names = "";
-		
+		RResult [] kClusteringResult = null;
+		RConnection rConnection = null;
 		try
 		{
+			rConnection = getRConnection();	
+			requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
+	
+			int []noOfClusters = new int [1];
+			noOfClusters[0] = numberOfClusters;
+			
+			int[]iterationNumber = new int[1];
+			iterationNumber[0] = iterations;
+			
+			
+			try {
+				rConnection.assign("clusternumber", noOfClusters);
+			} catch (REngineException e1) {
+				throw new RemoteException ("",e1);
+				
+			}
+			
+			
+			//storing column length
+			int columnLength = inputValues[0].length; 
+			
+			//to check if columns are not empty and if all columns are of the same length
+			for (int j = 1; j < inputValues.length; j++)
+			{
+				if (columnLength == 0 || inputValues[j].length == 0)
+				throw new RemoteException("Unable to run computation on zero-length arrays.");
+				if (inputValues[j].length != columnLength)
+				throw new RemoteException("Unable to run computation on two arrays with different lengths (" + columnLength
+					+ " != " + inputValues[j].length + ").");
+				
+			}
+			
+			REXP evalValue;	
+			String names = "";
+			
 //			We have to send columns to R and receive them back to be sent once again to R
 			//enables 'n' number of columns to be sent
 			for (int i = 0; i < inputNames.length; i++)
@@ -464,9 +474,8 @@ public class RServiceUsingRserve
 				double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
 				rConnection.assign(name, value);	
 		
-				dataframeInput = "data.frame(" + names + ")";
 			}
-			evalValue = rConnection.eval(dataframeInput); // NOT SAFE - script was built using user-specified strings
+			evalValue = rConnection.eval("data.frame(" + names + ")"); // NOT SAFE - script was built using user-specified strings
 		
 			rConnection.assign("frame",evalValue);
 			rConnection.assign("clusternumber", noOfClusters);
@@ -533,16 +542,14 @@ public class RServiceUsingRserve
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
-			output += e.getMessage();
-			// to send error from R to As3 side results is created with one
-			// object
+			// to send error from R to As3 side results is created with one object
 			kClusteringResult = new RResult[1];
-			kClusteringResult[0] = new RResult("Error Statement", output);
+			kClusteringResult[0] = new RResult("Error Statement", e.getMessage());
 		}
-	
 		finally
 		{
-			rConnection.close();
+			if (rConnection != null)
+				rConnection.close();
 		}
 		
 		return kClusteringResult;
@@ -552,27 +559,28 @@ public class RServiceUsingRserve
 
 	public static HierarchicalClusteringResult hierarchicalClustering(String docrootPath,double[] dataX, double[] dataY) throws RemoteException
 	{
-		RConnection rConnection = getRConnection();
-		String[] agglomerationMethod = new String[7];
-		agglomerationMethod[0] = "ward";
-		agglomerationMethod[1] = "average";
-		agglomerationMethod[2] = "centroid";
-		agglomerationMethod[3] = "single";
-		agglomerationMethod[4] = "complete";
-		agglomerationMethod[5] = "median";
-		agglomerationMethod[6] = "mcquitty";
-		String agglomerationMethodType = new String("ward");
-
 		if (dataX.length == 0 || dataY.length == 0)
 			throw new RemoteException("Unable to run computation on zero-length arrays.");
 		if (dataX.length != dataY.length)
 			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
 					+ " != " + dataY.length + ").");
-
+		
+		RConnection rConnection = null;
 		HierarchicalClusteringResult hclresult = new HierarchicalClusteringResult();
 		try
 		{
-
+			rConnection = getRConnection();	
+			
+			String[] agglomerationMethod = new String[7];
+			agglomerationMethod[0] = "ward";
+			agglomerationMethod[1] = "average";
+			agglomerationMethod[2] = "centroid";
+			agglomerationMethod[3] = "single";
+			agglomerationMethod[4] = "complete";
+			agglomerationMethod[5] = "median";
+			agglomerationMethod[6] = "mcquitty";
+			String agglomerationMethodType = new String("ward");
+			
 			// Push the data to R
 			rConnection.assign("x", dataX);
 			rConnection.assign("y", dataY);
@@ -610,7 +618,8 @@ public class RServiceUsingRserve
 		}
 		finally
 		{
-			rConnection.close();
+			if (rConnection != null)
+				rConnection.close();
 		}
 		return hclresult;
 	}
@@ -619,18 +628,17 @@ public class RServiceUsingRserve
 	//this function does not take in a script from the as3 side for imputation, but the script is built in
 	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
 	{
-		RConnection rConnection = getRConnection();
-		requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
-		
-		String output = "";
-		String script= "";
-		REXP evalValue;
-		RResult[] mdResult ;
-		String bindingInput = new String();
-		String names = "";
-		
+		RConnection rConnection = null;
+		RResult[] mdResult  = null;
 		try
 		{
+			rConnection = getRConnection();	
+			requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
+			
+			String script= "";
+			REXP evalValue;
+			String names = "";
+			
 //			We have to send columns to R and receive them back to be sent once again to R
 			for (int i = 0; i < inputNames.length; i++)
 			{
@@ -642,12 +650,9 @@ public class RServiceUsingRserve
 				}
 				double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
 				rConnection.assign(name, value);	
-		
-				bindingInput = "cbind(" + names + ")";
 			}
 			
-			evalValue = rConnection.eval(bindingInput); // NOT SAFE - bindingInput was built with string concat using user-specified strings
-			rConnection.assign("Bind",evalValue);
+			evalValue = rConnection.eval("Bind <- cbind(" + names + ")"); // NOT SAFE - bindingInput was built with string concat using user-specified strings
 			
 			//Built in script
 			if(completeProcess = false)
@@ -703,17 +708,17 @@ public class RServiceUsingRserve
 				}
 			}
 		}
-		catch (Exception e)	{
+		catch (Exception e)
+		{
 			e.printStackTrace();
-			output += e.getMessage();
-			// to send error from R to As3 side results is created with one
-			// object
+			// to send error from R to As3 side results is created with one object
 			mdResult = new RResult[1];
-			mdResult[0] = new RResult("Error Statement", output);
+			mdResult[0] = new RResult("Error Statement", e.getMessage());
 		}
 		finally
 		{
-			rConnection.close();
+			if (rConnection != null)
+				rConnection.close();
 		}
 		return mdResult;
 	}
