@@ -71,11 +71,20 @@ package weave.visualization.plotters
 		}
 		
 		public const drawLine:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const currentTrendline:LinkableString = registerSpatialProperty(new LinkableString(LINEAR));
+		public const polynomialDegree:LinkableNumber = registerSpatialProperty(new LinkableNumber(2));
 		
 		public const xColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const yColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		
+		public static const trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
+		public static const LINEAR:String = "Linear";
+		public static const POLYNOMIAL:String = "Polynomial";
+		public static const LOGARITHMIC:String = "Logarithmic";
+		public static const EXPONENTIAL:String = "Exponential";
+		public static const POWER:String = "Power";
 
 		private var rService:WeaveRServlet = null;
 		
@@ -93,6 +102,8 @@ package weave.visualization.plotters
 			if (drawLine.value)
 			{
 				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
+				if (dataXY[1].length == 0)
+					return;
 				addAsyncResponder(
 					rService.linearRegression(currentTrendline.value, dataXY[1], dataXY[2], polynomialDegree.value),
 					handleLinearRegressionResult,
@@ -309,16 +320,5 @@ package weave.visualization.plotters
 				return NaN;
 			}
 		}
-			
-		// Trendlines
-		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), calculateRRegression);
-		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(LINEAR), calculateRRegression);
-
-		[Bindable] public var trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
-		public static const LINEAR:String = "Linear";
-		public static const POLYNOMIAL:String = "Polynomial";
-		public static const LOGARITHMIC:String = "Logarithmic";
-		public static const EXPONENTIAL:String = "Exponential";
-		public static const POWER:String = "Power";
 	}
 }
