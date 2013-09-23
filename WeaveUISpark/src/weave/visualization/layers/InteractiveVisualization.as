@@ -947,6 +947,8 @@ package weave.visualization.layers
 			// set the probe filter to a new set of keys
 			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
 			var keySet:KeySet = settings.selectionFilter.internalObject as KeySet;
+			if (!keySet)
+				return;
 			if (!keys)
 				keySet.clearKeys();
 			else if (_mouseMode == InteractionController.SELECT_ADD)
