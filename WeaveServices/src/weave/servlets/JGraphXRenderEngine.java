@@ -10,9 +10,9 @@ import java.awt.image.BufferedImage;
 import java.awt.Color;
 import javax.imageio.ImageIO;
 import weave.servlets.RenderService.RenderContext;
-import weave.servlets.RenderService.QualifiedKey;
 import weave.servlets.DataService.FilteredColumnRequest;
 import weave.beans.WeaveRecordList;
+import weave.beans.QualifiedKey;
 import java.io.ByteArrayOutputStream;
 public class JGraphXRenderEngine extends RenderContext
 {
@@ -35,7 +35,6 @@ public class JGraphXRenderEngine extends RenderContext
     {
         int i;
         int wrl_len;
-
         wrl_len = nodes.recordKeys.length;
         for (i = 0; i < wrl_len; i++)
         {
@@ -43,6 +42,7 @@ public class JGraphXRenderEngine extends RenderContext
             String key = nodes.recordKeys[i];   
 
             Object label_id = nodes.recordData[label_idx][i]; 
+            System.out.println(String.format("node %s %s", key, (String)label_id));
         }
         return;
     }
@@ -60,7 +60,7 @@ public class JGraphXRenderEngine extends RenderContext
 
             Object src_id = edges.recordData[src_idx][i];
             Object dest_id = edges.recordData[dest_idx][i];
-            Object label_id = edges.recordData[label_idx][i]; 
+            System.out.println(String.format("edge %s %s %s", key,(String)src_id, (String)dest_id));
         }
         return;
     }
@@ -71,16 +71,16 @@ public class JGraphXRenderEngine extends RenderContext
         addEdges(g, edges);
         return g;
     }
-    public boolean setData(Map<String,Integer> columns) throws RemoteException
+    public boolean setData(Map<String,String> columns) throws RemoteException
     {
         int nodeLabelId;
         int edgeSrcId;
         int edgeDestId;
         try 
         {
-            nodeLabelId = columns.get("nodeLabels");
-            edgeSrcId = columns.get("edgeSrc");
-            edgeDestId = columns.get("edgeDestId");
+            nodeLabelId = Integer.parseInt(columns.get("nodeLabels"));
+            edgeSrcId = Integer.parseInt(columns.get("edgeSrc"));
+            edgeDestId = Integer.parseInt(columns.get("edgeDestId"));
         }
         catch (Exception e)
         {
@@ -88,10 +88,13 @@ public class JGraphXRenderEngine extends RenderContext
             /* Needed column identifiers not specified. */
         }
         FilteredColumnRequest[] filteredColumnRequest = new FilteredColumnRequest[1];
+        filteredColumnRequest[0] = new FilteredColumnRequest();
         filteredColumnRequest[0].id = nodeLabelId;
         WeaveRecordList wrl_nodes = DataService.getFilteredRows(filteredColumnRequest, null);
         filteredColumnRequest = new FilteredColumnRequest[2];
+        filteredColumnRequest[0] = new FilteredColumnRequest();
         filteredColumnRequest[0].id = edgeSrcId;
+        filteredColumnRequest[1] = new FilteredColumnRequest();
         filteredColumnRequest[1].id = edgeDestId;
         WeaveRecordList wrl_edges = DataService.getFilteredRows(filteredColumnRequest, null);
         graph = buildGraphFromRecords(wrl_nodes, wrl_edges);

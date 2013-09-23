@@ -37,6 +37,18 @@ package weave.services
         {
             return servlet.invokeAsyncMethod("render", arguments);
         }
+        public function probe(contextUuid:String, x:int, y:int):AsyncToken
+        {
+            return servlet.invokeAsyncMethod("probe", arguments);
+        }
+        public function setSelectedKeys(contextUuid:String, keys:Array):AsyncToken
+        {
+            return servlet.invokeAsyncMethod("setSelectedKeys", arguments);
+        }
+        public function setProbedKeys(contextUuid:String, keys:Array):AsyncToken
+        {
+            return servlet.invokeAsyncMethod("setProbedKeys", arguments);
+        }
 
     }
 }

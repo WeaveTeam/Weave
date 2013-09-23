@@ -66,6 +66,7 @@ package
 	import weave.visualization.tools.CustomGraphicsTool;
 	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.CytoscapeWebTool;
+	import weave.visualization.tools.ServerGraphTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
 	import weave.visualization.tools.DataTableTool;
@@ -137,6 +138,7 @@ package
 				CustomTool,
 				CustomGraphicsTool,
 				CytoscapeWebTool,
+				ServerGraphTool,
 				SchafersMissingDataTool,
 				DataFilter,
 				DataTableTool,

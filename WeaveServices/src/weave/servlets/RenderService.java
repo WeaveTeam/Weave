@@ -41,6 +41,7 @@ import javax.servlet.ServletException;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
 import weave.beans.WeaveFileInfo;
+import weave.beans.QualifiedKey;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
@@ -65,6 +66,7 @@ import weave.utils.ListUtils;
 import weave.utils.ProgressManager.ProgressPrinter;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.MapUtils;
 
 public class RenderService extends GenericServlet
 {
@@ -90,19 +92,20 @@ public class RenderService extends GenericServlet
         contexts.remove(id);
         return true;
     }
-    public boolean setData(String contextUuid, Map<String,Integer> columns) throws RemoteException
+
+    public boolean setData(String contextUuid, String[] columnNames, String[] columnValues) throws RemoteException
     {
         UUID id = UUID.fromString(contextUuid);
         RenderContext ctx = contexts.get(id);
-        return ctx.setData(columns);
+        return ctx.setData(MapUtils.fromArrays(columnNames, columnValues));
     }
-    public boolean setParams(String contextUuid, Map<String,String> params) throws RemoteException
+    public boolean setParams(String contextUuid, String[] paramNames, String[] paramValues) throws RemoteException
     {
         UUID id = UUID.fromString(contextUuid);
         RenderContext ctx = contexts.get(id);
-        return ctx.setParams(params);
+        return ctx.setParams(MapUtils.fromArrays(paramNames, paramValues));
     }
-    public String getImage(String contextUuid, int x1, int y1, int x2, int y2, int width, int height) throws RemoteException/* width and height are scaling params */
+    public String getImage(String contextUuid, int x1, int y1, int x2, int y2, int width, int height) throws RemoteException /* width and height are scaling params */
     {
         UUID id = UUID.fromString(contextUuid); 
         RenderContext ctx = contexts.get(id);
@@ -115,22 +118,21 @@ public class RenderService extends GenericServlet
         RenderContext ctx = contexts.get(id);
         return ctx.render();
     }
-    public QualifiedKey probe(String contextUuid, int x, int y)
+    public boolean setSelectedKeys(String contextUuid, QualifiedKey[] keys)
     {
-        UUID id =UUID.fromString(contextUuid);
+        return false;
+    }
+    public boolean setProbedKeys(String contextUuid, QualifiedKey[] keys)
+    {
+        return false;
+    }
+    public QualifiedKey probe(String contextUuid, int x, int y) throws RemoteException
+    {
+        UUID id = UUID.fromString(contextUuid);
         RenderContext ctx = contexts.get(id);
         return ctx.probe(x,y);
     }
-    public static class QualifiedKey
-    {
-        public String keyType;
-        public String keyValue;
-        public QualifiedKey(String newKeyType, String newKeyValue)
-        {
-            keyType = newKeyType;
-            keyValue = newKeyValue;
-        }
-    }
+
     public static abstract class RenderContext
     {
         private RenderService parent;
@@ -141,7 +143,7 @@ public class RenderService extends GenericServlet
         }
         abstract public boolean render() throws RemoteException;
         abstract public boolean setParams(Map<String,String> params) throws RemoteException;
-        abstract public boolean setData(Map<String,Integer> columns) throws RemoteException;
+        abstract public boolean setData(Map<String,String> columns) throws RemoteException;
         abstract public String getImage(int x1, int y1, int x2, int y2) throws RemoteException;
         abstract public QualifiedKey probe(int x, int y) throws RemoteException;
     }
