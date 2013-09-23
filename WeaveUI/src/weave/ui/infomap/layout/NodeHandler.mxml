@@ -8,8 +8,8 @@
 	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}"
 			  width="300"/>
 	<!--<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
-		<mx:Label id="filterStatus"/>
-		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
+	<mx:Label id="filterStatus"/>
+	<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
 	</mx:HBox>-->
 	<!--<mx:Canvas id="listCanvas" alpha="0" visible="false" clipContent="false" width="400" height="500" includeInLayout="false"/>-->
 	<!--<ui:ThumbnailsLayout id="gridView" alpha="0" clipContent="false" includeInLayout="false"/>-->
@@ -166,7 +166,7 @@
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			
-//			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
+			//			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
@@ -177,10 +177,10 @@
 			public const comments:LinkableString = newLinkableChild(this,LinkableString);
 			
 			public const numOfWordsInCloud:LinkableNumber = registerLinkableChild(this,new LinkableNumber(75,function(value:*):Boolean{
-																if(value > 100)
-																	return false;
-																else 
-																	return true;},false));
+				if(value > 100)
+					return false;
+				else 
+					return true;},false));
 			
 			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
@@ -188,8 +188,8 @@
 			
 			/* We separate dateFilter from previousQuery because when dateFilter is changed from NodeSettingsComponent the behavior of the callbacks
 			is unpredictable. It is easier to handle the callbacks for keywords and date separately.*/
-//			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true); // ToDo
-
+			//			public const dateFilter:DateRangeFilter = registerLinkableChild(this, new DateRangeFilter(),handleDateFilterChange, true); // ToDo
+			
 			public const numOfTopics:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5,function(value:*):Boolean{
 				if(value > 10 || value <2)
 					return false;
@@ -262,7 +262,7 @@
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			
 			//We create a private key filter for tag word click
-//			private var _tagWordSubset:KeyFilter = new KeyFilter();
+			//			private var _tagWordSubset:KeyFilter = new KeyFilter();
 			
 			
 			override protected function createChildren():void
@@ -329,8 +329,8 @@
 			
 			[Embed( source="/weave/resources/images/arrowDown.png")]
 			private var _subMenuIcon:Class;
-//			private var _menuButton:Image = new Image();
-//			private var _subMenu:SubMenu;
+			//			private var _menuButton:Image = new Image();
+			//			private var _subMenu:SubMenu;
 			private var _radialMenu:RadialMenu;
 			private var _closeImg:Bitmap = new CloseImgClass() as Bitmap;
 			private var _settingsImg:Bitmap = new SettingsImgClass() as Bitmap;
@@ -356,10 +356,10 @@
 				getCallbackCollection(previousQuery).addGroupedCallback(this,handleChangeToPrevQuery,true);
 				
 				//opens the settings panel
-//				_menuButton.source = _subMenuIcon;
-//				nodeBase.addChildAt(_menuButton,0);
-//				_menuButton.x = 0 - _menuButton.contentHeight;//height doesn't get updated correctly
-//				_subMenu = new SubMenu(_menuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
+				//				_menuButton.source = _subMenuIcon;
+				//				nodeBase.addChildAt(_menuButton,0);
+				//				_menuButton.x = 0 - _menuButton.contentHeight;//height doesn't get updated correctly
+				//				_subMenu = new SubMenu(_menuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -402,14 +402,14 @@
 				
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
-//				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
+				//				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
 				
-//				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
+				//				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
 				prevNewDocsCount.addGroupedCallback(this,handleChangeToPrevQuery);
 				
 				numOfWordsInCloud.addGroupedCallback(this,redrawWordCloud,false);
 				
-//				refreshTimer.start();
+				//				refreshTimer.start();
 				//call event for each tick of refreshTimer
 				refreshTimer.addEventListener(TimerEvent.TIMER, createAndSendQuery);
 				
@@ -423,7 +423,7 @@
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.csvData);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyColName);
 				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(entityDistributionDataSource,entityDistributionDataSource.keyType);
-
+				
 				clusterCSVDataSource = Weave.root.requestObject(_nodeName + "clusterDataSource",CSVDataSource,false);
 				_clusterRadVizName = Weave.root.generateUniqueName(_nodeName + "Clusters");
 				
@@ -484,9 +484,9 @@
 				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
 				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
 				_radialMenu.addMenuItem(_googleImg,_googleImgText,googleSearchQuery,null);
-//				_subMenu.addSubMenuItem("Edit Query",editQuery);
-//				_subMenu.addSubMenuItem("Settings",settings);
-//				_subMenu.addSubMenuItem("Close",close);
+				//				_subMenu.addSubMenuItem("Edit Query",editQuery);
+				//				_subMenu.addSubMenuItem("Settings",settings);
+				//				_subMenu.addSubMenuItem("Close",close);
 				
 				/* pointing the currentNode in the InfoMaps panel to this so that a new query node becomes the current node.
 				When loading from a session state the last created node becomes the current node.
@@ -573,7 +573,7 @@
 				refreshTimer.reset();
 				refreshTimer.start();
 				
-//				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
+				//				_subMenu.addSubMenuItem("Add/Remove Pin Views",togglePinViews);
 				
 				/* if this is an empty query clear all documents */
 				if(!currentQuery.keywords.value)
@@ -593,23 +593,23 @@
 				
 				/* check to see if this a new query or an old query */
 				var isQueryDifferent:Boolean = QueryObject.isQueryDifferent(previousQuery,currentQuery);
-								
+				
 				/* Make query to get number of documents */
 				/* We first check to see if they are separated by commas if not then assume space*/
 				if(_parentPanel.relatedKeywords.value)
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
 						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
-
+				
 				var queryString:String = currentQuery.keywords.value.toLowerCase();
 				
 				_currentQueryTerms = queryString.indexOf(',') != -1?queryString.split(','):
 					queryString.split(' ');
 				
-//				if(isQueryDifferent || _firstLoad)
-//				{
-//					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
-//						_currentRelatedKeywords);
-//				}
+				//				if(isQueryDifferent || _firstLoad)
+				//				{
+				//					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+				//						_currentRelatedKeywords);
+				//				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
 					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);
@@ -681,9 +681,9 @@
 				{
 					status.text = "Loading Points...";
 				}
-					
+				
 				getEntityDistribution();
-//				getTopicsClassification();
+				//				getTopicsClassification();
 				getClusters();
 				triggeredByQuerObjectChange = true;  // For Google Search Handle QueryObject change
 				googleSearchQuery(); // For Google Search Handle QueryObject change
@@ -711,7 +711,7 @@
 			private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:QueryObject=null):void
 			{
 				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery)
-									|| QueryObject.isSortByDifferent(token as QueryObject, currentQuery);
+					|| QueryObject.isSortByDifferent(token as QueryObject, currentQuery);
 				
 				if(diff)
 				{
@@ -889,10 +889,10 @@
 				/* if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true; */
 				if(position)
 				{
-//					thumbnail.hasBeenMoved.value = true;
+					//					thumbnail.hasBeenMoved.value = true;
 					
-//					copySessionState(position.xPos,thumbnail.xPos);
-//					copySessionState(position.yPos,thumbnail.yPos);
+					//					copySessionState(position.xPos,thumbnail.xPos);
+					//					copySessionState(position.yPos,thumbnail.yPos);
 					
 					thumbnail.pos.setSessionState({x:position.xPos.value,y:position.yPos.value});
 				}
@@ -927,8 +927,8 @@
 					thumbnail.visible = false;
 				}
 				thumbnail.setStyle("borderColor",thumbnailsDefaultColor.value);
-//				linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
-//				linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
+				//				linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+				//				linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
 				
 				_thumbnailCount++;
 				
@@ -950,13 +950,13 @@
 					_radialMenu.addMenuItem(_gridImg,_gridImgText,toggleView,[THUMBNAILS_VIEW]);
 					_radialMenu.addMenuItem(_tickImg,_tickImgText,clearAllNewDocuments,null);
 				}
-//				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
-//				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
-//				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
-//					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
-//				
-//				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy,filterQueryBy],
-//					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS],[QueryObject.FILTER_BY_RSSFEEDS]]);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["List View","Thumbnails View"],[toggleView,toggleView],[[LIST_VIEW],[THUMBNAILS_VIEW]]);
+				//				_subMenu.addSubMenuItem("Hide All Views",hideAllViews);
+				//				_subMenu.addSubSubMenuItems("Sort By", QueryObject.sortByOptions.concat(["New Documents"]),[sortBy,sortBy,sortBy,toggleShowNewDocsOnTop],
+				//					[[QueryObject.SORT_BY_RELEVANCE],[QueryObject.SORT_BY_DATE_PUBLISHED],[QueryObject.SORT_BY_DATE_ADDED]]);
+				//				
+				//				_subMenu.addSubSubMenuItems("Filter By",QueryObject.filterByOptions,[filterQueryBy,filterQueryBy,filterQueryBy,filterQueryBy],
+				//					[[QueryObject.FILTER_BY_NONE],[QueryObject.FILTER_BY_BOOKS],[QueryObject.FILTER_BY_PAPERS],[QueryObject.FILTER_BY_RSSFEEDS]]);
 				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
@@ -982,7 +982,7 @@
 				wordCount = event.result as Array;
 				
 				_radialMenu.addMenuItem(_wordCloudImg,_wordCloudText,toggleView,[WORD_CLOUD_VIEW]);
-//				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Word Cloud"],[toggleView],[[WORD_CLOUD_VIEW]]);	
 				if(currentView.value == WORD_CLOUD_VIEW)
 				{
 					showView(WORD_CLOUD_VIEW);
@@ -993,7 +993,7 @@
 			{
 				reportError("Error making query for word count");
 			}
-				
+			
 			
 			private function handleNumOfDocsQueryFault(event:FaultEvent,token:Object=null):void
 			{
@@ -1009,7 +1009,7 @@
 			private var _currentNewDocsCount:int = 0;
 			//			private var _firstLoad:Boolean = true;
 			
-
+			
 			private var _currTCount:int = 0;
 			private var _totalT:int = 0;
 			private function clearAllNewDocuments(event:Event=null):void
@@ -1045,7 +1045,7 @@
 				_currentNewDocsCount = 0;
 				showNewDocumentsOnTop.value = false;
 			}
-				
+			
 			private function getRequiredKeywords():Array
 			{
 				var selectedKeys:Array = _selection.keys;
@@ -1085,9 +1085,9 @@
 			private var glowTimer:Timer = new Timer(125);
 			private function startGlow():void
 			{
-					nodeBase.keywordTextArea.filters = [glowFilter];
-					glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
-					glowTimer.start();
+				nodeBase.keywordTextArea.filters = [glowFilter];
+				glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
+				glowTimer.start();
 			}
 			
 			private function changeGlow(event:TimerEvent):void
@@ -1114,17 +1114,17 @@
 					nodeBase.width = 220;
 				nodeBase.keywordTextArea.width = nodeBase.width;
 				nodeBase.keywordTextArea.height= nodeBase.keywordTextArea.mx_internal::getTextField().numLines * 20;
-//				nodeBase.height = nodeBase.keywordTextArea.height+nodeBase.filterStatus.height + _menuButton.contentHeight;
-//				_menuButton.y = 0
+				//				nodeBase.height = nodeBase.keywordTextArea.height+nodeBase.filterStatus.height + _menuButton.contentHeight;
+				//				_menuButton.y = 0
 				nodeBase.keywordTextArea.y = 0;
 				nodeBase.filterStatus.y = nodeBase.keywordTextArea.y+nodeBase.keywordTextArea.height;
 				_radialMenu.y = -_radialMenu.iconSize;
 				if(docListComponent)
 					docListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
-
+				
 				if(googleDocListComponent)
 					googleDocListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
-
+				
 				if(thumbnailListComponent)
 					thumbnailListComponent.y = nodeBase.filterStatus.y+nodeBase.filterStatus.height;
 				if(_pinImg)
@@ -1183,10 +1183,10 @@
 				
 				
 				/* if there more than 1000 entities we will only show entity distribution for selected entities */
-//				if(keys.length > 1000)
-//				{
-//				 return;					
-//				}
+				//				if(keys.length > 1000)
+				//				{
+				//				 return;					
+				//				}
 				
 				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
 				for each(var attrCol:IAttributeColumn in entityColumns)
@@ -1218,8 +1218,8 @@
 				}
 				
 				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(_currentQueryTerms,
-															_currentRelatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
-															currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
+					_currentRelatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
+					currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 				
 				var token:QueryObject = new QueryObject();
 				copySessionState(currentQuery,token);
@@ -1255,7 +1255,7 @@
 					_entitiesToURLsHashMap[entities[i]] = urls[i];
 					if(urls[i] != null)
 						entityCSVData.push([entities[i],(urls[i] as Array).length]);
-
+					
 				}
 				
 				entityDistributionDataSource.csvData.setSessionState(entityCSVData);
@@ -1279,8 +1279,8 @@
 				}
 				
 				_radialMenu.addMenuItem(_entityDistributionImg,_entityDistributionImgText,showDistributionChart,null);
-//				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
-
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Entity Distribution"],[showDistributionChart]);
+				
 			}
 			
 			private function handleEntityQueryFault(event:FaultEvent,token:Object=null):void
@@ -1294,10 +1294,10 @@
 			{
 				//clear any selection so that bars don't appear faded out
 				_selection.replaceKeys([]);
-//				var className:String = getQualifiedClassName(CompoundBarChartTool).split("::")[1];
-//				
-//				_entityChartName = Weave.root.generateUniqueName(className);
-
+				//				var className:String = getQualifiedClassName(CompoundBarChartTool).split("::")[1];
+				//				
+				//				_entityChartName = Weave.root.generateUniqueName(className);
+				
 				var object:CompoundBarChartTool = Weave.root.requestObject(_entityChartName, CompoundBarChartTool, false);
 				object.showAllLabels.value = false;
 				object.plotter.colorColumn.defaultValue.value = "0x0FDF801";
@@ -1486,7 +1486,7 @@
 					_pointCanvas.drawPoints(topicURLS, _topicsResult.keywords, this);
 					
 				}
-
+				
 				adjustNodeBase();
 				status.text = "";
 				var viewUI:DisplayObject = _viewToObjectMapping[view] as DisplayObject;
@@ -1680,7 +1680,7 @@
 				{
 					showRelatedRecords();	
 				}
-				/* else the selection is made other visual tools. We assume that selected keys are data records so we show related documents */
+					/* else the selection is made other visual tools. We assume that selected keys are data records so we show related documents */
 				else 
 				{
 					showRelatedDocuments();
@@ -1777,39 +1777,39 @@
 				return selectedDocs;
 			}
 			
-//			private var _searchKeySet:KeySet = new KeySet();
+			//			private var _searchKeySet:KeySet = new KeySet();
 			//sends a query to solr for the search keywords filtrered by document links belonging to this node
 			private function handleGlobalSearch():void
 			{
 				
-//				if(!_parentPanel.globalSearchKeyword.value)
-//				{
-////					_searchKeySet.clearKeys();
-////					_searchKeySet.triggerCallbacks();
-//					return;
-//				}
-//				
-//				var fieldNames:Array = ['link'];
-//				
-//				var fieldValues:Array = [];
-//				
-//				fieldValues.push(thumbnails.getNames());
-//				
-//				if(!query.sources.value == '')
-//				{
-//					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-//				}
-//				
-//				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,false);
+				//				if(!_parentPanel.globalSearchKeyword.value)
+				//				{
+				////					_searchKeySet.clearKeys();
+				////					_searchKeySet.triggerCallbacks();
+				//					return;
+				//				}
+				//				
+				//				var fieldNames:Array = ['link'];
+				//				
+				//				var fieldValues:Array = [];
+				//				
+				//				fieldValues.push(thumbnails.getNames());
+				//				
+				//				if(!query.sources.value == '')
+				//				{
+				//					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+				//				}
+				//				
+				//				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,false);
 				
 				
-//				filteredWords.value = 
+				//				filteredWords.value = 
 			}
 			
-//			public function filterBy(keywords:String):void
-//			{
-//				filteredWords.value = keywords;
-//			}
+			//			public function filterBy(keywords:String):void
+			//			{
+			//				filteredWords.value = keywords;
+			//			}
 			
 			//this function is called when the _searchKeySet is set. 
 			//This sets the thumbnail's visiblity based if its link is included or excluded in the _searchKeySet
@@ -1868,10 +1868,10 @@
 			// ToDo dateFilter should be previousQuery.dateFilter
 			private function handleGlobalDateChange():void
 			{
-//				getCallbackCollection(currentQuery).delayCallbacks();
-//				dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
-//				dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
-//				getCallbackCollection(currentQuery).resumeCallbacks();
+				//				getCallbackCollection(currentQuery).delayCallbacks();
+				//				dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
+				//				dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
+				//				getCallbackCollection(currentQuery).resumeCallbacks();
 			}
 			private function removeEmptyStringElementsFromArray(arg:Array):Array
 			{
@@ -2002,28 +2002,28 @@
 			}
 			
 			// ToDo ???
-//			private function filter(event:Event):void
-//			{
-//				DateFilterComponent.openInstance(this,dateFilter);
-//			}
+			//			private function filter(event:Event):void
+			//			{
+			//				DateFilterComponent.openInstance(this,dateFilter);
+			//			}
 			
-//			private var _instance:NodeSettingsComponent = null;
-//			private function settings(event:Event):void
-//			{
-//				
-//				if(_instance)
-//				{
-//					PopUpManager.addPopUp(_instance,this);
-//				}
-//				else
-//				{
-//					_instance = new NodeSettingsComponent();
-//					_instance.query = this.currentQuery;
-//					_instance.nodeHandler = this;
-//					_instance.dateFilter = dateFilter;
-//					PopUpManager.addPopUp(_instance,this);
-//				}
-//			}
+			//			private var _instance:NodeSettingsComponent = null;
+			//			private function settings(event:Event):void
+			//			{
+			//				
+			//				if(_instance)
+			//				{
+			//					PopUpManager.addPopUp(_instance,this);
+			//				}
+			//				else
+			//				{
+			//					_instance = new NodeSettingsComponent();
+			//					_instance.query = this.currentQuery;
+			//					_instance.nodeHandler = this;
+			//					_instance.dateFilter = dateFilter;
+			//					PopUpManager.addPopUp(_instance,this);
+			//				}
+			//			}
 			
 			[Embed( source="/weave/resources/images/pushpinback.png")]
 			private var _pinBackImgClass:Class;
@@ -2121,7 +2121,7 @@
 			private var wordCloud:TagCloud = new TagCloud();
 			private var colorRamp:ColorRamp = new ColorRamp();
 			private var wordCount:Array = [];
-						
+			
 			private function redrawWordCloud():void
 			{
 				if(wordCloud != null)
@@ -2138,7 +2138,7 @@
 				{
 					currentView.value = view
 				}
-				/* if current view is already List view then toggle it*/
+					/* if current view is already List view then toggle it*/
 				else
 				{
 					var v:String = currentView.value;
@@ -2160,8 +2160,8 @@
 			public const thumbnailListComponent:ThumbnailsListView = registerLinkableChild(this,new ThumbnailsListView());
 			
 			private var _showListFlag:Boolean = false;
-//			private var clickedWordKeySet:KeySet = new KeySet();
-//			public const filteredWords:LinkableString = registerLinkableChild(this,new LinkableString("",null,false));
+			//			private var clickedWordKeySet:KeySet = new KeySet();
+			//			public const filteredWords:LinkableString = registerLinkableChild(this,new LinkableString("",null,false));
 			private function handleTagCloudClick(event:MouseEvent):void
 			{
 				//we don't use the event.target for getting the text because this is based on the bounding box clicked and not necessarily the 
@@ -2186,7 +2186,7 @@
 				var urls:Array = event.result as Array;
 				filterDocumentsByURLS(urls,"'" + token + "'");
 			}
-				
+			
 			private function handleFilterQueryFault(event:FaultEvent,token:Object=null):void
 			{
 				reportError("Error making query for filtering");
@@ -2236,7 +2236,7 @@
 					getTopicsClassification();
 					
 					flag_init = true;
-					 if(!flag_click){
+					if(!flag_click){
 						flag_click = true;
 					}  
 				}
@@ -2256,7 +2256,7 @@
 				var topicClusters:Bitmap = new TopicsImgClass() as Bitmap;
 				_radialMenu.addMenuItem(topicClusters,_topicsClustersImgText,showClusters,null);
 				
-//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics"],[showClusters]);
 			}
 			
 			public var clusterCSVDataSource:CSVDataSource = new CSVDataSource();
@@ -2281,7 +2281,8 @@
 				object._plotter.columns.removeAllObjects();
 				object._plotter.probeLineNormalizedThreshold.value = 0.5;
 				object._plotter.localNormalization.value = false;
-//				object._anchorPlotter.anchors.removeAllObjects();
+				object._plotter.anchorLabelFunction.value = "Class('weave.utils.ColumnUtils').getTitle(column).substring(0,Class('weave.utils.ColumnUtils').getTitle(column).lastIndexOf('_cluster_'))"; // ToDo make it simple
+				//				object._anchorPlotter.anchors.removeAllObjects();
 				var count:int = 0;
 				for each(var columnName:String in columnNames)
 				{
@@ -2298,8 +2299,33 @@
 				_parentPanel.infoMapsDataSource.putColumnInHashMap("title",Weave.root.getObject("Probed Columns") as LinkableHashMap);
 				if (object is DraggablePanel)
 					(object as DraggablePanel).restorePanel();
+				
+				var tempDictionary:Dictionary = new Dictionary();
+				var tempColumnNames:Array = object._plotter.columns.getNames();
+				var tempLabelCluster:String = "";
+				var tempLabelWithCluster:String = "";
+				for (var i:int = 0; i < tempColumnNames.length; i++)
+				{
+					tempLabelWithCluster = (object._plotter.columns.getObject(tempColumnNames[i]) as ReferencedColumn).internalColumnReference.getMetadata("title");
+					tempLabelCluster = tempLabelWithCluster.substring(tempLabelWithCluster.lastIndexOf('_cluster_') + 9); // ToDo temp hack to remove label cluster string
+					if(!tempDictionary.hasOwnProperty(tempLabelCluster))
+						tempDictionary[tempLabelCluster] = new Array();
+					
+					(tempDictionary[tempLabelCluster] as Array).push(tempColumnNames[i]);
+				}
+				
+				object._anchorPlotter.doCDLayoutMetric = false; // Disable display metric information
+				object._anchorPlotter.drawingClassLines = true;//cd coloring
+				object._anchorPlotter.doCDLayout = true;//cd layout needed for tstat rendering
+				object.cdLayout.tAndpMapping = tempDictionary;
+				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping;
+				object._anchorPlotter.anchorClasses = object.cdLayout.tAndpMapping;//we need this to be able to draw the classlines and color the anchors accorsing to the class they belong to
+				object._plotter.LayoutClasses = object.cdLayout.tAndpMapping; //for setting cd dimensional anchor locations
+				object._plotter.doCDLayoutFlag = true; // ToDo yenfu temporary flag to fix the RadVizPlotter code
+				
+				object._plotter.setClassDiscriminationAnchorsLocations();//cd layout
 			}
-
+			
 			private var topicComponents:Array = new Array();
 			private var flag_click:Boolean = true;
 			private var flag_init:Boolean =true;
@@ -2329,7 +2355,7 @@
 				}
 				
 				_topicsResult = event.result;
-
+				
 				if (_topicsResult.keywords == null || _topicsResult.urls == null)
 				{
 					reportError(lang("Topic Models did not return an Array of results as expected."));
@@ -2338,10 +2364,10 @@
 				}
 				
 				_radialMenu.addMenuItem(_topicsImg,_topicsImgText,showClassificationResults,null);
-//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Topics View"],[showClassificationResults]);
 				
 				_radialMenu.addMenuItem(_pointsImg,_pointsImgText,toggleView,[POINTS_VIEW]);
-//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
+				//				_subMenu.addSubSubMenuItems("Show / Hide",["Points View"],[toggleView],[[POINTS_VIEW]]);
 				if(currentView.value == TOPICS_VIEW || currentView.value == POINTS_VIEW)
 				{
 					showView(currentView.value);
@@ -2356,17 +2382,17 @@
 			
 			//this variable is false when the user loads the map for the first time. 			
 			private var highlightNewDocuments:Boolean = true;
-//			private function checkForNewDocuments(event:TimerEvent):void
-//			{
-//				if(!previousQuery.sources.value == '')
-//				{
-//					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-//				}
-//				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
-//				wordCount = [];
-//				status.text = "Searching...";
-//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
-//			}
+			//			private function checkForNewDocuments(event:TimerEvent):void
+			//			{
+			//				if(!previousQuery.sources.value == '')
+			//				{
+			//					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+			//				}
+			//				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
+			//				wordCount = [];
+			//				status.text = "Searching...";
+			//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,currentQuery.keywords.value,currentQuery.operator.value,sourceNames,currentQuery.dateFilter);
+			//			}
 			
 			private var tempQueryObject:QueryObject = new QueryObject();
 			private var triggeredByQuerObjectChange:Boolean = false;
@@ -2387,7 +2413,7 @@
 				}
 				
 				// How to detect related keywords change? ==> refreshQuery
-								
+				
 				if(contains(googleDocListComponent)) googleDocListComponent.keys = []; // Clearing items in list
 				
 				var token:QueryObject = new QueryObject();
@@ -2415,7 +2441,7 @@
 			private function handleChangeToPrevQuery():void
 			{
 				var diff:Boolean = QueryObject.isQueryDifferent(previousQuery, currentQuery) || 
-										QueryObject.isSortByDifferent(previousQuery, currentQuery);
+					QueryObject.isSortByDifferent(previousQuery, currentQuery);
 				
 				if(previousQuery.sources.value == '')
 				{
@@ -2489,7 +2515,7 @@
 					
 					addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 				}
-
+				
 				updateNodeTextOnNewDocuments();
 				adjustNodeBase();
 			}
@@ -2527,8 +2553,8 @@
 				{
 					
 					/* htmlText sometimes just has the text and sometimes the text with the HTML tags.
-						I haven't tested to see when each case specifically occirs. For now, I test it with text and if text is null
-						test it with htmlText.
+					I haven't tested to see when each case specifically occirs. For now, I test it with text and if text is null
+					test it with htmlText.
 					*/
 					var nodeText:String;
 					if(nodeBase.keywordTextArea.text)
@@ -2605,7 +2631,7 @@
 			{
 				if(option == QueryObject.FILTER_BY_NONE)
 					option = "";
-
+				
 				if(previousQuery.sources.value != option)
 					status.text = "Filtering...";
 				
@@ -2614,7 +2640,7 @@
 			
 			private function handleDateFilterChange():void
 			{
-//								createAndSendQuery(); // ToDo
+				//								createAndSendQuery(); // ToDo
 			}
 			
 			
@@ -2627,7 +2653,7 @@
 				}
 			}
 			
-//			private var _currentView:UIComponent = null;
+			//			private var _currentView:UIComponent = null;
 			private function handleEffectsStart(event:EffectEvent):void
 			{
 				var displayObj:UIComponent= event.effectInstance.target as UIComponent;
@@ -2690,10 +2716,10 @@
 				_radialMenu.addMenuItem(_settingsImg,_settingsImgText,settings,null);
 				_radialMenu.addMenuItem(_editImg,_editImgText,editQuery,null);
 				_radialMenu.addMenuItem(_googleImg,_googleImgText,googleSearchQuery,null);
-//				_subMenu.removeAllSubMenuItems();
-//				_subMenu.addSubMenuItem("Edit Query",editQuery);
-//				_subMenu.addSubMenuItem("Settings",settings);
-//				_subMenu.addSubMenuItem("Close",close);
+				//				_subMenu.removeAllSubMenuItems();
+				//				_subMenu.addSubMenuItem("Edit Query",editQuery);
+				//				_subMenu.addSubMenuItem("Settings",settings);
+				//				_subMenu.addSubMenuItem("Close",close);
 				
 				
 			}
