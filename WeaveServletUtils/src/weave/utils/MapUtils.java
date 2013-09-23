@@ -22,6 +22,8 @@ package weave.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.lang.IllegalArgumentException;
+
 /**
  * @author adufilie
  */
@@ -54,4 +56,17 @@ public class MapUtils
 			return (T)map.get(key);
 		return defaultValue;
 	}
+	public static <K,V> Map<K,V> fromArrays(K[] keys, V[] values) throws IllegalArgumentException
+    {
+        if (keys.length != values.length)
+        {
+            throw new IllegalArgumentException("Arrays have mismatched lengths");
+        }
+        Map<K,V> result = new HashMap<K,V>(keys.length);
+        for (int i = 0; i < keys.length; i++)
+        {
+            result.put(keys[i], values[i]);
+        }
+        return result;
+    }
 }

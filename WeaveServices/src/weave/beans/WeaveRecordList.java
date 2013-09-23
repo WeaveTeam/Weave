@@ -35,4 +35,9 @@ public class WeaveRecordList
 	// the column index corresponds to the index in attributeColumnMetadata.
 	// the row index corresponds to the index in recordKeys.
 	public Object[][] recordData = null;
+
+	public String toString()
+	{
+		String.format("KeyType: %s", keyType);
+	}
 }

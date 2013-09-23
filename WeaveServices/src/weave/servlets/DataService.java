@@ -517,7 +517,7 @@ public class DataService extends GenericServlet
 		return DataService.getFilteredRows(requestedColumns, keysArray);
 	}
 	
-	public class FilteredColumnRequest
+	public static class FilteredColumnRequest
 	{
 		public int id;
 		

@@ -435,6 +435,7 @@ package weave
 		public const toolInteractions:InteractionController = new InteractionController();
 		
 		// temporary?
+		public const renderServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RenderService"), null); // url of the render service.
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		
