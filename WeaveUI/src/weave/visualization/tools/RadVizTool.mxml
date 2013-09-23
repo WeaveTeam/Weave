@@ -278,6 +278,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				disposeObjects(normalizedColumnsGroup);
 				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
+				if(temRObjects== null)
+					return;
 				for (var j:int = 0 ; j < temRObjects.length; j++)
 				{
 					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,temRObjects[j],_plotter.columns.getNames()[j]+"norm");
