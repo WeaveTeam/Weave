@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="weave.editors.*"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	creationPolicy="all"
+	implements="weave.api.core.ILinkableObject, weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
+	>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_dataSource ? 'Edit' : 'Add') + ' Transposed Data Source' )}"/>
+	<ui:Indent label="{lang('Source Name')}" visible="{!_dataSource}" includeInLayout="{!_dataSource}">
+		<ui:TextInputWithPrompt id="sourceName"
+								width="100%"
+								prompt="{lang('Enter a name')}"
+								errorString="{sourceName.text ? null : lang('Required')}"/>
+	</ui:Indent>
+	<!--
+	<ui:AutoResizingTextArea width="100%" borderStyle="none" editable="false" wordWrap="true">
+	</ui:AutoResizingTextArea>
+	-->
+	<mx:TabNavigator id="tabNav" initialize="UIUtils.setPadding(tabNav, 5);" width="100%" height="100%">
+		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns')}">
+			<ui:helpContent>
+				Each column you add here will correspond to a record in the transposed data source. <!--
+				-->Records in the original columns will become columns in the transposed data source.
+			</ui:helpContent>
+		</ui:ColumnListComponent>
+		<ui:ColumnListComponent id="metadataEditor" showVariableNames="true" label="{lang('Metadata variables')}">
+			<ui:helpContent>
+				Transposed columns will get their metadata from the variables you add below.
+				
+				For example, create a metadata variable called "title" to define the text used for each transposed column title.
+			</ui:helpContent>
+		</ui:ColumnListComponent>
+	</mx:TabNavigator>
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableHashMap;
+			import weave.core.UIUtils;
+			import weave.data.DataSources.TransposedDataSource;
+			
+			public const metadata:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const columns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			[Bindable] private var _dataSource:TransposedDataSource = null;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				metadataEditor.hashMap = metadata;
+				columnsEditor.hashMap = columns;
+				
+				sourceName.text = Weave.root.generateUniqueName("TransposedDataSource");
+			}
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				if (!parent)
+				{
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_dataSource = object as TransposedDataSource;
+				if (_dataSource)
+				{
+					copySessionState(_dataSource.metadata, metadata);
+					copySessionState(_dataSource.columns, columns);
+					sourceName.text = Weave.root.getName(_dataSource);
+					sourceName.editable = false;
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
+				}
+			}
+			
+			public function applyChanges():void
+			{
+				copySessionState(metadata, _dataSource.metadata);
+				copySessionState(columns, _dataSource.columns);
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

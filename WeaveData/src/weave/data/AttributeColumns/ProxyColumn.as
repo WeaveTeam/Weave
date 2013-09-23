@@ -168,6 +168,6 @@ package weave.data.AttributeColumns
 		 * This object can be used as an alternative to a null
 		 * return value for a function returning a ProxyColumn.
 		 */
-		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute name="Undefined"/>));
+		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute title="Undefined"/>));
 	}
 }

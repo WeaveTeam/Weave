@@ -35,16 +35,18 @@
 	<mx:HBox height="100%" width="100%" horizontalGap="0">
 		<mx:VBox paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" height="100%">
 			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
-			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
-			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
-			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
+			<mx:RadioButton selected="true" groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
+			<mx:RadioButton groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="{lang('WFS Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
+			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
+			<mx:RadioButton groupName="dataSourceType" id="transposedSource" value="{TransposedDataSource}" label="{lang('Transposed Data Source')}"/>
 		</mx:VBox>
 		<mx:Canvas backgroundColor="#939178" width="5" height="100%"/>
 		<mx:Box width="100%" height="100%" id="container" paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5"/>
 	</mx:HBox>
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
+		<mx:Spacer width="100%"/>
 		<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
 		<mx:Button id="cancelButton" label="{lang('Close')}" click="removePanel()"/>
 	</mx:ControlBar>
@@ -57,16 +59,20 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.DBFDataSource;
+			import weave.data.DataSources.TransposedDataSource;
 			import weave.data.DataSources.WFSDataSource;
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.CSVDataSourceEditor;
 			import weave.editors.DBFDataSourceEditor;
+			import weave.editors.TransposedDataSourceEditor;
 			import weave.editors.WFSDataSourceEditor;
 			import weave.editors.WeaveDataSourceEditor;
 			import weave.editors.XLSDataSourceEditor;
@@ -217,8 +223,28 @@
 						Alert.show(lang("Data Source added successfully"));
 					weaveDataSource.url.value = weaveDataSourceEditor.url.text;
 				}
+				
+				var transposedDataSourceEditor:TransposedDataSourceEditor = _editor as TransposedDataSourceEditor;
+				if (transposedDataSourceEditor)
+				{
+					if (transposedDataSourceEditor.sourceName.text == "")
+					{
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
+						return;
+					}
+					checkObj = Weave.root.getObject(transposedDataSourceEditor.sourceName.text);
+					if (checkObj != null)
+					{
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+						return;
+					}
+					var transposedDataSource:TransposedDataSource = Weave.root.requestObject(transposedDataSourceEditor.sourceName.text, TransposedDataSource, false);
+					if (transposedDataSource != null)
+						Alert.show(lang("Data Source added successfully"));
+					
+					copySessionState(transposedDataSourceEditor, transposedDataSource);
+				}
 			}
-			
 		]]>
 	</mx:Script>
 </ui:DraggablePanel>
