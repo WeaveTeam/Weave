@@ -8,11 +8,13 @@
 	<button onclick="saveJSON({{QueryObjectModel()}})"
 		class="btn btn-primary">Save Query</button>
 	<br>
+	<br>
 	<div class="file-upload">
 		<label for="queryImport">Load Query</label> 
 		<input type="file" id="queryImport" name="queryImport"
 			ng-submit="uploadQuery()" file-upload />
 	</div>
+	<br>
 	<ul class="nav nav-tabs nav-stacked">
 		<li ng-class="{active: isActive('/analysis')}"><a
 			href="#/analysis">Analysis Builder</a></li>

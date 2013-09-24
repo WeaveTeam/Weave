@@ -14,7 +14,7 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
     this.scriptType = "r";
-    this.dataTable = 1;
+    this.dataTable = {id:1,title:"default"};
     this.conn = {
         scriptLocation: 'C:\\RScripts\\',
         serverType: 'MySQL',
@@ -68,9 +68,19 @@ angular.module("aws.services", []).service("queryobj", function () {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
             var columns = [];
+            var temp;
             for (var i = 0; i < col.length; i++) {
-                if (this[col[i]]) {
-                    $.merge(columns, this[col[i]]);
+                if (this[col[i]]){
+                	angular.forEach(this[col[i]], function(item){
+                		if(item.hasOwnProperty('publicMetadata')) {
+                			var obj = {
+                       			title:item.publicMetadata.title,
+	            				id:item.id,
+	            				range:item.publicMetadata.var_range
+                			};
+                			columns.push(obj);
+                		}
+                	});
                 }
             }
             return columns;

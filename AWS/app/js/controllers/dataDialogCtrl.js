@@ -6,7 +6,7 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		'DataDialogCtrl',
 		function($scope, $dialog, queryobj) {
 
-            $scope.dataTable = queryobj.datatable;
+            $scope.dataTable = queryobj.dataTable();
 			$scope.opts = {
 				backdrop : true,
 				keyboard : true,

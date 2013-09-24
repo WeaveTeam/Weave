@@ -25,7 +25,11 @@ angular.module("aws.panelControllers", [])
 		//$scope.gridOptions.selectedItem = queryobj[$scope.selectorId];
 		$scope.$watch('selection', function(newVal, oldVal){
 			if(newVal != oldVal){
-				queryobj[$scope.selectorId] = $scope.selection;
+				var arr = [];
+				angular.forEach($scope.selection, function(item, i){
+					arr.push(angular.fromJson(item));
+				});
+				queryobj[$scope.selectorId] = arr;
 			}
 		});
 	}
@@ -262,26 +266,55 @@ angular.module("aws.panelControllers", [])
 	
 	// Populate Labels
 	$scope.inputs = [];
+	$scope.sliderOptions = {
+			range: true,
+			//max/min: querobj['some property']
+			max: 99,
+			min: 1,
+			values: [10,25]
+	};
 
-	// Populate options from Analysis Builder queryobj
-	var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
-	var columns = [];
-	for(var i = 0; i<col.length; i++){
-		if(queryobj[col[i]]){
-			$.merge(columns, queryobj[col[i]]);
-		}
-	}
 	$scope.options = queryobj.getSelectedColumns();
-	$scope.selection = [];
+	$scope.selection = [{
+			id: 0,
+			filter: [[1,2], [1,3]]
+		},
+		{
+			id:1,
+			filter: [[1,2], [1,3]]
+		}
+	];
 	
 	// retrieve selections, else create blanks;
 	if(queryobj['scriptOptions']){
 		$scope.selection = queryobj['scriptOptions'];
 	}
-
+	
+	var buildScriptOptions = function(){
+		var arr = [];
+		var obj;
+		angular.forEach($scope.selection, function(item){
+			obj = "";
+			if(item != ""){
+				item = angular.fromJson(item);
+			
+				obj = {
+						id:item.id,
+						title:item.title
+				};
+				if(item.range){
+					obj.filter = [item.range];
+				}
+			}
+			arr.push(obj);
+				
+		});
+		return arr;
+	};
+	
 	// set up watch functions
 	$scope.$watch('selection', function(){
-		queryobj.scriptOptions = $scope.selection;
+		queryobj.scriptOptions = buildScriptOptions();
 		//scriptobj.scriptMetadata.outputs = $scope.selection;
 	}, true);
 	$scope.$watch(function(){
