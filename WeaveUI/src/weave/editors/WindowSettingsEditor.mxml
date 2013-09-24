@@ -47,15 +47,15 @@
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
-			<mx:CheckBox label="{lang('Allow pin to back')}" toolTip="{lang('Selecting this option will enable the user to pin this tool to the back of the stage')}"
+			<mx:CheckBox label="{lang('Allow always-on-back')}"
 						 creationComplete="linkBindableProperty(_panel.pinnableToBack, event.target, 'selected')"/>
-			<mx:CheckBox label="{lang('Allow pin to front')}" toolTip="{lang('Selecting this option will enable the user to pin this tool')}"
+			<mx:CheckBox label="{lang('Allow always-on-top')}"
 						 creationComplete="linkBindableProperty(_panel.pinnable, event.target, 'selected')"/>
-			<mx:CheckBox label="{lang('Allow minimize')}" toolTip="{lang('Selecting this option will enable the user to minimize this tool')}"
+			<mx:CheckBox label="{lang('Allow minimize')}"
 						 creationComplete="linkBindableProperty(_panel.minimizable, event.target, 'selected')"/>
-			<mx:CheckBox label="{lang('Allow maximize')}" toolTip="{lang('Selecting this option will enable the user to maximize this tool')}"
+			<mx:CheckBox label="{lang('Allow maximize')}"
 						 creationComplete="linkBindableProperty(_panel.maximizable, event.target,'selected');"/>
-			<mx:CheckBox label="{lang('Allow close')}" toolTip="{lang('Selecting or deselecting this option will enable or disable the user to close this tool')}"
+			<mx:CheckBox label="{lang('Allow close')}"
 						 creationComplete="linkBindableProperty(_panel.closeable, event.target, 'selected')"/>
 		</mx:VBox>
 	</mx:HBox>
