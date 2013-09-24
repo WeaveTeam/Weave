@@ -65,13 +65,19 @@
 			public var _renderServlet:WeaveRenderServlet = new WeaveRenderServlet(Weave.properties.renderServiceURL.value);
 
 			public var _contextId:String = null;
-			public var _lastRawImage:Loader = null;
+			public var _lastImage:Loader = null;
+			public var _lastRawImage:String = null;
+
+			public const viewportX1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(), null);
+			public const viewportY1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(), null);
+			public const viewportX2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(), null);
+			public const viewportY2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(), null);
 
 			WeaveAPI.registerImplementation(IVisTool, ServerGraphTool, lang("JGraphX Tool"));
 
-			private function renderPNG(content:String):void
+			private function renderPNG():void
 			{
-
+				
 			}
 
 			private function updateProbeChange():void
@@ -84,7 +90,6 @@
 
 			}
 
-
 			private function handleGraphLayoutChange():void
 			{
 
@@ -92,8 +97,11 @@
 
 			private function handleColumnChange():void
 			{
+				var labelColumnId:String = labelColumn.getMetadata("weaveEntityId");
+				var edgeSourceColumnId:String = edgeSourceColumn.getMetadata("weaveEntityId");
+				var edgeTargetColumnId:String = edgeTargetColumn.getMetadata("weaveEntityId");
 				var dataFieldNames:Array = [labelDataField, edgeSourceDataField, edgeTargetDataField];
-				var dataFieldValues:Array = ["8", "3", "4"]; // Todo, don't hardcode this.
+				var dataFieldValues:Array = [labelColumnId, edgeSourceColumnId, edgeTargetColumnId];
 				if (_contextId)
 					_renderServlet.setData(_contextId, dataFieldNames, dataFieldValues);
 
