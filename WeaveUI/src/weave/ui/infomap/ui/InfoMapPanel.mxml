@@ -437,7 +437,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _refColsCount:int = 0;
 			private function handleGetParents(event:ResultEvent,token:Object=null):void
 			{
-				var parents:Array = (event.result as ArrayCollection).source;
+				var parents:Array = event.result as Array;
 				/* We use this count to keep track of when all the parents' children have been iterated */
 				_parentCount += parents.length;
 				_totalParents += _parentCount;
