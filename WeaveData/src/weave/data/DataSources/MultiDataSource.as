@@ -20,8 +20,6 @@
 package weave.data.DataSources
 {
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
@@ -30,6 +28,8 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ProxyColumn;

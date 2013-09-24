@@ -29,6 +29,7 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * This extension of SimpleXMLEncoder adds support for encoding TypedSessionState objects, XML values, and null values.
@@ -86,39 +87,59 @@ package weave.core
 				var objectName:String = obj[DynamicState.OBJECT_NAME];
 				var sessionState:Object = obj[DynamicState.SESSION_STATE];
 				var qualifiedClassName:Array = className.split("::");
-				var typedNode:XMLNode = encodeValue(sessionState, new QName("", qualifiedClassName[1]), parentNode);
+				className = qualifiedClassName.pop();
+				var packageName:String = qualifiedClassName.length ? qualifiedClassName.pop() : null;
+				var typedNode:XMLNode = encodeValue(sessionState, new QName("", className), parentNode);
 				if (objectName != null)
 					typedNode = setAttributeAndReplaceNode(typedNode, "name", objectName);
-				if (WeaveXMLDecoder.defaultPackages.indexOf(qualifiedClassName[0]) < 0)
-					typedNode = setAttributeAndReplaceNode(typedNode, "package", qualifiedClassName[0]);
+				if (packageName && WeaveXMLDecoder.defaultPackages.indexOf(packageName) < 0)
+					typedNode = setAttributeAndReplaceNode(typedNode, "package", packageName);
 				return typedNode;
 			}
 			if (obj is Array)
 			{
 				var array:Array = obj as Array;
-				var encoding:String = DYNAMIC_ENCODING;
+				var encoding:String = JSON_ENCODING;
+				var arrayType:Class = StandardLib.getArrayType(array);
+				var item:Object;
 				
 				// if there is a nested Array or String item in the Array, encode as CSV or CSVROW
-				for each (var item:* in array)
+				if (arrayType == Array)
 				{
-					if (item is Array)
+					encoding = CSV_ENCODING;
+					for each (item in array)
 					{
-						encoding = CSV_ENCODING;
-						break;
+						if (StandardLib.getArrayType(item as Array) != String)
+						{
+							encoding = JSON_ENCODING;
+							break;
+						}
 					}
-					if (item is String)
+				}
+				else if (arrayType == String)
+				{
+					array = [array];
+					encoding = CSVROW_ENCODING;
+				}
+				else if (array.length == 0 || arrayType == Object || arrayType == DynamicState)
+				{
+					encoding = DYNAMIC_ENCODING;
+					for each (item in array)
 					{
-						array = [array];
-						encoding = CSVROW_ENCODING;
-						break;
+						if (!DynamicState.objectHasProperties(item) || !item[DynamicState.CLASS_NAME])
+						{
+							encoding = JSON_ENCODING;
+							break;
+						}
 					}
-					if (typeof item != 'object')
-					{
-						var jsonNode:XMLNode = encodeJSON(obj, qname, parentNode);
-						if (jsonNode == null)
-							reportError("Unable to encode Array as XML: " + ObjectUtil.toString(obj));
-						return jsonNode;
-					}
+				}
+				
+				if (encoding == JSON_ENCODING)
+				{
+					var jsonNode:XMLNode = encodeJSON(obj, qname, parentNode);
+					if (jsonNode == null)
+						reportError("Unable to encode Array as XML: " + ObjectUtil.toString(obj));
+					return jsonNode;
 				}
 				
 				var arrayNode:XMLNode = new XMLNode(XMLNodeType.ELEMENT_NODE, qname.localName);

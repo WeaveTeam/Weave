@@ -35,7 +35,6 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
-	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.AttributeHierarchy;
 	
@@ -191,14 +190,6 @@ package weave.data.DataSources
 		 * @param A ProxyColumn object that will be updated when the column data is ready.
 		 */
 		/* abstract */ protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void { }
-
-		/**
-		 * The url of the data source.
-		 * This is included here because most IDataSource implementations will have a URL.
-		 * It is a special case to have an IDataSource without one.
-		 * It is recommended to lock this sessioned string in the initialize() function.
-		 */
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
 
 		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.

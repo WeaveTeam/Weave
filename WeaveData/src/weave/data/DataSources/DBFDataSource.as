@@ -61,7 +61,6 @@ package weave.data.DataSources
 	{
 		public function DBFDataSource()
 		{
-			disposeObjects(url);
 		}
 		
 		override protected function get initializationComplete():Boolean

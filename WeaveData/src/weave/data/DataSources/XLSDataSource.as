@@ -36,8 +36,6 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
-	import weave.api.services.IURLRequestUtils;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -72,6 +70,7 @@ package weave.data.DataSources
 			}
 		}
 
+		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
 		
