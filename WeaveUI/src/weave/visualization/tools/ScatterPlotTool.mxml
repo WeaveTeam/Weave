@@ -648,13 +648,13 @@
 				rService = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			}
 			
-			public function getAltText():void
+			public function updateAltText():void
 			{
 				
 				var data:Array = ColumnUtils.joinColumns([plotter.dataX, plotter.dataY], Number);
 				// try linear regression
 				addAsyncResponder(
-					rService.linearRegression("linear", data[0], data[1], 1),
+					rService.linearRegression("Linear", data[1], data[2], 1),
 					handleLinearRegressionResult,
 					handleLinearRegressionFault,
 					++requestID
@@ -671,9 +671,21 @@
 					return;
 				}
 				
+				var temp:String = lang("Scatter plot showing {0} and {1} \n", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
+
 				var result:LinearRegressionResult = new LinearRegressionResult(event.result);
 				// do stuff
-			    disability.automaticDescription.value = lang("coefficients are {0} and error is {1}", result.coefficients, result.rSquared);
+					// looking just at the slope
+					if(result.coefficients[1] > 0)
+					{
+						temp += lang("The chart has an increasing trend\n");
+					}
+					else
+					{
+						temp += lang("The chart has a decreasing trend\n");	
+					}
+
+				disability.automaticDescription.value = temp;
 				getCallbackCollection(this).triggerCallbacks();
 			}
 			

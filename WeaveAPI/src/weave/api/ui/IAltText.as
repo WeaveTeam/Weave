@@ -13,6 +13,6 @@ package weave.api.ui
 		 * Performs the algorithms to figure out the best text description of a vis.
 		 * @return a textual description of the tool passed in as a parameter.
 		 */		
-		function getAltText():void;
+		function updateAltText():void;
 	}
 }
