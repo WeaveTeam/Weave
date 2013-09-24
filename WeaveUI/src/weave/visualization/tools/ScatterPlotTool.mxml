@@ -431,6 +431,11 @@
 			private function updateEquation():void
 			{
 				var str:String = '';
+				var slope:Number;
+				var intercept:Number;
+				var base:Number;
+				var exponent:Number;
+				var rsquared:Number
 				// add switch block here
 				if ( regressionPlotter.drawLine.value )
 				{
@@ -440,9 +445,9 @@
 					{
 						if (regressionPlotter.currentTrendline.value == "Linear")
 						{	
-							var slope:Number = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4);
-							var intercept:Number = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4);
-							var rsquared:Number = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
+							slope = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
+							intercept = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4) || 0;
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
 							str = lang("y = {0}x + {1}\nR^2 = {2}", slope, intercept, rsquared);					
 						}
 					
@@ -456,7 +461,7 @@
 						
 							for (i = 0; i < rawCoefficients.length ; i++ )
 							{
-								roundedCoefficients.push(StandardLib.roundSignificant(rawCoefficients[i], 4));
+								roundedCoefficients.push(StandardLib.roundSignificant(rawCoefficients[i], 4) || 0); 
 							}
 						
 							for (i = roundedCoefficients.length - 1; i >  0; i-- )
@@ -470,23 +475,23 @@
 						}
 						else if (regressionPlotter.currentTrendline.value == "Exponential")
 						{
-							var base:Number = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4);
-							var exponent:Number = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[1]), 4);
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
+							base = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[0]), 4) || 0;
+							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
 							str = lang("y = {0}e^{1}x\nR^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Power")
 						{
-							base = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4);
-							exponent = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[1]), 4);
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
+							base = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[0]), 4) || 0;
+							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
 							str = lang("y = {0}x^{1}\nR^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
 						{
-							base = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4);
-							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[0],4);
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
+							base = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
+							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[0],4) || 0;
+							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
 							str = lang("y = {0}ln(x)+{1}\nR^2 = {2}", base, exponent, rsquared);
 						}
 					}
