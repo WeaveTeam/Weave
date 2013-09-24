@@ -78,10 +78,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 										override public function set data(value:Object):void
 										{
 											if (tool)
-												unlinkBindableProperty(tool.disability.includeInDesc, this, 'selected');
+												unlinkBindableProperty(tool.altTextEditor.includeInDesc, this, 'selected');
 											super.data = value;
 											if (tool)
-												linkBindableProperty(tool.disability.includeInDesc, this, 'selected');
+												linkBindableProperty(tool.altTextEditor.includeInDesc, this, 'selected');
 											this.label = WeaveAPI.globalHashMap.getName(tool);
 										}
 									]]>
@@ -141,7 +141,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.core.LinkableHashMap;
 							import weave.core.LinkableString;
 							import weave.core.SessionManager;
-							import weave.editors.Disability;
+							import weave.editors.AltTextEditor;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
 							import weave.visualization.tools.SimpleVisTool;							
@@ -197,8 +197,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								var text:String = "";
 								
 								for each (var visTool:SimpleVisTool in _visTools)
-									if (visTool.disability.includeInDesc)
-										detailedDescriptionTextInputBox.text += visTool.disability.toolDescription.value  + "\n";
+									if (visTool.altTextEditor.includeInDesc)
+										detailedDescriptionTextInputBox.text += visTool.altTextEditor.toolDescription.value  + "\n";
 							}
 							
 							protected function handleAltText():void

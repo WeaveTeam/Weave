@@ -47,7 +47,7 @@ package weave.visualization.tools
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.editors.Disability;
+	import weave.editors.AltTextEditor;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -99,7 +99,7 @@ package weave.visualization.tools
 		protected var layerListComponent:LayerListComponent;
 		protected var simpleAxisEditor:SimpleAxisEditor;
 		protected var windowSettingsEditor:WindowSettingsEditor;
-		public const disability : Disability = newLinkableChild(this, Disability); // for the disability panel.
+		public const altTextEditor:AltTextEditor = newLinkableChild(this, AltTextEditor);
 		
 		private var createdChildren:Boolean = false;
 		
@@ -154,13 +154,13 @@ package weave.visualization.tools
 			windowSettingsEditor = new WindowSettingsEditor();
 			windowSettingsEditor.target = this;
 			
-			disability.target = this as IAltText;
+			altTextEditor.target = this as IAltText;
 			
 			var options:Array = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
 			
 			if(this is IAltText)
 			{
-				options.push(disability);
+				options.push(altTextEditor);
 			}
 			
 			if (controlPanel)

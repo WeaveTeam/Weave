@@ -20,7 +20,7 @@ package disabilityDictionary
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.editors.Disability;
+	import weave.editors.AltTextEditor;
 
 	public class DisabilityMessageCategoryDictionary 
 	{

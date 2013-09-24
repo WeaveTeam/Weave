@@ -23,13 +23,10 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
-			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			   xmlns:userControls="weave.ui.userControls.*"
 			   layout="absolute"
 			   implements="weave.api.ui.IAltText">
 	<mx:Script>
 		<![CDATA[
-			import mx.effects.easing.Linear;
 			import mx.events.SliderEvent;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -650,7 +647,6 @@
 			
 			public function updateAltText():void
 			{
-				
 				var data:Array = ColumnUtils.joinColumns([plotter.dataX, plotter.dataY], Number);
 				// try linear regression
 				addAsyncResponder(
@@ -659,7 +655,6 @@
 					handleLinearRegressionFault,
 					++requestID
 				);
-				
 				return;
 			}
 			
@@ -685,7 +680,7 @@
 						temp += lang("The chart has a decreasing trend\n");	
 					}
 
-				disability.automaticDescription.value = temp;
+				altTextEditor.automaticDescription.value = temp;
 				getCallbackCollection(this).triggerCallbacks();
 			}
 			

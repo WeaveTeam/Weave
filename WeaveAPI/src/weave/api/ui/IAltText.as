@@ -2,7 +2,7 @@ package weave.api.ui
 {
 	
 	/**
-	 * An interface for disability alt text algorithms
+	 * An interface for alt text algorithms
 	 * 
 	 * @author fkamayou
 	 * 
