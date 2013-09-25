@@ -27,11 +27,18 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
-	<ui:Indent label="Server type" group="{indentGroup}">
+	<ui:Indent label="{lang('Server Type')}" group="{indentGroup}">
 		<ui:CustomComboBox id="dbmsCombo" change="{generate()}" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 	</ui:Indent>
-	<ui:IndentTextInput label="Server IP" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="Server Port" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
+	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="false" includeInLayout="false">
+		<mx:TextInput id="sqliteDBFile" change="{generate()}" width="130" />
+		<ui:HelpComponent id="sqliteDBHelp">
+			Please enter the canonical file path of the SQLite Database file.
+			You may copy and paste directly into this text input field.
+		</ui:HelpComponent>
+	</ui:Indent>
+	<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="{generate()}" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
+	<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="{generate()}" text="{ConnectionInfo.getDefaultPort(dbmsCombo.text)}" inputWidth="130" group="{indentGroup}"/>
 	<ui:Indent id="sqlDatabaseName" label="{dbmsCombo.text == ConnectionInfo.SQLSERVER ? 'Instance name' : 'Database name'}" group="{indentGroup}">
 		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
 		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}"/>
@@ -55,6 +62,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.compiler.StandardLib;
+			import weave.api.reportError;
 			import weave.services.beans.ConnectionInfo;
 			
 			[Bindable] public var indentGroup:Object = this;
@@ -88,7 +96,13 @@
 					callLater(generate, [true]);
 					return;
 				}
-				connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
+				
+				if( dbmsCombo.text == ConnectionInfo.SQLITE ) 
+					connectString = getConnectString(dbmsCombo.text, "", "", sqliteDBFile.text, "", "");
+				else
+					connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
+					
+				isSQLiteSelected( dbmsCombo.text == ConnectionInfo.SQLITE );
 				triggerCallbacks();
 			}
 			
@@ -122,6 +136,11 @@
 					dbms = "sqlserver"; // this will be put in the format string
 					format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4}";
 				}
+				else if (dbms == ConnectionInfo.SQLITE)
+				{
+					format = "jdbc:{0}:{2}";
+					// jdbc:sqlite:C:\\path\\to\\file.db
+				}
 				else if (dbms == ConnectionInfo.ORACLE)
 				{
 					format = "jdbc:{0}:thin:{3}/{4}@{1}:{2}";
@@ -144,6 +163,17 @@
 				var result:String = StandardLib.substitute(format, dbms.toLowerCase(), host, database, user, pass);
 				
 				return result;
+			}
+			
+			private function isSQLiteSelected( bool:Boolean ):void
+			{
+				sqliteIndent.visible = bool;		sqliteIndent.includeInLayout = bool;
+				ipInput.visible = !bool;			ipInput.includeInLayout = !bool;
+				portInput.visible = !bool;			portInput.includeInLayout = !bool;
+				sqlDatabaseName.visible = !bool;	sqlDatabaseName.includeInLayout = !bool;
+				databaseInput.visible = !bool;		databaseInput.includeInLayout = !bool;
+				userInput.visible = !bool;			userInput.includeInLayout = !bool;
+				passInput.visible = !bool;			passInput.includeInLayout = !bool;
 			}
 		]]>
 	</mx:Script>
