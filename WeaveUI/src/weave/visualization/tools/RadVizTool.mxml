@@ -321,7 +321,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function drawAnnuliCircles():void
+			public function drawAnnuliCircles():void
 			{
 				_plotter.drawProbe = false;
 				

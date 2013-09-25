@@ -590,7 +590,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.color.defaultValue, event.target, 'selectedColor')" />
 			</ui:Indent>
 
-			<ui:ColumnListComponent visTool="{_target}" id="poinstSensitivityColumnList" label="Point Sentivity Dimensions"/>
+			<ui:ColumnListComponent visTool="{_target}" id="poinstSensitivityColumnList" label="Point Sentivity Dimensions"
+									dataChange="_target.drawAnnuliCircles()"/>
 
 		</mx:VBox>
 	</mx:VBox>

@@ -368,6 +368,11 @@ package weave.visualization.plotters
 			var barycenter:Point = new Point();
 			var counter:int = 0;
 			var anchor:AnchorPoint;;
+			
+			// don't draw anything if there are no anchors.
+			if (!recordKeys || !recordKeys.length)
+				return;
+			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
@@ -408,6 +413,11 @@ package weave.visualization.plotters
 			var barycenter:Point = new Point();
 			
 			var anchor:AnchorPoint;
+			
+			// don't draw anything if there are no anchors.
+			if (!recordKeys || !recordKeys.length)
+				return;
+			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchor = anchors.getObject(key.localName) as AnchorPoint;

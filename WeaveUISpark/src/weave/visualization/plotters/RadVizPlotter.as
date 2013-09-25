@@ -86,7 +86,7 @@ package weave.visualization.plotters
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
 
-			pointSensitivityColumns.addGroupedCallback(this, handlePointSensitivityColumnsChange);
+			//pointSensitivityColumns.addGroupedCallback(this, handlePointSensitivityColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -243,10 +243,8 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 		}
-		private function handlePointSensitivityColumnsChange():void
-		{
-			
-		}
+		
+		
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
 		{
 			var anchorObjects:Array = anchors.getObjects(AnchorPoint);
@@ -629,6 +627,37 @@ package weave.visualization.plotters
 			
 			var graphics:Graphics = destination;
 			graphics.clear();
+			
+			if(filteredKeySet.keys.length == 0)
+				return;
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+			var _cols:Array = pointSensitivityColumns.getObjects();
+			
+			for each( var key:IQualifiedKey in keys)
+			{
+				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
+				if(key.keyType != requiredKeyType)
+				{
+					return;
+				}
+				getXYcoordinates(key);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+				
+				var value:Number;
+				for (var i:int = 0; i < _cols.length; i++)
+				{
+					var column:IAttributeColumn = _cols[i];
+					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					value = normArray ? normArray[i] : stats.getNorm(key);
+					
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.lineStyle(.5, 0xff0000);
+					graphics.drawCircle(coordinate.x, coordinate.y, 30);
+			
+					graphics.endFill();
+				}
+			}
 		}
 		
 		private function changeAlgorithm():void
