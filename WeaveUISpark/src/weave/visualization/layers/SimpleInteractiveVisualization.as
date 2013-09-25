@@ -357,9 +357,9 @@ package weave.visualization.layers
 			return null;
 		}
 		
-		override protected function handleMouseMove():void
+		override protected function handleThrottledMouseMove():void
 		{
-			super.handleMouseMove();
+			super.handleThrottledMouseMove();
 			
 			if (mouseIsRolledOver)
 			{

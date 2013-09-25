@@ -77,6 +77,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.StageUtils;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
@@ -436,6 +437,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleAddedToStage(event:Event):void
 			{
+				WeaveAPI.StageUtils.addEventCallback(StageUtils.THROTTLED_MOUSE_MOVE_EVENT, this, handleThrottledMouseMove);
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				stage.addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				parent.addEventListener(ResizeEvent.RESIZE, handleParentResize);
@@ -444,6 +446,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleRemovedFromStage(event:Event):void
 			{
+				WeaveAPI.StageUtils.removeEventCallback(StageUtils.THROTTLED_MOUSE_MOVE_EVENT, handleThrottledMouseMove);
 				stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				stage.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				parent.removeEventListener(ResizeEvent.RESIZE, handleParentResize);
@@ -1157,21 +1160,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (_dragging || _resizing)
 					event.stopImmediatePropagation();
 				
-				delayedHandleStageMouseMove();
+				handleThrottledMouseMove();
 			}
 			
-			private function delayedHandleStageMouseMove():void
+			private var _handlingMouseMoveLater:Boolean = false;
+			private function handleThrottledMouseMove():void
 			{
-				// don't do anything if this panel is not added to the stage.
-				if (!parent)
-					return;
-				
 				// delay this function while the mouse is still moving
 				if (WeaveAPI.StageUtils.mouseMoved)
 				{
-					callLater(delayedHandleStageMouseMove);
+					if (!_handlingMouseMoveLater)
+						WeaveAPI.StageUtils.callLater(this, handleThrottledMouseMove);
+					_handlingMouseMoveLater = true;
 					return;
 				}
+				
+				_handlingMouseMoveLater = false;
+				
+				// don't do anything if this panel is not added to the stage.
+				if (!parent)
+					return;
 				
 				if (!_enableMoveResize)
 					return;
