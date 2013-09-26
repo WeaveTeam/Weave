@@ -1163,20 +1163,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleThrottledMouseMove();
 			}
 			
-			private var _handlingMouseMoveLater:Boolean = false;
 			private function handleThrottledMouseMove():void
 			{
-				// delay this function while the mouse is still moving
-				if (WeaveAPI.StageUtils.mouseMoved)
-				{
-					if (!_handlingMouseMoveLater)
-						WeaveAPI.StageUtils.callLater(this, handleThrottledMouseMove);
-					_handlingMouseMoveLater = true;
-					return;
-				}
-				
-				_handlingMouseMoveLater = false;
-				
 				// don't do anything if this panel is not added to the stage.
 				if (!parent)
 					return;
@@ -1215,6 +1203,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						this.y = StandardLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
 						this.height = (_bottomSideBeforeTopResize - this.y);
 					}		
+					constrainAndSaveCoordinates();
 				}
 			}
 			private var _controlPanel:ControlPanel = null;

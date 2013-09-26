@@ -74,7 +74,6 @@ package weave.core
 		private var _altKey:Boolean = false; // returned by get altKey()
 		private var _ctrlKey:Boolean = false; // returned by get ctrlKey()
 		private var _mouseButtonDown:Boolean = false; // returned by get mouseButtonDown()
-		private var _mouseMoved:Boolean = false; // returned by get mouseMove()
 		private var _currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
 		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
 		private var _currentTaskStopTime:int = 0; // set on enterFrame, used by _iterateTask
@@ -85,7 +84,6 @@ package weave.core
 		private const _initializeTimer:Timer = new Timer(0, 1); // only used if initialize() is attempted before stage is accessible
 		private const _callbackCollections:Object = {}; // mapping from event type to the ICallbackCollection associated with it
 		private var _stage:Stage = null; // pointer to the Stage, null until initialize() succeeds
-		private const _lastMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for current frame
 		private const _lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
 		private const _lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
 		private var _nextThrottledMouseMoveTime:int = 0;
@@ -243,14 +241,6 @@ package weave.core
 		public function get pointClicked():Boolean
 		{
 			return _pointClicked;
-		}
-		
-		/**
-		 * @inheritDoc
-		 */
-		public function get mouseMoved():Boolean
-		{
-			return _mouseMoved;
 		}
 		
 		/**
@@ -683,18 +673,12 @@ package weave.core
 				var stageX:Number = _stage.mouseX;
 				var stageY:Number = _stage.mouseY;
 				
-				// check if mouse moved since last frame before resetting coords during enterFrame event
-				_mouseMoved = stageX != _lastMousePoint.x || stageY != _lastMousePoint.y;
-				
 				if (isEnterFrameEvent)
 				{
 					_previousFrameElapsedTime = _eventTime - _currentFrameStartTime;
 					_currentFrameStartTime = _eventTime;
 					if (maxComputationTimePerFrame == 0)
 						maxComputationTimePerFrame = 100;
-					// update mouse coordinates
-					_lastMousePoint.x = stageX;
-					_lastMousePoint.y = stageY;
 				}
 				
 				var keyboardEvent:KeyboardEvent = event as KeyboardEvent;
@@ -741,12 +725,16 @@ package weave.core
 
 				// handle mouse move events before triggering throttled mouse move callbacks
 				if (isMouseMoveEvent)
+				{
+					trace(eventType, stageX, stageY);
 					cc.triggerCallbacks();
+				}
 				
 				// trigger throttled mouse move BEFORE other non-move mouse events
 				// don't bother triggering throttled mouse move callbacks if the mouse hasn't moved
 				if (handleThrottledMouseMove && (stageX != _lastThrottledMousePoint.x || stageY != _lastThrottledMousePoint.y))
 				{
+					trace(THROTTLED_MOUSE_MOVE_EVENT, stageX, stageY);
 					tmmc.triggerCallbacks();
 					_lastThrottledMousePoint.x = stageX;
 					_lastThrottledMousePoint.y = stageY;
@@ -759,7 +747,11 @@ package weave.core
 				
 				// finally, trigger callbacks for non-mouse-move events
 				if (!isMouseMoveEvent)
+				{
+					if (mouseEvent)
+						trace(eventType, stageX, stageY);
 					cc.triggerCallbacks();
+				}
 				
 				// clear _event variable
 				_event = null;
