@@ -35,7 +35,7 @@
 			   visible="false" includeInLayout="false"
 			   click="_stateLog.enableLogging.value = recordButton.selected;"
 			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
-	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
+	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed, playButton.selected) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
@@ -146,9 +146,9 @@
 			private var _lastReplayTime:int = 0;
 			private var _maxStepDelay:int = 1000;
 			
-			private function getPlayLabel(playSpeed:uint):String
+			private function getPlayLabel(playSpeed:uint, active:Boolean):String
 			{
-				return playSpeed == 1 ? lang('Replay') : lang('Replay ({0}x)', playSpeed);
+				return playSpeed == 1 ? lang(active ? 'Replaying' : 'Replay') : lang(active ? 'Replaying ({0}x)' : 'Replay ({0}x)', playSpeed);
 			}
 			private function play(speed:int = 0):void
 			{
