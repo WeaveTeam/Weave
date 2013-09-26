@@ -725,16 +725,12 @@ package weave.core
 
 				// handle mouse move events before triggering throttled mouse move callbacks
 				if (isMouseMoveEvent)
-				{
-					trace(eventType, stageX, stageY);
 					cc.triggerCallbacks();
-				}
 				
 				// trigger throttled mouse move BEFORE other non-move mouse events
 				// don't bother triggering throttled mouse move callbacks if the mouse hasn't moved
 				if (handleThrottledMouseMove && (stageX != _lastThrottledMousePoint.x || stageY != _lastThrottledMousePoint.y))
 				{
-					trace(THROTTLED_MOUSE_MOVE_EVENT, stageX, stageY);
 					tmmc.triggerCallbacks();
 					_lastThrottledMousePoint.x = stageX;
 					_lastThrottledMousePoint.y = stageY;
@@ -747,11 +743,7 @@ package weave.core
 				
 				// finally, trigger callbacks for non-mouse-move events
 				if (!isMouseMoveEvent)
-				{
-					if (mouseEvent)
-						trace(eventType, stageX, stageY);
 					cc.triggerCallbacks();
-				}
 				
 				// clear _event variable
 				_event = null;
