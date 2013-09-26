@@ -29,7 +29,7 @@
 		 click="handleAnyClick();"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
+	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
 	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
 			   visible="false" includeInLayout="false"
