@@ -717,7 +717,7 @@
 				<ui:Indent>
 					<mx:HBox>
 						<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
-									 id="trendlineComboBox" dataProvider="{regressionPlotter.trendlines}"
+									 id="trendlineComboBox" dataProvider="{RegressionLinePlotter.trendlines}"
 									 creationComplete="linkBindableProperty(regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
 						<mx:Label text = "{lang('Degree')}" />
 						<mx:HSlider id=	"polynomialDegreeSlider"

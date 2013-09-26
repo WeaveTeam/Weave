@@ -511,7 +511,15 @@
 			private function sortNodeBy():void
 			{
 				nodeBase.sortLabel.text = "Sort: "+nodeBase.sortSubMenu.selectedItem.label;
-				previousQuery.sortBy.value = nodeBase.sortSubMenu.selectedItem.label;
+				if(nodeBase.sortSubMenu.selectedItem.label == "New Documents")
+				{
+					showNewDocumentsOnTop.value = true;					
+				}
+				else
+				{
+					showNewDocumentsOnTop.value = false;
+					previousQuery.sortBy.value = nodeBase.sortSubMenu.selectedItem.label;
+				}
 			}
 			
 			
@@ -2609,10 +2617,12 @@
 				if(showNewDocumentsOnTop.value)
 				{
 					sortNewDocumentsToTop();
+					nodeBase.sortLabel.text = "Sort: " + "New Documents";
 				}
 				else
 				{
 					sortByNameOrder();
+					nodeBase.sortLabel.text = "Sort: " + previousQuery.sortBy.value;
 				}
 			}
 			private function sortBy(option:String):void

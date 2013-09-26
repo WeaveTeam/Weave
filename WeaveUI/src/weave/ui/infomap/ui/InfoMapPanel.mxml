@@ -43,9 +43,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import com.as3xls.cdf.Directory;
-			
-			import weave.data.DataSources.GoogleSearchDataSource;
-			
 			import com.cartogrammar.drawing.DashedLine;
 			
 			import mx.binding.utils.BindingUtils;
@@ -107,6 +104,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.GoogleSearchDataSource;
 			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.data.KeySets.KeyFilter;
@@ -439,7 +437,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _refColsCount:int = 0;
 			private function handleGetParents(event:ResultEvent,token:Object=null):void
 			{
-				var parents:Array = (event.result as ArrayCollection).source;
+				var parents:Array = event.result as Array;
 				/* We use this count to keep track of when all the parents' children have been iterated */
 				_parentCount += parents.length;
 				_totalParents += _parentCount;
@@ -547,6 +545,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if(_entityColumnList == null)
 					{
 						_entityColumnList = PopUpManager.createPopUp(this,EntityColumnsList,true) as EntityColumnsList;					
+					}
+					if(_entityColumnList.parent == null)//if it Popup.remove was called on this object, add it again
+					{
+						PopUpManager.addPopUp(_entityColumnList,this,true);
 					}
 					_entityColumnList.entityColumnsHashmap = entityColumnsHashmap;
 					_entityColumnList.continueButton.addEventListener(MouseEvent.CLICK,handleContinueButtonClick);

@@ -534,6 +534,22 @@ package weave.compiler
 		}
 		
 		/**
+		 * This will return the type of item found in the Array if each item has the same type.
+		 * @param a An Array to check.
+		 * @return The type of all items in the Array, or null if the types differ. 
+		 */
+		public static function getArrayType(a:Array):Class
+		{
+			if (a.length == 0 || a[0] == null)
+				return null;
+			var type:Class = Object(a[0]).constructor;
+			for each (var item:Object in a)
+				if (item == null || item.constructor != type)
+					return null;
+			return type;
+		}
+		
+		/**
 		 * This will perform a log transformation on a normalized value to produce another normalized value.
 		 * @param normValue A number between 0 and 1.
 		 * @param factor The log factor to use.

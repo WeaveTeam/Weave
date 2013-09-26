@@ -133,7 +133,7 @@ public final class SolrScheduler extends HttpServlet{
 //				
 //				
 //				sched.scheduleJob(indexingJob, triggerIndexingJob);
-//				sched.start();
+				sched.start();
 				
 				String enableThumbnail = prop.getProperty("enableThumbnailing");
 				
@@ -183,7 +183,6 @@ public final class SolrScheduler extends HttpServlet{
 							.repeatForever())            
 							.build();
 					
-					sched.start();
 					sched.scheduleJob(rssFeedsJob, trigger);
 				}
 				

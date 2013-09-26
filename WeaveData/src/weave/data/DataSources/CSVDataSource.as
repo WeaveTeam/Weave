@@ -75,6 +75,25 @@ package weave.data.DataSources
 		{
 		}
 
+		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
+		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
+		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
+		/**
+		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
+		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
+		 */		
+		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
+		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
+		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
+		private var _servlet:AMF3Servlet = null;
+		private function verifyServletParams(value:Object):Boolean
+		{
+			return value != null
+				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_METHOD)
+				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_PARAMS);
+		}
+		
 		private const asyncParser:CSVParser = registerLinkableChild(this, new CSVParser(true), handleCSVParser);
 		/**
 		 * Called when csv parser finishes its task
@@ -93,7 +112,6 @@ package weave.data.DataSources
 			}
 		}
 		
-		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
 		/**
 		 * Called when csvData session state changes
 		 */		
@@ -108,9 +126,6 @@ package weave.data.DataSources
 				this.parsedRows = rows;
 			}
 		}
-		
-		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
-		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
 		
 		/**
 		 * Contains the csv data that should be used elsewhere in the code
@@ -277,21 +292,6 @@ package weave.data.DataSources
 		{
 			// make sure csv data is set before column requests are handled.
 			return super.initializationComplete && parsedRows is Array;
-		}
-		
-		/**
-		 * Session state of servletParams must be an object with two properties: 'method' and 'params'
-		 * If this is set, it assumes that url.value points to a Weave AMF3Servlet and the servlet method returns a table of data.
-		 */		
-		public const servletParams:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyServletParams));
-		public static const SERVLETPARAMS_PROPERTY_METHOD:String = 'method';
-		public static const SERVLETPARAMS_PROPERTY_PARAMS:String = 'params';
-		private var _servlet:AMF3Servlet = null;
-		private function verifyServletParams(value:Object):Boolean
-		{
-			return value != null
-				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_METHOD)
-				&& value.hasOwnProperty(SERVLETPARAMS_PROPERTY_PARAMS);
 		}
 		
 		/**

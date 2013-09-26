@@ -432,6 +432,7 @@ public class GenerateThumbnailJob implements Job{
 		}catch(Exception e)
 		{
 			System.out.println("Error Copying temp image file");
+			System.out.println("filepathe: " + filePath + "pdffile: " + pdf.getAbsolutePath());
 			e.printStackTrace();
 			success = false;
 		}

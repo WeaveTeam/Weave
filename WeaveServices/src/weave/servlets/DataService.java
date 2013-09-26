@@ -189,7 +189,9 @@ public class DataService extends GenericServlet
 	{
 		DataEntityMetadata dem = new DataEntityMetadata();
 		dem.publicMetadata = publicMetadata;
-		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		Arrays.sort(ids);
+		return ids;
 	}
 
 	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
@@ -210,9 +212,11 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	public Collection<Integer> getParents(int childId) throws RemoteException
+	public int[] getParents(int childId) throws RemoteException
 	{
-		return getDataConfig().getParentIds(Arrays.asList(childId));
+		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
+		Arrays.sort(ids);
+		return ids;
 	}
 	
 	////////////
@@ -932,8 +936,9 @@ public class DataService extends GenericServlet
 		
 		// return first column
 		int id = ListUtils.getFirstSortedItem(ids, DataConfig.NULL);
-		double min = (Double)cast(minStr, double.class);
-		double max = (Double)cast(maxStr, double.class);
+		double min = Double.NaN, max = Double.NaN;
+		try { min = (Double)cast(minStr, double.class); } catch (Throwable t) { }
+		try { max = (Double)cast(maxStr, double.class); } catch (Throwable t) { }
 		String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
 		return getColumn(id, min, max, sqlParams);
 	}
