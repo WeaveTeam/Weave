@@ -9,6 +9,7 @@ package weave.services.wms
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -54,7 +55,7 @@ package weave.services.wms
 			return coords && coords.length == 4 && StandardLib.getArrayType(coords) == Number;
 		}
 		
-		public const wmsURL:LinkableString = registerLinkableChild(this,new LinkableString(),getImageAttributes);
+		public const wmsURL:LinkableString = registerLinkableChild(this,new LinkableString("http://tile.openstreetmap.org/{z}/{x}/{y}.png"),getImageAttributes);
 		public const tileProjectionSRS:LinkableString = registerLinkableChild(this,new LinkableString("EPSG:3857"));
 		public const maxZoom:LinkableNumber = registerLinkableChild(this,new LinkableNumber(18));
 		
@@ -73,36 +74,44 @@ package weave.services.wms
 		
 		private function getImageAttributes():void
 		{
-			if(!wmsURL.value)
+			if (!wmsURL.value)
 				return;
 			
-			//http://tiles.domain.com/layer/{z}/{x}/{y}.png
-			getAllowedBounds(_tempDataBounds);
-			_tempScreenBounds.setBounds(0, 0, 256, 256);
-			
-			var basicReq:String = getTileUrl(new Coordinate(0,0,0), _tempDataBounds, _tempScreenBounds);
-			var instance:CustomWMS = this;
-			WeaveAPI.URLRequestUtils.getContent(
-				this,
-				new URLRequest(basicReq),
-				function(event:ResultEvent,token:Object=null):void
-				{
-					_imageWidth = (event.result as Bitmap).width;
-					_imageHeight = (event.result as Bitmap).height;
-					imageAttributesSet = true;
-					getCallbackCollection(instance).triggerCallbacks();
-				},
-				function(event:FaultEvent,token:Object=null):void
-				{
-					//setting defaults values of 256 if there is an error in the request
-					_imageWidth = 256;
-					_imageHeight = 256;
-					imageAttributesSet = true;
-					getCallbackCollection(instance).triggerCallbacks();
-				}
+			var callbacks:ICallbackCollection = getCallbackCollection(this);
+			if (tileUrlContainsXYZ())
+			{
+				getAllowedBounds(_tempDataBounds);
+				_tempScreenBounds.setBounds(0, 0, 256, 256);
 				
-			)
-		
+				var basicReq:String = getTileUrl(new Coordinate(0,0,0), _tempDataBounds, _tempScreenBounds);
+				WeaveAPI.URLRequestUtils.getContent(
+					this,
+					new URLRequest(basicReq),
+					getImageWidthHeight,
+					setDefaults
+				)
+			}
+			else
+			{
+				setDefaults();
+			}
+			
+			function getImageWidthHeight(event:ResultEvent, token:Object = null):void
+			{
+				_imageWidth = (event.result as Bitmap).width;
+				_imageHeight = (event.result as Bitmap).height;
+				imageAttributesSet = true;
+				callbacks.triggerCallbacks();
+			}
+			function setDefaults(event:FaultEvent = null, token:Object = null):void
+			{
+				//setting defaults values of 256 if there is an error in the request
+				_imageWidth = 256;
+				_imageHeight = 256;
+				imageAttributesSet = true;
+				if (event)
+					callbacks.triggerCallbacks();
+			}
 		}
 		
 		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array
@@ -129,12 +138,9 @@ package weave.services.wms
 				}
 			}
 			
-			// now determine the data bounds we need to covert in lat/lon
+			// calculate min and max tile x and y for the dataBounds
 			_tempDataBounds.copyFrom(dataBounds);
 			_tempAllowedBounds.constrainBounds(_tempDataBounds, false);
-			WeaveAPI.ProjectionManager.transformBounds(tileProjectionSRS.value, "EPSG:4326", _tempDataBounds);
-			
-			// calculate min and max tile x and y for the zoom level
 			dataBoundsToTileXY(_tempDataBounds, zoomScale);
 			
 			// if the tile range is unreasonable, cut it down to a more reasonable range
@@ -221,6 +227,8 @@ package weave.services.wms
 			inputAndOutput.makeSizePositive();
 			if (tileProjectionSRS.value == 'EPSG:3857')
 			{
+				WeaveAPI.ProjectionManager.transformBounds("EPSG:3857", "EPSG:4326", _tempDataBounds);
+
 				inputAndOutput.xMin = zoomScale * (inputAndOutput.xMin + 180) / 360.0; 
 				inputAndOutput.xMax = zoomScale * (inputAndOutput.xMax + 180) / 360.0; 
 				
@@ -326,9 +334,14 @@ package weave.services.wms
 				_tempCoord.z = higherQualZoomLevel;
 		}
 		
+		private function tileUrlContainsXYZ():Boolean
+		{
+			return wmsURL.value && wmsURL.value.search(/\{[xyz]\}/) >= 0;
+		}
+		
 		private function getTileUrl(coord:Coordinate, data:IBounds2D, screen:IBounds2D):String
 		{
-			if (!wmsURL || !wmsURL.value)
+			if (!wmsURL.value)
 				return null;
 			
 			return StandardLib.replace(wmsURL.value, 
@@ -336,7 +349,7 @@ package weave.services.wms
 				'{y}', String(coord.y),
 				'{z}', String(coord.z),
 				'{bbox}', [data.getXMin(), data.getYMin(), data.getXMax(), data.getYMax()].join(','),
-				'{size}', [screen.getXCoverage(), screen.getYCoverage()].join(',')
+				'{size}', [Math.round(screen.getXCoverage()), Math.round(screen.getYCoverage())].join(',')
 			);
 		}
 		
