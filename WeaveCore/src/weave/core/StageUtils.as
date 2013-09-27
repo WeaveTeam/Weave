@@ -86,7 +86,8 @@ package weave.core
 		private var _stage:Stage = null; // pointer to the Stage, null until initialize() succeeds
 		private const _lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
 		private const _lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
-		private var _nextThrottledMouseMoveTime:int = 0;
+		private var _triggeredThrottledMouseThisFrame:Boolean = false; // set to false on enterFrame, set to true on throttled mouse move
+		private var _nextThrottledMouseMoveTime:int = 0; // time threshold before triggering throttled mouse move again
 
 		
 		/**
@@ -677,6 +678,8 @@ package weave.core
 				{
 					_previousFrameElapsedTime = _eventTime - _currentFrameStartTime;
 					_currentFrameStartTime = _eventTime;
+					_triggeredThrottledMouseThisFrame = false;
+					// sanity check
 					if (maxComputationTimePerFrame == 0)
 						maxComputationTimePerFrame = 100;
 				}
@@ -714,12 +717,18 @@ package weave.core
 					if (isClickEvent)
 						_pointClicked = mouseEvent.stageX == _lastMouseDownPoint.x && mouseEvent.stageY == _lastMouseDownPoint.y;
 					
-					if (!isMouseMoveEvent || _eventTime >= _nextThrottledMouseMoveTime)
+					// Always handle throttled mouse move prior to a non-move mouse event so throttled
+					// mouse callbacks know about the movement before the other mouse event callbacks.
+					// Also, handle throttled mouse move on a move event if at least one frame and enough
+					// time has passed since the previous throttled mouse move.
+					if (!isMouseMoveEvent || (!_triggeredThrottledMouseThisFrame && _eventTime >= _nextThrottledMouseMoveTime))
 						handleThrottledMouseMove = true;
 				}
 				else // not a mouse event
 				{
-					if (_eventTime >= _nextThrottledMouseMoveTime)
+					// Handle throttled mouse move on a non-mouse event if at least one frame and enough
+					// time has passed since the previous throttled mouse move.
+					if (!_triggeredThrottledMouseThisFrame && _eventTime >= _nextThrottledMouseMoveTime)
 						handleThrottledMouseMove = true;
 				}
 
@@ -727,10 +736,11 @@ package weave.core
 				if (isMouseMoveEvent)
 					cc.triggerCallbacks();
 				
-				// trigger throttled mouse move BEFORE other non-move mouse events
-				// don't bother triggering throttled mouse move callbacks if the mouse hasn't moved
+				// Handle throttled mouse move after regular mouse move, before other non-move mouse events.
+				// Don't trigger throttled mouse move callbacks if the mouse hasn't moved.
 				if (handleThrottledMouseMove && (stageX != _lastThrottledMousePoint.x || stageY != _lastThrottledMousePoint.y))
 				{
+					_triggeredThrottledMouseThisFrame = true;
 					tmmc.triggerCallbacks();
 					_lastThrottledMousePoint.x = stageX;
 					_lastThrottledMousePoint.y = stageY;
