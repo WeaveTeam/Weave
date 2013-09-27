@@ -1,68 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.editors.*" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:HBox id="wmsPlotterControls" width="100%" horizontalAlign="center" paddingTop="3" verticalAlign="middle">
-		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
-			<mx:CheckBox id="wmsPreferLowerQuality"
-						 selected="false"
-						 label="{lang('Prefer Lower Quality')}"
-						 labelPlacement="right" 
-						 toolTip="{'Check this box to download lower quality images from the WMS service. This option may be '
-						 + 'preferred when using the OpenStreetMap service.'}"
-						 creationComplete="linkBindableProperty(_plotter.preferLowerQuality,event.target,'selected')"/>
-			<mx:CheckBox id="wmsDisplayMissing"
-						 selected="true"
-						 label="{lang('Show Failed Downloads')}"
-						 labelPlacement="right" 
-						 toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
-						 + 'the plotter will fill missing images with lower quality images which cover the same area.'}"
-						 creationComplete="linkBindableProperty(_plotter.displayMissingImage,event.target,'selected')"/>
-			<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
-				<mx:Label text="{lang('Service:')}"/>
-				<!-- for each provider's name, append '(SRS_CODE)' to the end -->
-				<ui:CustomComboBox editable="false" id="wmsLayerService"
-								prompt="{lang('Select a service')}"
-								dataProvider="{WMSProviders.providers}"
-								width="200"
-								toolTip="{lang('Select the WMS provider to use.')}" 
-								creationComplete="setWMSLayerServiceOnPlotterChange()"
-								change="handleWMSProviderChange()"/>
-			</mx:HBox>
-			<mx:Box id="customWMSSettings" visible="false" width="100%" height="100%" includeInLayout="false">
-				<ui:IndentTextInput id="wmsURLText" label="URL:"/>
-				<ui:IndentTextInput id="projSRSText" label="Projection SRS:"/>
-				<ui:IndentTextInput id="maxZoomText" label="Maximum Zoom:"/>
-				<ui:IndentTextInput id="creditInfoText" label="Copyright text:"/>
-			</mx:Box>
+	<ui:Indent group="{this}" label="{lang('Service:')}">
+		<ui:CustomComboBox editable="false" id="wmsLayerService"
+						prompt="{lang('Select a service')}"
+						dataProvider="{WMSProviders.providers}"
+						creationComplete="setWMSLayerServiceOnPlotterChange()"
+						change="handleWMSProviderChange()"/>
+	</ui:Indent>
+	<ui:Indent group="{this}" label="{lang('Month:')}" id="monthSetting">
+		<ui:CustomComboBox id="requestStyles" editable="false" 
+						dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}"
+						change="handleStyleInputChange()"
+						toolTip="{lang('Enter the month of the NASA images.')}"/>
+	</ui:Indent>
+	<mx:Box id="customWMSSettings" visible="false" width="100%">
+		<ui:Indent group="{this}" label="{lang('URL:')}">
+			<ui:TextInputWithPrompt id="wmsURLText" width="100%"/>
+			<ui:HelpComponent>
+				Enter a URL with placeholders for tile parameters.
+				The following placeholders may be used: \{z} \{y} \{x} \{bbox} \{size}
+				Example url: http://tile.openstreetmap.org/\{z}/\{x}/\{y}.png
+			</ui:HelpComponent>
+		</ui:Indent>
+		<ui:IndentTextInput group="{this}" id="projSRSText" label="{lang('Projection SRS:')}"/>
+		<ui:IndentTextInput group="{this}" id="maxZoomText" label="{lang('Maximum Zoom:')}"/>
+		<ui:IndentTextInput group="{this}" id="creditInfoText" label="{lang('Copyright text:')}"/>
+	</mx:Box>
+	<ui:Indent group="{this}">
+		<mx:VBox>
+			<mx:CheckBox label="{lang('Prefer Lower Quality')}"
+						 creationComplete="linkBindableProperty(_plotter.preferLowerQuality, event.target, 'selected')"/>
+			<mx:CheckBox label="{lang('Show Failed Downloads')}"
+						 creationComplete="linkBindableProperty(_plotter.displayMissingImage, event.target, 'selected')"/>
 		</mx:VBox>
-		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
-			<mx:HBox width="100%" horizontalAlign="center">
-				<mx:Label text="{lang('Month:')}"/>
-				<ui:CustomComboBox enabled="{(wmsLayerService.selectedItem as String) == WMSProviders.NASA}" visible="{enabled == true}" editable="false" 
-								dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
-								change="handleStyleInputChange()" id="requestStyles" width="80" 
-								toolTip="{lang('Enter the month of the NASA images.')}"/>
-			</mx:HBox>
-		</mx:VBox>
-	</mx:HBox>
+	</ui:Indent>
 	
 	<mx:Script>
 		<![CDATA[
-			import com.modestmaps.mapproviders.BlueMarbleMapProvider;
-			import com.modestmaps.mapproviders.IMapProvider;
-			import com.modestmaps.mapproviders.OpenStreetMapProvider;
-			
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.registerLinkableChild;
-			import weave.api.services.IWMSService;
 			import weave.api.unlinkBindableProperty;
-			import weave.core.LinkableNumber;
-			import weave.core.LinkableString;
 			import weave.services.wms.CustomWMS;
-			import weave.services.wms.OpenMapQuestAerialProvider;
-			import weave.services.wms.OpenMapQuestProvider;
-			import weave.services.wms.StamenProvider;
+			import weave.services.wms.OnEarthProvider;
 			import weave.services.wms.WMSProviders;
 			import weave.visualization.plotters.WMSPlotter;
 			
@@ -84,7 +64,6 @@
 				super.childrenCreated();
 				setWMSLayerServiceOnPlotterChange();
 				handleWMSProviderChange();
-				wmsURLText.toolTip =  "Enclose z,y,x in curly braces as shown in this sample URL: http://tile.openstreetmap.org/{z}/{y}/{x}.png\n{bbox} and {size} are also supported";
 			}
 			
 			private function handleStyleInputChange():void
@@ -144,6 +123,10 @@
 					customWMSSettings.includeInLayout = false;								
 					customWMSSettings.visible = false;
 				}
+				
+				monthSetting.visible =
+					monthSetting.includeInLayout =
+						(_plotter.service.internalObject is OnEarthProvider)
 			}
 		]]>
 	</mx:Script>
