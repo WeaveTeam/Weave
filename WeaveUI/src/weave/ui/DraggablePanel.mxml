@@ -58,6 +58,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.ResizeEvent;
+			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -551,7 +552,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function constrainAndSaveCoordinates():void
 			{
 				// don't copy coordinates while tool is minimized or maximized
-				if (!parent || minimized.value || maximized.value)
+				if (!parent || minimized.value || maximized.value || parent is ISystemManager)
 					return;
 				
 				// init local vars
@@ -992,25 +993,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _mouseRolledOver:Boolean = false;
 			private function handleMouseRollOver(event:MouseEvent):void
 			{
-				if (!parent)
-					return;
-				
-				DraggablePanel.activePanel = this;
 				_mouseRolledOver = true;
+				DraggablePanel.activePanel = this;
+				
+				if (_resizing)
+					event.stopImmediatePropagation();
 			}
 			private function handleMouseRollOut(event:MouseEvent):void
 			{
 				_mouseRolledOver = false;
-				
-				if (!parent)
-					return;
 				DraggablePanel.activePanel = null;
-				
-				if (_enableMoveResize && !_resizing)
-					CustomCursorManager.removeCursor(draggablePanelCursorID);
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
+				else
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
 			}
 			
 			public function sendWindowToForeground():void
@@ -1603,6 +1600,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function dispose():void
 			{
+				CustomCursorManager.removeCursor(draggablePanelCursorID);
+				
 				if (minimizedComponentVersion)
 					VisTaskbar.instance.removeMinimizedComponent(minimizedComponentVersion);
 				minimizedComponentVersion = null;
