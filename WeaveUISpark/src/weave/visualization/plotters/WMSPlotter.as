@@ -52,6 +52,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.primitives.Bounds2D;
+	import weave.services.wms.AbstractWMS;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;
@@ -72,6 +73,8 @@ package weave.visualization.plotters
 	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
 		// TODO: move the image reprojection code elsewhere
+		
+		public var debug:Boolean = false;
 		
 		public function WMSPlotter()
 		{
@@ -94,38 +97,39 @@ package weave.visualization.plotters
 		
 		public function get providerName():String
 		{
-			if(service.internalObject == null)
-				return null;
-			var provider:* = (service.internalObject as IWMSService).getProvider();
+			if (_service is ModestMapsWMS)
+				return (_service as ModestMapsWMS).providerName.value;
 			
-			if(provider is String)
+			if (_service is BlueMarbleMapProvider)
+				return WMSProviders.BLUE_MARBLE_MAP;
+			
+			if (_service is OnEarthProvider)
+				return WMSProviders.NASA;
+			
+			if (_service is OpenStreetMapProvider)
+				return WMSProviders.OPEN_STREET_MAP;
+			
+			if (_service is OpenMapQuestProvider)
+				return WMSProviders.MAPQUEST;
+			
+			if (_service is OpenMapQuestAerialProvider)
+				return WMSProviders.MAPQUEST_AERIAL;
+			
+			if (_service is StamenProvider)
 			{
-				return provider as String;
-			}else
-			{
-				if(provider is BlueMarbleMapProvider)
-					return WMSProviders.BLUE_MARBLE_MAP;
-				else if(provider is OnEarthProvider)
-					return WMSProviders.NASA;
-				else if(provider is OpenStreetMapProvider)
-					return WMSProviders.OPEN_STREET_MAP;
-				else if(provider is OpenMapQuestProvider)
-					return WMSProviders.MAPQUEST;
-				else if(provider is OpenMapQuestAerialProvider)
-					return WMSProviders.MAPQUEST_AERIAL;
-				else if(provider is StamenProvider)
-				{
-					var stamenProvider:StamenProvider = provider as StamenProvider;
-					if(stamenProvider.style == StamenProvider.STYLE_TERRAIN)
-						return WMSProviders.STAMEN_TERRAIN;
-					if(stamenProvider.style == StamenProvider.STYLE_TONER)
-						return WMSProviders.STAMEN_TONER;
-					if(stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
-						return WMSProviders.STAMEN_WATERCOLOR;
-				}
-				else if(provider is CustomWMS)
-					return WMSProviders.CUSTOM_MAP;
+				var stamenProvider:StamenProvider = _service as StamenProvider;
+				if (stamenProvider.style == StamenProvider.STYLE_TERRAIN)
+					return WMSProviders.STAMEN_TERRAIN;
+				
+				if (stamenProvider.style == StamenProvider.STYLE_TONER)
+					return WMSProviders.STAMEN_TONER;
+				
+				if (stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
+					return WMSProviders.STAMEN_WATERCOLOR;
 			}
+			
+			if (_service is CustomWMS)
+				return WMSProviders.CUSTOM_MAP;
 			
 			return null;
 		}
@@ -329,6 +333,9 @@ package weave.visualization.plotters
 				
 				var colorTransform:ColorTransform = (tile.bitmapData == _missingImage.bitmapData ? _missingImageColorTransform : null);
 				destination.draw(projShape.shape, _tempMatrix, colorTransform, null, null, preferLowerQuality.value && !colorTransform);				
+				
+				if (debug)
+					debugTileBounds(projShape.bounds, dataBounds, screenBounds, destination);
 			}
 			drawCreditText(destination);
 		}
@@ -389,8 +396,18 @@ package weave.visualization.plotters
 				
 				var colorTransform:ColorTransform = (imageBitmap == _missingImage.bitmapData ? _missingImageColorTransform : null);
 				destination.draw(imageBitmap, _tempMatrix, colorTransform, null, _clipRectangle, preferLowerQuality.value && !colorTransform);				
+				
+				if (debug)
+					debugTileBounds(imageBounds, dataBounds, screenBounds, destination);
 			}
 			drawCreditText(destination);
+		}
+		
+		private function debugTileBounds(tileBounds:IBounds2D, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			_tempScreenBounds.copyFrom(tileBounds);
+			dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
+			destination.fillRect(_tempScreenBounds.getRectangle(), Math.random() * 0xFFFFFFFF);
 		}
 		
 		private const _textField:TextField = new TextField(); // reusable object
@@ -418,19 +435,19 @@ package weave.visualization.plotters
 			{
 				service.requestLocalObject(OnEarthProvider,false);
 			}
-			else if(provider == WMSProviders.CUSTOM_MAP)
+			else if (provider == WMSProviders.CUSTOM_MAP)
 			{
 				service.requestLocalObject(CustomWMS,false);
 			}
 			else
 			{
 				service.requestLocalObject(ModestMapsWMS,false);
-				_service.setProvider(provider);
+				(_service as ModestMapsWMS).providerName.value = provider;
 			}
 			
 			// determine maximum bounds for reprojecting images
 			_allowedTileReprojBounds.copyFrom(_latLonBounds);
-			projManager.transformBounds("EPSG:4326", WMSProviders.getSRS(provider), _allowedTileReprojBounds);
+			projManager.transformBounds("EPSG:4326", _service.getProjectionSRS(), _allowedTileReprojBounds);
 			spatialCallbacks.triggerCallbacks();
 		}
 		
