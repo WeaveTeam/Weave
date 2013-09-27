@@ -112,7 +112,7 @@
 					
 					_customWMS = _plotter.service.internalObject as CustomWMS;
 					
-					linkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
+					linkBindableProperty(_customWMS.wmsURL,wmsURLText,"text", 500);
 					linkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
 					linkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
 					linkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");

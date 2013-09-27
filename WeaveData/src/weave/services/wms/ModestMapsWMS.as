@@ -274,7 +274,7 @@ package weave.services.wms
 			// very few providers have a zoom of 0, so the loop starts at 1 to prevent enforcement later
 			for (var i:int = 1; i <= maxZoom; ++i) // 20 is max provided in ModestMaps Library
 			{
-				numTiles = Math.pow(2, 2 * i); // 2^(2n) tiles at zoom level n
+				numTiles = Math.pow(4, i); // 4^n tiles at zoom level n
 				tileArea = worldArea / numTiles;
 				tempPrecision = tileArea / imageArea;
 				if (tempPrecision < requestedPrecision)
@@ -286,8 +286,8 @@ package weave.services.wms
 			}
 			
 			// compare the two qualities--the closer one is the one we want.
-			var higherPrecision:Number = (worldArea / Math.pow(2, 2 * higherQualZoomLevel)) / imageArea;
-			var lowerPrecision:Number = (worldArea / Math.pow(2, 2 * lowerQualZoomLevel)) / imageArea;
+			var higherPrecision:Number = (worldArea / Math.pow(4, higherQualZoomLevel)) / imageArea;
+			var lowerPrecision:Number = (worldArea / Math.pow(4, lowerQualZoomLevel)) / imageArea;
 			if ((lowerPrecision - requestedPrecision) < (requestedPrecision - higherPrecision))
 				_tempCoord.zoom = lowerQualZoomLevel;
 			else
@@ -350,7 +350,7 @@ package weave.services.wms
 		 * 	
 		 * @param tile The tile whose bitmap will be downloaded.
 		 */
-		public function downloadImage(tile:WMSTile):void
+		private function downloadImage(tile:WMSTile):void
 		{
 			tile.downloadImage(handleImageDownload, handleImageDownloadFault, tile);
 		}

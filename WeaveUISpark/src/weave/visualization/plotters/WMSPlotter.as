@@ -20,7 +20,6 @@
 package weave.visualization.plotters
 {
 	import com.modestmaps.mapproviders.BlueMarbleMapProvider;
-	import com.modestmaps.mapproviders.IMapProvider;
 	import com.modestmaps.mapproviders.OpenStreetMapProvider;
 	
 	import flash.display.Bitmap;
@@ -33,7 +32,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
-	import flash.utils.Dictionary;
 	
 	import org.openscales.proj4as.ProjConstants;
 	
@@ -42,7 +40,6 @@ package weave.visualization.plotters
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
-	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -51,9 +48,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.primitives.Bounds2D;
-	import weave.services.wms.AbstractWMS;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;

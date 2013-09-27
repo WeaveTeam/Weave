@@ -9,7 +9,6 @@ package weave.services.wms
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -21,6 +20,7 @@ package weave.services.wms
 	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
 	import weave.utils.AsyncSort;
+	import weave.utils.ZoomUtils;
 
 	public class CustomWMS extends AbstractWMS
 	{
@@ -47,6 +47,19 @@ package weave.services.wms
 				ProjectionManager.getMercatorTileBoundsInLatLong(output);
 				WeaveAPI.ProjectionManager.transformBounds("EPSG:4326", tileProjectionSRS.value, output);
 			}
+			
+			output.makeSizePositive();
+		}
+		
+		/**
+		 * This gets the data bounds of the base tile image at zoom level zero
+		 * @param output
+		 */		
+		private function getBaseTileDataBounds(output:IBounds2D):void
+		{
+			getAllowedBounds(_tempFullDataBounds);
+			_tempBounds.setBounds(0, 0, _imageWidth, _imageHeight);
+			ZoomUtils.conformDataBoundsToAspectRatio(_tempFullDataBounds, _tempBounds, 1);
 		}
 		
 		public const tileBounds:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyTileBoundsArray));
@@ -57,14 +70,13 @@ package weave.services.wms
 		
 		public const wmsURL:LinkableString = registerLinkableChild(this,new LinkableString("http://tile.openstreetmap.org/{z}/{x}/{y}.png"),getImageAttributes);
 		public const tileProjectionSRS:LinkableString = registerLinkableChild(this,new LinkableString("EPSG:3857"));
-		public const maxZoom:LinkableNumber = registerLinkableChild(this,new LinkableNumber(18));
+		public const maxZoom:LinkableNumber = registerLinkableChild(this,new LinkableNumber(20));
 		
 		// reusable objects
 		private const _tempCoord:Coordinate = new Coordinate(0,0,0); 
 		private const _tempBounds:Bounds2D = new Bounds2D();
-		private const _tempAllowedBounds:Bounds2D = new Bounds2D(); 
+		private const _tempFullDataBounds:Bounds2D = new Bounds2D(); 
 		private const _tempDataBounds:Bounds2D = new Bounds2D(); 
-		private const _tempScreenBounds:Bounds2D = new Bounds2D();
 		
 		private var _imageHeight:Number = NaN;
 		private var _imageWidth:Number = NaN;
@@ -77,40 +89,40 @@ package weave.services.wms
 			if (!wmsURL.value)
 				return;
 			
-			var callbacks:ICallbackCollection = getCallbackCollection(this);
+			_imageWidth = 256;
+			_imageHeight = 256;
 			if (tileUrlContainsXYZ())
 			{
-				getAllowedBounds(_tempDataBounds);
-				_tempScreenBounds.setBounds(0, 0, 256, 256);
+				imageAttributesSet = false;
 				
-				var basicReq:String = getTileUrl(new Coordinate(0,0,0), _tempDataBounds, _tempScreenBounds);
+				getAllowedBounds(_tempDataBounds);
+				var basicReq:String = getTileUrl(new Coordinate(0,0,0), _tempDataBounds);
+				var _this:CustomWMS = this;
 				WeaveAPI.URLRequestUtils.getContent(
 					this,
 					new URLRequest(basicReq),
-					getImageWidthHeight,
-					setDefaults
+					function(event:ResultEvent, url:String):void
+					{
+						if (wmsURL.value != url)
+							return;
+						_imageWidth = (event.result as Bitmap).width;
+						_imageHeight = (event.result as Bitmap).height;
+						imageAttributesSet = true;
+						getCallbackCollection(_this).triggerCallbacks();
+					},
+					function(event:FaultEvent, url:String):void
+					{
+						if (wmsURL.value != url)
+							return;
+						imageAttributesSet = true;
+						getCallbackCollection(_this).triggerCallbacks();
+					},
+					wmsURL.value
 				)
 			}
 			else
 			{
-				setDefaults();
-			}
-			
-			function getImageWidthHeight(event:ResultEvent, token:Object = null):void
-			{
-				_imageWidth = (event.result as Bitmap).width;
-				_imageHeight = (event.result as Bitmap).height;
 				imageAttributesSet = true;
-				callbacks.triggerCallbacks();
-			}
-			function setDefaults(event:FaultEvent = null, token:Object = null):void
-			{
-				//setting defaults values of 256 if there is an error in the request
-				_imageWidth = 256;
-				_imageHeight = 256;
-				imageAttributesSet = true;
-				if (event)
-					callbacks.triggerCallbacks();
 			}
 		}
 		
@@ -119,12 +131,12 @@ package weave.services.wms
 			if(_currentTileIndex == null || !wmsURL.value || !imageAttributesSet)
 				return [];
 
-			getAllowedBounds(_tempAllowedBounds);
 			var i:int
 			
-			// first determine zoom level using all of the data bounds in lat/lon
-			setTempCoordZoomLevel(dataBounds, screenBounds, preferLowerQuality); // this sets _tempCoord.zoom 
+			// first determine zoom level using all of the data bounds
+			setTempCoordZoomLevel(dataBounds, screenBounds, preferLowerQuality); // this sets _tempCoord.zoom
 			var zoomScale:Number = Math.pow(2, _tempCoord.z);
+			getBaseTileDataBounds(_tempFullDataBounds);
 			
 			// cancel all pending requests which aren't of this zoom level
 			for (i = 0; i < _pendingTiles.length; ++i)
@@ -140,7 +152,7 @@ package weave.services.wms
 			
 			// calculate min and max tile x and y for the dataBounds
 			_tempDataBounds.copyFrom(dataBounds);
-			_tempAllowedBounds.constrainBounds(_tempDataBounds, false);
+			_tempFullDataBounds.constrainBounds(_tempDataBounds, false);
 			dataBoundsToTileXY(_tempDataBounds, zoomScale);
 			
 			// if the tile range is unreasonable, cut it down to a more reasonable range
@@ -165,7 +177,7 @@ package weave.services.wms
 			var yTileMax:Number = _tempDataBounds.yMax;
 			
 			tileXYToData(_tempDataBounds, zoomScale);
-			_tempAllowedBounds.constrainBounds(_tempDataBounds);
+			_tempFullDataBounds.constrainBounds(_tempDataBounds);
 			
 			
 			// get tiles we need using the map's projection because the tiles' bounds must be in this projection
@@ -184,17 +196,8 @@ package weave.services.wms
 					_tempCoord.y = y;
 					_tempCoord.x = x;
 					
-					// if the coordinate is wrapped around, we don't want it
-//					if (_mapProvider.sourceCoordinate(_tempCoord).equalTo(_tempCoord) == false)
-//						continue;
-					
-					// get the tile URLs
-					_tempScreenBounds.copyFrom(_tempDataBounds)
-					dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
-					var requestString:String = getTileUrl(_tempCoord, _tempDataBounds, _tempScreenBounds);
-					if(requestString == null)
-						continue;
-					if (_urlToTile[requestString] != undefined)
+					var requestString:String = getTileUrl(_tempCoord, _tempDataBounds);
+					if (!requestString || _urlToTile[requestString] != undefined)
 						continue;
 					
 					var urlRequest:URLRequest = new URLRequest(requestString);
@@ -203,7 +206,7 @@ package weave.services.wms
 					newTile.zoomLevel = _tempCoord.z; // need to manually set it so tileIndex queries work
 					_urlToTile[requestString] = newTile;
 					_pendingTiles.push(newTile);
-					downloadImage(newTile);
+					newTile.downloadImage(handleImageDownload, handleImageDownloadFault, newTile);
 				}
 			}
 			
@@ -214,6 +217,37 @@ package weave.services.wms
 				tiles = completedTiles;
 			AsyncSort.sortImmediately(tiles, tileSortingComparison);
 			return tiles;
+		}
+		
+		/**
+		 * This function is called when an image is done downloading. The image is then cached and saved.
+		 * 
+		 * @param event The result event.
+		 * @param token The tile.
+		 */
+		private function handleImageDownload(event:ResultEvent, tile:WMSTile):void
+		{
+			tile.bitmapData = (event.result as Bitmap).bitmapData;
+			handleTileDownload(tile);
+		}
+		
+		/**
+		 * This function reports an error downloading an image. A download may fail with a valid URL.
+		 * 
+		 * @param event The fault event.
+		 * @param token The tile.
+		 */
+		private function handleImageDownloadFault(event:FaultEvent, tile:WMSTile):void
+		{
+			tile.bitmapData = null; // a plotter should handle this
+			reportError(event);
+			
+			/** 
+			 * @TODO This may not be appropriate because a download with a valid URL may fail.
+			 * It may be a better idea to try again once, and if it fails, never try again.
+			 **/
+			
+			handleTileDownload(tile);
 		}
 		
 		/**
@@ -239,9 +273,9 @@ package weave.services.wms
 			}
 			else
 			{
-				getAllowedBounds(_tempAllowedBounds);
+				getBaseTileDataBounds(_tempFullDataBounds);
 				_tempBounds.setBounds(0, 0, zoomScale, zoomScale);
-				_tempAllowedBounds.projectCoordsTo(inputAndOutput, _tempBounds);
+				_tempFullDataBounds.projectCoordsTo(inputAndOutput, _tempBounds);
 			}
 			
 			// force integer values
@@ -279,9 +313,10 @@ package weave.services.wms
 			}
 			else
 			{
-				getAllowedBounds(_tempAllowedBounds);
+				getBaseTileDataBounds(_tempFullDataBounds);
 				_tempBounds.setBounds(0, 0, zoomScale, zoomScale);
-				_tempBounds.projectCoordsTo(inputAndOutput, _tempAllowedBounds);
+				_tempBounds.projectCoordsTo(inputAndOutput, _tempFullDataBounds);
+				_tempBounds.makeSizePositive();
 			}
 		}
 		
@@ -301,9 +336,11 @@ package weave.services.wms
 			if (lowerQuality == true)
 				requestedPrecision *= 4; // go one level higher, which means twice the data width and height => 4 times
 			
-			getAllowedBounds(_tempAllowedBounds);
-			var worldArea:Number = _tempAllowedBounds.getArea();
-			var imageArea:int = _imageWidth* _imageHeight;
+			// for area calculation, increase allowed bounds as necessary to conform to image proportions
+			getBaseTileDataBounds(_tempFullDataBounds);
+			
+			var worldArea:Number = _tempFullDataBounds.getArea();
+			var imageArea:int = _imageWidth * _imageHeight;
 			var higherQualZoomLevel:int = int.MAX_VALUE;
 			var lowerQualZoomLevel:int = int.MAX_VALUE;
 			var numTiles:Number;
@@ -314,7 +351,7 @@ package weave.services.wms
 			// very few providers have a zoom of 0, so the loop starts at 1 to prevent enforcement later
 			for (var i:int = 1; i <= maxZoom.value; ++i) // 20 is max provided in ModestMaps Library
 			{
-				numTiles = Math.pow(2, 2 * i); // 2^(2n) tiles at zoom level n
+				numTiles = Math.pow(4, i); // 4^n tiles at zoom level n
 				tileArea = worldArea / numTiles;
 				tempPrecision = tileArea / imageArea;
 				if (tempPrecision < requestedPrecision)
@@ -326,8 +363,8 @@ package weave.services.wms
 			}
 			
 			// compare the two qualities--the closer one is the one we want.
-			var higherPrecision:Number = (worldArea / Math.pow(2, 2 * higherQualZoomLevel)) / imageArea;
-			var lowerPrecision:Number = (worldArea / Math.pow(2, 2 * lowerQualZoomLevel)) / imageArea;
+			var higherPrecision:Number = (worldArea / Math.pow(4, higherQualZoomLevel)) / imageArea;
+			var lowerPrecision:Number = (worldArea / Math.pow(4, lowerQualZoomLevel)) / imageArea;
 			if ((lowerPrecision - requestedPrecision) < (requestedPrecision - higherPrecision))
 				_tempCoord.z = lowerQualZoomLevel;
 			else
@@ -339,7 +376,7 @@ package weave.services.wms
 			return wmsURL.value && wmsURL.value.search(/\{[xyz]\}/) >= 0;
 		}
 		
-		private function getTileUrl(coord:Coordinate, data:IBounds2D, screen:IBounds2D):String
+		private function getTileUrl(coord:Coordinate, data:IBounds2D):String
 		{
 			if (!wmsURL.value)
 				return null;
@@ -349,49 +386,8 @@ package weave.services.wms
 				'{y}', String(coord.y),
 				'{z}', String(coord.z),
 				'{bbox}', [data.getXMin(), data.getYMin(), data.getXMax(), data.getYMax()].join(','),
-				'{size}', [Math.round(screen.getXCoverage()), Math.round(screen.getYCoverage())].join(',')
+				'{size}', [_imageWidth, _imageHeight].join(',')
 			);
-		}
-		
-		/**
-		 * This function will download the image data for a tile.
-		 * 	
-		 * @param tile The tile whose bitmap will be downloaded.
-		 */
-		public function downloadImage(tile:WMSTile):void
-		{
-			tile.downloadImage(handleImageDownload, handleImageDownloadFault, tile);
-		}
-		
-		/**
-		 * This function is called when an image is done downloading. The image is then cached and saved.
-		 * 
-		 * @param event The result event.
-		 * @param token The tile.
-		 */
-		private function handleImageDownload(event:ResultEvent, tile:WMSTile):void
-		{
-			tile.bitmapData = (event.result as Bitmap).bitmapData;
-			handleTileDownload(tile);
-		}
-		
-		/**
-		 * This function reports an error downloading an image. A download may fail with a valid URL.
-		 * 
-		 * @param event The fault event.
-		 * @param token The tile.
-		 */
-		private function handleImageDownloadFault(event:FaultEvent, tile:WMSTile):void
-		{
-			tile.bitmapData = null; // a plotter should handle this
-			reportError(event);
-			
-			/** 
-			 * @TODO This may not be appropriate because a download with a valid URL may fail.
-			 * It may be a better idea to try again once, and if it fails, never try again.
-			 **/
-			
-			handleTileDownload(tile);
 		}
 		
 		/**
@@ -417,4 +413,8 @@ internal class Coordinate
 		this.x = x, this.y = y, this.z = z;
 	}
 	public var x:int, y:int, z:int;
+	public function getHashCode():String
+	{
+		return [x,y,z].join(',');
+	}
 }
