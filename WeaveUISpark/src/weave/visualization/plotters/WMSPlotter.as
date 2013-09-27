@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.LineScaleMode;
 	import flash.display.Shape;
 	import flash.display.TriangleCulling;
 	import flash.geom.ColorTransform;
@@ -61,6 +62,7 @@ package weave.visualization.plotters
 	import weave.services.wms.StamenProvider;
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
+	import weave.utils.BitmapText;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -137,7 +139,6 @@ package weave.visualization.plotters
 		public const service:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IWMSService));
 		
 		public const preferLowerQuality:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-//		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.BLUE_MARBLE_MAP, verifyServiceName), setProvider);
 		public const srs:LinkableString = newSpatialProperty(LinkableString); // needed for linking MapTool settings
 		public const styles:LinkableString = newLinkableChild(this, LinkableString, setStyle); // needed for changing seasons
 		public const displayMissingImage:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
@@ -256,8 +257,11 @@ package weave.visualization.plotters
 			
 			// draw the triangles and end the fill
 			var newShape:Shape = new Shape();
-			//newShape.graphics.lineStyle(1, 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
-			//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
+			if (debug)
+			{
+				newShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
+				//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
+			}
 			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
 			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NEGATIVE);
 			newShape.graphics.endFill();
@@ -335,7 +339,7 @@ package weave.visualization.plotters
 				destination.draw(projShape.shape, _tempMatrix, colorTransform, null, null, preferLowerQuality.value && !colorTransform);				
 				
 				if (debug)
-					debugTileBounds(projShape.bounds, dataBounds, screenBounds, destination);
+					debugTileBounds(projShape.bounds, dataBounds, screenBounds, destination, tile.request.url, false);
 			}
 			drawCreditText(destination);
 		}
@@ -398,16 +402,31 @@ package weave.visualization.plotters
 				destination.draw(imageBitmap, _tempMatrix, colorTransform, null, _clipRectangle, preferLowerQuality.value && !colorTransform);				
 				
 				if (debug)
-					debugTileBounds(imageBounds, dataBounds, screenBounds, destination);
+					debugTileBounds(imageBounds, dataBounds, screenBounds, destination, tile.request.url, true);
 			}
 			drawCreditText(destination);
 		}
 		
-		private function debugTileBounds(tileBounds:IBounds2D, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		private const bt:BitmapText = new BitmapText();
+		private const rect:Rectangle = new Rectangle();
+		private function debugTileBounds(tileBounds:IBounds2D, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData, url:String, drawRect:Boolean):void
 		{
 			_tempScreenBounds.copyFrom(tileBounds);
 			dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
-			destination.fillRect(_tempScreenBounds.getRectangle(), Math.random() * 0xFFFFFFFF);
+			
+			if (drawRect)
+			{
+				_tempScreenBounds.getRectangle(rect);
+				tempShape.graphics.clear();
+				tempShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF);
+				tempShape.graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
+				destination.draw(tempShape);
+			}
+			
+			screenBounds.constrainBounds(_tempScreenBounds, false);
+			bt.setBounds(_tempScreenBounds, true);
+			bt.text = url;
+			bt.draw(destination);
 		}
 		
 		private const _textField:TextField = new TextField(); // reusable object
