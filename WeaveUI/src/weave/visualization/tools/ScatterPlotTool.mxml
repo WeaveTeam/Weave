@@ -720,15 +720,15 @@
 						  	 toolTip="Use the dropdown menu to choose a trendline."
 							 creationComplete="linkBindableProperty(regressionPlotter.drawLine, event.target, 'selected')"/>
 				<ui:Indent>
-					<mx:HBox>
-						<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
-									 id="trendlineComboBox" dataProvider="{RegressionLinePlotter.trendlines}"
-									 creationComplete="linkBindableProperty(regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
+					<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
+								 id="trendlineComboBox" dataProvider="{RegressionLinePlotter.trendlines}"
+								 creationComplete="linkBindableProperty(regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
+					<mx:HBox visible="{trendlineComboBox.selectedItem == 'Polynomial'}"
+							 includeInLayout="{trendlineComboBox.selectedItem == 'Polynomial'}">
 						<mx:Label text = "{lang('Degree')}" />
-						<mx:HSlider id=	"polynomialDegreeSlider"
+						<mx:HSlider id="polynomialDegreeSlider"
 									creationComplete="linkBindableProperty(regressionPlotter.polynomialDegree, event.target, 'value')"									
-									enabled="{trendlineComboBox.selectedItem == 'Polynomial'}"
-									minimum = "2" maximum ="6" snapInterval="1" liveDragging="false"
+									minimum="2" maximum="6" snapInterval="1" liveDragging="true"
 									tickInterval="1"/>
 					</mx:HBox>
 				</ui:Indent>				
