@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:TitleWindow width="400" height="400" title="Selected Keywords" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" xmlns:ui1="weave.ui.infomap.ui.*" >
+<mx:TitleWindow width="400" height="400" title="Selected Keywords" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" xmlns:ui1="weave.ui.infomap.ui.*" showCloseButton="true">
 	<mx:VBox width="100%" height="100%" horizontalAlign="right">
 		<mx:List width="100%" borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
 			<mx:itemRenderer>
@@ -24,7 +24,7 @@
 		</mx:HBox>
 		<ui1:CommaSeparatedTextInput width="100%" id="additionalKeywords"/>
 
-		<mx:Button enabled="{!additionalKeywords.isError}" id="continueButton" label="Continue"/>
+		<mx:Button enabled="{!additionalKeywords.isError}" id="finishButton" label="Finish"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[

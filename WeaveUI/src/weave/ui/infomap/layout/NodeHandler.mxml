@@ -57,6 +57,7 @@
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.DragManager;
+			import mx.managers.FocusManager;
 			import mx.managers.PopUpManager;
 			import mx.managers.PopUpManagerChildList;
 			import mx.rpc.AsyncToken;
@@ -1154,7 +1155,7 @@
 			
 			
 			
-			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
+			private var _entitiesToKeysHashMap:Dictionary = null;
 			public var entityDistributionDataSource:CSVDataSource = new CSVDataSource(); 
 			
 			private const ENTITY_DISTRIBUTION_ENTITY_COLUMN:String =  "Entities";
@@ -1189,6 +1190,7 @@
 					return;
 				}
 				
+				_entitiesToKeysHashMap = new Dictionary();
 				
 				/* if there more than 1000 entities we will only show entity distribution for selected entities */
 //				if(keys.length > 1000)
@@ -1229,8 +1231,10 @@
 															_currentRelatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
 															currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 				
-				var token:QueryObject = new QueryObject();
-				copySessionState(currentQuery,token);
+				var token:Object = new Object();
+				token.query = new QueryObject();
+				copySessionState(currentQuery,token.query);
+				token.entities = _entitiesToKeysHashMap;
 				addAsyncResponder(entityQuery,handleEntityQueryResults,handleEntityQueryFault,token);
 			}
 			
@@ -1240,10 +1244,14 @@
 			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
 			private var _entityDistributionImg:Bitmap = new EntityDistributionImgClass() as Bitmap;
 			
-			private function handleEntityQueryResults(event:ResultEvent,token:QueryObject=null):void
+			private function handleEntityQueryResults(event:ResultEvent,token:Object=null):void
 			{
-				var diff:Boolean = QueryObject.isQueryDifferent(token as QueryObject, currentQuery);
+				//make sure the return query results is for the same set of entities.
+				if(_entitiesToKeysHashMap != token.entities)
+					return;
 				
+				var diff:Boolean = QueryObject.isQueryDifferent(token.query as QueryObject, currentQuery);
+								
 				if(diff)
 				{
 					return;
@@ -1660,8 +1668,7 @@
 				
 				/* Check to see if the selection is made from Rad Viz tool for clusters*/
 				var rTool:RadVizTool = Weave.root.getObject(_clusterRadVizName) as RadVizTool;
-				
-				if(rTool && rTool == DraggablePanel.activePanel)
+				if((rTool && rTool == DraggablePanel.activePanel))
 				{
 					var temp:Array = [];
 					for each(var key:IQualifiedKey in keys)
