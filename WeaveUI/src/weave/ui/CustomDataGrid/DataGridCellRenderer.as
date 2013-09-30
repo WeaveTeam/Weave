@@ -21,6 +21,7 @@ package weave.ui.CustomDataGrid
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.events.MouseEvent;
 	
 	import mx.containers.Canvas;
 	import mx.controls.DataGrid;
@@ -49,6 +50,13 @@ package weave.ui.CustomDataGrid
 			addChild(lbl);
 			lbl.percentWidth = 100;
 			horizontalScrollPolicy = "off";
+			addEventListener(MouseEvent.ROLL_OVER, handleRollOver);
+		}
+		
+		private function handleRollOver(event:MouseEvent):void
+		{
+			if (toolTip != lbl.text)
+				toolTip = lbl.text;
 		}
 		
 		private var img:Image;
@@ -60,19 +68,30 @@ package weave.ui.CustomDataGrid
 		/**
 		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 		 * The return value should be a color, or NaN for no color.
-		 */		
+		 */
 		public var colorFunction:Function = null;
 		public var keySet:KeySet = null;
 		
 		override public function set data(item:Object):void
 		{
-			var key:IQualifiedKey = item as IQualifiedKey;
+			super.data = item as IQualifiedKey;
+			invalidateProperties();
+		}
+		
+		private static function _setStyle(target:UIComponent, styleProp:String, newValue:*):void
+		{
+			if (target.getStyle(styleProp) != newValue)
+				target.setStyle(styleProp, newValue);
+		}
+		
+		override public function validateProperties():void
+		{
+			var key:IQualifiedKey = data as IQualifiedKey;
 			
-			super.data = key;
 			if (attrColumn is ImageColumn)
 			{
 				lbl.visible = false;
-				lbl.text = toolTip = '';
+				lbl.text = '';
 				if (!img)
 				{
 					img = new Image();
@@ -86,19 +105,14 @@ package weave.ui.CustomDataGrid
 			else
 			{
 				lbl.visible = true;
-				lbl.text = toolTip = attrColumn.getValueFromKey(key, String);
+				lbl.text = attrColumn.getValueFromKey(key, String);
 				if (img)
 				{
 					img.visible = false;
 					img.source.bitmapData = null;
 				}
 			}
-		}
-		
-		private static function _setStyle(target:UIComponent, styleProp:String, newValue:*):void
-		{
-			if (target.getStyle(styleProp) != newValue)
-				target.setStyle(styleProp, newValue);
+			super.validateProperties();
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
