@@ -43,7 +43,7 @@
 		<mx:Button label="{lang('New data source...')}" click="addSource()"/>
 		<mx:Button label="{lang('Remove selected')}" click="removeSelected()"/>
 		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('Apply changes to selected')}" click="save()"/>
+		<mx:Button label="{lang('Apply changes')}" click="save()"/>
 		<mx:Button label="{lang('Close')}" click="removePanel()"/>
 	</mx:ControlBar>
 		
@@ -93,6 +93,8 @@
 					if (dataSource)
 					{
 						editor = EditorManager.getNewEditor(dataSource);
+						if (!editor)
+							return;
 						sourceEditor.addChild(editor as DisplayObject);
 						editor.percentWidth = 100;
 						editor.percentHeight = 100;

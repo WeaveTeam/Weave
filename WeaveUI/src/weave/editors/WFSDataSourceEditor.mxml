@@ -39,10 +39,9 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
 			import weave.data.DataSources.WFSDataSource;
 			
 			override protected function createChildren():void
@@ -78,11 +77,10 @@
 				{
 					_wfsDataSource.url.value = url.text;
 					_wfsDataSource.swapXY.value = swapXY.selected;
-					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)
 				{
-					Alert.show(lang("Changes could not be saved. ") + e.message, lang("Error"));
+					reportError(e);
 				}
 			}
 			
