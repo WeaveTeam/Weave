@@ -61,9 +61,9 @@ package weave.core
 		private const frameTimes:Array = [];
 		public var debug_async_stack:Boolean = false;
 		public var debug_fps:Boolean = false; // set to true to trace the frames per second
-		public var aft:int = 0;
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
+		public var averageFrameTime:int = 0;
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
 		private const _taskElapsedTime:Dictionary = new Dictionary(true);
 		private const _taskStartTime:Dictionary = new Dictionary(true);
@@ -300,8 +300,8 @@ package weave.core
 					frameTimes.push(previousFrameElapsedTime);
 					if (frameTimes.length == 24)
 					{
-						aft = StandardLib.mean.apply(null, frameTimes);
-						trace(Math.round(1000 / aft),'fps; max computation time',maxComputationTimePerFrame);
+						averageFrameTime = StandardLib.mean.apply(null, frameTimes);
+						trace(Math.round(1000 / averageFrameTime),'fps; max computation time',maxComputationTimePerFrame);
 						frameTimes.length = 0;
 					}
 				}
