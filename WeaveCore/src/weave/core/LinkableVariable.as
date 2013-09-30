@@ -24,8 +24,8 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.reportError;
 	import weave.api.core.ILinkableVariable;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -48,14 +48,18 @@ package weave.core
 		{
 			// not supporting XML directly
 			if (sessionStateType == _XML_CLASS)
-			{
-				reportError("XML is not supported directly as a session state primitive type. Using String instead.");
-				_sessionStateType = String;
-			}
-			else if (sessionStateType != Object)
+				throw new Error("XML is not supported directly as a session state primitive type. Using String instead.");
+			
+			if (sessionStateType != Object)
 			{
 				_sessionStateType = sessionStateType;
+				_primitiveType = _sessionStateType == String
+					|| _sessionStateType == Number
+					|| _sessionStateType == Boolean
+					|| _sessionStateType == int
+					|| _sessionStateType == uint;
 			}
+			
 			_verifier = verifier;
 			
 			if (!sessionStateEquals(defaultValue))
@@ -87,23 +91,22 @@ package weave.core
 		 */
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			if (_sessionStateType == null) // if no type restriction...
+			if (_primitiveType)
+				return _sessionState == otherSessionState;
+			
+			var equal:Boolean = StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
+			
+			// BEGIN TEMPORARY SOLUTION
+			// special case if both are dynamic objects and pointers are equal - always assume they have been modified
+			// this is a temporary solution until detectChanges() is added
+			// (private copy of session state needs to be stored for comparison to public session state)
+			if (equal && _sessionState !== null && typeof(_sessionState) == 'object' && _sessionState === otherSessionState)
 			{
-				var equal:Boolean = StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
-				
-				// BEGIN TEMPORARY SOLUTION
-				// special case if both are dynamic objects and pointers are equal - always assume they have been modified
-				// this is a temporary solution until detectChanges() is added
-				// (private copy of session state needs to be stored for comparison to public session state)
-				if (equal && _sessionState !== null && typeof(_sessionState) == 'object' && _sessionState === otherSessionState)
-				{
-					return false;
-				}
-				// END TEMPORARY SOLUTION
-				
-				return equal;
+				return false;
 			}
-			return _sessionState == otherSessionState;
+			// END TEMPORARY SOLUTION
+			
+			return equal;
 		}
 		
 		/**
@@ -129,6 +132,8 @@ package weave.core
 		{
 			return _verifier == null || _verifier(value);
 		}
+		
+		protected var _primitiveType:Boolean = false;
 
 		protected var _sessionStateType:Class = null;
 		public function getSessionStateType():Class
