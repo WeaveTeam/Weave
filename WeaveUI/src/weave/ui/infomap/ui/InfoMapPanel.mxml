@@ -485,7 +485,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _childEntities:Array = [];
 			private var _columnsText:String = "";
-			private var _tempEntityColumns:LinkableHashMap = new LinkableHashMap();
+			private var _tempEntityColumns:LinkableHashMap = newDisposableChild(this,LinkableHashMap);
 			private function handleGetChildEntities(event:ResultEvent,token:Object = null):void
 			{
 				_parentCount--;
