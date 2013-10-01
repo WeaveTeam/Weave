@@ -28,6 +28,31 @@ function queryDataService(method, params, resultHandler, queryId)
 }
 
 /**
+ * This will find a column using its title and its parent table's title as search criteria.
+ * Note that title metadata can be changed by the admin, and there is nothing preventing multiple columns or tables from having identical titles.
+ * If there are multiple data tables with the same title, only the last matching table will be checked.
+ * @param dataTableTitle The value of the "title" metadata for a data table.
+ * @param columnTitle The value of the "title" metadata for a column which is a child of that data table.
+ * @param resultHandler A callback function which will be called on success. The function will receive a single entity object for a matching column.
+ */
+function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
+{
+	queryDataService("getEntityIdsByMetadata", [{"title": dataTableTitle}, 0], function(tableIds) {
+		if (tableIds.length == 0)
+			return fail();
+		queryDataService("getEntityChildIds", [tableIds.pop()], function(columnIds) {
+			queryDataService("getEntitiesById", [columnIds], function(entities) {
+				entities = entities.filter(function (entity) { return entity.publicMetadata['title'] == columnTitle; });
+				if (entities.length == 0)
+					return fail();
+				resultHandler(entities.pop());
+			});
+		});
+	});
+	function fail() { console.log("No matching column found (" + [dataTableTitle, columnTitle] + ")"); }
+}
+
+/**
  * This will create or update a DynamicColumn to refer to an attribute column on a Weave data server.
  * @param {Weave} weave A Weave instance.
  * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
