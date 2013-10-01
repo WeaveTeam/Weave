@@ -179,6 +179,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleResize(event:Event):void
 			{
 				drawProbeLinesForSelectionKeySet();
+				drawProbeLinesForSelectedAnchors();
 			}
 			
 			private function handlePlotterChanges():void
@@ -335,22 +336,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				screenBounds.projectCoordsTo(tempBounds, dataBounds);
 				
-				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
-				if (!_probedKeys.length)
-				{
-					anchorProbeSprite.graphics.clear();					
-					return;
-				}
-				
 				event.stopPropagation();
 				
-				var key:IQualifiedKey = _probedKeys[0];
-				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
-				 
 				visualization.enableSelection.value = false;
 				enableAutoZoom = visualization.plotManager.enableAutoZoomToExtent.value;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
+				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
+				drawProbeLinesForSelectedAnchors();
+			}
+			
+			private function drawProbeLinesForSelectedAnchors():void
+			{
+				if (!_probedKeys || !_probedKeys.length)
+				{
+					anchorProbeSprite.graphics.clear();					
+					return;
+				}
+				anchorProbeSprite.graphics.clear();					
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
+				
+				var key:IQualifiedKey = _probedKeys[0];
+				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;
 				_plotter.drawProbeLinesForSelectedAnchors(_probedKeys,dataBounds,screenBounds,anchorProbeSprite.graphics);
 			}
 			

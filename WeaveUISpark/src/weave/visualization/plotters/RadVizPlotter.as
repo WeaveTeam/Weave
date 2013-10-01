@@ -115,6 +115,7 @@ package weave.visualization.plotters
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
+		public const showValuesForAnchorProbeLines:LinkableBoolean= registerLinkableChild(this,new LinkableBoolean(false));
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -662,27 +663,30 @@ package weave.visualization.plotters
 					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
 					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
 					*/
-					graphics.lineStyle(0,0,0);
-					var uit:UITextField = new UITextField();
-					var numberValue:String = ColumnUtils.getNumber(column,key).toString();
-					numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
-					uit.text = numberValue;
-					uit.autoSize = TextFieldAutoSize.LEFT;
-					var textBitmapData:BitmapData = ImageSnapshot.captureBitmapData(uit);
-					
-					var sizeMatrix:Matrix = new Matrix();
-					var coef:Number =Math.min(uit.measuredWidth/textBitmapData.width,uit.measuredHeight/textBitmapData.height);
-					sizeMatrix.a = coef;
-					sizeMatrix.d = coef;
-					textBitmapData = ImageSnapshot.captureBitmapData(uit,sizeMatrix);
-					
-					var sm:Matrix = new Matrix();
-					sm.tx = (coordinate.x+tempPoint.x)/2;
-					sm.ty = (coordinate.y+tempPoint.y)/2;
-					
-					graphics.beginBitmapFill(textBitmapData, sm, false);
-					graphics.drawRect((coordinate.x+tempPoint.x)/2,(coordinate.y+tempPoint.y)/2,uit.measuredWidth,uit.measuredHeight);
-					graphics.endFill();
+					if(showValuesForAnchorProbeLines.value)
+					{
+						graphics.lineStyle(0,0,0);
+						var uit:UITextField = new UITextField();
+						var numberValue:String = ColumnUtils.getNumber(column,key).toString();
+						numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
+						uit.text = numberValue;
+						uit.autoSize = TextFieldAutoSize.LEFT;
+						var textBitmapData:BitmapData = ImageSnapshot.captureBitmapData(uit);
+						
+						var sizeMatrix:Matrix = new Matrix();
+						var coef:Number =Math.min(uit.measuredWidth/textBitmapData.width,uit.measuredHeight/textBitmapData.height);
+						sizeMatrix.a = coef;
+						sizeMatrix.d = coef;
+						textBitmapData = ImageSnapshot.captureBitmapData(uit,sizeMatrix);
+						
+						var sm:Matrix = new Matrix();
+						sm.tx = (coordinate.x+tempPoint.x)/2;
+						sm.ty = (coordinate.y+tempPoint.y)/2;
+						
+						graphics.beginBitmapFill(textBitmapData, sm, false);
+						graphics.drawRect((coordinate.x+tempPoint.x)/2,(coordinate.y+tempPoint.y)/2,uit.measuredWidth,uit.measuredHeight);
+						graphics.endFill();
+					}
 					
 				}
 			}
