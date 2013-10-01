@@ -350,7 +350,39 @@ public class RServiceUsingRserve
 		
 		
 	}
-
+	
+	public static double[][] normalize(String docrootPath, Object[][] data) throws RemoteException
+	{
+		RConnection rConnection = null;
+		String[] inputNames = {"data"};
+		Object[] inputValues = {data};
+		double[][] result;
+		
+		try
+		{
+			rConnection = getRConnection();
+			assignNamesToVector(rConnection, inputNames, inputValues);
+			
+			String script = "normalized <- as.data.frame(sapply(data, function(x) {(x - min(x, na.rm=TRUE))/(max(x, na.rm=TRUE)- min(x, na.rm=TRUE))}))";
+			
+			rConnection.eval(script);
+			
+			result = rConnection.eval("normalized").asDoubleMatrix();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException(e.getMessage());
+		}
+		finally
+		{
+			if (rConnection != null)
+				rConnection.close();
+		}
+		return result;
+	}
+	
+	// This function computes the regression models in R
 	public static LinearRegressionResult linearRegression(String docrootPath, String method, double[] dataX, double[] dataY, int polynomialDegree) throws RemoteException
 	{
 		if (dataX.length == 0 || dataY.length == 0)
