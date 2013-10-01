@@ -28,7 +28,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   layout="absolute"
-			   resize="handleResize(event)">
+>
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
@@ -176,12 +176,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function handleResize(event:Event):void
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				
 				drawProbeLinesForSelectionKeySet();
 				drawProbeLinesForSelectedAnchors();
 			}
-			
 			private function handlePlotterChanges():void
 			{
 				handlePanelTitleChange();
