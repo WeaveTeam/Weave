@@ -29,7 +29,6 @@ package weave.services.wms
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
-	import weave.core.CallbackCollection;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -57,10 +56,6 @@ package weave.services.wms
 		// dictionary mapping request strings to WMSTile objects
 		protected var _urlToTile:Dictionary = new Dictionary(true);
 				
-		// reusable objects
-		protected const _tempPoint:Point = new Point();
-		protected const _tempBounds:Bounds2D = new Bounds2D();
-		
 		/**
 		 * The bounds allowed for requests.
 		 */
@@ -157,17 +152,6 @@ package weave.services.wms
 		public function getAllowedBounds(output:IBounds2D):void
 		{
 			output.reset();
-		}
-		
-		/* abstract */ public function setProvider(provider:String):void
-		{
-			reportError("Attempt to set the provider of AbstractWMS.");
-		}
-		
-		/* abstract */ public function getProvider():*
-		{
-			reportError("Attempt to get the provider of AbstractWMS.");
-			return null;
 		}
 		
 		/**

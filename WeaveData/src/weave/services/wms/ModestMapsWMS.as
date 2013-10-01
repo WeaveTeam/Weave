@@ -22,14 +22,9 @@ package weave.services.wms
 {
 	import com.modestmaps.core.Coordinate;
 	import com.modestmaps.geo.Location;
-	import com.modestmaps.mapproviders.ACTransitMapProvider;
 	import com.modestmaps.mapproviders.BlueMarbleMapProvider;
 	import com.modestmaps.mapproviders.IMapProvider;
 	import com.modestmaps.mapproviders.OpenStreetMapProvider;
-	import com.modestmaps.mapproviders.microsoft.MicrosoftAerialMapProvider;
-	import com.modestmaps.mapproviders.microsoft.MicrosoftHybridMapProvider;
-	import com.modestmaps.mapproviders.microsoft.MicrosoftProvider;
-	import com.modestmaps.mapproviders.microsoft.MicrosoftRoadMapProvider;
 	import com.modestmaps.mapproviders.yahoo.YahooAerialMapProvider;
 	import com.modestmaps.mapproviders.yahoo.YahooHybridMapProvider;
 	import com.modestmaps.mapproviders.yahoo.YahooOverlayMapProvider;
@@ -37,22 +32,18 @@ package weave.services.wms
 	
 	import flash.display.Bitmap;
 	import flash.net.URLRequest;
-	import flash.system.Security;
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import org.openscales.proj4as.ProjConstants;
-	import org.openscales.proj4as.proj.ProjMerc;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.services.IWMSService;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
@@ -70,64 +61,40 @@ package weave.services.wms
 		{
 			_srs = IMAGE_PROJECTION_SRS; 
 
-			ProjectionManager.getMercatorTileBoundsInLatLong(_tempBounds);
-			setReprojectedBounds(_tempBounds, _worldBoundsMercator, _tileProjectionSRS, _srs); // get world bounds in our Mercator
+			ProjectionManager.getMercatorTileBoundsInLatLong(_worldBoundsMercator);
+			WeaveAPI.ProjectionManager.transformBounds(_tileProjectionSRS, _srs, _worldBoundsMercator); // get world bounds in our Mercator
 		}
 		
 		public const providerName:LinkableString = registerLinkableChild(this,new LinkableString(),handleProviderName);
 		
 		private function handleProviderName():void
 		{
-			setProvider(providerName.value);
-		}
-		
-		override public function setProvider(provider:String):void
-		{
-			switch (provider)
+			switch (providerName.value)
 			{
-				// we cannot use Microsoft services, but we can keep the code 
-				
-				/*case 'Microsoft Aerial':
-					_mapProvider = new MicrosoftAerialMapProvider();
-					break;
-				case 'Microsoft Hybrid':
-					_mapProvider = new MicrosoftHybridMapProvider();
-					break;
-				case 'Microsoft RoadMap':
-					_mapProvider = new MicrosoftRoadMapProvider();
-					break;*/
 				case WMSProviders.BLUE_MARBLE_MAP:
 					_mapProvider = new BlueMarbleMapProvider();
-					providerName.value = WMSProviders.BLUE_MARBLE_MAP; 
 					break;
 				case WMSProviders.OPEN_STREET_MAP:
 					_mapProvider = new OpenStreetMapProvider();
-					providerName.value = WMSProviders.OPEN_STREET_MAP; 
 					break;
 				case WMSProviders.MAPQUEST:
 					_mapProvider = new OpenMapQuestProvider();
-					providerName.value = WMSProviders.MAPQUEST; 
 					break;
 				case WMSProviders.MAPQUEST_AERIAL:
 					_mapProvider = new OpenMapQuestAerialProvider();
-					providerName.value = WMSProviders.MAPQUEST_AERIAL; 
 					break;
 				case WMSProviders.STAMEN_TONER:
 					_mapProvider = new StamenProvider(StamenProvider.STYLE_TONER);
-					providerName.value = WMSProviders.STAMEN_TONER; 
 					break;
 				case WMSProviders.STAMEN_TERRAIN:
 					_mapProvider = new StamenProvider(StamenProvider.STYLE_TERRAIN);
-					providerName.value = WMSProviders.STAMEN_TERRAIN; 
 					break;
 				case WMSProviders.STAMEN_WATERCOLOR:
 					_mapProvider = new StamenProvider(StamenProvider.STYLE_WATERCOLOR);
-					providerName.value = WMSProviders.STAMEN_WATERCOLOR; 
 					break;
 				default:
-					reportError("Attempt to set invalid map provider.");
+					reportError("Invalid map provider: " + providerName.value);
 					return;
-					break;
 			}
 			
 			_imageWidth = _mapProvider.tileWidth;
@@ -160,6 +127,7 @@ package weave.services.wms
 		private const _tempLocation:Location = new Location(NaN, NaN);
 		
 		// non-specific names due to reuse
+		private const _tempBounds:Bounds2D = new Bounds2D();
 		private const _tempBounds2:Bounds2D = new Bounds2D(); 
 		private const _tempBounds3:Bounds2D = new Bounds2D();
 		private const _tempBounds4:Bounds2D = new Bounds2D();
@@ -170,10 +138,10 @@ package weave.services.wms
 				return [];
 			var i:int
 			var copyDataBounds:Bounds2D = _tempBounds3;
-			var latLonCopyDataBounds:Bounds2D = _tempBounds4;
 			
 			// first determine zoom level using all of the data bounds in lat/lon
 			setTempCoordZoomLevel(dataBounds, screenBounds, preferLowerQuality); // this sets _tempCoord.zoom 
+			var zoomScale:Number = Math.pow(2, _tempCoord.zoom);
 			
 			// cancel all pending requests which aren't of this zoom level
 			for (i = 0; i < _pendingTiles.length; ++i)
@@ -188,24 +156,21 @@ package weave.services.wms
 			}
 			
 			// now determine the data bounds we need to covert in lat/lon
-			copyDataBounds.copyFrom(dataBounds);
-			_worldBoundsMercator.constrainBounds(copyDataBounds, false);
-			setReprojectedBounds(copyDataBounds, latLonCopyDataBounds, _srs, _tileProjectionSRS);
-						
-			var latLonViewingDataBounds:Bounds2D = latLonCopyDataBounds;
 			var tileXYBounds:Bounds2D = _tempBounds2;
+			tileXYBounds.copyFrom(dataBounds);
+			_worldBoundsMercator.constrainBounds(tileXYBounds, false);
+			WeaveAPI.ProjectionManager.transformBounds(_srs, _tileProjectionSRS, tileXYBounds);
+						
 			// calculate min and max tile x and y for the zoom level
-			var zoomScale:Number = Math.pow(2, _tempCoord.zoom);
-			dataBoundsToTileXY(latLonViewingDataBounds, tileXYBounds, zoomScale);
+			dataBoundsToTileXY(tileXYBounds, zoomScale);
 			var xTileMin:Number = tileXYBounds.xMin;
 			var yTileMin:Number = tileXYBounds.yMin;
 			var xTileMax:Number = tileXYBounds.xMax;
 			var yTileMax:Number = tileXYBounds.yMax;
 
 			var mercatorTileXYBounds:Bounds2D = _tempBounds2;
-			var latLonTileXYBounds:Bounds2D = _tempBounds3;
-			tileXYToDataBounds(tileXYBounds, latLonTileXYBounds, zoomScale);
-			setReprojectedBounds(latLonTileXYBounds, mercatorTileXYBounds, _tileProjectionSRS, _srs); 
+			mercatorTileXYBounds.copyFrom(tileXYBounds);
+			tileXYToData(mercatorTileXYBounds, zoomScale);
 			_worldBoundsMercator.constrainBounds(mercatorTileXYBounds);
 			
 			
@@ -216,12 +181,9 @@ package weave.services.wms
 			{
 				for (var y:int = yTileMin; y < yTileMax; ++y)
 				{
-					var thisTileXY:Bounds2D = _tempBounds2;
-					var thisTileLatLon:Bounds2D = _tempBounds3;
-					var thisTileMercator:Bounds2D = _tempBounds2;
-					thisTileXY.setBounds(x, y, x + 1, y + 1);
-					tileXYToDataBounds(thisTileXY, thisTileLatLon, zoomScale);
-					setReprojectedBounds(thisTileLatLon, thisTileMercator, _tileProjectionSRS, _srs);
+					var thisTileMercator:Bounds2D = _tempBounds3;
+					thisTileMercator.setBounds(x, y, x + 1, y + 1);
+					tileXYToData(thisTileMercator, zoomScale);
 					
 					_tempCoord.row = y;
 					_tempCoord.column = x;
@@ -272,25 +234,6 @@ package weave.services.wms
 		}
 		
 		/**
-		 * This function will reproject a bounds from a source projection to a destination projection.
-		 * @param sourceBounds The bounds to reproject.
-		 * @param destBounds The bounds for which to save the output.
-		 * @param sourceSRS The SRS code of the source projection.
-		 * @param destSRS The SRS code of the destination projection.
-		 */
-		private function setReprojectedBounds(sourceBounds:IBounds2D, destBounds:IBounds2D, sourceSRS:String, destSRS:String):void
-		{
-			sourceBounds.getMinPoint(_tempPoint);
-			WeaveAPI.ProjectionManager.transformPoint(sourceSRS, destSRS, _tempPoint);
-			destBounds.setMinPoint(_tempPoint);
-			sourceBounds.getMaxPoint(_tempPoint);
-			WeaveAPI.ProjectionManager.transformPoint(sourceSRS, destSRS, _tempPoint);
-			destBounds.setMaxPoint(_tempPoint);
-			
-			destBounds.makeSizePositive();
-		}
-		
-		/**
 		 * This function sets the value of _tempCoord.zoom.
 		 */
 		private function setTempCoordZoomLevel(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean):void
@@ -314,8 +257,6 @@ package weave.services.wms
 				maxZoom = 9;
 			else if (_mapProvider is OpenStreetMapProvider || _mapProvider is StamenProvider)
 				maxZoom = 18;
-			else if (_mapProvider is MicrosoftProvider)
-				maxZoom = 20;
 			else if (_mapProvider is YahooAerialMapProvider)
 				maxZoom = 20;
 			else if (_mapProvider is YahooRoadMapProvider)
@@ -333,7 +274,7 @@ package weave.services.wms
 			// very few providers have a zoom of 0, so the loop starts at 1 to prevent enforcement later
 			for (var i:int = 1; i <= maxZoom; ++i) // 20 is max provided in ModestMaps Library
 			{
-				numTiles = Math.pow(2, 2 * i); // 2^(2n) tiles at zoom level n
+				numTiles = Math.pow(4, i); // 4^n tiles at zoom level n
 				tileArea = worldArea / numTiles;
 				tempPrecision = tileArea / imageArea;
 				if (tempPrecision < requestedPrecision)
@@ -345,8 +286,8 @@ package weave.services.wms
 			}
 			
 			// compare the two qualities--the closer one is the one we want.
-			var higherPrecision:Number = (worldArea / Math.pow(2, 2 * higherQualZoomLevel)) / imageArea;
-			var lowerPrecision:Number = (worldArea / Math.pow(2, 2 * lowerQualZoomLevel)) / imageArea;
+			var higherPrecision:Number = (worldArea / Math.pow(4, higherQualZoomLevel)) / imageArea;
+			var lowerPrecision:Number = (worldArea / Math.pow(4, lowerQualZoomLevel)) / imageArea;
 			if ((lowerPrecision - requestedPrecision) < (requestedPrecision - higherPrecision))
 				_tempCoord.zoom = lowerQualZoomLevel;
 			else
@@ -356,58 +297,51 @@ package weave.services.wms
 		/**
 		 * This function will convert a bounds in lat/long coordinates to tile (x, y) coordinates.
 		 * 
-		 * @param sourceBounds The source bounds.
-		 * @param destbounds The destination.
+		 * @param inputAndOutput the input/output buffer.
 		 * @param zoomScale The value 2^zoom where zoom is the zoom level.
-		 * @return The destination bounds.
 		 */
-		private function dataBoundsToTileXY(sourceBounds:Bounds2D, destBounds:Bounds2D, zoomScale:Number):IBounds2D
+		private function dataBoundsToTileXY(inputAndOutput:Bounds2D, zoomScale:Number):void
 		{
-			sourceBounds.makeSizePositive();
+			inputAndOutput.makeSizePositive();
 			
-			destBounds.xMin = zoomScale * (sourceBounds.xMin + 180) / 360.0; 
-			destBounds.xMax = zoomScale * (sourceBounds.xMax + 180) / 360.0; 
+			inputAndOutput.xMin = zoomScale * (inputAndOutput.xMin + 180) / 360.0; 
+			inputAndOutput.xMax = zoomScale * (inputAndOutput.xMax + 180) / 360.0; 
 			
-			var latRadians:Number = sourceBounds.yMin * Math.PI / 180;
-			destBounds.yMin = zoomScale * (1 - (Math.log(Math.tan(latRadians) + (1 / Math.cos(latRadians))) / Math.PI)) / 2.0;
-			latRadians = sourceBounds.yMax * Math.PI / 180;
-			destBounds.yMax = zoomScale * (1 - (Math.log(Math.tan(latRadians) + (1 / Math.cos(latRadians))) / Math.PI)) / 2.0;
+			var latRadians:Number = inputAndOutput.yMin * Math.PI / 180;
+			inputAndOutput.yMin = zoomScale * (1 - (Math.log(Math.tan(latRadians) + (1 / Math.cos(latRadians))) / Math.PI)) / 2.0;
+			latRadians = inputAndOutput.yMax * Math.PI / 180;
+			inputAndOutput.yMax = zoomScale * (1 - (Math.log(Math.tan(latRadians) + (1 / Math.cos(latRadians))) / Math.PI)) / 2.0;
 			
-			destBounds.makeSizePositive();
+			inputAndOutput.makeSizePositive();
 			
-			destBounds.xMin = Math.floor(destBounds.xMin);
-			destBounds.yMin = Math.floor(destBounds.yMin);
-			destBounds.xMax = Math.ceil(destBounds.xMax);
-			destBounds.yMax = Math.ceil(destBounds.yMax);
+			inputAndOutput.xMin = Math.floor(inputAndOutput.xMin);
+			inputAndOutput.yMin = Math.floor(inputAndOutput.yMin);
+			inputAndOutput.xMax = Math.ceil(inputAndOutput.xMax);
+			inputAndOutput.yMax = Math.ceil(inputAndOutput.yMax);
 			
 			// although this may allow the max values to be zoomScale, which is 1 larger than number of tiles,
 			// it's not a problem because the tile starting at zoomScale,zoomScale is never requested.
 			_tempBounds.setBounds(0, 0, zoomScale, zoomScale); 
-			_tempBounds.constrainBounds(destBounds, false);
-			
-			return destBounds;
+			_tempBounds.constrainBounds(inputAndOutput, false);
 		}
 		
 		/**
-		 * This function will convert bounds from tile x,y coordinates to Latitude and Longitude coordinates.
-		 * @param sourceBounds The source.
-		 * @param destBounds The destination.
+		 * This function will convert bounds from tile x,y coordinates to data coordinates.
+		 * @param inputAndOutput The input/output buffer.
 		 * @param zoomScale The value 2^zoom.
-		 * @return The destBounds.
 		 */
-		private function tileXYToDataBounds(sourceBounds:Bounds2D, destBounds:Bounds2D, zoomScale:Number):IBounds2D
+		private function tileXYToData(inputAndOutput:Bounds2D, zoomScale:Number):void
 		{
-			destBounds.xMin = 360 * (sourceBounds.xMin / zoomScale) - 180.0;
-			destBounds.xMax = 360 * (sourceBounds.xMax / zoomScale) - 180.0;
-
-			var latRadians:Number = Math.atan(ProjConstants.sinh(Math.PI * (1 - 2 * sourceBounds.yMin / zoomScale)));
-			destBounds.yMin = latRadians * 180.0 / Math.PI;
-			latRadians = Math.atan(ProjConstants.sinh(Math.PI * (1 - 2 * sourceBounds.yMax / zoomScale)));
-			destBounds.yMax = latRadians * 180.0 / Math.PI;
+			inputAndOutput.xMin = 360 * (inputAndOutput.xMin / zoomScale) - 180.0;
+			inputAndOutput.xMax = 360 * (inputAndOutput.xMax / zoomScale) - 180.0;
 			
-			destBounds.makeSizePositive();
-
-			return destBounds;
+			var latRadians:Number = Math.atan(ProjConstants.sinh(Math.PI * (1 - 2 * inputAndOutput.yMin / zoomScale)));
+			inputAndOutput.yMin = latRadians * 180.0 / Math.PI;
+			latRadians = Math.atan(ProjConstants.sinh(Math.PI * (1 - 2 * inputAndOutput.yMax / zoomScale)));
+			inputAndOutput.yMax = latRadians * 180.0 / Math.PI;
+			
+			inputAndOutput.makeSizePositive();
+			WeaveAPI.ProjectionManager.transformBounds(_tileProjectionSRS, _srs, inputAndOutput);
 		}
 		
 
@@ -416,7 +350,7 @@ package weave.services.wms
 		 * 	
 		 * @param tile The tile whose bitmap will be downloaded.
 		 */
-		public function downloadImage(tile:WMSTile):void
+		private function downloadImage(tile:WMSTile):void
 		{
 			tile.downloadImage(handleImageDownload, handleImageDownloadFault, tile);
 		}
@@ -471,11 +405,6 @@ package weave.services.wms
 		public function get imageHeight():int
 		{
 			return _imageHeight;
-		}
-		
-		override public function getProvider():*
-		{
-			return _mapProvider;
 		}
 		
 		override public function getCreditInfo():String

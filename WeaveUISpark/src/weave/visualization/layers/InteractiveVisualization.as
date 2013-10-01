@@ -86,7 +86,8 @@ package weave.visualization.layers
 			addEventListener(MouseEvent.ROLL_OVER, handleRollOver);
 			addEventListener(MouseEvent.MOUSE_WHEEL,handleMouseWheel);
 			
-			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, saveMouseMoveEvent);
+			WeaveAPI.StageUtils.addEventCallback(StageUtils.THROTTLED_MOUSE_MOVE_EVENT, this, handleThrottledMouseMove);
 			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
@@ -264,9 +265,15 @@ package weave.visualization.layers
 			// when the mouse is released, handle mouse move so the selection rectangle will cause the selection to update.
 			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);
 		}
-		protected function handleMouseMove():void
+		protected var _lastMouseMoveEvent:MouseEvent;
+		protected function saveMouseMoveEvent():void
 		{
-			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);		
+			_lastMouseMoveEvent = WeaveAPI.StageUtils.mouseEvent;
+		}
+		protected function handleThrottledMouseMove():void
+		{
+			if (_lastMouseMoveEvent)
+				handleMouseEvent(_lastMouseMoveEvent);
 		}
 		protected function handleRollOut(event:MouseEvent):void
 		{
@@ -391,19 +398,19 @@ package weave.visualization.layers
 				case InteractionController.SELECT_ADD:
 				{
 					if (mouseDragActive)
-						handleSelection(event, _mouseMode);
+						handleSelectionEvent(event, _mouseMode);
 					break;
 				}
 				case InteractionController.SELECT:
 				{
 				   	if (mouseDragActive)
-						handleSelection(event, _mouseMode);
+						handleSelectionEvent(event, _mouseMode);
 					break;
 				}
 				case InteractionController.SELECT_REMOVE:
 				{
 					if (mouseDragActive)
-						handleSelection(event, _mouseMode);
+						handleSelectionEvent(event, _mouseMode);
 					break;
 				}
 				case InteractionController.SELECT_ALL:
@@ -483,7 +490,7 @@ package weave.visualization.layers
 					if (mouseIsRolledOver)
 					{
 						// probe when mouse is rolled over and selection is inactive
-						handleProbe();
+						doProbe();
 					}
 					
 					break;
@@ -535,7 +542,7 @@ package weave.visualization.layers
 			_screenBounds.getMaxPoint(tempPoint);
 			mouseDragStageCoords.setMaxPoint(localToGlobal(tempPoint));
 			
-			immediateHandleSelection();
+			doSelection();
 		}
 		
 		private var _selectionGraphicsCleared:Boolean = true;
@@ -696,7 +703,7 @@ package weave.visualization.layers
 			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
-		private function handleSelection(event:Event, mode:String):void
+		private function handleSelectionEvent(event:Event, mode:String):void
 		{
 			// update end coordinates of selection rectangle
 			if (event.type == MouseEvent.MOUSE_UP)
@@ -715,7 +722,7 @@ package weave.visualization.layers
 			{
 				// only if selection is enabled
 				if (enableSelection.value)
-					delayedHandleSelection();
+					doSelection();
 			}
 		}
 		private function clearSelection():void
@@ -765,25 +772,11 @@ package weave.visualization.layers
 			}
 		}
 		
-		protected function delayedHandleSelection(allowCallLater:Boolean = true):void
+		protected function doSelection():void
 		{
 			if (!parent)
 				return;
 			
-			if (WeaveAPI.StageUtils.mouseMoved)
-			{
-				if (allowCallLater)
-					callLater(delayedHandleSelection, [false]);
-			}
-			else
-			{
-				// handle selection when mouse hasn't moved since last frame.
-				immediateHandleSelection();
-			}
-		}
-		
-		protected function immediateHandleSelection():void
-		{
 			// don't set a selection or clear the probe keys if selection is disabled
 			if (!enableSelection.value)
 				return;
@@ -873,70 +866,69 @@ package weave.visualization.layers
 		public function get lastProbedKeys():Array { return _lastProbedQKeys; }
 		private var _lastProbedQKeys:Array = null;
 		
-		protected function handleProbe(allowCallLater:Boolean = true):void
+		protected function doProbe():void
 		{
 			if (!parent || !Weave.properties.enableToolProbe.value || !enableProbe.value)
 				return;
 			
 			// NOTE: this code is hacked to work with only one global probe KeySet
 			
-			// only probe if the mouse coords are the same two frames in a row
-			if (WeaveAPI.StageUtils.mouseMoved)
+			// first reset this
+			_lastProbedQKeys = null;
+			
+			// stop if not rolled over
+			if (!mouseIsRolledOver)
+				return;
+			
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+			
+			// handle probe when mouse hasn't moved since last frame.
+			var names:Array = plotManager.plotters.getNames().reverse(); // top to bottom
+			var lastActiveLayer:String = null;
+			for each (var name:String in names)
 			{
-				if (allowCallLater)
-					callLater(handleProbe, [false]);
-			}
-			else if (mouseIsRolledOver)
-			{
-				plotManager.zoomBounds.getDataBounds(tempDataBounds);
-				plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+				var settings:LayerSettings = plotManager.getLayerSettings(name);
+				if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
+					continue;
 				
-				// handle probe when mouse hasn't moved since last frame.
-				var names:Array = plotManager.plotters.getNames().reverse(); // top to bottom
-				var lastActiveLayer:String = null;
-				for each (var name:String in names)
+				lastActiveLayer = name;
+				
+				// get data coords from screen coords
+				var bufferSize:Number = 16; 
+				
+				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+				tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
+				
+				var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
+				var yPrecision:Number = tempDataBounds.getYCoverage() / tempScreenBounds.getYCoverage();
+				
+				//trace(layers.getName(layer),queryBounds);
+				
+				// probe for records
+				
+				if (!tempDataBounds.overlaps(queryBounds))
+					continue;
+				tempDataBounds.constrainBounds(queryBounds, false);
+				var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
+				//trace(layers.getName(layer),keys);
+				
+				// stop when we find keys
+				if (keys.length > 0)
 				{
-					var settings:LayerSettings = plotManager.getLayerSettings(name);
-					if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
-						continue;
-					
-					lastActiveLayer = name;
-					
-					// get data coords from screen coords
-					var bufferSize:Number = 16; 
-					
-					queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
-					tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
-					
-					var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
-					var yPrecision:Number = tempDataBounds.getYCoverage() / tempScreenBounds.getYCoverage();
-					
-					//trace(layers.getName(layer),queryBounds);
-					
-					// probe for records
-					
-					if (!tempDataBounds.overlaps(queryBounds))
-						continue;
-					tempDataBounds.constrainBounds(queryBounds, false);
-					var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
-					//trace(layers.getName(layer),keys);
-					
-					// stop when we find keys
-					if (keys.length > 0)
-					{
-						setProbeKeys(name, keys);
-						_lastProbedQKeys = keys;
-						
-						return;
-					}
+					setProbeKeys(name, keys);
+					_lastProbedQKeys = keys;
+					break; // success
 				}
+			}
+			
+			if (!_lastProbedQKeys)
+			{
 				// clear keys if nothing was probed
 				// NOTE: this code is hacked to work with only one global probe KeySet
 				if (lastActiveLayer)
 					setProbeKeys(lastActiveLayer, []);
 			}
-			// either not rolled over or nothing was probed
-			_lastProbedQKeys = null;
 		}
 		
 		protected function setSelectionKeys(layerName:String, keys:Array):void
@@ -947,6 +939,8 @@ package weave.visualization.layers
 			// set the probe filter to a new set of keys
 			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
 			var keySet:KeySet = settings.selectionFilter.internalObject as KeySet;
+			if (!keySet)
+				return;
 			if (!keys)
 				keySet.clearKeys();
 			else if (_mouseMode == InteractionController.SELECT_ADD)

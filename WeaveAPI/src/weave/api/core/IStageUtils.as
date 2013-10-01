@@ -157,6 +157,11 @@ package weave.api.core
 		function get event():Event;
 		
 		/**
+		 * This is the time of the last event that occurred on the stage.
+		 */
+		function get eventTime():int;
+		
+		/**
 		 * This is the last mouse event that occurred on the stage.
 		 * This variable is set while callbacks are running and is cleared immediately after.
 		 */
@@ -192,11 +197,6 @@ package weave.api.core
 		 * @return true if the mouse was clicked without moving
 		 */
 		function get pointClicked():Boolean;
-		
-		/**
-		 * @return true if the mouse moved since the last frame.
-		 */
-		function get mouseMoved():Boolean;
 		
 		/**
 		 * This is the total time it took to process the previous frame.

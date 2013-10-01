@@ -20,11 +20,11 @@
 package weave.visualization.plotters
 {
 	import com.modestmaps.mapproviders.BlueMarbleMapProvider;
-	import com.modestmaps.mapproviders.IMapProvider;
 	import com.modestmaps.mapproviders.OpenStreetMapProvider;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.LineScaleMode;
 	import flash.display.Shape;
 	import flash.display.TriangleCulling;
 	import flash.geom.ColorTransform;
@@ -32,7 +32,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
-	import flash.utils.Dictionary;
 	
 	import org.openscales.proj4as.ProjConstants;
 	
@@ -41,7 +40,6 @@ package weave.visualization.plotters
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
-	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -50,7 +48,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.primitives.Bounds2D;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
@@ -60,6 +57,7 @@ package weave.visualization.plotters
 	import weave.services.wms.StamenProvider;
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
+	import weave.utils.BitmapText;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -72,6 +70,8 @@ package weave.visualization.plotters
 	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
 		// TODO: move the image reprojection code elsewhere
+		
+		public var debug:Boolean = false;
 		
 		public function WMSPlotter()
 		{
@@ -94,38 +94,39 @@ package weave.visualization.plotters
 		
 		public function get providerName():String
 		{
-			if(service.internalObject == null)
-				return null;
-			var provider:* = (service.internalObject as IWMSService).getProvider();
+			if (_service is ModestMapsWMS)
+				return (_service as ModestMapsWMS).providerName.value;
 			
-			if(provider is String)
+			if (_service is BlueMarbleMapProvider)
+				return WMSProviders.BLUE_MARBLE_MAP;
+			
+			if (_service is OnEarthProvider)
+				return WMSProviders.NASA;
+			
+			if (_service is OpenStreetMapProvider)
+				return WMSProviders.OPEN_STREET_MAP;
+			
+			if (_service is OpenMapQuestProvider)
+				return WMSProviders.MAPQUEST;
+			
+			if (_service is OpenMapQuestAerialProvider)
+				return WMSProviders.MAPQUEST_AERIAL;
+			
+			if (_service is StamenProvider)
 			{
-				return provider as String;
-			}else
-			{
-				if(provider is BlueMarbleMapProvider)
-					return WMSProviders.BLUE_MARBLE_MAP;
-				else if(provider is OnEarthProvider)
-					return WMSProviders.NASA;
-				else if(provider is OpenStreetMapProvider)
-					return WMSProviders.OPEN_STREET_MAP;
-				else if(provider is OpenMapQuestProvider)
-					return WMSProviders.MAPQUEST;
-				else if(provider is OpenMapQuestAerialProvider)
-					return WMSProviders.MAPQUEST_AERIAL;
-				else if(provider is StamenProvider)
-				{
-					var stamenProvider:StamenProvider = provider as StamenProvider;
-					if(stamenProvider.style == StamenProvider.STYLE_TERRAIN)
-						return WMSProviders.STAMEN_TERRAIN;
-					if(stamenProvider.style == StamenProvider.STYLE_TONER)
-						return WMSProviders.STAMEN_TONER;
-					if(stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
-						return WMSProviders.STAMEN_WATERCOLOR;
-				}
-				else if(provider is CustomWMS)
-					return WMSProviders.CUSTOM_MAP;
+				var stamenProvider:StamenProvider = _service as StamenProvider;
+				if (stamenProvider.style == StamenProvider.STYLE_TERRAIN)
+					return WMSProviders.STAMEN_TERRAIN;
+				
+				if (stamenProvider.style == StamenProvider.STYLE_TONER)
+					return WMSProviders.STAMEN_TONER;
+				
+				if (stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
+					return WMSProviders.STAMEN_WATERCOLOR;
 			}
+			
+			if (_service is CustomWMS)
+				return WMSProviders.CUSTOM_MAP;
 			
 			return null;
 		}
@@ -133,7 +134,6 @@ package weave.visualization.plotters
 		public const service:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IWMSService));
 		
 		public const preferLowerQuality:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-//		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.BLUE_MARBLE_MAP, verifyServiceName), setProvider);
 		public const srs:LinkableString = newSpatialProperty(LinkableString); // needed for linking MapTool settings
 		public const styles:LinkableString = newLinkableChild(this, LinkableString, setStyle); // needed for changing seasons
 		public const displayMissingImage:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
@@ -252,8 +252,11 @@ package weave.visualization.plotters
 			
 			// draw the triangles and end the fill
 			var newShape:Shape = new Shape();
-			//newShape.graphics.lineStyle(1, 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
-			//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
+			if (debug)
+			{
+				newShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
+				//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
+			}
 			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
 			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NEGATIVE);
 			newShape.graphics.endFill();
@@ -329,6 +332,9 @@ package weave.visualization.plotters
 				
 				var colorTransform:ColorTransform = (tile.bitmapData == _missingImage.bitmapData ? _missingImageColorTransform : null);
 				destination.draw(projShape.shape, _tempMatrix, colorTransform, null, null, preferLowerQuality.value && !colorTransform);				
+				
+				if (debug)
+					debugTileBounds(projShape.bounds, dataBounds, screenBounds, destination, tile.request.url, false);
 			}
 			drawCreditText(destination);
 		}
@@ -389,8 +395,33 @@ package weave.visualization.plotters
 				
 				var colorTransform:ColorTransform = (imageBitmap == _missingImage.bitmapData ? _missingImageColorTransform : null);
 				destination.draw(imageBitmap, _tempMatrix, colorTransform, null, _clipRectangle, preferLowerQuality.value && !colorTransform);				
+				
+				if (debug)
+					debugTileBounds(imageBounds, dataBounds, screenBounds, destination, tile.request.url, true);
 			}
 			drawCreditText(destination);
+		}
+		
+		private const bt:BitmapText = new BitmapText();
+		private const rect:Rectangle = new Rectangle();
+		private function debugTileBounds(tileBounds:IBounds2D, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData, url:String, drawRect:Boolean):void
+		{
+			_tempScreenBounds.copyFrom(tileBounds);
+			dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
+			
+			if (drawRect)
+			{
+				_tempScreenBounds.getRectangle(rect);
+				tempShape.graphics.clear();
+				tempShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF);
+				tempShape.graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
+				destination.draw(tempShape);
+			}
+			
+			screenBounds.constrainBounds(_tempScreenBounds, false);
+			bt.setBounds(_tempScreenBounds, true);
+			bt.text = url;
+			bt.draw(destination);
 		}
 		
 		private const _textField:TextField = new TextField(); // reusable object
@@ -418,19 +449,19 @@ package weave.visualization.plotters
 			{
 				service.requestLocalObject(OnEarthProvider,false);
 			}
-			else if(provider == WMSProviders.CUSTOM_MAP)
+			else if (provider == WMSProviders.CUSTOM_MAP)
 			{
 				service.requestLocalObject(CustomWMS,false);
 			}
 			else
 			{
 				service.requestLocalObject(ModestMapsWMS,false);
-				_service.setProvider(provider);
+				(_service as ModestMapsWMS).providerName.value = provider;
 			}
 			
 			// determine maximum bounds for reprojecting images
 			_allowedTileReprojBounds.copyFrom(_latLonBounds);
-			projManager.transformBounds("EPSG:4326", WMSProviders.getSRS(provider), _allowedTileReprojBounds);
+			projManager.transformBounds("EPSG:4326", _service.getProjectionSRS(), _allowedTileReprojBounds);
 			spatialCallbacks.triggerCallbacks();
 		}
 		
