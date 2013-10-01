@@ -418,15 +418,6 @@ package weave.core
 		}
 
 		/**
-		 * This function gets the internal object, whether local or global.
-		 * @return The internal, dynamically created object.
-		 */
-		public function getObject():Object
-		{
-			return internalObject;
-		}
-
-		/**
 		 * If the internal object is local, this will remove the object (unless it is locked).
 		 * If the internal object is global, this will remove the link to it.
 		 */

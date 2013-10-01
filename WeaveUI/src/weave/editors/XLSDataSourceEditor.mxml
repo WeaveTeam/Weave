@@ -67,6 +67,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
@@ -108,11 +109,10 @@
 					_xlsDataSource.url.value = url.text;
 					_xlsDataSource.keyColName.value = keyColumnName.text;
 					_xlsDataSource.keyType.value = keyTypeSelector.selectedItem as String;
-					Alert.show(lang("Changes saved."));
 				}
 				catch(e:Error)
 				{
-					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
+					reportError(e);
 				}
 			}
 			
@@ -177,7 +177,7 @@
 				}
 				catch (e:Error)
 				{
-					Alert.show(lang("Error uploading file"),e.message.toString());
+					reportError(e);
 				}
 				
 				

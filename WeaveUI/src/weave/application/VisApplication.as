@@ -431,7 +431,7 @@ package weave.application
 				if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
 				{
 					show = true;
-					_selectionIndicatorText.text = (WeaveAPI.StageUtils as StageUtils).aft + ' average frame time';
+					_selectionIndicatorText.text = (WeaveAPI.StageUtils as StageUtils).averageFrameTime + ' average frame time';
 				}
 				if (show)
 				{

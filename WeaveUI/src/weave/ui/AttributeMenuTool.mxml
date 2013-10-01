@@ -453,11 +453,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void
 			{
-				WeaveAPI.StageUtils.callLater(this, function():void{
-					validateToolJugglerTarget();
-					handleToolChange();
-					targetAttributeNumber.value = _attrNames.indexOf(value);
-				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				validateToolJugglerTarget();
+				handleToolChange();
+				if (_attrNames.length == 0)
+				{
+					WeaveAPI.StageUtils.callLater(this, function():void{
+						targetAttribute = value;
+					}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					return;
+				}
+				targetAttributeNumber.value = _attrNames.indexOf(value);
 			}
 			
 			[Deprecated] public function set hack_showPlayButton(value:Boolean):void

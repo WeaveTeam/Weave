@@ -49,12 +49,10 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
 			import weave.data.DataSources.DBFDataSource;
-			import weave.utils.EditorManager;
 			
 			override protected function createChildren():void
 			{
@@ -94,11 +92,10 @@
 					_dbfDataSource.shpUrl.value = shpURL.text;
 					_dbfDataSource.keyColName.value = keyColumnName.text;
 					_dbfDataSource.keyType.value = keyTypeSelector.selectedItem as String;
-					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)
 				{
-					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
+					reportError(e);
 				}
 			}
 			

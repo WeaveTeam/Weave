@@ -120,7 +120,8 @@ package weave.data.DataSources
 			if (rows != null)
 			{
 				// clear url value when we specify csvData session state
-				url.value = null;
+				if (url.value)
+					url.value = null;
 				this.parsedRows = rows;
 			}
 		}
@@ -300,9 +301,7 @@ package weave.data.DataSources
 			var servletParamsChanged:Boolean = detectLinkableObjectChange(handleURLChange, servletParams);
 			if (urlChanged || servletParamsChanged)
 			{
-				if (url.value == '')
-					url.value = null;
-				if (url.value != null)
+				if (url.value)
 				{
 					// if url is specified, do not use csvDataString
 					csvData.setSessionState(null);
