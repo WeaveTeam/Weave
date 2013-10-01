@@ -235,7 +235,7 @@ package weave.ui
 			if (_labelFunction != null)
 				return _labelFunction(item);
 			else
-				return getItemName(item);
+				return String(item);
 		}
 		
 		public function set labelFunction(value:Function):void
