@@ -344,7 +344,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
 				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
-				drawProbeLinesForSelectedAnchors();
+				var key:IQualifiedKey = _probedKeys[0];
+				if(key)
+					_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;
 			}
 			
 			private function drawProbeLinesForSelectedAnchors():void
@@ -358,8 +360,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
 				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				
-				var key:IQualifiedKey = _probedKeys[0];
-				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;
 				_plotter.drawProbeLinesForSelectedAnchors(_probedKeys,dataBounds,screenBounds,anchorProbeSprite.graphics);
 			}
 			
@@ -367,6 +367,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if (!isDragging)
 					return;
+				anchorProbeSprite.graphics.clear();	
 				handleMouseMove();
 				_probedAnchor = null;
 				isDragging = false;
@@ -378,7 +379,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if (!isDragging || !_probedAnchor)
 					return;
-				
+				drawProbeLinesForSelectedAnchors();
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
 				
