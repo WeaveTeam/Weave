@@ -30,6 +30,14 @@
 	width="{NaN}" height="{NaN}"
 	>
 		<mx:Label text="{lang('Override colors for specific records')}" fontWeight="bold"/>
+		<mx:HBox width="100%">
+			<ui:Indent label="{lang('Select records in a tool, then click here to change their color:')}">
+				<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
+				<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
+			</ui:Indent>
+			<mx:Spacer width="100%"/>
+			<mx:Button label="{lang('Reset selected records')}" click="removeSelectedColors()"/>
+		</mx:HBox>
 		<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
 			<mx:itemRenderer>
 				<mx:Component>
@@ -77,14 +85,6 @@
 				</mx:Component>
 			</mx:itemRenderer>
 		</mx:List>
-		<mx:HBox width="100%">
-			<ui:Indent label="{lang('Change color for selected records:')}">
-				<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
-				<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
-			</ui:Indent>
-			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Reset selected')}" click="removeSelectedColors()"/>
-		</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import weave.utils.AsyncSort;

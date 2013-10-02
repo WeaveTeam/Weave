@@ -338,10 +338,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			/**
-			 * This function(event Listener) gets called during 
-			 * Click event of Button  in control Panel			 * 
-			 */	
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");

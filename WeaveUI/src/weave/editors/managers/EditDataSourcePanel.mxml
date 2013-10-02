@@ -26,26 +26,31 @@
 	title="{lang('Edit Data Sources')}"
 	borderAlpha="1"
 	borderColor="#939178"
-	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
-	verticalScrollPolicy="off"
-	horizontalScrollPolicy="off"
+	borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
 	roundedBottomCorners="true"
 	escapeKeyClosesPanel="true"
 	creationComplete="handleCreationComplete()" xmlns:ui="weave.ui.*">
-	<mx:HBox height="100%" width="100%" horizontalGap="0">
-		<mx:List id="sourceList" change="handleSourceSelect()" borderThickness="0"
-				 dataProvider="{sources}" labelFunction="getLabel"
-				 paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" />
-		<mx:Canvas backgroundColor="#939178" width="5" height="100%"/>
-		<mx:Box width="100%" height="100%" id="sourceEditor" paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5"/>
-	</mx:HBox>
-	<mx:ControlBar paddingTop="5" paddingBottom="5">
-		<mx:Button label="{lang('New data source...')}" click="addSource()"/>
-		<mx:Button label="{lang('Remove selected')}" click="removeSelected()"/>
-		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('Apply changes')}" click="save()"/>
-		<mx:Button label="{lang('Close')}" click="removePanel()"/>
-	</mx:ControlBar>
+	<mx:VBox width="100%" height="100%" verticalGap="0">
+		<mx:HBox height="100%" width="100%" horizontalGap="0">
+			<mx:List id="sourceList"
+					 change="handleSourceSelect()"
+					 borderThickness="0"
+					 minHeight="0"
+					 height="100%"
+					 initialize="UIUtils.setPadding(sourceList, padding)"
+					 dataProvider="{sources}"
+					 labelFunction="getLabel"/>
+			<mx:Canvas backgroundColor="#939178" width="{padding}" height="100%"/>
+			<mx:Box id="container" minWidth="0" minHeight="0" width="100%" height="100%" initialize="UIUtils.setPadding(container, padding)"/>
+		</mx:HBox>
+		<mx:HBox paddingTop="{padding}" paddingBottom="{padding}" width="100%" backgroundColor="#939178">
+			<mx:Button label="{lang('New data source...')}" click="addSource()"/>
+			<mx:Button label="{lang('Remove selected')}" click="removeSelected()"/>
+			<mx:Spacer width="100%"/>
+			<mx:Button label="{lang('Apply changes')}" click="save()"/>
+			<mx:Button label="{lang('Close')}" click="removePanel()"/>
+		</mx:HBox>
+	</mx:VBox>
 		
 		<mx:Script>
 			<![CDATA[
@@ -56,8 +61,10 @@
 				import weave.api.core.ILinkableObject;
 				import weave.api.data.IDataSource;
 				import weave.api.ui.ILinkableObjectEditor;
+				import weave.core.UIUtils;
 				import weave.utils.EditorManager;
 				
+				private static const padding:int = 5;
 				[Bindable]
 				private var sources:Array = new Array();
 				
@@ -87,7 +94,7 @@
 				private var editor:ILinkableObjectEditor = null;
 				private function handleSourceSelect():void
 				{
-					sourceEditor.removeAllChildren();
+					container.removeAllChildren();
 					editor = null;
 					var dataSource:IDataSource = sourceList.selectedItem as IDataSource;
 					if (dataSource)
@@ -95,7 +102,7 @@
 						editor = EditorManager.getNewEditor(dataSource);
 						if (!editor)
 							return;
-						sourceEditor.addChild(editor as DisplayObject);
+						container.addChild(editor as DisplayObject);
 						editor.percentWidth = 100;
 						editor.percentHeight = 100;
 					}
