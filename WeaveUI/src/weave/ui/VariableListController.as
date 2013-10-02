@@ -92,12 +92,15 @@ package weave.ui
 			{
 				dataGrid.editable = true;
 				dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
+				dataGrid.draggableColumns = false;
 				
 				var nameCol:DataGridColumn = new DataGridColumn();
 				nameCol.sortable = false;
 				nameCol.editable = true;
-				nameCol.headerText = lang("Name");
+				nameCol.headerText = lang("Name (Click to edit)");
 				nameCol.labelFunction = getObjectName;
+				nameCol.showDataTips = true;
+				nameCol.dataTipFunction = nameColumnDataTip;
 				
 				var valueCol:DataGridColumn = new DataGridColumn();
 				valueCol.sortable = false;
@@ -115,6 +118,11 @@ package weave.ui
 			if (dynamicObject && _editor)
 				_editor.rowCount = 1;
 			updateDataProvider();
+		}
+		
+		private function nameColumnDataTip(item:Object, ..._):String
+		{
+			return lang("{0} (Click to rename)", getObjectName(item));
 		}
 		
 		private var _allowMultipleSelection:Boolean = true;
