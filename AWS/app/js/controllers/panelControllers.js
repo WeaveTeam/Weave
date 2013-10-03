@@ -321,10 +321,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryobj.scriptSelected;
 	},function(newVal, oldVal){
-		scriptobj.updateMetadata();
-		scriptobj.scriptMetadata.then(function(result){
-			$scope.inputs = result.inputs;
-		});
+		$scope.inputs = scriptobj.getScriptMetadata().inputs;
 	});
 
 })

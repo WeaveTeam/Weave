@@ -109,8 +109,13 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
             });
         	
         });
-
-        return deferred.promise;;
+        
+        // regardless of when the promise was or will be resolved or rejected,
+        // then calls one of the success or error callbacks asynchronously as soon as the result
+        // is available. The callbacks are called with a single argument: the result or rejection reason.
+        return deferred.promise.then(function(result){
+        	return result;
+        });
     };
     
     /**
@@ -128,8 +133,13 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
                 deferred.resolve(result);
             });
         });
-        
-        return deferred.promise;
+      
+        // regardless of when the promise was or will be resolved or rejected,
+ 	    // then calls one of the success or error callbacks asynchronously as soon as the result
+     	// is available. The callbacks are called with a single argument: the result or rejection reason.
+        return deferred.promise.then(function(result){
+        	return result;
+        });
     };
 }]);
 
