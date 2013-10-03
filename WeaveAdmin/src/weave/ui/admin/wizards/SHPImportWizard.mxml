@@ -87,6 +87,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.reportError;
 			import flash.utils.getQualifiedClassName;
 			
 			import mx.collections.ArrayCollection;
@@ -262,8 +263,15 @@
 			private var shapeFileReferenceList:FileReferenceList = new FileReferenceList();
 			private function browseAndUploadShapeFiles():void
 			{
-				var fileTypes:Array = [new FileFilter("Shape Files", "*.*")];
-				shapeFileReferenceList.browse(fileTypes);
+				try
+				{
+					var fileTypes:Array = [new FileFilter("Shape Files", "*.*")];
+					shapeFileReferenceList.browse(fileTypes);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 
 			private function fileErrorHandler(event:IOErrorEvent):void

@@ -139,16 +139,23 @@
 			**/
 			private function browseForFiles():void
 			{
-				if(_fileLoader == null)
+				try
 				{
-					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
-					_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
-					_fileLoader.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
-					_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					if(_fileLoader == null)
+					{
+						_fileLoader = new FileReference();
+						_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
+						_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+						_fileLoader.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+						_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					}
+					
+					_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
 				}
-				
-				_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			

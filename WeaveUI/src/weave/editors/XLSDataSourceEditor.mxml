@@ -127,14 +127,21 @@
 			 **/
 			private function browseForFiles():void
 			{
-				if (_fileLoader == null)
+				try
 				{
-					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
-					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					if (_fileLoader == null)
+					{
+						_fileLoader = new FileReference();
+						_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
+						_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					}
+					
+					_fileLoader.browse([new FileFilter("XLS", "*.xls")]);
 				}
-				
-				_fileLoader.browse([new FileFilter("XLS", "*.xls")]);
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			

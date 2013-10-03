@@ -59,8 +59,15 @@
 			
 			private function browseAndUploadDBFFiles():void
 			{
-				var fileTypes:Array = [new FileFilter("DBF Files", "*.dbf")];
-				dbfFileReference.browse(fileTypes);
+				try
+				{
+					var fileTypes:Array = [new FileFilter("DBF Files", "*.dbf")];
+					dbfFileReference.browse(fileTypes);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			private function dbfFileSelectedHandler(event:Event):void

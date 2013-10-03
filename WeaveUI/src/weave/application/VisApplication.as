@@ -1549,13 +1549,20 @@ package weave.application
 		private var _weaveFileRef:FileReference = null;
 		private function handleImportSessionState():void
 		{
-			if (!_weaveFileRef)
+			try
 			{
-				_weaveFileRef = new FileReference();
-				_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
-				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
+				if (!_weaveFileRef)
+				{
+					_weaveFileRef = new FileReference();
+					_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
+					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
+				}
+				_weaveFileRef.browse([new FileFilter(lang("Weave files"), "*.weave"),new FileFilter(lang("All files"), "*.*")]);
 			}
-			_weaveFileRef.browse([new FileFilter(lang("Weave files"), "*.weave"),new FileFilter(lang("All files"), "*.*")]);
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		private function handleExportSessionState():void
