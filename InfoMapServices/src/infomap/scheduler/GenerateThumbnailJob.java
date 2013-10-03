@@ -329,6 +329,12 @@ public class GenerateThumbnailJob implements Job{
 						command.add("--out="+thumbnailPath + imgName + "." + imgExtension);
 					}
 					success = runCommand(command);
+					// ToDo Need to deal with success == false for local pdf, doc and etc.
+					// This deals with the possible execution exception (success == false) and the wkPath64 still creates empty, access denied or looks correct image.
+					if (!success) {
+						File tempImg = new File(thumbnailPath + imgName + "." + imgExtension);
+						if (tempImg.exists()) tempImg.delete();
+					}
 				}
 			}
 			else //if it is a local file path
@@ -473,7 +479,9 @@ public class GenerateThumbnailJob implements Job{
 			this.command = command;
 		}
 		
-		
+		// Possible conditions
+		// Time out exception (wait more than 30 seconds to create the file)
+		// Execution exception (exit value is not 0 ; it is still possible to create an empty or access denied or looks correct image (wkPath64 bug))
 		
 		Boolean success = false;
 		
@@ -488,10 +496,13 @@ public class GenerateThumbnailJob implements Job{
 				int result = CommandUtils.runCommand(commmandsToExec);
 				if(result == 0)
 					success = true;
+				else
+					throw new Exception(); // This deals with execution exception
 				System.out.println("Result is " + result);
 			}
 			catch (Exception e){
 				e.printStackTrace();
+				throw new Exception(); // This deals with execution exception
 			}
 			return success;
 		}
