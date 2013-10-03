@@ -1,7 +1,8 @@
 goog.require('aws');
 goog.provide('aws.RClient');
 
-var rServiceURL = '/WeaveServices/RService';
+//var rServiceURL = '/WeaveServices/RService';
+var rServiceURL = '/WeaveServices/AWSRService';
 var adminServiceURL = '/WeaveServices/AdminService';
 
 
@@ -48,7 +49,7 @@ aws.RClient.prototype.run = function(type, callback) {
  */	
 aws.RClient.clearCache = function() {
 	aws.queryService(rServiceURL,'clearCache', null, null);
-}
+};
 
 /**
  * This function calls the startRServe function on the servlet
@@ -59,7 +60,7 @@ aws.RClient.clearCache = function() {
 aws.RClient.startRServe = function(callback) {
 	// we can use the call back to handle whether or not the service was started.
 	aws.queryService(rServiceURL, 'startRServe', null, callback);
-}
+};
 
 /**
  * This function calls the stopRServe function on the servlet
@@ -149,7 +150,7 @@ aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
  */
 aws.RClient.prototype.runScriptWithFilteredColumns = function(callback) {
 	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', this.rDataRequestObject, callback);
-}
+};
 
 
 

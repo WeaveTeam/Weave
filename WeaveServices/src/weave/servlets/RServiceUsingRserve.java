@@ -21,11 +21,14 @@ package weave.servlets;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.UUID;
 import java.util.Vector;
 
 import javax.script.ScriptException;
 
+import org.postgresql.jdbc2.optional.SimpleDataSource;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -115,15 +118,32 @@ public class RServiceUsingRserve
 	private static DebugTimer debugger = new DebugTimer();
 	private static boolean clearCacheTimeLog;
 	
+	//used for time logging in the aws home page 
+	public static String getCurrentTime(String message)
+	{
+		String timedMessage = ""; 
+		Calendar clr = Calendar.getInstance();
+		SimpleDateFormat dformdate = new SimpleDateFormat("MM/dd/yyyy");
+		SimpleDateFormat dformtime = new SimpleDateFormat("HH:mm:ss");
+		timedMessage = message + " " + dformdate.format(clr.getTime()) + " " + dformtime.format(clr.getTime()) + "\n";
+		System.out.print(timedMessage);
+		return timedMessage;
+	}
+
+	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
-		debugger.start();
+		//debugger.start();
+		
+		//have a clean slate during every computation
+		timeLogString = "";
 		
 		REXP evalValue = null;
-		debugger.report("Calling R\n");
+		//debugger.report("Calling R\n");
 		if(!clearCacheTimeLog)
 		{
-			timeLogString = timeLogString +"\nSending call to R : "+ debugger.get();
+			timeLogString = timeLogString + getCurrentTime("Sending data to R :");
+			//timeLogString = timeLogString +"\nSending call to R : "+ debugger.get();
 		}
 		
 		if (showWarnings)			
@@ -132,11 +152,11 @@ public class RServiceUsingRserve
 			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
 		if(!clearCacheTimeLog){
-			
-			timeLogString = timeLogString + "\nResults received From R : " + debugger.get() + " ms";
+			timeLogString = timeLogString  + getCurrentTime("Retrieving results from R :");
+			//timeLogString = timeLogString + "\nResults received From R : " + debugger.get() + " ms";
 		}
-		debugger.report("Results received From R\n");
-		debugger.stop("End");
+		//debugger.report("Results received From R\n");
+		//debugger.stop("End");
 		
 		return evalValue;
 	}
