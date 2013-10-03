@@ -266,14 +266,14 @@ package weave.visualization.plotters
 		
 		/**
 		 * 	@author Yen-Fu 
-		 *	This function evaluates a polynomial, given the coefficients (a, b, c,..) and the value x. 
+		 *	This function evaluate the regression functions, given the type, the coefficients (a, b, c,..) and the value x. 
 		 * 	ax^n-1+bx^n-2+...
 		 **/
 		private function evalFunction(type:String, coefficients:Array, xValue:Number):Number
 		{
 				
-			var b:Number = coefficients[0];
-			var a:Number = coefficients[1];
+			var b:Number = coefficients[0] || 0;
+			var a:Number = coefficients[1] || 0;
 			
 			if (type == POLYNOMIAL) 
 			{
@@ -281,7 +281,7 @@ package weave.visualization.plotters
 				var degree:int = coefficients.length - 1;
 				for (var i:int = 0; i <= degree; i++)
 				{
-					result += coefficients[i] * Math.pow(xValue, i);
+					result += (coefficients[i] || 0) * Math.pow(xValue, i);
 				}
 				
 				

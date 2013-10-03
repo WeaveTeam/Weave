@@ -63,6 +63,7 @@ public class ConnectionConfig
 	public ConnectionConfig(File file)
 	{
 		_file = file;
+		FileUtils.protect(_file);
 	}
 	
 	private boolean _temporaryDataConfigPermission = false;

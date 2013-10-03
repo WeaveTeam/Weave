@@ -323,6 +323,7 @@
 						import weave.api.data.ColumnMetadata;
 						import weave.api.getCallbackCollection;
 						import weave.api.linkBindableProperty;
+						import weave.api.services.IWMSService;
 						import weave.api.ui.IPlotter;
 						import weave.api.unlinkBindableProperty;
 						import weave.compiler.StandardLib;
@@ -612,7 +613,9 @@
 							}
 							else if (plotter is WMSPlotter)
 							{
-								projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).providerName) + ')'; 
+								var service:IWMSService = (plotter as WMSPlotter).service.internalObject as IWMSService;
+								if (service && service.getProjectionSRS())
+									projLabel = ' (' + service.getProjectionSRS() + ')';
 							}
 							_label += projLabel;
 						}

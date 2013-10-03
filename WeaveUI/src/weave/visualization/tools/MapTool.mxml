@@ -43,6 +43,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.services.IWMSService;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
@@ -177,7 +178,8 @@
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
 				{
 					linkProjection(wmsPlotter.srs);
-					projString = WMSProviders.getSRS(wmsPlotter.providerName);
+					var service:IWMSService = wmsPlotter.service.internalObject as IWMSService;
+					projString = service ? service.getProjectionSRS() : null;
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);
 				}

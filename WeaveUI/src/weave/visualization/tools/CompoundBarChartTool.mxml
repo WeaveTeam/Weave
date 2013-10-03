@@ -195,6 +195,11 @@
 			
 			private function updateProbeColumns():void
 			{
+				if (!parent)
+				{
+					callLater(updateProbeColumns);
+					return;
+				}
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 

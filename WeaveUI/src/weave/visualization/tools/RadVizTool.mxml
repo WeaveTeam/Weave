@@ -28,7 +28,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   layout="absolute"
-			   resize="handleResize(event)">
+			  >
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
@@ -176,9 +176,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function handleResize(event:Event):void
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
 				drawProbeLinesForSelectionKeySet();
+				drawProbeLinesForSelectedAnchor();
 			}
 			
 			private function handlePlotterChanges():void
@@ -341,7 +343,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					anchorProbeSprite.graphics.clear();					
 					return;
 				}
-				
 				event.stopPropagation();
 				
 				var key:IQualifiedKey = _probedKeys[0];
@@ -351,13 +352,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				enableAutoZoom = visualization.plotManager.enableAutoZoomToExtent.value;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
-				_plotter.drawProbeLinesForSelectedAnchors(_probedKeys,dataBounds,screenBounds,anchorProbeSprite.graphics);
+				anchorProbeSprite.graphics.clear();
+			}
+			
+			private function drawProbeLinesForSelectedAnchor():void
+			{
+				if(_probedKeys && _probedKeys.length)
+					_plotter.drawProbeLinesForSelectedAnchors(_probedKeys,dataBounds,screenBounds,anchorProbeSprite.graphics);
+				else
+					anchorProbeSprite.graphics.clear();
 			}
 			
 			private function handleMouseUp():void
 			{
 				if (!isDragging)
 					return;
+				drawProbeLinesForSelectedAnchor();
 				handleMouseMove();
 				_probedAnchor = null;
 				isDragging = false;
@@ -369,7 +379,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if (!isDragging || !_probedAnchor)
 					return;
-				
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				tempPoint = visualization.globalToLocal(new Point(event.stageX, event.stageY));
 				

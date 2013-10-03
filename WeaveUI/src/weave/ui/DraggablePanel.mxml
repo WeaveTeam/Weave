@@ -58,6 +58,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.ResizeEvent;
+			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -77,6 +78,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.StageUtils;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
@@ -216,19 +218,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setStyle("paddingBottom", pad);
 				setStyle("paddingTop", pad);
 				
-				userControlButton.setStyle("overIcon", _userControlIcon2);
-				userControlButton.setStyle("downIcon", _userControlIcon);
-				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
-				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
-				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
-				setupControlButton(subMenuButton, _subMenuIcon, null, "Click here to open menu items for this component.");
-				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
-				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
-				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
-				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
-				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
+				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, "Change settings");
+				setupControlButton(subMenuButton, _subMenuIcon, null, "Menu");
+				setupControlButton(pinToBackButton, [_pinToBackIcon, _pinToBackIconColor, _pinToBackIconColor], togglePinnedToBack, "Always on back");
+				setupControlButton(pinButton, [_pinIcon, _pinIconColor, _pinIconColor], togglePinned, "Always on top");
+				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Minimize");
+				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Maximize");
+				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, "Close");
 
-				closePanelButton.label = "X";
+				/*
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
 				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
 				
@@ -240,6 +238,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					// make the close button gray with black text when rolled out (default)
 					closePanelButton.setStyle("fillColors", [_titleBarButtonBackgroundColor,_titleBarButtonBackgroundColor] );
 				});
+				*/
 				
 				// try to find a ControlPanel
 				for (var i:int = 0; i < numChildren; i++)
@@ -439,6 +438,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleAddedToStage(event:Event):void
 			{
+				WeaveAPI.StageUtils.addEventCallback(StageUtils.THROTTLED_MOUSE_MOVE_EVENT, this, handleThrottledMouseMove);
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				stage.addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				parent.addEventListener(ResizeEvent.RESIZE, handleParentResize);
@@ -447,6 +447,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleRemovedFromStage(event:Event):void
 			{
+				WeaveAPI.StageUtils.removeEventCallback(StageUtils.THROTTLED_MOUSE_MOVE_EVENT, handleThrottledMouseMove);
 				stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				stage.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				parent.removeEventListener(ResizeEvent.RESIZE, handleParentResize);
@@ -551,7 +552,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function constrainAndSaveCoordinates():void
 			{
 				// don't copy coordinates while tool is minimized or maximized
-				if (!parent || minimized.value || maximized.value)
+				if (!parent || minimized.value || maximized.value || parent is ISystemManager)
 					return;
 				
 				// init local vars
@@ -723,18 +724,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _userControlIcon2:Class;
 			[Embed(source="/weave/resources/images/menu_9x7.png")]
 			private var _subMenuIcon:Class;
-			[Embed(source="/weave/resources/images/pushpin.png")]
+			
+			//[Embed(source="/weave/resources/images/pushpin.png")]
+			[Embed(source="/weave/resources/images/always-on-top-gray.png")]
 			private var _pinIcon:Class;
-			[Embed(source="/weave/resources/images/pushpinback.png")]
+			[Embed(source="/weave/resources/images/always-on-top.png")]
+			private var _pinIconColor:Class;
+			
+			//[Embed(source="/weave/resources/images/pushpinback.png")]
+			[Embed(source="/weave/resources/images/always-on-back-gray.png")]
 			private var _pinToBackIcon:Class;
+			[Embed(source="/weave/resources/images/always-on-back.png")]
+			private var _pinToBackIconColor:Class;
+			
 			[Embed(source="/weave/resources/images/maximize_icon.png")]
 			private var _maximizeIcon:Class;
 			[Embed(source="/weave/resources/images/unmaximize_icon.png")]
 			private var _unmaximizeIcon:Class;
+			
 			[Embed(source="/weave/resources/images/minimize_icon.png")]
 			private var _minimizeIcon:Class;
-			[Embed(source="/weave/resources/images/minimize_down_icon.png")]
-			private var _minimizeDownIcon:Class;
+//			[Embed(source="/weave/resources/images/minimize_down_icon.png")]
+//			private var _minimizeDownIcon:Class;
+			
+			[Embed(source="/weave/resources/images/close_icon.png")]
+			private var _closeIcon:Class;
+			[Embed(source="/weave/resources/images/close_icon_red.png")]
+			private var _closeIconColor:Class;
+			[Embed(source="/weave/resources/images/close_icon_red2.png")]
+			private var _closeIconColor2:Class;
 			
 			[Embed(source="/weave/resources/images/resize_TB.png")]
 			private var _resizeTBCursor:Class;
@@ -975,25 +993,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _mouseRolledOver:Boolean = false;
 			private function handleMouseRollOver(event:MouseEvent):void
 			{
-				if (!parent)
-					return;
-				
-				DraggablePanel.activePanel = this;
 				_mouseRolledOver = true;
+				DraggablePanel.activePanel = this;
+				
+				if (_resizing)
+					event.stopImmediatePropagation();
 			}
 			private function handleMouseRollOut(event:MouseEvent):void
 			{
 				_mouseRolledOver = false;
-				
-				if (!parent)
-					return;
 				DraggablePanel.activePanel = null;
-				
-				if (_enableMoveResize && !_resizing)
-					CustomCursorManager.removeCursor(draggablePanelCursorID);
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
+				else
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
 			}
 			
 			public function sendWindowToForeground():void
@@ -1143,21 +1157,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (_dragging || _resizing)
 					event.stopImmediatePropagation();
 				
-				delayedHandleStageMouseMove();
+				handleThrottledMouseMove();
 			}
 			
-			private function delayedHandleStageMouseMove():void
+			private function handleThrottledMouseMove():void
 			{
 				// don't do anything if this panel is not added to the stage.
 				if (!parent)
 					return;
-				
-				// delay this function while the mouse is still moving
-				if (WeaveAPI.StageUtils.mouseMoved)
-				{
-					callLater(delayedHandleStageMouseMove);
-					return;
-				}
 				
 				if (!_enableMoveResize)
 					return;
@@ -1193,6 +1200,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						this.y = StandardLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
 						this.height = (_bottomSideBeforeTopResize - this.y);
 					}		
+					constrainAndSaveCoordinates();
 				}
 			}
 			private var _controlPanel:ControlPanel = null;
@@ -1216,10 +1224,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
-			private function setupControlButton(button:Button, icon:Class, clickHandler:Function, tooltip:String = null):void
+			private function setupControlButton(button:Button, iconClassOrArray_0icon_1over_2down:Object, clickHandler:Function, tooltip:String = null):void
 			{
-				button.setStyle("icon", icon);
-				button.toolTip = tooltip;
+				var icons:Array = iconClassOrArray_0icon_1over_2down as Array;
+				var icon:Class = icons ? icons[0] : iconClassOrArray_0icon_1over_2down as Class;
+				
+				if (icon)
+					button.setStyle("icon", icon);
+				if (icons && icons[1])
+					button.setStyle("overIcon", icons[1]);
+				if (icons && icons[2])
+					button.setStyle("downIcon", icons[2]);
+				
+				button.toolTip = lang(tooltip);
 				
 				button.setStyle("fontFamily",    "Arial");
 				button.setStyle("color", 0x000000);
@@ -1583,6 +1600,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			public function dispose():void
 			{
+				CustomCursorManager.removeCursor(draggablePanelCursorID);
+				
 				if (minimizedComponentVersion)
 					VisTaskbar.instance.removeMinimizedComponent(minimizedComponentVersion);
 				minimizedComponentVersion = null;

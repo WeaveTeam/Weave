@@ -631,15 +631,15 @@ A text editor to change the Session State on the fly.
 					{
 						if (_editor == TEXT_EDITOR)
 						{
-							if (_currentSelectedObject is LinkableString || _currentSessionStateXML == null)
+							// Note: use === to work around bug with (<tag>null</tag> == null) evaluating to true
+							if (_currentSelectedObject is LinkableString || _currentSessionStateXML === null)
 							{
 								setSessionState(_currentSelectedObject, textEditor.text);
 							}
 							else
 							{
-								var xmlList:XMLList = XMLList(textEditor.text); // will throw error if xml is invalid
-								_currentSessionStateXML.setChildren(XMLList(textEditor.text));
-								var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+								var xml:XML = XML(firstLine.text + textEditor.text + lastLine.text); // will throw error if xml is invalid
+								var decodedStateObject:Object = WeaveXMLDecoder.decode(xml);
 								setSessionState(_currentSelectedObject, decodedStateObject, true);
 							}
 						}
