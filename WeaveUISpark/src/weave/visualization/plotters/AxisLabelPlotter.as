@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -34,7 +33,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	
@@ -47,9 +45,7 @@ package weave.visualization.plotters
 	{
 		public function AxisLabelPlotter()
 		{
-			hideOverlappingText.value = false;
 			setSingleKeySource(text);
-			horizontal.value = true;
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 				
@@ -61,15 +57,15 @@ package weave.visualization.plotters
 		public const start:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const alongXAxis:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		
 		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
-		public const horizontal:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const textFormatAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const hAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER));
 		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const hideOverlappingText:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const xScreenOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const yScreenOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
@@ -91,9 +87,13 @@ package weave.visualization.plotters
 			
 			var _start:Number = start.value;
 			var _end:Number = end.value;
-			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
 			
-			var i:int;
+			if (isNaN(_start))
+				_start = alongXAxis.value ? dataBounds.getXMin() : dataBounds.getYMin();
+			if (isNaN(_end))
+				_end = alongXAxis.value ? dataBounds.getXMax() : dataBounds.getYMax();
+			
+			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
 			
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			bitmapText.textFormat.color = color.value;
@@ -106,10 +106,16 @@ package weave.visualization.plotters
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
 			// if there will be more grid lines than pixels, don't bother drawing anything
-			var steps:Number = Math.abs((_end - _start) / _interval);
-			if (steps > (horizontal.value ? screenBounds.getXCoverage() : screenBounds.getYCoverage()))
-				return;
-			for (i = 0; i <= steps; i++)
+			var steps:Number;
+			while (true)
+			{
+				steps = Math.abs((_end - _start) / _interval);
+				if (steps > (alongXAxis.value ? screenBounds.getXCoverage() : screenBounds.getYCoverage()))
+					_interval *= 2;
+				else
+					break;
+			}
+			for (var i:int = 0; i <= steps; i++)
 			{
 				var number:Number = _start + _interval * i;
 				bitmapText.text = StandardLib.formatNumber(number);
@@ -123,7 +129,7 @@ package weave.visualization.plotters
 					continue;
 				}
 				
-				if (horizontal.value)
+				if (alongXAxis.value)
 				{
 					tempPoint.x = number;
 					tempPoint.y = alignToDataMax.value ? dataBounds.getYMax() : dataBounds.getYMin();
@@ -144,10 +150,10 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			output.reset();
-			if (horizontal.value)
-				output.setYRange(start.value, end.value);
-			else
+			if (alongXAxis.value)
 				output.setXRange(start.value, end.value);
+			else
+				output.setYRange(start.value, end.value);
 		}
 	}
 }
