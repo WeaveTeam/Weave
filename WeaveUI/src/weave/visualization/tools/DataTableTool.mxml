@@ -93,6 +93,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.IndexChangedEvent;
 			import mx.events.ListEvent;
 			import mx.events.ResizeEvent;
+			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -417,9 +418,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					times = 1; // change direction only requires one event
 				else if (changeIndex)
 					times = 2; // (change index and keep direction) requires two events
-				
+
+				var prevFocus:IFocusManagerComponent = focusManager.getFocus();
 				for (var i:int = 0 ; i < times; i++)
 					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
+				if (prevFocus)
+					focusManager.setFocus(prevFocus);
 			}
 			
 			/**
