@@ -20,22 +20,28 @@ package weave.tests;
 
 
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import weave.beans.RResult;
+import weave.servlets.AWSRService;
 import weave.servlets.RService;
 
 public class test
 {
 
 	static RService ws = null;
+	static AWSRService aws= null;
 	
-//	public static void call(String[] inputNames, Object[][] inputValues,  
-//			 boolean showWarnings, int clusternumber, int iterationNumber) throws Exception{
-	
+	public static Map<String, String> connectionObject = new HashMap<String, String>();
+	public static Map<String, Object> requestObject = new HashMap<String, Object>();
+
+		
 	public static void call(String[] keys, String[]inputNames, Object[]inputValues, String[]resultNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList)
 	throws Exception
 	{
@@ -49,11 +55,34 @@ public class test
 				
 				System.out.println(System.getProperty("user.dir"));
 			try {
-				//scriptResult =	ws.kMeansClustering(inputNames, inputValues, showWarnings,clusterNo, iterations);
-				//scriptResult = ws.handlingMissingData(inputNames, inputValues, outputNames, false, false, false);
-				//scriptResult = ws.kMeansClustering(inputNames, inputValues, false, 3, 10);
-				//scriptResult = ws.computingTStatisticforClassDiscrimination(inputNames, inputValues, resultNames, parameters);
+				
 				scriptResult = ws.runScript(null, inputNames, inputValues, resultNames, script, plotScript, showIntermediateResults, showWarnings, useColumnAsList);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+				finally
+				{
+					System.out.println(Arrays.asList(scriptResult));
+				}
+				allResults[i] = scriptResult;
+	    }
+	}
+	
+	
+	public static void testcall(Map<String, String> connectionObjectCopy, Map<String, Object> requestObjectCopy)
+	throws Exception
+	{
+		for(int i = 0; i < 4; i++)
+	    {
+			
+				RResult[] scriptResult = null;
+				
+				Object [] allResults = new Object[3];
+				
+				System.out.println(System.getProperty("user.dir"));
+			try {
+				
+				scriptResult = aws.runScriptwithScriptMetadata(connectionObject, requestObject);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -69,34 +98,58 @@ public class test
 	public static void main(String[] args) throws Exception
 	{
 		ws = new RService();
+		aws = new AWSRService();
+		
+		ArrayList<String> columns = new ArrayList<String>();
+		columns.add("X_STATE");
+		columns.add("X_PSU");
+		columns.add("X_FINALWT");
+		columns.add("X_STSTR");
+		columns.add("DIABETE2");
+		
+		connectionObject.put("connectionType", "RODBC");
+		connectionObject.put("user", "root");
+		connectionObject.put("password", "shweta");
+		connectionObject.put("schema", "data");
+		connectionObject.put("host", "localhost");
+		connectionObject.put("dsn", "myCDC");
+		
+		requestObject.put("scriptName", "TestingAWS_RODBC.R");
+		requestObject.put("scriptPath", "C:\\RScripts\\");
+		requestObject.put("columnsToBeRetrieved",columns);
+		requestObject.put("dataset", "sdoh2010q");
+		
+		testcall(connectionObject, requestObject);
+		
+		
 		
 		//Object[] inputValues1 = {};	
 		//Object[] inputValues = {};
-		String plotscript = "";
+		//String plotscript = "";
 		//Object[] parameters = {};
-		String [] resultNames = {};	
-		String scriptFilePath = "C:\\RScripts\\TestingAWS_RODBC.R";
+		//String [] resultNames = {};	
+		//String scriptFilePath = "C:\\RScripts\\TestingAWS_RODBC.R";
 		//String csvPath = "C:\\Users\\Shweta\\Desktop\\SDoH2010Q.csv";
-		String user = "root";
-		String password = "shweta";
-		String hostName = "localhost";
-		String schemaName = "data";
-		String dsn = "myCDC";
-		String [] columns = {"X_STATE", "X_PSU", "X_STSTR", "X_FINALWT", "DIABETE2"};
-		String query = "select `X_STATE`,`X_PSU`,`X_STSTR`,`X_FINALWT`,DIABETE2 from sdoh2010q";
+//		String user = "root";
+//		String password = "shweta";
+//		String hostName = "localhost";
+//		String schemaName = "data";
+//		String dsn = "myCDC";
+	//	String [] columns = {"X_STATE", "X_PSU", "X_STSTR", "X_FINALWT", "DIABETE2"};
+		//String query = "select `X_STATE`,`X_PSU`,`X_STSTR`,`X_FINALWT`,DIABETE2 from sdoh2010q";
 		
-		 Object[] inputValues = {scriptFilePath, query, columns, user, password, hostName, schemaName, dsn};
-		 String[] inputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
-		
-		String script =  "scriptFromFile <- source(cannedScriptPath)\n" +
-		  "library(RMySQL)\n" +
-		  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
-		  "library(survey)\n" +
-		  "getColumns <- function(query)\n" +
-		  "{\n" +
-		  "return(dbGetQuery(con, paste(query)))\n" +
-		  "}\n" +
-		  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+//		 Object[] inputValues = {scriptFilePath, query, columns, user, password, hostName, schemaName, dsn};
+//		 String[] inputNames = {"cannedScriptPath", "query", "params", "myuser", "mypassword", "myhostName", "myschemaName", "mydsn"};
+//		
+//		String script =  "scriptFromFile <- source(cannedScriptPath)\n" +
+//		  "library(RMySQL)\n" +
+//		  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
+//		  "library(survey)\n" +
+//		  "getColumns <- function(query)\n" +
+//		  "{\n" +
+//		  "return(dbGetQuery(con, paste(query)))\n" +
+//		  "}\n" +
+//		  "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
 		
 			//String[] inputNames  = {"cannedScriptPath","query", "mystate", "mypsu","myststr","myfinalwt", "myindicator"};
 		//Object[] inputValues = {checkstrings};
@@ -181,8 +234,8 @@ public class test
 //		"return(Clusters)}}\n" +
 //		"ans <- hello1(inputColumns, EMModel)\n";
 		
+			
 //		
-		call(null,inputNames, inputValues,resultNames,script,plotscript, false,false,false);
 	}	
 }		
 		

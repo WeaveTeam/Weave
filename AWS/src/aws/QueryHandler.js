@@ -91,6 +91,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 	var that = this;
 	this.computationEngine.run("SQLData", function(result) {
 		
+		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
 		console.log(result[0].value);
 		aws.timeLogString = result[1].value;
