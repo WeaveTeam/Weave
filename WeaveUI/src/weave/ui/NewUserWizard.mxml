@@ -23,7 +23,6 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="weave.ui.*"
 	label="{lang('Import Data to Weave')}"
-	width="100%" height="100%"
 	finishEnabled="false"
 	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*"
 	>
@@ -34,7 +33,7 @@
 		<mx:Label text="{lang('Load local file')}"/>
 		<ui:HelpComponent>
 			Accepts XLS,CSV or Text file. Data should be delimited (by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
-		</ui:HelpComponent>			
+		</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox>
 			<mx:Image click="browseForFiles()" id="uploadImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/add_file_large.png')"/>
@@ -53,7 +52,7 @@
 				Paste a delimited data set (delimited by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
 			</ui:HelpComponent>
 		</mx:HBox>
-		<mx:TextArea id="dataTextArea" change="handleTextAreaChange()" width="400" height="250"/>
+		<mx:TextArea id="dataTextArea" change="handleTextAreaChange()" width="100%" height="100%"/>
 	</mx:VBox>
 	<mx:VBox id="gridBox" width="100%" height="100%">
 		<mx:HBox width="100%">
@@ -80,15 +79,15 @@
 			<mx:Label text="{lang('Delimiter: ')}"/>
 			<ui:CustomComboBox id="delimiterSelector" toolTip="{lang('If there is a problem, try changing the delimiter (you can also type a different delimiter).')}" editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
 		</mx:HBox>
-		<mx:DataGrid id="grid" height="100%"/>
+		<mx:DataGrid id="grid" height="100%" width="100%"/>
 		
 	</mx:VBox>
 	<mx:VBox id="visTools" width="100%">
 		<mx:Text text="{lang('Your data is now ready to be visualized!')}"/>
-		<mx:Text text="{lang('* Click the image below to add a visual tool or')}"/>
-		<mx:HBox><mx:Text text="{lang('* Use the')}"/><mx:Text fontWeight="bold" text="'Tools'"/><mx:Text text="{lang(' menu to add more visual tools')}"/></mx:HBox>		
-		<mx:HBox><mx:Text text="{lang('* Click the')}"/><mx:Image source="@Embed(source= '/weave/resources/images/tinyWrench.png')"/><mx:Text text="{lang(' image in the visual tools to edit the dimensions.')}"/></mx:HBox>
-		<mx:HBox><mx:Text text="{lang('* Add as many different tools and start')}"/><mx:Text fontWeight="bold" text="Weave" paddingRight="-5"/><mx:Text paddingLeft="-5" text="-ing!"/></mx:HBox>
+		<mx:Text text="{lang('* Click an image below to add a visual tool or')}"/>
+		<mx:HBox horizontalGap="0"><mx:Text text="{lang('* Use the ')}"/><mx:Text fontWeight="bold" text="Tools"/><mx:Text text="{lang(' menu to add more visual tools')}"/></mx:HBox>
+		<mx:HBox horizontalGap="0"><mx:Text text="{lang('* Click the ')}"/><mx:Image source="@Embed(source= '/weave/resources/images/gear6_13x13_h.png')"/><mx:Text text="{lang(' button in the visual tools to edit the dimensions.')}"/></mx:HBox>
+		<mx:HBox horizontalGap="0"><mx:Text text="{lang('* Add as many different tools as you want and start ')}"/><mx:Text fontWeight="bold" text="Weave"/><mx:Text paddingLeft="-5" text="{lang('-ing!')}"/></mx:HBox>
 		
 		<!--<mx:Text leading="-3" width="100%" >
 			<mx:htmlText>
@@ -104,22 +103,31 @@
 		<mx:Text paddingLeft="20" text="-> Add as many different tools as you want. Start Weaving!"/>
 		-->
 		<!--Images from http://www.webresourcesdepot.com/free-vector-chart-icons/-->
-		<mx:HBox>
+		<mx:HBox width="100%"
+				 minWidth="0"
+				 paddingLeft="16"
+				 paddingRight="16"
+				 paddingTop="16"
+				 paddingBottom="32"
+				 horizontalGap="16"
+				 verticalScrollPolicy="off"
+				 borderStyle="inset">
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(CompoundBarChartTool)" id="barChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/bar_chart_weave.png')"/>
 				<mx:Label text="{lang('Bar Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(LineChartTool)" id="lineChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/line_chart_weave_new.png')"/>
-				<mx:Label text="{lang('Line Chart')}" fontWeight="bold"/>
-			</mx:VBox>
-			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(ScatterPlotTool)" id="scatterplotImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/scatter_plot_weave_new.png')"/>
 				<mx:Label text="{lang('Scatterplot')}" fontWeight="bold"/>
 			</mx:VBox>
-			
-		</mx:HBox>
-		<mx:HBox>
+			<mx:VBox>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/histogram_weave.png')"/>
+				<mx:Label text="{lang('Histogram')}" fontWeight="bold"/>
+			</mx:VBox>
+			<mx:VBox>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(LineChartTool)" id="lineChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/line_chart_weave_new.png')"/>
+				<mx:Label text="{lang('Line Chart')}" fontWeight="bold"/>
+			</mx:VBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(PieChartTool)" id="pieChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/pie_chart_weave.png')"/>
 				<mx:Label text="{lang('Pie Chart')}" fontWeight="bold"/>
@@ -127,10 +135,6 @@
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(GaugeTool)" id="gaugeImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/gauge_meter_weave.png')"/>
 				<mx:Label text="{lang('Gauge Meter')}" fontWeight="bold"/>
-			</mx:VBox>
-			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/histogram_weave.png')"/>
-				<mx:Label text="{lang('Histogram')}" fontWeight="bold"/>
 			</mx:VBox>
 			
 		</mx:HBox>
@@ -149,26 +153,15 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IKeySet;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.reportError;
-			import weave.api.ui.IPlotter;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
-			import weave.data.QKeyManager;
-			import weave.utils.ColumnUtils;
-			import weave.utils.CustomCursorManager;
 			import weave.utils.ProbeTextUtils;
-			import weave.visualization.layers.InteractiveVisualization;
-			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.GaugeTool;
 			import weave.visualization.tools.HistogramTool;
 			import weave.visualization.tools.LineChartTool;
-			import weave.visualization.tools.MapTool;
 			import weave.visualization.tools.PieChartTool;
 			import weave.visualization.tools.ScatterPlotTool;
 			private static const indent:int = 360;
@@ -324,14 +317,21 @@
 			 **/
 			private function browseForFiles():void
 			{
-				if(_fileLoader == null)
+				try
 				{
-					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
-					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					if(_fileLoader == null)
+					{
+						_fileLoader = new FileReference();
+						_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
+						_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					}
+					
+					_fileLoader.browse([new FileFilter("CSV/XLS/TXT", "*.csv;*.xls;*.txt")]);
 				}
-				
-				_fileLoader.browse([new FileFilter("CSV/XLS/TXT", "*.csv;*.xls;*.txt")]);
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			

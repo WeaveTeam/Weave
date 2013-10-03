@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <!---
@@ -29,10 +29,13 @@ Editor for custom layers using GridLinePlotters
 		 label="{lang('Grid Line Settings')}" xmlns:ui="weave.ui.*">
 	<mx:HBox>
 		<mx:RadioButtonGroup id="hv"/>
-		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
-		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
-					 label="{lang('Horizontal lines')}"
-					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
+		<mx:RadioButton group="{hv}"
+						label="{lang('Along X axis')}"
+						selected="{!horizontalCheckBox.selected}"/>
+		<mx:RadioButton group="{hv}"
+						label="{lang('Along Y axis')}"
+						id="horizontalCheckBox"
+						creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
 	</mx:HBox>
 	
 	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Start:')}"
@@ -64,13 +67,11 @@ Editor for custom layers using GridLinePlotters
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.ILinkableObjectEditor;
-			import weave.utils.EditorManager;
 			import weave.utils.PlotterUtils;
 			import weave.visualization.plotters.GridLinePlotter;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			[Bindable] private var indent:int = 80;
-			[Bindable] private var inputWidth:int = 64;
+			[Bindable] private var inputWidth:int = 128;
 			
 			public function setTarget(object:ILinkableObject):void
 			{

@@ -93,6 +93,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.IndexChangedEvent;
 			import mx.events.ListEvent;
 			import mx.events.ResizeEvent;
+			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -228,10 +229,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */			
 			private function handleToolResize(event:Event):void
 			{
-				if (dataGridHorizontalScrollPosition.value != dataGrid.maxHorizontalScrollPosition)
-				{
-					updateColumnWidths();
-				}
+				updateColumnWidths();
 				if (dataGridHorizontalScrollPosition.value > 0 && showFilters.value)
 				{
 					handleDataGridHorizontalScroll();					
@@ -341,10 +339,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			/**
-			 * This function(event Listener) gets called during 
-			 * Click event of Button  in control Panel			 * 
-			 */	
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
@@ -424,9 +418,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					times = 1; // change direction only requires one event
 				else if (changeIndex)
 					times = 2; // (change index and keep direction) requires two events
-				
+
+				var prevFocus:IFocusManagerComponent = focusManager.getFocus();
 				for (var i:int = 0 ; i < times; i++)
 					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
+				if (prevFocus)
+					focusManager.setFocus(prevFocus);
 			}
 			
 			/**
@@ -618,7 +615,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			private var _minSuggestedColumnSize:int = 100;
+			private var _minSuggestedColumnSize:int = 32;
 			
 			private function updateDataGridColumns():void
 			{
@@ -714,7 +711,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var columnName:String = columns.getName(column);
 					var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, false);
 					
-					if (isNaN(colWidth) || width <= 5) // this happens when a column is stretched all the way to the right
+					if (isNaN(colWidth) || width <= _minSuggestedColumnSize) // this happens when a column is stretched all the way to the right
 						colWidth = _minSuggestedColumnSize;	
 					
 					sessionedWidth.value = (100 * colWidth / dataGridColumnsWidth) + "%";
@@ -730,44 +727,45 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				}
 				var allotedDisplayWidth:Number = dataGrid.getColumnDisplayWidth();
+				var columnName:String;
+				var sessionedWidth:LinkableString;
 				
-				var defaultValue:Number = allotedDisplayWidth/_currentDataGridColumns.length;
+				// determine how many columns should be used to fill unclaimed space on the window
+				var unspecifiedWidthCount:int = 0;
+				for each (columnName in columns.getNames())
+				{
+					sessionedWidth = columnWidths.getObject(columnName) as LinkableString;
+					if (!sessionedWidth || !sessionedWidth.value)
+						unspecifiedWidthCount++;
+				}
+
+				var defaultValue:Number = allotedDisplayWidth/unspecifiedWidthCount;
 				var displayedColumnsTotalWidth:Number = 0;
 				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
 				{
 					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[j] as WeaveCustomDataGridColumn;
-					var columnName:String = columns.getName(dgc.attrColumn);
+					columnName = columns.getName(dgc.attrColumn);
 					if (columnName == null)
 						continue;
-					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
+					sessionedWidth = columnWidths.getObject(columnName) as LinkableString;
 					var tempWidth:Number;
 					// when we reset width, we need all columns to have default value
-					 if (sessionedWidth == null){
-						 tempWidth = defaultValue;
+					 if(sessionedWidth && sessionedWidth.value ){	
+						 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
+						 tempWidth = sessionedValue;
 					 }
 					 else{
-						 if(sessionedWidth.value ){	
-							 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
-							 tempWidth = sessionedValue;
-						 }
-						 else{
-							 tempWidth = defaultValue;					
-							 sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
-						 } 
-					 }
+						 tempWidth = defaultValue;					
+						 //sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
+					 } 
 					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
 					if(j == _currentDataGridColumns.length -1) 
-					{
-						tempWidth = allotedDisplayWidth - displayedColumnsTotalWidth ;
-						if(sessionedWidth){
-							sessionedWidth.value = "";
-						}
-						
-					}
-					if (tempWidth <= 5 || isNaN(tempWidth)) {
-						tempWidth = _minSuggestedColumnSize;	
-					}	
+						tempWidth = NaN;//allotedDisplayWidth - displayedColumnsTotalWidth;
+					if (tempWidth <= _minSuggestedColumnSize || isNaN(tempWidth))
+						tempWidth = _minSuggestedColumnSize;
+					if (tempWidth >= allotedDisplayWidth - _minSuggestedColumnSize)
+						tempWidth = allotedDisplayWidth - _minSuggestedColumnSize;
 					//int casting required as rendering works fast with whole number than with an floating number
 					var newWidth:Number = int(Math.min(tempWidth, allotedDisplayWidth));
 					

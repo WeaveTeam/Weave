@@ -106,6 +106,11 @@ package weave.data.AttributeColumns
 			return getInternalColumn() ? _internalColumn.getMetadata(attributeName) : null;
 		}
 
+		public function getMetadataPropertyNames():Array
+		{
+			return getInternalColumn() ? _internalColumn.getMetadataPropertyNames() : [];
+		}
+		
 		/**
 		 * @return the keys associated with this column.
 		 */

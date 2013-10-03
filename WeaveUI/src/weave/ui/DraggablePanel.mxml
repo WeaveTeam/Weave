@@ -67,7 +67,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
-			import weave.api.linkableObjectIsBusy;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;

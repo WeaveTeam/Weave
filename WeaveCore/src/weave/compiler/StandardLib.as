@@ -47,7 +47,7 @@ package weave.compiler
 			if (value == null)
 				return NaN; // return NaN because Number(null) == 0
 			
-			if (value is Number)
+			if (value is Number || value is Date)
 				return value;
 			
 			try {
@@ -601,7 +601,7 @@ package weave.compiler
 					throw new Error(_dateFormatter.error);
 			}
 			var date:Date = DateFormatter.parseDateString(formattedDateString);
-			if (parseAsUniversalTime)
+			if (date && parseAsUniversalTime)
 				date.setTime( date.getTime() - date.getTimezoneOffset() * _timezoneMultiplier );
 			return date;
 		}

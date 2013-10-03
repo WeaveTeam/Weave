@@ -44,6 +44,25 @@ package weave.utils
 			return destination;
 		}
 		/**
+		 * Fills a hash map with the keys from an Array.
+		 */
+		public static function fillKeys(output:Object, keys:Array):void
+		{
+			for each (var key:* in keys)
+				output[key] = true;
+		}
+		/**
+		 * Gets all keys in a hash map.
+		 */
+		public static function getKeys(hashMap:Object):Array
+		{
+			var keys:Array = [];
+			for (var key:* in hashMap)
+				keys.push(key);
+			return keys;
+		}
+		
+		/**
 		 * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).
 		 * @param vector The sorted Array (or Vector)
 		 */

@@ -76,6 +76,13 @@ package weave.data.AttributeColumns
 			return null;
 		}
 		
+		public function getMetadataPropertyNames():Array
+		{
+			if (internalObject)
+				return (internalObject as IAttributeColumn).getMetadataPropertyNames();
+			return [];
+		}
+		
 		/**
 		 * @return the keys associated with this column.
 		 */

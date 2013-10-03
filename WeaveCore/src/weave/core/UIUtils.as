@@ -39,7 +39,6 @@ package weave.core
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
-
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.utils.Dictionary2D;
 
@@ -60,6 +59,19 @@ package weave.core
 		{
 			var focus:DisplayObject = component.getFocus();
 			return focus && component.contains(focus);
+		}
+		
+		/**
+		 * Sets paddingLeft, paddingRight, paddingTop, and paddingBottom to the same value.
+		 * @param component
+		 * @param padding
+		 */		
+		public static function setPadding(component:UIComponent, padding:int):void
+		{
+			component.setStyle('paddingLeft', padding);
+			component.setStyle('paddingTop', padding);
+			component.setStyle('paddingRight', padding);
+			component.setStyle('paddingBottom', padding);
 		}
 		
 		/**
