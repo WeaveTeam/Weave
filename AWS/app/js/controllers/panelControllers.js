@@ -70,8 +70,9 @@ angular.module("aws.panelControllers", [])
 
 })
 .controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
+	
 	$scope.selection;
-	$scope.options;// = scriptobj.availableScripts;
+	$scope.options;
 	
 	if(queryobj['scriptSelected']){
 		$scope.selection = queryobj['scriptSelected'];
@@ -81,7 +82,7 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch('selection', function(){
 		queryobj['scriptSelected'] = $scope.selection;
-		scriptobj.updateMetadata();
+		scriptobj.getScriptMetadata();
 	});
 	$scope.$watch(function(){
 		return queryobj['scriptSelected'];
@@ -93,7 +94,7 @@ angular.module("aws.panelControllers", [])
 		return queryobj.conn.scriptLocation;
 	},
 		function(){
-		$scope.options = scriptobj.getScriptsFromServer();
+		$scope.options = scriptobj.getListOfScripts();
 	});
 	
 })

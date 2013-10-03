@@ -397,9 +397,10 @@ public class AWSRService extends RService
 		 
 	}
 	
-	public String[] getListOfScripts(String folderPath)
+	public String[] getListOfScripts()
 	{
-		File directory = new File(folderPath);
+		
+		File directory = new File(uploadPath, "RScripts");
 		String[] files = directory.list();
 		List<String> rFiles = new ArrayList<String>();
 		String extension = "";
@@ -428,9 +429,9 @@ public class AWSRService extends RService
 //		public String[] outputDescriptions;
 //
 //	}
-	public Object getScriptMetadata(String folderPath, String scriptName) throws Exception
+	public Object getScriptMetadata(String scriptName) throws Exception
 	{
-		File directory = new File(folderPath);
+		File directory = new File(uploadPath, "RScripts");
 		String[] files = directory.list();
 		int filecount = 0;
 		// this object will get the metadata from the json file
