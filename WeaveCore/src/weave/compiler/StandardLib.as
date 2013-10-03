@@ -601,7 +601,7 @@ package weave.compiler
 					throw new Error(_dateFormatter.error);
 			}
 			var date:Date = DateFormatter.parseDateString(formattedDateString);
-			if (parseAsUniversalTime)
+			if (date && parseAsUniversalTime)
 				date.setTime( date.getTime() - date.getTimezoneOffset() * _timezoneMultiplier );
 			return date;
 		}
