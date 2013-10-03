@@ -98,7 +98,7 @@ package weave.data.BinningDefinitions
 				_keys = [];
 			}
 			
-			_sortedValues = new Array(_keys.length);
+			_sortedValues = new Array();
 			_keyCount = 0;
 			_previousSortedValues.length = 0;
 			
@@ -119,11 +119,15 @@ package weave.data.BinningDefinitions
 		private var _keys:Array = []; 
 		private function _getValueFromKeys(stopTime:int):Number
 		{
+			var currValue:Number;
 			for (; _keyCount < _keys.length; _keyCount++)
 			{
 				if (getTimer() > stopTime)
 					return _keyCount/_keys.length;
-				_sortedValues[_keyCount] = _column.getValueFromKey(_keys[_keyCount],Number);
+				/*ignore NaN */
+				currValue = _column.getValueFromKey(_keys[_keyCount],Number);
+				if(!isNaN(currValue))
+					_sortedValues[_keyCount] = currValue; 
 			}
 			
 			// begin sorting now
