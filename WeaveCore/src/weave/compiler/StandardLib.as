@@ -47,7 +47,7 @@ package weave.compiler
 			if (value == null)
 				return NaN; // return NaN because Number(null) == 0
 			
-			if (value is Number)
+			if (value is Number || value is Date)
 				return value;
 			
 			try {
