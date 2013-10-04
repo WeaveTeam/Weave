@@ -254,8 +254,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				layoutMode.addImmediateCallback(this, handleLayoutMode);
-				
-				callLater(showControlPanelIfNothingSelected);
 			}
 			
 			private function stopPlay():void
@@ -267,13 +265,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				stopPlay();
 				layoutViewStack.selectedIndex = layouts.indexOf(layoutMode.value);
-			}
-			
-			private function showControlPanelIfNothingSelected():void
-			{
-				// when the tool is created and nothing is selected, show the control panel
-				if (!targetTool.value && targetAttributeNumber.value < 0 && !WeaveAPI.StageUtils.mouseButtonDown)
-					toggleControlPanel();
 			}
 			
 			// this returns the tool object corresponding to the selected item in the toolCombo
