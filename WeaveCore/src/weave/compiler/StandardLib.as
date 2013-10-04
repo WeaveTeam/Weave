@@ -26,6 +26,7 @@ package weave.compiler
 	import mx.utils.ObjectUtil;
 	
 	import weave.utils.AsyncSort;
+	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
 
 	/**
@@ -576,25 +577,6 @@ package weave.compiler
 			var formattedDateString:String = dateString;
 			if (formatString)
 			{
-				// work around bug in DateFormatter that requires Year, Month, and Day to be in the formatString
-				var separator:String = "//";
-				var appendFormat:String = "";
-				var appendDate:String = "";
-				for (var i:int = 0; i < 3; i++)
-				{
-					var char:String = "YMD".charAt(i);
-					if (formatString.indexOf(char) < 0)
-					{
-						appendFormat += separator + char;
-						appendDate += separator + (char == 'Y' ? '1970' : '1');
-					}
-				}
-				if (appendFormat)
-				{
-					formatString += " " + appendFormat;
-					dateString += " " + appendDate;
-				}
-				
 				_dateFormatter.formatString = formatString;
 				formattedDateString = _dateFormatter.format(dateString);
 				if (_dateFormatter.error)
@@ -632,7 +614,7 @@ package weave.compiler
 		/**
 		 * This is the DateFormatter used by parseDate() and formatDate().
 		 */
-		private static const _dateFormatter:DateFormatter = new DateFormatter();
+		private static const _dateFormatter:DateFormatter = new CustomDateFormatter();
 		/**
 		 * The number of milliseconds in one minute.
 		 */
