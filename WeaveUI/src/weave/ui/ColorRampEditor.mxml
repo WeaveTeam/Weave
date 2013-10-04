@@ -55,7 +55,7 @@
 						 >
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" paddingTop="0" paddingBottom="0" paddingLeft="8" paddingRight="24">
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" initialize="UIUtils.setPadding(event.target as UIComponent, 5);">
 								<mx:ColorPicker id="cPicker" showTextField="true"/>
 								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
@@ -63,9 +63,11 @@
 								<mx:Script>
 									<![CDATA[
 										import mx.collections.ArrayCollection;
+										import mx.core.UIComponent;
 										import mx.events.DragEvent;
 										
 										import weave.compiler.StandardLib;
+										import weave.core.UIUtils;
 										
 										override protected function childrenCreated():void
 										{
