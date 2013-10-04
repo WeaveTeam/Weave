@@ -176,9 +176,9 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(recordKey, graphics);
 			fillStyle.beginFillStyle(recordKey, graphics);
 			if (drawEllipse.value)
-				graphics.drawEllipse(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+				graphics.drawEllipse(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
 			else
-				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+				graphics.drawRect(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
 			graphics.endFill();
 		}
 		
