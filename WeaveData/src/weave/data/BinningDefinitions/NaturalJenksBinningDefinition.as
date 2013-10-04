@@ -126,8 +126,8 @@ package weave.data.BinningDefinitions
 					return _keyCount/_keys.length;
 				/*ignore NaN */
 				currValue = _column.getValueFromKey(_keys[_keyCount],Number);
-				if(!isNaN(currValue))
-					_sortedValues[_keyCount] = currValue; 
+				if (isFinite(currValue))
+					_sortedValues.push(currValue);
 			}
 			
 			// begin sorting now
