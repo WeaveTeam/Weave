@@ -87,6 +87,8 @@ package weave.ui
 				_editor.addEventListener(DragEvent.DRAG_ENTER, dragEnterCaptureHandler, true);
 			}
 			
+			_nameColumn = null;
+			_valueColumn = null;
 			var dataGrid:DataGrid = _editor as DataGrid;
 			if (dataGrid)
 			{
@@ -94,21 +96,21 @@ package weave.ui
 				dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
 				dataGrid.draggableColumns = false;
 				
-				var nameCol:DataGridColumn = new DataGridColumn();
-				nameCol.sortable = false;
-				nameCol.editable = true;
-				nameCol.headerText = lang("Name (Click to edit)");
-				nameCol.labelFunction = getObjectName;
-				nameCol.showDataTips = true;
-				nameCol.dataTipFunction = nameColumnDataTip;
+				_nameColumn = new DataGridColumn();
+				_nameColumn.sortable = false;
+				_nameColumn.editable = true;
+				_nameColumn.labelFunction = getObjectName;
+				_nameColumn.showDataTips = true;
+				_nameColumn.dataTipFunction = nameColumnDataTip;
+				setNameColumnHeader();
 				
-				var valueCol:DataGridColumn = new DataGridColumn();
-				valueCol.sortable = false;
-				valueCol.editable = false;
-				valueCol.headerText = lang("Value");
-				valueCol.labelFunction = getItemLabel;
+				_valueColumn = new DataGridColumn();
+				_valueColumn.sortable = false;
+				_valueColumn.editable = false;
+				_valueColumn.headerText = lang("Value");
+				_valueColumn.labelFunction = getItemLabel;
 				
-				dataGrid.columns = [nameCol, valueCol];
+				dataGrid.columns = [_nameColumn, _valueColumn];
 			}
 			else if (_editor)
 			{
@@ -118,6 +120,16 @@ package weave.ui
 			if (dynamicObject && _editor)
 				_editor.rowCount = 1;
 			updateDataProvider();
+		}
+		
+		private function setNameColumnHeader():void
+		{
+			if (!_nameColumn)
+				return;
+			if (hashMap && hashMap.getNames().length)
+				_nameColumn.headerText = lang("Name (Click to edit)")
+			else
+				_nameColumn.headerText = lang("Name");
 		}
 		
 		private function nameColumnDataTip(item:Object, ..._):String
@@ -135,6 +147,8 @@ package weave.ui
 		}
 		
 		private var _editor:ListBase;
+		private var _nameColumn:DataGridColumn;
+		private var _valueColumn:DataGridColumn;
 		private const _hashMapJuggler:CallbackJuggler = new CallbackJuggler(this, refreshLabels, true);
 		private const _dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
 		private const _childListJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, false);
@@ -186,6 +200,7 @@ package weave.ui
 			}
 			else if (hashMap)
 			{
+				setNameColumnHeader();
 				_editor.dataProvider = hashMap.getObjects();
 			}
 			
