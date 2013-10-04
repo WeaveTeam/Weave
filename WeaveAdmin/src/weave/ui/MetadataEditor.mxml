@@ -7,11 +7,6 @@
 	enabled="false"
 	keyDown="handleKeyDown(event);"
 	creationComplete="handleCreationComplete()">
-	<mx:Script>
-		<![CDATA[
-			import flash.desktop.ClipboardFormats;
-		]]>
-	</mx:Script>
 	<mx:HBox width="100%">
 		<mx:Label id="title" fontWeight="bold"/>
 		<mx:Spacer width="100%"/>
@@ -19,13 +14,13 @@
 	</mx:HBox>
     <mx:TabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid"
-			label="Public ({publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0}){publicMetaGrid.metadataChanged?'*':''}"
+			label="{lang(PUBLIC_META_GRID_LABEL_FORMAT, publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0, publicMetaGrid.metadataChanged?'*':'')}"
 			preferredMetadataOrder="{preferredMetadataOrder}"
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
+			initialize="UIUtils.setPadding(publicMetaGrid, 5);"/>
         <ui:MetadataGrid id="privateMetaGrid"
-			label="Private ({privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0}){privateMetaGrid.metadataChanged?'*':''}"
+			label="{lang(PRIVATE_META_GRID_LABEL_FORMAT, privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0, privateMetaGrid.metadataChanged?'*':'')}"
 			preferredMetadataOrder="{preferredMetadataOrder}"
-            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
+			initialize="UIUtils.setPadding(privateMetaGrid, 5);"/>
     </mx:TabNavigator>
     <mx:HBox width="100%">
 		<mx:Button label="{lang('Edit as CSV')}" enabled="{!isChanged}" click="editCSV()"/>
@@ -47,26 +42,28 @@
 	</ui:DraggablePanel>
 <mx:Script>
 <![CDATA[
-	import mx.controls.Alert;
-	import weave.services.beans.EntityHierarchyInfo;
-	import weave.services.beans.EntityType;
-	import weave.services.EntityCache;
-	import weave.api.reportError;
-	import weave.utils.AsyncSort;
-	import weave.api.WeaveAPI;
-	import mx.managers.PopUpManager;
 	import flash.desktop.Clipboard;
+	import flash.desktop.ClipboardFormats;
 	
 	import mx.binding.utils.BindingUtils;
+	import mx.controls.Alert;
 	import mx.events.DataGridEvent;
+	import mx.managers.PopUpManager;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
+	import weave.api.reportError;
+	import weave.core.UIUtils;
 	import weave.services.Admin;
+	import weave.services.EntityCache;
 	import weave.services.beans.Entity;
+	import weave.services.beans.EntityHierarchyInfo;
 	import weave.services.beans.EntityMetadata;
+	import weave.services.beans.EntityType;
+	import weave.utils.AsyncSort;
 	
 	override protected function createChildren():void
 	{
@@ -79,8 +76,11 @@
 		csvWindow.maximizable.value = true;
 	}
 	
+	private static const PUBLIC_META_GRID_LABEL_FORMAT:String = 'Public ({0}){1}';
+	private static const PRIVATE_META_GRID_LABEL_FORMAT:String = 'Private ({0}){1}';
+	
 	// namespaces, public metadata names, and private metadata names are all in this same Array because it's convenient and it doesn't matter much.
-	private const preferredMetadataOrder:Array = 'internal,public,private,id,type,parent,title,keyType,dataType,number,string,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
+	private const preferredMetadataOrder:Array = 'internal,public,private,id,type,parent,title,keyType,dataType,number,string,dateFormat,min,max,year,sqlResult,connection,sqlQuery,sqlParams'.split(',');
 	private function sortFieldChains(chain1:Array, chain2:Array):int
 	{
 		var level:int = (chain1[0] != chain2[0]) ? 0 : 1;
