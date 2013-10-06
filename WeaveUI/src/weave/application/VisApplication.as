@@ -1117,6 +1117,7 @@ package weave.application
 			var color:uint = 0x0C4785;//0x0b333c;
 			var timeout:int = getTimer() + 1000 * 5;
 			var tip:UIComponent = ToolTipManager.createToolTip(lang("Start here"), 0, 0, null, dp) as UIComponent;
+			Weave.properties.panelTitleTextFormat.copyToStyle(tip);
 			tip.setStyle('color', 0xFFFFFF);
 			tip.setStyle('fontWeight', 'bold');
 			tip.setStyle('borderStyle', "errorTipBelow");
@@ -1125,7 +1126,7 @@ package weave.application
 			tip.setStyle('borderSkin', CustomToolTipBorder);
 			var callback:Function = function():void {
 				var p:Point = b.localToGlobal(new Point(0, b.height + 5));
-				tip.move(p.x, p.y);
+				tip.move(int(p.x), int(p.y));
 				tip.visible = !!b.parent;
 				if (getTimer() > timeout)
 					removeTip();
