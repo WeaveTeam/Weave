@@ -26,7 +26,7 @@ angular.module("aws.services", []).service("queryobj", function() {
         schema: 'data',
         dsn: 'brfss'
     };
-    this.slideFilter = {values: [10, 25]}
+    this.slideFilter = {values: [10, 25]};
     this.setQueryObject = function(jsonObj) {
         if (!jsonObj) {
             return undefined;
@@ -85,8 +85,8 @@ angular.module("aws.services", []).service("queryobj", function() {
             return columns;
         }
 
-    }
-})
+    };
+});
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q) {
    
@@ -223,5 +223,4 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             });
 
         };
-
 }]);
