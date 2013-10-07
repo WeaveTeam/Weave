@@ -48,8 +48,8 @@ package weave.application
 	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
-	import mx.controls.Image;
 	import mx.controls.Button;
+	import mx.controls.Image;
 	import mx.controls.Text;
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
@@ -547,6 +547,11 @@ package weave.application
 	
 		private function handleScreenshotImageSize():void
 		{
+			if(detectLinkableObjectChange(this,WeaveAPI.ErrorManager))
+			{
+				handleRemoveScreenshot();
+				return;
+			}
 			if(_screenshot)
 			{
 				var workspace:Canvas = visDesktop.internalCanvas;
@@ -1143,15 +1148,15 @@ package weave.application
 				fadeEffect.alphaTo = 0;
 				fadeEffect.duration = 500;
 				fadeEffect.target = _screenshot;
-				fadeEffect.addEventListener(EffectEvent.EFFECT_END,handleScreenshotFadeEnd);
+				fadeEffect.addEventListener(EffectEvent.EFFECT_END,handleRemoveScreenshot);
 				fadeEffect.play();
-				_snapshotTimer.stop();
-				_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
 			}
 		}
 		
-		private function handleScreenshotFadeEnd(event:Event):void
+		private function handleRemoveScreenshot(event:Event=null):void
 		{
+			_snapshotTimer.stop();
+			_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
 			PopUpManager.removePopUp(_screenshot);
 			_screenshot = null;
 		}

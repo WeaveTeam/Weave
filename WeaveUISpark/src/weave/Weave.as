@@ -313,16 +313,27 @@ package weave
 		{
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
-
+			var visApp:* = WeaveAPI.topLevelApplication.visApp;
 			// screenshot thumbnail
 			try
 			{
-				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(WeaveAPI.topLevelApplication as UIComponent, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(visApp, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
 				output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
 				if(saveScreenshot)
 				{
-					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(WeaveAPI.topLevelApplication as UIComponent, 
-						(WeaveAPI.topLevelApplication as UIComponent).width, (WeaveAPI.topLevelApplication as UIComponent).height);
+					var _workspaceWidth:Number = Weave.properties.workspaceWidth.value;
+					var _workspaceHeight:Number = Weave.properties.workspaceHeight.value;
+					var _screenshot:BitmapData = null;
+					if(isFinite(_workspaceWidth) && isFinite(_workspaceHeight))
+					{
+						_screenshot= BitmapUtils.getBitmapDataFromComponent(visApp as UIComponent, 
+							_workspaceWidth, _workspaceHeight);						
+					}
+					else
+					{
+						_screenshot = BitmapUtils.getBitmapDataFromComponent(visApp as UIComponent, 
+							(visApp).width, (visApp).height);	
+					}
 					output.files[ARCHIVE_SCREENSHOT_PNG] = _pngEncoder.encode(_screenshot);
 				}
 			}
