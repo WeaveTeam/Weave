@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox  xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
+		  paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+	<mx:Label text="{lang('Choose Options')}"/>
+	<mx:CheckBox label="{lang('Dashboard mode')}" toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
+				 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+	<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
+				 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+	<mx:CheckBox label="{lang('Show menubar')}" toolTip="{lang('Check this box to show the top menu bar.')}"
+				 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
+	<mx:CheckBox label="{lang('Show copyright')}"
+				 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+	<mx:CheckBox id="saveScreenshot"
+				 label="{lang('Save Screenshot')}"
+				 selected="false"
+				 enabled="{!saveXMLCheckBox.selected}"
+				 />
+	<mx:CheckBox id="saveXMLCheckBox"
+				 label="{lang('Save as XML')}"
+				 selected="false"
+				 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
+				 />
+	<mx:CheckBox id="saveHistoryCheckBox"
+				 label="{lang('Save history')}"
+				 selected="false"
+				 enabled="{!saveXMLCheckBox.selected}"
+				 />
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.linkBindableProperty;
+			import weave.core.LinkableBoolean;
+			private const padding:Number = 5;
+			
+			private var oldValues:Dictionary = new Dictionary(true);
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				for each (var lb:LinkableBoolean in [
+					Weave.properties.dashboardMode,
+					Weave.properties.enableMenuBar,
+					Weave.properties.showCopyright
+				])
+				oldValues[lb] = lb.value;
+			}
+			
+			public function resetValues():void
+			{
+				for (var lb:* in oldValues)
+					(lb as LinkableBoolean).value = oldValues[lb];
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>
