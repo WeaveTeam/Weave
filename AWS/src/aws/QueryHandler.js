@@ -81,6 +81,8 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
 	var that = this;
+	//clear all existing visualizations
+	that.weaveClient.clearCurrentVizs();
 	this.computationEngine.run("SQLData", function(result) {
 		
 		aws.timeLogString = "";
