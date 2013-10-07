@@ -955,6 +955,10 @@ public class SQLUtils
 				while (rs.next())
 					schemas.add(rs.getString(1)); // table_catalog
 			}
+			else if( md.getDatabaseProductName().equalsIgnoreCase(SQLITE))
+			{
+				schemas.add("sqlite_master");
+			}
 			else
 			{
 				rs = md.getSchemas();
