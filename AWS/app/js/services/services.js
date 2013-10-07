@@ -10,7 +10,8 @@
  * future.
  */
 angular.module("aws.services", []).service("queryobj", function() {
-    this.title = "AlphaQueryObject";
+    
+	this.title = "AlphaQueryObject";
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
     this.scriptType = "r";
@@ -57,9 +58,7 @@ angular.module("aws.services", []).service("queryobj", function() {
         title: this.title,
         date: this.date,
         author: this.author,
-        dataTable: function() {
-            return this.dataTable;
-        },
+        dataTable: this.dataTable,
         conn: this.conn,
         scriptType: this.scriptType,
         slideFilter: this.slideFilter,
@@ -89,8 +88,8 @@ angular.module("aws.services", []).service("queryobj", function() {
 });
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q) {
-   
-    /**
+    
+	/**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
@@ -143,7 +142,8 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', function($q, scope, queryobj) {
-    	 /**
+
+		/**
     	  * This function makes nested async calls to the aws function getEntityChildIds and
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
     	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
@@ -173,7 +173,6 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 
         };
 
-        
         /**
     	  * This function makes nested async calls to the aws function getEntityIdsByMetadata and
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children that have metadata of type geometry.
@@ -190,25 +189,37 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             });
 
             return deferred.promise.then(function(idsArray) {
-
+            	
+            	var deferred2 = $q.defer();
+            	
             	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
                     scope.$safeApply(function() {
-                    	deferred.resolve(dataEntityArray);
+                    	deferred2.resolve(dataEntityArray);
                     });
                 });
             	
-            	return deferred.promise.then(function(dataEntityArray) {
+            	return deferred2.promise.then(function(dataEntityArray) {
             		return dataEntityArray;
             	});
             });
 
         };
         
+        var dataTableList = null;
+		
+		this.getDataTableList = function()
+		{
+			if (!dataTableList) {
+				dataTableList = _getDataTableList();
+			}
+			return dataTableList;
+		}
+		
         /**
          * This function wraps the async aws getDataTableList to get the list of all data tables
          * again angular defer/promise so that the UI asynchronously wait for the data to be available...
          */
-        this.getDataTableList = function(){
+        var _getDataTableList = function(){
             
         	var deferred = $q.defer();
             

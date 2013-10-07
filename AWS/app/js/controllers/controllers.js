@@ -23,7 +23,7 @@ angular.module("aws.Main", [])
 	$scope.$watch(function(){
 		return queryobj.dataTable},
 		function(){
-			dataService.refreshColumns();
+			dataService.getDataColumnsEntitiesFromId(queryobj.dataTable.id);
 			$scope.$broadcast("refreshColumns");
 	});
 

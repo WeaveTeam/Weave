@@ -6,7 +6,7 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		'DataDialogCtrl',
 		function($scope, $dialog, queryobj) {
 
-            $scope.dataTable = queryobj.dataTable();
+            $scope.dataTable = queryobj.dataTable;
 			$scope.opts = {
 				backdrop : true,
 				keyboard : true,
@@ -34,7 +34,7 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 		$scope.dataTableSelect = queryobj.dataTable;
 	}
 	
-	$scope.options = dataService.giveMeTables();
+	$scope.options = dataService.getDataTableList();
 
 	$scope.$watch('dataTableSelect', function(newVal, oldVal){
         if ($scope.options.hasOwnProperty("$$v")) {

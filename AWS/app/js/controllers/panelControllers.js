@@ -8,7 +8,7 @@ angular.module("aws.panelControllers", [])
 	$scope.options; // initialize
 	$scope.selection;
 	
-	 var filter = function(data, type) {
+	var filter = function(data, type) {
             var filtered = [];
             for (var i = 0; i < data.length; i++) {
                 try {
@@ -25,7 +25,9 @@ angular.module("aws.panelControllers", [])
 
 	var getOptions = function(){
 		// fetch Columns using current dataTable
-		$scope.options = filter(dataService.getDataColumnsEntitiesFromId(queryobj.dataTable), $scope.panelType);
+		console.log(dataColumns);
+		console.log(filter(dataService.getDataColumnsEntitiesFromId(queryobj.dataTable.id), $scope.panelType));
+		$scope.options = filter(dataService.getDataColumnsEntitiesFromId(queryobj.dataTable.id), $scope.panelType);
 		
 		setSelect();
 	};
@@ -148,7 +150,7 @@ angular.module("aws.panelControllers", [])
 	if(queryobj.selectedVisualization['maptool']){
 		$scope.enabled = queryobj.selectedVisualization['maptool'];
 	}
-	$scope.options = dataService.giveMeGeomObjs();
+	$scope.options = dataService.getGeometryDataColumnsEntities();
 	
 	$scope.selection;
 	
