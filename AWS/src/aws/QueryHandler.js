@@ -25,9 +25,17 @@ aws.QueryHandler = function(queryObject)
 	this.rRequestObject = {
 		dataset : queryObject.conn.sqldbname,
 		scriptPath : queryObject.conn.scriptLocation,
-		columnsToBeRetrieved : queryObject.scriptOptions,
 		scriptName : queryObject.scriptSelected
 	};
+	
+	if (queryObject.scriptType == "ColumnInput") {
+		this.rRequestObject["ColumnsToBeRetrieved"] = queryObject.scriptOptions;
+	} else if (queryObject.scriptType == "ParameterInput") {
+		// this option gets all the columns selected from the Analysis builder section.
+		// this.rRequestObject["ColumnsToBeRetrieved"] = queryObject.;
+		this.rRequestObject["Parameters"] = queryObject.scriptOptions;
+	}
+	
 	
 	this.connectionObject = {
 	        connectionType : queryObject.conn.connectionType,
@@ -63,7 +71,7 @@ aws.QueryHandler = function(queryObject)
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
 	this.computationEngine = null;
-	if(queryObject.scriptType == 'r') {
+	if(queryObject.ComputationEngine == 'r') {
 		this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();

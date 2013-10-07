@@ -16,7 +16,6 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.scriptType = "r";
     this.dataTable = {id:1,title:"default"};
     this.conn = {
-        scriptLocation: 'C:\\RScripts\\',
         serverType: 'MySQL',
         connectionType: 'RMySQL',
         sqlip: 'localhost',
@@ -92,56 +91,56 @@ angular.module("aws.services", []).service("queryobj", function () {
 })
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function (queryobj, scope, $q) {
-    this.scriptMetadata = {"inputs": [],
-        "outputs": []
-    };
+   
+    /**
+     * This function wraps the async aws getListOfScripts function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
+    this.getListOfScripts = function () {
+        
+    	var deferred = $q.defer();
 
-    //this.availableScripts = [];
-    this.updateMetadata = function () {
-        this.scriptMetadata = this.getScriptMetadata();
-    }
-
-    this.getScriptsFromServer = function () {
-        var deferred = $q.defer();
-        var prom = deferred.promise;
-
-        var callbk = function (result) {
-            scope.$safeApply(function () {
-                console.log(result);
+        aws.RClient.getListOfScripts(function (result) {
+            
+        	// since this function executes async in a future turn of the event loop, we need to wrap
+            // our code into an $apply call so that the model changes are properly observed.
+        	scope.$safeApply(function () {
                 deferred.resolve(result);
             });
-        };
-
-        aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, callbk);
-//		prom.then(function(result){
-//			//this.availableScripts = result;
-//			return result;
-//		}); 
-        return prom;
+        	
+        });
+        
+        // regardless of when the promise was or will be resolved or rejected,
+        // then calls one of the success or error callbacks asynchronously as soon as the result
+        // is available. The callbacks are called with a single argument: the result or rejection reason.
+        return deferred.promise.then(function(result){
+        	return result;
+        });
     };
-    this.availableScripts = this.getScriptsFromServer();
-
-    var that = this;
+    
+    /**
+     * This function wraps the async aws getListOfScripts function into an angular defer/promise
+     * So that the UI asynchronously wait for the data to be available...
+     */
     this.getScriptMetadata = function () {
-        var deferred2 = $q.defer();
-        var promise = deferred2.promise;
+        var deferred = $q.defer();
 
-        var callback = function (result) {
+        aws.RClient.getScriptMetadata(queryobj.scriptSelected, function (result) {
+        	
+        	// since this function executes async in a future turn of the event loop, we need to wrap
+            // our code into an $apply call so that the model changes are properly observed.
             scope.$safeApply(function () {
-                console.log(result);
-                deferred2.resolve(result);
+                deferred.resolve(result);
             });
-        };
-
-        aws.RClient.getScriptMetadata(queryobj.conn.scriptLocation, queryobj.scriptSelected, callback);
-// 		promise.then(function(result){
-// 			//return result;
-// 		});
-        //scope.$apply(); // testing if kicking off a digest cycle will update the UI properly.
-        return promise;
+        });
+      
+        // regardless of when the promise was or will be resolved or rejected,
+ 	    // then calls one of the success or error callbacks asynchronously as soon as the result
+     	// is available. The callbacks are called with a single argument: the result or rejection reason.
+        return deferred.promise.then(function(result){
+        	return result;
+        });
     };
-    this.scriptMetadata = this.getScriptMetadata();
-
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj',
