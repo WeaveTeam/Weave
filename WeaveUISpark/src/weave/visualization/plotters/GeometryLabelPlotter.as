@@ -19,6 +19,8 @@
 
 package weave.visualization.plotters
 {
+	import flash.sampler.getLexicalScopes;
+	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -53,12 +55,13 @@ package weave.visualization.plotters
 			linkSessionState(geometryColumn, dataX.requestLocalObject(ReprojectedGeometryColumn, true));
 			linkSessionState(geometryColumn, dataY.requestLocalObject(ReprojectedGeometryColumn, true));
 			
+			_sortColumnCompare = SortedKeySet.generateCompareFunction([sortColumn, text]);
 			_filteredKeySet.setColumnKeySources([geometryColumn], null, keyCompare);
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		
-		private var _sortColumnCompare:Function = SortedKeySet.generateCompareFunction([sortColumn, text]);
+		private var _sortColumnCompare:Function;
 		
 		/**
 		 * This function compares geometry record keys according to geometry bounding box area
