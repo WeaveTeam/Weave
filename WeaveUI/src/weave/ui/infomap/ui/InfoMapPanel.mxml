@@ -183,7 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const globalDateFilter:DateRangeFilter = new DateRangeFilter();
 			
-			public const globalSortByOption:LinkableString = registerLinkableChild(this,new LinkableString());
+			public const globalSortByOption:LinkableString = registerLinkableChild(this,new LinkableString(), globalSortByUpdate, true);
 			
 			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
 			
@@ -370,6 +370,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for each (var node:NodeHandler in nodesArray)
 				{
 					node.previousQuery.sources.value = option;
+				}
+			}
+			
+			private function globalSortByUpdate():void {
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					node.previousQuery.sortBy.value = globalSortByOption.value;
 				}
 			}
 			
