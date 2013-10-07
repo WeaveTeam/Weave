@@ -32,6 +32,7 @@ package weave.services.beans
 				ColumnMetadata.KEY_TYPE,
 				ColumnMetadata.DATA_TYPE,
 				ColumnMetadata.PROJECTION,
+				ColumnMetadata.DATE_FORMAT,
 				ColumnMetadata.MIN,
 				ColumnMetadata.MAX,
 				'year'

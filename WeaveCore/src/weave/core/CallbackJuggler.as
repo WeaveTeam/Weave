@@ -107,7 +107,8 @@ package weave.core
 		 */
 		public function dispose():void
 		{
-			_target = null;
+			_callbacks.delayCallbacks();
+			target = null; // removes callbacks
 			WeaveAPI.SessionManager.disposeObjects(_callbacks);
 			_callbacks = null;
 		}

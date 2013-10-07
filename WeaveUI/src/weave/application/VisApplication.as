@@ -25,9 +25,11 @@ package weave.application
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
+	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.SharedObject;
@@ -40,31 +42,38 @@ package weave.application
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getTimer;
 	
 	import mx.collections.ArrayCollection;
 	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Image;
+	import mx.controls.Button;
 	import mx.controls.Text;
+	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.effects.Fade;
 	import mx.events.EffectEvent;
 	import mx.events.FlexEvent;
 	import mx.formatters.DateFormatter;
 	import mx.managers.PopUpManager;
+	import mx.managers.ToolTipManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.skins.halo.ToolTipBorder;
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
@@ -86,6 +95,7 @@ package weave.application
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.CustomToolTipBorder;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
@@ -1153,23 +1163,73 @@ package weave.application
 			if (name == null)
 				name = Weave.root.generateUniqueName(className);
 			var object:* = Weave.root.requestObject(name, classDef, false);
-			if (object is DraggablePanel)
-				(object as DraggablePanel).restorePanel();
+			
 			// put panel in front
 			Weave.root.setNameOrder([name]);
 			
-			if (object is MapTool)
+			// open control panel for new tool
+			var dp:DraggablePanel = object as DraggablePanel;
+			if (dp.controlPanel)
+				dp.callLater(handleDraggablePanelAdded, [dp]);
+		}
+		
+		public function handleDraggablePanelAdded(dp:DraggablePanel):void
+		{
+			if (objectWasDisposed(dp) || !dp.parent)
+				return;
+			
+			dp.validateNow();
+			var b:Button = dp.userControlButton;
+			var dpc:ICallbackCollection = getCallbackCollection(dp);
+			
+			var color:uint = 0x0C4785;//0x0b333c;
+			var timeout:int = getTimer() + 1000 * 5;
+			var tip:UIComponent = ToolTipManager.createToolTip(lang("Start here"), 0, 0, null, dp) as UIComponent;
+			Weave.properties.panelTitleTextFormat.copyToStyle(tip);
+			tip.setStyle('color', 0xFFFFFF);
+			tip.setStyle('fontWeight', 'bold');
+			tip.setStyle('borderStyle', "errorTipBelow");
+			tip.setStyle("backgroundColor", color);
+			tip.setStyle("borderColor", color);
+			tip.setStyle('borderSkin', CustomToolTipBorder);
+			var callback:Function = function():void {
+				var p:Point = b.localToGlobal(new Point(0, b.height + 5));
+				tip.move(int(p.x), int(p.y));
+				tip.visible = !!b.parent;
+				if (getTimer() > timeout)
+					removeTip();
+			};
+			var removeTip:Function = function(..._):void {
+				ToolTipManager.destroyToolTip(tip as IToolTip);
+				WeaveAPI.StageUtils.removeEventCallback(Event.ENTER_FRAME, callback);
+				dpc.removeCallback(removeTip);
+				b.removeEventListener(MouseEvent.ROLL_OVER, removeTip);
+			};
+			b.addEventListener(MouseEvent.ROLL_OVER, removeTip);
+			dpc.addDisposeCallback(null, removeTip);
+			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, dp, callback, true);
+			
+		
+			/*
+			dp.toggleControlPanel();
+			var coords:Point = dp.localToGlobal(new Point(64,64));
+			if (dp.controlPanel.parent)
 			{
-				//(object as MapTool).toggleControlPanel();
-				var plotters:Array = (object as MapTool).visualization.plotManager.plotters.getObjects(GeometryPlotter);
-				if (plotters.length)
-				{
-					var geom:DynamicColumn = (plotters[0] as GeometryPlotter).geometryColumn.internalDynamicColumn;
-					AttributeSelectorPanel.openDefaultSelector(geom, lang("Geometry"));
-				}
+				coords = dp.controlPanel.parent.globalToLocal(coords);
+				dp.controlPanel.move(coords.x, coords.y);
 			}
-
-			return object;
+			*/
+			
+			/*
+			var mapTool:MapTool = dp as MapTool;
+			if (mapTool)
+			{
+				mapTool.toggleControlPanel();
+				var plotter:GeometryPlotter = mapTool.visualization.plotManager.plotters.requestObject('geometry', GeometryPlotter, false);
+				var geom:DynamicColumn = plotter.geometryColumn.internalDynamicColumn;
+				AttributeSelectorPanel.openDefaultSelector(geom, lang("Geometry"));
+			}
+			*/
 		}
 		
 		private function setupSelectionsMenu():void

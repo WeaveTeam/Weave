@@ -303,7 +303,7 @@ package weave.services
 					{
 						keyTypes = event.result as Array || [];
 						dataTypes = keyTypes.concat();
-						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY);
+						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.DATE, DataTypes.GEOMETRY);
 					}
 				}
 			);

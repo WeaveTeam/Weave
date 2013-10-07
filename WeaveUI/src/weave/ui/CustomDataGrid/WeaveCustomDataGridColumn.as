@@ -23,36 +23,60 @@ package weave.ui.CustomDataGrid
 	import mx.core.ClassFactory;
 	
 	import weave.Weave;
+	import weave.api.core.IDisposableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerDisposableChild;
 	import weave.core.LinkableBoolean;
+	import weave.data.KeySets.KeySet;
 	import weave.data.KeySets.SortedKeySet;
 	import weave.utils.ColumnUtils;
 	
-	public class WeaveCustomDataGridColumn extends DataGridColumn
+	public class WeaveCustomDataGridColumn extends DataGridColumn implements IDisposableObject
 	{
 		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
 		{
-			_attrColumn = attrColumn;
+			registerDisposableChild(attrColumn, this);
+			
+			this.attrColumn = attrColumn;
+			this.showColors = showColors;
+			this.colorFunction = colorFunction;
+			
 			labelFunction = extractDataFunction;
-			sortCompareFunction = SortedKeySet.generateCompareFunction([_attrColumn]);
+			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
 			headerWordWrap = true;
 			
 			var factory:ClassFactory = new ClassFactory(DataGridCellRenderer);
-			factory.properties = {
-				attrColumn: attrColumn,
-				showColors: showColors,
-				colorFunction: colorFunction,
-				keySet: Weave.defaultSelectionKeySet
-			};
+			factory.properties = {column: this};
 			this.itemRenderer = factory;
 			
-			//this.width = 20;
 			this.minWidth = 0;
 			
-			// TODO: this callback still runs after this DataGridColumn goes away?
-			_attrColumn.addImmediateCallback(this, handleColumnChange, true);						
+			attrColumn.addImmediateCallback(this, handleColumnChange, true);
 		}
+		
+		public function dispose():void
+		{
+			attrColumn.removeCallback(handleColumnChange);
+			attrColumn = null;
+			keySet = null;
+			showColors = null;
+			filterComponent = null;
+			colorFunction = null;
+			
+			sortCompareFunction = null;
+			labelFunction = null;
+			itemRenderer = null;
+		}
+		
+		/**
+		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
+		 * The return value should be a color, or NaN for no color.
+		 */
+		[Exclude] public var colorFunction:Function = null;
+		[Exclude] public var keySet:KeySet = Weave.defaultSelectionKeySet;
+		[Exclude] public var attrColumn:IAttributeColumn = null;
+		[Exclude] public var showColors:LinkableBoolean = null;
 		
 		protected var _filterComponent:IFilterComponent;	
 		public function get filterComponent():IFilterComponent
@@ -62,27 +86,20 @@ package weave.ui.CustomDataGrid
 		
 		public function set filterComponent(filterComp:IFilterComponent):void
 		{				
+			_filterComponent = filterComp;
+			
 			if (filterComp)
-			{
-				_filterComponent = filterComp;
-				_filterComponent.mapColumnToFilter(this);		
-			}			
-		}
-		
-		private var _attrColumn:IAttributeColumn = null;
-		public function get attrColumn():IAttributeColumn
-		{
-			return _attrColumn;
+				_filterComponent.mapColumnToFilter(this);
 		}
 		
 		private function handleColumnChange():void
 		{
-			headerText = ColumnUtils.getTitle(_attrColumn);
+			headerText = ColumnUtils.getTitle(attrColumn);
 		}
 		
 		private function extractDataFunction(item:Object, column:DataGridColumn):String
 		{
-			return _attrColumn.getValueFromKey(item as IQualifiedKey, String) as String;
+			return attrColumn.getValueFromKey(item as IQualifiedKey, String) as String;
 		}
 	}
 }

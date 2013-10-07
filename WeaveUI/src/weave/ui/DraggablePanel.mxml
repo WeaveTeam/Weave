@@ -138,7 +138,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
 			
-			protected const userControlButton:Button = new Button();
+			public const userControlButton:Button = new Button();
 			protected const subMenuButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
@@ -550,6 +550,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			protected function constrainAndSaveCoordinates():void
 			{
+				// keep window on screen
+				if (parent.width - x < minWidth)
+					x = parent.width - minWidth;
+				if (parent.height - y < minHeight)
+					y = parent.height - minHeight;
+				if (x + width < minWidth)
+					x = minWidth - width;
+				if (y < 0)
+					y = 0;
+				
 				// don't copy coordinates while tool is minimized or maximized
 				if (!parent || minimized.value || maximized.value || parent is ISystemManager)
 					return;

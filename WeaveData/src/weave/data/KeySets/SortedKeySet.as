@@ -127,6 +127,11 @@ package weave.data.KeySets
 			var n:int = columns.length;
 			var desc:Array = descendingFlags ? descendingFlags.concat() : [];
 			desc.length = n;
+			
+			// when any of the columns are disposed, disable the compare function
+			for each (column in columns)
+				column.addDisposeCallback(null, function():void { n = 0; });
+			
 			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
 			{
 				for (i = 0; i < n; i++)

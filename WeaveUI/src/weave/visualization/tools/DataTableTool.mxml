@@ -726,20 +726,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					callLater(updateColumnWidths);
 					return;
 				}
-				var allotedDisplayWidth:Number = dataGrid.getColumnDisplayWidth();
+				var allottedDisplayWidth:Number = dataGrid.getColumnDisplayWidth();
 				var columnName:String;
 				var sessionedWidth:LinkableString;
-				
-				// determine how many columns should be used to fill unclaimed space on the window
-				var unspecifiedWidthCount:int = 0;
-				for each (columnName in columns.getNames())
-				{
-					sessionedWidth = columnWidths.getObject(columnName) as LinkableString;
-					if (!sessionedWidth || !sessionedWidth.value)
-						unspecifiedWidthCount++;
-				}
-
-				var defaultValue:Number = allotedDisplayWidth/unspecifiedWidthCount;
+				var defaultValue:Number = allottedDisplayWidth/_currentDataGridColumns.length;
 				var displayedColumnsTotalWidth:Number = 0;
 				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
 				{
@@ -751,23 +741,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var tempWidth:Number;
 					// when we reset width, we need all columns to have default value
 					 if(sessionedWidth && sessionedWidth.value ){	
-						 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
+						 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allottedDisplayWidth);
 						 tempWidth = sessionedValue;
 					 }
 					 else{
 						 tempWidth = defaultValue;					
-						 //sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
+						 //sessionedWidth.value = (100 * tempWidth/allottedDisplayWidth) + "%";
 					 } 
 					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
 					if(j == _currentDataGridColumns.length -1) 
-						tempWidth = NaN;//allotedDisplayWidth - displayedColumnsTotalWidth;
+						tempWidth = NaN;//allottedDisplayWidth - displayedColumnsTotalWidth;
 					if (tempWidth <= _minSuggestedColumnSize || isNaN(tempWidth))
 						tempWidth = _minSuggestedColumnSize;
-					if (tempWidth >= allotedDisplayWidth - _minSuggestedColumnSize)
-						tempWidth = allotedDisplayWidth - _minSuggestedColumnSize;
+					if (tempWidth >= allottedDisplayWidth - _minSuggestedColumnSize)
+						tempWidth = allottedDisplayWidth - _minSuggestedColumnSize;
 					//int casting required as rendering works fast with whole number than with an floating number
-					var newWidth:Number = int(Math.min(tempWidth, allotedDisplayWidth));
+					var newWidth:Number = int(Math.min(tempWidth, allottedDisplayWidth));
 					
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
