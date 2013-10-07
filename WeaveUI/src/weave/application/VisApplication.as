@@ -23,6 +23,7 @@ package weave.application
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
+	import flash.events.IOErrorEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
@@ -44,9 +45,13 @@ package weave.application
 	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
+	import mx.controls.Image;
 	import mx.controls.Text;
 	import mx.core.UIComponent;
+	import mx.effects.Fade;
+	import mx.events.EffectEvent;
 	import mx.events.FlexEvent;
+	import mx.formatters.DateFormatter;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -84,6 +89,7 @@ package weave.application
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
+	import weave.ui.ExportSessionStateOptionsList;
 	import weave.ui.ExportSessionStatePanel;
 	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
@@ -526,8 +532,19 @@ package weave.application
 			workspace.scaleY = scale;
 			workspace.width = workspace.parent.width * multiplier;
 			workspace.height = workspace.parent.height * multiplier;
+			handleScreenshotImageSize();
 		}
-
+	
+		private function handleScreenshotImageSize():void
+		{
+			if(_screenshot)
+			{
+				var workspace:Canvas = visDesktop.internalCanvas;
+				_screenshot.width = this.width;
+				_screenshot.height = this.height;
+			}
+		}
+		
 		private var adminService:LocalAsyncService = null;
 		
 		private const saveTimer:Timer = new Timer( 10000 );
@@ -549,6 +566,7 @@ package weave.application
 		
 		private var _useWeaveExtensionWhenSavingToServer:Boolean;
 		private var _previousSavedFileName:String;
+		private var _saveSessionOptions:ExportSessionStateOptionsList = null; 
 		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
 		{
 			if (adminService == null)
@@ -564,6 +582,17 @@ package weave.application
 			
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
+			_saveSessionOptions = new ExportSessionStateOptionsList();
+			fileSaveDialogBox.addChildAt(_saveSessionOptions,fileSaveDialogBox.getChildIndex(fileSaveDialogBox.autoComplete));
+			
+			if(Weave.getScreenshotFromArchive())
+			{
+				_saveSessionOptions.saveScreenshot.selected = true;
+			}
+			if(!useWeaveExtension)
+			{
+				_saveSessionOptions.saveXMLCheckBox.selected = true;
+			}
 			fileSaveDialogBox.textInput = fileName;
 			fileSaveDialogBox.title = lang(useWeaveExtension ? "Save Session History" : "Save Session State XML");
 			fileSaveDialogBox.message = lang("Enter a filename");
@@ -582,7 +611,7 @@ package weave.application
 				var content:ByteArray;
 				if (_useWeaveExtensionWhenSavingToServer)
 				{
-					content = Weave.createWeaveFileContent();
+					content = Weave.createWeaveFileContent(_saveSessionOptions.saveScreenshot.selected);
 				}
 				else
 				{
@@ -606,6 +635,11 @@ package weave.application
 				
 				setupVisMenuItems();
 			}
+			else
+			{
+				_saveSessionOptions.resetValues();
+			}
+			_saveSessionOptions = null;
 		}
 		
 		// this function may be called by the Admin Console to close this window, needs to be public
@@ -955,6 +989,8 @@ package weave.application
 			newUserWiz.CSVFileDrop(content as ByteArray);
 		}
 		
+		private var _screenshot:Image = null;
+		private var _snapshotTimer:Timer = new Timer(1000);
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
@@ -1048,7 +1084,17 @@ package weave.application
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);
-
+			_screenshot = Weave.getScreenshotFromArchive();
+			if(_screenshot)
+			{
+				_screenshot.maintainAspectRatio = false;
+				_screenshot.smoothBitmapContent = true;
+				handleScreenshotImageSize();
+				PopUpManager.addPopUp(_screenshot,this,false);
+				PopUpManager.bringToFront(_screenshot);
+				_snapshotTimer.addEventListener(TimerEvent.TIMER,handleSnapShotTimer);
+				_snapshotTimer.start();
+			}
 			callLater(toggleMenuBar);
 			
 			if (!getFlashVarAdminConnectionName())
@@ -1076,6 +1122,28 @@ package weave.application
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
 			this.styleName = "application";	
+		}
+		
+		private var fadeEffect:Fade = new Fade();
+		private function handleSnapShotTimer(event:Event):void
+		{
+			if(WeaveAPI.ProgressIndicator.getNormalizedProgress() ==1)
+			{
+				fadeEffect.alphaFrom = _screenshot.alpha;
+				fadeEffect.alphaTo = 0;
+				fadeEffect.duration = 500;
+				fadeEffect.target = _screenshot;
+				fadeEffect.addEventListener(EffectEvent.EFFECT_END,handleScreenshotFadeEnd);
+				fadeEffect.play();
+				_snapshotTimer.stop();
+				_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
+			}
+		}
+		
+		private function handleScreenshotFadeEnd(event:Event):void
+		{
+			PopUpManager.removePopUp(_screenshot);
+			_screenshot = null;
 		}
 		
 		private function createGlobalObject(classDef:Class, name:String = null):*
@@ -1565,12 +1633,66 @@ package weave.application
 			}
 		}
 		
+		private var _exportSessionStatePanel:AlertTextBox = null;
+		private var _exportOptions:ExportSessionStateOptionsList= null;
 		private function handleExportSessionState():void
 		{		
-			var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
-			exportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
-			PopUpManager.centerPopUp(exportSessionStatePanel);
+			_exportSessionStatePanel = PopUpManager.createPopUp(this,AlertTextBox,false) as AlertTextBox;
+			PopUpManager.centerPopUp(_exportSessionStatePanel);
+			_exportOptions = new ExportSessionStateOptionsList();
+			_exportSessionStatePanel.addChildAt(_exportOptions,_exportSessionStatePanel.getChildIndex(_exportSessionStatePanel.autoComplete));
+			_exportSessionStatePanel.inputCanvas.visible = false;
+			_exportSessionStatePanel.title = lang('Export Session State');
+			_exportSessionStatePanel.allowEmptyInput = true;
+			_exportSessionStatePanel.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleExportSessionClose);
+			if(Weave.getScreenshotFromArchive())
+			{
+				_exportOptions.saveScreenshot.selected = true;
+			}
+			
 		}
+		
+		private function handleExportSessionClose(event:AlertTextBoxEvent):void
+		{
+			if (event.confirm)
+			{
+				// Create a date that we can append to the end of each file to make them unique
+				var date:Date = new Date();
+				
+				var format:DateFormatter = new DateFormatter();
+				format.formatString = "YYYY-MM-DD_HH.NN.SS";
+				
+				var fileName:String = 'Weave_' + format.format(date);
+				
+				var content:Object = null;
+				var extension:String = '.weave';
+				if (_exportOptions.saveXMLCheckBox.selected)
+				{
+					content = Weave.getSessionStateXML().toXMLString();
+					extension = '.xml';
+				}
+				else if (!_exportOptions.saveHistoryCheckBox.selected)
+				{
+					var historySessionState:Object = Weave.history.getSessionState();
+					Weave.history.clearHistory();
+					content = Weave.createWeaveFileContent(_exportOptions.saveScreenshot.selected);
+					Weave.history.setSessionState(historySessionState);
+				}
+				else
+				{
+					content = Weave.createWeaveFileContent(_exportOptions.saveScreenshot.selected);
+				}
+				var fr:FileReference = new FileReference();
+				fr.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+				fr.save(content, fileName + extension);
+			}
+			else
+			{
+				_exportOptions.resetValues();
+			}
+			_exportOptions = null;
+		}
+		
 		
 		private function managePlugins():void
 		{

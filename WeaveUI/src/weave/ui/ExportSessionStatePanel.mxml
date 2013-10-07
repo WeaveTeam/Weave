@@ -27,27 +27,7 @@
 				   percentWidth="NaN" percentHeight="NaN"
 				   title="{lang('Export Session State')}"
 				   >
-	<mx:VBox paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
-		<mx:Label text="{lang('Choose Options')}"/>
-		<mx:CheckBox label="{lang('Dashboard mode')}" toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
-					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
-		<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
-		<mx:CheckBox label="{lang('Show menubar')}" toolTip="{lang('Check this box to show the top menu bar.')}"
-					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
-		<mx:CheckBox label="{lang('Show copyright')}"
-					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-		<mx:CheckBox id="saveHistoryCheckBox"
-					 label="{lang('Save history')}"
-					 selected="false"
-					 enabled="{!saveXMLCheckBox.selected}"
-					 visible="false"/>
-		<mx:CheckBox id="saveXMLCheckBox"
-					 label="{lang('Save as XML')}"
-					 selected="false"
-					 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
-					 />
-	</mx:VBox>
+	<ui:ExportSessionStateOptionsList id="optionsList"/>
 	<mx:ControlBar>
 		<mx:Button label="{lang('Export')}" click="export()" toolTip="{lang('Export session with these options')}"/>
 		<mx:Button label="{lang('Cancel')}" click="removePanel()"/>
@@ -67,7 +47,6 @@
 			import weave.core.SessionStateLog;
 			import weave.editors.SessionHistorySlider;
 			
-			private const padding:Number = 5;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
@@ -87,8 +66,12 @@
 			{
 				super.childrenCreated();
 				
-				saveHistoryCheckBox.visible = Weave.history.enableLogging.value;
-				saveHistoryCheckBox.selected = Weave.history.enableLogging.value;
+				optionsList.saveHistoryCheckBox.visible = Weave.history.enableLogging.value;
+				optionsList.saveHistoryCheckBox.selected = Weave.history.enableLogging.value;
+				if(Weave.getScreenshotFromArchive())
+				{
+					optionsList.saveScreenshot.selected = true;
+				}
 			}
 			
 			private function zeropad(n:Number):String
@@ -108,21 +91,21 @@
 				
 				var content:Object = null;
 				var extension:String = '.weave';
-				if (saveXMLCheckBox.selected)
+				if (optionsList.saveXMLCheckBox.selected)
 				{
 					content = Weave.getSessionStateXML().toXMLString();
 					extension = '.xml';
 				}
-				else if (!saveHistoryCheckBox.selected)
+				else if (!optionsList.saveHistoryCheckBox.selected)
 				{
 					var historySessionState:Object = Weave.history.getSessionState();
 					Weave.history.clearHistory();
-					content = Weave.createWeaveFileContent();
+					content = Weave.createWeaveFileContent(optionsList.saveScreenshot.selected);
 					Weave.history.setSessionState(historySessionState);
 				}
 				else
 				{
-					content = Weave.createWeaveFileContent();
+					content = Weave.createWeaveFileContent(optionsList.saveScreenshot.selected);
 				}
 				var fr:FileReference = new FileReference();
 				fr.addEventListener(IOErrorEvent.IO_ERROR, reportError);

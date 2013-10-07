@@ -26,6 +26,7 @@ package weave
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.controls.Image;
 	import mx.core.UIComponent;
 	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
@@ -170,6 +171,7 @@ package weave
 		
 		private static const THUMBNAIL_SIZE:int = 200;
 		private static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
+		private static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
 		private static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		private static const ARCHIVE_HISTORY_AMF:String = "history.amf";
 		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
@@ -307,7 +309,7 @@ package weave
 		/**
 		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
 		 */
-		public static function createWeaveFileContent():ByteArray
+		public static function createWeaveFileContent(saveScreenshot:Boolean=false):ByteArray
 		{
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
@@ -317,6 +319,12 @@ package weave
 			{
 				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(WeaveAPI.topLevelApplication as UIComponent, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
 				output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
+				if(saveScreenshot)
+				{
+					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(WeaveAPI.topLevelApplication as UIComponent, 
+						(WeaveAPI.topLevelApplication as UIComponent).width, (WeaveAPI.topLevelApplication as UIComponent).height);
+					output.files[ARCHIVE_SCREENSHOT_PNG] = _pngEncoder.encode(_screenshot);
+				}
 			}
 			catch (e:SecurityError)
 			{
@@ -333,6 +341,7 @@ package weave
 			return output.serialize();
 		}
 		
+		private static var _lastLoadedArchive:WeaveArchive = null;
 		/**
 		 * This function will load content that was previously created with createWeaveFileContent().
 		 * @param content The contents of a Weave file.
@@ -375,12 +384,12 @@ package weave
 					}
 				}
 				
-				var archive:WeaveArchive = content as WeaveArchive;
-				var _history:Object = archive.objects[ARCHIVE_HISTORY_AMF];
+				_lastLoadedArchive = content as WeaveArchive;
+				var _history:Object = _lastLoadedArchive.objects[ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
 				
-				plugins = archive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
+				plugins = _lastLoadedArchive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
@@ -392,6 +401,23 @@ package weave
 			
 			if (WeaveAPI.externalInterfaceInitialized)
 				properties.runStartupJavaScript();
+		}
+		
+		/**
+		 * This function returns the screenshot image if saved in the last loaded archive file
+		 * */
+		public static function getScreenshotFromArchive():Image
+		{
+			if (_lastLoadedArchive)
+			{
+				var thumbnailImage:Image = new Image();
+				if(_lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG])
+				{
+					thumbnailImage.source = _lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG];
+					return thumbnailImage;
+				}
+			}
+			return null
 		}
 		
 		public static function loadDraggedCSV(content:Object):void
