@@ -609,10 +609,7 @@
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
 						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
 				
-				var queryString:String = currentQuery.keywords.value.toLowerCase();
-				
-				_currentQueryTerms = queryString.indexOf(',') != -1?queryString.split(','):
-					queryString.split(' ');
+				_currentQueryTerms = processQuery(currentQuery.keywords.value); 
 				
 				//				if(isQueryDifferent || _firstLoad)
 				//				{
@@ -626,6 +623,36 @@
 				var token:QueryObject = new QueryObject();
 				copySessionState(currentQuery,token);
 				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,token);
+			}
+			
+			private function processQuery(queryString:String):Array
+			{
+				var result:Array = [];
+				var temp:Array = [];
+				queryString = queryString.toLowerCase()
+				queryString = StringUtil.trim(queryString);
+				
+				var quotedText:String="";
+				if(queryString.indexOf('"')>-1)
+				{
+					if(queryString.indexOf('"') != queryString.lastIndexOf('"'))
+					{
+						quotedText = queryString.substring(queryString.indexOf('"'),queryString.lastIndexOf('"')+1);
+						temp.push(quotedText);
+						queryString = queryString.substr(0,queryString.indexOf('"')) + 
+										queryString.substr((queryString.lastIndexOf('"')+1),queryString.length);
+						queryString = StringUtil.trim(queryString);
+					}
+				}
+				temp = temp.concat(queryString.indexOf(',') != -1?queryString.split(','):
+						queryString.split(' '));
+				
+				for(var i:int=0; i<temp.length; i++)
+				{
+					if(temp[i] && (temp[i] as String).length > 0)
+						result.push(temp[i]);
+				}
+				return result;
 			}
 			
 			private function handleNumOfDocsQueryResult(event:ResultEvent,token:QueryObject=null):void
