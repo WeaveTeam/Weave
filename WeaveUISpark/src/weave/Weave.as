@@ -299,6 +299,8 @@ package weave
 			var oldExt:String = useWeaveExtension ? _xml : _weave;
 			var newExt:String = useWeaveExtension ? _weave : _xml;
 			
+			if (!fileName)
+				fileName = generateFileName();
 			if (fileName.substr(-oldExt.length).toLowerCase() == oldExt)
 				fileName = fileName.substr(0, -oldExt.length);
 			if (fileName.substr(-newExt.length).toLowerCase() != newExt)
@@ -313,27 +315,15 @@ package weave
 		{
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
-			var visApp:* = WeaveAPI.topLevelApplication.visApp;
+			var component:UIComponent = WeaveAPI.topLevelApplication.visApp;
 			// screenshot thumbnail
 			try
 			{
-				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(visApp, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+				var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
 				output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
-				if(saveScreenshot)
+				if (saveScreenshot)
 				{
-					var _workspaceWidth:Number = Weave.properties.workspaceWidth.value;
-					var _workspaceHeight:Number = Weave.properties.workspaceHeight.value;
-					var _screenshot:BitmapData = null;
-					if(isFinite(_workspaceWidth) && isFinite(_workspaceHeight))
-					{
-						_screenshot= BitmapUtils.getBitmapDataFromComponent(visApp as UIComponent, 
-							_workspaceWidth, _workspaceHeight);						
-					}
-					else
-					{
-						_screenshot = BitmapUtils.getBitmapDataFromComponent(visApp as UIComponent, 
-							(visApp).width, (visApp).height);	
-					}
+					var _screenshot:BitmapData = BitmapUtils.getBitmapDataFromComponent(component);
 					output.files[ARCHIVE_SCREENSHOT_PNG] = _pngEncoder.encode(_screenshot);
 				}
 			}
@@ -352,7 +342,18 @@ package weave
 			return output.serialize();
 		}
 		
+		/**
+		 * Used as storage for last loaded session history file name.
+		 */		
+		public static var fileName:String = generateFileName();
+		
+		private static function generateFileName():String
+		{
+			return 'Weave_' + StandardLib.formatDate(new Date(), "YYYY-MM-DD_HH.NN.SS", false) + '.weave';
+		}
+		
 		private static var _lastLoadedArchive:WeaveArchive = null;
+		
 		/**
 		 * This function will load content that was previously created with createWeaveFileContent().
 		 * @param content The contents of a Weave file.
@@ -417,18 +418,9 @@ package weave
 		/**
 		 * This function returns the screenshot image if saved in the last loaded archive file
 		 * */
-		public static function getScreenshotFromArchive():Image
+		public static function getScreenshotFromArchive():ByteArray
 		{
-			if (_lastLoadedArchive)
-			{
-				var thumbnailImage:Image = new Image();
-				if(_lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG])
-				{
-					thumbnailImage.source = _lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG];
-					return thumbnailImage;
-				}
-			}
-			return null
+			return _lastLoadedArchive ? _lastLoadedArchive.files[ARCHIVE_SCREENSHOT_PNG] : null;
 		}
 		
 		public static function loadDraggedCSV(content:Object):void

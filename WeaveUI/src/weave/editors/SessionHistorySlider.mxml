@@ -42,7 +42,6 @@
 	<mx:Button width="24" id="menuButton" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -52,7 +51,7 @@
 			import weave.api.reportError;
 			import weave.core.CallbackJuggler;
 			import weave.core.SessionStateLog;
-			import weave.ui.ExportSessionStatePanel;
+			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
 			
 			private const padding:Number = 4;
@@ -287,10 +286,7 @@
 			
 			private function save():void
 			{
-				// TEMPORARY SOLUTION
-				var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
-				exportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
-				PopUpManager.centerPopUp(exportSessionStatePanel);
+				ExportSessionStateOptions.openExportPanel();
 			}
 		]]>
 	</mx:Script>

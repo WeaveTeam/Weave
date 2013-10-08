@@ -23,7 +23,7 @@
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
     showCloseButton="false"
-    close="handleClose()"
+    close="close()"
     creationComplete="handleCreationComplete(event)"
     borderAlpha="0.95"
     borderThickness="2"
@@ -32,17 +32,17 @@
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
 	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
-	keyDown="if (event.keyCode == Keyboard.ESCAPE) handleCancelClick();"
+	keyDown="if (event.keyCode == Keyboard.ESCAPE) cancel();"
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
+						  text="{message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
 	<mx:Canvas id="inputCanvas" width="100%"
 			includeInLayout="{autoCompleteChoices == null}"
 			visible="{autoCompleteChoices == null}"
 			   >
-		<mx:TextArea text="{_textInput}"
+		<mx:TextArea text="{textInput}"
 					 id="textBox"
-					 change="_textInput = textBox.text;"
+					 change="textInput = textBox.text;"
 					 keyDown="handleKeyDown(event)"
 					 width="100%"
 					 height="{multiLineEdit ? 64 : 20}"
@@ -60,14 +60,14 @@
 			 includeInLayout="{autoCompleteChoices != null}"
 			 visible="{autoCompleteChoices != null}"
 			 width="100%"
-			 change="_textInput = autoComplete.selectedItem as String"
+			 change="textInput = autoComplete.selectedItem as String"
 			 focusOut="/* autoComplete.visible = false; */"
 			 dataProvider="{autoCompleteChoices}"
 			 />
 	<mx:HBox id="alertButtons" width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
-		<mx:Button label="{lang('Cancel')}" click="handleCancelClick()" minWidth="64"/>
+		<mx:Button label="{lang('Cancel')}" click="cancel()" minWidth="64"/>
 	</mx:HBox>
 	
     <mx:Metadata>
@@ -85,21 +85,13 @@
 		[Bindable] public var allowEmptyInput:Boolean = false;
 		[Bindable] public var autoCompleteChoices:Array = null;
 		
+		private var _textInput:String = null;
+		
 		//Message before TextBox
-		[Bindable]
-		private var _message:String = null;
-		public function get message():String
-		{
-			return _message;
-		}
-	    public function set message(value:String):void
-		{
-			_message = value;
-		}
+		[Bindable] public var message:String = null;
 		
 		//default text in TextBox
 		[Bindable]
-		private var _textInput:String = null;
 		public function get textInput():String
 		{
 			return _textInput;
@@ -136,32 +128,27 @@
 			return newAlert;
 		}
 		
-		private function closeAlertTextBox():void
+		private function close():void
 		{
 			PopUpManager.removePopUp(this);
 		}
 		
-		private function handleClose():void
-		{
-			closeAlertTextBox();
-		}		
-		
 		private function handleOKClick():void
 		{
 			var okClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
-			okClickEvent.textInput = _textInput;
+			okClickEvent.textInput = textInput;
 			okClickEvent.confirm = true;
 			var textclick:Boolean = this.dispatchEvent(okClickEvent);
-			closeAlertTextBox();
+			close();
 		}
 		
-		private function handleCancelClick():void
+		public function cancel():void
 		{
 			var cancelClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
-			cancelClickEvent.textInput = _textInput;
+			cancelClickEvent.textInput = textInput;
 			cancelClickEvent.confirm = false;
 			this.dispatchEvent(cancelClickEvent);
-			closeAlertTextBox();
+			close();
 		}
 		
 		private function handleKeyDown(event:KeyboardEvent):void

@@ -23,7 +23,6 @@ package weave.application
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
@@ -56,13 +55,10 @@ package weave.application
 	import mx.effects.Fade;
 	import mx.events.EffectEvent;
 	import mx.events.FlexEvent;
-	import mx.formatters.DateFormatter;
 	import mx.managers.PopUpManager;
 	import mx.managers.ToolTipManager;
-	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.skins.halo.ToolTipBorder;
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
@@ -80,7 +76,6 @@ package weave.application
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.core.StageUtils;
-	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.WeavePropertiesEditor;
@@ -99,8 +94,7 @@ package weave.application
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
-	import weave.ui.ExportSessionStateOptionsList;
-	import weave.ui.ExportSessionStatePanel;
+	import weave.ui.ExportSessionStateOptions;
 	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
@@ -125,8 +119,6 @@ package weave.application
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
-	import weave.visualization.plotters.GeometryPlotter;
-	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.WeaveAnalyst;
 
 	internal class VisApplication extends VBox implements ILinkableObject
@@ -579,10 +571,7 @@ package weave.application
 			return cookie.data[RECOVER_SHARED_OBJECT] as ByteArray;
 		}
 		
-		private var _useWeaveExtensionWhenSavingToServer:Boolean;
-		private var _previousSavedFileName:String;
-		private var _saveSessionOptions:ExportSessionStateOptionsList = null; 
-		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
+		private function saveSessionStateToServer():void
 		{
 			if (adminService == null)
 			{
@@ -590,71 +579,27 @@ package weave.application
 				return;
 			}
 			
-			_useWeaveExtensionWhenSavingToServer = useWeaveExtension;
+			if (!Weave.fileName)
+				Weave.fileName = getFlashVarFile().split("/").pop();
 			
-			var fileName:String = _previousSavedFileName || getFlashVarFile().split("/").pop();
-			fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
-			
-			var fileSaveDialogBox:AlertTextBox;
-			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
-			_saveSessionOptions = new ExportSessionStateOptionsList();
-			fileSaveDialogBox.addChildAt(_saveSessionOptions,fileSaveDialogBox.getChildIndex(fileSaveDialogBox.autoComplete));
-			
-			if(Weave.getScreenshotFromArchive())
-			{
-				_saveSessionOptions.saveScreenshot.selected = true;
-			}
-			if(!useWeaveExtension)
-			{
-				_saveSessionOptions.saveXMLCheckBox.selected = true;
-			}
-			fileSaveDialogBox.textInput = fileName;
-			fileSaveDialogBox.title = lang(useWeaveExtension ? "Save Session History" : "Save Session State XML");
-			fileSaveDialogBox.message = lang("Enter a filename");
-			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
-			PopUpManager.centerPopUp(fileSaveDialogBox);
-		}
-		
-		private function handleFileSaveClose(event:AlertTextBoxEvent):void
-		{
-			if (event.confirm)
-			{
-				var fileName:String = event.textInput;
-				fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
-				_previousSavedFileName = fileName;
-				
-				var content:ByteArray;
-				if (_useWeaveExtensionWhenSavingToServer)
+			ExportSessionStateOptions.openExportPanel(
+				"Save session state to server",
+				function(content:Object):void
 				{
-					content = Weave.createWeaveFileContent(_saveSessionOptions.saveScreenshot.selected);
+					addAsyncResponder(
+						adminService.invokeAsyncMethod('saveWeaveFile', [content, Weave.fileName, true]),
+						function(event:ResultEvent, fileName:String):void
+						{
+							Alert.show(String(event.result), lang("Admin Console Response"));
+						},
+						function(event:FaultEvent, fileName:String):void
+						{
+							reportError(event.fault, lang("Unable to connect to Admin Console"));
+						},
+						Weave.fileName
+					);
 				}
-				else
-				{
-					content = new ByteArray();
-					content.writeMultiByte(Weave.getSessionStateXML().toXMLString(), "utf-8");
-				}
-				
-				var token:AsyncToken = adminService.invokeAsyncMethod('saveWeaveFile', [content, fileName, true]);
-				addAsyncResponder(
-					token,
-					function(event:ResultEvent, token:Object = null):void
-					{
-						Alert.show(String(event.result), lang("Admin Console Response"));
-					},
-					function(event:FaultEvent, token:Object = null):void
-					{
-						reportError(event.fault, lang("Unable to connect to Admin Console"));
-					},
-					null
-				);
-				
-				setupVisMenuItems();
-			}
-			else
-			{
-				_saveSessionOptions.resetValues();
-			}
-			_saveSessionOptions = null;
+			);
 		}
 		
 		// this function may be called by the Admin Console to close this window, needs to be public
@@ -918,7 +863,7 @@ package weave.application
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history..."), handleImportSessionState));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history..."), handleExportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history..."), ExportSessionStateOptions.openExportPanel));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
 					function():String { return lang( (Weave.properties.showSessionHistoryControls.value ? "Hide" : "Show") + " session history controls" ); },
@@ -955,13 +900,8 @@ package weave.application
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-						lang("Save session state XML to server"),
-						function():void { saveSessionStateToServer(false); }
-					));
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
-						lang("Save session history to server"),
-						function():void { saveSessionStateToServer(true); }
+						lang("Save session state to server"),
+						function():void { saveSessionStateToServer(); }
 					));
 				}
 				
@@ -1020,7 +960,7 @@ package weave.application
 					if (_usingDeprecatedFlashVar)
 						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
 				}
-				_previousSavedFileName = fileName;
+				Weave.fileName = fileName;
 			}
 			catch (error:Error)
 			{
@@ -1090,7 +1030,7 @@ package weave.application
 					}
 					
 					Weave.loadWeaveFileContent(xml);
-					_previousSavedFileName = fileName;
+					Weave.fileName = fileName;
 					
 //					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
 //					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -1099,16 +1039,21 @@ package weave.application
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);
-			_screenshot = Weave.getScreenshotFromArchive();
-			if(_screenshot)
+			var ssba:ByteArray = Weave.getScreenshotFromArchive();
+			if (ssba)
 			{
+				_screenshot = new Image();
+				_screenshot.source = ssba;
 				_screenshot.maintainAspectRatio = false;
 				_screenshot.smoothBitmapContent = true;
 				handleScreenshotImageSize();
-				PopUpManager.addPopUp(_screenshot,this,false);
-				PopUpManager.bringToFront(_screenshot);
-				_snapshotTimer.addEventListener(TimerEvent.TIMER,handleSnapShotTimer);
-				_snapshotTimer.start();
+				if (_screenshot)
+				{
+					PopUpManager.addPopUp(_screenshot,this,false);
+					PopUpManager.bringToFront(_screenshot);
+					_snapshotTimer.addEventListener(TimerEvent.TIMER,handleSnapShotTimer);
+					_snapshotTimer.start();
+				}
 			}
 			callLater(toggleMenuBar);
 			
@@ -1697,67 +1642,6 @@ package weave.application
 				reportError(e);
 			}
 		}
-		
-		private var _exportSessionStatePanel:AlertTextBox = null;
-		private var _exportOptions:ExportSessionStateOptionsList= null;
-		private function handleExportSessionState():void
-		{		
-			_exportSessionStatePanel = PopUpManager.createPopUp(this,AlertTextBox,false) as AlertTextBox;
-			PopUpManager.centerPopUp(_exportSessionStatePanel);
-			_exportOptions = new ExportSessionStateOptionsList();
-			_exportSessionStatePanel.addChildAt(_exportOptions,_exportSessionStatePanel.getChildIndex(_exportSessionStatePanel.autoComplete));
-			_exportSessionStatePanel.inputCanvas.visible = false;
-			_exportSessionStatePanel.title = lang('Export Session State');
-			_exportSessionStatePanel.allowEmptyInput = true;
-			_exportSessionStatePanel.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleExportSessionClose);
-			if(Weave.getScreenshotFromArchive())
-			{
-				_exportOptions.saveScreenshot.selected = true;
-			}
-			
-		}
-		
-		private function handleExportSessionClose(event:AlertTextBoxEvent):void
-		{
-			if (event.confirm)
-			{
-				// Create a date that we can append to the end of each file to make them unique
-				var date:Date = new Date();
-				
-				var format:DateFormatter = new DateFormatter();
-				format.formatString = "YYYY-MM-DD_HH.NN.SS";
-				
-				var fileName:String = 'Weave_' + format.format(date);
-				
-				var content:Object = null;
-				var extension:String = '.weave';
-				if (_exportOptions.saveXMLCheckBox.selected)
-				{
-					content = Weave.getSessionStateXML().toXMLString();
-					extension = '.xml';
-				}
-				else if (!_exportOptions.saveHistoryCheckBox.selected)
-				{
-					var historySessionState:Object = Weave.history.getSessionState();
-					Weave.history.clearHistory();
-					content = Weave.createWeaveFileContent(_exportOptions.saveScreenshot.selected);
-					Weave.history.setSessionState(historySessionState);
-				}
-				else
-				{
-					content = Weave.createWeaveFileContent(_exportOptions.saveScreenshot.selected);
-				}
-				var fr:FileReference = new FileReference();
-				fr.addEventListener(IOErrorEvent.IO_ERROR, reportError);
-				fr.save(content, fileName + extension);
-			}
-			else
-			{
-				_exportOptions.resetValues();
-			}
-			_exportOptions = null;
-		}
-		
 		
 		private function managePlugins():void
 		{

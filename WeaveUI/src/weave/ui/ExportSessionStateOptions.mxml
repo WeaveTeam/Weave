@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.ui.*">
+	<mx:Label text="{lang('Export options')}"/>
+	<Indent>
+		<mx:VBox>
+			<mx:CheckBox id="saveXML"
+						 label="{lang('Save as XML (larger file size, takes longer to load)')}"
+						 change="handleXMLToggle()"
+						 selected="false"/>
+			<mx:CheckBox label="{lang('Dashboard mode')}"
+						 toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
+						 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+			<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
+						 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+			<mx:CheckBox label="{lang('Show top menu bar')}"
+						 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
+			<mx:CheckBox label="{lang('Show copyright')}"
+						 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+			<mx:CheckBox id="saveScreenshot"
+						 label="{lang('Save screenshot to be displayed during startup')}"
+						 selected="false"/>
+			<mx:CheckBox id="saveHistory"
+						 label="{lang('Save history')}"
+						 selected="false"/>
+		</mx:VBox>
+	</Indent>
+	<mx:Script>
+		<![CDATA[
+			import mx.managers.PopUpManager;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.linkBindableProperty;
+			import weave.api.reportError;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.UIUtils;
+			import weave.utils.EventUtils;
+			
+			private const padding:Number = 5;
+			private var oldValues:Dictionary = new Dictionary(true);
+			[Bindable] public var fileName:String;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				UIUtils.setPadding(this, padding);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				// save old values
+				fileName = Weave.fileName;
+				for each (var lb:LinkableBoolean in [
+					Weave.properties.dashboardMode,
+					Weave.properties.enableMenuBar,
+					Weave.properties.showCopyright
+				])
+					oldValues[lb] = lb.value;
+				
+				handleXMLToggle();
+			}
+			
+			private function handleXMLToggle():void
+			{
+				var xml:Boolean = saveXML.selected;
+				saveHistory.selected = !xml;
+				saveHistory.enabled = !xml;
+				saveScreenshot.selected = !xml && !!Weave.getScreenshotFromArchive();
+				saveScreenshot.enabled = !xml;
+				fixFileName();
+			}
+			
+			private function fixFileName(..._):void
+			{
+				var regex:RegExp = new RegExp(StandardLib.replace('[\r\n\t_\\_/_:_*_?_"_|_<_>]+', '_', '\\'));
+				//var regex:RegExp = new RegExp("[^A-Za-z0-9 ,_\\.\\-\\(\\)\\[\\]]+");
+				
+				while (fileName.search(regex) >= 0)
+					fileName = fileName.replace(regex, '_');
+				
+				fileName = Weave.fixWeaveFileName(fileName, !saveXML.selected);
+			}
+			
+			/**
+			 * Generates Weave session state file content and resets export options to their previous values.
+			 * Weave.fileName will be updated with the proper extension.
+			 * @return Weave file content
+			 */
+			public function export():Object
+			{
+				fixFileName();
+				
+				Weave.fileName = fileName;
+				
+				var content:Object = null;
+				if (saveXML.selected)
+				{
+					content = new ByteArray();
+					(content as ByteArray).writeMultiByte(Weave.getSessionStateXML().toXMLString(), "utf-8");
+				}
+				else if (!saveHistory.selected)
+				{
+					var historySessionState:Object = Weave.history.getSessionState();
+					Weave.history.clearHistory();
+					content = Weave.createWeaveFileContent(saveScreenshot.selected);
+					Weave.history.setSessionState(historySessionState);
+				}
+				else
+				{
+					content = Weave.createWeaveFileContent(saveScreenshot.selected);
+				}
+				
+				// reset values
+				for (var lb:* in oldValues)
+					(lb as LinkableBoolean).value = oldValues[lb];
+				
+				return content;
+			}
+			
+			/**
+			 * Resets export options to their previous values.
+			 */
+			public function cancel():void
+			{
+				// reset values
+				for (var lb:* in oldValues)
+					(lb as LinkableBoolean).value = oldValues[lb];
+			}
+			
+			private static var _dialog:AlertTextBox = null;
+			
+			/**
+			 * This will open a panel with export options and automatically call a function if the user confirms.
+			 * Check Weave.fileName for the file name that the user has entered.
+			 * @param title The title of the panel.
+			 * @param exportContentHandler A function that receives the file export content when the user confirms.
+			 */
+			public static function openExportPanel(title:String = null, exportContentHandler:Function = null):void
+			{
+				if (_dialog)
+					_dialog.cancel();
+				
+				_dialog = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AlertTextBox) as AlertTextBox;
+				var options:ExportSessionStateOptions = new ExportSessionStateOptions();
+				_dialog.addChildAt(options, _dialog.getChildIndex(_dialog.autoComplete));
+				_dialog.title = title || lang("Export session state");
+				_dialog.message = lang("Enter a file name");
+				EventUtils.doubleBind(options, 'fileName', _dialog, 'textInput');
+				_dialog.textBox.addEventListener(FocusEvent.FOCUS_OUT, options.fixFileName);
+				_dialog.addEventListener(
+					AlertTextBoxEvent.BUTTON_CLICKED,
+					function(event:AlertTextBoxEvent):void
+					{
+						if (event.confirm)
+						{
+							var content:Object = options.export();
+							try
+							{
+								if (exportContentHandler != null)
+								{
+									exportContentHandler(content);
+								}
+								else
+								{
+									var fr:FileReference = new FileReference();
+									fr.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+									fr.addEventListener(Event.SELECT, function(e:*):void {
+										Weave.fileName = fr.name;
+									});
+									fr.save(content, Weave.fileName);
+								}
+							}
+							catch (e:Error)
+							{
+								reportError(e);
+							}
+						}
+						else
+						{
+							options.cancel();
+						}
+						_dialog = null;
+					}
+				);
+				PopUpManager.centerPopUp(_dialog);
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>
