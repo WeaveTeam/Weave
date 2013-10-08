@@ -21,6 +21,7 @@ package weave.ui.CustomDataGrid
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.events.MouseEvent;
 	
 	import mx.containers.Canvas;
 	import mx.controls.DataGrid;
@@ -30,11 +31,8 @@ package weave.ui.CustomDataGrid
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.ImageColumn;
-	import weave.data.KeySets.KeySet;
 
 	public class DataGridCellRenderer extends Canvas
 	{
@@ -49,50 +47,23 @@ package weave.ui.CustomDataGrid
 			addChild(lbl);
 			lbl.percentWidth = 100;
 			horizontalScrollPolicy = "off";
+			addEventListener(MouseEvent.ROLL_OVER, handleRollOver);
 		}
 		
+		private function handleRollOver(event:MouseEvent):void
+		{
+			if (toolTip != lbl.text)
+				toolTip = lbl.text;
+		}
+		
+		public var column:WeaveCustomDataGridColumn;
 		private var img:Image;
 		public const lbl:Label = new Label();
 		
-		public var attrColumn:IAttributeColumn = null;
-		public var showColors:LinkableBoolean = null;
-		
-		/**
-		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
-		 * The return value should be a color, or NaN for no color.
-		 */		
-		public var colorFunction:Function = null;
-		public var keySet:KeySet = null;
-		
 		override public function set data(item:Object):void
 		{
-			var key:IQualifiedKey = item as IQualifiedKey;
-			
-			super.data = key;
-			if (attrColumn is ImageColumn)
-			{
-				lbl.visible = false;
-				lbl.text = toolTip = '';
-				if (!img)
-				{
-					img = new Image();
-					img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
-					img.source = new Bitmap(null, 'auto', true);
-					addChild(img);
-				}
-				img.visible = true;
-				(img.source as Bitmap).bitmapData = attrColumn.getValueFromKey(key) as BitmapData;
-			}
-			else
-			{
-				lbl.visible = true;
-				lbl.text = toolTip = attrColumn.getValueFromKey(key, String);
-				if (img)
-				{
-					img.visible = false;
-					img.source.bitmapData = null;
-				}
-			}
+			super.data = item as IQualifiedKey;
+			invalidateProperties();
 		}
 		
 		private static function _setStyle(target:UIComponent, styleProp:String, newValue:*):void
@@ -101,18 +72,51 @@ package weave.ui.CustomDataGrid
 				target.setStyle(styleProp, newValue);
 		}
 		
+		override public function validateProperties():void
+		{
+			if (column.attrColumn)
+			{
+				var key:IQualifiedKey = data as IQualifiedKey;
+				if (column.attrColumn is ImageColumn)
+				{
+					lbl.visible = false;
+					lbl.text = '';
+					if (!img)
+					{
+						img = new Image();
+						img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
+						img.source = new Bitmap(null, 'auto', true);
+						addChild(img);
+					}
+					img.visible = true;
+					(img.source as Bitmap).bitmapData = column.attrColumn.getValueFromKey(key) as BitmapData;
+				}
+				else
+				{
+					lbl.visible = true;
+					lbl.text = column.attrColumn.getValueFromKey(key, String);
+					if (img)
+					{
+						img.visible = false;
+						img.source.bitmapData = null;
+					}
+				}
+			}
+			super.validateProperties();
+		}
+		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
-			if (!owner)
+			if (!owner || !column.attrColumn)
 				return;
 			
 			var g:Graphics = graphics;
 			g.clear();
 			
 			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
-			if (keySet.keys.length > 0)
+			if (column.keySet.keys.length > 0)
 			{
 				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
 				{
@@ -132,7 +136,7 @@ package weave.ui.CustomDataGrid
 			}
 			
 			// right-align numbers
-			if (attrColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
+			if (column.attrColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
 			{
 				_setStyle(lbl, 'textAlign', 'right');
 			}
@@ -141,9 +145,9 @@ package weave.ui.CustomDataGrid
 				_setStyle(lbl, 'textAlign', 'left');
 			}
 			
-			if (showColors.value)
+			if (column.showColors.value)
 			{
-				var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey, this);
+				var colorValue:Number = column.colorFunction(column.attrColumn, data as IQualifiedKey, this);
 				_setStyle(this, 'backgroundColor', colorValue);
 			}
 			else

@@ -18,7 +18,6 @@ package weave.api.data
 	import weave.api.core.ICallbackCollection;
 
 	/**
-	 * IAttributeColumn
 	 * This is an interface to a mapping of keys to data values.
 	 * 
 	 * @author adufilie
@@ -29,11 +28,15 @@ package weave.api.data
 		 * This function gets metadata associated with the column.
 		 * For standard metadata property names, refer to the ColumnMetadata class.
 		 * @param propertyName The name of the metadata property to retrieve.
-		 * @result The value of the specified metadata property.
+		 * @return The value of the specified metadata property.
 		 */
 		function getMetadata(propertyName:String):String;
 		
-		//TODO: need a function for listing available metadata property names
+		/**
+		 * Retrieves all metadata property names for this column.
+		 * @return An Array of all available metadata property names.
+		 */
+		function getMetadataPropertyNames():Array;
 		
 		/**
 		 * This function gets a value associated with a record key.

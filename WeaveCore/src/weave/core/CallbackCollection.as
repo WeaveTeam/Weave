@@ -40,6 +40,7 @@ package weave.core
 		public static var debug:Boolean = false;
 		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
 		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
+		private var _oldEntries:Array;
 
 		/**
 		 * If specified, the preCallback function will be called immediately before running each callback.
@@ -199,7 +200,9 @@ package weave.core
 						entry.context = null;
 						entry.callback = null;
 						// remove the empty callback reference from the list
-						_callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
+						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
+						if (debug)
+							_oldEntries = _oldEntries ? _oldEntries.concat(removed) : removed;
 						continue;
 					}
 					// if _preCallback is specified, we don't want to limit recursion because that would cause a loss of information.
@@ -325,6 +328,8 @@ package weave.core
 		public function dispose():void
 		{
 			// remove all callbacks
+			if (debug)
+				_oldEntries = _oldEntries ? _oldEntries.concat(_callbackEntries) : _callbackEntries.concat();
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
 			
@@ -414,15 +419,15 @@ package weave.core
 				_frameCallbackAdded = true;
 			}
 			
+			if (relevantContext == null)
+				relevantContext = this;
+			
 			var recursionLimit:uint = 0;
 			var triggerEntry:CallbackEntry = _groupedCallbackToTriggerEntryMap[groupedCallback] as CallbackEntry;
 			if (triggerEntry != null)
 			{
 				// add this context to the list of relevant contexts
-				if (relevantContext == null) // null means never remove the callback
-					triggerEntry.context = [null];
-				else if (triggerEntry.context[0] != null)
-					triggerEntry.context.push(relevantContext);
+				triggerEntry.context.push(relevantContext);
 				// use the minimum of the existing limit and the new limit.
 				triggerEntry.recursionLimit = Math.min(triggerEntry.recursionLimit, recursionLimit);
 			}
@@ -442,12 +447,8 @@ package weave.core
 						var allContexts:Array = triggerEntry.context as Array;
 						// remove the contexts that have been disposed of.
 						for (var i:int = 0; i < allContexts.length; i++)
-						{
-							var context:Object = allContexts[i];
-							// if there is a null context, it means the callback should never be removed.
-							if (context != null && WeaveAPI.SessionManager.objectWasDisposed(context))
+							if (WeaveAPI.SessionManager.objectWasDisposed(allContexts[i]))
 								allContexts.splice(i--, 1);
-						}
 						// if there are no more relevant contexts for this callback, don't run it.
 						if (allContexts.length == 0)
 						{

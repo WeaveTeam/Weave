@@ -51,6 +51,7 @@ package weave.data.DataSources
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.core.UntypedLinkableVariable;
+	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -122,7 +123,8 @@ package weave.data.DataSources
 			if (rows != null)
 			{
 				// clear url value when we specify csvData session state
-				url.value = null;
+				if (url.value)
+					url.value = null;
 				this.parsedRows = rows;
 			}
 		}
@@ -303,9 +305,7 @@ package weave.data.DataSources
 			var servletParamsChanged:Boolean = detectLinkableObjectChange(handleURLChange, servletParams);
 			if (urlChanged || servletParamsChanged)
 			{
-				if (url.value == '')
-					url.value = null;
-				if (url.value != null)
+				if (url.value)
 				{
 					// if url is specified, do not use csvDataString
 					csvData.setSessionState(null);
@@ -476,7 +476,7 @@ package weave.data.DataSources
 			// loop through values, determine column type
 			var nullValue:String;
 			var dataType:String = ColumnUtils.getDataType(proxyColumn);
-			var isNumericColumn:Boolean = dataType == null || ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0;
+			var isNumericColumn:Boolean = dataType == null || dataType == DataTypes.NUMBER;
 			if (isNumericColumn)
 			{
 				//check if it is a numeric column.
@@ -520,8 +520,16 @@ package weave.data.DataSources
 				{
 					var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
 	
-					newColumn = new StringColumn(leafNode);
-					(newColumn as StringColumn).setRecords(keysVector, stringVector);
+					if (dataType == DataTypes.DATE)
+					{
+						newColumn = new DateColumn(leafNode);
+						(newColumn as DateColumn).setRecords(keysVector, stringVector);
+					}
+					else
+					{
+						newColumn = new StringColumn(leafNode);
+						(newColumn as StringColumn).setRecords(keysVector, stringVector);
+					}
 				}
 				proxyColumn.setInternalColumn(newColumn);
 				_columnToReferenceMap[proxyColumn] = columnReference;

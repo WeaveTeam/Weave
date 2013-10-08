@@ -44,7 +44,7 @@
 		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
 			<mx:TextArea id="csvTextArea" change="csvParser.parseCSV(csvTextArea.text)" width="100%" height="100"/>
 		</ui:Indent>
-		<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
+		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!!csvRows}"/>
 	</mx:VBox>
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
@@ -59,7 +59,6 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.managers.PopUpManager;
 			
@@ -113,7 +112,6 @@
 					if (!url.text)
 					{
 						var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
-						showGridButton.enabled = rows != null;
 						setCSVRows(rows);
 					}
 				}
@@ -127,11 +125,10 @@
 					_csvDataSource.keyColName.value = keyColumnName.text;
 					_csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 					_csvDataSource.csvData.setSessionState(csvRows);
-					Alert.show(lang("Changes saved."))
 				}
 				catch(e:Error)
 				{
-					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
+					reportError(e);
 				}
 			}
 			
@@ -142,16 +139,23 @@
 			**/
 			private function browseForFiles():void
 			{
-				if(_fileLoader == null)
+				try
 				{
-					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
-					_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
-					_fileLoader.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
-					_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					if(_fileLoader == null)
+					{
+						_fileLoader = new FileReference();
+						_fileLoader.addEventListener(Event.SELECT, csvFileSelectedHandler);
+						_fileLoader.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+						_fileLoader.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+						_fileLoader.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+					}
+					
+					_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
 				}
-				
-				_fileLoader.browse([new FileFilter("CSV", "*.csv")]);
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			
@@ -164,8 +168,6 @@
 			{
 				csvRows = rows;
 				headerArray = csvRows[0];
-				//this is showGridButton is disabled only if a file has been loaded as the source
-				showGridButton.enabled = true;
 				
 				//this is set to false because this function might be called from Text Area change.
 				uploadMessage.visible = false;
@@ -182,7 +184,7 @@
 			}
 			
 			private const csvParser:CSVParser = new CSVParser(true);
-			private var csvRows:Array = [];
+			[Bindable] private var csvRows:Array = [];
 			private var csvRecords:Array = [];
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
@@ -190,11 +192,9 @@
 			
 			private function showGrid():void
 			{
-				if (csvRows == null)
-				{
-					Alert.show(lang("No data found"));
+				if (!csvRows)
 					return;
-				}
+				
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;
 				
 				//Listen for save changes in Data Grid Editor
@@ -231,7 +231,6 @@
 			{
 				var hasURL:Boolean = url.text ? true : false;
 				uploadMessage.visible = !hasURL;
-				showGridButton.enabled = !hasURL;
 				csvRows = null;
 				csvTextArea.text = '';
 			}

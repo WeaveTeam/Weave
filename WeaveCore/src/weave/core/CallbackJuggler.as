@@ -20,14 +20,13 @@
 package weave.core
 {
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.juggleGroupedCallback;
-	import weave.api.juggleImmediateCallback;
-	import weave.utils.WeakReference;
 	
 	/**
 	 * This is used to juggle a single callback between linkable object targets.
+	 * The callback will be triggered automatically when the target changes, even when the target becomes null.
 	 * @see weave.api.#juggleImmediateCallback()
 	 * @see weave.api.#juggleGroupedCallback()
 	 * @author adufilie
@@ -37,30 +36,28 @@ package weave.core
 		/**
 		 * @param relevantContext The owner of this CallbackJuggler.
 		 * @param callback The callback function.
-		 * @param useGroupedCallback If this is set to true, a grouped callback will be used instead of an immediate callback. 
-		 * @see weave.api.#juggleImmediateCallback()
-		 * @see weave.api.#juggleGroupedCallback()
+		 * @param useGroupedCallback If this is set to true, a grouped callback will be used instead of an immediate callback.
+		 * @see weave.api.core.ICallbackCollection#addImmediateCallback() 
+		 * @see weave.api.core.ICallbackCollection#addGroupedCallback() 
 		 */
 		public function CallbackJuggler(relevantContext:Object, callback:Function, useGroupedCallback:Boolean)
 		{
 			WeaveAPI.SessionManager.registerDisposableChild(relevantContext, this);
-			this.callback = callback;
-			this.useGroupedCallback = useGroupedCallback;
+			if (useGroupedCallback)
+				_callbacks.addGroupedCallback(null, callback);
+			else
+				_callbacks.addImmediateCallback(null, callback);
 		}
 		
-		private var callback:Function;
-		private var useGroupedCallback:Boolean;
-		private const targetRef:WeakReference = new WeakReference();
+		private var _callbacks:ICallbackCollection = new CallbackCollection();
+		private var _target:ILinkableObject;
 		
 		/**
 		 * This is the linkable object to which the callback has been added.
 		 */		
 		public function get target():ILinkableObject
 		{
-			var value:Object = targetRef.value;
-			if (value && WeaveAPI.SessionManager.objectWasDisposed(value))
-				targetRef.value = value = null;
-			return value as ILinkableObject;
+			return _target;
 		}
 		
 		/**
@@ -69,25 +66,51 @@ package weave.core
 		 */
 		public function set target(newTarget:ILinkableObject):void
 		{
-			var oldTarget:ILinkableObject = targetRef.value as ILinkableObject;
+			// do nothing if the targets are the same.
+			if (_target == newTarget)
+				return;
 			
-			var change:Boolean;
-			if (useGroupedCallback)
-				change = juggleGroupedCallback(oldTarget, newTarget, this, callback);
-			else
-				change = juggleImmediateCallback(oldTarget, newTarget, this, callback);
+			if (!_callbacks)
+				throw new Error("dispose() was already called on this object.");
 			
-			if (change)
+			var tc:ICallbackCollection;
+			
+			// remove callbacks from old target
+			if (_target)
 			{
-				targetRef.value = newTarget;
-				callback(); // call immediately after target change whether or not we are using a grouped callback
+				tc = WeaveAPI.SessionManager.getCallbackCollection(_target);
+				tc.removeCallback(_callbacks.triggerCallbacks);
+				tc.removeCallback(_handleTargetDispose);
 			}
+			
+			_target = newTarget;
+			
+			// add callbacks to new target
+			if (_target)
+			{
+				tc = WeaveAPI.SessionManager.getCallbackCollection(_target);
+				tc.addImmediateCallback(_callbacks, _callbacks.triggerCallbacks);
+				tc.addDisposeCallback(_callbacks, _handleTargetDispose);
+			}
+			
+			_callbacks.triggerCallbacks();
 		}
 		
+		private function _handleTargetDispose():void
+		{
+			_target = null;
+			_callbacks.triggerCallbacks();
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
 		public function dispose():void
 		{
-			callback = null;
-			targetRef.value = null;
+			_callbacks.delayCallbacks();
+			target = null; // removes callbacks
+			WeaveAPI.SessionManager.disposeObjects(_callbacks);
+			_callbacks = null;
 		}
 	}
 }

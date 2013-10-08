@@ -168,6 +168,7 @@ JRITextEditor
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
@@ -483,14 +484,21 @@ JRITextEditor
 			private var _defaultsFilename:String = null;
 			protected function import_buttonDownHandler(event:FlexEvent):void
 			{
-				var loadedXML:XML = new XML();
-				if(_sessionFileLoader == null)
+				try
 				{
-					_sessionFileLoader = new FileReference();					
-					_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
-					_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+					var loadedXML:XML = new XML();
+					if(_sessionFileLoader == null)
+					{
+						_sessionFileLoader = new FileReference();					
+						_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
+						_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+					}
+					_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);							
 				}
-				_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);							
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			protected function loadIntoReditor(xml:XML):void{

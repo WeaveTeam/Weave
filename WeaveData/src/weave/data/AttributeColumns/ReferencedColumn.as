@@ -19,20 +19,16 @@
 
 package weave.data.AttributeColumns
 {
-	import flash.utils.getQualifiedClassName;
-	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
+	import weave.core.CallbackJuggler;
 	import weave.core.LinkableDynamicObject;
-	import weave.core.SessionManager;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -50,11 +46,13 @@ package weave.data.AttributeColumns
 		/**
 		 * The trigger counter value at the last time the internal column was retrieved.
 		 */		
-		private var _dynamicRefTriggerCounter:uint = 0;
+		private var _prevTriggerCounter:uint = 0;
 		/**
 		 * the internal referenced column
 		 */
-		protected var _internalColumn:IAttributeColumn = null;
+		private var _internalColumn:IAttributeColumn = null;
+		
+		private const _columnJuggler:CallbackJuggler = new CallbackJuggler(this, triggerCallbacks, false);
 		
 		/**
 		 * This is the actual IColumnReference object inside dynamicColumnReference.
@@ -69,32 +67,13 @@ package weave.data.AttributeColumns
 		 */		
 		public function getInternalColumn():IAttributeColumn
 		{
-			if (_dynamicRefTriggerCounter != dynamicColumnReference.triggerCounter)
+			if (_prevTriggerCounter != triggerCounter)
 			{
-				_dynamicRefTriggerCounter = dynamicColumnReference.triggerCounter;
-				
-				var newColumn:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
-				// do nothing if this is the same column
-				if (_internalColumn != newColumn)
-				{
-					if (_internalColumn != null)
-						(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _internalColumn);
-
-					_internalColumn = newColumn;
-			
-					if (_internalColumn != null)
-						registerLinkableChild(this, _internalColumn);
-				}
+				_columnJuggler.target = _internalColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
+				_prevTriggerCounter = triggerCounter;
 			}
 			return _internalColumn;
 		}
-		
-
-		
-		
-		
-		
-		
 		
 		
 		/************************************
@@ -103,15 +82,26 @@ package weave.data.AttributeColumns
 
 		public function getMetadata(attributeName:String):String
 		{
-			return getInternalColumn() ? _internalColumn.getMetadata(attributeName) : null;
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.getMetadata(attributeName) : null;
 		}
 
+		public function getMetadataPropertyNames():Array
+		{
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.getMetadataPropertyNames() : [];
+		}
+		
 		/**
 		 * @return the keys associated with this column.
 		 */
 		public function get keys():Array
 		{
-			return getInternalColumn() ? _internalColumn.keys : [];
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.keys : [];
 		}
 
 		/**
@@ -120,7 +110,9 @@ package weave.data.AttributeColumns
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return getInternalColumn() && _internalColumn.containsKey(key);
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn && _internalColumn.containsKey(key);
 		}
 		
 		/**
@@ -130,9 +122,9 @@ package weave.data.AttributeColumns
 		 */
 		public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (getInternalColumn())
-				return _internalColumn.getValueFromKey(key, dataType);
-			return undefined;
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.getValueFromKey(key, dataType) : undefined;
 		}
 		
 		public function toString():String

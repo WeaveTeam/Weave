@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableString;
@@ -45,8 +46,6 @@ package weave.data.DataSources
 	import weave.utils.VectorUtils;
 
 	/**
-	 * XLSDataSource
-	 * 
 	 * @author skolman
 	 * @author adufile
 	 */
@@ -59,14 +58,12 @@ package weave.data.DataSources
 		override protected function initialize():void
 		{
 			super.initialize();
-//			keyColName.lock();
-//			keyType.lock();
 
-			if (url.value != "" && url.value != null)
+			if (detectLinkableObjectChange(initialize, url) && url.value)
 			{
 				var urlRequest:URLRequest = new URLRequest(url.value);
 				urlRequest.contentType = "application/vnd.ms-excel";
-				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, url.value, URLLoaderDataFormat.BINARY);
 			}
 		}
 
@@ -98,8 +95,11 @@ package weave.data.DataSources
 		 * handleXLSDownload
 		 * Called when the XLS file is downloaded from the URL
 		 */
-		private function handleXLSDownload(event:ResultEvent, token:Object = null):void
+		private function handleXLSDownload(event:ResultEvent, url:String):void
 		{
+			if (url != this.url.value)
+				return;
+			
 			var xls:ExcelFile = new ExcelFile();
 			xls.loadFromByteArray(ByteArray(event.result));
 			loadXLSData(xls.sheets);
@@ -109,8 +109,11 @@ package weave.data.DataSources
 		 * handleXLSDownloadError
 		 * Called when the XLS file fails to download from the URL
 		 */
-		private function handleXLSDownloadError(event:FaultEvent, token:Object = null):void
+		private function handleXLSDownloadError(event:FaultEvent, url:String):void
 		{
+			if (url != this.url.value)
+				return;
+			
 			reportError(event);
 		}
 		

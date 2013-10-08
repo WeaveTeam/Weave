@@ -419,16 +419,22 @@ RTextEditor
 			private var _defaultsFilename:String = null;
 			protected function import_clickHandler(event:MouseEvent):void
 			{
-				var loadedXML:XML = new XML();
-				if(_sessionFileLoader == null)
+				try
 				{
-					_sessionFileLoader = new FileReference();
-					
-					_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
-					_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+					var loadedXML:XML = new XML();
+					if(_sessionFileLoader == null)
+					{
+						_sessionFileLoader = new FileReference();
+						
+						_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
+						_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+					}
+					_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
 				}
-				_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
-				
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			

@@ -40,6 +40,7 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -599,6 +600,12 @@ package weave.data.DataSources
 						var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
 						newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
 						proxyColumn.setInternalColumn(newNumericColumn);
+					}
+					else if (ObjectUtil.stringCompare(dataType, DataTypes.DATE, true) == 0)
+					{
+						var newDateColumn:DateColumn = new DateColumn(hierarchyNode);
+						newDateColumn.setRecords(keysVector, Vector.<String>(result.data));
+						proxyColumn.setInternalColumn(newDateColumn);
 					}
 					else
 					{

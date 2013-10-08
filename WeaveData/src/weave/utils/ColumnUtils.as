@@ -22,6 +22,7 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
@@ -496,6 +497,60 @@ package weave.utils
 				// done editing session state
 				getCallbackCollection(columnHashMap).resumeCallbacks();
 			}
+		}
+		
+		/**
+		 * Retrieves a metadata value from a list of columns if they all share the same value.
+		 * @param columns The columns.
+		 * @param propertyName The metadata property name.
+		 * @return The metadata value if it is the same across all columns, or null if not. 
+		 */		
+		public static function getCommonMetadata(columns:Array, propertyName:String):String
+		{
+			var value:String;
+			for (var i:int = 0; i < columns.length; i++)
+			{
+				var column:IAttributeColumn = columns[i] as IAttributeColumn;
+				if (i == 0)
+					value = column.getMetadata(propertyName);
+				else if (value != column.getMetadata(propertyName))
+					return null;
+			}
+			return value;
+		}
+		
+		public static function getAllCommonMetadata(columns:Array):Object
+		{
+			var output:Object = {};
+			if (!columns.length)
+				return output;
+			// We only need to get property names from the first column
+			// because we only care about metadata common to all columns.
+			for each (var key:String in columns[0].getMetadataPropertyNames())
+			{
+				var value:String = getCommonMetadata(columns, key);
+				if (value)
+					output[key] = value;
+			}
+			return output;
+		}
+		
+		private static const _preferredMetadataPropertyOrder:Array = 'title,keyType,dataType,number,string,min,max,year'.split(',');
+		private static function _compareMetadataPropertyNames(a:String, b:String):int
+		{
+			var ia:int = _preferredMetadataPropertyOrder.indexOf(a);
+			var ib:int = _preferredMetadataPropertyOrder.indexOf(b);
+			if (ia >= 0 && ib >= 0)
+				return ObjectUtil.numericCompare(ia, ib);
+			if (ia >= 0)
+				return -1;
+			if (ib >= 0)
+				return 1;
+			return ObjectUtil.stringCompare(a, b, true);
+		}
+		public static function sortMetadataPropertyNames(names:Array):void
+		{
+			AsyncSort.sortImmediately(names, _compareMetadataPropertyNames);
 		}
 		
 		//todo: (cached) get sorted index from a key and a column

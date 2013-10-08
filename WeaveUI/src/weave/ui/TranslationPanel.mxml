@@ -69,6 +69,7 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.reportError;
 			import weave.core.UIUtils;
 			import weave.utils.AsyncSort;
 			import weave.utils.PopUpUtils;
@@ -149,14 +150,21 @@
 			
 			private function importFile():void
 			{
-				fileReference.browse([ new FileFilter(lang("Weave language file"), "*.lang") ]);
-				fileReference.addEventListener(Event.SELECT,   function (e:Event):void { fileReference.load(); } );
-				fileReference.addEventListener(Event.COMPLETE, function (e:Event):void {
-					var bytes:ByteArray = fileReference.data;
-					bytes.uncompress();
-					WeaveAPI.LocaleManager.importLocalizations(bytes.readObject());
-					refresh();
-				});
+				try
+				{
+					fileReference.browse([ new FileFilter(lang("Weave language file"), "*.lang") ]);
+					fileReference.addEventListener(Event.SELECT,   function (e:Event):void { fileReference.load(); } );
+					fileReference.addEventListener(Event.COMPLETE, function (e:Event):void {
+						var bytes:ByteArray = fileReference.data;
+						bytes.uncompress();
+						WeaveAPI.LocaleManager.importLocalizations(bytes.readObject());
+						refresh();
+					});
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			private function exportFile():void
 			{

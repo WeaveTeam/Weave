@@ -28,32 +28,37 @@ Editor for custom layers using AxisLabelPlotters
 		 implements="weave.api.ui.ILinkableObjectEditor"
 		 label="{lang('Label Settings')}" xmlns:ui="weave.ui.*">
 
-	<mx:HBox>
+	<ui:Indent>
 		<mx:RadioButtonGroup id="hv"/>
-		<mx:RadioButton group="{hv}" label="Vertical" selected="{!horizontalCheckBox.selected}"/>
-		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
-					 label="{lang('Horizontal')}"
-					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
-	</mx:HBox>
+		<mx:RadioButton group="{hv}"
+						label="{lang('Along X axis')}"
+						id="horizontalCheckBox"
+						creationComplete="linkBindableProperty(_plotter.alongXAxis, event.target, 'selected')"/>
+		<mx:RadioButton group="{hv}"
+						label="{lang('Along Y axis')}"
+						selected="{!horizontalCheckBox.selected}"/>
+	</ui:Indent>
 	
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Start:')}"
+	<ui:IndentTextInput label="{lang('Start')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('End:')}"
+	<ui:IndentTextInput label="{lang('End')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Interval:')}"
+	<ui:IndentTextInput label="{lang('Interval')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Angle')}"
+	<ui:IndentTextInput label="{lang('Angle')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.angle, event.target, 'text')"/>
 	<mx:Spacer/>
 	
-	<ui:Indent indent="{indent}" label="{lang('Color:')}">		
+	<ui:Indent label="{lang('Color')}">
 		<mx:ColorPicker toolTip="{lang('Select a font color')}" id="labelColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.color, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	
-	<ui:AlignmentControl id="alignment"/>
-	
-	<ui:IndentTextInput label="{lang('Label function')}" indent="{indent}" creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
+	<ui:Indent label="{lang('Label alignment')}" verticalAlign="top">
+		<ui:AlignmentControl id="alignment"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Label function')}" verticalAlign="top" height="100%">
+		<ui:CodeEditor creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
+	</ui:Indent>
 
 	<mx:Script>
 		<![CDATA[
@@ -61,9 +66,6 @@ Editor for custom layers using AxisLabelPlotters
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.visualization.plotters.AxisLabelPlotter;
-			
-			[Bindable] private var indent:int = 100;
-			[Bindable] private var inputWidth:int = 64;
 			
 			public function setTarget(object:ILinkableObject):void
 			{

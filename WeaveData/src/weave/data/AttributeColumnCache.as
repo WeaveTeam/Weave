@@ -24,7 +24,6 @@ package weave.data
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
-	import weave.core.SessionManager;
 	import weave.data.DataSources.MultiDataSource;
 	import weave.utils.WeakReference;
 	
@@ -54,9 +53,15 @@ package weave.data
 			}
 
 			// Get the column pointer associated with the hash value.
-			var weakRef:WeakReference = _hashToWeakColumnRefMap[columnReference.getHashCode()] as WeakReference;
-			if (weakRef != null && weakRef.value != null && !(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(weakRef.value))
-				return weakRef.value as IAttributeColumn;
+			var hashCode:String = columnReference.getHashCode();
+			var weakRef:WeakReference = _hashToWeakColumnRefMap[hashCode] as WeakReference;
+			if (weakRef != null && weakRef.value != null)
+			{
+				if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
+					delete _hashToWeakColumnRefMap[hashCode];
+				else
+					return weakRef.value as IAttributeColumn;
+			}
 			
 			// If no column is associated with this hash value, request the
 			// column from its data source and save the column pointer.

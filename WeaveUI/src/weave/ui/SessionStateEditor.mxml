@@ -64,8 +64,8 @@ A text editor to change the Session State on the fly.
 							<mx:HBox width="100%">
 								<mx:Label id="firstLine" fontFamily="_typewriter"/>
 								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
-								<mx:Button label="Copy state" click="copyToClipboard();"/>
+								<mx:Button label="{lang('Copy path')}" click="copyPathToClipboard();"/>
+								<mx:Button label="{lang('Copy state')}" click="copyToClipboard();"/>
 							</mx:HBox>
 							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()"/>
 							<mx:Label id="lastLine" fontFamily="_typewriter"/>
@@ -73,7 +73,7 @@ A text editor to change the Session State on the fly.
 						<mx:VBox width="100%" height="100%">
 							<mx:HBox width="100%">
 								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
+								<mx:Button label="{lang('Copy path')}" click="copyPathToClipboard();"/>
 							</mx:HBox>
 							<mx:DataGrid id="gridEditor" wordWrap="false" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 

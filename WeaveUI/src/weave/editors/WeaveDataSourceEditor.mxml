@@ -38,8 +38,6 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.WeaveDataSource;
@@ -74,7 +72,6 @@
 			public function applyChanges():void
 			{
 				_weaveDataSource.url.value = url.text;
-				Alert.show(lang("Changes saved."));
 			}
 			
 		]]>

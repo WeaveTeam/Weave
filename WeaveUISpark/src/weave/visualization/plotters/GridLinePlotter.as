@@ -66,6 +66,12 @@ package weave.visualization.plotters
 			
 			var _start:Number = start.value;
 			var _end:Number = end.value;
+			
+			if (isNaN(_start))
+				_start = horizontal.value ? dataBounds.getYMin() : dataBounds.getXMin();
+			if (isNaN(_end))
+				_end = horizontal.value ? dataBounds.getYMax() : dataBounds.getXMax();
+			
 			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
 			
 			lineStyle.beginLineStyle(null, graphics);

@@ -24,6 +24,7 @@ package
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
+	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
@@ -41,6 +42,7 @@ package
 	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.StringDataFilterEditor;
+	import weave.editors.TransposedDataSourceEditor;
 	import weave.editors.WFSDataSourceEditor;
 	import weave.editors.WMSPlotterEditor;
 	import weave.editors.WeaveDataSourceEditor;
@@ -109,6 +111,7 @@ package
 			EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
 			EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
 			EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			EditorManager.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
 			
 			EditorManager.registerEditor(StringDataFilter, StringDataFilterEditor);
 			EditorManager.registerEditor(NumberDataFilter, NumberDataFilterEditor);
