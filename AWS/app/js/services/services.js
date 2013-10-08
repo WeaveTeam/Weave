@@ -66,7 +66,6 @@ angular.module("aws.services", []).service("queryobj", function() {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
             var columns = [];
-            var temp;
             for (var i = 0; i < col.length; i++) {
                 if (this[col[i]]){
                 	angular.forEach(this[col[i]], function(item){
@@ -110,9 +109,7 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
         // regardless of when the promise was or will be resolved or rejected,
         // then calls one of the success or error callbacks asynchronously as soon as the result
         // is available. The callbacks are called with a single argument: the result or rejection reason.
-        return deferred.promise.then(function(result){
-        	return result;
-        });
+        return deferred.promise;
     };
     
     /**
@@ -134,15 +131,15 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
         // regardless of when the promise was or will be resolved or rejected,
  	    // then calls one of the success or error callbacks asynchronously as soon as the result
      	// is available. The callbacks are called with a single argument: the result or rejection reason.
-        return deferred.promise.then(function(result){
-        	return result;
-        });
+        return deferred.promise;
     };
     
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', function($q, scope, queryobj) {
 
+		//this.getDataColumnsEntitiesFromId = _getDataColumnsEntitiesFromId(queryobj.dataTable.id);
+		
 		/**
     	  * This function makes nested async calls to the aws function getEntityChildIds and
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
@@ -157,19 +154,19 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
                     deferred.resolve(idsArray);
                 });
             });
-
-            return deferred.promise.then(function(idsArray) {
+            
+            var deferred2 = $q.defer();
+            
+            deferred.promise.then(function(idsArray) {
 
             	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
-                    scope.$safeApply(function() {
-                    	deferred.resolve(dataEntityArray);
+            		scope.$safeApply(function() {
+                    	deferred2.resolve(dataEntityArray);
                     });
                 });
-            	
-            	return deferred.promise.then(function(dataEntityArray) {
-            		return dataEntityArray;
-            	});
             });
+            
+            return deferred2.promise;
 
         };
 
@@ -178,7 +175,7 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children that have metadata of type geometry.
     	  * We use angular deferred/promises so that the UI asynchronously wait for the data to be available...
     	  */
-    	this.getGeometryDataColumnsEntities = function() {
+    	this.getGeometryDataColumnsEntities = function(resultHandler) {
             
     		var deferred = $q.defer();
     		
@@ -190,36 +187,22 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
 
             return deferred.promise.then(function(idsArray) {
             	
-            	var deferred2 = $q.defer();
-            	
             	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
                     scope.$safeApply(function() {
-                    	deferred2.resolve(dataEntityArray);
+                    	deferred.resolve(dataEntityArray);
                     });
                 });
             	
-            	return deferred2.promise.then(function(dataEntityArray) {
-            		return dataEntityArray;
-            	});
+            	return deferred.promise;
             });
 
         };
         
-        var dataTableList = null;
-		
-		this.getDataTableList = function()
-		{
-			if (!dataTableList) {
-				dataTableList = _getDataTableList();
-			}
-			return dataTableList;
-		}
-		
         /**
          * This function wraps the async aws getDataTableList to get the list of all data tables
          * again angular defer/promise so that the UI asynchronously wait for the data to be available...
          */
-        var _getDataTableList = function(){
+        this.getDataTableList = function(){
             
         	var deferred = $q.defer();
             
@@ -229,9 +212,6 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
                 });
             });
                 
-            return deferred.promise.then(function(EntityHierarchyInfoArray){
-            	return EntityHierarchyInfoArray;
-            });
-
+            return deferred.promise;
         };
 }]);
