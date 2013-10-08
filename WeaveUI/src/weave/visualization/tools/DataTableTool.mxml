@@ -279,6 +279,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					updateKeyTypeComboBox();
 					updateDataGridColumns();					
 				}
+				if (detectLinkableObjectChange(updateDisplayList, lockedColumns) || columnsChanged)
+				{
+					handleLockedColumnChange();
+				}
 				if (detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType, maxRows) || columnsChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
@@ -658,7 +662,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
-					numLockedColumns.maximum = attrColumns.length;
+					numLockedColumns.maximum = attrColumns.length - 2;
 				}
 				catch (error:Error)
 				{
@@ -920,23 +924,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleLockedColumnChange);
+			public const lockedColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLockedColumnCount));
+			
+			private function verifyLockedColumnCount(value:Number):Boolean
+			{
+				return value == uint(value);
+			}
+			
 			private function handleLockedColumnChange():void
 			{
-				if (!parent)
-				{
-					callLater(handleLockedColumnChange);
-					return;
-				}
-				if (lockedColumns.value < 0 || lockedColumns.value > dataGrid.columns.length){
-					lockedColumns.value = 0;
-					
-				}
-				if(lockedColumns.value > 0){
+				var numColumns:int = dataGrid.columns.length;
+				if (lockedColumns.value > 0)
 					showFilters.value = false;
-				} 
-				dataGrid.lockedColumnCount = lockedColumns.value;
-				
+				if (lockedColumns.value >= numColumns)
+					dataGrid.lockedColumnCount = 0;
+				else
+					dataGrid.lockedColumnCount = lockedColumns.value;
 			}
 			
 			protected function dataGrid_updateCompleteHandler(event:FlexEvent):void
@@ -972,7 +975,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<mx:Label text="{lang('Number of Locked Columns')}"/>
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
-								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
+								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
 			<mx:HBox>
