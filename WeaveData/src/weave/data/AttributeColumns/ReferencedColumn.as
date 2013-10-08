@@ -68,7 +68,10 @@ package weave.data.AttributeColumns
 		public function getInternalColumn():IAttributeColumn
 		{
 			if (_prevTriggerCounter != triggerCounter)
+			{
 				_columnJuggler.target = _internalColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
+				_prevTriggerCounter = triggerCounter;
+			}
 			return _internalColumn;
 		}
 		

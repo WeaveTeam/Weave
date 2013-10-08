@@ -59,7 +59,8 @@ package weave.data
 			{
 				if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
 					delete _hashToWeakColumnRefMap[hashCode];
-				return weakRef.value as IAttributeColumn;
+				else
+					return weakRef.value as IAttributeColumn;
 			}
 			
 			// If no column is associated with this hash value, request the
