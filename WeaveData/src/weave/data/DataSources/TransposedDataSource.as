@@ -19,11 +19,8 @@
 
 package weave.data.DataSources
 {
-	import avmplus.describeType;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
@@ -41,7 +38,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.KeySets.FilteredKeySet;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
@@ -213,13 +209,11 @@ package weave.data.DataSources
 		}
 	}
 }
-import weave.api.core.ILinkableObject;
 import weave.api.data.IFilteredKeySet;
 import weave.api.detectLinkableObjectChange;
 import weave.api.newLinkableChild;
 import weave.api.registerLinkableChild;
 import weave.data.KeySets.FilteredKeySet;
-import weave.utils.AsyncSort;
 import weave.utils.VectorUtils;
 
 internal class InternalData
