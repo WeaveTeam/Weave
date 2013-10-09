@@ -611,11 +611,11 @@
 				
 				_currentQueryTerms = processQuery(currentQuery.keywords.value); 
 				
-				//				if(isQueryDifferent || _firstLoad)
-				//				{
-				//					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
-				//						_currentRelatedKeywords);
-				//				}
+				if(isQueryDifferent || _firstLoad)
+				{
+					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
+						_currentRelatedKeywords);
+				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
 					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);

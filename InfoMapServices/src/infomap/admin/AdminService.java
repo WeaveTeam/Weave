@@ -1169,6 +1169,7 @@ public class AdminService extends GenericServlet {
 			int numOfLabels = clusterResponse.clusters.length;
 			
 			// ------ Start of topic label clustering ------
+			HashMap<String, org.carrot2.core.Document> labelClusteringDocuments = new HashMap<String, org.carrot2.core.Document>(); // ToDo hierarchical yenfu 
 			ArrayList<org.carrot2.core.Document> documents = new ArrayList<org.carrot2.core.Document>();
 			for (int i=0; i < numOfLabels; i++) {
 				String label = clusterResponse.clusters[i].labels[0];
@@ -1180,6 +1181,7 @@ public class AdminService extends GenericServlet {
 				concatenatedTitles = concatenatedTitles.trim();
 	            // ToDo Snippet of the description "might" be used for clustering
 				documents.add(new org.carrot2.core.Document(concatenatedTitles, null, label)); // ToDo Use label as contentUrl ==> Possible duplicate labels?
+				labelClusteringDocuments.put(label, new org.carrot2.core.Document(concatenatedTitles, null, label)); // ToDo hierarchical yenfu duplicate object
 			}
 			
 			String keywords = "";
@@ -1208,6 +1210,7 @@ public class AdminService extends GenericServlet {
 				}
 			}
 			
+			// key: cluster index ; value: score
 			Map<Integer, Double> unsortedMap = new HashMap<Integer, Double>();
 			for (int i = 0; i < clustersByLingo.size(); i++) unsortedMap.put(i, clustersByLingo.get(i).getScore());
 			TreeMap<Integer, Double> orderOfClustersbyScore = new TreeMap<Integer, Double>(new ValueComparator(unsortedMap));
@@ -1215,6 +1218,8 @@ public class AdminService extends GenericServlet {
 	        
 			// ToDo Is it possible that two or more labels will be the same?
 			// ToDo What if there exists another label called "document"? Which one will be used as key column?
+			
+			
 			
 			// Clustering documents			
 			Map<String,Object> docsToLabel = new HashMap<String, Object>();
@@ -1275,6 +1280,55 @@ public class AdminService extends GenericServlet {
 				labelClusterLinkedHashMap.put(clusterIndex, clusterContent);
 			}
 			
+			// ToDo hierarchical yenfu
+			// Second iteration of label clustering if some super labels contains more than 5 labels
+			ArrayList<Integer> keysToRemove = new ArrayList<Integer>();
+			for (Integer clusterIndex : labelClusterLinkedHashMap.keySet()) {
+				int numberOfClusters = labelClusterLinkedHashMap.keySet().size();
+				ArrayList<String> clusterContent = new ArrayList<String>();
+				ArrayList<org.carrot2.core.Document> tempDocs = new ArrayList<org.carrot2.core.Document>();
+				if (labelClusterLinkedHashMap.get(clusterIndex).size() > 5) {
+					keysToRemove.add(clusterIndex);
+					clusterContent = labelClusterLinkedHashMap.get(clusterIndex);
+					for (int i = 0; i < clusterContent.size(); i++) {
+						tempDocs.add(labelClusteringDocuments.get(clusterContent.get(i)));
+					}
+					
+					List<Cluster> subClustersByLingo = lingoClustering(tempDocs, keywords, LingoClusteringAlgorithm.class);
+					
+					// key: cluster index ; value: score
+					Map<Integer, Double> unsortedSubClusterMap = new HashMap<Integer, Double>();
+					for (int i = 0; i < subClustersByLingo.size(); i++) unsortedSubClusterMap.put(i, subClustersByLingo.get(i).getScore());
+					TreeMap<Integer, Double> orderOfSubClustersbyScore = new TreeMap<Integer, Double>(new ValueComparator(unsortedSubClusterMap));
+					orderOfSubClustersbyScore.putAll(unsortedSubClusterMap);
+					
+					// Retrieve label clustering result
+					Map<Integer, ArrayList<String>> labelSubClusterLinkedHashMap = new LinkedHashMap<Integer, ArrayList<String>>();
+					ArrayList<String> tempSubLabels = new ArrayList<String>(); // labels ...
+					for (Integer subClusterIndex : orderOfSubClustersbyScore.keySet()) {
+						ArrayList<String> subClusterContent = new ArrayList<String>();
+						for (org.carrot2.core.Document doc : subClustersByLingo.get(subClusterIndex).getDocuments())
+						{
+							if (!tempSubLabels.contains((String) doc.getField(org.carrot2.core.Document.CONTENT_URL)))
+							{
+								subClusterContent.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
+								tempSubLabels.add((String) doc.getField(org.carrot2.core.Document.CONTENT_URL));
+							}
+						}
+						labelSubClusterLinkedHashMap.put(subClusterIndex, subClusterContent);
+					}
+					
+					for (Integer key : labelSubClusterLinkedHashMap.keySet()) {
+						labelClusterLinkedHashMap.put(numberOfClusters, labelSubClusterLinkedHashMap.get(key));
+						numberOfClusters++;
+					}
+				}
+			}
+			
+			for (int i = 0; i < keysToRemove.size(); i++) {
+				labelClusterLinkedHashMap.remove(keysToRemove.get(i));
+			}
+			
 			Map<String, String>[] rs = records.toArray(new HashMap[records.size()]);
 			
 			result = new CSVParser().convertRecordsToRows(rs);
@@ -1296,6 +1350,9 @@ public class AdminService extends GenericServlet {
 		return result;
 	}
 	
+	// Using lingo algorithm because the result is deterministic
+	// The result is not deterministic (it should be) now because of double precision bug.
+	// See http://issues.carrot2.org/browse/CARROT-575
 	public List<Cluster> lingoClustering(List<org.carrot2.core.Document> documents, String queryHint, Class<?>... processingComponentClasses) {
 		// This code includes software developed by the Carrot2 Project
 		// Cluster RadViz labels for better layout ==> Currently use concatenated titles for clustering.
