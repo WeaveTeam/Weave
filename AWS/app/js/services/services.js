@@ -138,8 +138,6 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', function($q, scope, queryobj) {
 
-		//this.getDataColumnsEntitiesFromId = _getDataColumnsEntitiesFromId(queryobj.dataTable.id);
-		
 		/**
     	  * This function makes nested async calls to the aws function getEntityChildIds and
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children of the given id.
@@ -214,4 +212,5 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
                 
             return deferred.promise;
         };
+        
 }]);
