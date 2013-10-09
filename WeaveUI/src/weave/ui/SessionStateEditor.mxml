@@ -52,7 +52,7 @@ A text editor to change the Session State on the fly.
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
 	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
 	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
-	 					<mx:Button label="{lang('Nested unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 						<ui:HelpComponent>
 							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
 							Multiple dynamic objects can be linked to the same global object this way.
@@ -380,6 +380,7 @@ A text editor to change the Session State on the fly.
 				{
 					linkNameInput.text = dynamicObject.globalName;
 					linkControls.enabled = true;
+					nestedUnlinkButton.enabled = dynamicObject is IColumnWrapper;
 				}
 				else
 				{
