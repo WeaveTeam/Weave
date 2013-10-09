@@ -45,6 +45,7 @@
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
 			<mx:Button label="{lang('Add new layer')}" click="addPlotter()" enabled="{layerSelector.selectedItem != null}"/>
+			<mx:Button label="{lang('Cancel')}" click="removePanel()"/>
 		</mx:HBox>
 	</mx:VBox>
 	<mx:Script>
@@ -91,8 +92,7 @@
 				if (!plotter)
 					return;
 				
-				if (!ControlPanel.openEditor(plotter, [_visualization], [state]))
-					SessionStateEditor.openDefaultEditor(plotter);
+				ControlPanel.openEditor(plotter, [_visualization], [state]);
 				
 				removePanel();
 			}

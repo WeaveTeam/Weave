@@ -113,7 +113,7 @@
 				//expandItem(selectedItem, !isItemOpen(selectedItem))
 				refresh();
 				
-				ControlPanel.openEditor(getSelectedLinkableObject());
+				ControlPanel.openEditor(getSelectedLinkableObject(), null, null, false);
 			}
 			
 			private var _sessionObjectTypeFilter:Class = null;

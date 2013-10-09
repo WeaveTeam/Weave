@@ -50,6 +50,7 @@
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.compiler.Compiler;
@@ -334,32 +335,50 @@
 				return childName;
 			}
 			
-			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null):ILinkableObjectEditor
+			private static const editors:Dictionary = new Dictionary(true); // ILinkableObject -> ILinkableObjectEditor
+			private static const editorPanels:Dictionary = new Dictionary(true); // ILinkableObject -> ControlPanel
+			
+			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null, sessionEditorFallback:Boolean = true):ILinkableObjectEditor
 			{
-				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
-				if (editor)
+				var controlPanel:ControlPanel = editorPanels[linkableObject] as ControlPanel;
+				if (!controlPanel || objectWasDisposed(controlPanel))
 				{
-					var controlPanel:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
+					var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
+					if (!editor)
+					{
+						if (sessionEditorFallback)
+							SessionStateEditor.openDefaultEditor(linkableObject);
+						return null;
+					}
+					
+					editors[linkableObject] = editor;
+					
+					controlPanel = newDisposableChild(linkableObject, ControlPanel);
+					
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
-					PopUpManager.centerPopUp(controlPanel);
-					
-					controlPanel.targets = targets || [linkableObject];
-					if (initialSessionStates)
-						controlPanel._savedTargetSessionStates = initialSessionStates;
-					
-					// set title after creation complete
-					editor.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):*{
-						var className:String = getQualifiedClassName(linkableObject).split('::').pop();
-						var objectName:String = getSessionStateName(linkableObject);
-						var str:String = className;
-						if (objectName && objectName != className)
-							str += ' ' + Compiler.encodeString(objectName);
-						controlPanel.panelTitle.value = "Settings for " + str;
-					});
 					
 					controlPanel.tabNavigator.addChild(editor as DisplayObject);
+					
+					var className:String = getQualifiedClassName(linkableObject).split('::').pop();
+					var objectName:String = getSessionStateName(linkableObject);
+					var str:String = className;
+					if (objectName && objectName != className)
+						str += ' ' + Compiler.encodeString(objectName);
+					controlPanel.title = "Settings for " + str;
 				}
-				return editor;
+				
+				editorPanels[linkableObject] = controlPanel;
+				
+				controlPanel.restorePanel();
+				
+				if (!controlPanel.parent)
+					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
+				
+				controlPanel.targets = targets || [linkableObject];
+				if (initialSessionStates)
+					controlPanel._savedTargetSessionStates = initialSessionStates;
+				
+				return editors[linkableObject] as ILinkableObjectEditor;
 			}
 		]]>
 	</mx:Script>
