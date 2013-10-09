@@ -64,20 +64,6 @@
 			
 			public const REGRESSION_LAYER_NAME:String = "regressionLine";
 				
-			private function enableEquationTextEditing ():void 
-			{
-				if (editTextArea.value) 
-				{
-					equationText.editable = true;
-				}
-				else
-				{
-					equationText.editable = false;
-				}				
-			}
-			
-			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), enableEquationTextEditing);
-			
 			private function isVisibleEquationText():void
 			{
 				if (isVisibleEquationTextBoolean.value)
@@ -636,7 +622,7 @@
 			}
 		]]>
 	</mx:Script>
-	<ui:Paragraph id="equationText"
+	<ui:Paragraph id="equationText" trim="false" selectable="true"
 		wordWrap="false" width="NaN"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
