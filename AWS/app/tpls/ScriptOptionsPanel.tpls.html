@@ -7,8 +7,9 @@
 			Select column for {{input.param}}:<select ui-select2
 				ng-model="$parent.selection[$index]">
 				<option></option>
-				<option ng-repeat="opt in options" value="{{opt}}" ng-selected="selected=opt">{{opt.title}}</option>
+				<option ng-repeat="opt in options" value="{{opt}}">{{opt.title}}</option>
 			</select>
-			<div ng-show='$parent.selection[$index] != ""' ui-slider="{range:true,max:.range[1],min:opt.range[0]}" ng-model="$parent.selection[$index].range"></div>
+			<div ng-show='$parent.show[$index]'
+				ui-slider="$parent.sliderOptions[$index]" ng-model="$parent.selection[$index].range"></div>
 		</div>
 	</div>

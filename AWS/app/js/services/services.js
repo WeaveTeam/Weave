@@ -16,7 +16,6 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.scriptType = "r";
     this.dataTable = {id:1,title:"default"};
     this.conn = {
-        scriptLocation: 'C:\\RScripts\\',
         serverType: 'MySQL',
         connectionType: 'RMySQL',
         sqlip: 'localhost',
@@ -112,7 +111,7 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
             });
         };
 
-        aws.RClient.getListOfScripts(queryobj.conn.scriptLocation, callbk);
+        aws.RClient.getListOfScripts(callbk);
 //		prom.then(function(result){
 //			//this.availableScripts = result;
 //			return result;
@@ -133,7 +132,7 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
             });
         };
 
-        aws.RClient.getScriptMetadata(queryobj.conn.scriptLocation, queryobj.scriptSelected, callback);
+        aws.RClient.getScriptMetadata(queryobj.scriptSelected, callback);
 // 		promise.then(function(result){
 // 			//return result;
 // 		});

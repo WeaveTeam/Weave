@@ -111,7 +111,7 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, d
 };
 
 /**
- * This function accesses the weave instance and create a new data table, regardless of wether or not
+ * This function accesses the weave instance and creates a new data table, regardless of whether or not
  * there is an existing data table.
  * 
  * @param {Array.<string>} columnNames Array of columns to put in the table
@@ -134,7 +134,27 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 };
 
 /**
- * This function accesses the weave instance and create a new bar chart, regardless of wether or not 
+ * this function accesses the weave instance and creates a new Radviz tool
+ * @param {Array.<string>} columnNames array of columns to be used as dimensional anchors
+ * @param {string} dataSourceName the name of the datasource to pull the data from
+ * 
+ * @return the name of the created Radviz tool
+ * 
+ */
+
+aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
+	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
+	this.weave.reqestObject([toolName], 'RadVizTool');
+	
+	//populating the Dimensional Anchors
+	for(var i in columnNames){
+		this.setCSVColumn(dataSourceName, [toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i]], columnNames[i]);
+	}
+};
+
+
+/**
+ * This function accesses the weave instance and create a new bar chart, regardless of whether or not 
  * there is an existing bar chart.
  * 
  * @param {string} label the column name used for label.
@@ -255,6 +275,19 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
 	
 	this.setCSVColumn(csvDataSource,['defaultColorDataColumn', 'internalDynamicColumn'], colorColumnName);
 };
+
+
+/**
+ * This function clears the visualizations before any new query is run
+ *it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
+ *in this case everything except 'WeaveDataSource' will be removed
+ * @return void
+ */
+aws.WeaveClient.prototype.clearCurrentVizs = function(){
+	
+	this.weave.path().state(['WeaveDataSource']);
+};
+
 
 /**
  * This function accesses the weave instance and creates a new data source.
