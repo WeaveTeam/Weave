@@ -209,43 +209,35 @@ package weave.application
 			// disable application until it's ready
 			enabled = false;
 			
-			if (getFlashVarAdminConnectionName() != null)
+			if (getFlashVarAdminConnectionName())
 			{
-				// disable interface until connected to admin console
+				// disable interface while connecting to admin console
 				var _this:VisApplication = this;
 				_this.enabled = false;
-				var resultHandler:Function = function(event:ResultEvent, token:Object = null):void
-				{
-					_this.enabled = true;
-					adminService = pendingAdminService;
-					
-					saveTimer.addEventListener(TimerEvent.TIMER, saveRecoverPoint);
-					saveTimer.start();
 				
-					setupVisMenuItems(); // make sure 'save session state to server' is shown
-					downloadConfigFile();
-				};
-				var faultHandler:Function = function(event:FaultEvent = null, token:Object = null):void
-				{
-					Alert.show(lang("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server."), lang("Connection error"));
-					// do not re-download config file if this function was called as a grouped callback.
-					if (event) // event==null if called as grouped callback
-					{
-						_this.enabled = true;
-						downloadConfigFile();
-					}
-				};
 				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
-				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
-				// when admin console responds, set adminService
 				addAsyncResponder(
 					pendingAdminService.invokeAsyncMethod("ping"),
-					resultHandler,
-					faultHandler
+					function(event:ResultEvent, token:Object = null):void
+					{
+						// when admin console responds, set adminService
+						adminService = pendingAdminService;
+						saveTimer.addEventListener(TimerEvent.TIMER, saveRecoverPoint);
+						saveTimer.start();
+						
+						_this.enabled = true;
+						setupVisMenuItems(); // make sure 'save session state to server' is shown
+						downloadConfigFile();
+					},
+					function(event:FaultEvent = null, token:Object = null):void
+					{
+						Alert.show(lang("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server."), lang("Connection error"));
+						
+						_this.enabled = true;
+						setupVisMenuItems();
+						downloadConfigFile();
+					}
 				);
-				
-				// do nothing until admin console is connected.
-				return;
 			}
 			else
 			{

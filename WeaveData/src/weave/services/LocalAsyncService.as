@@ -35,12 +35,10 @@ package weave.services
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
-	import weave.api.newDisposableChild;
+	import weave.api.disposeObjects;
 	import weave.api.reportError;
 	import weave.api.services.IAsyncService;
-	import weave.core.CallbackCollection;
 	
 	/**
 	 * This class provides two-way communication between Flash applications in the form of an IAsyncService.
@@ -75,21 +73,21 @@ package weave.services
 			}
 			catch (error:ArgumentError)
 			{
+				_fault = new Fault(String(error.errorID), error.name, error.message);
 				//trace("LocalAsyncService()", localName, error);
-				reportError(_lastError = error, "LocalAsyncService()");
-				WeaveAPI.StageUtils.callLater(errorCallbacks, errorCallbacks.triggerCallbacks, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				reportError(error);
 			}
 		}
 
-		private var _lastError:Error; // the last error that caused errorCallbacks to trigger
+		private var _fault:Fault; // the fault that will be passed to any future async requests
 		private var receivingObject:Object; // object that will be made available to run commands on
-		private var conn:LocalConnection = new LocalConnection();
+		private const conn:LocalConnection = new LocalConnection();
 		private var localName:String; // local connection name
 		private var remoteName:String; // remote connection name
 		private var commandCounter:int = 0; // incremented each time a command is sent
-		private var tokens:Object = new Object(); // maps commandID to AsyncToken object
-		private var chunks:Object = new Object(); // maps commandID to an Array of ByteArray chunks
-		private var chunkCounters:Object = new Object(); // maps commandID to a counter used to keep track of how many chunks remain
+		private const tokens:Object = new Object(); // maps commandID to AsyncToken object
+		private const chunks:Object = new Object(); // maps commandID to an Array of ByteArray chunks
+		private const chunkCounters:Object = new Object(); // maps commandID to a counter used to keep track of how many chunks remain
 		private static const tempByteArray:ByteArray = new ByteArray(); // reusable temporary object
 
 		/**
@@ -114,15 +112,23 @@ package weave.services
 			// it means you must update to Flex SDK 3.5.
 			tokens[commandID] = new AsyncToken();
 			
-			try
+			if (_fault)
 			{
-				send("receiveCommand", commandID, methodName, methodParameters);
+				WeaveAPI.StageUtils.callLater(this, receiveFault, [commandID, _fault]);
 			}
-			catch (error:ArgumentError)
+			else
 			{
-				reportError(_lastError = error);
-				WeaveAPI.StageUtils.callLater(errorCallbacks, receiveFault, [commandID, new Fault(String(error.errorID), error.name, error.message)]);
+				try
+				{
+					send("receiveCommand", commandID, methodName, methodParameters);
+				}
+				catch (error:ArgumentError)
+				{
+					reportError(error);
+					WeaveAPI.StageUtils.callLater(this, receiveFault, [commandID, new Fault(String(error.errorID), error.name, error.message)]);
+				}
 			}
+			
 			return tokens[commandID];
 		}
 		
@@ -214,6 +220,7 @@ package weave.services
 			var token:AsyncToken = tokens[commandID] as AsyncToken;
 			if (token != null)
 			{
+				delete tokens[commandID];
 				// broadcast result to responders
 				var resultEvent:ResultEvent = new ResultEvent(ResultEvent.RESULT, false, false, result, token);
 				if (token.responders != null)
@@ -233,6 +240,7 @@ package weave.services
 			var token:AsyncToken = tokens[commandID] as AsyncToken;
 			if (token != null)
 			{
+				delete tokens[commandID];
 				// broadcast result to responders
 				var faultEvent:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, false, fault, token);
 				if (token.responders != null)
@@ -329,27 +337,21 @@ package weave.services
 		private function handleAsyncError(event:AsyncErrorEvent):void
 		{
 			trace("LocalAsyncService.handleAsyncError()", localName, ObjectUtil.toString(event));
-			reportError(_lastError = event.error);
-			errorCallbacks.triggerCallbacks();
+			if (!_fault)
+				_fault = new Fault(String(event.error.errorID), event.error.name, event.error.message);
+			
+			disposeObjects(this);
 		}
 
 		private function handleStatus(event:StatusEvent):void
 		{
 			if (event.level == 'error')
 			{
-				reportError('Received LocalConnection error status ' + ObjectUtil.toString(event));
-				errorCallbacks.triggerCallbacks();
+				if (!_fault)
+					_fault = new Fault(StatusEvent.STATUS, 'Received LocalConnection error status');
+				
+				disposeObjects(this);
 			}
-		}
-		
-		/**
-		 * These callbacks run when the LocalAsyncService is unable to connect.
-		 */		
-		public const errorCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		
-		public function get lastError():Error
-		{
-			return _lastError;
 		}
 		
 		/**
@@ -357,6 +359,13 @@ package weave.services
 		 */
 		public function dispose():void
 		{
+			if (!_fault)
+				_fault = new Fault("disposed", "LocalAsyncService was disposed");
+			
+			// pass fault to all pending commands
+			for (var commandID:String in tokens)
+				receiveFault(commandID, _fault);
+			
 			conn.close();
 		}
 	}
