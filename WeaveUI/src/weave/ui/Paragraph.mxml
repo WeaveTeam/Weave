@@ -130,7 +130,16 @@
                 height = textField.height;
             	//NOTE : there is still a bug that when you delete an extra line it will not update
 				// the size until you type a new character, not sure why this happens...
+				
+				if (!_validatingSize)
+				{
+					_validatingSize = true;
+					invalidateSize();
+					validateNow();
+					_validatingSize = false;
+				}
             }
+			private var _validatingSize:Boolean = false;
         ]]>
     </mx:Script>
 </mx:TextArea>
