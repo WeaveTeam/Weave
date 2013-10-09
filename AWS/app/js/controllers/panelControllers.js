@@ -55,7 +55,7 @@ angular.module("aws.panelControllers", [])
 	};
 
 })
-.controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj, dataService){
+.controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
 	
 	$scope.selection;
 	$scope.options;
@@ -80,8 +80,8 @@ angular.module("aws.panelControllers", [])
 		return queryobj.conn.scriptLocation;
 	},
 		function() {
-		console.log(dataService.getListOfScripts());
-		// $scope.options = dataService.getListOfScripts();
+		// console.log(dataService.getListOfScripts());
+		$scope.options = scriptobj.getListOfScripts();
 	});
 })
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
@@ -249,65 +249,59 @@ angular.module("aws.panelControllers", [])
 .controller("ContinuousFilterPanelCtrl", function($scope, queryobj, dataService){
 	
 })
-.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
+.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj, dataService){
 	
-	// Populate Labels
-	$scope.inputs = [];
-	$scope.sliderOptions = {
-			range: true,
-			//max/min: querobj['some property']
-			max: 99,
-			min: 1,
-			values: [10,25]
-	};
+	$scope.inputs = []; // script inputs
+	$scope.options= []; // selected columns
+	$scope.show = []; // array corresponding to number of inputs Show filter or not.
+	$scope.sliderOptions = []; // array corresponding to settings for visible sliders
+	$scope.selection = []; // array corresponding to inputs, which option is selected. 
+	$scope.type = "columns"; // or "cluster" to decide which UI to draw in panel
 
-	$scope.options = queryobj.getSelectedColumns();
-	$scope.selection = [{
-			id: 0,
-			filter: [[1,2], [1,3]]
-		},
-		{
-			id:1,
-			filter: [[1,2], [1,3]]
-		}
-	];
+
+	$scope.inputs = scriptobj.getScriptMetadata().then(function(result){
+		return results.inputs;
+	});  // get a promise for metadata
 	
-	// retrieve selections, else create blanks;
-	if(queryobj['scriptOptions']){
-		$scope.selection = queryobj['scriptOptions'];
-	}
+	$scope.options = queryobj.getSelectedColumns(); // get array of selected columns									
 	
-	var buildScriptOptions = function(){
-		var arr = [];
-		var obj;
-		angular.forEach($scope.selection, function(item){
-			obj = "";
-			if(item != ""){
-				item = angular.fromJson(item);
-			
-				obj = {
-						id:item.id,
-						title:item.title
-				};
-				if(item.range){
-					obj.filter = [item.range];
-				}
-			}
-			arr.push(obj);
-				
+	angular.forEach($scope.inputs, function(item, i){ // initialize show and selection with defaults
+		$scope.show[i] = false;
+		$scope.selection[i] = "";
+		$scope.sliderOptions[i] = {values:[1,10]};
+	});
+	
+	$scope.$watch(function(){		// watch the selected script for changes
+			return queryobj.scriptSelected;
+		},function(newVal, oldVal){   	
+			scriptobj.getScriptMetadata().then(function(result){			// reinitialize and apply to model
+				$scope.inputs = result.inputs;
+				angular.forEach(result.inputs, function(input, index){
+					$scope.show[index] = false;
+					$scope.selection[index] = "";
+					$scope.sliderOptions[index] = {values:[1,10]};
+			});
+			//return result;
 		});
-		return arr;
-	};
-	
-	// set up watch functions
-	$scope.$watch('selection', function(){
-		queryobj.scriptOptions = buildScriptOptions();
-		//scriptobj.scriptMetadata.outputs = $scope.selection;
-	}, true);
-	$scope.$watch(function(){
-		return queryobj.scriptSelected;
-	},function(newVal, oldVal){
-		$scope.inputs = scriptobj.getScriptMetadata().inputs;
+	});
+	$scope.$watch('selection', function(newVal, oldVal){
+		// new and old will be arrays with objects in them (columns returned from getSelectedColumns()
+        // var te = newVal;
+		if(angular.toJson(newVal) != angular.toJson(oldVal)){
+			angular.forEach(newVal, function(selected, i){
+				if (selected){
+					$scope.sliderOptions[i] = // try out a closure to set the options model.
+						function(){ var obj = {
+							id:selected.id,
+							title:selected.title,
+							filter:[selected.range]};
+							return obj;
+						}();
+					$scope.show[i] = true;
+				}
+			});
+			queryobj.scriptOptions = $scope.selection;
+		}
 	});
 
 })
