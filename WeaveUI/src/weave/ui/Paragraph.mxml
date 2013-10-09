@@ -21,8 +21,6 @@
 -->
 <mx:TextArea xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
     verticalScrollPolicy="off" horizontalScrollPolicy="off"
-    resize="resetHeight()"
-    change="resetHeight()"
 	editable="false"
 	borderStyle="none"
 	width="100%"
@@ -74,6 +72,15 @@
 				text = value as String;
 			}
 			
+			[Bindable("textChanged")]
+			[CollapseWhiteSpace]
+			[Inspectable(category="General", defaultValue="")]
+			[NonCommittingChangeEvent("change")]
+			override public function get text():String
+			{
+				return super.text;
+			}
+			
 			override public function set text(value:String):void
 			{
 				value = value || ''; // not null
@@ -89,33 +96,12 @@
 				super.text = value;
 			}
 			
-        	private function init():void
-        	{
-				textField.height = 0;
-        	}
-			
-        	private function resetHeight():void
-        	{
-    			if (parent && !editable)
-    			{
-					styleChanged("headerHeight");
-					notifyStyleChangeInChildren("headerHeight", true);
-					validateSize(true);
-    			}
-        	}
-        
-        	override public function set percentWidth(value:Number):void
-        	{
-        		super.percentWidth = value;
-        	}
-        	override public function set width(value:Number):void
-        	{
-        		super.width = value;
-        	}
-        
-            override public function validateSize(recursive:Boolean=false):void
-            {
-            	super.validateSize(recursive);
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				// call this first to update textField properties
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				
+				// update width,height based on textField width,height
 				var text:String = textField.text;
 				textField.height = 0;
 				textField.autoSize = 'center';
@@ -127,19 +113,12 @@
             	{
 					width = textField.width;
             	}
-                height = textField.height;
-            	//NOTE : there is still a bug that when you delete an extra line it will not update
-				// the size until you type a new character, not sure why this happens...
+				if (width)
+	                height = textField.height;
 				
-				if (!_validatingSize)
-				{
-					_validatingSize = true;
-					invalidateSize();
-					validateNow();
-					_validatingSize = false;
-				}
-            }
-			private var _validatingSize:Boolean = false;
+				// call this again because width or height may have changed
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
         ]]>
     </mx:Script>
 </mx:TextArea>
