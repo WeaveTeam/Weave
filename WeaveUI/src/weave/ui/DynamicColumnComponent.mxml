@@ -56,7 +56,10 @@
 					horizontalAlign="right" borderStyle="outset" backgroundAlpha="1"
 					close="toggleLinkDropDown();">
 		<mx:HBox horizontalGap="{linkControlsPadding}">
-			<HelpComponent>You can link two or more attributes together so that changing one will change the rest.  Click on the name of an existing linked group or type the name of a new one.</HelpComponent>
+			<HelpComponent>
+				You can link two or more attributes together so that changing one will change the rest.
+				Click on the name of an existing linked group or type the name of a new one.
+			</HelpComponent>
 			<TextInputWithPrompt id="linkName" prompt="{lang('Enter a new group name')}"
 								 enter="linkTo(StringUtil.trim(linkName.text));"/>
 			<mx:Button label="{lang('Link')}" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>

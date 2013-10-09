@@ -24,8 +24,10 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -38,6 +40,8 @@ package weave.visualization.plotters
 	 */
 	public class GridLinePlotter extends AbstractPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, GridLinePlotter, "Grid lines");
+		
 		public function GridLinePlotter()
 		{
 			lineStyle.caps.defaultValue.value = CapsStyle.NONE;

@@ -636,14 +636,10 @@
 			}
 		]]>
 	</mx:Script>
-	<ui:AutoResizingTextArea id="equationText"
-		editable="false"
-		visible = "true"
+	<ui:Paragraph id="equationText"
+		wordWrap="false" width="NaN"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
-		wordWrap="false"
-		backgroundAlpha="0"
-		borderThickness="0"
 		bottom="0"
 		left="0"/>
 	<ui:ControlPanel>
@@ -777,11 +773,14 @@
 								 change="enableAbsHandler(event)"/>
 					<ui:HelpComponent>
 						Select this option to highlight the differences in your 'size' column.
+						
 						* All values greater than 0 radius will be one color.
+						
 						* All values less than 0 radius will be another color.
+						
 						* If you have a size of 0 radius the circle will not be drawn.
 						
-						** If a size column is not specified, nothing will be drawn in this mode.
+						If a size column is not specified, nothing will be drawn in this mode.
 					</ui:HelpComponent>
 				</mx:HBox>
 				<ui:Indent>

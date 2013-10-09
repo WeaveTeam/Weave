@@ -24,9 +24,11 @@ package weave.visualization.plotters
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -43,6 +45,8 @@ package weave.visualization.plotters
 	 */
 	public class AxisLabelPlotter extends AbstractPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, AxisLabelPlotter, "Axis labels");
+		
 		public function AxisLabelPlotter()
 		{
 			setSingleKeySource(text);

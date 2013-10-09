@@ -49,11 +49,18 @@
 	<mx:VBox label="{lang('Advanced')}" width="100%" height="100%">
 		<ui:Indent label="{lang('Streaming geometry bounding box request mode')}">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
-			<ui:HelpComponent>This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and mouseover on the map will not catch the shapes that are too small to be seen.</ui:HelpComponent>
+			<ui:HelpComponent>
+				This controls how metadata tile requests are filtered based on the map zoom level.
+				Unless all metadata tiles are requested for the current X-Y range, selection and
+				mouseover on the map will not catch the shapes that are too small to be seen.
+			</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent label="{lang('Do not render geometry detail with pixel area less than')}">
 			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>
-			<ui:HelpComponent>This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.</ui:HelpComponent>
+			<ui:HelpComponent>
+				This controls the filtering of vector tile requests and rendering.
+				Enter the minimum area requirement (in pixels) for geometry detail to be rendered.
+			</ui:HelpComponent>
 		</ui:Indent>
 		
 		<mx:VBox width="100%">
@@ -78,7 +85,8 @@
 		<mx:HBox>
 			<mx:CheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
 			<ui:HelpComponent>
-				This will include "Add Data Filter" as an option in the tools menu and show experimental filtering controls in the attribute selector.
+				This will include "Add Data Filter" as an option in the tools menu
+				and show experimental filtering controls in the attribute selector.
 			</ui:HelpComponent>
 		</mx:HBox>
 	</mx:VBox>

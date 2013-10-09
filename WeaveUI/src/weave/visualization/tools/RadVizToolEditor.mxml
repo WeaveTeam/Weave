@@ -423,7 +423,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:HBox>
 					<mx:Label text="Normalized Threshold value for Probe Lines: "/>
 					<mx:TextInput width="50" creationComplete="linkBindableProperty(_target._plotter.probeLineNormalizedThreshold,event.target,'text')"/>
-					<ui:HelpComponent content="Enter a value between 0 and 1. Probe lines will only be drawn from the point to those dimensions whose normalized corresponding values are equal or higher than this value"/>
+					<ui:HelpComponent>
+						Enter a value between 0 and 1.
+						Probe lines will only be drawn from the point to those dimensions whose normalized corresponding values are equal or higher than this value.
+					</ui:HelpComponent>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:Spacer height="10"/>

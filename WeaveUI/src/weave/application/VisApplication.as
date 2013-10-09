@@ -78,6 +78,7 @@ package weave.application
 	import weave.core.StageUtils;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
@@ -95,7 +96,6 @@ package weave.application
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
-	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
@@ -1505,7 +1505,7 @@ package weave.application
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				if (Weave.properties.enableMarker.value)
-					MarkerSettingsComponent.createContextMenuItems(this);
+					SingleImagePlotterEditor.createContextMenuItems(this);
 				
 				if (Weave.properties.enableDrawCircle.value)
 					CirclePlotterSettings.createContextMenuItems(this);

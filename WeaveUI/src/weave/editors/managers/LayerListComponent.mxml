@@ -36,7 +36,6 @@ LayerListComponent
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
 			<mx:Button label="{lang('Add layer...')}" click="addLayer()"/>
-			<!--<mx:Button label="{lang('Open editor...')}" click="openSelector()"/>-->
 		</mx:HBox>
 	</mx:HBox>
 	<mx:List id="internalList" width="100%" height="100%">
@@ -210,14 +209,6 @@ LayerListComponent
 				var enabled:Boolean = _visualization.plotManager.enableAutoZoomToExtent.value;
 				boundsProperties.visible = enabled;
 				boundsProperties.includeInLayout = enabled;
-			}
-			
-			private function openSelector():void
-			{
-				if (_visualization)
-					SessionStateEditor.openDefaultEditor(controller.hashMap);
-				else
-					SessionStateEditor.openDefaultEditor(controller.hashMap);
 			}
 			
 			[Bindable]

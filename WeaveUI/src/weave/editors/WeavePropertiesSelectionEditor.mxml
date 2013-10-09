@@ -45,7 +45,9 @@
 					 selected="true"
 					 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
 					 />
-		<ui:HelpComponent>Check this box to enable extra bitmap filters used with mouseover and selection</ui:HelpComponent>
+		<ui:HelpComponent>
+			Check this box to enable extra bitmap filters used with mouseover and selection
+		</ui:HelpComponent>
 	</mx:HBox>
 	<mx:VBox enabled="{enableBitmapFilters.selected}" paddingLeft="24">			
 		<mx:HBox>

@@ -30,7 +30,7 @@
     </mx:HBox>
 	<ui:DraggablePanel id="csvWindow" title="{lang('Metadata for selected items')}" escapeKeyClosesPanel="true">
 		<mx:VBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
-			<ui:AutoResizingTextArea width="100%" borderStyle="none" editable="false" selectable="false" text="{lang(csvEditorExplanation)}"/>
+			<ui:Paragraph text="{lang(csvEditorExplanation)}"/>
 			<mx:TextArea id="csvTextArea" fontFamily="_typewriter" fontSize="11" width="100%" height="100%" wordWrap="false" change="_csvChanged = true;"/>
 			<mx:HBox width="100%">
 				<mx:Button label="{lang('Copy to clipboard')}" click="Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, csvTextArea.text);"/>

@@ -240,7 +240,8 @@
 					<mx:Label text="{lang('Number of Radiuses:')}"/>
 					<mx:NumericStepper enabled="{simpleRadio.selected}" minimum="2" maximum="50" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
 					<ui:HelpComponent label="{simpleRadio.label}">
-						Example: If your data is between 0 and 100 and you specify 3 radiuses, the following radiuses will be created: 0, 50, 100
+						Example: If your data is between 0 and 100 and you specify 3 radiuses,
+						the following radiuses will be created: 0, 50, 100
 					</ui:HelpComponent>
 				</mx:HBox>
 				

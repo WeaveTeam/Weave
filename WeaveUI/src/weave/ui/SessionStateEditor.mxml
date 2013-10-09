@@ -50,8 +50,18 @@ A text editor to change the Session State on the fly.
 										 focusIn="checkObjectWasDisposed()"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
-	 					<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Nested unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+						<ui:HelpComponent>
+							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
+							Multiple dynamic objects can be linked to the same global object this way.
+							
+							Use the "Nested unlink" button when you want to unlink a tool from the global color mapping.
+							This will recursively unlink all nested DynamicColumn objects.
+							Once that is done, you can link the new color mapping to a new global name so that multiple tools can be linked to the new color mapping.
+							To link multiple tools, you will have to locate the color mapping in each tool and repeat the process.
+						</ui:HelpComponent>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -165,13 +175,6 @@ A text editor to change the Session State on the fly.
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
-			}
-			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				var subMenu:SubMenu = new SubMenu(unlinkButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				subMenu.addSubMenuItem('Unlink all nested dynamic columns', unlinkNestedColumns);
 			}
 			
 			override protected function childrenCreated():void

@@ -34,24 +34,16 @@
 								prompt="{lang('Enter a name')}"
 								errorString="{sourceName.text ? null : lang('Required')}"/>
 	</ui:Indent>
-	<!--
-	<ui:AutoResizingTextArea width="100%" borderStyle="none" editable="false" wordWrap="true">
-	</ui:AutoResizingTextArea>
-	-->
+	<ui:Paragraph translate="true">
+		Each column you add below will correspond to a record in the transposed data source.
+		Records in the original columns will become columns in the transposed data source.
+		
+		Metadata variables will be used to set the metadata of transposed columns and are case sensitive.
+		For example, create a metadata variable named "title" to define the text used for each transposed column title.
+	</ui:Paragraph>
 	<mx:TabNavigator id="tabNav" initialize="UIUtils.setPadding(tabNav, 5);" width="100%" height="100%">
-		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns')}">
-			<ui:helpContent>
-				Each column you add here will correspond to a record in the transposed data source. <!--
-				-->Records in the original columns will become columns in the transposed data source.
-			</ui:helpContent>
-		</ui:ColumnListComponent>
-		<ui:ColumnListComponent id="metadataEditor" showVariableNames="true" label="{lang('Metadata variables')}">
-			<ui:helpContent>
-				Transposed columns will get their metadata from the variables you add below.
-				
-				For example, create a metadata variable called "title" to define the text used for each transposed column title.
-			</ui:helpContent>
-		</ui:ColumnListComponent>
+		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns')}"/>
+		<ui:ColumnListComponent id="metadataEditor" showVariableNames="true" label="{lang('Metadata variables')}"/>
 	</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[

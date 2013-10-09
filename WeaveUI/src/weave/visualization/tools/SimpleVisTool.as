@@ -28,7 +28,6 @@ package weave.visualization.tools
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
@@ -38,6 +37,7 @@ package weave.visualization.tools
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -49,8 +49,8 @@ package weave.visualization.tools
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
-	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
+	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
@@ -91,7 +91,7 @@ package weave.visualization.tools
 		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 
 		private var toolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
-		private var visTitle:AutoResizingTextArea; // For display of title inside the window area
+		private var visTitle:Paragraph; // For display of title inside the window area
 		protected var visCanvas:Canvas; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
 		protected var layerListComponent:LayerListComponent;
@@ -114,14 +114,9 @@ package weave.visualization.tools
 			toolVBox.setStyle("verticalGap", 0);
 			toolVBox.setStyle("horizontalAlign", "center");
 			
-			visTitle = new AutoResizingTextArea();
-			visTitle.selectable = false;
-			visTitle.editable = false;
-			visTitle.setStyle('borderStyle', 'none');
+			visTitle = new Paragraph();
 			visTitle.setStyle('textAlign', 'center');
 			visTitle.setStyle('fontWeight', 'bold');
-			visTitle.setStyle('backgroundAlpha', 0);
-			visTitle.percentWidth = 100;
 			updateTitleLabel();
 			
 			visCanvas = new Canvas();

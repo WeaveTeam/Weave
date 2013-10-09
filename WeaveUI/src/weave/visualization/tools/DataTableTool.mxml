@@ -65,7 +65,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
 			<ui:HelpComponent>
-				The table is currently hiding some of the records, as the amount has exceeded the tables capability for dealing with it efficiently.
+				The table is currently hiding some of the records,
+				as the amount has exceeded the tables capability for dealing with it efficiently.
 			</ui:HelpComponent>
 		</mx:HBox>
 		
@@ -980,7 +981,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
 			<mx:HBox>
 				<mx:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
-				<ui:HelpComponent>Select a column that contains image URLs. The images will be displayed in the data table.</ui:HelpComponent>
+				<ui:HelpComponent>
+					Select a column that contains image URLs.
+					The images will be displayed in the data table.
+				</ui:HelpComponent>
 			</mx:HBox>
 
 			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
@@ -997,7 +1001,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
 				<ui:HelpComponent>
-					This allows data to be filtered based on the data values. Filtered records are highlighted by selection in the other tools.
+					This allows data to be filtered based on the data values.
+					Filtered records are highlighted by selection in the other tools.
 					If a column contains text data, a search box will be displayed which supports wildcards ('?' = any Character; '*' = any String).
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>

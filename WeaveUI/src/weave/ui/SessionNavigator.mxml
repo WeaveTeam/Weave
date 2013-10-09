@@ -42,6 +42,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.compiler.Compiler;
 			import weave.core.SessionManager;
 
 			private var _rootObject:ILinkableObject = null;
@@ -86,7 +87,7 @@
 				// append class name to the label.
 				var label:String = getQualifiedClassName(item.object).split("::")[1];
 				if (item.label)
-					label += ' "' + item.label + '"';
+					label += ' ' + Compiler.encodeString(item.label);
 				return label;
 			}
 			

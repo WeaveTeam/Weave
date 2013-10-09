@@ -36,6 +36,8 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
 			import mx.containers.TabNavigator;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
@@ -43,11 +45,14 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
+			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
@@ -306,6 +311,29 @@
 				super.handleEscapeKey();
 			}
 			
+			private static function getSessionStateName(object:ILinkableObject):String
+			{
+				var childName:String = null;
+				var owner:ILinkableObject = getLinkableOwner(object);
+				if (owner is ILinkableHashMap)
+				{
+					childName = (owner as ILinkableHashMap).getName(object);
+				}
+				else if (owner)
+				{
+					var properties:Array = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(owner);
+					for each (var property:String in properties)
+					{
+						if (owner[property] === object)
+						{
+							childName = property;
+							break;
+						}
+					}
+				}
+				return childName;
+			}
+			
 			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null):ILinkableObjectEditor
 			{
 				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
@@ -314,11 +342,22 @@
 					var controlPanel:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
 					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
 					PopUpManager.centerPopUp(controlPanel);
+					
 					controlPanel.targets = targets || [linkableObject];
 					if (initialSessionStates)
 						controlPanel._savedTargetSessionStates = initialSessionStates;
+					
+					// set title after creation complete
+					editor.addEventListener(FlexEvent.CREATION_COMPLETE, function(..._):*{
+						var className:String = getQualifiedClassName(linkableObject).split('::').pop();
+						var objectName:String = getSessionStateName(linkableObject);
+						var str:String = className;
+						if (objectName && objectName != className)
+							str += ' ' + Compiler.encodeString(objectName);
+						controlPanel.panelTitle.value = "Settings for " + str;
+					});
+					
 					controlPanel.tabNavigator.addChild(editor as DisplayObject);
-					controlPanel.panelTitle.value = "{tabNavigator.getChildAt(0).label}";
 				}
 				return editor;
 			}

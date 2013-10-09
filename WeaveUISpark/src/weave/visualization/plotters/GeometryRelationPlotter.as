@@ -17,6 +17,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -29,6 +30,8 @@ package weave.visualization.plotters
 	// Refer to Feature #924 for detail description
 	public class GeometryRelationPlotter extends AbstractPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, GeometryRelationPlotter, "Geometry relations");
+
 		public function GeometryRelationPlotter()
 		{
 			registerSpatialProperty(geometryColumn);

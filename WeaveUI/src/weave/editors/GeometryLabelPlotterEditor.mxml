@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry Labels')}" 
-		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*"
+		 xmlns="weave.editors.*"
+		 label="{lang('Geometry labels')}"
+		 implements="weave.api.ui.ILinkableObjectEditor">
 	<mx:VBox width="100%">
 		<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
 		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 

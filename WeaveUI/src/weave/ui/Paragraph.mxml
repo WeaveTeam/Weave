@@ -23,10 +23,72 @@
     verticalScrollPolicy="off" horizontalScrollPolicy="off"
     resize="resetHeight()"
     change="resetHeight()"
+	editable="false"
+	borderStyle="none"
+	width="100%"
+	wordWrap="true"
+	backgroundAlpha="0"
+	selectable="false"
+	focusEnabled="false"
     >
-
+	<mx:Metadata>
+		[DefaultProperty("content")]
+	</mx:Metadata>
     <mx:Script>
         <![CDATA[
+			import mx.utils.StringUtil;
+			
+			import weave.compiler.StandardLib;
+			
+			private var _untranslated:String = '';
+			private var _trim:Boolean = true;
+			private var _translate:Boolean = false;
+			
+			/**
+			 * Setting this to true will remove all tab characters and replace new lines with spaces.
+			 */
+			public function set trim(value:Boolean):void
+			{
+				if (_trim != value)
+				{
+					_trim = value;
+					text = _untranslated;
+				}
+			}
+			
+			/**
+			 * Setting this to true will automatically call lang() whenever the text is set.
+			 */
+			public function set translate(value:Boolean):void
+			{
+				if (_translate != value)
+				{
+					_translate = value;
+					text = _untranslated;
+				}
+			}
+			
+			[Exclude]
+			public function set content(value:*):void
+			{
+				text = value as String;
+			}
+			
+			override public function set text(value:String):void
+			{
+				value = value || ''; // not null
+				_untranslated = value;
+				if (_trim)
+				{
+					function trimItem(str:*, ..._):* { return StringUtil.trim(str) || '\n'; }
+					value = value.split('\n').map(trimItem).join(' ');
+					value = StringUtil.trim(StandardLib.replace(value, ' \n ', '\n\n'));
+				}
+				if (_translate)
+					value = lang(value);
+				super.text = value;
+			}
+			
         	private function init():void
         	{
 				textField.height = 0;
@@ -44,12 +106,10 @@
         
         	override public function set percentWidth(value:Number):void
         	{
-        		wordWrap = true;
         		super.percentWidth = value;
         	}
         	override public function set width(value:Number):void
         	{
-        		wordWrap = false;
         		super.width = value;
         	}
         

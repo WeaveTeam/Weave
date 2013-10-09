@@ -30,7 +30,10 @@
 		<mx:CheckBox
 					 label="{lang('Enable detailed geometry mouseover detection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableGeometryProbing, event.target, 'selected')"/>
-		<ui:HelpComponent>Check this box to use the detailed geometry mouseover detection. This will make mouseover more accurate but may decrease performance.</ui:HelpComponent>
+		<ui:HelpComponent>
+			Check this box to use the detailed geometry mouseover detection.
+			This will make mouseover more accurate but may decrease performance.
+		</ui:HelpComponent>
 	</mx:HBox>
 	
 	<mx:HBox verticalAlign="middle">
@@ -39,7 +42,9 @@
 					 selected="true"
 					 creationComplete="linkBindableProperty(Weave.properties.enableBitmapFilters, event.target, 'selected')"
 					 />
-		<ui:HelpComponent>Check this box to enable extra bitmap filters used with mouseover and selection</ui:HelpComponent>
+		<ui:HelpComponent>
+			Check this box to enable extra bitmap filters used with mouseover and selection
+		</ui:HelpComponent>
 	</mx:HBox>
 	<mx:VBox visible="{enableBitmapFilters.selected}" includeInLayout="{enableBitmapFilters.selected}" paddingLeft="{indentPadding}">
 		<ui:Indent label="{lang('Mouseover Inner Glow Color')}" toolTip="{lang('Set the inner glow color of highlighted points')}">

@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
@@ -63,6 +64,8 @@ package weave.visualization.plotters
 	 */
 	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IDisposableObject
 	{
+		WeaveAPI.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
+		
 		public function GeometryPlotter()
 		{
 			// initialize default line & fill styles

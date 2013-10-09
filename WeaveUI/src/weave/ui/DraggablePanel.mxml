@@ -78,6 +78,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
+			import weave.core.UIUtils;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
@@ -194,6 +195,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
+				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
 			
@@ -211,11 +213,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.createChildren();
 				
 				// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
-				var pad:int = 0;
-				setStyle("paddingLeft", pad);
-				setStyle("paddingRight", pad);
-				setStyle("paddingBottom", pad);
-				setStyle("paddingTop", pad);
+				UIUtils.setPadding(this, 0);
 				
 				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, "Change settings");
 				setupControlButton(subMenuButton, _subMenuIcon, null, "Menu");

@@ -32,7 +32,9 @@
 		<mx:HBox>
 		<mx:Label text="{lang('Load local file')}"/>
 		<ui:HelpComponent>
-			Accepts XLS,CSV or Text file. Data should be delimited (by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
+			Accepts XLS,CSV or Text file.
+			Data should be delimited (by commas or tabs, etc.).
+			You can check if the data has been parsed correctly in the next step.
 		</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox>
@@ -49,7 +51,8 @@
 		<mx:HBox>
 			<mx:Label text="{lang('Paste your data below')}"/>
 			<ui:HelpComponent>
-				Paste a delimited data set (delimited by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
+				Paste a delimited data set (delimited by commas or tabs, etc.).
+				You can check if the data has been parsed correctly in the next step.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:TextArea id="dataTextArea" change="handleTextAreaChange()" width="100%" height="100%"/>

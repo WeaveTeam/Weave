@@ -43,7 +43,8 @@
 					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfBins" width="{inputWidth}"/>
 				</ui:Indent>
 				<ui:HelpComponent label="{simpleRadio.label}">
-					Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]
+					Example: If your data is between 0 and 100 and you specify 4 bins,
+					the following bins will be created: [0,25] [25,50] [50,75] [75,100]
 				</ui:HelpComponent>
 			</mx:HBox>
 			
@@ -53,7 +54,8 @@
 				<mx:RadioButton id="customRadio" label="{lang('Custom breaks')}" groupName="typeGroup" width="100%" data="{_customSplit}"/>
 				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
 				<ui:HelpComponent label="{customRadio.label}">
-					Enter comma-separated custom break values for dividing the data into bins.  Example: "0,50,100" will create two bins: [0,50] and [50,100]
+					Enter comma-separated custom break values for dividing the data into bins.
+					Example: "0,50,100" will create two bins: [0,50] and [50,100]
 				</ui:HelpComponent>
 			</mx:HBox>
 			
@@ -75,7 +77,8 @@
 				<mx:RadioButton id="equalIntervalRadio" label="{lang('Equal interval')}" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
 				<ui:IndentTextInput id="dataInterval" enabled="{equalIntervalRadio.selected}" label="{lang('Data interval:')}" indent="{indent}" inputWidth="{inputWidth}"/>
 				<ui:HelpComponent label="{equalIntervalRadio.label}">
-					Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]
+					Example: If your data is between 0 and 100 and you specify an interval of 25,
+					four bins will be created: [0,25] [25,50] [50,75] [75,100]
 				</ui:HelpComponent>
 			</mx:HBox>
 			
@@ -96,8 +99,9 @@
 					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfJenksClass" width="{inputWidth}"/>
 				</ui:Indent>
 				<ui:HelpComponent label="{jenksRadio.label}">
-					The Jenks optimization method, also called the Jenks natural breaks classification method, is a data classification method designed to determine the best arrangement of values into different classes.
-					... http://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization
+					The Jenks optimization method, also called the Jenks natural breaks classification method,
+					is a data classification method designed to determine the best arrangement of values into
+					different classes. See http://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization
 				</ui:HelpComponent>
 			</mx:HBox>
 			

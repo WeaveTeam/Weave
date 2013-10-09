@@ -581,12 +581,16 @@
 						<mx:HBox>
 							<mx:CheckBox id="colorRecordLabelsChk" label="{lang('Color by record')}"
 										 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
-							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
+							<ui:HelpComponent>
+								This specifies if each label should have the same color as its corresponding record.
+							</ui:HelpComponent>
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorRecordLabelsBox" enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
+								<ui:HelpComponent>
+									This specifies the color to use for every label.
+								</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>
@@ -621,7 +625,9 @@
 							<mx:HBox id="colorValueLabelColorBox" enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
+								<ui:HelpComponent>
+									This specifies the color to use for every label.
+								</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>

@@ -51,18 +51,23 @@
 									prompt="{lang('Enter a table name')}"
 									text="{tableSelector.activeTable}"
 									change="handleChange()"/>
-			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
+			<ui:HelpComponent>
+				This is the name that will be visible in Weave.
+			</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent label="{lang('Null flag values')}">
 			<mx:TextInput id="nullFlagInput" editable="true"/>
 			<ui:HelpComponent>
-				If your data has values like "-1" representing missing data, you can enter the values here and Weave will treat them as missing data.  Separate multiple flag values by commas.
+				If your data has values like "-1" representing missing data,
+				you can enter the values here and Weave will treat them as missing data.
+				Separate multiple flag values by commas.
 			</ui:HelpComponent>
 		</ui:Indent>
 		<mx:HBox>
 			<mx:CheckBox id="generateKeyColumnCheckBox" selected="true" change="handleChange()" label="{lang('Generate a new primary key column')}"/>
 			<ui:HelpComponent>
-				This will generate a new unique key for each row.  It is the simplest option, but will not allow you to link the data to other data sets.
+				This will generate a new unique key for each row.
+				It is the simplest option, but will not allow you to link the data to other data sets.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<admin:ImportTableKeyOptions id="keyOptions"

@@ -28,6 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -53,6 +54,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+			import weave.editors.WindowSettingsEditor;
 			import weave.primitives.Bounds2D;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
@@ -221,11 +223,13 @@
 				var backgroundImageCheck:CheckBox = new CheckBox();
 				backgroundImageCheck.label = "Enable ocean background image";
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				windowSettingsEditor.initialize();
-				windowSettingsEditor.addChild(backgroundImageCheck);
-				windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
 				
-				windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
+				WindowSettingsEditor; // work around compiler error
+				windowSettingsEditor.addEventListener(FlexEvent.INITIALIZE, function(e:*):void {
+					windowSettingsEditor.addChild(backgroundImageCheck);
+					windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
+					windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
+				});
 				simpleAxisEditor.parent.removeChild(simpleAxisEditor);
 			}
 			
@@ -379,7 +383,7 @@
 				visualization.plotManager.setCheckedZoomDataBounds(_tempBounds);
 			}
 			
-			private var _tempBounds:IBounds2D = new Bounds2D();
+			private var _tempBounds:Bounds2D = new Bounds2D();
 
 			[Embed(source="/weave/resources/images/ocean_background2.jpg")]
 			private static const BackgroundImage:Class;
@@ -547,17 +551,12 @@
 			public function addMarker(name:String,url:String,x:Number,y:Number,width:Number=NaN,height:Number=NaN):void
 			{
 				var marker:SingleImagePlotter = visualization.plotManager.plotters.requestObject(name, SingleImagePlotter, false);
-				
 				marker.imageURL.value = url;
-				
 				marker.dataX.value = x;
 				marker.dataY.value = y;
-				
 				marker.dataWidth.value = width;
 				marker.dataHeight.value = height;
 			}
-
-
 
 			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));

@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -38,6 +39,8 @@ package weave.visualization.plotters
 	 */
 	public class CustomGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, CustomGlyphPlotter, "Custom glyphs");
+		
 		public function CustomGlyphPlotter()
 		{
 			setColumnKeySources([dataX, dataY]);
