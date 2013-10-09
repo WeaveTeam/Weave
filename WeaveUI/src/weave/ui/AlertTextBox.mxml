@@ -44,7 +44,7 @@
 					 change="textInput = textBox.text;"
 					 keyDown="handleKeyDown(event)"
 					 width="100%"
-					 height="{multiLineEdit ? 64 : 20}"
+					 height="{multiLineEdit ? 96 : 20}"
 					 verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
 		<mx:LinkButton
 					label="{multiLineEdit ? '-' : '+'}"
