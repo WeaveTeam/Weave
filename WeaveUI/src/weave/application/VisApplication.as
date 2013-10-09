@@ -539,12 +539,12 @@ package weave.application
 	
 		private function handleScreenshotImageSize():void
 		{
-			if(detectLinkableObjectChange(this,WeaveAPI.ErrorManager))
+			if (WeaveAPI.ErrorManager.errors.length)
 			{
 				handleRemoveScreenshot();
 				return;
 			}
-			if(_screenshot)
+			if (_screenshot)
 			{
 				var workspace:Canvas = visDesktop.internalCanvas;
 				_screenshot.width = this.width;
@@ -1100,10 +1100,13 @@ package weave.application
 		
 		private function handleRemoveScreenshot(event:Event=null):void
 		{
-			_snapshotTimer.stop();
-			_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
-			PopUpManager.removePopUp(_screenshot);
-			_screenshot = null;
+			if (_screenshot)
+			{
+				_snapshotTimer.stop();
+				_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
+				PopUpManager.removePopUp(_screenshot);
+				_screenshot = null;
+			}
 		}
 		
 		private function createGlobalObject(classDef:Class, name:String = null):*
