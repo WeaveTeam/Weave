@@ -28,7 +28,6 @@
 	borderColor="#939178"
 	borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
 	roundedBottomCorners="true"
-	escapeKeyClosesPanel="true"
 	creationComplete="handleCreationComplete()" xmlns:ui="weave.ui.*">
 	<mx:VBox width="100%" height="100%" verticalGap="0">
 		<mx:HBox height="100%" width="100%" horizontalGap="0">
