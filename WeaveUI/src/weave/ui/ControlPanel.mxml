@@ -312,6 +312,16 @@
 				super.handleEscapeKey();
 			}
 			
+			public static function getControlPanelTitle(object:ILinkableObject):String
+			{
+				var className:String = getQualifiedClassName(object).split('::').pop();
+				var objectName:String = getSessionStateName(object);
+				var str:String = className;
+				if (objectName && objectName != className)
+					str += ' ' + Compiler.encodeString(objectName);
+				return "Settings for " + str;
+			}
+			
 			private static function getSessionStateName(object:ILinkableObject):String
 			{
 				var childName:String = null;
@@ -359,12 +369,7 @@
 					
 					controlPanel.tabNavigator.addChild(editor as DisplayObject);
 					
-					var className:String = getQualifiedClassName(linkableObject).split('::').pop();
-					var objectName:String = getSessionStateName(linkableObject);
-					var str:String = className;
-					if (objectName && objectName != className)
-						str += ' ' + Compiler.encodeString(objectName);
-					controlPanel.title = "Settings for " + str;
+					controlPanel.title = getControlPanelTitle(linkableObject);
 				}
 				
 				editorPanels[linkableObject] = controlPanel;

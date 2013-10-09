@@ -258,7 +258,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				if (_controlPanel)
-					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
+					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
 				_moveImage.source = icon;
@@ -1099,9 +1099,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				updateBorders();
 				
 				_initialTitleBarMouseDownPoint = globalToLocal(new Point(stage.mouseX, stage.mouseY));
-				
-				/*for each(var child:* in this.getChildren())
-				child.cacheAsBitmap = true;*/
 				
 				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
 					_dragging = false;
