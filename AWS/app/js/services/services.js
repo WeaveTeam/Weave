@@ -26,7 +26,6 @@ angular.module("aws.services", []).service("queryobj", function () {
         schema: 'data',
         dsn: 'brfss'
     };
-    this.slideFilter = {values: [10, 25]}
     this.setQueryObject = function (jsonObj) {
         if (!jsonObj) {
             return undefined;
@@ -51,9 +50,6 @@ angular.module("aws.services", []).service("queryobj", function () {
         this.maptool = jsonObj.maptool;
     };
     return {
-        //getSlideFilter: this.slideFilterI,
-        //setSlideFilter: function(dat){ this.slideFilterI = dat; return this.slideFilterI;},
-        //q: this,
         title: this.title,
         date: this.date,
         author: this.author,
@@ -62,7 +58,6 @@ angular.module("aws.services", []).service("queryobj", function () {
         },
         conn: this.conn,
         scriptType: this.scriptType,
-        slideFilter: this.slideFilter,
         getSelectedColumns: function () {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
@@ -95,7 +90,6 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
         "outputs": []
     };
 
-    //this.availableScripts = [];
     this.updateMetadata = function () {
         this.scriptMetadata = this.getScriptMetadata();
     }
@@ -112,10 +106,6 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
         };
 
         aws.RClient.getListOfScripts(callbk);
-//		prom.then(function(result){
-//			//this.availableScripts = result;
-//			return result;
-//		}); 
         return prom;
     };
     this.availableScripts = this.getScriptsFromServer();
@@ -133,10 +123,6 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
         };
 
         aws.RClient.getScriptMetadata(queryobj.scriptSelected, callback);
-// 		promise.then(function(result){
-// 			//return result;
-// 		});
-        //scope.$apply(); // testing if kicking off a digest cycle will update the UI properly.
         return promise;
     };
     this.scriptMetadata = this.getScriptMetadata();

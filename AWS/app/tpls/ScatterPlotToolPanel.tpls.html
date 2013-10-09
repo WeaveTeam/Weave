@@ -1,0 +1,23 @@
+<div ng-controller="ScatterPlotToolPanelCtrl">
+<div class="portlet-header">
+	<span>{{panelTitle}}</span>
+</div>
+<div class="portlet-content">
+
+	<input type="checkbox" name="enableScatterPlotTool" ng-model='enabled'/> Enable Scatter Plot Tool</br>
+	X Column<br>
+	<select ui-select2 multiple ng-model="xSelection" data-placeholder="Choose x Column">
+		<option value="{{opt.param}}" ng-repeat="opt in options">{{opt.param}}</option>
+	</select>
+	<br>Y Column<br>
+	<select ui-select2 ng-model="ySelection" data-placeholder="Choose a Y Column">
+		<option></option>
+		<option value="{{opt.param}}" ng-repeat="opt in options">{{opt.param}}</option>
+	</select>
+	<br>Label Column<br>
+	<select ui-select2 ng-model="labelSelection" data-placeholder="Choose a Label Column">
+		<option></option>
+		<option value="{{opt.param}}" ng-repeat="opt in options">{{opt.param}}</option>
+	</select>
+</div>
+</div>
