@@ -18,6 +18,7 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
+			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.ui.ControlPanel;
 			import weave.ui.CustomContextMenuManager;
@@ -85,6 +86,7 @@
 			{
 				if (tool)
 				{
+					var state:Object = getSessionState(tool.visualization);
 					var pm:PlotManager = tool.visualization.plotManager;
 					var name:String = pm.plotters.generateUniqueName("marker");
 					var plotter:SingleImagePlotter = pm.plotters.requestObject(name, SingleImagePlotter, false);
@@ -95,7 +97,7 @@
 					plotter.dataX.value = localAnchorPoint.x;
 					plotter.dataY.value = localAnchorPoint.y;
 					
-					ControlPanel.openEditor(plotter, [pm.plotters]);
+					ControlPanel.openEditor(plotter, [tool.visualization], [state]);
 				}
 			}
 		]]>
