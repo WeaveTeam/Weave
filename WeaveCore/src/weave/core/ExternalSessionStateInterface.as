@@ -27,9 +27,12 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
+	import weave.compiler.ICompiledObject;
+	import weave.compiler.ProxyObject;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
@@ -197,21 +200,23 @@ package weave.core
 		{
 			if (!objectPath || !objectPath.length)
 				return false;
-			objectPath = objectPath.concat();
-			var childName:String = objectPath.pop();
-			var parent:ILinkableObject = getObject(objectPath);
-			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
-			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
-			if (!hashMap && !dynamicObject)
-				return false;
+			
 			var classDef:Class = WeaveXMLDecoder.getClassDefinition(objectType);
 			if (classDef == null)
 				return false;
+			
+			var parentPath:Array = objectPath.concat();
+			var childName:String = parentPath.pop();
+			var parent:ILinkableObject = getObject(parentPath);
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 			var child:Object = null;
 			if (hashMap)
 				child = hashMap.requestObject(childName, classDef, false);
-			if (dynamicObject)
+			else if (dynamicObject)
 				child = dynamicObject.requestGlobalObject(childName, classDef, false);
+			else
+				child = getObject(objectPath);
 			return child is classDef;
 		}
 
@@ -263,41 +268,77 @@ package weave.core
 			return state;
 		}
 		
+		/**
+		 * This object maps an expression name to the saved expression function.
+		 */		
+		private const _variables:Object = {};
+		
+		private function getObjectFromPathOrVariableName(objectPathOrVariableName:Object):*
+		{
+			if (objectPathOrVariableName is Array)
+				return getObject(objectPathOrVariableName as Array);
+			
+			var variableName:String = objectPathOrVariableName as String;
+			if (variableName)
+			{
+				if (_variables.hasOwnProperty(variableName))
+					return _variables[variableName];
+				
+				reportError('Undefined variable "' + variableName + '"');
+			}
+			
+			return null;
+		}
+		
 		private const _compiler:Compiler = new Compiler();
-
+		
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
 		 */
-		public function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignExpressionName:String = null):*
+		public function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignVariableName:String = null):*
 		{
-			var result:* = undefined;
 			try
 			{
 				_compiler.includeLibraries.apply(null, staticLibraries);
 				
-				function evalExpression(...args):*
+				var isAssignment:Boolean = (assignVariableName != null); // allows '' to be used to ignore resulting value
+				var thisObject:Object = getObjectFromPathOrVariableName(scopeObjectPathOrVariableName);
+				var compiledObject:ICompiledObject = _compiler.compileToObject(expression);
+				var isFuncDef:Boolean = _compiler.compiledObjectIsFunctionDefinition(compiledObject);
+				var compiledMethod:Function = _compiler.compileObjectToFunction(compiledObject, [_variables, variables], null, thisObject != null);
+				var result:*;
+				if (isAssignment && isFuncDef)
 				{
-					var thisObject:Object = getObjectFromPathOrExpressionName(scopeObjectPathOrExpressionName);
-					var compiledMethod:Function = _compiler.compileToFunction(expression, variables, null, thisObject != null);
-					return compiledMethod.apply(thisObject, args);
+					// bind 'this' scope and wrap in try/catch
+					result = function(...args):*
+					{
+						try
+						{
+							return compiledMethod.apply(thisObject, args);
+						}
+						catch (e:Error)
+						{
+							reportError(e);
+						}
+						return undefined;
+					};
+				}
+				else
+				{
+					result = compiledMethod.apply(thisObject);
 				}
 				
-				if (assignExpressionName)
-					_namedExpressions[assignExpressionName] = evalExpression;
-				else if (expression)
-					result = evalExpression.apply(null, arguments);
+				if (isAssignment)
+					_variables[assignVariableName] = result;
+				else
+					return result;
 			}
 			catch (e:*)
 			{
 				reportError(e);
 			}
-			return result;
+			return undefined;
 		}
-		
-		/**
-		 * This object maps an expression name to the saved expression function.
-		 */		
-		private const _namedExpressions:Object = {};
 		
 		/**
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
@@ -332,36 +373,12 @@ package weave.core
 			return _callbackFunctionCache[callback];
 		}
 		
-		private function getObjectFromPathOrExpressionName(objectPathOrExpressionName:Object):Object
-		{
-			if (objectPathOrExpressionName is Array)
-				return getObject(objectPathOrExpressionName as Array);
-			
-			var expressionName:String = objectPathOrExpressionName as String;
-			if (expressionName)
-			{
-				var func:Function = _namedExpressions[expressionName] as Function;
-				try
-				{
-					if (func == null)
-						reportError('Undefined expression "' + expressionName + '"');
-					else
-						return func();
-				}
-				catch (e:*)
-				{
-					reportError(e);
-				}
-			}
-			return null;
-		}
-		
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
 		 */
-		public function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
+		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
 		{
-			var object:ILinkableObject = getObjectFromPathOrExpressionName(objectPathOrExpressionName) as ILinkableObject;
+			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
 			// always use a grouped callback to avoid messy situations with javascript alert boxes
@@ -372,9 +389,9 @@ package weave.core
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
 		 */
-		public function removeCallback(objectPathOrExpressionName:Object, callback:String):Boolean
+		public function removeCallback(objectPathOrVariableName:Object, callback:String):Boolean
 		{
-			var object:ILinkableObject = getObjectFromPathOrExpressionName(objectPathOrExpressionName) as ILinkableObject;
+			var object:ILinkableObject = getObjectFromPathOrVariableName(objectPathOrVariableName) as ILinkableObject;
 			if (object == null)
 				return false;
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));

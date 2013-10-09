@@ -25,9 +25,17 @@ aws.QueryHandler = function(queryObject)
 	this.rRequestObject = {
 		dataset : queryObject.conn.sqldbname,
 		scriptPath : queryObject.conn.scriptLocation,
-		columnsToBeRetrieved : queryObject.scriptOptions,
 		scriptName : queryObject.scriptSelected
 	};
+	
+	if (queryObject.scriptType == "ColumnInput") {
+		this.rRequestObject["ColumnsToBeRetrieved"] = queryObject.scriptOptions;
+	} else if (queryObject.scriptType == "ParameterInput") {
+		// this option gets all the columns selected from the Analysis builder section.
+		// this.rRequestObject["ColumnsToBeRetrieved"] = queryObject.;
+		this.rRequestObject["Parameters"] = queryObject.scriptOptions;
+	}
+	
 	
 	this.connectionObject = {
 	        connectionType : queryObject.conn.connectionType,
@@ -41,6 +49,7 @@ aws.QueryHandler = function(queryObject)
 	
 	this.visualizations = [];
 	
+	
 	for (var visualization in queryObject.selectedVisualization) {
 		//if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
 			if (queryObject.selectedVisualization[visualization]) {
@@ -50,7 +59,7 @@ aws.QueryHandler = function(queryObject)
 	this.colorColumn = queryObject.colorColumn;
 	
 	this.keyType = "";
-	if (queryObject.maptool){;
+	if (queryObject.maptool){
 		if(queryObject.maptool.keyType) {
 			this.keyType = queryObject.maptool.keyType;
 		}
@@ -58,11 +67,11 @@ aws.QueryHandler = function(queryObject)
 	
 	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
-	
+
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
 	this.computationEngine = null;
-	if(queryObject.scriptType == 'r') {
+	if(queryObject.ComputationEngine == 'r') {
 		this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
@@ -80,8 +89,11 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
 	var that = this;
+	//clear all existing visualizations
+	that.weaveClient.clearCurrentVizs();
 	this.computationEngine.run("SQLData", function(result) {
 		
+		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
 		console.log(result[0].value);
 		aws.timeLogString = result[1].value;

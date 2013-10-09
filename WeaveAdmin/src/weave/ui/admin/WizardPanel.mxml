@@ -38,15 +38,22 @@
 
 	<!-- This box is where the viewStack and messageLog will be placed -->
 	<mx:VDividedBox id="viewStackContainer"
-			verticalScrollPolicy="off"
-			horizontalScrollPolicy="off"/>
+					width="100%" height="100%"
+					verticalScrollPolicy="off"
+					horizontalScrollPolicy="off"/>
 	
 	<mx:ControlBar paddingTop="5" paddingBottom="5" enabled="{viewStack.controlBarEnabled}">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}{viewStack.selectedChild.label ? ': ' + viewStack.selectedChild.label : ''}"/>
 		<mx:Spacer width="100%"/>
-		<mx:Button id="backButton" label="Back" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
-		<mx:Button id="nextButton" label="Next" enabled="{viewStack.nextEnabled &amp;&amp; (viewStack.selectedIndex &lt; viewStackNumChildren - 1)}" click="viewStack.next()"/>
-		<mx:Button id="finishButton" label="Finish" enabled="{viewStack.finishEnabled}" click="handleFinishClick()" emphasized="true"/>
+		<mx:Button id="backButton" label="Back"
+				   visible="{viewStackNumChildren > 1}"
+				   enabled="{viewStack.selectedIndex &gt; 0}"
+				   click="viewStack.back()"/>
+		<mx:Button id="nextButton" label="Next"
+				   visible="{viewStackNumChildren > 1}"
+				   enabled="{nextButtonEnabled(viewStack.stepsCompleted, viewStack.selectedIndex, viewStackNumChildren)}"
+				   click="viewStack.next()"/>
+		<mx:Button id="finishButton" label="Finish" enabled="{finishButtonEnabled(viewStack.stepsCompleted)}" click="handleFinishClick()" emphasized="true"/>
 		<mx:Button id="cancelButton" label="Close" click="viewStack.cancel();"/>
 	</mx:ControlBar>
 	
@@ -63,6 +70,24 @@
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
 			[Bindable] private var viewStackNumChildren:int = 0; // this is used because numChildren is not bindable
+			
+			private function nextButtonEnabled(stepsCompleted:Array, selectedIndex:int, numChildren:int):Boolean
+			{
+				if (selectedIndex == numChildren - 1)
+					return false;
+				for (var i:int = 0; stepsCompleted && i < stepsCompleted.length && i <= selectedIndex; i++)
+					if (!stepsCompleted[i])
+						return false;
+				return true;
+			}
+			
+			private function finishButtonEnabled(stepsCompleted:Array):Boolean
+			{
+				for each (var completed:Boolean in stepsCompleted)
+					if (!completed)
+						return false;
+				return true;
+			}
 			
 			/**
 			 * This function must be called to initialize the WizardViewStack used by the WizardPanel.

@@ -33,6 +33,7 @@ package weave.ui
 	{
 		public function CustomComboBox()
 		{
+			minWidth = 0;
 			addEventListener(MouseEvent.MOUSE_DOWN, function(..._):void { setFocus(); });
 		}
 		

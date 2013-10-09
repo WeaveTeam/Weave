@@ -1,7 +1,8 @@
 goog.require('aws');
 goog.provide('aws.RClient');
 
-var rServiceURL = '/WeaveServices/RService';
+//var rServiceURL = '/WeaveServices/RService';
+var rServiceURL = '/WeaveServices/AWSRService';
 var adminServiceURL = '/WeaveServices/AdminService';
 
 
@@ -48,7 +49,7 @@ aws.RClient.prototype.run = function(type, callback) {
  */	
 aws.RClient.clearCache = function() {
 	aws.queryService(rServiceURL,'clearCache', null, null);
-}
+};
 
 /**
  * This function calls the startRServe function on the servlet
@@ -59,7 +60,7 @@ aws.RClient.clearCache = function() {
 aws.RClient.startRServe = function(callback) {
 	// we can use the call back to handle whether or not the service was started.
 	aws.queryService(rServiceURL, 'startRServe', null, callback);
-}
+};
 
 /**
  * This function calls the stopRServe function on the servlet
@@ -70,17 +71,16 @@ aws.RClient.startRServe = function(callback) {
 aws.RClient.stopRServe = function(callback) {
 	// we can use the call back to handle whether or not the service was started.
 	aws.queryService(rServiceURL, 'stopRServe', null, callback);
-}
+};
 
 /**
  * This function calls the getListOfScripts function on the servlet
  * it will get the list of files in the directory
- * @param {string} directoryPath the directory where the scripts are located
  * @param {Function} callback callback function
  */
-aws.RClient.getListOfScripts = function(directoryPath, callback) {
-	aws.queryService(rServiceURL, 'getListOfScripts', [directoryPath], callback);
-}
+aws.RClient.getListOfScripts = function(callback) {
+	aws.queryService(rServiceURL, 'getListOfScripts', null, callback);
+};
 
 /**
  *  This function mirrors the runScriptOnSQLServer function on the RService. It runs a script using R and fetching the data from the database.
@@ -89,7 +89,18 @@ aws.RClient.getListOfScripts = function(directoryPath, callback) {
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(callback){
-	aws.queryService(rServiceURL,'runScriptOnSQLColumns',[this.connectionObject, this.rDataRequestObject], callback);
+	aws.queryService(rServiceURL,'runScriptwithScriptMetadata',[this.connectionObject, this.rDataRequestObject], callback);
+};
+
+/**
+ * This will call the getScriptMetadata function on the RService and asynchronously return script metadata information loaded form a json file
+ * 
+ * @param {String} scriptName the name of the script that we are looking the metadata for
+ * @param {Function} callback function that handles the servlet result
+ * 
+ */
+aws.RClient.getScriptMetadata = function(scriptName, callback) {
+	aws.queryService(rServiceURL, 'getScriptMetadata', [scriptName], callback);
 };
 
 /**
@@ -149,7 +160,7 @@ aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
  */
 aws.RClient.prototype.runScriptWithFilteredColumns = function(callback) {
 	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', this.rDataRequestObject, callback);
-}
+};
 
 
 

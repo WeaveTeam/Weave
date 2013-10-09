@@ -21,14 +21,14 @@ package weave.servlets;
 
 import java.io.File;
 import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.UUID;
 import java.util.Vector;
 
 import javax.script.ScriptException;
 
-import org.rosuda.REngine.RFactor;
+import org.postgresql.jdbc2.optional.SimpleDataSource;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -38,6 +38,7 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
 import org.rosuda.REngine.REngineException;
+import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -45,10 +46,9 @@ import org.rosuda.REngine.Rserve.RserveException;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
-import weave.servlets.AdminService.ColumnInfo;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
-import weave.utils.StringUtils;
+import weave.utils.Strings;
 
 
 public class RServiceUsingRserve 
@@ -118,15 +118,32 @@ public class RServiceUsingRserve
 	private static DebugTimer debugger = new DebugTimer();
 	private static boolean clearCacheTimeLog;
 	
+	//used for time logging in the aws home page 
+	public static String getCurrentTime(String message)
+	{
+		String timedMessage = ""; 
+		Calendar clr = Calendar.getInstance();
+		SimpleDateFormat dformdate = new SimpleDateFormat("MM/dd/yyyy");
+		SimpleDateFormat dformtime = new SimpleDateFormat("HH:mm:ss");
+		timedMessage = message + " " + dformdate.format(clr.getTime()) + " " + dformtime.format(clr.getTime()) + "\n";
+		System.out.print(timedMessage);
+		return timedMessage;
+	}
+
+	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
-		debugger.start();
+		//debugger.start();
+		
+		//have a clean slate during every computation
+		timeLogString = "";
 		
 		REXP evalValue = null;
-		debugger.report("Calling R\n");
+		//debugger.report("Calling R\n");
 		if(!clearCacheTimeLog)
 		{
-			timeLogString = timeLogString +"\nSending call to R : "+ debugger.get();
+			timeLogString = timeLogString + getCurrentTime("Sending data to R :");
+			//timeLogString = timeLogString +"\nSending call to R : "+ debugger.get();
 		}
 		
 		if (showWarnings)			
@@ -135,11 +152,11 @@ public class RServiceUsingRserve
 			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
 		if(!clearCacheTimeLog){
-			
-			timeLogString = timeLogString + "\nResults received From R : " + debugger.get() + " ms";
+			timeLogString = timeLogString  + getCurrentTime("Retrieving results from R :");
+			//timeLogString = timeLogString + "\nResults received From R : " + debugger.get() + " ms";
 		}
-		debugger.report("Results received From R\n");
-		debugger.stop("End");
+		//debugger.report("Results received From R\n");
+		//debugger.stop("End");
 		
 		return evalValue;
 	}
@@ -485,7 +502,7 @@ public class RServiceUsingRserve
 		Vector<String> names = evalValue.asList().names;
 
 
-		String namescheck = StringUtils.join(",", names);
+		String namescheck = Strings.join(",", names);
 		finalresultString = finalresultString.concat(namescheck);
 		finalresultString = finalresultString.concat("\n");
 
@@ -536,6 +553,19 @@ public class RServiceUsingRserve
 						else if(currentColumn instanceof RFactor)
 						{
 							tempStringArray = ((RFactor)currentColumn).levels();
+						}
+						else if(currentColumn instanceof String[]){
+							 int lent = ((Object[]) currentColumn).length;
+							 //String[] columnAsStringArray = currentColumn;
+							 tempStringArray = new String[lent];  
+							 for(int g = 0; g < lent; g++)
+							 {
+								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
+							 }
+						/*	String[] temp = (String[])
+							int arrsize = ((String[])currentColumn).length;
+							tempStringArray = new String[arrsize];
+							tempStringArray = (String[])currentColumn;*/
 						}
 						
 						columnsInStrings.add(tempStringArray);

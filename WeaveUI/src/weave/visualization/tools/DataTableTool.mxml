@@ -205,13 +205,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
-				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);				
+				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
+				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
+				filterComponents.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
+				
 				dimensionsList.hashMap = columns;
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
-				
 			}
 
+			private function assertColumnOrder():void
+			{
+				var columnOrder:Array = columns.getNames();
+				filterComponents.setNameOrder(columnOrder);
+				columnWidths.setNameOrder(columnOrder);
+			}
 			
 			/**
 			 * This function(event ListeSner) gets called during dataGrid Resize event
@@ -688,11 +696,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					delete dataGridColumns[columns.childListCallbacks.lastNameRemoved]
 					columnWidths.removeObject(columns.childListCallbacks.lastNameRemoved);
 				}
-				else
-				{
-					filterComponents.setNameOrder(columns.getNames());
-					columnWidths.setNameOrder(columns.getNames());
-				}
+				assertColumnOrder();
 			}
 			
 			private function handleColumnStretch(event:Event):void
@@ -858,20 +862,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return callLater(updateFilters);
 				try
 				{
-					if (showFilters.value){
-						if (!filterControls.parent){
-							lockedColumns.value = 0;
-							
+					if (showFilters.value)
+					{
+						lockedColumns.value = 0;
+						if (!filterControls.parent)
+						{
 							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
 							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);							
-							dataGrid.enableFilters = true;
 						}
+						dataGrid.enableFilters = true;
 					}
-					else{						
-						if (filterControls.parent){							
+					else
+					{						
+						if (filterControls.parent)
+						{							
 							tableArea.removeChild(filterControls);
-							dataGrid.enableFilters = false;
 						}
+						dataGrid.enableFilters = false;
 					}
 				}
 				catch (e:Error) 

@@ -39,7 +39,7 @@ import weave.utils.MapUtils;
 import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-import weave.utils.StringUtils;
+import weave.utils.Strings;
 import weave.utils.SQLUtils.WhereClause;
 
 
@@ -199,7 +199,7 @@ public class HierarchyTable extends AbstractTable
 					"SELECT * FROM %s WHERE %s IN (%s)",
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
 					SQLUtils.quoteSymbol(conn, FIELD_CHILD),
-					StringUtils.join(",", child_ids)
+					Strings.join(",", child_ids)
 				);
 			stmt = conn.prepareStatement(query);
 			rs = stmt.executeQuery();
@@ -263,7 +263,7 @@ public class HierarchyTable extends AbstractTable
 					quotedParentField,
 					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
 					quotedParentField,
-					StringUtils.join(",", ids),
+					Strings.join(",", ids),
 					quotedParentField
 				);
 			stmt = conn.prepareStatement(query);

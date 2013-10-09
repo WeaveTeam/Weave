@@ -8,37 +8,39 @@ angular.module("aws.panelControllers", [])
 	$scope.options; // initialize
 	$scope.selection;
 	
-	 var filter = function(data, type) {
-            var filtered = [];
-            for (var i = 0; i < data.length; i++) {
-                try {
-                    if (data[i].publicMetadata.ui_type == type) {
-                        filtered.push(data[i]);
-                    }
-                } catch (e) {
-                    console.log(e);
-                }
-            }
-            filtered.sort();
-            return filtered;
-     };
-
-	var getOptions = function(){
-		// fetch Columns using current dataTable
-		$scope.options = filter(dataService.getDataColumnsEntitiesFromId(queryobj.dataTable), $scope.panelType);
-		
-		setSelect();
+	var filter = function(data, type) {
+        var filtered = [];
+        for (var i = 0; i < data.length; i++) {
+            if (data[i]["publicMetadata"]["ui_type"] == type) {
+                filtered.push(data[i]);
+             }
+        }
+        filtered.sort();
+        return filtered;
+    };
+    
+	function getOptions() {
+		$scope.options = dataService.getDataColumnsEntitiesFromId(queryobj.dataTable.id).then(function (result) {
+    		return filter(result, $scope.panelType);
+		});
 	};
+	
 	getOptions(); // call immediately
 	
 	function setSelect(){
+		
 		if(queryobj[$scope.selectorId]){
 			$scope.selection = queryobj[$scope.selectorId];
 		}
-		//$scope.gridOptions.selectedItem = queryobj[$scope.selectorId];
+
 		$scope.$watch('selection', function(newVal, oldVal){
 			if(newVal != oldVal){
-				queryobj[$scope.selectorId] = $scope.selection;
+				var tempArray = [];
+				angular.forEach($scope.selection, function(item, i){
+					tempArray.push(angular.fromJson(item));
+				});
+				
+				queryobj[$scope.selectorId] = tempArray;
 			}
 		});
 	}
@@ -46,51 +48,17 @@ angular.module("aws.panelControllers", [])
 	$scope.$on("refreshColumns", function(e){
 		getOptions();
 	});
-//	$scope.gridOptions = {
-//			data: 'getOptions',
-//			enableCellSelection: true,
-//			enableRowSelection: false
-//	};
-//	$scope.getOptions;
-//	function getOpts(res){
-//		var arr = $.map(res, function(n){
-//			return {"column": n.publicMetadata.title};
-//		});	
-//		$scope.getOptions = arr;
-//		$scope.gridOptions['data'] = "getOptions";
-//	}
-	
-	
-	
-	
-	// watch functions for two-way binding
-	 
-//	$scope.$watch('gridOptions.selectedItem', function(){
-//		queryobj[$scope.selectorId] = $scope.gridOptions.selectedItem;
-//	});
-//	
-	
+
 	$scope.showGrid = false;
 	$scope.toggleShowGrid = function(){
 		$scope.showGrid = (!$scope.showGrid);
 	};
 
 })
-
-.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
+.controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj, dataService){
+	
 	$scope.selection;
-	$scope.inputParams = [];
-    $scope.inputDescriptions = [];
-  
-    for (var i = 0; i < scriptobj.scriptMetadata.inputs.length; i++) {
-    	$scope.inputParams.push = scriptMetadata.inputs[i].param;
-    	$scope.inputDescriptions = scriptMetadata.inputs[i].param;
-    }
-})
-
-.controller("SelectScriptPanelCtrl", function($scope, queryobj, scriptobj){
-	$scope.selection;
-	$scope.options = scriptobj.availableScripts;
+	$scope.options;
 	
 	if(queryobj['scriptSelected']){
 		$scope.selection = queryobj['scriptSelected'];
@@ -101,6 +69,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('selection', function(){
 		queryobj['scriptSelected'] = $scope.selection;
 	});
+
 	$scope.$watch(function(){
 		return queryobj['scriptSelected'];
 	},
@@ -110,13 +79,11 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryobj.conn.scriptLocation;
 	},
-		function(){
-		$scope.options = scriptobj.getScriptsFromServer();
+		function() {
+		console.log(dataService.getListOfScripts());
+		// $scope.options = dataService.getListOfScripts();
 	});
-	
 })
-
-
 .controller("WeaveVisSelectorPanelCtrl", function($scope, queryobj, dataService){
 	// set defaults or retrieve from queryobject
 	if(!queryobj['selectedVisualization']){
@@ -146,51 +113,59 @@ angular.module("aws.panelControllers", [])
 	$scope.clearCache = function(){
 		aws.RClient.clearCache();
 		alert("Cache cleared");
-	}
-	
+	};
 })
 .controller("GenericPanelCtrl", function($scope){
 	
 })
 .controller("MapToolPanelCtrl", function($scope, queryobj, dataService){
-	$scope.enabled = queryobj.selectedVisualization['maptool'];
-	$scope.options = dataService.giveMeGeomObjs();
 	
-	$scope.selection;
-	
-	// selectorId should be "mapPanel"
-	if(queryobj['maptool']){
-		$scope.selection = queryobj['maptool'];
-	}
-	
-	// watch functions for two-way binding
-	$scope.$watch('selection', function(oldVal, newVal){
-		// TODO Bad hack to access results
-		//console.log(oldVal, newVal);
-		if(($scope.options.$$v != undefined) && ($scope.options.$$v != null)){
-			var obj = $scope.options.$$v[$scope.selection];
-			if(obj){
-				var send = {};
-				send.weaveEntityId = obj.id;
-				send.keyType = obj.publicMetadata.keyType;
-				send.title = obj.publicMetadata.title;
-				queryobj['maptool'] = send;
-			}
-		}
-	});
-	$scope.$watch('enabled', function(){
-		queryobj.selectedVisualization['maptool'] = $scope.enabled;
-	});
-	$scope.$watch(function(){
-		return queryobj.selectedVisualization['maptool'];
-	},
-		function(select){
-			$scope.enabled = queryobj.selectedVisualization['maptool'];
-	});
+	 aws.DataClient.getEntityIdsByMetadata({"dataType":"geometry"}, function(idsArray) {
+     	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
+     		
+     		if(queryobj.selectedVisualization['maptool']){
+     			$scope.enabled = queryobj.selectedVisualization['maptool'];
+     		}
+     		
+     		$scope.option = dataEntityArray;
+     		$scope.selection;
+     		
+     	// selectorId should be "mapPanel"
+     		if(queryobj['maptool']){
+     			$scope.selection = queryobj['maptool'];
+     		}
+     		
+     		// watch functions for two-way binding
+     		$scope.$watch('selection', function(){
+     			queryobj['maptool'] = {
+     									weaveEntityId : $scope.option.id,
+     									keyType : $scope.option.keyType,
+     									title : $scope.option.publicMetadata.title
+     									};
+     		});
+     		
+     		$scope.$watch('enabled', function(){
+     			queryobj.selectedVisualization['maptool'] = $scope.enabled;
+     		});
+     		$scope.$watch(function(){
+     			return queryobj.selectedVisualization['maptool'];
+     		},
+     			function(select){
+     				$scope.enabled = queryobj.selectedVisualization['maptool'];
+     		});
+     	});
+	 
+	 });
 })
 .controller("BarChartToolPanelCtrl", function($scope, queryobj, scriptobj){
-	$scope.enabled = queryobj.selectedVisualization['barchart'];
-	$scope.options = scriptobj.scriptMetadata['outputs'];
+	if(queryobj.selectedVisualization['barchart']){
+		$scope.enabled = queryobj.selectedVisualization['barchart'];
+	}
+
+	$scope.options;
+	scriptobj.scriptMetadata.then(function(results){
+		$scope.options = results.outputs;
+	});
 	$scope.sortSelection;
 	$scope.heightSelection;
 	$scope.labelSelection;
@@ -224,8 +199,14 @@ angular.module("aws.panelControllers", [])
 	});
 })
 .controller("DataTablePanelCtrl", function($scope, queryobj, scriptobj){
-	$scope.enabled = queryobj.selectedVisualization['datatable'];
-	$scope.options = scriptobj.scriptMetadata['outputs'];
+	if(queryobj.selectedVisualization['datatable']){
+		$scope.enabled = queryobj.selectedVisualization['datatable'];
+	}
+	
+	$scope.options;
+	scriptobj.scriptMetadata.then(function(results){
+		$scope.options = results.outputs;
+	});
 	$scope.selection;
 	// selectorId should be "dataTablePanel"
 	if(queryobj['datatable']){
@@ -253,7 +234,10 @@ angular.module("aws.panelControllers", [])
 	if(queryobj['colorColumn']){
 		$scope.selection = queryobj["colorColumn"];
 	}
-	$scope.options = scriptobj.scriptMetadata['outputs'];
+	$scope.options;
+	scriptobj.scriptMetadata.then(function(results){
+		$scope.options = results.outputs;
+	});
 	// watch functions for two-way binding
 	$scope.$watch('selection', function(){
 		queryobj["colorColumn"] = $scope.selection;
@@ -268,38 +252,66 @@ angular.module("aws.panelControllers", [])
 .controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
 	
 	// Populate Labels
-	var metadata = scriptobj.scriptMetadata;
-	$scope.labels = metadata['inputs'];
-	
-	
-	// Populate options from Analysis Builder queryobj
-	var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
-	var columns = [];
-	for(var i = 0; i<col.length; i++){
-		if(queryobj[col[i]]){
-			$.merge(columns, queryobj[col[i]]);
+	$scope.inputs = [];
+	$scope.sliderOptions = {
+			range: true,
+			//max/min: querobj['some property']
+			max: 99,
+			min: 1,
+			values: [10,25]
+	};
+
+	$scope.options = queryobj.getSelectedColumns();
+	$scope.selection = [{
+			id: 0,
+			filter: [[1,2], [1,3]]
+		},
+		{
+			id:1,
+			filter: [[1,2], [1,3]]
 		}
-	}
-	$scope.options = columns;
-	$scope.selection = [];
+	];
 	
 	// retrieve selections, else create blanks;
 	if(queryobj['scriptOptions']){
 		$scope.selection = queryobj['scriptOptions'];
-	}else{
-		angular.forEach($scope.labels, function(label, i){
-			$scope.selection[i] = "";
-		});
 	}
+	
+	var buildScriptOptions = function(){
+		var arr = [];
+		var obj;
+		angular.forEach($scope.selection, function(item){
+			obj = "";
+			if(item != ""){
+				item = angular.fromJson(item);
+			
+				obj = {
+						id:item.id,
+						title:item.title
+				};
+				if(item.range){
+					obj.filter = [item.range];
+				}
+			}
+			arr.push(obj);
+				
+		});
+		return arr;
+	};
 	
 	// set up watch functions
 	$scope.$watch('selection', function(){
-		queryobj['scriptOptions'] = $scope.selection;
+		queryobj.scriptOptions = buildScriptOptions();
+		//scriptobj.scriptMetadata.outputs = $scope.selection;
 	}, true);
+	$scope.$watch(function(){
+		return queryobj.scriptSelected;
+	},function(newVal, oldVal){
+		$scope.inputs = scriptobj.getScriptMetadata().inputs;
+	});
 
 })
 .controller("RDBPanelCtrl", function($scope, queryobj){
-	
 	if(queryobj["conn"]){
 		$scope.conn = queryobj["conn"];
 	}else{
@@ -310,6 +322,24 @@ angular.module("aws.panelControllers", [])
 	}, true);
 })
 .controller("FilterPanelCtrl", function($scope, queryobj){
-	$scope.toFilter;
+	if(queryobj.slidFilter){
+		$scope.slideFilter = queryobj.slideFilter;
+	}
+	$scope.sliderOptions = {
+			range: true,
+			//max/min: querobj['some property']
+			max: 99,
+			min: 1,
+			values: [10,25],
+			animate: 2000
+	};
+	$scope.options = queryobj.getSelectedColumns();
+	$scope.column;
+	
+	$scope.$watch('slideFilter', function(newVal, oldVal){
+		if(newVal){
+			queryobj.slideFilter = newVal;
+		}
+	}, true); //by val
 	
 })

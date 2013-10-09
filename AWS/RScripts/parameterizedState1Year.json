@@ -1,0 +1,46 @@
+{
+        "inputs" : [
+
+                {"param" : "state",
+                 "description" : "State variable"
+                },
+
+                {"param" : "PSU",
+                 "description" : "PSU variable"
+                },
+
+                {"param" : "FinalWt",
+                 "description" : "State variable"
+                },
+
+                {"param" : "StStr",
+                 "description" : "StStr variable"
+                },
+
+                {"param" : "indicator",
+                 "description" : "indicator variable"
+                }
+        ],
+        "outputs" : [
+
+                {"param" : "fips",
+                 "description" : "fips result"
+                },
+
+                {"param" : "response",
+                 "description" : "response result"
+                },
+
+                {"param" : "prev.percent",
+                 "description" : "prevalence percentage"
+                },
+
+                {"param" : "CI_LOW",
+                 "description" : "CI_LOW result"
+                },
+
+                {"param" : "CI_HI",
+                 "description" : "CI_HI result"
+                }
+        ]
+}

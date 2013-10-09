@@ -1063,7 +1063,7 @@ public class SQLUtils
 				String.format(
 					", CONSTRAINT %s PRIMARY KEY (%s)",
 					quoteSymbol(conn, pkName),
-					StringUtils.join(",", quotedKeyColumns)
+					Strings.join(",", quotedKeyColumns)
 				)
 			);
 		}
@@ -1235,7 +1235,7 @@ public class SQLUtils
 		        updateBlockList.add(String.format("%s=?", data.getKey()));
 		        queryParams.add(data.getValue());
 		    }
-			updateBlock = StringUtils.join(",", updateBlockList);
+			updateBlock = Strings.join(",", updateBlockList);
 		    
 			// build where clause
 		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields, true);
@@ -1327,8 +1327,8 @@ public class SQLUtils
 			columns.add(quoteSymbol(conn, entry.getKey()));
 			values.add(entry.getValue());
 		}
-		String column_string = StringUtils.join(",", columns);
-		String qmark_string = StringUtils.mult(",", "?", values.size());
+		String column_string = Strings.join(",", columns);
+		String qmark_string = Strings.mult(",", "?", values.size());
 		
 		String quotedIdField = quoteSymbol(conn, idField);
 		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
@@ -1687,11 +1687,11 @@ public class SQLUtils
 				fieldNames.set(i, quoteSymbol(conn, fieldNames.get(i)));
 			
 			String quotedSchemaTable = quoteSchemaTable(conn, schemaName, tableName);
-			String fieldNamesStr = StringUtils.join(",", fieldNames);
+			String fieldNamesStr = Strings.join(",", fieldNames);
 			
 			// construct query
-			String recordClause = String.format("(%s)", StringUtils.mult(",", "?", fieldNames.size()));
-			String valuesClause = StringUtils.mult(",", recordClause, records.size());
+			String recordClause = String.format("(%s)", Strings.mult(",", "?", fieldNames.size()));
+			String valuesClause = Strings.mult(",", recordClause, records.size());
 			query = String.format(
 				"INSERT INTO %s (%s) VALUES %s",
 				quotedSchemaTable,
@@ -2105,9 +2105,9 @@ public class SQLUtils
 		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
 		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
 		        }
-		        junctions.add(String.format("(%s)", StringUtils.join(innerJunction, juncList)));
+		        junctions.add(String.format("(%s)", Strings.join(innerJunction, juncList)));
 		    }
-	        return StringUtils.join(outerJunction, junctions);
+	        return Strings.join(outerJunction, junctions);
 		}
 		
 		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException
