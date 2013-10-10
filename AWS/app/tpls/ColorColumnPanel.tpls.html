@@ -4,7 +4,8 @@
 </div>
 <div class="portlet-content">
 
-	<select ui-select2 ng-model="selection">
+	<select ui-select2 ng-model="selection" data-placeholder="Choose Color Column">
+		<option></option>
 		<option value="{{opt.param}}" ng-repeat="opt in options">{{opt.param}}</option>
 	</select>
 </div>

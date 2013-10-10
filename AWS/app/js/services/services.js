@@ -13,8 +13,9 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.title = "AlphaQueryObject";
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
-    this.scriptType = "r";
-    this.dataTable = {id:1,title:"default"};
+    this.computationEngine = "r";
+    this.scriptType = "ColumnBased";
+    this.dataTable = {};
     this.conn = {
         serverType: 'MySQL',
         connectionType: 'RMySQL',
@@ -34,6 +35,7 @@ angular.module("aws.services", []).service("queryobj", function () {
         this.date = jsonObj.data;
         this.author = jsonObj.author;
         this.scriptType = jsonObj.scriptType;
+        this.computationEngine = jsonObj.computationEngine;
         this.dataTable = jsonObj.dataTable;
         this.conn = jsonObj.conn;
         this.selectedVisualization = jsonObj.selectedVisualization;
@@ -53,16 +55,13 @@ angular.module("aws.services", []).service("queryobj", function () {
         title: this.title,
         date: this.date,
         author: this.author,
-        dataTable: function () {
-            return this.dataTable;
-        },
+        dataTable: this.dataTable,
         conn: this.conn,
         scriptType: this.scriptType,
         getSelectedColumns: function () {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
             var columns = [];
-            var temp;
             for (var i = 0; i < col.length; i++) {
                 if (this[col[i]]){
                 	angular.forEach(this[col[i]], function(item){
@@ -80,10 +79,8 @@ angular.module("aws.services", []).service("queryobj", function () {
             return columns;
         }
 
-    }
-
-
-})
+    };
+});
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function (queryobj, scope, $q) {
     this.scriptMetadata = {"inputs": [],
@@ -92,7 +89,7 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
 
     this.updateMetadata = function () {
         this.scriptMetadata = this.getScriptMetadata();
-    }
+    };
 
     this.getScriptsFromServer = function () {
         var deferred = $q.defer();
@@ -110,7 +107,6 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
     };
     this.availableScripts = this.getScriptsFromServer();
 
-    var that = this;
     this.getScriptMetadata = function () {
         var deferred2 = $q.defer();
         var promise = deferred2.promise;
@@ -137,9 +133,9 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             var deferred = $q.defer();
             var prom = deferred.promise;
             var deferred2 = $q.defer();
-            if (!table.id) {
+            if (table == undefined) {
             	return deferred2.promise;
-            }
+            };
             var id = table.id;
             var callbk = function (result) {
                 scope.$safeApply(function () {

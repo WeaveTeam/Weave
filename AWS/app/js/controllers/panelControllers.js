@@ -192,29 +192,26 @@ angular.module("aws.panelControllers", [])
 	});
 	$scope.ySelection;
 	$scope.xSelection;
-	$scope.labelSelection;
 	
 	if(queryobj.scatterplot){
 		$scope.ySelection = queryobj.scatterplot.yColumn;
 		$scope.xSelection = queryobj.scatterplot.xColumn;
-		$scope.labelSelection = queryobj.scatterplot.label;
 	}else{
 		queryobj['scatterplot'] = {};
 	}
 	
 	// watch functions for two-way binding
 	$scope.$watch('ySelection', function(){
-		queryobj.scatterplot.sort = $scope.ySelection;
+		queryobj.scatterplot.yColumn = $scope.ySelection;
 	});
 	$scope.$watch('labelSelection', function(){
-		queryobj.scatterplot.label = $scope.labelSelection;
+		queryobj.scatterplot.xColumn = $scope.xSelection;
 	});
-	$scope.$watch('xSelection', function(){
-		queryobj.barchart.height = $scope.xSelection;
-	});
+
 	$scope.$watch('enabled', function(){
 		queryobj.selectedVisualization['scatterplot'] = $scope.enabled;
 	});
+	
 	$scope.$watch(function(){
 		return queryobj.selectedVisualization['scatterplot'];
 	},
