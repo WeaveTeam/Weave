@@ -80,7 +80,6 @@ package weave.application
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
-	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.LocalAsyncService;
@@ -775,11 +774,8 @@ package weave.application
 					);
 				}
 
-				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup));
-				
-				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup));
+				if (Weave.properties.enableEditDataSource.value)
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage data sources"), EditDataSourcePanel.showAsPopup));
 			}
 			
 			

@@ -37,6 +37,7 @@ package weave.data.DataSources
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
@@ -60,6 +61,8 @@ package weave.data.DataSources
 	 */
 	public class DBFDataSource extends AbstractDataSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, DBFDataSource, "DBF/SHP files (URLs)");
+		
 		public function DBFDataSource()
 		{
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, _attributeHierarchy);

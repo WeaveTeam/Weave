@@ -44,7 +44,7 @@
 		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
 			<mx:TextArea id="csvTextArea" change="csvParser.parseCSV(csvTextArea.text)" width="100%" height="100"/>
 		</ui:Indent>
-		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!!csvRows}"/>
+		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!arrayIsEmpty(csvRows)}"/>
 	</mx:VBox>
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
@@ -190,9 +190,14 @@
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
 			
+			private function arrayIsEmpty(array:Array):Boolean
+			{
+				return !array || !array.length;
+			}
+			
 			private function showGrid():void
 			{
-				if (!csvRows)
+				if (arrayIsEmpty(csvRows))
 					return;
 				
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;

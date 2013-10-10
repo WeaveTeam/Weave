@@ -67,10 +67,6 @@
 					<mx:CheckBox id="refreshDataCheckBox"
 								 label="{lang('Refresh data source hierarchies')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
-					
-					<mx:CheckBox label="{lang('New Datasource')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableAddNewDatasource, event.target, 'selected')"/> 
-					
 					<mx:CheckBox label="{lang('Edit Datasources')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
 					

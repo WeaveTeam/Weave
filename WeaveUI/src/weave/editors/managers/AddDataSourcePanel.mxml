@@ -22,33 +22,25 @@
 <ui:DraggablePanel
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
-	layout="absolute"
-	title="{lang('Add New Data Source')}"
+	xmlns:ui="weave.ui.*"
 	borderAlpha="1"
 	borderColor="#939178"
-	borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
-	roundedBottomCorners="true"
-	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
+	borderThicknessLeft="{padding}"
+	borderThicknessRight="{padding}"
+	borderThicknessBottom="{padding}"
+	title="{lang('Add new data source')}">
 	<mx:VBox width="100%" height="100%" verticalGap="0">
 		<mx:HBox height="100%" width="100%" horizontalGap="0">
-			<mx:VBox minHeight="0" height="100%"
-					 horizontalScrollPolicy="off"
-					 initialize="UIUtils.setPadding(event.target as UIComponent, padding)">
-				<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
-				<mx:RadioButton selected="true" groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="{lang('WFS Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="transposedSource" value="{TransposedDataSource}" label="{lang('Transposed Data Source')}"/>
-			</mx:VBox>
+			<mx:List id="options" minHeight="0" height="100%" change="handleDataSelect()"/>
 			<mx:Canvas backgroundColor="#939178" width="{padding}" height="100%"/>
-			<mx:Box id="container" minWidth="0" minHeight="0" width="100%" height="100%" initialize="UIUtils.setPadding(container, padding)"/>
-		</mx:HBox>
-		<mx:HBox paddingTop="{padding}" paddingBottom="{padding}" width="100%" backgroundColor="#939178">
-			<mx:Spacer width="100%"/>
-			<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
-			<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel()"/>
+			<mx:VBox width="100%" height="100%" initialize="UIUtils.setPadding(event.target as UIComponent, padding)">
+				<mx:Box id="container" minWidth="0" minHeight="0" width="100%" height="100%"/>
+				<mx:HBox width="100%" visible="{!!options.selectedItem}">
+					<mx:Spacer width="100%"/>
+					<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
+					<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel()"/>
+				</mx:HBox>
+			</mx:VBox>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -56,13 +48,12 @@
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.core.UIComponent;
-			import mx.events.ItemClickEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
@@ -81,6 +72,16 @@
 
 			private static const padding:int = 5;
 			private static var _staticInstance:AddDataSourcePanel = null;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				pinnable.value = false;
+				options.dataProvider = WeaveAPI.getRegisteredImplementations(IDataSource);
+				options.labelFunction = WeaveAPI.getRegisteredImplementationDisplayName;
+			}
+			
 			public static function showAsPopup():void
 			{
 				_staticInstance = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AddDataSourcePanel, false) as AddDataSourcePanel;
@@ -90,10 +91,12 @@
 			
 			private var _editor:ILinkableObjectEditor;
 			
-			private function handleDataSelect(event:ItemClickEvent=null):void
+			private function handleDataSelect():void
 			{
 				container.removeAllChildren();
-				var Editor:Class = EditorManager.getEditorClass(dataSourceType.selectedValue);
+				if (!options.selectedItem)
+					return;
+				var Editor:Class = EditorManager.getEditorClass(options.selectedItem);
 				_editor = new Editor();
 				container.addChild(_editor as DisplayObject);
 				_editor.percentWidth = 100;
