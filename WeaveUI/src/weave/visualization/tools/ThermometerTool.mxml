@@ -36,7 +36,7 @@
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ThermometerPlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, lang("Thermometer Tool"));
+			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
 			
 			private function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
 			override protected function constructor():void

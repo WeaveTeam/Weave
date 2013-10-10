@@ -343,7 +343,7 @@
 			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
 
-			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, lang("RInterface"));
+			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
 			
 			[Bindable]
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();

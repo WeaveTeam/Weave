@@ -122,7 +122,7 @@ RTextEditor
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			WeaveAPI.registerImplementation(IVisTool, RTextEditor, lang("R Script Editor"));
+			WeaveAPI.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
 			
 			private const padding:int = 5;
 			
