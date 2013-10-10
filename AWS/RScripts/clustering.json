@@ -1,0 +1,40 @@
+{
+        "scriptType": "cluster",
+        
+        "inputs" : [
+
+                {"param" : "initial cluster size",
+                 "description" : "initial size"
+                },
+
+                {"param" : "growth factor",
+                 "description" : "growth"
+                },
+
+                {"param" : "final cluster size",
+                 "description" : "final size"
+                }
+
+        ],
+        "outputs" : [
+
+                {"param" : "Algorithm 1 Results",
+                 "description" : "result 1"
+                },
+                 {"param" : "Algorithm 2 Results",
+                 "description" : "result 3"
+                },
+                 {"param" : "Algorithm 3 Results",
+                 "description" : "result 3"
+                },
+                 {"param" : "Algorithm 4 Results",
+                 "description" : "result 4"
+                },
+                 {"param" : "Algorithm 5 Results",
+                 "description" : "result 5"
+                },
+                {"param" : "Algorithm 6 Results",
+                 "description" : "result 6"
+                },
+        ]
+}
