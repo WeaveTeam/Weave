@@ -344,27 +344,20 @@ angular.module("aws.panelControllers", [])
 		});
 		queryobj.scriptOptions = buildScriptOptions();
 	}, true);
-//	$scope.$watch(function(){
-//		return $.map($scope.selection, function(item){return item.range;});
-//	},function(newVal, oldVal){
-//		console.log(oldVal);
-//		console.log(newVal);
-//	}, true);
 	$scope.$watch(function(){
 		return queryobj.scriptSelected;
 	},function(newVal, oldVal){
-		//scriptobj.updateMetadata();
 		var temp = scriptobj.scriptMetadata;
 		temp.then(function(result){
-			$scope.inputs = result.inputs;
-			angular.forEach($scope.inputs, function(input, index){
-				$scope.selection[index] = "";
-				$scope.show[index] = false;
-				$scope.sliderOptions[index] = angular.copy($scope.sliderDefault);
-				
-			});
+			if(result.scriptType == "columns"){
+				$scope.inputs = result.inputs;
+				angular.forEach($scope.inputs, function(input, index){
+					$scope.selection[index] = "";
+					$scope.show[index] = false;
+					$scope.sliderOptions[index] = angular.copy($scope.sliderDefault);
+				});
+			}
 		});
-		
 	});
 
 })
@@ -399,4 +392,28 @@ angular.module("aws.panelControllers", [])
 		}
 	}, true); //by val
 	
+}).controller("ClusterPanelCtrl", function($scope, queryobj, scriptobj){
+	$scope.inputs = [];
+
+	$scope.$watch('inputs', function(newVal, oldVal){
+		queryobj.scriptOptions = $scope.inputs;
+	}, true);
+	$scope.$watch(function(){
+		return queryobj.scriptSelected;
+	},function(newVal, oldVal){
+		
+		var temp = scriptobj.scriptMetadata;
+		temp.then(function(result){
+//				angular.forEach(result, function(item, index){
+//					$scope.inputs[index] = item.param;
+//				});
+			if(result.scriptType == "cluster"){
+				$scope.inputs = result.inputs;
+				angular.forEach($scope.inputs, function(input, index){
+					$scope.inputs[index].value = "";
+				});
+			}
+		});
+		
+	});
 })

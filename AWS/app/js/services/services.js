@@ -220,7 +220,11 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             var filtered = [];
             for (var i = 0; i < data.length; i++) {
                 try {
-                    if (data[i].publicMetadata.ui_type == type) {
+                	if (type == "numeric"){
+                		if (data[i].publicMetadata.dataType == "number"){
+                			filtered.push(data[i]);
+                		}
+                	}else if (data[i].publicMetadata.ui_type == type) {
                         filtered.push(data[i]);
                     }
                 } catch (e) {
