@@ -499,6 +499,7 @@ package weave.core
 			super.dispose();
 			_locked = false;
 			removeObject();
+			_internalObject = null;
 			disposeObjects(_localHashMap); // just in case this function is called directly
 			_locked = true;
 		}
