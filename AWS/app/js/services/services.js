@@ -13,7 +13,7 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.title = "AlphaQueryObject";
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
-    this.computationEngine = "r";
+    this.computationEngine = "R";
     this.scriptType = "ColumnBased";
     this.dataTable = {};
     this.conn = {
@@ -56,8 +56,9 @@ angular.module("aws.services", []).service("queryobj", function () {
         date: this.date,
         author: this.author,
         dataTable: this.dataTable,
-        conn: this.conn,
         scriptType: this.scriptType,
+        computationEngine : this.computationEngine,
+        conn: this.conn,
         getSelectedColumns: function () {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];

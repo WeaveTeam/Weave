@@ -38,9 +38,14 @@ import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
+import weave.config.DataConfig.DataEntityMetadata;
+import weave.servlets.DataService.FilteredColumnRequest;
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.StringMap;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 public class AWSRService extends RService
 {
@@ -217,21 +222,19 @@ public class AWSRService extends RService
 			String dsn = connectionObject.get("dsn").toString();
 			
 			String dataset = requestObject.get("dataset").toString();
-			String scriptPath = requestObject.get("scriptPath").toString();
-			
 			
 			//TODO Find better way to do this? full proof queries?
 			//query construction
 			Object columnNames = requestObject.get("columnsToBeRetrieved");//array list
 			ArrayList<String> columnslist = new ArrayList<String>();
-			columnslist = (ArrayList)columnNames;
+			columnslist = (ArrayList<String>) columnNames;
 			
 			String [] columns = new String[columnslist.size()];
 			columns = columnslist.toArray(columns);
 			
 			String query = buildSelectQuery(columns, dataset);
 			
-			String cannedScriptLocation = scriptPath + scriptName;
+			String cannedScriptLocation = uploadPath + scriptName;
 			 
 			/*sending all necessary parameters to the database
 			 * getting rid of string concatenation
@@ -285,20 +288,29 @@ public class AWSRService extends RService
 	{
 		RResult[] returnedColumns;
 		
-		String scriptPath = requestObject.get("scriptPath").toString();
 		String scriptName = requestObject.get("scriptName").toString();
-		String cannedScript = scriptPath + scriptName;
+
+		String cannedScript = uploadPath + scriptName;
 		
-		String[] inputNames = {"cannedScriptPath", "dataset"};
+		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("columnsToBeRetrieved");
+		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
+		StringMap<Object> theStringMapColumnRequest;
+		FilteredColumnRequest filteredColumnRequest;
+		for (int i = 0; i < columnRequests.size(); i++) {
+			
+			theStringMapColumnRequest = (StringMap<Object>) columnRequests.get(i);
+			filteredColumnRequest = (FilteredColumnRequest) cast(theStringMapColumnRequest, FilteredColumnRequest.class);
+			filteredColumnRequests[i] = filteredColumnRequest;
+		}
+		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
 		
-		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
-		
-		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
+		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
 
 		Object[] inputValues = {cannedScript, recordData};
+		String[] inputNames = {"cannedScriptPath", "dataset"};
 		
 		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-					         "scriptFromFile$value(dataset)"; 
+					         "scriptFromFile$value(dataset, params)"; 
 		
 		String[] outputNames = {};
 		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false, false);
@@ -472,6 +484,40 @@ public class AWSRService extends RService
 		
 		return scriptMetadata;
 	}
-	
+
+@SuppressWarnings("rawtypes")
+@Override
+protected Object cast(Object value, Class<?> type)
+{
+	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
+	{
+		FilteredColumnRequest fcr = new FilteredColumnRequest();
+		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
+		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
+		if (fcr.filters != null)
+			for (int i = 0; i < fcr.filters.length; i++)
+			{
+				Object item = fcr.filters[i];
+				if (item != null && item.getClass() == ArrayList.class)
+					fcr.filters[i] = cast(item, Object[].class);
+			}
+		return fcr;
+	}
+	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
+	{
+		Object[] input = (Object[]) value;
+		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
+		for (int i = 0; i < input.length; i++)
+		{
+			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
+		}
+		value = output;
+	}
+	if (type == DataEntityMetadata.class && value != null && value instanceof Map)
+	{
+		return DataEntityMetadata.fromMap((Map)value);
+	}
+	return super.cast(value, type);
+}
 
 }
