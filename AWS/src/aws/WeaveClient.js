@@ -144,7 +144,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 
 aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
-	this.weave.reqestObject([toolName], 'RadVizTool');
+	this.weave.requestObject([toolName], 'RadVizTool');
 	
 	//populating the Dimensional Anchors
 	for(var i in columnNames){
@@ -279,8 +279,8 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
 
 /**
  * This function clears the visualizations before any new query is run
- *it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
- *in this case everything except 'WeaveDataSource' will be removed
+ * it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
+ * in this case everything except 'WeaveDataSource' will be removed
  * @return void
  */
 aws.WeaveClient.prototype.clearCurrentVizs = function(){

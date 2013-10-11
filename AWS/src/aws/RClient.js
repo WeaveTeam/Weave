@@ -38,6 +38,8 @@ aws.RClient.prototype.run = function(type, callback) {
 	
 	if (type == "SQLData") {
 		this.runScriptOnSQLdata(callback);
+	} else if (type == "JavaSQLData") {
+		this.runScriptWithFilteredColumns(callback);
 	}
 	//return resultString;
 };
