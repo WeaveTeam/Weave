@@ -386,13 +386,13 @@
 				width="5%" id="playButton" label=">" alpha="1.0" 
 				fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
 				click="playButtonPushed()"/>
-		<mx:HSlider
-			height="90%"
-			id="speedSlider"
-			width="50"
-			liveDragging="true"
-			dataTipFormatFunction="formatSpeedDataTip"
-			change="speedSliderChange();"/>
+			<mx:HSlider
+				height="90%"
+				id="speedSlider"
+				width="50"
+				liveDragging="true"
+				dataTipFormatFunction="formatSpeedDataTip"
+				change="speedSliderChange();"/>
 		</mx:VBox>
 		<mx:HSlider 
 				height="90%"
