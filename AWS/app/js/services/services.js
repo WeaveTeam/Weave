@@ -68,9 +68,9 @@ angular.module("aws.services", []).service("queryobj", function () {
                 	angular.forEach(this[col[i]], function(item){
                 		if(item.hasOwnProperty('publicMetadata')) {
                 			var obj = {
+                				id:item.id,
                        			title:item.publicMetadata.title,
-	            				id:item.id,
-	            				range:item.publicMetadata.var_range
+	            				filter:[item.publicMetadata.var_range]
                 			};
                 			columns.push(obj);
                 		}else{

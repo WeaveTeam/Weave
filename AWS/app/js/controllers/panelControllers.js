@@ -299,11 +299,12 @@ angular.module("aws.panelControllers", [])
 .controller("ContinuousFilterPanelCtrl", function($scope, queryobj, dataService){
 	
 })
-.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj){
+.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj, $rootScope){
 	
 	// Populate Labels
 	$scope.inputs = [];
 	$scope.sliderDefault = {
+	        disabled: true,
 			range: true,
 			//max/min: querobj['some property']
 			max: 99,
@@ -315,15 +316,25 @@ angular.module("aws.panelControllers", [])
 	$scope.selection = [];
 	$scope.show = [];
 	$scope.type = queryobj.scriptType;
-	$scope.clusterOptions = {};
 
-	// TODO, fix: retrieve selections, else create blanks;
-	if(queryobj['scriptOptions']){
-		var tempselection = queryobj['scriptOptions'];
-		angular.forEach(tempselection, function(item, index){
-			$scope.selection[index] = angular.toJson(item);
-		});
-	}
+	$scope.setSelect = function(){
+		if(queryobj['scriptOptions']){
+			var tempselection = queryobj['scriptOptions'];
+			angular.forEach(tempselection, function(item, index){
+				var jsn = angular.toJson(item);
+				if(item != ""){
+					if(item.filter && (item.filter != [])){
+						$scope.sliderOptions[index] = {};
+						$scope.sliderOptions[index].values = item.filter[0];
+						$scope.sliderOptions[index].enable = true;
+						$scope.show[index] = true;
+					}
+					$scope.selection[index] = jsn;
+				}
+				var temp1 = $scope.selection[index];
+			});
+		}
+	};
 	
 	// build an array that will conform to what query handler expects. 
 	var buildScriptOptions = function(){
@@ -341,8 +352,10 @@ angular.module("aws.panelControllers", [])
 							id:item.id,
 							title:item.title
 					};
-					if(item.range){
+					if(item.range && ($scope.sliderOptions[index].disabled == false)){
 						obj.filter = [$scope.sliderOptions[index].values];
+					}else{
+						obj.filter = [];
 					}
 				}
 			}
@@ -357,6 +370,9 @@ angular.module("aws.panelControllers", [])
 			var selec = angular.fromJson($scope.selection[index]);
 			selec.range = angular.fromJson(selec.range);
 			var curr = angular.fromJson($scope.sliderOptions[index]);
+			if(!curr.disabled){
+				curr.disabled = true;
+			}
 			if(selec.range != []){
 				curr.values = selec.range;
 				curr.min = selec.range[0];
@@ -367,18 +383,6 @@ angular.module("aws.panelControllers", [])
 	};
 	
 	// set up watch functions
-	$scope.$watch('selection', function(newVal, oldVal){
-		angular.forEach(newVal, function(item, i){
-			if(item === oldVal[i]){
-				//do nothing since they didn't change
-			}else{
-				//update the whole slider settings. 
-				setSliderOptions(i);
-				$scope.show[i] = true;
-			}
-		});
-		queryobj.scriptOptions = buildScriptOptions();
-	}, true);
 	$scope.$watch(function(){
 		return queryobj.scriptSelected;
 	},function(newVal, oldVal){
@@ -392,7 +396,32 @@ angular.module("aws.panelControllers", [])
 					$scope.show[index] = false;
 					$scope.sliderOptions[index] = angular.copy($scope.sliderDefault);
 				});
+				$scope.setSelect();
+				$scope.$watch('selection', function(newVal, oldVal){
+					angular.forEach(newVal, function(item, i){
+						if(item === oldVal[i]){
+							//do nothing since they didn't change
+						}else{
+							//update the whole slider settings. 
+							setSliderOptions(i);
+							$scope.show[i] = true;
+						}
+					});
+					queryobj.scriptOptions = buildScriptOptions();
+				}, true);
+				$scope.$watch(function(){
+					var str = "";
+					angular.forEach($scope.sliderOptions, function(item, index){
+						str += angular.toJson(item.enable);
+					});
+					return str;
+				},function(newVal, oldVal){
+					var temp = 0;
+				});
+			}else{
+				$scope.inputs = [];
 			}
+			
 		});
 	});
 
@@ -431,26 +460,29 @@ angular.module("aws.panelControllers", [])
 }).controller("ClusterPanelCtrl", function($scope, queryobj, scriptobj){
 	$scope.inputs = [];
 
-	$scope.$watch('inputs', function(newVal, oldVal){
-		queryobj.scriptOptions = $scope.inputs;
-	}, true);
+	
 	$scope.$watch(function(){
 		return queryobj.scriptSelected;
 	},function(newVal, oldVal){
 		
 		var temp = scriptobj.scriptMetadata;
+				
 		temp.then(function(result){
-//				angular.forEach(result, function(item, index){
-//					$scope.inputs[index] = item.param;
-//				});
 			if(result.scriptType == "cluster"){
 				queryobj.scriptType = result.scriptType;
 				$scope.inputs = result.inputs;
 				angular.forEach($scope.inputs, function(input, index){
 					$scope.inputs[index].value = "";
 				});
-			}
+				$scope.$watch('inputs', function(newVal, oldVal){
+					queryobj.scriptOptions = $scope.inputs;
+				}, true);
+			
+			}else{
+				$scope.inputs = [];
+			}	
 		});
-		
 	});
+		
 });
+
