@@ -462,18 +462,15 @@ public class AWSRService extends RService
 				finalScript = "library(RMySQL)\n" +
 							  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
 							  "library(survey)\n" +
-							  "ClusterSizes <- seq(startClusterNumber, stopClusterNumber, by = ClusterInterval)\n" +
-							  "Maxiterations <- seq(startIterationsNumber, stopIterationsNumber, by = iterationsInterval)\n" +
 							   "getColumns <- function(query)\n" +
 							  "{\n" +
 							  "return(dbGetQuery(con, paste(query)))\n" +
 							  "}\n" +
 							   "scriptFromFile <- source(cannedScriptPath)\n" +
-							   "returnedColumns <- scriptFromFile$value(ClusterSizes, Maxiterations, query, params)\n";
+							   "returnedColumns <- scriptFromFile$value(ClusterSizes, Maxiterations, query)\n";
 			} else if (connectionType.equalsIgnoreCase("RODBC"))
 			{
-				finalScript ="scriptFromFile <- source(cannedScriptPath)\n" +
-							 "library(RODBC)\n" +
+				finalScript = "library(RODBC)\n" +
 							 "con <- odbcConnect(dsn = mydsn, uid = myuser , pwd = mypassword)\n" +
 							 "sqlQuery(con, \"USE myschemaName\")\n" +
 							 "library(survey)\n" +
@@ -481,7 +478,8 @@ public class AWSRService extends RService
 							 "{\n" +
 							 "return(sqlQuery(con, paste(query)))\n" +
 							 "}\n" +
-							 "returnedColumnsFromSQL <- scriptFromFile$value(query, params)\n";
+							 "scriptFromFile <- source(cannedScriptPath)\n" +
+							 "returnedColumnsFromSQL <- scriptFromFile$value(ClusterSizes, Maxiterations, query)\n";
 			}
 			String[] requestObjectOutputNames = {};
 			
