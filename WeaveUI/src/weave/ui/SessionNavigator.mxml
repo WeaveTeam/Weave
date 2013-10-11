@@ -39,7 +39,6 @@
 		<![CDATA[
 			import mx.events.ListEvent;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.compiler.Compiler;
@@ -53,12 +52,15 @@
 				
 				_rootObject = value;
 				
-				if (value == Weave.root)
+				if (value == WeaveAPI.globalHashMap)
+				{
 					_linkableObjectName = "Weave";
-				else if (Weave.root.getName(_rootObject) != null)
-					_linkableObjectName = Weave.root.getName(_rootObject);
+				}
 				else
-					_linkableObjectName = null;
+				{
+					var path:Array = (WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, value);
+					_linkableObjectName = path ? path[path.length - 1] : null;
+				}
 				
 				verticalScrollPosition = 0;
 				handleRootObjectChange();	
@@ -74,10 +76,7 @@
 				super.childrenCreated();
 
 				if(rootObject == null)
-					rootObject = Weave.root;
-				
-//				this.dataProvider = getTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
-//				this.dataProvider.refresh();
+					rootObject = WeaveAPI.globalHashMap;
 				
 				refresh(rootObject);
 			}
@@ -93,12 +92,6 @@
 			
 			private function handleRootObjectChange():void
 			{
-				//trace("handleRootObjectChange");
-//				var tree:Object = getTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
-//				this.dataProvider = tree;
-//				this.selectedItem = tree;
-//				this.dataProvider.refresh();
-
 				refresh(rootObject);
 			}
 			
@@ -128,13 +121,10 @@
 				refresh();
 			}
 			
-			public function getSelectedPath():Array
+			public function getSelectedPath(fromGlobalHashMap:Boolean = true):Array
 			{
-				var path:Array = [];
-				try {
-					findCorrespondingNode(dataProvider[0], getSelectedLinkableObject(), false, path);
-				} catch (e:Error) { }
-				return path;
+				var root:ILinkableObject = fromGlobalHashMap ? WeaveAPI.globalHashMap : rootObject;
+				return (WeaveAPI.SessionManager as SessionManager).getPath(root, getSelectedLinkableObject());
 			}
 			
 			public function getSelectedLinkableObject():ILinkableObject

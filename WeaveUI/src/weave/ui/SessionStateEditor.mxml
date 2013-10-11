@@ -748,13 +748,19 @@ A text editor to change the Session State on the fly.
 			
 			private function copyPathToClipboard():void
 			{
-				var path:Array = sessionNav.getSelectedPath().map(
-					function(item:*, i:*, a:*):*
-					{
-						return item ? Compiler.encodeString(item) : 'null';
-					}
-				);
-				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, "[" + path.join(", ") + "]");
+				var path:Array = sessionNav.getSelectedPath();
+				var str:String = '';
+				if (path)
+				{
+					path = path.map(
+						function(item:*, i:*, a:*):*
+						{
+							return item ? Compiler.encodeString(item) : 'null';
+						}
+					);
+					str = "[" + path.join(", ") + "]";
+				}
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, str);
 			}
 			private function copyToClipboard():void
 			{
@@ -789,7 +795,7 @@ A text editor to change the Session State on the fly.
 					PopUpManager.addPopUp(defaultEditor, WeaveAPI.topLevelApplication as DisplayObject);
 				
 				if (rootObject == null)
-					rootObject = Weave.root;
+					rootObject = WeaveAPI.globalHashMap;
 				
 				defaultEditor.sessionNav.rootObject = rootObject;
 				defaultEditor.refresh();
