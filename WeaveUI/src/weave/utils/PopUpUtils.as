@@ -27,7 +27,6 @@ package weave.utils
 	import mx.controls.Alert;
 	import mx.controls.ToolTip;
 	import mx.core.IFlexDisplayObject;
-	import mx.core.UIComponent;
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 	
@@ -97,7 +96,6 @@ package weave.utils
 			tip.mouseChildren = false;
 			tip.text = text;
 			tip.validateNow();
-			show();
 			
 			// Periodically bring tooltip to front so user sees it.
 			// This is required in case the user clicks on another popup that obscures the tooltip.
@@ -106,6 +104,8 @@ package weave.utils
 			timer.addEventListener(TimerEvent.TIMER, show);
 			timer.addEventListener(TimerEvent.TIMER_COMPLETE, hide);
 			timer.start();
+			
+			show();
 			
 			function show(_:* = null):void
 			{
