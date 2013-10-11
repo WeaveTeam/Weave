@@ -6,7 +6,7 @@
 
 	<input type="checkbox" name="enableBarChartTool" ng-model="enabled"/> Enable Data Table Tool</br>
 	<select ui-select2 multiple ng-model="selection">
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option>
+		<option value="{{opt.param}}" ng-repeat="opt in options">{{opt.param}}</option>
 	</select>
 
 </div>

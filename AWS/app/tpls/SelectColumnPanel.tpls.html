@@ -5,13 +5,9 @@
 <div class="portlet-content">
 
 	<select ui-select2 multiple ng-model="selection" data-placeholder="Select Columns">
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt.title}}</option>
 	</select>
 	<br>
-	<!-- <span class="box" ng-click="toggleShowGrid()">Click to show multi-select grid.</span>
-	<div class="gridStyle" ng-grid="gridOptions" ng-show="showGrid" ng-animate="{show:'animate-enter', leave:'animate-enter'}" 
-		
-	></div> -->
 	
 
 </div>

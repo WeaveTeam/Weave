@@ -39,9 +39,13 @@ import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
+import weave.config.DataConfig.DataEntityMetadata;
+import weave.servlets.DataService.FilteredColumnRequest;
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
 {
@@ -276,38 +280,6 @@ public class AWSRService extends RService
 		 
 	}	
 	
-	
-	// this functions intends to run a script with filtered.
-	// essentially this function should eventually be our main run script function.
-	// in the request object, there will be: the script path, the script name
-	// and the columns, along with their filters.
-	// TODO not completed
-	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
-	{
-		RResult[] returnedColumns;
-		
-		String scriptPath = requestObject.get("scriptPath").toString();
-		String scriptName = requestObject.get("scriptName").toString();
-		String cannedScript = scriptPath + scriptName;
-		
-		String[] inputNames = {"cannedScriptPath", "dataset"};
-		
-		DataService.FilteredColumnRequest[] filteredColumnRequest = (DataService.FilteredColumnRequest[]) requestObject.get("filteredColumnsRequest");
-		
-		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequest, null).recordData;
-
-		Object[] inputValues = {cannedScript, recordData};
-		
-		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-					         "scriptFromFile$value(dataset)"; 
-		
-		String[] outputNames = {};
-		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false, false);
-			
-		return returnedColumns;
-		
-	}
-	
 	/**
 	 * 
 	 * @param requestObject sent from the AWS UI collection of parameters to run a computation
@@ -490,6 +462,8 @@ public class AWSRService extends RService
 				finalScript = "library(RMySQL)\n" +
 							  "con <- dbConnect(dbDriver(\"MySQL\"), user = myuser , password = mypassword, host = myhostName, port = 3306, dbname =myschemaName)\n" +
 							  "library(survey)\n" +
+							  "ClusterSizes <- seq(startClusterNumber, stopClusterNumber, by = ClusterInterval)\n" +
+							  "Maxiterations <- seq(startIterationsNumber, stopIterationsNumber, by = iterationsInterval)\n" +
 							   "getColumns <- function(query)\n" +
 							  "{\n" +
 							  "return(dbGetQuery(con, paste(query)))\n" +
@@ -562,6 +536,78 @@ public class AWSRService extends RService
 		
 		return scriptMetadata;
 	}
-	
+    // this functions intends to run a script with filtered.
+	// essentially this function should eventually be our main run script function.
+	// in the request object, there will be: the script path, the script name
+	// and the columns, along with their filters.
+	// TODO not completed
+	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
+	{
+		RResult[] returnedColumns;
 
+		String scriptName = requestObject.get("scriptName").toString();
+
+		String cannedScript = uploadPath + scriptName;
+
+		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("columnsToBeRetrieved");
+		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
+		StringMap<Object> theStringMapColumnRequest;
+		FilteredColumnRequest filteredColumnRequest;
+		for (int i = 0; i < columnRequests.size(); i++) {
+
+			theStringMapColumnRequest = (StringMap<Object>) columnRequests.get(i);
+			filteredColumnRequest = (FilteredColumnRequest) cast(theStringMapColumnRequest, FilteredColumnRequest.class);
+			filteredColumnRequests[i] = filteredColumnRequest;
+		}
+		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
+
+		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
+
+		Object[] inputValues = {cannedScript, recordData};
+		String[] inputNames = {"cannedScriptPath", "dataset"};
+
+		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
+					         "scriptFromFile$value(dataset)"; 
+
+		String[] outputNames = {};
+		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false, false);
+
+		return returnedColumns;
+
+	}
+	
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected Object cast(Object value, Class<?> type)
+    {
+    	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
+    	{
+    		FilteredColumnRequest fcr = new FilteredColumnRequest();
+    		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
+    		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
+    		if (fcr.filters != null)
+    			for (int i = 0; i < fcr.filters.length; i++)
+    			{
+    				Object item = fcr.filters[i];
+    				if (item != null && item.getClass() == ArrayList.class)
+    					fcr.filters[i] = cast(item, Object[].class);
+    			}
+    		return fcr;
+    	}
+    	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
+    	{
+    		Object[] input = (Object[]) value;
+    		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
+    		for (int i = 0; i < input.length; i++)
+    		{
+    			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
+    		}
+    		value = output;
+    	}
+    	if (type == DataEntityMetadata.class && value != null && value instanceof Map)
+    	{
+    		return DataEntityMetadata.fromMap((Map)value);
+    	}
+    	return super.cast(value, type);
+    }
 }
