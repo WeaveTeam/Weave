@@ -72,6 +72,24 @@
 				return true;
 			}
 			
+			[PercentProxy("percentWidth")]
+			override public function set width(value:Number):void
+			{
+				value = Math.round(value);
+				super.width = value;
+				if (!initialized)
+					panelWidth.value = String(value);
+			}
+			
+			[PercentProxy("percentHeight")]
+			override public function set height(value:Number):void
+			{
+				value = Math.round(value);
+				super.height = value;
+				if (!initialized)
+					panelHeight.value = String(value);
+			}
+			
 			/**
 			 * container for the Save, Revert, Cancel and Save &amp; Close buttons 
 			 */

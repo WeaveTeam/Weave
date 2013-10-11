@@ -372,28 +372,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.y = value;
 			}
 			
-			[PercentProxy("percentWidth")]
-			override public function set width(value:Number):void
-			{
-				value = Math.round(value);
-				super.width = value;
-				if (!initialized)
-					panelWidth.value = String(value);
-			}
-			
-			[PercentProxy("percentHeight")]
-			override public function set height(value:Number):void
-			{
-				value = Math.round(value);
-				super.height = value;
-				if (!initialized)
-					panelHeight.value = String(value);
-			}
-			
+//			[PercentProxy("percentWidth")]
 //			override public function set width(value:Number):void
 //			{
 //				super.width = Math.round(value);
 //			}
+//			[PercentProxy("percentHeight")]
 //			override public function set height(value:Number):void
 //			{
 //				super.height = Math.round(value);

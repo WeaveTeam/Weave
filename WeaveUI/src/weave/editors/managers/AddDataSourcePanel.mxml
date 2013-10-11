@@ -23,8 +23,6 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
-	width="700"
-	height="500"
 	sessionPanelCoordsAsPercentages="false"
 	escapeKeyClosesPanel="true"
 	title="{lang('Add new data source')}">
@@ -73,6 +71,14 @@
 			import weave.utils.EditorManager;
 
 			private static const padding:int = 5;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				panelWidth.value = "700";
+				panelHeight.value = "500";
+			}
 			
 			override protected function childrenCreated():void
 			{

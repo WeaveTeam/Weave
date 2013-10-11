@@ -24,8 +24,6 @@
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
 	backgroundColor="#EFF4BC"
-	width="700"
-	height="500"
 	escapeKeyClosesPanel="true"
 	sessionPanelCoordsAsPercentages="false"
 	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*">
@@ -96,6 +94,14 @@
 				import weave.utils.EditorManager;
 				
 				private static const padding:int = 8;
+				
+				override protected function constructor():void
+				{
+					super.constructor();
+					
+					panelWidth.value = "700";
+					panelHeight.value = "500";
+				}
 				
 				override protected function childrenCreated():void
 				{
