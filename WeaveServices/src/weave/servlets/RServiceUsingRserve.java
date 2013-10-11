@@ -433,12 +433,13 @@ public class RServiceUsingRserve
 						{
 							RFactor factorjavaObj = (RFactor)javaObj;
 							String[] levels = factorjavaObj.asStrings();
-							if(namesArray[i].contains("State"))
+							if((namesArray[i].contains("State")) || (namesArray[i].contains("DRG_Code")))
 							{
 								listOfREXP[i] = levels;
 							}
 							
-							if(!(namesArray[i].contains("State")))
+							//if(!(namesArray[i].contains("State")))
+							else
 							{	
 								Integer [] intArray = new Integer[levels.length];
 								for(int x = 0; x < levels.length; x++)
