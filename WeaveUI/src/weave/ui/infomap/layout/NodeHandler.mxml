@@ -2619,7 +2619,7 @@
 			public function applyKeywords(keywords:String):void
 			{
 				previousQuery.keywords.value = keywords;
-				if(_parentPanel.relatedKeywords.value)
+				if(_parentPanel && _parentPanel.relatedKeywords.value)
 					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
 						_parentPanel.relatedKeywords.value.split(' ');
 			}

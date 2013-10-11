@@ -1014,6 +1014,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			public function addQuery(query:String):void
+			{
+				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
+				var nodeName:String = nodes.generateUniqueName(className);
+				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				
+				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				
+				nodeHandler.applyKeywords(query);
+			}
+			
 			private var _callQueryNodeLater:Boolean = false;
 			public function addQueryNodeUsingSelectedRecords():void
 			{
