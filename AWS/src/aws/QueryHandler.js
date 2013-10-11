@@ -27,13 +27,15 @@ aws.QueryHandler = function(queryObject)
 		scriptPath : queryObject.conn.scriptLocation,
 		scriptName : queryObject.scriptSelected
 	};
+	this.rRequestObject["columnsToBeRetrieved"] = [];
 	
-	if (queryObject.scriptType == "ColumnInput") {
-		this.rRequestObject["ColumnsToBeRetrieved"] = queryObject.scriptOptions;
-	} else if (queryObject.scriptType == "ParameterInput") {
+	if (queryObject.scriptType == "columns") {
+		for( var i = 0; i < queryObject.scriptOptions.length; i++) {
+			this.rRequestObject["columnsToBeRetrieved"].push({id: queryObject.scriptOptions[i].id, filters : queryObject.scriptOptions[i].filter});
+		}
+	} else if (queryObject.scriptType == "cluster") {
 		// this option gets all the columns selected from the Analysis builder section.
-		// this.rRequestObject["ColumnsToBeRetrieved"] = queryObject.;
-		this.rRequestObject["Parameters"] = queryObject.scriptOptions;
+		this.algorithmParameters = queryObject.ParamBasedOptions;
 	}
 	
 	
@@ -71,8 +73,12 @@ aws.QueryHandler = function(queryObject)
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
 	this.computationEngine = null;
-	if(queryObject.ComputationEngine == 'r') {
-		this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
+	if(queryObject.computationEngine.toLowerCase() === "r") {
+		if(queryObject.scriptType === "columns") {
+			this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
+		} else if(queryObject.scriptType === "cluster") {
+			this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject, this.algorithmParameters);
+		}
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
 //	}
@@ -91,7 +97,10 @@ aws.QueryHandler.prototype.runQuery = function() {
 	var that = this;
 	//clear all existing visualizations
 	that.weaveClient.clearCurrentVizs();
-	this.computationEngine.run("SQLData", function(result) {
+	
+	// TODO Shweta this is where we are going to call different run function based on
+	// different options... 
+	this.computationEngine.run("JavaSQLData", function(result) {
 		
 		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)

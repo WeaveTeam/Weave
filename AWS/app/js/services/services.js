@@ -13,8 +13,9 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.title = "AlphaQueryObject";
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
-    this.scriptType = "r";
-    this.dataTable = {id:1,title:"default"};
+    this.computationEngine = "R";
+    this.scriptType = "columns";
+    this.dataTable = {};
     this.conn = {
         serverType: 'MySQL',
         connectionType: 'RMySQL',
@@ -26,7 +27,6 @@ angular.module("aws.services", []).service("queryobj", function () {
         schema: 'data',
         dsn: 'brfss'
     };
-    this.slideFilter = {values: [10, 25]}
     this.setQueryObject = function (jsonObj) {
         if (!jsonObj) {
             return undefined;
@@ -35,6 +35,7 @@ angular.module("aws.services", []).service("queryobj", function () {
         this.date = jsonObj.data;
         this.author = jsonObj.author;
         this.scriptType = jsonObj.scriptType;
+        this.computationEngine = jsonObj.computationEngine;
         this.dataTable = jsonObj.dataTable;
         this.conn = jsonObj.conn;
         this.selectedVisualization = jsonObj.selectedVisualization;
@@ -51,23 +52,17 @@ angular.module("aws.services", []).service("queryobj", function () {
         this.maptool = jsonObj.maptool;
     };
     return {
-        //getSlideFilter: this.slideFilterI,
-        //setSlideFilter: function(dat){ this.slideFilterI = dat; return this.slideFilterI;},
-        //q: this,
         title: this.title,
         date: this.date,
         author: this.author,
-        dataTable: function () {
-            return this.dataTable;
-        },
-        conn: this.conn,
+        dataTable: this.dataTable,
         scriptType: this.scriptType,
-        slideFilter: this.slideFilter,
+        computationEngine : this.computationEngine,
+        conn: this.conn,
         getSelectedColumns: function () {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
             var columns = [];
-            var temp;
             for (var i = 0; i < col.length; i++) {
                 if (this[col[i]]){
                 	angular.forEach(this[col[i]], function(item){
@@ -78,6 +73,8 @@ angular.module("aws.services", []).service("queryobj", function () {
 	            				range:item.publicMetadata.var_range
                 			};
                 			columns.push(obj);
+                		}else{
+                			columns.push(item);
                 		}
                 	});
                 }
@@ -85,62 +82,50 @@ angular.module("aws.services", []).service("queryobj", function () {
             return columns;
         }
 
-    }
-
-
-})
+    };
+});
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function (queryobj, scope, $q) {
-   
-    /**
-     * This function wraps the async aws getListOfScripts function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.getListOfScripts = function () {
-        
-    	var deferred = $q.defer();
-
-        aws.RClient.getListOfScripts(function (result) {
-            
-        	// since this function executes async in a future turn of the event loop, we need to wrap
-            // our code into an $apply call so that the model changes are properly observed.
-        	scope.$safeApply(function () {
-                deferred.resolve(result);
-            });
-        	
-        });
-        
-        // regardless of when the promise was or will be resolved or rejected,
-        // then calls one of the success or error callbacks asynchronously as soon as the result
-        // is available. The callbacks are called with a single argument: the result or rejection reason.
-        return deferred.promise.then(function(result){
-        	return result;
-        });
+    this.scriptMetadata = {"scriptType": "columns", "inputs": [],
+        "outputs": []
     };
-    
-    /**
-     * This function wraps the async aws getListOfScripts function into an angular defer/promise
-     * So that the UI asynchronously wait for the data to be available...
-     */
-    this.getScriptMetadata = function () {
+
+    this.updateMetadata = function () {
+        this.scriptMetadata = this.getScriptMetadata();
+    };
+
+    this.getScriptsFromServer = function () {
         var deferred = $q.defer();
+        var prom = deferred.promise;
 
-        aws.RClient.getScriptMetadata(queryobj.scriptSelected, function (result) {
-        	
-        	// since this function executes async in a future turn of the event loop, we need to wrap
-            // our code into an $apply call so that the model changes are properly observed.
+        var callbk = function (result) {
             scope.$safeApply(function () {
+                console.log(result);
                 deferred.resolve(result);
             });
-        });
-      
-        // regardless of when the promise was or will be resolved or rejected,
- 	    // then calls one of the success or error callbacks asynchronously as soon as the result
-     	// is available. The callbacks are called with a single argument: the result or rejection reason.
-        return deferred.promise.then(function(result){
-        	return result;
-        });
+        };
+
+        aws.RClient.getListOfScripts(callbk);
+        return prom;
     };
+    this.availableScripts = this.getScriptsFromServer();
+
+    this.getScriptMetadata = function () {
+        var deferred2 = $q.defer();
+        var promise = deferred2.promise;
+
+        var callback = function (result) {
+            scope.$safeApply(function () {
+                console.log(result);
+                deferred2.resolve(result);
+            });
+        };
+
+        aws.RClient.getScriptMetadata(queryobj.scriptSelected, callback);
+        return promise;
+    };
+    this.scriptMetadata = this.getScriptMetadata();
+
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj',
@@ -151,9 +136,9 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             var deferred = $q.defer();
             var prom = deferred.promise;
             var deferred2 = $q.defer();
-            if (!table.id) {
+            if (table == undefined) {
             	return deferred2.promise;
-            }
+            };
             var id = table.id;
             var callbk = function (result) {
                 scope.$safeApply(function () {
@@ -237,7 +222,11 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             var filtered = [];
             for (var i = 0; i < data.length; i++) {
                 try {
-                    if (data[i].publicMetadata.ui_type == type) {
+                	if (type == "numeric"){
+                		if (data[i].publicMetadata.dataType == "number"){
+                			filtered.push(data[i]);
+                		}
+                	}else if (data[i].publicMetadata.ui_type == type) {
                         filtered.push(data[i]);
                     }
                 } catch (e) {

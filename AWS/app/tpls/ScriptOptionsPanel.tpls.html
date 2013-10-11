@@ -9,6 +9,7 @@
 				<option></option>
 				<option ng-repeat="opt in options" value="{{opt}}">{{opt.title}}</option>
 			</select>
-			<div ng-show='$parent.selection[$index] != ""' ui-slider="sliderOptions" ng-model="$parent.selection[$index].range"></div>
+			<div ng-show='$parent.show[$index]'
+				ui-slider="$parent.sliderOptions[$index]" ng-model="$parent.sliderOptions[$index].sliderange"></div>
 		</div>
 	</div>

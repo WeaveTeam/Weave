@@ -547,7 +547,7 @@ public class AWSRService extends RService
 
 		String scriptName = requestObject.get("scriptName").toString();
 
-		String cannedScript = uploadPath + scriptName;
+		String cannedScript = uploadPath + "RScripts/" +scriptName;
 
 		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("columnsToBeRetrieved");
 		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
