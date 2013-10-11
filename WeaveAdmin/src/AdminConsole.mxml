@@ -73,7 +73,7 @@
 				
 				<!-- first time setup interface -->
 				<mx:VBox>
-					<ui:AutoResizingTextArea id="firstTimeTextArea" text="Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information." editable="false" wordWrap="true" width="100%" backgroundAlpha="0" borderStyle="none" selectable="false"/>
+					<ui:Paragraph text="{lang('Before you can continue, you must set up at least one database connection and specify where to store Weave configuration information.')}"/>
 					<managers:SQLConnectionManager/>
 				</mx:VBox>
 				

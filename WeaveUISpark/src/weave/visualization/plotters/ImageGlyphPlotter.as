@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	
 	/**
@@ -42,6 +43,8 @@ package weave.visualization.plotters
 	 */
 	public class ImageGlyphPlotter extends AbstractGlyphPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, ImageGlyphPlotter, "Image glyphs");
+		
 		public function ImageGlyphPlotter()
 		{
 		}

@@ -183,11 +183,11 @@ package weave.ui
 			var rda:Boolean = runningDataEffect;
 			
 			runningDataEffect = true;
-			actualCollection = ac || collection; // avoids null pointer error
+			actualCollection = ac || collection;
 			actualIterator = ai || iterator;
 			
 			// This is not a perfect scrolling solution.  It looks ok when there is a partial row showing at the bottom.
-			var mvsp:int = Math.max(0, collection.length - listItems.length + 1);
+			var mvsp:int = actualCollection ? Math.max(0, actualCollection.length - listItems.length + 1) : 0;
 			if (verticalScrollPosition > mvsp)
 				verticalScrollPosition = mvsp;
 			

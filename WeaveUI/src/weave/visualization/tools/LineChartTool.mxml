@@ -54,7 +54,7 @@
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, LineChartTool, lang("Line Chart"));
+			WeaveAPI.registerImplementation(IVisTool, LineChartTool, "Line Chart");
 			
 			private var _plotter:ParallelCoordinatesPlotter = null;
 			

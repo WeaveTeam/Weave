@@ -22,7 +22,8 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 verticalGap="0" creationPolicy="all"
-		 width="100%" height="100%" >
+		 width="100%" height="100%"
+		 implements="weave.api.core.ILinkableObject">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<HelpComponent content="{helpContent}" visible="{!!helpContent}" includeInLayout="{!!helpContent}"/>
@@ -55,7 +56,7 @@
 			import mx.controls.listClasses.ListBase;
 			
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.utils.ColumnUtils;
 			
@@ -74,35 +75,25 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				if (!_internalList)
+				if (!controller.view)
 					showVariableNames = false;
 				controller.labelFunction = ColumnUtils.getColumnListLabel;
-				if (controller.view)
-					addChildAt(controller.view, _internalListChildIndex);
 			}
 			
+			[Bindable] private var _internalList:ListBase;
 			private const _internalListChildIndex:int = 1;
-			[Bindable] private var _internalList:ListBase = null;
-			private const controller:VariableListController = newDisposableChild(this, VariableListController);
+			private const controller:VariableListController = newLinkableChild(this, VariableListController);
 			
 			public function get showVariableNames():Boolean
 			{
-				return _internalList is DataGrid;
+				return controller.view is DataGrid;
 			}
 			
 			public function set showVariableNames(value:Boolean):void
 			{
-				if (value && !(_internalList is DataGrid))
-				{
-					if (_internalList)
-						removeChild(_internalList);
-					_internalList = new DataGrid();
-				}
-				
-				if (!value && !(_internalList is List))
-				{
-					_internalList = new List();
-				}
+				_internalList = value
+					? controller.view as DataGrid || new DataGrid()
+					: controller.view as List || new List();
 				
 				if (controller.view != _internalList)
 				{
@@ -113,11 +104,19 @@
 					
 					_internalList.percentWidth = 100;
 					_internalList.percentHeight = 100;
-					_internalList.minWidth = 0;
-					_internalList.minHeight = 0;
-					if (numChildren > 0)
-						addChildAt(_internalList, _internalListChildIndex);
+					invalidateDisplayList();
 				}
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				if (controller.view && !controller.view.parent && numChildren >= _internalListChildIndex)
+				{
+					addChildAt(controller.view, _internalListChildIndex);
+					controller.view.invalidateDisplayList();
+				}
+				
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
 			}
 			
 			[Bindable] private var _visTool:IVisToolWithSelectableAttributes = null;
@@ -130,7 +129,7 @@
 			
 			private function updateLabel():void
 			{
-				if (!_internalList)
+				if (!controller.view)
 				{
 					callLater(updateLabel);
 					return;

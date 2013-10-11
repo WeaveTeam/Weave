@@ -41,6 +41,7 @@ package
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.SessionHistorySlider;
+	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.StringDataFilterEditor;
 	import weave.editors.TransposedDataSourceEditor;
 	import weave.editors.WFSDataSourceEditor;
@@ -61,6 +62,7 @@ package
 	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.ColormapHistogramTool;
@@ -123,6 +125,7 @@ package
 			EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
 			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
 			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
+			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
 			
 			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
@@ -163,7 +166,7 @@ package
 				RamachandranPlotTool,
 				DataStatisticsTool,
 				RInterfaceTool
-			]).toString();
+			]);
 			
 			/**
 			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

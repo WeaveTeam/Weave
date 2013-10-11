@@ -36,7 +36,6 @@ LayerListComponent
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
 			<mx:Button label="{lang('Add layer...')}" click="addLayer()"/>
-			<!--<mx:Button label="{lang('Open editor...')}" click="openSelector()"/>-->
 		</mx:HBox>
 	</mx:HBox>
 	<mx:List id="internalList" width="100%" height="100%">
@@ -71,10 +70,7 @@ LayerListComponent
 							
 							private function openSettingsPanel(plotter:IPlotter):void
 							{
-								// add editor component to layercontrols
-								var editor:ILinkableObjectEditor = ControlPanel.openEditor(plotter, [visualization]);
-								if (!editor)
-									SessionStateEditor.openDefaultEditor(plotter);
+								ControlPanel.openEditor(plotter, [visualization]);
 							}
 							
 							[Bindable] public var layerIsVisible:Boolean = true;
@@ -165,6 +161,7 @@ LayerListComponent
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
 			import weave.api.newDisposableChild;
 			import weave.ui.VariableListController;
 			import weave.visualization.layers.Visualization;
@@ -212,14 +209,6 @@ LayerListComponent
 				boundsProperties.includeInLayout = enabled;
 			}
 			
-			private function openSelector():void
-			{
-				if (_visualization)
-					SessionStateEditor.openDefaultEditor(controller.hashMap);
-				else
-					SessionStateEditor.openDefaultEditor(controller.hashMap);
-			}
-			
 			[Bindable]
 			private var _minimumNumObjectsInList:int = -1;
 			public function set minimumNumObjectsInList(value:int):void
@@ -235,11 +224,18 @@ LayerListComponent
 			}
 			[Bindable] private var _dragMoveEnabled:Boolean = false;
 
+			private var _addLayerPopup:CustomLayerWindow;
 			private function addLayer():void
 			{
-				var popup:* = PopUpManager.createPopUp(this, CustomLayerWindow);
-				(popup as CustomLayerWindow).targetVisualization = _visualization;
-				PopUpManager.centerPopUp(popup);
+				if (!_addLayerPopup)
+				{
+					_addLayerPopup = newDisposableChild(this, CustomLayerWindow);
+					_addLayerPopup.targetVisualization = _visualization;
+				}
+				
+				_addLayerPopup.restorePanel();
+				if (!_addLayerPopup.parent)
+					PopUpManager.addPopUp(_addLayerPopup, WeaveAPI.topLevelApplication as DisplayObject);
 			}
 		]]>
 	</mx:Script>

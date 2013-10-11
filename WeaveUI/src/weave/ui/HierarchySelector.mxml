@@ -252,14 +252,20 @@ Displays catoegories in a tree view and the attributes in a list.
 			{
 				var categoryObject:Object = categoriesView.selectedItem;
 				if (!categoryObject)
+				{
+					attributesView.dataProvider = null;
 					return;
+				}
 
 				var categoryNode:XML = (categoryObject.object as XML);
 				categoriesView.expandItem(categoryObject, true);
 				var categoryPath:XML = HierarchyUtils.getPathFromNode(attributeHierarchy.value, categoryNode);
 
 				if (categoryPath == null)
+				{
+					attributesView.dataProvider = null;
 					return; // category not found
+				}
 				
 				// set selected path and load attribute list
 				var vsp:Number = attributesView.verticalScrollPosition;
@@ -363,13 +369,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			private function getCategoryLabel(item:Object):String
 			{
 				return item.label;
-			}
-			
-			[Embed(source="/weave/resources/images/arrowDown.png")]
-			private var _iconImage:Class;
-			private function list_iconFunc(item:Object):Class
-			{
-				return categoriesView.getStyle(item.label);
 			}
 		]]>
 	</mx:Script>

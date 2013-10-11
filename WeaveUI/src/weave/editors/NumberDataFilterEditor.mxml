@@ -59,10 +59,8 @@
 				if (numberFilter)
 					statsJuggler.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
 			}
-			public function applyChanges():void
-			{
-				// changes are applied immediately
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			private function toggleFilter():void
 			{

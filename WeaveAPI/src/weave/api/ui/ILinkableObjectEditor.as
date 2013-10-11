@@ -26,7 +26,21 @@ package weave.api.ui
 	 */
 	public interface ILinkableObjectEditor extends IUIComponent
 	{
+		/**
+		 * Sets the target object to be edited.
+		 * @param object The target object.
+		 */		
 		function setTarget(object:ILinkableObject):void;
+		
+		/**
+		 * Checks if the user has made any unsaved changes.
+		 * @return true if there are unsaved changes.
+		 */		
+		function hasPendingChanges():Boolean;
+		
+		/**
+		 * Applies any unsaved changes.
+		 */		
 		function applyChanges():void;
 	}
 }

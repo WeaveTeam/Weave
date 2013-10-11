@@ -33,10 +33,12 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
@@ -66,6 +68,8 @@ package weave.data.DataSources
 	 */
 	public class WeaveDataSource extends AbstractDataSource implements IDataRowSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
+		
 		public function WeaveDataSource()
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
@@ -98,7 +102,7 @@ package weave.data.DataSources
 			
 			// replace old dataService
 			disposeObjects(dataService);
-			dataService = new WeaveDataServlet(url.value);
+			dataService = registerLinkableChild(this, new WeaveDataServlet(url.value));
 			
 			url.resumeCallbacks();
 		}

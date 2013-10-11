@@ -54,7 +54,7 @@
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;				
 
-			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("R Graph Tool"));
+			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, "R Graph Tool");
 			private var _toolName:String;
 			private var _primitive_edges:Object;
 			private var _primitive_nodes:Object;

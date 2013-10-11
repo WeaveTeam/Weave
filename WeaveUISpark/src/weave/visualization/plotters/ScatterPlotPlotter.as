@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
@@ -47,6 +48,8 @@ package weave.visualization.plotters
 	 */
 	public class ScatterPlotPlotter extends AbstractGlyphPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
+		
 		public function ScatterPlotPlotter()
 		{
 			// initialize default line & fill styles

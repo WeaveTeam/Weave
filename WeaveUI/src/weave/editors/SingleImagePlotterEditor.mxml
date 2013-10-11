@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns="weave.editors.*"
+		 xmlns:ui="weave.ui.*"
+		 label="{lang('Image Settings')}"
+		 implements="weave.api.ui.ILinkableObjectEditor">
+	<ui:IndentTextInput id="urlInput" label="{lang('Image URL:')}"/>
+	<ui:Paragraph>
+		Enter data coordinates below. Width and height are optional.
+	</ui:Paragraph>
+	<ui:IndentTextInput id="xInput" label="{lang('X')}"/>
+	<ui:IndentTextInput id="yInput" label="{lang('Y')}"/>
+	<ui:IndentTextInput id="widthInput" label="{lang('Width')}"/>
+	<ui:IndentTextInput id="heightInput" label="{lang('Height')}"/>
+	<ui:Indent label="Alignment">
+		<ui:AlignmentControl id="alignmentInput"/>
+	</ui:Indent>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.getSessionState;
+			import weave.api.linkBindableProperty;
+			import weave.ui.ControlPanel;
+			import weave.ui.CustomContextMenuManager;
+			import weave.ui.DraggablePanel;
+			import weave.visualization.layers.PlotManager;
+			import weave.visualization.plotters.SingleImagePlotter;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			private var _plotter:SingleImagePlotter = null;
+			public function setTarget(object:ILinkableObject):void
+			{
+				_plotter = object as SingleImagePlotter;
+			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				linkBindableProperty(_plotter.imageURL, urlInput, "text", 1000);
+				linkBindableProperty(_plotter.dataX, xInput, "text");
+				linkBindableProperty(_plotter.dataY, yInput, "text");
+				linkBindableProperty(_plotter.dataWidth, widthInput, "text");
+				linkBindableProperty(_plotter.dataHeight, heightInput, "text");
+				linkBindableProperty(_plotter.horizontalAlign, alignmentInput, 'horizontalAlign');
+				linkBindableProperty(_plotter.verticalAlign, alignmentInput, 'verticalAlign');
+			}
+			
+			//----------------------------------------------
+			
+			private static var _contextMenuItem:ContextMenuItem = null;
+			public static function createContextMenuItems(destination:DisplayObject):Boolean
+			{
+				if(!destination.hasOwnProperty("contextMenu") )
+					return false;
+				
+				// Add a listener to this destination context menu for when it is opened
+				var contextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+				_contextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Add Marker", destination, handleAddMarker, "2.1 textBoxMenuItem");
+				
+				return true;
+			}
+			
+			private static var tool:SimpleVisTool = null;
+			private static var anchorPoint:Point = new Point();
+			private static function handleContextMenuOpened(e:ContextMenuEvent):void
+			{	
+				tool = DraggablePanel.activePanel as SimpleVisTool;
+				if (tool)
+				{
+					_contextMenuItem.enabled = true;
+					anchorPoint.x = e.mouseTarget.stage.mouseX;
+					anchorPoint.y = e.mouseTarget.stage.mouseY;
+				}
+				else
+				{
+					_contextMenuItem.enabled = false;
+					tool = null;
+				}
+			}
+			
+			private static function handleAddMarker(e:ContextMenuEvent):void
+			{
+				if (tool)
+				{
+					var state:Object = getSessionState(tool.visualization);
+					var pm:PlotManager = tool.visualization.plotManager;
+					var name:String = pm.plotters.generateUniqueName("marker");
+					var plotter:SingleImagePlotter = pm.plotters.requestObject(name, SingleImagePlotter, false);
+					
+					var localAnchorPoint:Point = tool.visualization.globalToLocal(anchorPoint);
+					pm.zoomBounds.projectScreenToData(localAnchorPoint);
+					
+					plotter.dataX.value = localAnchorPoint.x;
+					plotter.dataY.value = localAnchorPoint.y;
+					
+					ControlPanel.openEditor(plotter, [tool.visualization], [state]);
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

@@ -71,10 +71,8 @@ Editor for custom layers using AxisLabelPlotters
 			{
 				_plotter = object as AxisLabelPlotter;
 			}
-			public function applyChanges():void
-			{
-				
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 
 			private var _plotter:AxisLabelPlotter = null;
 		

@@ -28,6 +28,7 @@
 	implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
 	>
 	<ui:HierarchySelector height="100%" visible="true" id="hierarchySelector"/>
+	<ui:BusyIndicator targets="{[dataSource]}"/>
 	<mx:HBox id="dummyHBox" minWidth="0" width="100%"
 			 borderColor="#000000" 
 			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
@@ -80,6 +81,7 @@
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.api.unlinkSessionState;
+			import weave.core.CallbackJuggler;
 			import weave.core.LinkableXML;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -114,7 +116,8 @@
 				
 				registerLinkableChild(this, hierarchySelector);
 
-				linkSessionState(multiDataSource.attributeHierarchy, hierarchySelector.attributeHierarchy);
+				dataSource = MultiDataSource.instance;
+				
 				selectedPath.addGroupedCallback(this, handleSelectedPathChange);
 				hierarchySelector.attributesView.dragEnabled = true;
 				hierarchySelector.attributesView.addEventListener(DragEvent.DRAG_START, handleAttributeDrag);
@@ -123,9 +126,37 @@
 				
 				linkBindableProperty(Weave.properties.getToolToggle(DataFilter), filterControls, 'visible');
 				linkBindableProperty(Weave.properties.getToolToggle(DataFilter), filterControls, 'includeInLayout');
+				
+				getCallbackCollection(hierarchySelector.attributeHierarchy).addGroupedCallback(this, handleSelectedPathChange);
 			}
 			
-			private const multiDataSource:MultiDataSource = MultiDataSource.instance;
+			[Bindable]
+			public function get dataSource():IDataSource
+			{
+				//trace("get dataSource", _dataSource);
+				return _dataSource;
+			}
+			
+			public function set dataSource(value:IDataSource):void
+			{
+				//trace("set dataSource", value);
+				if (!value)
+					value = MultiDataSource.instance;
+				
+				if (_dataSource == value)
+					return;
+				
+				if (_dataSource)
+					unlinkSessionState(_dataSource.attributeHierarchy, hierarchySelector.attributeHierarchy);
+				
+				_dataSource = value;
+				
+				if (_dataSource)
+					linkSessionState(_dataSource.attributeHierarchy, hierarchySelector.attributeHierarchy);
+			}
+			
+			private var _dataSource:IDataSource = null;
+			
 			private function get selectedPath():LinkableXML { return hierarchySelector.selectedPath; }
 			public const dynamicColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleDynamicColumnChange);
 			
@@ -140,10 +171,10 @@
 				var depth:int = HierarchyUtils.getPathDepth(selectedPath.value);
 				for (var i:int = 1; i <= depth; i++)
 				{
-					var hierarchy:XML = (multiDataSource.attributeHierarchy as AttributeHierarchy).value;
+					var hierarchy:XML = (_dataSource.attributeHierarchy as AttributeHierarchy).value;
 					var node:XML = HierarchyUtils.getNodeFromPath(hierarchy, selectedPath.value, i);
 					if (node != null && String(node.localName()) != 'attribute')
-						multiDataSource.initializeHierarchySubtree(node);
+						_dataSource.initializeHierarchySubtree(node);
 				}
 				var attribute:XMLList = selectedPath.value.descendants("attribute");
 				if (attribute.length() > 0)
@@ -223,12 +254,15 @@
 			
 			public function copyPathToRef(path:XML, ref:HierarchyColumnReference):void
 			{
-				// convert the multiDataSource path to a path for a column reference
-				path = (path.category[0] as XML).copy();
-				path.setName("hierarchy");
-				var source:IDataSource = Weave.root.getObject(path.@dataSourceName) as IDataSource;
-				var sourceName:String = path.@dataSourceName;
-				delete path.@dataSourceName;
+				var sourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
+				if (!sourceName && dataSource is MultiDataSource)
+				{
+					// convert the multiDataSource path to a path for a column reference
+					path = (path.category[0] as XML).copy();
+					sourceName = path.@dataSourceName;
+					path.setName("hierarchy");
+					delete path.@dataSourceName;
+				}
 				
 				// set both data source and path variables before allowing callbacks to run
 				var cc:ICallbackCollection = getCallbackCollection(ref);
@@ -319,14 +353,17 @@
 					ref = (dc.getInternalColumn() as EquationColumn).variables.getObject(DATA_VARIABLE) as HierarchyColumnReference;
 				if (ref && ref.hierarchyPath.value)
 				{
-					// convert the column reference path to a path in the multiDataSource.
 					var path:XML = ref.hierarchyPath.value.copy();
-					path.@dataSourceName = ref.dataSourceName.value;
-					path.setName("category");
-					
-					var parent:XML = <hierarchy/>;
-					parent.appendChild(path);
-					selectedPath.value = parent;
+					if (dataSource is MultiDataSource)
+					{
+						// convert the column reference path to a path in the multiDataSource.
+						path.@dataSourceName = ref.dataSourceName.value;
+						path.setName("category");
+						var parent:XML = <hierarchy/>;
+						parent.appendChild(path);
+						path = parent;
+					}
+					selectedPath.value = path;
 				}
 			}
 			
@@ -407,8 +444,14 @@
 				}
 			}
 			
-			private var _currentTarget:DynamicColumn = null;
-			public function setTarget(target:ILinkableObject):void
+			private var targetJuggler:CallbackJuggler = new CallbackJuggler(this as ILinkableObject, getCallbackCollection(this as ILinkableObject).triggerCallbacks, false);
+			
+			public function get target():DynamicColumn
+			{
+				return targetJuggler.target as DynamicColumn;
+			}
+			
+			public function setTarget(newTarget:ILinkableObject):void
 			{
 				if (!parent)
 				{
@@ -416,19 +459,19 @@
 					return;
 				}
 				
-				if (_currentTarget != null)
-					unlinkSessionState(_currentTarget, dynamicColumn);
+				if (target)
+					unlinkSessionState(targetJuggler.target, dynamicColumn);
 				
-				_currentTarget = target as DynamicColumn;
+				targetJuggler.target = newTarget as DynamicColumn;
 				
-				if (_currentTarget)
+				if (target)
 				{
-					linkSessionState(_currentTarget, dynamicColumn);
+					linkSessionState(target, dynamicColumn);
 					
 					var path:LinkableXML = hierarchySelector.selectedPath;
 					// if newly linked object doesn't have an internal column,
 					// keep the currently selected path except for the leaf node
-					if (_currentTarget.getInternalColumn() == null)
+					if (target.getInternalColumn() == null)
 					{
 						if (!path.value)
 							return;
@@ -439,6 +482,7 @@
 					path.triggerCallbacks(); // always trigger so refresh occurs
 				}
 			}
+			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
 		]]>
 	</mx:Script>

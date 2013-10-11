@@ -40,6 +40,7 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WeaveDataSource;
 			
 			override protected function createChildren():void
@@ -53,13 +54,14 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
+				_weaveDataSource = object as WeaveDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_weaveDataSource = object as WeaveDataSource;
 				if (_weaveDataSource)
 				{
 					sourceName.text = Weave.root.getName(_weaveDataSource);
@@ -67,6 +69,11 @@
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
+			}
+			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_weaveDataSource.url.value) != StandardLib.asString(url.text);
 			}
 			
 			public function applyChanges():void

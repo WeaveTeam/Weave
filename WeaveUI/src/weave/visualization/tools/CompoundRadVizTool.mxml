@@ -50,7 +50,7 @@
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, CompoundRadVizTool, lang("Compound RadViz"));
+			WeaveAPI.registerImplementation(IVisTool, CompoundRadVizTool, "Compound RadViz");
 			
 			private static const ANCHOR_LAYER:String = "anchorLayer";
 			

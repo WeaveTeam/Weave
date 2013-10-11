@@ -20,7 +20,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
-<!--
+<!---
 SchafersMissingDataImputation
 
 1. Pick your columns
@@ -32,7 +32,7 @@ SchafersMissingDataImputation
 7. On the client side, any returned Arrays are matched up with the original keys using the same row order to become columns.
 8. Any other results are just printed out to the text area.
 
-@spurushe
+@author spurushe
 
 -->
 <DraggablePanel xmlns="weave.ui.*"
@@ -48,17 +48,17 @@ SchafersMissingDataImputation
 								 label="Input columns" hashMap="{variables}"/>			
 		</mx:VBox>
 		<mx:VBox id="vb" width="70%" height="100%" verticalGap="0">
-			<LabelWithWordWrap text="(2)Assign variable names and check Attributes for Missing Data"/>
+			<Paragraph text="(2)Assign variable names and check Attributes for Missing Data"/>
 			<mx:TextArea id="assignTA" width="50%" height="25%" wordWrap="false"/>
 			<mx:Spacer height="{padding}"/>
 			<mx:VBox width="100%">
-				<LabelWithWordWrap text="(3)Check if selected columns have missing data"/>
+				<Paragraph text="(3)Check if selected columns have missing data"/>
 				<mx:Button id="checkforNA" label="Check dataset for missing data?"
 						   buttonDown="imputing_buttonDownHandler(event)"/>	
 			</mx:VBox>
 			<mx:Spacer height="{padding}"/>
 			<mx:VBox width="100%">
-				<LabelWithWordWrap text="(4)Impute the missing data"/>
+				<Paragraph text="(4)Impute the missing data"/>
 				<mx:Button id="imputeMD" label="Impute Missing Data"
 						   buttonDown="imputing_buttonDownHandler(event)"/>
 			</mx:VBox>
@@ -78,7 +78,7 @@ SchafersMissingDataImputation
 				<mx:LinkButton label="Hierarchical Clustering"/>
 										
 			</mx:HBox>
-				<LabelWithWordWrap text="Assign variable names and check Attributes KMeans Clustering"/>
+				<Paragraph text="Assign variable names and check Attributes KMeans Clustering"/>
 				<mx:TextArea id="clusterTA" width="50%" height="25%" wordWrap="false"/>
 				
 				</mx:VBox>
@@ -101,9 +101,6 @@ SchafersMissingDataImputation
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
-			
-			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
-			
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
@@ -128,6 +125,7 @@ SchafersMissingDataImputation
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
+			import weave.ui.DataMiningEditors.KMeansClusteringEditor;
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.DataTableTool;

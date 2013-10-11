@@ -28,7 +28,6 @@
 <ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				backgroundColor="#EFF4BC"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 				title="{lang('Equation Editor')}"
 				>
 	

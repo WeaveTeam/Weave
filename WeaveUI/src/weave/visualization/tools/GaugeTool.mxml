@@ -40,7 +40,7 @@
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, GaugeTool, lang("Gauge Tool"));
+			WeaveAPI.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
 			
 			private function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
 			

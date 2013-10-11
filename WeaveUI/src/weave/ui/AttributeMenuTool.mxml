@@ -65,17 +65,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<Indent label="{lang('Visualization tool:')}">
 						<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
-						<HelpComponent content="{lang('Select the visualization tool that you want the attribute menu to be linked to.')}"/>
+						<HelpComponent>
+							Select the visualization tool that you want the attribute menu to be linked to.
+						</HelpComponent>
 					</Indent>
 					<Indent label="{lang('Visualization attribute:')}">
 						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
-						<HelpComponent content="{lang('Select the visualization attribute that you want the menu to be linked to.')}"/>
+						<HelpComponent>
+							Select the visualization attribute that you want the menu to be linked to.
+						</HelpComponent>
 					</Indent>
 					<Indent label="{lang('Menu layout:')}">
 						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
 										dataProvider="{layouts}"/>
-						<HelpComponent content="{lang('Select the layout for the attribute menu.')}"/>
+						<HelpComponent>
+							Select the layout for the attribute menu.
+						</HelpComponent>
 						<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
 								 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
 							<mx:CheckBox id="showPlayButtonCheck" label="Show play button"

@@ -22,48 +22,38 @@
 <ui:DraggablePanel
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
-	layout="absolute"
-	title="{lang('Add New Data Source')}"
-	borderAlpha="1"
-	borderColor="#939178"
-	borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
-	roundedBottomCorners="true"
+	xmlns:ui="weave.ui.*"
+	sessionPanelCoordsAsPercentages="false"
 	escapeKeyClosesPanel="true"
-	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
-	<mx:VBox width="100%" height="100%" verticalGap="0">
-		<mx:HBox height="100%" width="100%" horizontalGap="0">
-			<mx:VBox minHeight="0" height="100%"
-					 horizontalScrollPolicy="off"
-					 initialize="UIUtils.setPadding(event.target as UIComponent, padding)">
-				<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
-				<mx:RadioButton selected="true" groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="{lang('WFS Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
-				<mx:RadioButton groupName="dataSourceType" id="transposedSource" value="{TransposedDataSource}" label="{lang('Transposed Data Source')}"/>
-			</mx:VBox>
-			<mx:Canvas backgroundColor="#939178" width="{padding}" height="100%"/>
-			<mx:Box id="container" minWidth="0" minHeight="0" width="100%" height="100%" initialize="UIUtils.setPadding(container, padding)"/>
-		</mx:HBox>
-		<mx:HBox paddingTop="{padding}" paddingBottom="{padding}" width="100%" backgroundColor="#939178">
-			<mx:Spacer width="100%"/>
-			<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
-			<mx:Button id="cancelButton" label="{lang('Close')}" click="removePanel()"/>
-		</mx:HBox>
-	</mx:VBox>
+	title="{lang('Add new data source')}">
+	<mx:HBox initialize="UIUtils.pad(event, padding, 100, 100)" horizontalGap="{padding}">
+		<mx:VBox height="100%">
+			<ui:Paragraph translate="true">
+				Choose one:
+			</ui:Paragraph>
+			<mx:List id="options" initialize="UIUtils.pad(event, 0, 100, 100, true)" change="handleDataSelect()"/>
+		</mx:VBox>
+		<mx:VRule height="100%"/>
+		<mx:VBox initialize="UIUtils.pad(event, padding, 100, 100)" visible="{!!options.selectedItem}">
+			<mx:Box id="container" initialize="UIUtils.pad(event, 0, 100, 100, true)"/>
+			<mx:HBox width="100%">
+				<mx:Spacer width="100%"/>
+				<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
+				<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel()"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:HBox>
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.core.UIComponent;
-			import mx.events.ItemClickEvent;
-			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
+			import weave.api.disposeObjects;
+			import weave.api.newDisposableChild;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
@@ -81,21 +71,35 @@
 			import weave.utils.EditorManager;
 
 			private static const padding:int = 5;
-			private static var _staticInstance:AddDataSourcePanel = null;
-			public static function showAsPopup():void
+			
+			override protected function constructor():void
 			{
-				_staticInstance = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AddDataSourcePanel, false) as AddDataSourcePanel;
+				super.constructor();
 				
-				PopUpManager.centerPopUp(_staticInstance);
+				panelWidth.value = "700";
+				panelHeight.value = "500";
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				pinnable.value = false;
+				options.dataProvider = WeaveAPI.getRegisteredImplementations(IDataSource);
+				options.labelFunction = WeaveAPI.getRegisteredImplementationDisplayName;
 			}
 			
 			private var _editor:ILinkableObjectEditor;
 			
-			private function handleDataSelect(event:ItemClickEvent=null):void
+			private function handleDataSelect():void
 			{
+				disposeObjects(_editor);
 				container.removeAllChildren();
-				var Editor:Class = EditorManager.getEditorClass(dataSourceType.selectedValue);
-				_editor = new Editor();
+				_editor = null;
+				if (!options.selectedItem)
+					return;
+				var Editor:Class = EditorManager.getEditorClass(options.selectedItem);
+				_editor = newDisposableChild(this, Editor);
 				container.addChild(_editor as DisplayObject);
 				_editor.percentWidth = 100;
 				_editor.percentHeight = 100;
@@ -105,8 +109,6 @@
 			//if source name already exists,feedback when object is generated,order of columns
 			private function addSource():void
 			{
-				var checkObj:ILinkableObject = null;
-				
 				var wfsDataSourceEditor:WFSDataSourceEditor = _editor as WFSDataSourceEditor;
 				if (wfsDataSourceEditor)
 				{
@@ -115,15 +117,17 @@
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
-					checkObj = Weave.root.getObject(wfsDataSourceEditor.sourceName.text);
-					if (checkObj != null)
+					if (Weave.root.getObject(wfsDataSourceEditor.sourceName.text))
 					{
 						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var wfsDataSource:WFSDataSource = Weave.root.requestObject(wfsDataSourceEditor.sourceName.text, WFSDataSource, false);
-					if (wfsDataSource != null)
-						Alert.show(lang("Data Source added successfully"));
+					if (!wfsDataSource)
+					{
+						Alert.show(lang("Unexpected problem. Unable to add the data source."));
+						return;
+					}
 					wfsDataSource.url.value = wfsDataSourceEditor.url.text;
 				}
 				
@@ -135,15 +139,17 @@
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
-					checkObj = Weave.root.getObject(csvDataSourceEditor.sourceName.text);
-					if (checkObj != null)
+					if (Weave.root.getObject(csvDataSourceEditor.sourceName.text))
 					{
 						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var csvDataSource:CSVDataSource = Weave.root.requestObject(csvDataSourceEditor.sourceName.text, CSVDataSource, false);
-					if (csvDataSource != null)
-						Alert.show(lang("Data Source added successfully"));
+					if (!csvDataSource)
+					{
+						Alert.show(lang("Unexpected problem. Unable to add the data source."));
+						return;
+					}
 					csvDataSource.url.value = csvDataSourceEditor.url.text;
 					csvDataSource.csvData.setSessionState(csvDataSourceEditor.getCSVRows());
 					csvDataSource.keyColName.value = csvDataSourceEditor.keyColumnName.text;
@@ -158,15 +164,17 @@
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
-					checkObj = Weave.root.getObject(dbfDataSourceEditor.sourceName.text);
-					if (checkObj != null)
+					if (Weave.root.getObject(dbfDataSourceEditor.sourceName.text))
 					{
 						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var dbfDataSource:DBFDataSource = Weave.root.requestObject(dbfDataSourceEditor.sourceName.text, DBFDataSource, false);
-					if (dbfDataSource != null)
-						Alert.show(lang("Data Source added successfully"));
+					if (!dbfDataSource)
+					{
+						Alert.show(lang("Unexpected problem. Unable to add the data source."));
+						return;
+					}
 					dbfDataSource.dbfUrl.value = dbfDataSourceEditor.dbfURL.text;
 					dbfDataSource.shpUrl.value = dbfDataSourceEditor.shpURL.text;
 					dbfDataSource.keyColName.value = dbfDataSourceEditor.keyColumnName.text;
@@ -181,30 +189,37 @@
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
-					checkObj = Weave.root.getObject(xlsDataSourceEditor.sourceName.text);
-					if (checkObj != null)
+					if (Weave.root.getObject(xlsDataSourceEditor.sourceName.text))
 					{
 						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					//if an XLS file has been loaded we create and add it to a CSVDataSource
-					if (xlsDataSourceEditor.xlsFile !=null)
+					if (xlsDataSourceEditor.xlsFile != null)
 					{
 						var csvSource:CSVDataSource = Weave.root.requestObject(xlsDataSourceEditor.sourceName.text, CSVDataSource, false);
-						if (csvSource != null)
-							Alert.show(lang("Data Source added successfully"));
+						if (!csvSource)
+						{
+							Alert.show(lang("Unexpected problem. Unable to add the data source."));
+							return;
+						}
 						csvSource.url.value = xlsDataSourceEditor.url.text;
 						csvSource.setCSVDataString(WeaveAPI.CSVParser.createCSV(xlsDataSourceEditor.xlsDataArray));
 						csvSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
 						csvSource.keyType.value = xlsDataSourceEditor.keyTypeSelector.selectedItem as String;
-						return;
 					}
-					var xlsDataSource:XLSDataSource = Weave.root.requestObject(xlsDataSourceEditor.sourceName.text, XLSDataSource, false);
-					if (xlsDataSource != null)
-						Alert.show(lang("Data Source added successfully"));
-					xlsDataSource.url.value = xlsDataSourceEditor.url.text;
-					xlsDataSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
-					xlsDataSource.keyType.value = xlsDataSourceEditor.keyTypeSelector.selectedItem as String;
+					else
+					{
+						var xlsDataSource:XLSDataSource = Weave.root.requestObject(xlsDataSourceEditor.sourceName.text, XLSDataSource, false);
+						if (!xlsDataSource)
+						{
+							Alert.show(lang("Unexpected problem. Unable to add the data source."));
+							return;
+						}
+						xlsDataSource.url.value = xlsDataSourceEditor.url.text;
+						xlsDataSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
+						xlsDataSource.keyType.value = xlsDataSourceEditor.keyTypeSelector.selectedItem as String;
+					}
 				}
 				
 				var weaveDataSourceEditor:WeaveDataSourceEditor = _editor as WeaveDataSourceEditor;
@@ -215,15 +230,17 @@
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
-					checkObj = Weave.root.getObject(weaveDataSourceEditor.sourceName.text);
-					if (checkObj != null)
+					if (Weave.root.getObject(weaveDataSourceEditor.sourceName.text))
 					{
 						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var weaveDataSource:WeaveDataSource = Weave.root.requestObject(weaveDataSourceEditor.sourceName.text, WeaveDataSource, false);
-					if (weaveDataSource != null)
-						Alert.show(lang("Data Source added successfully"));
+					if (!weaveDataSource)
+					{
+						Alert.show(lang("Unexpected problem. Unable to add the data source."));
+						return;
+					}
 					weaveDataSource.url.value = weaveDataSourceEditor.url.text;
 				}
 				
@@ -235,18 +252,29 @@
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
-					checkObj = Weave.root.getObject(transposedDataSourceEditor.sourceName.text);
-					if (checkObj != null)
+					if (Weave.root.getObject(transposedDataSourceEditor.sourceName.text))
 					{
 						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var transposedDataSource:TransposedDataSource = Weave.root.requestObject(transposedDataSourceEditor.sourceName.text, TransposedDataSource, false);
-					if (transposedDataSource != null)
-						Alert.show(lang("Data Source added successfully"));
+					if (!transposedDataSource)
+					{
+						Alert.show(lang("Unexpected problem. Unable to add the data source."));
+						return;
+					}
 					
 					copySessionState(transposedDataSourceEditor, transposedDataSource);
 				}
+				
+				removePanel();
+			}
+			
+			override public function removePanel():void
+			{
+				options.selectedItem = null;
+				handleDataSelect();
+				super.removePanel();
 			}
 		]]>
 	</mx:Script>

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*"
+		 xmlns="weave.editors.*"
+		 label="{lang('Geometries')}"
+		 implements="weave.api.ui.ILinkableObjectEditor">
 	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/>
 	<mx:VBox borderStyle="solid" verticalGap="0" 
 			paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
@@ -90,7 +94,8 @@
 		<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore Subset')}" change="handleIgnoreSubsetCheck()"/>
 		<ui:HelpComponent>
 			Check this box to always display these geometries whether or not they are in the current subset.
-			Fill color will only be displayed on the geometries in the current subset.  Only the borders will be displayed for the rest.
+			Fill color will only be displayed on the geometries in the current subset.
+			Only the borders will be displayed for the rest.
 		</ui:HelpComponent>
 	</mx:HBox>
 	
@@ -113,10 +118,8 @@
 				_plotter = object as GeometryPlotter;
 			}
 			
-			public function applyChanges():void
-			{
-				
-			}			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			override protected function childrenCreated():void
 			{

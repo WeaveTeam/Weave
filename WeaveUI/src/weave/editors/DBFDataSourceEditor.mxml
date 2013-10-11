@@ -51,7 +51,7 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
-			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.DBFDataSource;
 			
 			override protected function createChildren():void
@@ -65,13 +65,14 @@
 			[Bindable] private var _dbfDataSource:DBFDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				_dbfDataSource = object as DBFDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_dbfDataSource = object as DBFDataSource;
 				if (_dbfDataSource)
 				{
 					sourceName.text = Weave.root.getName(_dbfDataSource);
@@ -84,19 +85,21 @@
 				}
 
 			}
+			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_dbfDataSource.dbfUrl.value) != StandardLib.asString(dbfURL.text)
+					|| StandardLib.asString(_dbfDataSource.shpUrl.value) != StandardLib.asString(shpURL.text)
+					|| StandardLib.asString(_dbfDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
+					|| StandardLib.asString(_dbfDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedItem);
+			}
+
 			public function applyChanges():void
 			{
-				try
-				{
-					_dbfDataSource.dbfUrl.value = dbfURL.text;
-					_dbfDataSource.shpUrl.value = shpURL.text;
-					_dbfDataSource.keyColName.value = keyColumnName.text;
-					_dbfDataSource.keyType.value = keyTypeSelector.selectedItem as String;
-				}
-				catch (e:Error)
-				{
-					reportError(e);
-				}
+				_dbfDataSource.dbfUrl.value = dbfURL.text;
+				_dbfDataSource.shpUrl.value = shpURL.text;
+				_dbfDataSource.keyColName.value = keyColumnName.text;
+				_dbfDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 			}
 			
 		]]>

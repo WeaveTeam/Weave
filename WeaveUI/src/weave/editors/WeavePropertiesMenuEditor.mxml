@@ -46,7 +46,8 @@
 					
 					<ui:Indent label="{lang('Data Info URL')}" width="100%">
 						<ui:HelpComponent>
-							If you enter a URL here, a right-click menu option will appear that opens the URL. ("Show information about this dataset...")
+							If you enter a URL here, a right-click menu option will appear that opens the URL
+							("Show information about this dataset...").
 						</ui:HelpComponent>
 						<ui:TextInputWithPrompt width="100%" prompt="http://www.example.com/example.html" creationComplete="linkBindableProperty(Weave.properties.dataInfoURL, event.target, 'text');"/>
 					</ui:Indent>
@@ -66,10 +67,6 @@
 					<mx:CheckBox id="refreshDataCheckBox"
 								 label="{lang('Refresh data source hierarchies')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
-					
-					<mx:CheckBox label="{lang('New Datasource')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableAddNewDatasource, event.target, 'selected')"/> 
-					
 					<mx:CheckBox label="{lang('Edit Datasources')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
 					

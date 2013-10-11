@@ -45,7 +45,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, lang("Histogram 2D"));
+			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
 			
 			private function get plotter():Histogram2DPlotter
 			{

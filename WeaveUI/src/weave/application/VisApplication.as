@@ -79,8 +79,8 @@ package weave.application
 	import weave.core.StageUtils;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
-	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncInvocation;
@@ -98,7 +98,6 @@ package weave.application
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
-	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
@@ -214,43 +213,35 @@ package weave.application
 			// disable application until it's ready
 			enabled = false;
 			
-			if (getFlashVarAdminConnectionName() != null)
+			if (getFlashVarAdminConnectionName())
 			{
-				// disable interface until connected to admin console
+				// disable interface while connecting to admin console
 				var _this:VisApplication = this;
 				_this.enabled = false;
-				var resultHandler:Function = function(event:ResultEvent, token:Object = null):void
-				{
-					_this.enabled = true;
-					adminService = pendingAdminService;
-					
-					saveTimer.addEventListener(TimerEvent.TIMER, saveRecoverPoint);
-					saveTimer.start();
 				
-					setupVisMenuItems(); // make sure 'save session state to server' is shown
-					downloadConfigFile();
-				};
-				var faultHandler:Function = function(event:FaultEvent = null, token:Object = null):void
-				{
-					Alert.show(lang("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server."), lang("Connection error"));
-					// do not re-download config file if this function was called as a grouped callback.
-					if (event) // event==null if called as grouped callback
-					{
-						_this.enabled = true;
-						downloadConfigFile();
-					}
-				};
 				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
-				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
-				// when admin console responds, set adminService
 				addAsyncResponder(
 					pendingAdminService.invokeAsyncMethod("ping"),
-					resultHandler,
-					faultHandler
+					function(event:ResultEvent, token:Object = null):void
+					{
+						// when admin console responds, set adminService
+						adminService = pendingAdminService;
+						saveTimer.addEventListener(TimerEvent.TIMER, saveRecoverPoint);
+						saveTimer.start();
+						
+						_this.enabled = true;
+						setupVisMenuItems(); // make sure 'save session state to server' is shown
+						downloadConfigFile();
+					},
+					function(event:FaultEvent = null, token:Object = null):void
+					{
+						Alert.show(lang("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server."), lang("Connection error"));
+						
+						_this.enabled = true;
+						setupVisMenuItems();
+						downloadConfigFile();
+					}
 				);
-				
-				// do nothing until admin console is connected.
-				return;
 			}
 			else
 			{
@@ -560,12 +551,12 @@ package weave.application
 	
 		private function handleScreenshotImageSize():void
 		{
-			if(detectLinkableObjectChange(this,WeaveAPI.ErrorManager))
+			if (WeaveAPI.ErrorManager.errors.length)
 			{
 				handleRemoveScreenshot();
 				return;
 			}
-			if(_screenshot)
+			if (_screenshot)
 			{
 				var workspace:Canvas = visDesktop.internalCanvas;
 				_screenshot.width = this.width;
@@ -843,11 +834,8 @@ package weave.application
 					);
 				}
 
-				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup));
-				
-				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup));
+				if (Weave.properties.enableEditDataSource.value)
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data sources"), DraggablePanel.openStaticInstance, [EditDataSourcePanel]));
 			}
 			
 			
@@ -1160,10 +1148,13 @@ package weave.application
 		
 		private function handleRemoveScreenshot(event:Event=null):void
 		{
-			_snapshotTimer.stop();
-			_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
-			PopUpManager.removePopUp(_screenshot);
-			_screenshot = null;
+			if (_screenshot)
+			{
+				_snapshotTimer.stop();
+				_snapshotTimer.removeEventListener(TimerEvent.TIMER,handleSnapShotTimer);
+				PopUpManager.removePopUp(_screenshot);
+				_screenshot = null;
+			}
 		}
 		
 		private function createGlobalObject(classDef:Class, name:String = null):*
@@ -1275,7 +1266,7 @@ package weave.application
 				_windowMenu.children.removeAll();
 			
 			if (Weave.properties.enableUserPreferences.value || adminService)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Preferences"), WeavePropertiesEditor.openGlobalEditor));
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Preferences"), DraggablePanel.openStaticInstance, [WeavePropertiesEditor]));
 			
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 
@@ -1565,7 +1556,7 @@ package weave.application
 					KeySetContextMenuItems.createContextMenuItems(this);
 				}
 				if (Weave.properties.enableMarker.value)
-					MarkerSettingsComponent.createContextMenuItems(this);
+					SingleImagePlotterEditor.createContextMenuItems(this);
 				
 				if (Weave.properties.enableDrawCircle.value)
 					CirclePlotterSettings.createContextMenuItems(this);

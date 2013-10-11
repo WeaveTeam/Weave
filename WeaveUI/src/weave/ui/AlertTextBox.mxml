@@ -31,11 +31,10 @@
     horizontalScrollPolicy="off" verticalScrollPolicy="off"
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
-	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
+	initialize="UIUtils.pad(this, 10);"
 	keyDown="if (event.keyCode == Keyboard.ESCAPE) cancel();"
 	>
-	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						  text="{message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
+	<ui:Paragraph text="{message}" selectable="true" minWidth="300"/>
 	<mx:Canvas id="inputCanvas" width="100%"
 			includeInLayout="{autoCompleteChoices == null}"
 			visible="{autoCompleteChoices == null}"
@@ -45,7 +44,7 @@
 					 change="textInput = textBox.text;"
 					 keyDown="handleKeyDown(event)"
 					 width="100%"
-					 height="{multiLineEdit ? 64 : 20}"
+					 height="{multiLineEdit ? 96 : 20}"
 					 verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
 		<mx:LinkButton
 					label="{multiLineEdit ? '-' : '+'}"
@@ -80,6 +79,7 @@
 		
 		import weave.api.WeaveAPI;
 		import weave.compiler.StandardLib;
+		import weave.core.UIUtils;
 		
 		[Bindable] public var multiLineEdit:Boolean = false;
 		[Bindable] public var allowEmptyInput:Boolean = false;
@@ -107,6 +107,7 @@
 		private function handleCreationComplete(event:Event):void
 		{
 			focusManager.setFocus(textBox);
+			textBox.setSelection(0, int.MAX_VALUE);
 		}
 		
 		public static var lastInstance:Object;

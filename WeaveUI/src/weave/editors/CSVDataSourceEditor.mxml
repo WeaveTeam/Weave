@@ -44,17 +44,12 @@
 		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
 			<mx:TextArea id="csvTextArea" change="csvParser.parseCSV(csvTextArea.text)" width="100%" height="100"/>
 		</ui:Indent>
-		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!!csvRows}"/>
+		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!arrayIsEmpty(csvRows)}"/>
 	</mx:VBox>
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" creationComplete="{if(_csvDataSource)
-					 {
-					 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_csvDataSource.keyType.value);
-					 	(event.target as KeyTypesMenu).selectedItem = _csvDataSource.keyType.value;
-					 }}" 
-					 id="keyTypeSelector"/>
+	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" id="keyTypeSelector"/>
 	<mx:Spacer/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -66,7 +61,9 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
 			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.editors.managers.EditDataGridPanel;
@@ -92,22 +89,23 @@
 			[Bindable] private var _csvDataSource:CSVDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				_csvDataSource = object as CSVDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_csvDataSource = object as CSVDataSource;
 				if (_csvDataSource)
 				{
 					sourceName.text = Weave.root.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
+					keyTypeSelector.selectedItem = _csvDataSource.keyType.value;
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
-						
 					handleURLTextChange();
 					if (!url.text)
 					{
@@ -117,19 +115,20 @@
 				}
 			}
 			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_csvDataSource.url.value) != StandardLib.asString(url.text)
+					|| StandardLib.asString(_csvDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
+					|| StandardLib.asString(_csvDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedItem)
+					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(_csvDataSource.csvData), csvRows);
+			}
+
 			public function applyChanges():void
 			{
-				try
-				{
-					_csvDataSource.url.value = url.text;
-					_csvDataSource.keyColName.value = keyColumnName.text;
-					_csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
-					_csvDataSource.csvData.setSessionState(csvRows);
-				}
-				catch(e:Error)
-				{
-					reportError(e);
-				}
+				_csvDataSource.url.value = url.text;
+				_csvDataSource.keyColName.value = keyColumnName.text;
+				_csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+				_csvDataSource.csvData.setSessionState(csvRows);
 			}
 			
 			
@@ -167,7 +166,7 @@
 			private function setCSVRows(rows:Array):void
 			{
 				csvRows = rows;
-				headerArray = csvRows[0];
+				headerArray = rows ? rows[0] : [];
 				
 				//this is set to false because this function might be called from Text Area change.
 				uploadMessage.visible = false;
@@ -190,9 +189,14 @@
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
 			
+			private function arrayIsEmpty(array:Array):Boolean
+			{
+				return !array || !array.length;
+			}
+			
 			private function showGrid():void
 			{
-				if (!csvRows)
+				if (arrayIsEmpty(csvRows))
 					return;
 				
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;

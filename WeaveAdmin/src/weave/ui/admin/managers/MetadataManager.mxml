@@ -24,7 +24,8 @@
 			<mx:HBox width="100%" minWidth="0" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}" horizontalScrollPolicy="off">
 				<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
 				<ui:HelpComponent>
-					The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
+					The Weave client does not read these hierarchies yet, but it will in a future version.
+					Check for an update soon.
 				</ui:HelpComponent>
 				<mx:Spacer width="100%"/>
 			</mx:HBox>

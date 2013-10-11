@@ -41,7 +41,7 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
-			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WFSDataSource;
 			
 			override protected function createChildren():void
@@ -54,13 +54,14 @@
 			[Bindable] private var _wfsDataSource:WFSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				_wfsDataSource = object as WFSDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_wfsDataSource = object as WFSDataSource;
 				if (_wfsDataSource)
 				{
 					sourceName.text = Weave.root.getName(_wfsDataSource);
@@ -71,17 +72,16 @@
 				}
 			}
 			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_wfsDataSource.url.value) != StandardLib.asString(url.text)
+					|| _wfsDataSource.swapXY.value != swapXY.selected;
+			}
+			
 			public function applyChanges():void
 			{
-				try
-				{
-					_wfsDataSource.url.value = url.text;
-					_wfsDataSource.swapXY.value = swapXY.selected;
-				}
-				catch (e:Error)
-				{
-					reportError(e);
-				}
+				_wfsDataSource.url.value = url.text;
+				_wfsDataSource.swapXY.value = swapXY.selected;
 			}
 			
 		]]>
