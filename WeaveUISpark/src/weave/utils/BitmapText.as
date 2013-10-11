@@ -55,7 +55,7 @@ package weave.utils
 			textFormat.color = 0x000000;
 		}
 		
-		private const debug:Boolean = false; // set to true to draw debug graphics
+		public var debug:Boolean = false; // set to true to draw debug graphics
 		
 		public static const DEFAULT_FONT_FAMILY:String = LinkableTextFormat.DEFAULT_FONT;
 		
