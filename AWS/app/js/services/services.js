@@ -72,6 +72,8 @@ angular.module("aws.services", []).service("queryobj", function () {
 	            				range:item.publicMetadata.var_range
                 			};
                 			columns.push(obj);
+                		}else{
+                			columns.push(item);
                 		}
                 	});
                 }

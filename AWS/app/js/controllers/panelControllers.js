@@ -6,23 +6,36 @@ angular.module("aws.panelControllers", [])
 .controller("SelectColumnPanelCtrl", function($scope, queryobj, dataService){
 	
 	$scope.options; // initialize
-	$scope.selection;
+	$scope.selection = [];
 	
 	var getOptions = function getOptions(){
 		// fetch Columns using current dataTable
-		$scope.options = dataService.giveMeColObjs($scope);
-		$scope.options.then(function(res){
-			 //getOpts(res);
-			 setSelect();
+		var fullColumnObjects = dataService.giveMeColObjs($scope);
+		$scope.options=[];
+		fullColumnObjects.then(function(result){
+			angular.forEach(result, function(item, index){
+				if(item.hasOwnProperty('publicMetadata')) {
+					var obj = {
+	           			title:item.publicMetadata.title,
+	    				id:item.id,
+	    				range:item.publicMetadata.var_range
+	    			};
+	    			$scope.options[index] = obj;
+				}
+			});
+			setSelect();
 		});
 	};
 	getOptions(); // call immediately
 	
 	function setSelect(){
 		if(queryobj[$scope.selectorId]){
-			$scope.selection = queryobj[$scope.selectorId];
+			var arr = queryobj[$scope.selectorId];
+			angular.forEach(arr, function(item, index){
+				$scope.selection[index] = angular.toJson(item);
+			});
+			//$scope.selection = queryobj[$scope.selectorId];
 		}
-		//$scope.gridOptions.selectedItem = queryobj[$scope.selectorId];
 		$scope.$watch('selection', function(newVal, oldVal){
 			if(newVal != oldVal){
 				var arr = [];
@@ -290,7 +303,10 @@ angular.module("aws.panelControllers", [])
 
 	// TODO, fix: retrieve selections, else create blanks;
 	if(queryobj['scriptOptions']){
-		$scope.selection = queryobj['scriptOptions'];
+		var tempselection = queryobj['scriptOptions'];
+		angular.forEach(tempselection, function(item, index){
+			$scope.selection[index] = angular.toJson(item);
+		});
 	}
 	
 	// build an array that will conform to what query handler expects. 
@@ -298,20 +314,23 @@ angular.module("aws.panelControllers", [])
 		var arr = [];
 		var obj;
 		angular.forEach($scope.selection, function(item, index){
-			obj = "";
-			if(item != ""){
-				item = angular.fromJson(item);
-			
-				obj = {
-						id:item.id,
-						title:item.title
-				};
-				if(item.range){
-					obj.filter = [$scope.sliderOptions[index].values];
+			if(angular.isString(item)){
+				obj = item;
+			//}else{
+				obj = "";
+				if(item != ""){
+					item = angular.fromJson(item);
+				
+					obj = {
+							id:item.id,
+							title:item.title
+					};
+					if(item.range){
+						obj.filter = [$scope.sliderOptions[index].values];
+					}
 				}
 			}
-			arr.push(obj);
-				
+			arr.push(obj);	
 		});
 		return arr;
 	};
