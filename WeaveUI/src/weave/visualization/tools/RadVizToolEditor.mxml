@@ -92,10 +92,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				_target = object as RadVizTool;
 			}
-			public function applyChanges():void
-			{
-				
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 	
 			
 			private function alphaSliderFormatFunction(item:Number):String 

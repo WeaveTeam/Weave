@@ -23,37 +23,39 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
-	borderAlpha="1"
-	borderColor="#939178"
-	borderThicknessLeft="{padding}"
-	borderThicknessRight="{padding}"
-	borderThicknessBottom="{padding}"
+	width="700"
+	height="500"
+	sessionPanelCoordsAsPercentages="false"
+	escapeKeyClosesPanel="true"
 	title="{lang('Add new data source')}">
-	<mx:VBox width="100%" height="100%" verticalGap="0">
-		<mx:HBox height="100%" width="100%" horizontalGap="0">
-			<mx:List id="options" minHeight="0" height="100%" change="handleDataSelect()"/>
-			<mx:Canvas backgroundColor="#939178" width="{padding}" height="100%"/>
-			<mx:VBox width="100%" height="100%" initialize="UIUtils.setPadding(event.target as UIComponent, padding)">
-				<mx:Box id="container" minWidth="0" minHeight="0" width="100%" height="100%"/>
-				<mx:HBox width="100%" visible="{!!options.selectedItem}">
-					<mx:Spacer width="100%"/>
-					<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
-					<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel()"/>
-				</mx:HBox>
-			</mx:VBox>
-		</mx:HBox>
-	</mx:VBox>
+	<mx:HBox initialize="UIUtils.pad(event, padding, 100, 100)" horizontalGap="{padding}">
+		<mx:VBox height="100%">
+			<ui:Paragraph translate="true">
+				Choose one:
+			</ui:Paragraph>
+			<mx:List id="options" initialize="UIUtils.pad(event, 0, 100, 100, true)" change="handleDataSelect()"/>
+		</mx:VBox>
+		<mx:VRule height="100%"/>
+		<mx:VBox initialize="UIUtils.pad(event, padding, 100, 100)" visible="{!!options.selectedItem}">
+			<mx:Box id="container" initialize="UIUtils.pad(event, 0, 100, 100, true)"/>
+			<mx:HBox width="100%">
+				<mx:Spacer width="100%"/>
+				<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
+				<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel()"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:HBox>
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.core.UIComponent;
-			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.data.IDataSource;
+			import weave.api.disposeObjects;
+			import weave.api.newDisposableChild;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
@@ -71,7 +73,6 @@
 			import weave.utils.EditorManager;
 
 			private static const padding:int = 5;
-			private static var _staticInstance:AddDataSourcePanel = null;
 			
 			override protected function childrenCreated():void
 			{
@@ -82,22 +83,17 @@
 				options.labelFunction = WeaveAPI.getRegisteredImplementationDisplayName;
 			}
 			
-			public static function showAsPopup():void
-			{
-				_staticInstance = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AddDataSourcePanel, false) as AddDataSourcePanel;
-				
-				PopUpManager.centerPopUp(_staticInstance);
-			}
-			
 			private var _editor:ILinkableObjectEditor;
 			
 			private function handleDataSelect():void
 			{
+				disposeObjects(_editor);
 				container.removeAllChildren();
+				_editor = null;
 				if (!options.selectedItem)
 					return;
 				var Editor:Class = EditorManager.getEditorClass(options.selectedItem);
-				_editor = new Editor();
+				_editor = newDisposableChild(this, Editor);
 				container.addChild(_editor as DisplayObject);
 				_editor.percentWidth = 100;
 				_editor.percentHeight = 100;
@@ -266,6 +262,13 @@
 				}
 				
 				removePanel();
+			}
+			
+			override public function removePanel():void
+			{
+				options.selectedItem = null;
+				handleDataSelect();
+				super.removePanel();
 			}
 		]]>
 	</mx:Script>

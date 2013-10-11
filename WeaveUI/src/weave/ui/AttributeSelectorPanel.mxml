@@ -59,15 +59,15 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
+			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.HierarchyUtils;
-
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -87,6 +87,8 @@
 			{
 				super.createChildren();
 
+				registerLinkableChild(this, editor, hideIfUnlinked, true);
+				registerLinkableChild(this, columnList, hideIfUnlinked, true);
 				columnList.titleHBox.addChild(addColumnControls);
 				
 				Weave.properties.showAddAllButton.addImmediateCallback(this, changeAddAllButton, true);
@@ -95,16 +97,23 @@
 			override public function dispose():void
 			{
 				super.dispose();
-				disposeObjects(editor);
+			}
+			
+			private function hideIfUnlinked():Boolean
+			{
+				if (_targetObjects.length && !editor.target && !columnList.hashMap)
+				{
+					linkToObject(null);
+					removePanel();
+					return true;
+				}
+				return false;
 			}
 			
 			private function addAll():void
 			{
-				if (columnList.hashMap == null)
-				{
-					linkToObject(null);
+				if (hideIfUnlinked())
 					return;
-				}
 				
 				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
@@ -124,11 +133,9 @@
 			
 			private function addSelected():void
 			{
-				if (columnList.hashMap == null)
-				{
-					linkToObject(null);
+				if (hideIfUnlinked())
 					return;
-				}
+				
 				columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
 			}
 			

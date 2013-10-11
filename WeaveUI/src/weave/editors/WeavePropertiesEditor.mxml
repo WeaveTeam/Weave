@@ -80,7 +80,7 @@
 			</ui:Indent>
 		</mx:VBox>
 		
-		<mx:Button label="{lang('Edit Macros')}" width="100" click="openMacroEditor(event)" />
+		<mx:Button label="{lang('Edit Macros')}" width="100" click="DraggablePanel.openStaticInstance(MacroEditor)" />
 		
 		<mx:HBox>
 			<mx:CheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
@@ -101,6 +101,7 @@
 			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.StreamedGeometryColumn;
 			import weave.ui.DataFilter;
+			import weave.ui.DraggablePanel;
 			
 			override protected function childrenCreated():void
 			{
@@ -122,29 +123,6 @@
 				var sliderIndex:int = [renderAlloc, buildAlloc, parseAlloc].indexOf(slider);
 				var priority:int = [WeaveAPI.TASK_PRIORITY_RENDERING, WeaveAPI.TASK_PRIORITY_BUILDING, WeaveAPI.TASK_PRIORITY_PARSING][sliderIndex];
 				(WeaveAPI.StageUtils as StageUtils).setTaskPriorityTimeAllocation(priority, slider.value);
-			}
-			
-			private static var _instance:ControlPanel;
-			
-			/**
-			 * Opens a static instance of the User Preferences Panel and adds it to the stage as a PopUp
-			 */
-			public static function openGlobalEditor():void
-			{
-				if (!_instance)
-					_instance = new WeavePropertiesEditor();
-				
-				if (!_instance.parent)
-					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
-				
-				_instance.restorePanel();
-			}
-			
-			protected function openMacroEditor(event:MouseEvent):void
-			{
-				var mEditor:MacroEditor = new MacroEditor();
-				PopUpManager.addPopUp(mEditor, WeaveAPI.topLevelApplication as DisplayObject);
-				mEditor.restorePanel();
 			}
 		]]>
 	</mx:Script>

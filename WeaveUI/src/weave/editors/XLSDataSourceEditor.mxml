@@ -68,6 +68,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
@@ -82,13 +83,14 @@
 			[Bindable] private var _xlsDataSource:XLSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				_xlsDataSource = object as XLSDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_xlsDataSource = object as XLSDataSource;
 				if (_xlsDataSource)
 				{
 					sourceName.text = Weave.root.getName(_xlsDataSource);
@@ -102,18 +104,18 @@
 				}
 			}
 			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_xlsDataSource.url.value) != StandardLib.asString(url.text)
+					|| StandardLib.asString(_xlsDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
+					|| StandardLib.asString(_xlsDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedItem);
+			}
+			
 			public function applyChanges():void
 			{
-				try
-				{
-					_xlsDataSource.url.value = url.text;
-					_xlsDataSource.keyColName.value = keyColumnName.text;
-					_xlsDataSource.keyType.value = keyTypeSelector.selectedItem as String;
-				}
-				catch(e:Error)
-				{
-					reportError(e);
-				}
+				_xlsDataSource.url.value = url.text;
+				_xlsDataSource.keyColName.value = keyColumnName.text;
+				_xlsDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 			}
 			
 			

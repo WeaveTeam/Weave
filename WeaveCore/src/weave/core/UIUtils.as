@@ -62,16 +62,33 @@ package weave.core
 		}
 		
 		/**
-		 * Sets paddingLeft, paddingRight, paddingTop, and paddingBottom to the same value.
-		 * @param component
-		 * @param padding
-		 */		
-		public static function setPadding(component:UIComponent, padding:int):void
+		 * This will set the following parameters of a component:
+		 * paddingLeft, paddingRight, paddingTop, paddingBottom, percentWidth, percentHeight, minWidth, minHeight
+		 * @param componentOrEvent A UIComponent or an event with a UIComponent target.
+		 * @param padding Sets paddingLeft, paddingRight, paddingTop, and paddingBottom to the same value.
+		 * @param percentWidth Sets percentWidth if not NaN
+		 * @param percentHeight Sets percentHeight if not NaN
+		 * @param collapsableToZero If true, sets minWidth,minHeight to zero
+		 */
+		public static function pad(componentOrEvent:Object, padding:int, percentWidth:Number = NaN, percentHeight:Number = NaN, collapsableToZero:Boolean = false):void
 		{
+			if (componentOrEvent is Event)
+				componentOrEvent = (componentOrEvent as Event).target;
+			
+			var component:UIComponent = componentOrEvent as UIComponent;
+			if (!component)
+				throw new Error("First parameter must be either a UIComponent or an Event with a UIComponent currentTarget.");
+			
 			component.setStyle('paddingLeft', padding);
 			component.setStyle('paddingTop', padding);
 			component.setStyle('paddingRight', padding);
 			component.setStyle('paddingBottom', padding);
+			if (isFinite(percentWidth))
+				component.percentWidth = percentWidth;
+			if (isFinite(percentHeight))
+				component.percentHeight = percentHeight;
+			if (collapsableToZero)
+				component.minWidth = component.minHeight = 0;
 		}
 		
 		/**

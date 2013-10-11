@@ -1,11 +1,15 @@
 package weave.ui
 {
+	import flash.events.Event;
+	
 	import mx.collections.ArrayCollection;
 	import mx.containers.HBox;
 	import mx.controls.Label;
+	import mx.events.FlexEvent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
+	import weave.utils.EventUtils;
 
 	public class KeyTypesMenu extends HBox
 	{
@@ -18,7 +22,9 @@ package weave.ui
 			comboBox.editable= true; 
 			addChild(menuLabel);
 			addChild(comboBox);
-			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange,true);
+			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange);
+			handleQKeyManagerChange();
+			EventUtils.doubleBind(this, 'selectedItem', comboBox, 'text');
 		}
 		
 		/**
@@ -52,6 +58,12 @@ package weave.ui
 		 * */
 		public function addKeyTypeToMenu(keytype:String,addToTop:Boolean=true):void
 		{
+			_addKeyTypeToMenu(keytype, addToTop);
+			comboBox.invalidateDisplayList();//required incase the length of the keytype is longer than other items and it might be cut-off.
+			comboBox.validateNow();
+		}
+		private function _addKeyTypeToMenu(keytype:String,addToTop:Boolean=true):void
+		{
 			var keytypesSource:ArrayCollection = comboBox.dataProvider as ArrayCollection;
 			
 			if(keytypesSource.contains(keytype))
@@ -61,8 +73,6 @@ package weave.ui
 				keytypesSource.addItemAt(keytype,0);
 			else
 				keytypesSource.addItem(keytype);
-			
-			comboBox.invalidateDisplayList();//required incase the length of the keytype is longer than other items and it might be cut-off.
 		}
 		
 		/**
@@ -82,25 +92,18 @@ package weave.ui
 		/**
 		 * Returns the selected item from the menu
 		 **/
-		public function get selectedItem():Object
-		{
-			return comboBox.text;//we use text and not selectedItem because user can enter the keytype
-		}
-		
-		public function set selectedItem(item:Object):void
-		{
-			comboBox.selectedItem = item;	
-		}
+		[Bindable] public var selectedItem:Object = null;
 		
 		private function handleQKeyManagerChange():void
 		{
 			var keytypes:Array = WeaveAPI.QKeyManager.getAllKeyTypes();
 			for each(var keytype:String in keytypes)
 			{
-				addKeyTypeToMenu(keytype,false);
+				_addKeyTypeToMenu(keytype,false);
 			}
 			
 			comboBox.invalidateDisplayList();
+			comboBox.validateNow();
 		}
 	}
 }

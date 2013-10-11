@@ -77,10 +77,8 @@ Editor for custom layers using GridLinePlotters
 			{
 				_plotter = object as GridLinePlotter;
 			}
-			public function applyChanges():void
-			{
-				
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 
 			private var _plotter:GridLinePlotter = null;
 		

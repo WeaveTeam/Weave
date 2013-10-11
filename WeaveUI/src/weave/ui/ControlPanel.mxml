@@ -51,6 +51,7 @@
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.objectWasDisposed;
+			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.compiler.Compiler;
@@ -60,7 +61,7 @@
 			import weave.utils.EditorManager;
 			
 
-			private var _targetObjects:Array = null;
+			protected var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
 			private var _savedGlobalNames:Object;
@@ -69,20 +70,6 @@
 			override protected function get borderIsVisible():Boolean
 			{
 				return true;
-			}
-			
-			override public function set width(value:Number):void
-			{
-				super.width = value;
-				if (!initialized)
-					panelWidth.value = String(value);
-			}
-			
-			override public function set height(value:Number):void
-			{
-				super.height = value;
-				if (!initialized)
-					panelHeight.value = String(value);
 			}
 			
 			/**
@@ -209,9 +196,22 @@
 					return;
 				}
 				if (tabNavigator)
+				{
 					for each (var child:Object in tabNavigator.getChildren())
+					{
 						if (child is ILinkableObjectEditor)
-							(child as ILinkableObjectEditor).applyChanges();
+						{
+							try
+							{
+								(child as ILinkableObjectEditor).applyChanges();
+							}
+							catch (e:Error)
+							{
+								reportError(e);
+							}
+						}
+					}
+				}
 				
 				_savedGlobalNames = {};
 				_savedGlobalSessionStates = [];

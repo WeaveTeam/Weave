@@ -65,7 +65,7 @@
 			{
 				super.createChildren();
 				
-				UIUtils.setPadding(this, padding);
+				UIUtils.pad(this, padding);
 			}
 			
 			override protected function childrenCreated():void

@@ -88,10 +88,8 @@
 				}
 				handleFilter();
 			}
-			public function applyChanges():void
-			{
-				// changes are applied immediately
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 
 			private function toggleFilter():void
 			{

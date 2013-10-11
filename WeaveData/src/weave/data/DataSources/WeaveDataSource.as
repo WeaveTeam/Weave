@@ -38,6 +38,7 @@ package weave.data.DataSources
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
@@ -101,7 +102,7 @@ package weave.data.DataSources
 			
 			// replace old dataService
 			disposeObjects(dataService);
-			dataService = new WeaveDataServlet(url.value);
+			dataService = registerLinkableChild(this, new WeaveDataServlet(url.value));
 			
 			url.resumeCallbacks();
 		}

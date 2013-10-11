@@ -62,10 +62,8 @@
 					linkBindableProperty(plotter.labelDistanceIsVertical, labelDistanceIsVertical, 'selected');
 				}
 			}
-			public function applyChanges():void
-			{
-				// changes are applied immediately
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 		]]>
 	</mx:Script>
 </mx:Box>

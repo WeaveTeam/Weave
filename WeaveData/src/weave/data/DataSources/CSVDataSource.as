@@ -363,7 +363,7 @@ package weave.data.DataSources
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = parsedRows[0];
-				var root:XML = <hierarchy/>;
+				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
 				for each (var colName:String in firstRow)
 				{
 					var attr:XML = <attribute

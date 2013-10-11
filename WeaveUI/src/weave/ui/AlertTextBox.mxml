@@ -31,7 +31,7 @@
     horizontalScrollPolicy="off" verticalScrollPolicy="off"
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
-	initialize="UIUtils.setPadding(this, 10);"
+	initialize="UIUtils.pad(this, 10);"
 	keyDown="if (event.keyCode == Keyboard.ESCAPE) cancel();"
 	>
 	<ui:Paragraph text="{message}" selectable="true" minWidth="300"/>

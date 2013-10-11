@@ -34,8 +34,13 @@ package weave.ui
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.core.CallbackJuggler;
 	
+	
+	/**
+	 * Callbacks trigger when the list of objects changes.
+	 */
 	public class VariableListController implements ILinkableObject
 	{
 		public function VariableListController()
@@ -203,10 +208,14 @@ package weave.ui
 				setNameColumnHeader();
 				_editor.dataProvider = hashMap.getObjects();
 			}
+			else
+				_editor.dataProvider = null;
 			
 			var view:ICollectionView = _editor.dataProvider as ICollectionView;
 			if (view)
 				view.refresh();
+			
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function removeAllItems():void

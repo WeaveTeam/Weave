@@ -775,7 +775,7 @@ package weave.application
 				}
 
 				if (Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage data sources"), EditDataSourcePanel.showAsPopup));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data sources"), DraggablePanel.openStaticInstance, [EditDataSourcePanel]));
 			}
 			
 			
@@ -1206,7 +1206,7 @@ package weave.application
 				_windowMenu.children.removeAll();
 			
 			if (Weave.properties.enableUserPreferences.value || adminService)
-				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Preferences"), WeavePropertiesEditor.openGlobalEditor));
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Preferences"), DraggablePanel.openStaticInstance, [WeavePropertiesEditor]));
 			
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 

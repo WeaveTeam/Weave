@@ -83,12 +83,12 @@ package weave.data.DataSources
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = xlsSheetsArray[0].values[0];
-				var category:XML = <category name="XLS Data"/>;
+				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
 				for each (var colName:String in firstRow)
 				{
-					category.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
 				}
-				_attributeHierarchy.value = <hierarchy>{ category }</hierarchy>;
+				_attributeHierarchy.value = root;
 			}
 			
 			//trace("hierarchy was set to " + attributeHierarchy.xml);

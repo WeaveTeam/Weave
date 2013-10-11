@@ -38,10 +38,8 @@
 				_plotter = object as GeometryLabelPlotter;
 			}
 			
-			public function applyChanges():void
-			{
-				
-			}			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			override protected function childrenCreated():void
 			{

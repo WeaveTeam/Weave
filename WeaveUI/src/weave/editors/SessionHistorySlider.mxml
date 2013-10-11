@@ -198,13 +198,8 @@
 				_stateLogJuggler.target = _stateLog = object as SessionStateLog;
 			}
 			
-			/**
-			 * @inheritDoc
-			 */
-			public function applyChanges():void
-			{
-				// do nothing because changes are applied immediately.
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			// called when anything is clicked
 			private function handleAnyClick():void

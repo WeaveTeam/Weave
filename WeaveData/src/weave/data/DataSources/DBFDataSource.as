@@ -153,7 +153,7 @@ package weave.data.DataSources
 		{
 			if (!subtreeNode && _attributeHierarchy.value === null && dbfHeader)
 			{
-				var xml:XML = <hierarchy/>;
+				var xml:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
 				if (shpfile)
 					xml.appendChild(<attribute
 						dataType={ DataTypes.GEOMETRY }

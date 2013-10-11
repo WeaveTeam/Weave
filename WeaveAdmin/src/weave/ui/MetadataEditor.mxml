@@ -16,11 +16,11 @@
         <ui:MetadataGrid id="publicMetaGrid"
 			label="{lang(PUBLIC_META_GRID_LABEL_FORMAT, publicMetaGrid.grid.dataProvider ? publicMetaGrid.grid.dataProvider.length : 0, publicMetaGrid.metadataChanged?'*':'')}"
 			preferredMetadataOrder="{preferredMetadataOrder}"
-			initialize="UIUtils.setPadding(publicMetaGrid, 5);"/>
+			initialize="UIUtils.pad(event, 5);"/>
         <ui:MetadataGrid id="privateMetaGrid"
 			label="{lang(PRIVATE_META_GRID_LABEL_FORMAT, privateMetaGrid.grid.dataProvider ? privateMetaGrid.grid.dataProvider.length : 0, privateMetaGrid.metadataChanged?'*':'')}"
 			preferredMetadataOrder="{preferredMetadataOrder}"
-			initialize="UIUtils.setPadding(privateMetaGrid, 5);"/>
+			initialize="UIUtils.pad(event, 5);"/>
     </mx:TabNavigator>
     <mx:HBox width="100%">
 		<mx:Button label="{lang('Edit as CSV')}" enabled="{!isChanged}" click="editCSV()"/>

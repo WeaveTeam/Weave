@@ -23,119 +23,228 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	xmlns:ui="weave.ui.*"
-	borderAlpha="1"
-	borderColor="#939178"
-	borderThicknessLeft="{padding}"
-	borderThicknessRight="{padding}"
-	borderThicknessBottom="{padding}"
-	title="{lang('Manage data sources')}">
-	<mx:VBox width="100%" height="100%" verticalGap="0">
-		<mx:HBox height="100%" width="100%" horizontalGap="0">
-			<mx:VBox height="100%" initialize="UIUtils.setPadding(event.target as UIComponent, padding)">
-				<mx:Button label="{lang('Browse data')}" click="AttributeSelectorPanel.openDefaultSelector();" width="100%"/>
-				<mx:Button label="{lang('New data source...')}" click="addSource()" width="100%"/>
-				<ui:Paragraph>
-					Data sources:
-				</ui:Paragraph>
-				<mx:List id="sourceList"
-						 change="handleSourceSelect()"
-						 minHeight="0"
-						 height="100%" width="100%"
-						 dataProvider="{sources}"
-						 labelFunction="getLabel"/>
-				<mx:Button label="{lang('Remove selected')}" click="removeSelected()" width="100%"/>
-			</mx:VBox>
-			<mx:Canvas backgroundColor="#939178" width="{padding}" height="100%"/>
-			<mx:VBox width="100%" height="100%" initialize="UIUtils.setPadding(event.target as UIComponent, padding)">
-				<ui:Paragraph visible="{!sourceList.selectedItem}" includeInLayout="{!sourceList.selectedItem}">
-					Select a data source to edit.
-				</ui:Paragraph>
-				<mx:Box id="container" minWidth="0" minHeight="0" width="100%" height="100%"/>
-				<mx:HBox width="100%" visible="{!!sourceList.selectedItem}">
-					<mx:Spacer width="100%"/>
-					<mx:Button label="{lang('Apply changes')}" click="save()"/>
-				</mx:HBox>
-			</mx:VBox>
-		</mx:HBox>
-	</mx:VBox>
+	backgroundColor="#EFF4BC"
+	width="700"
+	height="500"
+	escapeKeyClosesPanel="true"
+	sessionPanelCoordsAsPercentages="false"
+	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*">
+	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
+		<mx:VBox height="100%">
+			<mx:Button label="{lang('New data source...')}" click="addSource()" width="100%"/>
+			<ui:Paragraph translate="true">
+				Select a data source:
+			</ui:Paragraph>
+			<mx:List id="sourceList"
+					 change="handleSourceSelect()"
+					 minHeight="0"
+					 height="100%" width="100%">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:Canvas>
+							<mx:Script>
+								<![CDATA[
+									import weave.api.WeaveAPI;
+									import weave.api.core.ILinkableObject;
+								]]>
+							</mx:Script>
+							<mx:Label text="{WeaveAPI.globalHashMap.getName(data as ILinkableObject)}"/>
+							<ui:BusyIndicator targets="{[data]}" diameterRatio=".75"/>
+						</mx:Canvas>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
+			<mx:Button label="{lang('Remove selected')}" click="removeSelected()" width="100%"/>
+		</mx:VBox>
+		<mx:TabNavigator id="tabNav" initialize="UIUtils.pad(event, padding, 100, 100)">
+			<mx:ViewStack id="browseTab" label="{lang('Browse')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
+				<mx:Canvas width="100%" height="100%">
+					<ui:Paragraph translate="true" id="browseMessage"/>
+				</mx:Canvas>
+				<editors:DynamicColumnEditor id="browser" dataSource="{dataSource}"/>
+			</mx:ViewStack>
+			<mx:ViewStack id="editTab" label="{lang('Configure')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
+				<mx:Canvas width="100%" height="100%">
+					<ui:Paragraph translate="true" id="configureMessage"/>
+				</mx:Canvas>
+				<mx:VBox width="100%" height="100%">
+					<mx:Box id="container" initialize="UIUtils.pad(event, 0, 100, 100, true)"/>
+					<mx:HBox width="100%">
+						<mx:Spacer width="100%"/>
+						<mx:Button label="{lang('Apply changes')}" click="save()"/>
+						<mx:Button label="{lang('Cancel')}" click="selectDataSource(dataSource); tabNav.selectedChild = browseTab;"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:ViewStack>
+		</mx:TabNavigator>
+	</mx:HDividedBox>
 		
 		<mx:Script>
 			<![CDATA[
-				import mx.core.UIComponent;
+				import weave.api.setSessionState;
+				import weave.api.disposeObjects;
+				import weave.api.registerDisposableChild;
+				import weave.utils.PopUpUtils;
+				import weave.api.reportError;
 				import mx.managers.PopUpManager;
 				
-				import weave.Weave;
 				import weave.api.WeaveAPI;
 				import weave.api.core.ILinkableObject;
 				import weave.api.data.IDataSource;
 				import weave.api.ui.ILinkableObjectEditor;
 				import weave.core.UIUtils;
-				import weave.ui.AttributeSelectorPanel;
 				import weave.utils.EditorManager;
 				
-				private static const padding:int = 5;
-				[Bindable]
-				private var sources:Array = new Array();
+				private static const padding:int = 8;
 				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
 					
 					pinnable.value = false;
-					Weave.root.childListCallbacks.addGroupedCallback(this, updateSources, true);
+					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
+					selectDataSource(null);
+					tabNav.addEventListener(Event.CHANGE, handleTabIndexChange);
+				}
+				
+				private function handleTabIndexChange(event:Event):void
+				{
+					if (event)
+					{
+						// if we try to change the selectedChild immediately, the tab nav gets out of sync
+						callLater(handleTabIndexChange, [null]);
+						return;
+					}
+					if (tabNav.selectedChild != editTab && hasPendingChanges())
+					{
+						var newTabIndex:int = tabNav.selectedIndex;
+						tabNav.selectedChild = editTab;
+						confirmDiscard(function():void {
+							selectDataSource(dataSource); // resets changes
+							tabNav.selectedIndex = newTabIndex;
+						});
+					}
+				}
+				
+				private function hasPendingChanges():Boolean
+				{
+					return editor && editor.parent && editor.hasPendingChanges();
 				}
 				
 				private function updateSources():void
 				{
-					sourceList.selectedItem = null;
-					sources = Weave.root.getObjects(IDataSource);
-					handleSourceSelect();
+					sourceList.dataProvider = WeaveAPI.globalHashMap.getObjects(IDataSource);
+					sourceList.selectedItem = dataSource;
+					
+					if (WeaveAPI.globalHashMap.childListCallbacks.lastObjectRemoved == dataSource)
+						selectDataSource(null);
+					
+					var newDataSource:IDataSource = WeaveAPI.globalHashMap.childListCallbacks.lastObjectAdded as IDataSource;
+					if (newDataSource && !hasPendingChanges())
+					{
+						selectDataSource(newDataSource);
+						tabNav.selectedIndex = 0;
+					}
 				}
 				
-				private static var _staticInstance:EditDataSourcePanel = null;
-				public static function showAsPopup():void
-				{
-					if (_staticInstance == null)
-						_staticInstance = new EditDataSourcePanel();
-					_staticInstance = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, EditDataSourcePanel, false) as EditDataSourcePanel;
-					
-					PopUpManager.centerPopUp(_staticInstance);
-				}	
-				
+				[Bindable] private var dataSource:IDataSource;
 				private var editor:ILinkableObjectEditor = null;
-				private function handleSourceSelect():void
+				
+				private function selectDataSource(value:IDataSource):void
 				{
-					container.removeAllChildren();
+					sourceList.selectedItem = value;
+					handleSourceSelect(true);
+				}
+				
+				private function handleSourceSelect(confirmed:Boolean = false):void
+				{
+					var newDataSource:IDataSource = sourceList.selectedItem as IDataSource;
+					if (!confirmed && dataSource == newDataSource)
+						return;
+					
+					if (!confirmed && hasPendingChanges())
+					{
+						// switch back until user confirms
+						sourceList.selectedItem = dataSource;
+						tabNav.selectedIndex = 1;
+						confirmDiscard(function():void { selectDataSource(newDataSource); });
+						return;
+					}
+					
+					if (editor && editor.parent == container)
+						container.removeChild(editor as DisplayObject);
+					disposeObjects(editor);
 					editor = null;
-					var dataSource:IDataSource = sourceList.selectedItem as IDataSource;
+					
+					dataSource = newDataSource
 					if (dataSource)
 					{
-						editor = EditorManager.getNewEditor(dataSource);
+						editor = registerDisposableChild(this, EditorManager.getNewEditor(dataSource));
 						if (!editor)
 							return;
-						container.addChild(editor as DisplayObject);
+						container.addChildAt(editor as DisplayObject, 0);
 						editor.percentWidth = 100;
 						editor.percentHeight = 100;
+					}
+					else
+					{
+						if (WeaveAPI.globalHashMap.getObjects(IDataSource).length)
+							browseMessage.text = configureMessage.text = "Please select a data source.";
+						else
+							browseMessage.text = configureMessage.text = "Please create a data source first.";
 					}
 				}
 				private function addSource():void
 				{
-					AddDataSourcePanel.showAsPopup();
+					DraggablePanel.openStaticInstance(AddDataSourcePanel);
 				}
 				private function removeSelected():void
 				{
-					Weave.root.removeObject(Weave.root.getName(sourceList.selectedItem as ILinkableObject));
+					WeaveAPI.globalHashMap.removeObject(WeaveAPI.globalHashMap.getName(dataSource));
 				}
 				
 				private function save():void
 				{
-					if (editor != null)
-						editor.applyChanges();
+					try
+					{
+						if (editor != null)
+						{
+							editor.applyChanges();
+							setSessionState(dataSource.attributeHierarchy, null);
+							tabNav.selectedChild = browseTab;
+						}
+					}
+					catch (e:Error)
+					{
+						reportError(e);
+					}
 				}
 				
-				private function getLabel(item:Object):String
+				override public function removePanel():void
 				{
-					return Weave.root.getName(item as ILinkableObject);
+					if (hasPendingChanges())
+					{
+						confirmDiscard(function():void {
+							selectDataSource(null);
+							removePanel();
+						});
+					}
+					else
+					{
+						selectDataSource(null);
+						super.removePanel();
+					}
+				}
+				
+				private function confirmDiscard(yes:Function):void
+				{
+					PopUpUtils.confirm(
+						this,
+						lang('Discard changes'),
+						lang('Discard unsaved changes?'),
+						yes, null,
+						lang('Discard'), lang('Cancel')
+					);
 				}
 			]]>
 		</mx:Script>

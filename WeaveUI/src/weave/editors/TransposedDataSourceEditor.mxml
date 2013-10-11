@@ -41,17 +41,20 @@
 		Metadata variables will be used to set the metadata of transposed columns and are case sensitive.
 		For example, create a metadata variable named "title" to define the text used for each transposed column title.
 	</ui:Paragraph>
-	<mx:TabNavigator id="tabNav" initialize="UIUtils.setPadding(tabNav, 5);" width="100%" height="100%">
+	<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
 		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns')}"/>
 		<ui:ColumnListComponent id="metadataEditor" showVariableNames="true" label="{lang('Metadata variables')}"/>
 	</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.getSessionState;
+			import weave.api.objectWasDisposed;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
@@ -59,6 +62,7 @@
 			
 			public const metadata:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			
 			[Bindable] private var _dataSource:TransposedDataSource = null;
 			
 			override protected function createChildren():void
@@ -73,13 +77,14 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
+				_dataSource = object as TransposedDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_dataSource = object as TransposedDataSource;
 				if (_dataSource)
 				{
 					copySessionState(_dataSource.metadata, metadata);
@@ -88,6 +93,12 @@
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
+			}
+			
+			public function hasPendingChanges():Boolean
+			{
+				return !!WeaveAPI.SessionManager.computeDiff(getSessionState(metadata), getSessionState(_dataSource.metadata))
+					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(columns), getSessionState(_dataSource.columns));
 			}
 			
 			public function applyChanges():void

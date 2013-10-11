@@ -43,11 +43,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				_target = object as DataStatisticsTool;
 			}
-			public function applyChanges():void
-			{
-				
-			}
-			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 	]]>
 	</mx:Script>
 	
