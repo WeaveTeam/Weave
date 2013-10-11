@@ -117,6 +117,7 @@
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
 			import weave.services.addAsyncResponder;
+			import weave.services.beans.RResult;
 			import weave.services.beans.SolrClusterObject;
 			import weave.services.beans.TopicClassificationResults;
 			import weave.ui.ControlPanel;
@@ -574,7 +575,8 @@
 			 * @private
 			 * Called when the session state of query is changed
 			 **/
-			private var _currentQueryTerms:Array = [];
+//			private var _currentQueryTerms:Array = [];
+			private var _currentQueryString:String = "";
 			private function createAndSendQuery(event:TimerEvent=null):void
 			{
 				/* this function is called every time the query parameters changes, so we will reset the timer so that it is not called immediately
@@ -587,7 +589,6 @@
 				/* if this is an empty query clear all documents */
 				if(!currentQuery.keywords.value)
 				{	
-					_currentQueryTerms = [];
 					handleEmptyResultSet();
 					return;
 				}
@@ -603,14 +604,13 @@
 				/* check to see if this a new query or an old query */
 				var isQueryDifferent:Boolean = QueryObject.isQueryDifferent(previousQuery,currentQuery);
 				
-				/* Make query to get number of documents */
-				/* We first check to see if they are separated by commas if not then assume space*/
-				if(_parentPanel.relatedKeywords.value)
-					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
-						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
+				_currentQueryString = processQuery(); 
 				
-				_currentQueryTerms = processQuery(currentQuery.keywords.value); 
-				
+				if(!_currentQueryString)
+				{
+					handleEmptyResultSet();
+					return;
+				}
 				if(isQueryDifferent || _firstLoad)
 				{
 					InfoMapAdminInterface.instance.queryDataSources(_currentQueryTerms,
@@ -618,39 +618,131 @@
 				}
 				
 				var numOfDocsQuery:AsyncToken = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(
-					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.dateFilter,currentQuery.sources.value);
+					_currentQueryString,currentQuery.dateFilter,currentQuery.sources.value);
 				
 				var token:QueryObject = new QueryObject();
 				copySessionState(currentQuery,token);
 				addAsyncResponder(numOfDocsQuery,handleNumOfDocsQueryResult,handleNumOfDocsQueryFault,token);
 			}
 			
-			private function processQuery(queryString:String):Array
+			private var _currentQueryTerms:Array = [];
+			private var _currentRelatedKeywords:Array = [];
+			private function processQuery():String
 			{
-				var result:Array = [];
-				var temp:Array = [];
-				queryString = queryString.toLowerCase()
+				var result:String = "";
+				var queryString:String = currentQuery.keywords.value.toLowerCase();
 				queryString = StringUtil.trim(queryString);
 				
-				var quotedText:String="";
+				var currentRelatedKeywords:Array = [];
+				/* Make query to get number of documents */
+				/* We first check to see if they are separated by commas if not then assume space*/
+				if(_parentPanel.relatedKeywords.value)
+					currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(",") != -1?
+						_parentPanel.relatedKeywords.value.split(','):_parentPanel.relatedKeywords.value.split(' ');
+				var temp:Array = [];
+				/* if the query has AND,OR use it as it is  */
+				if(queryString.indexOf(" or ")>-1 || queryString.indexOf(" and ")>-1)
+				{
+					/* TODO: break or & and's  and change to upper case for each */
+					queryString = queryString.replace(new RegExp(/ and /g)," AND ");
+					queryString = queryString.replace(new RegExp(/ or /g)," OR ");
+					result = queryString;
+					
+					
+					/* get related and required keywords */
+					if(queryString.indexOf(" AND ") >-1)
+					{
+						temp = queryString.split(" AND ");
+						
+						for each (var s:String in temp)
+						{
+							if(s.indexOf(" OR ") > -1)
+							{
+								var temp2:Array = s.split(" OR ");
+								for each(var s2:String in temp2)
+								{
+									_currentRelatedKeywords.push(s2);
+								}
+							}
+							else
+							{
+								_currentQueryTerms.push(s);
+							}
+						}
+					}
+					else if(queryString.indexOf(" OR ") >-1)
+					{
+						temp = queryString.split(" OR ");
+						
+						for each (var s3:String in temp)
+						{
+							if(s3.indexOf(" AND ") > -1)
+							{
+								var temp3:Array = s3.split(" AND ");
+								for each(var s4:String in temp3)
+								{
+									_currentQueryTerms.push(s4);
+								}
+							}
+							else
+							{
+								_currentRelatedKeywords.push(s3);
+							}
+						}
+					}
+					
+					return result;
+				}
+				
+				var processedQueryTerms:Array = [];
+				temp = [];
+				
+				/* use quoted text as a single term/phrase */
 				if(queryString.indexOf('"')>-1)
 				{
 					if(queryString.indexOf('"') != queryString.lastIndexOf('"'))
 					{
-						quotedText = queryString.substring(queryString.indexOf('"'),queryString.lastIndexOf('"')+1);
-						temp.push(quotedText);
-						queryString = queryString.substr(0,queryString.indexOf('"')) + 
-										queryString.substr((queryString.lastIndexOf('"')+1),queryString.length);
-						queryString = StringUtil.trim(queryString);
+						var quotedTextArray:Array = queryString.match(new RegExp(/"[\w-' ]+"/g));//match hyphenated, spaced words
 					}
 				}
+				
+				/* once we have all the quoted text we will remove them from the query string and process the rest of the string */
+				for each(var quotedText:String in quotedTextArray)
+				{
+					temp.push(quotedText);
+					queryString = queryString.replace(new RegExp(quotedText),"");
+				}
+				
+				/* separate the terms by comma or space */
 				temp = temp.concat(queryString.indexOf(',') != -1?queryString.split(','):
 						queryString.split(' '));
 				
 				for(var i:int=0; i<temp.length; i++)
 				{
 					if(temp[i] && (temp[i] as String).length > 0)
-						result.push(temp[i]);
+						processedQueryTerms.push(temp[i]);
+				}
+				
+				if(processedQueryTerms.length==0)
+				{
+					return result;
+				}
+				
+				_currentQueryTerms = processedQueryTerms.concat();
+				_currentRelatedKeywords = currentRelatedKeywords.concat();
+				
+				var requiredQueryString:String = processedQueryTerms.join(" "+currentQuery.operator.value+" ");
+				
+				if(currentRelatedKeywords.length>0)
+				{
+					var relatedQueryString:String = currentRelatedKeywords.join(" OR ");
+					relatedQueryString = "(" + relatedQueryString + ")";
+					requiredQueryString = "(" + requiredQueryString + ")";
+					result = requiredQueryString + " AND " + relatedQueryString;
+				}
+				else
+				{
+					result = "(" + requiredQueryString + ")";
 				}
 				return result;
 			}
@@ -669,9 +761,9 @@
 				/* If no documents found, show status and do nothing. */
 				if(numOfDocs <= 0)
 				{
-					status.text = "0 documents found. Checking with data sources...";
-					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
-						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
+					status.text = "0 documents found.";
+//					addAsyncResponder(InfoMapAdminInterface.instance.getTotalNumberOfQueryResultsFromSource
+//						(_currentQueryTerms,_currentRelatedKeywords),handleTotalResults,handleTotalResultsFault);
 					handleEmptyResultSet();
 					return;						
 				}
@@ -693,13 +785,12 @@
 				handleChangeToPrevQuery();
 				
 				var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
-					_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
+					_currentQueryString,currentQuery.sources.value,
 					currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 				
 				addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
 				
-				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryTerms,_currentRelatedKeywords,
-					currentQuery.operator.value,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
+				var wordCountQuery:AsyncToken = _parentPanel.infoMapsDataSource.getWordCount(_currentQueryString,currentQuery.sources.value,currentQuery.dateFilter,currentQuery.sortBy.value);
 				
 				var token:QueryObject = new QueryObject();
 				copySessionState(currentQuery,token);
@@ -1085,7 +1176,6 @@
 			private function getRequiredKeywords():Array
 			{
 				var selectedKeys:Array = _selection.keys;
-				
 				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
 				
 				var requriedKeywords:Array = getKeywordsFromEntityColumns(selectedKeys);
@@ -1199,9 +1289,8 @@
 				if(!currentQuery.keywords.value)
 					return;
 				
-				var requiredKeywords:Array = _currentQueryTerms;
 				
-				if(requiredKeywords.length == 0)
+				if(_currentQueryString.length == 0)
 				{
 					return;
 				}
@@ -1254,9 +1343,8 @@
 					entities.push(key);
 				}
 				
-				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(_currentQueryTerms,
-					_currentRelatedKeywords,entities,currentQuery.operator.value,currentQuery.sources.value,
-					currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
+				var entityQuery:AsyncToken = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(_currentQueryString,entities,
+					currentQuery.sources.value,currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 				
 				var token:Object = new Object();
 				token.query = new QueryObject();
@@ -2214,9 +2302,8 @@
 					var filter:KeyFilter = docListComponent.listFilters.getObject(keyword) as KeyFilter;
 					if(!filter)
 					{
-						var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryTerms,_currentRelatedKeywords,
-							currentQuery.dateFilter,[keyword],_numOfDocuments,currentQuery.operator.value,
-							currentQuery.sources.value,currentQuery.sortBy.value);
+						var filterQuery:AsyncToken = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(_currentQueryString,
+							currentQuery.dateFilter,[keyword],_numOfDocuments,currentQuery.sources.value,currentQuery.sortBy.value);
 						
 						addAsyncResponder(filterQuery,handleFilterQueryResult,handleFilterQueryFault,keyword);
 					}
@@ -2255,15 +2342,13 @@
 				var topicsQuery:AsyncToken = null
 				if(numOfMatchedDocuments.value <= 20 && numOfTopics.value > 3)
 				{
-					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,_currentRelatedKeywords,
-						currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, 3,
-						numOfKeywordsInEachTopic.value);
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryString,currentQuery.sources.value,
+						currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, 3,numOfKeywordsInEachTopic.value);
 				}
 				else
 				{
-					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryTerms,
-						_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, numOfTopics.value,
-						numOfKeywordsInEachTopic.value);
+					topicsQuery = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(_currentQueryString,currentQuery.sources.value,
+						currentQuery.sortBy.value,currentQuery.dateFilter,_numOfDocuments, numOfTopics.value,numOfKeywordsInEachTopic.value);
 				}
 				
 				var token:QueryObject = new QueryObject();
@@ -2289,9 +2374,9 @@
 			{
 				clusterCSVDataSource.url.value = "/InfoMapServices/AdminService";
 				var servletParam:Object = new Object();
-				servletParam.method = "getClustersForQueryWithRelatedKeywords";
-				servletParam.params = [_currentQueryTerms,_currentRelatedKeywords,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
-					currentQuery.operator.value,currentQuery.sources.value,currentQuery.sortBy.value];
+				servletParam.method = "getClustersForQueryString";
+				servletParam.params = [_currentQueryString,DateUtils.getDateFilterStringForSolr(currentQuery.dateFilter),_numOfDocuments,
+					currentQuery.sources.value,currentQuery.sortBy.value];
 				clusterCSVDataSource.servletParams.value = servletParam;
 				clusterCSVDataSource.keyColName.value = "document";
 				clusterCSVDataSource.keyType.value = InfoMapsDataSource.DOC_KEYTYPE;
@@ -2439,7 +2524,7 @@
 			private var tempQueryObject:QueryObject = new QueryObject();
 			private var triggeredByQuerObjectChange:Boolean = false;
 			private function googleSearchQuery():void {
-				if (_currentQueryTerms.length == 0 || !currentQuery.keywords.value) return;
+				if (_currentQueryString.length == 0 || !currentQuery.keywords.value) return;
 				
 				if (triggeredByQuerObjectChange) {
 					triggeredByQuerObjectChange = false;
@@ -2552,7 +2637,7 @@
 					var token:QueryObject = new QueryObject();
 					copySessionState(currentQuery,token);
 					var docSetQuery:AsyncToken = _parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(
-						_currentQueryTerms,_currentRelatedKeywords,currentQuery.operator.value,currentQuery.sources.value,
+						_currentQueryString,currentQuery.sources.value,
 						currentQuery.dateFilter,_numOfDocuments,currentQuery.sortBy.value);
 					
 					addAsyncResponder(docSetQuery,handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,token);
@@ -2619,14 +2704,12 @@
 			public function applyKeywords(keywords:String):void
 			{
 				previousQuery.keywords.value = keywords;
-				if(_parentPanel.relatedKeywords.value)
-					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
-						_parentPanel.relatedKeywords.value.split(' ');
 			}
 			
-			private var _currentRelatedKeywords:Array = null;
+//			private var _currentRelatedKeywords:Array = null;
 			public function applyKeywordsFromSelection():void
 			{
+				var currentTool:DraggablePanel = DraggablePanel.getTopPanel();
 				if(!_parentPanel)
 				{
 					var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;					
@@ -2635,9 +2718,6 @@
 				
 				previousQuery.keywords.value = getRequiredKeywords().join(',');
 				previousQuery.operator.value = "OR";
-				if(_parentPanel.relatedKeywords.value)
-					_currentRelatedKeywords = _parentPanel.relatedKeywords.value.indexOf(',') != -1? _parentPanel.relatedKeywords.value.split(','):
-						_parentPanel.relatedKeywords.value.split(' ');
 				_selection.clearKeys();
 			}
 			
@@ -2771,6 +2851,9 @@
 			private function handleEmptyResultSet():void
 			{
 				thumbnails.removeAllObjects();
+				_currentQueryString = "";
+				_currentQueryTerms = [];
+				_currentRelatedKeywords = [];
 				_nameOrder = [];
 				numOfMatchedDocuments.value = 0;
 				_currentNewDocsCount = 0;

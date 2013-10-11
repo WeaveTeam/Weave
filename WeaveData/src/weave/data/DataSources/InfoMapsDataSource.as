@@ -148,60 +148,51 @@ package weave.data.DataSources
 //			InfoMapAdminInterface.instance.queryDataSources(queryTerms);
 //		}
 		
-		public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,operator:String,sources:String,
+		public function getWordCount(query:String,sources:String,
 									 dateFilter:DateRangeFilter,sortBy:String):AsyncToken
 		{
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getWordCount(requiredKeywords,relatedKeywords,dateFilterString,operator,sources,sortBy);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getWordCount(query,dateFilterString,sources,sortBy);
 			
 			return q;
 		}
 		
-		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:String,
-											 operator:String='AND',sources:Array=null,dateFilter:DateRangeFilter=null,
-											 numberOfRequestedDocuments:int=2000,partialMatch:Boolean=false):void
-		{
-			if(query)
-			{
-				var mendeleyQuery:String = query.replace(/"/g,'');//replacing quotes
-				
-				var mendeleyQueryArray:Array = mendeleyQuery.split(' ');
-//				trace("CALLING DATA SOURCES");
-				
-				
-				trace("CALLING SOLR");
-				var queryTerms:Array = query.replace(/"/g,'').split(' ');//removing quotes completely for now
-				createAndSendQuery(docKeySet,wordCount,numberOfMatchedDocuments,queryTerms,null,operator,sources,
-					dateFilter,numberOfRequestedDocuments);
-			}
-			
-		}
-
-		public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,operator:String,
+		public function getNumOfDocumentsForQuery(query:String,
 												  dateFilter:DateRangeFilter,sources:String):AsyncToken
 		{
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getNumOfDocumentsForQuery(requiredKeywords,relatedKeywords,dateFilterString,operator,sources);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getNumOfDocumentsForQuery(query,dateFilterString,sources);
 			
 			return q;
 		}
 		
-		public function getDocumentsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,operator:String,sources:String,
+		public function getDocumentsForQueryWithRelatedKeywords(query:String,sources:String,
 																dateFilter:DateRangeFilter,numberOfRequestedDocuments:int,sortyBy:String):AsyncToken
 		{
 			
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getResultsForQueryWithRelatedKeywords(requiredKeywords,relatedKeywords,dateFilterString,
-																			numberOfRequestedDocuments,operator,sources,sortyBy);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getResultsForQueryWithRelatedKeywords(query,dateFilterString,
+																			numberOfRequestedDocuments,sources,sortyBy);
+			return q;
+			
+		}
+		public function getClustersForQueryString(query:String,sources:String,
+															   sortBy:String,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
+		{
+			
+			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
+			
+			var q:AsyncToken = InfoMapAdminInterface.instance.getClustersForQueryString(query,
+				dateFilterString,numberOfRequestedDocuments,sources,sortBy);
 			return q;
 			
 		}
 		
 		public function getClustersForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,operator:String,sources:String,
-												sortBy:String,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
+															   sortBy:String,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):AsyncToken
 		{
 			
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
@@ -212,36 +203,36 @@ package weave.data.DataSources
 			
 		}
 		
-		public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,operator:String,sources:String,sortBy:String,
+		public function classifyDocumentsForQuery(query:String,sources:String,sortBy:String,
 												 dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,numOfTopics:int=5,
 												 numOfKeywords:int=5):AsyncToken
 		{
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.classifyDocumentsForQuery(requiredKeywords,relatedKeywords,
-				dateFilterString,numberOfRequestedDocuments,operator,sources,sortBy,numOfTopics,numOfKeywords);
+			var q:AsyncToken = InfoMapAdminInterface.instance.classifyDocumentsForQuery(query,
+				dateFilterString,numberOfRequestedDocuments,sources,sortBy,numOfTopics,numOfKeywords);
 			
 			return q;
 		}
 		
-		public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:DateRangeFilter,
-												 filterTerms:Array,rows:int,operator:String,sources:String,sortBy:String):AsyncToken
+		public function getLinksForFilteredQuery(query:String,dateFilter:DateRangeFilter,
+												 filterTerms:Array,rows:int,sources:String,sortBy:String):AsyncToken
 		{
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getLinksForFilteredQuery(requiredKeywords,relatedKeywords,dateFilterString,
-				filterTerms,rows,operator,sources,sortBy);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getLinksForFilteredQuery(query,dateFilterString,
+				filterTerms,rows,sources,sortBy);
 			
 			return q;
 		}
 		
-		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,operator:String,sources:String,
+		public function getEntityDistributionForQuery(query:String, entities:Array,sources:String,
 													  dateFilter:DateRangeFilter,numberOfRequestedDocuments:int,sortBy:String):AsyncToken
 		{
 			var dateFilterString:String = DateUtils.getDateFilterStringForSolr(dateFilter);
 			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,
-				dateFilterString,entities,numberOfRequestedDocuments,operator,sources,sortBy);
+			var q:AsyncToken = InfoMapAdminInterface.instance.getEntityDistributionForQuery(query,
+				dateFilterString,entities,numberOfRequestedDocuments,sources,sortBy);
 			
 			return q;
 			
@@ -294,32 +285,6 @@ package weave.data.DataSources
 //			
 //			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
 //		}
-		
-		public function getNumberOfMatchedDocuments(query:String,operator:String="AND",sources:Array=null,
-													dateFilter:DateRangeFilter=null):AsyncToken 
-		{
-		
-			var numOfDocs:int;
-			
-			var queryTerms:Array = query.split(" ");
-			
-			var filterQuery:String = parseFilterQuery(filterQuery,dateFilter,sources);
-			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getNumberOfMatchedDocuments(queryTerms,filterQuery,solrURL.value);
-			
-			return q;			
-		}
-			
-		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:Array,filterQuery:String=null,operator:String='AND',sources:Array=null,
-											dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,sortField:String="date_added"):void
-		{
-			
-			filterQuery = parseFilterQuery(filterQuery,dateFilter,sources);
-				
-			
-			var q:AsyncToken = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfRequestedDocuments,solrURL.value);
-			addAsyncResponder(q,handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount,numberOfMatchedDocuments:numberOfMatchedDocuments});
-		}
 		
 		private static function parseFilterQuery(filterQuery:String,dateFilter:DateRangeFilter=null,sources:Array=null):String
 		{

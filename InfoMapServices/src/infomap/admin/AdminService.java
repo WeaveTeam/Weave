@@ -705,7 +705,7 @@ public class AdminService extends GenericServlet {
 		if (requiredKeywords == null || requiredKeywords.length == 0) {
 			return result;
 		}
-		
+
 		String queryString = "";
 		if(relatedKeywords == null || relatedKeywords.length ==0)
 		{
@@ -713,31 +713,37 @@ public class AdminService extends GenericServlet {
 		}
 		else
 		{
-			
+
 			String requiredQueryString = mergeKeywords(requiredKeywords, operator);
 			queryString = "(" + requiredQueryString + ")";
-			
+
 			if (relatedKeywords != null && relatedKeywords.length > 0) {
 				String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
 				queryString = queryString + " AND " + "(" + relatedQueryString
 				+ ")";
 			}
 		}
-		
 
-		result = "title:(" + queryString + ") OR description:(" + queryString
-				+ ") OR attr_text_keywords:(" + queryString + ")";
+		
+		result = attachQueryToFields(queryString);
+		
+		return result;
+	}
+	
+	private static String attachQueryToFields(String queryString)
+	{
+		String result = "title:(" + queryString + ") OR description:(" + queryString
+		+ ") OR attr_text_keywords:(" + queryString + ")";
 
 		return result;
 	}
 	
-	public String[][] getWordCount(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter, String operator,String sources,String sortBy) {
+	public String[][] getWordCount(String query, String dateFilter,String sources,String sortBy) {
 		setSolrServer(solrServerUrl);
 
 		String[][] result = null;
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
+		String queryString = attachQueryToFields(query);
 
 		if (queryString == null)
 			return null;
@@ -800,84 +806,83 @@ public class AdminService extends GenericServlet {
 	}
 	
 	//return all the sentences that contains at least one required keyword and one related keywords
-	public String[] entitySentences(String[] requiredKeywords, String[] relatedKeywords, String dateFilter,
-			 int rows,String operator) throws NullPointerException{
-		
-		setSolrServer(solrServerUrl);
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);  
-        Set<String> tempresult = new HashSet<String>();
-		if (queryString == null)
-			return null;
-		try {
-
-			// Query Results are always sorted by descending order of relevance
-			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
-					"score", SolrQuery.ORDER.desc);
-			if (dateFilter != null)
-				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
-			q.setRows(rows);
-			q.setFields("link,description");
-			QueryResponse response = solrInstance.query(q);
-			SolrDocumentList documents = response.getResults();
-			int documentSize = documents.size();
-			SolrDocument doc = null;
-			String originalTexts = "";
-			URL sentenceModelPath = getClass().getClassLoader().getResource("infomap/resources/en-sent.bin");
-	        String sentenceModelFilePath = URLDecoder.decode(sentenceModelPath.getFile(),"UTF-8");
-	        SentenceModel senModel = new SentenceModel(new FileInputStream(sentenceModelFilePath));
-	        SentenceDetectorME sentenceDetector = new SentenceDetectorME(senModel);
-	        String sentences[] = null;
-			Iterator<SolrDocument> itr1 = documents.iterator();
-			if (documentSize > 0) {
-				while(itr1.hasNext()){
-					doc = itr1.next();
-					if (doc.getFieldValue("description") != null) {
-					originalTexts = doc.getFieldValue("description").toString();
-					sentences = sentenceDetector.sentDetect(doc.getFieldValue("description").toString());
-					for(int j=0; j<sentences.length; j++){
-                        //use required keyword and related keyword
-						for(int k=0; k<requiredKeywords.length; k++){
-							for(int l=0; l<relatedKeywords.length; l++){
-								if(sentences[j].contains(requiredKeywords[k]) && sentences[j].contains(relatedKeywords[l]) && !tempresult.add(sentences[j]) ){ 
-									tempresult.add(sentences[j]); 
-									}
-							}
-						}
-					}
-				}
-				}				
-				
-			} else {
-				System.out.println("NO Documents returned...");
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		String [] result = new String[tempresult.size()];
-		Iterator<String> iter = tempresult.iterator();
-		int tempcounter = 0;
-		String tempString = "";
-		while(iter.hasNext()){
-			tempString = iter.next();
-			result[tempcounter] = tempString;
-            tempcounter++;
-		}
-		
-		//tracing
-/*		for(int i=0; i<result.length; i++){
-			System.out.println("******" + result[i]);
-		}*/
-		
-		return result;
-	}
+//	public String[] entitySentences(String[] requiredKeywords, String[] relatedKeywords, String dateFilter,
+//			 int rows,String operator) throws NullPointerException{
+//		
+//		setSolrServer(solrServerUrl);
+//		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);  
+//        Set<String> tempresult = new HashSet<String>();
+//		if (queryString == null)
+//			return null;
+//		try {
+//
+//			// Query Results are always sorted by descending order of relevance
+//			SolrQuery q = new SolrQuery().setQuery(queryString).setSortField(
+//					"score", SolrQuery.ORDER.desc);
+//			if (dateFilter != null)
+//				if (!dateFilter.isEmpty())
+//					q.setFilterQueries(dateFilter);
+//			q.setRows(rows);
+//			q.setFields("link,description");
+//			QueryResponse response = solrInstance.query(q);
+//			SolrDocumentList documents = response.getResults();
+//			int documentSize = documents.size();
+//			SolrDocument doc = null;
+//			String originalTexts = "";
+//			URL sentenceModelPath = getClass().getClassLoader().getResource("infomap/resources/en-sent.bin");
+//	        String sentenceModelFilePath = URLDecoder.decode(sentenceModelPath.getFile(),"UTF-8");
+//	        SentenceModel senModel = new SentenceModel(new FileInputStream(sentenceModelFilePath));
+//	        SentenceDetectorME sentenceDetector = new SentenceDetectorME(senModel);
+//	        String sentences[] = null;
+//			Iterator<SolrDocument> itr1 = documents.iterator();
+//			if (documentSize > 0) {
+//				while(itr1.hasNext()){
+//					doc = itr1.next();
+//					if (doc.getFieldValue("description") != null) {
+//					originalTexts = doc.getFieldValue("description").toString();
+//					sentences = sentenceDetector.sentDetect(doc.getFieldValue("description").toString());
+//					for(int j=0; j<sentences.length; j++){
+//                        //use required keyword and related keyword
+//						for(int k=0; k<requiredKeywords.length; k++){
+//							for(int l=0; l<relatedKeywords.length; l++){
+//								if(sentences[j].contains(requiredKeywords[k]) && sentences[j].contains(relatedKeywords[l]) && !tempresult.add(sentences[j]) ){ 
+//									tempresult.add(sentences[j]); 
+//									}
+//							}
+//						}
+//					}
+//				}
+//				}				
+//				
+//			} else {
+//				System.out.println("NO Documents returned...");
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		String [] result = new String[tempresult.size()];
+//		Iterator<String> iter = tempresult.iterator();
+//		int tempcounter = 0;
+//		String tempString = "";
+//		while(iter.hasNext()){
+//			tempString = iter.next();
+//			result[tempcounter] = tempString;
+//            tempcounter++;
+//		}
+//		
+//		//tracing
+///*		for(int i=0; i<result.length; i++){
+//			System.out.println("******" + result[i]);
+//		}*/
+//		
+//		return result;
+//	}
 
 	//use topic modeling to divide all the documents returned for a query into several groups
 	public TopicClassificationResults classifyDocumentsForQuery(
-			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows, int numOfTopics,
-			int numOfKeywordsInEachTopic,String operator,String sources,String sortBy) throws NullPointerException {
+			String query,String dateFilter, int rows, int numOfTopics,
+			int numOfKeywordsInEachTopic,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
@@ -885,7 +890,7 @@ public class AdminService extends GenericServlet {
 		String[] uncategoried = null;
         Set<String> tempuncategoried = new HashSet<String>();
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
+		String queryString = attachQueryToFields(query);
 
 		if (queryString == null)
 			return null;
@@ -1121,6 +1126,19 @@ public class AdminService extends GenericServlet {
 		return topicModelingResutls;
 	}
 	
+	public String[][] getClustersForQueryString(String query,String dateFilter, int rows,String sources,String sortBy)
+	{
+		String[][] result = null;
+		
+		setSolrServer(solrServerUrl);
+		
+		String queryString= attachQueryToFields(query);
+		if (queryString == null)
+			return null;
+		result = getClusters(queryString,dateFilter,rows,sources,sortBy);
+		return result;
+	}
+	
 	public String[][] getClustersForQueryWithRelatedKeywords(
 			String[] requiredKeywords, String[] relatedKeywords,
 			String dateFilter, int rows,String operator,String sources,String sortBy) throws IOException, SolrServerException
@@ -1132,6 +1150,15 @@ public class AdminService extends GenericServlet {
 		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
 		if (queryString == null)
 			return null;
+		
+		result = getClusters(queryString,dateFilter,rows,sources,sortBy);
+		return result;
+	}
+	
+	
+	private String[][] getClusters(String queryString,String dateFilter, int rows,String sources,String sortBy)
+	{
+		String[][] result = null;
 		try{
 			// Query Results are always sorted by descending order of relevance
 			SolrQuery q = new SolrQuery().setQuery(queryString);
@@ -1184,14 +1211,14 @@ public class AdminService extends GenericServlet {
 				labelClusteringDocuments.put(label, new org.carrot2.core.Document(concatenatedTitles, null, label)); // ToDo hierarchical yenfu duplicate object
 			}
 			
-			String keywords = "";
-			if (relatedKeywords != null)
-				for (int i = 0; i < relatedKeywords.length; i++) keywords = keywords + " " + relatedKeywords[i];
-			if (requiredKeywords != null)
-				for (int i = 0; i < requiredKeywords.length; i++) keywords = keywords + " " + requiredKeywords[i];
-			keywords = keywords.trim();
+//			String keywords = "";
+//			if (relatedKeywords != null)
+//				for (int i = 0; i < relatedKeywords.length; i++) keywords = keywords + " " + relatedKeywords[i];
+//			if (requiredKeywords != null)
+//				for (int i = 0; i < requiredKeywords.length; i++) keywords = keywords + " " + requiredKeywords[i];
+//			keywords = keywords.trim();
 			
-			List<Cluster> clustersByLingo = lingoClustering(documents, keywords, LingoClusteringAlgorithm.class);
+			List<Cluster> clustersByLingo = lingoClustering(documents, queryString, LingoClusteringAlgorithm.class);
 			// ------ End of topic label clustering ------
 			
 			// Get the order of the cluster by score descending
@@ -1294,7 +1321,7 @@ public class AdminService extends GenericServlet {
 						tempDocs.add(labelClusteringDocuments.get(clusterContent.get(i)));
 					}
 					
-					List<Cluster> subClustersByLingo = lingoClustering(tempDocs, keywords, LingoClusteringAlgorithm.class);
+					List<Cluster> subClustersByLingo = lingoClustering(tempDocs, queryString, LingoClusteringAlgorithm.class);
 					
 					// key: cluster index ; value: score
 					Map<Integer, Double> unsortedSubClusterMap = new HashMap<Integer, Double>();
@@ -1345,8 +1372,8 @@ public class AdminService extends GenericServlet {
 			}
 		}catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
-		
 		return result;
 	}
 	
@@ -1472,13 +1499,12 @@ public class AdminService extends GenericServlet {
 	}
 	
 	public Object[] getResultsForQueryWithRelatedKeywords(
-			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, int rows,String operator,String sources,String sortBy) throws NullPointerException {
+			String query,String dateFilter, int rows,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String[]> r = new ArrayList<String[]>();
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords,operator);
+		String queryString = attachQueryToFields(query);
 		if (queryString == null)
 			return null;
 
@@ -1644,14 +1670,13 @@ public class AdminService extends GenericServlet {
 		
 	}
 
-	public Object[] getLinksForFilteredQuery(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter, String[] filterby,
-			int rows,String operator,String sources,String sortBy) throws NullPointerException {
+	public Object[] getLinksForFilteredQuery(String query, String dateFilter, String[] filterby,
+			int rows,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
 
 		ArrayList<String> r = new ArrayList<String>();
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
+		String queryString = attachQueryToFields(query);
 
 		if (queryString == null)
 			return null;
@@ -1713,11 +1738,10 @@ public class AdminService extends GenericServlet {
 
 	}
 
-	public long getNumOfDocumentsForQuery(String[] requiredKeywords,
-			String[] relatedKeywords, String dateFilter, String operator,String sources) {
+	public long getNumOfDocumentsForQuery(String query, String dateFilter,String sources) {
 		setSolrServer(solrServerUrl);
 
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
+		String queryString = attachQueryToFields(query);
 
 		if (queryString == null)
 			return 0;
@@ -1748,15 +1772,14 @@ public class AdminService extends GenericServlet {
 	}
 
 	public EntityDistributionObject getEntityDistributionForQuery(
-			String[] requiredKeywords, String[] relatedKeywords,
-			String dateFilter, String[] entities, int rows, String operator,String sources,String sortBy) {
+			String query,String dateFilter, String[] entities, int rows,String sources,String sortBy) {
 
 		Object[][] urls = new Object[entities.length][];
 
 		setSolrServer(solrServerUrl);
 
 		// Setting up the query
-		String queryString = formulateQuery(requiredKeywords, relatedKeywords, operator);
+		String queryString = attachQueryToFields(query);
 
 		if (queryString == null) {
 			return null;
