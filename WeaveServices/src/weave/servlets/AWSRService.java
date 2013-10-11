@@ -45,7 +45,6 @@ import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.StringMap;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 public class AWSRService extends RService
 {
@@ -310,7 +309,7 @@ public class AWSRService extends RService
 		String[] inputNames = {"cannedScriptPath", "dataset"};
 		
 		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
-					         "scriptFromFile$value(dataset, params)"; 
+					         "scriptFromFile$value(dataset)"; 
 		
 		String[] outputNames = {};
 		returnedColumns = this.runScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false, false);

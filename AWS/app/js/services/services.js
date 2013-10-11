@@ -14,7 +14,7 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
     this.computationEngine = "R";
-    this.scriptType = "ColumnBased";
+    this.scriptType = "columns";
     this.dataTable = {};
     this.conn = {
         serverType: 'MySQL',
@@ -86,7 +86,7 @@ angular.module("aws.services", []).service("queryobj", function () {
 });
 
 angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function (queryobj, scope, $q) {
-    this.scriptMetadata = {"inputs": [],
+    this.scriptMetadata = {"scriptType": "columns", "inputs": [],
         "outputs": []
     };
 

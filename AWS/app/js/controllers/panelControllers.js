@@ -314,7 +314,7 @@ angular.module("aws.panelControllers", [])
 	$scope.options = queryobj.getSelectedColumns();
 	$scope.selection = [];
 	$scope.show = [];
-	$scope.type = "columns";
+	$scope.type = queryobj.scriptType;
 	$scope.clusterOptions = {};
 
 	// TODO, fix: retrieve selections, else create blanks;
@@ -385,6 +385,7 @@ angular.module("aws.panelControllers", [])
 		var temp = scriptobj.scriptMetadata;
 		temp.then(function(result){
 			if(result.scriptType == "columns"){
+				queryobj.scriptType = result.scriptType;
 				$scope.inputs = result.inputs;
 				angular.forEach($scope.inputs, function(input, index){
 					$scope.selection[index] = "";
@@ -443,6 +444,7 @@ angular.module("aws.panelControllers", [])
 //					$scope.inputs[index] = item.param;
 //				});
 			if(result.scriptType == "cluster"){
+				queryobj.scriptType = result.scriptType;
 				$scope.inputs = result.inputs;
 				angular.forEach($scope.inputs, function(input, index){
 					$scope.inputs[index].value = "";
@@ -451,4 +453,4 @@ angular.module("aws.panelControllers", [])
 		});
 		
 	});
-})
+});
