@@ -388,6 +388,9 @@
 					controlPanel.tabNavigator.addChild(editor as DisplayObject);
 					
 					controlPanel.title = getControlPanelTitle(linkableObject);
+					
+					controlPanel.enableSubMenu.value = true;
+					controlPanel.subMenu.addSubMenuItem(lang('Open session editor'), SessionStateEditor.openDefaultEditor, [linkableObject]);
 				}
 				
 				editorPanels[linkableObject] = controlPanel;
