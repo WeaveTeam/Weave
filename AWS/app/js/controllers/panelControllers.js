@@ -116,32 +116,48 @@ angular.module("aws.panelControllers", [])
 	
 })
 .controller("MapToolPanelCtrl", function($scope, queryobj, dataService){
-	if(queryobj.selectedVisualization['maptool']){
+	if(queryobj.selectedVisualization && queryobj.selectedVisualization['maptool']){
 		$scope.enabled = queryobj.selectedVisualization['maptool'];
 	}
-	$scope.options = dataService.giveMeGeomObjs();
+	var maps = dataService.giveMeGeomObjs();
+	$scope.options;
 	
 	$scope.selection;
 	
 	// selectorId should be "mapPanel"
-	if(queryobj['maptool']){
-		$scope.selection = queryobj['maptool'];
-	}
+
 	
-	// watch functions for two-way binding
-	$scope.$watch('selection', function(oldVal, newVal){
-		// TODO Bad hack to access results
-		//console.log(oldVal, newVal);
-		if(($scope.options.$$v != undefined) && ($scope.options.$$v != null)){
-			var obj = $scope.options.$$v[$scope.selection];
-			if(obj){
-				var send = {};
-				send.weaveEntityId = obj.id;
-				send.keyType = obj.publicMetadata.keyType;
-				send.title = obj.publicMetadata.title;
-				queryobj['maptool'] = send;
-			}
+	maps.then(function(result){
+		$scope.options = result;
+		if(queryobj['maptool']){
+			var fromquery = queryobj['maptool'];
+			$scope.selection = queryobj['maptool'].weaveEntityId;
 		}
+		// watch functions for two-way binding
+		$scope.$watch('selection', function(newVal, oldVal){
+			angular.forEach(result, function(item, index){
+				if($scope.selection == item.id){
+					var send = {};
+					send.weaveEntityId = item.id;
+					send.keyType = item.publicMetadata.keyType;
+					send.title = item.publicMetadata.title;
+					queryobj['maptool'] = send;
+				}
+			});
+			
+			
+			//console.log(oldVal, newVal);
+//			if(($scope.options.$$v != undefined) && ($scope.options.$$v != null)){
+//				var obj = $scope.options.$$v[$scope.selection];
+//				if(obj){
+//					var send = {};
+//					send.weaveEntityId = obj.id;
+//					send.keyType = obj.publicMetadata.keyType;
+//					send.title = obj.publicMetadata.title;
+//					queryobj['maptool'] = send;
+//				}
+//			}
+		});
 	});
 	$scope.$watch('enabled', function(){
 		queryobj.selectedVisualization['maptool'] = $scope.enabled;
@@ -154,7 +170,7 @@ angular.module("aws.panelControllers", [])
 	});
 })
 .controller("BarChartToolPanelCtrl", function($scope, queryobj, scriptobj){
-	if(queryobj.selectedVisualization['barchart']){
+	if(queryobj.selectedVisualization && queryobj.selectedVisualization['barchart']){
 		$scope.enabled = queryobj.selectedVisualization['barchart'];
 	}
 
@@ -195,7 +211,7 @@ angular.module("aws.panelControllers", [])
 	});
 })
 .controller("ScatterPlotToolPanelCtrl", function($scope, queryobj, scriptobj){
-	if(queryobj.selectedVisualization['scatterplot']){
+	if(queryobj.selectedVisualization && queryobj.selectedVisualization['scatterplot']){
 		$scope.enabled = queryobj.selectedVisualization['scatterplot'];
 	}
 
@@ -217,7 +233,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('ySelection', function(){
 		queryobj.scatterplot.yColumn = $scope.ySelection;
 	});
-	$scope.$watch('labelSelection', function(){
+	$scope.$watch('xSelection', function(){
 		queryobj.scatterplot.xColumn = $scope.xSelection;
 	});
 
@@ -233,7 +249,7 @@ angular.module("aws.panelControllers", [])
 	});
 })
 .controller("DataTablePanelCtrl", function($scope, queryobj, scriptobj){
-	if(queryobj.selectedVisualization['datatable']){
+	if(queryobj.selectedVisualization && queryobj.selectedVisualization['datatable']){
 		$scope.enabled = queryobj.selectedVisualization['datatable'];
 	}
 	
