@@ -19,6 +19,7 @@
 package weave.utils
 {
 	import flash.display.DisplayObject;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
 	import weave.api.WeaveAPI;
@@ -50,7 +51,8 @@ package weave.utils
 			if (propertyNames && _identifyPropertyNames != _identifyDefaults)
 			{
 				_identifyPropertyNames = propertyNames;
-				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_OVER, null, _identify);
+				_identifyTarget = null;
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_OVER, null, _identify, true);
 			}
 			else
 			{
@@ -62,8 +64,13 @@ package weave.utils
 		}
 		private static function _identify():void
 		{
-			var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
+			var event:Event = WeaveAPI.StageUtils.event;
+			if (!event)
+				return;
+			
 			var target:DisplayObject = event.target as DisplayObject;
+			if (!target)
+				return;
 			
 			if (!_identifyPropertyNames || _identifyTarget == target)
 				return;
