@@ -98,6 +98,14 @@ package weave.visualization.plotters
 				_end = alongXAxis.value ? dataBounds.getXMax() : dataBounds.getYMax();
 			
 			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
+			if (!_interval)
+				_interval = Math.abs(_end - _start);
+			// stop if interval is less than one pixel
+			var dataPerPixel:Number = alongXAxis.value
+				? dataBounds.getXCoverage() / screenBounds.getXCoverage()
+				: dataBounds.getYCoverage() / screenBounds.getYCoverage();
+			if (_interval < dataPerPixel)
+				return;
 			
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			bitmapText.textFormat.color = color.value;
@@ -109,16 +117,7 @@ package weave.visualization.plotters
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
-			// if there will be more grid lines than pixels, don't bother drawing anything
-			var steps:Number;
-			while (true)
-			{
-				steps = Math.abs((_end - _start) / _interval);
-				if (steps > (alongXAxis.value ? screenBounds.getXCoverage() : screenBounds.getYCoverage()))
-					_interval *= 2;
-				else
-					break;
-			}
+			var steps:Number = Math.abs((_end - _start) / _interval);
 			for (var i:int = 0; i <= steps; i++)
 			{
 				var number:Number = _start + _interval * i;

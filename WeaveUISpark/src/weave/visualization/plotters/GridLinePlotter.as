@@ -48,19 +48,19 @@ package weave.visualization.plotters
 		}
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		public const horizontal:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		public const start:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const alongXAxis:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			output.reset();
-			if (horizontal.value)
-				output.setYRange(start.value, end.value);
-			else
+			if (alongXAxis.value)
 				output.setXRange(start.value, end.value);
+			else
+				output.setYRange(start.value, end.value);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
@@ -72,40 +72,26 @@ package weave.visualization.plotters
 			var _end:Number = end.value;
 			
 			if (isNaN(_start))
-				_start = horizontal.value ? dataBounds.getYMin() : dataBounds.getXMin();
+				_start = alongXAxis.value ? dataBounds.getXMin() : dataBounds.getYMin();
 			if (isNaN(_end))
-				_end = horizontal.value ? dataBounds.getYMax() : dataBounds.getXMax();
+				_end = alongXAxis.value ? dataBounds.getXMax() : dataBounds.getYMax();
 			
 			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
-			
+			if (!_interval)
+				_interval = Math.abs(_end - _start);
+			// stop if interval is less than one pixel
+			var dataPerPixel:Number = alongXAxis.value
+				? dataBounds.getXCoverage() / screenBounds.getXCoverage()
+				: dataBounds.getYCoverage() / screenBounds.getYCoverage();
+			if (_interval < dataPerPixel)
+				return;
+
 			lineStyle.beginLineStyle(null, graphics);
 			
 			var i:int;
 			var numLines:Number = Math.abs((_end - _start) / _interval);
-			if (horizontal.value)
-			{
-				// if there will be more grid lines than pixels, don't bother drawing anything
-				if (numLines > screenBounds.getYCoverage())
-					return;
-				
-				for (i = 0; i <= numLines; i++)
-				{
-					tempPoint.x = dataBounds.getXMin();
-					tempPoint.y = _start + _interval * i;
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					graphics.moveTo(tempPoint.x, tempPoint.y);
-					
-					tempPoint.x = dataBounds.getXMax();
-					tempPoint.y = _start + _interval * i;
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					graphics.lineTo(tempPoint.x, tempPoint.y);
-				}
-			}
-			else
+			if (alongXAxis.value)
 			{										
-				// if there will be more grid lines than pixels, don't bother drawing anything
-				if (numLines > screenBounds.getXCoverage())
-					return;
 				for (i = 0; i <= numLines; i++)
 				{
 					tempPoint.x = _start + _interval * i;
@@ -119,10 +105,27 @@ package weave.visualization.plotters
 					graphics.lineTo(tempPoint.x, tempPoint.y);
 				}
 			}
+			else
+			{
+				for (i = 0; i <= numLines; i++)
+				{
+					tempPoint.x = dataBounds.getXMin();
+					tempPoint.y = _start + _interval * i;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.moveTo(tempPoint.x, tempPoint.y);
+					
+					tempPoint.x = dataBounds.getXMax();
+					tempPoint.y = _start + _interval * i;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.lineTo(tempPoint.x, tempPoint.y);
+				}
+			}
 			
 			destination.draw(tempShape);
 		}
 		
 		private const tempPoint:Point = new Point();
+		
+		[Deprecated] public function set horizontal(value:Boolean):void { alongXAxis.value = !value; }
 	}
 }
