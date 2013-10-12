@@ -384,7 +384,7 @@ public class AWSRService extends RService
 			if(extension.equalsIgnoreCase("r"))
 				rFiles.add(files[i]);
 		}
-		return rFiles.toArray(new String[0]);
+		return rFiles.toArray(new String[rFiles.size()]);
 	}
 
 	/**
@@ -560,8 +560,9 @@ public class AWSRService extends RService
 		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
 
 		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
-
-		Object[] inputValues = {cannedScript, recordData};
+		Object[][] columnData = transpose(recordData);
+		
+		Object[] inputValues = {cannedScript, columnData};
 		String[] inputNames = {"cannedScriptPath", "dataset"};
 
 		String finalScript = "scriptFromFile <- source(cannedScriptPath)\n" +
@@ -572,6 +573,23 @@ public class AWSRService extends RService
 
 		return returnedColumns;
 
+	}
+	
+	public Object[][] transpose (Object[][] array) {
+		  if (array == null || array.length == 0)//empty or unset array, nothing do to here
+		    return array;
+
+		  int width = array.length;
+		  int height = array[0].length;
+
+		  Object[][] array_new = new Object[height][width];
+
+		  for (int x = 0; x < width; x++) {
+		    for (int y = 0; y < height; y++) {
+		      array_new[y][x] = array[x][y];
+		    }
+		  }
+		  return array_new;
 	}
 	
     @SuppressWarnings("rawtypes")

@@ -104,13 +104,16 @@ aws.QueryHandler.prototype.runQuery = function() {
 		
 		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
-		console.log(result[0].value);
-		aws.timeLogString = result[1].value;
-		console.log(result[1].value);
+		console.log(that.resultDataSet);
+		// aws.timeLogString = result[1].value;
+		// console.log(result[1].value);
 		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		
 		// step 2
 		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
+		
+		console.log(dataSourceName);
+		
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);

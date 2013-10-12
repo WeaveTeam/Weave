@@ -68,7 +68,25 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	aws.reportTime("New Map added");
 
 
+//	//state plot layer
+//	/** @type {WeavePath} */
+//	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
+//						   .push('internalObject').request('ReferencedColumn')
+//						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
+//
+//	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+//	stPlot.state({dataSourceName :"WeaveDataSource",
+//		  		  hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+//	
+//	//labellayer
+//
+//	return toolName;
+
 	//state plot layer
+	/** @type {WeavePath} */
+	var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
+	stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
+
 	/** @type {WeavePath} */
 	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
 						   .push('internalObject').request('ReferencedColumn')
@@ -77,8 +95,6 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
 	stPlot.state({dataSourceName :"WeaveDataSource",
 		  		  hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-	
-	//labellayer
 
 	return toolName;
 };
@@ -144,7 +160,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 
 aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
-	this.weave.reqestObject([toolName], 'RadVizTool');
+	this.weave.requestObject([toolName], 'RadVizTool');
 	
 	//populating the Dimensional Anchors
 	for(var i in columnNames){
@@ -279,8 +295,8 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
 
 /**
  * This function clears the visualizations before any new query is run
- *it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
- *in this case everything except 'WeaveDataSource' will be removed
+ * it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
+ * in this case everything except 'WeaveDataSource' will be removed
  * @return void
  */
 aws.WeaveClient.prototype.clearCurrentVizs = function(){
