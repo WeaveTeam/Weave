@@ -30,7 +30,7 @@ LayerListComponent
 		 xmlns="weave.editors.managers.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 label="{lang('Layers (Beta)')}" xmlns:ui="weave.ui.*">
+		 label="{lang('Layers')}" xmlns:ui="weave.ui.*">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{lang('Layers, background to foreground')}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -152,15 +152,19 @@ LayerListComponent
 	-->
 	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
 		<mx:Label text="{lang('Override auto zoom:')}"/>
-		<ui:TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
+		<ui:TextInputWithPrompt id="overrideXMin" prompt="{lang('xMin')}" width="{boundsInputWidth}"/>
 		<mx:VBox>
-			<ui:TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
-			<ui:TextInputWithPrompt id="overrideYMin" prompt="yMin" width="{boundsInputWidth}"/>
+			<ui:TextInputWithPrompt id="overrideYMax" prompt="{lang('yMax')}" width="{boundsInputWidth}"/>
+			<ui:TextInputWithPrompt id="overrideYMin" prompt="{lang('yMin')}" width="{boundsInputWidth}"/>
 		</mx:VBox>
-		<ui:TextInputWithPrompt id="overrideXMax" prompt="xMax" width="{boundsInputWidth}"/>
+		<ui:TextInputWithPrompt id="overrideXMax" prompt="{lang('xMax')}" width="{boundsInputWidth}"/>
+		<mx:Button label="{lang('Use current zoom')}" click="setOverrideCoords(true)"/>
+		<mx:Button label="{lang('Reset')}" click="setOverrideCoords(false)"/>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.primitives.Bounds2D;
+			import weave.visualization.layers.PlotManager;
 			import weave.api.WeaveAPI;
 			import weave.api.newDisposableChild;
 			import weave.ui.VariableListController;
@@ -170,7 +174,7 @@ LayerListComponent
 			import weave.ui.SessionStateEditor;
 			import weave.api.linkBindableProperty;
 
-			private static const boundsInputWidth:int = 64;
+			private static const boundsInputWidth:int = 84;
 			
 			[Bindable] private var _visualization:Visualization = null;
 			public const controller:VariableListController = newDisposableChild(this, VariableListController);
@@ -196,17 +200,30 @@ LayerListComponent
 					linkBindableProperty(_visualization.plotManager.overrideYMin, overrideYMin, 'text');
 					linkBindableProperty(_visualization.plotManager.overrideXMax, overrideXMax, 'text');
 					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
-					_visualization.plotManager.enableAutoZoomToExtent.addGroupedCallback(this, handleAutoZoomToggle, true);
 				}
 				
 				controller.view = internalList;
 			}
 			
-			private function handleAutoZoomToggle():void
+			private function setOverrideCoords(setOrUnset:Boolean):void
 			{
-				var enabled:Boolean = _visualization.plotManager.enableAutoZoomToExtent.value;
-				boundsProperties.visible = enabled;
-				boundsProperties.includeInLayout = enabled;
+				var pm:PlotManager = _visualization.plotManager;
+				if (setOrUnset)
+				{
+					var b:Bounds2D = new Bounds2D();
+					pm.zoomBounds.getDataBounds(b);
+					pm.overrideXMin.value = b.xMin;
+					pm.overrideYMin.value = b.yMin;
+					pm.overrideXMax.value = b.xMax;
+					pm.overrideYMax.value = b.yMax;
+				}
+				else
+				{
+					pm.overrideXMin.value = NaN;
+					pm.overrideYMin.value = NaN;
+					pm.overrideXMax.value = NaN;
+					pm.overrideYMax.value = NaN;
+				}
 			}
 			
 			[Bindable]
