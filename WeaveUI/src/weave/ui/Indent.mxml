@@ -32,6 +32,8 @@
     <mx:Script>
     	<![CDATA[
 			import mx.controls.Label;
+			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
 
 			private static const _groups:Dictionary = new Dictionary(true);
 			
@@ -127,9 +129,9 @@
 					var max:Number = 0;
 					var item:Indent;
 					for each (item in array)
-						max = Math.max(max, item.labelComponent.measuredWidth);
+						max = Math.max(max, IUIComponent(item.getChildAt(0)).measuredWidth);
 					for each (item in array)
-						item.labelComponent.width = max;
+						item.getChildAt(0).width = max;
 					
 					if (_group is IndentGroup)
 						(_group as IndentGroup).measuredIndent = max;
@@ -150,18 +152,18 @@
 			 */
     		[Bindable] public function get indent():int
 			{
-				return labelComponent.width;
+				return IUIComponent(numChildren > 0 ? getChildAt(0) : labelComponent).width;
 			}
     		public function set indent(value:int):void
 			{
 				group = null; // remove from group
-				labelComponent.width = value;
+				IUIComponent(numChildren > 0 ? getChildAt(0) : labelComponent).width = value;
 			}
     		
 			/**
 			 * This is the label that will appear to the left of the other children of the Indent component.
 			 */
-    		override public function get label():String { return labelComponent.text; }
+			[Bindable] override public function get label():String { return labelComponent.text; }
     		override public function set label(value:String):void { labelComponent.text = value; }
     	]]>
     </mx:Script>
