@@ -150,17 +150,16 @@ LayerListComponent
 	<mx:CheckBox label="{lang('Enable zoom and pan')}"
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
 	-->
-	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
-		<mx:Label text="{lang('Override auto zoom:')}"/>
-		<ui:TextInputWithPrompt id="overrideXMin" prompt="{lang('xMin')}" width="{boundsInputWidth}"/>
-		<mx:VBox>
-			<ui:TextInputWithPrompt id="overrideYMax" prompt="{lang('yMax')}" width="{boundsInputWidth}"/>
-			<ui:TextInputWithPrompt id="overrideYMin" prompt="{lang('yMin')}" width="{boundsInputWidth}"/>
+	<ui:Indent label="{lang('Override auto zoom:')}">
+		<ui:TextInputWithPrompt id="overrideXMin" prompt="{lang('xMin')}" width="100%"/>
+		<mx:VBox width="100%">
+			<ui:TextInputWithPrompt id="overrideYMax" prompt="{lang('yMax')}" width="100%"/>
+			<ui:TextInputWithPrompt id="overrideYMin" prompt="{lang('yMin')}" width="100%"/>
 		</mx:VBox>
-		<ui:TextInputWithPrompt id="overrideXMax" prompt="{lang('xMax')}" width="{boundsInputWidth}"/>
+		<ui:TextInputWithPrompt id="overrideXMax" prompt="{lang('xMax')}" width="100%"/>
 		<mx:Button label="{lang('Use current zoom')}" click="setOverrideCoords(true)"/>
 		<mx:Button label="{lang('Reset')}" click="setOverrideCoords(false)"/>
-	</mx:HBox>
+	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
 			import weave.primitives.Bounds2D;
@@ -174,8 +173,6 @@ LayerListComponent
 			import weave.ui.SessionStateEditor;
 			import weave.api.linkBindableProperty;
 
-			private static const boundsInputWidth:int = 84;
-			
 			[Bindable] private var _visualization:Visualization = null;
 			public const controller:VariableListController = newDisposableChild(this, VariableListController);
 			
