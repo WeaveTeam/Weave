@@ -43,12 +43,14 @@
 		<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 	</ui:Indent>
 	
-	<ui:KeyTypesMenu indent="{uploadSection.labelComponent.width}"  id="keyTypeSelector"
-					 creationComplete="{if(_xlsDataSource)
-					 {
-					 (event.target as KeyTypesMenu).addKeyTypeToMenu(_xlsDataSource.keyType.value);
-					 (event.target as KeyTypesMenu).selectedItem = _xlsDataSource.keyType.value;
-					 }}"/>
+	<ui:Indent label="{lang('Key Type *')}">
+		<ui:KeyTypesMenu id="keyTypeSelector"
+						 creationComplete="{if(_xlsDataSource)
+						 {
+						 (event.target as KeyTypesMenu).addKeyTypeToMenu(_xlsDataSource.keyType.value);
+						 (event.target as KeyTypesMenu).selectedItem = _xlsDataSource.keyType.value;
+						 }}"/>
+	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
@@ -75,7 +77,6 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				keyTypeSelector.labelText +=" *";
 				sourceName.text = Weave.root.generateUniqueName("XLSDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
@@ -108,14 +109,14 @@
 			{
 				return StandardLib.asString(_xlsDataSource.url.value) != StandardLib.asString(url.text)
 					|| StandardLib.asString(_xlsDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
-					|| StandardLib.asString(_xlsDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedItem);
+					|| StandardLib.asString(_xlsDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType);
 			}
 			
 			public function applyChanges():void
 			{
 				_xlsDataSource.url.value = url.text;
 				_xlsDataSource.keyColName.value = keyColumnName.text;
-				_xlsDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+				_xlsDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 			}
 			
 			

@@ -40,11 +40,13 @@
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:KeyTypesMenu id="keyTypeSelector" creationComplete="{if(_dbfDataSource)
-					 {
-					 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_dbfDataSource.keyType.value);
-					 	(event.target as KeyTypesMenu).selectedItem = _dbfDataSource.keyType.value;
-					 }}"/>
+	<ui:Indent label="{lang('Key Type *')}">
+		<ui:KeyTypesMenu id="keyTypeSelector" creationComplete="{if(_dbfDataSource)
+						 {
+						 	(event.target as KeyTypesMenu).addKeyTypeToMenu(_dbfDataSource.keyType.value);
+						 	(event.target as KeyTypesMenu).selectedItem = _dbfDataSource.keyType.value;
+						 }}"/>
+	</ui:Indent>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -57,7 +59,6 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				keyTypeSelector.labelText +=" *";
 				sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
@@ -91,7 +92,7 @@
 				return StandardLib.asString(_dbfDataSource.dbfUrl.value) != StandardLib.asString(dbfURL.text)
 					|| StandardLib.asString(_dbfDataSource.shpUrl.value) != StandardLib.asString(shpURL.text)
 					|| StandardLib.asString(_dbfDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
-					|| StandardLib.asString(_dbfDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedItem);
+					|| StandardLib.asString(_dbfDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType);
 			}
 
 			public function applyChanges():void
@@ -99,7 +100,7 @@
 				_dbfDataSource.dbfUrl.value = dbfURL.text;
 				_dbfDataSource.shpUrl.value = shpURL.text;
 				_dbfDataSource.keyColName.value = keyColumnName.text;
-				_dbfDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+				_dbfDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 			}
 			
 		]]>

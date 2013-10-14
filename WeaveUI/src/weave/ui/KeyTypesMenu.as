@@ -1,54 +1,20 @@
 package weave.ui
 {
-	import flash.events.Event;
-	
 	import mx.collections.ArrayCollection;
-	import mx.containers.HBox;
-	import mx.controls.Label;
-	import mx.events.FlexEvent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
 
-	public class KeyTypesMenu extends HBox
+	public class KeyTypesMenu extends CustomComboBox
 	{
-		private var menuLabel:Label = new Label();
-		private var comboBox:CustomComboBox = new CustomComboBox();
 		public function KeyTypesMenu()
 		{
-			menuLabel.text = lang("Select Keytype");
-			comboBox.toolTip=lang('The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.');
-			comboBox.editable= true; 
-			addChild(menuLabel);
-			addChild(comboBox);
+			toolTip = lang('The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.');
+			editable = true; 
 			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange);
 			handleQKeyManagerChange();
-			EventUtils.doubleBind(this, 'selectedItem', comboBox, 'text');
-		}
-		
-		/**
-		 * Sets the width of the label component.
-		 * */
-		public function set indent(value:int):void
-		{
-			menuLabel.width = value; 
-		}
-		
-		/**
-		 * Returns the text of the label component
-		 * */
-		public function get labelText():String
-		{
-			return menuLabel.text; 
-		}
-		
-		/**
-		 * Sets the text of the label component
-		 * */
-		public function set labelText(value:String):void
-		{
-			menuLabel.text = value;
+			EventUtils.doubleBind(this, 'selectedKeyType', this, 'text');
 		}
 		
 		/**
@@ -59,12 +25,12 @@ package weave.ui
 		public function addKeyTypeToMenu(keytype:String,addToTop:Boolean=true):void
 		{
 			_addKeyTypeToMenu(keytype, addToTop);
-			comboBox.invalidateDisplayList();//required incase the length of the keytype is longer than other items and it might be cut-off.
-			comboBox.validateNow();
+			invalidateDisplayList();//required incase the length of the keytype is longer than other items and it might be cut-off.
+			validateNow();
 		}
 		private function _addKeyTypeToMenu(keytype:String,addToTop:Boolean=true):void
 		{
-			var keytypesSource:ArrayCollection = comboBox.dataProvider as ArrayCollection;
+			var keytypesSource:ArrayCollection = dataProvider as ArrayCollection;
 			
 			if(keytypesSource.contains(keytype))
 				return;
@@ -81,7 +47,7 @@ package weave.ui
 		 **/
 		public function removeKeyTypeFromMenu(keytype:String):void
 		{
-			var keytypesSource:ArrayCollection = comboBox.dataProvider as ArrayCollection;
+			var keytypesSource:ArrayCollection = dataProvider as ArrayCollection;
 			
 			var itemIndex:int = keytypesSource.getItemIndex(keytype);
 			
@@ -92,7 +58,7 @@ package weave.ui
 		/**
 		 * Returns the selected item from the menu
 		 **/
-		[Bindable] public var selectedItem:Object = null;
+		[Bindable] public var selectedKeyType:String = null;
 		
 		private function handleQKeyManagerChange():void
 		{
@@ -102,8 +68,8 @@ package weave.ui
 				_addKeyTypeToMenu(keytype,false);
 			}
 			
-			comboBox.invalidateDisplayList();
-			comboBox.validateNow();
+			invalidateDisplayList();
+			validateNow();
 		}
 	}
 }

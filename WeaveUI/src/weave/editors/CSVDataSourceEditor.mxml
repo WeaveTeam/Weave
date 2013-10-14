@@ -49,7 +49,9 @@
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" id="keyTypeSelector"/>
+	<ui:Indent label="{lang('Key Type *')}">
+		<ui:KeyTypesMenu id="keyTypeSelector"/>
+	</ui:Indent>
 	<mx:Spacer/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -79,7 +81,6 @@
 				super.createChildren();
 				addChild(busyIndicator);
 				hideBusy();
-				keyTypeSelector.labelText+=" *";
 				sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
@@ -103,7 +104,7 @@
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
-					keyTypeSelector.selectedItem = _csvDataSource.keyType.value;
+					keyTypeSelector.selectedKeyType = _csvDataSource.keyType.value;
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 					handleURLTextChange();
@@ -119,7 +120,7 @@
 			{
 				return StandardLib.asString(_csvDataSource.url.value) != StandardLib.asString(url.text)
 					|| StandardLib.asString(_csvDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
-					|| StandardLib.asString(_csvDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedItem)
+					|| StandardLib.asString(_csvDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType)
 					|| !!WeaveAPI.SessionManager.computeDiff(getSessionState(_csvDataSource.csvData), csvRows);
 			}
 
@@ -127,7 +128,7 @@
 			{
 				_csvDataSource.url.value = url.text;
 				_csvDataSource.keyColName.value = keyColumnName.text;
-				_csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+				_csvDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 				_csvDataSource.csvData.setSessionState(csvRows);
 			}
 			

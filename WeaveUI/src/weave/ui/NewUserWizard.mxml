@@ -234,8 +234,8 @@
 							return;
 						var csvDataSource:CSVDataSource = Weave.root.requestObject(_uniqueNameForDataSource,CSVDataSource, false);
 						csvDataSource.setCSVData(_tempArray);
-						if(keyTypeSelector.selectedItem)
-							csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+						if(keyTypeSelector.selectedKeyType)
+							csvDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 						else
 							csvDataSource.keyType.value = _uniqueNameForDataSource;
 						if(uniqueColumns.length !=0)
