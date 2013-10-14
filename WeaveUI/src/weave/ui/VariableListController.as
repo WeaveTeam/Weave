@@ -21,7 +21,6 @@ package weave.ui
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.controls.DataGrid;
-	import mx.controls.List;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.ListBase;
 	import mx.core.IUIComponent;
@@ -36,7 +35,6 @@ package weave.ui
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.core.CallbackJuggler;
-	
 	
 	/**
 	 * Callbacks trigger when the list of objects changes.

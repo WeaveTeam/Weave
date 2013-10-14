@@ -236,8 +236,8 @@ package weave.visualization.layers
 		
 		
 		protected function handleDoubleClick(event:MouseEvent):void
-		{								
-			handleMouseEvent(event);			
+		{
+			handleMouseEvent(event);
 		}
 		
 		protected function handleMouseDown(event:MouseEvent):void
