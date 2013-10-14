@@ -20,7 +20,6 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.display.Graphics;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	
@@ -58,10 +57,12 @@ package weave.visualization.plotters
 
 		private static const tempPoint:Point = new Point(); // reusable object
 
-		public const start:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const alongXAxis:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const begin:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
+		
+		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const offset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
@@ -86,27 +87,6 @@ package weave.visualization.plotters
 			var reusableBoundsObjects:Array = [];
 			var bounds:IBounds2D;
 			
-			var graphics:Graphics = tempShape.graphics;
-			graphics.clear();
-			
-			var _start:Number = start.value;
-			var _end:Number = end.value;
-			
-			if (isNaN(_start))
-				_start = alongXAxis.value ? dataBounds.getXMin() : dataBounds.getYMin();
-			if (isNaN(_end))
-				_end = alongXAxis.value ? dataBounds.getXMax() : dataBounds.getYMax();
-			
-			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
-			if (!_interval)
-				_interval = Math.abs(_end - _start);
-			// stop if interval is less than one pixel
-			var dataPerPixel:Number = alongXAxis.value
-				? dataBounds.getXCoverage() / screenBounds.getXCoverage()
-				: dataBounds.getYCoverage() / screenBounds.getYCoverage();
-			if (_interval < dataPerPixel)
-				return;
-			
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			bitmapText.textFormat.color = color.value;
 			bitmapText.angle = angle.value;
@@ -115,48 +95,81 @@ package weave.visualization.plotters
 			bitmapText.maxWidth = maxWidth.value;
 			bitmapText.textFormat.align = textFormatAlign.value;
 			
-			dataBounds.projectPointTo(tempPoint, screenBounds);
+			var _begin:Number = numericMax(begin.value, alongXAxis.value ? dataBounds.getXMin() : dataBounds.getYMin());
+			var _end:Number = numericMin(end.value, alongXAxis.value ? dataBounds.getXMax() : dataBounds.getYMax());
+			var _interval:Number = Math.abs(interval.value);
+			var _offset:Number = offset.value || 0;
 			
-			var steps:Number = Math.abs((_end - _start) / _interval);
-			for (var i:int = 0; i <= steps; i++)
+			var scale:Number = alongXAxis.value
+				? dataBounds.getXCoverage() / screenBounds.getXCoverage()
+				: dataBounds.getYCoverage() / screenBounds.getYCoverage();
+			
+			if (_begin < _end && ((_begin - _offset) % _interval == 0 || _interval == 0))
+				drawLabel(_begin, dataBounds, screenBounds, destination);
+			
+			if (_interval > scale)
 			{
-				var number:Number = _start + _interval * i;
-				bitmapText.text = StandardLib.formatNumber(number);
-				try
-				{
-					if (labelFunction.value)
-						bitmapText.text = labelFunction.apply(null, [number, bitmapText.text]);
-				}
-				catch (e:Error)
-				{
-					continue;
-				}
-				
-				if (alongXAxis.value)
-				{
-					tempPoint.x = number;
-					tempPoint.y = alignToDataMax.value ? dataBounds.getYMax() : dataBounds.getYMin();
-				}
-				else
-				{
-					tempPoint.x = alignToDataMax.value ? dataBounds.getXMax() : dataBounds.getXMin();
-					tempPoint.y = number;
-				}
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				bitmapText.x = tempPoint.x + xScreenOffset.value;
-				bitmapText.y = tempPoint.y + yScreenOffset.value;
-									
-				bitmapText.draw(destination);
+				var first:Number = _begin - (_begin - _offset) % _interval;
+				if (first <= _begin)
+					first += _interval;
+				for (var i:int = 0, number:Number = first; number < _end; number = first + _interval * ++i)
+					drawLabel(number, dataBounds, screenBounds, destination);
 			}
+			
+			if (_begin <= _end && ((_end - _offset) % _interval == 0 || _interval == 0))
+				drawLabel(_end, dataBounds, screenBounds, destination);
+		}
+		
+		private function drawLabel(number:Number, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			bitmapText.text = StandardLib.formatNumber(number);
+			try
+			{
+				if (labelFunction.value)
+					bitmapText.text = labelFunction.apply(null, [number, bitmapText.text]);
+			}
+			catch (e:Error)
+			{
+				return;
+			}
+			
+			if (alongXAxis.value)
+			{
+				tempPoint.x = number;
+				tempPoint.y = alignToDataMax.value ? dataBounds.getYMax() : dataBounds.getYMin();
+			}
+			else
+			{
+				tempPoint.x = alignToDataMax.value ? dataBounds.getXMax() : dataBounds.getXMin();
+				tempPoint.y = number;
+			}
+			dataBounds.projectPointTo(tempPoint, screenBounds);
+			bitmapText.x = tempPoint.x + xScreenOffset.value;
+			bitmapText.y = tempPoint.y + yScreenOffset.value;
+								
+			bitmapText.draw(destination);
 		}
 		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			output.reset();
 			if (alongXAxis.value)
-				output.setXRange(start.value, end.value);
+				output.setXRange(begin.value, end.value);
 			else
-				output.setYRange(start.value, end.value);
+				output.setYRange(begin.value, end.value);
 		}
+		
+		private function numericMin(userValue:Number, systemValue:Number):Number
+		{
+			return userValue < systemValue ? userValue : systemValue; // if userValue is NaN, returns systemValue
+		}
+		
+		private function numericMax(userValue:Number, systemValue:Number):Number
+		{
+			return userValue > systemValue ? userValue : systemValue; // if userValue is NaN, returns systemValue
+		}
+		
+		// backwards compatibility
+		[Deprecated] public function set start(value:Number):void { begin.value = offset.value = value; }
 	}
 }
