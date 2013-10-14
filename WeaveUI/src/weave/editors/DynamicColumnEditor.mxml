@@ -258,7 +258,10 @@
 				if (!sourceName && dataSource is MultiDataSource)
 				{
 					// convert the multiDataSource path to a path for a column reference
-					path = (path.category[0] as XML).copy();
+					var cats:XMLList = path.category;
+					if (!cats.length())
+						return;
+					path = (cats[0] as XML).copy();
 					sourceName = path.@dataSourceName;
 					path.setName("hierarchy");
 					delete path.@dataSourceName;
