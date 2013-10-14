@@ -640,8 +640,16 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('X')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
-			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}" showLabel="false" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.screenRadius"/>
+			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" width="{sizeSelector.labelComponent.width}"/>
+			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}">
+				<ui:creationComplete>
+					<![CDATA[
+						sizeSelector.dynamicObject = plotter.screenRadius;
+						sizeSelector.removeChild(sizeSelector.labelComponent);
+						sizeSelector.addChildAt(sizeByCheck, 0);
+					]]>
+				</ui:creationComplete>
+			</ui:DynamicColumnComponent>
 			<mx:HBox width="100%" verticalAlign="middle">
 				
 				<mx:Label text="{lang('Point Size:')}"/>

@@ -24,25 +24,37 @@
 @author skolman
 @author adufilie
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 xmlns="weave.ui.*"
-		 width="100%" height="30" creationPolicy="all"
-		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
-		 horizontalGap="4">
-	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
-	<mx:List id="internalList"
-			 variableRowHeight="false"
-			 doubleClickEnabled="true" 
-		 	 doubleClick="openAttributeSelector()"
-		 	 width="100%" rowCount="1" height="24"/>
-	<CenteredImage source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true" height="24"
-		       toolTip="{lang('Click here to select the column used for this property.')}"
-			   click="openAttributeSelector()"/>
-	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
-			   click="clearAttribute()"
-			   toolTip="{lang('Click here to remove the column used for this property.')}"/>
-	<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
-				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
+<Indent xmlns:mx="http://www.adobe.com/2006/mxml" 
+		xmlns="weave.ui.*"
+		height="30" creationPolicy="all"
+		verticalAlign="middle" implements="weave.api.core.ILinkableObject"
+		>
+	<mx:HBox horizontalGap="4" width="100%">
+		<mx:Label id="listOverlay"
+				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
+				  text="{lang('Double-click to select, or drag &amp; drop here')}"
+				  visible="{isEmpty(internalList.dataProvider)}">
+			<mx:creationComplete>
+				<![CDATA[
+					internalList.addChild(listOverlay);
+				]]>
+			</mx:creationComplete>
+		</mx:Label>
+		<mx:List id="internalList"
+				 rollOut="if (!event.buttonDown) internalList.selectedItem = null"
+				 variableRowHeight="false"
+				 doubleClickEnabled="true"
+				 doubleClick="openAttributeSelector()"
+			 	 width="100%" rowCount="1" height="24"/>
+		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
+			       toolTip="{lang('Select an attribute column')}"
+				   click="openAttributeSelector()"/>
+		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/x-inset.png')"
+			       toolTip="{lang('Clear this attribute column')}"
+				   click="clearAttribute()"/>
+		<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
+					 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
+	</mx:HBox>
 	
 	<mx:TitleWindow id="linkDropDown"
 					title="Linking controls for {label}"
@@ -70,6 +82,8 @@
 	</mx:TitleWindow>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
@@ -82,7 +96,6 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
 			
-			[Bindable] public var showLabel:Boolean = true;
 			[Bindable] public var showLinkControl:Boolean = true;
 			
 			[Embed(source='/weave/resources/images/plug-connected.png')]
@@ -91,6 +104,11 @@
 			private static const icon_disconnected:Class;
 			
 			private const linkControlsPadding:int = 2;
+			
+			private function isEmpty(ac:*):Boolean
+			{
+				return !ac || !ac.length;
+			}
 			
 			override protected function createChildren():void
 			{
@@ -199,4 +217,4 @@
 			}
 		]]>
 	</mx:Script>
-</mx:HBox>
+</Indent>
