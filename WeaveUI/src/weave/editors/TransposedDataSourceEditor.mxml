@@ -34,16 +34,20 @@
 								prompt="{lang('Enter a name')}"
 								errorString="{sourceName.text ? null : lang('Required')}"/>
 	</ui:Indent>
-	<ui:Paragraph translate="true">
-		Each column you add below will correspond to a record in the transposed data source.
-		Records in the original columns will become columns in the transposed data source.
-		
-		Metadata variables will be used to set the metadata of transposed columns and are case sensitive.
-		For example, create a metadata variable named "title" to define the text used for each transposed column title.
-	</ui:Paragraph>
+	<ui:DynamicColumnComponent label="Title column" id="titleColumnEditor" showLinkControl="false"/>
 	<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
-		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns')}"/>
-		<ui:ColumnListComponent id="metadataEditor" showVariableNames="true" label="{lang('Metadata variables')}"/>
+		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns to transpose')}">
+			<ui:helpContent>
+				Each column you add below will correspond to a record in the transposed data source.
+				Records in the original columns will become columns in the transposed data source.
+			</ui:helpContent>
+		</ui:ColumnListComponent>
+		<ui:ColumnListComponent id="metadataEditor" showVariableNames="true" label="{lang('Metadata variables')}">
+			<ui:helpContent>
+				Metadata variables will be used to set the metadata of transposed columns and are case sensitive.
+				For example, create a metadata variable named "title" to define the text used for each transposed column title.
+			</ui:helpContent>
+		</ui:ColumnListComponent>
 	</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[
@@ -52,14 +56,18 @@
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
-			import weave.api.objectWasDisposed;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.DataSources.TransposedDataSource;
 			
+			private const titleColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			public const metadata:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			
@@ -69,8 +77,24 @@
 			{
 				super.createChildren();
 				
+				titleColumnEditor.dynamicObject = titleColumn;
 				metadataEditor.hashMap = metadata;
 				columnsEditor.hashMap = columns;
+				
+				titleColumn.addImmediateCallback(this, function():void {
+					metadata.requestObjectCopy(ColumnMetadata.TITLE, titleColumn.getInternalColumn());
+				});
+				getCallbackCollection(metadata).addImmediateCallback(this, function():void {
+					titleColumn.requestLocalObjectCopy(metadata.getObject(ColumnMetadata.TITLE));
+				});
+				getCallbackCollection(columns).addImmediateCallback(this, function():void {
+					if (!titleColumn.getInternalColumn())
+					{
+						var cols:Array = columns.getObjects();
+						if (cols.length)
+							titleColumn.requestLocalObjectCopy(cols[0]);
+					}
+				});
 				
 				sourceName.text = Weave.root.generateUniqueName("TransposedDataSource");
 			}
