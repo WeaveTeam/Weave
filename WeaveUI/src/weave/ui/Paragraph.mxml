@@ -34,6 +34,7 @@
 	</mx:Metadata>
     <mx:Script>
         <![CDATA[
+			import mx.core.mx_internal;
 			import mx.utils.StringUtil;
 			
 			import weave.compiler.StandardLib;
@@ -111,10 +112,14 @@
             	}
             	else
             	{
-					width = textField.width;
+					width = Math.round(textField.width);
             	}
 				if (width)
-	                height = textField.height;
+	                height = Math.round(textField.height);
+				
+				mx_internal::invalidateSizeFlag = false;
+				mx_internal::invalidatePropertiesFlag = false;
+				mx_internal::invalidateDisplayListFlag = false;
 				
 				// call this again because width or height may have changed
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
