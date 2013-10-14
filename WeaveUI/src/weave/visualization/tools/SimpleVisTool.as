@@ -164,7 +164,7 @@ package weave.visualization.tools
 		}
 		private function updateTitleLabel():void
 		{
-			if (!parent)
+			if (!createdChildren)
 				return callLater(updateTitleLabel);
 			
 			LinkableTextFormat.defaultTextFormat.copyToStyle(visTitle);
@@ -198,7 +198,7 @@ package weave.visualization.tools
 		
 		private function handleTitleToggleChange():void
 		{
-			if (!parent)
+			if (!createdChildren)
 			{
 				callLater(handleTitleToggleChange);
 				return;
