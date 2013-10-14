@@ -265,6 +265,8 @@
 				defaultSelector.linkToObject(linkTo, title);
 				defaultSelector.targets = linkTo ? [linkTo] : [];
 				
+				if (!defaultSelector.parent)
+					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
 				defaultSelector.restorePanel();
 			}
 			
