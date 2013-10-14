@@ -47,8 +47,10 @@ LayerListComponent
 							import mx.managers.PopUpManager;
 							
 							import weave.api.core.ILinkableObject;
+							import weave.api.getSessionState;
 							import weave.api.linkBindableProperty;
 							import weave.api.objectWasDisposed;
+							import weave.api.setSessionState;
 							import weave.api.ui.ILinkableObjectEditor;
 							import weave.api.ui.IPlotter;
 							import weave.api.unlinkBindableProperty;
@@ -119,8 +121,12 @@ LayerListComponent
 										if( !e.confirm ) return;
 										
 										//Alert.show("Input was " + e.textInput);
-										
-										outerDocument.controller.hashMap.renameObject(defaultInputString,e.textInput);
+										var pm:PlotManager = outerDocument._visualization.plotManager;
+										var ls:LayerSettings = pm.layerSettings.getObject(defaultInputString) as LayerSettings;
+										var settings:Object = getSessionState(ls);
+										pm.plotters.renameObject(defaultInputString, e.textInput);
+										ls = pm.layerSettings.getObject(e.textInput) as LayerSettings;
+										setSessionState(ls, settings);
 									}
 								);
 							}
@@ -173,7 +179,7 @@ LayerListComponent
 			import weave.ui.SessionStateEditor;
 			import weave.api.linkBindableProperty;
 
-			[Bindable] private var _visualization:Visualization = null;
+			[Bindable] internal var _visualization:Visualization = null;
 			public const controller:VariableListController = newDisposableChild(this, VariableListController);
 			
 			[Inspectable]
