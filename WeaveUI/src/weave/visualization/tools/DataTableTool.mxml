@@ -85,7 +85,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import flash.desktop.ClipboardFormats;
 			
 			import mx.collections.ArrayCollection;
-			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -155,8 +154,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
 			private var _lastHighlighted:IQualifiedKey;
 
-			private var colorColumn:ColorColumn = Weave.defaultColorColumn;
-			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
@@ -184,7 +181,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 				_selection.addImmediateCallback(this,invalidateDisplayList);
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
-				colorColumn.addImmediateCallback(this,invalidateDisplayList);
+				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);				
 			}
 			
@@ -194,7 +191,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
-				linkBindableProperty(showColors,showColorsCheckBox,"selected");
+				linkBindableProperty(showColors, showColorsCheckBox,"selected");
 				linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
 
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
@@ -291,7 +288,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (columnsChanged)
 				{
 					updateBorders();
-				} 
+				}
 				if (detectLinkableObjectChange(updateDisplayList, columnWidths))
 				{
 					updateColumnWidths();
@@ -318,10 +315,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					updateGlobalSelectionChange();				
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, colorColumn))
-				{
-					(dataGrid.dataProvider as ICollectionView).refresh();
-				}
 				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat))
 				{
 					LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
@@ -330,13 +323,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					sortCallback();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2))
+				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
 				{
 					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
+					extraColorTriggers = 2;
+				}
+				if (extraColorTriggers)
+				{
+					extraColorTriggers--;
+					callLater(updateColors);
 				}
 				updateGlobalProbeChangeLater();
 			}
 			
+			private var extraColorTriggers:uint = 2;
+			private function updateColors():void
+			{
+				dataGrid.styleChanged('alternatingItemColors');
+			}
 			
 			override protected function get defaultPanelTitle():String
 			{
@@ -881,8 +885,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = "return defaultCellColorFunction(column, key, cell);";
-			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = "import 'weave.utils.ColumnUtils';\nvar norm = ColumnUtils.getNorm(column, key);\nreturn colorRamp.getColorFromNorm(norm);";
+			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = LinkableFunction.unIndent("\
+				function (column, key, cell) {\n\
+					import 'weave.api.WeaveAPI';\n\
+					var name = 'defaultColorColumn';\n\
+					var cc = WeaveAPI.globalHashMap.getObject(name);\n\
+					return cc.getValueFromKey(key, Number);\n\
+				}\n\
+			");
+			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = LinkableFunction.unIndent("\
+				function (column, key, cell) {\n\
+					import 'weave.utils.ColumnUtils';\n\
+					var norm = ColumnUtils.getNorm(column, key);\n\
+					return colorRamp.getColorFromNorm(norm);\n\
+				}\n\
+			");
 			private var _lastCellColorError:Error = null;
 			/**
 			 * This defines how cells will be colored.
@@ -918,9 +935,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return NaN;
 			}
 			// default cell color function just gets color from global color column
-			public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent = null):Number
+			[Deprecated] public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent = null):Number
 			{
-				var cc:ColorColumn = Weave.defaultColorColumn;
+				var cc:ColorColumn = WeaveAPI.globalHashMap.getObject('defaultColorColumn') as ColorColumn;
 				return cc.getValueFromKey(key, Number);
 			}
 			
