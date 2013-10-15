@@ -63,8 +63,8 @@
 	override protected function childrenCreated():void
 	{
 		super.childrenCreated();
-		if (dimsLabel != null)
-			dimsLabel.text = lang("Replace labels with values from a dimension with a secondary key:");
+		dimsLabel.visible = dimsLabel.includeInLayout = false;
+		attrListCombo.visible = attrListCombo.includeInLayout = false;
 		
 		SecondaryKeyNumColumn.secondaryKeyFilter.addGroupedCallback(this, handleSliderChange, true);
 		checkBox_useGlobalMinMax.visible = true;
