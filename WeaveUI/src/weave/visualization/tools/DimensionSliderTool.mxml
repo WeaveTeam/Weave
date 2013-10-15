@@ -55,10 +55,6 @@
 		return SecondaryKeyNumColumn.secondaryKeyFilter.value;
 	}
 			
-	//class data
-
-	private var values:Array = [];
-	
 	//overrides of abstract SliderTool functions
 	
 	/**
@@ -96,45 +92,6 @@
 		}
 		return [];
 	}
-
-	/**
-	 * handleLabelChange
-	 * This method is called every time there is a change in labels,
-	 * so be sure to change labels only as often as is necesary.  
-	 * We fill in the hslider labels from this.labelsLinkableString
-	 * Since this.labelsLinkableString is a LinkableString it can be changed by
-	 * the user by editing the sessionHistory.  
-	 * */
-	override public function handleLabelChange():void
-	{
-		//@TODO have values associated with the labels so that the labels can be
-		//   changed and the values are still passed into the column request
-		if (!parent)
-			return callLater(handleLabelChange);
-		var labelsString:String = labelsLinkableString.value;
-		values = labelsString.split(',');
-		if (values.length <= maxLabelCount.value)
-			dimensionSlider.labels = values;
-		else
-		{
-			dimensionSlider.labels = new Array();
-			
-			var interval:int = Math.ceil(values.length / maxLabelCount.value);
-			for (var i:int = 0; i < values.length; ++i)
-			{
-				if (i % interval == 0)
-					dimensionSlider.labels.push(values[i]);
-				else
-					dimensionSlider.labels.push('');
-			}			
-		}
-
-		dimensionSlider.minimum = 0;
-		dimensionSlider.maximum = values.length - 1;
-		
-		//set tick interval 
-		dimensionSlider.tickInterval = 1;
-	}	
 
 	/** 
 	 * change - this method is automatically called when the hslider
