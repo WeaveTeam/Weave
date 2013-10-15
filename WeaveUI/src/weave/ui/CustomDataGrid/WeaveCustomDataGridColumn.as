@@ -59,7 +59,7 @@ package weave.ui.CustomDataGrid
 		{
 			attrColumn.removeCallback(handleColumnChange);
 			attrColumn = null;
-			keySet = null;
+			selectionKeySet = null;
 			showColors = null;
 			filterComponent = null;
 			colorFunction = null;
@@ -74,7 +74,7 @@ package weave.ui.CustomDataGrid
 		 * The return value should be a color, or NaN for no color.
 		 */
 		[Exclude] public var colorFunction:Function = null;
-		[Exclude] public var keySet:KeySet = Weave.defaultSelectionKeySet;
+		[Exclude] public var selectionKeySet:KeySet = Weave.defaultSelectionKeySet;
 		[Exclude] public var attrColumn:IAttributeColumn = null;
 		[Exclude] public var showColors:LinkableBoolean = null;
 		
