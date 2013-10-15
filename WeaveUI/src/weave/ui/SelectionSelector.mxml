@@ -27,7 +27,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Canvas width="100%" height="100%">
 		
 		<CustomComboBox id="selectionSelectorBox" prompt="{lang('Select a selection...')}"
-						width="100%" height="100%"
+						width="100%" height="100%" minHeight="0"
 						labelFunction="selectionsListLabelFunction"
 						valueCommit="itemSelected()"
 						/>
