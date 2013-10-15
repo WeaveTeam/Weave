@@ -26,7 +26,7 @@
 	backgroundColor="#EFF4BC"
 	escapeKeyClosesPanel="true"
 	sessionPanelCoordsAsPercentages="false"
-	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*">
+	title="{lang('Manage data sources')}" xmlns:editors="weave.editors.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:HDividedBox initialize="UIUtils.pad(event, padding, 100, 100)">
 		<mx:VBox height="100%">
 			<mx:Button label="{lang('New data source...')}" click="addSource()" width="100%"/>
@@ -39,7 +39,7 @@
 					 height="100%" width="100%">
 				<mx:itemRenderer>
 					<mx:Component>
-						<mx:Canvas>
+						<mx:Canvas horizontalScrollPolicy="off">
 							<mx:Script>
 								<![CDATA[
 									import weave.api.WeaveAPI;
@@ -59,7 +59,43 @@
 				<mx:Canvas width="100%" height="100%">
 					<ui:Paragraph translate="true" id="browseMessage"/>
 				</mx:Canvas>
-				<editors:DynamicColumnEditor id="browser" dataSource="{dataSource}"/>
+				<mx:HBox width="100%" height="100%">
+					<editors:DynamicColumnEditor id="browser" dataSource="{dataSource}"/>
+					<mx:DataGrid id="columnDisplay"
+								 height="100%" width="100%"
+								 sortableColumns="false"
+								 draggableColumns="false"
+								 verticalScrollPolicy="on">
+						<mx:creationComplete>
+							<![CDATA[
+								var col1:DataGridColumn = new WeaveCustomDataGridColumn(keyColumn, null, null);
+								var col2:DataGridColumn = new WeaveCustomDataGridColumn(dataColumn, null, null);
+								columnDisplay.columns = [col1, col2];
+								dataColumn.setInternalColumn(browser.dynamicColumn);
+								browser.dynamicColumn.addGroupedCallback(
+									this,
+									function():void {
+										columnDisplay.dataProvider = browser.dynamicColumn.keys;
+										keyColumn.keyType.value = browser.dynamicColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+										var dataType:String = browser.dynamicColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+										dataColumn.setMetadata(<attribute title={
+											dataType ? lang("Value ({0})", dataType) : lang("Value")
+										}/>);
+									},
+									true
+								);
+								BindingUtils.bindSetter(
+									function(selectedItem:Object):void
+									{
+										columnDisplay.visible = columnDisplay.includeInLayout = !!selectedItem;
+									},
+									browser.hierarchySelector.attributesView,
+									'selectedItem'
+								);
+							]]>
+						</mx:creationComplete>
+					</mx:DataGrid>
+				</mx:HBox>
 			</mx:ViewStack>
 			<mx:ViewStack id="editTab" label="{lang('Configure')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
 				<mx:Canvas width="100%" height="100%">
@@ -79,6 +115,13 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import mx.controls.dataGridClasses.DataGridColumn;
+				import weave.data.AttributeColumns.ProxyColumn;
+				import mx.binding.utils.BindingUtils;
+				import weave.api.data.ColumnMetadata;
+				import weave.api.newDisposableChild;
+				import weave.data.AttributeColumns.KeyColumn;
+				import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
 				import weave.api.setSessionState;
 				import weave.api.disposeObjects;
 				import weave.api.registerDisposableChild;
@@ -103,6 +146,12 @@
 					panelHeight.value = "500";
 				}
 				
+				override protected function createChildren():void
+				{
+					super.createChildren();
+					browser.hierarchySelector.attributeVBox.addChild(columnDisplay);
+				}
+				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
@@ -112,6 +161,9 @@
 					selectDataSource(null);
 					tabNav.addEventListener(Event.CHANGE, handleTabIndexChange);
 				}
+				
+				private const keyColumn:KeyColumn = newDisposableChild(this, KeyColumn);
+				private const dataColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 				
 				private function handleTabIndexChange(event:Event):void
 				{
@@ -176,6 +228,9 @@
 						confirmDiscard(function():void { selectDataSource(newDataSource); });
 						return;
 					}
+					
+					// avoid requesting non-existant column in newly-selected data source
+					browser.hierarchySelector.selectedPath.value = <hierarchy/>;
 					
 					if (editor && editor.parent == container)
 						container.removeChild(editor as DisplayObject);
