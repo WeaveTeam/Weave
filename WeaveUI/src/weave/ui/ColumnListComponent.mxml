@@ -51,6 +51,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ICollectionView;
 			import mx.controls.DataGrid;
 			import mx.controls.List;
 			import mx.controls.listClasses.ListBase;
@@ -75,8 +76,7 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				if (!controller.view)
-					showVariableNames = false;
+				showVariableNames = showVariableNames;
 				controller.labelFunction = ColumnUtils.getColumnListLabel;
 			}
 			
@@ -104,19 +104,11 @@
 					
 					_internalList.percentWidth = 100;
 					_internalList.percentHeight = 100;
-					invalidateDisplayList();
-				}
-			}
-			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-				if (controller.view && !controller.view.parent && numChildren >= _internalListChildIndex)
-				{
-					addChildAt(controller.view, _internalListChildIndex);
-					controller.view.invalidateDisplayList();
+					_internalList.invalidateDisplayList();
 				}
 				
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if (!controller.view.parent && numChildren >= _internalListChildIndex)
+					addChildAt(controller.view, _internalListChildIndex);
 			}
 			
 			[Bindable] private var _visTool:IVisToolWithSelectableAttributes = null;
