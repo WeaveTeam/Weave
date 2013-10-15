@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL')}">
-		<mx:TextInput id="url" width="100%"/>
+		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/WeaveService" width="100%"/>
 	</ui:Indent>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
