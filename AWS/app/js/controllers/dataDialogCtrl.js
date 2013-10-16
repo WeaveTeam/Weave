@@ -2,13 +2,14 @@
  * DataDialog Module DataDialogCtrl - Controls dialog button and closure.
  * DataDialogConnectCtrl - Manages the content of the Dialog.
  */
-angular.module('aws.DataDialog', [ 'aws' ]).controller(
+angular.module('aws.DataDialog', []).controller(
 		'DataDialogCtrl',
-		function($scope, $dialog, queryobj) {
+		function($scope, $dialog, queryService) {
 
-            $scope.dataTable = queryobj.dataTable;
-			$scope.opts = {
-				backdrop : true,
+            $scope.dataTable = queryService.queryObject.dataTable;
+			
+            $scope.opts = {
+				backdrop : false,
 				keyboard : true,
 				backdropClick : true,
 				templateUrl : 'tpls/dataDialog.tpls.html',
@@ -25,32 +26,24 @@ angular.module('aws.DataDialog', [ 'aws' ]).controller(
 			};
 		})
 
-.controller('DataDialogConnectCtrl', function($scope, queryobj, dialog, dataService) {
+.controller('DataDialogConnectCtrl', function($scope, queryService, dialog) {
 	$scope.close = function() {
 		dialog.close();
 	};
 
-	if(queryobj.dataTable){
-		$scope.dataTableSelect = queryobj.dataTable;
-	}
+	$scope.options = queryService.getDataTableList();
 	
-	$scope.options = dataService.getDataTableList();
-
-	$scope.$watch('dataTableSelect', function(newVal, oldVal){
-        if ($scope.options.hasOwnProperty("$$v")) {
-            var temp = angular.fromJson($scope.dataTableSelect);
-            if (temp){
-                queryobj.dataTable = {
-                    id: temp.id,
-                    title: temp.title
-                };
-            }
-        }
-	});
-	$scope.$watch('entityOverride', function(newVal, oldVal){
-		if(newVal != undefined){
-			$scope.dataTableSelect = $scope.entityOverride;
-		}
-	});
-	
+	$scope.dataTableSelect = queryService.queryObject.dataTable;
+    
+	/*************** two way binding *******************/
+//	$scope.$watch(function() { return $scope.dataTableSelect}, function() {
+//		queryService.queryObject.dataTable = $scope.dataTableSelect;
+//	});
+//	
+//	$scope.$watch(function() {
+//					return queryService.queryObject.datatable;
+//				}, function() {
+//					$scope.dataTableSelect = queryService.queryObject.datatable; 
+//	});
+	/****************************************************/
 });

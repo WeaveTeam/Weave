@@ -5,7 +5,7 @@
 
 <div ng-controller="LeftPanelCtrl" class=" span3">
 
-	<button onclick="saveJSON({{QueryObjectModel()}})"
+	<button onclick="saveJSON({{ queryObject }})"
 		class="btn btn-primary">Save Query</button>
 	<br>
 	<br>
@@ -23,24 +23,9 @@
 		<li ng-class="{active: isActive('/visualization')}"><a
 			href="#/visualization">Visualizations</a></li>
 	</ul>
-	<pre class="language-">{{QueryObjectModel()}}</pre>
-
+	<pre class="language-">{{ queryObject }}</pre>
 	<!-- <button id="run" class="btn btn-primary">Run Query</button> -->
 	<br> <img id="busyIndicator" src="img/busy.gif"
 		ng-show='shouldShow' />
 
-	<script>
-	var importedobjectfromjson;
-		$('#run').click(function() {
-			var files = $('input');
-			var file = files[0].files[0];
-			var reader = new FileReader();
-			reader.onload = function(e) {
-				importedobjectfromjson = $.parseJSON(e.target.result);
-				var qh = new aws.QueryHandler(importedobjectfromjson);
-				qh.runQuery();
-			}
-			reader.readAsText(file);
-		});
-	</script>
 </div>

@@ -2,7 +2,7 @@
  * weaveInstanceCtrl - Controls the instance of Weave.
  * weaveContentCtrl - Manages the content of weaveInstance wizard. 
  */
-angular.module('aws.weave', ['aws'])
+angular.module('aws.weave', [])
 .controller('weaveInstanceCtrl',function($scope, $dialog){
   $scope.opts = {
     backdrop: true,

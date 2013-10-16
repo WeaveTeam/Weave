@@ -2,7 +2,7 @@
  * Project Module ProjectButtonCtrl - Controls actions of the project button.
  * ProjectContentCtrl - Controls dialog content for project actions.
  */
-angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
+angular.module('aws.project', []).controller('ProjectButtonCtrl',
 		function($scope, $dialog) {
 	$scope.opts = {
 			backdrop : true,
@@ -22,11 +22,11 @@ angular.module('aws.project', [ 'aws' ]).controller('ProjectButtonCtrl',
 		d.open();
 	};	
 })
-.controller('ProjectButtonContentCtrl', function($scope, queryobj, $dialog) {
+.controller('ProjectButtonContentCtrl', function($scope, queryService, $dialog) {
 	$scope.close = function() {
 		$dialog.close();
 	};
 
-	$scope.query = queryobj;
+	$scope.query = queryService;
 	
 });

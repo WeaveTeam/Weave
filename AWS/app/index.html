@@ -10,16 +10,16 @@
 	href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
 <link rel="stylesheet" href="css/app.css" />
 </head>
-<body>
 
+<body>
 	<div ng-controller="LayoutCtrl">
 		<div id="container">
 			<div id="header">
 				<div ng-controller="DataDialogCtrl" style="display: inline-block">
 					<button id="dataButton" class="btn btn-primary"
 						ng-click="openDialog('dataDialog')">Select Database</button>
-                    <br>
-                    <h3>{{ dataTable }}</h3>
+                    <br/>
+                    {{ dataTable }}
 				</div>
 			</div>
 

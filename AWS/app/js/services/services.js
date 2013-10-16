@@ -9,84 +9,17 @@
  * Don't worry, it will be possible to manage more than one query object in the
  * future.
  */
-angular.module("aws.services", []).service("queryobj", function() {
+angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', function($q, scope) {
     
-	this.title = "AlphaQueryObject";
-    this.date = new Date();
-    this.author = "UML IVPR AWS Team";
-    this.scriptType = "r";
-    this.dataTable = {id:1,title:"default"};
-    this.conn = {
-        serverType: 'MySQL',
-        connectionType: 'RMySQL',
-        sqlip: 'localhost',
-        sqlport: '3306',
-        sqldbname: 'sdoh2010q',
-        sqluser: 'root',
-        sqlpass: 'pass',
-        schema: 'data',
-        dsn: 'brfss'
-    };
-    this.slideFilter = {values: [10, 25]};
-    this.setQueryObject = function(jsonObj) {
-        if (!jsonObj) {
-            return undefined;
-        }
-        this.title = jsonObj.title;
-        this.date = jsonObj.data;
-        this.author = jsonObj.author;
-        this.scriptType = jsonObj.scriptType;
-        this.dataTable = jsonObj.dataTable;
-        this.conn = jsonObj.conn;
-        this.selectedVisualization = jsonObj.selectedVisualization;
-        this.barchart = jsonObj.barchart;
-        this.datatable = jsonObj.datatable;
-        this.colorColumn = jsonObj.colorColumn;
-        this.byvars = jsonObj.byvars;
-        this.indicators = jsonObj.indicators;
-        this.geography = jsonObj.geography;
-        this.timeperiods = jsonObj.timeperiods;
-        this.analytics = jsonObj.analytics;
-        this.scriptOptions = jsonObj.scriptOptions;
-        this.scriptSelected = jsonObj.scriptSelected;
-        this.maptool = jsonObj.maptool;
-    };
-    return {
-        //getSlideFilter: this.slideFilterI,
-        //setSlideFilter: function(dat){ this.slideFilterI = dat; return this.slideFilterI;},
-        //q: this,
-        title: this.title,
-        date: this.date,
-        author: this.author,
-        dataTable: this.dataTable,
-        conn: this.conn,
-        scriptType: this.scriptType,
-        slideFilter: this.slideFilter,
-        getSelectedColumns: function() {
-            //TODO hackity hack hack
-            var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
-            var columns = [];
-            for (var i = 0; i < col.length; i++) {
-                if (this[col[i]]){
-                	angular.forEach(this[col[i]], function(item){
-                		if(item.hasOwnProperty('publicMetadata')) {
-                			var obj = {
-                       			title:item.publicMetadata.title,
-	            				id:item.id,
-	            				range:item.publicMetadata.var_range
-                			};
-                			columns.push(obj);
-                		}
-                	});
-                }
-            }
-            return columns;
-        }
-
-    };
-});
-
-angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '$q', function(queryobj, scope, $q) {
+	this.queryObject = {
+			title : "AlphaQueryObject",
+			date : new Date(),
+    		author : "",
+			scriptType : "r",
+			dataTable : ""//"this.getDataTableList().then(function(result){
+				// return result[0];}
+			//)
+	};    		
     
 	/**
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
@@ -119,7 +52,7 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
     this.getScriptMetadata = function() {
         var deferred = $q.defer();
 
-        aws.RClient.getScriptMetadata(queryobj.scriptSelected, function(result) {
+        aws.RClient.getScriptMetadata(queryService.queryObject.scriptSelected, function(result) {
         	
         	// since this function executes async in a future turn of the event loop, we need to wrap
             // our code into an $apply call so that the model changes are properly observed.
@@ -133,10 +66,6 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
      	// is available. The callbacks are called with a single argument: the result or rejection reason.
         return deferred.promise;
     };
-    
-}]);
-
-angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj', function($q, scope, queryobj) {
 
 		/**
     	  * This function makes nested async calls to the aws function getEntityChildIds and
@@ -211,6 +140,5 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
             });
                 
             return deferred.promise;
-        };
-        
+        };        
 }]);

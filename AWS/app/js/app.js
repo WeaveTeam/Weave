@@ -54,7 +54,7 @@ app.run(['$rootScope', function($rootScope){
     	else {
         	fn();
     	}
-		};
+	};
 }]);
 
 

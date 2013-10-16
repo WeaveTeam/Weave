@@ -157,7 +157,7 @@ aws.addBusyListener = function(callback)
 /**
  * returns the current time to the console
  * @param {string=} message (activity) with the time
- * @returns {string} a time log for activity
+ * @return {string} a time log for activity
  */
 aws.reportTime = function(message)
 {

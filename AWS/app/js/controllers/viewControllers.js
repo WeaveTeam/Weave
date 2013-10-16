@@ -1,5 +1,5 @@
 angular.module("aws.viewControllers", [])
-.controller("AnalysisCtrl", function($scope, queryobj, dataService){
+.controller("AnalysisCtrl", function($scope, queryService){
 	
 	
 })
