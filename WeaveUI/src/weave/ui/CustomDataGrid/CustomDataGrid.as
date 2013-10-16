@@ -20,24 +20,40 @@
 package weave.ui.CustomDataGrid
 {
 	import mx.controls.DataGrid;
+	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.IListItemRenderer;
+	import mx.core.EventPriority;
 	import mx.core.mx_internal;
-	
+	import mx.events.DataGridEvent;
 	
 	use namespace mx_internal;	                          
 	
 	/**
 	 * This is a wrapper around a DataGrid to fix a bug with the mx_internal addMask() function
 	 * which was introduced in Flex 3.6 SDK. The issue is the lockedColumnContent is instantiated
-	 * and contains invalid data when the lockedColumnCount is 0. 
+	 * and contains invalid data when the lockedColumnCount is 0.
+	 * 
+	 * Also, uses AsyncSort.sortImmediately() instead of Array.sort() via CustomSort.
 	 * 
 	 * @author kmonico
+	 * @author adufilie
 	 */	
 	public class CustomDataGrid extends DataGrid
 	{
 		public function CustomDataGrid()
 		{
 			headerClass = CustomDataGridHeader;
+			// add this event listener before the one in super()
+			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
+			super();
+		}
+		
+		private function headerReleaseHandler(event:DataGridEvent):void
+		{
+			var c:DataGridColumn = columns[event.columnIndex];
+			var desc:Boolean = c.sortDescending;
+			if (c.sortable && !(collection.sort is CustomSort))
+				collection.sort = new CustomSort(collection.sort);
 		}
 		
 		public function drawItemForced(item:Object,
