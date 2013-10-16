@@ -61,40 +61,55 @@
 				</mx:Canvas>
 				<mx:HBox width="100%" height="100%">
 					<editors:DynamicColumnEditor id="browser" dataSource="{dataSource}"/>
-					<mx:DataGrid id="columnDisplay"
-								 height="100%" width="100%"
-								 sortableColumns="false"
-								 draggableColumns="false"
-								 verticalScrollPolicy="on">
-						<mx:creationComplete>
-							<![CDATA[
-								var col1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
-								var col2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
-								columnDisplay.columns = [col1, col2];
-								dataColumn.setInternalColumn(browser.dynamicColumn);
-								browser.dynamicColumn.addGroupedCallback(
-									this,
-									function():void {
-										columnDisplay.dataProvider = browser.dynamicColumn.keys;
-										keyColumn.keyType.value = browser.dynamicColumn.getMetadata(ColumnMetadata.KEY_TYPE);
-										var dataType:String = browser.dynamicColumn.getMetadata(ColumnMetadata.DATA_TYPE);
-										dataColumn.setMetadata(<attribute title={
-											dataType ? lang("Value ({0})", dataType) : lang("Value")
-										}/>);
-									},
-									true
-								);
-								BindingUtils.bindSetter(
-									function(selectedItem:Object):void
-									{
-										columnDisplay.visible = columnDisplay.includeInLayout = !!selectedItem;
-									},
-									browser.hierarchySelector.attributesView,
-									'selectedItem'
-								);
-							]]>
-						</mx:creationComplete>
-					</mx:DataGrid>
+					<mx:VBox width="100%" height="100%" id="columnDisplay">
+						<mx:Label id="columnDisplayLabel"/>
+						<CustomDataGrid:CustomDataGrid id="columnDisplayGrid"
+									 height="100%" width="100%"
+									 sortableColumns="false"
+									 draggableColumns="false"
+									 verticalScrollPolicy="on">
+							<CustomDataGrid:creationComplete>
+								<![CDATA[
+									var col1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
+									var col2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
+									columnDisplayGrid.columns = [col1, col2];
+									dataColumn.setInternalColumn(browser.dynamicColumn);
+									browser.dynamicColumn.addGroupedCallback(
+										this,
+										function():void {
+											var keyCount:int = browser.dynamicColumn.keys.length;
+											columnDisplay.enabled = keyCount > 0;
+											if (linkableObjectIsBusy(browser.dynamicColumn))
+												columnDisplayLabel.text = lang("Loading data...");
+											else
+											{
+												columnDisplayLabel.visible = columnDisplayLabel.includeInLayout = columnDisplay.enabled;
+												columnDisplayLabel.text = lang(
+													'Selected column has {0} records',
+													StandardLib.formatNumber(keyCount)
+												);
+											}
+											columnDisplayGrid.dataProvider = browser.dynamicColumn.keys;
+											keyColumn.keyType.value = browser.dynamicColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+											var dataType:String = browser.dynamicColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+											dataColumn.setMetadata(<attribute title={
+												dataType ? lang("Value ({0})", dataType) : lang("Value")
+											}/>);
+										},
+										true
+									);
+									BindingUtils.bindSetter(
+										function(selectedIndex:int):void
+										{
+											columnDisplay.visible = columnDisplay.includeInLayout = selectedIndex >= 0;
+										},
+										browser.hierarchySelector.attributesView,
+										'selectedIndex'
+									);
+								]]>
+							</CustomDataGrid:creationComplete>
+						</CustomDataGrid:CustomDataGrid>
+					</mx:VBox>
 				</mx:HBox>
 			</mx:ViewStack>
 			<mx:ViewStack id="editTab" label="{lang('Configure')}" initialize="UIUtils.pad(event, 0, 100, 100, true)" selectedIndex="{dataSource ? 1 : 0}">
@@ -115,6 +130,8 @@
 		
 		<mx:Script>
 			<![CDATA[
+				import weave.api.linkableObjectIsBusy;
+				import weave.compiler.StandardLib;
 				import mx.controls.dataGridClasses.DataGridColumn;
 				import weave.data.AttributeColumns.ProxyColumn;
 				import mx.binding.utils.BindingUtils;
