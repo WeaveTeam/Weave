@@ -43,9 +43,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 				
 			
-			public var column:WeaveCustomDataGridColumn;
+			public var column:CustomDataGridColumn;
 			
-			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void{				
+			public function mapColumnToFilter(column:CustomDataGridColumn):void{				
 				 this.column = column;
 				 _columnCallbackJuggler.target = column ? column.attrColumn : null;
 				 _statsCallbackJuggler.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn) : null;

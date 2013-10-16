@@ -41,26 +41,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
 		</mx:HBox>
-		<CustomDataGrid:CustomDataGrid id="dataGrid" updateComplete="dataGrid_updateCompleteHandler(event)"
-									   horizontalScrollPolicy="auto"
-									   verticalScrollPolicy="auto"
-									   dataProvider="{dataRowKeys}" 
-									   width="100%" height="100%"
-									   allowMultipleSelection="true"
-									   minWidth="0"
-									   copy="handleDataCopy(event)" 
-									   change="handleItemSelection(event)"
-									   doubleClick="handleItemSelection(event)" doubleClickEnabled="true" 
-									   headerShift="handleColumnReorder(event)"
-									   headerRelease="handleHeaderRelease(event)"
-									   paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"									   
-									   fontWeight="normal"
-									   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
-									   rollOverColor="0xDADAFF"
-									   selectionColor="0xFFAAAA"
-									   mouseDown="handleMouseDown()"
-									   click="handleMouseClick()"
-									   />
+		<CustomDataGrid:CustomDataGridWithFilters
+			id="dataGrid"
+			updateComplete="dataGrid_updateCompleteHandler(event)"
+			horizontalScrollPolicy="auto"
+			verticalScrollPolicy="auto"
+			dataProvider="{dataRowKeys}" 
+			width="100%" height="100%"
+			allowMultipleSelection="true"
+			minWidth="0"
+			copy="handleDataCopy(event)" 
+			change="handleItemSelection(event)"
+			doubleClick="handleItemSelection(event)" doubleClickEnabled="true" 
+			headerShift="handleColumnReorder(event)"
+			headerRelease="handleHeaderRelease(event)"
+			paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"									   
+			fontWeight="normal"
+			alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
+			rollOverColor="0xDADAFF"
+			selectionColor="0xFFAAAA"
+			mouseDown="handleMouseDown()"
+			click="handleMouseClick()"
+			/>
 		<mx:HBox id="tooManyRecordsIndicator" visible="false" includeInLayout="false" width="100%" horizontalGap="0">
 			<mx:Spacer width="100%"/>
 			<mx:Label id="maxRowsLabel"/>
@@ -127,7 +129,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
-			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
+			import weave.ui.CustomDataGrid.CustomDataGridColumn;
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
@@ -298,7 +300,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					updateFilters();
 				}
 				if (detectLinkableObjectChange(updateDisplayList, filterComponents) && showFilters.value)
-				{					
+				{
 					dataGrid.invalidateFilters();
 				}
 				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
@@ -561,7 +563,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
 				var includedColumns:Array = [];
-				for each (var col:WeaveCustomDataGridColumn in dataGrid.columns)
+				for each (var col:CustomDataGridColumn in dataGrid.columns)
 				{
 					if (keyTypeCombo.selectedItem == "Show All" ||
 						(col.attrColumn is KeyColumn) ||
@@ -641,14 +643,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						var dataType:String = ColumnUtils.getDataType(attrColumn);
 						
 						//column Section
-						var dgc:WeaveCustomDataGridColumn;
+						var dgc:CustomDataGridColumn;
 						if (dataGridColumns[columnName])
 						{
 							dgc = dataGridColumns[columnName];
 						}
 						else
 						{
-							dgc = new WeaveCustomDataGridColumn(attrColumn, showColors, _cellColorFunction);
+							dgc = new CustomDataGridColumn(attrColumn, showColors, _cellColorFunction);
 							dataGridColumns[columnName] = dgc;
 						}
 						
@@ -680,7 +682,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var newColumnOrder:Array = [];				
 				for(var i:int = 0; i< dataGrid.columns.length; i++)
 				{
-					var currDGcolumn:WeaveCustomDataGridColumn = dataGrid.columns[i] as WeaveCustomDataGridColumn;
+					var currDGcolumn:CustomDataGridColumn = dataGrid.columns[i] as CustomDataGridColumn;
 					var columnName:String = columns.getName(currDGcolumn.attrColumn as ILinkableObject);
 					newColumnOrder.push(columnName);
 				}			
@@ -710,7 +712,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var dataGridColumnsWidth:Number = dataGrid.getColumnDisplayWidth();
 				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
 				{
-					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[i];
+					var dgc:CustomDataGridColumn = _currentDataGridColumns[i];
 					if (dgc.filterComponent)
 						dgc.filterComponent.width = dgc.width;
 					
@@ -742,7 +744,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var displayedColumnsTotalWidth:Number = 0;
 				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
 				{
-					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[j] as WeaveCustomDataGridColumn;
+					var dgc:CustomDataGridColumn = _currentDataGridColumns[j] as CustomDataGridColumn;
 					columnName = columns.getName(dgc.attrColumn);
 					if (columnName == null)
 						continue;
@@ -788,7 +790,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var hsp:int = 0;
 				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++)
 				{
-					hsp += (_currentDataGridColumns[i] as WeaveCustomDataGridColumn).width;
+					hsp += (_currentDataGridColumns[i] as CustomDataGridColumn).width;
 				}					
 				filterControls.horizontalScrollPosition = hsp;
 				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;

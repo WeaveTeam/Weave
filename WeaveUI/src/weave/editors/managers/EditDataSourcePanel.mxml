@@ -68,8 +68,8 @@
 								 verticalScrollPolicy="on">
 						<mx:creationComplete>
 							<![CDATA[
-								var col1:DataGridColumn = new WeaveCustomDataGridColumn(keyColumn, null, null);
-								var col2:DataGridColumn = new WeaveCustomDataGridColumn(dataColumn, null, null);
+								var col1:DataGridColumn = new CustomDataGridColumn(keyColumn, null, null);
+								var col2:DataGridColumn = new CustomDataGridColumn(dataColumn, null, null);
 								columnDisplay.columns = [col1, col2];
 								dataColumn.setInternalColumn(browser.dynamicColumn);
 								browser.dynamicColumn.addGroupedCallback(
@@ -121,7 +121,7 @@
 				import weave.api.data.ColumnMetadata;
 				import weave.api.newDisposableChild;
 				import weave.data.AttributeColumns.KeyColumn;
-				import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
+				import weave.ui.CustomDataGrid.CustomDataGridColumn;
 				import weave.api.setSessionState;
 				import weave.api.disposeObjects;
 				import weave.api.registerDisposableChild;

@@ -34,9 +34,9 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.ImageColumn;
 
-	public class DataGridCellRenderer extends Canvas
+	public class CustomDataGridCell extends Canvas
 	{
-		public function DataGridCellRenderer()
+		public function CustomDataGridCell()
 		{
 		}
 		
@@ -56,7 +56,7 @@ package weave.ui.CustomDataGrid
 				toolTip = lbl.text;
 		}
 		
-		public var column:WeaveCustomDataGridColumn;
+		public var column:CustomDataGridColumn;
 		private var img:Image;
 		public const lbl:Label = new Label();
 		

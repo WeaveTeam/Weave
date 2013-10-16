@@ -32,9 +32,9 @@ package weave.ui.CustomDataGrid
 	import weave.data.KeySets.SortedKeySet;
 	import weave.utils.ColumnUtils;
 	
-	public class WeaveCustomDataGridColumn extends DataGridColumn implements IDisposableObject
+	public class CustomDataGridColumn extends DataGridColumn implements IDisposableObject
 	{
-		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
+		public function CustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
 		{
 			registerDisposableChild(attrColumn, this);
 			
@@ -46,7 +46,7 @@ package weave.ui.CustomDataGrid
 			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
 			headerWordWrap = true;
 			
-			var factory:ClassFactory = new ClassFactory(DataGridCellRenderer);
+			var factory:ClassFactory = new ClassFactory(CustomDataGridCell);
 			factory.properties = {column: this};
 			this.itemRenderer = factory;
 			
