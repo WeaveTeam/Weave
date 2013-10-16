@@ -136,7 +136,8 @@
 				if (hideIfUnlinked())
 					return;
 				
-				columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
+				var newColumn:ILinkableObject = columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
+				columnList.beginEditVariableName(newColumn);
 			}
 			
 			[Bindable] private var selectableAttributes:Array = [];

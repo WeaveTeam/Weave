@@ -246,6 +246,17 @@ package weave.ui
 				dynamicObject.removeObject();
 			}
 		}
+		
+		public function beginEditVariableName(object:ILinkableObject):void
+		{
+			var dg:DataGrid = _editor as DataGrid;
+			if (dg && hashMap)
+			{
+				var rowIndex:int = hashMap.getObjects().indexOf(object);
+				if (rowIndex >= 0)
+					dg.editedItemPosition = { columnIndex: 0, rowIndex: rowIndex };
+			}
+		}
 
 		/**
 		 * @param item
@@ -349,6 +360,7 @@ package weave.ui
 					var prevNames:Array = hashMap.getNames();
 					var newNames:Array = [];
 					var dropIndex:int = _editor.calculateDropIndex(event);
+					var newObject:ILinkableObject;
 					
 					// copy each item in the list, in order
 					for (var i:int = 0; i < items.length; i++)
@@ -356,7 +368,7 @@ package weave.ui
 						object = items[i] as ILinkableObject;
 						if (hashMap.getName(object) == null)
 						{
-							var newObject:ILinkableObject = hashMap.requestObjectCopy(null, object);
+							newObject = hashMap.requestObjectCopy(null, object);
 							newNames.push(hashMap.getName(newObject));
 						}
 					}
@@ -366,6 +378,9 @@ package weave.ui
 					newNames.unshift(dropIndex, 0);
 					prevNames.splice.apply(null, args);
 					hashMap.setNameOrder(prevNames);
+					
+					if (items.length == 1 && newObject)
+						beginEditVariableName(newObject);
 				}
 				else if (dynamicObject && items.length > 0)
 				{

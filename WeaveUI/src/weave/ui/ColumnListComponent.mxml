@@ -51,12 +51,12 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ICollectionView;
 			import mx.controls.DataGrid;
 			import mx.controls.List;
 			import mx.controls.listClasses.ListBase;
 			
 			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.utils.ColumnUtils;
@@ -109,6 +109,11 @@
 				
 				if (!controller.view.parent && numChildren >= _internalListChildIndex)
 					addChildAt(controller.view, _internalListChildIndex);
+			}
+			
+			public function beginEditVariableName(object:ILinkableObject):void
+			{
+				controller.beginEditVariableName(object);
 			}
 			
 			[Bindable] private var _visTool:IVisToolWithSelectableAttributes = null;
