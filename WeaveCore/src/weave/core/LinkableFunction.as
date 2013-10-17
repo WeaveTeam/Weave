@@ -26,7 +26,6 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -59,7 +58,6 @@ package weave.core
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
 			_paramNames = paramNames && paramNames.concat();
-			getCallbackCollection(this).addImmediateCallback(this, handleChange);
 		}
 		
 		private var _ignoreRuntimeErrors:Boolean = false;
@@ -67,16 +65,8 @@ package weave.core
 		private var _compiledMethod:Function = null;
 		private var _paramNames:Array = null;
 		private var _isFunctionDefinition:Boolean = false;
+		private var _triggerCount:uint = 0;
 
-		/**
-		 * This is called whenever the session state changes.
-		 */
-		private function handleChange():void
-		{
-			// do not compile immediately because we don't want to throw an error at this time.
-			_compiledMethod = null;
-		}
-		
 		/**
 		 * This is used as a placeholder to prevent re-compiling erroneous code.
 		 */
@@ -87,8 +77,9 @@ package weave.core
 		 */
 		public function validate():void
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 			{
+				_triggerCount = triggerCounter;
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
@@ -116,7 +107,7 @@ package weave.core
 		 */
 		public function get length():int
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.length;
 		}
@@ -129,7 +120,7 @@ package weave.core
 		 */
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.apply(thisArg, argArray);
 		}
@@ -142,7 +133,7 @@ package weave.core
 		 */
 		public function call(thisArg:* = null, ...args):*
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.apply(thisArg, args);
 		}
