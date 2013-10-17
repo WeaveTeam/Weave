@@ -83,6 +83,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
+			
+			public var debug:Boolean = false;
 
 			override protected function childrenCreated():void
 			{
@@ -1148,6 +1150,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					CustomCursorManager.removeCursor(draggablePanelCursorID);
 					if ( resizeCursorName!= null && !event.buttonDown && _enableMoveResize)
 					{
+						if (debug)
+							weaveTrace(debugId(this), resizeCursorName, debugId(event), debugId(event.target));
+						
 						try
 						{
 							draggablePanelCursorID = CustomCursorManager.showCursor(resizeCursorName);
@@ -1542,7 +1547,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// flash offsets the line to the right and bottom of the coordinates you give.
 				if (borderThickness % 2 == 1)
 					borderThickness++;
-				_dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, 0);
+				_dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, debug ? 0.5 : 0);
 				// x,y are at half border thickness because the line thickness will be centered at those coordinates
 				_dragCanvas.graphics.drawRect(borderThickness/2 - 1,
 					borderThickness/2 - 1,
