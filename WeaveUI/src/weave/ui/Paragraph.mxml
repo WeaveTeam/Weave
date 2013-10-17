@@ -97,6 +97,24 @@
 				super.text = value;
 			}
 			
+			override public function set height(value:Number):void
+			{
+				if (super.height != value)
+				{
+					super.height = value;
+					callLater(styleChanged, ["borderStyle"]);
+				}
+			}
+			
+			override public function set width(value:Number):void
+			{
+				if (super.width != value)
+				{
+					super.width = value;
+					callLater(styleChanged, ["borderStyle"]);
+				}
+			}
+			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				// call this first to update textField properties
@@ -120,9 +138,6 @@
 				mx_internal::invalidateSizeFlag = false;
 				mx_internal::invalidatePropertiesFlag = false;
 				mx_internal::invalidateDisplayListFlag = false;
-				
-				// prevents halo border from having large height value and intercepting mouse events
-				styleChanged("borderStyle");
 				
 				// call this again because width or height may have changed
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
