@@ -25,43 +25,68 @@
 	@author skolman
 	@author adufilie
 -->
-<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				backgroundColor="#EFF4BC"
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="{lang('Equation Editor')}"
-				>
+<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+			  width="700"
+			  height="500"
+			  backgroundColor="#EFF4BC"
+			  title="{lang('Equation Column Editor')}">
 	
 	<mx:HDividedBox id="equationContainer" width="100%" height="100%"
 			paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}"
 		>
-		<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:VBox width="100%" height="100%">
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Active equation"/>
-				<CustomComboBox id="activeEquationCombo" prompt="{lang('Select an equation')}" labelFunction="{getActiveEquationLabel}" change="handleActiveEquationSelect()" width="100%"/>
+				<mx:Label text="{lang('Active equation')}"/>
+				<CustomComboBox id="activeEquationCombo"
+								prompt="{lang('Select an equation...')}"
+								labelFunction="{getActiveEquationLabel}"
+								change="handleActiveEquationSelect()"
+								width="100%"/>
+				<mx:Button label="{lang('New...')}" click="createNewEquation()"/>
 				<mx:Button label="{lang('Remove')}" enabled="{activeEquationCombo.selectedItem != null}" click="removeActiveEquation()"/>
 			</mx:HBox>
-			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Title"/>
-				<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
-			</mx:HBox>
-			<mx:TabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
-				<mx:Canvas label="{lang('Equation Text')}">
-					<CodeEditor id="textEditor" errorString="{baseEquationUIComp.errorString}"/>
-				</mx:Canvas>
-				<mx:Canvas label="{lang('Equation Tree')}"
-						   id="equationBox"
-						   width="100%"
-						   height="100%"
-						   verticalScrollPolicy="on"
-						   backgroundColor="#F2F2F2"
-						   borderThickness="1"
-						   borderStyle="solid"
-						   dragEnter="handleDragEnter(event)"
-						   dragDrop="handleDragDrop(event)">
-					<EquationUIComponent id="baseEquationUIComp"/>
-				</mx:Canvas>
-			</mx:TabNavigator>
-			<ColumnListComponent label="{lang('Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
+			<mx:VBox width="100%" height="100%" enabled="{activeEquationCombo.selectedItem != null}">
+				<mx:HBox width="100%" verticalAlign="middle">
+					<mx:Label text="Title"/>
+					<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
+				</mx:HBox>
+				<mx:VDividedBox width="100%" height="100%">
+					<mx:TabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
+						<mx:Canvas label="{lang('Code')}">
+							<CodeEditor id="textEditor" errorString="{baseEquationUIComp.errorString}"/>
+						</mx:Canvas>
+						<mx:Canvas label="{lang('Tree')}"
+								   id="equationBox"
+								   width="100%"
+								   height="100%"
+								   verticalScrollPolicy="on"
+								   backgroundColor="#F2F2F2"
+								   borderThickness="1"
+								   borderStyle="solid"
+								   dragEnter="handleDragEnter(event)"
+								   dragDrop="handleDragDrop(event)">
+							<EquationUIComponent id="baseEquationUIComp"/>
+						</mx:Canvas>
+						<mx:Canvas label="{lang('Help')}" width="100%" height="100%" verticalScrollPolicy="on">
+							<Paragraph selectable="true">
+								The Weave data framework requires that all columns provide a mapping from keys to data values.
+								The Equation Column allows you to input a script that generates derived data for each record key.
+								The script you enter in the Code view will be evaluated for each record with Weave's built-in
+								compiler, which supports a subset of ActionScript.
+								
+								First add the columns you are interested in as variables below.
+								It is recommended to give the variables simple names which are valid ActionScript symbol names like "a" and "b".
+								To retrieve a value from a column variable, you can use the getNumber() or getString() function,
+								depending on whether you need the numeric value or the text value.
+								
+								For example, to get the sum of the corresponding values from two column variables "a" and "b",
+								you could use the following script:  return getNumber(a) + getNumber(b);
+							</Paragraph>
+						</mx:Canvas>
+					</mx:TabNavigator>
+					<ColumnListComponent label="{lang('Variables')}" showVariableNames="true" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
+				</mx:VDividedBox>
+			</mx:VBox>
 		</mx:VBox>
 		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 			<mx:Label text="{lang('Available functions')}"/>
@@ -75,7 +100,6 @@
 		<![CDATA[
 			import avmplus.DescribeType;
 			
-			import mx.controls.DataGrid;
 			import mx.controls.List;
 			import mx.controls.TextInput;
 			import mx.controls.listClasses.ListBase;
@@ -83,7 +107,7 @@
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
-			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
@@ -92,7 +116,6 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
 			import weave.compiler.Compiler;
-			import weave.core.LinkableFunction;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -205,9 +228,11 @@
 				EventUtils.addDelayedEventCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
 				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
-				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
+				WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
 				activeEquationCombo.selectedIndex = 0;
 				handleActiveEquationSelect();
+				if (!dynamicColumn.globalName)
+					createNewEquation();
 				
 				this.targets = [dynamicColumn];
 			}
@@ -217,31 +242,36 @@
 			
 			private function getActiveEquationLabel(eqCol:EquationColumn):String
 			{
-				if (eqCol == equationColumn)
-					return lang('Create New Equation...');
 				return eqCol.getMetadata(ColumnMetadata.TITLE) || lang('Untitled');
 			}
 			private function handleActiveEquationSelect():void
 			{
-				if (activeEquationCombo.selectedItem == equationColumn)
-				{
-					var newEquation:EquationColumn = Weave.root.requestObject(null, EquationColumn, false);
-					if (dynamicColumn.globalName) // if something is selected, create a blank column
-						newEquation.setMetadata(ColumnMetadata.TITLE, Weave.root.getName(newEquation));
-					else // when nothing is selected, copy session state to new column so nothing is lost
-						copySessionState(equationColumn, newEquation);
-					activeEquationCombo.selectedItem = newEquation;
-				}
-				dynamicColumn.globalName = Weave.root.getName(activeEquationCombo.selectedItem as EquationColumn);
+				dynamicColumn.globalName = WeaveAPI.globalHashMap.getName(activeEquationCombo.selectedItem as EquationColumn);
 			}
 			private function updateActiveEquationCombo():void
 			{
-				activeEquationCombo.dataProvider = Weave.root.getObjects(EquationColumn).concat(equationColumn); // 'new equation' at end of list
+				var columns:Array = WeaveAPI.globalHashMap.getObjects(EquationColumn);
+				activeEquationCombo.dataProvider = columns;
 				activeEquationCombo.selectedItem = dynamicColumn.getInternalColumn();
+				activeEquationCombo.enabled = !!columns.length;
+			}
+			private function createNewEquation():void
+			{
+				var newEquation:EquationColumn = WeaveAPI.globalHashMap.requestObject(null, EquationColumn, false);
+				if (dynamicColumn.globalName) // if something is selected, create a blank column
+				{
+					newEquation.setMetadata(ColumnMetadata.TITLE, WeaveAPI.globalHashMap.getName(newEquation));
+				}
+				else // when nothing is selected, copy session state to new column so nothing is lost
+				{
+					copySessionState(equationColumn, newEquation);
+				}
+				activeEquationCombo.selectedItem = newEquation;
+				dynamicColumn.globalName = WeaveAPI.globalHashMap.getName(newEquation);
 			}
 			private function removeActiveEquation():void
 			{
-				Weave.root.removeObject(dynamicColumn.globalName);
+				WeaveAPI.globalHashMap.removeObject(dynamicColumn.globalName);
 			}
 			
 			private var _previousGlobalColumn:EquationColumn = null;

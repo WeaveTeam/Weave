@@ -30,7 +30,6 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
@@ -77,7 +76,6 @@ package weave.data.AttributeColumns
 			
 			setMetadata(ColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
-			equation.value = 'undefined';
 			
 			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
 		}
