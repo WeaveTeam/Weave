@@ -530,13 +530,13 @@ package weave.application
 	
 		private function handleScreenshotImageSize():void
 		{
-			if (WeaveAPI.ErrorManager.errors.length)
-			{
-				handleRemoveScreenshot();
-				return;
-			}
 			if (_screenshot)
 			{
+				if (WeaveAPI.ErrorManager.errors.length)
+				{
+					handleRemoveScreenshot();
+					return;
+				}
 				var workspace:Canvas = visDesktop.internalCanvas;
 				_screenshot.width = this.width;
 				_screenshot.height = this.height;
