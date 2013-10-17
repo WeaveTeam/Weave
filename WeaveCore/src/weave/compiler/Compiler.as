@@ -594,6 +594,20 @@ package weave.compiler
 		{
 			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
 		}
+		
+		/**
+		 * Tests if an expression is a single, valid symbol name.
+		 */
+		public function isValidSymbolName(expression:String):Boolean
+		{
+			var tokens:Array = getTokens(expression);
+			if (tokens.length != 1 || expression != tokens[0])
+				return false;
+			var str:String = tokens[0];
+			if (operators.hasOwnProperty(str.charAt(0)))
+				return false;
+			return !numberRegex.exec(str);
+		}
 
 		/**
 		 * @param expression An expression string to parse.
@@ -979,6 +993,8 @@ package weave.compiler
 		 */
 		public static function encodeString(string:String, quote:String = '"'):String
 		{
+			if (string == null)
+				return 'null';
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)
 			{
