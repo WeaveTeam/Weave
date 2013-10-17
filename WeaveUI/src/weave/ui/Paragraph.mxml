@@ -121,8 +121,22 @@
 				mx_internal::invalidatePropertiesFlag = false;
 				mx_internal::invalidateDisplayListFlag = false;
 				
+				// prevents halo border from having large height value and intercepting mouse events
+				styleChanged("borderStyle");
+				
 				// call this again because width or height may have changed
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
+			override public function get verticalScrollPosition():Number
+			{
+				if (super.verticalScrollPosition != 0)
+					super.verticalScrollPosition = 0;
+				return 0;
+			}
+			override public function set verticalScrollPosition(value:Number):void
+			{
+				super.verticalScrollPosition = 0;
 			}
         ]]>
     </mx:Script>
