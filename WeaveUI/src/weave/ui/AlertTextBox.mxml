@@ -20,7 +20,7 @@
 */
 -->
 <mx:TitleWindow
-    xmlns:ui ="weave.ui.*"
+    xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
     showCloseButton="false"
     close="close()"
@@ -34,7 +34,7 @@
 	initialize="UIUtils.pad(this, 10);"
 	keyDown="if (event.keyCode == Keyboard.ESCAPE) cancel();"
 	>
-	<ui:Paragraph text="{message}" selectable="true" minWidth="300"/>
+	<Paragraph text="{message}" selectable="true" minWidth="300"/>
 	<mx:Canvas id="inputCanvas" width="100%"
 			includeInLayout="{autoCompleteChoices == null}"
 			visible="{autoCompleteChoices == null}"
@@ -44,16 +44,7 @@
 					 change="textInput = textBox.text;"
 					 keyDown="handleKeyDown(event)"
 					 width="100%"
-					 height="{multiLineEdit ? 96 : 20}"
-					 verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
-		<mx:LinkButton
-					label="{multiLineEdit ? '-' : '+'}"
-					alpha="0.5" useHandCursor="true"
-					paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
-					width="20" height="20" top="0" right="{multiLineEdit ? 16 : 0}"
-					includeInLayout="false"
-					mouseDown="multiLineEdit = !multiLineEdit; callLater(textBox.setFocus);"
-					/>
+					 />
 	</mx:Canvas>
 	<mx:List id="autoComplete"
 			 includeInLayout="{autoCompleteChoices != null}"
@@ -81,14 +72,20 @@
 		import weave.compiler.StandardLib;
 		import weave.core.UIUtils;
 		
-		[Bindable] public var multiLineEdit:Boolean = false;
 		[Bindable] public var allowEmptyInput:Boolean = false;
 		[Bindable] public var autoCompleteChoices:Array = null;
 		
 		private var _textInput:String = null;
+		private var _expandButton:ExpandButton;
 		
 		//Message before TextBox
 		[Bindable] public var message:String = null;
+		
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			_expandButton = ExpandButton.makeExpandable(textBox);
+		}
 		
 		//default text in TextBox
 		[Bindable]
@@ -101,7 +98,7 @@
 			_textInput = value || '';
 			
 			if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
-				multiLineEdit = true;
+				_expandButton.expanded = true;
 		}
 	
 		private function handleCreationComplete(event:Event):void
@@ -154,7 +151,7 @@
 		
 		private function handleKeyDown(event:KeyboardEvent):void
 		{
-			if (event.keyCode == Keyboard.ENTER && !multiLineEdit)
+			if (event.keyCode == Keyboard.ENTER && !_expandButton.expanded)
 			{
 				if (textBox.text || allowEmptyInput)
 					handleOKClick();
