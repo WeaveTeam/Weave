@@ -126,10 +126,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.CustomDataGrid.CustomDataGridColumn;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
-			import weave.ui.CustomDataGrid.CustomDataGridColumn;
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
@@ -887,7 +887,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = LinkableFunction.unIndent("\
+			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
 				function (column, key, cell) {\n\
 					import 'weave.api.WeaveAPI';\n\
 					var name = 'defaultColorColumn';\n\
@@ -895,7 +895,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return cc.getValueFromKey(key, Number);\n\
 				}\n\
 			");
-			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = LinkableFunction.unIndent("\
+			private const HEATMAP_CELL_COLOR_FUNCTION_SCRIPT:String = StandardLib.unIndent("\
 				function (column, key, cell) {\n\
 					import 'weave.utils.ColumnUtils';\n\
 					var norm = ColumnUtils.getNorm(column, key);\n\

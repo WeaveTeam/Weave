@@ -92,6 +92,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
 			import weave.compiler.Compiler;
+			import weave.core.LinkableFunction;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -335,7 +336,6 @@
 			{
 				textEditor.text = equationColumn.equation.value;
 			}
-			
 		]]>
 	</mx:Script>
 	

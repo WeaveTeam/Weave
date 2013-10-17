@@ -22,8 +22,6 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.reportError;
@@ -53,7 +51,7 @@ package weave.core
 		 */
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
-			super(unIndent(defaultValue));
+			super(StandardLib.unIndent(defaultValue));
 			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
@@ -265,70 +263,5 @@ package weave.core
 //		{
 //			return _getNewCompiler(false);
 //		}
-		
-		/**
-		 * Takes a script where all lines have been indented with tabs,
-		 * removes the common indentation from all lines and optionally
-		 * replaces extra leading tabs with a number of spaces.
-		 * @param script A script.
-		 * @param spacesPerTab If greater than zero, this is the number of spaces to be used in place of each tab character used as indentation.
-		 * @return The modified script.
-		 */		
-		public static function unIndent(script:String, spacesPerTab:uint = 0):String
-		{
-			if (script == null)
-				return null;
-			// switch all line endings to \n
-			script = StandardLib.replace(script, '\r\n','\n','\r','\n');
-			// remove trailing whitespace (not leading whitespace)
-			script = StringUtil.trim('.' + script).substr(1);
-			// separate into lines
-			var lines:Array = script.split('\n');
-			// remove blank lines from the beginning
-			while (!StringUtil.trim(lines[0]) && lines.length)
-				lines.shift();
-			// stop if there's nothing left
-			if (!lines.length)
-				return '';
-			// find the common indentation
-			var commonIndent:int = int.MAX_VALUE;
-			var line:String;
-			for each (line in lines)
-			{
-				// ignore blank lines
-				if (!StringUtil.trim(line))
-					continue;
-				// count leading tabs
-				var lineIndent:int = 0;
-				while (line.charAt(lineIndent) == '\t')
-					lineIndent++;
-				// remember the minimum number of leading tabs
-				commonIndent = Math.min(commonIndent, lineIndent);
-			}
-			// remove the common indentation from each line
-			for (var i:int = 0; i < lines.length; i++)
-			{
-				line = lines[i];
-				// prepare to remove common indentation
-				var t:int = 0;
-				while (t < commonIndent && line.charAt(t) == '\t')
-				{
-					t++;
-				}
-				// optionally, prepare to replace extra tabs with spaces
-				var spaces:String = '';
-				if (spacesPerTab)
-				{
-					while (line.charAt(t) == '\t')
-					{
-						spaces += StandardLib.lpad('', spacesPerTab, ' ');
-						t++;
-					}
-				}
-				// commit changes
-				lines[i] = spaces + line.substr(t);
-			}
-			return lines.join('\n') + '\n';
-		}
 	}
 }
