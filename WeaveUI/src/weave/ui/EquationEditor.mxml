@@ -44,12 +44,20 @@
 				<mx:Label text="Title"/>
 				<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
 			</mx:HBox>
-			<mx:TabNavigator width="100%" height="100%"
-							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
+			<mx:TabNavigator initialize="UIUtils.pad(event, padding, 100, 100)">
 				<mx:Canvas label="{lang('Equation Text')}">
 					<CodeEditor id="textEditor" errorString="{baseEquationUIComp.errorString}"/>
 				</mx:Canvas>
-				<mx:Canvas label="{lang('Equation Tree')}" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
+				<mx:Canvas label="{lang('Equation Tree')}"
+						   id="equationBox"
+						   width="100%"
+						   height="100%"
+						   verticalScrollPolicy="on"
+						   backgroundColor="#F2F2F2"
+						   borderThickness="1"
+						   borderStyle="solid"
+						   dragEnter="handleDragEnter(event)"
+						   dragDrop="handleDragDrop(event)">
 					<EquationUIComponent id="baseEquationUIComp"/>
 				</mx:Canvas>
 			</mx:TabNavigator>
@@ -67,8 +75,10 @@
 		<![CDATA[
 			import avmplus.DescribeType;
 			
+			import mx.controls.DataGrid;
 			import mx.controls.List;
 			import mx.controls.TextInput;
+			import mx.controls.listClasses.ListBase;
 			import mx.core.IUIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
@@ -82,6 +92,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
 			import weave.compiler.Compiler;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
 			import weave.utils.EventUtils;
@@ -253,7 +264,7 @@
 			
 			private function handleListItemDoubleClick(event:MouseEvent):void
 			{
-				baseEquationUIComp.replaceEquation(((event.currentTarget as List).selectedItem));
+				baseEquationUIComp.replaceEquation((event.currentTarget as ListBase).selectedItem);
 					
 			}
 			private function handleDragEnter(event:DragEvent):void
@@ -264,7 +275,7 @@
 			
 			private function handleDragDrop(event:DragEvent):void
 			{
-				baseEquationUIComp.replaceEquation(((event.dragInitiator as List).selectedItem));
+				baseEquationUIComp.replaceEquation((event.dragInitiator as ListBase).selectedItem);
 			}
 			
 			private function captureDragDrop(event:DragEvent):void
@@ -273,12 +284,19 @@
 				if (items[0] is ILinkableObject)
 				{
 					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
-				
-					eqName = "get(" + Compiler.encodeString(eqName) + ")";
+					if (!eqName)
+					{
+						try {
+							var i:int = (event.dragInitiator as ListBase).selectedIndex;
+							eqName = equationColumn.variables.getNames()[i];
+						} catch (e:Error) { }
+					}
+					
+					if (!EquationColumn.compiler.isValidSymbolName(eqName))
+						eqName = "get(" + Compiler.encodeString(eqName) + ")";
 					
 					event.draggedItem = eqName;
 				}
-				
 			}
 			
 			private function getLabel(item:Object):String
