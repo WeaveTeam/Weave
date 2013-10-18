@@ -1708,6 +1708,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();
 				
+				var xSpace:Number = instance.parent.width - instance.width;
+				var ySpace:Number = instance.parent.height- instance.height;
+				var xSpread:Number = Math.min(100, xSpace / 4);
+				var ySpread:Number = Math.min(100, ySpace / 4);
+				instance.panelX.value = String(int(xSpace/2 - xSpread/2 + xSpread * Math.random()));
+				instance.panelY.value = String(int(ySpace/2 - ySpread/2 + ySpread * Math.random()));
+				
 				return instance;
 			}
 			private static const _instances:Dictionary = new Dictionary();
