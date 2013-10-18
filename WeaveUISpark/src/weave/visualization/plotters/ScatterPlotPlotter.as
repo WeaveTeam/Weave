@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
@@ -128,12 +129,30 @@ package weave.visualization.plotters
 		
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			// this template will draw one record per iteration
+			if (task.iteration == 0)
+			{
+				if (!task.asyncState)
+					task.asyncState = {};
+				if (!task.asyncState.prevPoint)
+					task.asyncState.prevPoint = new Point();
+				var p:Point = task.asyncState.prevPoint as Point;
+				p.x = p.y = NaN;
+			}
+			prevPoint = task.asyncState.prevPoint as Point;
+			return super.drawPlotAsyncIteration(task);
+		}
+		
+		private var prevPoint:Point;
+		public var connectTheDots:Boolean = false;
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-//			var hasPrevPoint:Boolean = (isFinite(tempPoint.x) && isFinite(tempPoint.y));
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			
@@ -170,8 +189,12 @@ package weave.visualization.plotters
 				radius = defaultScreenRadius.value;
 			}
 			
-//			if (hasPrevPoint)
-//				graphics.lineTo(tempPoint.x, tempPoint.y);
+			var hasPrevPoint:Boolean = connectTheDots && isFinite(prevPoint.x) && isFinite(prevPoint.y);
+			if (hasPrevPoint)
+			{
+				graphics.moveTo(prevPoint.x, prevPoint.y);
+				graphics.lineTo(tempPoint.x, tempPoint.y);
+			}
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
@@ -204,9 +227,10 @@ package weave.visualization.plotters
 				}
 			}
 			graphics.endFill();
-//			graphics.moveTo(tempPoint.x, tempPoint.y);
+			
+			prevPoint.x = tempPoint.x;
+			prevPoint.y = tempPoint.y;
 		}
-		private static const tempPoint:Point = new Point(); // reusable object
 	}
 }
 
