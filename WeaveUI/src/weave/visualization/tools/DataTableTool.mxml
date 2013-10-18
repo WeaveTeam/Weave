@@ -184,7 +184,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_selection.addImmediateCallback(this,invalidateDisplayList);
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
 				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
-				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);				
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);
 			}
 			
 			override protected function childrenCreated():void
@@ -213,6 +213,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dimensionsList.hashMap = columns;
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
+				getCallbackCollection(_subset).addGroupedCallback(this, handleSubset);
+			}
+			
+			private function handleSubset():void
+			{
+				// temporary solution
+				dataGrid.dataProvider = dataGrid.dataProvider;
 			}
 
 			private function assertColumnOrder():void
@@ -314,7 +321,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (detectLinkableObjectChange(updateDisplayList, _selection))
 				{
-					updateGlobalSelectionChange();				
+					updateGlobalSelectionChange();
 				}
 				
 				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat))
@@ -444,7 +451,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */	
 			private function handleItemSelection(event:Event=null):void
 			{
-				dataGrid.validateNow();				
+				dataGrid.validateNow();
 				var selectedKeys:Array = new Array();
 				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
 				{
@@ -481,6 +488,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							changeDetected = true;
 						selectedItems.push(item);
 					}
+					else if (isSelected[item])
+						changeDetected = true;
 				}
 				if (selectedItems.length != dataGrid.selectedItems.length)
 					changeDetected = true;
@@ -515,17 +524,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_lastHighlighted = null;
 				}
 				return;
-			}
-			
-			/**
-			 * Default Filter function set for Datgrid by setting its filter properties
-			 */				
-			private function filterKeys(item:Object):Boolean
-			{
-				if (_subset.containsKey(item as IQualifiedKey))
-					return true;
-				else 
-					return false;
 			}
 			
 			/**

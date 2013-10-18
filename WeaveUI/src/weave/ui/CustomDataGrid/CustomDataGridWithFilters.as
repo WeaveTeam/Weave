@@ -69,7 +69,8 @@ package weave.ui.CustomDataGrid
 			if (_filtersInValid)
 			{ 
 				_filtersInValid = false;	
-				if(_filtersEnabled){
+				if(_filtersEnabled)
+				{
 					filteredKeys = [];
 					filterContainsAllKeys = true;
 					columnFilterFunctions = getAllFilterFunctions();
@@ -81,8 +82,9 @@ package weave.ui.CustomDataGrid
 					else
 						selectedKeySet.replaceKeys(filteredKeys);
 					filteredKeys = null;
-				}				
-				else{					
+				}
+				else
+				{					
 					collection.filterFunction = filterKeys;
 					collection.refresh();
 					selectedKeySet.clearKeys();
