@@ -17,7 +17,7 @@ angular.module("aws.panelControllers", [])
         return filtered;
     };
     
-    $scope.options = queryService.getDataColumnsEntitiesFromId(694).then(function (result){
+    $scope.options = queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id).then(function (result){
     		return filter(result, $scope.panelType);
     });
     

@@ -6,11 +6,9 @@
 	<h4>Data Hierarchies</h4>
 </div>
 <div id="dataDialog" title="Data" class="modal-body">
-
-	Select a database table: <select ui-select2 ng-model="dataTableSelect.selection" >
-		<option value=""></option>
-		<option value="{{ opt }}" ng-repeat="opt in options">
-		{{ opt.title }}</option>
+	Select a database table: 
+	<select ui-select2 ng-model="dataTable" >
+		<option value="{{ dt }}" ng-repeat="dt in dataTableList">{{ dt.title }}</option>	
 	</select>
 </div>
 

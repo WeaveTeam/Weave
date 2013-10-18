@@ -15,10 +15,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
 			title : "AlphaQueryObject",
 			date : new Date(),
     		author : "",
-			scriptType : "r",
-			dataTable : ""//"this.getDataTableList().then(function(result){
-				// return result[0];}
-			//)
+			scriptType : "r"
 	};    		
     
 	/**
