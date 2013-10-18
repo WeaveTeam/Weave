@@ -462,11 +462,11 @@ package weave.core
 				return;
 			}
 			
-			var i:int;
 			var uiChild:DisplayObject;
 			// get all child DisplayObjects we are interested in
 			var uiChildren:Array = hashMap.getObjects();
-			for (i = uiChildren.length; i--;)
+			var i:int = uiChildren.length;
+			while (i-- > 0)
 			{
 				var wrapper:ILinkableDisplayObject = uiChildren[i] as ILinkableDisplayObject;
 				if (wrapper)
