@@ -68,8 +68,6 @@
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this,drawBoundsRectangle);
 				visualization.plotManager.enableFixedAspectRatio.value = true;
-			
-				sessionPanelCoordsAsPercentages = false;
 			}
 			
 			override protected function childrenCreated():void
@@ -78,10 +76,10 @@
 				
 				canvas.percentHeight= canvas.percentWidth = 100;
 				canvas.useHandCursor = true;
-				UIUtils.spark_addChild(visualization,canvas);
+				UIUtils.spark_addChild(visCanvas, canvas);
 				canvas.toolTip = lang("Click or drag this rectangle to change the displayed area in the map");
 				
-				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+				canvas.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 				
