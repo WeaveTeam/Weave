@@ -111,6 +111,9 @@ package weave.data.KeySets
 						throw new Error("sortColumns must be an Array of IAttributeColumn objects");
 				}
 				// SortedKeySet should trigger callbacks
+				if (debug && keyCompare == null)
+					trace(debugId(this), 'sort by [', sortColumns, ']');
+				
 				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
 				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
 				_generatedKeySets = [union, sorted];
