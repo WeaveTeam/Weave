@@ -322,6 +322,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (detectLinkableObjectChange(updateDisplayList, _selection))
 				{
 					updateGlobalSelectionChange();
+					dataGrid.invalidateList();
 				}
 				
 				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat))
