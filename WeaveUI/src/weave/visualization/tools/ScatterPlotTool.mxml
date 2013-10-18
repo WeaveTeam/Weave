@@ -61,23 +61,9 @@
 			[Bindable]
 			public var plotter:ScatterPlotPlotter = null;
 						
-			
 			public const REGRESSION_LAYER_NAME:String = "regressionLine";
 				
-			private function isVisibleEquationText():void
-			{
-				if (isVisibleEquationTextBoolean.value)
-				{
-					equationText.visible = true;
-				}
-				else
-				{
-					equationText.visible = false;
-				}
-			}
-			
-			public var isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), isVisibleEquationText);
-			
+			public const isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			override protected function constructor():void
 			{
@@ -634,13 +620,14 @@
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
 		bottom="0"
-		left="0"/>
+		left="0"
+		initialize="linkBindableProperty(isVisibleEquationTextBoolean, equationText, 'visible')"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('X')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" width="{sizeSelector.labelComponent.width}"/>
+			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}"/>
 			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}">
 				<ui:creationComplete>
 					<![CDATA[
