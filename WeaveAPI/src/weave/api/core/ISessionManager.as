@@ -16,7 +16,7 @@
 package weave.api.core
 {
 	/**
-	 * This is a collection of static core functions for Weave.
+	 * Session manager contains core functions for Weave related to session state.
 	 * 
 	 * @author adufilie
 	 */
