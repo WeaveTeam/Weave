@@ -447,7 +447,7 @@
 				}
 			}
 			
-			private var targetJuggler:CallbackJuggler = new CallbackJuggler(this as ILinkableObject, getCallbackCollection(this as ILinkableObject).triggerCallbacks, false);
+			private const targetJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler);
 			
 			public function get target():DynamicColumn
 			{

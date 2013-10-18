@@ -34,6 +34,7 @@ package weave.ui
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.core.CallbackJuggler;
 	
 	/**
@@ -152,9 +153,9 @@ package weave.ui
 		private var _editor:ListBase;
 		private var _nameColumn:DataGridColumn;
 		private var _valueColumn:DataGridColumn;
-		private const _hashMapJuggler:CallbackJuggler = new CallbackJuggler(this, refreshLabels, true);
-		private const _dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
-		private const _childListJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, false);
+		private const _hashMapJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, refreshLabels, true);
+		private const _dynamicObjectJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, updateDataProvider, true);
+		private const _childListJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, updateDataProvider);
 		private var _labelFunction:Function = null;
 		
 		public function get hashMap():ILinkableHashMap

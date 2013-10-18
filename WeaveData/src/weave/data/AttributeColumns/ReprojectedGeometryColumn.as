@@ -59,6 +59,7 @@ package weave.data.AttributeColumns
 		 * These callbacks are triggered when the list of keys or bounding boxes change.
 		 */		
 		public const boundingBoxCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
+		private const boundingBoxCallbacksTriggerJuggler:CallbackJuggler = newLinkableChild(boundingBoxCallbacks, CallbackJuggler);
 		
 		override public function getMetadata(propertyName:String):String
 		{
@@ -74,7 +75,7 @@ package weave.data.AttributeColumns
 		
 		override public function getInternalColumn():IAttributeColumn
 		{
-			return _reprojectedColumn;
+			return reprojectedColumnJuggler.target as IAttributeColumn;
 		}
 		
 		/**
@@ -90,27 +91,11 @@ package weave.data.AttributeColumns
 			var ref:IColumnReference = (super.getInternalColumn() as ReferencedColumn).internalColumnReference;
 			var newColumn:IAttributeColumn = WeaveAPI.ProjectionManager.getProjectedGeometryColumn(ref, projectionSRS.value);
 			
-			// if the column didn't change, do nothing
-			if (_reprojectedColumn == newColumn)
-				return;
-			
-			delayCallbacks();
-			
-			if (_reprojectedColumn)
-				(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _reprojectedColumn);
-			
-			_reprojectedColumn = newColumn;
-			
-			if (_reprojectedColumn)
-				registerLinkableChild(this, _reprojectedColumn);
-			
-			handleReprojectedColumnChangeJuggler.target = _reprojectedColumn;
-			
-			triggerCallbacks();
-			resumeCallbacks();
+			reprojectedColumnJuggler.target = _reprojectedColumn = newColumn;
 		}
 		
-		private const handleReprojectedColumnChangeJuggler:CallbackJuggler = new CallbackJuggler(this, handleReprojectedColumnChange, false);
+		private var _reprojectedColumn:IAttributeColumn;
+		private const reprojectedColumnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleReprojectedColumnChange);
 		
 		private function handleReprojectedColumnChange(cleanup:Boolean = false):void
 		{
@@ -125,10 +110,6 @@ package weave.data.AttributeColumns
 			
 			boundingBoxCallbacksTriggerJuggler.target = newTarget;
 		}
-		
-		private const boundingBoxCallbacksTriggerJuggler:CallbackJuggler = new CallbackJuggler(this, boundingBoxCallbacks.triggerCallbacks, false);
-		
-		private var _reprojectedColumn:IAttributeColumn = null;
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{

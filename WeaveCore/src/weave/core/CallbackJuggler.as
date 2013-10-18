@@ -20,37 +20,23 @@
 package weave.core
 {
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * This is used to juggle a single callback between linkable object targets.
-	 * The callback will be triggered automatically when the target changes, even when the target becomes null.
+	 * This is used to dynamically switch the target of a set of callbacks.
+	 * The callbacks of this object will be triggered automatically when the target triggers callbacks, changes, becomes null or is disposed.
 	 * @see weave.api.#juggleImmediateCallback()
 	 * @see weave.api.#juggleGroupedCallback()
 	 * @author adufilie
 	 */
-	public class CallbackJuggler implements IDisposableObject
+	public class CallbackJuggler implements ILinkableObject, IDisposableObject
 	{
-		/**
-		 * @param relevantContext The owner of this CallbackJuggler.
-		 * @param callback The callback function.
-		 * @param useGroupedCallback If this is set to true, a grouped callback will be used instead of an immediate callback.
-		 * @see weave.api.core.ICallbackCollection#addImmediateCallback() 
-		 * @see weave.api.core.ICallbackCollection#addGroupedCallback() 
-		 */
-		public function CallbackJuggler(relevantContext:Object, callback:Function, useGroupedCallback:Boolean)
+		public function CallbackJuggler()
 		{
-			WeaveAPI.SessionManager.registerDisposableChild(relevantContext, this);
-			if (useGroupedCallback)
-				_callbacks.addGroupedCallback(null, callback);
-			else
-				_callbacks.addImmediateCallback(null, callback);
 		}
 		
-		private var _callbacks:ICallbackCollection = new CallbackCollection();
-		private var _target:ILinkableObject;
+		private var _target:ILinkableObject; // the current target
 		
 		/**
 		 * This is the linkable object to which the callback has been added.
@@ -70,17 +56,16 @@ package weave.core
 			if (_target == newTarget)
 				return;
 			
-			if (!_callbacks)
-				throw new Error("dispose() was already called on this object.");
-			
-			var tc:ICallbackCollection;
-			
-			// remove callbacks from old target
+			// unlink from old target
 			if (_target)
 			{
-				tc = WeaveAPI.SessionManager.getCallbackCollection(_target);
-				tc.removeCallback(_callbacks.triggerCallbacks);
-				tc.removeCallback(_handleTargetDispose);
+				WeaveAPI.SessionManager.getCallbackCollection(_target).removeCallback(_handleTargetDispose);
+				
+				// if we own the previous target, dispose it
+				if (WeaveAPI.SessionManager.getLinkableOwner(_target) == this)
+					WeaveAPI.SessionManager.disposeObjects(_target);
+				else
+					(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _target);
 			}
 			
 			_target = newTarget;
@@ -88,18 +73,17 @@ package weave.core
 			// add callbacks to new target
 			if (_target)
 			{
-				tc = WeaveAPI.SessionManager.getCallbackCollection(_target);
-				tc.addImmediateCallback(_callbacks, _callbacks.triggerCallbacks);
-				tc.addDisposeCallback(_callbacks, _handleTargetDispose);
+				WeaveAPI.SessionManager.registerLinkableChild(this, _target);
+				WeaveAPI.SessionManager.getCallbackCollection(_target).addDisposeCallback(this, _handleTargetDispose);
 			}
 			
-			_callbacks.triggerCallbacks();
+			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		private function _handleTargetDispose():void
 		{
 			_target = null;
-			_callbacks.triggerCallbacks();
+			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -107,10 +91,7 @@ package weave.core
 		 */
 		public function dispose():void
 		{
-			_callbacks.delayCallbacks();
-			target = null; // removes callbacks
-			WeaveAPI.SessionManager.disposeObjects(_callbacks);
-			_callbacks = null;
+			_target = null; // everything else will be cleaned up automatically
 		}
 	}
 }

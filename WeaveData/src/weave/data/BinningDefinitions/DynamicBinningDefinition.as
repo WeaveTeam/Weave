@@ -24,6 +24,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.core.CallbackCollection;
 	import weave.core.CallbackJuggler;
 	import weave.core.LinkableDynamicObject;
@@ -48,10 +49,10 @@ package weave.data.BinningDefinitions
 		private var _columnLocked:Boolean = false;
 		private const _asyncResultCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
 		
-		private const internalResultJuggler:CallbackJuggler = new CallbackJuggler(this, asyncResultCallbacks.triggerCallbacks, false);
-		private const internalObjectJuggler:CallbackJuggler = new CallbackJuggler(this, handleInternalObjectChange, false);
-		private const columnJuggler:CallbackJuggler = new CallbackJuggler(this, generateBins, false);
-		private const statsJuggler:CallbackJuggler = new CallbackJuggler(this, generateBins, false);
+		private const internalResultJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, asyncResultCallbacks.triggerCallbacks);
+		private const internalObjectJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleInternalObjectChange);
+		private const columnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, generateBins);
+		private const statsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, generateBins);
 		
 		private function juggleInternalObject():void
 		{

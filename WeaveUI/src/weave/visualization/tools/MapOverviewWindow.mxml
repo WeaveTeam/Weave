@@ -25,8 +25,8 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
-	     layout="absolute" xmlns:userControls="weave.ui.userControls.*"
-	     xmlns:mapTool="weave.visualization.tools.*"		 
+		 xmlns:userControls="weave.ui.userControls.*"
+	     xmlns:mapTool="weave.visualization.tools.*"
 	     >
 	<mx:Script>
 		<![CDATA[
@@ -34,6 +34,7 @@
 			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.core.CallbackJuggler;
 			import weave.core.UIUtils;
@@ -94,7 +95,7 @@
 			{
 				return _parentZoomBoundsJuggler.target as ZoomBounds;
 			}
-			private var _parentZoomBoundsJuggler:CallbackJuggler = new CallbackJuggler(this, drawBoundsRectangle, true);
+			private const _parentZoomBoundsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, drawBoundsRectangle, true);
 			
 			public const parentScreenBounds:IBounds2D = new Bounds2D();
 			private var overviewDataBounds:IBounds2D = new Bounds2D();

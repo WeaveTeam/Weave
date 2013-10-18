@@ -21,7 +21,7 @@
 -->
 <mx:HBox xmlns="weave.editors.*" 
 		xmlns:mx="http://www.adobe.com/2006/mxml"
-		implements="weave.api.ui.ILinkableObjectEditor"
+		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	<mx:CheckBox label="{getEnableLabel(columnTitle)}" id="filterEnable" click="toggleFilter();"/>
 	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(numberFilter.column, lang('Filter'));"/>
@@ -32,6 +32,7 @@
 			
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.newLinkableChild;
 			import weave.core.CallbackJuggler;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -45,8 +46,8 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
-			private const statsJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
+			private const filterJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, invalidateDisplayList);
+			private const statsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, invalidateDisplayList);
 			
 			public function get numberFilter():NumberDataFilter
 			{

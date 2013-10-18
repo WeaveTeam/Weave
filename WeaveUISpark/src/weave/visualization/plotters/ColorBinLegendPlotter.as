@@ -30,7 +30,6 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -200,11 +199,7 @@ package weave.visualization.plotters
 			//todo
 		}
 		
-		private var statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleStatsChange, false);
-		private function handleStatsChange():void
-		{
-			getCallbackCollection(this).triggerCallbacks();
-		}
+		private const statsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler);
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{

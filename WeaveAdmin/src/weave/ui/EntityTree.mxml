@@ -4,12 +4,14 @@
     creationComplete="handleCreationComplete()"
     openDuration="0" dragEnabled="true"
 	allowMultipleSelection="true"
-    showRoot="false">
+    showRoot="false"
+	implements="weave.api.core.ILinkableObject">
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.events.ListEvent;
 			
+			import weave.api.newLinkableChild;
 			import weave.core.CallbackJuggler;
 			import weave.services.Admin;
 			import weave.services.EntityCache;
@@ -20,7 +22,7 @@
 				cacheJuggler.target = cache;
 			}
 			
-			private var cacheJuggler:CallbackJuggler = new CallbackJuggler(this, EventUtils.generateDelayedCallback(this, refresh, 100), false);
+			private const cacheJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, EventUtils.generateDelayedCallback(this, refresh, 100));
 			
 			public function set rootFilterType(type:int):void
 			{

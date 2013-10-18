@@ -28,7 +28,7 @@
 		 xmlns="weave.editors.*"
 		 click="handleAnyClick();"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
-		 implements="weave.api.ui.ILinkableObjectEditor">
+		 implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject">
 	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
 	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
@@ -42,12 +42,11 @@
 	<mx:Button width="24" id="menuButton" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.managers.PopUpManager;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.detectLinkableObjectChange;
+			import weave.api.newLinkableChild;
 			import weave.api.reportError;
 			import weave.core.CallbackJuggler;
 			import weave.core.SessionStateLog;
@@ -57,7 +56,7 @@
 			private const padding:Number = 4;
 			
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
-			private const _stateLogJuggler:CallbackJuggler = new CallbackJuggler(this, handleStateLogChange, false);
+			private const _stateLogJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleStateLogChange);
 
 			[Embed(source='/weave/resources/images/history-record-on.png')]
 			private static const icon_historyRecordOn:Class;

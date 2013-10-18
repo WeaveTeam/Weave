@@ -22,8 +22,7 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
-	     layout="absolute" xmlns:userControls="weave.ui.userControls.*" creationPolicy="all"
-	     xmlns:mapTool="weave.visualization.tools.*" xmlns:managers="weave.editors.managers.*"
+		 xmlns:managers="weave.editors.managers.*"
 	     >
 	<mx:Script>
 		<![CDATA[
@@ -913,10 +912,11 @@
 						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
 							<mx:Script>
 								<![CDATA[
-									import weave.compiler.StandardLib;
 									import mx.events.SliderEvent;
 									
 									import weave.api.getCallbackCollection;
+									import weave.api.newLinkableChild;
+									import weave.compiler.StandardLib;
 									import weave.core.CallbackJuggler;
 									import weave.core.UIUtils;
 									import weave.utils.ZoomUtils;
@@ -931,6 +931,11 @@
 									{
 										getCallbackCollection(pm.zoomBounds).addGroupedCallback(outerDocument, handleSettingsChange);
 										getCallbackCollection(pm.minScreenSize).addGroupedCallback(outerDocument, handleSettingsChange);
+										if (!settingsJuggler)
+										{
+											settingsJuggler = newLinkableChild(outerDocument, CallbackJuggler, handleSettingsChange, true);
+											settingsJuggler.target = data as LayerSettings;
+										}
 									}
 									
 									private function get pm():PlotManager { return outerDocument.visualization.plotManager; }
@@ -938,10 +943,12 @@
 									
 									override public function set data(value:Object):void
 									{
-										super.data = settingsJuggler.target = value as LayerSettings;
+										if (settingsJuggler)
+											settingsJuggler.target = value as LayerSettings;
+										super.data = value as LayerSettings;
 									}
 									
-									private const settingsJuggler:CallbackJuggler = new CallbackJuggler(outerDocument, handleSettingsChange, true);
+									private var settingsJuggler:CallbackJuggler = null;
 									private function handleSettingsChange():void
 									{
 										if (!settings)

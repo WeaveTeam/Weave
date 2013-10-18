@@ -193,7 +193,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			private const toolJuggler:CallbackJuggler = new CallbackJuggler(this, handleToolChange, true);
+			private const toolJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
 			

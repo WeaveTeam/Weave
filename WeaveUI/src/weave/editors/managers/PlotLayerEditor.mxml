@@ -30,7 +30,7 @@
 	variableRowHeight="true"
 	verticalScrollPolicy="on"
 	paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
-	implements="weave.api.core.IDisposableObject"
+	implements="weave.api.core.ILinkableObject,weave.api.core.IDisposableObject"
 	allowMultipleSelection="false" xmlns:userControls="weave.ui.userControls.*"
 	>
 	<mx:Script>
@@ -39,12 +39,13 @@
 			import mx.events.DragEvent;
 			
 			import weave.api.core.ILinkableObject;
+			import weave.api.newLinkableChild;
 			import weave.core.CallbackJuggler;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.plotters.WMSPlotter;
 			
 			protected var _visualization:InteractiveVisualization = null;
-			private const _updateDataProvider_juggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
+			private const _updateDataProvider_juggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, updateDataProvider, true);
 			
 			[Inspectable] public function set visualization(value:InteractiveVisualization):void
 			{
@@ -59,6 +60,7 @@
 			
 			public function dispose():void
 			{
+				_visualization = null;
 				dataProvider = null;
 			}
 

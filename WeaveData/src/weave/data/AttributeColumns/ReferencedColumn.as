@@ -24,6 +24,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
@@ -52,7 +53,7 @@ package weave.data.AttributeColumns
 		 */
 		private var _internalColumn:IAttributeColumn = null;
 		
-		private const _columnJuggler:CallbackJuggler = new CallbackJuggler(this, triggerCallbacks, false);
+		private const _columnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler);
 		
 		/**
 		 * This is the actual IColumnReference object inside dynamicColumnReference.

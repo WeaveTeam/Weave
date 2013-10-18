@@ -82,8 +82,6 @@
 	</mx:TitleWindow>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.collections.ICollectionView;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
@@ -121,7 +119,7 @@
 			}
 			
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
-			private const dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, toggleLinkDropDown, false);
+			private const dynamicObjectJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, toggleLinkDropDown);
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{

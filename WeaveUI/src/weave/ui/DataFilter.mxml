@@ -31,11 +31,11 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
 			import weave.api.getSessionState;
+			import weave.api.newLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
 			import weave.core.CallbackJuggler;
-			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.utils.ColumnUtils;
@@ -45,11 +45,11 @@
 
 			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;
-			private const _filterJuggler:CallbackJuggler = new CallbackJuggler(this, handlePanelTitleChange, true);
+			private const _filterJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handlePanelTitleChange, true);
 			
 			private function get globalName():String
 			{
-				return _globalName || (_globalName = Weave.root.getName(this));
+				return _globalName || (_globalName = WeaveAPI.globalHashMap.getName(this));
 			}
 			
 			private function get keyFilter():IKeyFilter
