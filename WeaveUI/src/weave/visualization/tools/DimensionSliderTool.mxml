@@ -63,8 +63,6 @@
 	override protected function childrenCreated():void
 	{
 		super.childrenCreated();
-		dimsLabel.visible = dimsLabel.includeInLayout = false;
-		attrListCombo.visible = attrListCombo.includeInLayout = false;
 		
 		SecondaryKeyNumColumn.secondaryKeyFilter.addGroupedCallback(this, handleSliderChange, true);
 		checkBox_useGlobalMinMax.visible = true;
