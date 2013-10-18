@@ -181,6 +181,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
 				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
+				getCallbackCollection(_subset).addImmediateCallback(this,invalidateDisplayList);
 				_selection.addImmediateCallback(this,invalidateDisplayList);
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
 				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
@@ -213,13 +214,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dimensionsList.hashMap = columns;
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
-				getCallbackCollection(_subset).addGroupedCallback(this, handleSubset);
-			}
-			
-			private function handleSubset():void
-			{
-				// temporary solution
-				dataGrid.dataProvider = dataGrid.dataProvider;
 			}
 
 			private function assertColumnOrder():void
@@ -318,6 +312,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{					
 					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
+				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
+				if (subsetChanged)
+				{
+					// temporary solution
+					dataGrid.dataProvider = dataGrid.dataProvider;
+				}
 				
 				if (detectLinkableObjectChange(updateDisplayList, _selection))
 				{
@@ -329,9 +329,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
 				}
-				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged)
+				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
 				{
-					sortCallback();
+					callLater(sortCallback);
 				}
 				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2, colorRamp, Weave.defaultColorColumn, showColors, cellColorFunction))
 				{
@@ -421,6 +421,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */							
 			private function sortCallback():void
 			{
+				if (!parent)
+				{
+					callLater(sortCallback)
+					return;
+				}
+				
 				if (isNaN(sortFieldIndex.value))
 					return;
 				
