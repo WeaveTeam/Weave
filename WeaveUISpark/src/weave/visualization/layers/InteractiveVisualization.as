@@ -42,6 +42,7 @@ package weave.visualization.layers
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.getSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
@@ -240,13 +241,14 @@ package weave.visualization.layers
 			handleMouseEvent(event);
 		}
 		
+		private var hack_mouseDownSelectionState:Object = null;
 		protected function handleMouseDown(event:MouseEvent):void
 		{			
 			updateMouseMode(InteractionController.INPUT_DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
 			//for detecting change between drag start and drag end
 			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet );
+			hack_mouseDownSelectionState = getSessionState(Weave.defaultSelectionKeySet);
 			
 			mouseDragActive = true;
 			// clear probe when drag starts
@@ -849,14 +851,14 @@ package weave.visualization.layers
 			}
 			
 			
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			var hack_noSelectionChangeSinceMouseDown:Boolean = WeaveAPI.SessionManager.computeDiff(hack_mouseDownSelectionState, getSessionState(Weave.defaultSelectionKeySet)) == null;
+			
 			// if mouse is released and selection hasn't changed since mouse down, clear selection
-			if (_mouseMode == InteractionController.SELECT &&
-				!WeaveAPI.StageUtils.mouseButtonDown &&
-				!detectLinkableObjectChange(handleMouseDown, /*HACK*/Weave.defaultSelectionKeySet/*HACK*/))
+			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && hack_noSelectionChangeSinceMouseDown)
 			{
 				clearSelection();
 			}
-
 		}
 		
 		/**
