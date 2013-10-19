@@ -917,7 +917,7 @@
 									import weave.api.getCallbackCollection;
 									import weave.api.newLinkableChild;
 									import weave.compiler.StandardLib;
-									import weave.core.CallbackJuggler;
+									import weave.core.LinkableWatcher;
 									import weave.core.UIUtils;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.LayerSettings;
@@ -931,10 +931,10 @@
 									{
 										getCallbackCollection(pm.zoomBounds).addGroupedCallback(outerDocument, handleSettingsChange);
 										getCallbackCollection(pm.minScreenSize).addGroupedCallback(outerDocument, handleSettingsChange);
-										if (!settingsJuggler)
+										if (!settingsWatcher)
 										{
-											settingsJuggler = newLinkableChild(outerDocument, CallbackJuggler, handleSettingsChange, true);
-											settingsJuggler.target = data as LayerSettings;
+											settingsWatcher = newLinkableChild(outerDocument, LinkableWatcher, handleSettingsChange, true);
+											settingsWatcher.target = data as LayerSettings;
 										}
 									}
 									
@@ -943,12 +943,12 @@
 									
 									override public function set data(value:Object):void
 									{
-										if (settingsJuggler)
-											settingsJuggler.target = value as LayerSettings;
+										if (settingsWatcher)
+											settingsWatcher.target = value as LayerSettings;
 										super.data = value as LayerSettings;
 									}
 									
-									private var settingsJuggler:CallbackJuggler = null;
+									private var settingsWatcher:LinkableWatcher = null;
 									private function handleSettingsChange():void
 									{
 										if (!settings)

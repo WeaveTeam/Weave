@@ -12,17 +12,17 @@
 			import mx.events.ListEvent;
 			
 			import weave.api.newLinkableChild;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.services.Admin;
 			import weave.services.EntityCache;
 			import weave.utils.EventUtils;
 			
 			public function set entityCache(cache:EntityCache):void
 			{
-				cacheJuggler.target = cache;
+				cacheWatcher.target = cache;
 			}
 			
-			private const cacheJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, EventUtils.generateDelayedCallback(this, refresh, 100));
+			private const cacheWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, EventUtils.generateDelayedCallback(this, refresh, 100));
 			
 			public function set rootFilterType(type:int):void
 			{

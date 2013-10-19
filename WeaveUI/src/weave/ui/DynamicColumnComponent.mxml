@@ -90,7 +90,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
 			
@@ -119,7 +119,7 @@
 			}
 			
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
-			private const dynamicObjectJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, toggleLinkDropDown);
+			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, toggleLinkDropDown);
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
@@ -127,7 +127,7 @@
 					return;
 				
 				controller.dynamicObject = value;
-				dynamicObjectJuggler.target = value;
+				dynamicObjectWatcher.target = value;
 				
 				updateLabel();
 			}

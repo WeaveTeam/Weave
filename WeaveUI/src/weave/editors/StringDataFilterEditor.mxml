@@ -33,7 +33,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.unlinkBindableProperty;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.ui.AttributeSelectorPanel;
@@ -47,22 +47,22 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			private const filterJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleFilter, true);
-			private const columnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleColumn, true);
+			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilter, true);
+			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
 			private var _linkedFilter:StringDataFilter;
 			
 			public function get stringFilter():StringDataFilter
 			{
-				return filterJuggler.target as StringDataFilter;
+				return filterWatcher.target as StringDataFilter;
 			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				filterJuggler.target = object as StringDataFilter;
+				filterWatcher.target = object as StringDataFilter;
 				
 				if (stringFilter)
 				{
-					columnJuggler.target = stringFilter.column;
+					columnWatcher.target = stringFilter.column;
 					this.enabled = true;
 				}
 				else

@@ -33,7 +33,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
@@ -46,19 +46,19 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			private const filterJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, invalidateDisplayList);
-			private const statsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, invalidateDisplayList);
+			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, invalidateDisplayList);
+			private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, invalidateDisplayList);
 			
 			public function get numberFilter():NumberDataFilter
 			{
-				return filterJuggler.target as NumberDataFilter;
+				return filterWatcher.target as NumberDataFilter;
 			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				filterJuggler.target = object as NumberDataFilter;
+				filterWatcher.target = object as NumberDataFilter;
 				if (numberFilter)
-					statsJuggler.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
+					statsWatcher.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
 			}
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }

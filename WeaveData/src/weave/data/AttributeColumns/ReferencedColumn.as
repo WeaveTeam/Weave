@@ -28,8 +28,8 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
-	import weave.core.CallbackJuggler;
 	import weave.core.LinkableDynamicObject;
+	import weave.core.LinkableWatcher;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -53,7 +53,7 @@ package weave.data.AttributeColumns
 		 */
 		private var _internalColumn:IAttributeColumn = null;
 		
-		private const _columnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler);
+		private const _columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		/**
 		 * This is the actual IColumnReference object inside dynamicColumnReference.
@@ -70,7 +70,7 @@ package weave.data.AttributeColumns
 		{
 			if (_prevTriggerCounter != triggerCounter)
 			{
-				_columnJuggler.target = _internalColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
+				_columnWatcher.target = _internalColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
 				_prevTriggerCounter = triggerCounter;
 			}
 			return _internalColumn;

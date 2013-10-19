@@ -35,7 +35,7 @@ package weave.ui
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.core.CallbackJuggler;
+	import weave.core.LinkableWatcher;
 	
 	/**
 	 * Callbacks trigger when the list of objects changes.
@@ -153,27 +153,27 @@ package weave.ui
 		private var _editor:ListBase;
 		private var _nameColumn:DataGridColumn;
 		private var _valueColumn:DataGridColumn;
-		private const _hashMapJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, refreshLabels, true);
-		private const _dynamicObjectJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, updateDataProvider, true);
-		private const _childListJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, updateDataProvider);
+		private const _hashMapWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, refreshLabels, true);
+		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
+		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
 		
 		public function get hashMap():ILinkableHashMap
 		{
-			return _hashMapJuggler.target as ILinkableHashMap;
+			return _hashMapWatcher.target as ILinkableHashMap;
 		}
 		public function set hashMap(value:ILinkableHashMap):void
 		{
 			if (value)
 				dynamicObject = null;
 			
-			_hashMapJuggler.target = value;
-			_childListJuggler.target = value && value.childListCallbacks;
+			_hashMapWatcher.target = value;
+			_childListWatcher.target = value && value.childListCallbacks;
 		}
 		
 		public function get dynamicObject():ILinkableDynamicObject
 		{
-			return _dynamicObjectJuggler.target as ILinkableDynamicObject;
+			return _dynamicObjectWatcher.target as ILinkableDynamicObject;
 		}
 		public function set dynamicObject(value:ILinkableDynamicObject):void
 		{
@@ -184,7 +184,7 @@ package weave.ui
 					_editor.rowCount = 1;
 			}
 			
-			_dynamicObjectJuggler.target = value;
+			_dynamicObjectWatcher.target = value;
 		}
 		
 		private function refreshLabels():void

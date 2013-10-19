@@ -36,7 +36,7 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
-	import weave.core.CallbackJuggler;
+	import weave.core.LinkableWatcher;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
@@ -199,7 +199,7 @@ package weave.visualization.plotters
 			//todo
 		}
 		
-		private const statsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler);
+		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -227,7 +227,7 @@ package weave.visualization.plotters
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
-			statsJuggler.target = stats;
+			statsWatcher.target = stats;
 			var internalMin:Number = stats.getMin();
 			var internalMax:Number = stats.getMax();
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;

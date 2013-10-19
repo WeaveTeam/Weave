@@ -26,7 +26,7 @@ package weave.data.BinningDefinitions
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.core.CallbackCollection;
-	import weave.core.CallbackJuggler;
+	import weave.core.LinkableWatcher;
 	import weave.core.LinkableDynamicObject;
 	
 	/**
@@ -42,27 +42,27 @@ package weave.data.BinningDefinitions
 		public function DynamicBinningDefinition(lockFirstColumn:Boolean = false)
 		{
 			super(IBinningDefinition);
-			addImmediateCallback(null, juggleInternalObject);
+			addImmediateCallback(null, watchInternalObject);
 			_columnLocked = lockFirstColumn;
 		}
 		
 		private var _columnLocked:Boolean = false;
 		private const _asyncResultCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
 		
-		private const internalResultJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, asyncResultCallbacks.triggerCallbacks);
-		private const internalObjectJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleInternalObjectChange);
-		private const columnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, generateBins);
-		private const statsJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, generateBins);
+		private const internalResultWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, asyncResultCallbacks.triggerCallbacks);
+		private const internalObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleInternalObjectChange);
+		private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, generateBins);
+		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, generateBins);
 		
-		private function juggleInternalObject():void
+		private function watchInternalObject():void
 		{
-			internalObjectJuggler.target = internalObject;
+			internalObjectWatcher.target = internalObject;
 		}
 		
 		private function handleInternalObjectChange():void
 		{
 			if (internalObject)
-				internalResultJuggler.target = (internalObject as IBinningDefinition).asyncResultCallbacks
+				internalResultWatcher.target = (internalObject as IBinningDefinition).asyncResultCallbacks
 			generateBins();
 		}
 		
@@ -74,8 +74,8 @@ package weave.data.BinningDefinitions
 				return;
 			_updatingTargets = true;
 			
-			var column:IAttributeColumn = columnJuggler.target as IAttributeColumn;
-			statsJuggler.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column) : null;
+			var column:IAttributeColumn = columnWatcher.target as IAttributeColumn;
+			statsWatcher.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column) : null;
 			
 			_updatingTargets = false; // done preventing recursion
 			
@@ -98,9 +98,9 @@ package weave.data.BinningDefinitions
 		 */
 		public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
-			if (_columnLocked && columnJuggler.target)
+			if (_columnLocked && columnWatcher.target)
 				throw new Error("generateBinClassifiersForColumn(): Column was locked upon creation of this DynamicBinningDefinition.");
-			columnJuggler.target = column;
+			columnWatcher.target = column;
 		}
 		
 		/**
@@ -108,7 +108,7 @@ package weave.data.BinningDefinitions
 		 */
 		public function getBinClassifiers():Array
 		{
-			if (internalObject && columnJuggler.target)
+			if (internalObject && columnWatcher.target)
 				return (internalObject as IBinningDefinition).getBinClassifiers();
 			return [];
 		}
@@ -118,7 +118,7 @@ package weave.data.BinningDefinitions
 		 */
 		public function getBinNames():Array
 		{
-			if (internalObject && columnJuggler.target)
+			if (internalObject && columnWatcher.target)
 				return (internalObject as IBinningDefinition).getBinNames();
 			return [];
 		}

@@ -38,7 +38,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.core.CallbackJuggler;
+	import weave.core.LinkableWatcher;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -82,7 +82,7 @@ package weave.visualization.plotters
 			
 			
 			lineStyle.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
-			getCallbackCollection(colorDataJuggler).addImmediateCallback(this, updateFilterEquationColumns, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateFilterEquationColumns, true);
 			
 			// updateFilterEquationColumns sets key source
 		}
@@ -134,13 +134,13 @@ package weave.visualization.plotters
 		private var _columns:Array = [];
 		private var _xattrObjects:Array = [];
 		
-		private const colorDataJuggler:CallbackJuggler = newDisposableChild(this, CallbackJuggler);
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
 		private function handleColor():void
 		{
 			var cc:ColorColumn = lineStyle.color.getInternalColumn() as ColorColumn;
 			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
 			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
-			colorDataJuggler.target = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = fc ? fc.internalDynamicColumn : null;
 		}
 		
 		public function getXValues():Array

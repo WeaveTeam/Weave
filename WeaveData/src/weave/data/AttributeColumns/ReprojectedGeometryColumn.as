@@ -31,7 +31,7 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
-	import weave.core.CallbackJuggler;
+	import weave.core.LinkableWatcher;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.utils.ColumnUtils;
@@ -59,7 +59,7 @@ package weave.data.AttributeColumns
 		 * These callbacks are triggered when the list of keys or bounding boxes change.
 		 */		
 		public const boundingBoxCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
-		private const boundingBoxCallbacksTriggerJuggler:CallbackJuggler = newLinkableChild(boundingBoxCallbacks, CallbackJuggler);
+		private const boundingBoxCallbacksTriggerWatcher:LinkableWatcher = newLinkableChild(boundingBoxCallbacks, LinkableWatcher);
 		
 		override public function getMetadata(propertyName:String):String
 		{
@@ -75,7 +75,7 @@ package weave.data.AttributeColumns
 		
 		override public function getInternalColumn():IAttributeColumn
 		{
-			return reprojectedColumnJuggler.target as IAttributeColumn;
+			return reprojectedColumnWatcher.target as IAttributeColumn;
 		}
 		
 		/**
@@ -91,11 +91,11 @@ package weave.data.AttributeColumns
 			var ref:IColumnReference = (super.getInternalColumn() as ReferencedColumn).internalColumnReference;
 			var newColumn:IAttributeColumn = WeaveAPI.ProjectionManager.getProjectedGeometryColumn(ref, projectionSRS.value);
 			
-			reprojectedColumnJuggler.target = _reprojectedColumn = newColumn;
+			reprojectedColumnWatcher.target = _reprojectedColumn = newColumn;
 		}
 		
 		private var _reprojectedColumn:IAttributeColumn;
-		private const reprojectedColumnJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleReprojectedColumnChange);
+		private const reprojectedColumnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleReprojectedColumnChange);
 		
 		private function handleReprojectedColumnChange(cleanup:Boolean = false):void
 		{
@@ -108,7 +108,7 @@ package weave.data.AttributeColumns
 			debugTrace(this, '_unprojectedColumn =', _unprojectedColumn);
 			debugTrace(this, 'target =', newTarget);
 			
-			boundingBoxCallbacksTriggerJuggler.target = newTarget;
+			boundingBoxCallbacksTriggerWatcher.target = newTarget;
 		}
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*

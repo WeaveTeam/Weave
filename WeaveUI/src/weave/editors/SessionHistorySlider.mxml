@@ -48,7 +48,7 @@
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.newLinkableChild;
 			import weave.api.reportError;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
@@ -56,7 +56,7 @@
 			private const padding:Number = 4;
 			
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
-			private const _stateLogJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleStateLogChange);
+			private const _stateLogWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleStateLogChange);
 
 			[Embed(source='/weave/resources/images/history-record-on.png')]
 			private static const icon_historyRecordOn:Class;
@@ -194,7 +194,7 @@
 			 */
 			public function setTarget(object:ILinkableObject):void
 			{
-				_stateLogJuggler.target = _stateLog = object as SessionStateLog;
+				_stateLogWatcher.target = _stateLog = object as SessionStateLog;
 			}
 			
 			public function hasPendingChanges():Boolean { return false; }

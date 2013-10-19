@@ -32,18 +32,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.core.LinkableNumber;
 			
 			public var column:CustomDataGridColumn;
 			
 			public function mapColumnToFilter(column:CustomDataGridColumn):void{				
 				 this.column = column;
-				 _columnCallbackJuggler.target = column ? column.attrColumn : null;
-				 _statsCallbackJuggler.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn) : null;
+				 _columnWatcher.target = column ? column.attrColumn : null;
+				 _statsWatcher.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn) : null;
 			}
-			private const _statsCallbackJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, initRangeSlider, true);
-			private const _columnCallbackJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, initRangeSlider, true);
+			private const _statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, initRangeSlider, true);
+			private const _columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, initRangeSlider, true);
 			
 			override protected function childrenCreated():void{
 				super.childrenCreated();

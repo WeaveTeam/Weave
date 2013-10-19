@@ -81,7 +81,7 @@
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.api.unlinkSessionState;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.core.LinkableXML;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -447,11 +447,11 @@
 				}
 			}
 			
-			private const targetJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler);
+			private const targetWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 			
 			public function get target():DynamicColumn
 			{
-				return targetJuggler.target as DynamicColumn;
+				return targetWatcher.target as DynamicColumn;
 			}
 			
 			public function setTarget(newTarget:ILinkableObject):void
@@ -463,9 +463,9 @@
 				}
 				
 				if (target)
-					unlinkSessionState(targetJuggler.target, dynamicColumn);
+					unlinkSessionState(targetWatcher.target, dynamicColumn);
 				
-				targetJuggler.target = newTarget as DynamicColumn;
+				targetWatcher.target = newTarget as DynamicColumn;
 				
 				if (target)
 				{

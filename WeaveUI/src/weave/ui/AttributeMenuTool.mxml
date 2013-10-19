@@ -106,7 +106,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.core.UIComponent;
 			import mx.utils.StringUtil;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
@@ -120,12 +119,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.ui.IVisTool;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
-			import weave.core.CallbackJuggler;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -193,7 +192,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			private const toolJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handleToolChange, true);
+			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
 			
@@ -242,7 +241,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				pinned.value = true;
 				
-				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
+				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var target:UIComponent = this;
 				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
 				
@@ -250,8 +249,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
-				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
-				targetTool.addGroupedCallback(this, validateToolJugglerTarget, true);
+				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
+				targetTool.addGroupedCallback(this, validateToolWatcherTarget, true);
 				targetAttributeNumber.addImmediateCallback(this, handleTargetAttributeChange, true);
 				choices.addImmediateCallback(this, handleChoicesChange, true);
 				showPlayButton.addImmediateCallback(this, stopPlay);
@@ -276,7 +275,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// this returns the tool object corresponding to the selected item in the toolCombo
 			public function getTargetTool():IVisToolWithSelectableAttributes
 			{
-				return toolJuggler.target as IVisToolWithSelectableAttributes;
+				return toolWatcher.target as IVisToolWithSelectableAttributes;
 			}
 			
 			public function get targetAttributeName():String
@@ -288,15 +287,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleGlobalListChange():void
 			{
 				// update the list of tools
-				targetToolCombo.dataProvider = Weave.root.getNames(IVisToolWithSelectableAttributes);
+				targetToolCombo.dataProvider = WeaveAPI.globalHashMap.getNames(IVisToolWithSelectableAttributes);
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
-				validateToolJugglerTarget();
+				validateToolWatcherTarget();
 			}
 			
-			private function validateToolJugglerTarget():void
+			private function validateToolWatcherTarget():void
 			{
-				toolJuggler.target = Weave.root.getObject(targetTool.value) as IVisToolWithSelectableAttributes;
+				toolWatcher.target = WeaveAPI.globalHashMap.getObject(targetTool.value) as IVisToolWithSelectableAttributes;
 			}
 			
 			// called when the tool triggers callbacks
@@ -450,7 +449,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void
 			{
-				validateToolJugglerTarget();
+				validateToolWatcherTarget();
 				handleToolChange();
 				if (_attrNames.length == 0)
 				{

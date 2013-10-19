@@ -24,22 +24,27 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * This is used to dynamically switch the target of a set of callbacks.
-	 * The callbacks of this object will be triggered automatically when the target triggers callbacks, changes, becomes null or is disposed.
-	 * @see weave.api.#juggleImmediateCallback()
-	 * @see weave.api.#juggleGroupedCallback()
+	 * This is used to dynamically attach a set of callbacks to different targets.
+	 * The callbacks of the LinkableWatcher will be triggered automatically when the
+	 * target triggers callbacks, changes, becomes null or is disposed.
 	 * @author adufilie
 	 */
-	public class CallbackJuggler implements ILinkableObject, IDisposableObject
+	public class LinkableWatcher implements ILinkableObject, IDisposableObject
 	{
-		public function CallbackJuggler()
+		/**
+		 * Instead of calling this constructor directly, consider using one of the global functions
+		 * newLinkableChild() or newDisposableChild() to make sure the watcher will get disposed automatically.
+		 * @see weave.api.core.newLinkableChild()
+		 * @see weave.api.core.newDisposableChild()
+		 */		
+		public function LinkableWatcher()
 		{
 		}
 		
 		private var _target:ILinkableObject; // the current target
 		
 		/**
-		 * This is the linkable object to which the callback has been added.
+		 * This is the linkable object currently being watched.
 		 */		
 		public function get target():ILinkableObject
 		{
@@ -47,8 +52,8 @@ package weave.core
 		}
 		
 		/**
-		 * This sets the new target to which the callback should be juggled.
-		 * The callback will be called immediately if the new target is different from the old one.
+		 * This sets the new target to which should be watched.
+		 * Callbacks will be triggered immediately if the new target is different from the old one.
 		 */
 		public function set target(newTarget:ILinkableObject):void
 		{
@@ -70,7 +75,7 @@ package weave.core
 			
 			_target = newTarget;
 			
-			// add callbacks to new target
+			// link to new target
 			if (_target)
 			{
 				WeaveAPI.SessionManager.registerLinkableChild(this, _target);

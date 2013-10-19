@@ -35,7 +35,7 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.utils.ColumnUtils;
@@ -45,7 +45,7 @@
 
 			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;
-			private const _filterJuggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, handlePanelTitleChange, true);
+			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handlePanelTitleChange, true);
 			
 			private function get globalName():String
 			{
@@ -112,7 +112,7 @@
 					_editor = EditorManager.getNewEditor(filter);
 					addChild(_editor as DisplayObject);
 				}
-				_filterJuggler.target = filter;
+				_filterWatcher.target = filter;
 			}
 			
 			override protected function get defaultPanelTitle():String

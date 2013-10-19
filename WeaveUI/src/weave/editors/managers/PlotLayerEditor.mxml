@@ -40,17 +40,17 @@
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.plotters.WMSPlotter;
 			
 			protected var _visualization:InteractiveVisualization = null;
-			private const _updateDataProvider_juggler:CallbackJuggler = newLinkableChild(this, CallbackJuggler, updateDataProvider, true);
+			private const _plotterListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
 			
 			[Inspectable] public function set visualization(value:InteractiveVisualization):void
 			{
 				_visualization = value;
-				_updateDataProvider_juggler.target = _visualization.plotManager.plotters.childListCallbacks;
+				_plotterListWatcher.target = _visualization.plotManager.plotters.childListCallbacks;
 			}
 			
 			public function get visualization():InteractiveVisualization

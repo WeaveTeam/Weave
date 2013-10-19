@@ -38,7 +38,7 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
-	import weave.core.CallbackJuggler;
+	import weave.core.LinkableWatcher;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -64,7 +64,7 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
-			getCallbackCollection(colorDataJuggler).addImmediateCallback(this, updateKeySources, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
 		
 		/**
@@ -91,7 +91,7 @@ package weave.visualization.plotters
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
 		
-		private const colorDataJuggler:CallbackJuggler = newDisposableChild(this, CallbackJuggler);
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
 		
 		private var _extraKeyDependencies:Array;
 		private var _keyInclusionLogic:Function;
@@ -108,12 +108,12 @@ package weave.visualization.plotters
 			var cc:ColorColumn = fill.color.getInternalColumn() as ColorColumn;
 			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
 			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
-			colorDataJuggler.target = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = fc ? fc.internalDynamicColumn : null;
 		}
 		
 		private function updateKeySources():void
 		{
-			var columns:Array = [screenRadius, colorDataJuggler.target, dataX, dataY].concat(_extraKeyDependencies || []);
+			var columns:Array = [screenRadius, colorDataWatcher.target, dataX, dataY].concat(_extraKeyDependencies || []);
 			_filteredKeySet.setColumnKeySources(columns, [true], null, _keyInclusionLogic);
 		}
 		
