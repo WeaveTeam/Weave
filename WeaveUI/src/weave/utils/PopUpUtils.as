@@ -87,9 +87,10 @@ package weave.utils
 		 * @param component The component below which a tooltip should be placed.
 		 * @param text The text to display in the tooltip.
 		 * @param duration The amount of time the tooltip will be displayed.
+		 * @param toolTipReceiver A function that receives a pointer to the tooltip display object, which will be called before returning.
 		 * @return A function that will hide the tooltip.
 		 */
-		public static function showTemporaryTooltip(component:DisplayObject, text:String, duration:int = 1500):Function
+		public static function showTemporaryTooltip(component:DisplayObject, text:String, duration:int = 1500, toolTipReceiver:Function = null):Function
 		{
 			// create tooltip underneath editor
 			var tip:ToolTip = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ToolTip) as ToolTip;
@@ -106,6 +107,9 @@ package weave.utils
 			timer.start();
 			
 			show();
+			
+			if (toolTipReceiver != null)
+				toolTipReceiver(tip);
 			
 			function show(_:* = null):void
 			{

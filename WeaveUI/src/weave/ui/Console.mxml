@@ -137,7 +137,7 @@
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}
-			private function consoleClear():String
+			public function consoleClear():String
 			{
 				return log.text = '';
 			}

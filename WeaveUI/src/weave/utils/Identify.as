@@ -19,15 +19,19 @@
 package weave.utils
 {
 	import flash.display.DisplayObject;
+	import flash.display.Graphics;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Point;
+	
+	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 
 	/**
 	 * This contains a static function, identify(), which will display tooltips for every DisplayObject you mouse over.
 	 * 
-	 * @author Andy
+	 * @author adufilie
 	 */	
 	public class Identify
 	{
@@ -37,8 +41,18 @@ package weave.utils
 		private static var _identifyHide:Function = null;
 		
 		/**
+		 * This will be true while identify() is active.
+		 */
+		public static function get enabled():Boolean
+		{
+			return !!_identifyPropertyNames;
+		}
+		
+		/**
 		 * Enables (or disables) tooltips on every DisplayObject, showing properties and debugIds.
-		 * @param propertyNames An optional list of property names to display in the tooltips.  If none specified, tooltips will be toggled with default properties.
+		 * @param propertyNames An optional list of property names to display in the tooltips.
+		 *        If none specified, tooltips will be toggled with default properties.
+		 *        To disable tooltips, pass a single parameter: <code>false</code>.
 		 * @see weave.utils.DebugUtils#debugId()
 		 */		
 		public static function identify(...propertyNames):void
@@ -84,7 +98,18 @@ package weave.utils
 				strings.push(name + '=' + target[name]);
 			
 			var text:String = debugId(target) + '\n' + strings.join(', ');
-			_identifyHide = PopUpUtils.showTemporaryTooltip(target, text, int.MAX_VALUE);
+			_identifyHide = PopUpUtils.showTemporaryTooltip(target, text, int.MAX_VALUE, drawBorder);
+			
+			function drawBorder(tip:UIComponent):void
+			{
+				var tipxy:Point = tip.globalToLocal(new Point(0, 0));
+				var targetxy:Point = target.globalToLocal(new Point(0, 0));
+				var offset:Point = targetxy.subtract(tipxy);
+				var g:Graphics = tip.graphics;
+				
+				g.lineStyle(2, 0xFF0000, 0.5, true);
+				g.drawRect(-offset.x, -offset.y, target.width, target.height);
+			}
 		}
 	}
 }

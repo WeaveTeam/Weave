@@ -836,9 +836,6 @@ A text editor to change the Session State on the fly.
 					
 					ErrorLogPanel.openErrorLog();
 					console = ErrorLogPanel.getInstance().console;
-					
-					if (parent)
-						Identify.identify();
 				}
 				else
 				{
@@ -863,11 +860,20 @@ A text editor to change the Session State on the fly.
 				if (console.stage)
 				{
 					var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
-					var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
-					while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
-						top = top.parent;
-					if (top)
-						console.consoleTrace(debugId(top));
+					var objectsUnderPoint:Array = console.stage.getObjectsUnderPoint(stagePoint);
+					var top:DisplayObject = objectsUnderPoint[objectsUnderPoint.length - 1];
+					var path:Array = [top];
+					while (top && top.parent)
+						path.unshift(top = top.parent);
+					
+					// assign debug ids to parent-child path first (lower numbers)
+					path = path.map(getDebugId);
+					objectsUnderPoint = objectsUnderPoint.map(getDebugId);
+					
+					console.consoleTrace('Objects under mouse: [ ' + objectsUnderPoint.join(' ') + ' ]');
+					console.consoleTrace('Parent-child path: [ ' + path.join(' ') + ' ]');
+					
+					function getDebugId(o:*):* { return debugId(o); }
 				}
 			}
 		]]>

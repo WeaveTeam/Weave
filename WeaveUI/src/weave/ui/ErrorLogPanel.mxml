@@ -53,9 +53,54 @@
 			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
 			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
+			import weave.api.setSessionState;
 			import weave.core.ErrorManager;
+			import weave.core.LinkableBoolean;
+			import weave.utils.Identify;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(
+					function():String {
+						return Identify.enabled
+							? "Stop identifying UI components"
+							: "Identify UI components";
+					},
+					Identify.identify
+				);
+				var allMenuToggles:Array = [
+					Weave.properties.enableRightClick,
+					Weave.properties.enableMenuBar,
+					Weave.properties.enableDataMenu,
+					Weave.properties.enableDynamicTools,
+					Weave.properties.enableSelectionsMenu,
+					Weave.properties.enableSubsetsMenu,
+					Weave.properties.enableSessionMenu,
+					Weave.properties.enableWindowMenu,
+					Weave.properties.enableAboutMenu
+				];
+				subMenu.addSubMenuItem(
+					"Show all menus",
+					function():void {
+						for each (var lb:LinkableBoolean in allMenuToggles)
+							lb.value = true;
+					},
+					null,
+					function():Boolean {
+						for each (var lb:LinkableBoolean in allMenuToggles)
+							if (!lb.value)
+								return true;
+						return false;
+					}
+				);
+				subMenu.addSubMenuItem("Clear log", console.consoleClear);
+			}
 			
 			override protected function childrenCreated():void
 			{
