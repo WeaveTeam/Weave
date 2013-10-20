@@ -64,7 +64,11 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				
+				initSubMenu();
+			}
+			
+			private function initSubMenu():void
+			{
 				enableSubMenu.value = true;
 				subMenu.addSubMenuItem(
 					function():String {
