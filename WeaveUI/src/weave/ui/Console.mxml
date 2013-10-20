@@ -39,14 +39,13 @@
 				  borderStyle="{innerBorderStyle}"
 				  enter="runCommand()"
 				  keyDown="handleConsoleKeyDown(event)"
+				  addedToStage="input.createTextField(-1); input.callLater(input.setFocus);"
 				  />
 	<mx:Script>
 		<![CDATA[
 			import avmplus.DescribeType;
 			
 			import mx.containers.VBox;
-			import mx.core.IToolTip;
-			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
@@ -64,7 +63,6 @@
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			import weave.utils.MethodChainProxy;
-			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -250,7 +248,8 @@
 				catch (e:*)
 				{
 					// if we get here it means the command could not be compiled
-					result = e.message;
+					result = "Compile error";
+					reportError(e);
 				}
 				
 				shouldReportError = true; // future errors should be reported
