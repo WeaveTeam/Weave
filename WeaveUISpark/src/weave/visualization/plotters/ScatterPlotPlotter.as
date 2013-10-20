@@ -108,12 +108,19 @@ package weave.visualization.plotters
 			var cc:ColorColumn = fill.color.getInternalColumn() as ColorColumn;
 			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
 			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
-			colorDataWatcher.target = fc ? fc.internalDynamicColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
 		}
 		
 		private function updateKeySources():void
 		{
-			var columns:Array = [screenRadius, colorDataWatcher.target, dataX, dataY].concat(_extraKeyDependencies || []);
+			var columns:Array = [screenRadius];
+			if (colorDataWatcher.target)
+				columns.push(colorDataWatcher.target)
+			columns.push(dataX, dataY);
+			if (_extraKeyDependencies)
+				columns = columns.concat(_extraKeyDependencies);
+			
 			_filteredKeySet.setColumnKeySources(columns, [true], null, _keyInclusionLogic);
 		}
 		
