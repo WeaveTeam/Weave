@@ -38,11 +38,11 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.core.LinkableWatcher;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -140,7 +140,8 @@ package weave.visualization.plotters
 			var cc:ColorColumn = lineStyle.color.getInternalColumn() as ColorColumn;
 			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
 			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
-			colorDataWatcher.target = fc ? fc.internalDynamicColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
 		}
 		
 		public function getXValues():Array
@@ -176,7 +177,8 @@ package weave.visualization.plotters
 			else
 			{
 				var list:Array = _columns.concat();
-				list.unshift(lineStyle.color);
+				if (colorDataWatcher.target)
+					list.unshift(colorDataWatcher.target);
 				setColumnKeySources(list);
 				
 				_in_updateFilterEquationColumns = false;
