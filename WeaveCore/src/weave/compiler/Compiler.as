@@ -1866,7 +1866,7 @@ package weave.compiler
 				return statements.hasOwnProperty(token);
 			
 			var method:* = call.evaluatedMethod;
-			return (JUMP_LOOKUP[method] || LOOP_LOOKUP[method])
+			return (JUMP_LOOKUP[method as Function] || LOOP_LOOKUP[method as Function])
 		}
 		
 		/**
@@ -1995,7 +1995,7 @@ package weave.compiler
 				return params[INDEX_CONDITION];
 			}
 			
-			if (PURE_OP_LOOKUP[method])
+			if (PURE_OP_LOOKUP[method as Function])
 			{
 				// if all parameters are constants, just evaluate the pure operator as a constant.
 				for each (var param:Object in params)
@@ -2055,7 +2055,7 @@ package weave.compiler
 			if (cMethod && constants[cMethod.name] == cMethod.value && operators[op] == cMethod.value)
 			{
 				var n:int = cParams.length;
-				if (n > 0 && (ASSIGN_OP_LOOKUP[cMethod.value] || op == '.' || op == '..'))
+				if (n > 0 && (ASSIGN_OP_LOOKUP[cMethod.value as Function] || op == '.' || op == '..'))
 				{
 					var result:String = params[0];
 					for (i = 1; i < n; i++)
@@ -2104,7 +2104,7 @@ package weave.compiler
 				if (op == '(' && n > 0) // zero params not allowed for this syntax
 					return '(' + params.join('; ') + ')';
 				
-				if (PURE_OP_LOOKUP[cMethod.value] || op == 'in')
+				if (PURE_OP_LOOKUP[cMethod.value as Function] || op == 'in')
 				{
 					if (n == 1) // unary op
 					{
@@ -2245,7 +2245,7 @@ package weave.compiler
 					
 					if (compiledParams)
 					{
-						if (LOOP_LOOKUP[method] && call.evalIndex == INDEX_METHOD)
+						if (LOOP_LOOKUP[method as Function] && call.evalIndex == INDEX_METHOD)
 						{
 							if (method == operators[ST_DO] || method == operators[ST_FOR_DO])
 							{
@@ -2262,7 +2262,7 @@ package weave.compiler
 							
 							// handle branching and short-circuiting
 							// skip evaluation of true or false branch depending on condition and branch operator
-							if (BRANCH_LOOKUP[method] !== undefined && call.evalIndex > INDEX_CONDITION)
+							if (BRANCH_LOOKUP[method as Function] !== undefined && call.evalIndex > INDEX_CONDITION)
 								if (BRANCH_LOOKUP[method] == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
 									continue;
 							
@@ -2275,7 +2275,7 @@ package weave.compiler
 							{
 								// special case for for-in and for-each
 								// implemented as "for (each|in)(\in(list), item=undefined, stmt)
-								if (LOOP_LOOKUP[method] && call.evalIndex == INDEX_FOR_ITEM && (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH]))
+								if (LOOP_LOOKUP[method as Function] && call.evalIndex == INDEX_FOR_ITEM && (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH]))
 								{
 									if ((call.evaluatedParams[INDEX_FOR_LIST] as Array).length > 0)
 									{
@@ -2334,7 +2334,7 @@ package weave.compiler
 							if (i == allSymbolTables.length)
 								result = getDefinitionByName(symbolName);
 						}
-						else if (JUMP_LOOKUP[method])
+						else if (JUMP_LOOKUP[method as Function])
 						{
 							if (method == operators[ST_RETURN])
 							{
@@ -2350,7 +2350,7 @@ package weave.compiler
 									
 									call = stack[stack.length - 1] as CompiledFunctionCall;
 									method = call.evaluatedMethod;
-									if (LOOP_LOOKUP[method] && LOOP_LOOKUP[method] != ST_BREAK)
+									if (LOOP_LOOKUP[method as Function] && LOOP_LOOKUP[method as Function] != ST_BREAK)
 										break; // loop will be handled below.
 								}
 							}
@@ -2360,7 +2360,7 @@ package weave.compiler
 								{
 									call = stack.pop() as CompiledFunctionCall;
 									method = call.evaluatedMethod;
-									if (LOOP_LOOKUP[method] && LOOP_LOOKUP[method] != ST_CONTINUE)
+									if (LOOP_LOOKUP[method as Function] && LOOP_LOOKUP[method as Function] != ST_CONTINUE)
 									{
 										method = operators[ST_BREAK];
 										continue stackLoop;
@@ -2374,7 +2374,7 @@ package weave.compiler
 								throw call.evaluatedParams[0];
 							}
 						}
-						else if (ASSIGN_OP_LOOKUP[method] && compiledParams.length == 2) // two params means local assignment
+						else if (ASSIGN_OP_LOOKUP[method as Function] && compiledParams.length == 2) // two params means local assignment
 						{
 							// local assignment
 							symbolName = call.evaluatedParams[0];
@@ -2499,7 +2499,7 @@ package weave.compiler
 					}
 					
 					// handle while and for loops
-					if (LOOP_LOOKUP[method])
+					if (LOOP_LOOKUP[method as Function])
 					{
 						if (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH])
 						{
