@@ -22,33 +22,23 @@
 <!---
 @author adufilie
 -->
-<DynamicColumnComponent xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.ui.*">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.ui.*"
+		 width="100%">
+	<DynamicColumnComponent id="dynamicColumnComponent" label="{label}"/>
+	<Indent>
+		<mx:Label text="{lang('Normalize between')}"/>
+		<TextInputWithPrompt id="minBox" prompt="{lang('minimum')}" width="100%"/>
+		<mx:Label text="{lang('and')}"/>
+		<TextInputWithPrompt id="maxBox" prompt="{lang('maximum')}" width="100%"/>
+		<mx:Label text="{lang('pixels')}"/>
+	</Indent>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Label;
 			
 			import weave.api.linkBindableProperty;
 			import weave.data.AttributeColumns.NormalizedColumn;
-			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				
-				minBox.prompt = 'min';
-				maxBox.prompt = 'max';
-				normalizedBetweenLabel.text = 'Normalized between';
-				andLabel.text = 'and';
-				
-				addChild(normalizedBetweenLabel);
-				
-				for each (var box:TextInputWithPrompt in [minBox, maxBox])
-				{
-					box.width = 32;
-					if( box == maxBox )
-						addChild(andLabel);
-					addChild(box);
-				}
-			}
 			
 			private var _normalizedColumn:NormalizedColumn;
 
@@ -58,15 +48,10 @@
 					throw new Error("normalizedColumn should only be set once.");
 				
 				_normalizedColumn = nc;
-				dynamicObject = nc.internalDynamicColumn;
+				dynamicColumnComponent.dynamicObject = nc.internalDynamicColumn;
 				linkBindableProperty(nc.min, minBox, 'text');
 				linkBindableProperty(nc.max, maxBox, 'text');
 			}
-
-			private var minBox:TextInputWithPrompt = new TextInputWithPrompt();
-			private var maxBox:TextInputWithPrompt = new TextInputWithPrompt();
-			private var normalizedBetweenLabel:Label = new Label();
-			private var andLabel:Label = new Label();
 		]]>
 	</mx:Script>
-</DynamicColumnComponent>
+</mx:VBox>

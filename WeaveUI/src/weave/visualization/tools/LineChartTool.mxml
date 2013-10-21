@@ -611,26 +611,25 @@
 			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
 						 label="{lang('Group records by column values')}"
 						 toolTip="{lang('Enable/disable grouping data by category value')}"/>
-			<mx:VBox enabled="{enableGroupByCheckBox.selected}">
+			<mx:VBox enabled="{enableGroupByCheckBox.selected}" width="100%">
 				
-				<mx:VBox paddingLeft="20" borderStyle="solid">
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('X Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
-											   toolTip="{lang('Attribute to appear on the x axis. All columns must have the same keyType.')}"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-											   toolTip="{lang('Attribute to appear on the y axis. All columns must have the same keyType.')}"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Group by')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
-											   toolTip="{lang('Specify column to get keys from. All columns must have the same keyType.')}"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-											   toolTip="{lang('Attribute used for record label text. All columns must have the same keyType.')}"/>
-				</mx:VBox>
-				<mx:Button label="{lang('Generate label Equation')}" toolTip="{lang('Generates label equation from current Label column if its keyType matches the group-by keyType')}"
-						   click="updateLabelColumn()"/>
-				<mx:HBox width="100%">
-					<mx:Label text="{lang('Customize X values:')}"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="{lang('X Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
+										   toolTip="{lang('Attribute to appear on the x axis. All columns must have the same keyType.')}"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+										   toolTip="{lang('Attribute to appear on the y axis. All columns must have the same keyType.')}"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Group by')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
+										   toolTip="{lang('Specify column to get keys from. All columns must have the same keyType.')}"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
+										   toolTip="{lang('Attribute used for record label text. All columns must have the same keyType.')}"/>
+				<ui:Indent>
+					<mx:Button label="{lang('Generate label Equation')}" toolTip="{lang('Generates label equation from current Label column if its keyType matches the group-by keyType')}"
+							   click="updateLabelColumn()"/>
+				</ui:Indent>
+				<ui:Indent label="{lang('Customize X values:')}">
 					<mx:TextInput id="xValuesInput" toolTip="{lang('These values will appear on the x axis')}" width="100%"/>
 					<mx:Button label="{lang('Apply')}" click="_plotter.xValues.value = xValuesInput.text;"/>
 					<mx:Button label="{lang('Reset')}" click="_plotter.xValues.value = ''; updateFilterText();"/>
-				</mx:HBox>
+				</ui:Indent>
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>

@@ -31,6 +31,7 @@
 		>
 	<mx:HBox horizontalGap="4" width="100%">
 		<mx:Label id="listOverlay"
+				  width="{internalList.width}"
 				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
 				  text="{lang('Double-click to select, or drag &amp; drop here')}"
 				  visible="{isEmpty(internalList.dataProvider)}">
@@ -67,13 +68,13 @@
 					backgroundColor="0xCCCCCC" headerHeight="20"
 					horizontalAlign="right" borderStyle="outset" backgroundAlpha="1"
 					close="toggleLinkDropDown();">
-		<mx:HBox horizontalGap="{linkControlsPadding}">
+		<mx:HBox horizontalGap="{linkControlsPadding}" verticalAlign="middle">
+			<TextInputWithPrompt id="linkName" prompt="{lang('Enter a new group name')}"
+								 enter="linkTo(StringUtil.trim(linkName.text));"/>
 			<HelpComponent>
 				You can link two or more attributes together so that changing one will change the rest.
 				Click on the name of an existing linked group or type the name of a new one.
 			</HelpComponent>
-			<TextInputWithPrompt id="linkName" prompt="{lang('Enter a new group name')}"
-								 enter="linkTo(StringUtil.trim(linkName.text));"/>
 			<mx:Button label="{lang('Link')}" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
 			<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkTo(null);"/>
 		</mx:HBox>
