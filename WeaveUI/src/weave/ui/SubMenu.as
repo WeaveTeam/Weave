@@ -179,6 +179,7 @@ package weave.ui
 				menuLocation.y -= height + _uiParent.height;
 			
 			move(menuLocation.x, menuLocation.y);
+			setFocus();
 		}
 		
 		private function isItemShown(item:SubMenuItem, ..._):Boolean
