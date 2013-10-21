@@ -400,6 +400,32 @@ package weave.core
 				return parent.addChild(child);
 		}
 		
+		public static function spark_addChildAt(parent:DisplayObjectContainer, child:DisplayObject, index:int):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).addElementAt(child as IVisualElement, index) as DisplayObject;
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.addChildAt(child, index);
+		}
+		
+		public static function spark_getChildIndex(parent:DisplayObjectContainer, child:DisplayObject):int
+		{
+			if (parent is IVisualElementContainer && child is IVisualElement)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).getElementIndex(child as IVisualElement);
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.getChildIndex(child);
+		}
+		
 		public static function spark_setChildIndex(parent:DisplayObjectContainer, child:DisplayObject, index:int):void
 		{
 			if (parent is IVisualElementContainer && child is IVisualElement)
