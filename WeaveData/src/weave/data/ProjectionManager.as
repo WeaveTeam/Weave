@@ -423,10 +423,8 @@ internal class WorkerThread
 		{
 			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
 			if (value)
-			{
 				numGeoms += value.length;
-				values.push(value);
-			}
+			values.push(value);
 		}
 		keyIndex = 0;
 		coordsVectorIndex = 0;
