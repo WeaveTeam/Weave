@@ -31,8 +31,8 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
-	import weave.core.LinkableWatcher;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.core.SessionManager;
 	import weave.utils.ColumnUtils;
 
@@ -48,7 +48,6 @@ package weave.data.AttributeColumns
 		public function ReprojectedGeometryColumn()
 		{
 			// force the internal column to always be a ReferencedColumn
-			internalDynamicColumn.requestLocalObject(ReferencedColumn, true);
 			addImmediateCallback(this, updateReprojectedColumn);
 			
 			var self:Object = this;
@@ -88,8 +87,8 @@ package weave.data.AttributeColumns
 		 */		
 		private function updateReprojectedColumn():void
 		{
-			var ref:IColumnReference = (super.getInternalColumn() as ReferencedColumn).internalColumnReference;
-			var newColumn:IAttributeColumn = WeaveAPI.ProjectionManager.getProjectedGeometryColumn(ref, projectionSRS.value);
+			var column:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(super.getInternalColumn());
+			var newColumn:IAttributeColumn = WeaveAPI.ProjectionManager.getProjectedGeometryColumn(column, projectionSRS.value);
 			
 			reprojectedColumnWatcher.target = _reprojectedColumn = newColumn;
 		}
