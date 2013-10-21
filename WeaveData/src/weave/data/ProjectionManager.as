@@ -29,9 +29,7 @@ package weave.data
 	import org.openscales.proj4as.ProjProjection;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
 	import weave.api.newDisposableChild;
@@ -424,8 +422,11 @@ internal class WorkerThread
 		for (var i:int = 0; i < keys.length; i++)
 		{
 			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
-			numGeoms += value.length;
-			values.push(value);
+			if (value)
+			{
+				numGeoms += value.length;
+				values.push(value);
+			}
 		}
 		keyIndex = 0;
 		coordsVectorIndex = 0;
@@ -531,7 +532,8 @@ internal class WorkerThread
 		
 		// after all geometries have been reprojected, update the reprojected column
 		var geomColumn:GeometryColumn = reprojectedColumn.getInternalColumn() as GeometryColumn;
-		geomColumn.setGeometries(keysVector, geomVector);
+		if (geomColumn)
+			geomColumn.setGeometries(keysVector, geomVector);
 		
 		reprojectedColumn.triggerCallbacks();
 		reprojectedColumn.resumeCallbacks();
