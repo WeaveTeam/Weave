@@ -19,21 +19,14 @@
 
 package weave.ui
 {
-	import flash.events.Event;
-	import flash.system.Capabilities;
-	
-	import mx.collections.CursorBookmark;
 	import mx.controls.ColorPicker;
-	import mx.controls.ComboBox;
 	import mx.core.mx_internal;
-	import mx.events.ColorPickerEvent;
 	import mx.events.DropdownEvent;
-	import mx.events.FlexEvent;
 	
 	use namespace mx_internal;
 
 	/**
-	 * Added functionality: The same selectedColor can be selected again with the popup and still trigger a change event.
+	 * Added functionality: The current selectedColor value can be selected again with the popup and still trigger a change event.
 	 * 
 	 * @author adufilie
 	 */
