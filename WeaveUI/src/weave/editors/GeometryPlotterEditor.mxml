@@ -38,33 +38,39 @@
 		</ui:HelpComponent>
 	</ui:Indent>
 	
-	<mx:CheckBox id="fillEnabled" label="{lang('Enable fill color')}"
-				 creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')"/>
-	<mx:HBox paddingLeft="{padding}" horizontalGap="{hgap}" visible="{fillEnabled.selected}" includeInLayout="{fillEnabled.selected}">
-		<ui:Indent grouped="false" label="{lang('Alpha')}">
-			<mx:NumericStepper 	id="fillAlpha" 
-								minimum="0" maximum="1" stepSize="0.1" 
-								value="0"
-								width="50"
-								toolTip="{lang('0: transparent, 1: opaque')}"
-								creationComplete="linkBindableProperty(_plotter.fill.alpha.defaultValue,event.target,'value')"/>
-		</ui:Indent>
-		<ui:Indent grouped="false" useFirstChildAsLabel="true">
-			<mx:CheckBox id="enableDefaultColor" label="{lang('Default color')}"
-						 change="handleBindableFillColor()"/>
-			<ui:CustomColorPicker id="fillColor"
-							enabled="{enableDefaultColor.selected}"
-							change="handleBindableFillColor()"
-							selectedColor="0xEEEEEE"/>
-			<ui:HelpComponent>
-				This color will be used in place of missing data.
-			</ui:HelpComponent>
-		</ui:Indent>
-	</mx:HBox>
+	<ui:CheckBoxWithNestedOptions id="useImagesCheck" label="{lang('Enable images for point data')}" click="handleGeomPlotterImageToggle()">
+		<ui:IndentTextInput id="imageURL" label="{lang('Default image URL')}" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="{lang('Image URL column')}" dynamicObject="{_plotter.pointDataImageColumn}"/>
+		<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified icon size')}" enabled="{useImagesCheck.selected}" creationComplete="linkBindableProperty(_plotter.useFixedImageSize, fixedImageSizeCheck, 'selected');"/>
+	</ui:CheckBoxWithNestedOptions>
 	
-	<mx:CheckBox id="lineEnabled" label="{lang('Enable borders')}"
-				 creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')"/>
-	<mx:VBox width="100%" paddingLeft="{padding}" visible="{lineEnabled.selected}" includeInLayout="{lineEnabled.selected}">
+	<ui:CheckBoxWithNestedOptions id="fillEnabled" label="{lang('Enable fill color')}"
+								  creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')">
+		<mx:HBox horizontalGap="{hgap}">
+			<ui:Indent grouped="false" label="{lang('Alpha')}">
+				<mx:NumericStepper 	id="fillAlpha" 
+									minimum="0" maximum="1" stepSize="0.1" 
+									value="0"
+									width="50"
+									toolTip="{lang('0: transparent, 1: opaque')}"
+									creationComplete="linkBindableProperty(_plotter.fill.alpha.defaultValue,event.target,'value')"/>
+			</ui:Indent>
+			<ui:Indent grouped="false" useFirstChildAsLabel="true">
+				<mx:CheckBox id="enableDefaultColor" label="{lang('Default color')}"
+							 change="handleBindableFillColor()"/>
+				<ui:CustomColorPicker id="fillColor"
+								enabled="{enableDefaultColor.selected}"
+								change="handleBindableFillColor()"
+								selectedColor="0xEEEEEE"/>
+				<ui:HelpComponent>
+					This color will be used in place of missing data.
+				</ui:HelpComponent>
+			</ui:Indent>
+		</mx:HBox>
+	</ui:CheckBoxWithNestedOptions>
+	
+	<ui:CheckBoxWithNestedOptions id="lineEnabled" label="{lang('Enable borders')}"
+				 				  creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')">
 		<mx:HBox horizontalGap="{hgap}">
 			<ui:Indent grouped="false" label="{lang('Alpha')}">
 				<mx:NumericStepper 	id="lineAlpha" 
@@ -87,14 +93,7 @@
 		<ui:NormalizedColumnComponent id="normalizedWeightComponent"
 									  label="{lang('Thickness')}"
 									  enabled="{lineEnabled.selected}"/>
-	</mx:VBox>
-	
-	<mx:CheckBox id="useImagesCheck" label="{lang('Enable images for point data')}" click="handleGeomPlotterImageToggle()"/>
-	<mx:VBox width="100%" paddingLeft="{padding}" visible="{useImagesCheck.selected}" includeInLayout="{useImagesCheck.selected}">
-		<ui:IndentTextInput id="imageURL" label="{lang('Default image URL')}" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
-		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="{lang('Image URL column')}" dynamicObject="{_plotter.pointDataImageColumn}"/>
-		<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified icon size')}" enabled="{useImagesCheck.selected}" creationComplete="linkBindableProperty(_plotter.useFixedImageSize, fixedImageSizeCheck, 'selected');"/>
-	</mx:VBox>
+	</ui:CheckBoxWithNestedOptions>
 	
 	<mx:HBox>
 		<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore subset')}" change="handleIgnoreSubsetCheck()"/>
@@ -116,7 +115,6 @@
 			import weave.utils.EventUtils;
 			import weave.visualization.plotters.GeometryPlotter;
 			
-			private const padding:int = 20;
 			private const hgap:int = 30;
 			
 			[Bindable] private var _plotter:GeometryPlotter = null;
