@@ -259,17 +259,13 @@ package weave.core
 			if (lockObject)
 				_locked = true;
 			
-			// to avoid possible problems with String casting, don't support empty string
-			if (newGlobalName == '')
-				newGlobalName = null;
-
 			// make sure callbacks only run once when initializing the internal object
 			delayCallbacks();
 			
 			// handle both class definitions and class names
 			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(newClassNameOrDef as String);
 			
-			if (newGlobalName == null) // local object
+			if (!newGlobalName) // null or "" => local object
 			{
 				// initialize the local object -- this may trigger childListCallback()
 				var result:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
