@@ -632,8 +632,8 @@
 				<ui:creationComplete>
 					<![CDATA[
 						sizeSelector.dynamicObject = plotter.screenRadius;
-						sizeSelector.removeChild(sizeSelector.labelComponent);
 						sizeSelector.addChildAt(sizeByCheck, 0);
+						sizeSelector.useFirstChildAsLabel = true;
 					]]>
 				</ui:creationComplete>
 			</ui:DynamicColumnComponent>

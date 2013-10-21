@@ -37,6 +37,28 @@
 
 			private static const _groups:Dictionary = new Dictionary(true);
 			
+			private var _useFirstChildAsLabel:Boolean = false;
+			
+			/**
+			 * If this is set to true, the first child added to the Indent component
+			 * will be used as the indentation spacer instead of a Label component.
+			 */
+			public function set useFirstChildAsLabel(value:Boolean):void
+			{
+				_useFirstChildAsLabel = value;
+				if (_useFirstChildAsLabel) // remove label
+				{
+					if (labelComponent.parent == this)
+						removeChild(labelComponent);
+				}
+				else // add label
+				{
+					if (labelComponent.parent != this)
+						addChildAt(labelComponent, 0);
+				}
+				invalidateSize();
+			}
+			
 			/**
 			 * This is the label component that will appear to the left of the other children of the Indent component.
 			 */
@@ -58,7 +80,7 @@
     			super.createChildren();
 				
 				labelTextAlign = "right";
-    			addChildAt(labelComponent, 0);
+				useFirstChildAsLabel = _useFirstChildAsLabel;
     		}
 			
 			/**
@@ -163,8 +185,15 @@
 			/**
 			 * This is the label that will appear to the left of the other children of the Indent component.
 			 */
-			[Bindable] override public function get label():String { return labelComponent.text; }
-    		override public function set label(value:String):void { labelComponent.text = value; }
+			[Bindable] override public function get label():String
+			{
+				return labelComponent.text;
+			}
+    		override public function set label(value:String):void
+			{
+				labelComponent.text = value;
+				super.label = value;
+			}
     	]]>
     </mx:Script>
 </mx:HBox>
