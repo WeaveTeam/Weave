@@ -141,7 +141,7 @@
 			}
 			
 			[Bindable] private var selectableAttributes:Array = [];
-			[Bindable] private var selectableAttributeNames:Array = []; // to be used as a dataProvider for a repeater
+			[Bindable] private var selectableAttributeNames:Array = [];
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
