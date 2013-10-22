@@ -38,10 +38,10 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableWatcher;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -78,9 +78,9 @@ package weave.visualization.plotters
 		
 		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		public const absoluteValueColorEnabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const absoluteValueColorMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		public const absoluteValueColorMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
+		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
 		
 		// for line connecting demo
 		public var connectTheDots:Boolean = false;
@@ -179,14 +179,14 @@ package weave.visualization.plotters
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
-			if (absoluteValueColorEnabled.value)
+			if (colorBySize.value)
 			{
-				var sizeData:Number = screenRadius.getValueFromKey(recordKey);
-				var alpha:Number = fill.alpha.getValueFromKey(recordKey);
+				var sizeData:Number = screenRadius.getValueFromKey(recordKey, Number);
+				var alpha:Number = fill.alpha.getValueFromKey(recordKey, Number);
 				if( sizeData < 0 )
-					graphics.beginFill(absoluteValueColorMin.value, alpha);
+					graphics.beginFill(colorNegative.value, alpha);
 				else if( sizeData > 0 )
-					graphics.beginFill(absoluteValueColorMax.value, alpha);
+					graphics.beginFill(colorPositive.value, alpha);
 				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius);
 				var min:Number = stats.getMin();
 				var max:Number = stats.getMax();
@@ -212,7 +212,7 @@ package weave.visualization.plotters
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
-				if (absoluteValueColorEnabled.value)
+				if (colorBySize.value)
 				{
 					// draw nothing
 				}
@@ -230,7 +230,7 @@ package weave.visualization.plotters
 			}
 			else
 			{
-				if (absoluteValueColorEnabled.value && radius == 0)
+				if (colorBySize.value && radius == 0)
 				{
 					// draw nothing
 				}
@@ -247,6 +247,9 @@ package weave.visualization.plotters
 		}
 		
 		// backwards compatibility
+		[Deprecated] public function set absoluteValueColorEnabled(value:Boolean):void { colorBySize.value = value; }
+		[Deprecated] public function set absoluteValueColorMin(value:Number):void { colorNegative.value = value; }
+		[Deprecated] public function set absoluteValueColorMax(value:Number):void { colorPositive.value = value; }
 		[Deprecated] public function set circlePlotter(value:Object):void { setSessionState(this, value); }
 		[Deprecated] public function set xColumn(value:Object):void { setSessionState(dataX, value); }
 		[Deprecated] public function set yColumn(value:Object):void { setSessionState(dataY, value); }

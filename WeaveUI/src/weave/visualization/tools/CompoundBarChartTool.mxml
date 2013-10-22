@@ -27,9 +27,6 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.core.UIComponent;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -38,7 +35,6 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.IPlotter;
@@ -49,7 +45,6 @@
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
@@ -540,10 +535,9 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Probe')}">
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
+			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
@@ -555,6 +549,7 @@
 										super.data = d;
 										selected = d && d.selected;
 										label = (d && d.label) as String;
+										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
 									}
 									private function handleSelectionChange():void
 									{

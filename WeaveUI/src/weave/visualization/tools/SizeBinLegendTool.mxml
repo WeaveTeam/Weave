@@ -159,9 +159,9 @@
 					copySessionState(scatterPlot.plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
 					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
 					
-					copySessionState(scatterPlot.plotter.absoluteValueColorEnabled, _sizeBinLegendPlotter.absoluteValueColorEnabled);
-					copySessionState(scatterPlot.plotter.absoluteValueColorMin, _sizeBinLegendPlotter.absoluteValueColorMin);
-					copySessionState(scatterPlot.plotter.absoluteValueColorMax, _sizeBinLegendPlotter.absoluteValueColorMax);
+					copySessionState(scatterPlot.plotter.colorBySize, _sizeBinLegendPlotter.colorBySize);
+					copySessionState(scatterPlot.plotter.colorNegative, _sizeBinLegendPlotter.colorNegative);
+					copySessionState(scatterPlot.plotter.colorPositive, _sizeBinLegendPlotter.colorPositive);
 				}
 				
 				if (scatterPlot && scatterPlot.plotter.enabledSizeBy.value)

@@ -26,9 +26,7 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -37,7 +35,6 @@
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -498,11 +495,10 @@
 <!--			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.xAttributeColumns"/>	
 			</mx:TabNavigator>-->
 		</mx:VBox>
-		<mx:VBox  label="{lang('Probe')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the tool\'s attributes visible in this tool\'s probe tooltip')}"
+		<mx:VBox  label="{lang('Mouseover')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
+			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
@@ -514,6 +510,7 @@
 										super.data = d;
 										selected = d && d.selected;
 										label = (d && d.label) as String;
+										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
 									}
 									private function handleSelectionChange():void
 									{

@@ -23,11 +23,10 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
-			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			   xmlns:userControls="weave.ui.userControls.*"
-			   layout="absolute">
+			   >
 	<mx:Script>
 		<![CDATA[
+			import mx.core.mx_internal;
 			import mx.events.SliderEvent;
 			
 			import weave.Weave;
@@ -388,11 +387,10 @@
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateEquation);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(regressionPlotter).addGroupedCallback(this, updateEquation, true);
-				showColorPicker.addGroupedCallback(this, updateColorPicker);
-				overrideColor.addGroupedCallback(this, updateColorPicker);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePlotterChange, true);
+				plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
 			}
 			
 			private function updateEquationStyle():void
@@ -528,17 +526,12 @@
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
 			}
 			
-			private function updateColorPicker():void
+			private function handleOverrideColor():void
 			{
-				if (!parent)
+				if (overrideColorCheckBox.selected)
 				{
-					callLater(updateColorPicker);
-					return;
-				}
-				
-				if ( showColorPicker.value )
-				{
-					plotter.fill.color.defaultValue.value = overrideColor.value;
+					colorBySizeCheckBox.selected = false;
+					plotter.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
 					plotter.fill.color.internalDynamicColumn.removeObject();
 				}
 				else
@@ -546,7 +539,14 @@
 					plotter.fill.color.defaultValue.value = NaN;
 					plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
 				}
-				scatterplotColorOverride.enabled = showColorPicker.value;
+			}
+			
+			private function handlePlotterFillColor():void
+			{
+				overrideColorCheckBox.mx_internal::setSelected(!plotter.fill.color.getInternalColumn());
+				var color:Number = StandardLib.asNumber(plotter.fill.color.defaultValue.value);
+				if (isFinite(color))
+					overrideColorPicker.selectedColor = color;
 			}
 			
 			private var _prevGlobalColorColumnName:String = null;
@@ -557,24 +557,10 @@
 					_prevGlobalColorColumnName = newName;
 			}
 			
-			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-				
-			private function enableAbsHandler(event:Event):void
-			{
-				if( colorOverrideCheckbox.selected ) colorOverrideCheckbox.selected = false;
-			}
-			
-			private function enableOverrideHandler(event:Event):void
-			{
-				if( absoluteValueColorEnabledCheckbox.selected ) absoluteValueColorEnabledCheckbox.selected = false;
-			}
-			
-			
 			private function handlePlotterChange():void
 			{
 				// when the plotter settings change, update the slider interface
-				if (plotter.absoluteValueColorEnabled.value)
+				if (plotter.colorBySize.value)
 				{
 					sizeBySlider.thumbCount = 1;
 					sizeBySlider.value = plotter.maxScreenRadius.value;
@@ -593,7 +579,7 @@
 			private function handleSizeSliderChange(event:SliderEvent):void
 			{
 				// when user interacts with slider, update session state
-				if (plotter.absoluteValueColorEnabled.value)
+				if (plotter.colorBySize.value)
 				{
 					plotter.maxScreenRadius.value = event.value;
 				}
@@ -664,14 +650,18 @@
 			</mx:HBox>
 			
 			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="{lang('Override Global Color')}" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
-							 change="enableOverrideHandler(event)"/>
-				<ui:CustomColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
+				<mx:CheckBox id="overrideColorCheckBox"
+							 label="{lang('Override Global Color')}"
+							 change="handleOverrideColor()"/>
+				<ui:CustomColorPicker id="overrideColorPicker"
+									  enabled="{overrideColorCheckBox.selected}"
+									  selectedColor="0xE0E0E0"
+									  change="handleOverrideColor()"/>
 			</mx:HBox>
 			
-			<ui:CheckBoxWithNestedOptions id="absoluteValueColorEnabledCheckbox" label="{lang('Color by positive or negative \'size\' column values')}"
-										  creationComplete="linkBindableProperty(plotter.absoluteValueColorEnabled, event.target, 'selected')"
-										  change="enableAbsHandler(event)">
+			<ui:CheckBoxWithNestedOptions id="colorBySizeCheckBox" label="{lang('Color by positive or negative \'size\' column values')}"
+										  creationComplete="linkBindableProperty(plotter.colorBySize, event.target, 'selected')"
+										  change="if (colorBySizeCheckBox.selected) overrideColorCheckBox.mx_internal::setSelected(false);">
 				<ui:HelpComponent>
 					Select this option to highlight the differences in your 'size' column.
 					
@@ -685,24 +675,23 @@
 				</ui:HelpComponent>
 				
 				<ui:Indent label="{lang('Color for positive size values')}">
-					<ui:CustomColorPicker id="absoluteValueMaxColorPicker" 
-										  creationComplete="linkBindableProperty(plotter.absoluteValueColorMax, event.target, 'selectedColor')"
-										  enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+					<ui:CustomColorPicker id="colorPositivePicker"
+										  creationComplete="linkBindableProperty(plotter.colorPositive, event.target, 'selectedColor')"
+										  enabled="{colorBySizeCheckBox.selected}" />
 				</ui:Indent>
 				<ui:Indent label="{lang('Color for negative size values')}">
-					<ui:CustomColorPicker id="absoluteValueMinColorPicker" 
-										  creationComplete="linkBindableProperty(plotter.absoluteValueColorMin, event.target, 'selectedColor')"
-										  enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+					<ui:CustomColorPicker id="colorNegativePicker" 
+										  creationComplete="linkBindableProperty(plotter.colorNegative, event.target, 'selectedColor')"
+										  enabled="{colorBySizeCheckBox.selected}" />
 				</ui:Indent>
 			</ui:CheckBoxWithNestedOptions>
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
+			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
@@ -714,6 +703,7 @@
 										super.data = d;
 										selected = d && d.selected;
 										label = (d && d.label) as String;
+										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
 									}
 									private function handleSelectionChange():void
 									{
@@ -750,7 +740,7 @@
 					</mx:HBox>
 				</mx:HBox>
 				<mx:Label id="lineEquation"/>
-				<mx:CheckBox id="hideEquationCheckBox" label="{lang('Display equation in visualization')}" labelPlacement="right"
+				<mx:CheckBox id="hideEquationCheckBox" label="{lang('Display the equation in the visualization')}" labelPlacement="right"
 							 creationComplete="linkBindableProperty(this.isVisibleEquationTextBoolean, event.target, 'selected')"/>
 				<ui:Indent label="{lang('Line Color')}">
 					<ui:CustomColorPicker id="regressionColorPicker" 

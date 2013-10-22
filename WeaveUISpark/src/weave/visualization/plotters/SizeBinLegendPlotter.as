@@ -25,17 +25,16 @@ package weave.visualization.plotters
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.data.IColumnStatistics;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.primitives.Bounds2D;
 	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
@@ -67,9 +66,9 @@ package weave.visualization.plotters
 		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		
-		public const absoluteValueColorEnabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const absoluteValueColorMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		public const absoluteValueColorMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
+		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
 		
 		public static const simpleRadio:String = "simple";
 		public static const customRadio:String = "custom";
@@ -135,7 +134,7 @@ package weave.visualization.plotters
 			}
 
 			normalizedCircleRadiuses = new Array();
-			if (absoluteValueColorEnabled.value)
+			if (colorBySize.value)
 			{
 				var absMax:Number = Math.max(Math.abs(valueMin), Math.abs(valueMax));
 				for (i = 0; i < circleRadiuses.length; i++)
@@ -176,16 +175,16 @@ package weave.visualization.plotters
 			{
 				tempPoint.y = yPosition;
 				
-				if (absoluteValueColorEnabled.value)
+				if (colorBySize.value)
 				{
 					// Draw large circle befroe small circle for both negative (top down direction) and positive (bottom up direction)  
 					if (circleRadiuses[i] < 0)
 					{
-						fillColor = absoluteValueColorMin.value;
+						fillColor = colorNegative.value;
 					}
 					else
 					{
-						fillColor = absoluteValueColorMax.value;
+						fillColor = colorPositive.value;
 						yPosition = screenBounds.getYNumericMax() - yInterval / 2; // First y position from bottom
 						for (j = normalizedCircleRadiuses.length - 1; j >= i; j--)
 						{
