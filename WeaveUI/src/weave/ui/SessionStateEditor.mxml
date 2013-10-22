@@ -770,15 +770,10 @@ A text editor to change the Session State on the fly.
 			//-----------------------------------------------------------------
 			
 			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
-			private static function _initialize():void
-			{
-				if (Capabilities.isDebugger)
-				{
-					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
-					WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
-				}
-			}
-			_initialize();
+			private static var _:* = function():void {
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
+			}();
 			
 			private static var _instance:SessionStateEditor;
 			public static function getInstance():SessionStateEditor
