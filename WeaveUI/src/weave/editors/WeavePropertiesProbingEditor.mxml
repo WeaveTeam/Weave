@@ -109,7 +109,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.containers.GridItem;
 			import mx.core.IToolTip;
 			import mx.core.UIComponent;
 			import mx.managers.ToolTipManager;

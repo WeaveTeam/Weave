@@ -25,8 +25,6 @@ package weave.ui
 	import mx.containers.GridItem;
 	import mx.containers.GridRow;
 	
-	import weave.core.UIUtils;
-	
 	[DefaultProperty("dataProvider")]
 	
 	/**

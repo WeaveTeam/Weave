@@ -89,8 +89,6 @@
 
 	<mx:Script>
 		<![CDATA[
-			import mx.containers.GridItem;
-			
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.plotters.SimpleAxisPlotter;
