@@ -273,7 +273,6 @@
 				xAxisPlotter.axisLabelRelativeAngle.value = -45;
 				xAxisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 				xAxisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				xAxisPlotter.labelDistanceIsVertical.value = false;
 				
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = false;
 				
@@ -282,9 +281,9 @@
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
 
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, 		alphaSlider,		"value");
-				linkBindableProperty(_plotter.shapeSize,  					shapeSizeSlider, 	"value");
-				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, 	"value");
+				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_plotter.shapeSize, shapeSizeSlider, "value");
+				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, "value");
 				linkBindableProperty(_plotter.shapeToDraw, shapeCombo, "selectedItem");
 				linkBindableProperty(_plotter.shapeBorderThickness, shapeBorderSizeSlider, "value");
 				linkBindableProperty(_plotter.shapeBorderColor, shapeBorderColorPicker, "selectedColor");
