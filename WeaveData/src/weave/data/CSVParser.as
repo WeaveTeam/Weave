@@ -232,6 +232,31 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
+		public function parseCSVRow(csvData:String, parseTokens:Boolean = true):Array
+		{
+			if (csvData == null)
+				return null;
+			
+			var rows:Array = parseCSV(csvData, parseTokens);
+			if (rows.length == 0)
+				return rows;
+			if (rows.length == 1)
+				return rows[0];
+			// flatten
+			return [].concat.apply(null, rows);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function createCSVRow(row:Array):String
+		{
+			return createCSV([row]);
+		}
+
+		/**
+		 * @inheritDoc
+		 */
 		public function parseCSVToken(token:String):String
 		{
 			var parsedToken:String = '';
