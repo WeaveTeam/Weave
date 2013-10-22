@@ -42,8 +42,21 @@ package weave.ui
 		private function handleOpen(event:DropdownEvent):void
 		{
 			// This makes it so the same color can be selected again while still triggering a change event.
-			super.selectedColor = super.selectedColor | 0x1000000;
-			dropdown.selectedColor = super.selectedColor & 0xFFFFFF;
+			super.selectedColor = selectedColor | 0xFF000000;
+			dropdown.selectedColor = selectedColor;
+		}
+		
+		[Bindable("change")]
+		[Bindable("valueCommit")]
+		[Inspectable(category="General", defaultValue="0", format="Color")]
+		override public function get selectedColor():uint
+		{
+			return super.selectedColor & 0xFFFFFF;
+		}
+		
+		override public function set selectedColor(value:uint):void
+		{
+			super.selectedColor = value;
 		}
 	}
 }
