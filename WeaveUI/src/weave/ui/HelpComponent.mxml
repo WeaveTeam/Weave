@@ -40,6 +40,7 @@
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			import mx.managers.ToolTipManager;
 			import mx.utils.StringUtil;
@@ -164,23 +165,23 @@
 					// localization
 					value = lang(value);
 					
-					var textArea:AutoResizingTextArea = new AutoResizingTextArea();
+					var paragraph:Paragraph = new Paragraph();
 					if (asXML)
 					{
-						textArea.htmlText = value as String;
+						paragraph.htmlText = value as String;
 					}
 					else
 					{
-						textArea.text = value as String;
-						toolTip = value as String;
+						paragraph.text = value as String;
+						toolTip = paragraph.text;
 					}
-					textArea.editable = false;
-					textArea.height = NaN;
-					textArea.width = 400;
-					textArea.wordWrap = true;
-					textArea.setStyle("borderStyle", "none");
+					paragraph.addEventListener(FlexEvent.INITIALIZE, function(e:*):void {
+						paragraph.selectable = true;
+						paragraph.height = NaN;
+						paragraph.width = 400;
+					});
 					
-					value = [textArea];
+					value = [paragraph];
 				}
 				else if (value is Class)
 				{

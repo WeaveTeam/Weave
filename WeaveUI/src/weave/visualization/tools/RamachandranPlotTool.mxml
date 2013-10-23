@@ -69,7 +69,7 @@
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, lang("Ramachandran Plot"));
+			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
 			
 			public var _plotter:ScatterPlotPlotter = null;
 			override protected function constructor():void

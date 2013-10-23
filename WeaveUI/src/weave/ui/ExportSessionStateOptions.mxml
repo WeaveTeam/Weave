@@ -59,13 +59,13 @@
 			
 			private const padding:Number = 5;
 			private var oldValues:Dictionary = new Dictionary(true);
-			[Bindable] public var fileName:String;
+			[Bindable] public var fileName:String = '';
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				
-				UIUtils.setPadding(this, padding);
+				UIUtils.pad(this, padding);
 			}
 			
 			override protected function childrenCreated():void
@@ -96,11 +96,14 @@
 			
 			private function fixFileName(..._):void
 			{
-				var regex:RegExp = new RegExp(StandardLib.replace('[\r\n\t_\\_/_:_*_?_"_|_<_>]+', '_', '\\'));
-				//var regex:RegExp = new RegExp("[^A-Za-z0-9 ,_\\.\\-\\(\\)\\[\\]]+");
-				
-				while (fileName.search(regex) >= 0)
-					fileName = fileName.replace(regex, '_');
+				if (fileName)
+				{
+					var regex:RegExp = new RegExp(StandardLib.replace('[\r\n\t_\\_/_:_*_?_"_|_<_>]+', '_', '\\'));
+					//var regex:RegExp = new RegExp("[^A-Za-z0-9 ,_\\.\\-\\(\\)\\[\\]]+");
+					
+					while (fileName.search(regex) >= 0)
+						fileName = fileName.replace(regex, '_');
+				}
 				
 				fileName = Weave.fixWeaveFileName(fileName, !saveXML.selected);
 			}

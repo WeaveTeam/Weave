@@ -53,14 +53,17 @@
 									change="handleChange();"
 									prompt="{lang('Enter a table name')}"
 									text="{tableSelector.activeTable}"/>
-			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
+			<ui:HelpComponent>
+				This is the name that will be visible in Weave.
+			</ui:HelpComponent>
 		</ui:Indent>
 		
 		<mx:HBox>
 			<mx:CheckBox id="dbfImportCheckBox" label="{lang('Publish DBF data as Weave attribute columns')}" selected="true" change="handleKeyColumnsChange()" />
 			<ui:HelpComponent>
 				The DBF file is used to generate record identifiers for the geometries contained in the SHP file.
-				Creating attribute columns for the rest of the DBF data is optional, but requires a key column or set of columns with values that uniquely identify rows in the DBF table.
+				Creating attribute columns for the rest of the DBF data is optional, but requires a key column or
+				set of columns with values that uniquely identify rows in the DBF table.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<ui:IndentTextInput label="{lang('Null flag values')}" id="nullFlagInput" group="{indentGroup}"
@@ -74,7 +77,9 @@
 		<ui:Indent label="{lang('DBF Key column(s)')}" group="{indentGroup}">
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{dbfColumns}" change="handleKeyColumnsChange()" editable="true" width="240"/>
 			<ui:HelpComponent>
-				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
+				Separate DBF column names by commas.
+				Values in the given columns will be concatenated to form unique identifiers for the shapes.
+				These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
 		</ui:Indent>
 		

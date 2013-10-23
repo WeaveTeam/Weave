@@ -156,25 +156,25 @@ package weave.services.wms
 			dataBoundsToTileXY(_tempDataBounds, zoomScale);
 			
 			// if the tile range is unreasonable, cut it down to a more reasonable range
-			var maxTileRangeX:int = screenBounds.getXCoverage() / _imageWidth + 2;
-			var maxTileRangeY:int = screenBounds.getYCoverage() / _imageHeight + 2;
+			var maxTileRangeX:int = Math.ceil(screenBounds.getXCoverage() / _imageWidth) * 2;
+			var maxTileRangeY:int = Math.ceil(screenBounds.getYCoverage() / _imageHeight) * 2;
 			if (_tempDataBounds.getWidth() > maxTileRangeX)
 			{
 				trace(debugId(this), 'adjusting tile X coverage from', _tempDataBounds.getWidth(), 'to', maxTileRangeX);
 				_tempDataBounds.setWidth(maxTileRangeX);
-				_tempDataBounds.setXCenter(int(_tempDataBounds.getXCenter()));
 			}
 			if (_tempDataBounds.getHeight() > maxTileRangeY)
 			{
 				trace(debugId(this), 'adjusting tile Y coverage from', _tempDataBounds.getHeight(), 'to', maxTileRangeY);
 				_tempDataBounds.setHeight(maxTileRangeY);
-				_tempDataBounds.setYCenter(int(_tempDataBounds.getYCenter()));
 			}
-
-			var xTileMin:Number = _tempDataBounds.xMin;
-			var yTileMin:Number = _tempDataBounds.yMin;
-			var xTileMax:Number = _tempDataBounds.xMax;
-			var yTileMax:Number = _tempDataBounds.yMax;
+			
+			// force integer values
+			var xTileMin:int = Math.floor(_tempDataBounds.xMin);
+			var yTileMin:int = Math.floor(_tempDataBounds.yMin);
+			var xTileMax:int = Math.ceil(_tempDataBounds.xMax);
+			var yTileMax:int = Math.ceil(_tempDataBounds.yMax);
+			_tempDataBounds.setBounds(xTileMin, yTileMin, xTileMax, yTileMax);
 			
 			tileXYToData(_tempDataBounds, zoomScale);
 			_tempFullDataBounds.constrainBounds(_tempDataBounds);
@@ -183,9 +183,9 @@ package weave.services.wms
 			// get tiles we need using the map's projection because the tiles' bounds must be in this projection
 			var lowerQualTiles:Array = _currentTileIndex.getTiles(_tempDataBounds, 0, _tempCoord.z - 1);
 			var completedTiles:Array = _currentTileIndex.getTiles(_tempDataBounds, _tempCoord.z, _tempCoord.z);
-			outerLoop: for (var x:Number = xTileMin; x < xTileMax; ++x)
+			outerLoop: for (var x:int = xTileMin; x < xTileMax; ++x)
 			{
-				for (var y:Number = yTileMin; y < yTileMax; ++y)
+				for (var y:int = yTileMin; y < yTileMax; ++y)
 				{
 					if (_pendingTiles.length >= 100)
 						break outerLoop;
@@ -261,7 +261,7 @@ package weave.services.wms
 			inputAndOutput.makeSizePositive();
 			if (tileProjectionSRS.value == 'EPSG:3857')
 			{
-				WeaveAPI.ProjectionManager.transformBounds("EPSG:3857", "EPSG:4326", _tempDataBounds);
+				WeaveAPI.ProjectionManager.transformBounds("EPSG:3857", "EPSG:4326", inputAndOutput);
 
 				inputAndOutput.xMin = zoomScale * (inputAndOutput.xMin + 180) / 360.0; 
 				inputAndOutput.xMax = zoomScale * (inputAndOutput.xMax + 180) / 360.0; 

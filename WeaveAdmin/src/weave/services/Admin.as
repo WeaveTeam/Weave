@@ -425,11 +425,14 @@ package weave.services
 				case 'connection':
 					return connectionNames;
 				
+				case ColumnMetadata.KEY_TYPE:
+					return keyTypes;
+				
 				case ColumnMetadata.DATA_TYPE:
 					return dataTypes;
 				
-				case ColumnMetadata.KEY_TYPE:
-					return keyTypes;
+				case ColumnMetadata.DATE_FORMAT:
+					return ['YYYY', 'YYYY/MM/DD', 'HH:NN:SS'];
 				
 				default:
 					return null;

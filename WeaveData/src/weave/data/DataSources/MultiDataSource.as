@@ -20,7 +20,6 @@
 package weave.data.DataSources
 {
 	import weave.api.WeaveAPI;
-	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
@@ -30,6 +29,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -38,12 +38,11 @@ package weave.data.DataSources
 	import weave.utils.HierarchyUtils;
 
 	/**
-	 * MultiDataSource
 	 * This is a class to keep an updated list of all the available data sources
 	 * 
 	 * @author skolman
 	*/
-	public class MultiDataSource implements IDataSource, IDisposableObject
+	public class MultiDataSource implements IDataSource
 	{
 		public function MultiDataSource()
 		{
@@ -71,7 +70,6 @@ package weave.data.DataSources
 		private var _root:ILinkableHashMap = WeaveAPI.globalHashMap;
 		
 		/**
-		 * attributeHierarchy
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
 		 */
 		private const _attributeHierarchy:AttributeHierarchy = newLinkableChild(this, AttributeHierarchy);
@@ -86,8 +84,13 @@ package weave.data.DataSources
 			// add callback to new IDataSource or IAttributeColumn so we refresh the hierarchy when it changes
 			var newObj:ILinkableObject = _root.childListCallbacks.lastObjectAdded;
 			if (!(newObj is MultiDataSource))
+			{
 				if (newObj is IDataSource || newObj is IAttributeColumn)
+				{
+					registerLinkableChild(this, newObj);
 					getCallbackCollection(newObj).addImmediateCallback(this, handleHierarchyChange);
+				}
+			}
 			
 			handleHierarchyChange();
 		}
@@ -132,7 +135,6 @@ package weave.data.DataSources
 		
 		
 		/**
-		 * initializeHierarchySubtree
 		 * @param subtreeNode A node in the hierarchy representing the root of the subtree to initialize, or null to initialize the root of the hierarchy.
 		 */
 		public function initializeHierarchySubtree(subtreeNode:XML = null):void
@@ -183,13 +185,6 @@ package weave.data.DataSources
 			}
 			
 			return WeaveAPI.AttributeColumnCache.getColumn(columnReference);
-		}
-		
-		/**
-		 * This function is called when the object is no longer needed.
-		 */
-		public function dispose():void
-		{
 		}
 	}
 }

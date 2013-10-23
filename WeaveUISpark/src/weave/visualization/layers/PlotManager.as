@@ -233,26 +233,26 @@ package weave.visualization.layers
 			if (enableAutoZoomToExtent.value || tempDataBounds.isUndefined())
 			{
 				if (!fullDataBounds.isEmpty())
-				{
 					tempDataBounds.copyFrom(fullDataBounds);
-					if (isFinite(overrideXMin.value))
-						tempDataBounds.setXMin(overrideXMin.value);
-					if (isFinite(overrideXMax.value))
-						tempDataBounds.setXMax(overrideXMax.value);
-					if (isFinite(overrideYMin.value))
-						tempDataBounds.setYMin(overrideYMin.value);
-					if (isFinite(overrideYMax.value))
-						tempDataBounds.setYMax(overrideYMax.value);
-					if (enableFixedAspectRatio.value)
-					{
-						var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();
-						var yScale:Number = tempDataBounds.getHeight() / tempScreenBounds.getYCoverage();
-						// keep greater data-to-pixel ratio because we want to zoom out if necessary
-						if (xScale > yScale)
-							tempDataBounds.setHeight(tempScreenBounds.getYCoverage() * xScale);
-						if (yScale > xScale)
-							tempDataBounds.setWidth(tempScreenBounds.getXCoverage() * yScale);
-					}
+
+				if (isFinite(overrideXMin.value))
+					tempDataBounds.setXMin(overrideXMin.value);
+				if (isFinite(overrideXMax.value))
+					tempDataBounds.setXMax(overrideXMax.value);
+				if (isFinite(overrideYMin.value))
+					tempDataBounds.setYMin(overrideYMin.value);
+				if (isFinite(overrideYMax.value))
+					tempDataBounds.setYMax(overrideYMax.value);
+
+				if (enableFixedAspectRatio.value)
+				{
+					var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();
+					var yScale:Number = tempDataBounds.getHeight() / tempScreenBounds.getYCoverage();
+					// keep greater data-to-pixel ratio because we want to zoom out if necessary
+					if (xScale > yScale)
+						tempDataBounds.setHeight(tempScreenBounds.getYCoverage() * xScale);
+					if (yScale > xScale)
+						tempDataBounds.setWidth(tempScreenBounds.getXCoverage() * yScale);
 				}
 			}
 			

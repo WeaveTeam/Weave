@@ -65,6 +65,29 @@ package weave.core
 		} /** end static code block **/
 		
 		/**
+		 * This function checks whether or not a session state is an Array containing at least one
+		 * object that looks like a DynamicState and has no other non-String items.
+		 * @return A value of true if the Array looks like a dynamic session state or diff.
+		 */
+		public static function isDynamicStateArray(state:*):Boolean
+		{
+			if (!(state is Array))
+				return false;
+			var array:Array = state as Array;
+			var result:Boolean = false;
+			for each (var item:* in array)
+			{
+				if (item is String)
+					continue; // dynamic state diffs can contain String values.
+				if (objectHasProperties(item))
+					result = true;
+				else
+					return false;
+			}
+			return result;
+		}
+		
+		/**
 		 * This function can be used to detect DynamicState objects within nested, untyped session state objects.
 		 * This function will check if the given object has the same properties as an actual DynamicState object instance. 
 		 * @param object An object to check.

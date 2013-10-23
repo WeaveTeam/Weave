@@ -38,7 +38,7 @@
 		>
 
 	<mx:VBox width="100%" height="100%" verticalGap="0">
-		<mx:Box id="viewStackContainer" minWidth="0" minHeight="0" width="100%" height="100%" initialize="UIUtils.setPadding(viewStackContainer, padding)"/>
+		<mx:Box id="viewStackContainer" minWidth="0" minHeight="0" initialize="UIUtils.pad(event, padding, 100, 100)"/>
 		<mx:HBox paddingTop="{padding}" paddingBottom="{padding}" width="100%" backgroundColor="#939178" verticalAlign="middle">
 			<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}"/>
 			<mx:Spacer width="100%"/>

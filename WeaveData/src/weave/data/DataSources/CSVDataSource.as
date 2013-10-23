@@ -36,6 +36,7 @@ package weave.data.DataSources
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
@@ -72,6 +73,8 @@ package weave.data.DataSources
 	 */
 	public class CSVDataSource extends AbstractDataSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, CSVDataSource, "CSV file");
+
 		public function CSVDataSource()
 		{
 		}
@@ -363,7 +366,7 @@ package weave.data.DataSources
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = parsedRows[0];
-				var root:XML = <hierarchy/>;
+				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
 				for each (var colName:String in firstRow)
 				{
 					var attr:XML = <attribute

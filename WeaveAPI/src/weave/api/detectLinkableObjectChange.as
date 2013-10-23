@@ -20,9 +20,8 @@ package weave.api
 	/**
 	 * This function is used to detect if callbacks of a linkable object were triggered since the last time this function
 	 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
-	 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
-	 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
-	 * parameters.
+	 * return false until the callbacks are triggered again.  It's a good idea to specify a private object or function as the observer
+	 * so no other code can call detectLinkableObjectChange with the same observer and linkableObject parameters.
 	 * @param observer The object that is observing the change.
 	 * @param linkableObject The object that is being observed.
 	 * @param moreLinkableObjects More objects that are being observed.
@@ -33,7 +32,7 @@ package weave.api
 	{
 		var changeDetected:Boolean = false;
 		moreLinkableObjects.unshift(linkableObject);
-		// it's important not to short-circuit with a boolean OR (||) because we need to clear the 'changed' flag on each object.
+		// it's important not to short-circuit like a boolean OR (||) because we need to clear the 'changed' flag on each object.
 		for each (linkableObject in moreLinkableObjects)
 			if (Internal.detectLinkableObjectChange(observer, linkableObject, true)) // clear 'changed' flag
 				changeDetected = true;

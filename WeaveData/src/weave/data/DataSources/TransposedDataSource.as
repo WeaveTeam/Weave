@@ -19,15 +19,13 @@
 
 package weave.data.DataSources
 {
-	import avmplus.describeType;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -41,13 +39,14 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.KeySets.FilteredKeySet;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 	
 	public class TransposedDataSource extends AbstractDataSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, TransposedDataSource, "Transposed data");
+		
 		public function TransposedDataSource()
 		{
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, attributeHierarchy);
@@ -146,6 +145,16 @@ package weave.data.DataSources
 
 				var hierarchy:XML = <hierarchy title={ internalData.keyType }/>;
 				
+				var metaCategory:XML = <category title={ lang('Source column metadata') }/>;
+				var propertyName:String;
+				for each (propertyName in internalData.getMetadataPropertyNames())
+				{
+					var metaAttr:XML = <attribute title={ propertyName }/>;
+					metaAttr['@'+PROPERTY_NAME] = propertyName;
+					metaCategory.appendChild(metaAttr);
+				}
+				hierarchy.appendChild(metaCategory);
+				
 				var recordCategory:XML = <category title={ lang('Transposed columns') }/>;
 				var keys:Array = filteredKeySet.keys;
 				for each (var key:IQualifiedKey in keys)
@@ -163,16 +172,6 @@ package weave.data.DataSources
 					recordCategory.appendChild(recordAttr);
 				}
 				hierarchy.appendChild(recordCategory);
-				
-				var metaCategory:XML = <category title={ lang('Original column metadata') }/>;
-				var propertyName:String;
-				for each (propertyName in internalData.getMetadataPropertyNames())
-				{
-					var metaAttr:XML = <attribute title={ propertyName }/>;
-					metaAttr['@'+PROPERTY_NAME] = propertyName;
-					metaCategory.appendChild(metaAttr);
-				}
-				hierarchy.appendChild(metaCategory);
 				
 				_attributeHierarchy.value = hierarchy;
 			}
@@ -213,13 +212,11 @@ package weave.data.DataSources
 		}
 	}
 }
-import weave.api.core.ILinkableObject;
 import weave.api.data.IFilteredKeySet;
 import weave.api.detectLinkableObjectChange;
 import weave.api.newLinkableChild;
 import weave.api.registerLinkableChild;
 import weave.data.KeySets.FilteredKeySet;
-import weave.utils.AsyncSort;
 import weave.utils.VectorUtils;
 
 internal class InternalData

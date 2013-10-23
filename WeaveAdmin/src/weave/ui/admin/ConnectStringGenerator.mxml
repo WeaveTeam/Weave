@@ -36,7 +36,8 @@
 		<mx:TextInput id="databaseInput" change="{generate()}" width="130"/>
 		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}"/>
 		<ui:HelpComponent id="optionalHelp" visible="{dbmsCombo.text != ConnectionInfo.SQLSERVER}">
-			This field is optional.  You can specify the name of a default database to connect to.
+			This field is optional.
+			You can specify the name of a default database to connect to.
 			For SQL Server, this is an instance name.
 			Similarly in PostGreSQL, databases are different from schemas.
 			MySQL does not differentiate between the two.

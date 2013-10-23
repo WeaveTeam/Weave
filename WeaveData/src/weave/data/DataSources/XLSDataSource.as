@@ -33,6 +33,7 @@ package weave.data.DataSources
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
@@ -51,6 +52,8 @@ package weave.data.DataSources
 	 */
 	public class XLSDataSource extends AbstractDataSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, XLSDataSource, "XLS file");
+
 		public function XLSDataSource()
 		{
 		}
@@ -80,12 +83,12 @@ package weave.data.DataSources
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = xlsSheetsArray[0].values[0];
-				var category:XML = <category name="XLS Data"/>;
+				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
 				for each (var colName:String in firstRow)
 				{
-					category.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
 				}
-				_attributeHierarchy.value = <hierarchy>{ category }</hierarchy>;
+				_attributeHierarchy.value = root;
 			}
 			
 			//trace("hierarchy was set to " + attributeHierarchy.xml);

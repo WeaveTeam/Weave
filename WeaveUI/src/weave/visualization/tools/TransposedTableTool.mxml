@@ -74,7 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, lang("Transposed Data Table"));
+			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, "Transposed Data Table");
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
 			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,createHeaderColumns,true);

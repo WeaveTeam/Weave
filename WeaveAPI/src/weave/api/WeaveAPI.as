@@ -301,7 +301,8 @@ package weave.api
 		 */
 		public static function getRegisteredImplementationDisplayName(theImplementation:Class):String
 		{
-			return _implementationDisplayNames[theImplementation] as String;
+			var str:String = _implementationDisplayNames[theImplementation] as String;
+			return str && lang(str);
 		}
 		
 		/**

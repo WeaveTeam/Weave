@@ -78,10 +78,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
+			import weave.core.UIUtils;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
+			
+			public var debug:Boolean = false;
 
 			override protected function childrenCreated():void
 			{
@@ -194,6 +197,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
+				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
 			
@@ -211,11 +215,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.createChildren();
 				
 				// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
-				var pad:int = 0;
-				setStyle("paddingLeft", pad);
-				setStyle("paddingRight", pad);
-				setStyle("paddingBottom", pad);
-				setStyle("paddingTop", pad);
+				UIUtils.pad(this, 0);
 				
 				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, "Change settings");
 				setupControlButton(subMenuButton, _subMenuIcon, null, "Menu");
@@ -260,7 +260,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				if (_controlPanel)
-					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
+					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
 				_moveImage.source = icon;
@@ -363,13 +363,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
-				super.x = Math.round(value);
+				value = Math.round(value);
+				super.x = value;
 			}
 			// this metadata tag allows you to specify a percentage value like y="25%" in MXML.
 			[PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
-				super.y = Math.round(value);
+				value = Math.round(value);
+				super.y = value;
 			}
 			
 //			[PercentProxy("percentWidth")]
@@ -1102,9 +1104,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_initialTitleBarMouseDownPoint = globalToLocal(new Point(stage.mouseX, stage.mouseY));
 				
-				/*for each(var child:* in this.getChildren())
-				child.cacheAsBitmap = true;*/
-				
 				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
 					_dragging = false;
 				else
@@ -1151,6 +1150,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					CustomCursorManager.removeCursor(draggablePanelCursorID);
 					if ( resizeCursorName!= null && !event.buttonDown && _enableMoveResize)
 					{
+						if (debug)
+							weaveTrace(debugId(this), resizeCursorName, debugId(event), debugId(event.target));
+						
 						try
 						{
 							draggablePanelCursorID = CustomCursorManager.showCursor(resizeCursorName);
@@ -1260,6 +1262,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				button.setStyle("fillAlphas", [1,1] );
 				button.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 				
+				button.addEventListener(MouseEvent.MOUSE_DOWN, function (event:MouseEvent):void { event.stopPropagation(); });
 				
 				if(clickHandler != null)
 				{
@@ -1545,7 +1548,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// flash offsets the line to the right and bottom of the coordinates you give.
 				if (borderThickness % 2 == 1)
 					borderThickness++;
-				_dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, 0);
+				_dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, debug ? 0.5 : 0);
 				// x,y are at half border thickness because the line thickness will be centered at those coordinates
 				_dragCanvas.graphics.drawRect(borderThickness/2 - 1,
 					borderThickness/2 - 1,
@@ -1655,8 +1658,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
 				if (parent && event && event.keyCode == Keyboard.ESCAPE)
 				{
+					var i:int;
+					
+					// if there is a child with name=modalWindow, don't handle escape key
+					for (i = 0; i < systemManager.numChildren; i++)
+						if (systemManager.getChildAt(i).name == 'modalWindow')
+							return;
+					
 					// find the top-most draggable panel with escapeKeyClosesPanel=true
-					for (var i:int = parent.numChildren; i--;)
+					for (i = parent.numChildren; i--;)
 					{
 						var panel:DraggablePanel = parent.getChildAt(i) as DraggablePanel;
 						if (panel && panel.escapeKeyClosesPanel)
@@ -1698,6 +1708,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();
+				
+				var xSpace:Number = instance.parent.width - instance.width;
+				var ySpace:Number = instance.parent.height- instance.height;
+				var xSpread:Number = Math.min(100, xSpace / 4);
+				var ySpread:Number = Math.min(100, ySpace / 4);
+				instance.panelX.value = String(int(xSpace/2 - xSpread/2 + xSpread * Math.random()));
+				instance.panelY.value = String(int(ySpace/2 - ySpread/2 + ySpread * Math.random()));
 				
 				return instance;
 			}

@@ -23,11 +23,10 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
-			   xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			   xmlns:userControls="weave.ui.userControls.*"
-			   layout="absolute">
+			   >
 	<mx:Script>
 		<![CDATA[
+			import mx.core.mx_internal;
 			import mx.events.SliderEvent;
 			
 			import weave.Weave;
@@ -61,37 +60,9 @@
 			[Bindable]
 			public var plotter:ScatterPlotPlotter = null;
 						
-			
 			public const REGRESSION_LAYER_NAME:String = "regressionLine";
 				
-			private function enableEquationTextEditing ():void 
-			{
-				if (editTextArea.value) 
-				{
-					equationText.editable = true;
-				}
-				else
-				{
-					equationText.editable = false;
-				}				
-			}
-			
-			public const editTextArea:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), enableEquationTextEditing);
-			
-			private function isVisibleEquationText():void
-			{
-				if (isVisibleEquationTextBoolean.value)
-				{
-					equationText.visible = true;
-				}
-				else
-				{
-					equationText.visible = false;
-				}
-			}
-			
-			public var isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), isVisibleEquationText);
-			
+			public const isVisibleEquationTextBoolean:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			override protected function constructor():void
 			{
@@ -416,11 +387,10 @@
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateEquation);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(regressionPlotter).addGroupedCallback(this, updateEquation, true);
-				showColorPicker.addGroupedCallback(this, updateColorPicker);
-				overrideColor.addGroupedCallback(this, updateColorPicker);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePlotterChange, true);
+				plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
 			}
 			
 			private function updateEquationStyle():void
@@ -428,6 +398,13 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(equationText);
 			}
 			
+			private function round(number:Number):Number
+			{
+				var result:Number = StandardLib.roundSignificant(number, 4);
+				if (result == 0 && number != 0)
+					return StandardLib.roundSignificant(number);
+				return result;
+			}
 			private function updateEquation():void
 			{
 				var str:String = '';
@@ -445,9 +422,9 @@
 					{
 						if (regressionPlotter.currentTrendline.value == "Linear")
 						{	
-							slope = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
-							intercept = StandardLib.roundSignificant(regressionPlotter.coefficients[0], 4) || 0;
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
+							slope = round(regressionPlotter.coefficients[1]);
+							intercept = round(regressionPlotter.coefficients[0]);
+							rsquared = round(regressionPlotter.rSquared);
 							str = lang("y = {0}x + {1}\nR^2 = {2}", slope, intercept, rsquared);					
 						}
 					
@@ -455,13 +432,13 @@
 						{
 							var rawCoefficients:Array = regressionPlotter.coefficients;
 							var roundedCoefficients:Array = [];
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4);
+							rsquared = round(regressionPlotter.rSquared);
 							str = lang("y = ");
 							var i:int = 0;
 						
 							for (i = 0; i < rawCoefficients.length ; i++ )
 							{
-								roundedCoefficients.push(StandardLib.roundSignificant(rawCoefficients[i], 4) || 0); 
+								roundedCoefficients.push(round(rawCoefficients[i])); 
 							}
 						
 							for (i = roundedCoefficients.length - 1; i >  0; i-- )
@@ -475,23 +452,23 @@
 						}
 						else if (regressionPlotter.currentTrendline.value == "Exponential")
 						{
-							base = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[0]), 4) || 0;
-							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
+							base = round(Math.exp(regressionPlotter.coefficients[0]));
+							exponent = round(regressionPlotter.coefficients[1]);
+							rsquared = round(regressionPlotter.rSquared);
 							str = lang("y = {0}e^{1}x\nR^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Power")
 						{
-							base = StandardLib.roundSignificant(Math.exp(regressionPlotter.coefficients[0]), 4) || 0;
-							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
+							base = round(Math.exp(regressionPlotter.coefficients[0]));
+							exponent = round(regressionPlotter.coefficients[1]);
+							rsquared = round(regressionPlotter.rSquared);
 							str = lang("y = {0}x^{1}\nR^2 = {2}", base, exponent, rsquared);
 						}
 						else if ( regressionPlotter.currentTrendline.value == "Logarithmic")
 						{
-							base = StandardLib.roundSignificant(regressionPlotter.coefficients[1], 4) || 0;
-							exponent = StandardLib.roundSignificant(regressionPlotter.coefficients[0],4) || 0;
-							rsquared = StandardLib.roundSignificant(regressionPlotter.rSquared, 4) || 0;
+							base = round(regressionPlotter.coefficients[1]);
+							exponent = round(regressionPlotter.coefficients[0]);
+							rsquared = round(regressionPlotter.rSquared);
 							str = lang("y = {0}ln(x)+{1}\nR^2 = {2}", base, exponent, rsquared);
 						}
 					}
@@ -549,17 +526,12 @@
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
 			}
 			
-			private function updateColorPicker():void
+			private function handleOverrideColor():void
 			{
-				if (!parent)
+				if (overrideColorCheckBox.selected)
 				{
-					callLater(updateColorPicker);
-					return;
-				}
-				
-				if ( showColorPicker.value )
-				{
-					plotter.fill.color.defaultValue.value = overrideColor.value;
+					colorBySizeCheckBox.selected = false;
+					plotter.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
 					plotter.fill.color.internalDynamicColumn.removeObject();
 				}
 				else
@@ -567,7 +539,14 @@
 					plotter.fill.color.defaultValue.value = NaN;
 					plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
 				}
-				scatterplotColorOverride.enabled = showColorPicker.value;
+			}
+			
+			private function handlePlotterFillColor():void
+			{
+				overrideColorCheckBox.mx_internal::setSelected(!plotter.fill.color.getInternalColumn());
+				var color:Number = StandardLib.asNumber(plotter.fill.color.defaultValue.value);
+				if (isFinite(color))
+					overrideColorPicker.selectedColor = color;
 			}
 			
 			private var _prevGlobalColorColumnName:String = null;
@@ -578,24 +557,10 @@
 					_prevGlobalColorColumnName = newName;
 			}
 			
-			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-				
-			private function enableAbsHandler(event:Event):void
-			{
-				if( colorOverrideCheckbox.selected ) colorOverrideCheckbox.selected = false;
-			}
-			
-			private function enableOverrideHandler(event:Event):void
-			{
-				if( absoluteValueColorEnabledCheckbox.selected ) absoluteValueColorEnabledCheckbox.selected = false;
-			}
-			
-			
 			private function handlePlotterChange():void
 			{
 				// when the plotter settings change, update the slider interface
-				if (plotter.absoluteValueColorEnabled.value)
+				if (plotter.colorBySize.value)
 				{
 					sizeBySlider.thumbCount = 1;
 					sizeBySlider.value = plotter.maxScreenRadius.value;
@@ -614,7 +579,7 @@
 			private function handleSizeSliderChange(event:SliderEvent):void
 			{
 				// when user interacts with slider, update session state
-				if (plotter.absoluteValueColorEnabled.value)
+				if (plotter.colorBySize.value)
 				{
 					plotter.maxScreenRadius.value = event.value;
 				}
@@ -636,23 +601,28 @@
 			}
 		]]>
 	</mx:Script>
-	<ui:AutoResizingTextArea id="equationText"
-		editable="false"
-		visible = "true"
+	<ui:Paragraph id="equationText" trim="false" selectable="true"
+		wordWrap="false" width="NaN"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
-		wordWrap="false"
-		backgroundAlpha="0"
-		borderThickness="0"
 		bottom="0"
-		left="0"/>
+		left="0"
+		initialize="linkBindableProperty(isVisibleEquationTextBoolean, equationText, 'visible')"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('X')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
-			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}" showLabel="false" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.screenRadius"/>
+			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}"/>
+			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}">
+				<ui:creationComplete>
+					<![CDATA[
+						sizeSelector.dynamicObject = plotter.screenRadius;
+						sizeSelector.addChildAt(sizeByCheck, 0);
+						sizeSelector.useFirstChildAsLabel = true;
+					]]>
+				</ui:creationComplete>
+			</ui:DynamicColumnComponent>
 			<mx:HBox width="100%" verticalAlign="middle">
 				
 				<mx:Label text="{lang('Point Size:')}"/>
@@ -678,10 +648,50 @@
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</mx:HBox>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
+			
+			<mx:HBox>
+				<mx:CheckBox id="overrideColorCheckBox"
+							 label="{lang('Override Global Color')}"
+							 change="handleOverrideColor()"/>
+				<ui:CustomColorPicker id="overrideColorPicker"
+									  enabled="{overrideColorCheckBox.selected}"
+									  selectedColor="0xE0E0E0"
+									  change="handleOverrideColor()"/>
+			</mx:HBox>
+			
+			<ui:CheckBoxWithNestedOptions id="colorBySizeCheckBox" label="{lang('Color by positive or negative \'size\' column values')}"
+										  creationComplete="linkBindableProperty(plotter.colorBySize, event.target, 'selected')"
+										  change="if (colorBySizeCheckBox.selected) overrideColorCheckBox.mx_internal::setSelected(false);">
+				<ui:HelpComponent>
+					Select this option to highlight the differences in your 'size' column.
+					
+					* All values greater than 0 radius will be one color.
+					
+					* All values less than 0 radius will be another color.
+					
+					* If you have a size of 0 radius the circle will not be drawn.
+					
+					If a size column is not specified, nothing will be drawn in this mode.
+				</ui:HelpComponent>
+				
+				<ui:Indent label="{lang('Color for positive size values')}">
+					<ui:CustomColorPicker id="colorPositivePicker"
+										  creationComplete="linkBindableProperty(plotter.colorPositive, event.target, 'selectedColor')"
+										  enabled="{colorBySizeCheckBox.selected}" />
+				</ui:Indent>
+				<ui:Indent label="{lang('Color for negative size values')}">
+					<ui:CustomColorPicker id="colorNegativePicker" 
+										  creationComplete="linkBindableProperty(plotter.colorNegative, event.target, 'selectedColor')"
+										  enabled="{colorBySizeCheckBox.selected}" />
+				</ui:Indent>
+			</ui:CheckBoxWithNestedOptions>
+			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
+		</mx:VBox>
+		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
+			
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
+			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
@@ -693,6 +703,7 @@
 										super.data = d;
 										selected = d && d.selected;
 										label = (d && d.label) as String;
+										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
 									}
 									private function handleSelectionChange():void
 									{
@@ -708,18 +719,14 @@
 					</mx:Component>
 				</mx:itemRenderer>
 			</mx:List>
-			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
-		</mx:VBox>
-		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			
 			<!-- @author fkamayou 
 				 Beginning of trendline option 
 			-->
-			<mx:VBox>
-				<mx:CheckBox id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
+			<ui:CheckBoxWithNestedOptions id= "trendlineCheckBox" label="{lang('Enable Trendline (Requires Rserve on the server)')}"
 						  	 toolTip="Use the dropdown menu to choose a trendline."
-							 creationComplete="linkBindableProperty(regressionPlotter.drawLine, event.target, 'selected')"/>
-				<ui:Indent>
+							 creationComplete="linkBindableProperty(regressionPlotter.drawLine, event.target, 'selected')">
+				<mx:HBox>
 					<mx:ComboBox enabled="{trendlineCheckBox.selected}" 
 								 id="trendlineComboBox" dataProvider="{RegressionLinePlotter.trendlines}"
 								 creationComplete="linkBindableProperty(regressionPlotter.currentTrendline,event.target,'selectedItem')"/>
@@ -731,76 +738,30 @@
 									minimum="2" maximum="6" snapInterval="1" liveDragging="true"
 									tickInterval="1"/>
 					</mx:HBox>
-				</ui:Indent>				
-				<!-- <mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
-							 creationComplete="linkBindableProperty(regressionPlotter.drawLine,event.target,'selected')"/>
-				-->
-				<ui:Indent>
-					<mx:VBox>
-						<mx:Label id="lineEquation" text="{lang('Equation')}"/>
-						<mx:CheckBox id="hideEquationCheckBox" label="{lang('Show equation')}" labelPlacement="right"
-									 creationComplete="linkBindableProperty(this.isVisibleEquationTextBoolean, event.target, 'selected')"/>
-						<mx:HBox>
-							<mx:Label text="{lang('Line Color')}" />
-							<mx:ColorPicker id="regressionColorPicker" 
-											creationComplete="linkBindableProperty(regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
-											enabled="{trendlineCheckBox.selected}"/>
-						</mx:HBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Line Thickness')}" />
-							<mx:HSlider id="regressionThicknessSlider"
-										creationComplete="linkBindableProperty(regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
-										enabled="{trendlineCheckBox.selected}"
-										minimum="1" maximum="10" snapInterval="1" liveDragging="true"
-										tickInterval="1"/>
-						</mx:HBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Line Opacity')}" />
-							<mx:HSlider id="regressionAlphaSlider"
-										enabled="{trendlineCheckBox.selected}"
-										minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
-										tickInterval="0.1"
-										creationComplete="linkBindableProperty(regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
-						</mx:HBox>
-					</mx:VBox>
-				</ui:Indent>
-			</mx:VBox>
-			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="{lang('Override Global Color')}" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
-							 change="enableOverrideHandler(event)"/>
-				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
-			</mx:HBox>
-			<mx:VBox>
-				<mx:HBox>
-					<mx:CheckBox id="absoluteValueColorEnabledCheckbox" label="{lang('Color by positive or negative \'size\' column values')}"
-								 creationComplete="linkBindableProperty(plotter.absoluteValueColorEnabled, event.target, 'selected')"
-								 change="enableAbsHandler(event)"/>
-					<ui:HelpComponent>
-						Select this option to highlight the differences in your 'size' column.
-						* All values greater than 0 radius will be one color.
-						* All values less than 0 radius will be another color.
-						* If you have a size of 0 radius the circle will not be drawn.
-						
-						** If a size column is not specified, nothing will be drawn in this mode.
-					</ui:HelpComponent>
 				</mx:HBox>
-				<ui:Indent>
-					<mx:VBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Color for values &lt; 0')}" />
-							<mx:ColorPicker id="absoluteValueMinColorPicker" 
-											creationComplete="linkBindableProperty(plotter.absoluteValueColorMin, event.target, 'selectedColor')"
-											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
-						</mx:HBox>
-						<mx:HBox>
-							<mx:Label text="{lang('Color for values &gt; 0')}" />
-							<mx:ColorPicker id="absoluteValueMaxColorPicker" 
-											creationComplete="linkBindableProperty(plotter.absoluteValueColorMax, event.target, 'selectedColor')"
-											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
-						</mx:HBox>
-					</mx:VBox>
+				<mx:Label id="lineEquation"/>
+				<mx:CheckBox id="hideEquationCheckBox" label="{lang('Display the equation in the visualization')}" labelPlacement="right"
+							 creationComplete="linkBindableProperty(this.isVisibleEquationTextBoolean, event.target, 'selected')"/>
+				<ui:Indent label="{lang('Line Color')}">
+					<ui:CustomColorPicker id="regressionColorPicker" 
+									creationComplete="linkBindableProperty(regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
+									enabled="{trendlineCheckBox.selected}"/>
 				</ui:Indent>
-			</mx:VBox>
+				<ui:Indent label="{lang('Line Thickness')}">
+					<mx:HSlider id="regressionThicknessSlider"
+								creationComplete="linkBindableProperty(regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
+								enabled="{trendlineCheckBox.selected}"
+								minimum="1" maximum="10" snapInterval="1" liveDragging="true"
+								tickInterval="1"/>
+				</ui:Indent>
+				<ui:Indent label="{lang('Line Opacity')}">
+					<mx:HSlider id="regressionAlphaSlider"
+								enabled="{trendlineCheckBox.selected}"
+								minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
+								tickInterval="0.1"
+								creationComplete="linkBindableProperty(regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
+				</ui:Indent>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

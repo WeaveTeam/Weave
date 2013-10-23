@@ -30,17 +30,22 @@ package weave.visualization.plotters
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.primitives.Bounds2D;
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.BitmapText;
@@ -51,174 +56,165 @@ package weave.visualization.plotters
 	 * @author skolman
 	 * @author kmonico
 	 */	
-	public class SingleImagePlotter extends AbstractPlotter implements IPlotterWithGeometries
+	public class SingleImagePlotter extends AbstractPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, SingleImagePlotter, "Single image");
+		
 		public function SingleImagePlotter()
 		{
 		}
 		
-		/**
-		 * The horizontal alignment used for any text.
-		 */		
-		public const horizontalAlign:LinkableString =  registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
-		/**
-		 * The vertical alignment used for any text. 
-		 */		
-		public const verticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_TOP));		
+		// these vars store info on the image
+		private var _bitmapData:BitmapData = null;
+		private var _imgScreenBounds:Bounds2D = new Bounds2D();
+		private var _imgDataBounds:Bounds2D = new Bounds2D();
 		
-		/**
-		 * The X coordinate in original unprojected data coordinates.
-		 */		
-		public const dataX:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		/**
-		 * The Y coordinate in original unprojected data coordinates. 
-		 */		
-		public const dataY:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		
-		/**
-		 * The width of the image in unprojected data coordinates. 
-		 */		
-		public const dataWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		/**
-		 * The height of the image in unprojected data coordinates. 
-		 */		
-		public const dataHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		
-		/**
-		 * The URL of the image to download.
-		 */		
-		public const imageURL:LinkableString = registerLinkableChild(this, new LinkableString(), handleImageURLChange);
+		private var _tempMatrix:Matrix = new Matrix();
+		private var _tempPoint:Point = new Point();
 		
 		[Embed(source='/weave/resources/images/red-circle.png')]
 		private var defaultImageSource:Class;
 		
+		/**
+		 * The URL of the image to download.
+		 */		
+		public const imageURL:LinkableString = newLinkableChild(this, LinkableString);
+		
+		public const dataX:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const dataY:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const dataWidth:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const dataHeight:LinkableNumber = newSpatialProperty(LinkableNumber);
+
+		public const horizontalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER, verifyHAlign));
+		public const verticalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE, verifyVAlign));
+		
+		private function verifyHAlign(value:String):Boolean
+		{
+			return value == BitmapText.HORIZONTAL_ALIGN_LEFT
+				|| value == BitmapText.HORIZONTAL_ALIGN_CENTER
+				|| value == BitmapText.HORIZONTAL_ALIGN_RIGHT;
+		}
+		private function verifyVAlign(value:String):Boolean
+		{
+			return value == BitmapText.VERTICAL_ALIGN_TOP
+				|| value == BitmapText.VERTICAL_ALIGN_MIDDLE
+				|| value == BitmapText.VERTICAL_ALIGN_BOTTOM;
+		}
+		
+		override public function getBackgroundDataBounds(output:IBounds2D):void
+		{
+			var x:Number = dataX.value;
+			var y:Number = dataY.value;
+			var w:Number = dataWidth.value || 0;
+			var h:Number = dataHeight.value || 0;
+			
+			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_LEFT)
+				output.setXRange(x, x + w);
+			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_CENTER)
+				output.setCenteredXRange(x, w);
+			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_RIGHT)
+				output.setXRange(x - w, x);
+			
+			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_TOP)
+				output.setYRange(y, y + h);
+			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_MIDDLE)
+				output.setCenteredYRange(y, h);
+			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_BOTTOM)
+				output.setYRange(y - h, y);
+		}
+		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			_tempDataBounds = dataBounds;
-			_tempScreenBounds = screenBounds;
-			
-			if(isNaN(dataX.value) || isNaN(dataY.value))
-				return;
-			
-			if(imageBitmapData == null)
+			if (detectLinkableObjectChange(drawBackground, imageURL))
 			{
-				if(imageURL.value)
-					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(imageURL.value), handleImageRequest, handleImageFaultRequest, imageURL.value);
+				if (imageURL.value)
+				{
+					_bitmapData = null;
+					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(imageURL.value), handleImage, handleImageFault, imageURL.value);
+				}
 				else
 				{
 					var image:BitmapAsset = new defaultImageSource() as BitmapAsset;
-					
-					imageBitmapData = image.bitmapData;
-					plotBitmapData(destination);
+					_bitmapData = image.bitmapData;
 				}
 			}
-			else
-			{
-				plotBitmapData(destination);
-			}
-		}
-		
-		private function plotBitmapData(destination:BitmapData):void
-		{
+			
+			if (!_bitmapData)
+				return;
+			
 			var tempPoint:Point = new Point(dataX.value, dataY.value);
-			_tempDataBounds.projectPointTo(tempPoint, _tempScreenBounds);
+			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
-			translationMatrix.identity();
+			_tempMatrix.identity();
 			
-			var xOffset:Number=0;
-			var yOffset:Number=0;
-			
-			switch (verticalAlign.value)
-			{
-				default: // default vertical align: top
-				case BitmapText.VERTICAL_ALIGN_TOP: 
-					yOffset = 0;
-					break;
-				case BitmapText.VERTICAL_ALIGN_MIDDLE: 
-					yOffset = -imageBitmapData.height / 2;
-					break;
-				case BitmapText.VERTICAL_ALIGN_BOTTOM:
-					yOffset = -imageBitmapData.height;
-					break;
-			}
+			var xOffset:Number = 0;
+			var yOffset:Number = 0;
 			
 			switch (horizontalAlign.value)
 			{
-				default: // default horizontal align: left
 				case BitmapText.HORIZONTAL_ALIGN_LEFT: // x is aligned to left side of text
 					xOffset = 0;
 					break;
 				case BitmapText.HORIZONTAL_ALIGN_CENTER: 
-					xOffset = -imageBitmapData.width / 2;
+					xOffset = -_bitmapData.width / 2;
 					break;
 				case BitmapText.HORIZONTAL_ALIGN_RIGHT: // x is aligned to right side of text
-					xOffset = -imageBitmapData.width;
+					xOffset = -_bitmapData.width;
 					break;
 			}
-			translationMatrix.translate(xOffset,yOffset);
-			
-			var scaleWidth:Number = dataWidth.value * _tempScreenBounds.getWidth() / _tempDataBounds.getWidth() / imageBitmapData.width;
-			var scaleHeight:Number = dataHeight.value * -_tempScreenBounds.getHeight() / _tempDataBounds.getHeight() / imageBitmapData.height;
-
-			if(isNaN(dataWidth.value))
+			switch (verticalAlign.value)
 			{
+				case BitmapText.VERTICAL_ALIGN_TOP: 
+					yOffset = 0;
+					break;
+				
+				case BitmapText.VERTICAL_ALIGN_MIDDLE: 
+					yOffset = -_bitmapData.height / 2;
+					break;
+				
+				case BitmapText.VERTICAL_ALIGN_BOTTOM:
+					yOffset = -_bitmapData.height;
+					break;
+			}
+			_tempMatrix.translate(xOffset, yOffset);
+			
+			var scaleWidth:Number = dataWidth.value * screenBounds.getXCoverage() / dataBounds.getXCoverage() / _bitmapData.width;
+			var scaleHeight:Number = dataHeight.value * screenBounds.getYCoverage() / dataBounds.getYCoverage() / _bitmapData.height;
+			
+			if (!isFinite(dataWidth.value))
 				scaleWidth = 1;
-			}
-
-			if(isNaN(dataHeight.value))
-			{
+			
+			if (!isFinite(dataHeight.value))
 				scaleHeight = 1;
-			}
 			
-			translationMatrix.scale(scaleWidth, scaleHeight);
+			_tempMatrix.scale(scaleWidth, scaleHeight);
 			
-			translationMatrix.translate(tempPoint.x, tempPoint.y);
-			destination.draw(imageBitmapData, translationMatrix);
+			_tempMatrix.translate(tempPoint.x, tempPoint.y);
+			destination.draw(_bitmapData, _tempMatrix);
 		}
 		
-		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
+		private function handleImage(event:ResultEvent, url:String):void
 		{
-			// there are no keys in this plotter
-			return [];
-		}
-
-		public function getBackgroundGeometries():Array
-		{
-			var simpleGeom:ISimpleGeometry = new SimpleGeometry(GeometryType.POINT);
-			var p1:Point = new Point(dataX.value, dataY.value);
-			_tempArray.length = 0;
-			_tempArray.push(p1);
-			(simpleGeom as SimpleGeometry).setVertices(_tempArray);
-			
-			return [simpleGeom];
-		}
-
-		private function handleImageRequest(event:ResultEvent, url:String):void
-		{
-			if (objectWasDisposed(this))
+			if (objectWasDisposed(this) || url != imageURL.value)
 				return;
-			if (url == imageURL.value)
+			
+			try
 			{
-				imageBitmapData = (event.result as Bitmap).bitmapData;
+				_bitmapData = Bitmap(event.result).bitmapData;
 				getCallbackCollection(this).triggerCallbacks();
 			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
-		private function handleImageFaultRequest(event:FaultEvent,token:Object=null):void
+		private function handleImageFault(event:FaultEvent, url:String):void
 		{
+			if (objectWasDisposed(this) || url != imageURL.value)
+				return;
+			
 			reportError(event);
 		}
-		
-		private function handleImageURLChange():void
-		{
-			imageBitmapData = null;
-		}
-
-		// temporary objects
-		private var _tempDataBounds:IBounds2D;
-		private var _tempScreenBounds:IBounds2D;
-		private const _tempArray:Array = [];
-		private var imageBitmapData:BitmapData;
-		private var translationMatrix:Matrix = new Matrix();
 	}
 }

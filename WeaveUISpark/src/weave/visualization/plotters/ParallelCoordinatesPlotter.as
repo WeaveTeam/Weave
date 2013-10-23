@@ -25,13 +25,13 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -42,9 +42,13 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
@@ -76,7 +80,11 @@ package weave.visualization.plotters
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			xColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
 			
-			updateFilterEquationColumns(); // sets key source
+			
+			lineStyle.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateFilterEquationColumns, true);
+			
+			// updateFilterEquationColumns sets key source
 		}
 		private function handleColumnsListChange():void
 		{
@@ -126,6 +134,16 @@ package weave.visualization.plotters
 		private var _columns:Array = [];
 		private var _xattrObjects:Array = [];
 		
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
+		private function handleColor():void
+		{
+			var cc:ColorColumn = lineStyle.color.getInternalColumn() as ColorColumn;
+			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
+			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
+		}
+		
 		public function getXValues():Array
 		{
 			// if session state is defined, use that. otherwise, get the values from xData
@@ -159,7 +177,8 @@ package weave.visualization.plotters
 			else
 			{
 				var list:Array = _columns.concat();
-				list.unshift(lineStyle.color);
+				if (colorDataWatcher.target)
+					list.unshift(colorDataWatcher.target);
 				setColumnKeySources(list);
 				
 				_in_updateFilterEquationColumns = false;

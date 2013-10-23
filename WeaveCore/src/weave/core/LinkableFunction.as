@@ -22,11 +22,8 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -54,12 +51,11 @@ package weave.core
 		 */
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
-			super(unIndent(defaultValue));
+			super(StandardLib.unIndent(defaultValue));
 			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
 			_paramNames = paramNames && paramNames.concat();
-			getCallbackCollection(this).addImmediateCallback(this, handleChange);
 		}
 		
 		private var _ignoreRuntimeErrors:Boolean = false;
@@ -67,16 +63,8 @@ package weave.core
 		private var _compiledMethod:Function = null;
 		private var _paramNames:Array = null;
 		private var _isFunctionDefinition:Boolean = false;
+		private var _triggerCount:uint = 0;
 
-		/**
-		 * This is called whenever the session state changes.
-		 */
-		private function handleChange():void
-		{
-			// do not compile immediately because we don't want to throw an error at this time.
-			_compiledMethod = null;
-		}
-		
 		/**
 		 * This is used as a placeholder to prevent re-compiling erroneous code.
 		 */
@@ -87,8 +75,9 @@ package weave.core
 		 */
 		public function validate():void
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 			{
+				_triggerCount = triggerCounter;
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
@@ -116,7 +105,7 @@ package weave.core
 		 */
 		public function get length():int
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.length;
 		}
@@ -129,7 +118,7 @@ package weave.core
 		 */
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.apply(thisArg, argArray);
 		}
@@ -142,7 +131,7 @@ package weave.core
 		 */
 		public function call(thisArg:* = null, ...args):*
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.apply(thisArg, args);
 		}
@@ -274,42 +263,5 @@ package weave.core
 //		{
 //			return _getNewCompiler(false);
 //		}
-		
-		/**
-		 * Takes a script where all lines have been indented, removes the common indentation from all lines and replaces each tab with four spaces.
-		 * The common indentation is naively assumed to be the same as the first non-blank line in the script.
-		 * @param script A script.
-		 * @return The modified script.
-		 */		
-		public static function unIndent(script:String):String
-		{
-			if (script == null)
-				return null;
-			script = StandardLib.replace(script, '\r\n','\n','\r','\n');
-			while (StringUtil.isWhitespace(script.substr(-1)))
-				script = script.substr(0, -1);
-			var lines:Array = script.split('\n');
-			while (!lines[0] && lines.length)
-				lines.shift();
-			
-			if (!lines.length)
-				return '';
-			var indent:int = 0;
-			var line:String = lines[0];
-			while (line.charAt(indent) == '\t')
-				indent++;
-			for (var i:int = 0; i < lines.length; i++)
-			{
-				line = lines[i];
-				var t:int = 0;
-				var spaces:String = '';
-				while (line.charAt(t) == '\t')
-					if (t++ >= indent)
-						spaces += '    ';
-				
-				lines[i] = spaces + line.substr(t);
-			}
-			return lines.join('\n') + '\n';
-		}
 	}
 }

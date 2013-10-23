@@ -48,7 +48,7 @@ package weave.visualization.tools
 	
 	public class CustomGraphicsTool extends DraggablePanel implements IVisToolWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "Custom Graphics Tool");
+		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 		public const drawScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(defaultScript, false, true));

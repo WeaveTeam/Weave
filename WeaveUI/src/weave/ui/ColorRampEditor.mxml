@@ -55,7 +55,7 @@
 						 >
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" initialize="UIUtils.setPadding(event.target as UIComponent, 5);">
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" initialize="UIUtils.pad(event, 5);">
 								<mx:ColorPicker id="cPicker" showTextField="true"/>
 								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
@@ -230,11 +230,8 @@
 			{
 				colorRamp = object as ColorRamp;
 			}
-			public function applyChanges():void
-			{
-				
-			}
-			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 		]]>
 	</mx:Script>
 </mx:VBox>

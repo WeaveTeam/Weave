@@ -39,12 +39,14 @@ Editor for custom layers using AxisLabelPlotters
 						selected="{!horizontalCheckBox.selected}"/>
 	</ui:Indent>
 	
-	<ui:IndentTextInput label="{lang('Start')}" width="100%"
-				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
+	<ui:IndentTextInput label="{lang('Begin')}" width="100%"
+				creationComplete="linkBindableProperty(_plotter.begin, event.target, 'text')"/>
 	<ui:IndentTextInput label="{lang('End')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
 	<ui:IndentTextInput label="{lang('Interval')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
+	<ui:IndentTextInput label="{lang('Offset')}" width="100%"
+				creationComplete="linkBindableProperty(_plotter.offset, event.target, 'text')"/>
 	<ui:IndentTextInput label="{lang('Angle')}" width="100%"
 				creationComplete="linkBindableProperty(_plotter.angle, event.target, 'text')"/>
 	<mx:Spacer/>
@@ -71,10 +73,8 @@ Editor for custom layers using AxisLabelPlotters
 			{
 				_plotter = object as AxisLabelPlotter;
 			}
-			public function applyChanges():void
-			{
-				
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 
 			private var _plotter:AxisLabelPlotter = null;
 		

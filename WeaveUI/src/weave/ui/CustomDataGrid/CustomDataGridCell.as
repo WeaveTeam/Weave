@@ -34,9 +34,9 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.ImageColumn;
 
-	public class DataGridCellRenderer extends Canvas
+	public class CustomDataGridCell extends Canvas
 	{
-		public function DataGridCellRenderer()
+		public function CustomDataGridCell()
 		{
 		}
 		
@@ -56,7 +56,7 @@ package weave.ui.CustomDataGrid
 				toolTip = lbl.text;
 		}
 		
-		public var column:WeaveCustomDataGridColumn;
+		public var column:CustomDataGridColumn;
 		private var img:Image;
 		public const lbl:Label = new Label();
 		
@@ -116,7 +116,7 @@ package weave.ui.CustomDataGrid
 			g.clear();
 			
 			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
-			if (column.keySet.keys.length > 0)
+			if (column.selectionKeySet && column.selectionKeySet.keys.length > 0)
 			{
 				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
 				{
@@ -145,7 +145,7 @@ package weave.ui.CustomDataGrid
 				_setStyle(lbl, 'textAlign', 'left');
 			}
 			
-			if (column.showColors.value)
+			if (column.showColors && column.showColors.value)
 			{
 				var colorValue:Number = column.colorFunction(column.attrColumn, data as IQualifiedKey, this);
 				_setStyle(this, 'backgroundColor', colorValue);

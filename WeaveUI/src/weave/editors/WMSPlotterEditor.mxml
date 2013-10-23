@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.editors.*" xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.editors.*"
+		 xmlns:ui="weave.ui.*"
+		 label="{lang('WMS images')}"
+		 implements="weave.api.ui.ILinkableObjectEditor">
 	<ui:Indent group="{this}" label="{lang('Service:')}">
 		<ui:CustomComboBox editable="false" id="wmsLayerService"
 						prompt="{lang('Select a service')}"
@@ -54,10 +58,8 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this,setWMSLayerServiceOnPlotterChange,true);
 			}
 			
-			public function applyChanges():void
-			{
-				
-			}			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			override protected function childrenCreated():void
 			{

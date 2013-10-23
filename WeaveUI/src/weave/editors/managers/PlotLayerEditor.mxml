@@ -30,7 +30,7 @@
 	variableRowHeight="true"
 	verticalScrollPolicy="on"
 	paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
-	implements="weave.api.core.IDisposableObject"
+	implements="weave.api.core.ILinkableObject,weave.api.core.IDisposableObject"
 	allowMultipleSelection="false" xmlns:userControls="weave.ui.userControls.*"
 	>
 	<mx:Script>
@@ -39,17 +39,18 @@
 			import mx.events.DragEvent;
 			
 			import weave.api.core.ILinkableObject;
-			import weave.core.CallbackJuggler;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableWatcher;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.plotters.WMSPlotter;
 			
 			protected var _visualization:InteractiveVisualization = null;
-			private const _updateDataProvider_juggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
+			private const _plotterListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
 			
 			[Inspectable] public function set visualization(value:InteractiveVisualization):void
 			{
 				_visualization = value;
-				_updateDataProvider_juggler.target = _visualization.plotManager.plotters.childListCallbacks;
+				_plotterListWatcher.target = _visualization.plotManager.plotters.childListCallbacks;
 			}
 			
 			public function get visualization():InteractiveVisualization
@@ -59,6 +60,7 @@
 			
 			public function dispose():void
 			{
+				_visualization = null;
 				dataProvider = null;
 			}
 
@@ -303,7 +305,8 @@
 							<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore Subset')}" change="handleIgnoreSubsetCheck()"/>
 							<ui:HelpComponent>
 								Check this box to always display these geometries whether or not they are in the current subset.
-								Fill color will only be displayed on the geometries in the current subset.  Only the borders will be displayed for the rest.
+								Fill color will only be displayed on the geometries in the current subset.
+								Only the borders will be displayed for the rest.
 							</ui:HelpComponent>
 						</mx:HBox>
 					</mx:VBox>
@@ -338,7 +341,7 @@
 						import weave.services.wms.WMSProviders;
 						import weave.ui.AttributeSelectorPanel;
 						import weave.ui.CirclePlotterSettings;
-						import weave.ui.MarkerSettingsComponent;
+						import weave.ui.ControlPanel;
 						import weave.ui.SessionStateEditor;
 						import weave.utils.ColumnUtils;
 						import weave.utils.EventUtils;
@@ -395,23 +398,16 @@
 							{
 								if (plotter is GeometryLabelPlotter)
 									controlsStack.selectedChild = labelPlotterControls;
-								if (plotter is GeometryRelationPlotter)
+								else if (plotter is GeometryRelationPlotter)
 									controlsStack.selectedChild = relationPlotterControls;
-								if (plotter is GeometryPlotter)
+								else if (plotter is GeometryPlotter)
 									controlsStack.selectedChild = geometryPlotterControls;
-								if (plotter is WMSPlotter)
+								else if (plotter is WMSPlotter)
 									controlsStack.selectedChild = wmsPlotterControls;
-								if (plotter is SingleImagePlotter)
+								else
 								{
 									settingsButton.selected = false;
-
-									MarkerSettingsComponent.openInstance(plotter as SingleImagePlotter,layerName);
-								}
-								if (plotter is CirclePlotter)
-								{
-									settingsButton.selected = false;
-									
-									CirclePlotterSettings.openInstance(plotter as CirclePlotter,layerName);
+									ControlPanel.openEditor(plotter, [plotter]);
 								}
 							} 
 						}

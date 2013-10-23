@@ -44,6 +44,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWMSService;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
@@ -69,6 +70,8 @@ package weave.visualization.plotters
 	 */
 	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
+		WeaveAPI.registerImplementation(IPlotter, WMSPlotter, "WMS images");
+		
 		// TODO: move the image reprojection code elsewhere
 		
 		public var debug:Boolean = false;

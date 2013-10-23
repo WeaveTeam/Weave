@@ -22,12 +22,12 @@
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
-	     layout="absolute" xmlns:userControls="weave.ui.userControls.*" creationPolicy="all"
-	     xmlns:mapTool="weave.visualization.tools.*" xmlns:managers="weave.editors.managers.*"
+		 xmlns:managers="weave.editors.managers.*"
 	     >
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -53,6 +53,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+			import weave.editors.WindowSettingsEditor;
 			import weave.primitives.Bounds2D;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
@@ -221,11 +222,13 @@
 				var backgroundImageCheck:CheckBox = new CheckBox();
 				backgroundImageCheck.label = "Enable ocean background image";
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				windowSettingsEditor.initialize();
-				windowSettingsEditor.addChild(backgroundImageCheck);
-				windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
 				
-				windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
+				WindowSettingsEditor; // work around compiler error
+				windowSettingsEditor.addEventListener(FlexEvent.INITIALIZE, function(e:*):void {
+					windowSettingsEditor.addChild(backgroundImageCheck);
+					windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
+					windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
+				});
 				simpleAxisEditor.parent.removeChild(simpleAxisEditor);
 			}
 			
@@ -379,7 +382,7 @@
 				visualization.plotManager.setCheckedZoomDataBounds(_tempBounds);
 			}
 			
-			private var _tempBounds:IBounds2D = new Bounds2D();
+			private var _tempBounds:Bounds2D = new Bounds2D();
 
 			[Embed(source="/weave/resources/images/ocean_background2.jpg")]
 			private static const BackgroundImage:Class;
@@ -547,17 +550,12 @@
 			public function addMarker(name:String,url:String,x:Number,y:Number,width:Number=NaN,height:Number=NaN):void
 			{
 				var marker:SingleImagePlotter = visualization.plotManager.plotters.requestObject(name, SingleImagePlotter, false);
-				
 				marker.imageURL.value = url;
-				
 				marker.dataX.value = x;
 				marker.dataY.value = y;
-				
 				marker.dataWidth.value = width;
 				marker.dataHeight.value = height;
 			}
-
-
 
 			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -914,11 +912,12 @@
 						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
 							<mx:Script>
 								<![CDATA[
-									import weave.compiler.StandardLib;
 									import mx.events.SliderEvent;
 									
 									import weave.api.getCallbackCollection;
-									import weave.core.CallbackJuggler;
+									import weave.api.newLinkableChild;
+									import weave.compiler.StandardLib;
+									import weave.core.LinkableWatcher;
 									import weave.core.UIUtils;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.LayerSettings;
@@ -932,6 +931,11 @@
 									{
 										getCallbackCollection(pm.zoomBounds).addGroupedCallback(outerDocument, handleSettingsChange);
 										getCallbackCollection(pm.minScreenSize).addGroupedCallback(outerDocument, handleSettingsChange);
+										if (!settingsWatcher)
+										{
+											settingsWatcher = newLinkableChild(outerDocument, LinkableWatcher, handleSettingsChange, true);
+											settingsWatcher.target = data as LayerSettings;
+										}
 									}
 									
 									private function get pm():PlotManager { return outerDocument.visualization.plotManager; }
@@ -939,10 +943,12 @@
 									
 									override public function set data(value:Object):void
 									{
-										super.data = settingsJuggler.target = value as LayerSettings;
+										if (settingsWatcher)
+											settingsWatcher.target = value as LayerSettings;
+										super.data = value as LayerSettings;
 									}
 									
-									private const settingsJuggler:CallbackJuggler = new CallbackJuggler(outerDocument, handleSettingsChange, true);
+									private var settingsWatcher:LinkableWatcher = null;
 									private function handleSettingsChange():void
 									{
 										if (!settings)

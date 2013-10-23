@@ -253,6 +253,10 @@ package weave.core
 		{
 			return childToOwnerMap[child] as ILinkableObject;
 		}
+		
+		public static const TREE_LABEL:String = 'label';
+		public static const TREE_OBJECT:String = 'object';
+		public static const TREE_CHILDREN:String = 'children';
 
 		/**
 		 * @param root The linkable object to be placed at the root node of the tree.
@@ -260,7 +264,10 @@ package weave.core
 		 */
 		public function getSessionStateTree(object:ILinkableObject, objectName:String, objectTypeFilter:*=null):Object
 		{
-			var result:Object = {label: objectName, object: object, children: []};
+			var result:Object = {};
+			result[TREE_LABEL] = objectName;
+			result[TREE_OBJECT] = object;
+			result[TREE_CHILDREN] = [];
 			
 			var names:Array = [];
 			var childObject:ILinkableObject;
@@ -285,7 +292,7 @@ package weave.core
 						// get subtree
 						tempObject = getSessionStateTree(childObject,names[i],objectTypeFilter);
 						if (tempObject != null)
-							result.children.push(tempObject);
+							result[TREE_CHILDREN].push(tempObject);
 					}
 				}
 			}
@@ -302,7 +309,10 @@ package weave.core
 				}
 				for each (var name:String in names)
 				{
-					childObject = object[name || 'internalObject'];
+					if (object is ILinkableDynamicObject)
+						childObject = (object as ILinkableDynamicObject).internalObject;
+					else
+						childObject = object[name];
 					if (!childObject)
 						continue;
 					if (/* object is ILinkableDynamicObject ||  */childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
@@ -315,16 +325,16 @@ package weave.core
 						// get subtree
 						tempObject = getSessionStateTree(childObject, name, objectTypeFilter);
 						if (tempObject != null)
-							result.children.push(tempObject);
+							result[TREE_CHILDREN].push(tempObject);
 					}
 				}
 			}
 			
-			if (result.children.length == 0)
-				result.children = null;
+			if (result[TREE_CHILDREN].length == 0)
+				result[TREE_CHILDREN] = null;
 			if (objectTypeFilter == null)
 				return result;
-			if (result.children == null && !(object is objectTypeFilter))
+			if (result[TREE_CHILDREN] == null && !(object is objectTypeFilter))
 				return null;
 			return result;
 		}
@@ -1147,12 +1157,7 @@ package weave.core
 			var results:Array = [];
 			for (var parent:Object in childToParentDictionaryMap[descendant])
 			{
-				var name:String;
-				if (parent is ILinkableHashMap)
-					name = (parent as ILinkableHashMap).getName(descendant);
-				else
-					name = _getChildPropertyName(parent as ILinkableObject, descendant);
-				
+				var name:String = _getChildPropertyName(parent as ILinkableObject, descendant);
 				if (name != null)
 				{
 					// this parent may be the one we want
@@ -1174,10 +1179,41 @@ package weave.core
 		 */
 		private function _getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
 		{
+			if (parent is ILinkableHashMap)
+				return (parent as ILinkableHashMap).getName(child);
+
 			// find the property name that returns the child
 			for each (var name:String in getLinkablePropertyNames(parent))
 				if (parent[name] == child)
 					return name;
+			return null;
+		}
+		
+		/**
+		 * Gets the path of names in the session state tree of the root object.
+		 * @param root The root object used to generate a session state tree.
+		 * @param child The descendant object to find in the session state tree.
+		 * @return The path from root to descendant, or null if the descendant does not appear in the session state.
+		 */
+		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
+		{
+			var tree:Object = getSessionStateTree(root, null);
+			var path:Array = _getPath(tree, descendant);
+			return path;
+		}
+		private function _getPath(tree:Object, descendant:ILinkableObject):Array
+		{
+			if (tree[TREE_OBJECT] == descendant)
+				return [];
+			for each (var child:Object in tree[TREE_CHILDREN])
+			{
+				var path:Array = _getPath(child, descendant);
+				if (path)
+				{
+					path.unshift(child[TREE_LABEL]);
+					return path;
+				}
+			}
 			return null;
 		}
 		
@@ -1577,6 +1613,14 @@ package weave.core
 			}
 			else if (oldState is Array && newState is Array)
 			{
+				// If neither is a dynamic state array, don't compare them as such.
+				if (!DynamicState.isDynamicStateArray(oldState) || !DynamicState.isDynamicStateArray(newState))
+				{
+					if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+						return undefined; // no diff
+					return newState;
+				}
+				
 				// create an array of new DynamicState objects for all new names followed by missing old names
 				var i:int;
 				var typedState:Object;
@@ -1589,17 +1633,9 @@ package weave.core
 				var sessionState:Object;
 				for (i = 0; i < oldState.length; i++)
 				{
-					typedState = oldState[i];
-					
-					// if we see a string in oldState, assume both oldState and newState are String Arrays.
-					if (typeof typedState != 'object' || typedState is Array)
-					{
-						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
-							return undefined; // no diff
-						return newState;
-					}
-					
+					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
+					typedState = oldState[i];
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					// use '' instead of null to avoid "null"
 					oldLookup[objectName || ''] = typedState;
@@ -1611,18 +1647,9 @@ package weave.core
 				var result:Array = [];
 				for (i = 0; i < newState.length; i++)
 				{
-					typedState = newState[i];
-					
-					// if we see a string, assume both are String Arrays.
-					if (typeof typedState != 'object' || typedState is Array)
-					{
-						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
-							return undefined; // no diff
-						return newState; // TODO: same object pointer.. potential problem?
-					}
-					
 					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
+					typedState = newState[i];
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
 					sessionState = typedState[DynamicState.SESSION_STATE];
@@ -1721,24 +1748,12 @@ package weave.core
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
-				var typedState:Object;
 				var i:int;
 				
-				// If a non-String, non-Array is found, treat both as Arrays of DynamicState objects
-				var isTyped:Boolean = false;
-				checkArrays: for each (var array:Array in arguments) // [baseDiff, diffToAdd]
+				// If either of the arrays look like DynamicState arrays, treat as such
+				if (DynamicState.isDynamicStateArray(baseDiff) || DynamicState.isDynamicStateArray(diffToAdd))
 				{
-					for each (typedState in array)
-					{
-						if (!(typedState is String || typedState is Array))
-						{
-							isTyped = true;
-							break checkArrays;
-						}
-					}
-				}
-				if (isTyped)
-				{
+					var typedState:Object;
 					var objectName:String;
 
 					// create lookup: objectName -> old diff entry
@@ -1812,7 +1827,7 @@ package weave.core
 					while (i--)
 					{
 						var value:Object = diffToAdd[i];
-						if (value is String)
+						if (value === null || typeof value != 'object')
 							baseDiff[i] = value; // avoid function call overhead
 						else
 							baseDiff[i] = combineDiff(baseDiff[i], value);

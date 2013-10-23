@@ -52,7 +52,7 @@
 			import weave.visualization.plotters.GraphPlotter;
 			import flash.external.ExternalInterface;
 
-			WeaveAPI.registerImplementation(IVisTool, GraphTool, lang("Graph Tool"));
+			WeaveAPI.registerImplementation(IVisTool, GraphTool, "Graph Tool");
 			
 			[Bindable] public var _plotter:GraphPlotter = null;
 			public var _labelPlotter:GraphLabelPlotter = null;

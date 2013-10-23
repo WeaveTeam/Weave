@@ -25,21 +25,67 @@
 		 label="{lang('Axis labeling')}"
 		 direction="horizontal"
 		 creationPolicy="all" >
-	<mx:VBox width="100%">
-		<ui:IndentTextInput label="{lang('Label function:')}" id="labelFunction" inputWidth="100%"/>
-		<ui:IndentTextInput label="{lang('Title:')}" id="overrideAxisName" inputWidth="100%"/>
-	</mx:VBox>
-	<mx:VBox>
-		<ui:IndentTextInput label="{lang('Label wrap size:')}" id="labelWordWrapSize" inputWidth="50"/>
-		<ui:Indent label="{lang('Label angle:')}">
-			<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="50"/>
+	
+	<mx:VBox horizontalAlign="center">
+		<mx:Label text="{lang('Label properties')}"/>
+		<mx:HRule width="100%"/>
+		<ui:IndentTextInput label="{lang('Wrap size:')}" id="labelWordWrapSize" inputWidth="60"/>
+		<ui:Indent label="{lang('Angle:')}">
+			<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="60"/>
 		</ui:Indent>
-		<ui:Indent label="{lang('Label offset:')}">
-			<mx:NumericStepper id="axisLabelDistance" minimum="-50" maximum="50" stepSize="5" width="50"/>
+		<ui:Indent label="{lang('Horizontal offset:')}">
+			<mx:NumericStepper id="axisLabelHorizontalDistance" minimum="-50" maximum="50" stepSize="5" width="60"/>
 		</ui:Indent>
-		<mx:CheckBox id="labelDistanceIsVertical" label="{lang('Label offset is vertical')}"/>
+		<ui:Indent label="{lang('Vertical offset:')}">
+			<mx:NumericStepper id="axisLabelVerticalDistance" minimum="-50" maximum="50" stepSize="5" width="60"/>
+		</ui:Indent>
+		<ui:Indent label="{lang('Quantity:')}">
+			<mx:NumericStepper id="tickCountStepper" maximum="100" minimum="0" stepSize="1" width="60"/>
+		</ui:Indent>
+		<ui:Indent label="{lang('Alignment:')}" verticalAlign="top">
+			<ui:AlignmentControl id="labelAlign" toolTip="{lang('Axis label alignment')}"/>
+		</ui:Indent>
 	</mx:VBox>
-	<ui:AlignmentControl id="labelAlign" toolTip="{lang('Axis label alignment')}"/>
+
+	<mx:VRule height="100%"/>
+	
+	<mx:VBox id="firstVBox" width="100%" height="100%">
+		<ui:CustomGrid horizontalAlign="center" verticalAlign="middle"
+					   creationComplete="event.target.getChildAt(0).setStyle('paddingBottom',-event.target.getStyle('verticalGap'))">
+			<ui:dataProvider>
+				<mx:Array>
+					<mx:Array>
+						<mx:Spacer/>
+						<mx:Label text="{lang('Color')}"/>
+						<mx:Label text="{lang('Thickness')}"/>
+						<mx:Label text="{lang('Alpha')}"/>
+					</mx:Array>
+					<mx:Array>
+						<ui:Indent label="{lang('Grid lines:')}" group="{firstVBox}"/>
+						<mx:ColorPicker id="gridColorPicker"/>
+						<mx:NumericStepper id="gridThicknessStepper"
+										   maximum="10" minimum="1"/>
+						<mx:NumericStepper id="gridAlphaStepper"
+										   maximum="1" minimum="0" stepSize="0.1"
+										   toolTip="{lang('0 = transparent; 1 = opaque')}"/>
+					</mx:Array>
+					<mx:Array>
+						<ui:Indent label="{lang('Axis border:')}" group="{firstVBox}"/>
+						<mx:ColorPicker id="axisColorPicker"/>
+						<mx:NumericStepper id="axisThicknessStepper"
+										   maximum="50" minimum="0"/>
+						<mx:NumericStepper id="axisAlphaStepper"
+										   maximum="1" minimum="0" stepSize="0.1"
+										   toolTip="{lang('0 = transparent; 1 = opaque')}"/>
+					</mx:Array>
+				</mx:Array>
+			</ui:dataProvider>
+		</ui:CustomGrid>
+		<ui:IndentTextInput label="{lang('Axis title:')}" id="overrideAxisName" inputWidth="100%"/>
+		<ui:Indent label="{lang('Label function:')}" verticalAlign="top" height="100%">
+			<ui:CodeEditor id="labelFunction"/>
+		</ui:Indent>
+	</mx:VBox>
 
 	<mx:Script>
 		<![CDATA[
@@ -55,17 +101,22 @@
 					linkBindableProperty(plotter.overrideAxisName, overrideAxisName, 'text');
 					linkBindableProperty(plotter.labelFunction, labelFunction, 'text');
 					linkBindableProperty(plotter.labelWordWrapSize, labelWordWrapSize, 'text');
-					linkBindableProperty(plotter.axisLabelDistance, axisLabelDistance, 'value');
+					linkBindableProperty(plotter.axisLabelHorizontalDistance, axisLabelHorizontalDistance, 'value');
+					linkBindableProperty(plotter.axisLabelVerticalDistance, axisLabelVerticalDistance, 'value');
 					linkBindableProperty(plotter.axisLabelRelativeAngle, axisLabelRelativeAngle, 'value');
 					linkBindableProperty(plotter.labelHorizontalAlign, labelAlign, 'horizontalAlign');
 					linkBindableProperty(plotter.labelVerticalAlign, labelAlign, 'verticalAlign');
-					linkBindableProperty(plotter.labelDistanceIsVertical, labelDistanceIsVertical, 'selected');
+					linkBindableProperty(plotter.tickCountRequested, tickCountStepper, 'value');
+					linkBindableProperty(plotter.axisGridLineColor, gridColorPicker, 'selectedColor');
+					linkBindableProperty(plotter.axisGridLineThickness, gridThicknessStepper, 'value');
+					linkBindableProperty(plotter.axisGridLineAlpha, gridAlphaStepper, 'value');
+					linkBindableProperty(plotter.axesColor, axisColorPicker, 'selectedColor');
+					linkBindableProperty(plotter.axesThickness, axisThicknessStepper, 'value');
+					linkBindableProperty(plotter.axesAlpha, axisAlphaStepper, 'value');
 				}
 			}
-			public function applyChanges():void
-			{
-				// changes are applied immediately
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 		]]>
 	</mx:Script>
 </mx:Box>

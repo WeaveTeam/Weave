@@ -52,13 +52,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableFunction;
-			import weave.core.LinkableHashMap;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
 			import weave.ui.VariableListController;
@@ -68,6 +66,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			private var buttonsEnabled:Boolean = false;
 			private var controller:VariableListController = newLinkableChild(this, VariableListController);
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				minimizable.value = true;
+				maximizable.value = true;
+			}
 			
 			override protected function childrenCreated():void
 			{

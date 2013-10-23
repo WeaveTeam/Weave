@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotter;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.KeySets.SortedKeySet;
@@ -42,6 +43,8 @@ package weave.visualization.plotters
 	 */
 	public class GeometryLabelPlotter extends TextGlyphPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
+
 		public function GeometryLabelPlotter()
 		{
 			registerSpatialProperty(geometryColumn);

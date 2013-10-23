@@ -55,9 +55,7 @@
 			</mx:columns>
 		</mx:DataGrid>
 		<mx:HBox width="100%" verticalAlign="bottom">
-			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-								  text="{lang('Double-click on an item to open a larger editor.\nModified translations are stored on your local machine.\nText will not appear here until you have opened a panel that uses it.\nSome GUI elements will not be updated until Weave is restarted.')}"
-								  wordWrap="true"/>
+			<Paragraph text="{lang('Double-click on an item to open a larger editor.\nModified translations are stored on your local machine.\nText will not appear here until you have opened a panel that uses it.\nSome GUI elements will not be updated until Weave is restarted.')}"/>
 			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload();"/>
 		</mx:HBox>
 	</mx:VBox>

@@ -27,9 +27,6 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.core.UIComponent;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -38,7 +35,6 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.IPlotter;
@@ -49,7 +45,6 @@
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
@@ -533,7 +528,7 @@
 				<mx:RadioButton id="stackedRadioButton" groupName="groupMode" label="{lang('Stacked bars')}" value="{CompoundBarChartPlotter.STACK}"/>
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="{lang('100% Stacked bars')}" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
-			<mx:TabNavigator width="100%" height="100%" creationPolicy="all" initialize="UIUtils.setPadding(event.target as UIComponent, 5)">
+			<mx:TabNavigator creationPolicy="all" initialize="UIUtils.pad(event, 5, 100, 100)">
 				<ui:ColumnListComponent visTool="{this}" label="{lang('Height attributes')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
 				<ui:ColumnListComponent visTool="{this}" label="{lang('Positive error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
 				<ui:ColumnListComponent visTool="{this}" label="{lang('Negative error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
@@ -541,10 +536,9 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Probe')}">
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
+			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
@@ -556,6 +550,7 @@
 										super.data = d;
 										selected = d && d.selected;
 										label = (d && d.label) as String;
+										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
 									}
 									private function handleSelectionChange():void
 									{
@@ -582,12 +577,16 @@
 						<mx:HBox>
 							<mx:CheckBox id="colorRecordLabelsChk" label="{lang('Color by record')}"
 										 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
-							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
+							<ui:HelpComponent>
+								This specifies if each label should have the same color as its corresponding record.
+							</ui:HelpComponent>
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorRecordLabelsBox" enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
+								<ui:HelpComponent>
+									This specifies the color to use for every label.
+								</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>
@@ -622,7 +621,9 @@
 							<mx:HBox id="colorValueLabelColorBox" enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
+								<ui:HelpComponent>
+									This specifies the color to use for every label.
+								</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>

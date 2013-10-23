@@ -139,10 +139,9 @@ package weave.data.KeySets
 					column = columns[i] as IAttributeColumn;
 					if (!column)
 						continue;
-					result = ObjectUtil.numericCompare(
-						column.getValueFromKey(key1, Number),
-						column.getValueFromKey(key2, Number)
-					);
+					var value1:* = column.getValueFromKey(key1, Number);
+					var value2:* = column.getValueFromKey(key2, Number);
+					result = ObjectUtil.numericCompare(value1, value2);
 					if (result != 0)
 					{
 						if (desc[i])

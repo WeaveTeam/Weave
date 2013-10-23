@@ -32,13 +32,12 @@
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, lang("Pie Chart Histogram"));
+			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
 			
 			public var _plotter:PieChartHistogramPlotter = null;
 			
@@ -181,11 +180,10 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox label="{lang('Probe')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
+		<mx:VBox label="{lang('Mouseover')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
+			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:CheckBox change="handleSelectionChange()">
@@ -197,6 +195,7 @@
 										super.data = d;
 										selected = d && d.selected;
 										label = (d && d.label) as String;
+										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
 									}
 
 									private function handleSelectionChange():void

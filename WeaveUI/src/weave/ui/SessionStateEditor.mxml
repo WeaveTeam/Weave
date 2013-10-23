@@ -50,8 +50,18 @@ A text editor to change the Session State on the fly.
 										 focusIn="checkObjectWasDisposed()"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
-	 					<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
+						<ui:HelpComponent>
+							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
+							Multiple dynamic objects can be linked to the same global object this way.
+							
+							Use the "Nested unlink" button when you want to unlink a tool from the global color mapping.
+							This will recursively unlink all nested DynamicColumn objects.
+							Once that is done, you can link the new color mapping to a new global name so that multiple tools can be linked to the new color mapping.
+							To link multiple tools, you will have to locate the color mapping in each tool and repeat the process.
+						</ui:HelpComponent>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -165,13 +175,6 @@ A text editor to change the Session State on the fly.
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
-			}
-			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				var subMenu:SubMenu = new SubMenu(unlinkButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				subMenu.addSubMenuItem('Unlink all nested dynamic columns', unlinkNestedColumns);
 			}
 			
 			override protected function childrenCreated():void
@@ -377,6 +380,7 @@ A text editor to change the Session State on the fly.
 				{
 					linkNameInput.text = dynamicObject.globalName;
 					linkControls.enabled = true;
+					nestedUnlinkButton.enabled = dynamicObject is IColumnWrapper;
 				}
 				else
 				{
@@ -744,13 +748,19 @@ A text editor to change the Session State on the fly.
 			
 			private function copyPathToClipboard():void
 			{
-				var path:Array = sessionNav.getSelectedPath().map(
-					function(item:*, i:*, a:*):*
-					{
-						return item ? Compiler.encodeString(item) : 'null';
-					}
-				);
-				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, "[" + path.join(", ") + "]");
+				var path:Array = sessionNav.getSelectedPath();
+				var str:String = '';
+				if (path)
+				{
+					path = path.map(
+						function(item:*, i:*, a:*):*
+						{
+							return item ? Compiler.encodeString(item) : 'null';
+						}
+					);
+					str = "[" + path.join(", ") + "]";
+				}
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, str);
 			}
 			private function copyToClipboard():void
 			{
@@ -760,15 +770,10 @@ A text editor to change the Session State on the fly.
 			//-----------------------------------------------------------------
 			
 			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
-			private static function _initialize():void
-			{
-				if (Capabilities.isDebugger)
-				{
-					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
-					WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
-				}
-			}
-			_initialize();
+			private static var _:* = function():void {
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
+			}();
 			
 			private static var _instance:SessionStateEditor;
 			public static function getInstance():SessionStateEditor
@@ -785,7 +790,7 @@ A text editor to change the Session State on the fly.
 					PopUpManager.addPopUp(defaultEditor, WeaveAPI.topLevelApplication as DisplayObject);
 				
 				if (rootObject == null)
-					rootObject = Weave.root;
+					rootObject = WeaveAPI.globalHashMap;
 				
 				defaultEditor.sessionNav.rootObject = rootObject;
 				defaultEditor.refresh();
@@ -826,9 +831,6 @@ A text editor to change the Session State on the fly.
 					
 					ErrorLogPanel.openErrorLog();
 					console = ErrorLogPanel.getInstance().console;
-					
-					if (parent)
-						Identify.identify();
 				}
 				else
 				{
@@ -853,11 +855,20 @@ A text editor to change the Session State on the fly.
 				if (console.stage)
 				{
 					var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
-					var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
-					while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
-						top = top.parent;
-					if (top)
-						console.consoleTrace(debugId(top));
+					var objectsUnderPoint:Array = console.stage.getObjectsUnderPoint(stagePoint);
+					var top:DisplayObject = objectsUnderPoint[objectsUnderPoint.length - 1];
+					var path:Array = [top];
+					while (top && top.parent)
+						path.unshift(top = top.parent);
+					
+					// assign debug ids to parent-child path first (lower numbers)
+					path = path.map(getDebugId);
+					objectsUnderPoint = objectsUnderPoint.map(getDebugId);
+					
+					console.consoleTrace('Objects under mouse: [ ' + objectsUnderPoint.join(' ') + ' ]');
+					console.consoleTrace('Parent-child path: [ ' + path.join(' ') + ' ]');
+					
+					function getDebugId(o:*):* { return debugId(o); }
 				}
 			}
 		]]>

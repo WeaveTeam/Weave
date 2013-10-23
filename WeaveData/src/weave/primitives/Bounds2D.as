@@ -866,7 +866,7 @@ package weave.primitives
 		 */
 		public function getXNumericMin():Number
 		{
-			return xMin < xMax ? xMin : xMax; // Math.min(xMin, xMax);
+			return xMax < xMin ? xMax : xMin; // if any are NaN, returns xMin
 		}
 		/**
 		 * The yNumericMin is defined as the minimum of yMin and yMax.
@@ -874,7 +874,7 @@ package weave.primitives
 		 */
 		public function getYNumericMin():Number
 		{
-			return yMin < yMax ? yMin : yMax; // Math.min(yMin, yMax);
+			return yMax < yMin ? yMax : yMin; // if any are NaN, returns yMin
 		}
 		/**
 		 * The xNumericMax is defined as the maximum of xMin and xMax.
@@ -882,7 +882,7 @@ package weave.primitives
 		 */
 		public function getXNumericMax():Number
 		{
-			return xMax > xMin ? xMax : xMin; // Math.max(xMin, xMax);
+			return xMax < xMin ? xMin : xMax; // if any are NaN, returns xMax
 		}
 		/**
 		 * The xNumericMax is defined as the maximum of xMin and xMax.
@@ -890,7 +890,7 @@ package weave.primitives
 		 */
 		public function getYNumericMax():Number
 		{
-			return yMax > yMin ? yMax : yMin; // Math.max(yMin, yMax);
+			return yMax < yMin ? yMin : yMax; // if any are NaN, returns yMax
 		}
 		
 		/**

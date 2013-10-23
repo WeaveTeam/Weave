@@ -70,7 +70,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RadVizTool, lang("RadViz"));
+			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
 			
 			[Bindable]
 			public var _plotter:RadVizPlotter ;
