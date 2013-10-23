@@ -1613,6 +1613,14 @@ package weave.core
 			}
 			else if (oldState is Array && newState is Array)
 			{
+				// If neither is a dynamic state array, don't compare them as such.
+				if (!DynamicState.isDynamicStateArray(oldState) || !DynamicState.isDynamicStateArray(newState))
+				{
+					if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+						return undefined; // no diff
+					return newState;
+				}
+				
 				// create an array of new DynamicState objects for all new names followed by missing old names
 				var i:int;
 				var typedState:Object;
@@ -1625,17 +1633,9 @@ package weave.core
 				var sessionState:Object;
 				for (i = 0; i < oldState.length; i++)
 				{
-					typedState = oldState[i];
-					
-					// if we see a string in oldState, assume both oldState and newState are String Arrays.
-					if (typeof typedState != 'object' || typedState is Array)
-					{
-						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
-							return undefined; // no diff
-						return newState;
-					}
-					
+					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
+					typedState = oldState[i];
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					// use '' instead of null to avoid "null"
 					oldLookup[objectName || ''] = typedState;
@@ -1647,18 +1647,9 @@ package weave.core
 				var result:Array = [];
 				for (i = 0; i < newState.length; i++)
 				{
-					typedState = newState[i];
-					
-					// if we see a string, assume both are String Arrays.
-					if (typeof typedState != 'object' || typedState is Array)
-					{
-						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
-							return undefined; // no diff
-						return newState; // TODO: same object pointer.. potential problem?
-					}
-					
 					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
+					typedState = newState[i];
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
 					sessionState = typedState[DynamicState.SESSION_STATE];
@@ -1757,24 +1748,12 @@ package weave.core
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
-				var typedState:Object;
 				var i:int;
 				
-				// If a non-String, non-Array is found, treat both as Arrays of DynamicState objects
-				var isTyped:Boolean = false;
-				checkArrays: for each (var array:Array in arguments) // [baseDiff, diffToAdd]
+				// If either of the arrays look like DynamicState arrays, treat as such
+				if (DynamicState.isDynamicStateArray(baseDiff) || DynamicState.isDynamicStateArray(diffToAdd))
 				{
-					for each (typedState in array)
-					{
-						if (!(typedState is String || typedState is Array))
-						{
-							isTyped = true;
-							break checkArrays;
-						}
-					}
-				}
-				if (isTyped)
-				{
+					var typedState:Object;
 					var objectName:String;
 
 					// create lookup: objectName -> old diff entry
@@ -1848,7 +1827,7 @@ package weave.core
 					while (i--)
 					{
 						var value:Object = diffToAdd[i];
-						if (value is String)
+						if (value === null || typeof value != 'object')
 							baseDiff[i] = value; // avoid function call overhead
 						else
 							baseDiff[i] = combineDiff(baseDiff[i], value);
