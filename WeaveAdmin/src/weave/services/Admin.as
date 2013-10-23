@@ -432,7 +432,7 @@ package weave.services
 					return dataTypes;
 				
 				case ColumnMetadata.DATE_FORMAT:
-					return ['YYYY', 'YYYY/MM/DD', 'HH:NN:SS'];
+					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
 				
 				default:
 					return null;
