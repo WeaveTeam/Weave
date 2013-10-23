@@ -177,7 +177,7 @@ package weave.ui.infomap.ui
 				}
 			}
 			graphics.beginFill(0,0);//draw a rectangle to detect this menu even when mouse is hovering between icons.
-			graphics.drawRect(0,0,120,height);//hack to use maximum width of 120. 
+			graphics.drawRect(0,0,150,height);//hack to use maximum width of 150. 
 			graphics.endFill();
 			_fadeIn.play();
 		}

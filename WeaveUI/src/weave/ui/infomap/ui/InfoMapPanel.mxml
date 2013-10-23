@@ -183,7 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const globalDateFilter:DateRangeFilter = new DateRangeFilter();
 			
-			public const globalSortByOption:LinkableString = registerLinkableChild(this,new LinkableString(), globalSortByUpdate, true);
+			public const globalSortByOption:LinkableString = registerLinkableChild(this,new LinkableString());
 			
 			public const globalFilterByOption:LinkableString = registerLinkableChild(this,new LinkableString());
 			
@@ -199,6 +199,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
+				
 				UIUtils.linkDisplayObjects(map,nodes,false);
 				
 				registerDisposableChild(this,globalSearchKeyword);
@@ -247,11 +249,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				entityColumnsList.reverseButton.enabled = false;
 				entityColumnsList.reverseButton.visible = false;
 				
-				sourceType.dataProvider = ["","Books"];
+				sourceType.dataProvider = QueryObject.filterByOptions;
 				sourceType.selectedItem = globalFilterByOption.value;
 				linkBindableProperty(globalFilterByOption,sourceType,"selectedItem");
 				
-				sortByComboBox.dataProvider = QueryObject.sortByOptions
+				sortByComboBox.dataProvider = QueryObject.sortByOptions.concat("New Documents");
 				sortByComboBox.selectedItem = globalSortByOption.value;
 				linkBindableProperty(globalSortByOption,sortByComboBox,"selectedItem");
 				
@@ -373,10 +375,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private function globalSortByUpdate():void {
+			private function globalFilterByUpdate():void {				
 				for each(var node:NodeHandler in nodes.getObjects())
 				{
-					node.previousQuery.sortBy.value = globalSortByOption.value;
+					if (sourceType.selectedItem == QueryObject.FILTER_BY_NONE)
+						node.previousQuery.sources.value = "";		
+					else
+						node.previousQuery.sources.value = sourceType.selectedLabel;
+				}
+			}
+			
+			private function handleGlobalSortByUpdate():void {
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					if (sortByComboBox.selectedItem == "New Documents")
+					{
+						node.showNewDocumentsOnTop.value = true;						
+					}
+					else
+					{
+						node.showNewDocumentsOnTop.value = false;
+						node.previousQuery.sortBy.value = sortByComboBox.selectedLabel;
+					}
 				}
 			}
 			
@@ -1292,14 +1312,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleSourceTypeChange():void
 			{
-				if(sourceType.selectedItem == "ALL")
-				{
-					globalFilterByOption.value = "";
-				}
-				else if(sourceType.selectedItem == "Books")
-				{
-					globalFilterByOption.value = "Books";
-				}
+//				if(sourceType.selectedItem == "ALL")
+//				{
+//					globalFilterByOption.value = "";
+//				}
+//				else if(sourceType.selectedItem == "Books")
+//				{
+//					globalFilterByOption.value = "Books";
+//				}
+				globalFilterByUpdate();
 			}
 			
 			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString("",validateCSVString));
@@ -1335,6 +1356,88 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				relatedKeywordsButton.enabled = false;
 			}
+			
+			private var startDateStr:String = '';
+			private var endDateStr:String = '';
+			
+			private function handleStartDateChange():void
+			{
+				startDateStr = startRange.selectedDate.toDateString();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			private function handleEndDateChange():void
+			{
+				endDateStr = endRange.selectedDate.toDateString();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			
+			private function handleClearDates():void
+			{
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					//clearning dates in filterObject
+					node.previousQuery.dateFilter.endDate.value = '';
+					node.previousQuery.dateFilter.startDate.value = '';
+				}
+				
+				startRange.selectedDate = null;
+				endRange.selectedDate = null;
+				startRange.invalidateDisplayList();
+				endRange.invalidateDisplayList();
+				
+				rangeComboBox.selectedItem = "--Quick Select--";
+			}
+			
+			private function handleDateFilterComboBoxChange():void
+			{
+				//we set this to empty string so that a query is after the end date is set and before the start date is set
+				startDateStr = '';
+				
+				endDateStr = 'NOW';
+				if(rangeComboBox.selectedItem == 'Since Last 1 Day')
+				{
+					startDateStr = 'NOW-01DAY';
+				}else if(rangeComboBox.selectedItem == 'Since Last 3 Days')
+				{
+					startDateStr = 'NOW-03DAYS';
+				}else if(rangeComboBox.selectedItem == 'Since Last Week')
+				{
+					startDateStr = 'NOW-07DAYS';
+				}else if(rangeComboBox.selectedItem == 'Since Last Month')
+				{
+					startDateStr = 'NOW-01MONTH';
+				}else if(rangeComboBox.selectedItem == 'Since Last Year')
+				{
+					startDateStr = 'NOW-12MONTHS';
+				}else if(rangeComboBox.selectedItem == '--Choose--')
+				{
+					//					handleClearDates();
+					//					return;
+				}
+				
+				startRange.selectedDate = DateUtils.getDateFromString(startDateStr);
+				endRange.selectedDate = DateUtils.getDateFromString(endDateStr);
+			}
+			
+			// we only want to make a query if both dates are set. 
+			private function handleDateChange():void
+			{
+				if(startDateStr == '' || endDateStr == '')
+					return;
+				
+				for each(var node:NodeHandler in nodes.getObjects())
+				{
+					getCallbackCollection(node.previousQuery.dateFilter).delayCallbacks();
+					node.previousQuery.dateFilter.startDate.value = startDateStr;
+					node.previousQuery.dateFilter.endDate.value = endDateStr;
+					getCallbackCollection(node.previousQuery.dateFilter).resumeCallbacks();				 
+				}
+			}
+			
 		]]>
 	</mx:Script>
 	<!--the resize code is required so that the content is clipped by the canvas-->
@@ -1366,7 +1469,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							<mx:TextInput id="globalSearchTextInput" keyDown="handleGlobalKeyInput(event)" borderStyle="solid" cornerRadius="5" width="200" />
 							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter" click="handleDateFilter()"/>
 							<mx:Spacer width="50"/>
-						</mx:HBox>
+					</mx:HBox>
 				</mx:HBox>
 				
 			<ui1:InfoMapsSideMenu id="sideMenu" x="0" y="0"/>
@@ -1383,11 +1486,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Source Type: " fontWeight="bold" width="150"/>					
-				<mx:ComboBox id="sourceType" change="handleSourceTypeChange()"/>
+				<mx:ComboBox id="sourceType"/>
+				<mx:Button id="applyeSourceType" label="Apply" click="handleSourceTypeChange()"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Sorted By: " fontWeight="bold" width="150"/>
 				<mx:ComboBox id="sortByComboBox"/>
+				<mx:Button id="applyeSortBy" label="Apply" click="handleGlobalSortByUpdate()"/>
 			</mx:HBox>
 			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically" 
 						 creationComplete="linkBindableProperty(Weave.properties.enableAutoSave,event.target,'selected')"/>
@@ -1419,6 +1524,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<mx:Label width="200" text="New Thumbnail Border Color"/>				
 					</mx:HBox>
 				</mx:VBox>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:VBox>
+					<mx:Label fontWeight="normal" text="Start Date"/>				
+					<mx:DateChooser id="startRange" change="handleStartDateChange()" showToday="false"/>
+				</mx:VBox>
+				<mx:VBox>
+					<mx:Label fontWeight="normal" text="End Date"/>
+					<mx:DateChooser id="endRange" change="handleEndDateChange()" showToday="false"/>
+				</mx:VBox>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:ComboBox change="handleDateFilterComboBoxChange()" id="rangeComboBox"/> <!--The Combo Box is not linked to the filterObject-->
+				<mx:Button label="Remove Date Filter" click="handleClearDates()"/>
+				<mx:Button label="Apply Date Filter" click="handleDateChange()"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Entity Selection">

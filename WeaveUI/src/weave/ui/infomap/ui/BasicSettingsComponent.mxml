@@ -13,11 +13,11 @@
 		<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 		<mx:ComboBox id="operator"/>
 	</mx:HBox>
-	<mx:HBox>
+	<mx:HBox visible="false">
 		<mx:Label text="Sorted By: " fontWeight="bold" width="{_leftAlignWidth}"/>
 		<mx:ComboBox id="sortByComboBox"/>
 	</mx:HBox>
-	<mx:HBox>
+	<mx:HBox visible="false">
 		<mx:Label text="Source Type: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 		<mx:ComboBox id="sourceType" change="handleSourceTypeChange()"/>
 	</mx:HBox>
@@ -124,8 +124,8 @@
 				
 				query.keywords.addImmediateCallback(this, handleKeywordsChange,false);
 				
-				_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
-				_dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
+				_dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,true);
+				_dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,true);
 				
 				startDateStr.addGroupedCallback(this,handleDateChange);
 				endDateStr.addGroupedCallback(this,handleDateChange);

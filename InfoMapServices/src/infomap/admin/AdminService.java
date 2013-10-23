@@ -751,11 +751,11 @@ public class AdminService extends GenericServlet {
 			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 			
 			if(sources!=null && sources.length()>0)
 			{
-				q.setFilterQueries("source:"+sources);
+				q.addFilterQuery("source:"+sources);
 			}
 			
 			
@@ -815,7 +815,7 @@ public class AdminService extends GenericServlet {
 					"score", SolrQuery.ORDER.desc);
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 			q.setRows(rows);
 			q.setFields("link,description");
 			QueryResponse response = solrInstance.query(q);
@@ -899,11 +899,11 @@ public class AdminService extends GenericServlet {
 			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 			
 			if(sources!=null && sources.length()>0)
 			{
-				q.setFilterQueries("source:"+sources);
+				q.addFilterQuery("source:"+sources);
 			}
 			
 			// set number of rows
@@ -1140,11 +1140,11 @@ public class AdminService extends GenericServlet {
 			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 
 			if(sources!=null && sources.length()>0)
 			{
-				q.setFilterQueries("source:"+sources);
+				q.addFilterQuery("source:"+sources);
 			}
 			
 			// set number of rows
@@ -1490,11 +1490,11 @@ public class AdminService extends GenericServlet {
 			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 			
 			if(sources!=null && sources.length()>0)
 			{
-				q.setFilterQueries("source:"+sources);
+				q.addFilterQuery("source:"+sources);
 			}
 			
 			// set number of rows
@@ -1729,11 +1729,11 @@ public class AdminService extends GenericServlet {
 
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 			
 			if(sources!=null && sources.length()>0)
 			{
-				q.setFilterQueries("source:"+sources);
+				q.addFilterQuery("source:"+sources);
 			}
 			
 			q.setRows(1);
@@ -1771,11 +1771,11 @@ public class AdminService extends GenericServlet {
 			
 			if (dateFilter != null)
 				if (!dateFilter.isEmpty())
-					q.setFilterQueries(dateFilter);
+					q.addFilterQuery(dateFilter);
 
 			if(sources!=null && sources.length()>0)
 			{
-				q.setFilterQueries("source:"+sources);
+				q.addFilterQuery("source:"+sources);
 			}
 			
 			q.setFields("link");
