@@ -60,7 +60,7 @@
 				super.constructor();
 				
 				visualization.plotManager.marginBottom.value = "80";
-				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginTop.value    = "30";
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "80";
 				
