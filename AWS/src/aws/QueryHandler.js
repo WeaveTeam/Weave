@@ -110,7 +110,8 @@ aws.QueryHandler.prototype.runQuery = function() {
 		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		
 		// step 2
-		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
+		//var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
+		var dataSourceName = that.weaveClient.addCSVDataSource(that.resultDataSet, "", that.keyType, "fips");
 		
 		console.log(dataSourceName);
 		

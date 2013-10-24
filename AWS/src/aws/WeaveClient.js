@@ -265,6 +265,32 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
 	
 };
 
+/**
+ * This function accesses the weave instance and creates a new csv data source from a two dimensional array
+ * 
+ * @param {string} csvDataMatrix a two dimensional array.
+ * @param {string} dataSourceName the name of the data source.
+ * @param {string} keyType the key type
+ * @param {string} keyColName the key column name
+ * @return The name of the created data source.
+ * 
+ */
+aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceName, keyType, keyColName)
+{
+	if(dataSourceName == ""){
+		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	}
+	
+	this.weave.path(dataSourceName)
+		.request('CSVDataSource')
+		.vars({rows: csvDataMatrix})
+		.exec('setCSVData(rows)');
+		this.weave.path(dataSourceName).state({keyType : keyType,
+											   keyColName : keyColName});
+		
+	return dataSourceName;
+	
+};
 
 /**
  * This function sets the session state of a column from another in the Weava instance

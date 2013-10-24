@@ -66,7 +66,7 @@ public class test
 	}
 	
 	
-	public static void testcall(Map<String, String> connectionObjectCopy, Map<String, Object> requestObjectCopy, Map<String,Object>algorithmCollection)
+	public static void testcall(Map<String, String> connectionObjectCopy, Map<String, Object> requestObjectCopy)
 	throws Exception
 	{
 				 
@@ -80,7 +80,7 @@ public class test
 				System.out.println(System.getProperty("user.dir"));
 			try {
 				
-				scriptResult = aws.runScriptonAlgoCollection(connectionObjectCopy, requestObjectCopy, algorithmCollection);
+				scriptResult = aws.runScriptwithScriptMetadata(connectionObjectCopy, requestObjectCopy);
 				//scriptResult = aws.runScript(null, requestObjectInputNames, requestObjectInputValues, null, "","", false,false,false);
 				} catch (RemoteException e) {
 					e.printStackTrace();
@@ -111,33 +111,33 @@ public class test
 		
 		
 		ArrayList<String> columns = new ArrayList<String>();
-//		columns.add("@_STATE");
-//		columns.add("@_PSU");
-//		columns.add("@_FINALWT");
-//		columns.add("@_STSTR");
-//		columns.add("DIABETE2");
+		columns.add("X_STATE");
+		columns.add("X_PSU");
+		columns.add("X_FINALWT");
+		columns.add("X_STSTR");
+		columns.add("DIABETE2");
 		
-		columns.add("PercentObese2002");
-		columns.add("PercentObese2003");
-		columns.add("PercentObese2004");
-		columns.add("PercentObese2005");
-		columns.add("PercentObese2006");
+//		columns.add("PercentObese2002");
+//		columns.add("PercentObese2003");
+//		columns.add("PercentObese2004");
+//		columns.add("PercentObese2005");
+//		columns.add("PercentObese2006");
 		
-		connectionObject.put("connectionType", "RMySQL");
+		connectionObject.put("connectionType", "RODBC");
 		connectionObject.put("user", "root");
-		connectionObject.put("password", "Tc1Sgp7nFc");
-		connectionObject.put("schema", "us");
-		connectionObject.put("host", "129.63.8.210");
+		connectionObject.put("password", "shweta");
+		connectionObject.put("schema", "data");
+		connectionObject.put("host", "localhost");
 		connectionObject.put("dsn", "myCDC");
 		
-		requestObject.put("scriptName", "TestingSmall.R");
+		requestObject.put("scriptName", "TestingAWS_RODBC.R");
 		requestObject.put("scriptPath", "C:\\RScripts\\");
 		requestObject.put("columnsToBeRetrieved",columns);
-		requestObject.put("dataset", "obesity");
+		requestObject.put("dataset", "sdoh2010q");
 		
 		
 		
-		testcall(connectionObject, requestObject, algorithmObject);
+		testcall(connectionObject, requestObject);
 		
 		
 		

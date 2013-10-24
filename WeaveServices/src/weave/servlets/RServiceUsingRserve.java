@@ -22,6 +22,7 @@ package weave.servlets;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.UUID;
 import java.util.Vector;
@@ -369,7 +370,6 @@ public class RServiceUsingRserve
 	 */
 	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
 		
-		int specialIndex = 0;
 		
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
 			return null;
@@ -408,69 +408,24 @@ public class RServiceUsingRserve
 				Object[] listOfREXP = rList.toArray() ;
 				//convert object in List as Java Objects
 				// eg: REXPDouble as Double or Doubles
-				for(int i = 0; i < listOfREXP.length ;  i++){
-					
+				for(int i = 0; i < listOfREXP.length ;  i++)
+				{
+				
 					REXP obj = (REXP)listOfREXP[i];
 					
 					Object javaObj =  rexp2javaObj(obj);
-					//handling fips TODO change this
 					
-						if(namesArray[i].contains("fips"))
-						{
-							double [] fips = (double[])javaObj;
-							int [] newFips = new int[fips.length];
-							for(int s = 0; s < fips.length; s++)
-							{
-								newFips[s] = (int) fips[s];
-							}
-							
-							listOfREXP[i] = newFips;
-						}
-					
-						//TODO find better way of casting? avoid loops?
-						//hack for state change this
-						else if(javaObj instanceof RFactor)
-						{
-							RFactor factorjavaObj = (RFactor)javaObj;
-							String[] levels = factorjavaObj.asStrings();
-							if((namesArray[i].contains("State")) || (namesArray[i].contains("DRG_Code")))
-							{
-								listOfREXP[i] = levels;
-							}
-							
-							//if(!(namesArray[i].contains("State")))
-							else
-							{	
-								Integer [] intArray = new Integer[levels.length];
-								for(int x = 0; x < levels.length; x++)
-								{
-									intArray[x] = Integer.parseInt(levels[x]);
-								}
-								
-								listOfREXP[i] = intArray;
-							}
-							
-						}
-				
-						//testing TODO : find better casting
-						else if(javaObj  instanceof int[])
-						{
-							System.out.print('f');
-							
-							int[] intObj  = (int[]) javaObj;
-							double[] intToDoubleObj = new double[intObj.length];
-							for(int z= 0; z < intObj.length; z++)
-							{
-								intToDoubleObj[z] = (double) intObj[z];
-							}
-							listOfREXP[i] =  intToDoubleObj;
-						}
-					
-					
-						else {
-							listOfREXP[i] =  javaObj;
-						}
-					//testing end
+					if(javaObj instanceof RFactor)
+					{
+						RFactor factorjavaObj = (RFactor)javaObj;
+						String[] levels = factorjavaObj.asStrings();
+						listOfREXP[i] = levels;
+						
+					}
+			
+					else {
+						listOfREXP[i] =  javaObj;
+					}
 					
 				}
 				return listOfREXP;
@@ -486,7 +441,8 @@ public class RServiceUsingRserve
 	}
 
 	//testing for JavascriptAPI calls
-	private static Vector<RResult> evaluateWithTypeChecking(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException {
+	private static Vector<RResult> evaluateWithTypeChecking(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException 
+	{
 		REXP evalValue= evalScript(rConnection, script, showWarnings);
 		Object resultArray = rexp2javaObj(evalValue);
 		Object[] columns;
@@ -499,105 +455,199 @@ public class RServiceUsingRserve
 			throw new ScriptException(String.format("Script result is not an Array as expected: \"%s\"", resultArray));
 		}
 
-		String finalresultString = "";
+		Object[][] final2DArray;//collecting the result as a two dimensional arrray 
+		
 		Vector<String> names = evalValue.asList().names;
-
-
-		String namescheck = Strings.join(",", names);
-		finalresultString = finalresultString.concat(namescheck);
-		finalresultString = finalresultString.concat("\n");
-
 		
-
-		int numberOfRows = 0;
-		
-		Vector<Object> row = new Vector<Object>();
-		Vector<String[]> columnsInStrings = new Vector<String[]>();
-		
-		String[] tempStringArray = new String[0];
-		
-		try
-		{
-			for (int r= 0; r < columns.length; r++)					
+	//try{
+			//getting the rowCounter variable 
+			int rowCounter = 0;
+			/*picking up first one to determine its length, 
+			all objects are different kinds of arrays that have the same length
+			hence it is necessary to check the type of the array*/
+			Object currentRow = columns[0];
+			if(currentRow instanceof int[])
 			{
-				Object currentColumn = columns[r];
-						
-						if(currentColumn instanceof int[])
-						{
-							 int[] columnAsIntArray = (int[])currentColumn;
-							 tempStringArray = new String[columnAsIntArray.length] ; 
-							 for(int g = 0; g < columnAsIntArray.length; g++)
-							 {
-								 tempStringArray[g] = ((Integer)columnAsIntArray[g]).toString();
-							 }
-						}
-						
-						else if (currentColumn instanceof Integer[])
-						{
-							 Integer[] columnAsIntegerArray = (Integer[])currentColumn;
-							 tempStringArray = new String[columnAsIntegerArray.length] ;  
-							 for(int g = 0; g < columnAsIntegerArray.length; g++)
-							 {
-								 tempStringArray[g] = columnAsIntegerArray[g].toString();
-							 }
-						}
-						
-						else if(currentColumn instanceof double[])
-						{
-							double[] columnAsDoubleArray = (double[])currentColumn;
-							 tempStringArray = new String[columnAsDoubleArray.length] ;  
-							 for(int g = 0; g < columnAsDoubleArray.length; g++)
-							 {
-								 tempStringArray[g] = ((Double)columnAsDoubleArray[g]).toString();
-							 }
-						}
-						else if(currentColumn instanceof RFactor)
-						{
-							tempStringArray = ((RFactor)currentColumn).levels();
-						}
-						else if(currentColumn instanceof String[]){
-							 int lent = ((Object[]) currentColumn).length;
-							 //String[] columnAsStringArray = currentColumn;
-							 tempStringArray = new String[lent];  
-							 for(int g = 0; g < lent; g++)
-							 {
-								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
-							 }
-						/*	String[] temp = (String[])
-							int arrsize = ((String[])currentColumn).length;
-							tempStringArray = new String[arrsize];
-							tempStringArray = (String[])currentColumn;*/
-						}
-						
-						columnsInStrings.add(tempStringArray);
-						numberOfRows = tempStringArray.length;
+				rowCounter = ((int[]) currentRow).length;
+									
+			}
+			else if (currentRow instanceof Integer[])
+			{
+				rowCounter = ((Integer[]) currentRow).length;
+				
+			}
+			else if(currentRow instanceof double[])
+			{
+				rowCounter = ((double[]) currentRow).length;
+			}
+			else if(currentRow instanceof RFactor)
+			{
+				rowCounter = ((RFactor[]) currentRow).length;
+			}
+			else if(currentRow instanceof String[])
+			{
+				rowCounter = ((String[]) currentRow).length;
 			}
 			
+			int columnHeadingsCount = 1;
 			
-			//if(rowresult.charAt(rowresult.length()-1) == ',')
-				//rowresult.substring(0, rowresult.length()-1);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+			rowCounter = rowCounter + columnHeadingsCount;//we add an additional row for column Headings
+			
+			final2DArray = new Object[rowCounter][columns.length];
+			
+			//we need to push the first entry as column names to generate this structure
+			/*[
+			["k","x","y","z"]
+			["k1",1,2,3]
+			["k2",3,4,6]
+			["k3",2,4,56]
+			] */
 		
-		for(int currentRow =0; currentRow <numberOfRows; currentRow ++)
-		{
-			for(int currentColumn= 0; currentColumn < columnsInStrings.size(); currentColumn++)
+			String [] namesArray = new String[names.size()];
+			names.toArray(namesArray);
+			final2DArray[0] = namesArray;//first entry is column names
+			
+			for( int j = 1; j < rowCounter; j++)
 			{
-				finalresultString += columnsInStrings.get(currentColumn)[currentRow] + ',';
+				ArrayList<Object> tempList = new ArrayList<Object>();//one added for every column in 'columns'
+				for(int f =0; f < columns.length; f++){
+					//pick up one column
+					Object currentCol = columns[f];
+					//check its type
+					if(currentCol instanceof int[])
+					{
+						//the second index in the new list should coincide with the first index of the columns from which values are being picked
+						tempList.add(f, ((int[])currentCol)[j-1]);
+					}
+					else if (currentCol instanceof Integer[])
+					{
+						tempList.add(f,((Integer[])currentCol)[j-1]);
+					}
+					else if(currentCol instanceof double[])
+					{
+						tempList.add(f,((double[])currentCol)[j-1]);
+					}
+					else if(currentCol instanceof RFactor)
+					{
+						tempList.add(f,((RFactor[])currentCol)[j-1]);
+					}
+					else if(currentCol instanceof String[])
+					{
+						tempList.add(f,((String[])currentCol)[j-1]);
+					}
+				}
+				Object[] tempArray = new Object[columns.length];
+				tempList.toArray(tempArray);
+				final2DArray[j] = tempArray;//after the first entry (column Names)
+				//final2DArray.add(tempList);
+				//tempList.clear();
 			}
 			
-			/*remove last comma and  new line*/
-			finalresultString = finalresultString.substring(0, finalresultString.length()-1);
-			finalresultString += '\n';
-		}
+			System.out.print(final2DArray);
+			newResultVector.add(new RResult("endResult", final2DArray));
+			newResultVector.add(new RResult("timeLogString", timeLogString));
+			
+
+			return newResultVector;
+			
+	//	}
+	//	catch (Exception e){
+			//e.printStackTrace();
+	//	}
 		
-		newResultVector.add(new RResult("endResult", finalresultString));
-		newResultVector.add(new RResult("timeLogString", timeLogString));
-
-		return newResultVector;
-
+//do the rest to generate a single continuous string representation of the result 
+		//	String finalresultString = "";
+//		String namescheck = Strings.join(",", names);
+//		finalresultString = finalresultString.concat(namescheck);
+//		finalresultString = finalresultString.concat("\n");
+//
+//		
+//
+//		int numberOfRows = 0;
+//		
+//		Vector<String[]> columnsInStrings = new Vector<String[]>();
+//		
+//		String[] tempStringArray = new String[0];
+//		
+//		try
+//		{
+//			for (int r= 0; r < columns.length; r++)					
+//			{
+//				Object currentColumn = columns[r];
+//						
+//						if(currentColumn instanceof int[])
+//						{
+//							 int[] columnAsIntArray = (int[])currentColumn;
+//							 tempStringArray = new String[columnAsIntArray.length] ; 
+//							 for(int g = 0; g < columnAsIntArray.length; g++)
+//							 {
+//								 tempStringArray[g] = ((Integer)columnAsIntArray[g]).toString();
+//							 }
+//						}
+//						
+//						else if (currentColumn instanceof Integer[])
+//						{
+//							 Integer[] columnAsIntegerArray = (Integer[])currentColumn;
+//							 tempStringArray = new String[columnAsIntegerArray.length] ;  
+//							 for(int g = 0; g < columnAsIntegerArray.length; g++)
+//							 {
+//								 tempStringArray[g] = columnAsIntegerArray[g].toString();
+//							 }
+//						}
+//						
+//						else if(currentColumn instanceof double[])
+//						{
+//							double[] columnAsDoubleArray = (double[])currentColumn;
+//							 tempStringArray = new String[columnAsDoubleArray.length] ;  
+//							 for(int g = 0; g < columnAsDoubleArray.length; g++)
+//							 {
+//								 tempStringArray[g] = ((Double)columnAsDoubleArray[g]).toString();
+//							 }
+//						}
+//						else if(currentColumn instanceof RFactor)
+//						{
+//							tempStringArray = ((RFactor)currentColumn).levels();
+//						}
+//						else if(currentColumn instanceof String[]){
+//							 int lent = ((Object[]) currentColumn).length;
+//							 //String[] columnAsStringArray = currentColumn;
+//							 tempStringArray = new String[lent];  
+//							 for(int g = 0; g < lent; g++)
+//							 {
+//								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
+//							 }
+//						/*	String[] temp = (String[])
+//							int arrsize = ((String[])currentColumn).length;
+//							tempStringArray = new String[arrsize];
+//							tempStringArray = (String[])currentColumn;*/
+//						}
+//						
+//						columnsInStrings.add(tempStringArray);
+//						numberOfRows = tempStringArray.length;
+//			}
+//			
+//			
+//			//if(rowresult.charAt(rowresult.length()-1) == ',')
+//				//rowresult.substring(0, rowresult.length()-1);
+//		}
+//		catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		
+//		for(int currentRow =0; currentRow <numberOfRows; currentRow ++)
+//		{
+//			for(int currentColumn= 0; currentColumn < columnsInStrings.size(); currentColumn++)
+//			{
+//				finalresultString += columnsInStrings.get(currentColumn)[currentRow] + ',';
+//			}
+//			
+//			/*remove last comma and  new line*/
+//			finalresultString = finalresultString.substring(0, finalresultString.length()-1);
+//			finalresultString += '\n';
+//		}
+		
+		//newResultVector.add(new RResult("endResult", finalresultString));
+		//newResultVector.add(new RResult("timeLogString", timeLogString));
 
 	}
 	
