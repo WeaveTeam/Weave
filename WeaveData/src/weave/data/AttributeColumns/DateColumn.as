@@ -54,7 +54,7 @@ package weave.data.AttributeColumns
 		private var _i:int;
 		private var _keys:Vector.<IQualifiedKey>;
 		private var _dates:Vector.<String>;
-		private var _reportedDuplicate:Boolean;
+		private var _reportedError:Boolean;
 		
 		// variables that do not get reset after async task
 		private static const compiler:Compiler = new Compiler();
@@ -139,7 +139,7 @@ package weave.data.AttributeColumns
 			_dates = dates;
 			_keyToDate = new Dictionary();
 			_uniqueKeys.length = 0;
-			_reportedDuplicate = false;
+			_reportedError = false;
 			
 			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
 		}
@@ -180,7 +180,28 @@ package weave.data.AttributeColumns
 						date = new Date(number);
 				}
 				else
-					date = StandardLib.parseDate(string, _dateFormat);
+				{
+					try
+					{
+						date = StandardLib.parseDate(string, _dateFormat);
+					}
+					catch (e:Error)
+					{
+						if (!_reportedError)
+						{
+							_reportedError = true;
+							var err:String = StringUtil.substitute(
+								'Warning: Unable to parse this value as a date: "{0}"'
+								+ ' (only the first error for this column is reported).'
+								+ ' Attribute column: {1}',
+								string,
+								_metadata.toXMLString()
+							);
+							reportError(err);
+						}
+						continue;
+					}
+				}
 				
 				// keep track of unique keys
 				if (_keyToDate[key] === undefined)
@@ -189,9 +210,9 @@ package weave.data.AttributeColumns
 					// save key-to-data mapping
 					_keyToDate[key] = date;
 				}
-				else if (!_reportedDuplicate)
+				else if (!_reportedError)
 				{
-					_reportedDuplicate = true;
+					_reportedError = true;
 					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
 					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
 					if (Capabilities.isDebugger)
