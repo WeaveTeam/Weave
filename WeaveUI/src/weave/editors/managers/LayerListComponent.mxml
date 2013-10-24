@@ -22,132 +22,136 @@
 
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.editors.managers.*"
-		 verticalGap="0"
 		 width="100%" height="100%"
 		 label="{lang('Layers')}" xmlns:ui="weave.ui.*">
-	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
-		<mx:Label text="{lang('Layers, background to foreground')}" fontWeight="bold"/>
+	<ui:Indent grouped="false" label="{lang('Visualization layers')}" fontWeight="bold" verticalAlign="bottom">
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Add layer...')}" click="addLayer()"/>
+			<mx:Button label="{lang('New layer...')}" click="addLayer()"/>
+			<mx:Button
+				label="{lang('Remove')}"
+				toolTip="{lang('Remove the selected layers.')}"
+				click="controller.removeSelectedItems()"
+				enabled="{internalList.selectedIndex >= 0}"/>
 		</mx:HBox>
-	</mx:HBox>
-	<mx:List id="internalList" initialize="UIUtils.pad(event, 2, 100, 100)">
-		<mx:itemRenderer>
-			<mx:Component>
-				<mx:HBox width="100%" horizontalScrollPolicy="off">
-					<mx:Script>
-						<![CDATA[
-							import mx.managers.PopUpManager;
-							
-							import weave.api.core.ILinkableHashMap;
-							import weave.api.core.ILinkableObject;
-							import weave.api.getSessionState;
-							import weave.api.linkBindableProperty;
-							import weave.api.objectWasDisposed;
-							import weave.api.setSessionState;
-							import weave.api.ui.ILinkableObjectEditor;
-							import weave.api.ui.IPlotter;
-							import weave.api.unlinkBindableProperty;
-							import weave.ui.AlertTextBox;
-							import weave.ui.AlertTextBoxEvent;
-							import weave.ui.ControlPanel;
-							import weave.ui.SessionStateEditor;
-							import weave.ui.VariableListController;
-							import weave.visualization.layers.LayerSettings;
-							import weave.visualization.layers.PlotManager;
-							import weave.visualization.layers.Visualization;
-							
-							private function get visualization():Visualization
-							{
-								return outerDocument.visualization;
-							}
-							private var plotter:IPlotter;
-							private var layerSettings:LayerSettings;
-							
-							private function openSettingsPanel(plotter:IPlotter):void
-							{
-								ControlPanel.openEditor(plotter, [visualization]);
-							}
-							
-							[Bindable] public var layerIsVisible:Boolean = true;
-							[Bindable] public var layerIsSelectable:Boolean = true;
-							override public function set data(newPlotter:Object):void
-							{
-								// filter out bogus data
-								if (objectWasDisposed(newPlotter))
-									newPlotter = null;
+	</ui:Indent>
+	<mx:VBox borderStyle="solid" initialize="UIUtils.pad(event, 5, 100, 100)">
+		<mx:HBox width="100%" verticalAlign="middle">
+			<mx:HRule width="100%"/>
+			<mx:Label text="{lang('Background')}" alpha="0.5"/>
+			<mx:HRule width="100%"/>
+		</mx:HBox>
+		<mx:List id="internalList" initialize="UIUtils.pad(event, 2, 100, 100)" borderStyle="none">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:HBox width="100%" horizontalScrollPolicy="off">
+						<mx:Script>
+							<![CDATA[
+								import mx.managers.PopUpManager;
 								
-								newPlotter = newPlotter as IPlotter;
-								if (plotter == newPlotter)
-									return;
+								import weave.api.core.ILinkableHashMap;
+								import weave.api.core.ILinkableObject;
+								import weave.api.getSessionState;
+								import weave.api.linkBindableProperty;
+								import weave.api.objectWasDisposed;
+								import weave.api.setSessionState;
+								import weave.api.ui.ILinkableObjectEditor;
+								import weave.api.ui.IPlotter;
+								import weave.api.unlinkBindableProperty;
+								import weave.ui.AlertTextBox;
+								import weave.ui.AlertTextBoxEvent;
+								import weave.ui.ControlPanel;
+								import weave.ui.SessionStateEditor;
+								import weave.ui.VariableListController;
+								import weave.visualization.layers.LayerSettings;
+								import weave.visualization.layers.PlotManager;
+								import weave.visualization.layers.Visualization;
 								
-								// unlink checkboxes
-								if (plotter)
+								private function get visualization():Visualization
 								{
-									unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
-									unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+									return outerDocument.visualization;
+								}
+								private var plotter:IPlotter;
+								private var layerSettings:LayerSettings;
+								
+								private function openSettingsPanel(plotter:IPlotter):void
+								{
+									ControlPanel.openEditor(plotter, [visualization]);
 								}
 								
-								// save pointers
-								super.data = newPlotter;
-								plotter = data as IPlotter;
-								var pm:PlotManager = outerDocument.visualization.plotManager;
-								var name:String = pm.plotters.getName(plotter);
-								layerSettings = pm.getLayerSettings(name);
-								
-								// link checkboxes
-								if (plotter)
+								[Bindable] public var layerIsVisible:Boolean = true;
+								[Bindable] public var layerIsSelectable:Boolean = true;
+								override public function set data(newPlotter:Object):void
 								{
-									linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
-									linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
-								}
-							}
-							
-							protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
-							{
-								var defaultInputString:String = outerDocument.controller.getItemName(data);
-								var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"), lang("Please enter a new layer name:"), defaultInputString);
-								
-								alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
-									function (e:AlertTextBoxEvent):void 
+									// filter out bogus data
+									if (objectWasDisposed(newPlotter))
+										newPlotter = null;
+									
+									newPlotter = newPlotter as IPlotter;
+									if (plotter == newPlotter)
+										return;
+									
+									// unlink checkboxes
+									if (plotter)
 									{
-										// if the user clicked cancel, then we will just return from here and save nothing
-										if( !e.confirm ) return;
-										
-										//Alert.show("Input was " + e.textInput);
-										var pm:PlotManager = outerDocument._visualization.plotManager;
-										var ls:LayerSettings = pm.layerSettings.getObject(defaultInputString) as LayerSettings;
-										var settings:Object = getSessionState(ls);
-										pm.plotters.renameObject(defaultInputString, e.textInput);
-										ls = pm.layerSettings.getObject(e.textInput) as LayerSettings;
-										setSessionState(ls, settings);
+										unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+										unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
 									}
-								);
-							}
-							
-						]]>
-					</mx:Script>
-					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
-					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-					<mx:Label textAlign="center" width="100%" text="{outerDocument.controller.getItemName(data)}"/>
-					<mx:Button label="{lang('Rename...')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
-					<mx:Button label="{lang('Settings...')}" click="openSettingsPanel(data as IPlotter)"/>
-					<!--<mx:Button width="24" icon="@Embed(source='/weave/resources/images/x-inset.png')"
-							   toolTip="{lang('Remove this layer')}"
-							   click="var hm:ILinkableHashMap = outerDocument.controller.hashMap; hm.removeObject(hm.getName(plotter));"/>-->
-				</mx:HBox>
-			</mx:Component>
-		</mx:itemRenderer>
-	</mx:List>
-	<mx:HBox width="100%">
-		<mx:Spacer width="100%"/>
-		<mx:Button
-			label="{lang('Remove selected')}"
-			toolTip="{lang('Click here to remove one or more selected layers in the list above.')}"
-			click="controller.removeSelectedItems()"
-			enabled="{internalList.selectedIndex >= 0}"/>
-	</mx:HBox>
+									
+									// save pointers
+									super.data = newPlotter;
+									plotter = data as IPlotter;
+									var pm:PlotManager = outerDocument.visualization.plotManager;
+									var name:String = pm.plotters.getName(plotter);
+									layerSettings = pm.getLayerSettings(name);
+									
+									// link checkboxes
+									if (plotter)
+									{
+										linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+										linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+									}
+								}
+								
+								protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
+								{
+									var defaultInputString:String = outerDocument.controller.getItemName(data);
+									var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"), lang("Please enter a new layer name:"), defaultInputString);
+									
+									alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
+										function (e:AlertTextBoxEvent):void 
+										{
+											// if the user clicked cancel, then we will just return from here and save nothing
+											if( !e.confirm ) return;
+											
+											//Alert.show("Input was " + e.textInput);
+											var pm:PlotManager = outerDocument._visualization.plotManager;
+											var ls:LayerSettings = pm.layerSettings.getObject(defaultInputString) as LayerSettings;
+											var settings:Object = getSessionState(ls);
+											pm.plotters.renameObject(defaultInputString, e.textInput);
+											ls = pm.layerSettings.getObject(e.textInput) as LayerSettings;
+											setSessionState(ls, settings);
+										}
+									);
+								}
+								
+							]]>
+						</mx:Script>
+						<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+						<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
+						<mx:Label textAlign="center" width="100%" text="{outerDocument.controller.getItemName(data)}"/>
+						<mx:Button label="{lang('Rename...')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
+						<mx:Button label="{lang('Settings...')}" click="openSettingsPanel(data as IPlotter)"/>
+					</mx:HBox>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:List>
+		<mx:HBox width="100%" verticalAlign="middle">
+			<mx:HRule width="100%"/>
+			<mx:Label text="{lang('Foreground')}" alpha="0.5"/>
+			<mx:HRule width="100%"/>
+		</mx:HBox>
+	</mx:VBox>
 	<!--
 	<mx:CheckBox id="enableAutoZoom" label="{lang('Enable auto zoom to extent')}"
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableAutoZoomToExtent, event.target, 'selected');"/>
