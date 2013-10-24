@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
@@ -126,6 +126,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.CustomDataGrid.CustomDataGridCell;
 			import weave.ui.CustomDataGrid.CustomDataGridColumn;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
@@ -142,7 +143,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));	
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));
 			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 			private const dataGridColumns:Dictionary = new Dictionary();
@@ -159,7 +160,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
-			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
+			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
@@ -233,7 +234,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				updateColumnWidths();
 				if (dataGridHorizontalScrollPosition.value > 0 && showFilters.value)
 				{
-					handleDataGridHorizontalScroll();					
+					handleDataGridHorizontalScroll();
 				}
 				
 				// Set max header height to 50
@@ -248,7 +249,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleRollOver(event:ListEvent):void // Probe
 			{
-				if (enableProbing.value == false) return;
+				if (enableProbing.value == false)
+					return;
 
 				var index:int = event.rowIndex;
 				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
@@ -258,7 +260,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleRollOut(event:MouseEvent):void // Unprobe
 			{
-				if (enableProbing.value == false) return;
+				if (enableProbing.value == false)
+					return;
 				
 				_probe.clearKeys();
 			}
@@ -268,17 +271,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					handleRollOut(null);
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
-				
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				if (!parent) 
 					return;
 				
 				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
 				if (columnsChanged)
-				{					
+				{
 					updateKeyTypeComboBox();
-					updateDataGridColumns();					
+					updateDataGridColumns();
+					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
 				}
 				if (detectLinkableObjectChange(updateDisplayList, lockedColumns) || columnsChanged)
 				{
@@ -305,11 +309,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dataGrid.invalidateFilters();
 				}
 				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
-				{					
+				{
 					handleDataGridHorizontalScroll();
 				}
 				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
-				{					
+				{
 					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
@@ -361,7 +365,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);				
+				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			
@@ -374,8 +378,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ColumnUtils.generateTableCSV(columns.getObjects());
 			}
 			//needed for export CSV Button click in the control panel
-			private var fr:FileReference = new FileReference();	// CSV download file reference
-			private function saveToFileAsCSV():void{
+			private var fr:FileReference = new FileReference(); // CSV download file reference
+			private function saveToFileAsCSV():void
+			{
 				try
 				{
 					fr.save(exportCSV(), "Weave Data Export.csv");
@@ -394,7 +399,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleHeaderRelease(event:DataGridEvent):void
 			{
 				// There is a bug in flex: column.sortDescending will always return false				
-				if(UIUtils.hasFocus(dataGrid)){//need to update sessionState when called by User Interaction
+				//need to update sessionState when called by User Interaction
+				if (UIUtils.hasFocus(dataGrid))
+				{
 					sortInDescendingOrder.value = !isSortedDescending(); // each time will toggle ascending/descending
 					sortFieldIndex.value = event.columnIndex;
 				}
@@ -477,7 +484,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!parent)
 					return callLater(updateGlobalSelectionChange);
 				//flex will crash if we try to select items immediately
-				if(dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
+				if (dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
 					validateNow();
 				
 				var item:Object;
@@ -502,7 +509,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					changeDetected = true;
 				
 				if (changeDetected)
-					dataGrid.selectedItems = selectedItems;				
+					dataGrid.selectedItems = selectedItems;
 			}
 			private function updateGlobalProbeChangeLater():void
 			{
@@ -545,7 +552,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var selectedItems:Array = dataGrid.selectedItems;
 				
 				//datagrid.selectedItems returns null. So have to loop through indices to get the items
-				(dataGrid.dataProvider as ArrayCollection).sort = null;				
+				(dataGrid.dataProvider as ArrayCollection).sort = null;
 				
 				for each(var item:Object in selectedItems)
 				{
@@ -583,8 +590,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 				var tempArray:Array = ColumnUtils.getAllKeys(includedColumns);
-				if( tempArray.length > maxRows.value)
-				{	
+				if ( tempArray.length > maxRows.value)
+				{
 					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(tempArray.length));
 					tooManyRecordsIndicator.visible = true;
 					tooManyRecordsIndicator.includeInLayout = true;
@@ -611,22 +618,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				keyTypeList.push("Show All");
 				for each (var attrCol:IAttributeColumn in columns.getObjects())
 				{
-					if(attrCol is KeyColumn)
+					if (attrCol is KeyColumn)
 						continue;
 					
 					var keyType:String = ColumnUtils.getKeyType(attrCol);
 					
-					if(keyType == null)
+					if (keyType == null)
 						keyType = "null"
-					if(keyTypeList.indexOf(keyType) == -1)
+					if (keyTypeList.indexOf(keyType) == -1)
 						keyTypeList.push(keyType);
 				}
-				keyTypeCombo.dataProvider = keyTypeList;				
+				keyTypeCombo.dataProvider = keyTypeList;
 				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
 			}
 			
 			private function handleDataCopy(event:Event):void
-			{											
+			{
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,exportCSV() );
 			}
 			
@@ -636,7 +643,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updateDataGridColumns():void
 			{
 				// if there isn't a parent or the grid isn't fully instantiated, return
-				if (!parent )
+				if (!parent)
 					return callLater(updateDataGridColumns);
 				try
 				{
@@ -644,7 +651,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_currentDataGridColumns = [];
 					for each (var attrColumn:IAttributeColumn in attrColumns)
 					{
-						var columnName:String = columns.getName(attrColumn);						
+						var columnName:String = columns.getName(attrColumn);
 						var dataType:String = ColumnUtils.getDataType(attrColumn);
 						
 						//column Section
@@ -684,19 +691,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleColumnReorder(event:IndexChangedEvent):void
 			{
-				var newColumnOrder:Array = [];				
+				var newColumnOrder:Array = [];
 				for(var i:int = 0; i< dataGrid.columns.length; i++)
 				{
 					var currDGcolumn:CustomDataGridColumn = dataGrid.columns[i] as CustomDataGridColumn;
 					var columnName:String = columns.getName(currDGcolumn.attrColumn as ILinkableObject);
 					newColumnOrder.push(columnName);
-				}			
-				columns.setNameOrder(newColumnOrder);				
+				}
+				columns.setNameOrder(newColumnOrder);
 			}
 			
 			private function handleColumnListChange():void
-			{			
-				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;				
+			{
+				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;
 				
 				//if column is added , we need to add respective sessioned FilterComponent and ColumnWidth
 				if (columns.childListCallbacks.lastObjectAdded)
@@ -704,8 +711,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}  			
 				//if column is removed , we need to remove respective sessioned FilterComponent and ColumnWidth
 				else if (columns.childListCallbacks.lastObjectRemoved)
-				{						
-					filterComponents.removeObject(columns.childListCallbacks.lastNameRemoved);					
+				{
+					filterComponents.removeObject(columns.childListCallbacks.lastNameRemoved);
 					delete dataGridColumns[columns.childListCallbacks.lastNameRemoved]
 					columnWidths.removeObject(columns.childListCallbacks.lastNameRemoved);
 				}
@@ -728,7 +735,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, false);
 					
 					if (isNaN(colWidth) || width <= _minSuggestedColumnSize) // this happens when a column is stretched all the way to the right
-						colWidth = _minSuggestedColumnSize;	
+						colWidth = _minSuggestedColumnSize;
 					
 					sessionedWidth.value = (100 * colWidth / dataGridColumnsWidth) + "%";
 				}
@@ -756,17 +763,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					sessionedWidth = columnWidths.getObject(columnName) as LinkableString;
 					var tempWidth:Number;
 					// when we reset width, we need all columns to have default value
-					 if(sessionedWidth && sessionedWidth.value ){	
+					 if (sessionedWidth && sessionedWidth.value)
+					 {
 						 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allottedDisplayWidth);
 						 tempWidth = sessionedValue;
 					 }
-					 else{
-						 tempWidth = defaultValue;					
+					 else
+					 {
+						 tempWidth = defaultValue;
 						 //sessionedWidth.value = (100 * tempWidth/allottedDisplayWidth) + "%";
 					 } 
 					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
-					if(j == _currentDataGridColumns.length -1) 
+					if (j == _currentDataGridColumns.length -1) 
 						tempWidth = NaN;//allottedDisplayWidth - displayedColumnsTotalWidth;
 					if (tempWidth <= _minSuggestedColumnSize || isNaN(tempWidth))
 						tempWidth = _minSuggestedColumnSize;
@@ -778,29 +787,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
 					
-					if (dgc.filterComponent){
+					if (dgc.filterComponent)
+					{
 						dgc.filterComponent.width = dgc.width;
 					}
 					//add those columns which are dispalyed on datagrid
-					if(j >= dataGridHorizontalScrollPosition.value){
+					if (j >= dataGridHorizontalScrollPosition.value)
+					{
 						displayedColumnsTotalWidth = displayedColumnsTotalWidth + dgc.width;
-					}					
+					}
 				}
 				displayedColumnsTotalWidth = 0;
 			}
 			
 			private function handleDataGridHorizontalScroll():void
 			{
-				var maximumValue:int = dataGrid.maxHorizontalScrollPosition;				
+				var maximumValue:int = dataGrid.maxHorizontalScrollPosition;
 				var hsp:int = 0;
 				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++)
 				{
 					hsp += (_currentDataGridColumns[i] as CustomDataGridColumn).width;
-				}					
+				}
 				filterControls.horizontalScrollPosition = hsp;
 				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;
 				
-				if(maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue)
+				if (maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue)
 				{
 					updateColumnWidths();
 				}
@@ -809,17 +820,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleKeyColumnCheckBox():void
 			{
-				if(showKeyColumnCheckBox.selected)
+				if (showKeyColumnCheckBox.selected)
 				{
 					var kc:Array= columns.getObjects(KeyColumn);
-					if(kc.length == 0)
+					if (kc.length == 0)
 					{
 						var nameOrder:Array = columns.getNames();
 						columns.requestObject("KeyColumn",KeyColumn, false);
 						columns.setNameOrder(nameOrder);
-					}					
+					}
 					updateKeyTypeComboBox();
-					
 				}
 				else
 				{
@@ -872,14 +882,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if (!filterControls.parent)
 						{
 							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
-							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);							
+							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);
 						}
 						dataGrid.enableFilters = true;
 					}
 					else
-					{						
+					{
 						if (filterControls.parent)
-						{							
+						{
 							tableArea.removeChild(filterControls);
 						}
 						dataGrid.enableFilters = false;
@@ -982,10 +992,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleMouseClick():void
 			{
-				if(!detectLinkableObjectChange( handleMouseClick, _selection ))
-					if( dataGrid.mouseY > dataGrid.headerHeight )
-						if( dataGrid.mouseX < dataGrid.width - 16 )
-							if( WeaveAPI.StageUtils.pointClicked )
+				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
+					if ( dataGrid.mouseY > dataGrid.headerHeight )
+						if ( dataGrid.mouseX < dataGrid.width - 16 )
+							if ( WeaveAPI.StageUtils.pointClicked )
 								_selection.clearKeys() ;
 			}
 			

@@ -46,9 +46,7 @@ package weave.ui.CustomDataGrid
 			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
 			headerWordWrap = true;
 			
-			var factory:ClassFactory = new ClassFactory(CustomDataGridCell);
-			factory.properties = {column: this};
-			this.itemRenderer = factory;
+			this.itemRenderer = new ClassFactory(CustomDataGridCell);
 			
 			this.minWidth = 0;
 			

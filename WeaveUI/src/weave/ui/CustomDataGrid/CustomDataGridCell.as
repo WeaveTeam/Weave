@@ -27,6 +27,8 @@ package weave.ui.CustomDataGrid
 	import mx.controls.DataGrid;
 	import mx.controls.Image;
 	import mx.controls.Label;
+	import mx.controls.listClasses.BaseListData;
+	import mx.controls.listClasses.IDropInListItemRenderer;
 	import mx.core.UIComponent;
 	
 	import weave.api.data.ColumnMetadata;
@@ -34,12 +36,28 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.ImageColumn;
 
-	public class CustomDataGridCell extends Canvas
+	public class CustomDataGridCell extends Canvas implements IDropInListItemRenderer
 	{
 		public function CustomDataGridCell()
 		{
 		}
 		
+		private var _listData:BaseListData;
+
+		public function get listData():BaseListData
+		{
+			return _listData;
+		}
+		
+		public function set listData(value:BaseListData):void
+		{
+			_listData = value;
+			if (_listData && _listData.owner is CustomDataGrid)
+				column = (_listData.owner as CustomDataGrid).getColumn(_listData.columnIndex) as CustomDataGridColumn;
+			else
+				column = null;
+		}
+
 		override protected function createChildren():void
 		{
 			super.createChildren();
@@ -56,7 +74,7 @@ package weave.ui.CustomDataGrid
 				toolTip = lbl.text;
 		}
 		
-		public var column:CustomDataGridColumn;
+		private var column:CustomDataGridColumn;
 		private var img:Image;
 		public const lbl:Label = new Label();
 		
@@ -74,7 +92,7 @@ package weave.ui.CustomDataGrid
 		
 		override public function validateProperties():void
 		{
-			if (column.attrColumn)
+			if (column && column.attrColumn)
 			{
 				var key:IQualifiedKey = data as IQualifiedKey;
 				if (column.attrColumn is ImageColumn)
@@ -109,11 +127,11 @@ package weave.ui.CustomDataGrid
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
-			if (!owner || !column.attrColumn)
-				return;
-			
 			var g:Graphics = graphics;
 			g.clear();
+			
+			if (!owner || !column || !column.attrColumn)
+				return;
 			
 			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
 			if (column.selectionKeySet && column.selectionKeySet.keys.length > 0)

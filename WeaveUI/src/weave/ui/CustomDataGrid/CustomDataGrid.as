@@ -35,6 +35,8 @@ package weave.ui.CustomDataGrid
 	 * 
 	 * Also, uses AsyncSort.sortImmediately() instead of Array.sort() via CustomSort.
 	 * 
+	 * Added getColumn().
+	 * 
 	 * @author kmonico
 	 * @author adufilie
 	 */	
@@ -46,6 +48,29 @@ package weave.ui.CustomDataGrid
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
 			super();
+		}
+		
+		protected var _columns:Array = [];
+		
+		[Bindable("columnsChanged")]
+		[Inspectable(category="General", arrayType="mx.controls.dataGridClasses.DataGridColumn")]
+		override public function get columns():Array
+		{
+			return super.columns;
+		}
+		override public function set columns(value:Array):void
+		{
+			_columns = super.columns = value;
+		}
+		
+		public function getColumn(index:int):DataGridColumn
+		{
+			return _columns[index] as DataGridColumn;
+		}
+		
+		override mx_internal function columnWordWrap(c:DataGridColumn):Boolean
+		{
+			return c ? super.columnWordWrap(c) : false;
 		}
 		
 		private function headerReleaseHandler(event:DataGridEvent):void
