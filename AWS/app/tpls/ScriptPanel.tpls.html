@@ -1,0 +1,19 @@
+<div ng-controller="ScriptCtrl">
+	<div class="portlet-header">
+		<span>{{panelTitle}}</span>
+	</div>
+	<div class="portlet-content">
+	
+		Select a script:
+		<select ui-select2 ng-model="scriptSelected" data-placeholder="Choose a Script">
+			<option value=""></option>
+			<option value="{{script}}" ng-repeat="script in scriptList">{{script}}</option>
+		</select>
+		<br><br>
+		<div ng-repeat="input in inputs"> {{input.param}} Column:
+			<select ui-select2 ng-model="$parent.selection[$index]">
+					<option></option>
+					<option value="{{col}}" ng-repeat="col in columns" >{{col.publicMetadata.title}}</option>
+			</select>
+		</div>
+</div>

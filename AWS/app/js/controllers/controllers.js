@@ -9,7 +9,7 @@
 angular.module("aws.Main", [])
 .controller("LayoutCtrl", function($scope){
 	$scope.leftPanelUrl = "./tpls/leftPanel.tpls.html";
-	$scope.genericPortlet = "./tpls/genericPortlet.tpls.html";
+	$scope.analysisUrl = "./tpls/analysis.tpls.html";
 	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
 	
 	$scope.$watch(function(){

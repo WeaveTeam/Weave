@@ -411,7 +411,7 @@ public class AWSRService extends RService
 			if(extension.equalsIgnoreCase("r"))
 				rFiles.add(files[i]);
 		}
-		return rFiles.toArray(new String[0]);
+		return rFiles.toArray(new String[rFiles.size()]);
 	}
 
 // not needed for now.

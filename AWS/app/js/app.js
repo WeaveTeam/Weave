@@ -24,22 +24,11 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.services', 
                                  'aws.directives', 
                                  'aws.project', 
-                                 'aws.DataDialog', 
+                                 'aws.DataTable', 
                                  'aws.leftPanel',
                                  'aws.viewControllers',
-                                 'aws.panelControllers']);
-
-app.config(['$routeProvider', function($routeProvider){
- 		$routeProvider.
- 			when('/analysis', {templateUrl: 'tpls/analysis.tpls.html', controller: 'AnalysisCtrl'}).
- 			when('/calculation', {templateUrl: 'tpls/calculation.tpls.html', controller: 'CalculationCtrl'}).
- 			when('/visualization', {
- 				templateUrl: 'tpls/visualization.tpls.html',
- 				controller: 'VisualizationCtrl'
- 			}).
- 			otherwise({redirectTo: '/analysis'});
-			
- 	}]);
+                                 'aws.panelControllers',
+                                 'aws.QueryImportExport']);
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {

@@ -1,8 +1,4 @@
 'use strict';
-
-/* Services */
-
-
 /**
  * Query Object Service provides access to the main "singleton" query object.
  *
@@ -46,10 +42,10 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.getScriptMetadata = function() {
+    this.getScriptMetadata = function(scriptName) {
         var deferred = $q.defer();
 
-        aws.RClient.getScriptMetadata(queryService.queryObject.scriptSelected, function(result) {
+        aws.RClient.getScriptMetadata(scriptName, function(result) {
         	
         	// since this function executes async in a future turn of the event loop, we need to wrap
             // our code into an $apply call so that the model changes are properly observed.
@@ -93,7 +89,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
             return deferred2.promise;
 
         };
-
+        
         /**
     	  * This function makes nested async calls to the aws function getEntityIdsByMetadata and
     	  * getDataColumnEntities in order to get an array of dataColumnEntities children that have metadata of type geometry.

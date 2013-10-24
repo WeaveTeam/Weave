@@ -3,9 +3,6 @@ angular.module("aws.viewControllers", [])
 	
 	
 })
-.controller("CalculationCtrl", function($scope){
-	
-})
 .controller("VisualizationCtrl", function($scope){
 	
-})
+});

@@ -11,7 +11,6 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 			$scope.queryObject = angular.toJson(queryService.queryObject, true);
 
 			
-			/********** double binding *********/
 			$scope.$watch(function () {
 				return queryService.queryObject;
 			},function() {
@@ -21,8 +20,6 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 			$scope.$watch(function() { return $scope.queryObject }, function() {
 				queryService.queryObject = angular.fromJson($scope.queryObject);
 			}, true);
-			/************************************/
-
 			
 			$scope.shouldShow = false;
 				var setCount = function(res) {

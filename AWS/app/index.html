@@ -15,20 +15,31 @@
 	<div ng-controller="LayoutCtrl">
 		<div id="container">
 			<div id="header">
-				<div ng-controller="DataDialogCtrl" style="display: inline-block">
-					<button id="dataButton" class="btn btn-primary"
-						ng-click="openDialog('dataDialog')">Select Database</button>
-                    <big>{{ dataTable.title }}</big>
+				<div ng-controller="DataTableCtrl" style="display: inline-block; margin-left : 30px"">
+					Data Table: <select ui-select2 ng-model="dataTable" style=width:200px;>
+						<option></option>
+						<option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
+					</select>
+				</div>
+				<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
+					<button ng-click="exportQueryObject({{ queryObject }})" class="btn btn-primary">Export Query</button>
+						<div class="file-upload">
+							<label for="queryImport">Import Query</label> 
+							<input type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />
+						</div>
+					<br>
 				</div>
 			</div>
-
 			<div ng-include src="leftPanelUrl">
-				<!-- left panel goes here -->
 			</div>
 
 
 			<div id="center">
-				<div ng-view></div>
+<!-- 				<div> -->
+<!-- 					<button class="btn btn-primary" value="run" ng-click="runQ()">Run </button> -->
+<!-- 					<button class="btn btn-primary" value="clearCache" ng-click="clearCache()">Clear Cache</button> -->
+<!-- 				</div>	 -->
+				<div id="analysis" ng-include src="analysisUrl"></div>
 				<div id="weavePanel" ng-include src="weaveInstancePanel"></div>
 				<div id="Log">
 					<h4>Log Box for errors and timing</h4>
@@ -60,13 +71,14 @@
 	<script src='js/app.js'></script>
 	<script src='js/services/services.js'></script>
 	<script src='js/controllers/controllers.js'></script>
-	<script src='js/controllers/dataDialogCtrl.js'></script>
+	<script src='js/controllers/DataTableCtrl.js'></script>
 	<script src='js/controllers/leftPanelCtrl.js'></script>
 	<script src='js/controllers/projectCtrl.js'></script>
 	<script src='js/filters/filters.js'></script>
 	<script src='js/directives/directives.js'></script>
 	<script src='js/controllers/viewControllers.js'></script>
 	<script src='js/controllers/panelControllers.js'></script>
+	<script src='js/controllers/QueryImportExportCtrl.js'></script>
 	<script src='../aws/aws.js'></script>
 	
 </body>

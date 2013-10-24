@@ -52,28 +52,6 @@ aws.RClient.clearCache = function() {
 };
 
 /**
- * This function calls the startRServe function on the servlet
- * It finds out the right version of the OS and calls the appropriate
- * command on the server.
- * @param {Function} callback callback function
- */
-aws.RClient.startRServe = function(callback) {
-	// we can use the call back to handle whether or not the service was started.
-	aws.queryService(rServiceURL, 'startRServe', null, callback);
-};
-
-/**
- * This function calls the stopRServe function on the servlet
- * It finds out the right version of the OS and calls the appropriate
- * command on the server.
- * @param {Function} callback callback function
- */
-aws.RClient.stopRServe = function(callback) {
-	// we can use the call back to handle whether or not the service was started.
-	aws.queryService(rServiceURL, 'stopRServe', null, callback);
-};
-
-/**
  * This function calls the getListOfScripts function on the servlet
  * it will get the list of files in the directory
  * @param {Function} callback callback function
@@ -102,19 +80,6 @@ aws.RClient.prototype.runScriptOnSQLdata = function(callback){
 aws.RClient.getScriptMetadata = function(scriptName, callback) {
 	aws.queryService(rServiceURL, 'getScriptMetadata', [scriptName], callback);
 };
-
-/**
- * This will call the getScriptMetadata function on the RService and asynchronously return script metadata information loaded form a json file
- * 
- * @param {String} folderPath the name of the folder where the script is located
- * @param {String} scriptName the name of the script that we are looking the metadata for
- * @param {Function} callback function that handles the servlet result
- * 
- */
-aws.RClient.getScriptMetadata = function(folderPath, scriptName, callback) {
-	aws.queryService(rServiceURL, 'getScriptMetadata', [folderPath, scriptName], callback);
-}
-
 
 /**
  *  This function returns the connection from the AdminServie servlet
