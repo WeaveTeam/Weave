@@ -369,7 +369,7 @@ package weave.data.DataSources
 					var attr:XML = <attribute
 						title={ colName }
 					csvColumn={ colName }
-					keyType={ keyType.value }/>;
+					keyType={ keyType.value || DataTypes.STRING }/>;
 					root.appendChild(attr);
 				}
 				_attributeHierarchy.value = root;
