@@ -152,6 +152,7 @@
 			public const dataGridHorizontalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
+			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
@@ -186,7 +187,7 @@
 				_selection.addImmediateCallback(this,invalidateDisplayList);
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
 				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
-				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);
+				getCallbackCollection(_textFormat).addImmediateCallback(this,invalidateDisplayList);
 			}
 			
 			override protected function childrenCreated():void
@@ -329,9 +330,9 @@
 					dataGrid.invalidateList();
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat))
+				if (detectLinkableObjectChange(updateDisplayList, _textFormat))
 				{
-					LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
+					_textFormat.copyToStyle(dataGrid);
 				}
 				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
 				{

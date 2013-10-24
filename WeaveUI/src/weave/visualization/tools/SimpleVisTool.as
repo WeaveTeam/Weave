@@ -84,7 +84,7 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
-			getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateTitleLabel, true);
+			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
@@ -167,7 +167,7 @@ package weave.visualization.tools
 			if (!createdChildren)
 				return callLater(updateTitleLabel);
 			
-			LinkableTextFormat.defaultTextFormat.copyToStyle(visTitle);
+			Weave.properties.visTitleTextFormat.copyToStyle(visTitle);
 		}
 		
 		

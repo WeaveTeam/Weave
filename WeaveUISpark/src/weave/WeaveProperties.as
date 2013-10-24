@@ -46,6 +46,7 @@ package weave
 	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -86,6 +87,9 @@ package weave
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
 			
 			loadWeaveFontsSWF();
+			visTextFormat.size.value = 11;
+			axisTitleTextFormat.size.value = 13;
+			visTitleTextFormat.size.value = 16;
 
 			// handle dynamic changes to the session state that change what CSS file to use
 			cssStyleSheetName.addGroupedCallback(
@@ -391,7 +395,9 @@ package weave
 		}
 		
 		public const panelTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
-		public function get defaultTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }
+		public function get visTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }
+		public const visTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
+		public const axisTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		
 		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
 		
@@ -543,6 +549,13 @@ package weave
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
+		[Deprecated(replacement="visTextFormat")] public function set defaultTextFormat(value:*):void
+		{
+			setSessionState(visTextFormat, value);
+			setSessionState(visTitleTextFormat, value);
+			setSessionState(axisTitleTextFormat, value);
+		}
+		
 		[Deprecated(replacement="panelTitleTextFormat.color")] public function set panelTitleFontColor(value:Number):void { panelTitleTextFormat.color.value = value; }
 		[Deprecated(replacement="panelTitleTextFormat.size")] public function set panelTitleFontSize(value:Number):void { panelTitleTextFormat.size.value = value; }
 		[Deprecated(replacement="panelTitleTextFormat.font")] public function set panelTitleFontStyle(value:String):void { panelTitleTextFormat.font.value = value; }
@@ -551,12 +564,12 @@ package weave
 		[Deprecated(replacement="panelTitleTextFormat.italic")] public function set panelTitleFontItalic(value:Boolean):void { panelTitleTextFormat.italic.value = value; }
 		[Deprecated(replacement="panelTitleTextFormat.underline")] public function set panelTitleFontUnderline(value:Boolean):void { panelTitleTextFormat.underline.value = value; }
 		
-		[Deprecated(replacement="defaultTextFormat.color")] public function set axisFontFontColor(value:Number):void { defaultTextFormat.color.value = value; }
-		[Deprecated(replacement="defaultTextFormat.size")] public function set axisFontFontSize(value:Number):void { defaultTextFormat.size.value = value; }
-		[Deprecated(replacement="defaultTextFormat.font")] public function set axisFontFontFamily(value:String):void { defaultTextFormat.font.value = value; }
-		[Deprecated(replacement="defaultTextFormat.bold")] public function set axisFontFontBold(value:Boolean):void { defaultTextFormat.bold.value = value; }
-		[Deprecated(replacement="defaultTextFormat.italic")] public function set axisFontFontItalic(value:Boolean):void { defaultTextFormat.italic.value = value; }
-		[Deprecated(replacement="defaultTextFormat.underline")] public function set axisFontFontUnderline(value:Boolean):void { defaultTextFormat.underline.value = value; }
+		[Deprecated(replacement="visTextFormat.color")] public function set axisFontFontColor(value:Number):void { visTextFormat.color.value = value; }
+		[Deprecated(replacement="visTextFormat.size")] public function set axisFontFontSize(value:Number):void { visTextFormat.size.value = value; }
+		[Deprecated(replacement="visTextFormat.font")] public function set axisFontFontFamily(value:String):void { visTextFormat.font.value = value; }
+		[Deprecated(replacement="visTextFormat.bold")] public function set axisFontFontBold(value:Boolean):void { visTextFormat.bold.value = value; }
+		[Deprecated(replacement="visTextFormat.italic")] public function set axisFontFontItalic(value:Boolean):void { visTextFormat.italic.value = value; }
+		[Deprecated(replacement="visTextFormat.underline")] public function set axisFontFontUnderline(value:Boolean):void { visTextFormat.underline.value = value; }
 		
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }

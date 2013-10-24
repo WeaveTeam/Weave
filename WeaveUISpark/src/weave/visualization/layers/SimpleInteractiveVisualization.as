@@ -134,6 +134,7 @@ package weave.visualization.layers
 			{
 				// x
 				var xAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(X_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				xAxis.setupTextFormats(Weave.properties.axisTitleTextFormat, Weave.properties.visTextFormat);
 				xAxis.axisLabelRelativeAngle.value = -45;
 				xAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
 				var xSettings:LayerSettings = plotManager.getLayerSettings(X_AXIS_LAYER_NAME);
@@ -144,6 +145,7 @@ package weave.visualization.layers
 				
 				// y
 				var yAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(Y_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				yAxis.setupTextFormats(Weave.properties.axisTitleTextFormat, Weave.properties.visTextFormat);
 				yAxis.axisLabelRelativeAngle.value = 45;
 				yAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
 				var ySettings:LayerSettings = plotManager.getLayerSettings(Y_AXIS_LAYER_NAME);
@@ -409,7 +411,7 @@ package weave.visualization.layers
 							var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
 							_axisToolTip = ToolTipManager.createToolTip('', ttPoint.x, ttPoint.y);
 							_axisToolTip.text = marginToolTip;
-							Weave.properties.defaultTextFormat.copyToStyle(_axisToolTip as UIComponent);
+							Weave.properties.visTextFormat.copyToStyle(_axisToolTip as UIComponent);
 							(_axisToolTip as UIComponent).validateNow();
 							
 							// constrain the tooltip to fall within the bounds of the application											
@@ -596,7 +598,7 @@ package weave.visualization.layers
 					(tooltip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 					if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 						(tooltip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-					Weave.properties.defaultTextFormat.copyToStyle(tooltip as UIComponent);
+					Weave.properties.visTextFormat.copyToStyle(tooltip as UIComponent);
 					(tooltip as UIComponent).validateNow();
 				}
 		}

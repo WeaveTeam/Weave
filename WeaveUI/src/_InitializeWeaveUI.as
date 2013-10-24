@@ -52,9 +52,11 @@ package
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
+	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -105,6 +107,7 @@ package
 			 */
 			//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
 			
+			EditorManager.registerEditor(LinkableTextFormat, FontControl);
 			EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
 			
 			EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);

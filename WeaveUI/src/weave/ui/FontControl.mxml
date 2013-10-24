@@ -22,21 +22,75 @@
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*"
 		creationPolicy="all"
-		horizontalGap="4" verticalAlign="middle">
-	
+		horizontalGap="4" verticalAlign="middle" implements="weave.api.ui.ILinkableObjectEditor">
 	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
-	<FontFamilyCombo id="fontFamilyCombo" width="150"/>
+	<FontFamilyCombo id="fontFamilyCombo" width="150" embeddedFontsOnly="{embeddedFontsOnly}" change="handleFontChange()"/>
 	<CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
 					   textDecoration="none"
 					   fontStyle="normal"
 					   fontWeight="normal"/>
 	<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="{lang('Bold')}"/>
-	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="{lang('Italic')}"/>
-	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="{lang('Underline')}"/>
+	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="{lang('Italic')}"
+			   visible="{!embeddedFontsOnly}" includeInLayout="{!embeddedFontsOnly}"/>
+	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="{lang('Underline')}"
+			   visible="{!embeddedFontsOnly}" includeInLayout="{!embeddedFontsOnly}"/>
 
 	<mx:Script>
 		<![CDATA[
-			public const fontSizeArray:Array = [8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72];
+			import mx.events.ListEvent;
+			
+			import weave.Weave;
+			import weave.WeaveProperties;
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.unlinkBindableProperty;
+			import weave.utils.EditorManager;
+			import weave.utils.LinkableTextFormat;
+			
+			public const fontSizeArray:Array = [8,9,10,11,12,13,14,15,16,18,20,22,24,26,28,36,48,72];
+
+			[Bindable] public var embeddedFontsOnly:Boolean = false;
+			
+			private var _target:LinkableTextFormat;
+			
+			private function handleFontChange():void
+			{
+				if (_target)
+					_target.font.value = fontFamilyCombo.selectedLabel;
+			}
+			
+			public function setTarget(target:ILinkableObject):void
+			{
+				if (_target)
+				{
+					unlinkBindableProperty(_target.font, fontFamilyCombo, "selectedLabel");
+					unlinkBindableProperty(_target.size, fontSizeCombo, "selectedItem");
+					unlinkBindableProperty(_target.color, colorPicker, "selectedColor");
+					unlinkBindableProperty(_target.bold, boldButton, "selected");
+					unlinkBindableProperty(_target.italic, italicButton, "selected");
+					unlinkBindableProperty(_target.underline, underlineButton, "selected");
+				}
+				_target = target as LinkableTextFormat;
+				if (_target)
+				{
+					if (!initialized)
+						initialize();
+					linkBindableProperty(_target.font, fontFamilyCombo, "selectedLabel");
+					linkBindableProperty(_target.size, fontSizeCombo, "selectedItem");
+					linkBindableProperty(_target.color, colorPicker, "selectedColor");
+					linkBindableProperty(_target.bold, boldButton, "selected");
+					linkBindableProperty(_target.italic, italicButton, "selected");
+					linkBindableProperty(_target.underline, underlineButton, "selected");
+					callLater(handleSetTarget);
+				}
+			}
+			private function handleSetTarget():void
+			{
+				if (_target)
+					fontFamilyCombo.selectedLabel = _target.font.value;
+			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 		]]>
 	</mx:Script>
 </mx:HBox>
