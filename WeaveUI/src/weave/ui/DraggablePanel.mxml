@@ -109,11 +109,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
+			 * Used to generate default panelX, panelY session states.
+			 */
+			protected function getDefaultRandomCoord():String
+			{
+				return '' + int(2 + Math.random() * 6) + "%"
+			}
+			
+			/**
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
 			 */
-			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%", NumberUtils.verifyNumberOrPercentage));
-			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString('' + int(20 + Math.random() * 10) + "%", NumberUtils.verifyNumberOrPercentage));
+			public const panelX:LinkableString      = registerLinkableChild(this, new LinkableString(getDefaultRandomCoord(), NumberUtils.verifyNumberOrPercentage));
+			public const panelY:LinkableString      = registerLinkableChild(this, new LinkableString(getDefaultRandomCoord(), NumberUtils.verifyNumberOrPercentage));
 			public const panelWidth:LinkableString  = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
 			public const panelHeight:LinkableString = registerLinkableChild(this, new LinkableString("50%", NumberUtils.verifyNumberOrPercentage));
 			

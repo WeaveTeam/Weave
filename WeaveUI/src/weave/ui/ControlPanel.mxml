@@ -67,6 +67,11 @@
 			private var _savedGlobalNames:Object;
 			private var createdChildren:Boolean = false;
 			
+			override protected function getDefaultRandomCoord():String
+			{
+				return '' + int(20 + Math.random() * 10) + "%"; // near middle of screen if width 50%
+			}
+
 			override protected function get borderIsVisible():Boolean
 			{
 				return true;
