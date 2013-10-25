@@ -85,7 +85,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["bin data"];
+				return ["Histogram data"];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -172,7 +172,7 @@
 	</mx:Script>
 
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Visualization Controls')}">
+		<mx:VBox label="{lang('Basic')}">
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
