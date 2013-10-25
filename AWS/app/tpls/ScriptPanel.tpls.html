@@ -3,7 +3,6 @@
 		<span>{{panelTitle}}</span>
 	</div>
 	<div class="portlet-content">
-	
 		Select a script:
 		<select ui-select2 ng-model="scriptSelected" data-placeholder="Choose a Script">
 			<option value=""></option>
@@ -15,5 +14,9 @@
 					<option></option>
 					<option value="{{col}}" ng-repeat="col in columns" >{{col.publicMetadata.title}}</option>
 			</select>
+			<div ng-show='$parent.show[$index]'>
+                 <div ui-slider="$parent.sliderOptions[$index]" ng-show='$parent.filterType[$index] == continuous && $parent.show[$index]' ng-model="$parent.filterValues[$index]"/>
+                 <select ui-select2 multiple ng-show='$parent.filterType[$index] == categorical && $parent.show[$index]' ng-model="$parent.filterValues[$index]"/>
+            </div>
 		</div>
 </div>

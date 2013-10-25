@@ -14,24 +14,14 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.queryObject.dataTable;
 	}, function(){
-		$scope.columns = queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id);
+		if(queryService.queryObject.hasOwnProperty("dataTable")) {
+			if(queryService.queryObject.hasOwnProperty("id")) {
+				$scope.columns = queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id);				
+			}
+		}
 	});
+	
 
-	$scope.selection = []; 
-	
-	$scope.$watch('selection', function(){
-		var selectedColumns = [];
-		var namesSelected = [];
-		angular.forEach($scope.selection, function(value, key){
-			if(value != ""){
-				var val = angular.fromJson(value);
-				selectedColumns.push(val);
-				namesSelected.push(val.publicMetadata.title);
-			};
-		});
-		queryService.queryObject['selectedColumns'] = namesSelected;
-	}, true);
-	
 	$scope.$watch(function(){		// watch the selected script for changes
 			return queryService.queryObject.scriptSelected;
 	},function(){   	
@@ -39,27 +29,66 @@ angular.module("aws.panelControllers", [])
 				return result.inputs;
 		});
 	});
-})
-.controller("WeaveVisSelectorPanelCtrl", function($scope, queryService){
-	// set defaults or retrieve from queryobject
-//	if(!queryobj['selectedVisualization']){
-//		queryobj['selectedVisualization'] = {'maptool':false, 'barchart':false, 'datatable':false};
-//	}
-//	$scope.vis = queryobj['selectedVisualization'];
-//	
-//	// set up watch functions
-//	$scope.$watch('vis', function(){
-//		queryobj['selectedVisualization'] = $scope.vis;
-//	});
-//	$scope.$watch(function(){
-//		return queryobj['selectedVisualization'];
-//	},
-//		function(select){
-//			$scope.vis = queryobj['selectedVisualization'];
-//	});
-})
-.controller("RunPanelCtrl", function($scope, queryService){
 	
+	// array of column selected
+	$scope.selection = []; 
+	
+	// array of filter types, can either be categorical or continuous.
+	$scope.filterType = [];
+	
+	// array of boolean values, true when the column it is possible to apply a filter on the column, 
+	// we basically check if the metadata has varType, min, max etc...
+	$scope.show = [];
+	
+	// the slider options for the columns, min, max etc... Array of object, comes from the metadata
+	$scope.sliderOptions = [];
+	
+	// the categorical options for the columns, Array of string Arrays, comes from metadata, 
+	// this is provided in the ng-repeat for the select2
+	$scope.categoricalOptions = [];
+	
+	// array of filter values. This is used for the model and is sent to the queryObject, each element is either
+	// [min, max] or ["a", "b", "c", etc...]
+	$scope.filterValues = [];
+	
+	$scope.$watch('selection', function(){
+		for(var i = 0; i < $scope.selection.length; i++) {
+			if ($scope.selection[i] != ""){
+				var column = angular.fromJson($scope.selection[i]);
+				console.log(column);
+				if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
+					var metadata = column.publicMetadata.aws_metadata;
+					if (metadata.hasOwnProperty("varType")) {
+						if (metadata.varType == "continous") {
+							$scope.filterType[i] = "continuous";
+							if(metadata.hasOwnProperty("varRange")) {
+								$scope.show[i] = true;
+								$scope.sliderOptions[i] = { min: metadata.varRange[0], max: metadata.varRange[1], step : (varRange[1] - varRange[0])/ 100 };
+							}
+						} else if (metadata.varType == "categorical") {
+							$scope.filterType[i] = "categorical";
+							if(metadata.hasOwnProperty("varValues")) {
+								$scope.show[i] = true;
+								$scope.categoricalOptions[i] = metadata.varValues;
+							}
+						}
+					}
+				}
+			}
+		}
+	}, true);
+	
+	$scope.$watch('filterValues', function() {
+		for(var i = 0; i < $scope.selection.length; i++) {
+			queryService.queryObject['ColumnFilterRequest'][i] = {
+					title : angular.fromJson($scope.selection[i]).publicMetadata.title,
+					id : $scope.selection[i].id,
+					Filters : $scope.filterValues[i]
+			};
+		}
+	}, true);
+})
+.controller("RunQueryCtrl", function($scope, queryService){
 //	$scope.runQuery = function(){
 //		var queryHandler = new aws.QueryHandler(queryService.queryObject);
 //		queryHandler.runQuery();
@@ -72,13 +101,25 @@ angular.module("aws.panelControllers", [])
 //	};
 })
 .controller("MapToolPanelCtrl", function($scope, queryService){
+	queryService.queryObject['MapTool'] = {};
+	$scope.$watch('enabled', function() {
+		queryService.queryObject.MapTool['enabled'] = $scope.enabled;
+	});
 	
-//	$scope.enabled = queryService.queryObject['MapTool']['enabled'];
-//	
-//	$scope.option = queryService.getGeometryDataColumnsEntities;
-//	
-//	$scope.selection = queryService.queryObject['MapTool']['geometryColumn'] || null;
-//	
+	$scope.options = queryService.getGeometryDataColumnsEntities();
+	
+	
+	$scope.$watch('selection', function() {
+		if($scope.selection != "") {
+			var metadata = angular.fromJson($scope.selection);
+			queryService.queryObject['MapTool']['geometryColumn'] = {
+																		id : metadata.id,
+																		title : metadata.publicMetadata.title,
+																		keyType : metadata.publicMetadata.keyType
+																	};
+		}
+	});
+	
 })
 
 .controller("BarChartToolPanelCtrl", function($scope, queryService){

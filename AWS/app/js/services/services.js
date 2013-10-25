@@ -104,18 +104,20 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
                     deferred.resolve(idsArray);
                 });
             });
-
-            return deferred.promise.then(function(idsArray) {
+            
+            var deferred2 = $q.defer();
+            
+            deferred.promise.then(function(idsArray) {
             	
             	aws.DataClient.getDataColumnEntities(idsArray, function(dataEntityArray) {
                     scope.$safeApply(function() {
-                    	deferred.resolve(dataEntityArray);
+                    	deferred2.resolve(dataEntityArray);
                     });
                 });
             	
-            	return deferred.promise;
             });
-
+            
+            return deferred2.promise;
         };
         
         /**
