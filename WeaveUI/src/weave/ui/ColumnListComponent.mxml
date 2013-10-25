@@ -29,14 +29,15 @@
 		<HelpComponent content="{helpContent}" visible="{!!helpContent}" includeInLayout="{!!helpContent}"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Reverse')}"
-					   click="controller.hashMap.setNameOrder(controller.hashMap.getNames().reverse());"
-					   toolTip="{lang('Reverse the order of the attributes')}"/>
 			<mx:Button label="{lang('Open selector...')}" click="openSelector()"/>
 		</mx:HBox>
 	</mx:HBox>
 	<!-- internalList will be added as a child here -->
-	<mx:HBox width="100%">
+	<mx:HBox width="100%" verticalAlign="middle">
+		<CenteredImage id="reverseButton" buttonMode="true" source="@Embed(source='/weave/resources/images/reverse-order.png')"
+						width="22" height="22"
+						toolTip="{lang('Reverse the order of the attributes.')}"
+						click="controller.hashMap.setNameOrder(controller.hashMap.getNames().reverse());"/>
 		<mx:Spacer width="100%"/>
 		<mx:Button
 			label="{lang('Remove all')}"
@@ -51,12 +52,14 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ICollectionView;
 			import mx.controls.DataGrid;
 			import mx.controls.List;
 			import mx.controls.listClasses.ListBase;
 			
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.utils.ColumnUtils;
@@ -73,11 +76,20 @@
 				label = lang('Attributes');
 			}();
 			
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				showVariableNames = showVariableNames;
 				controller.labelFunction = ColumnUtils.getColumnListLabel;
+				getCallbackCollection(controller).addGroupedCallback(this, function():void {
+					reverseButton.buttonMode = reverseButton.enabled = (
+						controller.view
+						&& controller.view.dataProvider is ICollectionView
+						&& ICollectionView(controller.view.dataProvider).length > 1
+					);
+					reverseButton.alpha = reverseButton.enabled ? .8 : 0.25;
+				}, true);
 			}
 			
 			[Bindable] private var _internalList:ListBase;
