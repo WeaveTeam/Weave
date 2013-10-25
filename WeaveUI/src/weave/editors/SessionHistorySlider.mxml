@@ -67,7 +67,7 @@
 			{
 				super.childrenCreated();
 				
-				_editMenu = new SubMenu(menuButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN]);
+				_editMenu = new SubMenu(menuButton);
 				//_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
 				_editMenu.addSubMenuItem(lang("Clear everything"), _stateLog.clearHistory);
 				_editMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
