@@ -46,6 +46,10 @@
 	
 	<ui:CheckBoxWithNestedOptions id="fillEnabled" label="{lang('Enable fill color')}"
 								  creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')">
+		<mx:HBox id="fillColorColumnControls" width="100%" verticalAlign="middle">
+			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}" showLinkControl="false" dynamicObject="{getFillColor(_plotter)}"/>
+			<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+		</mx:HBox>
 		<mx:HBox horizontalGap="{hgap}">
 			<ui:Indent grouped="false" label="{lang('Alpha')}">
 				<mx:NumericStepper 	id="fillAlpha" 
@@ -58,7 +62,7 @@
 			<ui:Indent grouped="false" useFirstChildAsLabel="true">
 				<mx:CheckBox id="enableDefaultColor" label="{lang('Default color')}"
 							 change="handleBindableFillColor()"/>
-				<ui:CustomColorPicker id="fillColor"
+				<ui:CustomColorPicker id="fillColorDefault"
 								enabled="{enableDefaultColor.selected}"
 								change="handleBindableFillColor()"
 								selectedColor="0xEEEEEE"/>
@@ -112,12 +116,21 @@
 			import weave.api.linkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.ColorController;
+			import weave.ui.DraggablePanel;
 			import weave.utils.EventUtils;
 			import weave.visualization.plotters.GeometryPlotter;
 			
 			private const hgap:int = 30;
 			
 			[Bindable] private var _plotter:GeometryPlotter = null;
+			
+			private function getFillColor(plotter:GeometryPlotter):DynamicColumn
+			{
+				return AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color.internalDynamicColumn);
+			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
@@ -144,11 +157,11 @@
 				var color:Number = StandardLib.asNumber(_plotter.fill.color.defaultValue.value);
 				enableDefaultColor.selected = isFinite(color);
 				if (isFinite(color))
-					fillColor.selectedColor = uint(color);
+					fillColorDefault.selectedColor = uint(color);
 			}
 			private function handleBindableFillColor():void
 			{
-				_plotter.fill.color.defaultValue.value = enableDefaultColor.selected ? fillColor.selectedColor : NaN;
+				_plotter.fill.color.defaultValue.value = enableDefaultColor.selected ? fillColorDefault.selectedColor : NaN;
 			}
 			
 			private function handleGeomPlotterImageToggle():void
