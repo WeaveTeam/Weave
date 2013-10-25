@@ -37,12 +37,14 @@
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.services.IWMSService;
+			import weave.api.ui.IPlotTask;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
@@ -54,6 +56,7 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.editors.WindowSettingsEditor;
+			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
@@ -224,12 +227,12 @@
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
 				
 				WindowSettingsEditor; // work around compiler error
-				windowSettingsEditor.addEventListener(FlexEvent.INITIALIZE, function(e:*):void {
-					windowSettingsEditor.addChild(backgroundImageCheck);
-					windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
-					windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
+				windowEditor.addEventListener(FlexEvent.INITIALIZE, function(e:*):void {
+					windowEditor.addChild(backgroundImageCheck);
+					windowEditor.removeChild(windowEditor.titleControls);
+					windowEditor.addChildAt(axesEditor.titleControls, 0);
 				});
-				simpleAxisEditor.parent.removeChild(simpleAxisEditor);
+				axesEditor.parent.removeChild(axesEditor);
 			}
 			
 			override protected function childrenCreated():void
@@ -258,7 +261,7 @@
 				
 				
 				
-				selectionSubMenu = new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
+				selectionSubMenu = new SubMenu(selectModeButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				
 				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
 					Weave.properties.toolInteractions.defaultDragMode.value = InteractionController.SELECT;
@@ -412,21 +415,22 @@
 			
 			private function addGeomLayer():void
 			{
-				var name:String = visualization.plotManager.plotters.generateUniqueName("plot");
-				visualization.plotManager.plotters.requestObject(name, GeometryPlotter, false);
+				CustomLayerWindow.addPlotterAndEdit(visualization, GeometryPlotter);
 			}
 			
 			private function addLabelLayer():void
 			{
-				var i:int;
 				// get existing layers before they change
 				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
 				// if a layer is selected in the editor, check that one first.
-				if (visualization.plotManager.getPlotter(layerEditor.selectedItem as String))
-					layerNames.unshift(layerEditor.selectedItem);
-				// create new label layer
-				var labelLayerName:String = visualization.plotManager.plotters.generateUniqueName("label");
-				var labelPlotter:GeometryLabelPlotter = visualization.plotManager.plotters.requestObject(labelLayerName, GeometryLabelPlotter, false);
+				if (layersEditor.selectedPlotter)
+					layerNames.unshift(layersEditor.selectedPlotterName);
+				
+				// create new plotter
+				var plotter:GeometryLabelPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryLabelPlotter);
+				if (!plotter)
+					return;
+				
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)
 				{
@@ -434,14 +438,14 @@
 					if (geomPlotter)
 					{
 						// found a geometry layer
-						copySessionState(geomPlotter.geometryColumn, labelPlotter.geometryColumn);
+						copySessionState(geomPlotter.geometryColumn, plotter.geometryColumn);
 						// see if there is a matching column in probe headers
 						var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
-						for (i = 0; i < headers.length; i++)
+						for (var i:int = 0; i < headers.length; i++)
 						{
 							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
 							{
-								labelPlotter.text.requestLocalObjectCopy(headers[i]);
+								plotter.text.requestLocalObjectCopy(headers[i]);
 								break;
 							}
 						}
@@ -453,15 +457,17 @@
 			
 			private function addRelationLayer():void
 			{
-				var i:int;
 				// get existing layers before they change
 				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
 				// if a layer is selected in the editor, check that one first.
-				if (visualization.plotManager.getPlotter(layerEditor.selectedItem as String))
-					layerNames.unshift(layerEditor.selectedItem);
-				// create new label layer
-				var relationLayerName:String = visualization.plotManager.plotters.generateUniqueName("relation");
-				var relationPlotter:GeometryRelationPlotter = visualization.plotManager.plotters.requestObject(relationLayerName, GeometryRelationPlotter, false);
+				if (layersEditor.selectedPlotter)
+					layerNames.unshift(layersEditor.selectedPlotterName);
+				
+				// create new plotter
+				var plotter:GeometryRelationPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, GeometryRelationPlotter);
+				if (!plotter)
+					return;
+				
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)
 				{
@@ -469,40 +475,20 @@
 					if (geomPlotter)
 					{
 						// found a geometry layer
-						copySessionState(geomPlotter.geometryColumn, relationPlotter.geometryColumn);
+						copySessionState(geomPlotter.geometryColumn, plotter.geometryColumn);
 						// stop when we found geometry layer
 						break;
 					}
 				}
 			}
-			// ToDo
-//			private var dataBounds:Bounds2D = new Bounds2D();
-//			private var screenBounds:Bounds2D = new Bounds2D();
-//			private function drawProbeLines():void
-//			{ 
-//				if(!Weave.properties.enableProbeLines.value) return;
-//				
-//				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
-//				if (!probeKeySet)
-//					return;
-//				
-//				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
-//				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
-//				
-//				_plotter.probedKeys = probeKeySet.keys ;
-//				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
-//				
-//				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);	
-//				
-//			}
-			
 			private function addWMSLayer():void
 			{
 				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
-				
-				var name:String = visualization.plotManager.plotters.generateUniqueName("wms");
-				visualization.plotManager.plotters.requestObject(name, WMSPlotter, false);
-				visualization.plotManager.getLayerSettings(name).selectable.value = false;
+
+				// create new plotter
+				var plotter:WMSPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, WMSPlotter);
+				if (!plotter)
+					return;
 				
 				// put old layers on top
 				visualization.plotManager.plotters.setNameOrder(oldLayerNames);
@@ -794,32 +780,23 @@
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
 		</mx:HBox>
 	</mx:VBox>
-	
 
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Map Layers">
-			<mx:HBox width="100%">
-				<mx:Button label="Add Base Map" click="addWMSLayer();" toolTip="Add an image layer underneath the geometries"/>
-				<mx:Button label="Add Geometry" click="addGeomLayer();" toolTip="Add a layer of polygons, lines, or points that can be colored according to the data"/>
-				<mx:Button label="Add Labels" click="addLabelLayer();" toolTip="Add labels to the selected geometry layer"/>
-				<!--<mx:Button label="Add relations" click="addRelationLayer();" toolTip="Add relations to the selected geometry layer"/>-->
-			</mx:HBox>
-			
-			<!--<mx:DataGrid dataProvider="{_layerNames.reverse()}">
-			<mx:columns>
-			<mx:DataGridColumn headerText="Visible"/>
-			<mx:DataGridColumn headerText="Probe" headerWordWrap="true"/>
-			<mx:DataGridColumn headerText="Geography"/>
-			<mx:DataGridColumn headerText="Edit"/>
-			<mx:DataGridColumn headerText="Remove"/>
-			</mx:columns>
-			</mx:DataGrid>-->
-			
-			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
-			<mx:HBox width="100%" verticalAlign="middle">
-				<ui:DynamicColumnComponent label="color" showLinkControl="false" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-				<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
-			</mx:HBox>
+		<ui:creationComplete>
+			layerControls.addChild(layersEditor);
+			layersEditor.addChildAt(layerButtons, 0);
+			layersEditor.removeChild(layersEditor.layerButtons);
+			layerButtons.addChild(layersEditor.removeButton);
+			layersEditor.visible = true;
+		</ui:creationComplete>
+		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
+			<ui:Indent id="layerButtons" grouped="false" label="{lang('Add layer:')}">
+				<mx:Button label="{lang('Base Map')}" click="addWMSLayer();" toolTip="{lang('Add an image layer underneath the geometries')}"/>
+				<mx:Button label="{lang('Geometry')}" click="addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
+				<mx:Button label="{lang('Labels')}" click="addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
+				<mx:Button label="{lang('Other...')}" click="layersEditor.addLayer()" toolTip="{lang('Add another type of layer')}"/>
+				<mx:Spacer width="100%"/>
+			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="Advanced" verticalGap="10">
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
