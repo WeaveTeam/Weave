@@ -54,7 +54,7 @@
 				minimizable.value = false;
 				maximizable.value = false;
 				closeable.value = false;
-				pinnable.value = false;
+				enableZOrder.value = false;
 				enableBorders.value = false;
 				
 				clipContent = true;

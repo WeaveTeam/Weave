@@ -226,20 +226,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function constructor():void
 			{
 				super.constructor();
+				
+				// have a default dynamic title
+				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
+				
+				zOrder.value = Infinity;
+				
+				// have some default choices ready when the tool is created
+				copySessionState(ProbeTextUtils.probedColumns, choices);
 			}
 			
 			// called after children have been created
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
-				// have a default dynamic title
-				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
-				
-				// have some default choices ready when the tool is created
-				copySessionState(ProbeTextUtils.probedColumns, choices);
-				
-				pinned.value = true;
 				
 				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var target:UIComponent = this;

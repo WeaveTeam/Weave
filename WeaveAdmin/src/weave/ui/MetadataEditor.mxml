@@ -70,7 +70,7 @@
 		super.createChildren();
 		
 		removeChild(csvWindow);
-		csvWindow.pinnable.value = false;
+		csvWindow.enableZOrder.value = false;
 		csvWindow.minimizable.value = false;
 		csvWindow.closeable.value = true;
 		csvWindow.maximizable.value = true;

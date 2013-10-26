@@ -58,7 +58,7 @@
 				
 				minimizable.value = false;
 				maximizable.value = false;
-				pinned.value = true;
+				zOrder.value = Infinity;
 				sliderMode.addGroupedCallback(this, handleSliderMode, true);
 			}
 			private function handleSliderMode():void

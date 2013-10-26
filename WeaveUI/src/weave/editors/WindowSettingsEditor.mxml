@@ -47,10 +47,8 @@
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
-			<mx:CheckBox label="{lang('Allow always-on-back')}"
-						 creationComplete="linkBindableProperty(_panel.pinnableToBack, event.target, 'selected')"/>
-			<mx:CheckBox label="{lang('Allow always-on-top')}"
-						 creationComplete="linkBindableProperty(_panel.pinnable, event.target, 'selected')"/>
+			<mx:CheckBox label="{lang('Allow always above/below')}"
+						 creationComplete="linkBindableProperty(_panel.enableZOrder, event.target, 'selected')"/>
 			<mx:CheckBox label="{lang('Allow minimize')}"
 						 creationComplete="linkBindableProperty(_panel.minimizable, event.target, 'selected')"/>
 			<mx:CheckBox label="{lang('Allow maximize')}"

@@ -127,19 +127,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const maximized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMaximized), handleMaximizedChange, true);
 			public const minimized:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false, verifyMinimized), handleMinimizedChange, true);
-			public const pinned:LinkableBoolean	   = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedChange, true);
-			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
+			public const zOrder:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, StandardLib.isDefined), handleZOrderChange, true);
+			
+			[Deprecated] public function set pinned(value:Boolean):void { if (value) zOrder.value = 1; }
+			[Deprecated] public function set pinnedToBack(value:Boolean):void { if (value) zOrder.value = -1; }
+			[Deprecated] public function set pinnable(value:Boolean):void { enableZOrder.value = value; }
+			[Deprecated] public function set pinnableToBack(value:Boolean):void { if (value) enableZOrder.value = true; }
 			
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange, true);
 			
 			public const enableMoveResize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(false));
-			public const minimizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const maximizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnable:LinkableBoolean         = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnableToBack:LinkableBoolean   = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate, true);
-			public const closeable:LinkableBoolean        = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableBorders:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableSubMenu:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const minimizable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const maximizable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableZOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const closeable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			
 			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
 			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
@@ -154,8 +157,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
-			protected const pinButton:Button = new Button();
-			protected const pinToBackButton:Button = new Button();
+			protected const zOrderButton:Button = new Button();
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
@@ -227,11 +229,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, "Change settings");
 				setupControlButton(subMenuButton, _subMenuIcon, null, "Menu");
-				setupControlButton(pinToBackButton, [_pinToBackIcon, _pinToBackIconColor, _pinToBackIconColor], togglePinnedToBack, "Always on back");
-				setupControlButton(pinButton, [_pinIcon, _pinIconColor, _pinIconColor], togglePinned, "Always on top");
+				setupControlButton(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder], null);
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Minimize");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Maximize");
 				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, "Close");
+				
+				zOrderSubMenu.addSubMenuItem(lang('Reset'), function():void { zOrder.value = 0; }, null, function():Boolean { return zOrder.value != 0; });
+				zOrderSubMenu.addSubMenuItem(lang('Always above'), function():void { zOrder.value = Infinity; }, null, function():Boolean { return zOrder.value <= 0; });
+				zOrderSubMenu.addSubMenuItem(lang('Always below'), function():void { zOrder.value = -Infinity; }, null, function():Boolean { return zOrder.value >= 0; });
 
 				/*
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
@@ -539,10 +544,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					maximized.value = false;
 				if (!minimizable.value)
 					minimized.value = false;
-				if (!pinnable.value)
-					pinned.value = false;
-				if (!pinnableToBack.value)
-					pinnedToBack.value = false;
+				if (!enableZOrder.value)
+					zOrder.value = 0;
 				
 				invalidateSize();
 				invalidateDisplayList();
@@ -744,17 +747,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Embed(source="/weave/resources/images/menu_9x7.png")]
 			private var _subMenuIcon:Class;
 			
-			//[Embed(source="/weave/resources/images/pushpin.png")]
-			[Embed(source="/weave/resources/images/always-on-top-gray.png")]
-			private var _pinIcon:Class;
-			[Embed(source="/weave/resources/images/always-on-top.png")]
-			private var _pinIconColor:Class;
+			[Embed(source="/weave/resources/images/z-order.png")]
+			private var icon_zOrder:Class;
+			[Embed(source="/weave/resources/images/z-order-reverse.png")]
+			private var icon_zOrderReverse:Class;
 			
-			//[Embed(source="/weave/resources/images/pushpinback.png")]
+			[Embed(source="/weave/resources/images/always-on-top-gray.png")]
+			private var icon_zOrderAbove:Class;
+			[Embed(source="/weave/resources/images/always-on-top.png")]
+			private var icon_zOrderAbove_color:Class;
+			
 			[Embed(source="/weave/resources/images/always-on-back-gray.png")]
-			private var _pinToBackIcon:Class;
+			private var icon_zOrderBelow:Class;
 			[Embed(source="/weave/resources/images/always-on-back.png")]
-			private var _pinToBackIconColor:Class;
+			private var icon_zOrderBelow_color:Class;
 			
 			[Embed(source="/weave/resources/images/maximize_icon.png")]
 			private var _maximizeIcon:Class;
@@ -807,38 +813,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// no need to do anything else for the other options, in those cases we dont want to close the window so do nothing
 			}
 			
-			public function togglePinned():void
+			private function handleZOrderChange():void
 			{
-				pinned.value = !pinned.value ;
-				pinnedToBack.value = false;
-			}
-			
-			public function togglePinnedToBack():void
-			{
-				pinnedToBack.value = !pinnedToBack.value;
-				pinned.value = false;
-			}
-			
-			private function handlePinnedChange():void
-			{
-				if (!pinnable.value)
-					pinned.value = false;
-				if (pinned.value)
-					pinButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
+				if (zOrder.value == 0)
+				{
+					zOrderButton.toolTip = lang("Toggle always above or below");
+					setupButtonIcons(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder]);
+					zOrderButton.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor]);
+				}
 				else
-					pinButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );	
-				updatePinnedPanelOrder();
-			}
-			
-			private function handlePinnedToBackChange():void
-			{
-				if (!pinnableToBack.value)
-					pinnedToBack.value = false;
-				if (pinnedToBack.value)
-					pinToBackButton.setStyle("fillColors",[_titleBarButtonSelectedColor,_titleBarButtonSelectedColor]);
-				else
-					pinToBackButton.setStyle("fillColors",[_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
-				updatePinnedPanelOrder();
+				{
+					if (zOrder.value < 0)
+					{
+						zOrderButton.toolTip = lang("Always below");
+						setupButtonIcons(zOrderButton, [icon_zOrderBelow, icon_zOrderBelow_color, icon_zOrderBelow_color]);
+					}
+					else
+					{
+						zOrderButton.toolTip = lang("Always above");
+						setupButtonIcons(zOrderButton, [icon_zOrderAbove, icon_zOrderAbove_color, icon_zOrderAbove_color]);
+					}
+					zOrderButton.setStyle("fillColors", [_titleBarButtonSelectedColor, _titleBarButtonSelectedColor]);
+				}
+				updatePanelZOrder();
 			}
 			
 			public function toggleMaximized():void
@@ -1040,7 +1037,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					else if (parent)
 						parent.setChildIndex(this, parent.numChildren - 1);
 				}
-				updatePinnedPanelOrder();
+				updatePanelZOrder();
 			}
 			
 			public function sendWindowToBackground():void
@@ -1056,10 +1053,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						hashMap.setNameOrder(names);
 					}
 				}
-				updatePinnedPanelOrder();
+				updatePanelZOrder();
 			}
 			
-			private function updatePinnedPanelOrder():void
+			private function updatePanelZOrder():void
 			{
 				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 				if (hashMap)
@@ -1073,12 +1070,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						var panel:DraggablePanel = hashMap.getObject(name) as DraggablePanel;
 						if (panel)
 						{
-							if (panel.pinned.value)
+							if (panel.zOrder.value > 0)
 							{
 								front.push(name);
 								names.splice(i--, 1);
 							}
-							else if (panel.pinnedToBack.value)
+							else if (panel.zOrder.value < 0)
 							{
 								back.push(name);
 								names.splice(i--, 1);
@@ -1106,7 +1103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				sendWindowToForeground();
-				updatePinnedPanelOrder();
+				updatePanelZOrder();
 				
 				updateBorders();
 				
@@ -1241,19 +1238,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
-			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
-			private function setupControlButton(button:Button, iconClassOrArray_0icon_1over_2down:Object, clickHandler:Function, tooltip:String = null):void
+			private function setupButtonIcons(button:Button, iconClassOrArray_0icon_1over_2down:Object):void
 			{
 				var icons:Array = iconClassOrArray_0icon_1over_2down as Array;
 				var icon:Class = icons ? icons[0] : iconClassOrArray_0icon_1over_2down as Class;
 				
-				if (icon)
-					button.setStyle("icon", icon);
-				if (icons && icons[1])
-					button.setStyle("overIcon", icons[1]);
-				if (icons && icons[2])
-					button.setStyle("downIcon", icons[2]);
+				button.setStyle("icon", icon);
+				button.setStyle("overIcon", (icons && icons[1]) || icon);
+				button.setStyle("downIcon", (icons && icons[2]) || icon);
+			}
+			
+			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
+			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
+			private function setupControlButton(button:Button, iconClassOrArray_0icon_1over_2down:Object, clickHandler:Function, tooltip:String = null):void
+			{
+				setupButtonIcons(button, iconClassOrArray_0icon_1over_2down);
 				
 				button.toolTip = lang(tooltip);
 				
@@ -1289,7 +1288,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var buttonSize:int = 17;
 			private var buttonOffsetFromSide:int = 5;
 			
-			private var spaceBetweenButtons:Number = 6;
+			private var spaceBetweenButtons:Number = 3;
 			
 			public function getTotalIconAreaWidth():int 
 			{
@@ -1317,9 +1316,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				// by default, width of icons is the border only
 				var rightIconWidths:int = buttonOffsetFromSide;
-				for each (var lb:LinkableBoolean in [closeable, minimizable, maximizable, pinnable, pinnableToBack])
-				if (lb.value)
-					rightIconWidths += buttonSize + spaceBetweenButtons;
+				for each (var lb:LinkableBoolean in [closeable, minimizable, maximizable, enableZOrder])
+					if (lb.value)
+						rightIconWidths += buttonSize + spaceBetweenButtons;
 				
 				return rightIconWidths;
 			}
@@ -1441,49 +1440,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						minimizeButton.visible = false;
 					}
-					if (pinnable.value)
+					if (enableZOrder.value)
 					{
-						if (titleBar != pinButton.parent)
-							titleBar.addChild(pinButton);
-						pinButton.setStyle("cornerRadius", buttonRadius.value);
-						pinButton.x = rightButtonX;
+						if (titleBar != zOrderButton.parent)
+							titleBar.addChild(zOrderButton);
+						zOrderButton.setStyle("cornerRadius", buttonRadius.value);
+						zOrderButton.x = rightButtonX;
 						if (closeable.value)
-							pinButton.x = pinButton.x - buttonSize - spaceBetweenButtons;
+							zOrderButton.x = zOrderButton.x - buttonSize - spaceBetweenButtons;
 						if (maximizable.value)
-							pinButton.x = pinButton.x - buttonSize - spaceBetweenButtons;
+							zOrderButton.x = zOrderButton.x - buttonSize - spaceBetweenButtons;
 						if (minimizable.value)
-							pinButton.x = pinButton.x - buttonSize - spaceBetweenButtons;
-						pinButton.y = offsetFromTop ;
-						pinButton.width = buttonSize;
-						pinButton.height = buttonSize;
-						pinButton.visible = true;
+							zOrderButton.x = zOrderButton.x - buttonSize - spaceBetweenButtons;
+						zOrderButton.y = offsetFromTop ;
+						zOrderButton.width = buttonSize;
+						zOrderButton.height = buttonSize;
+						zOrderButton.visible = true;
 					}
 					else
 					{
-						pinButton.visible = false;
-					}
-					if (pinnableToBack.value)
-					{
-						if (titleBar != pinToBackButton.parent)
-							titleBar.addChild(pinToBackButton);
-						pinToBackButton.setStyle("cornerRadius", buttonRadius.value);
-						pinToBackButton.x = rightButtonX;
-						if (closeable.value)
-							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						if (maximizable.value)
-							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						if (minimizable.value)
-							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						if (pinnable.value)
-							pinToBackButton.x = pinToBackButton.x - buttonSize - spaceBetweenButtons;
-						pinToBackButton.y = offsetFromTop ;
-						pinToBackButton.width = buttonSize;
-						pinToBackButton.height = buttonSize;
-						pinToBackButton.visible = true;
-					}
-					else
-					{
-						pinToBackButton.visible = false;
+						zOrderButton.visible = false;
 					}
 					
 					if(enableSubMenu.value)
@@ -1502,7 +1478,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						subMenuButton.height = buttonSize;
 						
 						subMenuButton.visible = true;
-					}else
+					}
+					else
 					{
 						subMenuButton.visible = false;
 					}
@@ -1710,8 +1687,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!instance)
 				{
 					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
-					instance.pinnable.value = false;
-					instance.pinnableToBack.value = false;
+					instance.enableZOrder.value = false;
 				}
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
@@ -1729,6 +1705,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const _instances:Dictionary = new Dictionary();
 			
 			protected const subMenu:SubMenu = new SubMenu(subMenuButton);
+			protected const zOrderSubMenu:SubMenu = new SubMenu(zOrderButton);
 			
 			/**
 			 * Embedded cursors

@@ -84,7 +84,6 @@
 			{
 				super.childrenCreated();
 				
-				pinnable.value = false;
 				options.dataProvider = WeaveAPI.getRegisteredImplementations(IDataSource);
 				options.labelFunction = WeaveAPI.getRegisteredImplementationDisplayName;
 			}

@@ -115,7 +115,7 @@
 				super.constructor();
 				
 				closeable.value = false;
-				pinnable.value = false;
+				enableZOrder.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 				

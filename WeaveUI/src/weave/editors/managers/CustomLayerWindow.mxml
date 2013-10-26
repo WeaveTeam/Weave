@@ -88,7 +88,7 @@
 				super.constructor();
 				panelX.value = '' + int(33 + Math.random() * 10) + "%";
 				panelY.value = '' + int(20 + Math.random() * 10) + "%";
-				pinnable.value = false;
+				enableZOrder.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 			}
