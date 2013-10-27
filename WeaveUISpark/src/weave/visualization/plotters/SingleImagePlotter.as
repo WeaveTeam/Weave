@@ -116,11 +116,11 @@ package weave.visualization.plotters
 				output.setXRange(x - w, x);
 			
 			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_TOP)
-				output.setYRange(y, y + h);
+				output.setYRange(y - h, y);
 			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_MIDDLE)
 				output.setCenteredYRange(y, h);
 			if (verticalAlign.value == BitmapText.VERTICAL_ALIGN_BOTTOM)
-				output.setYRange(y - h, y);
+				output.setYRange(y, y + h);
 		}
 		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
