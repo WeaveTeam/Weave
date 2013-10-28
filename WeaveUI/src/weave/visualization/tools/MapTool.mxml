@@ -37,14 +37,11 @@
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
-			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.api.services.IWMSService;
-			import weave.api.ui.IPlotTask;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
@@ -58,9 +55,6 @@
 			import weave.editors.WindowSettingsEditor;
 			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
-			import weave.ui.ColorController;
-			import weave.ui.DraggablePanel;
-			import weave.ui.DynamicColumnComponent;
 			import weave.ui.SubMenu;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
@@ -411,6 +405,46 @@
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
 				}
+			}
+			
+			private function getPlotterLabel(plotter:IPlotter):String
+			{
+				if (!plotter)
+					return '';
+				
+				var plotterName:String = visualization.plotManager.plotters.getName(plotter);
+				var label:String = plotterName;
+				var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+				var wmsPlotter:WMSPlotter = plotter as WMSPlotter
+				var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
+				
+				if (geomPlotter)
+					label += ": " + ColumnUtils.getTitle(geomPlotter.geometryColumn);
+				else if (labelPlotter)
+					label += ": " + ColumnUtils.getTitle(labelPlotter.geometryColumn);
+				else if (wmsPlotter)
+					label += ": " + wmsPlotter.providerName;
+				
+				// get the source projection to be used in the label
+				var proj:String;
+				if (plotter is GeometryPlotter)
+				{
+					proj = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
+				}
+				else if (labelPlotter)
+				{
+					proj = labelPlotter.geometryColumn.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
+				}
+				else if (plotter is WMSPlotter)
+				{
+					var service:IWMSService = wmsPlotter.service.internalObject as IWMSService;
+					if (service && service.getProjectionSRS())
+						proj = service.getProjectionSRS();
+				}
+				
+				if (proj)
+					label += ' (' + proj + ')';
+				return label;
 			}
 			
 			private function addGeomLayer():void
@@ -788,6 +822,7 @@
 			layersEditor.removeChild(layersEditor.layerButtons);
 			layerButtons.addChild(layersEditor.removeButton);
 			layersEditor.visible = true;
+			layersEditor.labelFunction = getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
 			<ui:Indent id="layerButtons" grouped="false" label="{lang('Add layer:')}">
