@@ -85,7 +85,7 @@
 								override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 								{
 									if (parent is UIComponent)
-										(parent as UIComponent).invalidateSize();
+										callLater((parent as UIComponent).invalidateSize);
 									
 									super.updateDisplayList(unscaledWidth, unscaledHeight);
 								}
