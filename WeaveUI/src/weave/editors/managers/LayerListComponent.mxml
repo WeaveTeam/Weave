@@ -45,7 +45,9 @@
 		<mx:List id="list" variableRowHeight="true" initialize="UIUtils.pad(event, 2, 100, 100)" borderStyle="none">
 			<mx:itemRenderer>
 				<mx:Component>
-					<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" resize="(parent as UIComponent).invalidateSize();">
+					<mx:HBox width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+							 resize="(parent as UIComponent).invalidateSize();"
+							 addedToStage="(parent as UIComponent).invalidateSize();">
 						<mx:Script>
 							<![CDATA[
 								import mx.controls.listClasses.ListBaseContentHolder;
@@ -82,14 +84,6 @@
 									ControlPanel.openEditor(plotter, [visualization]);
 								}
 								
-								override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-								{
-									if (parent is UIComponent)
-										callLater((parent as UIComponent).invalidateSize);
-									
-									super.updateDisplayList(unscaledWidth, unscaledHeight);
-								}
-								
 								[Bindable] public var layerIsVisible:Boolean = true;
 								[Bindable] public var layerIsSelectable:Boolean = true;
 								override public function set data(newPlotter:Object):void
@@ -101,6 +95,7 @@
 									newPlotter = newPlotter as IPlotter;
 									
 									lbl.text = outerDocument.list.itemToLabel(newPlotter);
+									callLater((parent as UIComponent).invalidateSize);
 									
 									if (plotter == newPlotter)
 										return;
