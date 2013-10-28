@@ -83,6 +83,7 @@
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableWatcher;
 			import weave.core.LinkableXML;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -176,6 +177,11 @@
 					if (node != null && String(node.localName()) != 'attribute')
 						_dataSource.initializeHierarchySubtree(node);
 				}
+				
+				// don't set the dynamic column if the user didn't initiate the change
+				if (!UIUtils.hasFocus(hierarchySelector))
+					return;
+				
 				var attribute:XMLList = selectedPath.value.descendants("attribute");
 				if (attribute.length() > 0)
 				{
