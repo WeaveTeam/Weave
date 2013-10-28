@@ -120,7 +120,7 @@
 			}
 			
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
-			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, toggleLinkDropDown);
+			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleDynamicObject);
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
@@ -137,6 +137,14 @@
 			{
 				_visTool = value;
 				updateLabel();
+			}
+			
+			private var _errorStringFunction:Function = null;
+			
+			public function set errorStringFunction(value:Function):void
+			{
+				_errorStringFunction = value;
+				handleDynamicObject();
 			}
 			
 			private function updateLabel():void
@@ -163,6 +171,12 @@
 				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(controller.dynamicObject as DynamicColumn);
 				if (dc)
 					dc.removeObject();
+			}
+			
+			private function handleDynamicObject():void
+			{
+				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
+				toggleLinkDropDown();
 			}
 			
 			private function toggleLinkDropDown(show:Boolean = false):void

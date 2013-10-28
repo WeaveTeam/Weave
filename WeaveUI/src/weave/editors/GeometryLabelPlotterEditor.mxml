@@ -6,7 +6,7 @@
 		 implements="weave.api.ui.ILinkableObjectEditor">
 	<mx:VBox width="100%">
 		<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
-		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
+		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/> 
 	</mx:VBox>
 	<mx:HBox width="100%">
 		<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
@@ -28,6 +28,8 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataTypes;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			
@@ -46,7 +48,14 @@
 				super.childrenCreated();
 				linkGeometryProperties();
 			}
-			
+
+			private function getGeometryErrorString():String
+			{
+				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataTypes.GEOMETRY)
+					return lang('Please select a geometry column.');
+				return '';
+			}
+
 			private function linkGeometryProperties():void
 			{
 				labelComponent.dynamicObject = _plotter.text;

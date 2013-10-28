@@ -25,7 +25,7 @@
 		 label="{lang('Geometries')}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
 	
-	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/>
+	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/>
 	
 	<ui:Indent label="{lang('Icon size')}">
 		<mx:NumericStepper id="iconSize"
@@ -112,6 +112,8 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataTypes;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.compiler.StandardLib;
@@ -150,6 +152,13 @@
 				
 				normalizedWeightComponent.normalizedColumn = _plotter.line.normalizedWeightColumn;
 				_plotter.fill.color.defaultValue.addImmediateCallback(this, handleLinkableFillColor, true);
+			}
+			
+			private function getGeometryErrorString():String
+			{
+				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataTypes.GEOMETRY)
+					return lang('Please select a geometry column.');
+				return '';
 			}
 			
 			private function handleLinkableFillColor():void

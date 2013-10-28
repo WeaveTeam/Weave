@@ -2,10 +2,10 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry Relations')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
 	<mx:VBox width="100%">
-		<ui:DynamicColumnComponent id="relationSourceComponent" label="{lang('Source')}"/>
-		<ui:DynamicColumnComponent id="relationDestinationComponent" label="{lang('Destination')}"/>
-		<ui:DynamicColumnComponent id="relationValueComponent" label="{lang('Value')}"/>
-		<ui:DynamicColumnComponent id="relationGeometryComponent" label="{lang('Geometry')}"/>
+		<ui:DynamicColumnComponent id="geometrySelector" label="{lang('Geometry')}" errorStringFunction="{getGeometryError}"/>
+		<ui:DynamicColumnComponent id="sourceKeySelector" label="{lang('Source key')}"/>
+		<ui:DynamicColumnComponent id="destinationKeySelector" label="{lang('Destination key')}"/>
+		<ui:DynamicColumnComponent id="valueSelector" label="{lang('Value')}"/>
 	</mx:VBox>
 	<mx:HBox width="100%">
 		<mx:Label text="{lang('Relation Line Width:')}" fontWeight="bold"/>
@@ -58,6 +58,9 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataTypes;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.plotters.GeometryRelationPlotter;
 			
@@ -77,12 +80,42 @@
 				linkGeometryProperties();
 			}
 			
+			private function getGeometryError():String
+			{
+				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataTypes.GEOMETRY)
+					return lang('Please select a geometry column.');
+				return '';
+			}
+			
+			private function getSourceKeyError():String
+			{
+				if (_plotter.sourceKeyColumn.getMetadata(ColumnMetadata.DATA_TYPE) !=
+					_plotter.geometryColumn.getMetadata(ColumnMetadata.KEY_TYPE))
+					return lang("The dataType of this column must equal the keyType of the geometry column.");
+				return '';
+			}
+			
+			private function getDestinationKeyError():String
+			{
+				if (_plotter.destinationKeyColumn.getMetadata(ColumnMetadata.DATA_TYPE) !=
+					_plotter.geometryColumn.getMetadata(ColumnMetadata.KEY_TYPE))
+					return lang("The dataType of this column must equal the keyType of the geometry column.");
+				return '';
+			}
+			
+			private function handleGeom():void
+			{
+				sourceKeySelector.errorStringFunction = getSourceKeyError;
+				destinationKeySelector.errorStringFunction = getDestinationKeyError;
+			}
+			
 			private function linkGeometryProperties():void
 			{
-				relationSourceComponent.dynamicObject = _plotter.sourceKeyColumn;
-				relationDestinationComponent.dynamicObject = _plotter.destinationKeyColumn;
-				relationValueComponent.dynamicObject = _plotter.valueColumn;
-				relationGeometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+				sourceKeySelector.dynamicObject = _plotter.sourceKeyColumn;
+				destinationKeySelector.dynamicObject = _plotter.destinationKeyColumn;
+				valueSelector.dynamicObject = _plotter.valueColumn;
+				geometrySelector.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+				_plotter.geometryColumn.addGroupedCallback(this, handleGeom, true);
 			}
 			
 			
@@ -91,10 +124,11 @@
 				if (!data)
 					return;
 				
-				relationSourceComponent.dynamicObject = null;
-				relationDestinationComponent.dynamicObject = null;
-				relationValueComponent.dynamicObject = null;
-				relationGeometryComponent.dynamicObject = null;
+				sourceKeySelector.dynamicObject = null;
+				destinationKeySelector.dynamicObject = null;
+				valueSelector.dynamicObject = null;
+				geometrySelector.dynamicObject = null;
+				_plotter.geometryColumn.removeCallback(handleGeom);
 			}
 			
 		]]>
