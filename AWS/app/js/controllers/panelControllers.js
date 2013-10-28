@@ -11,12 +11,14 @@ angular.module("aws.panelControllers", [])
 		queryService.queryObject['scriptSelected'] = $scope.scriptSelected;
 	});
 	
+	$scope.columns = [];
+	
 	$scope.$watch(function(){
 		return queryService.queryObject.dataTable;
 	}, function(){
 		if(queryService.queryObject.hasOwnProperty("dataTable")) {
-			if(queryService.queryObject.hasOwnProperty("id")) {
-				$scope.columns = queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id);				
+			if(queryService.queryObject.dataTable.hasOwnProperty("id")) {
+				$scope.columns = queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id);
 			}
 		}
 	});
@@ -26,7 +28,7 @@ angular.module("aws.panelControllers", [])
 			return queryService.queryObject.scriptSelected;
 	},function(){   	
 		$scope.inputs = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){			// reinitialize and apply to model
-				return result.inputs;
+			return result.inputs;
 		});
 	});
 	
@@ -55,9 +57,9 @@ angular.module("aws.panelControllers", [])
 		for(var i = 0; i < $scope.selection.length; i++) {
 			if ($scope.selection[i] != ""){
 				var column = angular.fromJson($scope.selection[i]);
-				console.log(column);
 				if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
 					var metadata = column.publicMetadata.aws_metadata;
+					console.log(metadata);
 					if (metadata.hasOwnProperty("varType")) {
 						if (metadata.varType == "continous") {
 							$scope.filterType[i] = "continuous";
@@ -111,12 +113,15 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch('selection', function() {
 		if($scope.selection != "") {
-			var metadata = angular.fromJson($scope.selection);
-			queryService.queryObject['MapTool']['geometryColumn'] = {
-																		id : metadata.id,
-																		title : metadata.publicMetadata.title,
-																		keyType : metadata.publicMetadata.keyType
-																	};
+			var metadata;
+			if ($scope.selection != "") {
+				angular.fromJson($scope.selection);
+				queryService.queryObject['MapTool']['geometryColumn'] = {
+						id : metadata.id,
+						title : metadata.publicMetadata.title,
+						keyType : metadata.publicMetadata.keyType
+				};
+			}
 		}
 	});
 	
