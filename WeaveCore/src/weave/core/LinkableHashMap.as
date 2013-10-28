@@ -283,7 +283,7 @@ package weave.core
 		 */
 	    private function createAndSaveNewObject(name:String, classDef:Class, lockObject:Boolean):void
 	    {
-	    	if (_nameIsLocked[name] != undefined)
+	    	if (_nameIsLocked[name])
 	    		return;
 
 			// remove any object currently using this name
@@ -330,7 +330,7 @@ package weave.core
 		 */
 		public function removeObject(name:String):void
 		{
-			if (_nameIsLocked[name] != undefined)
+			if (_nameIsLocked[name])
 				return;
 			
 			var object:ILinkableObject = _nameToObjectMap[name] as ILinkableObject;
