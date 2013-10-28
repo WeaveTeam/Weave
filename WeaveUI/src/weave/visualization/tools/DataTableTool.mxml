@@ -682,7 +682,8 @@
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
-					numLockedColumns.maximum = attrColumns.length - 2;
+					numLockedColumns.maximum = Math.max(0, attrColumns.length - 2);
+					numLockedColumns.enabled = numLockedColumns.maximum > 0;
 				}
 				catch (error:Error)
 				{
