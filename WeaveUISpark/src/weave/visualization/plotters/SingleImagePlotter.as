@@ -73,7 +73,7 @@ package weave.visualization.plotters
 		private var _tempPoint:Point = new Point();
 		
 		[Embed(source='/weave/resources/images/red-circle.png')]
-		private var defaultImageSource:Class;
+		private static var defaultImageSource:Class;
 		
 		/**
 		 * The URL of the image to download.
