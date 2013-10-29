@@ -570,6 +570,9 @@ public class SQLUtils
 		if (dbms.equalsIgnoreCase(ORACLE))
 			schema = schema.toUpperCase();
 		
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return quoteSymbol(dbms, table);
+		
 		return quoteSymbol(dbms, schema) + "." + quoteSymbol(dbms, table);
 	}
 	
@@ -1442,6 +1445,16 @@ public class SQLUtils
 	public static boolean isSQLServer(Connection conn)
 	{
 		return getDbmsFromConnection(conn).equals(SQLSERVER);
+	}
+	
+	/**
+	 * This function checks if a connection is for a SQLite server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a SQLite Server.
+	 */
+	public static boolean isSQLiteServer(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(SQLITE);
 	}
 	
 	private static String truncate(String str, int maxLength)
