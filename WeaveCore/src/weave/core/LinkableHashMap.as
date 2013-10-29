@@ -330,7 +330,7 @@ package weave.core
 		 */
 		public function removeObject(name:String):void
 		{
-			if (_nameIsLocked[name])
+			if (!name || _nameIsLocked[name])
 				return;
 			
 			var object:ILinkableObject = _nameToObjectMap[name] as ILinkableObject;
