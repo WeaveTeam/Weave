@@ -33,11 +33,17 @@
     	<![CDATA[
 			import mx.controls.Label;
 			import mx.core.IUIComponent;
-			import mx.core.UIComponent;
 
 			private static const _groups:Dictionary = new Dictionary(true);
 			
+			/**
+			 * This is the label component that will appear to the left of the other children of the Indent component.
+			 */
+			public const labelComponent:Label = new Label();
 			private var _useFirstChildAsLabel:Boolean = false;
+			private var _group:* = undefined;
+			private var _untranslatedLabel:String;
+			private var _translate:Boolean;
 			
 			/**
 			 * If this is set to true, the first child added to the Indent component
@@ -59,19 +65,12 @@
 				invalidateSize();
 			}
 			
-			/**
-			 * This is the label component that will appear to the left of the other children of the Indent component.
-			 */
-			public const labelComponent:Label = new Label();
 			
 			public function set labelFontWeight(value:String):void
 			{
 				labelComponent.setStyle('fontWeight', value);
 			}
 			
-			private var _group:* = undefined;
-			private var _grouped:Boolean = true;
-    	
 			/**
 			 * @inheritDoc
 			 */
@@ -88,9 +87,8 @@
 			 */
 			private function handleAddedToStage():void
 			{
-				// If there is no group set and grouped was not set to false,
-				// group this Indent componet with others having the same parent.
-				if (_grouped && parent && _group === undefined)
+				// If there is no group set, group this Indent componet with others having the same parent.
+				if (parent && _group === undefined)
 					setGroup(parent);
 			}
 			
@@ -100,8 +98,20 @@
 			 */
 			public function set grouped(value:Boolean):void
 			{
-				_grouped = value;
-				handleAddedToStage();
+				if (value)
+				{
+					if (!_group)
+					{
+						if (parent)
+							setGroup(parent);
+						else
+							_group = undefined;
+					}
+				}
+				else
+				{
+					setGroup(null);
+				}
 			}
 			
 			/**
@@ -117,12 +127,15 @@
 			 */
 			private function setGroup(newGroup:Object):void
 			{
+				var ind:Indent;
 				var array:Array;
 				// remove from existing group
 				if (_group)
 				{
 					array = _groups[_group] as Array;
 					array.splice(array.indexOf(this), 1);
+					for each (ind in array)
+						ind.invalidateSize();
 				}
 				
 				_group = newGroup;
@@ -134,9 +147,9 @@
 					if (!array)
 						_groups[_group] = array = [];
 					array.push(this);
+					for each (ind in array)
+						ind.invalidateSize();
 				}
-				
-				invalidateSize();
 			}
 			
 			/**
@@ -181,7 +194,7 @@
 				group = null; // remove from group
 				IUIComponent(numChildren > 0 ? getChildAt(0) : labelComponent).width = value;
 			}
-    		
+			
 			/**
 			 * This is the label that will appear to the left of the other children of the Indent component.
 			 */
@@ -191,8 +204,24 @@
 			}
     		override public function set label(value:String):void
 			{
-				labelComponent.text = value;
-				super.label = value;
+				_untranslatedLabel = value;
+				super.label = labelComponent.text = _translate ? lang(value) : value;
+			}
+			
+			/**
+			 * Set this to true to automatically call lang() on the label property.
+			 */
+			public function get translate():Boolean
+			{
+				return _translate;
+			}
+			public function set translate(value:Boolean):void
+			{
+				if (_translate != value)
+				{
+					_translate = value;
+					label = _untranslatedLabel;
+				}
 			}
     	]]>
     </mx:Script>
