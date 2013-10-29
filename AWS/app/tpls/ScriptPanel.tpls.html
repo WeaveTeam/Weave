@@ -16,7 +16,10 @@
 			</select>
 			<div ng-show='$parent.show[$index]'>
                  <div ui-slider="$parent.sliderOptions[$index]" ng-show='$parent.filterType[$index] == continuous && $parent.show[$index]' ng-model="$parent.filterValues[$index]"/>
-                 <select ui-select2 multiple ng-show='$parent.filterType[$index] == categorical && $parent.show[$index]' ng-model="$parent.filterValues[$index]"/>
+                 <select ui-select2 multiple ng-show='$parent.filterType[$index] == categorical && $parent.show[$index]' ng-model="$parent.filterValues[$index]">
+					<option></option>
+					<option value="{{cat}}" ng-repeat="cat in $parent.categoricalOptions"> {{cat}}</option>
+                 </select>
             </div>
 		</div>
 </div>

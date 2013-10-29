@@ -58,7 +58,7 @@ angular.module("aws.panelControllers", [])
 			if ($scope.selection[i] != ""){
 				var column = angular.fromJson($scope.selection[i]);
 				if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
-					var metadata = column.publicMetadata.aws_metadata;
+					var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 					console.log(metadata);
 					if (metadata.hasOwnProperty("varType")) {
 						if (metadata.varType == "continous") {
@@ -72,6 +72,7 @@ angular.module("aws.panelControllers", [])
 							if(metadata.hasOwnProperty("varValues")) {
 								$scope.show[i] = true;
 								$scope.categoricalOptions[i] = metadata.varValues;
+								console.log($scope.categoricalOptions);
 							}
 						}
 					}
@@ -113,15 +114,12 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch('selection', function() {
 		if($scope.selection != "") {
-			var metadata;
-			if ($scope.selection != "") {
-				angular.fromJson($scope.selection);
+			var metadata = angular.fromJson($scope.selection);
 				queryService.queryObject['MapTool']['geometryColumn'] = {
 						id : metadata.id,
 						title : metadata.publicMetadata.title,
 						keyType : metadata.publicMetadata.keyType
 				};
-			}
 		}
 	});
 	
