@@ -5,7 +5,7 @@
 	<ui:DynamicColumnComponent id="sourceKeySelector" label="{lang('Source key')}"/>
 	<ui:DynamicColumnComponent id="destinationKeySelector" label="{lang('Destination key')}"/>
 	<ui:DynamicColumnComponent id="valueSelector" label="{lang('Value')}"/>
-	<ui:Indent label="{lang('Relation Line Width:')}">
+	<ui:Indent label="{lang('Relation Line Width')}">
 		<mx:HSlider id="lineWidthSlider"
 					width="100%"
 					alpha="1.0"
@@ -15,18 +15,18 @@
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.lineWidth, event.target, 'value')"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Positive Value Color:')}">
+	<ui:Indent label="{lang('Positive Value Color')}">
 		<ui:CustomColorPicker id="pos_ColorPicker"
 						creationComplete="linkBindableProperty(_plotter.posLineColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Negative Value Color:')}">
+	<ui:Indent label="{lang('Negative Value Color')}">
 		<ui:CustomColorPicker id="neg_ColorPicker"
 						creationComplete="linkBindableProperty(_plotter.negLineColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	<ui:CheckBoxWithNestedOptions id="showValueCheckBox"
 								  label="{lang('Display value in the middle of the line')}"
 								  creationComplete="linkBindableProperty(_plotter.showValue, event.target, 'selected')">
-		<ui:Indent label="{lang('Label Text Size:')}">
+		<ui:Indent label="{lang('Label Text Size')}">
 			<mx:HSlider id="labelSizeSlider"
 						width="100%"
 						alpha="1.0"
@@ -36,7 +36,7 @@
 						liveDragging="true" mouseDown="event.stopPropagation()"
 						creationComplete="linkBindableProperty(_plotter.fontSize,event.target,'value')"/>
 		</ui:Indent>
-		<ui:Indent label="{lang('Label Text Color:')}">
+		<ui:Indent label="{lang('Label Text Color')}">
 			<ui:CustomColorPicker id="colorPicker"
 							creationComplete="linkBindableProperty(_plotter.fontColor, event.target, 'selectedColor')"/>
 		</ui:Indent>
