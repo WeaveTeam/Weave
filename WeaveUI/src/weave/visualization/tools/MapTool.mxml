@@ -378,7 +378,7 @@
 						_tempBounds.getWidth() * panPercent * xPan,
 						_tempBounds.getHeight() * panPercent * yPan
 					);
-				visualization.plotManager.setCheckedZoomDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private var _tempBounds:Bounds2D = new Bounds2D();
