@@ -52,6 +52,8 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import avmplus.getQualifiedClassName;
+			
 			import mx.collections.ICollectionView;
 			import mx.controls.DataGrid;
 			import mx.controls.List;
@@ -59,6 +61,7 @@
 			
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -81,7 +84,7 @@
 			{
 				super.createChildren();
 				showVariableNames = showVariableNames;
-				controller.labelFunction = ColumnUtils.getColumnListLabel;
+				controller.labelFunction = getItemLabel;
 				getCallbackCollection(controller).addGroupedCallback(this, function():void {
 					reverseButton.buttonMode = reverseButton.enabled = (
 						controller.view
@@ -90,6 +93,13 @@
 					);
 					reverseButton.alpha = reverseButton.enabled ? .8 : 0.25;
 				}, true);
+			}
+			
+			private function getItemLabel(item:*):String
+			{
+				return item is IAttributeColumn
+					? ColumnUtils.getColumnListLabel(item)
+					: getQualifiedClassName(item).split('::').pop();
 			}
 			
 			[Bindable] private var _internalList:ListBase;
