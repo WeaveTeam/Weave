@@ -23,7 +23,7 @@
 		xmlns="weave.ui.*"
 		creationPolicy="all"
 		horizontalGap="4" verticalAlign="middle" implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
+	<CustomColorPicker id="colorPicker"/>
 	<FontFamilyCombo id="fontFamilyCombo" width="150" embeddedFontsOnly="{embeddedFontsOnly}" change="handleFontChange()"/>
 	<CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
 					   textDecoration="none"

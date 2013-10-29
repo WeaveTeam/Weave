@@ -56,7 +56,7 @@
 					<mx:itemRenderer>
 						<mx:Component>
 							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" initialize="UIUtils.pad(event, 5);">
-								<mx:ColorPicker id="cPicker" showTextField="true"/>
+								<ui:CustomColorPicker id="cPicker" showTextField="true"/>
 								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
 										   click="outerDocument.removeColorItem();"/>

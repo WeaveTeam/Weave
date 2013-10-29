@@ -1044,8 +1044,8 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			<ui:Indent label="{lang('Background colors')}">
-				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
-				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
 				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 			<mx:HBox verticalAlign="top" width="100%" height="100%">

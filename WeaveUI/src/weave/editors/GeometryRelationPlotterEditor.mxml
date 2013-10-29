@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry Relations')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
-	<mx:VBox width="100%">
-		<ui:DynamicColumnComponent id="geometrySelector" label="{lang('Geometry')}" errorStringFunction="{getGeometryError}"/>
-		<ui:DynamicColumnComponent id="sourceKeySelector" label="{lang('Source key')}"/>
-		<ui:DynamicColumnComponent id="destinationKeySelector" label="{lang('Destination key')}"/>
-		<ui:DynamicColumnComponent id="valueSelector" label="{lang('Value')}"/>
-	</mx:VBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Relation Line Width:')}" fontWeight="bold"/>
+	<ui:DynamicColumnComponent id="geometrySelector" label="{lang('Geometry')}" errorStringFunction="{getGeometryError}"/>
+	<ui:DynamicColumnComponent id="sourceKeySelector" label="{lang('Source key')}"/>
+	<ui:DynamicColumnComponent id="destinationKeySelector" label="{lang('Destination key')}"/>
+	<ui:DynamicColumnComponent id="valueSelector" label="{lang('Value')}"/>
+	<ui:Indent label="{lang('Relation Line Width:')}">
 		<mx:HSlider id="lineWidthSlider"
 					width="100%"
 					alpha="1.0"
@@ -17,50 +14,39 @@
 					minimum="5" maximum="10"
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.lineWidth, event.target, 'value')"/>
-	</mx:HBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Positive Value Color:')}" fontWeight="bold"/>
-		<mx:ColorPicker id="pos_ColorPicker" width="22" height="22"
-						creationComplete="linkBindableProperty(_plotter.posLineColor, event.target, 'selectedColor')"/>
-	</mx:HBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Negative Value Color:')}" fontWeight="bold"/>
-		<mx:ColorPicker id="neg_ColorPicker" width="22" height="22"
-						creationComplete="linkBindableProperty(_plotter.negLineColor, event.target, 'selectedColor')"/>
-	</mx:HBox>
-	
-	<mx:CheckBox id="showValueCheckBox" label="{lang('Display value in the middle of the line')}"
-				 creationComplete="linkBindableProperty(_plotter.showValue, event.target, 'selected')"
-				 fontWeight="bold"/>
-	<ui:Indent>
-		<mx:VBox width="100%">
-			<mx:HBox width="100%">
-				<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
-				<mx:HSlider id="labelSizeSlider"
-							width="100%"
-							alpha="1.0"
-							snapInterval="1"
-							tickInterval="2" labels="{['6','8','10','12','14','16','18','20']}"
-							minimum="6" maximum="20" 
-							liveDragging="true" mouseDown="event.stopPropagation()"
-							creationComplete="linkBindableProperty(_plotter.fontSize,event.target,'value')"
-							enabled="{showValueCheckBox.selected}"/>
-			</mx:HBox>
-			<mx:HBox width="100%">
-				<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
-				<mx:ColorPicker id="colorPicker" width="22" height="22"
-								creationComplete="linkBindableProperty(_plotter.fontColor, event.target, 'selectedColor')"
-								enabled="{showValueCheckBox.selected}"/>
-			</mx:HBox>			
-		</mx:VBox>
 	</ui:Indent>
+	<ui:Indent label="{lang('Positive Value Color:')}">
+		<ui:CustomColorPicker id="pos_ColorPicker"
+						creationComplete="linkBindableProperty(_plotter.posLineColor, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Negative Value Color:')}">
+		<ui:CustomColorPicker id="neg_ColorPicker"
+						creationComplete="linkBindableProperty(_plotter.negLineColor, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:CheckBoxWithNestedOptions id="showValueCheckBox"
+								  label="{lang('Display value in the middle of the line')}"
+								  creationComplete="linkBindableProperty(_plotter.showValue, event.target, 'selected')">
+		<ui:Indent label="{lang('Label Text Size:')}">
+			<mx:HSlider id="labelSizeSlider"
+						width="100%"
+						alpha="1.0"
+						snapInterval="1"
+						tickInterval="2" labels="{['6','8','10','12','14','16','18','20']}"
+						minimum="6" maximum="20"
+						liveDragging="true" mouseDown="event.stopPropagation()"
+						creationComplete="linkBindableProperty(_plotter.fontSize,event.target,'value')"/>
+		</ui:Indent>
+		<ui:Indent label="{lang('Label Text Color:')}">
+			<ui:CustomColorPicker id="colorPicker"
+							creationComplete="linkBindableProperty(_plotter.fontColor, event.target, 'selectedColor')"/>
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
 		
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.DataTypes;
-			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.plotters.GeometryRelationPlotter;
 			

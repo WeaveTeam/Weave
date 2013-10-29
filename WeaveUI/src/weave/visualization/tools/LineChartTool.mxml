@@ -552,7 +552,7 @@
 						shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_SQUARE ||
 						shapeBorderSizeSlider.value == 0) }">
 					<mx:Label text="{lang('Shape border color:')}" color="0x000000" fontSize="{controlsFontSize}"/>
-					<mx:ColorPicker id="shapeBorderColorPicker"
+					<ui:CustomColorPicker id="shapeBorderColorPicker"
 									toolTip="{lang('This controls color of the border around the shape at each point.')}"/>
 				</mx:HBox>
 				
@@ -596,7 +596,7 @@
 							minimum="5" maximum="20" 
 							liveDragging="true"/>
 				<mx:Label text="{lang('Color:')}"/>
-				<mx:ColorPicker id="colorPicker" width="22" height="22"/>
+				<ui:CustomColorPicker id="colorPicker"/>
 			</mx:HBox>
 
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to Subset')}" 

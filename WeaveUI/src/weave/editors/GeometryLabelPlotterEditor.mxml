@@ -4,12 +4,9 @@
 		 xmlns="weave.editors.*"
 		 label="{lang('Geometry labels')}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:VBox width="100%">
-		<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
-		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/> 
-	</mx:VBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
+	<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
+	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/>
+	<ui:Indent label="{lang('Label Text Size:')}">
 		<mx:HSlider id="labelSizeSlider"
 					width="100%"
 					alpha="1.0"
@@ -18,12 +15,11 @@
 					minimum="6" maximum="20" 
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.size.defaultValue,event.target,'value')"/>
-	</mx:HBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
-		<mx:ColorPicker id="colorPicker" width="22" height="22"
+	</ui:Indent>
+	<ui:Indent label="{lang('Label Text Color:')}">
+		<ui:CustomColorPicker id="colorPicker"
 						creationComplete="linkBindableProperty(_plotter.color.defaultValue, event.target, 'selectedColor')"/>
-	</mx:HBox>
+	</ui:Indent>
 	
 	<mx:Script>
 		<![CDATA[

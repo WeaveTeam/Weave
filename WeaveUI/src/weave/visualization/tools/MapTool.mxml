@@ -52,6 +52,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+			import weave.editors.SimpleAxisEditor;
 			import weave.editors.WindowSettingsEditor;
 			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
@@ -221,6 +222,7 @@
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
 				
 				WindowSettingsEditor; // work around compiler error
+				SimpleAxisEditor;
 				windowEditor.addEventListener(FlexEvent.INITIALIZE, function(e:*):void {
 					windowEditor.addChild(backgroundImageCheck);
 					windowEditor.removeChild(windowEditor.titleControls);

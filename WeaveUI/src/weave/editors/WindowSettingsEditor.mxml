@@ -59,13 +59,13 @@
 	</mx:HBox>
 
 	<ui:Indent label="{lang('Background color:')}">
-		<mx:ColorPicker toolTip="{lang('Select a color for the background of this visualization tool.')}" 
+		<ui:CustomColorPicker toolTip="{lang('Select a color for the background of this visualization tool.')}" 
 						id="backgroundColorPicker"
 						change="backgroundColorPicked();"/>
 		<mx:Button label="{lang('Reset')}" click="_panel.panelBackgroundColor.value = NaN;"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Border color:')}">
-		<mx:ColorPicker id="borderColorPicker"
+		<ui:CustomColorPicker id="borderColorPicker"
 						toolTip="{lang('Select a color for the border of this visualization - this will have no effect if the border is not enabled')}"
 						change="borderColorPicked();"/>
 		<mx:Button label="{lang('Reset')}" click="_panel.panelBorderColor.value = NaN;"/>

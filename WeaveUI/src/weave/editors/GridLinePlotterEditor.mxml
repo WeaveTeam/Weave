@@ -53,7 +53,7 @@ Editor for custom layers using GridLinePlotters
 						   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, event.target, 'value')"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Color')}">
-		<mx:ColorPicker toolTip="{lang('Select a color for the grid lines of this visualization')}" id="gridColorPicker" 
+		<ui:CustomColorPicker toolTip="{lang('Select a color for the grid lines of this visualization')}" id="gridColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Opacity')}">

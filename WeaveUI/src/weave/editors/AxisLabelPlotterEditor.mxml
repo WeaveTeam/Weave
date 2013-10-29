@@ -52,7 +52,7 @@ Editor for custom layers using AxisLabelPlotters
 	<mx:Spacer/>
 	
 	<ui:Indent label="{lang('Color')}">
-		<mx:ColorPicker toolTip="{lang('Select a font color')}" id="labelColorPicker" 
+		<ui:CustomColorPicker toolTip="{lang('Select a font color')}" id="labelColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.color, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Label alignment')}" verticalAlign="top">

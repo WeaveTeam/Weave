@@ -19,8 +19,6 @@
 
 package weave.visualization.plotters
 {
-	import flash.sampler.getLexicalScopes;
-	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -32,7 +30,6 @@ package weave.visualization.plotters
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.KeySets.SortedKeySet;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 

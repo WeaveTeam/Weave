@@ -30,23 +30,18 @@
 		verticalAlign="middle" implements="weave.api.core.ILinkableObject"
 		>
 	<mx:HBox horizontalGap="4" width="100%">
-		<mx:Label id="listOverlay"
-				  width="{internalList.width}"
-				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
-				  text="{lang('Double-click to select, or drag &amp; drop here')}"
-				  visible="{isEmpty(internalList.dataProvider)}">
-			<mx:creationComplete>
-				<![CDATA[
-					internalList.addChild(listOverlay);
-				]]>
-			</mx:creationComplete>
-		</mx:Label>
 		<mx:List id="internalList"
 				 rollOut="if (!event.buttonDown) internalList.selectedItem = null"
 				 variableRowHeight="false"
 				 doubleClickEnabled="true"
 				 doubleClick="openAttributeSelector()"
 			 	 width="100%" rowCount="1" height="24"/>
+		<mx:Label id="listOverlay"
+				  width="{internalList.width}"
+				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
+				  text="{lang('Double-click to select, or drag &amp; drop here')}"
+				  creationComplete="internalList.addChild(listOverlay);"
+				  visible="{isEmpty(internalList.dataProvider)}"/>
 		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
 			       toolTip="{lang('Select an attribute column')}"
 				   click="openAttributeSelector()"/>

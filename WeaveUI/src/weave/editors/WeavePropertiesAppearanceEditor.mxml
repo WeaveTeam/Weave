@@ -52,7 +52,7 @@
 		</ui:HelpComponent>
 	</ui:Indent>
 	<ui:Indent label="{lang('Background color:')}" group="{fontIndent}">
-		<mx:ColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
+		<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	<mx:CheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
 				 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
