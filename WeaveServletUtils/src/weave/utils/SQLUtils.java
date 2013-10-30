@@ -407,11 +407,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
-		else if( dbms.equalsIgnoreCase(SQLITE) )
-		{
-			openQuote = closeQuote = "'";
-		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = "\"";
 		}
