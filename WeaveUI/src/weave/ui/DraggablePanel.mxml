@@ -160,7 +160,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _titleBarButtonBackgroundColor:uint = 0xD0D0D0;
 			private var _titleBarButtonSelectedColor:uint   = 0xFFFF80;
 			private var minimizedComponentVersion:MinimizedComponent = null;
-			protected const subMenu:SubMenu = new SubMenu(subMenuButton);
+			public const subMenu:SubMenu = new SubMenu(subMenuButton);
 			protected const zOrderSubMenu:SubMenu = new SubMenu(zOrderButton);
 			
 			public function get controlPanel():ControlPanel { return _controlPanel; }
@@ -268,7 +268,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				if (_controlPanel)
+				{
 					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
+					_controlPanel.enableSubMenu.value = true;
+					_controlPanel.subMenu.addSubMenuItem(lang('Edit session state'), SessionStateEditor.openDefaultEditor, [this]);
+				}
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
 				_moveImage.source = icon;

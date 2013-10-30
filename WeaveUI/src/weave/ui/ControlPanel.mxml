@@ -395,7 +395,7 @@
 					controlPanel.title = getControlPanelTitle(linkableObject);
 					
 					controlPanel.enableSubMenu.value = true;
-					controlPanel.subMenu.addSubMenuItem(lang('Open session editor'), SessionStateEditor.openDefaultEditor, [linkableObject]);
+					controlPanel.subMenu.addSubMenuItem(lang('Edit session state'), SessionStateEditor.openDefaultEditor, [linkableObject]);
 				}
 				
 				editorPanels[linkableObject] = controlPanel;
