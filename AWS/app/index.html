@@ -35,11 +35,11 @@
 
 
 			<div id="center">
-<!-- 				<div> -->
-<!-- 					<button class="btn btn-primary" value="run" ng-click="runQ()">Run </button> -->
-<!-- 					<button class="btn btn-primary" value="clearCache" ng-click="clearCache()">Clear Cache</button> -->
-<!-- 				</div>	 -->
 				<div id="analysis" ng-include src="analysisUrl"></div>
+				<div ng-controller="RunQueryCtrl" style="display: inline-block; float: right;">
+					<button ng-click="runQuery()" class="btn btn-primary">Run</button>
+					<button ng-click="clearWeave()" class="btn btn-primary">Clear</button>
+				</div>
 				<div id="weavePanel" ng-include src="weaveInstancePanel"></div>
 				<div id="Log">
 					<h4>Log Box for errors and timing</h4>
@@ -79,6 +79,7 @@
 	<script src='js/controllers/viewControllers.js'></script>
 	<script src='js/controllers/panelControllers.js'></script>
 	<script src='js/controllers/QueryImportExportCtrl.js'></script>
+	<script src='js/controllers/RunQueryCtrl.js'></script>
 	<script src='../aws/aws.js'></script>
 	
 </body>

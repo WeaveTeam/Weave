@@ -32,28 +32,28 @@ aws.EntityHierarchyInfo;
  */
 aws.Visualization;
 
-/** @typedef {{
- * 	  date: string, 
- *    author : string,
- *    conn : {sqldbname : string,
- *    		  scriptLocation : string,
- *    		  sqluser : string,
- *    		  sqlpass : string,
- *    		  serverType : string,
- *    	 	  sqlip : string,
- *    		  sqlport : string},
- *    		 
- *    scriptOptions : Array,
- *    scriptSelected : string,
- *    selectedVisualization : aws.Visualization,
- *    colorColumn : string,
- *    scriptType : string,
- *    maptool : Object,
- *    barchart : Object,
- *    datatable : Object
- *  }}
- * */
-aws.queryObject;
+///** @typedef {{
+// * 	  date: string, 
+// *    author : string,
+// *    conn : {sqldbname : string,
+// *    		  scriptLocation : string,
+// *    		  sqluser : string,
+// *    		  sqlpass : string,
+// *    		  serverType : string,
+// *    	 	  sqlip : string,
+// *    		  sqlport : string},
+// *    		 
+// *    scriptOptions : Array,
+// *    scriptSelected : string,
+// *    selectedVisualization : aws.Visualization,
+// *    colorColumn : string,
+// *    scriptType : string,
+// *    maptool : Object,
+// *    barchart : Object,
+// *    datatable : Object
+// *  }}
+// * */
+//aws.queryObject;
 /**
  * @typedef {{
  * 	id: number,
@@ -65,13 +65,11 @@ aws.DataEntity;
 
 /**
  * @typedef{{
- * 				
- * 		columnsToBeRetrieved : Array.<string>,
- *		scriptPath : string,
+ *
  *		scriptName : string,
- * 		filteredColumnRequest : {
+ * 		FilteredRequest : {
  * 			id: number,
- * 			filter: (Array.<string> | Array.<Array.<number>>)
+ * 			filters: (Array.<string> | Array.<Array.<number>>)
  * 		}
  * }}
  */

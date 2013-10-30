@@ -17,8 +17,8 @@
 				</select>
 				<div ng-show='$parent.show[$index]'>
 	                 <input type="checkbox" ng-model="$parent.enabled[$index]"/> filter
-	                 <div ui-slider="$parent.sliderOptions[$index]" ng-if='!$parent.filterType[$index] && $parent.show[$index] && $parent.enabled[$index]' ng-model="$parent.filterValues[$index]"/>
-	                 <select ui-select2 multiple ng-if='$parent.filterType[$index] && $parent.show[$index] && $parent.enabled[$index]' ng-model="$parent.filterValues[$index]" data-placeholder="Choose Filter(s)">
+	                 <div ui-slider="$parent.sliderOptions[$index]" ng-if="($parent.filterType[$index] == 'continuous') && $parent.show[$index] && $parent.enabled[$index]" ng-model="$parent.filterValues[$index]"/>
+	                 <select ui-select2 multiple ng-if="($parent.filterType[$index] == 'categorical') && $parent.show[$index] && $parent.enabled[$index]" ng-model="$parent.filterValues[$index]" data-placeholder="Choose Filter(s)">
 						<option value="{{cat}}" ng-repeat="cat in $parent.categoricalOptions[$index]"> {{cat.label}}</option>
 	                 </select>
 	            </div>

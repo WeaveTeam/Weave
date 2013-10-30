@@ -49,6 +49,7 @@ angular.module("aws.panelControllers", [])
 		$scope.sliderOptions = [];
 		$scope.categoricalOptions = [];
 		$scope.filterValues = [];
+		$scope.enabled = [];
 	});
 	
 	$scope.columns = [];
@@ -92,31 +93,32 @@ angular.module("aws.panelControllers", [])
 			$scope.sliderOptions = [];
 			$scope.categoricalOptions = [];
 			$scope.filterValues = [];
+			$scope.enabled = [];
 	}, true);
 		
 	$scope.$watch('selection', function(){
-		queryService.queryObject['ColumnFilterRequest'] = [];
+		queryService.queryObject['FilteredColumnRequest'] = [];
 		for(var i = 0; i < $scope.selection.length; i++) {
-			queryService.queryObject['ColumnFilterRequest'][i] = {};
+			queryService.queryObject['FilteredColumnRequest'][i] = {};
 			if($scope.selection != undefined) {
 				if ($scope.selection[i] != ""){
 					var selection = angular.fromJson($scope.selection[i]);
-					queryService.queryObject['ColumnFilterRequest'][i] = {
+					queryService.queryObject['FilteredColumnRequest'][i] = {
 																			id : selection.id,
-																			title : selection.publicMetadata.title
+																			filters : null
 																		};
 					var column = angular.fromJson($scope.selection[i]);
 					if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
 						var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 						if (metadata.hasOwnProperty("varType")) {
 							if (metadata.varType == "continuous") {
-								$scope.filterType[i] = false; // false for continuous, true for categorical
+								$scope.filterType[i] = "continuous"; // false for continuous, true for categorical
 								if(metadata.hasOwnProperty("varRange")) {
 									$scope.show[i] = true;
 									$scope.sliderOptions[i] = { range:true, min: metadata.varRange[0], max: metadata.varRange[1]};
 								}
 							} else if (metadata.varType == "categorical") {
-								$scope.filterType[i] = true; // false for continuous, true for categorical
+								$scope.filterType[i] = "categorical"; // false for continuous, true for categorical
 								if(metadata.hasOwnProperty("varValues")) {
 									$scope.show[i] = true;
 									$scope.categoricalOptions[i] = metadata.varValues;
@@ -143,7 +145,7 @@ angular.module("aws.panelControllers", [])
 								return angular.fromJson(item);
 							}
 						});
-						queryService.queryObject.ColumnFilterRequest[i].filters = temp;
+						queryService.queryObject.FilteredColumnRequest[i].filters = temp;
 					}
 				}
 			}
@@ -162,14 +164,18 @@ angular.module("aws.panelControllers", [])
 							return angular.fromJson(item);
 						}					
 					});
-					queryService.queryObject.ColumnFilterRequest[i].filters = temp;
+					queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+				} else {
+					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("id")) {
+						queryService.queryObject.FilteredColumnRequest[i].filters = null;
+					}
 				}
 			}
 		}
 	}, true);
 	$scope.$watch('enabled', function(){
 		for(var i = 0; i < $scope.selection.length; i++) {
-			if(($scope.enabled != undefined) && $scope.enabled != "") {
+			if(($scope.enabled != undefined) && $scope.enabled != []) {
 				if($scope.enabled[i] != undefined && $scope.enabled == true) {
 					var temp = $.map($scope.filterValues[i],function(item){
 						if (angular.fromJson(item).hasOwnProperty("value")) {
@@ -179,26 +185,17 @@ angular.module("aws.panelControllers", [])
 							return angular.fromJson(item);
 						}					
 					});
-					queryService.queryObject.ColumnFilterRequest[i].filters = temp;
-				} else {
-					delete $scope.filterValues[i];
-					delete queryService.queryObject.ColumnFilterRequest[i].filters;
-				}
-			}
+					queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+				} else if($scope.enabled[i] == undefined || $scope.enabled[i] == false) {
+						if(queryService.queryObject.FilteredColumnRequest[i]) {
+							if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("id")) {
+								$scope.filterValues[i] = null;
+							}
+						}
+				 }
+			} 
 		}
 	}, true);
-})
-.controller("RunQueryCtrl", function($scope, queryService){
-//	$scope.runQuery = function(){
-//		var queryHandler = new aws.QueryHandler(queryService.queryObject);
-//		queryHandler.runQuery();
-//		// alert("Running Query");
-//	};
-//	
-//	$scope.clearCache = function(){
-//		aws.RClient.clearCache();
-//		alert("Cache cleared");
-//	};
 })
 .controller("MapToolPanelCtrl", function($scope, queryService){
 	
@@ -232,7 +229,7 @@ angular.module("aws.panelControllers", [])
 			if(metadata != "" && metadata != undefined) {
 				if ($scope.enabled) {	
 					queryService.queryObject['MapTool'] = {
-							id : metadata.id,
+							weaveEntityId : metadata.id,
 							title : metadata.publicMetadata.title,
 							keyType : metadata.publicMetadata.keyType
 					};

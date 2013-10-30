@@ -27,18 +27,18 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	var parameters = visualization["parameters"];
 	var toolName;
 	switch(visualization.type) {
-		case 'maptool':
+		case 'MapTool':
 			toolName = this.newMap(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
 			this.setPosition(toolName, "0%", "0%");
 			break;
-		case 'scatterplot':
+		case 'ScatterPlotTool':
 			toolName = this.newScatterPlot(parameters["xColumnName"], parameters["yColumnName"], dataSourceName);
 			break;
-		case 'datatable':
+		case 'DataTable':
 			toolName = this.newDatatable(parameters, dataSourceName);
 			this.setPosition(toolName, "50%", "0%");
 			break;
-		case 'barchart' :
+		case 'BarChartTool' :
 			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["height"], dataSourceName);
 			this.setPosition(toolName, "0%", "50%");
 			break;
@@ -283,7 +283,7 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
  *in this case everything except 'WeaveDataSource' will be removed
  * @return void
  */
-aws.WeaveClient.prototype.clearCurrentVizs = function(){
+aws.WeaveClient.prototype.clearWeave = function(){
 	
 	this.weave.path().state(['WeaveDataSource']);
 };
