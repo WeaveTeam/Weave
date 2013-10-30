@@ -117,7 +117,7 @@
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<CenteredImage id="reverseButton" buttonMode="true" source="@Embed(source='/weave/resources/images/reverse-order.png')"
-							   width="22" height="22"
+							   width="22" height="22" alpha="0.8"
 							   toolTip="{lang('Reverse the order of the colors.')}"
 							   click="colorRamp.reverse();"/>
 				<mx:Spacer width="100%"/>
