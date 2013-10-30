@@ -392,8 +392,8 @@ package weave.visualization.layers
 		{
 			// instead of calling zoomBounds.setDataBounds() directly, we use setZoomLevel() because it's easier to constrain between min and max zoom.
 			
-			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 			zoomBounds.getScreenBounds(tempScreenBounds);
+			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 			var newZoomLevel:Number = StandardLib.roundSignificant(
 				StandardLib.constrain(
 					ZoomUtils.getZoomLevel(dataBounds, tempScreenBounds, fullDataBounds, minSize),
@@ -411,7 +411,10 @@ package weave.visualization.layers
 			
 			setZoomLevel(newZoomLevel);
 			zoomBounds.getDataBounds(tempDataBounds);
-			tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
+			if (tempDataBounds.isUndefined())
+				tempDataBounds.copyFrom(dataBounds);
+			else
+				tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
 			zoomBounds.setDataBounds(tempDataBounds);
 			
 			cc.resumeCallbacks();
