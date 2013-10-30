@@ -36,10 +36,11 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableWatcher;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -81,6 +82,15 @@ package weave.visualization.plotters
 		{
 			return dynamicColorColumn.getInternalColumn() as ColorColumn;
 		}
+		
+		/**
+		 * This is the type of shape to be drawn for each legend item.
+		 */		
+		public const shapeType:LinkableString = registerLinkableChild(this, new LinkableString(SHAPE_TYPE_CIRCLE, verifyShapeType));
+		public static const SHAPE_TYPE_CIRCLE:String = 'circle';
+		public static const SHAPE_TYPE_SQUARE:String = 'square';
+		public static const ENUM_SHAPE_TYPE:Array = [SHAPE_TYPE_CIRCLE, SHAPE_TYPE_SQUARE];
+		private function verifyShapeType(value:String):Boolean { return ENUM_SHAPE_TYPE.indexOf(value) >= 0; }
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -223,7 +233,7 @@ package weave.visualization.plotters
 			
 			var margin:int = 4;
 			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
-			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
+			var actualShapeSize:Number = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
@@ -257,9 +267,22 @@ package weave.visualization.plotters
 				var yMin:Number = tempBounds.getYNumericMin();
 				var xMax:Number = tempBounds.getXNumericMax(); 
 				var yMax:Number = tempBounds.getYNumericMax();
-				if (color <= Infinity) // alternative is !isNaN()
+				if (isFinite(color))
 					g.beginFill(color, 1.0);
-				g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
+				switch (shapeType.value)
+				{
+					case SHAPE_TYPE_CIRCLE:
+						g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
+						break;
+					case SHAPE_TYPE_SQUARE:
+						g.drawRect(
+							circleCenterOffset + xMin - actualShapeSize / 2,
+							(yMin + yMax - actualShapeSize) / 2,
+							actualShapeSize,
+							actualShapeSize
+						);
+						break;
+				}
 			}
 			destination.draw(tempShape);
 		}

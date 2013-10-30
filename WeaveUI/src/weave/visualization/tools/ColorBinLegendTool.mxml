@@ -219,10 +219,14 @@
 						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:LegendControls id="legendControls"/>
-			<mx:HBox>
-				<mx:Label text="{lang('Max bubble size')}"/>
-				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
-			</mx:HBox>
+			<ui:Indent label="{lang('Shape type')}">
+				<ui:CustomComboBox dataProvider="{ColorBinLegendPlotter.ENUM_SHAPE_TYPE}" labelFunction="lang"
+								   creationComplete="linkBindableProperty(_plotter.shapeType, event.target, 'selectedItem')"/>
+			</ui:Indent>
+			<ui:Indent label="{lang('Max shape size')}">
+				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5"
+							creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
+			</ui:Indent>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>
