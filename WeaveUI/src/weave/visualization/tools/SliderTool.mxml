@@ -19,16 +19,16 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<SimpleVisTool
+<ui:DraggablePanel
 	xmlns="weave.visualization.tools.*" 
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns:ui="weave.ui.*"
 	xmlns:settings="weave.ui.settings.*"
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
-	width="400" 
 	title="{lang('Slider Tool')"
-	height="40">
+	implements="weave.api.ui.IVisTool" xmlns:editors="weave.editors.*"
+	>
 	<mx:ViewStack id="viewStack" width="100%" height="100%" selectedIndex="{layoutCombo.selectedIndex}" minHeight="0">
 		<mx:HBox width="100%" label="{lang('Horizontal slider')}" minWidth="50">
 			<mx:VBox horizontalAlign="center" paddingTop="4">
@@ -523,8 +523,9 @@
 				</ui:Indent>
 			</mx:VBox>
 		</mx:VBox>
+		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>
 
-</SimpleVisTool>
+</ui:DraggablePanel>
 
 
