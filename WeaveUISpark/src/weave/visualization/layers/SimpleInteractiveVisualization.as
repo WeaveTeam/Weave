@@ -28,16 +28,16 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -126,6 +126,10 @@ package weave.visualization.layers
 		 */		
 		public function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
+			getCallbackCollection(plotManager).delayCallbacks();
+			getCallbackCollection(plotManager.layerSettings).delayCallbacks();
+			getCallbackCollection(plotManager.plotters).delayCallbacks();
+			
 			if (mainPlotterClass && !getMainPlotter())
 			{
 				plotManager.plotters.requestObject(MAIN_PLOT_LAYER_NAME, mainPlotterClass, true);
@@ -158,6 +162,10 @@ package weave.visualization.layers
 				getCallbackCollection(plotManager.zoomBounds).triggerCallbacks();
 			}
 			putAxesOnBottom();
+			
+			getCallbackCollection(plotManager.plotters).resumeCallbacks();
+			getCallbackCollection(plotManager.layerSettings).resumeCallbacks();
+			getCallbackCollection(plotManager).resumeCallbacks();
 			return getMainPlotter();
 		}
 		
