@@ -53,12 +53,12 @@
 						 dropEnabled="true"
 						 dragMoveEnabled="true"
 						 dragComplete="updateNewColorScale()"
-						 >
+						 initialize="UIUtils.pad(event, 2);">
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off">
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" width="100%">
 								<ui:CustomColorPicker id="cPicker" showTextField="true"/>
-								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
+								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="100%"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
 										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
@@ -115,7 +115,7 @@
 					</mx:itemRenderer>
 				</mx:List>
 			</mx:HBox>
-			<mx:HBox>
+			<mx:HBox width="100%">
 				<CenteredImage id="reverseButton" buttonMode="true" source="@Embed(source='/weave/resources/images/reverse-order.png')"
 							   width="22" height="22"
 							   toolTip="{lang('Reverse the order of the colors.')}"
@@ -127,6 +127,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.core.UIUtils;
 			import weave.utils.AsyncSort;
 			import mx.events.DragEvent;
 			import mx.collections.ICollectionView;
