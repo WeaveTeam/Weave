@@ -40,7 +40,7 @@
 					id="speedSlider"
 					width="50" height="0"
 					liveDragging="true"
-					dataTipFormatFunction="formatSpeedDataTip"
+					dataTipFormatFunction="{getDelayLabel}"
 					change="speedSliderChange();"/>
 			</mx:VBox>
 			<mx:HSlider 
@@ -136,8 +136,11 @@
 			timerDelay.value = MAX_TIMER_DELAY;
 		speedSlider.minimum = 0;
 		speedSlider.maximum = 2000;
+		speedSlider.snapInterval = 250;
 		speedSlider.toolTip = lang("Change the speed of the slider");
-		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
+		timerDelay.addGroupedCallback(this, function():void {
+			speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
+		}, true);
 		//is there a timer that is still running? 
 		if ((playButton != null) && (_timer != null))
 		{
@@ -410,10 +413,9 @@
 			_timer.start();
 		}
 	}
-	private function getDelay():String
+	private function getDelayLabel(value:Number):String
 	{
-		var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
-		return delayDescription;
+		return lang("{0} ms delay", (MAX_TIMER_DELAY - value).toFixed(0)); 
 	}
 	
 	/**
@@ -440,21 +442,6 @@
 		else
 			currentSliderPosition.value = dimensionSlider.minimum;
 	}
-	
-	
-	private function formatSpeedDataTip(item:Number):String
-	{
-		var delayDescription:String = getDelay();
-		if (item < speedSlider.value)
-		{
-			return lang("slower: {0}", delayDescription);
-		}
-		else
-		{
-			return lang("faster: {0}", delayDescription);
-		}
-	}
-			
 ]]>
 </mx:Script>
 	<ui:ControlPanel>
