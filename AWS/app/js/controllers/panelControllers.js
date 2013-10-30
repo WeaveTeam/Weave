@@ -167,6 +167,26 @@ angular.module("aws.panelControllers", [])
 			}
 		}
 	}, true);
+	$scope.$watch('enabled', function(){
+		for(var i = 0; i < $scope.selection.length; i++) {
+			if(($scope.enabled != undefined) && $scope.enabled != "") {
+				if($scope.enabled[i] != undefined && $scope.enabled == true) {
+					var temp = $.map($scope.filterValues[i],function(item){
+						if (angular.fromJson(item).hasOwnProperty("value")) {
+							return angular.fromJson(item).value;
+						}
+						else {
+							return angular.fromJson(item);
+						}					
+					});
+					queryService.queryObject.ColumnFilterRequest[i].filters = temp;
+				} else {
+					delete $scope.filterValues[i];
+					delete queryService.queryObject.ColumnFilterRequest[i].filters;
+				}
+			}
+		}
+	}, true);
 })
 .controller("RunQueryCtrl", function($scope, queryService){
 //	$scope.runQuery = function(){
