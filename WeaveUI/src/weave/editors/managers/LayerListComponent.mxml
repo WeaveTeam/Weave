@@ -151,12 +151,12 @@
 			</mx:itemRenderer>
 		</mx:List>
 		<mx:Label id="listOverlay"
-				  width="{list.width}" x="0" y="{(list.height - listOverlay.height) / 2}"
-				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
+				  width="{list.width}" y="{(list.height - listOverlay.height) / 2}"
+				  mouseChildren="false" alpha="0.5"
 				  textAlign="center"
 				  text="{lang('Start by adding a new layer.')}"
 				  creationComplete="list.addChild(listOverlay);"
-				  visible="{isEmpty(list.dataProvider)}" includeInLayout="false"/>
+				  visible="{isEmpty(list.dataProvider)}"/>
 		<mx:HBox width="100%" verticalAlign="middle" toolTip="{lang('Foreground layers appear at the end of this list.')}">
 			<mx:HRule width="100%"/>
 			<mx:Label text="{lang('Foreground')}" alpha="0.5"/>
