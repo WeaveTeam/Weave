@@ -317,7 +317,7 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList.indexOf(false) > -1)
+				if(attrToIncludeCheckList && attrToIncludeCheckList.indexOf(false) > -1)
 				{
 					probeColumnsCheckBox.selected = false;
 				}
