@@ -2,24 +2,34 @@
         "scriptType": "columns",
         "inputs" : [
 
-                {"param" : "state",
-                 "description" : "State variable"
+                {
+		 "param" : "state",
+                 "description" : "State variable",
+		 "columnType" : "geography"
                 },
 
-                {"param" : "PSU",
-                 "description" : "PSU variable"
+                {
+		 "param" : "PSU",
+                 "description" : "PSU variable",
+		 "columnType" : "analytic"
                 },
 
-                {"param" : "FinalWt",
-                 "description" : "State variable"
+                {
+		 "param" : "FinalWt",
+                 "description" : "State variable",
+		 "columnType" : "analytic"
                 },
 
-                {"param" : "StStr",
-                 "description" : "StStr variable"
+                {
+		 "param" : "StStr",
+                 "description" : "StStr variable",
+		 "columnType" : "analytic"
                 },
 
-                {"param" : "indicator",
-                 "description" : "indicator variable"
+                {
+		 "param" : "indicator",
+                 "description" : "indicator variable",
+		 "columnType" : "indicator"
                 }
         ],
         "outputs" : [
