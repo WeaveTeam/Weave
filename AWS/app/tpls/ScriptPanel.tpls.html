@@ -9,17 +9,24 @@
 			<option value="{{script}}" ng-repeat="script in scriptList">{{script}}</option>
 		</select>
 		<br><br>
-		<div ng-repeat="input in inputs"> {{input.param}} Column:
-			<select ui-select2 ng-model="$parent.selection[$index]">
-					<option></option>
-					<option value="{{col}}" ng-repeat="col in columns" >{{col.publicMetadata.title}}</option>
-			</select>
-			<div ng-show='$parent.show[$index]'>
-                 <div ui-slider="$parent.sliderOptions[$index]" ng-show='$parent.filterType[$index] == continuous && $parent.show[$index]' ng-model="$parent.filterValues[$index]"/>
-                 <select ui-select2 multiple ng-show='$parent.filterType[$index] == categorical && $parent.show[$index]' ng-model="$parent.filterValues[$index]">
-					<option></option>
-					<option value="{{cat}}" ng-repeat="cat in $parent.categoricalOptions"> {{cat}}</option>
-                 </select>
-            </div>
+		<div ng-if="scriptType == 'columns'">
+			<div ng-repeat="input in inputs"> {{input.param}} column:
+				<select ui-select2 ng-model="$parent.selection[$index]">
+						<option></option>
+						<option value="{{col}}" ng-repeat="col in $parent.columns[input.columnType]" >{{col.publicMetadata.title}}</option>
+				</select>
+				<div ng-show='$parent.show[$index]'>
+	                 <input type="checkbox" ng-model="$parent.enabled[$index]"/> filter
+	                 <div ui-slider="$parent.sliderOptions[$index]" ng-if='!$parent.filterType[$index] && $parent.show[$index] && $parent.enabled[$index]' ng-model="$parent.filterValues[$index]"/>
+	                 <select ui-select2 multiple ng-if='$parent.filterType[$index] && $parent.show[$index] && $parent.enabled[$index]' ng-model="$parent.filterValues[$index]" data-placeholder="Choose Filter(s)">
+						<option value="{{cat}}" ng-repeat="cat in $parent.categoricalOptions[$index]"> {{cat.label}}</option>
+	                 </select>
+	            </div>
+			</div>
+		</div>
+		<div ng-if="scriptType == 'inputs'">
+			<div ng-repeat="input in inputs"> {{input.param}} value:
+				<input type="number"/>
+			</div>
 		</div>
 </div>

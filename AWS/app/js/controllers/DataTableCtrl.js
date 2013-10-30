@@ -8,8 +8,10 @@ angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope,
     $scope.dataTable;
     
     $scope.$watch('dataTable', function() {
-    	if($scope.dataTable != "") {
-    		queryService.queryObject.dataTable = angular.fromJson($scope.dataTable); 
+    	if($scope.dataTable != undefined) {
+    		if($scope.dataTable != "") {
+    			queryService.queryObject.dataTable = angular.fromJson($scope.dataTable); 
+    		}
     	}
     });
 });

@@ -11,7 +11,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
 			title : "AlphaQueryObject",
 			date : new Date(),
     		author : "",
-			scriptType : "r"
+			computationEngine : "R"
 	};    		
     
 	/**

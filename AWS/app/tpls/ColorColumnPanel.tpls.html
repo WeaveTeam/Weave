@@ -4,8 +4,10 @@
 </div>
 <div class="portlet-content">
 
-<!-- 	<select ui-select2 ng-model="selection"> -->
-<!-- 		<option value="{{opt}}" ng-repeat="opt in options">{{opt}}</option> -->
-<!-- 	</select> -->
+	<input type="checkbox" ng-model="enabled"/> Color Column</br>
+	<select ui-select2 ng-model="selection" data-placeholder="Choose Color Column">
+		<option></option>
+		<option value="{{opt}}" ng-repeat="opt in options">{{opt.param}}</option>
+	</select>
 </div>
 </div>
