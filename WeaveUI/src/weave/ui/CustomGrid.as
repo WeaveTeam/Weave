@@ -18,12 +18,17 @@
 */
 package weave.ui
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	
 	import mx.containers.Grid;
 	import mx.containers.GridItem;
 	import mx.containers.GridRow;
+	import mx.core.Container;
+	
+	import weave.core.ClassUtils;
 	
 	[DefaultProperty("dataProvider")]
 	
@@ -83,10 +88,10 @@ package weave.ui
 		 * Populates a Grid with a set of items.  It also copies the horizontalAlign and verticalAlign styles from the Grid to each GridItem.
 		 * @param grid A Grid container.
 		 * @param items A two-dimensional Array of items
-		 * @param generator A function that accepts an item and returns a DisplayObject.
+		 * @param generator A Class that extends Container, or a Function that accepts an item and returns a DisplayObject.
 		 * @param visitor A function that accepts a GridItem object.
 		 */
-		public static function populateGrid(grid:Grid, dataProvider:Array, generator:Function = null, visitor:Function = null):void
+		public static function populateGrid(grid:Grid, dataProvider:Array, generator:Object = null, visitor:Function = null):void
 		{
 			var gridRows:Array = initChildren(grid, dataProvider.length, GridRow);
 			for (var r:int = 0; r < gridRows.length; r++)
@@ -98,15 +103,28 @@ package weave.ui
 				for (var c:int = 0; c < gridItems.length; c++)
 				{
 					var gridItem:GridItem = gridItems[c] as GridItem;
-					initChildren(gridItem, 0, null);
+					var children:Array = initChildren(gridItem, 1, generator as Class);
 					gridRow.addChild(gridItem);
 					var dataItem:Object = dataRow[c];
-					var displayObject:DisplayObject = generator is Function
-						? generator(dataItem) as DisplayObject
-						: dataItem as DisplayObject;
+					var displayObject:DisplayObject = dataItem as DisplayObject;
+					if (generator is Function)
+					{
+						displayObject = generator(dataItem) as DisplayObject;
+					}
+					else if (generator is Class)
+					{
+						if (!ClassUtils.classExtends(getQualifiedClassName(generator), getQualifiedClassName(Container)))
+							throw new Error("If generator is a Class, it must extend Container.");
+						var GeneratorClass:Class = generator as Class;
+						var container:Container = (children[0] as GeneratorClass || new GeneratorClass()) as Container;
+						if (container)
+						{
+							displayObject = container;
+							container.data = dataItem;
+						}
+					}
 					if (displayObject)
 						gridItem.addChild(displayObject);
-					
 					for each (var style:String in ['horizontalAlign', 'verticalAlign'])
 						gridItem.setStyle(style, grid.getStyle(style));
 					
@@ -116,18 +134,24 @@ package weave.ui
 			}
 		}
 		
-		private static function initChildren(container:DisplayObjectContainer, desiredNumber:int, type:Class):Array
+		private static function initChildren(container:DisplayObjectContainer, desiredNumber:uint, type:Class):Array
 		{
+			// remove unwanted children
+			var i:int = container.numChildren;
+			while (i-- && type && !(container.getChildAt(0) is type))
+				container.removeChildAt(i);
+			
 			// remove extra children
-			while (container.numChildren > desiredNumber)
-				container.removeChildAt(container.numChildren - 1);
+			i = container.numChildren;
+			while (i-- > desiredNumber)
+				container.removeChildAt(i);
 			
 			var result:Array = [];
-			for (var i:int = 0; i < desiredNumber; i++)
+			for (i = 0; i < desiredNumber; i++)
 			{
 				if (i < container.numChildren) // existing child
 					result.push(container.getChildAt(i));
-				else // new child
+				else if (type) // new child
 					result.push(container.addChild(new type()));
 			}
 			return result;
