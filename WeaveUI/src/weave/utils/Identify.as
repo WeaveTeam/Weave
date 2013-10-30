@@ -23,6 +23,7 @@ package weave.utils
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import mx.core.UIComponent;
 	
@@ -102,13 +103,9 @@ package weave.utils
 			
 			function drawBorder(tip:UIComponent):void
 			{
-				var tipxy:Point = tip.globalToLocal(new Point(0, 0));
-				var targetxy:Point = target.globalToLocal(new Point(0, 0));
-				var offset:Point = targetxy.subtract(tipxy);
-				var g:Graphics = tip.graphics;
-				
-				g.lineStyle(2, 0xFF0000, 0.5, true);
-				g.drawRect(-offset.x, -offset.y, target.width, target.height);
+				var r:Rectangle = target.getRect(tip);
+				tip.graphics.lineStyle(2, 0xFF0000, 0.5, true);
+				tip.graphics.drawRect(r.x, r.y, r.width, r.height);
 			}
 		}
 	}
