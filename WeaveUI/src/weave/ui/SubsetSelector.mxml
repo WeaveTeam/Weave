@@ -58,7 +58,6 @@
 				
 				minimizable.value = false;
 				maximizable.value = false;
-				zOrder.value = Infinity;
 				sliderMode.addGroupedCallback(this, handleSliderMode, true);
 			}
 			private function handleSliderMode():void

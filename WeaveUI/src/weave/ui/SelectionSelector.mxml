@@ -51,7 +51,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				minimizable.value = false;
 				maximizable.value = false;
-				zOrder.value = Infinity;
 			}
 			override protected function childrenCreated():void
 			{
