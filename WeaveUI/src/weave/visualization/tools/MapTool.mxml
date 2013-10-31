@@ -42,6 +42,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.services.IWMSService;
+			import weave.api.ui.IPlotTask;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
@@ -57,6 +58,7 @@
 			import weave.editors.WindowSettingsEditor;
 			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
+			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.SubMenu;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
@@ -67,6 +69,7 @@
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.GeometryRelationPlotter;
+			import weave.visualization.plotters.ScatterPlotPlotter;
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
@@ -417,26 +420,19 @@
 				
 				var plotterName:String = visualization.plotManager.plotters.getName(plotter);
 				var label:String = plotterName;
-				var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 				var wmsPlotter:WMSPlotter = plotter as WMSPlotter
-				var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
+				var dgc:DynamicColumn = getDynamicGeomColumn(plotter);
 				
-				if (geomPlotter)
-					label += ": " + ColumnUtils.getTitle(geomPlotter.geometryColumn);
-				else if (labelPlotter)
-					label += ": " + ColumnUtils.getTitle(labelPlotter.geometryColumn);
+				if (dgc)
+					label += ": " + ColumnUtils.getTitle(dgc);
 				else if (wmsPlotter)
 					label += ": " + wmsPlotter.providerName;
 				
 				// get the source projection to be used in the label
 				var proj:String;
-				if (plotter is GeometryPlotter)
+				if (dgc)
 				{
-					proj = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
-				}
-				else if (labelPlotter)
-				{
-					proj = labelPlotter.geometryColumn.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
+					proj = dgc.getMetadata(ColumnMetadata.PROJECTION);
 				}
 				else if (plotter is WMSPlotter)
 				{
@@ -448,6 +444,27 @@
 				if (proj)
 					label += ' (' + proj + ')';
 				return label;
+			}
+			
+			private function getDynamicGeomColumn(p:IPlotter):DynamicColumn
+			{
+				var gp:GeometryPlotter = p as GeometryPlotter;
+				if (gp)
+					return gp.geometryColumn.internalDynamicColumn;
+				
+				var glp:GeometryLabelPlotter = p as GeometryLabelPlotter;
+				if (glp)
+					return glp.geometryColumn.internalDynamicColumn;
+				
+				var grp:GeometryRelationPlotter = p as GeometryRelationPlotter;
+				if (grp)
+					return grp.geometryColumn.internalDynamicColumn;
+				
+				var spp:ScatterPlotPlotter = p as ScatterPlotPlotter;
+				if (spp)
+					return spp.dataX;
+				
+				return null;
 			}
 			
 			private function addGeomLayer():void
@@ -471,22 +488,51 @@
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)
 				{
-					var geomPlotter:GeometryPlotter = visualization.plotManager.getPlotter(layerName) as GeometryPlotter;
-					if (geomPlotter)
+					var selected:DynamicColumn = getDynamicGeomColumn(visualization.plotManager.getPlotter(layerName));
+					if (selected)
 					{
-						// found a geometry layer
-						copySessionState(geomPlotter.geometryColumn, plotter.geometryColumn);
+						copySessionState(selected, getDynamicGeomColumn(plotter));
+						
 						// see if there is a matching column in probe headers
-						var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
-						for (var i:int = 0; i < headers.length; i++)
+						for each (var header:IAttributeColumn in ProbeTextUtils.probeHeaderColumns.getObjects())
 						{
-							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
+							if (ColumnUtils.getKeyType(header) == ColumnUtils.getKeyType(selected))
 							{
-								plotter.text.requestLocalObjectCopy(headers[i]);
+								plotter.text.requestLocalObjectCopy(header);
 								break;
 							}
 						}
 						// stop when we found geometry layer
+						break;
+					}
+				}
+			}
+			
+			private function addBubbleLayer():void
+			{
+				// get existing layers before they change
+				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
+				// if a layer is selected in the editor, check that one first.
+				if (layersEditor.selectedPlotter)
+					layerNames.unshift(layersEditor.selectedPlotterName);
+				
+				// create new plotter
+				var plotter:ScatterPlotPlotter = CustomLayerWindow.addPlotterAndEdit(visualization, ScatterPlotPlotter);
+				if (!plotter)
+					return;
+				
+				// set defaults
+				plotter.enabledSizeBy.value = true;
+				copySessionState(AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
+				
+				// loop through existing layers to find geometry layer that we can add corresponding labels for
+				for each (var layerName:String in layerNames)
+				{
+					var selected:DynamicColumn = getDynamicGeomColumn(visualization.plotManager.getPlotter(layerName));
+					if (selected)
+					{
+						copySessionState(selected, plotter.dataX);
+						copySessionState(selected, plotter.dataY);
 						break;
 					}
 				}
@@ -508,12 +554,10 @@
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)
 				{
-					var geomPlotter:GeometryPlotter = visualization.plotManager.getPlotter(layerName) as GeometryPlotter;
-					if (geomPlotter)
+					var selected:DynamicColumn = getDynamicGeomColumn(visualization.plotManager.getPlotter(layerName));
+					if (selected)
 					{
-						// found a geometry layer
-						copySessionState(geomPlotter.geometryColumn, plotter.geometryColumn);
-						// stop when we found geometry layer
+						copySessionState(selected, getDynamicGeomColumn(plotter));
 						break;
 					}
 				}
@@ -809,10 +853,11 @@
 			layersEditor.labelFunction = getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
-			<ui:Indent id="layerButtons" grouped="false" label="Add layer:" translate="true">
+			<ui:Indent id="layerButtons" grouped="false" label="Add layer:" translate="true" horizontalGap="4">
 				<mx:Button label="{lang('Base Map')}" click="addWMSLayer();" toolTip="{lang('Add an image layer underneath the geometries')}"/>
 				<mx:Button label="{lang('Geometry')}" click="addGeomLayer();" toolTip="{lang('Add a layer of polygons, lines, or points that can be colored according to the data')}"/>
 				<mx:Button label="{lang('Labels')}" click="addLabelLayer();" toolTip="{lang('Add labels to the selected geometry layer')}"/>
+				<mx:Button label="{lang('Bubbles')}" click="addBubbleLayer();" toolTip="{lang('Add bubbles to the selected geometry layer')}"/>
 				<mx:Button label="{lang('Other...')}" click="layersEditor.addLayer()" toolTip="{lang('Add another type of layer')}"/>
 				<mx:Spacer width="100%"/>
 			</ui:Indent>
@@ -922,6 +967,7 @@
 										if (settingsWatcher)
 											settingsWatcher.target = value as LayerSettings;
 										super.data = value as LayerSettings;
+										handleSettingsChange();
 									}
 									
 									private var settingsWatcher:LinkableWatcher = null;

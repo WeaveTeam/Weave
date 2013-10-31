@@ -142,7 +142,7 @@
 	<ui:DynamicColumnComponent id="dataXCol" label="{lang('X')}"/>
 	<ui:DynamicColumnComponent id="dataYCol" label="{lang('Y')}"/>
 	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
-	<mx:CheckBox id="sizeByCheck" label="{lang('Size')}"/>
+	<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
 	<ui:DynamicColumnComponent id="sizeSelector">
 		<ui:creationComplete>
 			<![CDATA[
@@ -151,9 +151,7 @@
 			]]>
 		</ui:creationComplete>
 	</ui:DynamicColumnComponent>
-	<mx:HBox width="100%" verticalAlign="middle">
-		
-		<mx:Label text="{lang('Point Size:')}"/>
+	<ui:Indent label="{lang('Point size')}">
 		<mx:HSlider id="sizeBySlider"
 					liveDragging="true"
 					width="100%"
@@ -161,25 +159,23 @@
 					snapInterval="1"
 					minimum="1" 
 					maximum="60"
-					tickInterval="5"
+					tickValues="[5,10,15,20,25,30,35,40,45,50,55,60]"
 					change="handleSizeSliderChange(event)"
 					mouseDown="event.stopImmediatePropagation();"/>
-	</mx:HBox>
-	<mx:HBox width="100%" verticalAlign="middle">
-		<mx:Label text="{lang('Point Opacity:')}" 
-				  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
-		
+	</ui:Indent>
+	<ui:Indent label="{lang('Point opacity')}">
 		<mx:HSlider id="alphaSlider" 
 					width="100%" 
-					alpha="1.0"
+					snapInterval="0.05"
+					tickInterval=".25"
 					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
-					minimum="0.1" maximum="1.0" value="1.0"
+					minimum="0" maximum="1"
 					liveDragging="true"/>
-	</mx:HBox>
+	</ui:Indent>
 	
 	<mx:HBox>
 		<mx:CheckBox id="overrideColorCheckBox"
-					 label="{lang('Override Global Color')}"
+					 label="{lang('Override global color')}"
 					 change="handleOverrideColor()"/>
 		<ui:CustomColorPicker id="overrideColorPicker"
 							  enabled="{overrideColorCheckBox.selected}"
