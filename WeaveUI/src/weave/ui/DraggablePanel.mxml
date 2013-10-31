@@ -201,7 +201,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
-				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
+				Weave.properties.enableToolControls.addGroupedCallback(this, updateButtons, true);
 				getCallbackCollection(this).addGroupedCallback(this, evaluatePanelTitle);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
 			}
@@ -652,7 +652,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					constrainAndSaveCoordinates();
 			}
 			
-			public function updateBorders():void
+			protected function updateBorders():void
 			{
 				if (!parent)
 					return;
@@ -1305,6 +1305,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					else if (titleBar == button.parent)
 						titleBar.removeChild(button);
 				}
+				updateBorders();
 			}
 			
 			override protected function layoutChrome(unscaledWidth:Number, unscaledHeight:Number):void
