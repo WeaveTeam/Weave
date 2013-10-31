@@ -103,11 +103,14 @@ angular.module("aws.panelControllers", [])
 			if($scope.selection != undefined) {
 				if ($scope.selection[i] != ""){
 					var selection = angular.fromJson($scope.selection[i]);
+					
 					queryService.queryObject['FilteredColumnRequest'][i] = {
 																			id : selection.id,
-																			filters : null
+																			filters : []
 																		};
+
 					var column = angular.fromJson($scope.selection[i]);
+					
 					if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
 						var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 						if (metadata.hasOwnProperty("varType")) {
@@ -145,7 +148,12 @@ angular.module("aws.panelControllers", [])
 								return angular.fromJson(item);
 							}
 						});
-						queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+						
+						if ($scope.filterType[i] == "categorical") { 
+							queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+						} else if ($scope.filterType[i] == "continuous") { // continuous, we want arrays of ranges
+							queryService.queryObject.FilteredColumnRequest[i].filters = [temp];
+						}
 					}
 				}
 			}
@@ -155,7 +163,8 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('filterValues', function(){
 		for(var i = 0; i < $scope.selection.length; i++) {
 			if(($scope.filterValues != undefined) && $scope.filterValues != "") {
-				if($scope.filterValues[i] != undefined) {
+				if($scope.filterValues[i] != undefined && $scope.filterValues[i] != []) {
+					
 					var temp = $.map($scope.filterValues[i],function(item){
 						if (angular.fromJson(item).hasOwnProperty("value")) {
 							return angular.fromJson(item).value;
@@ -164,10 +173,16 @@ angular.module("aws.panelControllers", [])
 							return angular.fromJson(item);
 						}					
 					});
-					queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+					
+					if ($scope.filterType[i] == "categorical") { 
+						queryService.queryObject.FilteredColumnRequest[i].filters = temp;
+					} else if ($scope.filterType[i] == "continuous") { // continuous, we want arrays of ranges
+						queryService.queryObject.FilteredColumnRequest[i].filters = [temp];
+					}
+				
 				} else {
 					if (queryService.queryObject.FilteredColumnRequest[i].hasOwnProperty("id")) {
-						queryService.queryObject.FilteredColumnRequest[i].filters = null;
+						queryService.queryObject.FilteredColumnRequest[i].filters = [];
 					}
 				}
 			}

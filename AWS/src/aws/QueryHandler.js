@@ -81,7 +81,6 @@ aws.QueryHandler = function(queryObject)
 	this.ComputationEngine = null;
 	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
 		this.ComputationEngine = new aws.RClient(this.rRequestObject);
-		console.log(this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
 //	}
