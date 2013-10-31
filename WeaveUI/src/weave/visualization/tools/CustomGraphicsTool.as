@@ -52,7 +52,10 @@ package weave.visualization.tools
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 		public const drawScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(defaultScript, false, true));
-		public const locals:Object = {}; // for use inside scripts
+		
+		// for use inside scripts
+		private var _locals:Object = {};
+		public function get locals():Object { return _locals; }
 		
 		public const dataBounds:Bounds2D = new Bounds2D();
 		public const screenBounds:Bounds2D = new Bounds2D();
@@ -126,6 +129,10 @@ package weave.visualization.tools
 			// do nothing if nothing changed (script, vars, size)
 			if (!scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
 				return;
+			
+			// reset local variables if script changes
+			if (scriptChanged)
+				_locals = {};
 			
 			// remember current size for next time
 			_prevSize.x = unscaledWidth;
