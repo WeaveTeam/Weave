@@ -304,7 +304,7 @@ package weave.visualization.layers
 		{
 			super.handleMouseClick(event);
 			
-			if (mouseIsRolledOver && Weave.properties.enableToolSelection.value)
+			if (mouseIsRolledOver && Weave.properties.enableToolControls.value)
 			{
 				var theMargin:LinkableString = getMarginAndSetQueryBounds(event.localX, event.localY, false);
 				var index:int = [plotManager.marginTop, plotManager.marginBottom, plotManager.marginLeft, plotManager.marginRight].indexOf(theMargin);
