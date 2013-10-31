@@ -65,6 +65,14 @@
 				invalidateSize();
 			}
 			
+			override public function invalidateSize():void
+			{
+				super.invalidateSize(); // in case we're not grouped
+				for each (var ind:Indent in _groups[_group])
+					ind.$invalidateSize();
+			}
+			
+			private function $invalidateSize():void { super.invalidateSize(); }
 			
 			public function set labelFontWeight(value:String):void
 			{
@@ -87,7 +95,7 @@
 			 */
 			private function handleAddedToStage():void
 			{
-				// If there is no group set, group this Indent componet with others having the same parent.
+				// If there is no group set, group this Indent component with others having the same parent.
 				if (parent && _group === undefined)
 					setGroup(parent);
 			}
@@ -132,10 +140,9 @@
 				// remove from existing group
 				if (_group)
 				{
+					invalidateSize(); // also invalidates group
 					array = _groups[_group] as Array;
 					array.splice(array.indexOf(this), 1);
-					for each (ind in array)
-						ind.invalidateSize();
 				}
 				
 				_group = newGroup;
@@ -147,8 +154,7 @@
 					if (!array)
 						_groups[_group] = array = [];
 					array.push(this);
-					for each (ind in array)
-						ind.invalidateSize();
+					invalidateSize(); // also invalidates group
 				}
 			}
 			
