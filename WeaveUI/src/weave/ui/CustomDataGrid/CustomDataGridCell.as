@@ -134,7 +134,10 @@ package weave.ui.CustomDataGrid
 				return;
 			
 			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
-			if (column.selectionKeySet && column.selectionKeySet.keys.length > 0)
+			var hasSelection:Boolean = column.selectionKeySet && column.selectionKeySet.keys.length > 0;
+			var hasProbe:Boolean = column.probeKeySet && column.probeKeySet.keys.length > 0;
+			
+			if (hasSelection || hasProbe)
 			{
 				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
 				{
@@ -144,7 +147,7 @@ package weave.ui.CustomDataGrid
 				else
 				{
 					_setStyle(lbl, "fontWeight", "normal");
-					alpha = 0.3;
+					alpha = hasSelection ? 0.3 : 1.0;
 				}
 			}
 			else
