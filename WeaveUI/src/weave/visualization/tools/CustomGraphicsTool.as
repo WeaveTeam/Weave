@@ -31,6 +31,7 @@ package weave.visualization.tools
 	import weave.api.data.IKeySet;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -52,11 +53,7 @@ package weave.visualization.tools
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 		public const drawScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(defaultScript, false, true));
-		
-		// for use inside scripts
-		private var _locals:Object = {};
-		public function get locals():Object { return _locals; }
-		
+
 		public const dataBounds:Bounds2D = new Bounds2D();
 		public const screenBounds:Bounds2D = new Bounds2D();
 		public const buffer:GraphicsBuffer = new GraphicsBuffer();
@@ -66,6 +63,7 @@ package weave.visualization.tools
 		public const textGraphics:TextGraphics = new TextGraphics();
 		public const canvas:Canvas = new Canvas();
 		public var keys:Array;
+		public var locals:Object; // for use inside scripts
 		
 		public function getSelectableAttributes():Array
 		{
@@ -130,9 +128,9 @@ package weave.visualization.tools
 			if (!scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
 				return;
 			
-			// reset local variables if script changes
-			if (scriptChanged)
-				_locals = {};
+			// wait until vars are not busy
+			if (linkableObjectIsBusy(vars))
+				return;
 			
 			// remember current size for next time
 			_prevSize.x = unscaledWidth;
@@ -153,6 +151,10 @@ package weave.visualization.tools
 					// since we are re-using the same bitmap data, clear it
 					PlotterUtils.clearBitmapData(bitmap);
 				}
+				
+				// reset locals when script changes
+				if (!locals || scriptChanged)
+					locals = {};
 				
 				// when the vars hash map changes, get the keys from all the columns in it
 				if (varsChanged)
