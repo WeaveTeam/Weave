@@ -33,11 +33,6 @@
 				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
-		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
-			<mx:Label text="{lang('Key type:')}"/>
-			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
-			<mx:Button label="{lang('Edit columns...')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
-		</mx:HBox>
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
 		</mx:HBox>
@@ -71,11 +66,20 @@
 				as the amount has exceeded the tables capability for dealing with it efficiently.
 			</ui:HelpComponent>
 		</mx:HBox>
-		
-		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
-			<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
-			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
-			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
+		<mx:HBox id="extraControls" width="100%">
+			<ui:Indent label="Key type:" translate="true" visible="false" includeInLayout="false">
+				<ui:CustomComboBox id="keyTypeCombo"
+								   change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;"
+								   toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
+			</ui:Indent>
+			<mx:Button id="button_moveSelectedToTop" visible="{toggle_moveSelectedToTop.selected}" includeInLayout="{toggle_moveSelectedToTop.selected}"
+					   label="{lang('Move selected to top')}" click="moveSelectedToTop()"/>
+			<mx:Button id="button_clearSelection" visible="{toggle_clearSelection.selected}" includeInLayout="{toggle_clearSelection.selected}"
+					   label="{lang('Clear selection')}" click="_selection.clearKeys()"/>
+			<mx:Button id="button_editColumns" visible="{toggle_editColumns.selected}" includeInLayout="{toggle_editColumns.selected}"
+					   label="{lang('Edit columns')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
+			<mx:Button id="button_exportData" visible="{toggle_exportData.selected}" includeInLayout="{toggle_exportData.selected}"
+					   label="{lang('Export data')}" click="saveToFileAsCSV()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -126,7 +130,6 @@
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.CustomDataGrid.CustomDataGridCell;
 			import weave.ui.CustomDataGrid.CustomDataGridColumn;
 			import weave.ui.CustomDataGrid.IFilterComponent;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
@@ -162,7 +165,6 @@
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
-			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
 			
@@ -194,7 +196,6 @@
 			{
 				super.childrenCreated();
 				
-				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				linkBindableProperty(showColors, showColorsCheckBox,"selected");
 				linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
@@ -568,17 +569,14 @@
 				dataGrid.scrollToIndex(0);
 			}
 			
-			/**
-			 * Called, when column or filterByKeyType changes  
-			 * Fills the datagrid Dataprovider based on KeyType, By default "Show All" 
-			 * and Update Global selection
-			 */	
+			private static const COMBO_ITEM_ALL_KEY_TYPES:String = lang("All key types");
+			
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
 				var includedColumns:Array = [];
 				for each (var col:CustomDataGridColumn in dataGrid.columns)
 				{
-					if (keyTypeCombo.selectedItem == "Show All" ||
+					if (keyTypeCombo.selectedItem == COMBO_ITEM_ALL_KEY_TYPES ||
 						(col.attrColumn is KeyColumn) ||
 						(ColumnUtils.getKeyType(col.attrColumn) == filterColumnsByKeyType.value))
 					{
@@ -616,21 +614,18 @@
 				
 				var prevIndex:int = keyTypeCombo.selectedIndex;
 				var keyTypeList:Array = new Array();
-				keyTypeList.push("Show All");
+				keyTypeList.push(COMBO_ITEM_ALL_KEY_TYPES);
 				for each (var attrCol:IAttributeColumn in columns.getObjects())
 				{
 					if (attrCol is KeyColumn)
 						continue;
 					
-					var keyType:String = ColumnUtils.getKeyType(attrCol);
-					
-					if (keyType == null)
-						keyType = "null"
+					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataTypes.STRING;
 					if (keyTypeList.indexOf(keyType) == -1)
 						keyTypeList.push(keyType);
 				}
 				keyTypeCombo.dataProvider = keyTypeList;
-				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
+				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || COMBO_ITEM_ALL_KEY_TYPES;
 			}
 			
 			private function handleDataCopy(event:Event):void
@@ -843,7 +838,12 @@
 				}
 				
 			}
+			
 			public const showControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateControls);
+			public const show_moveSelectedToTop:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const show_clearSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const show_editColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const show_exportData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			private function updateControls():void
 			{
 				if (!parent)
@@ -852,17 +852,13 @@
 				{
 					if (showControls.value)
 					{
-						if (!topControls.parent)
-							tableArea.addChildAt(topControls, 0);
-						if (!bottomControls.parent)
-							tableArea.addChild(bottomControls);
+						if (!extraControls.parent)
+							tableArea.addChild(extraControls);
 					}
 					else
 					{
-						if (topControls.parent)
-							tableArea.removeChild(topControls);
-						if (bottomControls.parent)
-							tableArea.removeChild(bottomControls);
+						if (extraControls.parent)
+							tableArea.removeChild(extraControls);
 					}
 				}
 				catch (e:Error) 
@@ -884,7 +880,7 @@
 						if (!filterControls.parent)
 						{
 							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
-							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);
+							tableArea.addChildAt(filterControls, 0);
 						}
 						dataGrid.enableFilters = true;
 					}
@@ -1008,15 +1004,15 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Columns')}">
-			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show Key Column')}" change="handleKeyColumnCheckBox()"/>
+			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show key column')}" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
-				<mx:Label text="{lang('Number of Locked Columns')}"/>
+				<mx:Label text="{lang('Number of locked columns')}"/>
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
 			<mx:HBox>
-				<mx:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
+				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>
 					Select a column that contains image URLs.
 					The images will be displayed in the data table.
@@ -1027,46 +1023,47 @@
 
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
-
-			<mx:HBox>
-				<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
-				<mx:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
-			</mx:HBox>
-			<mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable probing.')}"/>
-			<mx:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
-			<mx:HBox>
+			<mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>
+			<mx:HBox verticalAlign="middle">
 				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
 				<ui:HelpComponent>
 					This allows data to be filtered based on the data values.
 					Filtered records are highlighted by selection in the other tools.
+					
 					If a column contains text data, a search box will be displayed which supports wildcards ('?' = any Character; '*' = any String).
+					
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
 			</mx:HBox>
+			<ui:CheckBoxWithNestedOptions label="{lang('Show buttons on panel')}" creationComplete="linkBindableProperty(showControls, event.target, 'selected')">
+				<mx:CheckBox id="toggle_moveSelectedToTop" label="{lang('Move selected to top')}" creationComplete="linkBindableProperty(show_moveSelectedToTop, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_clearSelection" label="{lang('Clear selection')}" creationComplete="linkBindableProperty(show_clearSelection, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_editColumns" label="{lang('Edit columns')}" creationComplete="linkBindableProperty(show_editColumns, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_exportData" label="{lang('Export data')}" creationComplete="linkBindableProperty(show_exportData, event.target, 'selected')"/>
+			</ui:CheckBoxWithNestedOptions>
+			<ui:CheckBoxWithNestedOptions id="showColorsCheckBox" label="{lang('Enable cell coloring')}" width="100%" height="100%">
+				<ui:HelpComponent>
+					<ui:htmlText>
+						<![CDATA[
+							The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
+							-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
+						]]>
+					</ui:htmlText>
+				</ui:HelpComponent>
+				<mx:HBox width="100%" height="100%">
+					<mx:VBox>
+						<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+						<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
+						<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
+					</mx:VBox>
+					<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
+				</mx:HBox>
+			</ui:CheckBoxWithNestedOptions>
 			<ui:Indent label="{lang('Background colors')}">
 				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
 				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
-			<mx:HBox verticalAlign="top" width="100%" height="100%">
-				<mx:VBox horizontalAlign="right">
-					<mx:HBox verticalAlign="middle">
-						<mx:CheckBox id="showColorsCheckBox" label="{lang('Enable cell coloring')}"/>
-						<ui:HelpComponent>
-							<ui:htmlText>
-								<![CDATA[
-									The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
-									-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
-								]]>
-							</ui:htmlText>
-						</ui:HelpComponent>
-					</mx:HBox>
-					<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
-					<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
-					<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
-				</mx:VBox>
-				<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
-			</mx:HBox>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>
