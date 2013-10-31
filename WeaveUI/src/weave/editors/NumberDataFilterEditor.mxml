@@ -22,10 +22,10 @@
 <mx:HBox xmlns="weave.editors.*" 
 		xmlns:mx="http://www.adobe.com/2006/mxml"
 		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
-		horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
 	<mx:CheckBox label="{getEnableLabel(columnTitle)}" id="filterEnable" click="toggleFilter();"/>
 	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(numberFilter.column, lang('Filter'));"/>
-	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" thumbCount="2" liveDragging="true" change="handleSliderChange(event);"/>
+	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" thumbCount="2" liveDragging="true" change="handleSliderChange(event);" width="100%"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.events.SliderEvent;
