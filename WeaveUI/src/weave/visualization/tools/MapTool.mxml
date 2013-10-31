@@ -654,7 +654,7 @@
 				maptoolsLocation.value = index;
 			}
 			
-			public const zoomSliderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(90));
+			public const zoomSliderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 			
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="zoomSliderHeight")] public function set sizeFactorOfMapControls(value:Number):void { zoomSliderHeight.value *= value; }
