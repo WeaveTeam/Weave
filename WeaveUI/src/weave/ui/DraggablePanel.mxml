@@ -298,11 +298,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 				
-				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
-				titleTextField.setColor( Weave.properties.panelTitleTextFormat.color.value );
-				
+				handleTitleTextFormatChange();
 				panelNeedsUpdate();
-				
 			}
 			
 			override protected function childrenCreated():void
