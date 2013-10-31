@@ -580,7 +580,7 @@
 				// update center coordinates text boxes
 				visualization.plotManager.zoomBounds.getDataBounds(_tempBounds);
 				centerCoords.text = lang(
-					"{x: {0}; y: {1}}",
+					"{x: {0}, y: {1}}",
 					StandardLib.roundSignificant(_tempBounds.getXCenter(), 6),
 					StandardLib.roundSignificant(_tempBounds.getYCenter(), 6)
 				);
