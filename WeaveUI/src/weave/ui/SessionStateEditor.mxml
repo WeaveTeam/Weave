@@ -116,7 +116,6 @@ A text editor to change the Session State on the fly.
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
-			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
@@ -143,7 +142,6 @@ A text editor to change the Session State on the fly.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.DebugUtils;
-			import weave.utils.Identify;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 
@@ -819,6 +817,10 @@ A text editor to change the Session State on the fly.
 			}
 			private static function openConsole():void
 			{
+				var stage:Stage = (WeaveAPI.topLevelApplication as DisplayObject).stage;
+				var stagePoint:Point = new Point(stage.mouseX, stage.mouseY);
+				var objectsUnderPoint:Array = stage.getObjectsUnderPoint(stagePoint);
+				
 				// hold ctrl to toggle which panel to open
 				if (WeaveAPI.StageUtils.ctrlKey)
 					_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
@@ -854,8 +856,6 @@ A text editor to change the Session State on the fly.
 
 				if (console.stage)
 				{
-					var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
-					var objectsUnderPoint:Array = console.stage.getObjectsUnderPoint(stagePoint);
 					var top:DisplayObject = objectsUnderPoint[objectsUnderPoint.length - 1];
 					var path:Array = [top];
 					while (top && top.parent)
