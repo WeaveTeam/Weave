@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox  xmlns:mx="http://www.adobe.com/2006/mxml"
+		  xmlns:ui="weave.ui.*"
+		  xmlns="weave.editors.*"
+		  label="{lang('ScatterPlot')}"
+		  implements="weave.api.ui.ILinkableObjectEditor">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.SliderEvent;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.unlinkBindableProperty;
+			import weave.compiler.StandardLib;
+			import weave.data.AttributeColumns.ColorColumn;
+			import weave.ui.AttributeSelectorPanel;
+			import weave.utils.PlotterUtils;
+			import weave.visualization.plotters.ScatterPlotPlotter;
+			
+			[Bindable]private var _plotter:ScatterPlotPlotter = null;
+			
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				if(_plotter)
+				{
+					_plotter.fill.color.removeCallback(handleColorColumnChange);
+					unlinkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
+					unlinkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
+					getCallbackCollection(_plotter).removeCallback(handlePlotterChange);
+					_plotter.fill.color.removeCallback(handlePlotterFillColor);
+					unlinkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
+					unlinkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
+					unlinkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
+					
+					dataXCol.dynamicObject = null;
+					dataYCol.dynamicObject = null;
+					colorCol.dynamicObject = null;
+					sizeSelector.dynamicObject = null;
+				}
+				
+				_plotter = object as ScatterPlotPlotter;
+				
+				if(_plotter)
+				{
+					if (!initialized)
+						initialize();
+					_plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
+					linkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
+					linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
+					getCallbackCollection(_plotter).addGroupedCallback(this, handlePlotterChange, true);
+					_plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
+					linkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
+					linkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
+					linkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
+					
+					dataXCol.dynamicObject = _plotter.dataX;
+					dataYCol.dynamicObject = _plotter.dataY;
+					colorCol.dynamicObject = AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.fill.color.internalDynamicColumn);
+					sizeSelector.dynamicObject = _plotter.screenRadius;
+				}
+				
+			}
+			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
+			
+			private var _prevGlobalColorColumnName:String = null;
+			private function handleColorColumnChange():void
+			{
+				var newName:String = _plotter.fill.color.internalDynamicColumn.globalName;
+				if (newName)
+					_prevGlobalColorColumnName = newName;
+			}
+			
+			private function handlePlotterChange():void
+			{
+				// when the plotter settings change, update the slider interface
+				if (_plotter.colorBySize.value)
+				{
+					sizeBySlider.thumbCount = 1;
+					sizeBySlider.value = _plotter.maxScreenRadius.value;
+				}
+				else if (_plotter.enabledSizeBy.value)
+				{
+					sizeBySlider.thumbCount = 2;
+					sizeBySlider.values = [_plotter.minScreenRadius.value, _plotter.maxScreenRadius.value];
+				}
+				else
+				{
+					sizeBySlider.thumbCount = 1;
+					sizeBySlider.value = _plotter.defaultScreenRadius.value;
+				}
+			}
+			private function handleSizeSliderChange(event:SliderEvent):void
+			{
+				// when user interacts with slider, update session state
+				if (_plotter.colorBySize.value)
+				{
+					_plotter.maxScreenRadius.value = event.value;
+				}
+				else if (_plotter.enabledSizeBy.value)
+				{
+					if(event.thumbIndex == 0)
+					{
+						_plotter.minScreenRadius.value = event.value;
+					}
+					else
+					{
+						_plotter.maxScreenRadius.value = event.value;
+					}
+				}
+				else
+				{
+					_plotter.defaultScreenRadius.value = event.value;
+				}
+			}
+			private function handlePlotterFillColor():void
+			{
+				overrideColorCheckBox.mx_internal::setSelected(!_plotter.fill.color.getInternalColumn());
+				var color:Number = StandardLib.asNumber(_plotter.fill.color.defaultValue.value);
+				if (isFinite(color))
+					overrideColorPicker.selectedColor = color;
+			}
+			private function handleOverrideColor():void
+			{
+				if (overrideColorCheckBox.selected)
+				{
+					colorBySizeCheckBox.selected = false;
+					_plotter.fill.color.defaultValue.value = overrideColorPicker.selectedColor;
+					_plotter.fill.color.internalDynamicColumn.removeObject();
+				}
+				else
+				{
+					_plotter.fill.color.defaultValue.value = NaN;
+					_plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+				}
+			}
+		]]>
+	</mx:Script>
+	<ui:DynamicColumnComponent id="dataXCol" label="{lang('X')}"/>
+	<ui:DynamicColumnComponent id="dataYCol" label="{lang('Y')}"/>
+	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
+	<mx:CheckBox id="sizeByCheck" label="{lang('Size')}"/>
+	<ui:DynamicColumnComponent id="sizeSelector">
+		<ui:creationComplete>
+			<![CDATA[
+			sizeSelector.addChildAt(sizeByCheck, 0);
+			sizeSelector.useFirstChildAsLabel = true;
+			]]>
+		</ui:creationComplete>
+	</ui:DynamicColumnComponent>
+	<mx:HBox width="100%" verticalAlign="middle">
+		
+		<mx:Label text="{lang('Point Size:')}"/>
+		<mx:HSlider id="sizeBySlider"
+					liveDragging="true"
+					width="100%"
+					thumbCount="2"
+					snapInterval="1"
+					minimum="1" 
+					maximum="60"
+					tickInterval="5"
+					change="handleSizeSliderChange(event)"
+					mouseDown="event.stopImmediatePropagation();"/>
+	</mx:HBox>
+	<mx:HBox width="100%" verticalAlign="middle">
+		<mx:Label text="{lang('Point Opacity:')}" 
+				  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
+		
+		<mx:HSlider id="alphaSlider" 
+					width="100%" 
+					alpha="1.0"
+					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
+					minimum="0.1" maximum="1.0" value="1.0"
+					liveDragging="true"/>
+	</mx:HBox>
+	
+	<mx:HBox>
+		<mx:CheckBox id="overrideColorCheckBox"
+					 label="{lang('Override Global Color')}"
+					 change="handleOverrideColor()"/>
+		<ui:CustomColorPicker id="overrideColorPicker"
+							  enabled="{overrideColorCheckBox.selected}"
+							  selectedColor="0xE0E0E0"
+							  change="handleOverrideColor()"/>
+	</mx:HBox>
+	
+	<ui:CheckBoxWithNestedOptions id="colorBySizeCheckBox" label="{lang('Color by positive or negative \'size\' column values')}"
+								  change="if (colorBySizeCheckBox.selected) overrideColorCheckBox.mx_internal::setSelected(false);">
+		<ui:HelpComponent>
+			Select this option to highlight the differences in your 'size' column.
+			
+			* All values greater than 0 radius will be one color.
+			
+			* All values less than 0 radius will be another color.
+			
+			* If you have a size of 0 radius the circle will not be drawn.
+			
+			If a size column is not specified, nothing will be drawn in this mode.
+		</ui:HelpComponent>
+		
+		<ui:Indent label="{lang('Color for positive size values')}">
+			<ui:CustomColorPicker id="colorPositivePicker"
+								  enabled="{colorBySizeCheckBox.selected}" />
+		</ui:Indent>
+		<ui:Indent label="{lang('Color for negative size values')}">
+			<ui:CustomColorPicker id="colorNegativePicker" 
+								  enabled="{colorBySizeCheckBox.selected}" />
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
+</mx:VBox>

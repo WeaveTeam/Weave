@@ -40,6 +40,7 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
+	import weave.editors.ScatterPlotLayerEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.StringDataFilterEditor;
@@ -63,6 +64,7 @@ package
 	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.ScatterPlotPlotter;
 	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
 	import weave.visualization.tools.ColorBinLegendTool;
@@ -128,6 +130,7 @@ package
 			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
 			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
 			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
+			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotLayerEditor);
 			
 			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
