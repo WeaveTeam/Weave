@@ -110,7 +110,7 @@ function modifySessionState(stateToModify, path, value)
         return false
     var property = path[0];
     path = path.slice(1);
-    if (stateToModify.constructor == Array)
+    if (Array.isArray(stateToModify))
     {
         for (var i in stateToModify)
         {
@@ -126,7 +126,7 @@ function modifySessionState(stateToModify, path, value)
         return false;
     }
     if (path.length)
-        return modifySessionState(stateToModify[property], path, value)
+        return modifySessionState(stateToModify[property], path, value);
     stateToModify[property] = value;
     return true;
 }
