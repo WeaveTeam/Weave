@@ -788,10 +788,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				copyCoordinatesFromSessionedProperties();
 				
-				if (maximized.value)
-					maximizeButton.setStyle("icon", _unmaximizeIcon);
-				else
-					maximizeButton.setStyle("icon", _maximizeIcon);
+				setupButtonIcons(maximizeButton, maximized.value ? _unmaximizeIcon : _maximizeIcon);
+				maximizeButton.toolTip = maximized.value ? lang("Restore down") : lang("Maximize");
 			}
 			
 			private function handleBorderColorChange():void
