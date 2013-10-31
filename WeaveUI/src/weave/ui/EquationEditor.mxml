@@ -143,7 +143,15 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
+
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(
+					lang('Edit session state'),
+					function():void { SessionStateEditor.openDefaultEditor(dynamicColumn.getInternalColumn()); },
+					null,
+					function():Boolean { return !!dynamicColumn.getInternalColumn(); }
+				);
+
 				var constantVBox:VBox = new VBox();
 				constantVBox.percentWidth = 100;
 				constantVBox.percentHeight = 100;
