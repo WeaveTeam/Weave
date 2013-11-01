@@ -186,16 +186,14 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
 	this.weave.requestObject([toolName], 'CompoundBarChartTool');
 	
 	//setting the label column
-	var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
-	labelPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
-		   .state({dataSourceName : dataSourceName,
-				   hierarchyPath : label});
-		   
-    var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
-    sortColumnPath.push('sortColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
-	   			  .state({dataSourceName : dataSourceName,
-	   				  	  hierarchyPath : sort});
+	var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn']).state(null);
+	
+   	this.setCSVColumn(dataSourceName,labelPath, label);
+
+	var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn']).state(null);
     
+    this.setCSVColumn(dataSourceName,sortColumnPath, sort);
+
     // We clear the content of height columns before setting a new one.
     var heightPath = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns'])
     						   .state(null);
