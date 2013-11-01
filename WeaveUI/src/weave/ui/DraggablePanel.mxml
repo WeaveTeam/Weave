@@ -895,16 +895,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var o:Object = new Object();
 				
 				// get side status values
-				o.L = local.x < resizeBorderThickness;
-				o.R = local.x > this.width - resizeBorderThickness;
-				o.T = local.y < resizeBorderThickness;
-				o.B = local.y > this.height - resizeBorderThickness;
+				o.L = local.x <= resizeBorderThickness;
+				o.R = local.x >= this.width - resizeBorderThickness;
+				o.T = local.y <= resizeBorderThickness;
+				o.B = local.y >= this.height - resizeBorderThickness;
 				
 				// get side status values for 4x the border thickness (to mimic Windows' corner resize behavior)
-				var L4:Boolean = local.x < resizeBorderThickness * 4;
-				var R4:Boolean = local.x > this.width - resizeBorderThickness * 4;
-				var T4:Boolean = local.y < resizeBorderThickness * 4;
-				var B4:Boolean = local.y > this.height - resizeBorderThickness * 4;
+				var L4:Boolean = local.x <= resizeBorderThickness * 4;
+				var R4:Boolean = local.x >= this.width - resizeBorderThickness * 4;
+				var T4:Boolean = local.y <= resizeBorderThickness * 4;
+				var B4:Boolean = local.y >= this.height - resizeBorderThickness * 4;
 				// corner status is true if mouse is within a square of 4x the border thickness and at least one corresponding side status is true
 				o.TL = (T4 && L4) && (o.T || o.L);
 				o.TR = (T4 && R4) && (o.T || o.R);
