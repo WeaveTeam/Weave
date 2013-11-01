@@ -100,22 +100,22 @@ public class test
 		aws = new AWSRService();
 		
 		
-		HashMap<String, Object> algorithmObject = new HashMap<String, Object>();
-		algorithmObject.put("startClusterNumber", 4);
-		algorithmObject.put("stopClusterNumber", 10);
-		algorithmObject.put("ClusterInterval", 2);
-		algorithmObject.put("startIterationsNumber", 1000);
-		algorithmObject.put("stopIterationsNumber", 10000);
-		algorithmObject.put("iterationsInterval", 500);
+//		HashMap<String, Object> algorithmObject = new HashMap<String, Object>();
+//		algorithmObject.put("startClusterNumber", 4);
+//		algorithmObject.put("stopClusterNumber", 10);
+//		algorithmObject.put("ClusterInterval", 2);
+//		algorithmObject.put("startIterationsNumber", 1000);
+//		algorithmObject.put("stopIterationsNumber", 10000);
+//		algorithmObject.put("iterationsInterval", 500);
+//		
 		
 		
-		
-		ArrayList<String> columns = new ArrayList<String>();
-		columns.add("X_STATE");
-		columns.add("X_PSU");
-		columns.add("X_FINALWT");
-		columns.add("X_STSTR");
-		columns.add("DIABETE2");
+//		ArrayList<String> columns = new ArrayList<String>();
+//		columns.add("X_STATE");
+//		columns.add("X_PSU");
+//		columns.add("X_FINALWT");
+//		columns.add("X_STSTR");
+//		columns.add("DIABETE2");
 		
 //		columns.add("PercentObese2002");
 //		columns.add("PercentObese2003");
@@ -130,14 +130,26 @@ public class test
 		connectionObject.put("host", "localhost");
 		connectionObject.put("dsn", "myCDC");
 		
-		requestObject.put("scriptName", "TestingAWS_RODBC.R");
+		requestObject.put("scriptName", "byPass.R");
 		requestObject.put("scriptPath", "C:\\RScripts\\");
-		requestObject.put("columnsToBeRetrieved",columns);
+		//requestObject.put("columnsToBeRetrieved",columns);
 		requestObject.put("dataset", "sdoh2010q");
 		
+		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
+		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+		Object[][] myMatrix = new Object[][]{array1, array2};
+		String scriptPath = "C:\\RScripts\\byPass.R";
+		String [] inputNames = {"cannedScriptPath", "dataMatrix"};
+		Object[] inputValues = {scriptPath, myMatrix};
+		String script = "scriptFromFile <- source(cannedScriptPath)\n" +
+		   "returnedColumns <- scriptFromFile$value(dataMatrix)\n";
+		String[] resultNames = {};
 		
 		
-		testcall(connectionObject, requestObject);
+		
+		call(null, inputNames, inputValues, resultNames, script, "", false, false, false);
+		
+		//testcall(connectionObject, requestObject);
 		
 		
 		

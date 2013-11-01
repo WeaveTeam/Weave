@@ -331,29 +331,6 @@ aws.WeaveClient.prototype.clearCurrentVizs = function(){
 };
 
 
-/**
- * This function accesses the weave instance and creates a new data source.
- * 
- * @param {string} dataSource
- * @param {string} dataSourceName
- * @return void
- * 
- */
-aws.WeaveClient.prototype.addCSVDataSource = function (dataSource, dataSourceName) {
-
-	if (dataSourceName == "") {
-		this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")')).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}
-	
-	else {
-		this.weave.path([dataSourceName]).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}	
-		
-};
 
 /**
  * this function can be added as a callback to any visualization to get a log of time for every interaction involving that tool
