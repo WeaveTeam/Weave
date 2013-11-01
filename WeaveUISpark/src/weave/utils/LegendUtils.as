@@ -72,20 +72,20 @@ package weave.utils
 		 * @param destination The bitmap on which to render the text.
 		 * @param text The text to draw on the bitmap.
 		 * @param itemScreenBounds The screen bounds of the item.
-		 * @param iconGap The gap between the icon and the text.
+		 * @param xOffset The label X offset value.
 		 * @param clipRectangle A rectangle used for clipping, if desired. This is typically the bounds of the 
 		 * screen during a drawPlot or drawBackground call.
 		 */		
-		public static function renderLegendItemText(destination:BitmapData, text:String, itemScreenBounds:IBounds2D, iconGap:int, clipRectangle:Rectangle = null):void
+		public static function renderLegendItemText(destination:BitmapData, text:String, itemScreenBounds:IBounds2D, xOffset:int, clipRectangle:Rectangle = null):void
 		{
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			
 			bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 			
 			bitmapText.text = text;
-			bitmapText.x = itemScreenBounds.getXNumericMin() + iconGap;
+			bitmapText.x = itemScreenBounds.getXNumericMin() + xOffset;
 			bitmapText.y = itemScreenBounds.getYCenter();
-			bitmapText.maxWidth = itemScreenBounds.getXCoverage() - iconGap;
+			bitmapText.maxWidth = itemScreenBounds.getXCoverage() - xOffset;
 			bitmapText.maxHeight = itemScreenBounds.getYCoverage();
 			bitmapText.draw(destination, null, null, null, clipRectangle ); 
 		}
