@@ -271,7 +271,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					_controlPanel.title = ControlPanel.getControlPanelTitle(this);
 					_controlPanel.enableSubMenu.value = true;
-					_controlPanel.subMenu.addSubMenuItem(lang('Edit session state'), SessionStateEditor.openDefaultEditor, [this]);
+					_controlPanel.sessionEditorTarget = this;
 				}
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;

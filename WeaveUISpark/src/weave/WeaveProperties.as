@@ -260,7 +260,6 @@ package weave
 		public const showVisToolCloseDialog:LinkableBoolean = new LinkableBoolean(false);
 		
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
-		public const showRevertButton:LinkableBoolean = new LinkableBoolean(true);
 		public const showAddAllButton:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips

@@ -58,8 +58,6 @@
 				 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
 	<mx:CheckBox label="{lang('Show copyright')}"
 				 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-	<mx:CheckBox label="{lang('Show revert and save buttons in control panels')}"
-				 creationComplete="linkBindableProperty(Weave.properties.showRevertButton, event.target, 'selected');"/>	
 	<mx:CheckBox label="{lang('Show add all button in the Attribute Selector')}"
 				 creationComplete="linkBindableProperty(Weave.properties.showAddAllButton, event.target, 'selected');"/>	
 

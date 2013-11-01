@@ -36,13 +36,10 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.containers.TabNavigator;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
@@ -118,6 +115,21 @@
 				enableZOrder.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(
+					lang('Edit session state'),
+					function():void {
+						SessionStateEditor.openDefaultEditor((
+							sessionEditorTarget is Function
+								? sessionEditorTarget()
+								: sessionEditorTarget
+						) as ILinkableObject);
+					},
+					null,
+					function():Boolean { return sessionEditorTarget != null; }
+				);
+				subMenu.addSubMenuItem(lang('Create save point'), save);
+				subMenu.addSubMenuItem(lang('Revert to save point'), revert);
 				
 				// title is set here instead of in the mxml because otherwise it would
 				// overwrite any other value set in mxml components based on this class.
@@ -132,6 +144,12 @@
 					controlPanelControls.tabNavigator.addChild(array[i]);
 				}
 			}
+			
+			/**
+			 * Set this to enable the "Edit session state" menu item.
+			 * This can either be an ILinkableObject or a Function that returns an ILinkableObject.
+			 */
+			public var sessionEditorTarget:Object = null;
 			
 			/**
 			 * setter for _targetObjects
@@ -175,15 +193,6 @@
 				}
 			}
 			
-			private function toggleRevertSaveButtons():void
-			{
-				var show:Boolean = Weave.properties.showRevertButton.value;
-				controlPanelControls.revertBtn.visible = show;
-				controlPanelControls.revertBtn.includeInLayout = show;
-				controlPanelControls.saveBtn.visible = show;
-				controlPanelControls.saveBtn.includeInLayout = show;
-			}
-			
 			/**
 			 * This function reverts session state(s) in targets to the previous state(s) set in save() 
 			 */
@@ -200,7 +209,7 @@
 				for each (var dynamicState:DynamicState in _savedGlobalSessionStates)
 				{
 					var classDef:Class = ClassUtils.getClassDefinition(dynamicState.className);
-					var globalObject:ILinkableObject = Weave.root.requestObject(dynamicState.objectName, classDef, false);
+					var globalObject:ILinkableObject = WeaveAPI.globalHashMap.requestObject(dynamicState.objectName, classDef, false);
 					setSessionState(globalObject, dynamicState.sessionState);
 				}
 			}
@@ -293,8 +302,6 @@
 				{
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
-				
-				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
 			}
 			
 			override protected function childrenCreated():void
@@ -304,9 +311,7 @@
 			
 			private function handleControlsCreated(e:FlexEvent):void
 			{
-				controlPanelControls.revertBtn.addEventListener(MouseEvent.CLICK,function (e:MouseEvent):void { revert() });
 				controlPanelControls.cancelBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { revert(); removePanel(); });
-				controlPanelControls.saveBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); });
 				controlPanelControls.saveCloseBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); removePanel(); });
 			}
 			
@@ -393,9 +398,7 @@
 					controlPanel.tabNavigator.addChild(editor as DisplayObject);
 					
 					controlPanel.title = getControlPanelTitle(linkableObject);
-					
-					controlPanel.enableSubMenu.value = true;
-					controlPanel.subMenu.addSubMenuItem(lang('Edit session state'), SessionStateEditor.openDefaultEditor, [linkableObject]);
+					controlPanel.sessionEditorTarget = linkableObject;
 				}
 				
 				editorPanels[linkableObject] = controlPanel;

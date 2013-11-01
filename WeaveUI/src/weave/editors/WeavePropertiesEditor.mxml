@@ -26,6 +26,7 @@
 			backgroundColor="#EFF4BC"
 			title="{lang('Preferences')}"
 			targets="{[Weave.properties]}"
+			sessionEditorTarget="{Weave.properties}"
 			>
 	<WeavePropertiesAppearanceEditor label="{lang('Appearance')}"/>
 	
