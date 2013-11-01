@@ -89,7 +89,8 @@ package weave.visualization.plotters
 		public const shapeType:LinkableString = registerLinkableChild(this, new LinkableString(SHAPE_TYPE_CIRCLE, verifyShapeType));
 		public static const SHAPE_TYPE_CIRCLE:String = 'circle';
 		public static const SHAPE_TYPE_SQUARE:String = 'square';
-		public static const ENUM_SHAPE_TYPE:Array = [SHAPE_TYPE_CIRCLE, SHAPE_TYPE_SQUARE];
+		public static const SHAPE_TYPE_LINE:String = 'line';
+		public static const ENUM_SHAPE_TYPE:Array = [SHAPE_TYPE_CIRCLE, SHAPE_TYPE_SQUARE, SHAPE_TYPE_LINE];
 		private function verifyShapeType(value:String):Boolean { return ENUM_SHAPE_TYPE.indexOf(value) >= 0; }
 		
 		/**
@@ -231,11 +232,10 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < recordKeys.length; i++)
 				binIndexMap[ binnedColumn.getValueFromKey(recordKeys[i], Number) ] = 1;
 			
-			var margin:int = 4;
-			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
-			var actualShapeSize:Number = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
-			var iconGap:Number = actualShapeSize + margin * 2;
-			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
+			var _shapeSize:Number = shapeSize.value;
+			if (shapeType.value != SHAPE_TYPE_LINE)
+				_shapeSize = Math.max(1, Math.min(_shapeSize, screenBounds.getYCoverage() / numBins));
+			var xShapeOffset:Number = _shapeSize / 2; 
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
 			statsWatcher.target = stats;
 			var internalMin:Number = stats.getMin();
@@ -258,7 +258,7 @@ package weave.visualization.plotters
 				destination.fillRect(tempRectangle, 0x02808080);
 				
 				// draw the text
-				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, iconGap);
+				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, _shapeSize + labelGap);
 
 				// draw circle
 				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
@@ -272,21 +272,32 @@ package weave.visualization.plotters
 				switch (shapeType.value)
 				{
 					case SHAPE_TYPE_CIRCLE:
-						g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
+						g.drawCircle(xMin + xShapeOffset, (yMin + yMax) / 2, _shapeSize / 2);
 						break;
 					case SHAPE_TYPE_SQUARE:
 						g.drawRect(
-							circleCenterOffset + xMin - actualShapeSize / 2,
-							(yMin + yMax - actualShapeSize) / 2,
-							actualShapeSize,
-							actualShapeSize
+							xMin + xShapeOffset - _shapeSize / 2,
+							(yMin + yMax - _shapeSize) / 2,
+							_shapeSize,
+							_shapeSize
 						);
 						break;
+					case SHAPE_TYPE_LINE:
+						if (!isFinite(color))
+							break;
+						g.endFill();
+						g.lineStyle(lineShapeThickness, color, 1);
+						g.moveTo(xMin + xShapeOffset - _shapeSize / 2, (yMin + yMax) / 2);
+						g.lineTo(xMin + xShapeOffset + _shapeSize / 2, (yMin + yMax) / 2);
+						break;
 				}
+				g.endFill();
 			}
 			destination.draw(tempShape);
 		}
 		
+		public var labelGap:Number = 5;
+		public var lineShapeThickness:Number = 4;
 		
 		// reusable temporary objects
 		private const tempPoint:Point = new Point();
