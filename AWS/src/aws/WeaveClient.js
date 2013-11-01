@@ -35,11 +35,11 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 			toolName = this.newScatterPlot(parameters["xColumnName"], parameters["yColumnName"], dataSourceName);
 			break;
 		case 'DataTable':
-			toolName = this.newDatatable(parameters, dataSourceName);
+			toolName = this.newDatatable(parameters["columns"], dataSourceName);
 			this.setPosition(toolName, "50%", "0%");
 			break;
 		case 'BarChartTool' :
-			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["height"], dataSourceName);
+			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["heights"], dataSourceName);
 			this.setPosition(toolName, "0%", "50%");
 			break;
 		default:
@@ -61,26 +61,42 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
  */
 aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 
-	/** @type {string} */
-	var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
-	
-	this.weave.requestObject([toolName], 'MapTool');
-	aws.reportTime("New Map added");
+    /** @type {string} */
+    var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+    
+    this.weave.requestObject([toolName], 'MapTool');
+    aws.reportTime("New Map added");
 
 
-	//state plot layer
-	/** @type {WeavePath} */
-	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
-						   .push('internalObject').request('ReferencedColumn')
-						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
+//        //state plot layer
+//        /** @type {WeavePath} */
+//        var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
+//                                                   .push('internalObject').request('ReferencedColumn')
+//                                                   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
+//
+//        //TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+//        stPlot.state({dataSourceName :"WeaveDataSource",
+//                                    hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+//        
+//        //labellayer
+//
+//        return toolName;
 
-	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
-	stPlot.state({dataSourceName :"WeaveDataSource",
-		  		  hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-	
-	//labellayer
+    //state plot layer
+    /** @type {WeavePath} */
+    var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
+    stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
 
-	return toolName;
+    /** @type {WeavePath} */
+    var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
+                                               .push('internalObject').request('ReferencedColumn')
+                                               .push('dynamicColumnReference', null).request('HierarchyColumnReference');
+
+    //TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+    stPlot.state({dataSourceName :"WeaveDataSource",
+                                hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+
+    return toolName;
 };
 
 /**
@@ -176,7 +192,7 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
 				   hierarchyPath : label});
 		   
     var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
-    sortColumnPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
+    sortColumnPath.push('sortColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
 	   			  .state({dataSourceName : dataSourceName,
 	   				  	  hierarchyPath : sort});
     

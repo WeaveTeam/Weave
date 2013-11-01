@@ -30,8 +30,8 @@ aws.QueryHandler = function(queryObject)
 		};			
 	}
 	
-	if(queryObject.hasOwnProperty("colorColumn")) {
-		this.colorColumn = queryObject.colorColumn;
+	if(queryObject.hasOwnProperty("ColorColumn")) {
+		this.ColorColumn = queryObject.ColorColumn;
 	}
 
 	this.keyType = "";
@@ -117,8 +117,8 @@ aws.QueryHandler.prototype.runQuery = function() {
 			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		}
 		
-		if (that.colorColumn) {
-			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
+		if (that.ColorColumn) {
+			that.weaveClient.setColorAttribute(that.ColorColumn, dataSourceName);
 			aws.timeLogString = aws.reportTime('color column added');
 			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 		}	
