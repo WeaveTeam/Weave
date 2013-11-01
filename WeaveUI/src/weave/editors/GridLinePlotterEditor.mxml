@@ -58,7 +58,7 @@ Editor for custom layers using GridLinePlotters
 	</ui:Indent>
 	<ui:Indent label="{lang('Opacity')}">
 		<mx:HSlider id="gridLineAlphaSlider" 
-					snapInterval="0.1"
+					snapInterval="0.05"
 					tickInterval="0.5" labels="{['0%','50%','100%']}" 
 					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 					minimum="0.0" maximum="1.0" 
