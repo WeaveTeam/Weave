@@ -21,6 +21,8 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.Graphics;
+	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.TimerEvent;
 	import flash.utils.Dictionary;
@@ -50,6 +52,8 @@ package weave.core
 	 */
 	public class UIUtils
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * This function determines if a particular component or one of its children has input focus.
 		 * @param component The component to test.
@@ -89,6 +93,44 @@ package weave.core
 				component.percentHeight = percentHeight;
 			if (collapsableToZero)
 				component.minWidth = component.minHeight = 0;
+		}
+		
+		/**
+		 * Draws an invisible border around the edge of a component for catching mouse events.
+		 * @param sprite The component.
+		 * @param haloDistance The halo's distance from the edge (may be negative for an inset halo)
+		 */
+		public static function drawInvisibleHalo(sprite:Sprite, haloDistance:Number):void
+		{
+			var d:Number = haloDistance;
+			var w:Number = sprite.width;
+			var h:Number = sprite.height;
+			drawInvisiblePolygon(sprite, [
+				0,0, w,0, w,h, 0,h, 0,0,
+				0-d,0-d, w+d,0-d, w+d,h+d, 0-d,h+d, 0-d,0-d
+			], false);
+		}
+		
+		/**
+		 * Draws an invisible polygon on a component for catching mouse events.
+		 * @param sprite The component.
+		 * @param coords [x0,y0, x1,y1, ...]
+		 * @param normalizedCoords true for normalized coordinates (x and y values will be multiplied by sprite.width and sprite.height)
+		 */		
+		public static function drawInvisiblePolygon(sprite:Sprite, coords:Array, normalizedCoords:Boolean):void
+		{
+			var g:Graphics = sprite.graphics;
+			g.moveTo(coords[0], coords[1]);
+			g.beginFill(0xFF0000, debug ? 0.5 : 0);
+			g.lineStyle(0,0,0);
+			while (coords.length)
+			{
+				if (normalizedCoords)
+					g.lineTo(sprite.width * coords.shift(), sprite.width * coords.shift());
+				else
+					g.lineTo(coords.shift(), coords.shift());
+			}
+			g.endFill();
 		}
 		
 		/**

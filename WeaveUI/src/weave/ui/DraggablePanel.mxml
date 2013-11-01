@@ -1349,20 +1349,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (isNaN(unscaledHeight))
 					return;
 				
-				// draw invisible line around the inside of the window to prevent resize from also performing selection
-				var borderThickness:int = resizeBorderThickness;
-				// make sure borderThickness is even because when it is odd,
-				// flash offsets the line to the right and bottom of the coordinates you give.
-				if (borderThickness % 2 == 1)
-					borderThickness++;
-				
-				_dragCanvas.graphics.beginFill(0xFF0000, debug ? 0.5 : 0);
-				_dragCanvas.graphics.lineStyle(0,0,0);
-				_dragCanvas.graphics.drawRect(0, 0, width, resizeBorderThickness);
-				_dragCanvas.graphics.drawRect(0, height - resizeBorderThickness, width, resizeBorderThickness);
-				_dragCanvas.graphics.drawRect(0, resizeBorderThickness, resizeBorderThickness, height - resizeBorderThickness * 2);
-				_dragCanvas.graphics.drawRect(width - resizeBorderThickness, resizeBorderThickness, resizeBorderThickness, height - resizeBorderThickness * 2);
-				_dragCanvas.graphics.endFill();
+				// draw invisible halo around the inside of the window to intercept mouse events for resizing
+				_dragCanvas.width = width;
+				_dragCanvas.height = height;
+				UIUtils.drawInvisibleHalo(_dragCanvas, -resizeBorderThickness);
 			}
 			
 			protected function handleMinimizeButtonClick():void

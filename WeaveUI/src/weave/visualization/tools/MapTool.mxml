@@ -27,7 +27,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
-			import mx.events.FlexEvent;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -42,7 +41,6 @@
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.services.IWMSService;
-			import weave.api.ui.IPlotTask;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
@@ -721,8 +719,9 @@
 			<mx:Button id="north"
 						label="N"
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-						width="17" height="17"
+						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(0,1)"
+						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [0,1, -1,0, 2,0, 1,1, 0,1], true)"
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"
 						/>
 			
@@ -730,29 +729,34 @@
 				<mx:Button id="west"
 					    label="W"
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-						width="17" height="17"
+						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(-1,0)"
-						 labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
+						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [1,0, 0,-1, 0,2, 1,1, 1,0], true)"
+						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
 				<mx:Button id="zoomToExtentButton"
 						   toolTip="Click this button to zoom to map's full extent"
 						   icon="@Embed(source='/weave/resources/images/zoomToExtent.png')"
-						   fillAlphas="[1,1]" 
-						   width="17" height="17" 
+						   fillAlphas="[1,1]"
+						   width="17" height="17" buttonMode="true"
 						   cornerRadius="0"
+						   creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 						   click="visualization.zoomToSelection()"/>
 				<mx:Button id="east"
 					    label="E"
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-						width="17" height="17"
+						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(1,0)"
-						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
+						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [0,0, 1,-1, 1,2, 0,1, 0,0], true)"
+						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center">
+				</mx:Button>
 			</mx:HBox>
 			
 			<mx:Button id="south"
 						label="S"
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-						width="17" height="17"
+						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(0,-1)"
+						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [0,0, -1,1, 2,1, 1,0, 0,0], true)"
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
 		</mx:VBox>
 		
@@ -764,11 +768,13 @@
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-					width="17" height="17"
+					width="17" height="17" buttonMode="true"
 					click="handleZoomInClick()"
+				    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 2)"
 					cornerRadius="0" textAlign="center"/>
 			
 			<mx:VSlider id="zoomSlider"
+						buttonMode="true"
 						showDataTip="false"
 						allowTrackClick="true"
 						liveDragging="true"
@@ -780,8 +786,9 @@
 			<mx:Button id="zoomOut"
 					icon="@Embed(source='/weave/resources/images/zoomMinus.png')"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
-					width="17" height="17"
+					width="17" height="17" buttonMode="true"
 					click="handleZoomOutClick()"
+				    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 2)"
 					cornerRadius="0" textAlign="center"/>
 		</mx:VBox>
 		
@@ -792,51 +799,56 @@
 				 backgroundColor="white" backgroundAlpha="0.01"
 				 alpha="1"> 
 			<mx:Button id="panModeButton" 
+			    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 				icon="@Embed(source='/weave/resources/images/cursor_hand.png')"
 				fillColors="{panModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
 				fillAlphas="[1,1]"
 				alpha="{panModeButton.selected ? 1 : 0.5}"
-				width="17" height="17" 
+				width="17" height="17" buttonMode="true"
 				toggle="true"
 				toolTip="{lang('Pan mode')}"
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
 			<mx:Button id="selectModeButton"
+			    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 				icon="@Embed(source='/weave/resources/images/selectMode.png')"
 				fillColors="{selectModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
 				fillAlphas="[1,1]"
 				alpha="{selectModeButton.selected ? 1 : 0.5}"
-				width="17" height="17"
+				width="17" height="17" buttonMode="true"
 				toggle="true"
 				toolTip="{lang('Selection mode')}"
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
 			<mx:Button id="selectModeAddButton"
+			    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 				icon="@Embed(source='/weave/resources/images/selectMode_add.png')"
 				fillColors="{selectModeAddButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
 				fillAlphas="[1,1]"
 				alpha="{selectModeAddButton.selected ? 1 : 0.5}"
-				width="17" height="17"
+				width="17" height="17" buttonMode="true"
 				toggle="true"
 				toolTip="{lang('Selection mode (add)')}"
 				click="handleMouseModeChange(event)" cornerRadius="0"
 				visible="false" includeInLayout="false"
 				/>
 			<mx:Button id="selectModeSubtractButton"
+			    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 				icon="@Embed(source='/weave/resources/images/selectMode_subtract.png')"
 				fillColors="{selectModeSubtractButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
 				fillAlphas="[1,1]"
 				alpha="{selectModeSubtractButton.selected ? 1 : 0.5}" 
-				width="17" height="17" 
+				width="17" height="17" buttonMode="true"
 				toggle="true"
 				toolTip="{lang('Selection mode (subtract)')}"
 				click="handleMouseModeChange(event)" cornerRadius="0"
 				visible="false" includeInLayout="false"
 				/>
 			<mx:Button id="zoomModeButton"
+			    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 				icon="@Embed(source='/weave/resources/images/zoomMode.png')"
 				fillColors="{zoomModeButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
 				fillAlphas="[1,1]"
 				alpha="{zoomModeButton.selected ? 1 : 0.5}"
-				width="17" height="17" 
+				width="17" height="17" buttonMode="true"
 				toggle="true"
 				toolTip="{lang('Zoom mode')}"
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
