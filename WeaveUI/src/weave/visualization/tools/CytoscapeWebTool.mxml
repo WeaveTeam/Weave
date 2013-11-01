@@ -194,7 +194,7 @@
 				var elements:Array = [];
 
 				var keys:Array = keyset.keys;
-				var keys_len = keys.length;
+				var keys_len:int = keys.length;
 				var key_idx:int;
 
 				for (key_idx = 0; key_idx < keys_len; key_idx++)
