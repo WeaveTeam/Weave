@@ -721,7 +721,7 @@
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(0,1)"
-						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [0,1, -1,0, 2,0, 1,1, 0,1], true)"
+						creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"
 						/>
 			
@@ -731,7 +731,7 @@
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(-1,0)"
-						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [1,0, 0,-1, 0,2, 1,1, 1,0], true)"
+						creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
 				<mx:Button id="zoomToExtentButton"
 						   toolTip="Click this button to zoom to map's full extent"
@@ -746,7 +746,7 @@
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(1,0)"
-						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [0,0, 1,-1, 1,2, 0,1, 0,0], true)"
+						creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center">
 				</mx:Button>
 			</mx:HBox>
@@ -756,7 +756,7 @@
 						fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 						width="17" height="17" buttonMode="true"
 						click="handlePanButtonClick(0,-1)"
-						creationComplete="UIUtils.drawInvisiblePolygon(event.target as Button, [0,0, -1,1, 2,1, 1,0, 0,0], true)"
+						creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 1)"
 						labelPlacement="left" fontSize="10" initialize="UIUtils.pad(event, 0)" cornerRadius="0" textAlign="center"/>
 		</mx:VBox>
 		
@@ -770,7 +770,7 @@
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 					width="17" height="17" buttonMode="true"
 					click="handleZoomInClick()"
-				    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 2)"
+				    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 4)"
 					cornerRadius="0" textAlign="center"/>
 			
 			<mx:VSlider id="zoomSlider"
@@ -788,7 +788,7 @@
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 					width="17" height="17" buttonMode="true"
 					click="handleZoomOutClick()"
-				    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 2)"
+				    creationComplete="UIUtils.drawInvisibleHalo(event.target as Button, 4)"
 					cornerRadius="0" textAlign="center"/>
 		</mx:VBox>
 		
