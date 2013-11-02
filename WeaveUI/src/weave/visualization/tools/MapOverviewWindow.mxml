@@ -74,6 +74,7 @@
 			{
 				super.childrenCreated();
 				
+				canvas.clipContent = true;
 				canvas.percentHeight= canvas.percentWidth = 100;
 				canvas.useHandCursor = true;
 				UIUtils.spark_addChild(visCanvas, canvas);
