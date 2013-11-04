@@ -228,12 +228,22 @@ package weave.data.DataSources
 				
 				function handleRootIds(event:ResultEvent, entityType:int):void
 				{
+					if (!event.result)
+					{
+						reportError(NO_RESULT_ERROR);
+						return;
+					}
 					var ids:Array = event.result as Array;
 					var query:AsyncToken = dataService.getEntitiesById(ids);
 					addAsyncResponder(query, handleRootEntities, handleFault, [entityType, ids]);
 				}
 				function handleRootEntities(event:ResultEvent, entityType_entityIds:Array):void
 				{
+					if (!event.result)
+					{
+						reportError(NO_RESULT_ERROR);
+						return;
+					}
 					var entityType:int = entityType_entityIds[0];
 					var entityIds:Array = entityType_entityIds[1];
 					var orderLookup:Object = createLookup(entityIds);
@@ -279,11 +289,21 @@ package weave.data.DataSources
 						dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN),
 						function(event:ResultEvent, subtreeNode:XML):void
 						{
+							if (!event.result)
+							{
+								reportError(NO_RESULT_ERROR);
+								return;
+							}
 							var ids:Array = event.result as Array;
 							addAsyncResponder(
 								dataService.getParents(ids[0]),
 								function(event:ResultEvent, subtreeNode:XML):void
 								{
+									if (!event.result)
+									{
+										reportError(NO_RESULT_ERROR);
+										return;
+									}
 									var ids:Array = event.result as Array;
 									addAsyncResponder(
 										dataService.getEntityChildIds(ids[0]),
@@ -302,12 +322,19 @@ package weave.data.DataSources
 				}
 				function handleColumnIds(event:ResultEvent, subtreeNode:XML):void
 				{
+					if (!event.result)
+					{
+						reportError(NO_RESULT_ERROR);
+						return;
+					}
 					var ids:Array = event.result as Array;
 					var query:AsyncToken = dataService.getEntitiesById(ids);
 					addAsyncResponder(query, handleColumnEntities, handleFault, [subtreeNode, ids]);
 				}
 			}
 		}
+		
+		private static const NO_RESULT_ERROR:String = "Received null result from Weave server.";
 		
 		/**
 		 * Called when the hierarchy is downloaded from a URL.
