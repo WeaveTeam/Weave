@@ -149,10 +149,16 @@ package weave.visualization.plotters
 					destKey = destinationKeyColumn.getValueFromKey(rowKey, IQualifiedKey);
 					value = valueColumn.getValueFromKey(rowKey, Number);
 					
-					tempShape.graphics.lineStyle(
-						Math.round(Math.abs(value / absMax) * lineWidth.value),
-						value < 0 ? negLineColor.value : posLineColor.value
-					);
+					if (geoKey == destKey)
+						continue;
+					
+					var color:uint = value < 0 ? negLineColor.value : posLineColor.value;
+					var thickness:Number = Math.abs(value / absMax) * lineWidth.value;
+					var ceil:Number = Math.ceil(thickness);
+					var floor:Number = Math.floor(thickness);
+					var fractional:Number = thickness - floor;
+					var alpha:Number = floor/ceil + (1.0 - floor/ceil) * fractional; // between floor/ceil and 1
+					tempShape.graphics.lineStyle(thickness, color, alpha);
 					tempShape.graphics.moveTo(tempSourcePoint.x, tempSourcePoint.y);
 					if (!getGeomCoords(destKey, tempPoint))
 						continue;

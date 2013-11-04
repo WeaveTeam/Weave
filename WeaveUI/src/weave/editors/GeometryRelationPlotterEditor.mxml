@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry Relations')}" 
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry relations')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
 	<ui:DynamicColumnComponent id="geometrySelector" label="{lang('Geometry')}" errorStringFunction="{getGeometryError}"/>
 	<ui:DynamicColumnComponent id="sourceKeySelector" label="{lang('Source key')}"/>
 	<ui:DynamicColumnComponent id="destinationKeySelector" label="{lang('Destination key')}"/>
 	<ui:DynamicColumnComponent id="valueSelector" label="{lang('Value')}"/>
-	<ui:Indent label="{lang('Relation Line Width')}">
+	<ui:Indent label="{lang('Line thickness')}">
 		<mx:HSlider id="lineWidthSlider"
 					width="100%"
 					alpha="1.0"
 					snapInterval="1"
-					tickInterval="1" labels="{['5','6','7','8','9','10']}"
-					minimum="5" maximum="10"
+					tickValues="{[5,10,15,20,25,30]}"
+					minimum="1" maximum="30"
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.lineWidth, event.target, 'value')"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Positive Value Color')}">
+	<ui:Indent label="{lang('Positive value color')}">
 		<ui:CustomColorPicker id="pos_ColorPicker"
 						creationComplete="linkBindableProperty(_plotter.posLineColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Negative Value Color')}">
+	<ui:Indent label="{lang('Negative value color')}">
 		<ui:CustomColorPicker id="neg_ColorPicker"
 						creationComplete="linkBindableProperty(_plotter.negLineColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	<ui:CheckBoxWithNestedOptions id="showValueCheckBox"
 								  label="{lang('Display value in the middle of the line')}"
 								  creationComplete="linkBindableProperty(_plotter.showValue, event.target, 'selected')">
-		<ui:Indent label="{lang('Label Text Size')}">
+		<ui:Indent label="{lang('Label size')}">
 			<mx:HSlider id="labelSizeSlider"
 						width="100%"
 						alpha="1.0"
@@ -36,7 +36,7 @@
 						liveDragging="true" mouseDown="event.stopPropagation()"
 						creationComplete="linkBindableProperty(_plotter.fontSize,event.target,'value')"/>
 		</ui:Indent>
-		<ui:Indent label="{lang('Label Text Color')}">
+		<ui:Indent label="{lang('Label color')}">
 			<ui:CustomColorPicker id="colorPicker"
 							creationComplete="linkBindableProperty(_plotter.fontColor, event.target, 'selectedColor')"/>
 		</ui:Indent>
