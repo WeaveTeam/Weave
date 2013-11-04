@@ -47,7 +47,7 @@
 			Disabling this option will improve performance.
 		</ui:HelpComponent>
 		<ui:Indent label="{lang('Shadow Color')}">
-			<mx:ColorPicker id="shadowColor"
+			<ui:CustomColorPicker id="shadowColor"
 							creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
 							/>
 		</ui:Indent> 

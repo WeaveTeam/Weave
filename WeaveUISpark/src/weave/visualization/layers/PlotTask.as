@@ -32,6 +32,7 @@ package weave.visualization.layers
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
@@ -110,7 +111,7 @@ package weave.visualization.layers
 			_layerSettings = layerSettings;
 			
 			// TEMPORARY SOLUTION until we start using VisToolGroup
-			var subsetFilter:IKeyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
+			var subsetFilter:IDynamicKeyFilter = _plotter.filteredKeySet.keyFilter;
 			
 			var keyFilters:Array = [subsetFilter, _layerSettings.selectionFilter, _layerSettings.probeFilter];
 			var keyFilter:ILinkableObject = keyFilters[_taskType];

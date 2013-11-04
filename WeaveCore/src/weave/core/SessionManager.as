@@ -1614,7 +1614,7 @@ package weave.core
 			else if (oldState is Array && newState is Array)
 			{
 				// If neither is a dynamic state array, don't compare them as such.
-				if (!DynamicState.isDynamicStateArray(oldState) || !DynamicState.isDynamicStateArray(newState))
+				if (!DynamicState.isDynamicStateArray(oldState) && !DynamicState.isDynamicStateArray(newState))
 				{
 					if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
 						return undefined; // no diff

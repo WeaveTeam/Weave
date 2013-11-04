@@ -1595,6 +1595,5 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:HBox>
 			<mx:Button label="Open Loader" click="popupLoader()"/>
 		</mx:VBox>-->
-		<ui:UserWindowSettings targetTool="{this}"/>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

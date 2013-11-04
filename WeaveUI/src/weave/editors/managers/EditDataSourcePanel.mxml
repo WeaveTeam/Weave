@@ -173,7 +173,6 @@
 				{
 					super.childrenCreated();
 					
-					pinnable.value = false;
 					WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateSources, true);
 					selectDataSource(null);
 					tabNav.addEventListener(Event.CHANGE, handleTabIndexChange);

@@ -56,7 +56,6 @@ package weave.data.AttributeColumns
 		public static var debug:Boolean = false;
 		
 		public static const compiler:Compiler = new Compiler();
-		/** begin static code block **/
 		compiler.includeLibraries(
 			WeaveAPI,
 			WeaveAPI.CSVParser,
@@ -66,8 +65,6 @@ package weave.data.AttributeColumns
 			EquationColumnLib,
 			IQualifiedKey
 		);
-		/** end static code block **/
-		
 
 		public function EquationColumn()
 		{

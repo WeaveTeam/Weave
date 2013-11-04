@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.LinkableBounds2D;
@@ -54,10 +55,20 @@ package weave.visualization.plotters
 		{
 			//TODO: this list of properties should be contained in a separate object so we don't have to list them all here
 			spatialCallbacks.addImmediateCallback(this, updateLabels);
-			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
+			
+			titleTextFormatWatcher.target = LinkableTextFormat.defaultTextFormat;
+			labelTextFormatWatcher.target = LinkableTextFormat.defaultTextFormat;
 			
 			setSingleKeySource(_keySet);
 		}
+		
+		public function setupTextFormats(titleTextFormat:LinkableTextFormat, labelTextFormat:LinkableTextFormat):void
+		{
+			titleTextFormatWatcher.target = titleTextFormat;
+			labelTextFormatWatcher.target = labelTextFormat;
+		}
+		private const titleTextFormatWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		private const labelTextFormatWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		public const axisLabelHorizontalDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));
 		public const axisLabelVerticalDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, isFinite));
@@ -240,7 +251,7 @@ package weave.visualization.plotters
 							= axisLabelHorizontalDistance.value * Math.sin(labelAngle)
 							+ axisLabelVerticalDistance.value * Math.sin(labelAngle + Math.PI / 2);
 						
-						setupBitmapText();
+						setupBitmapText(labelTextFormatWatcher);
 						_bitmapText.maxWidth = labelWordWrapSize.value;
 						
 						// calculate the distance between tick marks to use as _bitmapText.maxHeight
@@ -412,9 +423,10 @@ package weave.visualization.plotters
 		
 		private const _tempBounds:Bounds2D = new Bounds2D();
 		
-		protected function setupBitmapText():void
+		protected function setupBitmapText(whichTextFormat:LinkableWatcher):void
 		{
-			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
+			var ltf:LinkableTextFormat = whichTextFormat.target as LinkableTextFormat || LinkableTextFormat.defaultTextFormat;
+			ltf.copyTo(_bitmapText.textFormat);
 			try {
 				_bitmapText.textFormat.align = labelTextAlignment.value;
 			} catch (e:Error) { }
@@ -432,7 +444,7 @@ package weave.visualization.plotters
 			// BEGIN TEMPORARY SOLUTION -- setup BitmapText for axis name
 			if (axisName != null)
 			{
-				setupBitmapText();
+				setupBitmapText(titleTextFormatWatcher);
 				_bitmapText.text = axisName;
 				_bitmapText.angle = _axisNameAngle;
 				_bitmapText.textFormat.align = TextFormatAlign.LEFT;

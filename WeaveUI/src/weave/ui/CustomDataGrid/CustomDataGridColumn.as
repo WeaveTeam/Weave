@@ -46,9 +46,7 @@ package weave.ui.CustomDataGrid
 			sortCompareFunction = SortedKeySet.generateCompareFunction([attrColumn]);
 			headerWordWrap = true;
 			
-			var factory:ClassFactory = new ClassFactory(CustomDataGridCell);
-			factory.properties = {column: this};
-			this.itemRenderer = factory;
+			this.itemRenderer = new ClassFactory(CustomDataGridCell);
 			
 			this.minWidth = 0;
 			
@@ -70,11 +68,12 @@ package weave.ui.CustomDataGrid
 		}
 		
 		/**
-		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
+		 * This function should have the following signature: function(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 		 * The return value should be a color, or NaN for no color.
 		 */
 		[Exclude] public var colorFunction:Function = null;
 		[Exclude] public var selectionKeySet:KeySet = Weave.defaultSelectionKeySet;
+		[Exclude] public var probeKeySet:KeySet = Weave.defaultProbeKeySet;
 		[Exclude] public var attrColumn:IAttributeColumn = null;
 		[Exclude] public var showColors:LinkableBoolean = null;
 		

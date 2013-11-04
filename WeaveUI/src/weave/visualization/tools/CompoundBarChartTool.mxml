@@ -200,7 +200,7 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 
-				if(attrToIncludeCheckList.indexOf(false) > -1)
+				if(attrToIncludeCheckList && attrToIncludeCheckList.indexOf(false) > -1)
 				{
 					probeColumnsCheckBox.selected = false;
 				}
@@ -583,7 +583,7 @@
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorRecordLabelsBox" enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
-								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
+								<ui:CustomColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
 								<ui:HelpComponent>
 									This specifies the color to use for every label.
 								</ui:HelpComponent>
@@ -620,7 +620,7 @@
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorValueLabelColorBox" enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
-								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
+								<ui:CustomColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
 								<ui:HelpComponent>
 									This specifies the color to use for every label.
 								</ui:HelpComponent>

@@ -62,7 +62,7 @@
 					</mx:Array>
 					<mx:Array>
 						<ui:Indent label="{lang('Grid lines:')}" group="{firstVBox}"/>
-						<mx:ColorPicker id="gridColorPicker"/>
+						<ui:CustomColorPicker id="gridColorPicker"/>
 						<mx:NumericStepper id="gridThicknessStepper"
 										   maximum="10" minimum="1"/>
 						<mx:NumericStepper id="gridAlphaStepper"
@@ -71,7 +71,7 @@
 					</mx:Array>
 					<mx:Array>
 						<ui:Indent label="{lang('Axis border:')}" group="{firstVBox}"/>
-						<mx:ColorPicker id="axisColorPicker"/>
+						<ui:CustomColorPicker id="axisColorPicker"/>
 						<mx:NumericStepper id="axisThicknessStepper"
 										   maximum="50" minimum="0"/>
 						<mx:NumericStepper id="axisAlphaStepper"

@@ -28,16 +28,16 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -126,6 +126,10 @@ package weave.visualization.layers
 		 */		
 		public function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
+			getCallbackCollection(plotManager).delayCallbacks();
+			getCallbackCollection(plotManager.layerSettings).delayCallbacks();
+			getCallbackCollection(plotManager.plotters).delayCallbacks();
+			
 			if (mainPlotterClass && !getMainPlotter())
 			{
 				plotManager.plotters.requestObject(MAIN_PLOT_LAYER_NAME, mainPlotterClass, true);
@@ -134,6 +138,7 @@ package weave.visualization.layers
 			{
 				// x
 				var xAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(X_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				xAxis.setupTextFormats(Weave.properties.axisTitleTextFormat, Weave.properties.visTextFormat);
 				xAxis.axisLabelRelativeAngle.value = -45;
 				xAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
 				var xSettings:LayerSettings = plotManager.getLayerSettings(X_AXIS_LAYER_NAME);
@@ -144,6 +149,7 @@ package weave.visualization.layers
 				
 				// y
 				var yAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(Y_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				yAxis.setupTextFormats(Weave.properties.axisTitleTextFormat, Weave.properties.visTextFormat);
 				yAxis.axisLabelRelativeAngle.value = 45;
 				yAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
 				var ySettings:LayerSettings = plotManager.getLayerSettings(Y_AXIS_LAYER_NAME);
@@ -156,6 +162,10 @@ package weave.visualization.layers
 				getCallbackCollection(plotManager.zoomBounds).triggerCallbacks();
 			}
 			putAxesOnBottom();
+			
+			getCallbackCollection(plotManager.plotters).resumeCallbacks();
+			getCallbackCollection(plotManager.layerSettings).resumeCallbacks();
+			getCallbackCollection(plotManager).resumeCallbacks();
 			return getMainPlotter();
 		}
 		
@@ -294,7 +304,7 @@ package weave.visualization.layers
 		{
 			super.handleMouseClick(event);
 			
-			if (mouseIsRolledOver)
+			if (mouseIsRolledOver && Weave.properties.enableToolControls.value)
 			{
 				var theMargin:LinkableString = getMarginAndSetQueryBounds(event.localX, event.localY, false);
 				var index:int = [plotManager.marginTop, plotManager.marginBottom, plotManager.marginLeft, plotManager.marginRight].indexOf(theMargin);
@@ -409,7 +419,7 @@ package weave.visualization.layers
 							var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
 							_axisToolTip = ToolTipManager.createToolTip('', ttPoint.x, ttPoint.y);
 							_axisToolTip.text = marginToolTip;
-							Weave.properties.defaultTextFormat.copyToStyle(_axisToolTip as UIComponent);
+							Weave.properties.visTextFormat.copyToStyle(_axisToolTip as UIComponent);
 							(_axisToolTip as UIComponent).validateNow();
 							
 							// constrain the tooltip to fall within the bounds of the application											
@@ -596,7 +606,7 @@ package weave.visualization.layers
 					(tooltip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 					if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 						(tooltip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-					Weave.properties.defaultTextFormat.copyToStyle(tooltip as UIComponent);
+					Weave.properties.visTextFormat.copyToStyle(tooltip as UIComponent);
 					(tooltip as UIComponent).validateNow();
 				}
 		}

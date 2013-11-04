@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.servlets;
@@ -33,8 +33,6 @@ import javax.script.ScriptException;
 
 import weave.beans.RResult;
 import weave.config.WeaveConfig;
-
-
  
 public class RServiceUsingJRI
 {
@@ -46,7 +44,7 @@ public class RServiceUsingJRI
 	
 	private static RScriptEngine engine = null;
 	
-	public  static class JRIConnectionException extends RemoteException
+	public static class JRIConnectionException extends RemoteException
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -56,7 +54,7 @@ public class RServiceUsingJRI
 		}
 	}
 	
-	public static  RScriptEngine getREngine() throws RemoteException
+	public static RScriptEngine getREngine() throws RemoteException
 	{
 		try
 		{
@@ -67,7 +65,7 @@ public class RServiceUsingJRI
 			// as We set System.setProperty("jri.ignore.ule", "yes");
 			// in getScriptEngine method of RScriptFactory class 
 			if(engine == null){
-				throw  new RemoteException( "Native Library not found");
+				throw new RemoteException( "Native Library not found");
 			}
 			return engine;
 		}
@@ -135,16 +133,12 @@ public class RServiceUsingJRI
 			//Happens when JRI native Library not found - engine will be null
 			// as We set System.setProperty("jri.ignore.ule", "yes");
 			// in getScriptEngine method of RScriptFactory class 
-			catch (NullPointerException e)	{
+			catch (Exception e)
+			{
 				throw new RemoteException("Unable to run R script", e);
 			}
-			catch (Exception e)	{
-				e.printStackTrace();
-				String errorStatement = e.getMessage();
-				resultVector.add(new RResult("Error Statement", errorStatement));
-				//throw new RemoteException("Unable to run R script", e);
-			}
-			finally{
+			finally
+			{
 				results = new RResult[resultVector.size()];
 				resultVector.toArray(results);
 				((RScriptEngine)engine).close();			
@@ -155,7 +149,7 @@ public class RServiceUsingJRI
 	
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private  static void assignNamesToVector(String[] inputNames,Object[] inputValues,String[] keys,boolean useColumnAsList)
+	private static void assignNamesToVector(String[] inputNames,Object[] inputValues,String[] keys,boolean useColumnAsList)
 	{
 		// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
 		Bindings bindedVectors = engine.createBindings();//engine needs to be static , otherwise throws null point error
@@ -177,7 +171,7 @@ public class RServiceUsingJRI
 		}
 		engine.setBindings(bindedVectors, ScriptContext.ENGINE_SCOPE);	
 	}
-	private static  void evaluateInputScript(String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException
+	private static void evaluateInputScript(String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException
 	{
 		evalScript(engine, script, showWarnings);
 		if (showIntermediateResults){
@@ -203,9 +197,9 @@ public class RServiceUsingJRI
 	{
 		Object evalValue = null;
 		if(showWarnings)			
-			evalValue =  engine.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");			
+			evalValue = engine.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");			
 		else
-			evalValue =  engine.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+			evalValue = engine.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		return evalValue;
 		
 	}
@@ -233,8 +227,4 @@ public class RServiceUsingJRI
 		
 		return rFolderName + "/" + file;
 	}
-	
-	
-
-
 }

@@ -21,9 +21,7 @@
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-	     layout="absolute"
-		 xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
+	     xmlns:ui="weave.ui.*">
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.CursorManager;
@@ -31,13 +29,13 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
+			import weave.api.linkSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.layers.InteractiveVisualization;
-			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
 		
 			WeaveAPI.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
@@ -128,6 +126,7 @@
 			{
 				marginLabelCheckBox.selected = visualization.plotManager.marginBottomNumber.value != 0;
 				marginLabel.height = visualization.plotManager.marginBottomNumber.value;
+				marginLabel.visible = visualization.plotManager.marginBottomNumber.value > 0
 			}
 			
 		]]>
@@ -145,11 +144,9 @@
 				 textAlign="center"
 				 toolTip="{lang('{0}\n\tClick here to select a different attribute.', marginLabelText)}"/>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes for Gauge')}" >
+		<mx:VBox id="attributesPanel" label="{lang('Gauge properties')}" >
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
-		</mx:VBox>
-		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
-			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);" toolTip="{lang('Click to hide the title.')}"/>
+			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

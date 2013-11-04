@@ -48,8 +48,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:HBox>
 	
 	<mx:TabNavigator id="axisSettings" initialize="UIUtils.pad(event, 8, 100, 100)">
-		<SimpleAxisPlotterLabelEditor id="xAxisLabelEditor" label="{lang('X-Axis properties')}"/>
 		<SimpleAxisPlotterLabelEditor id="yAxisLabelEditor" label="{lang('Y-Axis properties')}"/>
+		<SimpleAxisPlotterLabelEditor id="xAxisLabelEditor" label="{lang('X-Axis properties')}"/>
 	</mx:TabNavigator>
 	
 	<mx:Script>

@@ -367,7 +367,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			<ui:Indent label="Circle color" width="100%">
-				<mx:ColorPicker id="circleColorPicker"
+				<ui:CustomColorPicker id="circleColorPicker"
 								creationComplete="linkBindableProperty(_target._anchorPlotter.circleLineStyle.color.defaultValue, event.target, 'selectedColor')" />
 			</ui:Indent>
 			
@@ -393,7 +393,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</ui:Indent>
 			
 			<ui:Indent label="Anchor point color">
-				<mx:ColorPicker id="anchorColorPicker"
+				<ui:CustomColorPicker id="anchorColorPicker"
 								selectedColor="0xFFFFFF"
 								creationComplete="linkBindableProperty(_target._anchorPlotter.anchorFillStyle.color.defaultValue, event.target, 'selectedColor')" />
 			</ui:Indent>	

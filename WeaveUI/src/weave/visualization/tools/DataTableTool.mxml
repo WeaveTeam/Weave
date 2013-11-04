@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
@@ -33,11 +33,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
-		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
-			<mx:Label text="{lang('Key type:')}"/>
-			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
-			<mx:Button label="{lang('Edit columns...')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
-		</mx:HBox>
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
 		</mx:HBox>
@@ -71,11 +66,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				as the amount has exceeded the tables capability for dealing with it efficiently.
 			</ui:HelpComponent>
 		</mx:HBox>
-		
-		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
-			<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
-			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
-			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
+		<mx:HBox id="extraControls" width="100%">
+			<ui:Indent label="Key type:" translate="true" visible="false" includeInLayout="false">
+				<ui:CustomComboBox id="keyTypeCombo"
+								   change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;"
+								   toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
+			</ui:Indent>
+			<mx:Button id="button_moveSelectedToTop" visible="{toggle_moveSelectedToTop.selected}" includeInLayout="{toggle_moveSelectedToTop.selected}"
+					   label="{lang('Move selected to top')}" click="moveSelectedToTop()"/>
+			<mx:Button id="button_clearSelection" visible="{toggle_clearSelection.selected}" includeInLayout="{toggle_clearSelection.selected}"
+					   label="{lang('Clear selection')}" click="_selection.clearKeys()"/>
+			<mx:Button id="button_editColumns" visible="{toggle_editColumns.selected}" includeInLayout="{toggle_editColumns.selected}"
+					   label="{lang('Edit columns')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
+			<mx:Button id="button_exportData" visible="{toggle_exportData.selected}" includeInLayout="{toggle_exportData.selected}"
+					   label="{lang('Export data')}" click="saveToFileAsCSV()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -142,7 +146,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));	
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap(IFilterComponent));
 			public const enableProbing:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 			private const dataGridColumns:Dictionary = new Dictionary();
@@ -151,6 +155,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const dataGridHorizontalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
+			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
 			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;
@@ -159,8 +164,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
-			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
-			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
 			
@@ -185,14 +189,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_selection.addImmediateCallback(this,invalidateDisplayList);
 				_probe.addImmediateCallback(this,updateGlobalProbeChangeLater);
 				Weave.defaultColorColumn.addImmediateCallback(this,invalidateDisplayList);
-				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);
+				getCallbackCollection(_textFormat).addImmediateCallback(this,invalidateDisplayList);
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				linkBindableProperty(showColors, showColorsCheckBox,"selected");
 				linkBindableProperty(enableProbing, enableProbingCheckBox, "selected");
@@ -233,7 +236,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				updateColumnWidths();
 				if (dataGridHorizontalScrollPosition.value > 0 && showFilters.value)
 				{
-					handleDataGridHorizontalScroll();					
+					handleDataGridHorizontalScroll();
 				}
 				
 				// Set max header height to 50
@@ -248,7 +251,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleRollOver(event:ListEvent):void // Probe
 			{
-				if (enableProbing.value == false) return;
+				if (enableProbing.value == false)
+					return;
 
 				var index:int = event.rowIndex;
 				var obj:Object = (dataGrid.dataProvider as ArrayCollection).getItemAt( index );
@@ -258,7 +262,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleRollOut(event:MouseEvent):void // Unprobe
 			{
-				if (enableProbing.value == false) return;
+				if (enableProbing.value == false)
+					return;
 				
 				_probe.clearKeys();
 			}
@@ -268,17 +273,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					handleRollOut(null);
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
-				
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				if (!parent) 
 					return;
 				
 				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
 				if (columnsChanged)
-				{					
+				{
 					updateKeyTypeComboBox();
-					updateDataGridColumns();					
+					updateDataGridColumns();
+					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
 				}
 				if (detectLinkableObjectChange(updateDisplayList, lockedColumns) || columnsChanged)
 				{
@@ -305,11 +311,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dataGrid.invalidateFilters();
 				}
 				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
-				{					
+				{
 					handleDataGridHorizontalScroll();
 				}
 				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
-				{					
+				{
 					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
@@ -325,9 +331,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dataGrid.invalidateList();
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat))
+				if (detectLinkableObjectChange(updateDisplayList, _textFormat))
 				{
-					LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
+					_textFormat.copyToStyle(dataGrid);
 				}
 				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged || subsetChanged)
 				{
@@ -361,7 +367,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
-				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);				
+				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			
@@ -374,8 +380,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ColumnUtils.generateTableCSV(columns.getObjects());
 			}
 			//needed for export CSV Button click in the control panel
-			private var fr:FileReference = new FileReference();	// CSV download file reference
-			private function saveToFileAsCSV():void{
+			private var fr:FileReference = new FileReference(); // CSV download file reference
+			private function saveToFileAsCSV():void
+			{
 				try
 				{
 					fr.save(exportCSV(), "Weave Data Export.csv");
@@ -394,7 +401,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleHeaderRelease(event:DataGridEvent):void
 			{
 				// There is a bug in flex: column.sortDescending will always return false				
-				if(UIUtils.hasFocus(dataGrid)){//need to update sessionState when called by User Interaction
+				//need to update sessionState when called by User Interaction
+				if (UIUtils.hasFocus(dataGrid))
+				{
 					sortInDescendingOrder.value = !isSortedDescending(); // each time will toggle ascending/descending
 					sortFieldIndex.value = event.columnIndex;
 				}
@@ -477,7 +486,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!parent)
 					return callLater(updateGlobalSelectionChange);
 				//flex will crash if we try to select items immediately
-				if(dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
+				if (dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
 					validateNow();
 				
 				var item:Object;
@@ -502,7 +511,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					changeDetected = true;
 				
 				if (changeDetected)
-					dataGrid.selectedItems = selectedItems;				
+					dataGrid.selectedItems = selectedItems;
 			}
 			private function updateGlobalProbeChangeLater():void
 			{
@@ -545,7 +554,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var selectedItems:Array = dataGrid.selectedItems;
 				
 				//datagrid.selectedItems returns null. So have to loop through indices to get the items
-				(dataGrid.dataProvider as ArrayCollection).sort = null;				
+				(dataGrid.dataProvider as ArrayCollection).sort = null;
 				
 				for each(var item:Object in selectedItems)
 				{
@@ -560,17 +569,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataGrid.scrollToIndex(0);
 			}
 			
-			/**
-			 * Called, when column or filterByKeyType changes  
-			 * Fills the datagrid Dataprovider based on KeyType, By default "Show All" 
-			 * and Update Global selection
-			 */	
+			private static const COMBO_ITEM_ALL_KEY_TYPES:String = lang("All key types");
+			
 			private function updateKeysColumnsDataProviderAndSelection():void
 			{
 				var includedColumns:Array = [];
 				for each (var col:CustomDataGridColumn in dataGrid.columns)
 				{
-					if (keyTypeCombo.selectedItem == "Show All" ||
+					if (keyTypeCombo.selectedItem == COMBO_ITEM_ALL_KEY_TYPES ||
 						(col.attrColumn is KeyColumn) ||
 						(ColumnUtils.getKeyType(col.attrColumn) == filterColumnsByKeyType.value))
 					{
@@ -583,8 +589,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 				var tempArray:Array = ColumnUtils.getAllKeys(includedColumns);
-				if( tempArray.length > maxRows.value)
-				{	
+				if ( tempArray.length > maxRows.value)
+				{
 					maxRowsLabel.text = lang('Showing first {0} out of {1} records', StandardLib.formatNumber(maxRows.value), StandardLib.formatNumber(tempArray.length));
 					tooManyRecordsIndicator.visible = true;
 					tooManyRecordsIndicator.includeInLayout = true;
@@ -608,25 +614,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var prevIndex:int = keyTypeCombo.selectedIndex;
 				var keyTypeList:Array = new Array();
-				keyTypeList.push("Show All");
+				keyTypeList.push(COMBO_ITEM_ALL_KEY_TYPES);
 				for each (var attrCol:IAttributeColumn in columns.getObjects())
 				{
-					if(attrCol is KeyColumn)
+					if (attrCol is KeyColumn)
 						continue;
 					
-					var keyType:String = ColumnUtils.getKeyType(attrCol);
-					
-					if(keyType == null)
-						keyType = "null"
-					if(keyTypeList.indexOf(keyType) == -1)
+					var keyType:String = ColumnUtils.getKeyType(attrCol) || DataTypes.STRING;
+					if (keyTypeList.indexOf(keyType) == -1)
 						keyTypeList.push(keyType);
 				}
-				keyTypeCombo.dataProvider = keyTypeList;				
-				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
+				keyTypeCombo.dataProvider = keyTypeList;
+				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || COMBO_ITEM_ALL_KEY_TYPES;
 			}
 			
 			private function handleDataCopy(event:Event):void
-			{											
+			{
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,exportCSV() );
 			}
 			
@@ -636,7 +639,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updateDataGridColumns():void
 			{
 				// if there isn't a parent or the grid isn't fully instantiated, return
-				if (!parent )
+				if (!parent)
 					return callLater(updateDataGridColumns);
 				try
 				{
@@ -644,7 +647,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_currentDataGridColumns = [];
 					for each (var attrColumn:IAttributeColumn in attrColumns)
 					{
-						var columnName:String = columns.getName(attrColumn);						
+						var columnName:String = columns.getName(attrColumn);
 						var dataType:String = ColumnUtils.getDataType(attrColumn);
 						
 						//column Section
@@ -674,7 +677,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
-					numLockedColumns.maximum = attrColumns.length - 2;
+					numLockedColumns.maximum = Math.max(0, attrColumns.length - 2);
+					numLockedColumns.enabled = numLockedColumns.maximum > 0;
 				}
 				catch (error:Error)
 				{
@@ -684,19 +688,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleColumnReorder(event:IndexChangedEvent):void
 			{
-				var newColumnOrder:Array = [];				
+				var newColumnOrder:Array = [];
 				for(var i:int = 0; i< dataGrid.columns.length; i++)
 				{
 					var currDGcolumn:CustomDataGridColumn = dataGrid.columns[i] as CustomDataGridColumn;
 					var columnName:String = columns.getName(currDGcolumn.attrColumn as ILinkableObject);
 					newColumnOrder.push(columnName);
-				}			
-				columns.setNameOrder(newColumnOrder);				
+				}
+				columns.setNameOrder(newColumnOrder);
 			}
 			
 			private function handleColumnListChange():void
-			{			
-				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;				
+			{
+				showKeyColumnCheckBox.selected = columns.getNames(KeyColumn).length > 0;
 				
 				//if column is added , we need to add respective sessioned FilterComponent and ColumnWidth
 				if (columns.childListCallbacks.lastObjectAdded)
@@ -704,8 +708,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}  			
 				//if column is removed , we need to remove respective sessioned FilterComponent and ColumnWidth
 				else if (columns.childListCallbacks.lastObjectRemoved)
-				{						
-					filterComponents.removeObject(columns.childListCallbacks.lastNameRemoved);					
+				{
+					filterComponents.removeObject(columns.childListCallbacks.lastNameRemoved);
 					delete dataGridColumns[columns.childListCallbacks.lastNameRemoved]
 					columnWidths.removeObject(columns.childListCallbacks.lastNameRemoved);
 				}
@@ -728,7 +732,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, false);
 					
 					if (isNaN(colWidth) || width <= _minSuggestedColumnSize) // this happens when a column is stretched all the way to the right
-						colWidth = _minSuggestedColumnSize;	
+						colWidth = _minSuggestedColumnSize;
 					
 					sessionedWidth.value = (100 * colWidth / dataGridColumnsWidth) + "%";
 				}
@@ -756,17 +760,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					sessionedWidth = columnWidths.getObject(columnName) as LinkableString;
 					var tempWidth:Number;
 					// when we reset width, we need all columns to have default value
-					 if(sessionedWidth && sessionedWidth.value ){	
+					 if (sessionedWidth && sessionedWidth.value)
+					 {
 						 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allottedDisplayWidth);
 						 tempWidth = sessionedValue;
 					 }
-					 else{
-						 tempWidth = defaultValue;					
+					 else
+					 {
+						 tempWidth = defaultValue;
 						 //sessionedWidth.value = (100 * tempWidth/allottedDisplayWidth) + "%";
 					 } 
 					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
-					if(j == _currentDataGridColumns.length -1) 
+					if (j == _currentDataGridColumns.length -1) 
 						tempWidth = NaN;//allottedDisplayWidth - displayedColumnsTotalWidth;
 					if (tempWidth <= _minSuggestedColumnSize || isNaN(tempWidth))
 						tempWidth = _minSuggestedColumnSize;
@@ -778,29 +784,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
 					
-					if (dgc.filterComponent){
+					if (dgc.filterComponent)
+					{
 						dgc.filterComponent.width = dgc.width;
 					}
 					//add those columns which are dispalyed on datagrid
-					if(j >= dataGridHorizontalScrollPosition.value){
+					if (j >= dataGridHorizontalScrollPosition.value)
+					{
 						displayedColumnsTotalWidth = displayedColumnsTotalWidth + dgc.width;
-					}					
+					}
 				}
 				displayedColumnsTotalWidth = 0;
 			}
 			
 			private function handleDataGridHorizontalScroll():void
 			{
-				var maximumValue:int = dataGrid.maxHorizontalScrollPosition;				
+				var maximumValue:int = dataGrid.maxHorizontalScrollPosition;
 				var hsp:int = 0;
 				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++)
 				{
 					hsp += (_currentDataGridColumns[i] as CustomDataGridColumn).width;
-				}					
+				}
 				filterControls.horizontalScrollPosition = hsp;
 				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;
 				
-				if(maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue)
+				if (maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue)
 				{
 					updateColumnWidths();
 				}
@@ -809,17 +817,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleKeyColumnCheckBox():void
 			{
-				if(showKeyColumnCheckBox.selected)
+				if (showKeyColumnCheckBox.selected)
 				{
 					var kc:Array= columns.getObjects(KeyColumn);
-					if(kc.length == 0)
+					if (kc.length == 0)
 					{
 						var nameOrder:Array = columns.getNames();
 						columns.requestObject("KeyColumn",KeyColumn, false);
 						columns.setNameOrder(nameOrder);
-					}					
+					}
 					updateKeyTypeComboBox();
-					
 				}
 				else
 				{
@@ -831,7 +838,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 			}
+			
 			public const showControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateControls);
+			public const show_moveSelectedToTop:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const show_clearSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const show_editColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const show_exportData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			private function updateControls():void
 			{
 				if (!parent)
@@ -840,17 +852,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					if (showControls.value)
 					{
-						if (!topControls.parent)
-							tableArea.addChildAt(topControls, 0);
-						if (!bottomControls.parent)
-							tableArea.addChild(bottomControls);
+						if (!extraControls.parent)
+							tableArea.addChild(extraControls);
 					}
 					else
 					{
-						if (topControls.parent)
-							tableArea.removeChild(topControls);
-						if (bottomControls.parent)
-							tableArea.removeChild(bottomControls);
+						if (extraControls.parent)
+							tableArea.removeChild(extraControls);
 					}
 				}
 				catch (e:Error) 
@@ -872,14 +880,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if (!filterControls.parent)
 						{
 							// if there are controls above where the filters should be.. add the filters at index 1, otherwise use index 0
-							tableArea.addChildAt(filterControls, topControls.parent ? 1 : 0);							
+							tableArea.addChildAt(filterControls, 0);
 						}
 						dataGrid.enableFilters = true;
 					}
 					else
-					{						
+					{
 						if (filterControls.parent)
-						{							
+						{
 							tableArea.removeChild(filterControls);
 						}
 						dataGrid.enableFilters = false;
@@ -982,10 +990,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleMouseClick():void
 			{
-				if(!detectLinkableObjectChange( handleMouseClick, _selection ))
-					if( dataGrid.mouseY > dataGrid.headerHeight )
-						if( dataGrid.mouseX < dataGrid.width - 16 )
-							if( WeaveAPI.StageUtils.pointClicked )
+				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
+					if ( dataGrid.mouseY > dataGrid.headerHeight )
+						if ( dataGrid.mouseX < dataGrid.width - 16 )
+							if ( WeaveAPI.StageUtils.pointClicked )
 								_selection.clearKeys() ;
 			}
 			
@@ -996,15 +1004,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Columns')}">
-			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show Key Column')}" change="handleKeyColumnCheckBox()"/>
+			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show key column')}" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
-				<mx:Label text="{lang('Number of Locked Columns')}"/>
+				<mx:Label text="{lang('Number of locked columns')}"/>
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value', 0, true);"/>
 			</mx:HBox>
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
 			<mx:HBox>
-				<mx:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
+				<mx:Button label="{lang('Add image column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>
 					Select a column that contains image URLs.
 					The images will be displayed in the data table.
@@ -1015,46 +1023,47 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
-
-			<mx:HBox>
-				<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
-				<mx:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
-			</mx:HBox>
-			<mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable probing.')}"/>
-			<mx:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
-			<mx:HBox>
+			<mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>
+			<mx:HBox verticalAlign="middle">
 				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
 				<ui:HelpComponent>
 					This allows data to be filtered based on the data values.
 					Filtered records are highlighted by selection in the other tools.
+					
 					If a column contains text data, a search box will be displayed which supports wildcards ('?' = any Character; '*' = any String).
+					
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
 			</mx:HBox>
+			<ui:CheckBoxWithNestedOptions label="{lang('Show buttons on panel')}" creationComplete="linkBindableProperty(showControls, event.target, 'selected')">
+				<mx:CheckBox id="toggle_moveSelectedToTop" label="{lang('Move selected to top')}" creationComplete="linkBindableProperty(show_moveSelectedToTop, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_clearSelection" label="{lang('Clear selection')}" creationComplete="linkBindableProperty(show_clearSelection, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_editColumns" label="{lang('Edit columns')}" creationComplete="linkBindableProperty(show_editColumns, event.target, 'selected')"/>
+				<mx:CheckBox id="toggle_exportData" label="{lang('Export data')}" creationComplete="linkBindableProperty(show_exportData, event.target, 'selected')"/>
+			</ui:CheckBoxWithNestedOptions>
+			<ui:CheckBoxWithNestedOptions id="showColorsCheckBox" label="{lang('Enable cell coloring')}" width="100%" height="100%">
+				<ui:HelpComponent>
+					<ui:htmlText>
+						<![CDATA[
+							The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
+							-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
+						]]>
+					</ui:htmlText>
+				</ui:HelpComponent>
+				<mx:HBox width="100%" height="100%">
+					<mx:VBox>
+						<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+						<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
+						<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
+					</mx:VBox>
+					<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
+				</mx:HBox>
+			</ui:CheckBoxWithNestedOptions>
 			<ui:Indent label="{lang('Background colors')}">
-				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
-				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
+				<ui:CustomColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
 				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
-			<mx:HBox verticalAlign="top" width="100%" height="100%">
-				<mx:VBox horizontalAlign="right">
-					<mx:HBox verticalAlign="middle">
-						<mx:CheckBox id="showColorsCheckBox" label="{lang('Enable cell coloring')}"/>
-						<ui:HelpComponent>
-							<ui:htmlText>
-								<![CDATA[
-									The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
-									-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
-								]]>
-							</ui:htmlText>
-						</ui:HelpComponent>
-					</mx:HBox>
-					<mx:Button label="{lang('Default colors')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
-					<mx:Button label="{lang('Heat map')}" click="cellColorFunction.value = HEATMAP_CELL_COLOR_FUNCTION_SCRIPT;"/>
-					<mx:Button label="{lang('Edit heat map colors')}" click="ControlPanel.openEditor(colorRamp)"/>
-				</mx:VBox>
-				<ui:CodeEditor id="cellColorFunctionEditor" creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
-			</mx:HBox>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>

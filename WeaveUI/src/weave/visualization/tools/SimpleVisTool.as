@@ -84,7 +84,7 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
-			getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateTitleLabel, true);
+			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
@@ -94,9 +94,9 @@ package weave.visualization.tools
 		private var visTitle:Paragraph; // For display of title inside the window area
 		protected var visCanvas:Canvas; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
-		protected var layerListComponent:LayerListComponent;
-		protected var simpleAxisEditor:SimpleAxisEditor;
-		protected var windowSettingsEditor:WindowSettingsEditor;
+		protected var layersEditor:LayerListComponent;
+		protected var axesEditor:SimpleAxisEditor;
+		protected var windowEditor:WindowSettingsEditor;
 		
 		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
@@ -134,20 +134,20 @@ package weave.visualization.tools
 			
 			this.addChild(toolVBox);
 			
-			layerListComponent = new LayerListComponent();
-			layerListComponent.visualization = visualization;
+			layersEditor = new LayerListComponent();
+			layersEditor.visualization = visualization;
 			
 			//TODO: hide axis controls when axis isn't enabled
 
-			simpleAxisEditor = new SimpleAxisEditor();
-			simpleAxisEditor.setTargets(visualization, enableTitle, panelTitle);
+			axesEditor = new SimpleAxisEditor();
+			axesEditor.setTargets(visualization, enableTitle, panelTitle);
 			
-			windowSettingsEditor = new WindowSettingsEditor();
-			windowSettingsEditor.target = this;
+			windowEditor = new WindowSettingsEditor();
+			windowEditor.target = this;
 			
 			if (controlPanel)
 			{
-				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
+				controlPanel.children = [layersEditor, axesEditor, windowEditor];
 			}
 		}
 		
@@ -167,7 +167,7 @@ package weave.visualization.tools
 			if (!createdChildren)
 				return callLater(updateTitleLabel);
 			
-			LinkableTextFormat.defaultTextFormat.copyToStyle(visTitle);
+			Weave.properties.visTitleTextFormat.copyToStyle(visTitle);
 		}
 		
 		

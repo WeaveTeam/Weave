@@ -30,23 +30,19 @@
 		verticalAlign="middle" implements="weave.api.core.ILinkableObject"
 		>
 	<mx:HBox horizontalGap="4" width="100%">
-		<mx:Label id="listOverlay"
-				  width="{internalList.width}"
-				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
-				  text="{lang('Double-click to select, or drag &amp; drop here')}"
-				  visible="{isEmpty(internalList.dataProvider)}">
-			<mx:creationComplete>
-				<![CDATA[
-					internalList.addChild(listOverlay);
-				]]>
-			</mx:creationComplete>
-		</mx:Label>
 		<mx:List id="internalList"
 				 rollOut="if (!event.buttonDown) internalList.selectedItem = null"
 				 variableRowHeight="false"
 				 doubleClickEnabled="true"
 				 doubleClick="openAttributeSelector()"
 			 	 width="100%" rowCount="1" height="24"/>
+		<mx:Label id="listOverlay"
+				  width="{internalList.width}"
+				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
+				  text="{lang('Double-click to select, or drag &amp; drop here')}"
+				  addedToStage="listOverlay.x = listOverlay.y = 0;"
+				  creationComplete="internalList.addChild(listOverlay);"
+				  visible="{isEmpty(internalList.dataProvider)}"/>
 		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
 			       toolTip="{lang('Select an attribute column')}"
 				   click="openAttributeSelector()"/>
@@ -120,7 +116,7 @@
 			}
 			
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
-			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, toggleLinkDropDown);
+			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleDynamicObject);
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
@@ -137,6 +133,14 @@
 			{
 				_visTool = value;
 				updateLabel();
+			}
+			
+			private var _errorStringFunction:Function = null;
+			
+			public function set errorStringFunction(value:Function):void
+			{
+				_errorStringFunction = value;
+				handleDynamicObject();
 			}
 			
 			private function updateLabel():void
@@ -163,6 +167,12 @@
 				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(controller.dynamicObject as DynamicColumn);
 				if (dc)
 					dc.removeObject();
+			}
+			
+			private function handleDynamicObject():void
+			{
+				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
+				toggleLinkDropDown();
 			}
 			
 			private function toggleLinkDropDown(show:Boolean = false):void

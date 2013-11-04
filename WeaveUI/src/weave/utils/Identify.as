@@ -23,6 +23,7 @@ package weave.utils
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import mx.core.UIComponent;
 	
@@ -94,21 +95,28 @@ package weave.utils
 			
 			var strings:Array = [];
 			for each (var name:String in _identifyPropertyNames)
-			if (target.hasOwnProperty(name))
-				strings.push(name + '=' + target[name]);
+				if (target.hasOwnProperty(name))
+					strings.push(name + '=' + target[name]);
 			
 			var text:String = debugId(target) + '\n' + strings.join(', ');
 			_identifyHide = PopUpUtils.showTemporaryTooltip(target, text, int.MAX_VALUE, drawBorder);
 			
 			function drawBorder(tip:UIComponent):void
 			{
-				var tipxy:Point = tip.globalToLocal(new Point(0, 0));
-				var targetxy:Point = target.globalToLocal(new Point(0, 0));
-				var offset:Point = targetxy.subtract(tipxy);
-				var g:Graphics = tip.graphics;
-				
-				g.lineStyle(2, 0xFF0000, 0.5, true);
-				g.drawRect(-offset.x, -offset.y, target.width, target.height);
+				var styles:Array = [
+					[2, 0xFF0000, 0.65],
+					[1, 0xFF0000, 0.25]
+				];
+				while (target)
+				{
+					var r:Rectangle = target.getRect(tip);
+					tip.graphics.lineStyle(styles[0][0], styles[0][1], styles[0][2], true);
+					tip.graphics.drawRect(r.x, r.y, r.width, r.height);
+
+					target = target.parent;
+					if (styles.length > 1)
+						styles.shift();
+				}
 			}
 		}
 	}

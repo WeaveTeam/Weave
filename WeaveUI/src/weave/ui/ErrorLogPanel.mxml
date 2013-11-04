@@ -110,7 +110,7 @@
 			{
 				super.childrenCreated();
 				
-				pinnable.value = false;
+				enableZOrder.value = false;
 				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, handleError, true);
 			}
 			

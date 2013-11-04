@@ -86,7 +86,7 @@ package weave.visualization.plotters
 			_textField.alpha = 0.2;
 			
 			//setting default WMS Map to Blue Marble
-			setProvider(WMSProviders.BLUE_MARBLE_MAP);
+			setProvider(WMSProviders.OPEN_STREET_MAP);
 		}
 
 		// the service and its parameters

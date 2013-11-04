@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.servlets;
@@ -35,7 +35,6 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
-import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -144,9 +143,9 @@ public class RServiceUsingRserve
 		
 		REXP evalValue = null;
 		if (showWarnings)			
-			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
+			evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
 		else
-			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+			evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
 		
 		return evalValue;
@@ -214,7 +213,7 @@ public class RServiceUsingRserve
 		return getREXP(new Object[]{object});
 	}
 
-	private  static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws Exception
+	private static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws RserveException, RemoteException
 	{
 		for (int i = 0; i < inputNames.length; i++)
 		{
@@ -224,7 +223,7 @@ public class RServiceUsingRserve
 	}
 	
 	
-	private static  void evaluateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException
+	private static void evaluateInputScript(RConnection rConnection,String script,Vector<RResult> resultVector,boolean showIntermediateResults,boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException
 	{
 		/* REXP evalValue = */ evalScript(rConnection, script, showWarnings);
 		if (showIntermediateResults)
@@ -257,7 +256,7 @@ public class RServiceUsingRserve
 		
 	}
 	
-	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
+	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws RemoteException
 	{
 		RConnection rConnection = null;
 		Vector<RResult> resultVector = new Vector<RResult>();
@@ -284,14 +283,10 @@ public class RServiceUsingRserve
 			evalScript(rConnection, "rm(list=ls())", false);
 			
 		}
-		catch (Exception e)	{
+		catch (Exception e)
+		{
 			e.printStackTrace();
-			System.out.println("printing error");
-			System.out.println(e.getMessage());
-			String errorStatement = e.getMessage();
-			// to send error from R to As3 side results is created with one
-			// object			
-			resultVector.add(new RResult("Error Statement state", errorStatement));
+			throw new RemoteException("Unable to run R script", e);
 		}
 		finally
 		{
@@ -304,7 +299,7 @@ public class RServiceUsingRserve
 	
 	/*
 	 * Taken from rJava Opensource code and 
-	 * added support for  Rlist
+	 * added support for Rlist
 	 */
 	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
@@ -332,12 +327,12 @@ public class RServiceUsingRserve
 			}
 			if(rexp.isList()) {
 				RList rList = rexp.asList();
-				Object[] listOfREXP = rList.toArray() ;
+				Object[] listOfREXP = rList.toArray();
 				//convert object in List as Java Objects
 				// eg: REXPDouble as Double or Doubles
-				for(int i = 0; i < listOfREXP.length ;  i++){
+				for(int i = 0; i < listOfREXP.length; i++){
 					REXP obj = (REXP)listOfREXP[i];
-					listOfREXP[i] =  rexp2javaObj(obj);
+					listOfREXP[i] = rexp2javaObj(obj);
 				}
 				return listOfREXP;
 			}
@@ -372,7 +367,7 @@ public class RServiceUsingRserve
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException("Unable to run R normalize script", e);
 		}
 		finally
 		{
@@ -439,7 +434,7 @@ public class RServiceUsingRserve
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException("Unable to run R regression script", e);
 		}
 		finally
 		{
@@ -450,9 +445,7 @@ public class RServiceUsingRserve
 	}
 
 	
-	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, 
-													      boolean showWarnings,
-													     	int numberOfClusters, int iterations)throws RemoteException
+	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, boolean showWarnings, int numberOfClusters, int iterations)throws RemoteException
 	{
 		RResult [] kClusteringResult = null;
 		RConnection rConnection = null;
@@ -467,14 +460,7 @@ public class RServiceUsingRserve
 			int[]iterationNumber = new int[1];
 			iterationNumber[0] = iterations;
 			
-			
-			try {
-				rConnection.assign("clusternumber", noOfClusters);
-			} catch (REngineException e1) {
-				throw new RemoteException ("",e1);
-				
-			}
-			
+			rConnection.assign("clusternumber", noOfClusters);
 			
 			//storing column length
 			int columnLength = inputValues[0].length; 
@@ -528,10 +514,9 @@ public class RServiceUsingRserve
 //									  "}" +
 //									  "KCluResult <- Clustering(frame,clusternumber, iterations)";
 	
-		    String clusteringScript = "KClusResult <- kmeans(frame, clusternumber,iterations)";
-									  
+			String clusteringScript = "KClusResult <- kmeans(frame, clusternumber,iterations)";
 			
-			 int i = 0;
+			int i = 0;
 			String[] outputNames = {"KClusResult$cluster", "KClusResult$centers"};
 			evalScript(rConnection, clusteringScript, showWarnings);
 			
@@ -572,11 +557,10 @@ public class RServiceUsingRserve
 				}
 			}
 		}
-		catch (Exception e)	{
+		catch (Exception e)
+		{
 			e.printStackTrace();
-			// to send error from R to As3 side results is created with one object
-			kClusteringResult = new RResult[1];
-			kClusteringResult[0] = new RResult("Error Statement", e.getMessage());
+			throw new RemoteException("Unable to run R K-Means Clustering script", e);
 		}
 		finally
 		{
@@ -646,7 +630,7 @@ public class RServiceUsingRserve
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException("Unable to run R Hierarchical Clustering script", e);
 		}
 		finally
 		{
@@ -658,10 +642,10 @@ public class RServiceUsingRserve
 
 
 	//this function does not take in a script from the as3 side for imputation, but the script is built in
-	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
+	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws RemoteException
 	{
 		RConnection rConnection = null;
-		RResult[] mdResult  = null;
+		RResult[] mdResult = null;
 		try
 		{
 			rConnection = getRConnection();	
@@ -743,9 +727,7 @@ public class RServiceUsingRserve
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			// to send error from R to As3 side results is created with one object
-			mdResult = new RResult[1];
-			mdResult[0] = new RResult("Error Statement", e.getMessage());
+			throw new RemoteException("Unable to run R imputation script", e);
 		}
 		finally
 		{

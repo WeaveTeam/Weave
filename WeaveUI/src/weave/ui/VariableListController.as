@@ -210,6 +210,9 @@ package weave.ui
 			else
 				_editor.dataProvider = null;
 			
+			if (!(_editor is DataGrid))
+				_editor.rowCount = 1;
+			
 			var view:ICollectionView = _editor.dataProvider as ICollectionView;
 			if (view)
 				view.refresh();

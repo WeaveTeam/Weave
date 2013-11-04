@@ -41,23 +41,24 @@
 		</mx:VBox>
 		<mx:VBox height="100%">
 			<mx:Label text="{lang('Customize')}" fontWeight="bold"/>
-			<mx:HBox height="100%" horizontalGap="0">
+			<mx:HBox height="100%" width="100%" horizontalGap="0">
 				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
 						   borderStyle="solid" borderColor="0x000000"
 						   width="20" height="100%"/>
 				<mx:List id="colorsList"
 						 height="100%"
+						 width="150"
 						 borderStyle="none"
 						 dragEnabled="true"
 						 dropEnabled="true"
 						 dragMoveEnabled="true"
 						 dragComplete="updateNewColorScale()"
-						 >
+						 initialize="UIUtils.pad(event, 2);">
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" initialize="UIUtils.pad(event, 5);">
-								<mx:ColorPicker id="cPicker" showTextField="true"/>
-								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" width="100%">
+								<ui:CustomColorPicker id="cPicker" showTextField="true"/>
+								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="100%"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
 										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
@@ -114,16 +115,19 @@
 					</mx:itemRenderer>
 				</mx:List>
 			</mx:HBox>
-			<mx:HBox>
-				<mx:Button label="{lang('Reverse')}"
-						 toolTip="{lang('Click to reverse the colors in the color scale.')}"
-						 click="colorRamp.reverse();"/>
+			<mx:HBox width="100%">
+				<CenteredImage id="reverseButton" buttonMode="true" source="@Embed(source='/weave/resources/images/reverse-order.png')"
+							   width="22" height="22" alpha="0.8"
+							   toolTip="{lang('Reverse the order of the colors.')}"
+							   click="colorRamp.reverse();"/>
+				<mx:Spacer width="100%"/>
 				<mx:Button label="{lang('Add color')}" click="(colorsList.dataProvider as ArrayCollection).addItem({color:'0xFFFFFF'}); updateNewColorScale();"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.core.UIUtils;
 			import weave.utils.AsyncSort;
 			import mx.events.DragEvent;
 			import mx.collections.ICollectionView;

@@ -91,6 +91,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					handleChange();
 				}
 				this.targets = [controller.hashMap];
+				this.sessionEditorTarget = controller.hashMap;
 				getCallbackCollection(controller.hashMap).addImmediateCallback(this, enableButtonsCheck, true);
 				EventUtils.addDelayedEventCallback(editor, Event.CHANGE, handleChange);
 			}

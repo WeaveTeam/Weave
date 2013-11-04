@@ -83,7 +83,7 @@
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HBox width="100%">
-							<mx:ColorPicker id="backgroundColorPicker" selectedColor="white"
+							<ui:CustomColorPicker id="backgroundColorPicker" selectedColor="white"
 											toolTip="{lang('Change the editing text area\'s background color.')}"/>
 							<mx:HSlider id="backgroundAlphaSlider" width="100%" liveDragging="true"
 										maximum="1" minimum="0"
@@ -98,7 +98,7 @@
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HBox width="100%">
-							<mx:ColorPicker id="borderColorPicker"
+							<ui:CustomColorPicker id="borderColorPicker"
 											enabled="{borderThicknessSlider.value &gt; 0}"
 											toolTip="{lang('Change the editing text area\'s border color.')}"/>
 							

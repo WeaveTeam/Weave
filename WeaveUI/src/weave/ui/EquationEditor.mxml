@@ -143,7 +143,9 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
+
+				sessionEditorTarget = dynamicColumn.getInternalColumn;
+
 				var constantVBox:VBox = new VBox();
 				constantVBox.percentWidth = 100;
 				constantVBox.percentHeight = 100;

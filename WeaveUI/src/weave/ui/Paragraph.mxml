@@ -28,12 +28,14 @@
 	backgroundAlpha="0"
 	selectable="false"
 	focusEnabled="false"
+	resize="invalidateSize()"
     >
 	<mx:Metadata>
 		[DefaultProperty("content")]
 	</mx:Metadata>
     <mx:Script>
         <![CDATA[
+			import mx.core.EdgeMetrics;
 			import mx.core.mx_internal;
 			import mx.utils.StringUtil;
 			
@@ -95,6 +97,7 @@
 				if (_translate)
 					value = lang(value);
 				super.text = value;
+				invalidateSize();
 			}
 			
 			override public function set height(value:Number):void
@@ -115,32 +118,56 @@
 				}
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			override public function validateSize(recursive:Boolean=false):void
 			{
-				// call this first to update textField properties
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				//-----------------------------------------
+				// update textField properties (from super.updateDisplayList)
+				var vm:EdgeMetrics = viewMetrics;
+				
+				vm.left += getStyle("paddingLeft");
+				vm.top += getStyle("paddingTop");
+				vm.right += getStyle("paddingRight");
+				vm.bottom += getStyle("paddingBottom");
+				
+				textField.move(vm.left, vm.top);
+				
+				var w:Number = unscaledWidth - vm.left - vm.right;
+				var h:Number = unscaledHeight - vm.top - vm.bottom;
+				
+				// If there's a border, add another line of pixels to the textField
+				// that go under the border but allow for descenders on some fonts.
+				if (vm.top + vm.bottom > 0)
+					h++;
+				
+				// maxScrollV doesnt get proper value if width < 4
+				textField.setActualSize(Math.max(4, w), Math.max(4, h));
+				
+				var p:Number = Math.min(textField.maxScrollH, horizontalScrollPosition || 0);
+				if (p != textField.scrollH)
+					horizontalScrollPosition = p;
+				p = Math.min(textField.maxScrollV - 1, verticalScrollPosition || 0);
+				if (p != textField.scrollV - 1)
+					verticalScrollPosition = p;
+				
+				//-----------------------------------------
+				
 				
 				// update width,height based on textField width,height
 				var text:String = textField.text;
 				textField.height = 0;
 				textField.autoSize = 'center';
-            	if (wordWrap)
-            	{
-	            	textField.width;
-            	}
-            	else
-            	{
+				if (wordWrap)
+				{
+					textField.width;
+				}
+				else
+				{
 					width = Math.round(textField.width);
-            	}
+				}
 				if (width)
-	                height = Math.round(textField.height);
-				
-				mx_internal::invalidateSizeFlag = false;
-				mx_internal::invalidatePropertiesFlag = false;
-				mx_internal::invalidateDisplayListFlag = false;
-				
-				// call this again because width or height may have changed
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
+					height = Math.round(textField.height);
+
+				super.validateSize(recursive);
 			}
 			
 			override public function get verticalScrollPosition():Number

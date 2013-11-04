@@ -404,9 +404,7 @@ package weave.compiler
 			}
 		}
 		
-//		{ /** begin static code block **/
-//			testRoundSignificant();
-//		} /** end static code block **/
+		//testRoundSignificant();
 		private static function testRoundSignificant():void
 		{
 			for (var pow:int = -5; pow <= 5; pow++)

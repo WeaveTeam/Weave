@@ -21,6 +21,8 @@ package weave.ui
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	
+	import flashx.textLayout.formats.VerticalAlign;
+	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.HBox;
 	import mx.containers.VBox;
@@ -34,8 +36,10 @@ package weave.ui
 	[Event(name="change", type="flash.events.Event")]
 	
 	/**
-	 * This class features a correctly behaving auto horizontal scroll policy.
-	 */	
+	 * This will display a checkbox in addition to the children you add.
+	 * The children will be indented underneath the checkbox and show/hide depending on the state of the checkbox.
+	 * If you add a HelpComponent as a child, it will be displayed to the right of the checkbox.
+	 */
 	public class CheckBoxWithNestedOptions extends VBox
 	{
 		public function CheckBoxWithNestedOptions()
@@ -44,7 +48,9 @@ package weave.ui
 			BindingUtils.bindProperty(this, 'selected', checkBox, 'selected');
 			BindingUtils.bindProperty(innerVBox, 'visible', checkBox, 'selected');
 			BindingUtils.bindProperty(innerVBox, 'includeInLayout', checkBox, 'selected');
-			checkBox.addEventListener(Event.CHANGE, function(event:Event):void { dispatchEvent(event); });
+			checkBox.addEventListener(Event.CHANGE, function(event:Event):void {
+				dispatchEvent(event);
+			});
 		}
 		
 		public const indent:int = 20;
@@ -78,7 +84,9 @@ package weave.ui
 			UIUtils.spark_addChildAt(topHBox, checkBox, 0);
 			UIUtils.spark_addChild(this, innerVBox);
 			this.percentWidth = 100;
+			topHBox.setStyle('verticalAlign', 'middle');
 			innerVBox.percentWidth = 100;
+			innerVBox.percentHeight = 100;
 			innerVBox.setStyle('paddingLeft', indent);
 		}
 		

@@ -50,8 +50,8 @@ package weave.ui
 		 * Contructor takes a parent UIComponent and a String array of event listeners
 		 * Use the addSubMenuItem function to add menu items
 		 * @param uiParentComponent The UIComponent to add the submenu to.
-		 * @param openMenuEventTypes A list of event types which will toggle the submenu.
-		 * @param closeMenuEventTypes A list of event types which will close the submenu.
+		 * @param openMenuEventTypes A list of event types which will toggle the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
+		 * @param closeMenuEventTypes A list of event types which will close the submenu. Default is [MouseEvent.MOUSE_DOWN]. Supply an empty Array for no events.
 		 */
 		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null)
 		{
@@ -59,6 +59,11 @@ package weave.ui
 				throw new Error("uiParent cannot be null");
 			
 			_uiParent = uiParent;
+			
+			if (!openMenuEventTypes)
+				openMenuEventTypes = [MouseEvent.MOUSE_DOWN];
+			if (!closeMenuEventTypes)
+				closeMenuEventTypes = [MouseEvent.MOUSE_DOWN];
 			
 			var type:String;
 			for each (type in openMenuEventTypes)

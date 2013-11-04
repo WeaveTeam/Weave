@@ -139,9 +139,7 @@ package weave.visualization.layers
 			_probeLayer.alpha = 1.0;
 		}
 		
-		{ /** begin static code block **/
-			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, probeAnimator);
-		} /** end static code block **/
+		WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, probeAnimator);
 		private static function probeAnimator():void
 		{
 			// only do animation if it is enabled

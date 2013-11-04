@@ -56,7 +56,7 @@
 				{
 					_linkableObjectName = "Weave";
 				}
-				else
+				else if (value)
 				{
 					var path:Array = (WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, value);
 					_linkableObjectName = path ? path[path.length - 1] : null;

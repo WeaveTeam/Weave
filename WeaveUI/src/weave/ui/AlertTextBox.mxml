@@ -95,11 +95,17 @@
 		}
 	    public function set textInput(value:String):void
 		{
+			if (_blockEnterKey && (value == '\r' || value == '\n'))
+				value = '';
+			_blockEnterKey = false;
+			
 			_textInput = value || '';
 			
 			if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
 				_expandButton.expanded = true;
 		}
+		
+		private var _blockEnterKey:Boolean = false;
 	
 		private function handleCreationComplete(event:Event):void
 		{
@@ -155,6 +161,7 @@
 			{
 				if (textBox.text || allowEmptyInput)
 					handleOKClick();
+				_blockEnterKey = true;
 			}
 			else if (autoCompleteChoices)
 			{

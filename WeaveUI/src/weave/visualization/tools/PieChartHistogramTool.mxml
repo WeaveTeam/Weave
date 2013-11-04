@@ -116,7 +116,7 @@
 				
 				if(attributesChecklist)
 				{
-					if(attrToIncludeCheckList.indexOf(false) > -1)
+					if(attrToIncludeCheckList && attrToIncludeCheckList.indexOf(false) > -1)
 					{
 						probeColumnsCheckBox.selected = false;
 					}

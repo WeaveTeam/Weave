@@ -31,10 +31,6 @@
 		 implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject">
 	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
 	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
-	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
-			   visible="false" includeInLayout="false"
-			   click="_stateLog.enableLogging.value = recordButton.selected;"
-			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
 	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed, playButton.selected) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
@@ -58,21 +54,16 @@
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
 			private const _stateLogWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleStateLogChange);
 
-			[Embed(source='/weave/resources/images/history-record-on.png')]
-			private static const icon_historyRecordOn:Class;
-			[Embed(source='/weave/resources/images/history-record-off.png')]
-			private static const icon_historyRecordOff:Class;
-
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				_editMenu = new SubMenu(menuButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN]);
+				_editMenu = new SubMenu(menuButton);
 				//_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
-				_editMenu.addSubMenuItem(lang("Clear everything"), _stateLog.clearHistory);
-				_editMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
-				_editMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
-				_editMenu.addSubMenuItem(getTrimMenuLabel, trim);
+				_editMenu.addSubMenuItem(lang("Erase everything"), _stateLog.clearHistory);
+				_editMenu.addSubMenuItem(lang("Erase all undos"), _stateLog.clearHistory, [-1]);
+				_editMenu.addSubMenuItem(lang("Erase all redos"), _stateLog.clearHistory, [1]);
+				_editMenu.addSubMenuItem(getSquashMenuLabel, squash);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])
@@ -80,62 +71,50 @@
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
 			
-			private function togglePresentationMode():void
-			{
-				_stateLog.enableLogging.value = !_stateLog.enableLogging.value;
-			}
-			private function getPresentationMenuLabel():String
-			{
-				if (_stateLog.enableLogging.value)
-					return lang("Switch to presentation mode");
-				else
-					return lang("Switch to recording mode");
-			}
-			
 			private var _editMenu:SubMenu;
-			private var _trimItem:Object;
-			private function getTrimMenuLabel():String
+			private var _squashItem:Object;
+			private function getSquashMenuLabel():String
 			{
-				if (_trimItem && (_stateLog.undoHistory.indexOf(_trimItem) >= 0 || _stateLog.redoHistory.indexOf(_trimItem) >= 0))
+				if (_squashItem && (_stateLog.undoHistory.indexOf(_squashItem) >= 0 || _stateLog.redoHistory.indexOf(_squashItem) >= 0))
 					return lang("Squash (Mark out)");
 				if (_stateLog.undoHistory.length)
 					return lang("Squash (Mark in)");
 				return '';
 			}
-			private function trim():void
+			private function squash():void
 			{
 				var undoLength:int = _stateLog.undoHistory.length;
-				if (_trimItem)
+				if (_squashItem)
 				{
-					// perform trim
+					// perform squash
 					_stateLog.synchronizeNow();
 					
 					// TEMPORARY SOLUTION until bookmarks are implemented
 					SessionStateLog.enableHistoryRewrite = true;
 					
-					var i:int = _stateLog.undoHistory.indexOf(_trimItem);
+					var i:int = _stateLog.undoHistory.indexOf(_squashItem);
 					if (i >= 0)
 					{
 						_stateLog.squashHistory(i + 1 - undoLength);
 					}
 					else
 					{
-						i = _stateLog.redoHistory.indexOf(_trimItem);
+						i = _stateLog.redoHistory.indexOf(_squashItem);
 						if (i >= 0)
 						{
 							_stateLog.squashHistory(i + 1);
 						}
 					}
-					_trimItem = null;
+					_squashItem = null;
 				}
 				else if (undoLength)
 				{
-					// begin trim
+					// begin squash
 					
 					// TEMPORARY SOLUTION until bookmarks are implemented
-					SessionStateLog.enableHistoryRewrite = false; // prevents the _trimItem from being replaced in the history
+					SessionStateLog.enableHistoryRewrite = false; // prevents the _squashItem from being replaced in the history
 					
-					_trimItem = _stateLog.undoHistory[undoLength - 1];
+					_squashItem = _stateLog.undoHistory[undoLength - 1];
 				}
 			}
 			
@@ -232,7 +211,6 @@
 				if (detectLinkableObjectChange(handleStateLogChange, _stateLog.enableLogging))
 					menuButton.visible = menuButton.includeInLayout = _stateLog.enableLogging.value;
 				
-				recordButton.selected = _stateLog.enableLogging.value;
 				slider.maximum = _stateLog.undoHistory.length + _stateLog.redoHistory.length;
 				slider.value = _stateLog.undoHistory.length;
 				slider.enabled = slider.maximum > slider.minimum;

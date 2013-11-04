@@ -51,7 +51,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				minimizable.value = false;
 				maximizable.value = false;
-				pinned.value = true;
 			}
 			override protected function childrenCreated():void
 			{

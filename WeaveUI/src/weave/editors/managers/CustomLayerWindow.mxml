@@ -63,13 +63,32 @@
 			import weave.ui.SessionStateEditor;
 			import weave.visualization.layers.Visualization;
 			
+			[PercentProxy("percentWidth")]
+			override public function set width(value:Number):void
+			{
+				value = Math.round(value);
+				super.width = value;
+				if (!initialized)
+					panelWidth.value = String(value);
+			}
+			
+			[PercentProxy("percentHeight")]
+			override public function set height(value:Number):void
+			{
+				value = Math.round(value);
+				super.height = value;
+				if (!initialized)
+					panelHeight.value = String(value);
+			}
+			
 			private var _visualization:Visualization = null;
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 				panelX.value = '' + int(33 + Math.random() * 10) + "%";
-				pinnable.value = false;
+				panelY.value = '' + int(20 + Math.random() * 10) + "%";
+				enableZOrder.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 			}
@@ -84,17 +103,24 @@
 			
 			private function addPlotter():void
 			{
-				var Plotter:Class = layerSelector.selectedItem as Class;
-				var hm:ILinkableHashMap = _visualization.plotManager.plotters;
-				var state:Object = getSessionState(_visualization);
-				var name:String = hm.generateUniqueName(WeaveAPI.getRegisteredImplementationDisplayName(Plotter));
-				var plotter:IPlotter = hm.requestObject(name, Plotter, false) as IPlotter;
+				if (CustomLayerWindow.addPlotterAndEdit(_visualization, layerSelector.selectedItem as Class))
+					removePanel();
+			}
+			
+			/**
+			 * @return The newly created IPlotter, or null if it could not be created.
+			 */
+			public static function addPlotterAndEdit(visualization:Visualization, plotterType:Class):*
+			{
+				var hm:ILinkableHashMap = visualization.plotManager.plotters;
+				var state:Object = getSessionState(visualization);
+				var name:String = hm.generateUniqueName(WeaveAPI.getRegisteredImplementationDisplayName(plotterType));
+				var plotter:IPlotter = hm.requestObject(name, plotterType, false) as IPlotter;
 				if (!plotter)
-					return;
+					return null;
 				
-				ControlPanel.openEditor(plotter, [_visualization], [state]);
-				
-				removePanel();
+				ControlPanel.openEditor(plotter, [visualization], [state]);
+				return plotter;
 			}
 			
 		]]>

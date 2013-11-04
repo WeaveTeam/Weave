@@ -241,9 +241,6 @@
 			public static var _defaultSelector:AttributeSelectorPanel;
 			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject, showVariableNames:Boolean = false):void
 			{
-				if (!Weave.properties.enableToolControls.value)
-					return;
-				
 				openDefaultSelector(null, null, showVariableNames);
 				
 				defaultSelector.selectableAttributes = tool.getSelectableAttributes();
@@ -254,9 +251,6 @@
 			}
 			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):void
 			{
-				if (!Weave.properties.enableToolControls.value)
-					return;
-				
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
 

@@ -55,14 +55,11 @@ package weave.core
 		
 		///////////////////////////////////////////////////////////
 		
+		registerClassAlias(getQualifiedClassName(DynamicState), DynamicState);
 		
 		public static const OBJECT_NAME:String = 'objectName';
 		public static const CLASS_NAME:String = 'className';
 		public static const SESSION_STATE:String = 'sessionState';
-		
-		{ /** begin static code block **/
-			registerClassAlias(getQualifiedClassName(DynamicState), DynamicState);
-		} /** end static code block **/
 		
 		/**
 		 * This function checks whether or not a session state is an Array containing at least one

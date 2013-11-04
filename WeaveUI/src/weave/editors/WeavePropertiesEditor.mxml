@@ -26,6 +26,7 @@
 			backgroundColor="#EFF4BC"
 			title="{lang('Preferences')}"
 			targets="{[Weave.properties]}"
+			sessionEditorTarget="{Weave.properties}"
 			>
 	<WeavePropertiesAppearanceEditor label="{lang('Appearance')}"/>
 	
@@ -80,7 +81,7 @@
 			</ui:Indent>
 		</mx:VBox>
 		
-		<mx:Button label="{lang('Edit Macros')}" width="100" click="DraggablePanel.openStaticInstance(MacroEditor)" />
+		<mx:Button label="{lang('Edit macros')}" width="100" click="DraggablePanel.openStaticInstance(MacroEditor)" />
 		
 		<mx:HBox>
 			<mx:CheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>

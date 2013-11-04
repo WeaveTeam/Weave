@@ -29,6 +29,7 @@
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
+			import weave.visualization.layers.PlotManager;
 			
 			WeaveAPI.registerImplementation(IVisTool, CustomTool, "Custom Tool");
 			
@@ -37,6 +38,11 @@
 				super.constructor();
 				
 				panelTitle.value = "Custom Tool";
+				var pm:PlotManager = visualization.plotManager;
+				pm.marginLeft.value = '50';
+				pm.marginTop.value = '50';
+				pm.marginRight.value = '50';
+				pm.marginBottom.value = '50';
 			}
 		]]>
 	</mx:Script>

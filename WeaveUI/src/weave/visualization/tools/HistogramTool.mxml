@@ -28,6 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -70,7 +71,9 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, openAttributeSelector);
+				var _this:HistogramTool = this;
+				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.openToolSelector(_this, plotter.sumColumn); });
+				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.openToolSelector(_this, internalDataColumn); });
 				
 				var fc:FilteredColumn = plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn;
 				initColumnDefaults(fc.internalDynamicColumn);
@@ -81,15 +84,16 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				sumColumnComponent.dynamicObject = plotter.sumColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["bin data"];
+				return [lang("Grouping values"), lang("Height values (Optional)")];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [internalDataColumn];
+				return [internalDataColumn, plotter.sumColumn];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -146,11 +150,16 @@
 				return null;
 			}
 			
+			private function getYAxisLabel(number:Number):String
+			{
+				return ColumnUtils.deriveStringFromNumber(plotter.sumColumn, number);
+			}
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
 				
 				visualization.bottomMarginColumn = plotter.dynamicColorColumn;
+				visualization.leftMarginColumn = plotter.sumColumn;
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
@@ -166,20 +175,32 @@
 				}
 				
 				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisPlotter.setSideAxisName(lang("Number of Records"), -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				
+				var yColName:String = lang("Number of Records");
+				if (plotter.sumColumn.getInternalColumn())
+				{
+					yColName = ColumnUtils.getTitle(plotter.sumColumn);
+					yAxisPlotter.setLabelFunction(getYAxisLabel);
+				}
+				else
+				{
+					yAxisPlotter.setLabelFunction(null);
+				}
+				yAxisPlotter.setSideAxisName(yColName, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
 
 	<ui:ControlPanel>
-		<mx:VBox label="{lang('Visualization Controls')}">
+		<mx:VBox label="{lang('Basic')}">
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('bin data')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="sumColumnComponent"/>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
 						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>

@@ -24,6 +24,9 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
@@ -50,6 +53,8 @@ package weave.visualization.plotters
 		public function HistogramPlotter()
 		{
 			clipDrawing = true;
+			
+			sumColumnStats = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(sumColumn));
 			
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
@@ -98,6 +103,9 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const drawPartialBins:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const sumColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		private var sumColumnStats:IColumnStatistics;
 		
 		/**
 		 * This function returns the collective bounds of all the bins.
@@ -105,8 +113,13 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
-			if (binCol != null)
-				output.setBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, binCol.largestBinSize));
+			if (binCol && !zoomToSubset.value)
+			{
+				var maxHeight:Number = binCol.largestBinSize;
+				if (sumColumn.getInternalColumn())
+					maxHeight = sumColumnStats.getSum();
+				output.setBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, maxHeight));
+			}
 			else
 				output.reset();
 		}
@@ -130,7 +143,20 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			var binHeight:int = binCol.getKeysFromBinIndex(binIndex).length;
+			var keysInBin:Array = binCol.getKeysFromBinIndex(binIndex);
+			var binHeight:Number = keysInBin.length;
+			var sumCol:IAttributeColumn = sumColumn.getInternalColumn();
+			if (sumCol)
+			{
+				binHeight = 0;
+				for each (var key:IQualifiedKey in keysInBin)
+				{
+					var value:Number = sumCol.getValueFromKey(key, Number);
+					if (isFinite(value))
+						binHeight += value;
+				}
+			}
+			
 			initBoundsArray(output).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
 		}
 		
@@ -172,12 +198,25 @@ package weave.visualization.plotters
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
 			
+			var sumCol:IAttributeColumn = sumColumn.getInternalColumn();
 			var graphics:Graphics = tempShape.graphics;
 			for (i = 0; i < binNames.length; i++)
 			{
 				binName = binNames[i];
 				var keys:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array;
-				var binHeight:int = drawPartialBins.value ? keys.length : (binCol.getKeysFromBinName(binName) as Array).length;
+				if (!drawPartialBins.value)
+					keys = binCol.getKeysFromBinName(binName);
+				var binHeight:int = keys.length;
+				if (sumCol)
+				{
+					binHeight = 0;
+					for each (var key:IQualifiedKey in keys)
+					{
+						var value:Number = sumCol.getValueFromKey(key, Number);
+						if (isFinite(value))
+							binHeight += value;
+					}
+				}
 				var binIndex:int = allBinNames.indexOf(binName);
 	
 				// project data coords to screen coords
