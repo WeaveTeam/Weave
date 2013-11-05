@@ -22,7 +22,7 @@
 					</select>
 				</div>
 				<div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
-					<button ng-click="exportQueryObject({{ queryObject }})" class="btn btn-primary">Export Query</button>
+					<button ng-click="exportQueryObject()" class="btn btn-primary">Export Query</button>
 						<div class="file-upload">
 							<label for="queryImport">Import Query</label> 
 							<input type="file" id="queryImport" name="queryImport"	ng-submit="importQueryObject()" file-upload />

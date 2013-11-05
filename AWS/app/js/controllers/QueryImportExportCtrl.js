@@ -3,16 +3,9 @@
  */
 angular.module("aws.QueryImportExport", []).controller("QueryImportExportCtrl", function($scope, queryService) {
 			
-			$scope.queryObject = angular.toJson(queryService.queryObject, true);
 
-			$scope.$watch(function () {
-				return queryService.queryObject;
-			},function() {
-				$scope.queryObject = angular.toJson(queryService.queryObject, true);
-			}, true);
-			
-			$scope.exportQueryObject = function(queryObject) {
-				var blob = new Blob([ JSON.stringify(queryObject, undefined, 2) ], {
+			$scope.exportQueryObject = function() {
+				var blob = new Blob([ JSON.stringify(queryService.queryObject, undefined, 2) ], {
 					type : "text/plain;charset=utf-8"
 				});
 				saveAs(blob, "QueryObject.json");

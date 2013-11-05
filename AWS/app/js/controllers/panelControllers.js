@@ -74,6 +74,7 @@ angular.module("aws.panelControllers", [])
 								}
 							}
 						}
+						orderedColumns['any'] = result;
 						return orderedColumns;
 					});
 				}
