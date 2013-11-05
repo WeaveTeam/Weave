@@ -100,6 +100,7 @@ package weave
 				}
 			);
 
+			_toggleToolsMenuItem("CytoscapeWebTool", false);
 			_toggleToolsMenuItem("GraphTool", false);
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
 			_toggleToolsMenuItem("DataStatisticsTool", false);
