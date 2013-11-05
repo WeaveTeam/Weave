@@ -135,6 +135,8 @@
 				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 				_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
+				
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -257,22 +259,6 @@
 					visualization.additionalProbeColumns = null;
 				}
 				
-				updateAttributesChecklist();
-			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
 			}
 			
 			private function numberToString(value:Number):String
@@ -537,34 +523,7 @@
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
 						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
+			<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
 		</mx:VBox>
 		<mx:VBox label="{lang('Labeling')}">
 			<mx:CheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
