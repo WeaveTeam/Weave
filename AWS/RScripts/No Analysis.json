@@ -1,57 +1,56 @@
 {
         "scriptType": "columns",
         "inputs" : [
-
                 {
-		 "param" : "state",
-                 "description" : "State variable",
+                 "param" : "all",
+                 "description" : "",
+                 "columnType" : "any"
+                },
+                {
+		 "param" : "geography",
+                 "description" : "",
 		 "columnType" : "geography"
                 },
 
                 {
-		 "param" : "PSU",
-                 "description" : "PSU variable",
+		 "param" : "analytic",
+                 "description" : "",
 		 "columnType" : "analytic"
                 },
 
                 {
-		 "param" : "FinalWt",
-                 "description" : "State variable",
-		 "columnType" : "analytic"
-                },
-
-                {
-		 "param" : "StStr",
-                 "description" : "StStr variable",
-		 "columnType" : "analytic"
+		 "param" : "by-variable",
+                 "description" : "",
+		 "columnType" : "by-variable"
                 },
 
                 {
 		 "param" : "indicator",
-                 "description" : "indicator variable",
+                 "description" : "",
 		 "columnType" : "indicator"
                 }
+
         ],
         "outputs" : [
 
-                {"param" : "fips",
-                 "description" : "fips result"
+                {"param" : "column 1",
+                 "description" : "column 1"
                 },
 
-                {"param" : "response",
-                 "description" : "response result"
+                {"param" : "column 2",
+                 "description" : "column 2"
                 },
 
-                {"param" : "prev.percent",
-                 "description" : "prevalence percentage"
+                {"param" : "column 3",
+                 "description" : "column 3"
                 },
 
-                {"param" : "CI_LOW",
-                 "description" : "CI_LOW result"
+                {"param" : "column 4",
+                 "description" : "column 4"
                 },
 
-                {"param" : "CI_HI",
-                 "description" : "CI_HI result"
+                {"param" : "column 5",
+                 "description" : "column 5"
                 }
         ]
 }

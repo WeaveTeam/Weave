@@ -60,6 +60,7 @@ runbrfss <- function(dataset)
 	 prev.data$Year<-2010
 	 prev.data<-prev.data[prev.data$response==1,]
      prev.data<-prev.data[prev.data$fips<=56,]
+     print(prev.data)
 	 return(prev.data)
 
 }# end of function

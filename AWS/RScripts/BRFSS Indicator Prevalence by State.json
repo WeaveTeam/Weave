@@ -30,6 +30,12 @@
 		 "param" : "indicator",
                  "description" : "indicator variable",
 		 "columnType" : "indicator"
+                },
+
+                {
+                  "param" : "addl filter",
+                  "description" : "used only for additional filtering",
+                  "columnType" : "any"      
                 }
         ],
         "outputs" : [
