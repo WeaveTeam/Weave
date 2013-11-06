@@ -85,7 +85,13 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
     
     var sqlParamsStr = '';
     if (sqlParams)
-    	sqlParamsStr = ' sqlParams=\'' + sqlParams.map(function(value) { return '"' + value + '"'; }).join(',') + '\'';
+    {
+    	var esc = {'&':'&amp;', '"':'&quot;', '<':'&lt;', '>':'&gt;'}; // for xml encoding
+    	sqlParamsStr = ' sqlParams="' + sqlParams.map(function(value) {
+    		value = '"' + String(value).replace(/(")/g, function(str, item) { return '""'; }) + '"'; // csv encoding
+    		return value.replace(/([\&"<>])/g, function(str, item) { return esc[item]; }); // xml encoding
+    	}).join(',') + '"';
+    }
     
     // make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
     path.request('DynamicColumn')
