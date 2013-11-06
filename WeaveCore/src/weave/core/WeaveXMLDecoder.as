@@ -40,6 +40,8 @@ package weave.core
 		/**
 		 * This function will include a package in ClassUtils.defaultPackages,
 		 * which is consulted when decoding dynamic session states.
+		 * @param packageOrClass Either a qualified class name as a String, or a pointer to a Class.
+		 * @param others More qualified class names or Class objects.
 		 */
 		public static function includePackages(packageOrClass:*, ...others):void
 		{
