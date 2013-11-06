@@ -127,7 +127,7 @@ package weave.core
 			while (coords.length)
 			{
 				if (normalizedCoords)
-					g.lineTo(sprite.width * coords.shift(), sprite.width * coords.shift());
+					g.lineTo(sprite.width * coords.shift(), sprite.height * coords.shift());
 				else
 					g.lineTo(coords.shift(), coords.shift());
 			}
