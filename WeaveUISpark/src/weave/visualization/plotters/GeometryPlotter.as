@@ -19,6 +19,8 @@
 
 package weave.visualization.plotters
 {
+	import com.cartogrammar.drawing.DashedLine;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
@@ -47,6 +49,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -102,6 +105,39 @@ package weave.visualization.plotters
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+		
+		/**
+		 * This is the constant dashed line to use for graphics.
+		 */
+		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
+		
+		public const dashedDetails:LinkableString = registerLinkableChild(this, new LinkableString("5,5"), verifyDashedSelectionBox);
+		public function verifyDashedSelectionBox():void
+		{
+			if (dashedDetails.value === null) 
+				dashedDetails.value = "5,5";
+			
+			var rows:Array = WeaveAPI.CSVParser.parseCSV(dashedDetails.value);
+			
+			if (rows.length == 0)
+				dashedDetails.value = "5,5";
+			
+			// Only the first row will be used
+			var values:Array = rows[0];
+			var foundNonZero:Boolean = false;
+			for (var i:int = 0; i < values.length; ++i)
+			{
+				// We want every value >= 0 with at least one value > 0 
+				// Undefined and negative numbers are invalid.
+				var value:int = int(values[i]);
+				if (isNaN(value)) 
+					dashedDetails.value = "5,5";
+				if (value < 0) 
+					dashedDetails.value = "5,5";
+				if (value != 0)
+					foundNonZero = true; 
+			}
+		}
 		
 		/**
 		 * This is the line style used to draw the lines of the geometries.
@@ -473,6 +509,12 @@ package weave.visualization.plotters
 		{
 			if (points.length == 0)
 				return;
+			
+			_dashedLine.graphics = outputGraphics;
+			
+			_dashedLine.lineStyle(4, 0x000000, 1);
+			
+			_dashedLine.lengthsString = dashedDetails.value;
 
 			var currentNode:Object;
 
@@ -511,11 +553,11 @@ package weave.visualization.plotters
 					if (keepTrack)
 						totalVertices++;
 					x=int(x),y=int(y);
-					outputGraphics.moveTo(x-1,y);
-					outputGraphics.lineTo(x+1,y);
-					outputGraphics.moveTo(x,y-1);
-					outputGraphics.lineTo(x,y+1);
-					outputGraphics.moveTo(x, y);
+					_dashedLine.moveTo(x-1,y);
+					_dashedLine.lineTo(x+1,y);
+					_dashedLine.moveTo(x,y-1);
+					_dashedLine.lineTo(x,y+1);
+					_dashedLine.moveTo(x, y);
 					continue;
 				}
 				
@@ -523,15 +565,17 @@ package weave.visualization.plotters
 				{
 					firstX = x;
 					firstY = y;
-					outputGraphics.moveTo(x, y);
+					_dashedLine.moveTo(x, y);
 					continue;
 				}
-				outputGraphics.lineTo(x, y);
+				_dashedLine.lineTo(x, y);
 			}
 			
 			if (!debug)
 				if (geomType == GeometryType.POLYGON)
-					outputGraphics.lineTo(firstX, firstY);
+				{
+					_dashedLine.lineTo(firstX, firstY);
+				}
 		}
 		
 		private function drawImage(key:IQualifiedKey, dataX:Number, dataY:Number, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
