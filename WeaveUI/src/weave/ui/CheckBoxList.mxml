@@ -40,7 +40,11 @@
 				if (dataProvider is ICollectionView)
 					n = (dataProvider as ICollectionView).length;
 				for (var i:int = 0; i < n; i++)
-					(indexToItemRenderer(i) as CustomCheckBox).selected = _selection[i];
+				{
+					var checkBox:CustomCheckBox = indexToItemRenderer(i) as CustomCheckBox;
+					if (checkBox)
+						checkBox.selected = _selection[i];
+				}
 			}
 			
 			public function get selection():Array
