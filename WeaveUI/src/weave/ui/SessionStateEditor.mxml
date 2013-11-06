@@ -819,7 +819,7 @@ A text editor to change the Session State on the fly.
 			private static function handleStagePointClick():void
 			{
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
-				if (event.stageX == 0 && event.stageY == 0)
+				if (event.stageX <= 1 && event.stageY <= 1)
 				{
 					openConsole();
 					Weave.properties.enableMenuBar.value = true;
