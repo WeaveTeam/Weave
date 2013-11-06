@@ -45,6 +45,7 @@ package weave.services
 	 */
 	public class URLRequestUtils implements IURLRequestUtils
 	{
+		public static var debug:Boolean = false;
 		public static var delayResults:Boolean = false; // when true, delays result/fault handling and fills the 'delayed' Array.
 		public static const delayed:Array = []; // array of objects with properties:  label:String, resume:Function
 		
@@ -96,7 +97,7 @@ package weave.services
 			var urlLoader:CustomURLLoader;
 			try
 			{
-				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, true);
+				urlLoader = new CustomURLLoader(request, dataFormat, true);
 				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			}
 			catch (e:Error)
@@ -104,7 +105,7 @@ package weave.services
 				// When an error occurs, we need to run the asyncFaultHandler later
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, false);
+				urlLoader = new CustomURLLoader(request, dataFormat, false);
 				WeaveAPI.StageUtils.callLater(
 					relevantContext, 
 					asyncFaultHandler || noOp, 
@@ -248,7 +249,7 @@ import weave.services.URLRequestUtils;
 
 internal class CustomURLLoader extends URLLoader
 {
-	public function CustomURLLoader(relevantContext:Object, request:URLRequest, dataFormat:String, loadNow:Boolean)
+	public function CustomURLLoader(request:URLRequest, dataFormat:String, loadNow:Boolean)
 	{
 		super.dataFormat = dataFormat;
 		_urlRequest = request;
@@ -269,16 +270,14 @@ internal class CustomURLLoader extends URLLoader
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
-			// keep track of pending requests
-			WeaveAPI.ProgressIndicator.addTask(this, relevantContext as ILinkableObject);
-			addResponder(new AsyncResponder(removeTask, removeTask));
-			
 			// set up event listeners
 			addEventListener(Event.COMPLETE, handleGetResult);
 			addEventListener(IOErrorEvent.IO_ERROR, handleGetError);
 			addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityError);
 			addEventListener(ProgressEvent.PROGRESS, handleProgressUpdate);
 			
+			if (URLRequestUtils.debug)
+				trace(debugId(this), 'request', request.url);
 			super.load(request);
 		}
 	}
@@ -295,7 +294,8 @@ internal class CustomURLLoader extends URLLoader
 	
 	override public function close():void
 	{
-		WeaveAPI.ProgressIndicator.removeTask(this);
+		if (URLRequestUtils.debug)
+			trace(debugId(this), 'cancel', _urlRequest.url);
 		_isClosed = true;
 		try {
 			super.close();
@@ -356,27 +356,13 @@ internal class CustomURLLoader extends URLLoader
 		}
 	}
 
-	/**
-	 * This function is the event listener for a URLLoader's ProgressEvent.
-	 * The primary purpose is to relay the URLLoader and its progress to the 
-	 * ProgressIndicator class.
-	 *  
-	 * @param event
-	 */
 	private function handleProgressUpdate(event:Event):void
 	{
-		WeaveAPI.ProgressIndicator.updateTask(this, bytesLoaded / bytesTotal);
+		for each (var responder:Object in _asyncToken.responders)
+			if (responder is CustomAsyncResponder)
+				WeaveAPI.ProgressIndicator.updateTask(responder, bytesLoaded / bytesTotal);
 	}
 
-	/**
-	 * This function gets called when a getURL request succeeds or fails.
-	 * @param token The URLLoader to remove from the task list.
-	 */
-	private function removeTask(event:Event, token:Object = null):void
-	{
-		WeaveAPI.ProgressIndicator.removeTask(this);
-	}
-	
 	private var _resumeFunc:Function = null;
 	private var _resumeParam:Object = null;
 	/**
@@ -401,6 +387,8 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleGetResult(event:Event):void
 	{
+		if (URLRequestUtils.debug)
+			trace(debugId(this), 'complete', _urlRequest.url);
 		//WeaveAPI.externalTrace('getResult ' + label);
 		if (URLRequestUtils.delayResults && _resumeFunc == null)
 		{
@@ -430,6 +418,8 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleGetError(event:Event):void
 	{
+		if (URLRequestUtils.debug)
+			trace(debugId(this), 'error', _urlRequest.url);
 		if (URLRequestUtils.delayResults && _resumeFunc == null)
 		{
 			_resumeFunc = handleGetError;
@@ -484,12 +474,14 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	public function CustomAsyncResponder(relevantContext:Object, loader:CustomURLLoader, result:Function, fault:Function, token:Object = null)
 	{
 		super(result || noOp, fault || noOp, token);
-	
+		
 		this.relevantContext = relevantContext;
 		
 		this.loader = loader;
 		if (loader)
 			loader.addResponder(this);
+		
+		WeaveAPI.ProgressIndicator.addTask(this, relevantContext as ILinkableObject);
 	}
 	
 	private static function noOp(..._):void {} // does nothing
@@ -499,6 +491,7 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	
 	public function cancelRequest():void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (loader && !WeaveAPI.SessionManager.objectWasDisposed(this))
 			loader.removeResponder(this);
 		WeaveAPI.SessionManager.disposeObjects(this);
@@ -506,12 +499,14 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	
 	override public function result(data:Object):void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.result(data);
 	}
 	
 	override public function fault(data:Object):void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.fault(data);
 	}
