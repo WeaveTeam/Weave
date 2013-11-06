@@ -85,7 +85,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
     
     var sqlParamsStr = '';
     if (sqlParams)
-    	sqlParamsStr = ' sqlParams="' + sqlParams.map(function(value) { return '"' + value + '"'; }).join(',') + '"';
+    	sqlParamsStr = ' sqlParams=\'' + sqlParams.map(function(value) { return '"' + value + '"'; }).join(',') + '\'';
     
     // make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
     path.request('DynamicColumn')
