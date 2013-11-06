@@ -35,6 +35,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -84,7 +85,7 @@ package weave.visualization.plotters
 			
 			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
 			registerSpatialProperty(sortColumn);
-			registerSpatialProperty(colorColumn); // because color is used for sorting
+			registerSpatialProperty(colorColumn.internalDynamicColumn); // because color is used for sorting
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
@@ -104,14 +105,13 @@ package weave.visualization.plotters
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
 		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
-		public function get colorColumn():AlwaysDefinedColumn { return fillStyle.color; }
-		private const fillStyle:SolidFillStyle = newDisposableChild(this, SolidFillStyle);
 		
 		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
 		private const _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
 		private const _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
 		private const _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
+		public const colorColumn:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const stackedMissingDataGap:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		
@@ -455,16 +455,9 @@ package weave.visualization.plotters
 								
 								// if there is one column, act like a regular bar chart and color in with a chosen color
 								if (_heightColumns.length == 1)
-								{
-									// this might introduce a little overhead...
-									color = fillStyle.color.getValueFromKey(recordKey, Number) as Number;
-									
-									fillStyle.beginFillStyle(recordKey, graphics); 
-								}
-								else // otherwise use a pre-defined set of colors for each bar segment
-									graphics.beginFill(color, 1);
+									color = colorColumn.getValueFromKey(recordKey, Number) as Number;
 								
-								
+								graphics.beginFill(color, 1);
 								lineStyle.beginLineStyle(recordKey, graphics);
 								if (tempBounds.getHeight() == 0)
 									graphics.lineStyle(0,0,0);

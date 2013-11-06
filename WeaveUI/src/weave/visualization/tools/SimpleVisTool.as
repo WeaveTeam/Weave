@@ -53,7 +53,6 @@ package weave.visualization.tools
 	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
-	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;

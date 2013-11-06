@@ -318,14 +318,14 @@
 	</mx:Script>
 		<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="nodeLabelComponent" label="{lang('Node Labels')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="nodeColorComponent" label="{lang('Node Color')}"/> 
-			<ui:DynamicColumnComponent visTool="{this}" id="nodeRadiusComponent" label="{lang('Node Size')}"/> 
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeLabelComponent" label="{lang('Edge Labels')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeWeightComponent" label="{lang('Edge Weight')}"/>
+			<ui:DynamicColumnComponent id="nodeLabelComponent" label="{lang('Node Labels')}"/>
+			<ui:DynamicColumnComponent id="nodeColorComponent" label="{lang('Node Color')}"/> 
+			<ui:DynamicColumnComponent id="nodeRadiusComponent" label="{lang('Node Size')}"/> 
+			<ui:DynamicColumnComponent id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
+			<ui:DynamicColumnComponent id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
+			<ui:DynamicColumnComponent id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
+			<ui:DynamicColumnComponent id="edgeLabelComponent" label="{lang('Edge Labels')}"/>
+			<ui:DynamicColumnComponent id="edgeWeightComponent" label="{lang('Edge Weight')}"/>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 		 	<mx:HBox>

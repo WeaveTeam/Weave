@@ -97,8 +97,8 @@
 			{
 				super.childrenCreated();
 				
-				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
-				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
+				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn;
+				(colorComponent as DynamicColumnComponent).columnWrapper = _plotter.fillStyle.color;
 				columnList.hashMap = _plotter.columns;
 				
 				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
@@ -190,19 +190,14 @@
 				_probedAnchor.y.value = Math.sin(theta);			
 			}
 			
-			public function get colorColumn():DynamicColumn
-			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
-			}
-			
 			override public function getSelectableAttributeNames():Array
 			{
-				return [lang("Size"),lang("Color"),lang("Anchor Dimensions")];
+				return [lang("Size"), lang("Color"), lang("Anchor Dimensions")];
 			}
 			
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
+				return [_plotter.radiusColumn, _plotter.fillStyle.color, _plotter.columns];
 			}
 			
 			override protected function get defaultPanelTitle():String
@@ -216,9 +211,9 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="{lang('Size')}" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="{lang('Anchor Dimensions')}"/>
+			<ui:DynamicColumnComponent id="colorComponent"/>
+			<ui:DynamicColumnComponent id="size"/>
+			<ui:ColumnListComponent id="columnList"/>
 		</mx:VBox>		
 		
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">

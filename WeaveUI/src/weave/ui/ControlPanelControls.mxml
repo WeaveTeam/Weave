@@ -20,8 +20,10 @@
 */
 -->
 
-<mx:VBox xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"  creationPolicy="all"
-		 width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}" verticalScrollPolicy="auto">
+<mx:VBox xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
+		 creationPolicy="all"
+		 initialize="UIUtils.pad(event, outerPadding, 100, 100)"
+		 verticalScrollPolicy="auto">
 	<mx:TabNavigator id="tabNavigator"
 					 width="100%" height="100%" minHeight="25"
 					 childAdd="handleChildAdded()"
@@ -35,9 +37,11 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.TabBar;
 			import mx.core.mx_internal;
-			private const padding:int = 5;
+			
+			import weave.core.UIUtils;
+			
+			private const outerPadding:int = 5;
 			private const innerPadding:int = 8;
 			
 			[Bindable] private var _busyIndicatorTargets:Array;
@@ -53,8 +57,7 @@
 				tabNavigator.setStyle('borderStyle', show ? 'outset' : 'none');
 				tabNavigator.setStyle('backgroundAlpha', show ? 1.0 : 0.0);
 				tabNavigator.setStyle('tabHeight', show ? NaN : 0);
-				for each (var padName:String in ['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom'])
-					tabNavigator.setStyle(padName, show ? innerPadding : 0);
+				UIUtils.pad(tabNavigator, show ? innerPadding : 0);
 			} 
 		]]>
 	</mx:Script>

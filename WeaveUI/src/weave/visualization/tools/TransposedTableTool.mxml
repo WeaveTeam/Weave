@@ -274,8 +274,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="{lang('Corner header:')}" fontWeight="bold"/>
 				<mx:TextInput id="headerTextInput" width="300"/>
 			</mx:HBox>
-			<ui:DynamicColumnComponent id="headerColumn" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
-			<ui:ColumnListComponent id="columnsList" visTool="{this}" backgroundAlpha="0.7" height="100%" width="100%"/>
+			<ui:DynamicColumnComponent id="headerColumn" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
+			<ui:ColumnListComponent id="columnsList" backgroundAlpha="0.7" height="100%" width="100%"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>

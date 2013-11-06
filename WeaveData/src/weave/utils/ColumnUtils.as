@@ -41,6 +41,7 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ExtendedDynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
@@ -170,6 +171,27 @@ package weave.utils
 			while (column is IColumnWrapper)
 				column = (column as IColumnWrapper).getInternalColumn();
 			return column;
+		}
+		
+		public static function hack_findInternalDynamicColumn(columnWrapper:IColumnWrapper):DynamicColumn
+		{
+			var columnWrapper:IColumnWrapper = columnWrapper as IColumnWrapper;
+			if (columnWrapper)
+			{
+				// temporary solution - find internal dynamic column
+				while (true)
+				{
+					if (columnWrapper.getInternalColumn() is DynamicColumn)
+						columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
+					else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
+						columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
+					else
+						break;
+				}
+				if (columnWrapper is ExtendedDynamicColumn)
+					columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
+			}
+			return columnWrapper as DynamicColumn;
 		}
 
 		/**

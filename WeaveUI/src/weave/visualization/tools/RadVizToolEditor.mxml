@@ -29,7 +29,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   implements="weave.api.ui.ILinkableObjectEditor"
-			   label="RadViz settings"
+			   label="{lang('RadViz settings')}"
+			   initialize="UIUtils.pad(this, 8);"
 			   >
 	
 	<mx:Script>
@@ -44,6 +45,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.reportError;
+			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.radviz.ClassInfoObject;
 			import weave.services.WeaveRServlet;
@@ -67,7 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 				(size as DynamicColumnComponent).dynamicObject = _target._plotter.radiusColumn ;
-				(colorComponent as DynamicColumnComponent).dynamicObject = _target.colorColumn;
+				(colorComponent as DynamicColumnComponent).columnWrapper = _target._plotter.fillStyle.color;
 				columnList.hashMap = _target._plotter.columns;
 				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
@@ -312,9 +314,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	
 		<mx:VBox id="attributesPanel" label="Attributes">
-			<ui:DynamicColumnComponent  visTool="{_target}" id="colorComponent" label="Color" />
-			<ui:DynamicColumnComponent visTool="{_target}" id="size" label="Size" />
-			<ui:ColumnListComponent visTool="{_target}" id="columnList" label="Anchor Dimensions"/>
+			<ui:DynamicColumnComponent id="colorComponent"/>
+			<ui:DynamicColumnComponent id="size"/>
+			<ui:ColumnListComponent id="columnList"/>
 		</mx:VBox>		
 		
 		<mx:VBox id="VizControlsPanel" label="Appearance">
@@ -509,7 +511,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:VBox id="cdlayout" label="CDLayout" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<mx:VBox width="100%">
 						<!--mx:Label text="Choose the class disciminator column"/-->
-						<ui:DynamicColumnComponent visTool="{_target}" id="classDis" />	
+						<ui:DynamicColumnComponent id="classDis"/>
 				<ui:Indent label="Layout Algorithm">
 					
 					<mx:ComboBox id="layoutAlgoCB" >

@@ -102,7 +102,7 @@
 			
 			private function handleMarginLabelClick():void
 			{
-				AttributeSelectorPanel.openToolSelector(this,plotter.meterColumn);
+				AttributeSelectorPanel.open(plotter.meterColumn);
 			}
 			
 			private function showLinkCursor():void
@@ -145,7 +145,7 @@
 				 toolTip="{lang('{0}\n\tClick here to select a different attribute.', marginLabelText)}"/>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Gauge properties')}" >
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
+			<ui:DynamicColumnComponent label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
 			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>

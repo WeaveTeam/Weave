@@ -56,7 +56,6 @@
 			import weave.editors.WindowSettingsEditor;
 			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.SubMenu;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
@@ -219,13 +218,14 @@
 			{
 				super.createChildren();
 				
-				var backgroundImageCheck:CheckBox = new CheckBox();
-				backgroundImageCheck.label = lang("Ocean background");
-				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				
 				WindowSettingsEditor; // work around compiler error
 				SimpleAxisEditor;
-				windowEditor.addChild(backgroundImageCheck);
+				
+//				var backgroundImageCheck:CheckBox = new CheckBox();
+//				backgroundImageCheck.label = lang("Ocean background");
+//				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
+//				windowEditor.addChild(backgroundImageCheck);
+				
 				windowEditor.removeChild(windowEditor.titleControls);
 				windowEditor.addChildAt(axesEditor.titleControls, 0);
 				
@@ -396,18 +396,19 @@
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
-				visualization.graphics.clear();
 				//Needs to be called on the next frame, due to the background getting cleared afterwards by the super functions.
 				callLater(drawBackground);
 			}
 			
 			private function drawBackground():void
 			{
+				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
 					visualization.graphics.lineStyle(0,0,0);
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
+					visualization.graphics.endFill();
 				}
 			}
 			
@@ -521,7 +522,7 @@
 				
 				// set defaults
 				plotter.enabledSizeBy.value = true;
-				copySessionState(AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
+				copySessionState(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
 				
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)

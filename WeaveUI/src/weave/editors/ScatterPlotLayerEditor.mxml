@@ -14,7 +14,6 @@
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.data.AttributeColumns.ColorColumn;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.PlotterUtils;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
@@ -57,10 +56,9 @@
 					
 					dataXCol.dynamicObject = _plotter.dataX;
 					dataYCol.dynamicObject = _plotter.dataY;
-					colorCol.dynamicObject = AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.fill.color.internalDynamicColumn);
+					colorCol.columnWrapper = _plotter.fill.color;
 					sizeSelector.dynamicObject = _plotter.screenRadius;
 				}
-				
 			}
 			
 			public function hasPendingChanges():Boolean { return false; }
@@ -142,7 +140,7 @@
 	<ui:DynamicColumnComponent id="dataXCol" label="{lang('X')}"/>
 	<ui:DynamicColumnComponent id="dataYCol" label="{lang('Y')}"/>
 	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
-	<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
+	<ui:CustomCheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
 	<ui:DynamicColumnComponent id="sizeSelector">
 		<ui:creationComplete>
 			<![CDATA[

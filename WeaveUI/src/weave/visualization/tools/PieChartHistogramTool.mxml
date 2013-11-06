@@ -116,14 +116,8 @@
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				if(probeColumnsCheckBox)
 				{
-					if(attrToIncludeCheckList && attrToIncludeCheckList.indexOf(false) > -1)
-					{
-						probeColumnsCheckBox.selected = false;
-					}
-					else
-					{
+					if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
 						probeColumnsCheckBox.selected = true;
-					}
 				}
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
@@ -132,15 +126,7 @@
 				if (_plotter.binnedData.getInternalColumn() && attrToIncludeCheckList[dataColIndex])
 						columns.push(_plotter.binnedData.getInternalColumn());
 				
-				if(columns.length>0)
-				{
-					visualization.additionalProbeColumns = columns;
-				}
-				else
-				{
-					visualization.additionalProbeColumns = null;
-				}
-				
+				visualization.additionalProbeColumns = columns;
 			}
 			
 			private function invalidateAxes():void
@@ -158,13 +144,14 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Binning')}">
-			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
+			<ui:DynamicColumnComponent label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox label="{lang('Mouseover')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+		<mx:VBox label="{lang('Mouseover info')}">
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox id="attributesPanel" label="{lang('Display')}">
 			<ui:Indent label="{lang('Label angle')}">

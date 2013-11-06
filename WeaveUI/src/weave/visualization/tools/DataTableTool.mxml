@@ -77,7 +77,7 @@
 			<mx:Button id="button_clearSelection" visible="{toggle_clearSelection.selected}" includeInLayout="{toggle_clearSelection.selected}"
 					   label="{lang('Clear selection')}" click="_selection.clearKeys()"/>
 			<mx:Button id="button_editColumns" visible="{toggle_editColumns.selected}" includeInLayout="{toggle_editColumns.selected}"
-					   label="{lang('Edit columns')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
+					   label="{lang('Edit columns')}" click="AttributeSelectorPanel.open(columns)"/>
 			<mx:Button id="button_exportData" visible="{toggle_exportData.selected}" includeInLayout="{toggle_exportData.selected}"
 					   label="{lang('Export data')}" click="saveToFileAsCSV()"/>
 		</mx:HBox>
@@ -368,7 +368,7 @@
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
 				var imageCol:ImageColumn = dimensionsList.hashMap.requestObject(imageColumnName,ImageColumn, false);
-				AttributeSelectorPanel.openDefaultSelector(imageCol);
+				AttributeSelectorPanel.open(imageCol);
 			}
 			
 			

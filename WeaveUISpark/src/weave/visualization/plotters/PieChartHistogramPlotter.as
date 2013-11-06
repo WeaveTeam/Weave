@@ -21,20 +21,18 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
-	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getLinkableOwner;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
@@ -45,53 +43,15 @@ package weave.visualization.plotters
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
-	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
-	 * PieChartHistogramPlotter
-	 * 
 	 * @author adufilie
 	 */
 	public class PieChartHistogramPlotter extends AbstractPlotter
 	{
 		public function PieChartHistogramPlotter()
 		{
-			init();
-		}
-		
-		public var _beginRadians:EquationColumn;
-		public var _spanRadians:EquationColumn;
-		public var _binLookup:StringLookupColumn;
-		public var _binLookupStats:IColumnStatistics;
-		public var _binnedData:BinnedColumn;
-		public var _filteredData:FilteredColumn;
-		
-		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
-		
-		public function get binnedData():BinnedColumn { return _binnedData; }
-		
-		public function get unfilteredData():DynamicColumn { return _filteredData.internalDynamicColumn; }
-		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
-		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle(SolidFillStyle));
-		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
-		public const innerRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyInnerRadius));
-		
-		private function verifyLabelAngleRatio(value:Number):Boolean
-		{
-			return 0 <= value && value <= 1;
-		}
-		private function verifyInnerRadius(value:Number):Boolean
-		{
-			return 0 <= value && value <= 1;
-		}
-		
-		private function init():void
-		{
-			(fillStyle.internalObject as SolidFillStyle).color.defaultValue.setSessionState(0x808080);
-			
 			_beginRadians = newSpatialProperty(EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
@@ -116,6 +76,31 @@ package weave.visualization.plotters
 			}
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+		}
+		
+		public var _beginRadians:EquationColumn;
+		public var _spanRadians:EquationColumn;
+		public var _binLookup:StringLookupColumn;
+		public var _binLookupStats:IColumnStatistics;
+		public var _binnedData:BinnedColumn;
+		public var _filteredData:FilteredColumn;
+		
+		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
+		
+		public function get binnedData():BinnedColumn { return _binnedData; }
+		
+		public function get unfilteredData():DynamicColumn { return _filteredData.internalDynamicColumn; }
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
+		public const innerRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyInnerRadius));
+		
+		private function verifyLabelAngleRatio(value:Number):Boolean
+		{
+			return 0 <= value && value <= 1;
+		}
+		private function verifyInnerRadius(value:Number):Boolean
+		{
+			return 0 <= value && value <= 1;
 		}
 		
 		/**
@@ -180,8 +165,8 @@ package weave.visualization.plotters
 			
 			var graphics:Graphics = tempShape.graphics;
 			// begin line & fill
-			lineStyle.beginLineStyle(binKey, graphics);
-			//fillStyle.beginFillStyle(recordKey, graphics);
+			line.beginLineStyle(binKey, graphics);
+			//fill.beginFillStyle(recordKey, graphics);
 			
 			// draw graphics
 			var color:Number = chartColors.getColorFromNorm( _binLookupStats.getNorm(binKey) );
@@ -276,5 +261,8 @@ package weave.visualization.plotters
 		{
 			output.setBounds(-1, -1, 1, 1);
 		}
+
+		// backwards compatibility
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void { try { setSessionState(line, value[0].sessionState); } catch (e:Error) { } }
 	}
 }

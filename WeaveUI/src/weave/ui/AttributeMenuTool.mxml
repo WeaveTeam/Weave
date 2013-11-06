@@ -406,7 +406,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				// use the same hack used by the AttributeSelectorPanel to find a nested dynamic column.
-				dynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(dynamicColumn);
+				dynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(dynamicColumn);
 				
 				if (dynamicColumn)
 				{

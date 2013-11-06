@@ -94,7 +94,7 @@ package weave.visualization.tools
 		{
 			var attrs:Array = getSelectableAttributes();
 			if (attrs.length)
-				AttributeSelectorPanel.openToolSelector(this, attrs[0]);
+				AttributeSelectorPanel.open(attrs[0]);
 			else
 				reportError("No attributes to select.");
 		}

@@ -68,7 +68,7 @@ package weave.visualization.plotters
 			linkSessionState(filteredKeySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperty(dynamicColorColumn);
+			registerSpatialProperty(fillStyle.color.internalDynamicColumn);
 
 			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
@@ -91,14 +91,6 @@ package weave.visualization.plotters
 		public function get internalColorColumn():ColorColumn
 		{
 			return fillStyle.color.getInternalColumn() as ColorColumn;
-		}
-		/**
-		 * This column object will always remain for the life of the plotter.
-		 * This function is provided for convenience.
-		 */		
-		public function get dynamicColorColumn():DynamicColumn
-		{
-			return fillStyle.color.internalDynamicColumn;
 		}
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
@@ -169,7 +161,6 @@ package weave.visualization.plotters
 			return 1;
 		}
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-
 		{
 			var i:int;
 			var binCol:BinnedColumn = internalBinnedColumn;
@@ -248,6 +239,14 @@ package weave.visualization.plotters
 
 		//------------------------
 		// backwards compatibility
+		/**
+		 * This column object will always remain for the life of the plotter.
+		 * This function is provided for convenience.
+		 */		
+		[Deprecated(replacement="fillStyle.color.internalDynamicColumn")] public function set dynamicColorColumn(value:Object):void
+		{
+			setSessionState(fillStyle.color.internalDynamicColumn, value);
+		}
 		[Deprecated(replacement="internalBinnedColumn")] public function set binnedColumn(value:Object):void
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;

@@ -184,9 +184,9 @@
 			private function handleMarginLabelClick():void
 			{
 				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
-					AttributeSelectorPanel.openDefaultSelector(colorColumn);
+					AttributeSelectorPanel.open(colorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(scatterPlot.plotter.screenRadius);
+					AttributeSelectorPanel.open(scatterPlot.plotter.screenRadius);
 			}
 			
 			[Bindable] private var marginLabelText:String = "";

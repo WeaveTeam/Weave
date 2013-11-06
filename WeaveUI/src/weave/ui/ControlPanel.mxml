@@ -179,7 +179,7 @@
 				controlPanelControls.validateNow();
 				
 				// show buttons if there are targets, hide them if not
-				if (_targetObjects == null || _targetObjects.length == 0)
+				if (!_targetObjects || !_targetObjects.length)
 				{
 					closeable.value = true;
 					if (controlPanelControls == controlPanelControls.buttons.parent)
@@ -222,7 +222,7 @@
 			 */
 			public function save():void
 			{
-				if (_targetObjects == null && parent is ILinkableObject)
+				if (!_targetObjects && parent is ILinkableObject)
 				{
 					targets = [parent]; // this calls save() again
 					return;
