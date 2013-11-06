@@ -70,8 +70,9 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
  * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
  * @param {number} columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables).
  * @param {string=} dataSourceName The name of an existing WeaveDataSource object in the Weave session state.
+ * @param {Array=} sqlParams optional set of parameters to use that correspond to the '?' placeholders in the SQL query on the server.
  */
-function setWeaveColumnId(weave, path, columnId, dataSourceName)
+function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 {
     // convert an Array to a WeavePath object
     if (Array.isArray(path))
@@ -82,6 +83,10 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName)
     		.libs('weave.data.DataSources::WeaveDataSource')
     		.getValue('getNames(WeaveDataSource)[0]');
     
+    var sqlParamsStr = '';
+    if (sqlParams)
+    	sqlParamsStr = ' sqlParams="' + sqlParams.map(function(value) { return '"' + value + '"'; }).join(',') + '"';
+    
     // make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
     path.request('DynamicColumn')
 		.push(null)
@@ -90,7 +95,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName)
 				.request('HierarchyColumnReference')
 				.state({
 					"dataSourceName": dataSourceName,
-					"hierarchyPath": '<attribute weaveEntityId="'+columnId+'"/>'
+					"hierarchyPath": '<attribute weaveEntityId="'+columnId+'"' + sqlParamsStr + '/>'
 				})
 			.pop()
 		.pop();
