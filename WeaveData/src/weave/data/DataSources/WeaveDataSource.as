@@ -189,7 +189,7 @@ package weave.data.DataSources
 			
 			//trace("requestHierarchyFromSource("+(subtreeNode?attributeHierarchy.getPathFromNode(subtreeNode).toXMLString():'')+")");
 
-			if (subtreeNode == null || subtreeNode == _attributeHierarchy.value)
+			if (!subtreeNode || subtreeNode == _attributeHierarchy.value)
 			{
 				if (hierarchyURL.value != "" && hierarchyURL.value != null)
 				{
@@ -364,7 +364,7 @@ package weave.data.DataSources
 		
 		private function generateRootHierarchy(tables:Array, geoms:Array):void
 		{
-			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
+			if (objectWasDisposed(this) || !(_attributeHierarchy.value == <hierarchy/> || !_attributeHierarchy.value))
 				return;
 
 			var tag:XML;
@@ -395,7 +395,7 @@ package weave.data.DataSources
 	
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
 
-				if (_attributeHierarchy.value == null)
+				if (!_attributeHierarchy.value)
 					_attributeHierarchy.value = <hierarchy/>;
 				
 				// add each missing category
@@ -562,7 +562,7 @@ package weave.data.DataSources
 			var proxyColumn:ProxyColumn = request.proxyColumn;
 			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
 			// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
-			if (hierarchyNode == null)
+			if (!hierarchyNode)
 				hierarchyNode = <attribute/>;
 			else
 				proxyColumn.setMetadata(hierarchyNode);
