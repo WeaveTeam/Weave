@@ -21,6 +21,7 @@
             var _node_type = null;
             var _edge_type = null;
             var _data_schema = null;
+            var _subset = null;
 
 
             function key_to_id(qkey)
@@ -37,7 +38,7 @@
                 return;
             }
             function probe(qkeys) {
-                var element_ids = qkeys.map(key_to_id);
+                var element_ids = [].concat(qkeys.map(key_to_id));
 
                 var bypass = {nodes: {}, edges: {}};
 
@@ -51,8 +52,13 @@
                 vis.visualStyleBypass(bypass);
             }
             function subset(qkeys) {
-                disable_listeners();
-                enable_listeners();
+                var element_ids = [].concat(qkeys.map(key_to_id));
+                _subset = element_ids;
+
+                vis.filter("nodes", element_ids);
+                vis.filter("edges", element_ids);
+                vis.zoomToFit();
+                return;
             }
 
             function select_handler(evt) {
@@ -89,6 +95,7 @@
                 window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
             }
             function ready_handler() {
+                console.log("Ready handler filed.");
                 var style = {
                     nodes: {
                         selectionGlowColor: "#ff0000",
@@ -101,9 +108,11 @@
                         selectionGlowBlur: 16
                     }
                 };
+                /*
                 var path = new opener.Array;
                 path.push(window.name);
                 weave.evaluateExpression(path, 'cytoscapeReady()');
+                */
                 vis.visualStyle(style);
                 return;
             }
@@ -142,11 +151,34 @@
                 _network = {};
                 _network.data = _tmpnetwork;
             }
-            
+
+            /* Builds a basic passthrough schema */
+            function build_style_from_schema(schema) {
+
+                var style = {nodes: {}, edges: {}};
+                for (var prop_i in schema.nodes)
+                {
+                    var prop = schema.nodes[prop_i].name;
+                    if (prop == "keyType" ||  prop == "localName")
+                        continue;
+                    style.nodes[prop] = { passthroughMapper: {attrName: prop} };
+                }
+                for (var prop_i in schema.edges)
+                {
+                    var prop = schema.edges[prop_i].name;
+                    if (prop == "keyType" ||  prop == "localName")
+                        continue;
+                    style.edges[prop] = { passthroughMapper: {attrName: prop} };
+                }
+                return style;
+            }
+
             function launch(parameters) {
+                console.log("Launch called.");
                 parameters = JSON.parse(JSON.stringify(parameters));
                 parameters.network = _network;
                 _network.dataSchema = parameters.dataSchema;
+                parameters.visualStyle = build_style_from_schema(_network.dataSchema);
                 delete parameters.dataSchema;
 
                 window.vis.draw(parameters);
@@ -169,11 +201,11 @@
                 vis.removeListener("mouseout", "nodes", unprobe_handler);
                 vis.removeListener("mouseout", "edges", unprobe_handler);
             }
+
             window.onload=function() {
                 // id of Cytoscape Web container div
                 var div_id = "cytoscapeweb"; 
                 // you could also use other formats (e.g. GraphML) or grab the network data via AJAX
-                
                 // initialization options
                 var options = {
                     // where you have the Cytoscape Web SWF
@@ -186,6 +218,12 @@
                 vis = new org.cytoscapeweb.Visualization(div_id, options);
                 vis.ready(ready_handler);
                 vis.draw();
+                
+                var path = new opener.Array;
+                path.push(window.name);
+                weave.evaluateExpression(path, 'cytoscapeReady()');
+                vis.visualStyle(style);
+
                 enable_listeners();
             };
         </script>

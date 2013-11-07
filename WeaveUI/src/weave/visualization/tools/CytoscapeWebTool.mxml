@@ -2,11 +2,12 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*" 
 		 xmlns:userControls="weave.ui.userControls.*"
+		 implements="weave.api.ui.IVisToolWithSelectableAttributes"
 		 layout="vertical">
 		<mx:VBox>
 
 		<mx:Button id="reinitButton" label="Launch External Tool" click="reloadCytoscape()"/>
-		<mx:Button id="raiseButton" label="Focus External Tool" enabled="{_cytoscapeReady}" click="raiseCytoscape()"/>
+		<mx:Button id="raiseButton" label="Focus External Tool" enabled="{_cytoscapeReady.value}" click="raiseCytoscape()"/>
 
 		</mx:VBox>
 		
@@ -27,6 +28,7 @@
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.FilteredKeySet;
@@ -64,13 +66,10 @@
 			private var _primitiveEdges:Object;
 			private var _primitiveNodes:Object;
 			private var _primitiveLayout:Object;
-			public var _nodeFilteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
-			public var _edgeFilteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+			public const _nodeFilteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+			public const _edgeFilteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 
-			private var _deferredFuncs:Dictionary = new Dictionary();
-
-			[Bindable] public var _cytoscapeBlocked:Boolean = false;
-			[Bindable] public var _cytoscapeReady:Boolean = false;
+			public const _cytoscapeReady:LinkableBoolean = newDisposableChild(this, LinkableBoolean);
 
 			override protected function constructor():void
 			{
@@ -80,23 +79,27 @@
 				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);
 				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn]);
 
-				_edgeFilteredKeys.addImmediateCallback(this, handleEdgeColumnChange);
-				_nodeFilteredKeys.addImmediateCallback(this, handleNodeColumnChange);
+				nodeColorColumn.addGroupedCallback(this, handleNodeColumnChange);
+				nodeLabelColumn.addGroupedCallback(this, handleNodeColumnChange);
+				nodeRadiusColumn.addGroupedCallback(this, handleNodeColumnChange);
+
+				edgeSourceColumn.addGroupedCallback(this, handleEdgeColumnChange);
+				edgeTargetColumn.addGroupedCallback(this, handleEdgeColumnChange);
+				edgeLabelColumn.addGroupedCallback(this, handleEdgeColumnChange);
+				edgeThicknessColumn.addGroupedCallback(this, handleEdgeColumnChange);
+				edgeColorColumn.addGroupedCallback(this, handleEdgeColumnChange);
+				edgeWeightColumn.addGroupedCallback(this, handleEdgeColumnChange);
+
+				_nodeFilteredKeys.addGroupedCallback(this, updateSubsetChange);
+				_edgeFilteredKeys.addGroupedCallback(this, updateSubsetChange);
 			}
 			public function cytoscapeReady():void
 			{
-				_cytoscapeReady = true;
-				_cytoscapeBlocked = false;
-
-				// Process all our deferred functions.
-				for (var key:Object in _deferredFuncs)
+				_cytoscapeReady.value = true;
+				if (_primitiveEdges != null && _primitiveNodes != null && _primitiveLayout != null)
 				{
-					var func:Function = key as Function;
-					if (func != null)
-						func();
+					sendNetworkToCytoscape();
 				}
-
-				_deferredFuncs = new Dictionary(); // Clear the deferred functions.
 			}
 
 			private function raiseCytoscape():void
@@ -112,14 +115,12 @@
 			{
 				if (!_cytoscapeReady)
 				{
-					_cytoscapeBlocked = true;
 					Alert.show(lang("This external tool failed to load. Try disabling your popup blocker for this site to prevent this from happening in the future."), _toolName + " " + lang("Error"), Alert.OK);
 				}
 			}
 			private function reloadCytoscape():void
 			{	
-				_cytoscapeBlocked = false;
-				_cytoscapeReady = false;
+				_cytoscapeReady.value = false;
 				launchCytoscape();
 				handleGraphLayoutChange();
 				handleEdgeColumnChange();
@@ -160,25 +161,34 @@
 						}",
 						ExternalInterface.objectID, _toolName, _selection.keys);
 			}
+			public function updateSubsetChange():void
+			{
+				ExternalInterface.call(
+					"function (weaveID, toolname, elements) {\
+						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.external_tools[toolname].subset(elements);\
+						}",
+						ExternalInterface.objectID, _toolName, _nodeFilteredKeys.keys.concat(_edgeFilteredKeys.keys));
+			}
 
 			private const _networkSchema:Object = {
 					nodes: [{name: "label", type: "string", defValue: ""}, 
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
 							{name: "color", type: "string", defValue: ""},
-							{name: "radius", type: "string", defVaue: 30}],
+							{name: "size", type: "number", defVaue: 30}],
 					edges: [{name: "label", type: "string", defValue: ""},
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
 							{name: "color", type: "string", defValue: ""},
-							{name: "thickness", type: "number", defValue: 5},
+							{name: "width", type: "number", defValue: 5},
 							{name: "weight", type: "number", defValue: 1}]
 			};
 
 			private const nodePropertyMappings:Object = {
 				label:{column:nodeLabelColumn, type:String},
 				color:{column:nodeColorColumn, type:String},
-				radius:{column:nodeRadiusColumn, type:Number}
+				size:{column:nodeRadiusColumn, type:Number}
 			};
 
 			private const edgePropertyMappings:Object = {
@@ -186,9 +196,10 @@
 				source:{column:edgeSourceColumn, type:String, required:true},
 				target:{column:edgeTargetColumn, type:String, required:true},
 				color:{column:edgeColorColumn, type:String},
-				thickness:{column:edgeThicknessColumn, type:Number},
+				width:{column:edgeThicknessColumn, type:Number},
 				weight:{column:edgeWeightColumn, type:Number}
 			};
+
 			private function buildPrimitiveElements(keyset:IKeySet, mapping:Object):Array
 			{
 				var elements:Array = [];
@@ -228,12 +239,14 @@
 
 				return elements;
 			}
+
 			private function handleNodeColumnChange():void
 			{
-				_primitiveNodes = buildPrimitiveElements(_nodeFilteredKeys, nodePropertyMappings);
 				_nodeKeyType =  nodeColorColumn.getMetadata(ColumnMetadata.KEY_TYPE) ||
 								nodeLabelColumn.getMetadata(ColumnMetadata.KEY_TYPE) ||
 								nodeRadiusColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+
+				_primitiveNodes = buildPrimitiveElements(nodeLabelColumn, nodePropertyMappings);								
 
 				sendNetworkToCytoscape();
 			}
@@ -246,24 +259,21 @@
 				if (srcKeyType != targetKeyType) return;
 				
 				_edgeKeyType = srcKeyType;
-				_primitiveEdges = buildPrimitiveElements(_edgeFilteredKeys, edgePropertyMappings);
+				_primitiveEdges = buildPrimitiveElements(edgeSourceColumn, edgePropertyMappings);
 
 				sendNetworkToCytoscape();
 			}
 
 			private function sendNetworkToCytoscape():void
 			{
-
-				if (!_cytoscapeReady)
-				{
-					_deferredFuncs[sendNetworkToCytoscape] = true;
+				if (_cytoscapeReady.value == false)
 					return;
-				}
 				if (_primitiveNodes == null || _primitiveEdges == null)
 					return;
 				var parameters:Object = {};
 				var element_to_key_types:Object = {nodes: _nodeKeyType, edges: _edgeKeyType};
 				var primitiveElements:Array = _primitiveNodes.concat(_primitiveEdges);
+
 				parameters.dataSchema = _networkSchema;
 				parameters.layout = _primitiveLayout;
 				ExternalInterface.call(
@@ -277,7 +287,9 @@
 
 			private function handleGraphLayoutChange():void
 			{
-				_primitiveLayout = {name: layoutType.value, options: {seed: layoutSeed.value}};
+				_primitiveLayout = {
+					name: layoutType.value, 
+					options: {seed: layoutSeed.value, weightAttr:"weight"}};
 				ExternalInterface.call(
 					"function (weaveID, toolname, layout) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
@@ -337,7 +349,7 @@
 			<mx:HBox>
 				<mx:Label text="{lang('Radius Size')}"
 						  toolTip="{lang('Use this option to control the default size of the each node in the graph.')}"/>
-				<mx:NumericStepper id="numRadiusSize" minimum="1"/>
+				<mx:NumericStepper id="numRadiusSize" minimum="1" maximum="100"/>
 			</mx:HBox>
 
 			 <mx:CheckBox id="undirectedCheckBox" label="{lang('Undirected edges.')}" 
