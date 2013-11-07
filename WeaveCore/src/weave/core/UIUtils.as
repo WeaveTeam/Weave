@@ -122,16 +122,22 @@ package weave.core
 		{
 			if (!coords)
 				coords = [0,0, 1,0, 1,1, 0,1], normalizedCoords = true;
+			
+			if (coords.length < 4)
+				return;
+			
 			var g:Graphics = sprite.graphics;
 			g.moveTo(coords[0], coords[1]);
 			g.beginFill(0xFF0000, debug ? 0.5 : 0);
 			g.lineStyle(borderThickness, 0xFF0000, debug ? 0.5 : 0);
-			while (coords.length)
+			var n:int = coords.length / 2;
+			for (var i:int = 1; i <= n; i++)
 			{
+				var ix:int = i % n * 2;
 				if (normalizedCoords)
-					g.lineTo(sprite.width * coords.shift(), sprite.height * coords.shift());
+					g.lineTo(sprite.width * coords[ix], sprite.height * coords[ix + 1]);
 				else
-					g.lineTo(coords.shift(), coords.shift());
+					g.lineTo(coords[ix], coords[ix + 1]);
 			}
 			g.endFill();
 		}
