@@ -111,6 +111,16 @@ package weave.visualization.plotters
 		 */
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
 		
+		//The following variables are different parameters of the dashed line.
+		
+		public const dashedColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		
+		public const dashedAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0));
+		
+		public const dashedWeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(4));
+		
+		public const useDashedLine:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
 		public const dashedDetails:LinkableString = registerLinkableChild(this, new LinkableString("5,5"), verifyDashedSelectionBox);
 		public function verifyDashedSelectionBox():void
 		{
@@ -510,12 +520,14 @@ package weave.visualization.plotters
 			if (points.length == 0)
 				return;
 			
-			_dashedLine.graphics = outputGraphics;
+			if( useDashedLine.value )
+			{
+				_dashedLine.graphics = outputGraphics;
+				_dashedLine.lengthsString = dashedDetails.value;
+				_dashedLine.clear();
+				_dashedLine.lineStyle(dashedWeight.value, dashedColor.value, dashedAlpha.value);
+			}
 			
-			_dashedLine.lineStyle(4, 0x000000, 1);
-			
-			_dashedLine.lengthsString = dashedDetails.value;
-
 			var currentNode:Object;
 
 			if (geomType == GeometryType.POINT)
@@ -553,11 +565,22 @@ package weave.visualization.plotters
 					if (keepTrack)
 						totalVertices++;
 					x=int(x),y=int(y);
-					_dashedLine.moveTo(x-1,y);
-					_dashedLine.lineTo(x+1,y);
-					_dashedLine.moveTo(x,y-1);
-					_dashedLine.lineTo(x,y+1);
-					_dashedLine.moveTo(x, y);
+					if( !useDashedLine.value )
+					{
+						outputGraphics.moveTo(x-1,y);
+						outputGraphics.lineTo(x+1,y);
+						outputGraphics.moveTo(x,y-1);
+						outputGraphics.lineTo(x,y+1);
+						outputGraphics.moveTo(x, y);
+					}
+					else
+					{
+						_dashedLine.moveTo(x-1,y);
+						_dashedLine.lineTo(x+1,y);
+						_dashedLine.moveTo(x,y-1);
+						_dashedLine.lineTo(x,y+1);
+						_dashedLine.moveTo(x, y);
+					}
 					continue;
 				}
 				
@@ -565,16 +588,25 @@ package weave.visualization.plotters
 				{
 					firstX = x;
 					firstY = y;
-					_dashedLine.moveTo(x, y);
+					if( !useDashedLine.value )
+						outputGraphics.moveTo(x, y);
+					else
+						_dashedLine.moveTo(x, y);
 					continue;
 				}
-				_dashedLine.lineTo(x, y);
+				if( !useDashedLine.value )
+					outputGraphics.lineTo(x, y);
+				else
+					_dashedLine.lineTo(x, y);
 			}
 			
 			if (!debug)
 				if (geomType == GeometryType.POLYGON)
 				{
-					_dashedLine.lineTo(firstX, firstY);
+					if( !useDashedLine.value )
+						outputGraphics.lineTo(firstX, firstY);
+					else
+						_dashedLine.lineTo(firstX, firstY);
 				}
 		}
 		

@@ -110,19 +110,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</ui:HelpComponent>
 	</mx:HBox>
 	
-	<ui:CheckBoxWithNestedOptions label="Enable dashed lines">
+	<ui:CheckBoxWithNestedOptions label="Enable dashed lines" creationComplete="linkBindableProperty(_plotter.useDashedLine, event.target, 'selected')">
 		<mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Alpha"/>
-				<mx:NumericStepper stepSize="0.1" value="1.0"/>
+				<mx:NumericStepper stepSize="0.1" value="1.0" maximum="1.0" creationComplete="linkBindableProperty(_plotter.dashedAlpha, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Color"/>
-				<mx:ColorPicker color="0x000000"/>
+				<mx:ColorPicker selectedColor="0x000000" creationComplete="linkBindableProperty(_plotter.dashedColor, event.target, 'selectedColor')"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Default thickness"/>
-				<mx:NumericStepper stepSize="1" value="4.0"/>
+				<mx:NumericStepper stepSize="1" value="4.0" creationComplete="linkBindableProperty(_plotter.dashedWeight,event.target,'value')"/>
 			</mx:HBox>
 		</mx:HBox>
 		
@@ -176,6 +176,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_plotter.fill.color.defaultValue.addImmediateCallback(this, handleLinkableFillColor, true);
 				
 				_plotter.dashedDetails.addGroupedCallback(this, drawDashedLinePreview, true);
+				_plotter.dashedAlpha.addGroupedCallback(this, drawDashedLinePreview, true);
+				_plotter.dashedWeight.addGroupedCallback(this, drawDashedLinePreview, true);
+				_plotter.dashedColor.addGroupedCallback(this, drawDashedLinePreview, true);
 			}
 			
 			private function getGeometryErrorString():String
@@ -250,7 +253,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_dashedLine.graphics = dashedCanvas.graphics;
 				_dashedLine.lengthsString = _plotter.dashedDetails.value;
 				_dashedLine.clear();
-				_dashedLine.lineStyle(4, 0x00ff00, 1);
+				_dashedLine.lineStyle(_plotter.dashedWeight.value, _plotter.dashedColor.value, _plotter.dashedAlpha.value);
 				
 				var xStart:Number = 5;
 				var yStart:Number = 10;
