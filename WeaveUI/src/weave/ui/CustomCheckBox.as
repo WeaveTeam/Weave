@@ -31,7 +31,7 @@ package weave.ui
 		{
 			graphics.clear();
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
-			UIUtils.drawInvisiblePolygon(this, [0,0, 1,0, 1,1, 0,1], true);
+			UIUtils.drawInvisiblePolygon(this);
 		}
 	}
 }

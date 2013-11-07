@@ -114,12 +114,14 @@ package weave.core
 		/**
 		 * Draws an invisible polygon on a component for catching mouse events.
 		 * @param sprite The component.
-		 * @param coords [x0,y0, x1,y1, ...]
+		 * @param coords An array containing coordinates like [x0,y0, x1,y1, ...].  If omitted, a default rectangle will be used.
 		 * @param normalizedCoords true for normalized coordinates (x and y values will be multiplied by sprite.width and sprite.height)
 		 * @param borderThickness The thickness of the polygon border in pixels.
 		 */		
-		public static function drawInvisiblePolygon(sprite:Sprite, coords:Array, normalizedCoords:Boolean, borderThickness:Number = 0):void
+		public static function drawInvisiblePolygon(sprite:Sprite, coords:Array = null, normalizedCoords:Boolean = false, borderThickness:Number = 0):void
 		{
+			if (!coords)
+				coords = [0,0, 1,0, 1,1, 0,1], normalizedCoords = true;
 			var g:Graphics = sprite.graphics;
 			g.moveTo(coords[0], coords[1]);
 			g.beginFill(0xFF0000, debug ? 0.5 : 0);
