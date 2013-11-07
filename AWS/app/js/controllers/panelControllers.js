@@ -351,6 +351,50 @@ angular.module("aws.panelControllers", [])
 		}
 	});
 })
+.controller("ScatterPlotToolPanelCtrl", function($scope, queryService) {
+	$scope.$watch(function(){
+		return queryService.queryObject.scriptSelected;
+	}, function() {
+		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
+			$scope.options = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
+				return result.outputs;
+			});
+		}
+	});
+
+	$scope.$watch('enabled', function() {
+		queryService.queryObject['ScatterPlotTool'] = {};
+		if ($scope.enabled == true) {
+			if($scope.XSelection != "" && $scope.XSelection != undefined) {
+					queryService.queryObject['ScatterPlotTool']['X'] = angular.fromJson($scope.XSelection).param;
+			}
+			if($scope.YSelection != "" && $scope.YSelection != undefined) {
+				queryService.queryObject['ScatterPlotTool']['Y'] = angular.fromJson($scope.YSelection).param;
+			}
+		} else {
+			delete queryService.queryObject['ScatterPlotTool'];
+			$scope.XSelection = "";
+			$scope.YSelection = "";
+		}
+		
+	});
+	
+	$scope.$watch('XSelection', function() {
+		if($scope.XSelection != "" && $scope.XSelection != undefined) {
+			if ($scope.enabled) {	
+				queryService.queryObject['ScatterPlotTool']['X'] = angular.fromJson($scope.XSelection).param;
+			}
+		}
+	});
+	
+	$scope.$watch('YSelection', function() {
+		if($scope.YSelection != "" && $scope.YSelection != undefined) {
+			if ($scope.enabled) {	
+				queryService.queryObject['ScatterPlotTool']['Y'] = angular.fromJson($scope.YSelection).param;
+			}
+		}
+	});
+})
 .controller("ColorColumnPanelCtrl", function($scope, queryService){
 
 	$scope.$watch(function(){

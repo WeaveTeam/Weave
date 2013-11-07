@@ -32,7 +32,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 			this.setPosition(toolName, "0%", "0%");
 			break;
 		case 'ScatterPlotTool':
-			toolName = this.newScatterPlot(parameters["xColumnName"], parameters["yColumnName"], dataSourceName);
+			toolName = this.newScatterPlot(parameters["X"], parameters["Y"], dataSourceName);
 			break;
 		case 'DataTable':
 			toolName = this.newDatatable(parameters["columns"], dataSourceName);
