@@ -1,0 +1,56 @@
+{
+        "scriptType": "columns",
+        "inputs" : [
+                {
+                 "param" : "all",
+                 "description" : "",
+                 "columnType" : "any"
+                },
+                {
+		 "param" : "geography",
+                 "description" : "",
+		 "columnType" : "geography"
+                },
+
+                {
+		 "param" : "analytic",
+                 "description" : "",
+		 "columnType" : "analytic"
+                },
+
+                {
+		 "param" : "by-variable",
+                 "description" : "",
+		 "columnType" : "by-variable"
+                },
+
+                {
+		 "param" : "indicator",
+                 "description" : "",
+		 "columnType" : "indicator"
+                }
+
+        ],
+        "outputs" : [
+
+                {"param" : "column 1",
+                 "description" : "column 1"
+                },
+
+                {"param" : "column 2",
+                 "description" : "column 2"
+                },
+
+                {"param" : "column 3",
+                 "description" : "column 3"
+                },
+
+                {"param" : "column 4",
+                 "description" : "column 4"
+                },
+
+                {"param" : "column 5",
+                 "description" : "column 5"
+                }
+        ]
+}

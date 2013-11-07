@@ -3,19 +3,16 @@ goog.provide('aws.RClient');
 
 //var rServiceURL = '/WeaveServices/RService';
 var rServiceURL = '/WeaveServices/AWSRService';
-var adminServiceURL = '/WeaveServices/AdminService';
-
-
 
 //parameters sent from the QueryHandler.js
 /** 
- * @param {Object} connectionObject required for R to make a connection to the db; given by the QueryHandler.js
- * @constructor {aws.rDataRequestObject} rDataRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
+ * @param {aws.rRequestObject} rRequestObject collection of parameters required to execute the computational script; also given by the QueryHandler.js
+ * @constructor 
  */
-aws.RClient = function(connectionObject, rDataRequestObject){
-	
-	this.connectionObject = connectionObject;
-	this.rDataRequestObject = rDataRequestObject;
+aws.RClient = function(rRequestObject){
+
+	this.rRequestObject = rRequestObject;
+
 };
 
 //define get methods for both objects
@@ -41,6 +38,9 @@ aws.RClient.prototype.run = function(type, callback) {
 	} else if (type == "JavaSQLData") {
 		this.runScriptWithFilteredColumns(callback);
 	}
+	if (type == "runScriptWithFilteredColumns") {
+		this.runScriptWithFilteredColumns(callback);
+	}
 	//return resultString;
 };
 
@@ -51,28 +51,6 @@ aws.RClient.prototype.run = function(type, callback) {
  */	
 aws.RClient.clearCache = function() {
 	aws.queryService(rServiceURL,'clearCache', null, null);
-};
-
-/**
- * This function calls the startRServe function on the servlet
- * It finds out the right version of the OS and calls the appropriate
- * command on the server.
- * @param {Function} callback callback function
- */
-aws.RClient.startRServe = function(callback) {
-	// we can use the call back to handle whether or not the service was started.
-	aws.queryService(rServiceURL, 'startRServe', null, callback);
-};
-
-/**
- * This function calls the stopRServe function on the servlet
- * It finds out the right version of the OS and calls the appropriate
- * command on the server.
- * @param {Function} callback callback function
- */
-aws.RClient.stopRServe = function(callback) {
-	// we can use the call back to handle whether or not the service was started.
-	aws.queryService(rServiceURL, 'stopRServe', null, callback);
 };
 
 /**
@@ -91,7 +69,7 @@ aws.RClient.getListOfScripts = function(callback) {
  *
  */
 aws.RClient.prototype.runScriptOnSQLdata = function(callback){
-	aws.queryService(rServiceURL,'runScriptwithScriptMetadata',[this.connectionObject, this.rDataRequestObject], callback);
+	aws.queryService(rServiceURL,'runScriptwithScriptMetadata',[this.connectionObject, this.rRequestObject], callback);
 };
 
 /**
@@ -105,18 +83,6 @@ aws.RClient.getScriptMetadata = function(scriptName, callback) {
 	aws.queryService(rServiceURL, 'getScriptMetadata', [scriptName], callback);
 };
 
-
-/**
- *  This function returns the connection from the AdminServie servlet
- * 
- *  @param {string} user 
- *  @param {string} passwd
- *  @param {Function} storeConnection once the connection has been retrieved, it is stored for further Rservice servlet calls
- *
- */
-aws.RClient.prototype.getConnectionObject = function(user, passwd,storeConnection){
-	aws.queryService(adminServiceURL, 'getConnectionInfo',[user, passwd, user],storeConnection);
-};
 
 /*-----------------CALLBACKS------------------------------------------------------------------*/
 //stores the connection to be used in later R servlet calls
@@ -149,8 +115,5 @@ aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
  *
  */
 aws.RClient.prototype.runScriptWithFilteredColumns = function(callback) {
-	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', this.rDataRequestObject, callback);
+	aws.queryService(rServiceURL, 'runScriptWithFilteredColumns', this.rRequestObject, callback);
 };
-
-
-

@@ -27,19 +27,20 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	var parameters = visualization["parameters"];
 	var toolName;
 	switch(visualization.type) {
-		case 'maptool':
+		case 'MapTool':
 			toolName = this.newMap(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
 			this.setPosition(toolName, "0%", "0%");
 			break;
-		case 'scatterplot':
-			toolName = this.newScatterPlot(parameters["xColumnName"], parameters["yColumnName"], dataSourceName);
+		case 'ScatterPlotTool':
+			toolName = this.newScatterPlot(parameters["X"], parameters["Y"], dataSourceName);
+			this.setPosition(toolName, "50%", "50%");
 			break;
-		case 'datatable':
-			toolName = this.newDatatable(parameters, dataSourceName);
+		case 'DataTable':
+			toolName = this.newDatatable(parameters["columns"], dataSourceName);
 			this.setPosition(toolName, "50%", "0%");
 			break;
-		case 'barchart' :
-			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["height"], dataSourceName);
+		case 'BarChartTool' :
+			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["heights"], dataSourceName);
 			this.setPosition(toolName, "0%", "50%");
 			break;
 		default:
@@ -61,42 +62,41 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
  */
 aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 
-	/** @type {string} */
-	var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
-	
-	this.weave.requestObject([toolName], 'MapTool');
-	aws.reportTime("New Map added");
+    /** @type {string} */
+    var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+    
+    this.weave.requestObject([toolName], 'MapTool');
+    aws.reportTime("New Map added");
 
-
-//	//state plot layer
-//	/** @type {WeavePath} */
-//	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
-//						   .push('internalObject').request('ReferencedColumn')
-//						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
+//        //state plot layer
+//        /** @type {WeavePath} */
+//        var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
+//                                                   .push('internalObject').request('ReferencedColumn')
+//                                                   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
 //
-//	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
-//	stPlot.state({dataSourceName :"WeaveDataSource",
-//		  		  hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-//	
-//	//labellayer
+//        //TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+//        stPlot.state({dataSourceName :"WeaveDataSource",
+//                                    hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+//        
+//        //labellayer
 //
-//	return toolName;
+//        return toolName;
 
-	//state plot layer
-	/** @type {WeavePath} */
-	var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
-	stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
+    //state plot layer
+    /** @type {WeavePath} */
+    var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
+    stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
 
-	/** @type {WeavePath} */
-	var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
-						   .push('internalObject').request('ReferencedColumn')
-						   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
+    /** @type {WeavePath} */
+    var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
+                                               .push('internalObject').request('ReferencedColumn')
+                                               .push('dynamicColumnReference', null).request('HierarchyColumnReference');
 
-	//TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
-	stPlot.state({dataSourceName :"WeaveDataSource",
-		  		  hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+    //TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
+    stPlot.state({dataSourceName :"WeaveDataSource",
+                                hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
 
-	return toolName;
+    return toolName;
 };
 
 /**
@@ -186,16 +186,14 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
 	this.weave.requestObject([toolName], 'CompoundBarChartTool');
 	
 	//setting the label column
-	var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
-	labelPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
-		   .state({dataSourceName : dataSourceName,
-				   hierarchyPath : label});
-		   
-    var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot']);
-    sortColumnPath.push('labelColumn', null).request('ReferencedColumn').push('dynamicColumnReference', null).request('HierarchyColumnReference')
-	   			  .state({dataSourceName : dataSourceName,
-	   				  	  hierarchyPath : sort});
+	var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn']).state(null);
+	
+   	this.setCSVColumn(dataSourceName,labelPath, label);
+
+	var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn']).state(null);
     
+    this.setCSVColumn(dataSourceName,sortColumnPath, sort);
+
     // We clear the content of height columns before setting a new one.
     var heightPath = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns'])
     						   .state(null);
@@ -280,14 +278,13 @@ aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceN
 	if(dataSourceName == ""){
 		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
 	}
-	
+
 	this.weave.path(dataSourceName)
 		.request('CSVDataSource')
 		.vars({rows: csvDataMatrix})
 		.exec('setCSVData(rows)');
 		this.weave.path(dataSourceName).state({keyType : keyType,
 											   keyColName : keyColName});
-		
 	return dataSourceName;
 	
 };
@@ -325,34 +322,9 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
  * in this case everything except 'WeaveDataSource' will be removed
  * @return void
  */
-aws.WeaveClient.prototype.clearCurrentVizs = function(){
+aws.WeaveClient.prototype.clearWeave = function(){
 	
 	this.weave.path().state(['WeaveDataSource']);
-};
-
-
-/**
- * This function accesses the weave instance and creates a new data source.
- * 
- * @param {string} dataSource
- * @param {string} dataSourceName
- * @return void
- * 
- */
-aws.WeaveClient.prototype.addCSVDataSource = function (dataSource, dataSourceName) {
-
-	if (dataSourceName == "") {
-		this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")')).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}
-	
-	else {
-		this.weave.path([dataSourceName]).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}	
-		
 };
 
 /**

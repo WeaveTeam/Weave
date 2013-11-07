@@ -287,7 +287,13 @@ input[type="checkbox"] {
 	opacity: 0;
 	filter: alpha(opacity=0);
 	}
-
+.tile {
+	width: 500px;
+	padding: 2em;
+	background-color: #f5f5f5;
+	border: 1px solid #f0f0f0;
+	margin: 2em;
+}
 /* .file-upload strong { 
 	font: normal 1.75em arial,sans-serif; 
 	}	

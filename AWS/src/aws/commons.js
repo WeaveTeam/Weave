@@ -32,28 +32,28 @@ aws.EntityHierarchyInfo;
  */
 aws.Visualization;
 
-/** @typedef {{
- * 	  date: string, 
- *    author : string,
- *    conn : {sqldbname : string,
- *    		  scriptLocation : string,
- *    		  sqluser : string,
- *    		  sqlpass : string,
- *    		  serverType : string,
- *    	 	  sqlip : string,
- *    		  sqlport : string},
- *    		 
- *    scriptOptions : Array,
- *    scriptSelected : string,
- *    selectedVisualization : aws.Visualization,
- *    colorColumn : string,
- *    scriptType : string,
- *    maptool : Object,
- *    barchart : Object,
- *    datatable : Object
- *  }}
- * */
-aws.queryObject;
+///** @typedef {{
+// * 	  date: string, 
+// *    author : string,
+// *    conn : {sqldbname : string,
+// *    		  scriptLocation : string,
+// *    		  sqluser : string,
+// *    		  sqlpass : string,
+// *    		  serverType : string,
+// *    	 	  sqlip : string,
+// *    		  sqlport : string},
+// *    		 
+// *    scriptOptions : Array,
+// *    scriptSelected : string,
+// *    selectedVisualization : aws.Visualization,
+// *    colorColumn : string,
+// *    scriptType : string,
+// *    maptool : Object,
+// *    barchart : Object,
+// *    datatable : Object
+// *  }}
+// * */
+//aws.queryObject;
 /**
  * @typedef {{
  * 	id: number,
@@ -65,13 +65,11 @@ aws.DataEntity;
 
 /**
  * @typedef{{
- * 				
- * 		columnsToBeRetrieved : Array.<string>,
- *		scriptPath : string,
+ *
  *		scriptName : string,
- * 		filteredColumnRequest : {
+ * 		FilteredRequest : {
  * 			id: number,
- * 			filter: (Array.<string> | Array.<Array.<number>>)
+ * 			filters: (Array.<string> | Array.<Array.<number>>)
  * 		}
  * }}
  */
@@ -111,7 +109,7 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         	console.log(JSON.stringify(response, null, 3));
         }
         else if (resultHandler){
-        	console.log("about to call result handler" + resultHandler.toString());
+        	// console.log("about to call result handler" + resultHandler.toString());
             return resultHandler(response.result, queryId);
         }
     }
@@ -157,7 +155,7 @@ aws.addBusyListener = function(callback)
 /**
  * returns the current time to the console
  * @param {string=} message (activity) with the time
- * @returns {string} a time log for activity
+ * @return {string} a time log for activity
  */
 aws.reportTime = function(message)
 {
