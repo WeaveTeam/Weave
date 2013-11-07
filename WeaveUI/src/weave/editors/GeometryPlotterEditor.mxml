@@ -110,19 +110,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</ui:HelpComponent>
 	</mx:HBox>
 	
-	<ui:CheckBoxWithNestedOptions label="Enable dashed lines" creationComplete="linkBindableProperty(_plotter.useDashedLine, event.target, 'selected')">
+	<ui:CheckBoxWithNestedOptions label="Enable dashed lines"
+								  creationComplete="linkBindableProperty(_plotter.useDashedLine, event.target, 'selected')">
 		<mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Alpha"/>
-				<mx:NumericStepper stepSize="0.1" value="1.0" maximum="1.0" creationComplete="linkBindableProperty(_plotter.dashedAlpha, event.target, 'value')"/>
+				<mx:NumericStepper creationComplete="linkBindableProperty(_plotter.dashedAlpha, event.target, 'value')"
+								   maximum="1.0" stepSize="0.1" value="1.0"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Color"/>
-				<mx:ColorPicker selectedColor="0x000000" creationComplete="linkBindableProperty(_plotter.dashedColor, event.target, 'selectedColor')"/>
+				<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.dashedColor, event.target, 'selectedColor')"
+								selectedColor="0x000000"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Default thickness"/>
-				<mx:NumericStepper stepSize="1" value="4.0" creationComplete="linkBindableProperty(_plotter.dashedWeight,event.target,'value')"/>
+				<mx:NumericStepper creationComplete="linkBindableProperty(_plotter.dashedWeight,event.target,'value')"
+								   stepSize="1" value="4.0"/>
 			</mx:HBox>
 		</mx:HBox>
 		
