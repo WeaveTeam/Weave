@@ -1,0 +1,320 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"$",
+				"$broadcast	AngularJS"
+			],
+			[
+				"acro",
+				"accordion-group"
+			],
+			[
+				"acc",
+				"accordion-group"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "AWS/app/js/controllers/panelControllers.js",
+			"settings":
+			{
+				"buffer_size": 9161,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"pack",
+				"Package Control: List Packages"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"remov",
+				"Package Control: Remove Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"in",
+				"Package Control: Install Package"
+			],
+			[
+				"lis",
+				"Package Control: List Packages"
+			],
+			[
+				"rem",
+				"Package Control: Remove Package"
+			],
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Inst	",
+				"Package Control: Install Package"
+			],
+			[
+				"brow",
+				"Preferences: Browse Packages"
+			]
+		],
+		"width": 416.0
+	},
+	"console":
+	{
+		"height": 264.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/patrick/Downloads/synergy.conf",
+		"/C/Users/patrick/Downloads/synergy.sgc",
+		"/C/Users/patrick/Desktop/scriptobjoptions.js",
+		"/C/Users/patrick/AppData/Roaming/Sublime Text 3/Packages/User/SublimeHighlight.sublime-settings",
+		"/C/Users/patrick/AppData/Roaming/Sublime Text 3/Packages/Highlight/SublimeHighlight.sublime-settings",
+		"/C/Users/patrick/AppData/Roaming/Sublime Text 3/Packages/AngularJS/AngularJS-completions.sublime-settings",
+		"/C/Users/patrick/AppData/Roaming/Sublime Text 3/Packages/Highlight/README.md",
+		"/X/Parameterized_test10yeardata.r",
+		"/X/Scripts Shweta computer/Parameterized.r",
+		"/C/Users/patrick/Downloads/Example Query Object.json",
+		"/C/Users/patrick/Downloads/Query Object (11).txt",
+		"/C/RScripts/parameterizedState1Year.R",
+		"/C/Users/patrick/Downloads/ten.csv",
+		"/X/Final Scripts/parameterizedState1Year.R",
+		"/C/Users/patrick/git/ui-slider/demo/demo.html",
+		"/C/RScripts/parameterizedState1Year.JSON",
+		"/C/Users/patrick/Downloads/catalina (2).out",
+		"/C/Users/patrick/git/Weave/AWS/src/goog/base.js",
+		"/C/Users/patrick/Downloads/twilson63-ngUpload-e85d03c/CHANGELOG.md",
+		"/C/Users/patrick/Downloads/Query Object (8).txt",
+		"/C/tomcat7/webapps/ROOT/upload/angularjs.html",
+		"/C/Users/patrick/Downloads/FileReader-master/README.textile",
+		"/C/Users/patrick/Downloads/FileReader-master/jquery.FileReader.js",
+		"/C/Users/patrick/Downloads/StandardFiles_2013-0807a/Write sdoh2010q to MySQL test2010 table_2013-0807a_send.R",
+		"/C/Users/patrick/Downloads/StandardFiles_2013-0807a/Write brfss20022011test1 to MySQL tables_2013-0807a_send.R",
+		"/C/tomcat7/webapps/ROOT/ui-router-master/sample/index.html",
+		"/C/Users/patrick/Downloads/catalina.out",
+		"/C/Users/patrick/Downloads/megaselectlist.html",
+		"/C/Users/patrick/Downloads/ui-select2-master/ui-select2-master/src/select2.js",
+		"/C/Users/patrick/git/bower_components/angular-ui-router/release/angular-ui-router.js",
+		"/C/Users/patrick/git/bower_components/angular-ui-select2/.bower.json",
+		"/C/Users/patrick/bower.json",
+		"/C/Users/patrick/AppData/Roaming/npm/node_modules/bower/bin/bower",
+		"/C/Users/patrick/AppData/Roaming/npm/bower",
+		"/C/tomcat7/webapps/ROOT/ui-sortable-master/demo/demo.html",
+		"/C/Users/patrick/Downloads/ui-router-master/ui-router-master/sample/contacts.detail.item.html",
+		"/C/Users/patrick/Downloads/ui-router-master/ui-router-master/sample/contacts.detail.item.edit.html",
+		"/C/Users/patrick/Downloads/ui-router-master/ui-router-master/sample/contacts.list.html",
+		"/C/Users/patrick/Downloads/ui-router-master/ui-router-master/sample/empty.html",
+		"/C/Users/patrick/Downloads/ui-router-master/ui-router-master/sample/empty.content.html",
+		"/C/Users/patrick/Desktop/data_sdoh2010.sql",
+		"/C/Users/patrick/Downloads/QueryObject.txt",
+		"/C/Users/patrick/Downloads/s01_stata test_2013-0515send.do",
+		"/X/Parameterized_test10yeardata_byyear.r",
+		"/C/tomcat7/webapps/ROOT/WEB-INF/web.xml",
+		"/C/tomcat7/webapps/ROOT/aws/aws.js",
+		"/C/tomcat7/webapps/ROOT/minimal.xml",
+		"/C/Users/patrick/Downloads/Query Object (6).txt",
+		"/C/Users/patrick/Downloads/Query Object (2).txt",
+		"/C/Users/patrick/Downloads/Query Object (4).txt",
+		"/C/Users/patrick/Downloads/Query Object (1).txt",
+		"/X/AWS Work/SQLdatabase/data_geo_states.sql",
+		"/X/AWS Work/SQLdatabase/data_stata_result.sql",
+		"/X/AWS Work/SQLdatabase/brfss20022011test1.sql",
+		"/C/tomcat7/webapps/angular-seed-master/app/js/dataClient2.js",
+		"/C/tomcat7/webapps/angular-seed-master/app/js/dataClient.js",
+		"/C/tomcat7/webapps/angular-seed-master/app/js/controllers.js",
+		"/C/Users/patrick/git/Weave/AWS/app/js/controllers.js",
+		"/C/Users/patrick/git/Weave/AWS/app/index.html",
+		"/C/Users/patrick/git/Weave/AWS/app/js/leftPanelCtrl.js",
+		"/C/Users/patrick/git/Weave/WeaveClient/build.xml",
+		"/C/Users/patrick/git/Weave/AWS/app/partials/leftPanel.tlps.html",
+		"/C/Users/patrick/git/Weave/AWS/app/js/services.js",
+		"/C/Users/patrick/git/Weave/AWS/app/partials/dialog.html",
+		"/C/Users/patrick/git/Weave/AWS/app/js/dataClient2.js",
+		"/C/Users/patrick/git/Weave/AWS/app/js/app.js",
+		"/C/Users/patrick/git/Weave/AWS/app/js/directives.js",
+		"/C/Users/patrick/git/Weave/AWS/app/templeftpanel.html",
+		"/C/Users/patrick/Downloads/analyst-workstation.json"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"weight",
+			"',",
+			"='",
+			" '"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"'></script>",
+			"<script src='"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "AWS/app/js/controllers/panelControllers.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9161,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								284,
+								284
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false,
+							"word_separators": "./\\\\()\\\"\\'-:,.;<>~!@#%^&*|+=[]{}`~?"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"project": "Weave.sublime-project",
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

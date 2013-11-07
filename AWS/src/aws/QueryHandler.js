@@ -28,6 +28,7 @@ aws.QueryHandler = function(queryObject)
 				FilteredColumnRequest : queryObject.FilteredColumnRequest,
 				scriptName : queryObject.scriptSelected
 		};			
+
 	}
 	
 	if(queryObject.hasOwnProperty("ColorColumn")) {
@@ -98,18 +99,18 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
 	var that = this;
-	//clear all existing visualizations
-	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {
-		
+	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
-		console.log(result[0].value);
-		aws.timeLogString = result[1].value;
-		console.log(result[1].value);
+		console.log(that.resultDataSet);
+		// aws.timeLogString = result[1].value;
+		// console.log(result[1].value);
 		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		
 		// step 2
-		var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
+		//var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
+		var dataSourceName = that.weaveClient.addCSVDataSource(that.resultDataSet, "", that.keyType, "fips");
+		
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);

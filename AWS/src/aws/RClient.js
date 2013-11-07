@@ -35,6 +35,8 @@ aws.RClient.prototype.run = function(type, callback) {
 	
 	if (type == "SQLData") {
 		this.runScriptOnSQLdata(callback);
+	} else if (type == "JavaSQLData") {
+		this.runScriptWithFilteredColumns(callback);
 	}
 	if (type == "runScriptWithFilteredColumns") {
 		this.runScriptWithFilteredColumns(callback);

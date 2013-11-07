@@ -1,13 +1,11 @@
 <div ng-controller="DataTablePanelCtrl">
-<div class="portlet-header">
-	<span>{{panelTitle}}</span>
-</div>
-<div class="portlet-content">
-
-	<input type="checkbox" ng-model="enabled"/> Data Table</br>
-	<select ui-select2 multiple ng-model="selection" data-placeholder="Choose Columns">
-		<option value="{{opt}}" ng-repeat="opt in options">{{opt.param}}</option>
-	</select>
-
-</div>
+	<div class="portlet-header">
+		<span>{{panelTitle}}</span>
+	</div>
+	<div class="portlet-content">
+		<input type="checkbox" ng-model="enabled"/> Data Table</br>
+		<select ui-select2 multiple ng-model="selection" data-placeholder="Choose Columns">
+			<option value="{{opt}}" ng-repeat="opt in options">{{opt.param}}</option>
+		</select>
+	</div>
 </div>

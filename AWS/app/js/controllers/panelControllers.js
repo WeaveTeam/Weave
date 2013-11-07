@@ -160,7 +160,7 @@ angular.module("aws.panelControllers", [])
 			}
 		} // end for
 	}, true);
-	
+
 	$scope.$watch('filterValues', function(){
 		for(var i = 0; i < $scope.selection.length; i++) {
 			if(($scope.filterValues != undefined) && $scope.filterValues != "") {
@@ -267,7 +267,6 @@ angular.module("aws.panelControllers", [])
 			});
 		}
 	});
-
 	$scope.$watch('enabled', function() {
 		queryService.queryObject['BarChartTool'] = {};
 		if ($scope.enabled == true) {
@@ -340,7 +339,6 @@ angular.module("aws.panelControllers", [])
 			delete queryService.queryObject['DataTable'];
 			$scope.selection = "";
 		}
-		
 	});
 	
 	$scope.$watch('selection', function() {

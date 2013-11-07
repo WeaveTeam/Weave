@@ -20,13 +20,10 @@ package weave.tests;
 
 
 import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import weave.beans.RResult;
 import weave.servlets.AWSRService;
@@ -72,6 +69,7 @@ public class test
 	public static void testcall(Map<String, String> connectionObjectCopy, Map<String, Object> requestObjectCopy)
 	throws Exception
 	{
+				 
 		for(int i = 0; i < 4; i++)
 	    {
 			
@@ -82,7 +80,8 @@ public class test
 				System.out.println(System.getProperty("user.dir"));
 			try {
 				
-				scriptResult = aws.runScriptwithScriptMetadata(connectionObject, requestObject);
+				scriptResult = aws.runScriptwithScriptMetadata(connectionObjectCopy, requestObjectCopy);
+				//scriptResult = aws.runScript(null, requestObjectInputNames, requestObjectInputValues, null, "","", false,false,false);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -100,12 +99,29 @@ public class test
 		ws = new RService();
 		aws = new AWSRService();
 		
+		
+		HashMap<String, Object> algorithmObject = new HashMap<String, Object>();
+		algorithmObject.put("startClusterNumber", 4);
+		algorithmObject.put("stopClusterNumber", 10);
+		algorithmObject.put("ClusterInterval", 2);
+		algorithmObject.put("startIterationsNumber", 1000);
+		algorithmObject.put("stopIterationsNumber", 10000);
+		algorithmObject.put("iterationsInterval", 500);
+		
+		
+		
 		ArrayList<String> columns = new ArrayList<String>();
 		columns.add("X_STATE");
 		columns.add("X_PSU");
 		columns.add("X_FINALWT");
 		columns.add("X_STSTR");
 		columns.add("DIABETE2");
+		
+//		columns.add("PercentObese2002");
+//		columns.add("PercentObese2003");
+//		columns.add("PercentObese2004");
+//		columns.add("PercentObese2005");
+//		columns.add("PercentObese2006");
 		
 		connectionObject.put("connectionType", "RODBC");
 		connectionObject.put("user", "root");
@@ -118,6 +134,8 @@ public class test
 		requestObject.put("scriptPath", "C:\\RScripts\\");
 		requestObject.put("columnsToBeRetrieved",columns);
 		requestObject.put("dataset", "sdoh2010q");
+		
+		
 		
 		testcall(connectionObject, requestObject);
 		

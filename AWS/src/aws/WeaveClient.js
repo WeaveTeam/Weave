@@ -33,6 +33,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 			break;
 		case 'ScatterPlotTool':
 			toolName = this.newScatterPlot(parameters["X"], parameters["Y"], dataSourceName);
+			this.setPosition(toolName, "50%", "50%");
 			break;
 		case 'DataTable':
 			toolName = this.newDatatable(parameters["columns"], dataSourceName);
@@ -66,7 +67,6 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
     
     this.weave.requestObject([toolName], 'MapTool');
     aws.reportTime("New Map added");
-
 
 //        //state plot layer
 //        /** @type {WeavePath} */
@@ -160,7 +160,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 
 aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
-	this.weave.reqestObject([toolName], 'RadVizTool');
+	this.weave.requestObject([toolName], 'RadVizTool');
 	
 	//populating the Dimensional Anchors
 	for(var i in columnNames){
@@ -263,6 +263,31 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
 	
 };
 
+/**
+ * This function accesses the weave instance and creates a new csv data source from a two dimensional array
+ * 
+ * @param {string} csvDataMatrix a two dimensional array.
+ * @param {string} dataSourceName the name of the data source.
+ * @param {string} keyType the key type
+ * @param {string} keyColName the key column name
+ * @return The name of the created data source.
+ * 
+ */
+aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceName, keyType, keyColName)
+{
+	if(dataSourceName == ""){
+		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	}
+
+	this.weave.path(dataSourceName)
+		.request('CSVDataSource')
+		.vars({rows: csvDataMatrix})
+		.exec('setCSVData(rows)');
+		this.weave.path(dataSourceName).state({keyType : keyType,
+											   keyColName : keyColName});
+	return dataSourceName;
+	
+};
 
 /**
  * This function sets the session state of a column from another in the Weava instance
@@ -293,38 +318,13 @@ aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataS
 
 /**
  * This function clears the visualizations before any new query is run
- *it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
- *in this case everything except 'WeaveDataSource' will be removed
+ * it removes everything in the session state EXCEPT for the elements in the array sent as a parameter for setSessionSate()
+ * in this case everything except 'WeaveDataSource' will be removed
  * @return void
  */
 aws.WeaveClient.prototype.clearWeave = function(){
 	
 	this.weave.path().state(['WeaveDataSource']);
-};
-
-
-/**
- * This function accesses the weave instance and creates a new data source.
- * 
- * @param {string} dataSource
- * @param {string} dataSourceName
- * @return void
- * 
- */
-aws.WeaveClient.prototype.addCSVDataSource = function (dataSource, dataSourceName) {
-
-	if (dataSourceName == "") {
-		this.weave.path(this.weave.path().getValue('generateUniqueName("CSVDataSource")')).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}
-	
-	else {
-		this.weave.path([dataSourceName]).request('CSVDataSource')
-		 .vars({data: dataSource})
-		 .exec('setCSVData(data)');
-	}	
-		
 };
 
 /**

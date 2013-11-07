@@ -19,9 +19,6 @@
 
 package weave.servlets;
 
-import static weave.config.WeaveConfig.getConnectionConfig;
-import static weave.config.WeaveConfig.getDataConfig;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -32,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import weave.beans.AlgorithmObject;
 import weave.beans.RResult;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.servlets.DataService.FilteredColumnRequest;
@@ -189,23 +185,6 @@ public class AWSRService extends RService
 		 
 	}
 	
-	public String[] getListOfScripts()
-	{
-		
-		File directory = new File(uploadPath, "RScripts");
-		String[] files = directory.list();
-		List<String> rFiles = new ArrayList<String>();
-		String extension = "";
-		
-		for (int i = 0; i < files.length; i++)
-		{
-			extension = files[i].substring(files[i].lastIndexOf(".") + 1, files[i].length());
-			if(extension.equalsIgnoreCase("r"))
-				rFiles.add(files[i]);
-		}
-		return rFiles.toArray(new String[rFiles.size()]);
-	}
-
 	/**
 	 * 
 	 * @param requestObject sent from the AWS UI collection of parameters to run a computation
@@ -311,6 +290,24 @@ public class AWSRService extends RService
 		 
 	}
 	
+	public String[] getListOfScripts()
+	{
+		
+		File directory = new File(uploadPath, "RScripts");
+		String[] files = directory.list();
+		List<String> rFiles = new ArrayList<String>();
+		String extension = "";
+		
+		for (int i = 0; i < files.length; i++)
+		{
+			extension = files[i].substring(files[i].lastIndexOf(".") + 1, files[i].length());
+			if(extension.equalsIgnoreCase("r"))
+				rFiles.add(files[i]);
+		}
+		return rFiles.toArray(new String[rFiles.size()]);
+	}
+
+
 	/**
      * 
      * @param requestObject sent from the AWS UI collection of parameters to run a computation
@@ -454,6 +451,7 @@ public class AWSRService extends RService
 		String scriptName = requestObject.get("scriptName").toString();
 
 		String cannedScript = uploadPath + "RScripts/" +scriptName;
+
 
 		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("FilteredColumnRequest");
 		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];

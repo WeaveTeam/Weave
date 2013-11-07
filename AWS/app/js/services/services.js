@@ -135,5 +135,6 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
             });
                 
             return deferred.promise;
+
         };        
 }]);
