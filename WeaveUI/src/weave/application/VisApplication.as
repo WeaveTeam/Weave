@@ -65,13 +65,13 @@ package weave.application
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
@@ -115,6 +115,7 @@ package weave.application
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
+	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
@@ -774,6 +775,9 @@ package weave.application
 
 				if (Weave.properties.enableEditDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data sources"), DraggablePanel.openStaticInstance, [EditDataSourcePanel]));
+				
+				if (Weave.properties.enableExportCSV.value)
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Export CSV from all visualizations"), exportCSV));
 			}
 			
 			
@@ -1536,14 +1540,12 @@ package weave.application
 					//contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 					
 					// Create a context menu item for printing of a single tool with title and logo
-					_exportCSVContextMenuItem	= CustomContextMenuManager.createAndAddMenuItemToDestination(
+					_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
 						lang("Export CSV"), 
 						this,
-						function(event:ContextMenuEvent):void { exportCSV(_panelToExport ); },
+						function(event:ContextMenuEvent):void { exportCSV(_panelToExport as IVisToolWithSelectableAttributes); },
 						"4 exportMenuItems"
 					);
-					// By default this menu item is disabled so that it does not show up unless we right click on a tool
-					_exportCSVContextMenuItem.enabled = false;				
 				}
 				
 				// Add context menu items for handling search queries
@@ -1560,43 +1562,39 @@ package weave.application
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
 		private var exportCSVfileRef:FileReference = new FileReference();	// CSV download file references
-		public function exportCSV(component:UIComponent):void
+		public function exportCSV(tool:IVisToolWithSelectableAttributes = null):void
 		{
-			if (!component)
-				return;
-			
-			var visMenuVisible:Boolean = (_weaveMenu ? _weaveMenu.visible : false);
-			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
-			
-			if (_weaveMenu)
-				_weaveMenu.visible = false;
-			if (VisTaskbar.instance)
-				VisTaskbar.instance.visible = false;			
-			
 			try
 			{
-				if (component is ICSVExportable)
-				{					
-					var name:String = getQualifiedClassName(component).split(':').pop();
-					var csvString:String = (component as ICSVExportable).exportCSV();
-					if (csvString)
-						exportCSVfileRef.save(csvString, "Weave_" + name + ".csv");
-					else
-						reportError("No data to export in " + (component as DraggablePanel).title);
-				}				
-				else
+				var tools:Array = tool
+					? [tool]
+					: WeaveAPI.globalHashMap.getObjects(IVisToolWithSelectableAttributes);
+				
+				var csvString:String = ColumnUtils.generateTableCSV(
+					VectorUtils.flatten(
+						tools.map(
+							function(tool:IVisToolWithSelectableAttributes, i:int, a:Array):Array {
+								return tool.getSelectableAttributes();
+							}
+						)
+					)
+				);
+
+				if (!csvString)
 				{
-					reportError("Component parameter must be either DataTable tool or SimpleVisTool" );
+					reportError("No data to export");
+					return;
 				}
+				
+				var name:String = tool
+					? getQualifiedClassName(tool).split(':').pop()
+					: "data-export";
+				exportCSVfileRef.save(csvString, "Weave-" + name + ".csv");
 			}
 			catch (e:Error)
 			{
 				reportError(e);
 			}			
-			if (_weaveMenu)
-				_weaveMenu.visible = visMenuVisible;
-			if (VisTaskbar.instance)
-				VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 		
 		// Handler for when the context menu is opened.  In here we will keep track of what tool we were over when we right clicked so 
@@ -1615,8 +1613,6 @@ package weave.application
 				_panelPrintContextMenuItem.caption = lang("Print/Export Image of {0}", _panelToExport ? _panelToExport.title : "...");
 				_panelPrintContextMenuItem.enabled = (_panelToExport != null);
 			}
-			if (_exportCSVContextMenuItem)
-				_exportCSVContextMenuItem.enabled = _panelToExport is ICSVExportable;
 		}
 		
 		private var _weaveFileRef:FileReference = null;
