@@ -46,6 +46,7 @@
 			import avmplus.DescribeType;
 			
 			import mx.containers.VBox;
+			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
@@ -58,6 +59,7 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.utils.DebugUtils;
@@ -90,7 +92,7 @@
 			private function getObject(target:Object):ILinkableObject
 			{
 				if (target is String)
-					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
+					target = WeaveAPI.CSVParser.parseCSVRow(target as String);
 				if (target is Array)
 					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
 				return ILinkableObject(target);
@@ -165,11 +167,21 @@
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
 				'weaveTrace': weaveTrace,
-				'$': methodChainer,
-				'$$': debugHelper2,
+				'style': styleProxy,
+				'chain': methodChainer,
+				'display': debugDisplayList,
 				'identify': Identify.identify,
 				'_': {}
 			};
+			
+			private function styleProxy(component:UIComponent):ProxyObject
+			{
+				return new ProxyObject(
+					function hasProp(name:*):Boolean { return component.getStyle(name) !== undefined; },
+					function getProp(name:*):* { return component.getStyle(name); },
+					function setProp(name:*, value:*):void { component.setStyle(name, value); }
+				);
+			}
 			
 			private function methodChainer(...args):*
 			{
@@ -184,7 +196,7 @@
 				return debugId(arg);
 			}
 			
-			private function debugHelper2(arg:* = null):*
+			private function debugDisplayList(arg:* = null):*
 			{
 				if (isFinite(StandardLib.asNumber(arg)))
 					arg = debugLookup(arg);
