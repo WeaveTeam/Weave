@@ -39,7 +39,6 @@ package weave.utils
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -405,49 +404,47 @@ package weave.utils
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
 			var records:Array = [];				
-			// get the list of column titles
-			var definedAttrCols:Array = [];				
-			var columnTitles:Array = [];
-			var i:int;
-			var item:*;
-			for (i = 0; i < attrCols.length; i++)
-			{
-				item = attrCols[i];
-				// to make sure undefined attributes are not exported
-				if ((item is IColumnWrapper) && (item as IColumnWrapper).getInternalColumn())
-				{
-					columnTitles.push(ColumnUtils.getTitle(item));
-					definedAttrCols.push(item);
+			var columnLookup:Dictionary = new Dictionary(true);
+			attrCols = attrCols.map(
+				function(item:Object, i:int, a:Array):* {
+					return item is ILinkableHashMap
+						? (item as ILinkableHashMap).getObjects(IAttributeColumn)
+						: item as IAttributeColumn;
 				}
-				if (item is LinkableHashMap)
-				{
-					var hashMapColumns:Array = (item as LinkableHashMap).getObjects();
-					for (var j:int = 0; j < hashMapColumns.length; j++)
-					{
-						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn())
-						{
-							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
-							definedAttrCols.push(hashMapColumns[j]);
-						}								
-					}
+			);
+			attrCols = VectorUtils.flatten(attrCols);
+			attrCols = attrCols.map(
+				function(column:IAttributeColumn, i:int, a:Array):IAttributeColumn {
+					return hack_findNonWrapperColumn(column);
 				}
-			}
+			).filter(
+				function(column:IAttributeColumn, i:int, a:Array):Boolean {
+					if (!column || columnLookup[column])
+						return false;
+					columnLookup[column] = true;
+					return true;
+				}
+			);
+			var columnTitles:Array = attrCols.map(
+				function(column:IAttributeColumn, i:int, a:Array):String {
+					return getTitle(column);
+				}
+			);
 			if (!keys)
-				keys = getAllKeys(definedAttrCols);
+				keys = getAllKeys(attrCols);
 			
 			var keyTypeMap:Object = {};				
 			// create the data for each column in each selected row
-			for each (item in keys)
+			for each (var key:IQualifiedKey in keys)
 			{
-				var key:IQualifiedKey = item as IQualifiedKey;
 				var record:Object = {};
 				// each record has a property named after the keyType equal to the key value				
 				record[key.keyType] = key.localName;
 				keyTypeMap[key.keyType] = true;
 				
-				for (i = 0; i < definedAttrCols.length; i++)
+				for (var i:int = 0; i < attrCols.length; i++)
 				{
-					var value:Object = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+					var value:Object = (attrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
 					if (!isNaN(value as Number))
 						record[columnTitles[i]] = value;
 				}
