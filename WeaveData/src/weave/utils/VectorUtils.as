@@ -19,6 +19,8 @@
 
 package weave.utils
 {
+	import flash.utils.Dictionary;
+	
 	import mx.utils.ObjectUtil;
 	
 	/**
@@ -30,6 +32,44 @@ package weave.utils
 	 */
 	public class VectorUtils
 	{
+		/**
+		 * Computes the union of a list of Arrays.
+		 * @param arrays A list of Arrays.
+		 * @return The union of the items in both Arrays, in the order that they appear in the first Array.
+		 */
+		public static function union(...arrays):Array
+		{
+			if (arrays.length == 0)
+				return arrays;
+			if (arrays.length == 1)
+				return arrays[0]
+			
+			var result:Array = [];
+			var item:*;
+			var firstArray:* = arrays.shift();
+			var lastArray:* = arrays.pop();
+			
+			_unionId++;
+			for each (item in lastArray)
+				_unionLookup[item] = _unionId;
+			
+			for each (var array:* in arrays)
+			{
+				for each (item in array)
+					if (_unionLookup[item] === _unionId)
+						_unionLookup[item] = _unionId + 1;
+				_unionId++;
+			}
+			
+			for each (item in firstArray)
+				if (_unionLookup[item] === _unionId)
+					result.push(item);
+			
+			return result;
+		}
+		private static var _unionLookup:Dictionary = new Dictionary(true);
+		private static var _unionId:int = 0;
+		
 		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
