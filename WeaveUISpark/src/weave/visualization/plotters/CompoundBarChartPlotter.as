@@ -457,7 +457,8 @@ package weave.visualization.plotters
 								if (_heightColumns.length == 1)
 									color = colorColumn.getValueFromKey(recordKey, Number) as Number;
 								
-								graphics.beginFill(color, 1);
+								if (isFinite(color))
+									graphics.beginFill(color, 1);
 								lineStyle.beginLineStyle(recordKey, graphics);
 								if (tempBounds.getHeight() == 0)
 									graphics.lineStyle(0,0,0);
