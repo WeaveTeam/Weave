@@ -80,7 +80,7 @@ package weave.application
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.WeavePropertiesEditor;
-	import weave.editors.managers.EditDataSourcePanel;
+	import weave.editors.managers.DataSourceManager;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
@@ -774,7 +774,7 @@ package weave.application
 				}
 
 				if (Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data sources"), DraggablePanel.openStaticInstance, [EditDataSourcePanel]));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data sources"), DraggablePanel.openStaticInstance, [DataSourceManager]));
 				
 				if (Weave.properties.enableExportCSV.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Export CSV from all visualizations"), exportCSV));
