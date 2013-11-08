@@ -37,7 +37,8 @@
 	<mx:VBox width="100%" enabled="{url.text?false:true}">
 		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
 		<ui:Indent group="{indentGroup}" label="{lang('Open local CSV file')}">
-			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
+			<mx:Button label="{lang('Open file')}" click="append = false; browseForFiles()"/>
+			<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 			<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 		</ui:Indent>
 		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
@@ -71,6 +72,7 @@
 			import weave.editors.managers.EditDataGridPanel;
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
+			import weave.utils.VectorUtils;
 			
 			[Bindable] private var indentGroup:IndentGroup = new IndentGroup();
 			
@@ -132,7 +134,7 @@
 				_csvDataSource.csvData.setSessionState(csvRows);
 			}
 			
-			
+			private var append:Boolean = false;
 			private var _fileLoader:FileReference = null;
 			/**
 			* browseForfiles: opens up a file browser window to upload CSV files 
@@ -162,7 +164,20 @@
 			// called when parser finishes
 			private function handleCSVParser():void
 			{
-				setCSVRows(csvParser.parseResult);
+				if (append)
+				{
+					setCSVRows(
+						WeaveAPI.CSVParser.convertRecordsToRows(
+							VectorUtils.flatten(
+								WeaveAPI.CSVParser.convertRowsToRecords(csvParser.parseResult),
+								WeaveAPI.CSVParser.convertRowsToRecords(csvRows)
+							),
+							csvRows[0]
+						)
+					);
+				}
+				else
+					setCSVRows(csvParser.parseResult);
 			}
 			private function setCSVRows(rows:Array):void
 			{
