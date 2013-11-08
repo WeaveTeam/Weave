@@ -20,12 +20,18 @@
 */
 -->
 <mx:HBox xmlns="weave.editors.*" 
-		xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
-		horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ui="weave.ui.*" width="100%" verticalAlign="middle">
-	<mx:CheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter()"/>
-	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.open(stringFilter.column, lang('Filter'));"/>
-	<ui:CustomComboBox id="filterValue" enabled="{filterEnable.selected}" prompt="{lang('Select filter value...')}" toolTip="{lang('Select a value used to filter the data.')}" width="100%"/>
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
+	<ui:CustomCheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
+	<mx:Button enabled="{filterEnable.selected}"
+			   width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
+			   toolTip="{lang('Select a column to be used for filtering the data.')}"
+			   click="AttributeSelectorPanel.open(stringFilter.column, lang('Filter'));"/>
+	<ui:CustomComboBox id="filterValue" enabled="{filterEnable.selected}"
+					   prompt="{lang('Select filter value...')}"
+					   toolTip="{lang('Select a value used to filter the data.')}"
+					   width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
