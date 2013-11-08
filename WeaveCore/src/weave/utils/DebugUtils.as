@@ -251,8 +251,6 @@ package weave.utils
 			if (container && currentDepth != maxDepth)
 				for (var i:int = 0; i < container.numChildren; i++)
 					str += debugDisplayList(container.getChildAt(i), maxDepth, currentDepth + 1);
-			if (currentDepth == 0)
-				debugTrace(str);
 			return str;
 		}
 		
