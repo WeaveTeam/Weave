@@ -466,7 +466,7 @@ package weave
 			if (!startupJavaScript.value)
 				return;
 			
-			var script:String = 'function(id){ var weave = document.getElementById(id); ' + startupJavaScript.value + ' }';
+			var script:String = 'function(){' + WeaveAPI.JS_var_weave + startupJavaScript.value + '}';
 			var prev:Boolean = ExternalInterface.marshallExceptions;
 			try
 			{
