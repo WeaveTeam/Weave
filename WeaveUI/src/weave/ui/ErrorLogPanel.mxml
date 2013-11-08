@@ -26,6 +26,14 @@
 		escapeKeyClosesPanel="true"
 		>
 	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
+	<HelpComponent id="help" visible="false" includeInLayout="false">
+		How to get a pointer to a display object:
+		Move the mouse over a component and press F8.
+		You will see a list of objects under the mouse along with id numbers, such as Stage#0.
+		In the console, you can use the # operator followed by an id number to get a pointer to an object.
+		If you use the # operator followed by an object pointer, it will generate an id for that object.
+		Use the # operator by itself to see a list of object ids which have been generated so far.
+	</HelpComponent>
 <!--
 	<mx:List id="list" variableRowHeight="true"  width="100%" height="100%">
 		<mx:itemRenderer>
@@ -57,8 +65,10 @@
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.setSessionState;
+			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
+			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			
 			override protected function createChildren():void
@@ -77,6 +87,12 @@
 							: "Identify UI components";
 					},
 					Identify.identify
+				);
+				subMenu.addSubMenuItem(
+					"Print display list",
+					function():void {
+						weaveTrace(DebugUtils.debugDisplayList(stage));
+					}
 				);
 				var allMenuToggles:Array = [
 					Weave.properties.enableRightClick,
@@ -104,6 +120,7 @@
 					}
 				);
 				subMenu.addSubMenuItem("Clear log", console.consoleClear);
+				subMenu.addSubMenuItem("Console help", function():void { help.showHelp(); });
 			}
 			
 			override protected function childrenCreated():void
