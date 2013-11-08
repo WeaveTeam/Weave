@@ -22,6 +22,7 @@
 <mx:HBox xmlns="weave.editors.*" 
 		xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
+		paddingLeft="4"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
 	<ui:CustomCheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
 	<mx:Button enabled="{filterEnable.selected}"

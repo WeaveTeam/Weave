@@ -20,6 +20,7 @@
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" 
+				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
 				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
