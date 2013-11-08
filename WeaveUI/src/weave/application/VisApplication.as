@@ -904,15 +904,21 @@ package weave.application
 			
 			if (Weave.properties.enableAboutMenu.value)
 			{
-				_aboutMenu = _weaveMenu.addMenuToMenuBar(lang("About"), false);
+				_aboutMenu = _weaveMenu.addMenuToMenuBar(lang("Help"), false);
 				
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Weave Version: {0}", Weave.properties.version.value)));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Report a problem"), function ():void {
 					navigateToURL(new URLRequest("http://info.oicweave.org/projects/weave/issues/new"), "_blank");
 				}));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Visit {0}", "OICWeave.org"), function ():void {
 					navigateToURL(new URLRequest("http://www.oicweave.org"), "_blank");
 				}));
+				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Visit wiki page"), function ():void {
+					navigateToURL(new URLRequest("http://info.oicweave.org/projects/weave/wiki"), "_blank");
+				}));
+				
+				_weaveMenu.addSeparatorToMenu(_aboutMenu);
+				
+				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Weave Version: {0}", Weave.properties.version.value)));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem(lang("Edit translations (Beta)"), DraggablePanel.openStaticInstance, [TranslationPanel]));
 			}
 		}

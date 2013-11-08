@@ -162,9 +162,9 @@
 				</mx:VBox>
 			</mx:VBox>	
 			
-			<mx:VBox label="{lang('About')}" verticalGap="{verticalGap}">
+			<mx:VBox label="{lang('Help')}" verticalGap="{verticalGap}">
 				<mx:CheckBox
-						 label="{lang('About Menu')}"
+						 label="{lang('Help Menu')}"
 						 width="120" 
 						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
 			</mx:VBox>
