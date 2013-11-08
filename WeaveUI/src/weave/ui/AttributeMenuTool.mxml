@@ -20,7 +20,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisTool"
+				implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
@@ -443,6 +443,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					choiceVSlider.value = names.length - 1 - selectedIndex;
 					handleAttrSelected(selectedIndex);
 				}
+			}
+			
+			public function getSelectableAttributes():Array
+			{
+				return [choices];
+			}
+			public function getSelectableAttributeNames():Array
+			{
+				return [lang("Choices")];
 			}
 			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void

@@ -29,7 +29,7 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisTool,weave.api.data.ICSVExportable"
+				   layout="absolute" implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
@@ -45,7 +45,6 @@
 			width="100%" height="100%"
 			allowMultipleSelection="true"
 			minWidth="0"
-			copy="handleDataCopy(event)" 
 			change="handleItemSelection(event)"
 			doubleClick="handleItemSelection(event)" doubleClickEnabled="true" 
 			headerShift="handleColumnReorder(event)"
@@ -79,7 +78,23 @@
 			<mx:Button id="button_editColumns" visible="{toggle_editColumns.selected}" includeInLayout="{toggle_editColumns.selected}"
 					   label="{lang('Edit columns')}" click="AttributeSelectorPanel.open(columns)"/>
 			<mx:Button id="button_exportData" visible="{toggle_exportData.selected}" includeInLayout="{toggle_exportData.selected}"
-					   label="{lang('Export data')}" click="saveToFileAsCSV()"/>
+					   label="{lang('Export data')}">
+				<mx:click>
+					try
+					{
+						new FileReference().save(
+							ColumnUtils.generateTableCSV(
+								getSelectableAttributes()
+							),
+							"Weave-data-export.csv"
+						);
+					}
+					catch (e:Error)
+					{
+						reportError(e);
+					}
+				</mx:click>
+			</mx:Button>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -371,27 +386,16 @@
 				AttributeSelectorPanel.open(imageCol);
 			}
 			
+			public function getSelectableAttributes():Array
+			{
+				return [columns];
+			}
 			
-			//ICSVExportable method implementation
-			// needed for Export CSV option in Application Right Click
-			public function exportCSV():String
+			public function getSelectableAttributeNames():Array
 			{
-				// each record has a property named after the column title equal to the value in that column for the current key
-				return ColumnUtils.generateTableCSV(columns.getObjects());
+				return [lang("Columns")];
 			}
-			//needed for export CSV Button click in the control panel
-			private var fr:FileReference = new FileReference(); // CSV download file reference
-			private function saveToFileAsCSV():void
-			{
-				try
-				{
-					fr.save(exportCSV(), "Weave Data Export.csv");
-				}
-				catch (e:Error)
-				{
-					reportError(e);
-				}
-			}
+			
 			
 			/**
 			 * This function(event Listener) gets called during 
@@ -627,12 +631,6 @@
 				keyTypeCombo.dataProvider = keyTypeList;
 				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || COMBO_ITEM_ALL_KEY_TYPES;
 			}
-			
-			private function handleDataCopy(event:Event):void
-			{
-				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,exportCSV() );
-			}
-			
 			
 			private var _minSuggestedColumnSize:int = 32;
 			
