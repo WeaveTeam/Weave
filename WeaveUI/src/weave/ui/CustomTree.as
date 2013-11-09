@@ -103,6 +103,21 @@ package weave.ui
 				horizontalScrollPolicy = hspolicy;
 		}
 		
+		/**
+		 * This will expand all matching items in the collection.
+		 * @param itemTest A function to test for a matching item:  function(item:Object):Boolean
+		 * @param open Parameter for expandItem().
+		 */
+		public function expandMatchingItems(itemTest:Function, open:Boolean = true):void
+		{
+			var cursor:IViewCursor = collection.createCursor();
+			do
+			{
+				if (itemTest(cursor.current))
+					expandItem(cursor.current, open);
+			}
+			while (cursor.moveNext());
+		}
 		
 		/**
 		 * @param itemTest A function to test for a matching item:  function(item:Object):Boolean
