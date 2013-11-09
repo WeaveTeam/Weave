@@ -445,7 +445,7 @@ package weave.utils
 				for (var i:int = 0; i < attrCols.length; i++)
 				{
 					var value:Object = (attrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
-					if (!isNaN(value as Number))
+					if (StandardLib.isDefined(value))
 						record[columnTitles[i]] = value;
 				}
 				records.push(record);
