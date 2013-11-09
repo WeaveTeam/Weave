@@ -32,13 +32,13 @@
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('DBF URL *')}">
-		<mx:TextInput id="dbfURL" width="100%" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
+		<ui:TextInputWithPrompt id="dbfURL" width="100%"  prompt="http://www.example.com/example.dbf"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('SHP URL')}">
-		<mx:TextInput id="shpURL" width="100%" toolTip="{lang('enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp')}"/>
+		<ui:TextInputWithPrompt id="shpURL" width="100%"  prompt="http://www.example.com/example.shp"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type *')}">
 		<ui:KeyTypesMenu id="keyTypeSelector" creationComplete="{if(_dbfDataSource)

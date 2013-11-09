@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
-		<mx:TextInput change="handleURLTextChange()" id="url" width="100%" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+		<ui:TextInputWithPrompt change="handleURLTextChange()" id="url" width="100%" prompt="http://www.example.com/example.csv"/>
 	</ui:Indent>
 	<mx:VBox width="100%" enabled="{url.text?false:true}">
 		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
@@ -48,7 +48,7 @@
 		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!arrayIsEmpty(csvRows)}"/>
 	</mx:VBox>
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type *')}">
 		<ui:KeyTypesMenu id="keyTypeSelector"/>
