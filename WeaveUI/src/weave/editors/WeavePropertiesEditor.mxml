@@ -33,13 +33,13 @@
 	<WeavePropertiesMenuEditor label="{lang('Menus')}"/>
 	
 	<mx:VBox label="Interactivity">
-		<mx:CheckBox label="{lang('Enable mouseover')}"
+		<ui:CustomCheckBox label="{lang('Enable mouseover')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')"/>
-		<mx:CheckBox label="{lang('Enable selection')}"
+		<ui:CustomCheckBox label="{lang('Enable selection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolSelection, event.target, 'selected');"/>
-		<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
+		<ui:CustomCheckBox label="{lang('Enable control panels and attribute selection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
-		<mx:CheckBox label="{lang('Enable axis tool tips')}"
+		<ui:CustomCheckBox label="{lang('Enable axis tool tips')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableAxisToolTips, event.target, 'selected');"/>
 	</mx:VBox>
 	
@@ -81,10 +81,11 @@
 			</ui:Indent>
 		</mx:VBox>
 		
-		<mx:Button label="{lang('Edit macros')}" width="100" click="DraggablePanel.openStaticInstance(MacroEditor)" />
+		<mx:Button label="{lang('Edit translations (Beta)')}" click="DraggablePanel.openStaticInstance(TranslationPanel)" />
+		<mx:Button label="{lang('Edit macros')}" click="DraggablePanel.openStaticInstance(MacroEditor)" />
 		
 		<mx:HBox>
-			<mx:CheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
+			<ui:CustomCheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
 			<ui:HelpComponent>
 				This will include "Add Data Filter" as an option in the tools menu
 				and show experimental filtering controls in the attribute selector.
@@ -101,6 +102,7 @@
 			import weave.data.AttributeColumns.StreamedGeometryColumn;
 			import weave.ui.DataFilter;
 			import weave.ui.DraggablePanel;
+			import weave.ui.TranslationPanel;
 			
 			override protected function childrenCreated():void
 			{

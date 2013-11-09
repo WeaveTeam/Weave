@@ -24,25 +24,25 @@
 		 width="100%" 
 		 height="100%" xmlns:ui="weave.ui.*"
 		 >
-		<mx:CheckBox id="enableMenuBar"
+		<ui:CustomCheckBox id="enableMenuBar"
 					 label="{lang('Show menu bar')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
 					/>
 	
 		<mx:TabNavigator resizeToContent="true" width="100%" height="100%" paddingLeft="10" paddingRight="10">
 			<mx:VBox label="{lang('Right-click')}" verticalGap="{verticalGap}">
-				<mx:CheckBox label="{lang('Right-click Menu')}" id="rightClick"
+				<ui:CustomCheckBox label="{lang('Right-click Menu')}" id="rightClick"
 							 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
 				<mx:VBox enabled="{rightClick.selected}" paddingLeft="10" verticalGap="{verticalGap}" width="100%">
-					<mx:CheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
 					
 					<ui:Indent label="{lang('Data Info URL')}" width="100%">
 						<ui:HelpComponent>
@@ -55,39 +55,40 @@
 			</mx:VBox>
 			
 			<mx:VBox  label="{lang('Data')}" verticalGap="{verticalGap}">
-				<mx:CheckBox id="dataMenu"
+				<ui:CustomCheckBox id="dataMenu"
 							 label="{lang('Data Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu, event.target, 'selected')"/>
 				<mx:VBox enabled="{dataMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
 					
-					<mx:CheckBox label="{lang('Load my data')}"
+					<ui:CustomCheckBox label="{lang('Load my data')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Browse Data')}"
+					<ui:CustomCheckBox label="{lang('Browse Data')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableBrowseData, event.target, 'selected')"/>
-					<mx:CheckBox id="refreshDataCheckBox"
+					<ui:CustomCheckBox id="refreshDataCheckBox"
 								 label="{lang('Refresh data source hierarchies')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
-					<mx:CheckBox label="{lang('Edit Datasources')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Edit Datasources')}"
+								 creationComplete="linkBindableProperty(Weave.properties.enableManageDataSources, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
 					
 				</mx:VBox>
 			</mx:VBox>
 			<mx:VBox label="{lang('Tools')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox id="toolsMenu"
+				<ui:CustomCheckBox id="toolsMenu"
 							 label="{lang('Tools Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools, event.target, 'selected')"/>
 				
 				<mx:HBox enabled="{toolsMenu.selected}" paddingLeft="10" horizontalGap="10">
 					<mx:VBox verticalGap="{verticalGap}">
-						<mx:CheckBox label="{lang('Color Controller')}"
+						<ui:CustomCheckBox label="{lang('Color Controller')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
-						<mx:CheckBox label="{lang('Probe Info Editor')}"
+						<ui:CustomCheckBox label="{lang('Probe Info Editor')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
-						<mx:CheckBox label="{lang('Probe Info Window')}"
+						<ui:CustomCheckBox label="{lang('Probe Info Window')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeWindow, event.target, 'selected')"/>
-						<mx:CheckBox label="{lang('Equation Editor')}"
+						<ui:CustomCheckBox label="{lang('Equation Editor')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
-						<mx:CheckBox id="collabSettings"
+						<ui:CustomCheckBox id="collabSettings"
 									 label="{lang('Collaboration Settings')}"
 									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
 									 />
@@ -97,73 +98,76 @@
 			</mx:VBox>	
 			
 			<mx:VBox width="100%" label="{lang('Selections')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox
+				<ui:CustomCheckBox
 							 id="selectionsMenu"
 							 label="{lang('Selections Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu, event.target, 'selected')"/> 
 				<mx:VBox enabled="{selectionsMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
-					<mx:CheckBox label="{lang('Save current Selection')}"
+					<ui:CustomCheckBox label="{lang('Save current Selection')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Clear current Selection')}"
+					<ui:CustomCheckBox label="{lang('Clear current Selection')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Manage saved selections')}"
+					<ui:CustomCheckBox label="{lang('Manage saved selections')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections, event.target, 'selected')"/>
 				</mx:VBox>
 			</mx:VBox>	
 			
 			<mx:VBox width="100%" label="{lang('Subsets')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox
+				<ui:CustomCheckBox
 							 id="subsetsMenu"
 							 label="{lang('Subsets Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu, event.target, 'selected')"/> 
 				<mx:VBox enabled="{subsetsMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
-					<mx:CheckBox label="{lang('Create subset from selected records')}"
+					<ui:CustomCheckBox label="{lang('Create subset from selected records')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Remove selected records from subset')}"
+					<ui:CustomCheckBox label="{lang('Remove selected records from subset')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Show all records')}"
+					<ui:CustomCheckBox label="{lang('Show all records')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Save current subset')}"
+					<ui:CustomCheckBox label="{lang('Save current subset')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Manage saved subsets')}"
+					<ui:CustomCheckBox label="{lang('Manage saved subsets')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets, event.target, 'selected')"/>
 				</mx:VBox>
 			</mx:VBox>	
 			
 			<mx:VBox label="{lang('Session')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox label="{lang('Session Menu')}"
+				<ui:CustomCheckBox label="{lang('Session Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
-				<mx:CheckBox id="collabPanel"
+				<ui:CustomCheckBox id="collabPanel"
 							 label="{lang('Connect to Collaboration Server')}"
 							 creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
 							 />
 			</mx:VBox>	
 			
 			<mx:VBox width="100%" label="{lang('Window')}" verticalGap="{verticalGap}">	 	
-				<mx:CheckBox id="windowMenu"
+				<ui:CustomCheckBox id="windowMenu"
 							 label="{lang('Window Menu')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu, event.target, 'selected')"/> 
 				<mx:VBox enabled="{windowMenu.selected}" paddingLeft="10" verticalGap="{verticalGap}">
-					<mx:CheckBox label="{lang('Preferences')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences, event.target, 'selected')"/>  
-					<mx:CheckBox toolTip="{lang('This option must also be enabled in the embed tag of the surrounding webpage.')}"
+					<ui:CustomCheckBox label="{lang('Preferences')}"
+								 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences, event.target, 'selected')"/>
+					
+					<ui:CustomCheckBox toolTip="{lang('This option must also be enabled in the embed tag of the surrounding webpage.')}"
 								 label="{lang('Full-screen')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableFullScreen, event.target, 'selected')"/>  
-					<mx:CheckBox label="{lang('Minimize All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Restore All Minimized Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Close All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Cascade All Windows')}"
-								 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows, event.target, 'selected')"/>
-					<mx:CheckBox label="{lang('Tile All Windows')}"
+					
+					<ui:CustomCheckBox label="{lang('Tile all windows')}"
 								 creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Cascade all windows')}"
+								 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows, event.target, 'selected')"/>
+					
+					<ui:CustomCheckBox label="{lang('Minimize all windows')}"
+								 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Restore all minimized windows')}"
+								 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows, event.target, 'selected')"/>
+					<ui:CustomCheckBox label="{lang('Close all windows')}"
+								 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
 				</mx:VBox>
 			</mx:VBox>	
 			
 			<mx:VBox label="{lang('Help')}" verticalGap="{verticalGap}">
-				<mx:CheckBox
+				<ui:CustomCheckBox
 						 label="{lang('Help Menu')}"
 						 width="120" 
 						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
@@ -187,10 +191,10 @@
 					return;
 				
 				var cbArray:Array = [];
-				var cb:CheckBox;
+				var cb:CustomCheckBox;
 				for each (var _class:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 				{
-					cb = new CheckBox();
+					cb = new CustomCheckBox();
 					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
 					linkBindableProperty(Weave.properties.getToolToggle(_class), cb, 'selected');
 					cbArray.push(cb);
