@@ -897,9 +897,9 @@ package weave.visualization.layers
 				lastActiveLayer = name;
 				
 				// get data coords from screen coords
-				var bufferSize:Number = 16; 
+				var bufferSize:Number = Weave.properties.probeBufferSize.value; 
 				
-				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize * 2, bufferSize * 2);
 				tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
 				
 				var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
@@ -911,7 +911,6 @@ package weave.visualization.layers
 				
 				if (!tempDataBounds.overlaps(queryBounds))
 					continue;
-				tempDataBounds.constrainBounds(queryBounds, false);
 				var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
 				//trace(layers.getName(layer),keys);
 				

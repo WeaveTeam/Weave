@@ -214,7 +214,6 @@ package weave
 				return StandardLib.asNumber(value.substr(0, -1)) > 0;
 			return StandardLib.asNumber(value) >= 1;
 		}
-		private function verifyMaxTooltipRecordsShown(value:Number):Boolean { return 0 <= value && value <= 20; }
 
 		public const dataInfoURL:LinkableString = new LinkableString(); // file to link to for metadata information
 		
@@ -263,7 +262,7 @@ package weave
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		public const showAddAllButton:LinkableBoolean = new LinkableBoolean(true);
 		
-		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
+		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyNonNegativeNumber); // maximum number of records shown in the probe toolTips
 		public const showSelectedRecordsText:LinkableBoolean = new LinkableBoolean(true); // show the tooltip in the lower-right corner of the application
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
@@ -433,6 +432,8 @@ package weave
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
 		public function get showEmptyProbeRecordIdentifiers():LinkableBoolean { return ProbeTextUtils.showEmptyProbeRecordIdentifiers; }
 
+		public const probeBufferSize:LinkableNumber = new LinkableNumber(10, verifyNonNegativeNumber);
+		
 		public const toolInteractions:InteractionController = new InteractionController();
 		
 		// temporary?
@@ -546,6 +547,8 @@ package weave
 				registerLinkableChild(filter_callbacks, object);
 			filter_callbacks.addImmediateCallback(this, updateFilters, true);
 		}
+		
+		private function verifyNonNegativeNumber(value:Number):Boolean { return value >= 0; }
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
