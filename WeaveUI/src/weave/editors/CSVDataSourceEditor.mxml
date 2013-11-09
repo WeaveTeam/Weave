@@ -166,13 +166,14 @@
 			{
 				if (append)
 				{
+					var newRows:Array = csvParser.parseResult;
 					setCSVRows(
 						WeaveAPI.CSVParser.convertRecordsToRows(
 							VectorUtils.flatten(
-								WeaveAPI.CSVParser.convertRowsToRecords(csvParser.parseResult),
+								WeaveAPI.CSVParser.convertRowsToRecords(newRows),
 								WeaveAPI.CSVParser.convertRowsToRecords(csvRows)
 							),
-							csvRows[0]
+							VectorUtils.union(headerArray, newRows[0])
 						)
 					);
 				}
