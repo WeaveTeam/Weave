@@ -97,11 +97,11 @@ package weave.compiler
 		
 		public static function isDefined(value:*):Boolean
 		{
-			return !(value == undefined || (value is Number && isNaN(value)) || value == null);
+			return value !== undefined && value !== null && !(value is Number && isNaN(value));
 		}
 		public static function isUndefined(value:*):Boolean
 		{
-			return (value == undefined || (value is Number && isNaN(value)) || value == null);
+			return value === undefined || value === null || (value is Number && isNaN(value));
 		}
 		
 		public static function lpad(str:String, length:uint, padString:String = ' '):String
