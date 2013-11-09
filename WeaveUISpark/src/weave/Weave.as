@@ -21,8 +21,10 @@ package weave
 {
 	import flash.display.BitmapData;
 	import flash.events.Event;
+	import flash.events.NetStatusEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.SharedObject;
+	import flash.net.SharedObjectFlushStatus;
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
@@ -432,6 +434,13 @@ package weave
 		 */
 		public static function externalReload(weaveContent:Object = null):void
 		{
+			if (!ExternalInterface.available)
+			{
+				//TODO: is it possible to restart an Adobe AIR application from within?
+				reportError("Unable to restart Weave when ExternalInterface is not available.");
+				return;
+			}
+			
 			if (!weaveContent)
 				weaveContent = createWeaveFileContent();
 			
@@ -449,12 +458,22 @@ package weave
 			if (weaveContent is WeaveArchive)
 				weaveContent = (weaveContent as WeaveArchive).serialize();
 			obj.data[uid] = { date: new Date(), content: weaveContent };
-			obj.flush();
-			obj.close();
 			
-			// reload the application
-			if (ExternalInterface.available)
+			if (obj.flush() == SharedObjectFlushStatus.PENDING)
+				obj.addEventListener(NetStatusEvent.NET_STATUS, handleExternalReloadStatus);
+			else
+				handleExternalReloadStatus();
+			
+			function handleExternalReloadStatus(event:NetStatusEvent = null):void
 			{
+				if (event && event.info.code != 'SharedObject.Flush.Success')
+				{
+					reportError(EXTERNAL_RELOAD_ERROR);
+					return;
+				}
+				obj.close();
+				
+				// reload the application
 				if (ExternalInterface.objectID)
 					ExternalInterface.call(
 						"function(reloadID) {" +
@@ -468,12 +487,9 @@ package weave
 				else
 					ExternalInterface.call("function(){ location.reload(false); }");
 			}
-			else
-			{
-				//TODO
-				throw new Error("externalReload() is not yet supported when ExternalInterface is not available.");
-			}
 		}
+		
+		private static const EXTERNAL_RELOAD_ERROR:String = lang("You must allow Weave to use local storage in order to use this feature.");
 		
 		/**
 		 * This function should be called when the application starts to restore session history after reloading the application.
@@ -482,7 +498,6 @@ package weave
 		public static function handleWeaveReload():Boolean
 		{
 			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
-			var flush:Boolean = false;
 			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
 			if (ExternalInterface.available && ExternalInterface.objectID)
 			{
@@ -517,8 +532,7 @@ package weave
 			if (saved)
 			{
 				// delete session history from shared object
-				delete obj.data[uid];
-				flush = true;
+				obj.setProperty(uid);
 				
 				// restore old session history
 				loadWeaveFileContent(saved.content);
@@ -539,13 +553,10 @@ package weave
 					// ignore error, entry will be deleted
 				}
 				
-				delete obj.data[uid];
-				flush = true;
+				obj.setProperty(uid);
 			}
 			
 			// save changes to shared object
-			if (flush)
-				obj.flush();
 			obj.close();
 			
 			return saved != null;
