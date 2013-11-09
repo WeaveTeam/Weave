@@ -32,8 +32,35 @@ package weave.utils
 	 */
 	public class VectorUtils
 	{
+		private static var _lookup:Dictionary = new Dictionary(true);
+		private static var _lookupId:int = 0;
+		
 		/**
-		 * Computes the intersection of a list of Arrays.
+		 * Computes the union of the items in a list of Arrays.
+		 * @param arrays A list of Arrays.
+		 * @return The union of all the items in the Arrays in the order they appear.
+		 */
+		public static function union(...arrays):Array
+		{
+			var result:Array = [];
+			_lookupId++;
+			for each (var array:* in arrays)
+			{
+				for each (var item:* in array)
+				{
+					if (_lookup[item] !== _lookupId)
+					{
+						_lookup[item] = _lookupId;
+						result.push(item);
+					}
+				}
+			}
+			return result;
+		}
+		
+		
+		/**
+		 * Computes the intersection of the items in a list of Arrays.
 		 * @param arrays A list of Arrays.
 		 * @return The intersection of the items in both Arrays, in the order that they appear in the first Array.
 		 */
@@ -67,8 +94,6 @@ package weave.utils
 			
 			return result;
 		}
-		private static var _lookup:Dictionary = new Dictionary(true);
-		private static var _lookupId:int = 0;
 		
 		/**
 		 * This function copies the contents of the source to the destination.
