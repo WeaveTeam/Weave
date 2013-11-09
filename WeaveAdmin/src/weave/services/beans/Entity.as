@@ -24,9 +24,18 @@ package weave.services.beans
 	 */
 	public class Entity extends EntityMetadata
 	{
+		public function Entity()
+		{
+			_id = -1;
+			_type = EntityType.ANY;
+		}
+		
 		private var _id:int;
 		private var _type:int;
+		private var _parentIds:Array;
 		private var _childIds:Array;
+		private var _hasParent:Object;
+		private var _hasChild:Object;
 		
 		public function get id():int
 		{
@@ -36,15 +45,13 @@ package weave.services.beans
 		{
 			return _type;
 		}
+		public function get parentIds():Array
+		{
+			return _parentIds;
+		}
 		public function get childIds():Array
 		{
 			return _childIds;
-		}
-		
-		public function Entity()
-		{
-			_id = -1;
-			_type = EntityType.ANY;
 		}
 		
 		public function getTypeString():String
@@ -52,9 +59,14 @@ package weave.services.beans
 			return EntityType.getTypeString(_type);
 		}
 		
-		public static function getEntityIdFromResult(result:Object):int
+		public function hasParent(parentId:int):Boolean
 		{
-			return result.id;
+			return _hasParent[parentId];
+		}
+		
+		public function hasChild(childId:int):Boolean
+		{
+			return _hasChild[childId];
 		}
 		
 		public function copyFromResult(result:Object):void
@@ -63,7 +75,15 @@ package weave.services.beans
 			_type = result.type;
 			privateMetadata = result.privateMetadata || {};
 			publicMetadata = result.publicMetadata || {};
+			_parentIds = result.parentIds;
 			_childIds = result.childIds;
+			_hasParent = {};
+			_hasChild = {};
+			var id:int;
+			for each (id in _parentIds)
+				_hasParent[id] = true;
+			for each (id in _childIds)
+				_hasChild[id] = true;
 	
 			// replace nulls with empty strings
 			var name:String;
@@ -73,6 +93,11 @@ package weave.services.beans
 			for (name in publicMetadata)
 				if (publicMetadata[name] == null)
 					publicMetadata[name] = '';
+		}
+		
+		public static function getEntityIdFromResult(result:Object):int
+		{
+			return result.id;
 		}
 	}
 }

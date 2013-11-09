@@ -67,6 +67,10 @@ package weave.services
 		{
 			return focusEntityId;
 		}
+		public function setFocusEntityId(id:int):void
+		{
+			focusEntityId = id;
+		}
 		public function clearFocusEntityId():void
 		{
 			focusEntityId = -1;
