@@ -119,8 +119,8 @@
 				<mx:VBox width="100%" height="100%">
 					<mx:Box id="container" initialize="UIUtils.pad(event, 0, 100, 100, true)"/>
 					<mx:HBox width="100%">
-						<mx:Spacer width="100%"/>
 						<ui:CustomCheckBox id="refreshCheck" label="{lang('Refresh hierarchy after apply')}" selected="true"/>
+						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Apply changes')}" click="save()"/>
 						<mx:Button label="{lang('Cancel')}" click="selectDataSource(dataSource); tabNav.selectedChild = browseTab;"/>
 					</mx:HBox>
