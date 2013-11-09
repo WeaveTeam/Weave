@@ -25,7 +25,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
 		<mx:Canvas label="{lang('Combo Box')}">
-			<CustomComboBox id="choiceCombo" prompt="{lang('Select an attribute...')}"
+			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
@@ -60,38 +60,38 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<ControlPanel>
 		<mx:VBox width="100%" label="{lang('Settings')}">
-			<mx:HBox>
-				<mx:VBox>
-					<Indent label="{lang('Visualization tool:')}">
-						<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
-						<HelpComponent>
-							Select the visualization tool that you want the attribute menu to be linked to.
-						</HelpComponent>
-					</Indent>
-					<Indent label="{lang('Visualization attribute:')}">
-						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
-						<HelpComponent>
-							Select the visualization attribute that you want the menu to be linked to.
-						</HelpComponent>
-					</Indent>
-					<Indent label="{lang('Menu layout:')}">
-						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
-										dataProvider="{layouts}"/>
-						<HelpComponent>
-							Select the layout for the attribute menu.
-						</HelpComponent>
-						<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
-								 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
-							<mx:CheckBox id="showPlayButtonCheck" label="Show play button"
-										 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
-							<mx:CheckBox id="autoPlayRepeatCheck" label="Loop"
-										 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
-						</mx:HBox>
-					</Indent>
-				</mx:VBox>
-			</mx:HBox>
+			<Indent label="{lang('Visualization tool')}">
+				<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
+								valueCommit="handleComboChange(targetToolCombo, targetTool);" />
+				<HelpComponent>
+					Select the visualization tool that you want the attribute menu to be linked to.
+				</HelpComponent>
+			</Indent>
+			<Indent label="{lang('Visualization attribute')}">
+				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
+								valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
+				<HelpComponent>
+					Select the visualization attribute that you want the menu to be linked to.
+				</HelpComponent>
+			</Indent>
+			<Indent label="{lang('Menu layout')}">
+				<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
+								dataProvider="{layouts}"/>
+				<HelpComponent>
+					Select the layout for the attribute menu.
+				</HelpComponent>
+				<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
+						 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
+					<mx:CheckBox id="showPlayButtonCheck" label="{lang('Show play button')}"
+								 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+					<mx:CheckBox id="autoPlayRepeatCheck" label="{lang('Loop')}"
+								 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
+				</mx:HBox>
+				<IndentTextInput visible="{layoutCombo.selectedItem == 'ComboBox'}"
+								 includeInLayout="{layoutCombo.selectedItem == 'ComboBox'}"
+								 label="{lang('Prompt')}"
+								 creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
+			</Indent>
 			<ColumnListComponent id="choicesComponent" label="{lang('Attributes to appear in the menu')}" />
 			<Indent label="{lang('Label function')}">
 				<mx:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
@@ -184,6 +184,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return value + lang(' frames per second');
 			};
 			
+			public const prompt:LinkableString = registerLinkableChild(this, new LinkableString(lang('Select an attribute...')));
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
 			public const targetAttributeNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-1, isFinite));
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -257,6 +258,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				layoutMode.addImmediateCallback(this, handleLayoutMode);
+				linkBindableProperty(prompt, choiceCombo, 'prompt');
 			}
 			
 			private function stopPlay():void

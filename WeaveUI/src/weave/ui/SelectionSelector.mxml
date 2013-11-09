@@ -26,7 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Canvas width="100%" height="100%">
 		
-		<CustomComboBox id="selectionSelectorBox" prompt="{lang('Select a selection...')}"
+		<CustomComboBox id="selectionSelectorBox"
 						width="100%" height="100%" minHeight="0"
 						labelFunction="selectionsListLabelFunction"
 						valueCommit="itemSelected()"
@@ -39,9 +39,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
 			import weave.data.KeySets.KeySet;
 			
-			
+			public const prompt:LinkableString = registerLinkableChild(this, new LinkableString(lang('Select a selection...')));
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			private var setToIndex:int = -1;
 			
@@ -57,6 +58,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				Weave.savedSelectionKeySets.addGroupedCallback(this, updateSubsets, true);
 				Weave.defaultSelectionKeySet.addGroupedCallback(this, handleGlobalSubsetChange);
+				linkBindableProperty(prompt, selectionSelectorBox, 'prompt');
 			}
 			private function handleGlobalSubsetChange():void
 			{
@@ -113,6 +115,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 	<ControlPanel>
 		<mx:VBox label="{lang('Settings')}">
+			<IndentTextInput label="{lang('Prompt')}" creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
 			<mx:CheckBox label='{lang("Include \"No selection\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>

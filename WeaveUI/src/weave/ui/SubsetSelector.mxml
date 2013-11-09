@@ -25,7 +25,7 @@
 					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	<mx:ViewStack width="100%" height="100%" id="viewStack">
 		<mx:Box width="100%" height="100%" id="comboView">
-			<CustomComboBox id="subsetSelectorBox" prompt="{lang('Select a subset...')}"
+			<CustomComboBox id="subsetSelectorBox"
 						 width="100%" height="100%" minHeight="0"
 						 labelFunction="subsetsListLabelFunction"
 						 valueCommit="itemSelected()"
@@ -40,13 +40,14 @@
 		<![CDATA[
 			import weave.Weave;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
 			import weave.data.KeySets.KeyFilter;
 			
+			public const prompt:LinkableString = registerLinkableChild(this, new LinkableString(lang('Select a subset...')));
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			public const displayRecordInfo:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateSubsets);
 			public const sliderMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
@@ -69,6 +70,7 @@
 				super.childrenCreated();
 				Weave.savedSubsetsKeyFilters.addGroupedCallback(this, updateSubsets, true);
 				getCallbackCollection(Weave.defaultSubsetKeyFilter).addGroupedCallback(this, handleGlobalSubsetChange);
+				linkBindableProperty(prompt, subsetSelectorBox, 'prompt');
 			}
 			private function handleGlobalSubsetChange():void
 			{
@@ -177,6 +179,7 @@
 	</mx:Script>
 	<ControlPanel>
 		<mx:VBox label="{lang('Settings')}">
+			<IndentTextInput label="{lang('Prompt')}" creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
 			<mx:CheckBox label='{lang("Include \"All records\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
 			<mx:CheckBox label='{lang("Display record counts")}' creationComplete="linkBindableProperty(displayRecordInfo, event.target, 'selected')"/>
 			<mx:CheckBox label='{lang("Use vertical slider layout")}' creationComplete="linkBindableProperty(sliderMode, event.target, 'selected')"/>
