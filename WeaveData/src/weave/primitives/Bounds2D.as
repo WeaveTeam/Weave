@@ -494,14 +494,14 @@ package weave.primitives
 			
 			var x:Number = toXMin + (point.x - xMin) / (xMax - xMin) * (toXMax - toXMin);
 
-			if (x < Infinity) // alternative to !isNaN()
+			if (x <= Infinity) // alternative to !isNaN()
 				point.x = x;
 			else
 				point.x = (toXMin + toXMax) / 2;
 
 			var y:Number = toYMin + (point.y - yMin) / (yMax - yMin) * (toYMax - toYMin);
 			
-			if (y < Infinity) // alternative to !isNaN()
+			if (y <= Infinity) // alternative to !isNaN()
 				point.y = y;
 			else
 				point.y = (toYMin + toYMax) / 2;
