@@ -27,12 +27,10 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
-	import weave.compiler.ProxyObject;
 
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
@@ -57,13 +55,16 @@ package weave.core
 		public function getObject(objectPath:Array):ILinkableObject
 		{
 			var object:ILinkableObject = _rootObject;
-			for each (var propertyName:String in objectPath)
+			for each (var propertyName:Object in objectPath)
 			{
 				if (object == null)
 					return null;
 				if (object is ILinkableHashMap)
 				{
-					object = (object as ILinkableHashMap).getObject(propertyName);
+					if (propertyName is Number)
+						object = (object as ILinkableHashMap).getObjects()[propertyName];
+					else
+						object = (object as ILinkableHashMap).getObject(String(propertyName));
 				}
 				else if (object is ILinkableDynamicObject)
 				{
