@@ -182,10 +182,16 @@ package weave.visualization.plotters
 			var scaleHeight:Number = dataHeight.value * screenBounds.getYCoverage() / dataBounds.getYCoverage() / _bitmapData.height;
 			
 			if (!isFinite(dataWidth.value))
+			{
 				scaleWidth = 1;
+				tempPoint.x = Math.round(tempPoint.x);
+			}
 			
 			if (!isFinite(dataHeight.value))
+			{
 				scaleHeight = 1;
+				tempPoint.y = Math.round(tempPoint.y);
+			}
 			
 			_tempMatrix.scale(scaleWidth, scaleHeight);
 			

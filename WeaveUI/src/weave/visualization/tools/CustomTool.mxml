@@ -29,6 +29,7 @@
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
+			import weave.primitives.Bounds2D;
 			import weave.visualization.layers.PlotManager;
 			
 			WeaveAPI.registerImplementation(IVisTool, CustomTool, "Custom Tool");
@@ -43,6 +44,15 @@
 				pm.marginTop.value = '50';
 				pm.marginRight.value = '50';
 				pm.marginBottom.value = '50';
+				pm.zoomBounds.setDataBounds(new Bounds2D(-1, -1, 1, 1));
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				controlPanel.tabNavigator.removeChild(axesEditor);
+				layersEditor.addChildAt(axesEditor.titleControls, 0);
+				layersEditor.addChild(axesEditor.marginProperties);
 			}
 		]]>
 	</mx:Script>
