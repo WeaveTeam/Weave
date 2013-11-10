@@ -221,33 +221,40 @@ package weave.primitives
 		}
 		
 		/**
-		 * This will draw the color ramp onto a canvas using the full width and height.
-		 * @param canvas
-		 * @param vertical
+		 * This will draw the color ramp.
+		 * @param destination The sprite where the ramp should be drawn.
+		 * @param trueForVertical_falseForHorizontal Specifies vertical or horizontal direction
+		 * @param bounds Optional bounds for the ramp graphics.
 		 */
-		public function draw(canvas:Sprite, vertical:Boolean):void
+		public function draw(destination:Sprite, trueForVertical_falseForHorizontal:Boolean, bounds:Bounds2D = null):void
 		{
 			validate();
 			
-			var g:Graphics = canvas.graphics;
+			var g:Graphics = destination.graphics;
+			var vertical:Boolean = trueForVertical_falseForHorizontal;
+			var x:Number = bounds ? bounds.getXMin() : 0;
+			var y:Number = bounds ? bounds.getYMin() : 0;
+			var w:Number = bounds ? bounds.getWidth() : destination.width;
+			var h:Number = bounds ? bounds.getHeight() : destination.height;
+			var offset:Number = bounds ? (vertical ? bounds.getXDirection() : bounds.getYDirection()) : 1;
+			
 			g.clear();
-			var n:int = vertical ? canvas.height : canvas.width;
-			var max:int = n - 1;
+			var n:int = Math.abs(vertical ? h : w);
 			for (var i:int = 0; i < n; i++)
 			{
-				var color:Number = getColorFromNorm(i / max);
+				var color:Number = getColorFromNorm(i / (n - 1));
 				if (isNaN(color))
 					continue;
 				g.lineStyle(1, color, 1, true);
 				if (vertical)
 				{
-					g.moveTo(0, i);
-					g.lineTo(canvas.width - 1, i);
+					g.moveTo(x, y + i);
+					g.lineTo(x + w - offset, y + i);
 				}
 				else
 				{
-					g.moveTo(i, 0);
-					g.lineTo(i, canvas.height - 1);
+					g.moveTo(x + i, y);
+					g.lineTo(x + i, y + h - offset);
 				}
 			}
 		}
