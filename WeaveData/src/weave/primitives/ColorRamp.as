@@ -39,13 +39,7 @@ package weave.primitives
 		public function ColorRamp(sessionState:Object = null)
 		{
 			if (!sessionState)
-				sessionState = <colorRamp name="5-Color" source="OIC" category="basic">
-						<node color="0xEFF3FF" position="0"/>
-						<node color="0xBDD7E7" position="0.25"/>
-						<node color="0x6BAED6" position="0.5"/>
-						<node color="0x3182BD" position="0.75"/>
-						<node color="0x08519C" position="1"/>
-					</colorRamp>;
+				sessionState = getColorRampXMLByName("Blues").toString();
 			
 			if (sessionState is XML)
 				sessionState = (sessionState as XML).toXMLString();
@@ -278,7 +272,19 @@ package weave.primitives
 		}
 		public static function getColorRampXMLByName(rampName:String):XML
 		{
-			return (allColorRamps.colorRamp.(@name == rampName)[0] as XML).copy();
+			try
+			{
+				return (allColorRamps.colorRamp.(@name == rampName)[0] as XML).copy();
+			}
+			catch (e:Error) { }
+			return null;
+		}
+		public static function getColorRampXMLByColorString(colors:String):XML
+		{
+			for each (var xml:XML in allColorRamps.colorRamp)
+				if (xml.toString().toUpperCase() == colors.toUpperCase())
+					return xml;
+			return null;
 		}
 	}
 	
