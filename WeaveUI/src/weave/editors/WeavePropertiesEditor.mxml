@@ -71,13 +71,13 @@
 			
 			<mx:Label text="{lang('Asynchronous task time allocation (milliseconds):')}"/>
 			<ui:Indent label="{lang('Render')}">
-				<mx:HSlider id="renderAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+				<mx:HSlider id="renderAlloc" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
 			<ui:Indent label="{lang('Build')}">
-				<mx:HSlider id="buildAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+				<mx:HSlider id="buildAlloc" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
 			<ui:Indent label="{lang('Parse')}">
-				<mx:HSlider id="parseAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+				<mx:HSlider id="parseAlloc" minimum="5" maximum="300" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
 		</mx:VBox>
 		

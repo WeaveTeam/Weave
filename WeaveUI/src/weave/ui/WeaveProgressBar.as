@@ -37,6 +37,8 @@ package weave.ui
 	 */
 	public class WeaveProgressBar extends ProgressBar
 	{
+		public static var debug:Boolean = false;
+		
 		override protected function childrenCreated():void
 		{
 			super.childrenCreated();
@@ -94,9 +96,13 @@ package weave.ui
 					_maxProgressBarValue = pendingCount;
 				
 				setProgress(WeaveAPI.ProgressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
+				
 				visible = true;
 				handleEnterFrame();
 			}
+			
+			if (debug)
+				trace('Progress:', WeaveAPI.ProgressIndicator.getNormalizedProgress());
 		}
 	}
 }

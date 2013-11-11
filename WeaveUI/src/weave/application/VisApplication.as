@@ -431,11 +431,6 @@ package weave.application
 			try
 			{
 				var show:Boolean = Weave.properties.showSelectedRecordsText.value && selectionKeySet.keys.length > 0;
-				if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
-				{
-					show = true;
-					_selectionIndicatorText.text = (WeaveAPI.StageUtils as StageUtils).averageFrameTime + ' average frame time';
-				}
 				if (show)
 				{
 					if (visDesktop != _selectionIndicatorText.parent)
@@ -506,9 +501,6 @@ package weave.application
 		
 		private function updateWorkspaceSize(..._):void
 		{
-			if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
-				handleSelectionChange();
-			
 			if (!this.parent)
 				return;
 			
