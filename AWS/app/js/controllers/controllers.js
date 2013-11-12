@@ -7,25 +7,15 @@
  * PanelGenericCtrl <TODO rename> - Displays the dashboard portlets and their data. 
  */
 angular.module("aws.Main", [])
-.controller("LayoutCtrl", function($scope, queryobj, dataService){
+.controller("LayoutCtrl", function($scope){
 	$scope.leftPanelUrl = "./tpls/leftPanel.tpls.html";
-	$scope.genericPortlet = "./tpls/genericPortlet.tpls.html";
+	$scope.analysisUrl = "./tpls/analysis.tpls.html";
 	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
-	$scope.QueryObjectModel = function(){ 
-		return angular.toJson(queryobj, true);
-	};
+	
 	$scope.$watch(function(){
 		return aws.timeLogString;
 	},function(oldVal, newVal){
 		$("#LogBox").append(newVal);
 	});
-	
-	$scope.$watch(function(){
-		return queryobj.dataTable},
-		function(){
-			dataService.refreshColumns();
-			$scope.$broadcast("refreshColumns");
-	});
-
 });
 

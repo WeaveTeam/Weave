@@ -22,66 +22,70 @@ aws.QueryHandler = function(queryObject)
 	this.dateGenerated = queryObject.date;
 	this.author = queryObject.author;
 	
-	this.rRequestObject = {
-		dataset : queryObject.conn.sqldbname,
-		scriptPath : queryObject.conn.scriptLocation,
-		scriptName : queryObject.scriptSelected
-	};
-	this.rRequestObject["columnsToBeRetrieved"] = [];
-	
-	if (queryObject.scriptType == "columns") {
-		for( var i = 0; i < queryObject.scriptOptions.length; i++) {
-			this.rRequestObject["columnsToBeRetrieved"].push({id: queryObject.scriptOptions[i].id, filters : queryObject.scriptOptions[i].filter});
-		}
-	} else if (queryObject.scriptType == "cluster") {
-		// this option gets all the columns selected from the Analysis builder section.
-		this.algorithmParameters = queryObject.ParamBasedOptions;
+	if(queryObject.hasOwnProperty("FilteredColumnRequest") &&
+	   queryObject.hasOwnProperty("scriptSelected") ) {
+		this.rRequestObject = {
+				FilteredColumnRequest : queryObject.FilteredColumnRequest,
+				scriptName : queryObject.scriptSelected
+		};			
+
 	}
 	
-	
-	this.connectionObject = {
-	        connectionType : queryObject.conn.connectionType,
-			user : queryObject.conn.sqluser,
-			password : queryObject.conn.sqlpass,
-			schema : queryObject.conn.schema,
-			host : queryObject.conn.sqlip,
-			port : queryObject.conn.sqlport,
-			dsn : queryObject.conn.dsn
-	};
+	if(queryObject.hasOwnProperty("ColorColumn")) {
+		this.ColorColumn = queryObject.ColorColumn;
+	}
+
+	this.keyType = "";
 	
 	this.visualizations = [];
 	
+	if (queryObject.hasOwnProperty("MapTool")) {
+		this.keyType = queryObject.MapTool.keyType;
+		this.visualizations.push(
+				{
+					type : "MapTool",
+					parameters : queryObject.MapTool
+				}
+		);
+	}	
 	
-	for (var visualization in queryObject.selectedVisualization) {
-		//if (queryObject.selectedVisualization.hasOwnProperty(visualization)) {
-			if (queryObject.selectedVisualization[visualization]) {
-				this.visualizations.push( { type : visualization, parameters : queryObject[visualization] });
-			}			
-	}
-	this.colorColumn = queryObject.colorColumn;
+	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
+		this.visualizations.push(
+				{
+					type : "ScatterPlotTool",
+					parameters : queryObject.ScatterPlotTool
+				}
+		);
+	}	
+	if (queryObject.hasOwnProperty("BarChartTool")) {
+		this.visualizations.push(
+				{
+					type : "BarChartTool",
+					parameters : queryObject.BarChartTool
+				}
+		);
+	}	
 	
-	this.keyType = "";
-	if (queryObject.maptool){
-		if(queryObject.maptool.keyType) {
-			this.keyType = queryObject.maptool.keyType;
-		}
-	}
-	
+	if (queryObject.hasOwnProperty("DataTable")) {
+		this.visualizations.push(
+				{
+					type : "DataTable",
+					parameters : queryObject.DataTable
+				}
+		);
+	}	
 	
 	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
-
+	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
-	this.computationEngine = null;
-	if(queryObject.computationEngine.toLowerCase() === "r") {
-		if(queryObject.scriptType === "columns") {
-			this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject);
-		} else if(queryObject.scriptType === "cluster") {
-			this.computationEngine = new aws.RClient(this.connectionObject, this.rRequestObject, this.algorithmParameters);
-		}
+	this.ComputationEngine = null;
+	if(queryObject.ComputationEngine == 'r' || queryObject.ComputationEngine == 'R') {
+		this.ComputationEngine = new aws.RClient(this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
 //	}
+
 	this.resultDataSet = "";
 };
 
@@ -95,13 +99,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	// step 1
 	var that = this;
-	//clear all existing visualizations
-	that.weaveClient.clearCurrentVizs();
-	
-	// TODO Shweta this is where we are going to call different run function based on
-	// different options... 
-	this.computationEngine.run("JavaSQLData", function(result) {
-		
+	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
 		console.log(that.resultDataSet);
@@ -113,8 +111,6 @@ aws.QueryHandler.prototype.runQuery = function() {
 		//var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
 		var dataSourceName = that.weaveClient.addCSVDataSource(that.resultDataSet, "", that.keyType, "fips");
 		
-		console.log(dataSourceName);
-		
 		// step 3
 		for (var i in that.visualizations) {
 			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
@@ -122,10 +118,14 @@ aws.QueryHandler.prototype.runQuery = function() {
 			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 		}
 		
-		if (that.colorColumn) {
-			that.weaveClient.setColorAttribute(that.colorColumn, dataSourceName);
+		if (that.ColorColumn) {
+			that.weaveClient.setColorAttribute(that.ColorColumn, dataSourceName);
 			aws.timeLogString = aws.reportTime('color column added');
 			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 		}	
 	});
+};
+
+aws.QueryHandler.prototype.clearWeave = function () {
+	this.weaveClient.clearWeave();
 };

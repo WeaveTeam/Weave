@@ -1,18 +1,14 @@
-<!-- Portlet Template
-		TODO Implement for each type of portlet/panel
- -->
-
 <div ng-controller="MapToolPanelCtrl">
 <div class="portlet-header">
 	<span>{{panelTitle}}</span>
 </div>
 <div class="portlet-content">
 
-	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Enable Map Tool</br>
-	Map to use: <select ui-select2 ng-model="selection" >
+	<input type="checkbox" name="enableMapTool" ng-model="enabled"/> Map Tool</br>
+	<select ui-select2 ng-model="selection" data-placeholder="Choose Map">
 					<option></option>
-					<option value="{{opt.id}}" ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
-				</select>
+					<option value="{{opt}}"  ng-repeat="opt in options">{{opt.publicMetadata.title}}</option>
+	</select>
 	
 </div>
 
