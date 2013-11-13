@@ -158,6 +158,12 @@ package weave.visualization.plotters
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			if( internalBinnedColumn )
+			{
+				trace( "yo   " + filteredKeySet.keys );
+				trace( "hi     " + internalBinnedColumn.keys );
+				trace("test   " +  internalBinnedColumn.keys.length );
+			}
 			return 1;
 		}
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void

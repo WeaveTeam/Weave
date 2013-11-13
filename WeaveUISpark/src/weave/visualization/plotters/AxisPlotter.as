@@ -26,11 +26,11 @@ package weave.visualization.plotters
 	import mx.formatters.NumberFormatter;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -430,6 +430,11 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			axisLineDataBounds.copyTo(output);
+		}
+		
+		override protected function drawNoValues(bitmapData:BitmapData, bounds:IBounds2D):void
+		{
+			return;
 		}
 		
 		private function initPrivateAxisLineBoundsVariables(dataBounds:IBounds2D, screenBounds:IBounds2D):void

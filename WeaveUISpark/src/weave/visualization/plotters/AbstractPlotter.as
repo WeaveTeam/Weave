@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IKeySet;
@@ -38,6 +37,7 @@ package weave.visualization.plotters
 	import weave.core.CallbackCollection;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
+	import weave.utils.BitmapText;
 	import weave.utils.ObjectPool;
 	
 	/**
@@ -193,6 +193,8 @@ package weave.visualization.plotters
 				// report progress
 				return task.iteration / task.recordKeys.length;
 			}
+			else if( task.recordKeys.length == 0 && filteredKeySet.keys.length == 0 )
+				drawNoValues(task.buffer, task.screenBounds);
 			
 			// report progress
 			return 1; // avoids division by zero in case task.recordKeys.length == 0
@@ -240,6 +242,17 @@ package weave.visualization.plotters
 			for each (var bounds:IBounds2D in output)
 				bounds.reset();
 			return output[0] as IBounds2D;
+		}
+		
+		private var _bitmapText:BitmapText = new BitmapText();
+		
+		protected function drawNoValues(bitmapData:BitmapData, bounds:IBounds2D):void
+		{
+			_bitmapText.text = "No data for selection";
+			_bitmapText.setBounds(bounds, true);
+			_bitmapText.textFormat.color = 0xFF0000;
+			_bitmapText.textFormat.size = 30;
+			_bitmapText.draw(bitmapData);
 		}
 	}
 }

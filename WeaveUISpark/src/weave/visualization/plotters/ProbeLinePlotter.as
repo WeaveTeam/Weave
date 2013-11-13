@@ -116,5 +116,10 @@ package weave.visualization.plotters
 			}
 		}
 		
+		override protected function drawNoValues(bitmapData:BitmapData, bounds:IBounds2D):void
+		{
+			return;
+		}
+		
 	}
 }

@@ -23,8 +23,10 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
+	import flash.text.TextFormat;
 	
 	import weave.Weave;
+	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -46,6 +48,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.utils.BitmapText;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -172,7 +175,6 @@ package weave.visualization.plotters
 			
 			// project data coordinates to screen coordinates and draw graphics
 			getCoordsFromRecordKey(recordKey, tempPoint);
-			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
 			lineStyle.beginLineStyle(recordKey, graphics);
