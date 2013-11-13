@@ -754,6 +754,9 @@ package weave.application
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Browse Data"), AttributeSelectorPanel.open));
 				}
 				
+				if (Weave.properties.enableManageDataSources.value)
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data"), DraggablePanel.openStaticInstance, [DataSourceManager]));
+				
 				if (Weave.properties.enableRefreshHierarchies.value)
 				{
 					_weaveMenu.addMenuItemToMenu(_dataMenu,
@@ -767,9 +770,6 @@ package weave.application
 					);
 				}
 
-				if (Weave.properties.enableManageDataSources.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data"), DraggablePanel.openStaticInstance, [DataSourceManager]));
-				
 				if (Weave.properties.enableExportCSV.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Export CSV from all visualizations"), exportCSV));
 			}
