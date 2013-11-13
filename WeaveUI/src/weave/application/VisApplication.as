@@ -64,7 +64,9 @@ package weave.application
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
@@ -766,7 +768,7 @@ package weave.application
 				}
 
 				if (Weave.properties.enableManageDataSources.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data sources"), DraggablePanel.openStaticInstance, [DataSourceManager]));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Manage or browse data"), DraggablePanel.openStaticInstance, [DataSourceManager]));
 				
 				if (Weave.properties.enableExportCSV.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Export CSV from all visualizations"), exportCSV));
@@ -1539,30 +1541,34 @@ package weave.application
 		{
 			try
 			{
-				var tools:Array = tool
-					? [tool]
-					: WeaveAPI.globalHashMap.getObjects(IVisToolWithSelectableAttributes);
+				var fileName:String = tool
+					? getQualifiedClassName(tool).split(':').pop()
+					: "data-export";
+				fileName = "Weave-" + fileName + ".csv";
 				
-				var csvString:String = ColumnUtils.generateTableCSV(
-					VectorUtils.flatten(
-						tools.map(
-							function(tool:IVisToolWithSelectableAttributes, i:int, a:Array):Array {
-								return tool.getSelectableAttributes();
-							}
-						)
-					)
-				);
-
+				var attrs:Array = [];
+				if (tool)
+				{
+					VectorUtils.flatten(tool.getSelectableAttributes());
+				}
+				else
+				{
+					// get equation columns and color column
+					VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(IAttributeColumn), attrs);
+					// get probe columns
+					VectorUtils.flatten(WeaveAPI.globalHashMap.getObjects(ILinkableHashMap), attrs);
+					for each (tool in WeaveAPI.globalHashMap.getObjects(IVisToolWithSelectableAttributes))
+						VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
+				}
+				
+				var csvString:String = ColumnUtils.generateTableCSV(attrs);
 				if (!csvString)
 				{
 					reportError("No data to export");
 					return;
 				}
 				
-				var name:String = tool
-					? getQualifiedClassName(tool).split(':').pop()
-					: "data-export";
-				exportCSVfileRef.save(csvString, "Weave-" + name + ".csv");
+				exportCSVfileRef.save(csvString, fileName);
 			}
 			catch (e:Error)
 			{
