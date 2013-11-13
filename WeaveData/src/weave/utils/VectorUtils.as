@@ -36,9 +36,9 @@ package weave.utils
 		private static var _lookupId:int = 0;
 		
 		/**
-		 * Computes the union of the items in a list of Arrays.
+		 * Computes the union of the items in a list of Arrays. Can also be used to get a list of unique items in an Array.
 		 * @param arrays A list of Arrays.
-		 * @return The union of all the items in the Arrays in the order they appear.
+		 * @return The union of all the unique items in the Arrays in the order they appear.
 		 */
 		public static function union(...arrays):Array
 		{
@@ -60,27 +60,23 @@ package weave.utils
 		
 		
 		/**
-		 * Computes the intersection of the items in a list of Arrays.
+		 * Computes the intersection of the items in a list of two or more Arrays.
 		 * @param arrays A list of Arrays.
-		 * @return The intersection of the items in both Arrays, in the order that they appear in the first Array.
+		 * @return The intersection of the items appearing in all Arrays, in the order that they appear in the first Array.
 		 */
-		public static function intersection(...arrays):Array
+		public static function intersection(firstArray:*, secondArray:*, ...moreArrays):Array
 		{
-			if (arrays.length == 0)
-				return arrays;
-			if (arrays.length == 1)
-				return arrays[0]
+			moreArrays.unshift(secondArray);
 			
 			var result:Array = [];
 			var item:*;
-			var firstArray:* = arrays.shift();
-			var lastArray:* = arrays.pop();
+			var lastArray:* = moreArrays.pop();
 			
 			_lookupId++;
 			for each (item in lastArray)
 				_lookup[item] = _lookupId;
 			
-			for each (var array:* in arrays)
+			for each (var array:* in moreArrays)
 			{
 				for each (item in array)
 					if (_lookup[item] === _lookupId)
