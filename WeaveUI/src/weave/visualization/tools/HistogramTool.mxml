@@ -68,7 +68,7 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.sumColumn); });
+				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.columnToAggregate); });
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.fillStyle.color); });
 				
 				initColumnDefaults(ColumnUtils.hack_findInternalDynamicColumn(plotter.fillStyle.color));
@@ -77,7 +77,10 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				sumColumnComponent.dynamicObject = plotter.sumColumn;
+				columnToAggregateComponent.dynamicObject = plotter.columnToAggregate;
+				plotter.columnToAggregate.addGroupedCallback(this, function():void {
+					agMethodCombo.enabled = plotter.columnToAggregate.getInternalColumn() != null;
+				}, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -86,7 +89,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [plotter.fillStyle.color, plotter.sumColumn];
+				return [plotter.fillStyle.color, plotter.columnToAggregate];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -131,14 +134,14 @@
 			
 			private function getYAxisLabel(number:Number):String
 			{
-				return ColumnUtils.deriveStringFromNumber(plotter.sumColumn, number);
+				return ColumnUtils.deriveStringFromNumber(plotter.columnToAggregate, number);
 			}
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
 				
 				visualization.bottomMarginColumn = plotter.fillStyle.color;
-				visualization.leftMarginColumn = plotter.sumColumn;
+				visualization.leftMarginColumn = plotter.columnToAggregate;
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
@@ -155,17 +158,22 @@
 				
 				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.fillStyle.color), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
 				
-				var yColName:String = lang("Number of Records");
-				if (plotter.sumColumn.getInternalColumn())
+				var axisTitle:String = lang("Number of records");
+				if (plotter.columnToAggregate.getInternalColumn() && plotter.aggregationMethod.value != HistogramPlotter.AG_COUNT)
 				{
-					yColName = ColumnUtils.getTitle(plotter.sumColumn);
 					yAxisPlotter.setLabelFunction(getYAxisLabel);
+					var agColTitle:String = ColumnUtils.getTitle(plotter.columnToAggregate);
+					var method:String = plotter.aggregationMethod.value;
+					if (method == HistogramPlotter.AG_MEAN)
+						axisTitle = lang("Mean of {0}", agColTitle);
+					if (method == HistogramPlotter.AG_SUM)
+						axisTitle = lang("Sum of {0}", agColTitle);
 				}
 				else
 				{
 					yAxisPlotter.setLabelFunction(null);
 				}
-				yAxisPlotter.setSideAxisName(yColName, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				yAxisPlotter.setSideAxisName(axisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
@@ -179,7 +187,11 @@
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
-			<ui:DynamicColumnComponent id="sumColumnComponent"/>
+			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
+			<ui:Indent label="Height aggregation method">
+				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
+								   creationComplete="linkBindableProperty(plotter.aggregationMethod, event.target, 'selectedItem');"/>
+			</ui:Indent>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
 						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
