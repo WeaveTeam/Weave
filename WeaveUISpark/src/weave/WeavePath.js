@@ -12,6 +12,7 @@ if (!Array.isArray)
 /**
  * Creates a WeavePath object.
  * Accepts an optional Array or list of names to serve as the base path, which cannot be removed with pop().
+ * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  */
 weave.path = function(/*...basePath*/)
 {
@@ -147,6 +148,7 @@ function WeavePath(path)
 	/**
 	 * Specify any number of names to push on to the end of the path.
 	 * Accepts a list of names relative to the current path.
+	 * A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 	 */
 	this.push = function(/*...relativePath*/)
 	{

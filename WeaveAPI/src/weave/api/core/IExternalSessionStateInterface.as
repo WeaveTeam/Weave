@@ -30,6 +30,7 @@ package weave.api.core
 		/**
 		 * This function gets the current session state of a linkable object.  Nested XML objects will be converted to Strings before returning.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @return An object containing the values from the sessioned properties.
 		 */
 		function getSessionState(objectPath:Array):Object;
@@ -37,6 +38,7 @@ package weave.api.core
 		/**
 		 * This function updates the current session state of an object.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
 		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the new session state.
 		 * @return true if objectPath refers to an existing object in the session state.
@@ -46,6 +48,7 @@ package weave.api.core
 		/**
 		 * This function will get the qualified class name of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @return The qualified class name of the object referred to by objectPath, or null if there is no object.
 		 */
 		function getObjectType(objectPath:Array):String;
@@ -53,6 +56,7 @@ package weave.api.core
 		/**
 		 * This function gets a list of names of children of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @return An Array of names of sessioned children of the object referred to by objectPath, or null if the object doesn't exist.
 		 */
 		function getChildNames(objectPath:Array):Array;
@@ -60,6 +64,7 @@ package weave.api.core
 		/**
 		 * This function will reorder children of an object implementing ILinkableHashMap.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @param orderedChildNames The new order to use for the children of the object specified by objectPath.
 		 * @return true if objectPath refers to the location of an ILinkableHashMap.
 		 */
@@ -75,6 +80,7 @@ package weave.api.core
 		 * the name of a static object appearing at the top level of the session state.  A child name equal to null in this case
 		 * will create a local object that does not appear at the top level of the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @param objectType The qualified name of a class implementing ILinkableObject.
 		 * @return true if, after calling this function, an object of the requested type exists at the requested location.
 		 */
@@ -83,6 +89,7 @@ package weave.api.core
 		/**
 		 * This function will remove a dynamically created object if it is the child of an ILinkableCompositeObject.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @return true if objectPath refers to a valid location where dynamically created objects can exist.
 		 */
 		function removeObject(objectPath:Array):Boolean;

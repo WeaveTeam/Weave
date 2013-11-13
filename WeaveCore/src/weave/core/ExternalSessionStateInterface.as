@@ -48,8 +48,10 @@ package weave.core
 		
 		/**
 		 * This function returns a pointer to an object appearing in the session state.
-		 * This function is not intended to be accessible through JavaScript.
+		 * This function is not intended to be accessible directly from JavaScript because
+		 * the pointer to the ILinkableObject cannot be retained in JavaScript.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 *                   A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 * @return A pointer to the object referred to by objectPath.
 		 */
 		public function getObject(objectPath:Array):ILinkableObject
@@ -83,9 +85,7 @@ package weave.core
 			return object;
 		}
 		/**
-		 * This function gets the current session state of an object.  Nested XML objects will be converted to Strings before returning.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return An object containing the values from the sessioned properties.
+		 * @inheritDoc
 		 */
 		public function getSessionState(objectPath:Array):Object
 		{
@@ -125,11 +125,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function updates the current session state of an object.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
-		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the new session state.
-		 * @return true if objectPath refers to an existing object in the session state.
+		 * @inheritDoc
 		 */
 		public function setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean
 		{
@@ -141,9 +137,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will get the qualified class name of an object appearing in the session state.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return The qualified class name of the object referred to by objectPath, or null if there is no object.
+		 * @inheritDoc
 		 */
 		public function getObjectType(objectPath:Array):String
 		{
@@ -154,9 +148,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function gets a list of names of children of an object appearing in the session state.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return An Array of names of sessioned children of the object referred to by objectPath, or null if the object doesn't exist.
+		 * @inheritDoc
 		 */
 		public function getChildNames(objectPath:Array):Array
 		{
@@ -171,10 +163,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will reorder children of an object implementing ILinkableHashMap.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param orderedChildNames The new order to use for the children of the object specified by objectPath.
-		 * @return true if objectPath refers to the location of an ILinkableHashMap.
+		 * @inheritDoc
 		 */
 		public function setChildNameOrder(hashMapPath:Array, orderedChildNames:Array):Boolean
 		{
@@ -185,17 +174,7 @@ package weave.core
 			return true;
 		}
 		/**
-		 * This function will dynamically create an object at the specified location in the session state if its parent implements
-		 * ILinkableCompositeObject.  If the object at the specified location already exists and is of the requested type,
-		 * this function does nothing.
-		 * If the parent of the dynamic object to be created implements ILinkableHashMap, a value of null for the child name
-		 * will cause a new name to be generated.
-		 * If the parent of the dynamic object to be created implements ILinkableDynamicObject, the name of the child refers to
-		 * the name of a static object appearing at the top level of the session state.  A child name equal to null in this case
-		 * will create a local object that does not appear at the top level of the session state.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @param objectType The qualified name of a class implementing ILinkableObject.
-		 * @return true if, after calling this function, an object of the requested type exists at the requested location.
+		 * @inheritDoc
 		 */
 		public function requestObject(objectPath:Array, objectType:String):Boolean
 		{
@@ -222,9 +201,7 @@ package weave.core
 		}
 
 		/**
-		 * This function will remove a dynamically created object if it is the child of an ILinkableCompositeObject.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return true if objectPath refers to a valid location where dynamically created objects can exist.
+		 * @inheritDoc
 		 */
 		public function removeObject(objectPath:Array):Boolean
 		{
@@ -245,10 +222,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function serializes a session state from Object format to XML String format.
-		 * @param sessionState A session state object.
-		 * @param tagName The name to use for the root XML tag that gets generated from the session state.
-		 * @return An XML serialization of the session state.
+		 * @inheritDoc
 		 */
 		public function convertSessionStateObjectToXML(sessionState:Object, tagName:String = null):String
 		{
@@ -257,9 +231,7 @@ package weave.core
 		}
 
 		/**
-		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
-		 * @param sessionState A session state that has been encoded in an XML String.
-		 * @return The deserialized session state object.
+		 * @inheritDoc
 		 */
 		public function convertSessionStateXMLToObject(sessionStateXML:String):Object
 		{
@@ -294,7 +266,7 @@ package weave.core
 		private const _compiler:Compiler = new Compiler();
 		
 		/**
-		 * @see weave.api.core.IExternalSessionStateInterface
+		 * @inheritDoc
 		 */
 		public function evaluateExpression(scopeObjectPathOrVariableName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignVariableName:String = null):*
 		{
@@ -375,7 +347,7 @@ package weave.core
 		}
 		
 		/**
-		 * @see weave.api.core.IExternalSessionStateInterface
+		 * @inheritDoc
 		 */
 		public function addCallback(objectPathOrVariableName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
 		{
@@ -388,7 +360,7 @@ package weave.core
 		}
 		
 		/**
-		 * @see weave.api.core.IExternalSessionStateInterface
+		 * @inheritDoc
 		 */
 		public function removeCallback(objectPathOrVariableName:Object, callback:String):Boolean
 		{
