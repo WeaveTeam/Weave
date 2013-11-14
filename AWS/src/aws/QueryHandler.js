@@ -13,6 +13,7 @@ goog.require('aws.WeaveClient');
  * @param {aws.queryObject} queryObject. The query object obtained from the UI, or alternatively, from a file.
  *
  **/
+
 aws.QueryHandler = function(queryObject)
 {
 	// the idea here is that we "parse" the query Object into smaller entities (brokers) and use them as needed.
@@ -75,7 +76,9 @@ aws.QueryHandler = function(queryObject)
 		);
 	}	
 	
-	this.weaveClient = new aws.WeaveClient($('#weave')[0]);
+	//testing
+	//this.weaveClient = new aws.WeaveClient($('#weave')[0]);
+    //testing
 	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
@@ -89,6 +92,11 @@ aws.QueryHandler = function(queryObject)
 	this.resultDataSet = "";
 };
 
+//testing
+var newWeaveWindow;
+var weaveInstance;
+var client = aws.QueryHandler.weaveClient;
+//testing
 /**
  * This function is the golden evaluator of the query.
  * 1- run the scripts against the data
@@ -97,7 +105,14 @@ aws.QueryHandler = function(queryObject)
  */
 aws.QueryHandler.prototype.runQuery = function() {
 	
-	
+	//testing
+	newWeaveWindow = window.open("SeparateWindow.html", 
+			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
+		
+	weaveInstance = newWeaveWindow.document.getElementById("weave");//getting the pointer to the weave instance in the separate browser window
+    client = new aws.WeaveClient(weaveInstance);
+    //testing
+    
 	// step 1
 	var that = this;
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	

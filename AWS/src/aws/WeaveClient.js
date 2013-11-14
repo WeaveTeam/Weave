@@ -28,7 +28,7 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	var toolName;
 	switch(visualization.type) {
 		case 'MapTool':
-			toolName = this.newMap(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
+			toolName = this.newMap2(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
 			this.setPosition(toolName, "0%", "0%");
 			break;
 		case 'ScatterPlotTool':
@@ -99,6 +99,18 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
     return toolName;
 };
 
+
+aws.WeaveClient.prototype.newMap2 = function (entityId, title, keyType){
+
+    var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+    //request the tool
+    this.weave.path(toolName).request('MapTool');
+    this.weave.path(toolName, 'children','visualization','plotManager','plotters', 'plot','geometryColumn','internalDynamicColumn')
+    			 .push(null).request('ReferencedColumn')
+    			 .push('dynamicColumnReference', null).request('HierarchyColumnReference')
+    			 .state({dataSourceName :"WeaveDataSource",
+                     hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+};
 /**
  * This function accesses the weave instance and create a new scatter plot, regardless of wether or not 
  * there is an existing scatter plot.
@@ -239,6 +251,7 @@ aws.WeaveClient.prototype.updateVisualization = function(toolName, update) {
 /**
  * This function accesses the weave instance and creates a new csv data source from string.
  * 
+ * 
  * @param {string} csvDataString CSV data source in string format.
  * @param {string} dataSourceName the name of the data source.
  * @param {string} keyType the key type
@@ -250,6 +263,7 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
 	
 	if (dataSourceName == "") {
 		 dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+		//dataSourceName = weaveInstance.path().getValue('generateUniqueName("CSVDataSource")');
 	}
 
 	this.weave.path(dataSourceName)
@@ -266,6 +280,7 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
 /**
  * This function accesses the weave instance and creates a new csv data source from a two dimensional array
  * 
+ * @param  newWeaveWindow a pointer to the new browser window
  * @param {string} csvDataMatrix a two dimensional array.
  * @param {string} dataSourceName the name of the data source.
  * @param {string} keyType the key type
