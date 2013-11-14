@@ -407,14 +407,21 @@ package weave.visualization.layers
 				// delay asyncInit() while calling plotter function in case it triggers callbacks
 				_delayInit = true;
 				
+				if (debug)
+					trace(this, 'before iteration', _iteration, 'recordKeys', recordKeys.length);
 				_progress = _plotter.drawPlotAsyncIteration(this);
 				if (debug)
-					trace(this, 'iteration', _iteration, 'progress', _progress);
+					trace(this, 'after iteration', _iteration, 'progress', _progress, 'recordKeys', recordKeys.length);
 				
 				_delayInit = false;
 				
 				if (_pendingInit)
-					asyncInit(); // restart from first iteration
+				{
+					// if we get here it means the plotter draw function triggered callbacks
+					// and we need to restart the async task.
+					asyncInit();
+					return asyncIterate(stopTime);
+				}
 				else
 					_iteration++; // prepare for next iteration
 			}
