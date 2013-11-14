@@ -272,6 +272,8 @@ package weave.visualization.plotters
 		[Deprecated(replacement="columnToAggregate")] public function set sumColumn(value:Object):void
 		{
 			setSessionState(columnToAggregate, value);
+			if (columnToAggregate.getInternalColumn())
+				aggregationMethod.value = AG_SUM;
 		}
 	}
 }
