@@ -35,6 +35,7 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
+import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -300,6 +301,7 @@ public class RServiceUsingRserve
 	/*
 	 * Taken from rJava Opensource code and 
 	 * added support for Rlist
+	 * added support for RFactor(REngine)
 	 */
 	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
@@ -309,6 +311,9 @@ public class RServiceUsingRserve
 			int len = rexp.length();
 			if(rexp.isString()) {
 				return len == 1 ? rexp.asString() : rexp.asStrings();
+			}
+			if(rexp.isFactor()){
+				return rexp.asFactor();
 			}
 			if(rexp.isInteger()) {
 				return len == 1 ? rexp.asInteger() : rexp.asIntegers();
@@ -332,18 +337,27 @@ public class RServiceUsingRserve
 				// eg: REXPDouble as Double or Doubles
 				for(int i = 0; i < listOfREXP.length; i++){
 					REXP obj = (REXP)listOfREXP[i];
-					listOfREXP[i] = rexp2javaObj(obj);
+					Object javaObj =  rexp2javaObj(obj);
+					if (javaObj instanceof RFactor)
+					{
+						RFactor factorjavaObj = (RFactor)javaObj;
+						String[] levels = factorjavaObj.asStrings();
+						listOfREXP[i] = levels;
+					}
+					else
+					{
+						listOfREXP[i] =  javaObj;
+					}
 				}
 				return listOfREXP;
 			}
 		}
-		else{//rlist
-			
+		else
+		{
+			//rlist
 			return rexp.toDebugString();
 		}
 		return rexp;
-		
-		
 	}
 	
 	public static double[][] normalize(String docrootPath, Object[][] data) throws RemoteException

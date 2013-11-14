@@ -65,7 +65,7 @@ public class RService extends GenericServlet
 	}
 
 	private String docrootPath = "";
-	private String uploadPath = "";
+	protected String uploadPath = "";
 	private String rServePath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
