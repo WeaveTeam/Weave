@@ -143,7 +143,7 @@
 			}
 
 
-			private function updateProbeChange():void
+			private function updateProbeChange():Number
 			{
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
@@ -151,8 +151,9 @@
 						weave.external_tools[toolname].probe(elements);\
 						}",
 						ExternalInterface.objectID, _toolName, _probe.keys);
+				return 1;
 			}
-			private function updateSelectionChange():void
+			private function updateSelectionChange():Number
 			{
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
@@ -160,8 +161,9 @@
 						weave.external_tools[toolname].select(elements);\
 						}",
 						ExternalInterface.objectID, _toolName, _selection.keys);
+				return 1;
 			}
-			public function updateSubsetChange():void
+			public function updateSubsetChange():Number
 			{
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
@@ -169,6 +171,7 @@
 						weave.external_tools[toolname].subset(elements);\
 						}",
 						ExternalInterface.objectID, _toolName, _nodeFilteredKeys.keys.concat(_edgeFilteredKeys.keys));
+				return 1;
 			}
 
 			private const _networkSchema:Object = {
@@ -176,7 +179,7 @@
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
 							{name: "color", type: "string", defValue: ""},
-							{name: "size", type: "number", defVaue: 30}],
+							{name: "size", type: "number", defValue: 30}],
 					edges: [{name: "label", type: "string", defValue: ""},
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
@@ -298,9 +301,6 @@
 						ExternalInterface.objectID, _toolName, _primitiveLayout);
 			}
 
-
-			
-
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -314,8 +314,8 @@
 				edgeLabelComponent.dynamicObject = edgeLabelColumn;
 				edgeWeightComponent.dynamicObject = edgeWeightColumn;
 				
-				_probe.addImmediateCallback(this, updateProbeChange);
-				_selection.addImmediateCallback(this, updateSelectionChange);
+				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, updateProbeChange, WeaveAPI.TASK_PRIORITY_BUILDING)});
+				_selection.addGroupedCallback(this, updateSelectionChange);
 				_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
 			}
 			
