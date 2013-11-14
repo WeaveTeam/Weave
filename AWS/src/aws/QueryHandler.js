@@ -76,9 +76,10 @@ aws.QueryHandler = function(queryObject)
 		);
 	}	
 	
-	//testing
-	//this.weaveClient = new aws.WeaveClient($('#weave')[0]);
-    //testing
+//	testing
+//	this.weaveClient;
+//    testing
+    this.newWeaveWindow = null;
 	
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
@@ -92,10 +93,29 @@ aws.QueryHandler = function(queryObject)
 	this.resultDataSet = "";
 };
 
+aws.QueryHandler.prototype.launchWeaveWindow = function(){
+    this.newWeaveWindow = window.open("SeparateWindow.html",
+        "_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
+}
+aws.QueryHandler.prototype.closeWeaveWindow = function(){
+    // need code that will destroy the window we created earlier. while passing the
+
+    this.newWeaveWindow = null;
+}
+
+aws.QueryHandler.prototype.getCurrentWeave = function(){
+    if (false) {
+        var weave1 = $('#weave');
+        return new aws.WeaveClient(weave1);
+    }else if (this.newWeaveWindow != null) {
+        var weave2 = this.newWeaveWindow.document.getElementById("weave");
+        return new aws.WeaveClient(weave2);
+    }
+}
 //testing
-var newWeaveWindow;
-var weaveInstance;
-var client = aws.QueryHandler.weaveClient;
+//var newWeaveWindow;
+//var weaveInstance;
+//var client = aws.QueryHandler.weaveClient;
 //testing
 /**
  * This function is the golden evaluator of the query.
@@ -106,13 +126,14 @@ var client = aws.QueryHandler.weaveClient;
 aws.QueryHandler.prototype.runQuery = function() {
 	
 	//testing
-	newWeaveWindow = window.open("SeparateWindow.html", 
-			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
-		
-	weaveInstance = newWeaveWindow.document.getElementById("weave");//getting the pointer to the weave instance in the separate browser window
-    client = new aws.WeaveClient(weaveInstance);
+//	newWeaveWindow = window.open("SeparateWindow.html",
+//			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
+//
+//	weaveInstance = newWeaveWindow.document.getElementById("weave");//getting the pointer to the weave instance in the separate browser window
+//    client = new aws.WeaveClient(weaveInstance);
     //testing
-    
+    this.weaveClient = this.getCurrentWeave();
+
 	// step 1
 	var that = this;
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
