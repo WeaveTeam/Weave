@@ -58,10 +58,18 @@ package weave.ui.CustomDataGrid
 		
 		public function sort(items:Array):void
 		{
+			if (!items || items.length <= 1)
+				return;
+			
 			if (unique)
 				_sort.sort(items);
 			else
+			{
+				// this will properly initialize _sort so fixedCompareFunction won't crash
+				_sort.sort([items[0],items[1]]);
+				
 				AsyncSort.sortImmediately(items, fixedCompareFunction);
+			}
 		}
 
 	}

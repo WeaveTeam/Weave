@@ -77,7 +77,6 @@ package weave.ui.CustomDataGrid
 		private function headerReleaseHandler(event:DataGridEvent):void
 		{
 			var c:DataGridColumn = columns[event.columnIndex];
-			var desc:Boolean = c.sortDescending;
 			if (c.sortable && !(collection.sort is CustomSort))
 				collection.sort = new CustomSort(collection.sort);
 		}
