@@ -201,11 +201,7 @@
 					return;
 				}
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;
-				
-				
-				var xlsData:Array = WeaveAPI.CSVParser.convertRowsToRecords(xlsDataArray);
-				
-				grid.loadXLSData(xlsData, xlsDataArray[0]);
+				grid.setRows(xlsDataArray, false);
 				
 				PopUpManager.bringToFront(grid);
 			}
