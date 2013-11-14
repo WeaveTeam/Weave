@@ -247,7 +247,13 @@
 				
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = false;
 				
-				(labelComponent as DynamicColumnComponent).dynamicObject = labelPlotter.text;
+				colorSelector.columnWrapper = _plotter.lineStyle.color;
+				labelSelector.dynamicObject = labelPlotter.text;
+				
+				xDataSelector.dynamicObject = _plotter.xData;
+				yDataSelector.dynamicObject = _plotter.yData;
+				groupBySelector.dynamicObject = _plotter.groupBy;
+				groupByLabelSelector.dynamicObject = labelPlotter.text;
 				
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
@@ -454,8 +460,8 @@
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
-			<ui:DynamicColumnComponent label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).columnWrapper = _plotter.lineStyle.color" showLinkControl="false"/>
-			<ui:DynamicColumnComponent label="{lang('Label')}" id="labelComponent"/>
+			<ui:DynamicColumnComponent id="colorSelector" showLinkControl="false"/>
+			<ui:DynamicColumnComponent id="labelSelector"/>
 <!--			<mx:TabNavigator width="100%" height="100%" creationPolicy="all"> -->
 			<ui:ColumnListComponent  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 <!--			<ui:ColumnListComponent  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.xAttributeColumns"/>	
@@ -545,29 +551,25 @@
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Grouping')}">
-			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
-						 label="{lang('Group records by column values')}"
-						 toolTip="{lang('Enable/disable grouping data by category value')}"/>
-			<mx:VBox enabled="{enableGroupByCheckBox.selected}" width="100%">
-				
-				<ui:DynamicColumnComponent label="{lang('X Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
-										   toolTip="{lang('Attribute to appear on the x axis. All columns must have the same keyType.')}"/>
-				<ui:DynamicColumnComponent label="{lang('Y Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-										   toolTip="{lang('Attribute to appear on the y axis. All columns must have the same keyType.')}"/>
-				<ui:DynamicColumnComponent label="{lang('Group by')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
-										   toolTip="{lang('Specify column to get keys from. All columns must have the same keyType.')}"/>
-				<ui:DynamicColumnComponent label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-										   toolTip="{lang('Attribute used for record label text. All columns must have the same keyType.')}"/>
+			<ui:CheckBoxWithNestedOptions id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
+						 label="{lang('Group records by column values')}">
+				<ui:DynamicColumnComponent id="xDataSelector" helpContent="Attribute to appear on the x axis. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="yDataSelector" helpContent="Attribute to appear on the y axis. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="groupBySelector" helpContent="Specify column to get keys from. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="groupByLabelSelector" helpContent="Attribute used for record label text. All columns must have the same keyType."/>
 				<ui:Indent>
-					<mx:Button label="{lang('Generate label Equation')}" toolTip="{lang('Generates label equation from current Label column if its keyType matches the group-by keyType')}"
+					<mx:Button label="{lang('Generate label Equation')}"
 							   click="updateLabelColumn()"/>
+					<ui:HelpComponent>
+						Generates label equation from current Label column if its keyType matches the group-by keyType.
+					</ui:HelpComponent>
 				</ui:Indent>
 				<ui:Indent label="{lang('Customize X values:')}">
 					<mx:TextInput id="xValuesInput" toolTip="{lang('These values will appear on the x axis')}" width="100%"/>
 					<mx:Button label="{lang('Apply')}" click="_plotter.xValues.value = xValuesInput.text;"/>
 					<mx:Button label="{lang('Reset')}" click="_plotter.xValues.value = ''; updateFilterText();"/>
 				</ui:Indent>
-			</mx:VBox>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

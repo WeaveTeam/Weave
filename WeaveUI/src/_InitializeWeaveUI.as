@@ -40,7 +40,7 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
-	import weave.editors.ScatterPlotLayerEditor;
+	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.StringDataFilterEditor;
@@ -130,7 +130,7 @@ package
 			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
 			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
 			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
-			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotLayerEditor);
+			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
 			
 			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);

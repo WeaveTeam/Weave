@@ -34,7 +34,11 @@
 								prompt="{lang('Enter a name')}"
 								errorString="{sourceName.text ? null : lang('Required')}"/>
 	</ui:Indent>
-	<ui:DynamicColumnComponent label="Title column" id="titleColumnEditor" showLinkControl="false"/>
+	<ui:DynamicColumnComponent label="Title column" id="titleColumnEditor" showLinkControl="false">
+		<ui:helpContent>
+			The values in this column will be used as titles for the transposed columns.
+		</ui:helpContent>
+	</ui:DynamicColumnComponent>
 	<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100);">
 		<ui:ColumnListComponent id="columnsEditor" showVariableNames="false" label="{lang('Columns to transpose')}">
 			<ui:helpContent>

@@ -491,7 +491,7 @@
 		initialize="linkBindableProperty(isVisibleEquationTextBoolean, equationText, 'visible')"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-			<editors:ScatterPlotLayerEditor id="plotEditor" width="100%"/>
+			<editors:ScatterPlotPlotterEditor id="plotEditor" width="100%"/>
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">

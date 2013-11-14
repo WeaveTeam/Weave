@@ -136,10 +136,6 @@
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				if (controller.dynamicObject == value)
-					return;
-				
-				toolWatcher.target = AttributeSelectorPanel.getVisTool(columnWrapperWatcher.target || value);
 				controller.dynamicObject = value;
 				dynamicObjectWatcher.target = value;
 				
@@ -156,6 +152,7 @@
 			
 			private function updateLabel():void
 			{
+				toolWatcher.target = AttributeSelectorPanel.getVisTool(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
 				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
 				if (!tool)
 					return;

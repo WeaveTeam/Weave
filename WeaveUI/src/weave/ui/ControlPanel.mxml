@@ -340,14 +340,14 @@
 				super.handleEscapeKey();
 			}
 			
-			public static function getControlPanelTitle(object:ILinkableObject):String
+			public static function getControlPanelTitle(object:ILinkableObject, format:String = "Settings for {0}"):String
 			{
 				var className:String = getQualifiedClassName(object).split('::').pop();
 				var objectName:String = getSessionStateName(object);
 				var str:String = className;
 				if (objectName && objectName != className)
 					str += ' ' + Compiler.encodeString(objectName);
-				return "Settings for " + str;
+				return lang(format, str);
 			}
 			
 			private static function getSessionStateName(object:ILinkableObject):String

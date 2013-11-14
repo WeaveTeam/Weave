@@ -158,30 +158,24 @@
 			{
 				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 
+				var titleFormat:String = "Attribute selector for {0}";
 				var tool:IVisToolWithSelectableAttributes = getVisTool(columnOrHashMap);
 				if (tool)
 				{
 					targets = selectableAttributes = tool.getSelectableAttributes();
 					selectableAttributeNames = tool.getSelectableAttributeNames();
+					
+					title = ControlPanel.getControlPanelTitle(tool, titleFormat);
+					dimensionTypeLinks.selectedIndex = selectableAttributes.indexOf(columnOrHashMap);
+					showOrHideParamSelector(true);
 				}
 				else
 				{
 					targets = columnOrHashMap ? [columnOrHashMap] : [];
 					selectableAttributeNames = selectableAttributes = [];
-				}
-
-				var index:int = selectableAttributes.indexOf(columnOrHashMap);
-				if (index >= 0)
-				{
-					objectTitle = selectableAttributeNames[index];
-					title = lang("Attribute selector for {0}", objectTitle);
-					dimensionTypeLinks.selectedIndex = index;
-					showOrHideParamSelector(true);
-				}
-				else
-				{
+					
 					if (objectTitle)
-						title = lang("Attribute selector for {0}", objectTitle);
+						title = lang(titleFormat, objectTitle);
 					else
 						title = lang("Attribute selector");
 					showOrHideParamSelector(false);
@@ -242,13 +236,17 @@
 					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
 				_instance.restorePanel();
 			}
-			public static function getVisTool(selectableAttribute:ILinkableObject):IVisToolWithSelectableAttributes
+			public static function getVisTool(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IVisToolWithSelectableAttributes
 			{
 				var owner:ILinkableObject = getLinkableOwner(selectableAttribute);
 				while (owner && !(owner is IVisToolWithSelectableAttributes))
 					owner = getLinkableOwner(owner);
 				
 				var tool:IVisToolWithSelectableAttributes = owner as IVisToolWithSelectableAttributes;
+
+				if (evenIfNotInSelectableAttributes)
+					return tool;
+				
 				if (tool && tool.getSelectableAttributes().indexOf(selectableAttribute) >= 0)
 					return tool;
 				

@@ -928,7 +928,7 @@
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Layer Visibility')}" verticalGap="10" id="visibleScaleRangesUI">
-			<ui:Indent label="Current Zoom" translate="true" labelTextAlign="left" group="{scaleRangeIndentGroup}">
+			<ui:Indent label="Current Zoom" translate="true" labelAlign="left" group="{scaleRangeIndentGroup}">
 				<mx:HSlider id="scaleRangeTabZoomSlider" 
 							width="100%" 
 							tickInterval="1"
@@ -943,7 +943,7 @@
 								   paddingLeft="0">
 				<mx:itemRenderer>
 					<mx:Component>
-						<ui:Indent labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
+						<ui:Indent labelAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
 							<mx:Script>
 								<![CDATA[
 									import mx.events.SliderEvent;
