@@ -110,12 +110,12 @@ public class test
 //		
 		
 		
-//		ArrayList<String> columns = new ArrayList<String>();
-//		columns.add("X_STATE");
-//		columns.add("X_PSU");
-//		columns.add("X_FINALWT");
-//		columns.add("X_STSTR");
-//		columns.add("DIABETE2");
+		ArrayList<String> columns = new ArrayList<String>();
+		columns.add("X_STATE");
+		columns.add("X_PSU");
+		columns.add("X_FINALWT");
+		columns.add("X_STSTR");
+		columns.add("DIABETE2");
 		
 //		columns.add("PercentObese2002");
 //		columns.add("PercentObese2003");
@@ -130,26 +130,28 @@ public class test
 		connectionObject.put("host", "localhost");
 		connectionObject.put("dsn", "myCDC");
 		
-		requestObject.put("scriptName", "byPass.R");
+		requestObject.put("scriptName", "TestingAWS_RODBC.R");
 		requestObject.put("scriptPath", "C:\\RScripts\\");
-		//requestObject.put("columnsToBeRetrieved",columns);
+		requestObject.put("columnsToBeRetrieved",columns);
 		requestObject.put("dataset", "sdoh2010q");
 		
-		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
-		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
-		Object[][] myMatrix = new Object[][]{array1, array2};
-		String scriptPath = "C:\\RScripts\\byPass.R";
-		String [] inputNames = {"cannedScriptPath", "dataMatrix"};
-		Object[] inputValues = {scriptPath, myMatrix};
-		String script = "scriptFromFile <- source(cannedScriptPath)\n" +
-		   "returnedColumns <- scriptFromFile$value(dataMatrix)\n";
-		String[] resultNames = {};
+		//Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
+		//Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+		//Object[] myMatrix = new Object[]{array1, array2};
+		//String scriptPath = "C:\\RScripts\\TestingAWS_RODBC.R";
+		//String [] inputNames = {"cannedScriptPath", "params"};
+		//Object[] inputValues = new Object[0];
+		//Object[] inputValues = {scriptPath, columns };
+		
+		//String script = "scriptFromFile <- source(cannedScriptPath)\n" +
+		 //"returnedColumns <- scriptFromFile$value(dataMatrix)\n";
+		//String[] resultNames = {};
 		
 		
 		
-		call(null, inputNames, inputValues, resultNames, script, "", false, false, false);
+		//call(null, inputNames, inputValues, resultNames, script, "", false, false, false);
 		
-		//testcall(connectionObject, requestObject);
+		testcall(connectionObject, requestObject);
 		
 		
 		

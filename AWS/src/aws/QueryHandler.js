@@ -97,6 +97,7 @@ aws.QueryHandler = function(queryObject)
  */
 aws.QueryHandler.prototype.runQuery = function() {
 	
+	
 	// step 1
 	var that = this;
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	

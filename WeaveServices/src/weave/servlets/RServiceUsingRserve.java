@@ -60,7 +60,7 @@ public class RServiceUsingRserve
 
 	private static String rFolderName = "R_output";
 	
-	private static RConnection getRConnection() throws RemoteException
+	public static RConnection getRConnection() throws RemoteException
 	{
 		
 		
@@ -87,7 +87,7 @@ public class RServiceUsingRserve
 		}
 	}
 
-	private static String plotEvalScript( RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException
+	public static String plotEvalScript( RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException
 	{
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
@@ -115,49 +115,16 @@ public class RServiceUsingRserve
 		return rFolderName + "/" + file;
 	}
 	
-	private static String timeLogString = "";
-	private static DebugTimer debugger = new DebugTimer();
-	private static boolean clearCacheTimeLog;
-	
-	//used for time logging in the aws home page 
-	public static String getCurrentTime(String message)
-	{
-		String timedMessage = ""; 
-		Calendar clr = Calendar.getInstance();
-		SimpleDateFormat dformdate = new SimpleDateFormat("MM/dd/yyyy");
-		SimpleDateFormat dformtime = new SimpleDateFormat("HH:mm:ss");
-		timedMessage = message + " " + dformdate.format(clr.getTime()) + " " + dformtime.format(clr.getTime()) + "\n";
-		System.out.print(timedMessage);
-		return timedMessage;
-	}
-
 	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
-		//debugger.start();
-		
-		//have a clean slate during every computation
-		timeLogString = "";
-		
 		REXP evalValue = null;
-		//debugger.report("Calling R\n");
-		if(!clearCacheTimeLog)
-		{
-			timeLogString = timeLogString + getCurrentTime("Sending data to R :");
-			//timeLogString = timeLogString +"\nSending call to R : "+ debugger.get();
-		}
 		
 		if (showWarnings)			
 			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
 		else
 			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
 		
-		if(!clearCacheTimeLog){
-			timeLogString = timeLogString  + getCurrentTime("Retrieving results from R :");
-			//timeLogString = timeLogString + "\nResults received From R : " + debugger.get() + " ms";
-		}
-		//debugger.report("Results received From R\n");
-		//debugger.stop("End");
 		
 		return evalValue;
 	}
@@ -224,7 +191,7 @@ public class RServiceUsingRserve
 		return getREXP(new Object[]{object});
 	}
 
-	private  static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws Exception
+	public  static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws Exception
 	{
 		for (int i = 0; i < inputNames.length; i++)
 		{
@@ -276,9 +243,9 @@ public class RServiceUsingRserve
 			// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"			
 			assignNamesToVector(rConnection,inputNames,inputValues);
 			
-			//evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			evaluvateInputScript(rConnection, script, resultVector, showIntermediateResults, showWarnings);
 			
-			evaluateWithTypeChecking( rConnection, script, resultVector, showIntermediateResults, showWarnings);
+			//evaluateWithTypeChecking( rConnection, script, resultVector, showIntermediateResults, showWarnings);
 			
 			if (plotScript != ""){// R Script to EVALUATE plotScript
 				String plotEvalValue = plotEvalScript(rConnection,docrootPath, plotScript, showWarnings);
@@ -290,7 +257,7 @@ public class RServiceUsingRserve
 				resultVector.add(new RResult(name, rexp2javaObj(evalValue)));					
 			}
 			// clear R objects
-			clearCacheTimeLog = true;
+			//clearCacheTimeLog = true;
 			evalScript( rConnection, "rm(list=ls())", false);
 			
 		}
@@ -368,7 +335,7 @@ public class RServiceUsingRserve
 	 * added support for  Rlist
 	 * added support for RFactor(REngine)
 	 */
-	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
+	public static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
 		
 		
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
@@ -440,216 +407,6 @@ public class RServiceUsingRserve
 		
 	}
 
-	//testing for JavascriptAPI calls
-	private static Vector<RResult> evaluateWithTypeChecking(RConnection rConnection, String script, Vector<RResult> newResultVector, boolean showIntermediateResults, boolean showWarnings ) throws ScriptException, RserveException, REXPMismatchException 
-	{
-		REXP evalValue= evalScript(rConnection, script, showWarnings);
-		Object resultArray = rexp2javaObj(evalValue);
-		Object[] columns;
-		if (resultArray instanceof Object[])
-		{
-			columns = (Object[])resultArray;
-		}
-		else
-		{
-			throw new ScriptException(String.format("Script result is not an Array as expected: \"%s\"", resultArray));
-		}
-
-		Object[][] final2DArray;//collecting the result as a two dimensional arrray 
-		
-		Vector<String> names = evalValue.asList().names;
-		
-	//try{
-			//getting the rowCounter variable 
-			int rowCounter = 0;
-			/*picking up first one to determine its length, 
-			all objects are different kinds of arrays that have the same length
-			hence it is necessary to check the type of the array*/
-			Object currentRow = columns[0];
-			if(currentRow instanceof int[])
-			{
-				rowCounter = ((int[]) currentRow).length;
-									
-			}
-			else if (currentRow instanceof Integer[])
-			{
-				rowCounter = ((Integer[]) currentRow).length;
-				
-			}
-			else if(currentRow instanceof double[])
-			{
-				rowCounter = ((double[]) currentRow).length;
-			}
-			else if(currentRow instanceof RFactor)
-			{
-				rowCounter = ((RFactor[]) currentRow).length;
-			}
-			else if(currentRow instanceof String[])
-			{
-				rowCounter = ((String[]) currentRow).length;
-			}
-			
-			int columnHeadingsCount = 1;
-			
-			rowCounter = rowCounter + columnHeadingsCount;//we add an additional row for column Headings
-			
-			final2DArray = new Object[rowCounter][columns.length];
-			
-			//we need to push the first entry as column names to generate this structure
-			/*[
-			["k","x","y","z"]
-			["k1",1,2,3]
-			["k2",3,4,6]
-			["k3",2,4,56]
-			] */
-		
-			String [] namesArray = new String[names.size()];
-			names.toArray(namesArray);
-			final2DArray[0] = namesArray;//first entry is column names
-			
-			for( int j = 1; j < rowCounter; j++)
-			{
-				ArrayList<Object> tempList = new ArrayList<Object>();//one added for every column in 'columns'
-				for(int f =0; f < columns.length; f++){
-					//pick up one column
-					Object currentCol = columns[f];
-					//check its type
-					if(currentCol instanceof int[])
-					{
-						//the second index in the new list should coincide with the first index of the columns from which values are being picked
-						tempList.add(f, ((int[])currentCol)[j-1]);
-					}
-					else if (currentCol instanceof Integer[])
-					{
-						tempList.add(f,((Integer[])currentCol)[j-1]);
-					}
-					else if(currentCol instanceof double[])
-					{
-						tempList.add(f,((double[])currentCol)[j-1]);
-					}
-					else if(currentCol instanceof RFactor)
-					{
-						tempList.add(f,((RFactor[])currentCol)[j-1]);
-					}
-					else if(currentCol instanceof String[])
-					{
-						tempList.add(f,((String[])currentCol)[j-1]);
-					}
-				}
-				Object[] tempArray = new Object[columns.length];
-				tempList.toArray(tempArray);
-				final2DArray[j] = tempArray;//after the first entry (column Names)
-				//final2DArray.add(tempList);
-				//tempList.clear();
-			}
-			
-			System.out.print(final2DArray);
-			newResultVector.add(new RResult("endResult", final2DArray));
-			newResultVector.add(new RResult("timeLogString", timeLogString));
-			
-
-			return newResultVector;
-			
-	//	}
-	//	catch (Exception e){
-			//e.printStackTrace();
-	//	}
-		
-//do the rest to generate a single continuous string representation of the result 
-		//	String finalresultString = "";
-//		String namescheck = Strings.join(",", names);
-//		finalresultString = finalresultString.concat(namescheck);
-//		finalresultString = finalresultString.concat("\n");
-//
-//		
-//
-//		int numberOfRows = 0;
-//		
-//		Vector<String[]> columnsInStrings = new Vector<String[]>();
-//		
-//		String[] tempStringArray = new String[0];
-//		
-//		try
-//		{
-//			for (int r= 0; r < columns.length; r++)					
-//			{
-//				Object currentColumn = columns[r];
-//						
-//						if(currentColumn instanceof int[])
-//						{
-//							 int[] columnAsIntArray = (int[])currentColumn;
-//							 tempStringArray = new String[columnAsIntArray.length] ; 
-//							 for(int g = 0; g < columnAsIntArray.length; g++)
-//							 {
-//								 tempStringArray[g] = ((Integer)columnAsIntArray[g]).toString();
-//							 }
-//						}
-//						
-//						else if (currentColumn instanceof Integer[])
-//						{
-//							 Integer[] columnAsIntegerArray = (Integer[])currentColumn;
-//							 tempStringArray = new String[columnAsIntegerArray.length] ;  
-//							 for(int g = 0; g < columnAsIntegerArray.length; g++)
-//							 {
-//								 tempStringArray[g] = columnAsIntegerArray[g].toString();
-//							 }
-//						}
-//						
-//						else if(currentColumn instanceof double[])
-//						{
-//							double[] columnAsDoubleArray = (double[])currentColumn;
-//							 tempStringArray = new String[columnAsDoubleArray.length] ;  
-//							 for(int g = 0; g < columnAsDoubleArray.length; g++)
-//							 {
-//								 tempStringArray[g] = ((Double)columnAsDoubleArray[g]).toString();
-//							 }
-//						}
-//						else if(currentColumn instanceof RFactor)
-//						{
-//							tempStringArray = ((RFactor)currentColumn).levels();
-//						}
-//						else if(currentColumn instanceof String[]){
-//							 int lent = ((Object[]) currentColumn).length;
-//							 //String[] columnAsStringArray = currentColumn;
-//							 tempStringArray = new String[lent];  
-//							 for(int g = 0; g < lent; g++)
-//							 {
-//								 tempStringArray[g] = ((Object[]) currentColumn)[g].toString();
-//							 }
-//						/*	String[] temp = (String[])
-//							int arrsize = ((String[])currentColumn).length;
-//							tempStringArray = new String[arrsize];
-//							tempStringArray = (String[])currentColumn;*/
-//						}
-//						
-//						columnsInStrings.add(tempStringArray);
-//						numberOfRows = tempStringArray.length;
-//			}
-//			
-//			
-//			//if(rowresult.charAt(rowresult.length()-1) == ',')
-//				//rowresult.substring(0, rowresult.length()-1);
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		
-//		for(int currentRow =0; currentRow <numberOfRows; currentRow ++)
-//		{
-//			for(int currentColumn= 0; currentColumn < columnsInStrings.size(); currentColumn++)
-//			{
-//				finalresultString += columnsInStrings.get(currentColumn)[currentRow] + ',';
-//			}
-//			
-//			/*remove last comma and  new line*/
-//			finalresultString = finalresultString.substring(0, finalresultString.length()-1);
-//			finalresultString += '\n';
-//		}
-		
-		//newResultVector.add(new RResult("endResult", finalresultString));
-		//newResultVector.add(new RResult("timeLogString", timeLogString));
-
-	}
 	
 	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, 
 													      boolean showWarnings,
