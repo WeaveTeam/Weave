@@ -10,7 +10,7 @@
 		</select>
 		<br><br>
 		<div ng-if="scriptType == 'columns'">
-			<div ng-repeat="input in inputs"> {{input.param}} column:
+			<div ng-repeat="input in inputs"> <b>{{input.param}} column:</b>
 				<select ui-select2 ng-model="$parent.selection[$index]">
 						<option></option>
 						<option value="{{col}}" ng-repeat="col in $parent.columns[input.columnType]" >{{col.publicMetadata.title}}</option>

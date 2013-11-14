@@ -17,7 +17,7 @@ angular.module("aws.leftPanel", []).controller("LeftPanelCtrl",
 				$scope.queryObject = angular.toJson(queryService.queryObject, true);
 			}, true);
 			
-			$scope.$watch(function() { return $scope.queryObject }, function() {
+			$scope.$watch(function() { return $scope.queryObject; }, function() {
 				queryService.queryObject = angular.fromJson($scope.queryObject);
 			}, true);
 			
