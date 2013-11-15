@@ -177,6 +177,11 @@
 			
 			private function handleDynamicObject():void
 			{
+				if (!internalList)
+				{
+					callLater(handleDynamicObject);
+					return;
+				}
 				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
 				toggleLinkDropDown();
 			}
