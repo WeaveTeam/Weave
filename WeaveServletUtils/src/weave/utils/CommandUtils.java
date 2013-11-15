@@ -27,6 +27,10 @@ public class CommandUtils
 {
     public static int runCommand(String[] args) throws IOException
     {
+    	return runCommand(args, false);
+    }
+    public static int runCommand(String[] args, boolean debug) throws IOException
+    {
         Runtime run = Runtime.getRuntime();
         Process proc = null;
         proc = run.exec(args);
@@ -34,26 +38,31 @@ public class CommandUtils
         BufferedReader stderr = new BufferedReader( new InputStreamReader(proc.getErrorStream()) );
         while (true)
         {
-        	//String line = null;
+        	String line = null;
             try
             {
                 // check both streams for new data
                 if (stdout.ready())
                 {
-                    stdout.skip(Long.MAX_VALUE);
-                    //line = stdout.readLine();
+                	if (debug)
+                		line = stdout.readLine();
+                	else
+                		stdout.skip(Long.MAX_VALUE);
                 }
                 else if (stderr.ready())
                 {
-                    stderr.skip(Long.MAX_VALUE);
-                    //line = stderr.readLine();
+                	if (debug)
+                		line = stderr.readLine();
+                	else
+                		stderr.skip(Long.MAX_VALUE);
                 }
-//                // print out data from stream
-//                if (line != null)
-//                {
-//                    //System.out.println(line);
-//                    continue;
-//                }
+                
+				// print out data from stream
+				if (line != null)
+				{
+					System.out.println(line);
+					continue;
+				}
             }
             catch (IOException ioe)
             {

@@ -35,7 +35,6 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
@@ -45,7 +44,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, lang("Histogram 2D"));
+			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
 			
 			private function get plotter():Histogram2DPlotter
 			{
@@ -74,9 +73,8 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(mainPlotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				var self:* = this;
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.yColumn); })
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
@@ -94,6 +92,8 @@
 				xColumnComponent.dynamicObject = plotter.xColumn;
 				yColumnComponent.dynamicObject = plotter.yColumn;
 				colorColumnComponent.dynamicObject = Weave.defaultColorDataColumn.internalDynamicColumn;
+				
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -136,14 +136,8 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList.indexOf(false) > -1)
-				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
 					probeColumnsCheckBox.selected = true;
-				}
 				
 				var attributes:Array = getSelectableAttributes();
 				visualization.additionalProbeColumns = [];
@@ -159,24 +153,7 @@
 				{
 					visualization.additionalProbeColumns.push(plotter.yBinnedColumn.getInternalColumn());
 				}
-				updateAttributesChecklist();
 			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
-			}
-			
 			
 			private var _prevBinnedColumn:BinnedColumn = null;
 			private function handleBinColRadioButtonChange():void
@@ -246,38 +223,12 @@
 	
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Visualization Controls')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
-			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="{lang('X Column')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="{lang('Y Column')}"/>
+			<ui:DynamicColumnComponent id="xColumnComponent" label="{lang('X Column')}"/>
+			<ui:DynamicColumnComponent id="yColumnComponent" label="{lang('Y Column')}"/>
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox label="{lang('Binning Controls')}">
 				<mx:HBox>
@@ -292,7 +243,7 @@
 			<mx:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"
 						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
 			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
-				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="{lang('Color data')}"/>
+				<ui:DynamicColumnComponent id="colorColumnComponent" label="{lang('Color data')}"/>
 				<mx:Button label="{lang('Edit colors...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>

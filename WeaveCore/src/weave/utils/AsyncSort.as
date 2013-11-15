@@ -24,8 +24,8 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.getCallbackCollection;
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	
 	/**
 	 * Asynchronous merge sort.
@@ -50,7 +50,14 @@ package weave.utils
 				_immediateSorter = new AsyncSort();
 				_immediateSorter._immediately = true;
 			}
-			_immediateSorter.beginSort(array, compareFunction);
+			
+			// temporarily set _immediateSorter to null in case sortImmediately is called recursively.
+			var sorter:AsyncSort = _immediateSorter;
+			_immediateSorter = null;
+			
+			sorter.beginSort(array, compareFunction);
+			
+			_immediateSorter = sorter;
 		}
 		
 		/**

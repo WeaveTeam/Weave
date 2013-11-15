@@ -28,16 +28,24 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableWatcher;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -47,22 +55,75 @@ package weave.visualization.plotters
 	 */
 	public class ScatterPlotPlotter extends AbstractGlyphPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
+		
 		public function ScatterPlotPlotter()
 		{
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			hack_setKeyInclusionLogic();
+			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
 		
-		public function hack_setKeyInclusionLogic(logic:Function = null, dependencies:Array = null):void
-		{
-			_filteredKeySet.setColumnKeySources([screenRadius, fill.color, dataX, dataY].concat(dependencies || []), [true], null, logic);
-		}
+		/**
+		 * This is the radius of the circle, in screen coordinates.
+		 */
+		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
+		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
+		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
+		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
+		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
+		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
+		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
+		
+		// for line connecting demo
+		public var connectTheDots:Boolean = false;
+		private var prevPoint:Point;
+		
+		// delare dependency on statistics (for norm values)
+		private const _screenRadiusStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius));
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
+		
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
+		
+		private var _extraKeyDependencies:Array;
+		private var _keyInclusionLogic:Function;
+		
+		public function hack_setKeyInclusionLogic(keyInclusionLogic:Function, extraColumnDependencies:Array):void
+		{
+			_extraKeyDependencies = extraColumnDependencies;
+			_keyInclusionLogic = keyInclusionLogic;
+			updateKeySources();
+		}
+		
+		private function handleColor():void
+		{
+			var cc:ColorColumn = fill.color.getInternalColumn() as ColorColumn;
+			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
+			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
+		}
+		
+		private function updateKeySources():void
+		{
+			var columns:Array = [screenRadius];
+			if (colorDataWatcher.target)
+				columns.push(colorDataWatcher.target)
+			columns.push(dataX, dataY);
+			if (_extraKeyDependencies)
+				columns = columns.concat(_extraKeyDependencies);
+			
+			_filteredKeySet.setColumnKeySources(columns, [true], null, _keyInclusionLogic);
+		}
+		
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			if (!filteredKeySet.keys.length)
@@ -85,52 +146,27 @@ package weave.visualization.plotters
 			}
 		}
 		
-		// backwards compatibility
-		[Deprecated] public function set circlePlotter(value:Object):void { setSessionState(this, value); }
-		[Deprecated] public function set xColumn(value:Object):void { setSessionState(dataX, value); }
-		[Deprecated] public function set yColumn(value:Object):void { setSessionState(dataY, value); }
-		[Deprecated] public function set alphaColumn(value:Object):void { setSessionState(fill.alpha, value); }
-		[Deprecated] public function set colorColumn(value:Object):void { setSessionState(fill.color, value); }
-		[Deprecated] public function set radiusColumn(value:Object):void { setSessionState(screenRadius, value); }
-
-		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
-		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12, isFinite));
-		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
-		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		
-		public const absoluteValueColorEnabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const absoluteValueColorMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		public const absoluteValueColorMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		
-		/**
-		 * This is the radius of the circle, in screen coordinates.
-		 */
-		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		// delare dependency on statistics (for norm values)
-		private const _screenRadiusStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius));
-		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
-		
-		// backwards compatibility
-		[Deprecated] public function set fillStyle(value:Object):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			try
+			// this template will draw one record per iteration
+			if (task.iteration == 0)
 			{
-				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+				if (!task.asyncState)
+					task.asyncState = {};
+				if (!task.asyncState.prevPoint)
+					task.asyncState.prevPoint = new Point();
+				var p:Point = task.asyncState.prevPoint as Point;
+				p.x = p.y = NaN;
 			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
+			prevPoint = task.asyncState.prevPoint as Point;
+			return super.drawPlotAsyncIteration(task);
 		}
-		
-		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-//			var hasPrevPoint:Boolean = (isFinite(tempPoint.x) && isFinite(tempPoint.y));
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			
@@ -143,14 +179,14 @@ package weave.visualization.plotters
 			fill.beginFillStyle(recordKey, graphics);
 			
 			var radius:Number;
-			if (absoluteValueColorEnabled.value)
+			if (colorBySize.value)
 			{
-				var sizeData:Number = screenRadius.getValueFromKey(recordKey);
-				var alpha:Number = fill.alpha.getValueFromKey(recordKey);
+				var sizeData:Number = screenRadius.getValueFromKey(recordKey, Number);
+				var alpha:Number = fill.alpha.getValueFromKey(recordKey, Number);
 				if( sizeData < 0 )
-					graphics.beginFill(absoluteValueColorMin.value, alpha);
+					graphics.beginFill(colorNegative.value, alpha);
 				else if( sizeData > 0 )
-					graphics.beginFill(absoluteValueColorMax.value, alpha);
+					graphics.beginFill(colorPositive.value, alpha);
 				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius);
 				var min:Number = stats.getMin();
 				var max:Number = stats.getMax();
@@ -167,12 +203,16 @@ package weave.visualization.plotters
 				radius = defaultScreenRadius.value;
 			}
 			
-//			if (hasPrevPoint)
-//				graphics.lineTo(tempPoint.x, tempPoint.y);
+			var hasPrevPoint:Boolean = connectTheDots && isFinite(prevPoint.x) && isFinite(prevPoint.y);
+			if (hasPrevPoint)
+			{
+				graphics.moveTo(prevPoint.x, prevPoint.y);
+				graphics.lineTo(tempPoint.x, tempPoint.y);
+			}
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
-				if (absoluteValueColorEnabled.value)
+				if (colorBySize.value)
 				{
 					// draw nothing
 				}
@@ -190,7 +230,7 @@ package weave.visualization.plotters
 			}
 			else
 			{
-				if (absoluteValueColorEnabled.value && radius == 0)
+				if (colorBySize.value && radius == 0)
 				{
 					// draw nothing
 				}
@@ -201,9 +241,32 @@ package weave.visualization.plotters
 				}
 			}
 			graphics.endFill();
-//			graphics.moveTo(tempPoint.x, tempPoint.y);
+			
+			prevPoint.x = tempPoint.x;
+			prevPoint.y = tempPoint.y;
 		}
-		private static const tempPoint:Point = new Point(); // reusable object
+		
+		// backwards compatibility
+		[Deprecated] public function set absoluteValueColorEnabled(value:Boolean):void { colorBySize.value = value; }
+		[Deprecated] public function set absoluteValueColorMin(value:Number):void { colorNegative.value = value; }
+		[Deprecated] public function set absoluteValueColorMax(value:Number):void { colorPositive.value = value; }
+		[Deprecated] public function set circlePlotter(value:Object):void { setSessionState(this, value); }
+		[Deprecated] public function set xColumn(value:Object):void { setSessionState(dataX, value); }
+		[Deprecated] public function set yColumn(value:Object):void { setSessionState(dataY, value); }
+		[Deprecated] public function set alphaColumn(value:Object):void { setSessionState(fill.alpha, value); }
+		[Deprecated] public function set colorColumn(value:Object):void { setSessionState(fill.color, value); }
+		[Deprecated] public function set radiusColumn(value:Object):void { setSessionState(screenRadius, value); }
+		[Deprecated] public function set fillStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
 	}
 }
 

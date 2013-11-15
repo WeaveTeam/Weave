@@ -226,15 +226,15 @@ package weave.services
 		 */		
 		private const _asyncTokenData:Dictionary = new Dictionary();
 				
-		private function resultHandler(event:ResultEvent, token:Object = null):void
+		private function resultHandler(event:ResultEvent, token:AsyncToken):void
 		{
-			(token as AsyncToken).mx_internal::applyResult(event);
+			token.mx_internal::applyResult(event);
 			delete _asyncTokenData[token];
 		}
 		
-		private function faultHandler(event:FaultEvent, token:Object = null):void
+		private function faultHandler(event:FaultEvent, token:AsyncToken):void
 		{
-			(token as AsyncToken).mx_internal::applyFault(event);
+			token.mx_internal::applyFault(event);
 			delete _asyncTokenData[token];
 		}
 	}

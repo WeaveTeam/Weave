@@ -36,7 +36,7 @@
 		<mx:Image click="handleCloseButtonClick(event)" id="closeButton" source="@Embed(source='/weave/resources/images/cancel_small.png')" alpha="0.5" toolTip="{lang('Erase this part of the equation.')}"/>
 		<mx:Image mouseDown="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="{lang('Expand or collapse this part of the equation.')}"/>
 	</mx:VBox>
-	<mx:VBox id="equationStringContainer"/>
+	<mx:VBox id="equationStringContainer" width="100%"/>
 	
 	<mx:Script>
 		<![CDATA[
@@ -163,16 +163,14 @@
 				}
 				else
 				{
-					var compiledConstant:TextInput = new TextInput();
-					compiledConstant.text = equation.value;
-					compiledConstant.enabled = false;
-					compiledConstant.setStyle("backgroundDisabledColor","#F5F4DA");
-					compiledConstant.addEventListener(MouseEvent.MOUSE_DOWN,handleTextInputMouseDown);
-					compiledConstant.addEventListener(FocusEvent.FOCUS_OUT,handleTextInputFocusOut);
-					compiledConstant.addEventListener(KeyboardEvent.KEY_DOWN,handleReturnKeyPress);
+					var textInput:TextInput = new TextInputWithPrompt();
+					textInput.percentWidth = 100;
+					textInput.text = equation.value;
+					textInput.addEventListener(FocusEvent.FOCUS_OUT,handleTextInputFocusOut);
+					textInput.addEventListener(KeyboardEvent.KEY_DOWN,handleReturnKeyPress);
 					if (compiledObject == null)
-						compiledConstant.errorString = errorString;
-					equationStringContainer.addChild(compiledConstant);
+						textInput.errorString = errorString;
+					equationStringContainer.addChild(textInput);
 				}
 				this.errorString = errorString;
 			}
@@ -237,30 +235,15 @@
 				}
 			}
 			
-			private function handleTextInputMouseDown(event:MouseEvent):void
-			{
-				// only enable & select all if input isn't already enabled
-				if (!(event.currentTarget as TextInput).enabled)
-				{
-					(event.currentTarget as TextInput).setFocus();
-					(event.currentTarget as TextInput).setSelection(0,(event.currentTarget as TextInput).text.length);
-					(event.currentTarget as TextInput).enabled = true;
-				}
-			}
-			
 			private function handleTextInputFocusOut(event:FocusEvent):void
 			{
-				(event.currentTarget as TextInput).enabled = false;
 				equation.value = extractEquationString();
 			}
 			
 			private function handleReturnKeyPress(event:KeyboardEvent):void
 			{
 				if (event.keyCode == Keyboard.ENTER)
-				{
-					(event.currentTarget as TextInput).enabled = false;
 					equation.value = extractEquationString();
-				}
 			}
 			
 			private function handleDragEnter(event:DragEvent):void

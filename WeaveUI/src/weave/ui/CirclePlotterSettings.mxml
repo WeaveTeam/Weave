@@ -38,7 +38,7 @@
 		<mx:Spacer/>
 		<ui:IndentTextInput indent="100" label="{lang('Thickness:')}" id="thicknessText"/>
 		<ui:Indent indent="100" label="{lang('Color:')}">
-			<mx:ColorPicker id="colorPicker"/>
+			<ui:CustomColorPicker id="colorPicker"/>
 		</ui:Indent>
 	</mx:VBox>
 	<mx:Script>

@@ -26,10 +26,10 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotter;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.KeySets.SortedKeySet;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 
@@ -40,6 +40,8 @@ package weave.visualization.plotters
 	 */
 	public class GeometryLabelPlotter extends TextGlyphPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
+
 		public function GeometryLabelPlotter()
 		{
 			registerSpatialProperty(geometryColumn);
@@ -53,12 +55,13 @@ package weave.visualization.plotters
 			linkSessionState(geometryColumn, dataX.requestLocalObject(ReprojectedGeometryColumn, true));
 			linkSessionState(geometryColumn, dataY.requestLocalObject(ReprojectedGeometryColumn, true));
 			
+			_sortColumnCompare = SortedKeySet.generateCompareFunction([sortColumn, text]);
 			_filteredKeySet.setColumnKeySources([geometryColumn], null, keyCompare);
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		
-		private var _sortColumnCompare:Function = SortedKeySet.generateCompareFunction([sortColumn, text]);
+		private var _sortColumnCompare:Function;
 		
 		/**
 		 * This function compares geometry record keys according to geometry bounding box area

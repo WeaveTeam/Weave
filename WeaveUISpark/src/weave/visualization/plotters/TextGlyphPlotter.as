@@ -24,11 +24,13 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.text.TextFormat;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -44,6 +46,8 @@ package weave.visualization.plotters
 	 */
 	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, TextGlyphPlotter, "Labels");
+		
 		public function TextGlyphPlotter()
 		{
 			hideOverlappingText.value = false;

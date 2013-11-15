@@ -121,12 +121,12 @@
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
 							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="data X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="data y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta1" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta1"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta2" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta2"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta3" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta3"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta4" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta4"/>
+				<ui:DynamicColumnComponent label="data X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
+				<ui:DynamicColumnComponent label="data y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
+				<ui:DynamicColumnComponent label="theta1" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta1"/>
+				<ui:DynamicColumnComponent label="theta2" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta2"/>
+				<ui:DynamicColumnComponent label="theta3" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta3"/>
+				<ui:DynamicColumnComponent label="theta4" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta4"/>
 				
 				
 				<mx:VBox width="100%" 

@@ -28,53 +28,42 @@
 		 xmlns="weave.editors.*"
 		 click="handleAnyClick();"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
-		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
+		 implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject">
+	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
 	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
-	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
-			   visible="false" includeInLayout="false"
-			   click="_stateLog.enableLogging.value = recordButton.selected;"
-			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
-	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
+	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed, playButton.selected) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
 	<mx:Button width="24" id="menuButton" icon="@Embed(source='/weave/resources/images/menuLines.png')"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
-			import mx.managers.PopUpManager;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.detectLinkableObjectChange;
+			import weave.api.newLinkableChild;
 			import weave.api.reportError;
-			import weave.core.CallbackJuggler;
+			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
-			import weave.ui.ExportSessionStatePanel;
+			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
 			
 			private const padding:Number = 4;
 			
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
-			private const _stateLogJuggler:CallbackJuggler = new CallbackJuggler(this, handleStateLogChange, false);
-
-			[Embed(source='/weave/resources/images/history-record-on.png')]
-			private static const icon_historyRecordOn:Class;
-			[Embed(source='/weave/resources/images/history-record-off.png')]
-			private static const icon_historyRecordOff:Class;
+			private const _stateLogWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleStateLogChange);
 
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				_editMenu = new SubMenu(menuButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_DOWN]);
+				_editMenu = new SubMenu(menuButton);
 				//_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
-				_editMenu.addSubMenuItem(lang("Clear everything"), _stateLog.clearHistory);
-				_editMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
-				_editMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
-				_editMenu.addSubMenuItem(getTrimMenuLabel, trim);
+				_editMenu.addSubMenuItem(lang("Erase everything"), _stateLog.clearHistory);
+				_editMenu.addSubMenuItem(lang("Erase all undos"), _stateLog.clearHistory, [-1]);
+				_editMenu.addSubMenuItem(lang("Erase all redos"), _stateLog.clearHistory, [1]);
+				_editMenu.addSubMenuItem(getSquashMenuLabel, squash);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])
@@ -82,62 +71,50 @@
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
 			
-			private function togglePresentationMode():void
-			{
-				_stateLog.enableLogging.value = !_stateLog.enableLogging.value;
-			}
-			private function getPresentationMenuLabel():String
-			{
-				if (_stateLog.enableLogging.value)
-					return lang("Switch to presentation mode");
-				else
-					return lang("Switch to recording mode");
-			}
-			
 			private var _editMenu:SubMenu;
-			private var _trimItem:Object;
-			private function getTrimMenuLabel():String
+			private var _squashItem:Object;
+			private function getSquashMenuLabel():String
 			{
-				if (_trimItem && (_stateLog.undoHistory.indexOf(_trimItem) >= 0 || _stateLog.redoHistory.indexOf(_trimItem) >= 0))
+				if (_squashItem && (_stateLog.undoHistory.indexOf(_squashItem) >= 0 || _stateLog.redoHistory.indexOf(_squashItem) >= 0))
 					return lang("Squash (Mark out)");
 				if (_stateLog.undoHistory.length)
 					return lang("Squash (Mark in)");
 				return '';
 			}
-			private function trim():void
+			private function squash():void
 			{
 				var undoLength:int = _stateLog.undoHistory.length;
-				if (_trimItem)
+				if (_squashItem)
 				{
-					// perform trim
+					// perform squash
 					_stateLog.synchronizeNow();
 					
 					// TEMPORARY SOLUTION until bookmarks are implemented
 					SessionStateLog.enableHistoryRewrite = true;
 					
-					var i:int = _stateLog.undoHistory.indexOf(_trimItem);
+					var i:int = _stateLog.undoHistory.indexOf(_squashItem);
 					if (i >= 0)
 					{
 						_stateLog.squashHistory(i + 1 - undoLength);
 					}
 					else
 					{
-						i = _stateLog.redoHistory.indexOf(_trimItem);
+						i = _stateLog.redoHistory.indexOf(_squashItem);
 						if (i >= 0)
 						{
 							_stateLog.squashHistory(i + 1);
 						}
 					}
-					_trimItem = null;
+					_squashItem = null;
 				}
 				else if (undoLength)
 				{
-					// begin trim
+					// begin squash
 					
 					// TEMPORARY SOLUTION until bookmarks are implemented
-					SessionStateLog.enableHistoryRewrite = false; // prevents the _trimItem from being replaced in the history
+					SessionStateLog.enableHistoryRewrite = false; // prevents the _squashItem from being replaced in the history
 					
-					_trimItem = _stateLog.undoHistory[undoLength - 1];
+					_squashItem = _stateLog.undoHistory[undoLength - 1];
 				}
 			}
 			
@@ -146,9 +123,9 @@
 			private var _lastReplayTime:int = 0;
 			private var _maxStepDelay:int = 1000;
 			
-			private function getPlayLabel(playSpeed:uint):String
+			private function getPlayLabel(playSpeed:uint, active:Boolean):String
 			{
-				return playSpeed == 1 ? lang('Replay') : lang('Replay ({0}x)', playSpeed);
+				return playSpeed == 1 ? lang(active ? 'Replaying' : 'Replay') : lang(active ? 'Replaying ({0}x)' : 'Replay ({0}x)', playSpeed);
 			}
 			private function play(speed:int = 0):void
 			{
@@ -196,16 +173,11 @@
 			 */
 			public function setTarget(object:ILinkableObject):void
 			{
-				_stateLogJuggler.target = _stateLog = object as SessionStateLog;
+				_stateLogWatcher.target = _stateLog = object as SessionStateLog;
 			}
 			
-			/**
-			 * @inheritDoc
-			 */
-			public function applyChanges():void
-			{
-				// do nothing because changes are applied immediately.
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			// called when anything is clicked
 			private function handleAnyClick():void
@@ -239,7 +211,6 @@
 				if (detectLinkableObjectChange(handleStateLogChange, _stateLog.enableLogging))
 					menuButton.visible = menuButton.includeInLayout = _stateLog.enableLogging.value;
 				
-				recordButton.selected = _stateLog.enableLogging.value;
 				slider.maximum = _stateLog.undoHistory.length + _stateLog.redoHistory.length;
 				slider.value = _stateLog.undoHistory.length;
 				slider.enabled = slider.maximum > slider.minimum;
@@ -252,38 +223,42 @@
 			private var _weaveFileRef:FileReference = null;
 			private function load():void
 			{
-				if (!_weaveFileRef)
+				try
 				{
-					_weaveFileRef = new FileReference();
-					_weaveFileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
-					_weaveFileRef.addEventListener(
-						Event.SELECT,
-						function (e:Event):void
-						{
-							_weaveFileRef.load();
-						}
-					);
-					_weaveFileRef.addEventListener(
-						Event.COMPLETE,
-						function (e:Event):void
-						{
-							// TEMPORARY SOLUTION
-							WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
-						}
-					);
+					if (!_weaveFileRef)
+					{
+						_weaveFileRef = new FileReference();
+						_weaveFileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+						_weaveFileRef.addEventListener(
+							Event.SELECT,
+							function (e:Event):void
+							{
+								_weaveFileRef.load();
+							}
+						);
+						_weaveFileRef.addEventListener(
+							Event.COMPLETE,
+							function (e:Event):void
+							{
+								// TEMPORARY SOLUTION
+								WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
+							}
+						);
+					}
+					_weaveFileRef.browse([
+						new FileFilter("Weave file", "*.weave"),
+						new FileFilter("All files", "*")
+					]);
 				}
-				_weaveFileRef.browse([
-					new FileFilter("Weave file", "*.weave"),
-					new FileFilter("All files", "*")
-				]);
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			private function save():void
 			{
-				// TEMPORARY SOLUTION
-				var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
-				exportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
-				PopUpManager.centerPopUp(exportSessionStatePanel);
+				ExportSessionStateOptions.openExportPanel();
 			}
 		]]>
 	</mx:Script>

@@ -724,7 +724,7 @@ public class GenericServlet extends HttpServlet
 					//value = Boolean.parseBoolean((String)value);
 					value = ((String)(value)).equalsIgnoreCase("true");
 				}
-				else if (type == String[].class || type == List.class)
+				else if (type.isArray() || type == List.class)
 				{
 					String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
 					if (table.length == 0)
@@ -734,6 +734,8 @@ public class GenericServlet extends HttpServlet
 					
 					if (type == List.class)
 						value = Arrays.asList((String[])value);
+					else
+						value = cast(value, type);
 				}
 				else if (type == InputStream.class)
 				{
@@ -761,7 +763,7 @@ public class GenericServlet extends HttpServlet
 		{
 			value = cast(((ArrayList)value).toArray(), type);
 		}
-		else if (value.getClass() == Object[].class)
+		else if (value.getClass().isArray())
 		{
 			Object[] valueArray = (Object[])value;
 			if (type == List.class)

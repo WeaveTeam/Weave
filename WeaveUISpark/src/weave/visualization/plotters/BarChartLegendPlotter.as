@@ -142,7 +142,7 @@ package weave.visualization.plotters
 				// otherwise, we reverse the iColorIndex
 				var iColorIndex:int = ascendingOrder.value ? (numColumns - 1 - iColumn) : iColumn;
 				var color:Number = chartColors.getColorFromNorm(iColorIndex / (numColumns - 1));
-				if (color <= Infinity) // alternative to !isNaN()
+				if (isFinite(color))
 					g.beginFill(color, 1.0);
 				var xMin:Number = _itemBounds.getXNumericMin();
 				var xMax:Number = _itemBounds.getXNumericMax();

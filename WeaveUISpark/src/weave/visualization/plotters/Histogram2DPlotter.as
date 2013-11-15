@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -52,6 +53,8 @@ package weave.visualization.plotters
 	 */
 	public class Histogram2DPlotter extends AbstractPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, Histogram2DPlotter, "Histogram 2D");
+		
 		public function Histogram2DPlotter()
 		{
 			// hack, only supports default color column

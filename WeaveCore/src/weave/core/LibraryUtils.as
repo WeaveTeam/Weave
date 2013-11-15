@@ -66,9 +66,8 @@ package weave.core
 //		/**
 //		 * @private
 //		 */		
-//		private static function handleSWCLoaded(event:ResultEvent, token:Object = null):void
+//		private static function handleSWCLoaded(event:ResultEvent, url:String):void
 //		{
-//			var url:String = token as String;
 //			var defs:Array = event.result as Array;
 //			var isLoaded:Boolean = isSWCLoaded(url);
 //			for each (var def:String in defs)

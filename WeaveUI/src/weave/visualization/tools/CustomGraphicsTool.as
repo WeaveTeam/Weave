@@ -31,6 +31,7 @@ package weave.visualization.tools
 	import weave.api.data.IKeySet;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -48,12 +49,11 @@ package weave.visualization.tools
 	
 	public class CustomGraphicsTool extends DraggablePanel implements IVisToolWithSelectableAttributes
 	{
-		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "Custom Graphics Tool");
+		WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool, "ActionScript Graphics Tool");
 		
 		public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 		public const drawScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(defaultScript, false, true));
-		public const locals:Object = {}; // for use inside scripts
-		
+
 		public const dataBounds:Bounds2D = new Bounds2D();
 		public const screenBounds:Bounds2D = new Bounds2D();
 		public const buffer:GraphicsBuffer = new GraphicsBuffer();
@@ -63,6 +63,7 @@ package weave.visualization.tools
 		public const textGraphics:TextGraphics = new TextGraphics();
 		public const canvas:Canvas = new Canvas();
 		public var keys:Array;
+		public var locals:Object; // for use inside scripts
 		
 		public function getSelectableAttributes():Array
 		{
@@ -93,7 +94,7 @@ package weave.visualization.tools
 		{
 			var attrs:Array = getSelectableAttributes();
 			if (attrs.length)
-				AttributeSelectorPanel.openToolSelector(this, attrs[0]);
+				AttributeSelectorPanel.open(attrs[0]);
 			else
 				reportError("No attributes to select.");
 		}
@@ -127,6 +128,10 @@ package weave.visualization.tools
 			if (!scriptChanged && !varsChanged && _prevSize.x == unscaledWidth && _prevSize.y == unscaledHeight)
 				return;
 			
+			// wait until vars are not busy
+			if (linkableObjectIsBusy(vars))
+				return;
+			
 			// remember current size for next time
 			_prevSize.x = unscaledWidth;
 			_prevSize.y = unscaledHeight;
@@ -146,6 +151,10 @@ package weave.visualization.tools
 					// since we are re-using the same bitmap data, clear it
 					PlotterUtils.clearBitmapData(bitmap);
 				}
+				
+				// reset locals when script changes
+				if (!locals || scriptChanged)
+					locals = {};
 				
 				// when the vars hash map changes, get the keys from all the columns in it
 				if (varsChanged)

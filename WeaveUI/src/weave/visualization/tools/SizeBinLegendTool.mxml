@@ -159,9 +159,9 @@
 					copySessionState(scatterPlot.plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
 					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
 					
-					copySessionState(scatterPlot.plotter.absoluteValueColorEnabled, _sizeBinLegendPlotter.absoluteValueColorEnabled);
-					copySessionState(scatterPlot.plotter.absoluteValueColorMin, _sizeBinLegendPlotter.absoluteValueColorMin);
-					copySessionState(scatterPlot.plotter.absoluteValueColorMax, _sizeBinLegendPlotter.absoluteValueColorMax);
+					copySessionState(scatterPlot.plotter.colorBySize, _sizeBinLegendPlotter.colorBySize);
+					copySessionState(scatterPlot.plotter.colorNegative, _sizeBinLegendPlotter.colorNegative);
+					copySessionState(scatterPlot.plotter.colorPositive, _sizeBinLegendPlotter.colorPositive);
 				}
 				
 				if (scatterPlot && scatterPlot.plotter.enabledSizeBy.value)
@@ -184,9 +184,9 @@
 			private function handleMarginLabelClick():void
 			{
 				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
-					AttributeSelectorPanel.openDefaultSelector(colorColumn);
+					AttributeSelectorPanel.open(colorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(scatterPlot.plotter.screenRadius);
+					AttributeSelectorPanel.open(scatterPlot.plotter.screenRadius);
 			}
 			
 			[Bindable] private var marginLabelText:String = "";
@@ -240,7 +240,8 @@
 					<mx:Label text="{lang('Number of Radiuses:')}"/>
 					<mx:NumericStepper enabled="{simpleRadio.selected}" minimum="2" maximum="50" stepSize="1" id="numOfCirclesNumericStepper" width="{inputWidth}"/>
 					<ui:HelpComponent label="{simpleRadio.label}">
-						Example: If your data is between 0 and 100 and you specify 3 radiuses, the following radiuses will be created: 0, 50, 100
+						Example: If your data is between 0 and 100 and you specify 3 radiuses,
+						the following radiuses will be created: 0, 50, 100
 					</ui:HelpComponent>
 				</mx:HBox>
 				

@@ -30,7 +30,7 @@
 		title="{viewStack.label}"
 		borderAlpha="1"
 		borderColor="#939178"
-		borderThicknessBottom="0" borderThicknessLeft="8" borderThicknessRight="8" borderThicknessTop="0"
+		borderThicknessLeft="{padding}" borderThicknessRight="{padding}"
 		backgroundColor="#939178"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
@@ -42,7 +42,7 @@
 					verticalScrollPolicy="off"
 					horizontalScrollPolicy="off"/>
 	
-	<mx:ControlBar paddingTop="5" paddingBottom="5" enabled="{viewStack.controlBarEnabled}">
+	<mx:ControlBar paddingTop="{padding}" paddingBottom="{padding}" enabled="{viewStack.controlBarEnabled}" verticalAlign="middle">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}{viewStack.selectedChild.label ? ': ' + viewStack.selectedChild.label : ''}"/>
 		<mx:Spacer width="100%"/>
 		<mx:Button id="backButton" label="Back"
@@ -67,6 +67,8 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.services.WeaveAdminService;
+			
+			private static const padding:int = 8;
 			
 			[Bindable] private var viewStack:WizardViewStack = null;
 			[Bindable] private var viewStackNumChildren:int = 0; // this is used because numChildren is not bindable

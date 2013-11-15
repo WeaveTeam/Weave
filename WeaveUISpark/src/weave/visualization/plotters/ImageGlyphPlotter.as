@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotter;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	
 	/**
@@ -42,6 +43,10 @@ package weave.visualization.plotters
 	 */
 	public class ImageGlyphPlotter extends AbstractGlyphPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, ImageGlyphPlotter, "Image glyphs");
+		
+		public static var debug:Boolean = false;
+		
 		public function ImageGlyphPlotter()
 		{
 		}
@@ -70,6 +75,9 @@ package weave.visualization.plotters
 				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
 				if (image)
 				{
+					if (debug)
+						trace(debugId(this), 'draw', _imageURL, image == _missingImage ? '(missing)' : debugId(image));
+					
 					// translate image so it is centered on the screen coordinates of this record
 					tempMatrix.identity();
 					var sx:Number = 1 / image.width * _imageSize;
@@ -110,6 +118,8 @@ package weave.visualization.plotters
 		{
 			var bitmap:Bitmap = event.result as Bitmap;
 			_urlToImageMap[url] = bitmap.bitmapData;
+			if (debug)
+				trace(debugId(this), 'received', url, debugId(bitmap.bitmapData));
 		}
 		
 		[Deprecated] public function set xColumn(value:Object):void

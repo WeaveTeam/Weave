@@ -29,9 +29,7 @@ package weave.data
 	import org.openscales.proj4as.ProjProjection;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
 	import weave.api.newDisposableChild;
@@ -88,27 +86,23 @@ package weave.data
 		private const _reprojectedColumnCache:Dictionary = new Dictionary(true); // weak links to be gc-friendly
 		
 		/**
-		 * This function will return the projected column if a reprojection should be performed or the original column if there is no projection.
-		 * @param columnReference A reference to a column containing geometry data.
-		 * @param destinationProjectionSRS The string corresponding to a projection destination.
-		 * @return The projected column or the original column.
+		 * @inheritDoc
 		 */
-		public function getProjectedGeometryColumn(columnReference:IColumnReference, destinationProjectionSRS:String):IAttributeColumn
+		public function getProjectedGeometryColumn(geometryColumn:IAttributeColumn, destinationProjectionSRS:String):IAttributeColumn
 		{
-			var unprojectedColumn:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(columnReference);
-			if (unprojectedColumn == null)
+			if (!geometryColumn)
 				return null;
 				
 			// if there is no projection specified, return the original column
 			if (destinationProjectionSRS == null || destinationProjectionSRS == '')
-				return unprojectedColumn;
+				return geometryColumn;
 			
 			// check the cache
-			var srsCache:Object = _reprojectedColumnCache[unprojectedColumn] as Object;
+			var srsCache:Object = _reprojectedColumnCache[geometryColumn] as Object;
 			if (srsCache == null)
 			{
 				srsCache = new Object(); // destinationSRS -> ProxyColumn
-				_reprojectedColumnCache[unprojectedColumn] = srsCache;
+				_reprojectedColumnCache[geometryColumn] = srsCache;
 			}
 			var reprojectedColumn:ProxyColumn = srsCache[destinationProjectionSRS] as ProxyColumn;
 
@@ -121,7 +115,7 @@ package weave.data
 			srsCache[destinationProjectionSRS] = reprojectedColumn;
 			
 			// create a WorkerThread that will reproject the geometries
-			new WorkerThread(this, unprojectedColumn, reprojectedColumn, destinationProjectionSRS);
+			new WorkerThread(this, geometryColumn, reprojectedColumn, destinationProjectionSRS);
 			
 			return reprojectedColumn;
 		}
@@ -428,7 +422,8 @@ internal class WorkerThread
 		for (var i:int = 0; i < keys.length; i++)
 		{
 			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
-			numGeoms += value.length;
+			if (value)
+				numGeoms += value.length;
 			values.push(value);
 		}
 		keyIndex = 0;
@@ -535,7 +530,8 @@ internal class WorkerThread
 		
 		// after all geometries have been reprojected, update the reprojected column
 		var geomColumn:GeometryColumn = reprojectedColumn.getInternalColumn() as GeometryColumn;
-		geomColumn.setGeometries(keysVector, geomVector);
+		if (geomColumn)
+			geomColumn.setGeometries(keysVector, geomVector);
 		
 		reprojectedColumn.triggerCallbacks();
 		reprojectedColumn.resumeCallbacks();

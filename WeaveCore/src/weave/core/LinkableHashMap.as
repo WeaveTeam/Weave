@@ -185,7 +185,10 @@ package weave.core
 		public function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
 			if (objectToCopy == null)
+			{
+				removeObject(name);
 				return null;
+			}
 			
 			delayCallbacks(); // make sure callbacks only trigger once
 			//var className:String = getQualifiedClassName(objectToCopy);
@@ -236,19 +239,13 @@ package weave.core
 		 */
 		private function initObjectByClassName(name:String, className:String, lockObject:Boolean = false):ILinkableObject
 		{
-			// do nothing if locked or className is null
-			if (className != null)
+			if (className)
 			{
 				className = _deprecatedClassReplacements[className] || className;
 				
 				// if no name is specified, generate a unique one now.
-				if (name == null)
-				{
-					if (className.indexOf("::") >= 0)
-						name = generateUniqueName(className.split("::")[1]);
-					else
-						name = generateUniqueName(className);
-				}
+				if (!name)
+					name = generateUniqueName(className.split("::").pop());
 				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
@@ -273,6 +270,10 @@ package weave.core
 					removeObject(name);
 				}
 			}
+			else
+			{
+				removeObject(name);
+			}
 			return _nameToObjectMap[name] as ILinkableObject;
 		}
 		/**
@@ -282,7 +283,7 @@ package weave.core
 		 */
 	    private function createAndSaveNewObject(name:String, classDef:Class, lockObject:Boolean):void
 	    {
-	    	if (_nameIsLocked[name] != undefined)
+	    	if (_nameIsLocked[name])
 	    		return;
 
 			// remove any object currently using this name
@@ -329,7 +330,7 @@ package weave.core
 		 */
 		public function removeObject(name:String):void
 		{
-			if (_nameIsLocked[name] != undefined)
+			if (!name || _nameIsLocked[name])
 				return;
 			
 			var object:ILinkableObject = _nameToObjectMap[name] as ILinkableObject;

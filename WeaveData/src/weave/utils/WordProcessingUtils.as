@@ -664,31 +664,30 @@ package weave.utils
 		
 		
 		/**
-		 * @param wordData The string to parse.
-		 * @param index is an object that will serve as a mapping for the words and their frequencies.
-		 * @return An Array will be returned. This is an array of all the words in the parsed string.
+		 * @param inputWordData The string to parse.
+		 * @param outputIndex This is an object that will serve as a mapping for the words and their frequencies.
+		 * @param outputWords This is an array of all the words in the parsed string.
 		 */		
-		public static function WordProcessingUtilsy( wordData:String, index:Object ):Array
+		public static function getWordFrequencies(inputWordData:String, outputIndex:Object, outputWords:Array):void
 		{
 			var i:int = 0;
 			var j:int;
 			var k:int;
 			var position:int;
 			var word:String;
-			var wordCollection:Array = new Array();
 			var end:Boolean = false;
 			var found:Boolean = false;
 			
-			wordCollection.length = 0;
+			outputWords.length = 0;
 			
 			do{
 				
-				position = wordData.indexOf( " ", i );
-				word = wordData.slice( i, position );
+				position = inputWordData.indexOf( " ", i );
+				word = inputWordData.slice( i, position );
 				
 				if( position == -1 ){
-					word = wordData.slice( i, wordData.length + 1 );
-					i = wordData.length;
+					word = inputWordData.slice( i, inputWordData.length + 1 );
+					i = inputWordData.length;
 					end = true;
 				}
 				else
@@ -736,34 +735,31 @@ package weave.utils
 				
 				if( found != true ){
 					
-				for( j = 0; j < wordCollection.length; j++ ) {
+				for( j = 0; j < outputWords.length; j++ ) {
 					
-					if( wordCollection[j] == word )
+					if( outputWords[j] == word )
 						break;
-					if( ( j + 1 ) == wordCollection.length ){
-						wordCollection[j+1] = word;
-						index[word] = 0;
+					if( ( j + 1 ) == outputWords.length ){
+						outputWords[j+1] = word;
+						outputIndex[word] = 0;
 					}
 				}
 				
-				if( wordCollection.length == 0 ){
-					wordCollection[0] = word;
-					index[word] = 0;
+				if( outputWords.length == 0 ){
+					outputWords[0] = word;
+					outputIndex[word] = 0;
 				}
 					
-				if( index[word] == 0 )
-					index[word] = 1;
+				if( outputIndex[word] == 0 )
+					outputIndex[word] = 1;
 				else
-					index[word] = index[word] + 1;
+					outputIndex[word] = outputIndex[word] + 1;
 			
 				}
 				
 				found = false;
 				
 			}while( end != true );
-			
-			return wordCollection;
-		
 		}
 	}
 }

@@ -27,8 +27,6 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -37,7 +35,6 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.IPlotter;
@@ -46,8 +43,8 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DynamicColumnComponent;
@@ -138,6 +135,8 @@
 				_plotter.groupingMode.addGroupedCallback(this, updateInteractivity, true);
 				_plotter.groupBySortColumn.addGroupedCallback(this, updateInteractivity, true);
 				getCallbackCollection(_plotter.heightColumns).addGroupedCallback(this, updateInteractivity, true);
+				
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -154,7 +153,7 @@
 			override public function getSelectableAttributes():Array
 			{
 				return [
-					colorColumn,
+					_plotter.colorColumn,
 					_plotter.labelColumn,
 					_plotter.sortColumn,
 					_plotter.heightColumns,
@@ -194,17 +193,16 @@
 			
 			private function updateProbeColumns():void
 			{
+				if (!parent)
+				{
+					callLater(updateProbeColumns);
+					return;
+				}
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 
-				if(attrToIncludeCheckList.indexOf(false) > -1)
-				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
 					probeColumnsCheckBox.selected = true;
-				}
 				
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
@@ -233,9 +231,9 @@
 				}
 				
 				//check if color column should be added in probe
-				var colorColIndex:int = attributes.indexOf(colorColumn);
+				var colorColIndex:int = attributes.indexOf(_plotter.colorColumn);
 				if(attrToIncludeCheckList[colorColIndex])
-					columns.unshift(colorColumn);
+					columns.unshift(ColumnUtils.hack_findInternalDynamicColumn(_plotter.colorColumn));
 				
 				//check if label column should be added in probe
 				var labelColIndex:int = attributes.indexOf(_plotter.labelColumn);
@@ -246,31 +244,7 @@
 				if(attrToIncludeCheckList[sortColIndex])
 					columns.unshift(_plotter.sortColumn);
 				
-				if(columns.length>0)
-				{
-					visualization.additionalProbeColumns = columns;
-				}
-				else
-				{
-					visualization.additionalProbeColumns = null;
-				}
-				
-				updateAttributesChecklist();
-			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
+				visualization.additionalProbeColumns = columns;
 			}
 			
 			private function numberToString(value:Number):String
@@ -281,9 +255,9 @@
  			private function handleAxisClick(isXAxis:Boolean):void
 			{
 				if (isXAxis != _plotter.horizontalMode.value)
-					AttributeSelectorPanel.openToolSelector(this,_plotter.sortColumn);
+					AttributeSelectorPanel.open(_plotter.sortColumn);
 				else
-					AttributeSelectorPanel.openToolSelector(this,_plotter.heightColumns);
+					AttributeSelectorPanel.open(_plotter.heightColumns);
 			}
 			
 			override protected function get defaultPanelTitle():String
@@ -292,11 +266,6 @@
 				for (var i:int = 0; i < columns.length; i++)
 					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
 				return lang("Bar Chart of {0}", columns.join(lang(', ')));
-			}
-			
-			public function get colorColumn():DynamicColumn
-			{
-				return AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.colorColumn);
 			}
 			
 			private var sizeAxisTickChange:Boolean = false;
@@ -463,11 +432,6 @@
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
 			}
 			
-			[Bindable] private var indent:int = 80;
-			
-			// backwards compatibility
-			[Deprecated] public function set labelColumn(value:Object):void { setSessionState(_plotter.labelColumn, value); }
-			
 			private function showValueLabelsCheckBox_changeHandler():void
 			{
 				if (showValueLabelsCheckBox.selected)
@@ -479,42 +443,16 @@
 				}
 			}
 			
-			//The following functions: generateBarChartMessage, identifyBarChartMessageCaegory,  are prototype functions for 
-			//implementation of accessibility options
-			//The output of generateBarChartMessage should eventually replace the user input for ADA options in the bar chart 
-			//tools menu
-			
-			private function generateBarChartMessage():String {
-				//parameters passed to the function should include the message category and any data values that are pertinent to that message category 
-				//OR should determine within the function which data values it needs to pull out, given the message category
-				//the code inside this function should realize a sentence using the message category and the pertinent data values for that message category
-				//Fuf Surge here!
-				return "This is a bar chart";
-			}
-			
-			private function identifyBarChartMessageCaegory():String {
-				//should use stats or R to determine which message category the bar chart belongs to
-				//message categories from lit for bar chart include: 
-				return "Outlier";
-			}
-			//UpdateBarChartMessage should be called whenever it's necessary to update the
-			//message when major changes have been made to the visualization
-			
-			private function updateBarChartMessage():String{
-				
-				//if major changes have been made, update message
-				return generateBarChartMessage();
-
-			}
-			
+			// backwards compatibility
+			[Deprecated] public function set labelColumn(value:Object):void { setSessionState(_plotter.labelColumn, value); }
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Basic')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
+			<ui:DynamicColumnComponent id="colorColumnInput" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).columnWrapper = _plotter.colorColumn"
 									   toolTip="{lang('Color column selection is enabled when only a single column is in the list below.')}" showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Sort')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
+			<ui:DynamicColumnComponent label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
+			<ui:DynamicColumnComponent label="{lang('Sort')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="{lang('Group bars by the sort column')}" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
 			<mx:CheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
 			<mx:HBox>
@@ -525,46 +463,14 @@
 				<mx:RadioButton id="stackedRadioButton" groupName="groupMode" label="{lang('Stacked bars')}" value="{CompoundBarChartPlotter.STACK}"/>
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="{lang('100% Stacked bars')}" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
-			<mx:TabNavigator width="100%" height="100%" creationPolicy="all">
-				<ui:ColumnListComponent visTool="{this}" label="{lang('Height attributes')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="{lang('Positive error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="{lang('Negative error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
+			<mx:TabNavigator creationPolicy="all" initialize="UIUtils.pad(event, 5, 100, 100)">
+				<ui:ColumnListComponent label="{lang('Height attributes')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+				<ui:ColumnListComponent label="{lang('Positive error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
+				<ui:ColumnListComponent label="{lang('Negative error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
 		</mx:VBox>
-		<mx:VBox label="{lang('Probe')}">
-			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
-		</mx:VBox>
 		<mx:VBox label="{lang('Labeling')}">
+			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 			<mx:CheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
 			<mx:HBox width="100%">
 				<mx:VBox width="100%">
@@ -574,12 +480,16 @@
 						<mx:HBox>
 							<mx:CheckBox id="colorRecordLabelsChk" label="{lang('Color by record')}"
 										 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
-							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
+							<ui:HelpComponent>
+								This specifies if each label should have the same color as its corresponding record.
+							</ui:HelpComponent>
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorRecordLabelsBox" enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
-								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
+								<ui:CustomColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
+								<ui:HelpComponent>
+									This specifies the color to use for every label.
+								</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>
@@ -613,8 +523,10 @@
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorValueLabelColorBox" enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="{lang('Color')}"/>
-								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
+								<ui:CustomColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
+								<ui:HelpComponent>
+									This specifies the color to use for every label.
+								</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>
@@ -651,6 +563,12 @@
 						 toolTip="{lang('Enables automatic zooming to the subset of bars currently displayed')}"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubsetBars, event.target, 'selected')"/>
 			<ui:ColorRampEditor id="cRampEditor" toolTip="{lang('The color ramp can only be set when more than one height column is specified.')}"/>
+		</mx:VBox>
+		<mx:VBox label="{lang('Mouseover info')}">
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+										  change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}" />
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

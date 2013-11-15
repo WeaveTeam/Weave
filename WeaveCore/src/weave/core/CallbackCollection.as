@@ -40,6 +40,7 @@ package weave.core
 		public static var debug:Boolean = false;
 		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
 		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
+		private var _oldEntries:Array;
 
 		/**
 		 * If specified, the preCallback function will be called immediately before running each callback.
@@ -95,12 +96,7 @@ package weave.core
 		private static const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
 		
 		/**
-		 * This adds the given function as a callback.  The function must not require any parameters.
-		 * The callback function will not be called recursively as a result of it triggering callbacks recursively.
-		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
-		 * @param callback The function to call when callbacks are triggered.
-		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
-		 * @param alwaysCallLast If this is set to true, the callback will be always be called after any callbacks that were added with alwaysCallLast=false.  Use this to establish the desired child-to-parent triggering order.
+		 * @inheritDoc
 		 */
 		public final function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void
 		{
@@ -132,8 +128,7 @@ package weave.core
 		}
 
 		/**
-		 * This will trigger every callback function to be called with their saved arguments.
-		 * If the delay count is greater than zero, the callbacks will not be called immediately.
+		 * @inheritDoc
 		 */
 		public final function triggerCallbacks():void
 		{
@@ -199,7 +194,9 @@ package weave.core
 						entry.context = null;
 						entry.callback = null;
 						// remove the empty callback reference from the list
-						_callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
+						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
+						if (debug)
+							_oldEntries = _oldEntries ? _oldEntries.concat(removed) : removed;
 						continue;
 					}
 					// if _preCallback is specified, we don't want to limit recursion because that would cause a loss of information.
@@ -221,7 +218,7 @@ package weave.core
 		}
 		
 		/**
-		 * @param callback The function to remove from the list of callbacks.
+		 * @inheritDoc
 		 */
 		public final function removeCallback(callback:Function):void
 		{
@@ -251,8 +248,7 @@ package weave.core
 		}
 		
 		/**
-		 * This counter gets incremented at the time that callbacks are triggered and before they are actually called.
-		 * It is necessary in some situations to check this counter to determine if cached data should be used.
+		 * @inheritDoc
 		 */
 		public final function get triggerCounter():uint
 		{
@@ -260,8 +256,7 @@ package weave.core
 		}
 		
 		/**
-		 * While this is true, it means the delay count is greater than zero and the effects of
-		 * triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.
+		 * @inheritDoc
 		 */
 		public final function get callbacksAreDelayed():Boolean
 		{
@@ -269,8 +264,7 @@ package weave.core
 		}
 		
 		/**
-		 * This will increase the delay count by 1.  To decrease the delay count, use resumeCallbacks().
-		 * As long as the delay count is greater than zero, effects of triggerCallbacks() will be delayed.
+		 * @inheritDoc
 		 */
 		public final function delayCallbacks():void
 		{
@@ -278,8 +272,7 @@ package weave.core
 		}
 
 		/**
-		 * This will decrease the delay count by one if it is greater than zero.
-		 * If triggerCallbacks() was called while the delay count was greater than zero, immediate callbacks will be called now.
+		 * @inheritDoc
 		 */
 		public final function resumeCallbacks():void
 		{
@@ -291,9 +284,7 @@ package weave.core
 		}
 		
 		/**
-		 * This will add a callback that will only be called once, when this callback collection is disposed.
-		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
-		 * @param callback The function to call when this callback collection is disposed.
+		 * @inheritDoc
 		 */
 		public function addDisposeCallback(relevantContext:Object, callback:Function):void
 		{
@@ -319,12 +310,13 @@ package weave.core
 		private var _disposeCallbackEntries:Array = [];
 
 		/**
-		 * This will remove all callbacks.
-		 * This function should only be called when this CallbackCollection is no longer needed.
+		 * @inheritDoc
 		 */
 		public function dispose():void
 		{
 			// remove all callbacks
+			if (debug)
+				_oldEntries = _oldEntries ? _oldEntries.concat(_callbackEntries) : _callbackEntries.concat();
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
 			
@@ -397,14 +389,7 @@ package weave.core
 		}
 
 		/**
-		 * This function will add a callback that will be delayed except during a scheduled time each frame.  Grouped callbacks use a central
-		 * trigger list, meaning that if multiple CallbackCollections trigger the same grouped callback before the scheduled time, it will
-		 * behave as if it were only triggered once.  For this reason, grouped callback functions cannot have any parameters. Adding a grouped
-		 * callback to a CallbackCollection will replace any previous effects of addImmediateCallback() or addGroupedCallback() made to the
-		 * same CallbackCollection.  The callback function* will not be called recursively as a result of it triggering callbacks recursively.
-		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
-		 * @param groupedCallback The callback function that will only be allowed to run during a scheduled time each frame.  It must not require any parameters.
-		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
+		 * @inheritDoc
 		 */
 		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
 		{
@@ -414,15 +399,15 @@ package weave.core
 				_frameCallbackAdded = true;
 			}
 			
+			if (relevantContext == null)
+				relevantContext = this;
+			
 			var recursionLimit:uint = 0;
 			var triggerEntry:CallbackEntry = _groupedCallbackToTriggerEntryMap[groupedCallback] as CallbackEntry;
 			if (triggerEntry != null)
 			{
 				// add this context to the list of relevant contexts
-				if (relevantContext == null) // null means never remove the callback
-					triggerEntry.context = [null];
-				else if (triggerEntry.context[0] != null)
-					triggerEntry.context.push(relevantContext);
+				triggerEntry.context.push(relevantContext);
 				// use the minimum of the existing limit and the new limit.
 				triggerEntry.recursionLimit = Math.min(triggerEntry.recursionLimit, recursionLimit);
 			}
@@ -442,12 +427,8 @@ package weave.core
 						var allContexts:Array = triggerEntry.context as Array;
 						// remove the contexts that have been disposed of.
 						for (var i:int = 0; i < allContexts.length; i++)
-						{
-							var context:Object = allContexts[i];
-							// if there is a null context, it means the callback should never be removed.
-							if (context != null && WeaveAPI.SessionManager.objectWasDisposed(context))
+							if (WeaveAPI.SessionManager.objectWasDisposed(allContexts[i]))
 								allContexts.splice(i--, 1);
-						}
 						// if there are no more relevant contexts for this callback, don't run it.
 						if (allContexts.length == 0)
 						{

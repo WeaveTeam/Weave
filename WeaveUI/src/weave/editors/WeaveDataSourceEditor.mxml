@@ -32,16 +32,15 @@
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL')}">
-		<mx:TextInput id="url" width="100%"/>
+		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/WeaveService" width="100%"/>
 	</ui:Indent>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WeaveDataSource;
 			
 			override protected function createChildren():void
@@ -55,13 +54,14 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
+				_weaveDataSource = object as WeaveDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_weaveDataSource = object as WeaveDataSource;
 				if (_weaveDataSource)
 				{
 					sourceName.text = Weave.root.getName(_weaveDataSource);
@@ -71,10 +71,14 @@
 				}
 			}
 			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_weaveDataSource.url.value) != StandardLib.asString(url.text);
+			}
+			
 			public function applyChanges():void
 			{
 				_weaveDataSource.url.value = url.text;
-				Alert.show(lang("Changes saved."));
 			}
 			
 		]]>

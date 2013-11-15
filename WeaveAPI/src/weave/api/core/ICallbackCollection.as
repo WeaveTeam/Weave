@@ -33,11 +33,11 @@ package weave.api.core
 		function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void;
 		
 		/**
-		 * This function will add a callback that will be delayed except during a scheduled time each frame.  Grouped callbacks use a
-		 * central trigger list, meaning that if multiple ICallbackCollections trigger the same grouped callback before the scheduled
-		 * time, it will behave as if it were only triggered once.  Adding a grouped callback to a ICallbackCollection will replace
-		 * any previous effects of addImmediateCallback() or addGroupedCallback() made to the same ICallbackCollection.  The callback function
-		 * will not be called recursively as a result of it triggering callbacks recursively.
+		 * Adds a callback that will only be called during a scheduled time each frame.  Grouped callbacks use a central trigger list,
+		 * meaning that if multiple ICallbackCollections trigger the same grouped callback before the scheduled time, it will behave as
+		 * if it were only triggered once.  For this reason, grouped callback functions cannot have any parameters.  Adding a grouped
+		 * callback to a ICallbackCollection will undo any previous effects of addImmediateCallback() or addDisposeCallback() made to the
+		 * same ICallbackCollection.  The callback function will not be called recursively as a result of it triggering callbacks recursively.
 		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
 		 * @param groupedCallback The callback function that will only be allowed to run during a scheduled time each frame.  It must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.

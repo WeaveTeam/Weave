@@ -32,12 +32,12 @@
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		 label="{lang('Legend settings')}" width="100%">
 
-		<mx:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
-	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
-	
-	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
+	<CheckBoxWithNestedOptions id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}">
+		<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}"/>
+	</CheckBoxWithNestedOptions>
+	<IndentTextInput id="txtLegendValuesFunction" label="{lang('Item label function:')}"/>
 	<Indent id="columnsBox" label="{lang('Number of columns')}">
 		<mx:NumericStepper id="numColumns" minimum="1"/>
 	</Indent>
-	<IndentTextInput id="txtLegendValuesFunction" label="{lang('Item label function:')}" inputWidth="100%"/>
+	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
 </mx:VBox>

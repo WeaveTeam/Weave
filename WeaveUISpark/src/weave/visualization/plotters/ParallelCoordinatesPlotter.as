@@ -31,6 +31,7 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -41,9 +42,13 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
@@ -75,7 +80,11 @@ package weave.visualization.plotters
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			xColumns.childListCallbacks.addImmediateCallback(this,handleColumnsListChange);
 			
-			updateFilterEquationColumns(); // sets key source
+			
+			lineStyle.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateFilterEquationColumns, true);
+			
+			// updateFilterEquationColumns sets key source
 		}
 		private function handleColumnsListChange():void
 		{
@@ -125,6 +134,16 @@ package weave.visualization.plotters
 		private var _columns:Array = [];
 		private var _xattrObjects:Array = [];
 		
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
+		private function handleColor():void
+		{
+			var cc:ColorColumn = lineStyle.color.getInternalColumn() as ColorColumn;
+			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
+			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
+		}
+		
 		public function getXValues():Array
 		{
 			// if session state is defined, use that. otherwise, get the values from xData
@@ -158,7 +177,8 @@ package weave.visualization.plotters
 			else
 			{
 				var list:Array = _columns.concat();
-				list.unshift(lineStyle.color);
+				if (colorDataWatcher.target)
+					list.unshift(colorDataWatcher.target);
 				setColumnKeySources(list);
 				
 				_in_updateFilterEquationColumns = false;
@@ -274,100 +294,82 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
+			getBoundsCoords(recordKey, output, true);
+		}
+		
+		protected function getBoundsCoords(recordKey:IQualifiedKey, output:Array, forGetDataBounds:Boolean):void
+		{
+			var enableGeomProbing:Boolean = Weave.properties.enableGeometryProbing.value;
+			
 			initBoundsArray(output, _columns.length);
-			var outIndex:int = 0;
-			var results:Array = [];
-			var i:int;
+			
 			var _normalize:Boolean = normalize.value;
-			
-			
-			for (i = 0; i < _columns.length; ++i)
+			var outIndex:int = 0;
+			for (var i:int = 0; i < _columns.length; ++i)
 			{
-				var x:Number;
-				var y:Number;
-					
-				x = getXAttributeCoordinates(recordKey, i);
-				
-				if (_normalize)
-					y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
-				else
-					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
-				
-				// Disable geometry probing when we're in parallel coordinates (normalize) mode
-				// because line segment intersection means nothing in parallel coordinates.
-				if (Weave.properties.enableGeometryProbing.value && !_normalize)
-				{
-					if (i < _columns.length - 1)
-					{
-						// include a bounds for the line segment
-						var bounds:IBounds2D = output[outIndex++] as IBounds2D;
-						bounds.includeCoords(x, y);
-						if (_normalize)
-							y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i+1]).getNorm(recordKey);
-						else
-							y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number);
-						bounds.includeCoords(x + 1, y);
-						
-						results.push(bounds);
-					}
-				}
-				else
-				{
-					// include a bounds for the point on the axis
-					(output[outIndex++] as IBounds2D).setBounds(x, y, x, y);
-				}
+				var yColumn:IAttributeColumn = _columns[i] as IAttributeColumn;
+				var x:Number = getXAttributeCoordinates(recordKey, i);
+				var y:Number = _normalize
+					? WeaveAPI.StatisticsCache.getColumnStatistics(yColumn).getNorm(recordKey)
+					: yColumn.getValueFromKey(recordKey, Number);
+				if (!forGetDataBounds || isFinite(x) && isFinite(y))
+					(output[outIndex] as IBounds2D).includeCoords(x, y);
+				// when geom probing is enabled, report a single data bounds
+				if (!forGetDataBounds || !enableGeomProbing)
+					outIndex++;
 			}
-			while (output.length > outIndex)
+			while (output.length > outIndex + 1)
 				ObjectPool.returnObject(output.pop());
 		}
 		
+		private var tempBoundsArray:Array = [];
+		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
 		{
+			getBoundsCoords(recordKey, tempBoundsArray, false);
+			
 			var results:Array = [];
 			var _normalize:Boolean = normalize.value;
 			
 			// push three geometries between each column
-			var x:Number, y:Number;
-			var prevX:Number, prevY:Number;
 			var geometry:ISimpleGeometry;
-			for (var i:int = 0; i < _columns.length; ++i)
+			
+			for (var i:int = 1; i < _columns.length; ++i)
 			{
-				x = getXAttributeCoordinates(recordKey, i);
+				var bounds:IBounds2D = tempBoundsArray[i] as IBounds2D;
+				var prevBounds:IBounds2D = tempBoundsArray[i - 1] as IBounds2D;
 				
-				if (_normalize)
-					y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
-				else
-					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
-				
-				if (i > 0)
+				if (!bounds.isUndefined())
 				{
-					if (isFinite(y) && isFinite(prevY))
+					if (!prevBounds.isUndefined())
 					{
+						// both defined
 						geometry = new SimpleGeometry(GeometryType.LINE);
-						geometry.setVertices([new Point(prevX, prevY), new Point(x, y)]);
+						geometry.setVertices([
+							new Point(prevBounds.getXMin(), prevBounds.getYMin()),
+							new Point(bounds.getXMin(), bounds.getYMin())
+						]);
 						results.push(geometry);
 					}
 					else
 					{
-						// case where current coord is defined and previous coord is missing
-						if (isFinite(y))
-						{
-							geometry = new SimpleGeometry(GeometryType.POINT);
-							geometry.setVertices([new Point(x, y)]);
-							results.push(geometry);
-						}
-						// special case where i == 1 and y0 (prev) is defined and y1 (current) is missing
-						if (i == 1 && isFinite(prevY))
-						{
-							geometry = new SimpleGeometry(GeometryType.POINT);
-							geometry.setVertices([new Point(prevX, prevY)]);
-							results.push(geometry);
-						}
+						// current bounds defined, previous undefined
+						geometry = new SimpleGeometry(GeometryType.POINT);
+						geometry.setVertices([
+							new Point(bounds.getXMin(), bounds.getYMin())
+						]);
+						results.push(geometry);
 					}
 				}
-				
-				prevX = x;
-				prevY = y;
+				else if (i == 1 && !prevBounds.isUndefined())
+				{
+					// special case where i == 1 and prev bounds is defined, but current bounds is undefined
+					geometry = new SimpleGeometry(GeometryType.POINT);
+					geometry.setVertices([
+						new Point(prevBounds.getXMin(), prevBounds.getYMin())
+					]);
+					results.push(geometry);
+				}
 			}
 
 			return results;

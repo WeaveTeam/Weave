@@ -86,7 +86,7 @@ package weave.ui.DataMiningEditors
 		}
 		
 		
-		public function handleRunScriptResult(event:ResultEvent, token:Array = null):void
+		public function handleRunScriptResult(event:ResultEvent, keys:Array):void
 		{
 			//Object to stored returned result - Which is array of object{name: , value: }
 			var RresultArray:Array = new Array();//this collects only the cluster groupings vector
@@ -119,16 +119,13 @@ package weave.ui.DataMiningEditors
 			 this contains all the different metrics of a single Kmeans clustering object*/
 			 if(algoCaller is DataMiningChannelToR)
 			 {
-				 finalResult = new KMeansClusteringResult(clusterResult, token);
+				 finalResult = new KMeansClusteringResult(clusterResult, keys);
 				 if(checkingIfFilled != null )
 					 checkingIfFilled(finalResult);
 			 }
 			 
 			 else 
 			 {
-				 //To make availabe for Weave -Mapping with key returned from Token
-				 var keys:Array = token as Array;
-				 
 				 //Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
 				 for (var p:int = 0;p < RresultArray.length; p++)
 				 {

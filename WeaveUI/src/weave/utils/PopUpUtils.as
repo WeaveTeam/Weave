@@ -27,7 +27,6 @@ package weave.utils
 	import mx.controls.Alert;
 	import mx.controls.ToolTip;
 	import mx.core.IFlexDisplayObject;
-	import mx.core.UIComponent;
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 	
@@ -88,16 +87,16 @@ package weave.utils
 		 * @param component The component below which a tooltip should be placed.
 		 * @param text The text to display in the tooltip.
 		 * @param duration The amount of time the tooltip will be displayed.
+		 * @param toolTipReceiver A function that receives a pointer to the tooltip display object, which will be called before returning.
 		 * @return A function that will hide the tooltip.
 		 */
-		public static function showTemporaryTooltip(component:DisplayObject, text:String, duration:int = 1500):Function
+		public static function showTemporaryTooltip(component:DisplayObject, text:String, duration:int = 1500, toolTipReceiver:Function = null):Function
 		{
 			// create tooltip underneath editor
 			var tip:ToolTip = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ToolTip) as ToolTip;
 			tip.mouseChildren = false;
 			tip.text = text;
 			tip.validateNow();
-			show();
 			
 			// Periodically bring tooltip to front so user sees it.
 			// This is required in case the user clicks on another popup that obscures the tooltip.
@@ -106,6 +105,11 @@ package weave.utils
 			timer.addEventListener(TimerEvent.TIMER, show);
 			timer.addEventListener(TimerEvent.TIMER_COMPLETE, hide);
 			timer.start();
+			
+			show();
+			
+			if (toolTipReceiver != null)
+				toolTipReceiver(tip);
 			
 			function show(_:* = null):void
 			{

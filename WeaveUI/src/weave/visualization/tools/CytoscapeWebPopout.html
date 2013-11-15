@@ -12,31 +12,67 @@
         
         <!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
         <script type="text/javascript" src="cytoscapeweb/js/min/cytoscapeweb.min.js"></script>
+        <script type="text/javascript" src="Dictionary.js"></script>
         
         <script type="text/javascript">
-            function select(elements) {
-                nodes = [].concat(elements["nodes"]);
-                edges = [].concat(elements["edges"]);
+            var weave = opener.weave;
+            var vis;
+            var _network = null;
+            var _node_type = null;
+            var _edge_type = null;
+            var _data_schema = null;
+            var _subset = null;
+
+
+            function key_to_id(qkey)
+            {
+                return JSON.stringify([qkey.keyType, qkey.localName]);
+            }
+            function select(qkeys) {
+                var element_ids = [].concat(qkeys.map(key_to_id));
 
                 disable_listeners();
                 vis.deselect();
-                vis.select("nodes", nodes);
-                vis.select("edges", edges);
+                vis.select(null, element_ids);
                 enable_listeners();
                 return;
             }
+            function probe(qkeys) {
+                var element_ids = [].concat(qkeys.map(key_to_id));
+
+                var bypass = {nodes: {}, edges: {}};
+
+                var len = element_ids.length;
+                for (var idx = 0; idx < len; idx++)
+                {
+                    bypass.nodes[element_ids[idx]] = {color: "#d9dafe", size: 48};
+                    bypass.edges[element_ids[idx]] = {color: "#d9dafe", width: 10};
+                }
+
+                vis.visualStyleBypass(bypass);
+            }
+            function subset(qkeys) {
+                var element_ids = [].concat(qkeys.map(key_to_id));
+                _subset = element_ids;
+
+                vis.filter("nodes", element_ids);
+                vis.filter("edges", element_ids);
+                vis.zoomToFit();
+                return;
+            }
+
             function select_handler(evt) {
                 var elements = vis.selected();
                 var length = elements.length;
                 var idx;
-                var key_list = new WeaveArray;
+                var key_list = new opener.Array;
                 for (idx = 0; idx < length; idx++)
                 {
                     var data = elements[idx].data;
                     var qualkey = {localName: data.localName, keyType: data.keyType};
                     key_list.push(qualkey);
                 }
-                var path = new WeaveArray;
+                var path = new opener.Array;
                 path.push('defaultSelectionKeySet');
                 window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
                 return;
@@ -44,34 +80,118 @@
             function probe_handler(evt) {
                 var element = evt.target;
                 var qualkey = {localName: element.data.localName, keyType: element.data.keyType};
-                var key_list = new WeaveArray;
+                var key_list = new opener.Array;
                 key_list.push(qualkey);
-                var path = new WeaveArray;
+                var path = new opener.Array;
                 path.push('defaultProbeKeySet');
                 window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
             }
             function unprobe_handler(evt) {
                 var element = evt.target;
                 
-                var path = new WeaveArray;
+                var path = new opener.Array;
                 path.push('defaultProbeKeySet');
-                var key_list = new WeaveArray;
+                var key_list = new opener.Array;
                 window.weave.evaluateExpression(path, 'replaceKeys(keys)', {keys: key_list});
             }
             function ready_handler() {
+                console.log("Ready handler filed.");
+                var style = {
+                    nodes: {
+                        selectionGlowColor: "#ff0000",
+                        selectionGlowStrength: 10,
+                        selectionGlowBlur: 16
+                    },
+                    edges: {
+                        selectionGlowColor: "#ff0000",
+                        selectionGlowStrength: 10,
+                        selectionGlowBlur: 16
+                    }
+                };
+                /*
+                var path = new opener.Array;
+                path.push(window.name);
+                weave.evaluateExpression(path, 'cytoscapeReady()');
+                */
+                vis.visualStyle(style);
                 return;
             }
-            function draw(network) {
-                network = JSON.parse(JSON.stringify(network)); // Rebuilds the network using the local array prototype
-                window.vis.draw({network: network});
+
+
+
+            // Converts the columns sent by Weave into a network.
+            // Keytypes must contain 'node' and 'edge' elements
+            
+            function load_data(records, element_to_key_types) 
+            {   
+                var _tmpnetwork = {nodes: [], edges: []};
+
+                _node_type = element_to_key_types["nodes"];
+                _edge_type = element_to_key_types["edges"];
+
+                var len = records.length;
+                for (var idx = 0; idx < len; idx++)
+                {
+                    var element = records[idx];
+                    element.id = JSON.stringify([element.keyType, element.localName])                    
+                    if (element.keyType == _edge_type)
+                    {
+                        // We need to change the source and target fields to match
+                        // The ids instead of the localNames.
+                        element.source = JSON.stringify([_node_type, element.source]);
+                        element.target = JSON.stringify([_node_type, element.target]);
+
+                        _tmpnetwork.edges.push(element);
+                    }
+                    else if (element.keyType == _node_type)
+                    {
+                        _tmpnetwork.nodes.push(element);
+                    }
+                }
+                _network = {};
+                _network.data = _tmpnetwork;
             }
+
+            /* Builds a basic passthrough schema */
+            function build_style_from_schema(schema) {
+
+                var style = {nodes: {}, edges: {}};
+                for (var prop_i in schema.nodes)
+                {
+                    var prop = schema.nodes[prop_i].name;
+                    if (prop == "keyType" ||  prop == "localName")
+                        continue;
+                    style.nodes[prop] = { passthroughMapper: {attrName: prop} };
+                }
+                for (var prop_i in schema.edges)
+                {
+                    var prop = schema.edges[prop_i].name;
+                    if (prop == "keyType" ||  prop == "localName")
+                        continue;
+                    style.edges[prop] = { passthroughMapper: {attrName: prop} };
+                }
+                return style;
+            }
+
+            function launch(parameters) {
+                console.log("Launch called.");
+                parameters = JSON.parse(JSON.stringify(parameters));
+                parameters.network = _network;
+                _network.dataSchema = parameters.dataSchema;
+                parameters.visualStyle = build_style_from_schema(_network.dataSchema);
+                delete parameters.dataSchema;
+
+                window.vis.draw(parameters);
+                enable_listeners();
+            }
+
             function enable_listeners() {
                 vis.addListener("select", select_handler);
                 vis.addListener("deselect", select_handler);
                 vis.addListener("mouseover", "nodes", probe_handler);
                 vis.addListener("mouseover", "edges", probe_handler);
                 vis.addListener("mouseout", "nodes", unprobe_handler);
-                vis.addListener("mouseout", "nodes", unprobe_handler);
+                vis.addListener("mouseout", "edges", unprobe_handler);
             }
             function disable_listeners() {
                 vis.removeListener("select", select_handler);
@@ -79,13 +199,13 @@
                 vis.removeListener("mouseover", "nodes", probe_handler);
                 vis.removeListener("mouseover", "edges", probe_handler);
                 vis.removeListener("mouseout", "nodes", unprobe_handler);
-                vis.removeListener("mouseout", "nodes", unprobe_handler);
+                vis.removeListener("mouseout", "edges", unprobe_handler);
             }
+
             window.onload=function() {
                 // id of Cytoscape Web container div
                 var div_id = "cytoscapeweb"; 
                 // you could also use other formats (e.g. GraphML) or grab the network data via AJAX
-                
                 // initialization options
                 var options = {
                     // where you have the Cytoscape Web SWF
@@ -95,9 +215,15 @@
                 };
                 
                 // init 
-                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+                vis = new org.cytoscapeweb.Visualization(div_id, options);
                 vis.ready(ready_handler);
-                window.vis = vis;
+                vis.draw();
+                
+                var path = new opener.Array;
+                path.push(window.name);
+                weave.evaluateExpression(path, 'cytoscapeReady()');
+                vis.visualStyle(style);
+
                 enable_listeners();
             };
         </script>

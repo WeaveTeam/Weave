@@ -20,19 +20,28 @@
 */
 -->
 <mx:HBox xmlns="weave.editors.*" 
-		xmlns:mx="http://www.adobe.com/2006/mxml"
-		implements="weave.api.ui.ILinkableObjectEditor"
-		horizontalScrollPolicy="off" verticalScrollPolicy="off">
-	<mx:CheckBox label="{getEnableLabel(columnTitle)}" id="filterEnable" click="toggleFilter();"/>
-	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(numberFilter.column, lang('Filter'));"/>
-	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" thumbCount="2" liveDragging="true" change="handleSliderChange(event);"/>
+		xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
+		paddingLeft="4"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
+	<ui:CustomCheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
+	<mx:Button enabled="{filterEnable.selected}"
+			   width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
+			   toolTip="{lang('Select a column to be used for filtering the data.')}"
+			   click="AttributeSelectorPanel.open(numberFilter.column, lang('Filter'));"/>
+	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}"
+				thumbCount="2"
+				liveDragging="true"
+				change="handleSliderChange(event);"
+				width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.events.SliderEvent;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
-			import weave.core.CallbackJuggler;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
@@ -45,24 +54,22 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
-			private const statsJuggler:CallbackJuggler = new CallbackJuggler(this, invalidateDisplayList, false);
+			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, invalidateDisplayList);
+			private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, invalidateDisplayList);
 			
 			public function get numberFilter():NumberDataFilter
 			{
-				return filterJuggler.target as NumberDataFilter;
+				return filterWatcher.target as NumberDataFilter;
 			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				filterJuggler.target = object as NumberDataFilter;
+				filterWatcher.target = object as NumberDataFilter;
 				if (numberFilter)
-					statsJuggler.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
+					statsWatcher.target = WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column);
 			}
-			public function applyChanges():void
-			{
-				// changes are applied immediately
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			private function toggleFilter():void
 			{

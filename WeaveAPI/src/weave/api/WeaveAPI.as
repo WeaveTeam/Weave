@@ -168,6 +168,13 @@ package weave.api
 		}
 		
 		/**
+		 * This is a JavaScript statement that sets a variable called "weave" equal to the embedded SWF object.
+		 */
+		public static const JS_var_weave:String = ExternalInterface.objectID
+			? 'var weave = document.getElementById("' + ExternalInterface.objectID + '");'
+			: 'var weave = document.body.firstChild;';
+
+		/**
 		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
 		 */
 		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
@@ -206,21 +213,11 @@ package weave.api
 				var prev:Boolean = ExternalInterface.marshallExceptions;
 				ExternalInterface.marshallExceptions = false;
 				ExternalInterface.call(
-					<![CDATA[
-						function(objectID)
-						{
-							var weave = objectID ? document.getElementById(objectID) : document.body.firstChild;
-							if (window && window.weaveReady)
-							{
-								window.weaveReady(weave);
-							}
-							else if (weaveReady)
-							{
-								weaveReady(weave);
-							}
-						}
-					]]>,
-					[ExternalInterface.objectID]
+					'function(){' +
+						JS_var_weave +
+						'if (window && window.weaveReady) { window.weaveReady(weave); }' +
+						'else if (weaveReady) { weaveReady(weave); }' +
+					'}'
 				);
 				ExternalInterface.marshallExceptions = prev;
 				
@@ -301,7 +298,8 @@ package weave.api
 		 */
 		public static function getRegisteredImplementationDisplayName(theImplementation:Class):String
 		{
-			return _implementationDisplayNames[theImplementation] as String;
+			var str:String = _implementationDisplayNames[theImplementation] as String;
+			return str && lang(str);
 		}
 		
 		/**

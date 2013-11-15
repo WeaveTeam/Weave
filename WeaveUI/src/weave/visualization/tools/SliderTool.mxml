@@ -19,21 +19,50 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<SimpleVisTool
+<ui:DraggablePanel
 	xmlns="weave.visualization.tools.*" 
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns:ui="weave.ui.*"
 	xmlns:settings="weave.ui.settings.*"
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
-	width="400" 
 	title="{lang('Slider Tool')"
-	height="40">
-
+	implements="weave.api.ui.IVisTool" xmlns:editors="weave.editors.*"
+	>
+	<mx:ViewStack id="viewStack" width="100%" height="100%" selectedIndex="{layoutCombo.selectedIndex}" minHeight="0">
+		<mx:HBox width="100%" label="{lang('Horizontal slider')}" minWidth="50">
+			<mx:VBox horizontalAlign="center" paddingTop="4">
+				<mx:Button
+					id="playButton" label=">" alpha="1.0"
+					fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
+					click="playButtonPushed()"/>
+				<mx:HSlider
+					id="speedSlider"
+					width="50" height="0"
+					liveDragging="true"
+					dataTipFormatFunction="{getDelayLabel}"
+					change="speedSliderChange();"/>
+			</mx:VBox>
+			<mx:HSlider 
+				id="dimensionSlider"
+				width="100%" minWidth="50"
+				dataTipFormatFunction="formatDataTip"
+				snapInterval="1"
+				tickInterval="1"
+				liveDragging="true"
+				/>
+		</mx:HBox>
+		<mx:Box width="100%" height="100%" label="{lang('List')}" verticalScrollPolicy="off">
+			<mx:List id="dimensionList" width="100%" height="100%" dataProvider="{values}" minHeight="0"/>
+		</mx:Box>
+		<mx:Box width="100%" height="100%" label="{lang('Combo box')}">
+			<ui:CustomComboBox id="dimensionCombo" width="100%" height="100%" dataProvider="{values}" minHeight="0"/>
+		</mx:Box>
+	</mx:ViewStack>
 <mx:Script>
 <![CDATA[
 	import mx.collections.ArrayCollection;
-	import mx.controls.listClasses.IListItemRenderer;
+	import mx.core.Container;
 	
 	import spark.collections.Sort;
 	
@@ -53,22 +82,30 @@
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.AsyncSort;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.VectorUtils;
 
 	//class data
 	
+	
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
-	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
 	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
+	private static const layoutChoices:Array = ['HSlider', 'List', 'Combo']
+	
+	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
 	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
-	private var _timer:Timer;
 	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array));
+	public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString('HSlider', verifyLayout));
+	
+	private function verifyLayout(value:String):Boolean { return layoutChoices.indexOf(value) >= 0; }
+	
+	
+	private var _timer:Timer;
 	[Bindable] protected var showLinkControls:Boolean = false;
+	[Bindable] protected var values:Array = []; // the values from labelsLinkableString
 	
 	internal function getUnlinkedTools():Array { return VectorUtils.flatten(unlinkedTools.getSessionState() as Array); }
 	
@@ -99,8 +136,11 @@
 			timerDelay.value = MAX_TIMER_DELAY;
 		speedSlider.minimum = 0;
 		speedSlider.maximum = 2000;
+		speedSlider.snapInterval = 250;
 		speedSlider.toolTip = lang("Change the speed of the slider");
-		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
+		timerDelay.addGroupedCallback(this, function():void {
+			speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
+		}, true);
 		//is there a timer that is still running? 
 		if ((playButton != null) && (_timer != null))
 		{
@@ -117,6 +157,7 @@
 			}
 		}
 		
+		linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
 		getCallbackCollection(WeaveAPI.globalHashMap).addGroupedCallback(this, updateLinkingControls, true);
 	}
@@ -164,8 +205,41 @@
 	 * handleLabelChange
 	 * This method is called every time there is a change in labels,
 	 * so be sure to change labels only as often as is necesary.  
+	 * We fill in the hslider labels from this.labelsLinkableString
+	 * Since this.labelsLinkableString is a LinkableString it can be changed by
+	 * the user by editing the sessionHistory.  
 	 * */
-	public function handleLabelChange():void {}	
+	public function handleLabelChange():void
+	{
+		//@TODO have values associated with the labels so that the labels can be
+		//   changed and the values are still passed into the column request
+		if (!parent)
+			return callLater(handleLabelChange);
+		var labelsString:String = labelsLinkableString.value || '';
+		var newValues:Array = labelsString.split(',');
+		if (newValues.length <= maxLabelCount.value)
+			dimensionSlider.labels = newValues;
+		else
+		{
+			dimensionSlider.labels = new Array();
+			
+			var interval:int = Math.ceil(newValues.length / maxLabelCount.value);
+			for (var i:int = 0; i < newValues.length; ++i)
+			{
+				if (i % interval == 0)
+					dimensionSlider.labels.push(newValues[i]);
+				else
+					dimensionSlider.labels.push('');
+			}			
+		}
+		values = newValues;
+		
+		dimensionSlider.minimum = 0;
+		dimensionSlider.maximum = newValues.length - 1;
+		
+		//set tick interval 
+		dimensionSlider.tickInterval = 1;
+	}	
 
 	/** 
 	 * This method is automatically called when currentSliderPosition
@@ -205,12 +279,16 @@
 			if (!labelsLinkableString.value)
 			{
 				if (!callingLater || WeaveAPI.ProgressIndicator.getTaskCount() > 0)
+				{
 					callLater(initializeLabels, [true]);
-				return;
+					return;
+				}
 			}
 		}
 		updateLabelProperties();
 		linkBindableProperty(currentSliderPosition, dimensionSlider, 'value');
+		linkBindableProperty(currentSliderPosition, dimensionList, 'selectedIndex');
+		linkBindableProperty(currentSliderPosition, dimensionCombo, 'selectedIndex');
 		handleSliderChange();
 	}
 
@@ -221,6 +299,8 @@
 			return callLater(updateLabelProperties);
 		
 		LinkableTextFormat.defaultTextFormat.copyToStyle(dimensionSlider);
+		LinkableTextFormat.defaultTextFormat.copyToStyle(dimensionList);
+		LinkableTextFormat.defaultTextFormat.copyToStyle(dimensionCombo);
 		dimensionSlider.invalidateProperties();
 	}
 
@@ -333,10 +413,9 @@
 			_timer.start();
 		}
 	}
-	private function getDelay():String
+	private function getDelayLabel(value:Number):String
 	{
-		var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
-		return delayDescription;
+		return lang("{0} ms delay", (MAX_TIMER_DELAY - value).toFixed(0)); 
 	}
 	
 	/**
@@ -363,63 +442,32 @@
 		else
 			currentSliderPosition.value = dimensionSlider.minimum;
 	}
-	
-	
-	private function formatSpeedDataTip(item:Number):String
-	{
-		var delayDescription:String = getDelay();
-		if (item < speedSlider.value)
-		{
-			return lang("slower: {0}", delayDescription);
-		}
-		else
-		{
-			return lang("faster: {0}", delayDescription);
-		}
-	}
-			
 ]]>
 </mx:Script>
-	<mx:HBox width="100%">
-		<mx:VBox width="5%">
-			<mx:Button
-				width="5%" id="playButton" label=">" alpha="1.0" 
-				fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
-				click="playButtonPushed()"/>
-		<mx:HSlider
-			height="90%"
-			id="speedSlider"
-			width="50"
-			liveDragging="true"
-			dataTipFormatFunction="formatSpeedDataTip"
-			change="speedSliderChange();"/>
-		</mx:VBox>
-		<mx:HSlider 
-				height="90%"
-				id="dimensionSlider"
-				width="100%"
-				dataTipFormatFunction="formatDataTip"
-				snapInterval="1"
-				tickInterval="1"
-				liveDragging="true"
-				name="{lang('Time Slider Tool')}"
-				> 				
-		</mx:HSlider>
-	</mx:HBox>
 	<ui:ControlPanel>
 		<mx:VBox width="100%" id="timesliderControls"
 				label="{lang('Slider controls')}">
+			<ui:Indent label="{lang('Layout')}">
+				<ui:CustomComboBox id="layoutCombo" dataProvider="{layoutChoices}">
+					<ui:labelFunction>{
+						function(item:String):String
+						{
+							return Container(viewStack.getChildAt(layoutChoices.indexOf(item))).label;
+						}
+					}</ui:labelFunction>
+				</ui:CustomComboBox>
+			</ui:Indent>
 			<ui:Indent label="{lang('Time slider labels:')}">
 				<mx:TextInput id="labelsInput" 
 							  width="90%"
 							  />
 				<mx:Button label="Reset" click="getValuesFromCurrentDimensions()"/>
 			</ui:Indent>
-			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
-			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
 			<ui:Indent label="{lang('Max labels shown')}">
 				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
 			</ui:Indent>
+			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
 			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
 			<mx:VBox height="100%" width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
 				<mx:Label text="Linked visualization tools"/>
@@ -461,8 +509,9 @@
 				</ui:Indent>
 			</mx:VBox>
 		</mx:VBox>
+		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>
 
-</SimpleVisTool>
+</ui:DraggablePanel>
 
 

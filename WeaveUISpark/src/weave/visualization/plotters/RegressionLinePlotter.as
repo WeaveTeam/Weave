@@ -30,8 +30,8 @@ package weave.visualization.plotters
 	import mx.utils.ArrayUtil;
 	
 	import weave.Weave;
-	import weave.api.disposeObjects;
 	import weave.api.core.IDisposableObject;
+	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -44,6 +44,7 @@ package weave.visualization.plotters
 	import weave.primitives.Range;
 	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
+	import weave.services.beans.LinearRegressionResult;
 	import weave.services.beans.RResult;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -70,11 +71,20 @@ package weave.visualization.plotters
 		}
 		
 		public const drawLine:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const currentTrendline:LinkableString = registerSpatialProperty(new LinkableString(LINEAR));
+		public const polynomialDegree:LinkableNumber = registerSpatialProperty(new LinkableNumber(2));
 		
 		public const xColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const yColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		
+		public static const trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
+		public static const LINEAR:String = "Linear";
+		public static const POLYNOMIAL:String = "Polynomial";
+		public static const LOGARITHMIC:String = "Logarithmic";
+		public static const EXPONENTIAL:String = "Exponential";
+		public static const POWER:String = "Power";
 
 		private var rService:WeaveRServlet = null;
 		
@@ -85,63 +95,26 @@ package weave.visualization.plotters
 		
 		private function resetRegressionLine():void
 		{
-			coefficients = null;
-			rSquared = 0;
+			result = null;
 		}
 		private function calculateRRegression():void
 		{
-				var Rstring:String = null;
-				var dataXY:Array = null;
-				var token:AsyncToken = null;
-			
-			if( drawLine.value)
+			if (drawLine.value)
 			{
-				if (currentTrendline.value == LINEAR)
-				{
-					//trace( "calculateRegression() " + xColumn.toString() );
-					Rstring = "fit <- lm(y~x)\n"
-						+"coef <- coefficients(fit)\n" 
-						+"rSquared <- summary(fit)$r.squared\n";
-				}
-				
-				if (currentTrendline.value == POLYNOMIAL)
-				{
-					Rstring = "fit <- lm(y ~ poly(x, " + polynomialDegree.value.toString() + ", raw = TRUE))\n"
-						+"coef <- coefficients(fit)\n" 
-						+"rSquared <- summary(fit)$r.squared\n";			
-				}
-			
-				if (currentTrendline.value == LOGARITHMIC)
-				{
-					Rstring = "fit <- lm( y ~ log(x) )\n" 
-						+"coef <- coefficients(fit)\n" 
-						+"rSquared <- summary(fit)$r.squared\n";
-				}
-			
-			
-				if (currentTrendline.value == EXPONENTIAL)
-				{
-					Rstring = "fit <- lm( log(y) ~ x )\n" 
-						+"coef <- coefficients(fit)\n" 
-						+"rSquared <- summary(fit)$r.squared\n";	
-				}
-			
-				if (currentTrendline.value == POWER)
-				{
-					Rstring = "fit <- lm( log(y) ~ log(x) )\n" 
-						+"coef <- coefficients(fit)\n" 
-						+"rSquared <- summary(fit)$r.squared\n";
-				}
-			
-				dataXY = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
-			
-				// sends a request to Rserve to calculate the coefficients of the regression lograrithmic function to xColumn and yColumn
-				token = rService.runScript(null, ["x","y"], [dataXY[1], dataXY[2]], ["coef", "rSquared"], Rstring, "", false, false, false);
-				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
+				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
+				if (dataXY[1].length == 0)
+					return;
+				addAsyncResponder(
+					rService.linearRegression(currentTrendline.value, dataXY[1], dataXY[2], polynomialDegree.value),
+					handleLinearRegressionResult,
+					handleLinearRegressionFault,
+					++requestID
+				);
 			}
 		}
 		
 		private var requestID:int = 0; // ID of the latest request, used to ignore old results
+		private var result:LinearRegressionResult;
 		
 		private function handleLinearRegressionResult(event:ResultEvent, token:Object=null):void
 		{
@@ -151,43 +124,8 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			var Robj:Array = event.result as Array;
-			if (Robj == null)
-				return;
-			
-			var RresultArray:Array = new Array();
-			
-			//collecting Objects of type RResult(Should Match result object from Java side)
-			for(var i:int = 0; i<Robj.length; i++)
-			{
-				var rResult:RResult = new RResult(Robj[i]);
-				RresultArray.push(rResult);				
-			}
-			
-			// R only returns coefficients and rSquared
-			if (RresultArray.length == 2)
-			{
-				
-				//coefficients = ((RresultArray[0] as RResult).value as Array != coefficients) ? (RresultArray[0] as RResult).value as Array : null;
-				coefficients = (RresultArray[0] as RResult).value as Array;
-				
-				// Preprocess coefficients ==> It might return NaN in higher degree
-				// where it should in fact be 0.
-				
-				// problem arises sometimes, when coefficients is null, meaning the R calls are not done yet? May be create a busy loop?
-				if (coefficients)
-				{
-					for (i = 0; i < coefficients.length; i++)
-					{
-						if (isNaN(coefficients[i]))
-						{
-							coefficients[i] = 0;
-						}
-					}
-				}	
-				rSquared = Number((RresultArray[1] as RResult).value);
-				getCallbackCollection(this).triggerCallbacks();	
-			}
+			result = new LinearRegressionResult(event.result);
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		private function handleLinearRegressionFault(event:FaultEvent, token:Object = null):void
@@ -198,17 +136,19 @@ package weave.visualization.plotters
 				return;
 			}
 			
+			result = null;
 			reportError(event);
-			coefficients = null;
-			rSquared = NaN;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		public function getCoefficients():Array { return coefficients; }		
-		public function getrSquared():Number { return rSquared; }
-		
-		private var rSquared:Number = NaN;
-		private var coefficients:Array = null;
+		public function get coefficients():Array
+		{
+			return result ? result.coefficients : null;
+		}
+		public function get rSquared():Number
+		{
+			return result ? result.rSquared : NaN;
+		}
 		
 		private var tempRange:Range = new Range();
 		private var tempPoint:Point = new Point();
@@ -221,8 +161,7 @@ package weave.visualization.plotters
 			
 			if(currentTrendline.value == LINEAR)
 			{
-//				if(!isNaN(coefficients[0]))
-				if (coefficients != null)
+				if (coefficients)
 				{
 					tempPoint.x = dataBounds.getXMin();
 					tempPoint2.x = dataBounds.getXMax();
@@ -327,14 +266,14 @@ package weave.visualization.plotters
 		
 		/**
 		 * 	@author Yen-Fu 
-		 *	This function evaluates a polynomial, given the coefficients (a, b, c,..) and the value x. 
+		 *	This function evaluate the regression functions, given the type, the coefficients (a, b, c,..) and the value x. 
 		 * 	ax^n-1+bx^n-2+...
 		 **/
 		private function evalFunction(type:String, coefficients:Array, xValue:Number):Number
 		{
 				
-			var b:Number = coefficients[0];
-			var a:Number = coefficients[1];
+			var b:Number = coefficients[0] || 0;
+			var a:Number = coefficients[1] || 0;
 			
 			if (type == POLYNOMIAL) 
 			{
@@ -342,7 +281,7 @@ package weave.visualization.plotters
 				var degree:int = coefficients.length - 1;
 				for (var i:int = 0; i <= degree; i++)
 				{
-					result += coefficients[i] * Math.pow(xValue, i);
+					result += (coefficients[i] || 0) * Math.pow(xValue, i);
 				}
 				
 				
@@ -381,16 +320,5 @@ package weave.visualization.plotters
 				return NaN;
 			}
 		}
-			
-		// Trendlines
-		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2), calculateRRegression);
-		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(LINEAR), calculateRRegression);
-
-		[Bindable] public var trendlines:Array = [LINEAR, POLYNOMIAL, LOGARITHMIC, EXPONENTIAL, POWER];
-		public static const LINEAR:String = "Linear";
-		public static const POLYNOMIAL:String = "Polynomial";
-		public static const LOGARITHMIC:String = "Logarithmic";
-		public static const EXPONENTIAL:String = "Exponential";
-		public static const POWER:String = "Power";
 	}
 }

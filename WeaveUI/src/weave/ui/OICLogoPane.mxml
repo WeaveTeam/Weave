@@ -21,11 +21,10 @@
 -->
 
 <mx:Button 	xmlns:mx="http://www.adobe.com/2006/mxml" 
-			label="(C) {(new Date()).getFullYear()} Open Indicators Consortium Weave "
-			
+			label="Weave \u00A9 {(new Date()).getFullYear()} Open Indicators Consortium"
 			skin="{null}"
-			
-			fontSize="8"
+			fontFamily="_sans"
+			fontSize="10"
 			color="#000000" 
 			useHandCursor="true"			
 	       	

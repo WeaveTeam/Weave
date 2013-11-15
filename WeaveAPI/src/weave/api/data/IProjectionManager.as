@@ -28,11 +28,11 @@ package weave.api.data
 	{
 		/**
 		 * This function will return a column containing reprojected geometries.
-		 * @param columnReference A reference to a column containing geometry data.
+		 * @param geometryColumn A column containing geometry data.
 		 * @param destinationProjectionSRS The string corresponding to a projection destination.
 		 * @return The reprojected geometry column.
 		 */
-		function getProjectedGeometryColumn(columnReference:IColumnReference, destinationProjectionSRS:String):IAttributeColumn;
+		function getProjectedGeometryColumn(geometryColumn:IAttributeColumn, destinationProjectionSRS:String):IAttributeColumn;
 		
 		/**
 		 * This function will check if a projection is defined for a given SRS code.

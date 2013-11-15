@@ -44,14 +44,13 @@ package weave.api.services
 		 * This function will make the requests for new images.
 		 * 
 		 * @param dataBounds The bounds of the data.
-		 * @param screenBounds The bounds of the screen. This is required to determine
-		 * the appropriate zoom level.
-		 * @param lowerQuality A boolean indicating whether the service should request images
-		 * which are one quality level lower.
+		 * @param screenBounds The bounds of the screen. This is required to determine the appropriate zoom level.
+		 * @param preferLowerQuality A boolean indicating whether the service should request images which are one quality level lower.
+		 * @param layerLowerQuality If true, all lower quality tiles will be returned in order in addition to the correct quality level.
 		 * @return An array of downloaded images. The array is filled with lower quality images followed by
 		 * the requested quality. These images may overlap.
 		 */
-		function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array;
+		function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array;
 		
 		/**
 		 * Outputs the bounds which contains all valid tile requests. If a tile request is
@@ -67,20 +66,6 @@ package weave.api.services
 		 */
 		function getProjectionSRS():String;
 		
-		/**
-		 * This function will set the provider of the service.
-		 *
-		 * @param provider The name of the provider. 
-		 */
-		function setProvider(provider:String):void;
-		
-		/**
-		 * Gets the provider object.
-		 * 
-		 * @return An IMapProvider object if there is one.
-		 */
-		function getProvider():*;
-
 		/**
 		 * Get a string which contains copyright information for the
 		 * service.

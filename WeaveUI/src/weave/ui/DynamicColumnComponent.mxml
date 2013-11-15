@@ -24,26 +24,34 @@
 @author skolman
 @author adufilie
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 xmlns="weave.ui.*"
-		 width="100%" height="30" creationPolicy="all"
-		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
-		 horizontalGap="4">
-	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
-	<LinkableObjectList id="internalList" 
-						variableRowHeight="false"
-			 			dynamicObject="{_dynamicObject}"
-		 				doubleClickEnabled="true" 
-		 				doubleClick="openAttributeSelector()"
-		 				width="100%" rowCount="1" height="24"/>
-	<CenteredImage source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true" height="24"
-		       toolTip="{lang('Click here to select the column used for this property.')}"
-			   click="openAttributeSelector()"/>
-	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
-			   click="clearAttribute()"
-			   toolTip="{lang('Click here to remove the column used for this property.')}"/>
-	<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
-				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
+<Indent xmlns:mx="http://www.adobe.com/2006/mxml" 
+		xmlns="weave.ui.*"
+		height="30" creationPolicy="all"
+		verticalAlign="middle" implements="weave.api.core.ILinkableObject"
+		>
+	<mx:HBox horizontalGap="4" width="100%">
+		<mx:List id="internalList"
+				 rollOut="if (!event.buttonDown) internalList.selectedItem = null"
+				 variableRowHeight="false"
+				 doubleClickEnabled="true"
+				 doubleClick="openAttributeSelector()"
+			 	 width="100%" rowCount="1" height="24"/>
+		<mx:Label id="listOverlay"
+				  width="{internalList.width}"
+				  mouseChildren="false" alpha="0.5" paddingLeft="3" paddingTop="3"
+				  text="{lang('Double-click to select, or drag &amp; drop here')}"
+				  addedToStage="listOverlay.x = listOverlay.y = 0;"
+				  creationComplete="internalList.addChild(listOverlay);"
+				  visible="{isEmpty(internalList.dataProvider)}"/>
+		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
+			       toolTip="{lang('Select an attribute column')}"
+				   click="openAttributeSelector()"/>
+		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/x-inset.png')"
+			       toolTip="{lang('Clear this attribute column')}"
+				   click="clearAttribute()"/>
+		<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
+					 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
+	</mx:HBox>
 	
 	<mx:TitleWindow id="linkDropDown"
 					title="Linking controls for {label}"
@@ -56,10 +64,13 @@
 					backgroundColor="0xCCCCCC" headerHeight="20"
 					horizontalAlign="right" borderStyle="outset" backgroundAlpha="1"
 					close="toggleLinkDropDown();">
-		<mx:HBox horizontalGap="{linkControlsPadding}">
-			<HelpComponent>You can link two or more attributes together so that changing one will change the rest.  Click on the name of an existing linked group or type the name of a new one.</HelpComponent>
+		<mx:HBox horizontalGap="{linkControlsPadding}" verticalAlign="middle">
 			<TextInputWithPrompt id="linkName" prompt="{lang('Enter a new group name')}"
 								 enter="linkTo(StringUtil.trim(linkName.text));"/>
+			<HelpComponent>
+				You can link two or more attributes together so that changing one will change the rest.
+				Click on the name of an existing linked group or type the name of a new one.
+			</HelpComponent>
 			<mx:Button label="{lang('Link')}" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
 			<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkTo(null);"/>
 		</mx:HBox>
@@ -73,12 +84,17 @@
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.getCallbackCollection;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.getLinkableOwner;
+			import weave.api.newLinkableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.utils.ColumnUtils;
 			
-			[Bindable] public var showLabel:Boolean = true;
 			[Bindable] public var showLinkControl:Boolean = true;
 			
 			[Embed(source='/weave/resources/images/plug-connected.png')]
@@ -88,59 +104,81 @@
 			
 			private const linkControlsPadding:int = 2;
 			
+			private function isEmpty(ac:*):Boolean
+			{
+				return !ac || !ac.length;
+			}
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				linkDropDown.parent.removeChild(linkDropDown);
+				
+				controller.view = internalList;
+				controller.allowMultipleSelection = false;
+				controller.labelFunction = ColumnUtils.getColumnListLabel;
+			}
+			
+			private const controller:VariableListController = newLinkableChild(this, VariableListController);
+			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleDynamicObject);
+			private const columnWrapperWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumnWrapper);
+			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			
+			public function set columnWrapper(columnWrapper:IColumnWrapper):void
+			{
+				columnWrapperWatcher.target = columnWrapper;
+			}
+			
+			private function handleColumnWrapper():void
+			{
+				dynamicObject = ColumnUtils.hack_findInternalDynamicColumn(columnWrapperWatcher.target as IColumnWrapper);
 			}
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				if (_dynamicObject == value)
-					return;
-				
-				if (_dynamicObject)
-					getCallbackCollection(_dynamicObject).removeCallback(toggleLinkDropDown);
-				
-				_dynamicObject = value;
-				
-				if (value)
-					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
+				controller.dynamicObject = value;
+				dynamicObjectWatcher.target = value;
 				
 				updateLabel();
 			}
-			[Bindable] private var _dynamicObject:ILinkableDynamicObject
-			private var _visTool:IVisToolWithSelectableAttributes = null;
-			public function set visTool(value:IVisToolWithSelectableAttributes):void
+			
+			private var _errorStringFunction:Function = null;
+			
+			public function set errorStringFunction(value:Function):void
 			{
-				_visTool = value;
-				updateLabel();
+				_errorStringFunction = value;
+				handleDynamicObject();
 			}
 			
 			private function updateLabel():void
 			{
-				if (!_visTool)
+				toolWatcher.target = AttributeSelectorPanel.getVisTool(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
+				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				if (!tool)
 					return;
-				var names:Array = _visTool.getSelectableAttributeNames();
-				var attrs:Array = _visTool.getSelectableAttributes();
-				var index:int = attrs.indexOf(_dynamicObject);
+				var names:Array = tool.getSelectableAttributeNames();
+				var attrs:Array = tool.getSelectableAttributes();
+				var index:int = attrs.indexOf(columnWrapperWatcher.target || controller.dynamicObject);
 				if (index >= 0)
 					label = names[index];
 			}
 			
 			private function openAttributeSelector():void
 			{
-				if (_visTool)
-					AttributeSelectorPanel.openToolSelector(_visTool, internalList.dynamicObject);
-				else
-					AttributeSelectorPanel.openDefaultSelector(internalList.dynamicObject, label);
+				AttributeSelectorPanel.open(columnWrapperWatcher.target as ILinkableObject || controller.dynamicObject, label);
 			}
 			
 			private function clearAttribute():void
 			{
-				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(internalList.dynamicObject as DynamicColumn);
+				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(controller.dynamicObject as DynamicColumn);
 				if (dc)
 					dc.removeObject();
+			}
+			
+			private function handleDynamicObject():void
+			{
+				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
+				toggleLinkDropDown();
 			}
 			
 			private function toggleLinkDropDown(show:Boolean = false):void
@@ -149,8 +187,8 @@
 					return;
 				
 				var globalName:String = null;
-				if (internalList.dynamicObject)
-					globalName = internalList.dynamicObject.globalName;
+				if (controller.dynamicObject)
+					globalName = controller.dynamicObject.globalName;
 				else
 					show = false;
 				if (globalName)
@@ -189,9 +227,9 @@
 			
 			private function linkTo(globalName:String):void
 			{
-				internalList.dynamicObject.globalName = globalName;
+				controller.dynamicObject.globalName = globalName;
 				toggleLinkDropDown();
 			}
 		]]>
 	</mx:Script>
-</mx:HBox>
+</Indent>

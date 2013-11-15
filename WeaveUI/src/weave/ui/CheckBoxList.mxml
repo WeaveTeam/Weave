@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:List xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="100%" borderThickness="0" selectable="false"
+		 rowCount="{dataProvider.length}"
+		 paddingLeft="0" paddingRight="0"
+		 paddingTop="{getStyle('verticalGap')/2}" paddingBottom="{getStyle('verticalGap')/2}" xmlns:ui="weave.ui.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ICollectionView;
+			
+			private var _selection:Array = [];
+			
+			/**
+			 * This array stores the list of Boolean values for the checkboxes
+			 */
+			[Bindable] public function set selection(value:Array):void
+			{
+				_selection = value || [];
+				var n:int = _selection.length;
+				if (dataProvider is ICollectionView)
+					n = (dataProvider as ICollectionView).length;
+				for (var i:int = 0; i < n; i++)
+				{
+					var checkBox:CustomCheckBox = indexToItemRenderer(i) as CustomCheckBox;
+					if (checkBox)
+						checkBox.selected = _selection[i];
+				}
+			}
+			
+			public function get selection():Array
+			{
+				return _selection;
+			}
+		]]>
+	</mx:Script>
+	<mx:itemRenderer>
+		<mx:Component>
+			<ui:CustomCheckBox change="handleSelectionChange()">
+				<mx:Script>
+					<![CDATA[
+						import weave.core.UIUtils;
+						
+						override public function set data(d:Object):void
+						{
+							super.data = d;
+							selected = outerDocument.selection[outerDocument.itemRendererToIndex(this)];
+						}
+						private function handleSelectionChange():void
+						{
+							var newSelection:Array = outerDocument.selection.concat();
+							newSelection[outerDocument.itemRendererToIndex(this)] = this.selected;
+							outerDocument.selection = newSelection;
+						}
+					]]>
+				</mx:Script>
+			</ui:CustomCheckBox>
+		</mx:Component>
+	</mx:itemRenderer>
+</mx:List>

@@ -306,7 +306,7 @@ package weave.services
 			else
 				paramDebugStr += ObjectUtil.toString(query.parameters);
 			
-			trace(StringUtil.substitute(
+			trace(StandardLib.substitute(
 					"Received error on {0}({1}):\n\t{2}",
 					query.methodName,
 					paramDebugStr,

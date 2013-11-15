@@ -38,6 +38,21 @@ package weave.api.data
 		function createCSV(rows:Array):String;
 		
 		/**
+		 * This function parses a String as a CSV-encoded row.
+		 * @param csvData The CSV string to parse.
+		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
+		 * @return The result of parsing the CSV string.
+		 */
+		function parseCSVRow(csvData:String, parseTokens:Boolean = true):Array;
+		
+		/**
+		 * This function encodes an Array of Strings into a single CSV-encoded String.
+		 * @param row An array of values for a single row.
+		 * @return The row encoded as a CSV String.
+		 */
+		function createCSVRow(row:Array):String;
+		
+		/**
 		 * This will parse a CSV-encoded String value.
 		 * If string begins with ", text up until the matching " will be parsed, replacing "" with ".
 		 * @param token A CSV-encoded String value.

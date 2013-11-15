@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				width="300" height="200" implements="weave.api.ui.IVisTool"
+				implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
 		<mx:Canvas label="{lang('Combo Box')}">
-			<CustomComboBox id="choiceCombo" prompt="{lang('Select an attribute...')}"
-							width="100%" height="100%"
+			<CustomComboBox id="choiceCombo"
+							width="100%" height="100%" minHeight="0"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							/>
@@ -60,32 +60,38 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<ControlPanel>
 		<mx:VBox width="100%" label="{lang('Settings')}">
-			<mx:HBox>
-				<mx:VBox>
-					<Indent label="{lang('Visualization tool:')}">
-						<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
-						<HelpComponent content="{lang('Select the visualization tool that you want the attribute menu to be linked to.')}"/>
-					</Indent>
-					<Indent label="{lang('Visualization attribute:')}">
-						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
-										valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
-						<HelpComponent content="{lang('Select the visualization attribute that you want the menu to be linked to.')}"/>
-					</Indent>
-					<Indent label="{lang('Menu layout:')}">
-						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
-										dataProvider="{layouts}"/>
-						<HelpComponent content="{lang('Select the layout for the attribute menu.')}"/>
-						<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
-								 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
-							<mx:CheckBox id="showPlayButtonCheck" label="Show play button"
-										 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
-							<mx:CheckBox id="autoPlayRepeatCheck" label="Loop"
-										 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
-						</mx:HBox>
-					</Indent>
-				</mx:VBox>
-			</mx:HBox>
+			<Indent label="{lang('Visualization tool')}">
+				<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
+								valueCommit="handleComboChange(targetToolCombo, targetTool);" />
+				<HelpComponent>
+					Select the visualization tool that you want the attribute menu to be linked to.
+				</HelpComponent>
+			</Indent>
+			<Indent label="{lang('Visualization attribute')}">
+				<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
+								valueCommit="handleComboChangeIndex(targetAttributeCombo, targetAttributeNumber);"/>
+				<HelpComponent>
+					Select the visualization attribute that you want the menu to be linked to.
+				</HelpComponent>
+			</Indent>
+			<Indent label="{lang('Menu layout')}">
+				<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
+								dataProvider="{layouts}"/>
+				<HelpComponent>
+					Select the layout for the attribute menu.
+				</HelpComponent>
+				<mx:HBox visible="{layoutCombo.selectedItem == 'HSlider'}"
+						 includeInLayout="{layoutCombo.selectedItem == 'HSlider'}">
+					<mx:CheckBox id="showPlayButtonCheck" label="{lang('Show play button')}"
+								 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
+					<mx:CheckBox id="autoPlayRepeatCheck" label="{lang('Loop')}"
+								 creationComplete="linkBindableProperty(autoPlayRepeat, autoPlayRepeatCheck, 'selected');"/>
+				</mx:HBox>
+				<IndentTextInput visible="{layoutCombo.selectedItem == 'ComboBox'}"
+								 includeInLayout="{layoutCombo.selectedItem == 'ComboBox'}"
+								 label="{lang('Prompt')}"
+								 creationComplete="linkBindableProperty(prompt, event.target, 'text')"/>
+			</Indent>
 			<ColumnListComponent id="choicesComponent" label="{lang('Attributes to appear in the menu')}" />
 			<Indent label="{lang('Label function')}">
 				<mx:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
@@ -98,9 +104,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
-			import mx.utils.StringUtil;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
@@ -114,12 +118,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.ui.IVisTool;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.compiler.StandardLib;
-			import weave.core.CallbackJuggler;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
@@ -179,6 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return value + lang(' frames per second');
 			};
 			
+			public const prompt:LinkableString = registerLinkableChild(this, new LinkableString(lang('Select an attribute...')));
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
 			public const targetAttributeNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-1, isFinite));
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -187,7 +192,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			private const toolJuggler:CallbackJuggler = new CallbackJuggler(this, handleToolChange, true);
+			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
 			
@@ -221,6 +226,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function constructor():void
 			{
 				super.constructor();
+				
+				// have a default dynamic title
+				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
+				
+				// have some default choices ready when the tool is created
+				copySessionState(ProbeTextUtils.probedColumns, choices);
 			}
 			
 			// called after children have been created
@@ -228,15 +239,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
-				// have a default dynamic title
-				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
-				
-				// have some default choices ready when the tool is created
-				copySessionState(ProbeTextUtils.probedColumns, choices);
-				
-				pinned.value = true;
-				
-				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
+				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var target:UIComponent = this;
 				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
 				
@@ -244,18 +247,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
-				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
-				targetTool.addGroupedCallback(this, validateToolJugglerTarget, true);
+				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
+				targetTool.addGroupedCallback(this, validateToolWatcherTarget, true);
 				targetAttributeNumber.addImmediateCallback(this, handleTargetAttributeChange, true);
-				choices.addImmediateCallback(this, handleChoicesChange, true);
+				choices.addGroupedCallback(this, handleChoicesChange, true);
 				showPlayButton.addImmediateCallback(this, stopPlay);
 				
 				choicesComponent.hashMap = choices;
 				
 				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				layoutMode.addImmediateCallback(this, handleLayoutMode);
-				
-				callLater(showControlPanelIfNothingSelected);
+				linkBindableProperty(prompt, choiceCombo, 'prompt');
 			}
 			
 			private function stopPlay():void
@@ -269,17 +271,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				layoutViewStack.selectedIndex = layouts.indexOf(layoutMode.value);
 			}
 			
-			private function showControlPanelIfNothingSelected():void
-			{
-				// when the tool is created and nothing is selected, show the control panel
-				if (!targetTool.value && targetAttributeNumber.value < 0 && !WeaveAPI.StageUtils.mouseButtonDown)
-					toggleControlPanel();
-			}
-			
 			// this returns the tool object corresponding to the selected item in the toolCombo
 			public function getTargetTool():IVisToolWithSelectableAttributes
 			{
-				return toolJuggler.target as IVisToolWithSelectableAttributes;
+				return toolWatcher.target as IVisToolWithSelectableAttributes;
 			}
 			
 			public function get targetAttributeName():String
@@ -291,15 +286,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleGlobalListChange():void
 			{
 				// update the list of tools
-				targetToolCombo.dataProvider = Weave.root.getNames(IVisToolWithSelectableAttributes);
+				targetToolCombo.dataProvider = WeaveAPI.globalHashMap.getNames(IVisToolWithSelectableAttributes);
 				// make sure the correct item is selected
 				targetToolCombo.selectedItem = targetTool.value;
-				validateToolJugglerTarget();
+				validateToolWatcherTarget();
 			}
 			
-			private function validateToolJugglerTarget():void
+			private function validateToolWatcherTarget():void
 			{
-				toolJuggler.target = Weave.root.getObject(targetTool.value) as IVisToolWithSelectableAttributes;
+				toolWatcher.target = WeaveAPI.globalHashMap.getObject(targetTool.value) as IVisToolWithSelectableAttributes;
 			}
 			
 			// called when the tool triggers callbacks
@@ -397,7 +392,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (index < 0 || index >= _attrs.length)
 				{
 					// we didn't find the "SelectableAttributeName"
-					reportError(StringUtil.substitute('"{0}" does not have an attribute at index {1}', targetTool.value, index));
+					reportError(StandardLib.substitute('"{0}" does not have an attribute at index {1}', targetTool.value, index));
 					return;
 				}
 				
@@ -412,7 +407,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				// use the same hack used by the AttributeSelectorPanel to find a nested dynamic column.
-				dynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(dynamicColumn);
+				dynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(dynamicColumn);
 				
 				if (dynamicColumn)
 				{
@@ -451,13 +446,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			public function getSelectableAttributes():Array
+			{
+				return [choices];
+			}
+			public function getSelectableAttributeNames():Array
+			{
+				return [lang("Choices")];
+			}
+			
 			[Deprecated(replacement="targetAttributeNumber")] public function set targetAttribute(value:String):void
 			{
-				WeaveAPI.StageUtils.callLater(this, function():void{
-					validateToolJugglerTarget();
-					handleToolChange();
-					targetAttributeNumber.value = _attrNames.indexOf(value);
-				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				validateToolWatcherTarget();
+				handleToolChange();
+				if (_attrNames.length == 0)
+				{
+					WeaveAPI.StageUtils.callLater(this, function():void{
+						targetAttribute = value;
+					}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					return;
+				}
+				targetAttributeNumber.value = _attrNames.indexOf(value);
 			}
 			
 			[Deprecated] public function set hack_showPlayButton(value:Boolean):void

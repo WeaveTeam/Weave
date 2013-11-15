@@ -21,7 +21,6 @@ package weave.services
 		
 		private var cache_dirty:Object = {}; // id -> Boolean
         private var cache_entity:Object = {}; // id -> Array <Entity>
-		private var d2d_child_parent:Dictionary2D = new Dictionary2D(); // <child_id,parent_id> -> Boolean
 		private var delete_later:Object = {}; // id -> Boolean
 		private var _idsByType:Object = {}; // entityType -> Array of id
 		private var _infoLookup:Object = {}; // id -> EntityHierarchyInfo
@@ -34,13 +33,13 @@ package weave.services
 			Admin.service.addHook(Admin.service.authenticate, null, fetchDirtyEntities);
         }
 		
-		public function getCachedParentIds(id:int):Array
+		public function hasCachedRelationship(parentId:int, childId:int):Boolean
 		{
-			var result:Array = [];
-			var d:Dictionary = d2d_child_parent.dictionary[id];
-			for (var pid:* in d)
-				result.push(int(pid));
-			return result;
+			if (cache_entity[parentId] && (!cache_dirty[parentId] || !cache_entity[childId]))
+				return (cache_entity[parentId] as Entity).hasChild(childId);
+			if (cache_entity[childId])
+				return (cache_entity[childId] as Entity).hasParent(parentId);
+			return false;
 		}
 		
 		public function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
@@ -61,11 +60,10 @@ package weave.services
 			
 			if (alsoInvalidateParents)
 			{
-				var parents:Dictionary = d2d_child_parent.dictionary[id];
-				if (parents)
+				var parents:Array = (cache_entity[id] as Entity).parentIds;
+				if (parents && parents.length)
 				{
-					// when a child is deleted, invalidate parents
-					for (var parentId:* in parents)
+					for each (var parentId:* in parents)
 						invalidate(parentId);
 				}
 				else
@@ -142,18 +140,25 @@ package weave.services
         private function getEntityHandler(event:ResultEvent, requestedIds:Array):void
         {
 			var id:int;
+			var entity:Entity;
 			
-			// mark all requested ids as pending_invalidate in case they do not appear in the results
+			// unmark all requested ids in case they do not appear in the results
 			for each (id in requestedIds)
-				pending_invalidate[id] = true;
+			{
+				// this entity doesn't exist, so make sure its cached object is empty
+				entity = cache_entity[id] || new Entity();
+				if (entity.id != ROOT_ID)
+					entity = new Entity();
+				cache_entity[id] = entity;
+				pending_invalidate[id] = false;
+			}
 				
 			for each (var result:Object in event.result)
 			{
 				id = Entity.getEntityIdFromResult(result);
-				var entity:Entity = cache_entity[id] || new Entity();
+				entity = cache_entity[id] || new Entity();
 				entity.copyFromResult(result);
 	            cache_entity[id] = entity;
-				pending_invalidate[id] = false;
 				
 				var info:EntityHierarchyInfo = _infoLookup[id];
 				if (info)
@@ -162,10 +167,6 @@ package weave.services
 					info.title = entity.publicMetadata[ColumnMetadata.TITLE];
 					info.numChildren = entity.childIds.length;
 				}
-				
-				// cache child-to-parent mappings
-				for each (var childId:int in entity.childIds)
-					d2d_child_parent.set(childId, id, true);
 			}
 			
 			callbacks.triggerCallbacks();
@@ -205,7 +206,6 @@ package weave.services
 			{
 				cache_dirty = {};
 				cache_entity = {};
-				d2d_child_parent = new Dictionary2D();
 				delete_later = {};
 				_idsByType = {};
 				_infoLookup = {};

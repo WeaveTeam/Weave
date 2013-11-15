@@ -35,7 +35,6 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
-	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.AttributeHierarchy;
 	
@@ -193,14 +192,6 @@ package weave.data.DataSources
 		/* abstract */ protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void { }
 
 		/**
-		 * The url of the data source.
-		 * This is included here because most IDataSource implementations will have a URL.
-		 * It is a special case to have an IDataSource without one.
-		 * It is recommended to lock this sessioned string in the initialize() function.
-		 */
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
-
-		/**
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
 		 */
 		public function get attributeHierarchy():IAttributeHierarchy
@@ -247,7 +238,7 @@ package weave.data.DataSources
 			if (_requestedHierarchySubtreeStringMap[pathString] == undefined)
 			{
 				_requestedHierarchySubtreeStringMap[pathString] = true;
-				requestHierarchyFromSource(subtreeNode);
+				WeaveAPI.StageUtils.callLater(this, requestHierarchyFromSource, [subtreeNode], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 			else
 			{
