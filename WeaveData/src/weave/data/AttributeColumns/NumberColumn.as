@@ -19,15 +19,9 @@
 
 package weave.data.AttributeColumns
 {
-	import __AS3__.vec.Vector;
-	
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
-	
-	import mx.formatters.NumberFormatter;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
@@ -113,7 +107,7 @@ package weave.data.AttributeColumns
 				}
 				catch (e:Error)
 				{
-					reportError(e);
+					errorHandler(e);
 				}
 			}
 			
@@ -127,10 +121,16 @@ package weave.data.AttributeColumns
 		
 		private function errorHandler(e:*):void
 		{
-			_error = e;
+			var str:String = e is Error ? e.message : String(e);
+			str = StandardLib.substitute("Error in script for AttributeColumn {0}:\n{1}", _metadata.toXMLString(), str);
+			if (_lastError != str)
+			{
+				_lastError = str;
+				reportError(e);
+			}
 		}
 		
-		private var _error:String;
+		private var _lastError:String;
 		private var _i:int;
 		private var _keys:Vector.<IQualifiedKey>;
 		private var _numericData:Vector.<Number>;
@@ -152,16 +152,13 @@ package weave.data.AttributeColumns
 					{
 						_uniqueKeys.push(key);
 						_keyToNumericDataMapping[key] = number;
-						_error = null;
-						var string:String = StandardLib.asString(numberToStringFunction(number));
-						_keyToStringDataMapping[key] = _error ? _error : string;
-						_error = null;
+						_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
 					}
 					else if (!_reportedDuplicate)
 					{
 						_reportedDuplicate = true;
 						var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-						var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
+						var str:String = StandardLib.substitute(fmt, key.localName, _metadata.toXMLString());
 						if (Capabilities.isDebugger)
 							reportError(str);
 					}

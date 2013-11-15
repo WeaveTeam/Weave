@@ -21,10 +21,7 @@ package weave.data.AttributeColumns
 {
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
-	
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
@@ -37,7 +34,6 @@ package weave.data.AttributeColumns
 	import weave.compiler.StandardLib;
 	import weave.core.StageUtils;
 	import weave.utils.AsyncSort;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * StringColumn
@@ -161,8 +157,16 @@ package weave.data.AttributeColumns
 		
 		private function errorHandler(e:*):void
 		{
-			return; // do nothing
+			var str:String = e is Error ? e.message : String(e);
+			str = StandardLib.substitute("Error in script for AttributeColumn {0}:\n{1}", _metadata.toXMLString(), str);
+			if (_lastError != str)
+			{
+				_lastError = str;
+				reportError(e);
+			}
 		}
+		
+		private var _lastError:String;
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2, _iterate3, _iterate4);
 		
@@ -214,7 +218,7 @@ package weave.data.AttributeColumns
 				{
 					_reportedDuplicate = true;
 					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
+					var str:String = StandardLib.substitute(fmt, key.localName, _metadata.toXMLString());
 					if (Capabilities.isDebugger)
 						reportError(str);
 				}
