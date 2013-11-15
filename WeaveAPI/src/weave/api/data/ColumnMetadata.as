@@ -31,5 +31,12 @@ package weave.api.data
 		public static const DATE_FORMAT:String = "dateFormat";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
+		
+		public static function getAllMetadata(column:IAttributeColumn):Object
+		{
+			var meta:Object = {};
+			column.getMetadataPropertyNames().forEach(function(n:*):*{ meta[n] = column.getMetadata(n); });
+			return meta;
+		}
 	}
 }
