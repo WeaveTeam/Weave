@@ -229,7 +229,7 @@
 			}
 			public function setTarget(object:ILinkableObject):void
 			{
-				colorRampWatcher.target = object;
+				colorRamp = object as ColorRamp;
 			}
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
