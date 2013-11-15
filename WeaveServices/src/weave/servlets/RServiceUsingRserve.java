@@ -56,7 +56,7 @@ public class RServiceUsingRserve
 
 	private static String rFolderName = "R_output";
 	
-	private static RConnection getRConnection() throws RemoteException
+	protected static RConnection getRConnection() throws RemoteException
 	{
 		RConnection rConnection = null; // establishing R connection		
 		try
@@ -110,7 +110,7 @@ public class RServiceUsingRserve
 		}
 	}
 	
-	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException, RemoteException
+	protected static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException, RemoteException
 	{
 		requestScriptAccess(rConnection);
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
@@ -141,14 +141,8 @@ public class RServiceUsingRserve
 	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
-		
-		REXP evalValue = null;
-		if (showWarnings)			
-			evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
-		else
-			evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-		
-		
+		int warn = showWarnings ? 2 : 1;
+		REXP evalValue = rConnection.eval("try({ options(warn=" + warn + ") \n" + script + "},silent=TRUE)");
 		return evalValue;
 	}
 	
@@ -214,7 +208,7 @@ public class RServiceUsingRserve
 		return getREXP(new Object[]{object});
 	}
 
-	private static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws RserveException, RemoteException
+	protected static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws RserveException, RemoteException
 	{
 		for (int i = 0; i < inputNames.length; i++)
 		{
@@ -303,7 +297,7 @@ public class RServiceUsingRserve
 	 * added support for Rlist
 	 * added support for RFactor(REngine)
 	 */
-	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
+	protected static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
 			return null;
 		}
