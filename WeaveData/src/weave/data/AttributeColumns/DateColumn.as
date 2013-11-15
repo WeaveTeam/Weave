@@ -23,19 +23,14 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
-	import weave.core.StageUtils;
-	import weave.utils.AsyncSort;
 	
 	/**
 	 * @author adufilie
@@ -190,7 +185,7 @@ package weave.data.AttributeColumns
 						if (!_reportedError)
 						{
 							_reportedError = true;
-							var err:String = StringUtil.substitute(
+							var err:String = StandardLib.substitute(
 								'Warning: Unable to parse this value as a date: "{0}"'
 								+ ' (only the first error for this column is reported).'
 								+ ' Attribute column: {1}',
@@ -214,7 +209,7 @@ package weave.data.AttributeColumns
 				{
 					_reportedError = true;
 					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
-					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
+					var str:String = StandardLib.substitute(fmt, key.localName, _metadata.toXMLString());
 					if (Capabilities.isDebugger)
 						reportError(str);
 				}

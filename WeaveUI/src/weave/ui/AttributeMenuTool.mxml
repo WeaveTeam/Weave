@@ -104,7 +104,6 @@
 		<![CDATA[
 			import mx.controls.ComboBox;
 			import mx.core.UIComponent;
-			import mx.utils.StringUtil;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
@@ -393,7 +392,7 @@
 				if (index < 0 || index >= _attrs.length)
 				{
 					// we didn't find the "SelectableAttributeName"
-					reportError(StringUtil.substitute('"{0}" does not have an attribute at index {1}', targetTool.value, index));
+					reportError(StandardLib.substitute('"{0}" does not have an attribute at index {1}', targetTool.value, index));
 					return;
 				}
 				

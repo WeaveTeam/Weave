@@ -23,7 +23,6 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
@@ -86,11 +85,11 @@ package weave.utils
 			var dataType:String = ColumnUtils.getDataType(column);
 			
 			if (dataType && keyType)
-				return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
+				return StandardLib.substitute("{0} ({1} -> {2})", title, keyType, dataType);
 			if (keyType)
-				return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
+				return StandardLib.substitute("{0} (Key Type: {1})", title, keyType);
 			if (dataType)
-				return StringUtil.substitute("{0} (Data Type: {1})", title, dataType);
+				return StandardLib.substitute("{0} (Data Type: {1})", title, dataType);
 			
 			return title;
 		}

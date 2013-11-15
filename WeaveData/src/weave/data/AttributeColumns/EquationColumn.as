@@ -437,7 +437,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			return StringUtil.substitute('{0};"{1}";({2})', debugId(this), getMetadata(ColumnMetadata.TITLE), equation.value);
+			return StandardLib.substitute('{0};"{1}";({2})', debugId(this), getMetadata(ColumnMetadata.TITLE), equation.value);
 		}
 		
 		//---------------------------------

@@ -29,8 +29,6 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -69,7 +67,7 @@ package weave.utils
 			bytes1.position = 0;
 			bytes2.position = 0;
 			
-			weaveTrace(StringUtil.substitute('array.length {0}, bytes1.length {1}, bytes2.length {2}',array.length,bytes1.length, bytes2.length));
+			weaveTrace(StandardLib.substitute('array.length {0}, bytes1.length {1}, bytes2.length {2}',array.length,bytes1.length, bytes2.length));
 			
 			DebugTimer.begin();
 			

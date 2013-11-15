@@ -32,7 +32,6 @@ package weave
 	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
@@ -517,7 +516,7 @@ package weave
 				catch (e:Error)
 				{
 					if (e.errorID == 2060 && e.getStackTrace() == null)
-						e.message = StringUtil.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication.url);
+						e.message = StandardLib.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication.url);
 					reportError(e);
 				}
 			}

@@ -52,10 +52,9 @@
 	<ui:IndentTextInput label="Password" id="passInput" change="{generate()}" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.utils.StringUtil;
-			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
+			import weave.compiler.StandardLib;
 			import weave.services.beans.ConnectionInfo;
 			
 			[Bindable] public var indentGroup:Object = this;
@@ -142,7 +141,7 @@
 					pass = encodeURIComponent(pass);
 				}
 				
-				var result:String = StringUtil.substitute(format, dbms.toLowerCase(), host, database, user, pass);
+				var result:String = StandardLib.substitute(format, dbms.toLowerCase(), host, database, user, pass);
 				
 				return result;
 			}

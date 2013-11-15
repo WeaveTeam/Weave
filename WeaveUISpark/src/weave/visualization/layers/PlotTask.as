@@ -27,7 +27,6 @@ package weave.visualization.layers
 	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -45,6 +44,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
@@ -80,7 +80,7 @@ package weave.visualization.layers
 					str += '(busy)';
 				return str;
 			}
-			return StringUtil.substitute('PlotTask({0}, {1})', type, getQualifiedClassName(_plotter).split(':').pop());
+			return StandardLib.substitute('PlotTask({0}, {1})', type, getQualifiedClassName(_plotter).split(':').pop());
 		}
 		
 		public static const TASK_TYPE_SUBSET:int = 0;

@@ -240,11 +240,11 @@ import mx.rpc.IResponder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
-import mx.utils.StringUtil;
 
 import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
+import weave.compiler.StandardLib;
 import weave.services.URLRequestUtils;
 
 internal class CustomURLLoader extends URLLoader
@@ -406,7 +406,7 @@ internal class CustomURLLoader extends URLLoader
 		var text:String = errorEvent.text;
 		// If the user is running the non-debugger version of Flash Player, provide the same info the debugger version would provide.
 		if (text == "Error #2048")
-			text += StringUtil.substitute(": Security sandbox violation: {0} cannot load data from {1}", WeaveAPI.topLevelApplication.url, urlRequest.url);
+			text += StandardLib.substitute(": Security sandbox violation: {0} cannot load data from {1}", WeaveAPI.topLevelApplication.url, urlRequest.url);
 		if (text == "Error #2032")
 			text += ": Stream Error. URL: " + urlRequest.url;
 		errorEvent.text = text;
