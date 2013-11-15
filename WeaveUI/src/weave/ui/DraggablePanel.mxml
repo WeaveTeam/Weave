@@ -1353,6 +1353,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_dragCanvas.width = width;
 				_dragCanvas.height = height;
 				UIUtils.drawInvisibleHalo(_dragCanvas, -resizeBorderThickness);
+
+				if (_enableMoveResize || _moveImage.visible)
+				{
+					_dragCanvas.graphics.lineStyle(1, borderIsVisible ? thinBorderOverlayColor : thinBorderColor, thinBorderAlpha);
+					_dragCanvas.graphics.drawRect(0, 0, Math.round(width)-1, Math.round(height)-1);
+				}
 			}
 			
 			protected function handleMinimizeButtonClick():void
@@ -1505,6 +1511,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const resizeBorderThickness:int = 5;
 			public static var adminMode:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
+			public static var thinBorderOverlayColor:uint = 0xFFFFFF;
+			public static var thinBorderColor:uint = 0;
+			public static var thinBorderAlpha:Number = 0.1;
 			
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
