@@ -258,7 +258,7 @@
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
 
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.shapeSize, shapeSizeSlider, "value");
 				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, "value");
 				linkBindableProperty(_plotter.shapeToDraw, shapeCombo, "selectedItem");
@@ -454,7 +454,26 @@
 					}
 				}
 			}
-			
+			private function xDataTest():String
+			{
+				
+				return null;
+			}
+			private function yDataTest():String
+			{
+				
+				return null;
+			}
+			private function groupByTest():String
+			{
+				
+				return null;
+			}
+			private function groupByLabelTest():String
+			{
+				
+				return null;
+			}
 		]]>
 	</mx:Script>
 	<mx:Number id="controlsFontSize">10</mx:Number>
@@ -553,10 +572,10 @@
 		<mx:VBox label="{lang('Grouping')}">
 			<ui:CheckBoxWithNestedOptions id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
 						 label="{lang('Group records by column values')}">
-				<ui:DynamicColumnComponent id="xDataSelector" helpContent="Attribute to appear on the x axis. All columns must have the same keyType."/>
-				<ui:DynamicColumnComponent id="yDataSelector" helpContent="Attribute to appear on the y axis. All columns must have the same keyType."/>
-				<ui:DynamicColumnComponent id="groupBySelector" helpContent="Specify column to get keys from. All columns must have the same keyType."/>
-				<ui:DynamicColumnComponent id="groupByLabelSelector" helpContent="Attribute used for record label text. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="xDataSelector" errorStringFunction="xDataTest" helpContent="Attribute to appear on the x axis. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="yDataSelector" errorStringFunction="yDataTest" helpContent="Attribute to appear on the y axis. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="groupBySelector" errorStringFunction="groupByTest" helpContent="Specify column to get keys from. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="groupByLabelSelector" errorStringFunction="groupByLabelTest" helpContent="Attribute used for record label text. All columns must have the same keyType."/>
 				<ui:Indent>
 					<mx:Button label="{lang('Generate label Equation')}"
 							   click="updateLabelColumn()"/>
