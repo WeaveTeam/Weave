@@ -87,9 +87,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.getLinkableOwner;
 			import weave.api.newLinkableChild;
-			import weave.api.objectWasDisposed;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -175,6 +173,11 @@
 					dc.removeObject();
 			}
 			
+			public function updateError():void
+			{
+				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
+			}
+			
 			private function handleDynamicObject():void
 			{
 				if (!internalList)
@@ -182,7 +185,7 @@
 					callLater(handleDynamicObject);
 					return;
 				}
-				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
+				updateError();
 				toggleLinkDropDown();
 			}
 			
