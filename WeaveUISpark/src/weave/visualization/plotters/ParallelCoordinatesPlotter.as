@@ -313,10 +313,10 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < _yColumns.length; ++i)
 			{
 				getCoords(recordKey, i, tempPoint);
-				if (!includeUndefinedBounds || isFinite(tempPoint.x) && isFinite(tempPoint.y))
+				if (includeUndefinedBounds || isFinite(tempPoint.x) && isFinite(tempPoint.y))
 					(output[outIndex] as IBounds2D).includePoint(tempPoint);
 				// when geom probing is enabled, report a single data bounds
-				if (!includeUndefinedBounds || !enableGeomProbing)
+				if (includeUndefinedBounds || !enableGeomProbing)
 					outIndex++;
 			}
 			while (output.length > outIndex + 1)
