@@ -28,7 +28,6 @@ package weave.utils
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -174,15 +173,10 @@ package weave.utils
 			if (lookup == null || column.triggerCounter != _reverseKeyLookupTriggerCounter[column]) // if cache is invalid, validate it now
 			{
 				_reverseKeyLookupTriggerCounter[column] = column.triggerCounter;
-				
-				// make sure when the column changes, the cache gets invalidated.
-				if (_reverseKeyLookupCache[column] === undefined)
-					column.addImmediateCallback(null, function():void { clearReverseLookupCache(column); });
-				
-				_reverseKeyLookupCache[column] = lookup = new Dictionary();
+				_reverseKeyLookupCache[column] = lookup = new Dictionary(true);
 				for each (var recordKey:IQualifiedKey in column.keys)
 				{
-					var value:Object = column.getValueFromKey(recordKey, IQualifiedKey) as IQualifiedKey;
+					var value:IQualifiedKey = column.getValueFromKey(recordKey, IQualifiedKey) as IQualifiedKey;
 					if (value == null)
 						continue;
 					var keys:Array = lookup[value] as Array;
@@ -192,15 +186,6 @@ package weave.utils
 				}
 			}
 			return lookup[keyValue] as Array;
-		}
-		
-		/**
-		 * This function invalidates the cached reverse key lookup for a column.
-		 * @param column The column that changed
-		 */		
-		private static function clearReverseLookupCache(column:IAttributeColumn):void
-		{
-			_reverseKeyLookupCache[column] = null; // set to null but not undefined because we don't want to re-add this callback
 		}
 		
 		/**
