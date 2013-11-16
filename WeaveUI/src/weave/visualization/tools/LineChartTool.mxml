@@ -31,6 +31,7 @@
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
@@ -101,15 +102,15 @@
 				var self:* = this;
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void {
 					if (_plotter.enableGroupBy.value)
-						AttributeSelectorPanel.open(labelPlotter.text);
-					else
 						AttributeSelectorPanel.open(_plotter.yData);
+					else
+						AttributeSelectorPanel.open(labelPlotter.text);
 				});
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void {
 					if (_plotter.enableGroupBy.value)
-						AttributeSelectorPanel.open(_plotter.columns);
-					else
 						AttributeSelectorPanel.open(_plotter.xData);
+					else
+						AttributeSelectorPanel.open(_plotter.columns);
 				});
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
@@ -449,31 +450,44 @@
 					}
 				}
 			}
-			private function groupByTest():String
+			private var _groupByErrorStrings:Dictionary = new Dictionary(true);
+			private function initDynamicColumnComponent(component:DynamicColumnComponent, helpContent:String):void
 			{
-				
-				return null;
+				component.helpContent = helpContent; 
+				component.errorStringFunction = function():String {
+					if (detectLinkableObjectChange(initDynamicColumnComponent, _plotter, labelPlotter))
+					{
+						var ktX:String = _plotter.xData.getMetadata(ColumnMetadata.KEY_TYPE);
+						var ktY:String = _plotter.yData.getMetadata(ColumnMetadata.KEY_TYPE);
+						var ktGB:String = _plotter.groupBy.getMetadata(ColumnMetadata.KEY_TYPE);
+						var dtGB:String = _plotter.groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
+						var ktC:String = _plotter.lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
+						var ktL:String = labelPlotter.text.getMetadata(ColumnMetadata.KEY_TYPE);
+						
+						for each (var dcc:DynamicColumnComponent in [xDataSelector, yDataSelector, groupBySelector])
+						{
+							_groupByErrorStrings[dcc] = ktX == ktY && ktY == ktGB ? '' : lang(HELP_KT_XYGB);
+							dcc.updateError();
+						}
+						
+						_groupByErrorStrings[groupColorSelector] = dtGB == ktC ? '' : lang(HELP_KT_COLOR);
+						_groupByErrorStrings[groupLabelSelector] = dtGB == ktL ? '' : lang(HELP_KT_LABEL);
+						
+						groupColorSelector.updateError();
+						groupLabelSelector.updateError();
+						
+						generateReverseLookupControls.visible =
+							generateReverseLookupControls.includeInLayout =
+								ktGB == ktL;
+					}
+					
+					return _groupByErrorStrings[component];
+				};
 			}
-			private function xDataTest():String
-			{
-				
-				return null;
-			}
-			private function yDataTest():String
-			{
-				
-				return null;
-			}
-			private function groupColorTest():String
-			{
-				
-				return null;
-			}
-			private function groupLabelTest():String
-			{
-				
-				return null;
-			}
+			
+			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
+			private static const HELP_KT_COLOR:String = "The keyType of the color column must equal the dataType of the 'Group by' column.";
+			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the dataType of the 'Group by' column.";
 		]]>
 	</mx:Script>
 	<mx:Number id="controlsFontSize">10</mx:Number>
@@ -481,12 +495,12 @@
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
 			<ui:CheckBoxWithNestedOptions id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
 										  label="{lang('Group records by column values (Advanced)')}">
-				<ui:DynamicColumnComponent id="xDataSelector" errorStringFunction="xDataTest" helpContent="'X', 'Y', and 'Group by' must all have the same keyType."/>
-				<ui:DynamicColumnComponent id="yDataSelector" errorStringFunction="yDataTest" helpContent="'X', 'Y', and 'Group by' must all have the same keyType."/>
-				<ui:DynamicColumnComponent id="groupBySelector" errorStringFunction="groupByTest" helpContent="'X', 'Y', and 'Group by' must all have the same keyType."/>
-				<ui:DynamicColumnComponent id="groupColorSelector" errorStringFunction="groupColorTest" showLinkControl="false" helpContent="The keyType of the color column must equal the dataType of the 'Group by' column."/>
-				<ui:DynamicColumnComponent id="groupLabelSelector" errorStringFunction="groupLabelTest" helpContent="The keyType of the label column must equal the dataType of the 'Group by' column."/>
-				<ui:Indent>
+				<ui:DynamicColumnComponent id="xDataSelector" creationComplete="initDynamicColumnComponent(xDataSelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="yDataSelector" creationComplete="initDynamicColumnComponent(yDataSelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="groupColorSelector" showLinkControl="false" creationComplete="initDynamicColumnComponent(groupColorSelector, HELP_KT_COLOR)"/>
+				<ui:DynamicColumnComponent id="groupLabelSelector" creationComplete="initDynamicColumnComponent(groupLabelSelector, HELP_KT_LABEL)"/>
+				<ui:Indent id="generateReverseLookupControls">
 					<mx:Button label="{lang('Generate reverse lookup for \'Group label\'')}"
 							   click="generateReverseLookup()"/>
 					<ui:HelpComponent>
