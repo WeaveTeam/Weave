@@ -427,6 +427,7 @@ package weave
 		}
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAnnuliCircles:LinkableBoolean = new LinkableBoolean(false);
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
 		public function get showEmptyProbeRecordIdentifiers():LinkableBoolean { return ProbeTextUtils.showEmptyProbeRecordIdentifiers; }
 

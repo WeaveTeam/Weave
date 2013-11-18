@@ -648,9 +648,10 @@ package weave.visualization.plotters
 				for (var i:int = 0; i < _cols.length; i++)
 				{
 					var column:IAttributeColumn = _cols[i];
+					trace(_cols[i]);
 					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 					value = normArray ? normArray[i] : stats.getNorm(key);
-					
+					trace(value);
 					dataBounds.projectPointTo(tempPoint, screenBounds);
 					graphics.lineStyle(.5, 0xff0000);
 					graphics.drawCircle(coordinate.x, coordinate.y, 30);

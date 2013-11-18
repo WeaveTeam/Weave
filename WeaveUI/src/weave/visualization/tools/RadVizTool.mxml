@@ -87,7 +87,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var latestjoinedColumnKeys:Array = new Array();
 			
 			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
-
+			public const enabelAnnuliCircles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -320,7 +321,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_plotter.drawProbeLines(probeKeySet.keys,dataBounds, screenBounds, probeSprite.graphics);	
 				
 			}
-			
+			private function drawAnnuliCirclesForSelectionKeySet():void
+			{
+				if(!Weave.properties.enableAnnuliCircles.value || !enabelAnnuliCircles.value) return;
+				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
+				if (!probeKeySet)
+					return;
+				
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
+				
+				_plotter.drawAnnuli = (this as DraggablePanel) == DraggablePanel.activePanel;
+				
+				_plotter.drawAnnuliCircles(probeKeySet.keys,dataBounds, screenBounds, probeSprite.graphics);
+				
+			}
 			public function drawAnnuliCircles():void
 			{
 				_plotter.drawProbe = false;
