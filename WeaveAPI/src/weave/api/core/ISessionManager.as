@@ -16,7 +16,7 @@
 package weave.api.core
 {
 	/**
-	 * This is a collection of static core functions for Weave.
+	 * Session manager contains core functions for Weave related to session state.
 	 * 
 	 * @author adufilie
 	 */
@@ -62,7 +62,6 @@ package weave.api.core
 		 * @param linkableChild The child ILinkableObject to register as a child.
 		 * @param callback A callback with no parameters that will be added to the child that will run before the parent callbacks are triggered, or during the next ENTER_FRAME event if a grouped callback is used.
 		 * @param useGroupedCallback If this is true, addGroupedCallback() will be used instead of addImmediateCallback().
-		 * @param linkParentCallbacks Normally this parameter is true.  If it is false, the callbacks of the child will not trigger the parent callbacks.
 		 * @return The linkableChild object that was passed to the function.
 		 */
 		function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*;
@@ -112,7 +111,6 @@ package weave.api.core
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
 		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
-		 * This will not add the task to WeaveAPI.ProgressIndicator.
 		 * @param taskToken A token representing an asynchronous task.  If this is an AsyncToken, a responder will be added that will automatically call unassignBusyTask(taskToken) on success or failure.
 		 * @param busyObject The object that is busy waiting for the task to complete.
 		 * @see weave.api.core.IProgressIndicator#addTask()
@@ -135,6 +133,7 @@ package weave.api.core
 		function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean;
 
 		/**
+		 * Sets the session state of an ILinkableObject.
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
 		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
@@ -142,6 +141,7 @@ package weave.api.core
 		function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void;
 		
 		/**
+		 * Gets the session state of an ILinkableObject.
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @return An object containing the values from the sessioned properties.
 		 */
@@ -218,5 +218,13 @@ package weave.api.core
 		 * @return A value of true if disposeObjects() was called for the specified object.
 		 */
 		function objectWasDisposed(object:Object):Boolean;
+		
+		/**
+		 * Gets the path of names in the session state tree of the root object.
+		 * @param root The root object used to generate a session state tree.
+		 * @param child The descendant object to find in the session state tree.
+		 * @return The path from root to descendant, or null if the descendant does not appear in the session state.
+		 */
+		function getPath(root:ILinkableObject, descendant:ILinkableObject):Array;
 	}
 }

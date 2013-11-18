@@ -55,7 +55,7 @@ import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityWithChildren;
+import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.PrivateMetadata;
@@ -63,7 +63,6 @@ import weave.config.DataConfig.PublicMetadata;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
-import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
 import weave.utils.SQLResult;
@@ -190,7 +189,9 @@ public class DataService extends GenericServlet
 	{
 		DataEntityMetadata dem = new DataEntityMetadata();
 		dem.publicMetadata = publicMetadata;
-		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		int[] ids = ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(dem, entityType) );
+		Arrays.sort(ids);
+		return ids;
 	}
 
 	public DataEntity[] getEntitiesById(int[] ids) throws RemoteException
@@ -202,8 +203,10 @@ public class DataService extends GenericServlet
 		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
 		for (int i = 0; i < result.length; i++)
 		{
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(result[i].id) );
-			result[i] = new DataEntityWithChildren(result[i], childIds);
+			int id = result[i].id;
+			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
+			result[i] = new DataEntityWithRelationships(result[i], parentIds, childIds);
 			
 			// prevent user from receiving private metadata
 			result[i].privateMetadata = null;
@@ -211,9 +214,11 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	public Collection<Integer> getParents(int childId) throws RemoteException
+	public int[] getParents(int childId) throws RemoteException
 	{
-		return getDataConfig().getParentIds(Arrays.asList(childId));
+		int[] ids = ListUtils.toIntArray( getDataConfig().getParentIds(Arrays.asList(childId)) );
+		Arrays.sort(ids);
+		return ids;
 	}
 	
 	////////////
@@ -553,30 +558,6 @@ public class DataService extends GenericServlet
 			cfArray[i].filters = columns[i].filters;
 			quotedFields[i] = SQLUtils.quoteSymbol(conn, cfArray[i].field);
 		}
-		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
-
-		String query = String.format(
-				"SELECT %s FROM %s %s",
-				Strings.join(",", quotedFields),
-				SQLUtils.quoteSchemaTable(conn, schema, table),
-				where.clause
-			);
-		
-		SQLResult result = SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
-		return result;
-	}
-	
-	public static String getQuery(Connection conn, String schema, String table, FilteredColumnRequest[] columns, DataEntity[] entities) throws SQLException
-	{
-		ColumnFilter[] cfArray = new ColumnFilter[columns.length];
-		String[] quotedFields = new String[columns.length];
-		for (int i = 0; i < columns.length; i++)
-		{
-			cfArray[i] = new ColumnFilter();
-			cfArray[i].field = entities[i].privateMetadata.get(PrivateMetadata.SQLCOLUMN);
-			cfArray[i].filters = columns[i].filters;
-			quotedFields[i] = SQLUtils.quoteSymbol(conn, cfArray[i].field);
-		}
 		
 		WhereClause<Object> where = WhereClause.fromFilters(conn, cfArray);
 
@@ -587,12 +568,7 @@ public class DataService extends GenericServlet
 			where.clause
 		);
 		
-		return query;
-		
-	}
-	public void test(FilteredColumnRequest[] columns, String[] keysArray) throws RemoteException
-	{
-		getFilteredRows(columns, keysArray);
+		return SQLUtils.getResultFromQuery(conn, query, where.params.toArray(), false);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -962,8 +938,9 @@ public class DataService extends GenericServlet
 		
 		// return first column
 		int id = ListUtils.getFirstSortedItem(ids, DataConfig.NULL);
-		double min = (Double)cast(minStr, double.class);
-		double max = (Double)cast(maxStr, double.class);
+		double min = Double.NaN, max = Double.NaN;
+		try { min = (Double)cast(minStr, double.class); } catch (Throwable t) { }
+		try { max = (Double)cast(maxStr, double.class); } catch (Throwable t) { }
 		String[] sqlParams = CSVParser.defaultParser.parseCSVRow(paramsStr, true);
 		return getColumn(id, min, max, sqlParams);
 	}

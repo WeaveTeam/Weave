@@ -31,8 +31,7 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
-	
-	import mx.utils.StringUtil;
+	import flash.utils.getTimer;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -59,6 +58,7 @@ package weave.visualization.layers
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.ZoomBounds;
@@ -231,26 +231,26 @@ package weave.visualization.layers
 			if (enableAutoZoomToExtent.value || tempDataBounds.isUndefined())
 			{
 				if (!fullDataBounds.isEmpty())
-				{
 					tempDataBounds.copyFrom(fullDataBounds);
-					if (isFinite(overrideXMin.value))
-						tempDataBounds.setXMin(overrideXMin.value);
-					if (isFinite(overrideXMax.value))
-						tempDataBounds.setXMax(overrideXMax.value);
-					if (isFinite(overrideYMin.value))
-						tempDataBounds.setYMin(overrideYMin.value);
-					if (isFinite(overrideYMax.value))
-						tempDataBounds.setYMax(overrideYMax.value);
-					if (enableFixedAspectRatio.value)
-					{
-						var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();
-						var yScale:Number = tempDataBounds.getHeight() / tempScreenBounds.getYCoverage();
-						// keep greater data-to-pixel ratio because we want to zoom out if necessary
-						if (xScale > yScale)
-							tempDataBounds.setHeight(tempScreenBounds.getYCoverage() * xScale);
-						if (yScale > xScale)
-							tempDataBounds.setWidth(tempScreenBounds.getXCoverage() * yScale);
-					}
+
+				if (isFinite(overrideXMin.value))
+					tempDataBounds.setXMin(overrideXMin.value);
+				if (isFinite(overrideXMax.value))
+					tempDataBounds.setXMax(overrideXMax.value);
+				if (isFinite(overrideYMin.value))
+					tempDataBounds.setYMin(overrideYMin.value);
+				if (isFinite(overrideYMax.value))
+					tempDataBounds.setYMax(overrideYMax.value);
+
+				if (enableFixedAspectRatio.value)
+				{
+					var xScale:Number = tempDataBounds.getWidth() / tempScreenBounds.getXCoverage();
+					var yScale:Number = tempDataBounds.getHeight() / tempScreenBounds.getYCoverage();
+					// keep greater data-to-pixel ratio because we want to zoom out if necessary
+					if (xScale > yScale)
+						tempDataBounds.setHeight(tempScreenBounds.getYCoverage() * xScale);
+					if (yScale > xScale)
+						tempDataBounds.setWidth(tempScreenBounds.getXCoverage() * yScale);
 				}
 			}
 			
@@ -390,8 +390,8 @@ package weave.visualization.layers
 		{
 			// instead of calling zoomBounds.setDataBounds() directly, we use setZoomLevel() because it's easier to constrain between min and max zoom.
 			
-			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 			zoomBounds.getScreenBounds(tempScreenBounds);
+			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
 			var newZoomLevel:Number = StandardLib.roundSignificant(
 				StandardLib.constrain(
 					ZoomUtils.getZoomLevel(dataBounds, tempScreenBounds, fullDataBounds, minSize),
@@ -409,7 +409,10 @@ package weave.visualization.layers
 			
 			setZoomLevel(newZoomLevel);
 			zoomBounds.getDataBounds(tempDataBounds);
-			tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
+			if (tempDataBounds.isUndefined())
+				tempDataBounds.copyFrom(dataBounds);
+			else
+				tempDataBounds.setCenter(dataBounds.getXCenter(), dataBounds.getYCenter());
 			zoomBounds.setDataBounds(tempDataBounds);
 			
 			cc.resumeCallbacks();
@@ -488,7 +491,7 @@ package weave.visualization.layers
 			var plotterFromSourceLayer:IPlotterWithGeometries = plotters.getObject(sourceLayer) as IPlotterWithGeometries;
 			if (!plotterFromSourceLayer)
 			{
-				reportError(StringUtil.substitute('Plotter named "{0}" does not exist.', sourceLayer));
+				reportError(StandardLib.substitute('Plotter named "{0}" does not exist.', sourceLayer));
 				return null;
 			}
 				
@@ -685,6 +688,8 @@ package weave.visualization.layers
 				refreshLayers(true);
 		}
 		
+		private var prevFrame:int = 0;
+		
 		private var shouldRender:Boolean = false;
 		
 		public static var fade:Boolean = true; // Class('weave.visualization.layers.PlotManager').fade
@@ -694,12 +699,16 @@ package weave.visualization.layers
 		 */
 		private function refreshLayers(immediately:Boolean = false):void
 		{
-			if (!immediately)
+			var now:int = getTimer();
+			var tooEarly:Boolean = now < prevFrame + (WeaveAPI.StageUtils as StageUtils).getMaxComputationTimePerFrame()
+				&& PlotterUtils.bitmapDataSizeEquals(bitmap, _unscaledWidth, _unscaledHeight);
+			if (!immediately || tooEarly)
 			{
 				shouldRender = true;
 				return;
 			}
 			
+			prevFrame = now;
 			shouldRender = false;
 			
 			zoomBounds.getDataBounds(tempDataBounds);

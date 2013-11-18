@@ -24,6 +24,7 @@ package weave.api.data
 	{
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";
+		public static const DATE:String = "date";
 		public static const GEOMETRY:String = "geometry";
 	}
 }

@@ -25,7 +25,6 @@ package weave.application
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
-	import mx.core.FlexGlobals;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
@@ -33,19 +32,12 @@ package weave.application
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IDataRowSource;
-	import weave.api.ui.IVisTool;
-	import weave.core.LinkableHashMap;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CustomContextMenuManager;
-	import weave.ui.DataMiningEditors.DataMiningPlatter;
-	import weave.ui.DraggablePanel;
 	import weave.ui.RecordDataTable;
-	import weave.visualization.tools.DataStatisticsTool;
-	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
 	 * TODO: this code should be moved into the multiVisLayer class

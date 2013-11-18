@@ -68,8 +68,6 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
 		}
 		
-		private var _keySetUnion:KeySetUnion = newDisposableChild(this, KeySetUnion);
-		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));

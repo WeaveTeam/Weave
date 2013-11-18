@@ -1,18 +1,11 @@
 package weave.servlets;
 
-import weave.utils.CSVParser;
-import weave.utils.CommandUtils;
-import weave.servlets.GenericServlet;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-//import java.nio.file.Path;
 import java.util.ArrayList;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
+import weave.utils.CommandUtils;
 
 public class StataServlet extends GenericServlet {
 	private static final long serialVersionUID = 1L;

@@ -92,8 +92,10 @@ package weave.data
 		}
 	}
 }
+import weave.api.core.IDisposableObject;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IStatisticsCache;
+import weave.api.registerDisposableChild;
 import weave.api.registerLinkableChild;
 import weave.core.SessionManager;
 
@@ -101,6 +103,7 @@ internal class ColumnStatisticsWrapper implements IColumnStatistics
 {
 	public function ColumnStatisticsWrapper(columnWrapper:IColumnWrapper, statsCache:IStatisticsCache)
 	{
+		registerDisposableChild(columnWrapper, this);
 		this.columnWrapper = columnWrapper;
 		this.statsCache = statsCache;
 		columnWrapper.addImmediateCallback(this, getStats);
@@ -226,6 +229,7 @@ internal class ColumnStatistics implements IColumnStatistics
 {
 	public function ColumnStatistics(column:IAttributeColumn)
 	{
+		registerDisposableChild(column, this);
 		this.column = column;
 	}
 	

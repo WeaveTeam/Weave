@@ -19,12 +19,16 @@
 package weave.utils
 {
 	import flash.display.BitmapData;
+	import flash.external.ExternalInterface;
 	import flash.geom.Point;
+	import flash.system.Capabilities;
 	import flash.ui.Mouse;
 	import flash.ui.MouseCursor;
 	import flash.ui.MouseCursorData;
 	
 	import mx.core.BitmapAsset;
+	
+	import weave.api.WeaveAPI;
 
 	/**
 	 * Easy interface for using native cursors.
@@ -35,6 +39,26 @@ package weave.utils
 	public class CustomCursorManager
 	{
 		public static var debug:Boolean = false;
+		
+		private static var _initialized:Boolean = false;
+		private static var _customCursorsSupported:Boolean = true;
+		public static function get customCursorsSupported():Boolean
+		{
+			if (!_initialized)
+			{
+				if (Capabilities.manufacturer == "Adobe Linux" && ExternalInterface.available)
+				{
+					_customCursorsSupported = ExternalInterface.call(
+						'function(){ try{' +
+							WeaveAPI.JS_var_weave +
+							'return weave.children.wmode.value != "transparent";' +
+						'} catch (e) { return true; }'
+					);
+				}
+				_initialized = true;
+			}
+			return _customCursorsSupported;
+		}
 		
 		/**
 		 * This will register an embedded cursor.
@@ -162,13 +186,19 @@ package weave.utils
 		}
 	}
 }
+import flash.ui.MouseCursor;
+
+import weave.utils.CustomCursorManager;
 
 internal class CursorEntry
 {
 	public function CursorEntry(id:int, name:String)
 	{
 		this.id = id;
-		this.name = name;
+		if (CustomCursorManager.customCursorsSupported)
+			this.name = name;
+		else
+			this.name = MouseCursor.BUTTON;
 	}
 	
 	public var id:Number;

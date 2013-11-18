@@ -19,32 +19,15 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				width="312" height="300" 
-				title="{lang('Saved Selections')}"
-				layout="vertical">
+<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				title="{lang('Saved Selections')}">
 
-	
-	<LinkableObjectList id="savedSelectionsList"
-						width="100%" height="100%"
-						hashMap="{_hashMap}" 
-						labelFunction="selectionsListLabelFunction"
-						allowMultipleSelection="false">
-		
-	</LinkableObjectList>
-	
-	<mx:HBox>
-		<mx:Button label="{lang('Delete')}" 
-				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
-				   click="deleteSelection()"/>
-		<mx:Button label="{lang('Rename')}" 
-				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
-				   click="renameSelection()"/>
-	</mx:HBox>
-	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
-		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('Close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
-	</mx:ControlBar>
+	<mx:VBox horizontalAlign="center">
+		<mx:DataGrid id="editor" width="100%" height="100%"/>
+		<mx:Button label="{lang('Delete selected')}" 
+				   enabled="{editor.selectedIndex >= 0}" 
+				   click="controller.removeSelectedItems();"/>
+	</mx:VBox>	
 	
 	<mx:Script>
 		<![CDATA[
@@ -53,25 +36,40 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
+			import weave.api.core.ILinkableObject;
+			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
 			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				targets = [Weave.savedSelectionKeySets];
+				controller.view = editor;
+				controller.hashMap = Weave.savedSelectionKeySets;
+				controller.labelFunction = getRecordsText;
+			}
+			
+			private const controller:VariableListController = newDisposableChild(this, VariableListController);
+			
+			public static function getItemLabel(keySet:KeySet):String
+			{
+				return lang("{0} ({1})", _hashMap.getName(keySet), getRecordsText(keySet));
+			}
+			
+			public static function getRecordsText(keySet:KeySet):String
+			{
+				return lang("{0} records", keySet.keys.length);
+			}
+			
 			private static const _hashMap:LinkableHashMap = Weave.savedSelectionKeySets;
 			private static const _globalSelection:KeySet = Weave.defaultSelectionKeySet;
 			
 			private static var _popupManager:SelectionManager = null;
-			
-			/**
-			 * Function used solely to get the label for each item in the list
-			 **/
-			private static function selectionsListLabelFunction(item:Object):String
-			{
-				// The label will be the name of the item followed by the record count
-				var label:String = _hashMap.getName(item as KeySet);
-				return lang("{0} ({1} records)", label, (item as KeySet).keys.length);
-			}
 			
 			/**
 			 * Create the menu items used for the WeaveMenuItem associated with this class
@@ -113,7 +111,7 @@
 				{
 					clickFunction = function():void {
 						// create the SelectionManager as a modal PopUp
-						_popupManager = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, SelectionManager, true) as SelectionManager;
+						_popupManager = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, SelectionManager) as SelectionManager;
 						// this will disable dragging of this popup
 						_popupManager.isPopUp = false;
 						PopUpManager.centerPopUp(_popupManager);
@@ -143,60 +141,10 @@
 				// for each saved selection
 				for (var i:int = 0; i < selections.length; i++)
 				{
-					var label:String = selectionsListLabelFunction(selections[i]);
+					var label:String = getItemLabel(selections[i]);
 					menuItem = new WeaveMenuItem(label, copySessionState, [selections[i], _globalSelection]);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
-			}
-			
-			override protected function constructor():void
-			{
-				super.constructor();
-				
-				// Disable certain features on this manager so that it is purely modal and has to be closed manually
-				// before doing anything else
-				minimizable.value = false;
-				enableMoveResize.value = false;
-				maximizable.value = false;
-				closeable.value = false;
-			}
-			
-			/**
-			 * Delete the selection the user picked in the list of saved selections
-			 */
-			private function deleteSelection():void
-			{
-				_hashMap.removeObject(_hashMap.getName(savedSelectionsList.selectedItem as KeySet));
-			}
-			
-			/**
-			 * Rename the selection the user picked in the list of saved selections
-			 */
-			private function renameSelection():void
-			{
-				// create a text-input alert box for the user to enter the new name for the selection
-				var alertBox:AlertTextBox = AlertTextBox.show(lang("Selection Name"), lang("Please enter a name for the selection: "));
-				
-				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
-					// if the user clicked cancel, do nothing
-					if( !e.confirm )
-						return;
-					
-					var oldSubset:KeySet = savedSelectionsList.selectedItem as KeySet;
-					var oldName:String = _hashMap.getName(oldSubset);
-					var newName:String = e.textInput;
-
-					// we want to put the new subset in the same position the old subset was
-					var nameOrder:Array = _hashMap.getNames();
-					nameOrder[nameOrder.indexOf(oldName)] = newName;
-					
-					_hashMap.requestObjectCopy(newName, oldSubset);
-					_hashMap.removeObject(oldName);
-					_hashMap.setNameOrder(nameOrder);
-
-					// invalidate the list so we see it update
-					savedSelectionsList.invalidateList();
-				});
 			}
 			
 			/**
@@ -220,4 +168,4 @@
 			}
 		]]>
 	</mx:Script>
-</DraggablePanel>
+</ControlPanel>

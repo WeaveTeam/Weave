@@ -78,7 +78,7 @@ package weave.utils
 			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
 			// include headers in list of columns so that those appearing in the headers won't be duplicated.
 			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
-			if (additionalColumns != null)
+			if (additionalColumns != null && additionalColumns.length)
 				columns = columns.concat(additionalColumns);
 			var keys:Array = keys.concat();
 			AsyncSort.sortImmediately(keys);
@@ -165,7 +165,7 @@ package weave.utils
 			(probeToolTip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-			Weave.properties.defaultTextFormat.copyToStyle(probeToolTip as UIComponent);
+			Weave.properties.visTextFormat.copyToStyle(probeToolTip as UIComponent);
 		}
 
 		public static var yAxisToolTip:IToolTip;

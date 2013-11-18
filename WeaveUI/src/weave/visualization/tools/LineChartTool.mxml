@@ -26,9 +26,7 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -37,7 +35,6 @@
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -54,7 +51,7 @@
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, LineChartTool, lang("Line Chart"));
+			WeaveAPI.registerImplementation(IVisTool, LineChartTool, "Line Chart");
 			
 			private var _plotter:ParallelCoordinatesPlotter = null;
 			
@@ -63,7 +60,7 @@
 				super.constructor();
 				
 				visualization.plotManager.marginBottom.value = "80";
-				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginTop.value    = "30";
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "80";
 				
@@ -101,15 +98,15 @@
 				var self:* = this;
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void {
 					if (_plotter.enableGroupBy.value)
-						AttributeSelectorPanel.openToolSelector(self, labelPlotter.text);
+						AttributeSelectorPanel.open(labelPlotter.text);
 					else
-						AttributeSelectorPanel.openToolSelector(self, _plotter.yData);
+						AttributeSelectorPanel.open(_plotter.yData);
 				});
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void {
 					if (_plotter.enableGroupBy.value)
-						AttributeSelectorPanel.openToolSelector(self, _plotter.columns);
+						AttributeSelectorPanel.open(_plotter.columns);
 					else
-						AttributeSelectorPanel.openToolSelector(self, _plotter.xData);
+						AttributeSelectorPanel.open(_plotter.xData);
 				});
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
@@ -126,6 +123,7 @@
 				
 				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+				_plotter.enableGroupBy.addGroupedCallback(this, function():void { probeChecklist.dataProvider = getSelectableAttributeNames(); }, true);
 			}
 
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
@@ -160,14 +158,8 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList.indexOf(false) > -1)
-				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
 					probeColumnsCheckBox.selected = true;
-				}
 				
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
@@ -186,39 +178,15 @@
 						columns = _plotter.columns.getObjects(IAttributeColumn);
 				}
 				
-				var colorIndex:int = attributes.indexOf(colorColumn);
+				var colorIndex:int = attributes.indexOf(_plotter.lineStyle.color);
 				if(attrToIncludeCheckList[colorIndex])
-					columns.unshift(colorColumn);
+					columns.unshift(ColumnUtils.hack_findInternalDynamicColumn(_plotter.lineStyle.color));
 				
 				var labelIndex:int = attributes.indexOf(labelPlotter.text);
 				if(attrToIncludeCheckList[labelIndex])
 					columns.unshift(labelPlotter.text);
 				
-				if(columns.length>0)
-				{
-					visualization.additionalProbeColumns = columns;
-				}
-				else
-				{
-					visualization.additionalProbeColumns = null;
-				}
-				
-				updateAttributesChecklist();
-			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
+				visualization.additionalProbeColumns = columns;
 			}
 			
 			/**
@@ -276,18 +244,23 @@
 				xAxisPlotter.axisLabelRelativeAngle.value = -45;
 				xAxisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 				xAxisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				xAxisPlotter.labelDistanceIsVertical.value = false;
 				
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = false;
 				
-				(labelComponent as DynamicColumnComponent).dynamicObject = labelPlotter.text;
+				colorSelector.columnWrapper = _plotter.lineStyle.color;
+				labelSelector.dynamicObject = labelPlotter.text;
+				
+				xDataSelector.dynamicObject = _plotter.xData;
+				yDataSelector.dynamicObject = _plotter.yData;
+				groupBySelector.dynamicObject = _plotter.groupBy;
+				groupByLabelSelector.dynamicObject = labelPlotter.text;
 				
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
 
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, 		alphaSlider,		"value");
-				linkBindableProperty(_plotter.shapeSize,  					shapeSizeSlider, 	"value");
-				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, 	"value");
+				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_plotter.shapeSize, shapeSizeSlider, "value");
+				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, "value");
 				linkBindableProperty(_plotter.shapeToDraw, shapeCombo, "selectedItem");
 				linkBindableProperty(_plotter.shapeBorderThickness, shapeBorderSizeSlider, "value");
 				linkBindableProperty(_plotter.shapeBorderColor, shapeBorderColorPicker, "selectedColor");
@@ -296,6 +269,7 @@
 				{
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -310,17 +284,12 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				var attrs:Array = [colorColumn, labelPlotter.text];
+				var attrs:Array = [_plotter.lineStyle.color, labelPlotter.text];
 				if (_plotter.enableGroupBy.value)
 					attrs.push(_plotter.yData, _plotter.xData, _plotter.groupBy);
 				else
 					attrs.push(_plotter.columns, _plotter.xColumns);
 				return attrs;
-			}
-			
-			public function get colorColumn():DynamicColumn
-			{
-				return AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.lineStyle.color);
 			}
 			
 			private function getColumnObjects():Array
@@ -491,44 +460,18 @@
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" id="labelComponent"/>
+			<ui:DynamicColumnComponent id="colorSelector" showLinkControl="false"/>
+			<ui:DynamicColumnComponent id="labelSelector"/>
 <!--			<mx:TabNavigator width="100%" height="100%" creationPolicy="all"> -->
-			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
-<!--			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.xAttributeColumns"/>	
+			<ui:ColumnListComponent  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
+<!--			<ui:ColumnListComponent  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.xAttributeColumns"/>	
 			</mx:TabNavigator>-->
 		</mx:VBox>
-		<mx:VBox  label="{lang('Probe')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the tool\'s attributes visible in this tool\'s probe tooltip')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="180" height="100%">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
+		<mx:VBox label="{lang('Mouseover info')}">
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist"/>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
 			<mx:HBox verticalAlign="middle">
@@ -556,7 +499,7 @@
 						shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_SQUARE ||
 						shapeBorderSizeSlider.value == 0) }">
 					<mx:Label text="{lang('Shape border color:')}" color="0x000000" fontSize="{controlsFontSize}"/>
-					<mx:ColorPicker id="shapeBorderColorPicker"
+					<ui:CustomColorPicker id="shapeBorderColorPicker"
 									toolTip="{lang('This controls color of the border around the shape at each point.')}"/>
 				</mx:HBox>
 				
@@ -600,7 +543,7 @@
 							minimum="5" maximum="20" 
 							liveDragging="true"/>
 				<mx:Label text="{lang('Color:')}"/>
-				<mx:ColorPicker id="colorPicker" width="22" height="22"/>
+				<ui:CustomColorPicker id="colorPicker"/>
 			</mx:HBox>
 
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to Subset')}" 
@@ -608,30 +551,25 @@
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Grouping')}">
-			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
-						 label="{lang('Group records by column values')}"
-						 toolTip="{lang('Enable/disable grouping data by category value')}"/>
-			<mx:VBox enabled="{enableGroupByCheckBox.selected}">
-				
-				<mx:VBox paddingLeft="20" borderStyle="solid">
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('X Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
-											   toolTip="{lang('Attribute to appear on the x axis. All columns must have the same keyType.')}"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-											   toolTip="{lang('Attribute to appear on the y axis. All columns must have the same keyType.')}"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Group by')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
-											   toolTip="{lang('Specify column to get keys from. All columns must have the same keyType.')}"/>
-					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-											   toolTip="{lang('Attribute used for record label text. All columns must have the same keyType.')}"/>
-				</mx:VBox>
-				<mx:Button label="{lang('Generate label Equation')}" toolTip="{lang('Generates label equation from current Label column if its keyType matches the group-by keyType')}"
-						   click="updateLabelColumn()"/>
-				<mx:HBox width="100%">
-					<mx:Label text="{lang('Customize X values:')}"/>
+			<ui:CheckBoxWithNestedOptions id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
+						 label="{lang('Group records by column values')}">
+				<ui:DynamicColumnComponent id="xDataSelector" helpContent="Attribute to appear on the x axis. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="yDataSelector" helpContent="Attribute to appear on the y axis. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="groupBySelector" helpContent="Specify column to get keys from. All columns must have the same keyType."/>
+				<ui:DynamicColumnComponent id="groupByLabelSelector" helpContent="Attribute used for record label text. All columns must have the same keyType."/>
+				<ui:Indent>
+					<mx:Button label="{lang('Generate label Equation')}"
+							   click="updateLabelColumn()"/>
+					<ui:HelpComponent>
+						Generates label equation from current Label column if its keyType matches the group-by keyType.
+					</ui:HelpComponent>
+				</ui:Indent>
+				<ui:Indent label="{lang('Customize X values:')}">
 					<mx:TextInput id="xValuesInput" toolTip="{lang('These values will appear on the x axis')}" width="100%"/>
 					<mx:Button label="{lang('Apply')}" click="_plotter.xValues.value = xValuesInput.text;"/>
 					<mx:Button label="{lang('Reset')}" click="_plotter.xValues.value = ''; updateFilterText();"/>
-				</mx:HBox>
-			</mx:VBox>
+				</ui:Indent>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

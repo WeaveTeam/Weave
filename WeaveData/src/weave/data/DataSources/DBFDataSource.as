@@ -37,6 +37,7 @@ package weave.data.DataSources
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
@@ -44,6 +45,7 @@ package weave.data.DataSources
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableString;
+	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -59,28 +61,36 @@ package weave.data.DataSources
 	 */
 	public class DBFDataSource extends AbstractDataSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, DBFDataSource, "DBF/SHP files (URLs)");
+		
 		public function DBFDataSource()
 		{
-			disposeObjects(url);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, _attributeHierarchy);
 		}
 		
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure everything is ready before column requests get handled.
-			return super.initializationComplete && dbfData != null && shpfile != null && shpfile.geomsReady;
+			return super.initializationComplete && dbfHeader && shpfile && shpfile.geomsReady;
 		}
 		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
 		public const dbfUrl:LinkableString = newLinkableChild(this, LinkableString, handleDbfUrlChange, true);
 		public const shpUrl:LinkableString = newLinkableChild(this, LinkableString, handleShpUrlChange, true);
-//		public const projection:LinkableString = newLinkableChild(this, LinkableString, handleProjectionChange, true);
+		public const projection:LinkableString = newLinkableChild(this, LinkableString, resetHierarchy, true);
+		
+		private function resetHierarchy():void
+		{
+			_attributeHierarchy.value = null;
+		}
 		
 		private function handleDbfUrlChange():void
 		{
-			if (dbfUrl.value != null)
+			if (dbfUrl.value)
 			{
 				dbfData = null;
+				dbfHeader = null;
 				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, dbfUrl.value, URLLoaderDataFormat.BINARY);
 				
 				debug('dbf start downloading',dbfUrl.value);
@@ -88,19 +98,19 @@ package weave.data.DataSources
 		}
 		private function handleShpUrlChange():void
 		{
-			if (shpUrl.value != null)
+			if (shpUrl.value)
 			{
 				if (shpfile)
 					disposeObjects(shpfile)
 				shpfile = null;
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleShpDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
 				
 				debug('shp start downloading',shpUrl.value);
 			}
 		}
 		
-		private var dbf:DbfHeader = null;
 		private var dbfData:ByteArray = null;
+		private var dbfHeader:DbfHeader = null;
 		private var shpfile:ShpFileReader = null;
 		
 		private static const THE_GEOM_COLUMN:String = 'the_geom';
@@ -108,13 +118,13 @@ package weave.data.DataSources
 		/**
 		 * Called when the DBF file is downloaded from the URL
 		 */
-		private function handleDBFDownload(event:ResultEvent, token:Object = null):void
+		private function handleDBFDownload(event:ResultEvent, url:String):void
 		{
 			if (objectWasDisposed(this))
 				return;
 			
 			// ignore outdated results
-			if (token != dbfUrl.value)
+			if (url != dbfUrl.value)
 				return;
 			
 			debug('dbf download complete',dbfUrl.value);
@@ -122,62 +132,105 @@ package weave.data.DataSources
 			dbfData = ByteArray(event.result);
 			if (dbfData.length == 0)
 			{
+				dbfData = null;
 				reportError("Zero-byte DBF: " + dbfUrl.value);
 				return;
 			}
-			dbf = new DbfHeader( dbfData );	
 			
-			if (_attributeHierarchy.value == null)
-			{	
-				var category:XML = <category name="DBF Data"/>;
-				category.appendChild(<attribute dataType={ DataTypes.GEOMETRY } title={ THE_GEOM_COLUMN } name={ THE_GEOM_COLUMN } keyType={ keyType.value }/>);
-				
-				for each( var column:DbfField in dbf.fields)
-				{
-					category.appendChild( <attribute title={ column.name } name={column.name} keyType={ keyType.value }/> );
-				}
-				
-				
-				_attributeHierarchy.value = <hierarchy>{ category }</hierarchy>;
+			try
+			{
+				dbfHeader = new DbfHeader(dbfData);
 			}
-			initialize();
+			catch (e:Error)
+			{
+				dbfData = null;
+				reportError(e);
+			}
+			resetHierarchy();
+		}
+		
+		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
+		{
+			if (!subtreeNode && _attributeHierarchy.value === null && dbfHeader)
+			{
+				var xml:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
+				if (shpfile)
+					xml.appendChild(<attribute
+						dataType={ DataTypes.GEOMETRY }
+						title={ THE_GEOM_COLUMN }
+						name={ THE_GEOM_COLUMN }
+						keyType={ keyType.value }
+						projection={ projection.value }
+					/>);
+				
+				for each( var column:DbfField in dbfHeader.fields)
+					xml.appendChild( <attribute title={ column.name } name={column.name} keyType={ keyType.value }/> );
+				
+				_attributeHierarchy.value = xml;
+			}
 		}
 		
 		/**
 		 * Called when the Shp file is downloaded from the URL
 		 */
-		private function handleShpDownload(event:ResultEvent, token:Object = null):void
+		private function handleShpDownload(event:ResultEvent, url:String):void
 		{
 			if (objectWasDisposed(this))
 				return;
 			
 			// ignore outdated results
-			if (token != shpUrl.value)
+			if (url != shpUrl.value)
 				return;
 			
 			debug('shp download complete',shpUrl.value);
 			
 			if (shpfile)
+			{
 				disposeObjects(shpfile);
+				shpfile = null;
+			}
 			var bytes:ByteArray = ByteArray(event.result);
 			if (bytes.length == 0)
 			{
 				reportError("Zero-byte ShapeFile: " + shpUrl.value);
 				return;
 			}
-			shpfile = registerLinkableChild(this, new ShpFileReader(bytes));
+			
+			try
+			{
+				shpfile = registerLinkableChild(this, new ShpFileReader(bytes));
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 
 		/**
 		 * Called when the DBF file fails to download from the URL
 		 */
-		private function handleDBFDownloadError(event:FaultEvent, token:Object = null):void
+		private function handleDBFDownloadError(event:FaultEvent, url:String):void
 		{
 			if (objectWasDisposed(this))
 				return;
 			
 			// ignore outdated results
-			if (token != shpUrl.value)
+			if (url != dbfUrl.value)
+				return;
+			
+			reportError(event);
+		}
+
+		/**
+		 * Called when the DBF file fails to download from the URL
+		 */
+		private function handleShpDownloadError(event:FaultEvent, url:String):void
+		{
+			if (objectWasDisposed(this))
+				return;
+			
+			// ignore outdated results
+			if (url != shpUrl.value)
 				return;
 			
 			reportError(event);
@@ -207,7 +260,7 @@ package weave.data.DataSources
 				leafNode['@'+ColumnMetadata.TITLE] = colName;
 			var _keyColName:String = this.keyColName.value;
 			if (_keyColName == null)
-				_keyColName = (dbf.fields[0] as DbfField).name;
+				_keyColName = (dbfHeader.fields[0] as DbfField).name;
 
 			//Get a vector of all elements in that column
 			var dbfDataColumn:Array = getColumnValues(colName);
@@ -264,9 +317,9 @@ package weave.data.DataSources
 				return shpfile.geoms;	
 			}
 			var record:DbfRecord = null; 
-			for( var i:int = 0; i < dbf.recordCount; i++ )
+			for( var i:int = 0; i < dbfHeader.recordCount; i++ )
 			{ 
-				record = DbfTools.getRecord(dbfData, dbf, i);
+				record = DbfTools.getRecord(dbfData, dbfHeader, i);
 				values.push( record.values[columnName] );
 			}
 			return values;

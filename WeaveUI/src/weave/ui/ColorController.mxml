@@ -54,7 +54,8 @@
 				linkSessionState(binCol, binEditor.binnedColumn);
 				linkSessionState(colorCol.recordColors, colorOverrideEditor.recordColors);
 				
-				this.targets = [colorCol]; 
+				targets = [colorCol];
+				sessionEditorTarget = colorCol;
 			}
 			
 			

@@ -61,7 +61,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
-				autosuggest =  new SubMenu(keyword);
+				autosuggest =  new SubMenu(keyword, [], []);
 				
 				var items:ArrayCollection = (WeaveAPI.topLevelApplication.visApp).getMenuItems();
 				

@@ -54,7 +54,7 @@
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;				
 
-			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, lang("R Graph Tool"));
+			//WeaveAPI.registerImplementation(IVisTool, CytoscapeWebTool, "R Graph Tool");
 			private var _toolName:String;
 			private var _primitive_edges:Object;
 			private var _primitive_nodes:Object;
@@ -327,12 +327,12 @@
 	</mx:Script>
 		<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
-			<!-- <ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Node Color')}"/>  -->
-			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
-			<!-- <ui:DynamicColumnComponent visTool="{this}" id="nodeRadiusComponent" label="{lang('Node Size')}"/> -->
-			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="{lang('Labels')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
+			<!-- <ui:DynamicColumnComponent id="colorComponent" label="{lang('Node Color')}"/>  -->
+			<ui:DynamicColumnComponent id="nodeComponent" label="{lang('Nodes')}"/>
+			<!-- <ui:DynamicColumnComponent id="nodeRadiusComponent" label="{lang('Node Size')}"/> -->
+			<ui:DynamicColumnComponent id="labelComponent" label="{lang('Labels')}"/>
+			<ui:DynamicColumnComponent id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
+			<ui:DynamicColumnComponent id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
 		</mx:VBox>
 		<!-- <mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 			<mx:HBox>

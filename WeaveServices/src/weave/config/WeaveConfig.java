@@ -23,6 +23,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 
 import weave.utils.BulkSQLLoader;
+import weave.utils.MapUtils;
 import weave.utils.ProgressManager;
 
 /**
@@ -48,10 +49,37 @@ public class WeaveConfig
 		return weaveContextParams;
 	}
 	
+	public static final String ALLOW_R_SCRIPT_ACCESS = "allow-r-script-access";
+	public static final String ALLOW_RSERVE_ROOT_ACCESS = "allow-rserve-root-access";
+	private static LiveProperties properties;
+	public static String getProperty(String key)
+	{
+		if (properties == null)
+		{
+			properties = new LiveProperties(
+				new File(weaveContextParams.getConfigPath(), "config.properties"),
+				MapUtils.<String,String>fromPairs(
+					ALLOW_R_SCRIPT_ACCESS, "false"
+				)
+			);
+		}
+		return properties.getProperty(key);
+	}
+	public static boolean getPropertyBoolean(String key)
+	{
+		String value = getProperty(key);
+		return value != null && value.equalsIgnoreCase("true");
+	}
+	
+	public static String getConnectionConfigFilePath()
+	{
+		return weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME;
+	}
+	
 	synchronized public static ConnectionConfig getConnectionConfig() throws RemoteException
 	{
 		if (_connConfig == null)
-			_connConfig = new ConnectionConfig(new File(weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME));
+			_connConfig = new ConnectionConfig(new File(getConnectionConfigFilePath()));
 		return _connConfig;
 	}
 	

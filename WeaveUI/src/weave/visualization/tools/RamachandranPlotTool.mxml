@@ -69,7 +69,7 @@
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, lang("Ramachandran Plot"));
+			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
 			
 			public var _plotter:ScatterPlotPlotter = null;
 			override protected function constructor():void
@@ -102,8 +102,8 @@
 				visualization.plotManager.enableAutoZoomToExtent.lock();
 				visualization.plotManager.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.dataX); })
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.dataY); })
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(_plotter.dataX); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(_plotter.dataY); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
@@ -182,7 +182,7 @@
 				var histo:HistogramTool = Weave.root.requestObject(null, HistogramTool, false);
 				histo.width = 300;
 				histo.title = lang("{0}(SubSelection)", histo.title);
-				copySessionState(histogramColumn, histo.internalDataColumn);
+				copySessionState(histogramColumn, ColumnUtils.hack_findInternalDynamicColumn(histo.plotter.internalBinnedColumn));
 				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalObject as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
 				// TEMPORARY SOLUTION until we start using VisToolGroup

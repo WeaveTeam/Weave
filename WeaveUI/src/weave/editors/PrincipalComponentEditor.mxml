@@ -107,9 +107,8 @@
 				addAsyncResponder(query,handleRunScriptResult,handleRunScriptFault, latestColumnKeys);
 			}
 			
-			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			private function handleRunScriptResult(event:ResultEvent, keys:Array):void
 			{
-				var keys:Array = token as Array;
 				//Object to stored returned result - Which is array of object{name: , value: }
 				var Robj:Array = event.result as Array;		
 				var pcReturnedResult:Array = new Array();//collects results [principalcomponents, eigenvalues]

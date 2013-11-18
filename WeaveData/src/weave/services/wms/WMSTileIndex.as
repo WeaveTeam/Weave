@@ -70,35 +70,14 @@ package weave.services.wms
 		private static const ZOOM_INDEX:int = 4;
 		
 		/**
-		 * @param dataBounds The bounds of the data.
-		 * @param zoomLevel The zoom level of the data. This parameter should be the same for all tiles
-		 * located at one zoom level. For NASA WMS, this is preferably defined as the area of the 
-		 * best matching bbox divided by the area of the image. For the ModestMaps services, this 
-		 * should be the constant zoom level provided in a Coordinate object.
-		 * @return An array of keys with bounds that contain the given bounds.
-		 */
-		public function getTilesWithinBounds(dataBounds:IBounds2D, zoomLevel:Number):Array
-		{
-			_minKDKey[XMAX_INDEX] = dataBounds.getXNumericMin();
-			_minKDKey[YMAX_INDEX] = dataBounds.getYNumericMin();
-			_maxKDKey[XMIN_INDEX] = dataBounds.getXNumericMax();
-			_maxKDKey[YMIN_INDEX] = dataBounds.getYNumericMax();
-
-			_minKDKey[ZOOM_INDEX] = zoomLevel;
-			_maxKDKey[ZOOM_INDEX] = zoomLevel;
-			
-			var tiles:Array = _kdTree.queryRange(_minKDKey, _maxKDKey, true);
-			
-			return tiles;
-		}
-		
-		/**
+		 * For NASA WMS, zoomLevel is preferably defined as the area of the best matching bbox divided by the area of the image.
+		 * For the ModestMaps services, zoomLevel should be the constant zoom level provided in a Coordinate object.
 		 * @param dataBounds The bounds of the data.
 		 * @param minZoomLevel The min zoom level of the data.
  		 * @param maxZoomLevel The max zoom level of the data. 
 		 * @return An array of keys with bounds that contain the given bounds.
 		 */
-		public function getTilesWithinBoundsAndZoomLevels(dataBounds:IBounds2D, minZoomLevel:Number, maxZoomLevel:Number):Array
+		public function getTiles(dataBounds:IBounds2D, minZoomLevel:Number, maxZoomLevel:Number):Array
 		{
 			_minKDKey[XMAX_INDEX] = dataBounds.getXNumericMin();
 			_minKDKey[YMAX_INDEX] = dataBounds.getYNumericMin();

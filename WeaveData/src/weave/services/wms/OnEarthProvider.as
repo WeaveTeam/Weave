@@ -259,14 +259,15 @@ package weave.services.wms
 		private var _minZoomLevel:Number = Number.POSITIVE_INFINITY;
 		private var _maxZoomLevel:Number = 0;
 		private const thisBounds:IBounds2D = new Bounds2D();
+		private const _tempBounds:Bounds2D = new Bounds2D();
 		
-		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, lowerQuality:Boolean = false):Array
+		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array
 		{
 			if (_tiledPatternXML == null)
 				return null;
 
 			var actualZoomLevel:Number = dataBounds.getArea() / screenBounds.getArea(); 
-			if (lowerQuality == true)
+			if (preferLowerQuality)
 				actualZoomLevel *= 4; // double the bounds' dimensions to get 4 * area, while not requesting extra tiles
 			
 			var i:int;
@@ -310,10 +311,10 @@ package weave.services.wms
 			}
 			
 			// get completed tiles of all 3 zoom levels
-			var completedTiles:Array = _currentTileIndex.getTilesWithinBounds(dataBounds, thisZoomLevel);
+			var completedTiles:Array = _currentTileIndex.getTiles(dataBounds, thisZoomLevel, thisZoomLevel);
 			var lowerQualTiles:Array;
-			if (lowerQualLevel != thisZoomLevel)
-				lowerQualTiles = _currentTileIndex.getTilesWithinBoundsAndZoomLevels(dataBounds, lowerQualLevel, Number.POSITIVE_INFINITY);
+			if (lowerQualLevel != thisZoomLevel && layerLowerQuality)
+				lowerQualTiles = _currentTileIndex.getTiles(dataBounds, lowerQualLevel, Number.POSITIVE_INFINITY);
 			else
 				lowerQualTiles = [];
 			
@@ -370,8 +371,13 @@ package weave.services.wms
 				}
 			}
 			
-			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
-			return lowerQualTiles.concat(completedTiles);
+			var tiles:Array;
+			if (layerLowerQuality)
+				tiles = lowerQualTiles.concat(completedTiles);
+			else
+				tiles = completedTiles;
+			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			return tiles;
 		}
 		
 		/**
@@ -415,10 +421,8 @@ package weave.services.wms
 		 * @param event The result event.
 		 * @param token The tile.
 		 */
-		private function handleImageDownload(event:ResultEvent, token:Object = null):void
+		private function handleImageDownload(event:ResultEvent, tile:WMSTile):void
 		{
-			var tile:WMSTile = token as WMSTile;
-
 			tile.bitmapData = (event.result as Bitmap).bitmapData;
 			handleTileDownload(tile);
 		}
@@ -429,10 +433,8 @@ package weave.services.wms
 		 * @param event The fault event.
 		 * @param token The tile.
 		 */
-		private function handleImageDownloadFault(event:FaultEvent, token:Object = null):void
+		private function handleImageDownloadFault(event:FaultEvent, tile:WMSTile):void
 		{
-			var tile:WMSTile = token as WMSTile;
-			
 			tile.bitmapData = null; // a plotter should handle this
 			reportError(event);
 			
@@ -442,11 +444,6 @@ package weave.services.wms
 			 **/
 			
 			handleTileDownload(tile);
-		}
-		
-		override public function getProvider():*
-		{
-			return this;
 		}
 		
 		override public function getCreditInfo():String

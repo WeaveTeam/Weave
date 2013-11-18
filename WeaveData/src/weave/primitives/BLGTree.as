@@ -316,7 +316,7 @@ package weave.primitives
 						// for debugging
 						if (resultCount > 0 && traversalVector[resultCount - 1].index > node.index)
 						{
-							var errorMsg:String = StringUtil.substitute(
+							var errorMsg:String = StandardLib.substitute(
 								"Unexpected error. OP_VISIT out of order ({0} to {1})",
 								traversalVector[resultCount - 1].index,
 								node.index

@@ -33,13 +33,17 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -65,11 +69,16 @@ package weave.data.DataSources
 	 */
 	public class WeaveDataSource extends AbstractDataSource implements IDataRowSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
+		
 		public function WeaveDataSource()
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
 		}
-		
+
+		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
+
 		public function getRows(keys:Array):AsyncToken
 		{
 			return dataService.getRows(keys);
@@ -94,7 +103,7 @@ package weave.data.DataSources
 			
 			// replace old dataService
 			disposeObjects(dataService);
-			dataService = new WeaveDataServlet(url.value);
+			dataService = registerLinkableChild(this, new WeaveDataServlet(url.value));
 			
 			url.resumeCallbacks();
 		}
@@ -167,8 +176,6 @@ package weave.data.DataSources
 			return super.getAttributeColumn(columnReference);
 		}
 		
-		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
-
 		private var dataService:WeaveDataServlet = null;
 		
 		/**
@@ -179,11 +186,10 @@ package weave.data.DataSources
 		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
 		{
 			_convertOldHierarchyFormat(subtreeNode);
-			var query:AsyncToken;
 			
 			//trace("requestHierarchyFromSource("+(subtreeNode?attributeHierarchy.getPathFromNode(subtreeNode).toXMLString():'')+")");
 
-			if (subtreeNode == null || subtreeNode == _attributeHierarchy.value)
+			if (!subtreeNode || subtreeNode == _attributeHierarchy.value)
 			{
 				if (hierarchyURL.value != "" && hierarchyURL.value != null)
 				{
@@ -196,6 +202,9 @@ package weave.data.DataSources
 					// stop if hierarchy is defined
 					return;
 				}
+				
+				_attributeHierarchy.value = <hierarchy/>;
+				
 				//trace("getDataServiceMetadata()");
 
 				// temporary solution
@@ -204,23 +213,41 @@ package weave.data.DataSources
 				var _tableEntities:Array = null;
 				var _geometryEntities:Array = null;
 				
-				query = dataService.getEntityIdsByMetadata(null, EntityType.TABLE);
-				addAsyncResponder(query, handleRootIds, handleFault, EntityType.TABLE);
+				addAsyncResponder(
+					dataService.getEntityIdsByMetadata(null, EntityType.TABLE),
+					handleRootIds,
+					handleFault,
+					EntityType.TABLE
+				);
 				
 				// get all geometry columns
 				var param:Object = {};
 				param[ColumnMetadata.DATA_TYPE] = DataTypes.GEOMETRY;
-				query = dataService.getEntityIdsByMetadata(param, EntityType.COLUMN);
-				addAsyncResponder(query, handleRootIds, handleFault, EntityType.COLUMN);
+				addAsyncResponder(
+					dataService.getEntityIdsByMetadata(param, EntityType.COLUMN),
+					handleRootIds,
+					handleFault,
+					EntityType.COLUMN
+				);
 				
 				function handleRootIds(event:ResultEvent, entityType:int):void
 				{
+					if (!event.result)
+					{
+						reportError(NO_RESULT_ERROR);
+						return;
+					}
 					var ids:Array = event.result as Array;
 					var query:AsyncToken = dataService.getEntitiesById(ids);
 					addAsyncResponder(query, handleRootEntities, handleFault, [entityType, ids]);
 				}
 				function handleRootEntities(event:ResultEvent, entityType_entityIds:Array):void
 				{
+					if (!event.result)
+					{
+						reportError(NO_RESULT_ERROR);
+						return;
+					}
 					var entityType:int = entityType_entityIds[0];
 					var entityIds:Array = entityType_entityIds[1];
 					var orderLookup:Object = createLookup(entityIds);
@@ -251,17 +278,59 @@ package weave.data.DataSources
 				var idStr:String = subtreeNode.attribute(ENTITY_ID);
 				if (idStr)
 				{
-					query = dataService.getEntityChildIds(int(idStr));
+					addAsyncResponder(
+						dataService.getEntityChildIds(int(idStr)),
+						handleColumnIds,
+						handleFault,
+						subtreeNode
+					);
 				}
 				else
 				{
 					// backwards compatibility - get columns with matching dataTable metadata
 					var dataTableName:String = subtreeNode.attribute("name");
-					query = dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN);
+					addAsyncResponder(
+						dataService.getEntityIdsByMetadata({"dataTable": dataTableName}, EntityType.COLUMN),
+						function(event:ResultEvent, subtreeNode:XML):void
+						{
+							if (!event.result)
+							{
+								reportError(NO_RESULT_ERROR);
+								return;
+							}
+							var ids:Array = event.result as Array;
+							addAsyncResponder(
+								dataService.getParents(ids[0]),
+								function(event:ResultEvent, subtreeNode:XML):void
+								{
+									if (!event.result)
+									{
+										reportError(NO_RESULT_ERROR);
+										return;
+									}
+									var ids:Array = event.result as Array;
+									addAsyncResponder(
+										dataService.getEntityChildIds(ids[0]),
+										handleColumnIds,
+										handleFault,
+										subtreeNode
+									);
+								},
+								handleFault,
+								subtreeNode
+							);
+						},
+						handleFault,
+						subtreeNode
+					);
 				}
-				addAsyncResponder(query, handleColumnIds, handleFault, subtreeNode);
 				function handleColumnIds(event:ResultEvent, subtreeNode:XML):void
 				{
+					if (!event.result)
+					{
+						reportError(NO_RESULT_ERROR);
+						return;
+					}
 					var ids:Array = event.result as Array;
 					var query:AsyncToken = dataService.getEntitiesById(ids);
 					addAsyncResponder(query, handleColumnEntities, handleFault, [subtreeNode, ids]);
@@ -269,12 +338,14 @@ package weave.data.DataSources
 			}
 		}
 		
+		private static const NO_RESULT_ERROR:String = "Received null result from Weave server.";
+		
 		/**
 		 * Called when the hierarchy is downloaded from a URL.
 		 */
-		private function handleHierarchyURLDownload(event:ResultEvent, token:Object = null):void
+		private function handleHierarchyURLDownload(event:ResultEvent, url:String):void
 		{
-			if (objectWasDisposed(this))
+			if (objectWasDisposed(this) || url != hierarchyURL.value)
 				return;
 			_attributeHierarchy.value = XML(event.result); // this will run callbacks
 		}
@@ -282,16 +353,18 @@ package weave.data.DataSources
 		/**
 		 * Called when the hierarchy fails to download from a URL.
 		 */
-		private function handleHierarchyURLDownloadError(event:FaultEvent, token:Object = null):void
+		private function handleHierarchyURLDownloadError(event:FaultEvent, url:String):void
 		{
-			reportError(event, null, token);
+			if (url != hierarchyURL.value)
+				return;
+			reportError(event, null, url);
 		}
 		
 		public static const ENTITY_ID:String = 'weaveEntityId';
 		
 		private function generateRootHierarchy(tables:Array, geoms:Array):void
 		{
-			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
+			if (objectWasDisposed(this) || !(_attributeHierarchy.value == <hierarchy/> || !_attributeHierarchy.value))
 				return;
 
 			var tag:XML;
@@ -322,8 +395,8 @@ package weave.data.DataSources
 	
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
 
-				if (_attributeHierarchy.value == null)
-					_attributeHierarchy.value = <hierarchy name="Weave Data Service"/>;
+				if (!_attributeHierarchy.value)
+					_attributeHierarchy.value = <hierarchy/>;
 				
 				// add each missing category
 				parent = <category name="Data Tables"/>;
@@ -489,7 +562,7 @@ package weave.data.DataSources
 			var proxyColumn:ProxyColumn = request.proxyColumn;
 			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
 			// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
-			if (hierarchyNode == null)
+			if (!hierarchyNode)
 				hierarchyNode = <attribute/>;
 			else
 				proxyColumn.setMetadata(hierarchyNode);
@@ -564,6 +637,12 @@ package weave.data.DataSources
 						var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
 						newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
 						proxyColumn.setInternalColumn(newNumericColumn);
+					}
+					else if (ObjectUtil.stringCompare(dataType, DataTypes.DATE, true) == 0)
+					{
+						var newDateColumn:DateColumn = new DateColumn(hierarchyNode);
+						newDateColumn.setRecords(keysVector, Vector.<String>(result.data));
+						proxyColumn.setInternalColumn(newDateColumn);
 					}
 					else
 					{

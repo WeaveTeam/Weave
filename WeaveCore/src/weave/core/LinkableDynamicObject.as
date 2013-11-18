@@ -259,17 +259,13 @@ package weave.core
 			if (lockObject)
 				_locked = true;
 			
-			// to avoid possible problems with String casting, don't support empty string
-			if (newGlobalName == '')
-				newGlobalName = null;
-
 			// make sure callbacks only run once when initializing the internal object
 			delayCallbacks();
 			
 			// handle both class definitions and class names
 			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(newClassNameOrDef as String);
 			
-			if (newGlobalName == null) // local object
+			if (!newGlobalName) // null or "" => local object
 			{
 				// initialize the local object -- this may trigger childListCallback()
 				var result:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
@@ -418,15 +414,6 @@ package weave.core
 		}
 
 		/**
-		 * This function gets the internal object, whether local or global.
-		 * @return The internal, dynamically created object.
-		 */
-		public function getObject():Object
-		{
-			return internalObject;
-		}
-
-		/**
 		 * If the internal object is local, this will remove the object (unless it is locked).
 		 * If the internal object is global, this will remove the link to it.
 		 */
@@ -508,6 +495,7 @@ package weave.core
 			super.dispose();
 			_locked = false;
 			removeObject();
+			_internalObject = null;
 			disposeObjects(_localHashMap); // just in case this function is called directly
 			_locked = true;
 		}

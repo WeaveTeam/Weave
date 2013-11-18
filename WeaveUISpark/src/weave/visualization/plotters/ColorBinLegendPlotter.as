@@ -30,17 +30,17 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
-	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -82,6 +82,16 @@ package weave.visualization.plotters
 		{
 			return dynamicColorColumn.getInternalColumn() as ColorColumn;
 		}
+		
+		/**
+		 * This is the type of shape to be drawn for each legend item.
+		 */		
+		public const shapeType:LinkableString = registerLinkableChild(this, new LinkableString(SHAPE_TYPE_CIRCLE, verifyShapeType));
+		public static const SHAPE_TYPE_CIRCLE:String = 'circle';
+		public static const SHAPE_TYPE_SQUARE:String = 'square';
+		public static const SHAPE_TYPE_LINE:String = 'line';
+		public static const ENUM_SHAPE_TYPE:Array = [SHAPE_TYPE_CIRCLE, SHAPE_TYPE_SQUARE, SHAPE_TYPE_LINE];
+		private function verifyShapeType(value:String):Boolean { return ENUM_SHAPE_TYPE.indexOf(value) >= 0; }
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -200,11 +210,7 @@ package weave.visualization.plotters
 			//todo
 		}
 		
-		private var statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleStatsChange, false);
-		private function handleStatsChange():void
-		{
-			getCallbackCollection(this).triggerCallbacks();
-		}
+		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -226,13 +232,12 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < recordKeys.length; i++)
 				binIndexMap[ binnedColumn.getValueFromKey(recordKeys[i], Number) ] = 1;
 			
-			var margin:int = 4;
-			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
-			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
-			var iconGap:Number = actualShapeSize + margin * 2;
-			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
+			var _shapeSize:Number = shapeSize.value;
+			if (shapeType.value != SHAPE_TYPE_LINE)
+				_shapeSize = Math.max(1, Math.min(_shapeSize, screenBounds.getYCoverage() / numBins));
+			var xShapeOffset:Number = _shapeSize / 2; 
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
-			statsJuggler.target = stats;
+			statsWatcher.target = stats;
 			var internalMin:Number = stats.getMin();
 			var internalMax:Number = stats.getMax();
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
@@ -253,7 +258,7 @@ package weave.visualization.plotters
 				destination.fillRect(tempRectangle, 0x02808080);
 				
 				// draw the text
-				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, iconGap);
+				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, _shapeSize + labelGap);
 
 				// draw circle
 				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
@@ -262,13 +267,37 @@ package weave.visualization.plotters
 				var yMin:Number = tempBounds.getYNumericMin();
 				var xMax:Number = tempBounds.getXNumericMax(); 
 				var yMax:Number = tempBounds.getYNumericMax();
-				if (color <= Infinity) // alternative is !isNaN()
+				if (isFinite(color))
 					g.beginFill(color, 1.0);
-				g.drawCircle(circleCenterOffset + xMin, (yMin + yMax) / 2, actualShapeSize / 2);
+				switch (shapeType.value)
+				{
+					case SHAPE_TYPE_CIRCLE:
+						g.drawCircle(xMin + xShapeOffset, (yMin + yMax) / 2, _shapeSize / 2);
+						break;
+					case SHAPE_TYPE_SQUARE:
+						g.drawRect(
+							xMin + xShapeOffset - _shapeSize / 2,
+							(yMin + yMax - _shapeSize) / 2,
+							_shapeSize,
+							_shapeSize
+						);
+						break;
+					case SHAPE_TYPE_LINE:
+						if (!isFinite(color))
+							break;
+						g.endFill();
+						g.lineStyle(lineShapeThickness, color, 1);
+						g.moveTo(xMin + xShapeOffset - _shapeSize / 2, (yMin + yMax) / 2);
+						g.lineTo(xMin + xShapeOffset + _shapeSize / 2, (yMin + yMax) / 2);
+						break;
+				}
+				g.endFill();
 			}
 			destination.draw(tempShape);
 		}
 		
+		public var labelGap:Number = 5;
+		public var lineShapeThickness:Number = 4;
 		
 		// reusable temporary objects
 		private const tempPoint:Point = new Point();

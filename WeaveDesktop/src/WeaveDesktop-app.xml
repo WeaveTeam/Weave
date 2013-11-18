@@ -172,15 +172,16 @@
 			
 		<!-- </fileType> -->
 	<!-- </fileTypes> -->
-	
+<!-- 
 	<fileTypes>
 	    <fileType>
-	        <name>Weave file</name>
+	        <name>weave.WeaveFile</name>
 	        <extension>weave</extension>
-	        <description></description>
+	        <description>Weave file</description>
 	        <contentType>application/octet-stream</contentType>
 	    </fileType>
 	</fileTypes>
+ -->	
 
     <!-- iOS specific capabilities -->
 	<!-- <iPhone> -->

@@ -31,6 +31,7 @@ import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.config.WeaveContextParams;
+import weave.utils.Strings;
 
 public class RService extends GenericServlet
 {
@@ -38,7 +39,6 @@ public class RService extends GenericServlet
 
 	public RService()
 	{
-
 	}
 
 	private static Process rProcess = null;
@@ -46,17 +46,12 @@ public class RService extends GenericServlet
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
+		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
 		uploadPath = WeaveContextParams.getInstance(config.getServletContext()).getUploadPath();
 		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
-		rServePath =  WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
-	    try {
-	    	if (rProcess == null) {
-	    		startRServe();
-	    	}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
+		startRServe();
 	}
 	
 	public void destroy()
@@ -81,39 +76,37 @@ public class RService extends GenericServlet
 	    boolean jriStatus;
 	
 	    try
-			{
-				if(RServiceUsingJRI.getREngine() != null)
-						jriStatus = true;
-					else
-						jriStatus = false;
-				
-			}
-			//if JRI not present
-			catch (RServiceUsingJRI.JRIConnectionException e) {
-				e.printStackTrace();
+		{
+			if(RServiceUsingJRI.getREngine() != null)
+				jriStatus = true;
+			else
 				jriStatus = false;
-			}
-	//	}
+		}
+		//if JRI not present
+		catch (RServiceUsingJRI.JRIConnectionException e)
+		{
+			e.printStackTrace();
+			jriStatus = false;
+		}
 		
 		return jriStatus;
 	}
-		
-
+	
 	// this functions makes a command line call on the server machine.
 	// the command executed starts the Rserve on windows or unix
 	// On windows: the rServePath needs to be given in the configuration file
 	// On mac: the command R CMD RServe needs to work http://dev.mygrid.org.uk/blog/?p=34
-	public void startRServe() throws IOException {
-		
-		if (rProcess == null)
+	private void startRServe()
+	{
+		if (rProcess == null && !Strings.isEmpty(rServePath))
 		{
 			if (System.getProperty("os.name").startsWith("Windows")) 
 			{
 				try 
 				{
 					rProcess = Runtime.getRuntime().exec(rServePath);
-				} catch (Exception e) 
-			
+				}
+				catch (Exception e) 
 				{
 					e.printStackTrace();
 				}
@@ -121,9 +114,12 @@ public class RService extends GenericServlet
 			else 
 			{
 				String[] args = {"R", "CMD", "RServe", "--vanilla"};
-				try {
+				try
+				{
 					rProcess = Runtime.getRuntime().exec(args);
-				} catch (Exception e) {
+				}
+				catch (Exception e)
+				{
 					e.printStackTrace();
 				}
 			}
@@ -131,18 +127,18 @@ public class RService extends GenericServlet
 	}
 	
 	// this function should stop the Rserve... needs revision
-	public void stopRServe() throws IOException {
-	 try {
-		if (rProcess != null )
+	private void stopRServe() throws IOException
+	{
+		try
 		{
-			rProcess.destroy();
+			if (rProcess != null )
+				rProcess.destroy();
 		}
-	 } catch (Exception e) {
-		e.printStackTrace();
-	 }
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
-
-
 
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
@@ -192,13 +188,12 @@ public class RService extends GenericServlet
 	}
 	
 	
-	public LinearRegressionResult linearRegression(double[] dataX, double[] dataY) throws RemoteException
+	public LinearRegressionResult linearRegression(String method, double[] dataX, double[] dataY, int polynomialDegree) throws RemoteException
 	{
-		
-		return RServiceUsingRserve.linearRegression( docrootPath, dataX, dataY);
+		return RServiceUsingRserve.linearRegression( docrootPath, method, dataX, dataY, polynomialDegree);
 	}
 
-	public RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
+	public RResult[] kMeansClustering(String[] inputNames, Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
 	{
 		
 		//return RServiceUsingRserve.kMeansClustering( docrootPath, dataX, dataY, numberOfClusters);
@@ -210,10 +205,8 @@ public class RService extends GenericServlet
 		return RServiceUsingRserve.hierarchicalClustering( docrootPath, dataX, dataY);
 	}
 
-	public RResult[] handlingMissingData( String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
+	public RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
 	{
 		return RServiceUsingRserve.handlingMissingData(inputNames, inputValues, outputNames,showIntermediateResults, showWarnings, completeProcess);
 	}
-	
-	
 }

@@ -6,7 +6,14 @@
                 label="{lang('Data Hierarchies')}{metadataEditor.isChanged?'*':''}"
                 creationComplete="handleCreated()">
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
-		<ui:IndentTextInput label="{lang('Data Tables')}" labelFontWeight="bold" prompt="{lang('Search')}" id="tableSearch" width="100%"/>
+		<ui:Indent label="{lang('Data Tables')}" labelFontWeight="bold">
+			<ui:TextInputWithPrompt id="tableSearch" prompt="{lang('Search tables')}" width="100%"/>
+			<ui:TextInputWithPrompt id="columnSearch" prompt="{lang('Search columns (exact)')}" width="100%"/>
+			<ui:HelpComponent>
+				You can search either by title or id number.
+				Column title search currently only supports exact matches.
+			</ui:HelpComponent>
+		</ui:Indent>
         <ui:EntityTree id="tableTree" rootFilterType="{EntityType.TABLE}" nodeFilterFunction="{filterTables}"
 			entityCache="{Admin.entityCache}"
             width="100%" height="100%" dragEnabled="true" dragMoveEnabled="{editTablesButton.selected}" dropEnabled="{editTablesButton.selected}"/>
@@ -17,18 +24,19 @@
 			<mx:Button label="{lang('Refresh')}" click="Admin.entityCache.invalidateAll();"/>
         </mx:HBox>
     </mx:VBox>
-    <mx:VBox id="hierarchyDiv" minWidth="{plusButton.width}" height="100%" width="100%"
+    <mx:VBox id="hierarchyDiv" minWidth="{plusButton.width}" height="100%" width="{plusButton.height}"
 			 resize="minusButton.includeInLayout = minusButton.visible = !(plusButton.includeInLayout = plusButton.visible = (hierarchyDiv.width == plusButton.height));"
 			 enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
         <mx:HBox width="100%" horizontalGap="0">
 			<mx:HBox width="100%" minWidth="0" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}" horizontalScrollPolicy="off">
 				<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
 				<ui:HelpComponent>
-					The Weave client does not read these hierarchies yet, but it will in a future version.  Check for an update soon.
+					The Weave client does not read these hierarchies yet, but it will in a future version.
+					Check for an update soon.
 				</ui:HelpComponent>
 				<mx:Spacer width="100%"/>
 			</mx:HBox>
-			<mx:Button id="minusButton" width="{minusButton.height}"
+			<mx:Button id="minusButton" width="{minusButton.height}" visible="false"
 					   toolTip="{lang('Hide Custom Hierarchies')}"
 					   click="hierarchyDiv.width = plusButton.height;"
 					   icon="@Embed(source='/weave/resources/images/minus.png')"/>
@@ -51,16 +59,25 @@
 	<ui:MetadataEditor id="metadataEditor" height="100%" width="100%" targetItems="{selectedItems}"/>
 <mx:Script>
 <![CDATA[
+	import mx.controls.TextInput;
 	import mx.events.ListEvent;
+	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.data.ColumnMetadata;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.getCallbackCollection;
+	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
 	import weave.services.Admin;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.Entity;
+	import weave.services.beans.EntityMetadata;
 	import weave.services.beans.EntityType;
 	import weave.ui.EntityNode;
 	import weave.ui.EntityTree;
 	import weave.utils.EventUtils;
 	import weave.utils.PopUpUtils;
+	import weave.utils.VectorUtils;
 	
 	private function categoryOrHierarchyLabel(hierarchyTreeSelectedItems:Array):String
 	{
@@ -76,17 +93,30 @@
         tableTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
         hierarchyTree.addEventListener(ListEvent.CHANGE, handleTreeChange);
 		
-		EventUtils.addDelayedEventCallback(tableSearch, Event.CHANGE, tableTree.refresh, 100);
+		getCallbackCollection(Admin.entityCache).addImmediateCallback(this, function():void { filterByTableIdLookup = null; });
+		
+		EventUtils.addDelayedEventCallback(tableSearch, Event.CHANGE, handleTableSearch, 100);
+		EventUtils.addDelayedEventCallback(columnSearch, Event.CHANGE, handleColumnSearch, 500);
     }
 	
 	private function handleTreeChange(event:ListEvent):void
 	{
 		var tree:EntityTree = event.currentTarget as EntityTree;
-		if (Admin.instance.getFocusEntityId() >= 0)
+		var id:int = Admin.instance.getFocusEntityId();
+		if (id >= 0)
 		{
+			for each (var parentId:int in Admin.entityCache.getEntity(id).parentIds)
+			{
+				Admin.instance.setFocusEntityId(parentId);
+				tree.expandMatchingItems(isFocusedEntityNode);
+			}
+			Admin.instance.setFocusEntityId(id);
 			var node:EntityNode = tree.scrollToAndSelectMatchingItem(isFocusedEntityNode) as EntityNode;
 			if (node)
+			{
 				tree.expandItem(node, true);
+				Admin.instance.clearFocusEntityId();
+			}
 		}
 		
 		selectionsChanged(event);
@@ -94,20 +124,97 @@
 	
 	private function isFocusedEntityNode(node:EntityNode):Boolean
 	{
-		if (node && node.id == Admin.instance.getFocusEntityId())
-		{
-			Admin.instance.clearFocusEntityId();
-			return true;
-		}
-		
-		return false;
+		return node && node.id == Admin.instance.getFocusEntityId();
 	}
 
-	private function filterTables(item:EntityNode):Boolean
+	private function isUnsignedInt(str:String):Boolean
 	{
-		if (!tableSearch.text)
-			return true;
-		return item.label.toLowerCase().search(tableSearch.text.toLowerCase()) >= 0;
+		var number:Number = StandardLib.asNumber(str);
+		return number == uint(number) && str == number.toString();
+	}
+	
+	private function handleTableSearch():void
+	{
+		filterByTableId = isUnsignedInt(tableSearch.text) ? uint(tableSearch.text) : -1;
+		Admin.instance.setFocusEntityId(filterByTableId);
+		tableTree.refresh();
+	}
+	
+	private function handleColumnSearch():void
+	{
+		filterByColumnIds = null;
+		filterByTableIdLookup = null;
+		
+		if (!columnSearch.text)
+		{
+			tableTree.refresh();
+			return;
+		}
+		
+		if (isUnsignedInt(columnSearch.text))
+		{
+			var id:int = uint(columnSearch.text);
+			Admin.instance.setFocusEntityId(id);
+			Admin.entityCache.getEntity(id);
+			filterByColumnIds = [id];
+			tableTree.refresh();
+			return;
+		}
+		
+		var em:EntityMetadata = new EntityMetadata();
+		em.publicMetadata[ColumnMetadata.TITLE] = columnSearch.text;
+		addAsyncResponder(
+			Admin.service.getEntityIdsByMetadata(em, EntityType.COLUMN),
+			function(event:ResultEvent, search:String):void
+			{
+				if (search != columnSearch.text)
+					return;
+				filterByColumnIds = event.result as Array;
+				for each (var id:int in filterByColumnIds)
+					Admin.entityCache.getEntity(id);
+				tableTree.refresh();
+			},
+			null,
+			columnSearch.text
+		);
+	}
+	
+	private var filterByTableId:int = -1; // table id
+	private var filterByColumnIds:Array = null; // list of column ids
+	private var filterByTableIdLookup:Object = null; // table id -> true
+	
+	private function filterTables(tableNode:EntityNode):Boolean
+	{
+		var ts:String = tableSearch.text.toLowerCase();
+		if (ts)
+		{
+			if (filterByTableId >= 0)
+			{
+				if (tableNode.id != filterByTableId)
+					return false; // table id didn't match
+			}
+			else
+			{
+				if (Admin.entityCache.getBranchInfo(tableNode.id).title.toLowerCase().search(ts) < 0)
+					return false; // table name didn't match
+			}
+		}
+		var cs:String = columnSearch.text.toLowerCase();
+		if (cs)
+		{
+			if (!filterByTableIdLookup)
+			{
+				var newLookup:Object = {};
+				for each (var childId:* in filterByColumnIds)
+					for each (var parentId:* in Admin.entityCache.getEntity(childId).parentIds)
+						newLookup[parentId] = true;
+				filterByTableIdLookup = newLookup;
+			}
+			
+			if (!filterByTableIdLookup[tableNode.id])
+				return false;
+		}
+		return true;
 	}
 	
     public function deleteTable():void

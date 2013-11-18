@@ -257,11 +257,11 @@ package weave.services
 			query.invoke(); // temporary?  perform query now instead of using global queue
 		}
 		
-		override protected function handleQueryResultOrFault(event:Event, token:Object = null):void
+		override protected function handleQueryResultOrFault(event:Event, query:DelayedAsyncInvocation):void
 		{
 			//trace(token, (event is ResultEvent) ? "SUCCESS" : "FAIL");
 
-			super.handleQueryResultOrFault(event, token);
+			super.handleQueryResultOrFault(event, query);
 		}
 		
 		public var alertEnabled:Boolean = true; // true to enable alert boxes
@@ -273,10 +273,8 @@ package weave.services
 		 * It will notify the user with an Alert box and set 'alerted' = true.
 		 * If 'alerted' is already true, it will not display an Alert box.
 		 */
-		protected function handleDownloadFault(event:FaultEvent, token:Object = null):void
+		protected function handleDownloadFault(event:FaultEvent, query:DelayedAsyncInvocation):void
 		{
-			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
-
 			//trace("###################### Web service fault:", query, event.toString());
 			if (alertEnabled)
 			{
