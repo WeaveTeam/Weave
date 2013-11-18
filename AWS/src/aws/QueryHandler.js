@@ -107,7 +107,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 	var that = this;
 	//testing new Weave Window
 	newWeaveWindow = window.open("SeparateWindow.html",
-			"abc","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
+			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
 	
 
 	aws.JSON = newWeaveWindow.JSON;
