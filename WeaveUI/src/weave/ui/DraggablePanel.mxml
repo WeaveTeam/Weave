@@ -1149,6 +1149,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (!_controlPanel.parent)
 						PopUpManager.addPopUp(_controlPanel, WeaveAPI.topLevelApplication as UIComponent);
 					_controlPanel.sendWindowToForeground();
+					_controlPanel.reposition();
 				}
 				else
 				{
@@ -1156,6 +1157,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			/**
+			 * This will reposition the window at default random coordinates.
+			 */
+			public function reposition():void
+			{
+				panelX.value = getDefaultRandomCoord();
+				panelY.value = getDefaultRandomCoord();
+			}
 			
 			private function setupButtonIcons(button:Button, iconClassOrArray_0icon_1over_2down:Object):void
 			{
@@ -1515,8 +1524,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
 			 * @param classDef A Class extending DraggablePanel.
+			 * @return The static instance of the given class.
 			 */
-			public static function openStaticInstance(draggablePanelClass:Class):DraggablePanel
+			public static function openStaticInstance(draggablePanelClass:Class):*
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
