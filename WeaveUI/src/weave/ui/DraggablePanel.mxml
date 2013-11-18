@@ -1473,10 +1473,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if (panel && panel.escapeKeyClosesPanel)
 						{
 							if (panel == this)
-							{
-								stage.focus = parent;
 								panel.handleEscapeKey();
-							}
 							// we don't want to do anything more
 							return;
 						}
