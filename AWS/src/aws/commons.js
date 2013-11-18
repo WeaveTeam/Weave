@@ -76,6 +76,14 @@ aws.DataEntity;
 aws.rDataRequestObject;
 
 /**
+ * 
+ *pointer to JSON for use with aws.queryService 
+ *this variable is reset once queryService is called
+ *
+ */
+aws.JSON = JSON;
+
+/**
  * This function is a wrapper for making a request to a JSON RPC servlet
  * 
  * @param {string} url
@@ -94,15 +102,23 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         params: params
     };
     
+    var currentJSON = aws.JSON;
+    aws.JSON = JSON;
+    
     aws.activeQueryCount++;
     aws.broadcastBusyStatus();
     
-    $.post(url, JSON.stringify(request), handleResponse, "json");
+    $.post(url, JSON.stringify(request), handleResponse, "text");
 
     function handleResponse(response)
     {
     	aws.activeQueryCount--;
     	aws.broadcastBusyStatus();
+    	response = currentJSON.parse(response); //changes string to obj
+    	
+    	//alternate
+//        		if(JSON != aws.JSON)
+//        			response = aws.JSON.parse(JSON.stringify(response));
     	
         if (response.error)
         {
@@ -110,6 +126,9 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         }
         else if (resultHandler){
         	// console.log("about to call result handler" + resultHandler.toString());
+        	//console.log("done" , response.result === undefined);
+        	//console.log("itworked = " + aws.JSON["itworked"]);
+        	
             return resultHandler(response.result, queryId);
         }
     }

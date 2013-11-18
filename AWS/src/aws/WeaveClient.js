@@ -99,7 +99,6 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
     return toolName;
 };
 
-
 aws.WeaveClient.prototype.newMap2 = function (entityId, title, keyType){
 
     var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
@@ -110,6 +109,8 @@ aws.WeaveClient.prototype.newMap2 = function (entityId, title, keyType){
     			 .push('dynamicColumnReference', null).request('HierarchyColumnReference')
     			 .state({dataSourceName :"WeaveDataSource",
                      hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+    
+    return toolName;
 };
 /**
  * This function accesses the weave instance and create a new scatter plot, regardless of wether or not 
@@ -126,7 +127,10 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, d
 	
 	/** @type {string} */
 	var toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
-	this.weave.requestObject([toolName], 'ScatterPlotTool');
+	//this.weave.requestObject([toolName], 'ScatterPlotTool');
+	
+	//request the tool 
+	this.weave.path(toolName).request('ScatterPlotTool');
 	aws.reportTime("New ScatterPlot added");
 	
 	var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
@@ -150,12 +154,15 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, d
 aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 
 	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
-	this.weave.requestObject([toolName], 'DataTableTool');
+	//this.weave.requestObject([toolName], 'DataTableTool');
+	this.weave.path(toolName).request('DataTableTool');
 	
 	//loop through the columns requested
 	for (var i in columnNames)
 		{
-			this.setCSVColumn(dataSourceName, [toolName,'columns',columnNames[i]], columnNames[i]);
+			var columnPath = this.weave.path(toolName, 'columns', columnNames[i] ).getPath();
+			this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
+			//this.setCSVColumn(dataSourceName, [toolName,'columns',columnNames[i]], columnNames[i]);
 			
 		}
 	return toolName;
@@ -232,7 +239,8 @@ aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSour
  */
 aws.WeaveClient.prototype.setPosition = function (toolName, posX, posY) {
 	
-	this.weave.path([toolName]).push('panelX').state(posX).pop().push('panelY').state(posY);
+	//this.weave.path([toolName]).push('panelX').state(posX).pop().push('panelY').state(posY);
+	this.weave.path(toolName).push('panelX').state(posX).pop().push('panelY').state(posY);
 };
 
 /**
@@ -263,7 +271,6 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
 	
 	if (dataSourceName == "") {
 		 dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
-		//dataSourceName = weaveInstance.path().getValue('generateUniqueName("CSVDataSource")');
 	}
 
 	this.weave.path(dataSourceName)
@@ -290,9 +297,9 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
  */
 aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceName, keyType, keyColName)
 {
-	if(dataSourceName == ""){
-		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
-	}
+//	if(dataSourceName == ""){
+//		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+//	}
 
 	this.weave.path(dataSourceName)
 		.request('CSVDataSource')
@@ -304,6 +311,15 @@ aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceN
 	
 };
 
+aws.WeaveClient.prototype.createDataSource = function(results,dataSourceName, keytype, keyColName)
+{
+	if(dataSourceName == ""){
+	dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+}
+	this.addCSVDataSource(results, dataSourceName, keytype, keyColName);
+	return dataSourceName;
+};
+
 /**
  * This function sets the session state of a column from another in the Weava instance
  * @param {string} csvDataSourceName CSV Datasource to choose column from
@@ -312,7 +328,11 @@ aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceN
  * @return void
  */
 aws.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath, columnName){
-	this.weave.path([csvDataSourceName])
+//	this.weave.path([csvDataSourceName])
+//			  .vars({i:columnName, p:columnPath})
+//			  .exec('putColumn(i,p)');
+	
+	this.weave.path(csvDataSourceName)
 			  .vars({i:columnName, p:columnPath})
 			  .exec('putColumn(i,p)');
 };
@@ -327,8 +347,10 @@ aws.WeaveClient.prototype.setCSVColumn = function (csvDataSourceName, columnPath
  */
 aws.WeaveClient.prototype.setColorAttribute = function(colorColumnName, csvDataSource) {
 	
-	this.setCSVColumn(csvDataSource,['defaultColorDataColumn', 'internalDynamicColumn'], colorColumnName);
-};
+	//this.setCSVColumn(csvDataSource,['defaultColorDataColumn', 'internalDynamicColumn'], colorColumnName);
+	var colorPath = this.weave.path('defaultColorDataColumn', 'internalDynamicColumn').getPath();
+	this.setCSVColumn(csvDataSource, colorPath, colorColumnName);
+	};
 
 
 /**

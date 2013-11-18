@@ -1,21 +1,83 @@
 <!DOCTYPE html>
 	<head>
 		<meta charset="UTF-8" />
-		<!--<script src="lib/jquery/jquery.js"></script>
-		<script src="aws.js"></script>-->
+		<script src="lib/jquery/jquery.js"></script>
+		<script src="aws.js"></script>
 		<script src="lib/swfobject.js"></script>
 	</head>
 	<body>
-		This page contains the Weave instance which will display all the visualizations. 
+	<table border="0">
+		  <tr>
+		    <td>This page contains the Weave instance which will display all the visualizations. 
 		<br>(1)If running a script, visualizations will be displayed on completion of computation</br>
-			
+			</td>
+		    <td><textarea id="resultTextArea" width="100%" cols="100" rows="1"></textarea></td>
+		  </tr>
+	</table>
+		
 		<script>
 			var timer = null;
 			var base_url = document.location.protocol + "//" + document.location.host + "/";
-					
+		    //var weaveInstance;
+		    var client;
+		    var result;
+		    var colorColumn;
+		    var vizs;
+		    var responseResults;
+		    var dataSourceName;
 			function weaveReady( weave )
 			{
 				console.log( "Weave Ready" );
+				resultTextArea.value = "Running Query on R ...";
+				
+				console.log("got weave instance");
+			    client = new aws.WeaveClient(weave);
+			    console.log("got weave client");
+			   if(responseResults)
+				   workOnData(responseResults);
+			}
+			
+			function getWeave()
+			{
+				var weaveInstance = document.getElementById("weave");
+				return weaveInstance;
+			}
+			
+			
+			
+			function workOnData(input)
+			{
+				responseResults = input;
+				if(getWeave().path)
+					{
+							console.log(this);
+							console.log(responseResults);
+							console.log(this.keyType);
+						   
+							resultTextArea.value = "Displaying results in visualizations...";
+							//Todo parameterize keyColumnName ; here "fips"
+						   dataSourceName = client.createDataSource(responseResults,"", this.keyType, "fips");
+						   console.log(dataSourceName);
+						    
+						    //creating the visualizations
+								   for (var i in this.visualizations) {
+								client.newVisualization(this.visualizations[i], dataSourceName);
+								//aws.timeLogString = aws.reportTime(this.visualizations[i].type + ' added');
+								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+							}
+								    
+						   // var colColumn = aws.QueryHandler.prototype.returnColorcolumn();
+						    if (this.ColorColumn) {
+						    	console.log("hello");
+						    	colorColumn = this.ColorColumn;
+						    	 console.log(colorColumn);
+								client.setColorAttribute(this.ColorColumn, dataSourceName);
+								//aws.timeLogString = aws.reportTime('color column added');
+								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
+							}	
+						    
+						    console.log("not hello");
+					}
 			}
 			
 			function resizeWeave( t )

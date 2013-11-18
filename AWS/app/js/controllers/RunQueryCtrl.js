@@ -7,7 +7,7 @@ angular.module("aws.RunQuery", []).controller("RunQueryCtrl", function($scope, q
 		
 		$scope.runQuery = function(){
 			queryHandler = new aws.QueryHandler(queryService.queryObject);
-            queryHandler.launchWeaveWindow();
+          
             // doesn't work to remove weave instance -> $scope.weaveInstancePanel = "";
             // Probably need to put a broadcast event here? to tell weave instance panel to die.
 

@@ -76,11 +76,10 @@ aws.QueryHandler = function(queryObject)
 		);
 	}	
 	
-//	testing
-//	this.weaveClient;
-//    testing
-    this.newWeaveWindow = null;
-	
+	 //testing
+
+	//this.weaveClient = new aws.WeaveClient($('#weave')[0]);
+
 	// check what type of computation engine we have, to create the appropriate
 	// computation client
 	this.ComputationEngine = null;
@@ -88,35 +87,14 @@ aws.QueryHandler = function(queryObject)
 		this.ComputationEngine = new aws.RClient(this.rRequestObject);
 	}// else if (queryObject.scriptType == 'stata') {
 //		// computationEngine = new aws.StataClient();
-//	}
 
 	this.resultDataSet = "";
+
 };
 
-aws.QueryHandler.prototype.launchWeaveWindow = function(){
-    this.newWeaveWindow = window.open("SeparateWindow.html",
-        "_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
-}
-aws.QueryHandler.prototype.closeWeaveWindow = function(){
-    // need code that will destroy the window we created earlier. while passing the
-
-    this.newWeaveWindow = null;
-}
-
-aws.QueryHandler.prototype.getCurrentWeave = function(){
-    if (false) {
-        var weave1 = $('#weave');
-        return new aws.WeaveClient(weave1);
-    }else if (this.newWeaveWindow != null) {
-        var weave2 = this.newWeaveWindow.document.getElementById("weave");
-        return new aws.WeaveClient(weave2);
-    }
-}
 //testing
-//var newWeaveWindow;
-//var weaveInstance;
-//var client = aws.QueryHandler.weaveClient;
-//testing
+var newWeaveWindow;
+
 /**
  * This function is the golden evaluator of the query.
  * 1- run the scripts against the data
@@ -124,45 +102,46 @@ aws.QueryHandler.prototype.getCurrentWeave = function(){
  * 3- call weave, create the visualizations and set the parameters
  */
 aws.QueryHandler.prototype.runQuery = function() {
-	
-	//testing
-//	newWeaveWindow = window.open("SeparateWindow.html",
-//			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
-//
-//	weaveInstance = newWeaveWindow.document.getElementById("weave");//getting the pointer to the weave instance in the separate browser window
-//    client = new aws.WeaveClient(weaveInstance);
-    //testing
-    this.weaveClient = this.getCurrentWeave();
 
 	// step 1
 	var that = this;
+	//testing new Weave Window
+	newWeaveWindow = window.open("SeparateWindow.html",
+			"abc","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
+	
+
+	aws.JSON = newWeaveWindow.JSON;
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
 		console.log(that.resultDataSet);
 		// aws.timeLogString = result[1].value;
-		// console.log(result[1].value);
 		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+		
+		newWeaveWindow.workOnData.call(that, result[0].value);
 		
 		// step 2
 		//var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
-		var dataSourceName = that.weaveClient.addCSVDataSource(that.resultDataSet, "", that.keyType, "fips");
+		//var dataSourceName = that.weaveClient.addCSVDataSource(that.resultDataSet, "", that.keyType, "fips");
 		
 		// step 3
-		for (var i in that.visualizations) {
-			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
-			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
-			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
-		}
-		
-		if (that.ColorColumn) {
-			that.weaveClient.setColorAttribute(that.ColorColumn, dataSourceName);
-			aws.timeLogString = aws.reportTime('color column added');
-			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
-		}	
+//		for (var i in that.visualizations) {
+//			that.weaveClient.newVisualization(that.visualizations[i], dataSourceName);
+//			aws.timeLogString = aws.reportTime(that.visualizations[i].type + ' added');
+//			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+//		}
+//		
+//		if (that.ColorColumn) {
+//			that.weaveClient.setColorAttribute(that.ColorColumn, dataSourceName);
+//			aws.timeLogString = aws.reportTime('color column added');
+//			$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
+//		}	
 	});
 };
+
+
 
 aws.QueryHandler.prototype.clearWeave = function () {
 	this.weaveClient.clearWeave();
 };
+
