@@ -1549,7 +1549,7 @@ package weave.application
 				var attrs:Array = [];
 				if (tool)
 				{
-					VectorUtils.flatten(tool.getSelectableAttributes());
+					VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 				}
 				else
 				{
