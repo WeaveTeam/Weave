@@ -113,7 +113,7 @@
 			private const SETUP_VIEW:int = 2;
             private const MIGRATE_VIEW:int = 3;
 			
-			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
+			SessionStateEditor; // adds keyboard shortcut f8 to open console
 			
 			private var _weaveTrace:Function = weaveTraceImpl; // reference this here so it gets compiled
 			
