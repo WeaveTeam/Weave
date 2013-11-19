@@ -323,7 +323,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function drawAnnuliCirclesForSelectionKeySet():void
 			{
-				if(!Weave.properties.enableAnnuliCircles.value || !enabelAnnuliCircles.value) return;
+				if(!enabelAnnuliCircles.value) return;
 				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if (!probeKeySet)
 					return;

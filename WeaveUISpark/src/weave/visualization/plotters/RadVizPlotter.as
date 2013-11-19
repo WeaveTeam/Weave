@@ -674,15 +674,22 @@ package weave.visualization.plotters
 				if (innerRadius < 0) {
 					innerRadius = 0;
 				}
+				// calculates the radViz radius in screenBounds
+				var center:Point = new Point(-1, -1);
+				dataBounds.projectPointTo(center, screenBounds);
+				var x:Number = center.x;
+				var y:Number = center.y;
+				center.x = 1;
+				center.y = 1;
+				dataBounds.projectPointTo(center, screenBounds);
+				var circleRadius:Number = center.x - x;
+
+				graphics.lineStyle(1, 0xff0000);
 				
-				outerRadius = outerRadius * radiusConstant.value;
-				innerRadius = innerRadius * radiusConstant.value;
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-				
-				graphics.lineStyle(.5, 0xff0000);
 				dataBounds.projectPointTo(coordinate, screenBounds);
-				graphics.drawCircle(coordinate.x, coordinate.y, outerRadius);
-				graphics.drawCircle(coordinate.x, coordinate.y, innerRadius);
+				graphics.drawEllipse(coordinate.x, coordinate.y, outerRadius*circleRadius, outerRadius*circleRadius);
+				graphics.drawEllipse(coordinate.x, coordinate.y, innerRadius*circleRadius, innerRadius*circleRadius);
+				graphics.drawCircle(coordinate.x, coordinate.y, 30);
 				graphics.endFill();
 			}
 		}
