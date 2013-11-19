@@ -644,20 +644,46 @@ package weave.visualization.plotters
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 				
-				var value:Number;
+				var linkLengths:Array = [];
+				var innerRadius:Number = 0;
+				var outerRadius:Number = 0;
+				var temp:Number = 0;
 				for (var i:int = 0; i < _cols.length; i++)
 				{
 					var column:IAttributeColumn = _cols[i];
-					trace(_cols[i]);
 					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					value = normArray ? normArray[i] : stats.getNorm(key);
-					trace(value);
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					graphics.lineStyle(.5, 0xff0000);
-					graphics.drawCircle(coordinate.x, coordinate.y, 30);
-			
-					graphics.endFill();
+					var value:Number = normArray ? normArray[i] : stats.getNorm(key);
+					if(!isNaN(value))
+					{
+						linkLengths.push(value);
+					}
+						
 				}
+				
+				outerRadius = Math.max.apply(null, linkLengths);
+				
+				for (i = 0; i < linkLengths.length; i++)
+				{
+					if (linkLengths[i] != outerRadius){
+						temp += linkLengths[i];
+					}
+				}
+
+				innerRadius = outerRadius - temp;
+				
+				if (innerRadius < 0) {
+					innerRadius = 0;
+				}
+				
+				outerRadius = outerRadius * radiusConstant.value;
+				innerRadius = innerRadius * radiusConstant.value;
+				dataBounds.projectPointTo(tempPoint, screenBounds);
+				
+				graphics.lineStyle(.5, 0xff0000);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				graphics.drawCircle(coordinate.x, coordinate.y, outerRadius);
+				graphics.drawCircle(coordinate.x, coordinate.y, innerRadius);
+				graphics.endFill();
 			}
 		}
 		
