@@ -32,8 +32,9 @@ package weave.api.core
 
 		/**
 		 * This sets the session state of this composite object.
-		 * @param newState An Array of DynamicState objects defining child ILinkableObjects.
+		 * @param newState An Array of child name Strings or DynamicState objects containing the new values and types for child ILinkableObjects.
 		 * @param removeMissingDynamicObjects If true, this will remove any child objects that do not appear in the session state.
+		 * As a special case, a null session state will result in no change regardless of the removeMissingDynamicObjects value.
  		 */
 		function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void;
 	}
