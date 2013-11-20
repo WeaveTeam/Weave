@@ -45,7 +45,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.radviz.ClassInfoObject;
@@ -58,12 +60,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			
 			[Bindable] 
-			public var columnNames:Array  = new Array();
 			public var selectedColumnName:String;
 			public var selectedAlgoOption:String;
 			private var thrValue:Number; private var layoutMeasure:String = new String();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-			
+
 			 override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -73,17 +74,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				columnList.hashMap = _target._plotter.columns;
 
 				// this will set the columns for the point sensitivity
-				poinstSensitivityColumnList.hashMap = _target._plotter.pointSensitivityColumns;
-				
-				
+				//poinstSensitivityColumnList.hashMap = _target._plotter.pointSensitivityColumns;
 				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_target._plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );
-				
 				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, handleGlobalNamesChange, true);
 			} 
+			
 			
 			private function handleGlobalNamesChange():void
 			{
@@ -592,8 +591,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								selectedColor="0xFFFFFF"
 								creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.color.defaultValue, event.target, 'selectedColor')" />
 			</ui:Indent>
-
-			<ui:ColumnListComponent visTool="{_target}" id="poinstSensitivityColumnList" label="Point Sentivity Dimensions"/>
+			
+			<ui:CheckBoxList id="pointSensitivityChecklist" dataProvider="{_target._plotter.getColumnNames()}"/>
 
 		</mx:VBox>
 	</mx:VBox>

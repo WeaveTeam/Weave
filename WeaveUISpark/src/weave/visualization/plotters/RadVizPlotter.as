@@ -111,6 +111,17 @@ package weave.visualization.plotters
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
+		public function getColumnNames():Array
+		{
+			return columns.getObjects();
+		}
+		
+		private function updatePointSensitivityColumnList():void
+		{
+			
+		}
+				
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		
