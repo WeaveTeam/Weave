@@ -21,7 +21,6 @@ package weave.ui
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.controls.DataGrid;
-	import mx.controls.List;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.ListBase;
 	import mx.core.IUIComponent;
@@ -34,8 +33,13 @@ package weave.ui
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.core.CallbackJuggler;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.core.LinkableWatcher;
 	
+	/**
+	 * Callbacks trigger when the list of objects changes.
+	 */
 	public class VariableListController implements ILinkableObject
 	{
 		public function VariableListController()
@@ -87,25 +91,30 @@ package weave.ui
 				_editor.addEventListener(DragEvent.DRAG_ENTER, dragEnterCaptureHandler, true);
 			}
 			
+			_nameColumn = null;
+			_valueColumn = null;
 			var dataGrid:DataGrid = _editor as DataGrid;
 			if (dataGrid)
 			{
 				dataGrid.editable = true;
 				dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
+				dataGrid.draggableColumns = false;
 				
-				var nameCol:DataGridColumn = new DataGridColumn();
-				nameCol.sortable = false;
-				nameCol.editable = true;
-				nameCol.headerText = lang("Name");
-				nameCol.labelFunction = getObjectName;
+				_nameColumn = new DataGridColumn();
+				_nameColumn.sortable = false;
+				_nameColumn.editable = true;
+				_nameColumn.labelFunction = getObjectName;
+				_nameColumn.showDataTips = true;
+				_nameColumn.dataTipFunction = nameColumnDataTip;
+				setNameColumnHeader();
 				
-				var valueCol:DataGridColumn = new DataGridColumn();
-				valueCol.sortable = false;
-				valueCol.editable = false;
-				valueCol.headerText = lang("Value");
-				valueCol.labelFunction = getItemLabel;
+				_valueColumn = new DataGridColumn();
+				_valueColumn.sortable = false;
+				_valueColumn.editable = false;
+				_valueColumn.headerText = lang("Value");
+				_valueColumn.labelFunction = getItemLabel;
 				
-				dataGrid.columns = [nameCol, valueCol];
+				dataGrid.columns = [_nameColumn, _valueColumn];
 			}
 			else if (_editor)
 			{
@@ -115,6 +124,21 @@ package weave.ui
 			if (dynamicObject && _editor)
 				_editor.rowCount = 1;
 			updateDataProvider();
+		}
+		
+		private function setNameColumnHeader():void
+		{
+			if (!_nameColumn)
+				return;
+			if (hashMap && hashMap.getNames().length)
+				_nameColumn.headerText = lang("Name (Click to edit)")
+			else
+				_nameColumn.headerText = lang("Name");
+		}
+		
+		private function nameColumnDataTip(item:Object, ..._):String
+		{
+			return lang("{0} (Click to rename)", getObjectName(item));
 		}
 		
 		private var _allowMultipleSelection:Boolean = true;
@@ -127,27 +151,29 @@ package weave.ui
 		}
 		
 		private var _editor:ListBase;
-		private const _hashMapJuggler:CallbackJuggler = new CallbackJuggler(this, refreshLabels, true);
-		private const _dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
-		private const _childListJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, false);
+		private var _nameColumn:DataGridColumn;
+		private var _valueColumn:DataGridColumn;
+		private const _hashMapWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, refreshLabels, true);
+		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
+		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
 		
 		public function get hashMap():ILinkableHashMap
 		{
-			return _hashMapJuggler.target as ILinkableHashMap;
+			return _hashMapWatcher.target as ILinkableHashMap;
 		}
 		public function set hashMap(value:ILinkableHashMap):void
 		{
 			if (value)
 				dynamicObject = null;
 			
-			_hashMapJuggler.target = value;
-			_childListJuggler.target = value && value.childListCallbacks;
+			_hashMapWatcher.target = value;
+			_childListWatcher.target = value && value.childListCallbacks;
 		}
 		
 		public function get dynamicObject():ILinkableDynamicObject
 		{
-			return _dynamicObjectJuggler.target as ILinkableDynamicObject;
+			return _dynamicObjectWatcher.target as ILinkableDynamicObject;
 		}
 		public function set dynamicObject(value:ILinkableDynamicObject):void
 		{
@@ -158,7 +184,7 @@ package weave.ui
 					_editor.rowCount = 1;
 			}
 			
-			_dynamicObjectJuggler.target = value;
+			_dynamicObjectWatcher.target = value;
 		}
 		
 		private function refreshLabels():void
@@ -178,12 +204,20 @@ package weave.ui
 			}
 			else if (hashMap)
 			{
+				setNameColumnHeader();
 				_editor.dataProvider = hashMap.getObjects();
 			}
+			else
+				_editor.dataProvider = null;
+			
+			if (!(_editor is DataGrid))
+				_editor.rowCount = 1;
 			
 			var view:ICollectionView = _editor.dataProvider as ICollectionView;
 			if (view)
 				view.refresh();
+			
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function removeAllItems():void
@@ -216,6 +250,17 @@ package weave.ui
 				dynamicObject.removeObject();
 			}
 		}
+		
+		public function beginEditVariableName(object:ILinkableObject):void
+		{
+			var dg:DataGrid = _editor as DataGrid;
+			if (dg && hashMap)
+			{
+				var rowIndex:int = hashMap.getObjects().indexOf(object);
+				if (rowIndex >= 0)
+					dg.editedItemPosition = { columnIndex: 0, rowIndex: rowIndex };
+			}
+		}
 
 		/**
 		 * @param item
@@ -235,7 +280,7 @@ package weave.ui
 			if (_labelFunction != null)
 				return _labelFunction(item);
 			else
-				return getItemName(item);
+				return getObjectName(item) || String(item);
 		}
 		
 		public function set labelFunction(value:Function):void
@@ -319,6 +364,7 @@ package weave.ui
 					var prevNames:Array = hashMap.getNames();
 					var newNames:Array = [];
 					var dropIndex:int = _editor.calculateDropIndex(event);
+					var newObject:ILinkableObject;
 					
 					// copy each item in the list, in order
 					for (var i:int = 0; i < items.length; i++)
@@ -326,7 +372,7 @@ package weave.ui
 						object = items[i] as ILinkableObject;
 						if (hashMap.getName(object) == null)
 						{
-							var newObject:ILinkableObject = hashMap.requestObjectCopy(null, object);
+							newObject = hashMap.requestObjectCopy(null, object);
 							newNames.push(hashMap.getName(newObject));
 						}
 					}
@@ -336,6 +382,9 @@ package weave.ui
 					newNames.unshift(dropIndex, 0);
 					prevNames.splice.apply(null, args);
 					hashMap.setNameOrder(prevNames);
+					
+					if (items.length == 1 && newObject)
+						beginEditVariableName(newObject);
 				}
 				else if (dynamicObject && items.length > 0)
 				{

@@ -20,13 +20,12 @@ package weave.ui
 {
 	import flash.display.BitmapData;
 	import flash.events.MouseEvent;
-	import flash.ui.Mouse;
 	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
-	import mx.utils.StringUtil;
 	
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.utils.BitmapUtils;
 	
 	public class MinimizedComponent extends Canvas
@@ -68,7 +67,7 @@ package weave.ui
 			}
 			catch (e:Error)
 			{
-				var msg:String = StringUtil.substitute("Unable to update minimized icon for component {0} ({1} x {2})", debugId(_mainComponent), _mainComponent.width, _mainComponent.height);
+				var msg:String = StandardLib.substitute("Unable to update minimized icon for component {0} ({1} x {2})", debugId(_mainComponent), _mainComponent.width, _mainComponent.height);
 				reportError(e, msg, _mainComponent);
 			}
 		}

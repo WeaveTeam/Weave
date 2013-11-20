@@ -20,10 +20,10 @@
 */
 -->
 <mx:TitleWindow
-    xmlns:ui ="weave.ui.*"
+    xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
     showCloseButton="false"
-    close="handleClose()"
+    close="close()"
     creationComplete="handleCreationComplete(event)"
     borderAlpha="0.95"
     borderThickness="2"
@@ -31,43 +31,33 @@
     horizontalScrollPolicy="off" verticalScrollPolicy="off"
 	titleStyleName="weave-panel-title-style"
 	styleName="weave-panel-style"
-	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
-	keyDown="if (event.keyCode == Keyboard.ESCAPE) handleCancelClick();"
+	initialize="UIUtils.pad(this, 10);"
+	keyDown="if (event.keyCode == Keyboard.ESCAPE) cancel();"
 	>
-	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
+	<Paragraph text="{message}" selectable="true" minWidth="300"/>
 	<mx:Canvas id="inputCanvas" width="100%"
 			includeInLayout="{autoCompleteChoices == null}"
 			visible="{autoCompleteChoices == null}"
 			   >
-		<mx:TextArea text="{_textInput}"
+		<mx:TextArea text="{textInput}"
 					 id="textBox"
-					 change="_textInput = textBox.text;"
+					 change="textInput = textBox.text;"
 					 keyDown="handleKeyDown(event)"
 					 width="100%"
-					 height="{multiLineEdit ? 64 : 20}"
-					 verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
-		<mx:LinkButton
-					label="{multiLineEdit ? '-' : '+'}"
-					alpha="0.5" useHandCursor="true"
-					paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
-					width="20" height="20" top="0" right="{multiLineEdit ? 16 : 0}"
-					includeInLayout="false"
-					mouseDown="multiLineEdit = !multiLineEdit; callLater(textBox.setFocus);"
-					/>
+					 />
 	</mx:Canvas>
 	<mx:List id="autoComplete"
 			 includeInLayout="{autoCompleteChoices != null}"
 			 visible="{autoCompleteChoices != null}"
 			 width="100%"
-			 change="_textInput = autoComplete.selectedItem as String"
+			 change="textInput = autoComplete.selectedItem as String"
 			 focusOut="/* autoComplete.visible = false; */"
 			 dataProvider="{autoCompleteChoices}"
 			 />
 	<mx:HBox id="alertButtons" width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
-		<mx:Button label="{lang('Cancel')}" click="handleCancelClick()" minWidth="64"/>
+		<mx:Button label="{lang('Cancel')}" click="cancel()" minWidth="64"/>
 	</mx:HBox>
 	
     <mx:Metadata>
@@ -80,41 +70,47 @@
 		
 		import weave.api.WeaveAPI;
 		import weave.compiler.StandardLib;
+		import weave.core.UIUtils;
 		
-		[Bindable] public var multiLineEdit:Boolean = false;
 		[Bindable] public var allowEmptyInput:Boolean = false;
 		[Bindable] public var autoCompleteChoices:Array = null;
 		
+		private var _textInput:String = null;
+		private var _expandButton:ExpandButton;
+		
 		//Message before TextBox
-		[Bindable]
-		private var _message:String = null;
-		public function get message():String
+		[Bindable] public var message:String = null;
+		
+		override protected function createChildren():void
 		{
-			return _message;
-		}
-	    public function set message(value:String):void
-		{
-			_message = value;
+			super.createChildren();
+			_expandButton = ExpandButton.makeExpandable(textBox);
 		}
 		
 		//default text in TextBox
 		[Bindable]
-		private var _textInput:String = null;
 		public function get textInput():String
 		{
 			return _textInput;
 		}
 	    public function set textInput(value:String):void
 		{
+			if (_blockEnterKey && (value == '\r' || value == '\n'))
+				value = '';
+			_blockEnterKey = false;
+			
 			_textInput = value || '';
 			
 			if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
-				multiLineEdit = true;
+				_expandButton.expanded = true;
 		}
+		
+		private var _blockEnterKey:Boolean = false;
 	
 		private function handleCreationComplete(event:Event):void
 		{
 			focusManager.setFocus(textBox);
+			textBox.setSelection(0, int.MAX_VALUE);
 		}
 		
 		public static var lastInstance:Object;
@@ -136,40 +132,36 @@
 			return newAlert;
 		}
 		
-		private function closeAlertTextBox():void
+		private function close():void
 		{
 			PopUpManager.removePopUp(this);
 		}
 		
-		private function handleClose():void
-		{
-			closeAlertTextBox();
-		}		
-		
 		private function handleOKClick():void
 		{
 			var okClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
-			okClickEvent.textInput = _textInput;
+			okClickEvent.textInput = textInput;
 			okClickEvent.confirm = true;
 			var textclick:Boolean = this.dispatchEvent(okClickEvent);
-			closeAlertTextBox();
+			close();
 		}
 		
-		private function handleCancelClick():void
+		public function cancel():void
 		{
 			var cancelClickEvent:AlertTextBoxEvent = new AlertTextBoxEvent();
-			cancelClickEvent.textInput = _textInput;
+			cancelClickEvent.textInput = textInput;
 			cancelClickEvent.confirm = false;
 			this.dispatchEvent(cancelClickEvent);
-			closeAlertTextBox();
+			close();
 		}
 		
 		private function handleKeyDown(event:KeyboardEvent):void
 		{
-			if (event.keyCode == Keyboard.ENTER && !multiLineEdit)
+			if (event.keyCode == Keyboard.ENTER && !_expandButton.expanded)
 			{
 				if (textBox.text || allowEmptyInput)
 					handleOKClick();
+				_blockEnterKey = true;
 			}
 			else if (autoCompleteChoices)
 			{

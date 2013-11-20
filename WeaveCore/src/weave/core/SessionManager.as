@@ -60,19 +60,10 @@ package weave.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
-		public static var debugBusyTasks:Boolean = false;
+		public var debugBusyTasks:Boolean = false;
 		
 		/**
-		 * This function will create a new instance of the specified child class and register it as a child of the parent.
-		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
-		 * 
-		 * Example usage:   public const foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
-		 * 
-		 * @param linkableParent A parent ILinkableObject to create a new child for.
-		 * @param linkableChildType The class definition that implements ILinkableObject used to create the new child.
-		 * @param callback A callback with no parameters that will be added to the child that will run before the parent callbacks are triggered, or during the next ENTER_FRAME event if a grouped callback is used.
-		 * @param useGroupedCallback If this is true, addGroupedCallback() will be used instead of addImmediateCallback().
-		 * @return The new child object.
+		 * @inheritDoc
 		 */
 		public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
@@ -88,23 +79,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function tells the SessionManager that the session state of the specified child should appear in the
-		 * session state of the specified parent, and the child should be disposed of when the parent is disposed.
-		 * 
-		 * There is one other requirement for the child session state to appear in the parent session state -- the child
-		 * must be accessible through a public variable of the parent or through an accessor function of the parent.
-		 * 
-		 * This function will add callbacks to the sessioned children that cause the parent callbacks to run.
-		 * 
-		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
-		 * 
-		 * Example usage:   public const foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
-		 * 
-		 * @param linkableParent A parent ILinkableObject that the child will be registered with.
-		 * @param linkableChild The child ILinkableObject to register as a child.
-		 * @param callback A callback with no parameters that will be added to the child that will run before the parent callbacks are triggered, or during the next ENTER_FRAME event if a grouped callback is used.
-		 * @param useGroupedCallback If this is true, addGroupedCallback() will be used instead of addImmediateCallback().
-		 * @return The linkableChild object that was passed to the function.
+		 * @inheritDoc
 		 */
 		public function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
@@ -148,14 +123,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will create a new instance of the specified child class and register it as a child of the parent.
-		 * The child will be disposed when the parent is disposed.
-		 * 
-		 * Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
-		 * 
-		 * @param disposableParent A parent ILinkableObject to create a new child for.
-		 * @param disposableChildType The class definition that implements ILinkableObject used to create the new child.
-		 * @return The new child object.
+		 * @inheritDoc
 		 */
 		public function newDisposableChild(disposableParent:Object, disposableChildType:Class):*
 		{
@@ -163,14 +131,7 @@ package weave.core
 		}
 		
 		/**
-		 * This will register a child of a parent and cause the child to be disposed when the parent is disposed.
-		 * If the child already has a registered owner, this function has no effect.
-		 * 
-		 * Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
-		 * 
-		 * @param disposableParent A parent disposable object that the child will be registered with.
-		 * @param disposableChild The disposable object to register as a child of the parent.
-		 * @return The linkableChild object that was passed to the function.
+		 * @inheritDoc
 		 */
 		public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 		{
@@ -245,14 +206,16 @@ package weave.core
 		}
 
 		/**
-		 * This function gets the owner of a linkable object.  The owner of an object is defined as its first registered parent.
-		 * @param child An ILinkableObject that was registered as a child of another ILinkableObject.
-		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
+		 * @inheritDoc
 		 */
 		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
 			return childToOwnerMap[child] as ILinkableObject;
 		}
+		
+		public static const TREE_LABEL:String = 'label';
+		public static const TREE_OBJECT:String = 'object';
+		public static const TREE_CHILDREN:String = 'children';
 
 		/**
 		 * @param root The linkable object to be placed at the root node of the tree.
@@ -260,7 +223,10 @@ package weave.core
 		 */
 		public function getSessionStateTree(object:ILinkableObject, objectName:String, objectTypeFilter:*=null):Object
 		{
-			var result:Object = {label: objectName, object: object, children: []};
+			var result:Object = {};
+			result[TREE_LABEL] = objectName;
+			result[TREE_OBJECT] = object;
+			result[TREE_CHILDREN] = [];
 			
 			var names:Array = [];
 			var childObject:ILinkableObject;
@@ -285,7 +251,7 @@ package weave.core
 						// get subtree
 						tempObject = getSessionStateTree(childObject,names[i],objectTypeFilter);
 						if (tempObject != null)
-							result.children.push(tempObject);
+							result[TREE_CHILDREN].push(tempObject);
 					}
 				}
 			}
@@ -298,11 +264,14 @@ package weave.core
 				}
 				else if (object)
 				{
-					names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
+					names = getLinkablePropertyNames(object);
 				}
 				for each (var name:String in names)
 				{
-					childObject = object[name || 'internalObject'];
+					if (object is ILinkableDynamicObject)
+						childObject = (object as ILinkableDynamicObject).internalObject;
+					else
+						childObject = object[name];
 					if (!childObject)
 						continue;
 					if (/* object is ILinkableDynamicObject ||  */childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
@@ -315,25 +284,22 @@ package weave.core
 						// get subtree
 						tempObject = getSessionStateTree(childObject, name, objectTypeFilter);
 						if (tempObject != null)
-							result.children.push(tempObject);
+							result[TREE_CHILDREN].push(tempObject);
 					}
 				}
 			}
 			
-			if (result.children.length == 0)
-				result.children = null;
+			if (result[TREE_CHILDREN].length == 0)
+				result[TREE_CHILDREN] = null;
 			if (objectTypeFilter == null)
 				return result;
-			if (result.children == null && !(object is objectTypeFilter))
+			if (result[TREE_CHILDREN] == null && !(object is objectTypeFilter))
 				return null;
 			return result;
 		}
 
 		/**
-		 * This function will copy the session state from one sessioned object to another.
-		 * If the two objects are of different types, the behavior of this function is undefined.
-		 * @param source A sessioned object to copy the session state from.
-		 * @param source A sessioned object to copy the session state to.
+		 * @inheritDoc
 		 */
 		public function copySessionState(source:ILinkableObject, destination:ILinkableObject):void
 		{
@@ -353,9 +319,7 @@ package weave.core
 		}
 
 		/**
-		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
-		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
-		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
+		 * @inheritDoc
 		 */
 		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
@@ -435,6 +399,11 @@ package weave.core
 		}
 		
 		private var _deprecatedSetterShouldRemoveMissingDynamicObjects:Boolean;
+		
+		/**
+		 * You can check this value when defining deprecated setter functions for backwards compatibility.
+		 * @return true if SessionManager is currently applying a diff.
+		 */		
 		public function get deprecatedSetterShouldRemoveMissingDynamicObjects():Boolean
 		{
 			return _deprecatedSetterShouldRemoveMissingDynamicObjects;
@@ -443,8 +412,7 @@ package weave.core
 		private const _getSessionStateIgnoreList:Dictionary = new Dictionary(true); // keeps track of which objects are currently being traversed
 		
 		/**
-		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
-		 * @return An object containing the values from the sessioned properties.
+		 * @inheritDoc
 		 */
 		public function getSessionState(linkableObject:ILinkableObject):Object
 		{
@@ -652,11 +620,7 @@ package weave.core
 		private const parentToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 		
 		/**
-		 * This function will return all the descendant objects that implement ILinkableObject.
-		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
-		 * @param root A root object to get the descendants of.
-		 * @param filter An optional Class definition which will be used to filter the results.
-		 * @return An Array containing a list of descendant objects.
+		 * @inheritDoc
 		 */
 		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
@@ -704,10 +668,7 @@ package weave.core
 		}
 		
 		/**
-		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
-		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
-		 * @param taskToken A token representing an asynchronous task.  If this is an AsyncToken, a responder will be added that will automatically call unassignBusyTask(taskToken) on success or failure.
-		 * @param busyObject The object that is busy waiting for the task to complete.
+		 * @inheritDoc
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
@@ -732,8 +693,7 @@ package weave.core
 		}
 		
 		/**
-		 * This will unassign an asynchronous task from all linkable objects it has been previously assigned to.
-		 * @param taskToken A token representing an asynchronous task.
+		 * @inheritDoc
 		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
@@ -812,9 +772,7 @@ package weave.core
 		}
 		
 		/**
-		 * This checks if any asynchronous tasks have been assigned to a linkable object or any of its registered descendants.
-		 * @param linkableObject The object to check.
-		 * @return A value of true if any asynchronous tasks have been assigned to the object.
+		 * @inheritDoc
 		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
@@ -880,11 +838,7 @@ package weave.core
 		private const linkableObjectToCallbackCollectionMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 
 		/**
-		 * This function gets the ICallbackCollection associated with an ILinkableObject.
-		 * If there is no ICallbackCollection defined for the object, one will be created.
-		 * This ICallbackCollection is used for reporting changes in the session state
-		 * @param linkableObject An ILinkableObject to get the associated ICallbackCollection for.
-		 * @return The ICallbackCollection associated with the given object.
+		 * @inheritDoc
 		 */
 		public function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection
 		{
@@ -959,9 +913,7 @@ package weave.core
 		}
 
 		/**
-		 * This function checks if an object has been disposed of by the ISessionManager.
-		 * @param object An object to check.
-		 * @return A value of true if disposeObjects() was called for the specified object.
+		 * @inheritDoc
 		 */
 		public function objectWasDisposed(object:Object):Boolean
 		{
@@ -981,9 +933,7 @@ package weave.core
 		private static const DISPOSE:String = "dispose"; // this is the name of the dispose() function.
 
 		/**
-		 * This function should be called when an ILinkableObject or IDisposableObject is no longer needed.
-		 * @param object An ILinkableObject or an IDisposableObject to clean up.
-		 * @param moreObjects More objects to clean up.
+		 * @inheritDoc
 		 */
 		public function disposeObjects(object:Object, ...moreObjects):void
 		{
@@ -1126,33 +1076,30 @@ package weave.core
 			reportError(msg);
 		}
 
-//		public function getOwnerPath(root:ILinkableObject, descendant:ILinkableObject):Array
-//		{
-//			var result:Array = [];
-//			while (descendant && root != descendant)
-//			{
-//				var owner:ILinkableObject = getOwner(descendant);
-//				if (!owner)
-//					break;
-//				var name:String = getChildPropertyName(parent as ILinkableObject, descendant);
-//			}
-//			return result;
-//		}
+		/**
+		 * @private
+		 * For debugging only.
+		 */
+		public function _getOwnerPath(descendant:ILinkableObject):Array
+		{
+			var result:Array = [descendant];
+			while (descendant && descendant != WeaveAPI.globalHashMap)
+				result.unshift(debugId(descendant = getLinkableOwner(descendant)));
+			if (!descendant)
+				result.unshift(result[result.length - 1] + " is not a descendant of " + debugId(WeaveAPI.globalHashMap));
+			return result;
+		}
 		
 		/**
-		 * This function is for debugging purposes only.
+		 * @private
+		 * For debugging only.
 		 */
-		private function _getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
+		public function _getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			var results:Array = [];
 			for (var parent:Object in childToParentDictionaryMap[descendant])
 			{
-				var name:String;
-				if (parent is ILinkableHashMap)
-					name = (parent as ILinkableHashMap).getName(descendant);
-				else
-					name = _getChildPropertyName(parent as ILinkableObject, descendant);
-				
+				var name:String = _getChildPropertyName(parent as ILinkableObject, descendant);
 				if (name != null)
 				{
 					// this parent may be the one we want
@@ -1174,6 +1121,9 @@ package weave.core
 		 */
 		private function _getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
 		{
+			if (parent is ILinkableHashMap)
+				return (parent as ILinkableHashMap).getName(child);
+
 			// find the property name that returns the child
 			for each (var name:String in getLinkablePropertyNames(parent))
 				if (parent[name] == child)
@@ -1182,26 +1132,30 @@ package weave.core
 		}
 		
 		/**
-		 * internal use only
-		 * @param child A sessioned object to return siblings for.
-		 * @param filter A Class to filter by (results will only include objects that are of this type).
-		 * @return An Array of ILinkableObjects having the same parent of the given child.
+		 * @inheritDoc
 		 */
-//		private function getSiblings(child:ILinkableObject, filter:Class = null):Array
-//		{
-//			// if this child has no parents, it has no siblings.
-//			if (childToParentDictionaryMap[child] === undefined)
-//				return [];
-//			
-//			var owner:ILinkableObject = getOwner(child);
-//			
-//			// get all the children of this owner, minus the given child
-//			var siblings:Array = [];
-//			for (var sibling:Object in ownerToChildDictionaryMap[owner])
-//				if (sibling != child && (filter == null || sibling is filter))
-//					siblings.push(sibling);
-//			return siblings;
-//		}
+		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
+		{
+			var tree:Object = getSessionStateTree(root, null);
+			var path:Array = _getPath(tree, descendant);
+			return path;
+		}
+		private function _getPath(tree:Object, descendant:ILinkableObject):Array
+		{
+			if (tree[TREE_OBJECT] == descendant)
+				return [];
+			for each (var child:Object in tree[TREE_CHILDREN])
+			{
+				var path:Array = _getPath(child, descendant);
+				if (path)
+				{
+					path.unshift(child[TREE_LABEL]);
+					return path;
+				}
+			}
+			return null;
+		}
+		
 		
 		
 		
@@ -1221,10 +1175,7 @@ package weave.core
 		 */
 		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 		/**
-		 * This will link the session state of two ILinkableObjects.
-		 * The session state of 'primary' will be copied over to 'secondary' after linking them.
-		 * @param primary An ILinkableObject to give authority over the initial shared value.
-		 * @param secondary The ILinkableObject to link with 'primary' via session state.
+		 * @inheritDoc
 		 */
 		public function linkSessionState(primary:ILinkableObject, secondary:ILinkableObject):void
 		{
@@ -1253,9 +1204,7 @@ package weave.core
 			getCallbackCollection(primary).addImmediateCallback(secondary, setSecondary, true); // copy from primary now
 		}
 		/**
-		 * This will unlink the session state of two ILinkableObjects that were previously linked with linkSessionState().
-		 * @param first The ILinkableObject to unlink from 'second'
-		 * @param second The ILinkableObject to unlink from 'first'
+		 * @inheritDoc
 		 */
 		public function unlinkSessionState(first:ILinkableObject, second:ILinkableObject):void
 		{
@@ -1298,13 +1247,7 @@ package weave.core
 		}*/
 		
 		/**
-		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
-		 * Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
-		 * @param linkableVariable An ILinkableVariable to link to a bindable property.
-		 * @param bindableParent An object with a bindable property.
-		 * @param bindablePropertyName The variable name of the bindable property.
-		 * @param delay The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
-		 * @param onlyWhenFocused If this is set to true and the bindableParent is a UIComponent, the bindable value will only be copied to the linkableVariable when the component has focus.
+		 * @inheritDoc
 		 */
 		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
 		{
@@ -1491,10 +1434,7 @@ package weave.core
 			callbackCollection.addImmediateCallback(bindableParent, synchronize);
 		}
 		/**
-		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().
-		 * @param linkableVariable An ILinkableVariable to unlink from a bindable property.
-		 * @param bindableParent An object with a bindable property.
-		 * @param bindablePropertyName The variable name of the bindable property.
+		 * @inheritDoc
 		 */
 		public function unlinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String):void
 		{
@@ -1540,10 +1480,7 @@ package weave.core
 		public static const DIFF_DELETE:String = 'delete';
 		
 		/**
-		 * This function computes the diff of two session states.
-		 * @param oldState The source session state.
-		 * @param newState The destination session state.
-		 * @return A patch that generates the destination session state when applied to the source session state, or undefined if the two states are equivalent.
+		 * @inheritDoc
 		 */
 		public function computeDiff(oldState:Object, newState:Object):*
 		{
@@ -1577,6 +1514,14 @@ package weave.core
 			}
 			else if (oldState is Array && newState is Array)
 			{
+				// If neither is a dynamic state array, don't compare them as such.
+				if (!DynamicState.isDynamicStateArray(oldState) && !DynamicState.isDynamicStateArray(newState))
+				{
+					if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+						return undefined; // no diff
+					return newState;
+				}
+				
 				// create an array of new DynamicState objects for all new names followed by missing old names
 				var i:int;
 				var typedState:Object;
@@ -1589,17 +1534,9 @@ package weave.core
 				var sessionState:Object;
 				for (i = 0; i < oldState.length; i++)
 				{
-					typedState = oldState[i];
-					
-					// if we see a string in oldState, assume both oldState and newState are String Arrays.
-					if (typeof typedState != 'object' || typedState is Array)
-					{
-						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
-							return undefined; // no diff
-						return newState;
-					}
-					
+					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
+					typedState = oldState[i];
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					// use '' instead of null to avoid "null"
 					oldLookup[objectName || ''] = typedState;
@@ -1611,18 +1548,9 @@ package weave.core
 				var result:Array = [];
 				for (i = 0; i < newState.length; i++)
 				{
-					typedState = newState[i];
-					
-					// if we see a string, assume both are String Arrays.
-					if (typeof typedState != 'object' || typedState is Array)
-					{
-						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
-							return undefined; // no diff
-						return newState; // TODO: same object pointer.. potential problem?
-					}
-					
 					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
+					typedState = newState[i];
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
 					sessionState = typedState[DynamicState.SESSION_STATE];
@@ -1701,10 +1629,7 @@ package weave.core
 		}
 		
 		/**
-		 * This modifies an existing diff to include an additional diff.
-		 * @param baseDiff The base diff which will be modified to include an additional diff.
-		 * @param diffToAdd The diff to add to the base diff.  This diff will not be modified.
-		 * @return The modified baseDiff, or a new diff object if baseDiff is a primitive value.
+		 * @inheritDoc
 		 */
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
@@ -1721,24 +1646,12 @@ package weave.core
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
-				var typedState:Object;
 				var i:int;
 				
-				// If a non-String, non-Array is found, treat both as Arrays of DynamicState objects
-				var isTyped:Boolean = false;
-				checkArrays: for each (var array:Array in arguments) // [baseDiff, diffToAdd]
+				// If either of the arrays look like DynamicState arrays, treat as such
+				if (DynamicState.isDynamicStateArray(baseDiff) || DynamicState.isDynamicStateArray(diffToAdd))
 				{
-					for each (typedState in array)
-					{
-						if (!(typedState is String || typedState is Array))
-						{
-							isTyped = true;
-							break checkArrays;
-						}
-					}
-				}
-				if (isTyped)
-				{
+					var typedState:Object;
 					var objectName:String;
 
 					// create lookup: objectName -> old diff entry
@@ -1812,7 +1725,7 @@ package weave.core
 					while (i--)
 					{
 						var value:Object = diffToAdd[i];
-						if (value is String)
+						if (value === null || typeof value != 'object')
 							baseDiff[i] = value; // avoid function call overhead
 						else
 							baseDiff[i] = combineDiff(baseDiff[i], value);

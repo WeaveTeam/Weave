@@ -28,16 +28,15 @@ package weave.visualization.tools
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.ICSVExportable;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
@@ -49,11 +48,10 @@ package weave.visualization.tools
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
-	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
+	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
-	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -64,7 +62,7 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer,ICSVExportable
+	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer
 	{
 		public function SimpleVisTool()
 		{
@@ -84,19 +82,19 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
-			getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateTitleLabel, true);
+			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
 		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 
 		private var toolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
-		private var visTitle:AutoResizingTextArea; // For display of title inside the window area
+		private var visTitle:Paragraph; // For display of title inside the window area
 		protected var visCanvas:Canvas; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
-		protected var layerListComponent:LayerListComponent;
-		protected var simpleAxisEditor:SimpleAxisEditor;
-		protected var windowSettingsEditor:WindowSettingsEditor;
+		protected var layersEditor:LayerListComponent;
+		protected var axesEditor:SimpleAxisEditor;
+		protected var windowEditor:WindowSettingsEditor;
 		
 		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
@@ -114,14 +112,9 @@ package weave.visualization.tools
 			toolVBox.setStyle("verticalGap", 0);
 			toolVBox.setStyle("horizontalAlign", "center");
 			
-			visTitle = new AutoResizingTextArea();
-			visTitle.selectable = false;
-			visTitle.editable = false;
-			visTitle.setStyle('borderStyle', 'none');
+			visTitle = new Paragraph();
 			visTitle.setStyle('textAlign', 'center');
 			visTitle.setStyle('fontWeight', 'bold');
-			visTitle.setStyle('backgroundAlpha', 0);
-			visTitle.percentWidth = 100;
 			updateTitleLabel();
 			
 			visCanvas = new Canvas();
@@ -139,20 +132,20 @@ package weave.visualization.tools
 			
 			this.addChild(toolVBox);
 			
-			layerListComponent = new LayerListComponent();
-			layerListComponent.visualization = visualization;
+			layersEditor = new LayerListComponent();
+			layersEditor.visualization = visualization;
 			
 			//TODO: hide axis controls when axis isn't enabled
 
-			simpleAxisEditor = new SimpleAxisEditor();
-			simpleAxisEditor.setTargets(this, visualization, enableTitle);
+			axesEditor = new SimpleAxisEditor();
+			axesEditor.setTargets(visualization, enableTitle, panelTitle);
 			
-			windowSettingsEditor = new WindowSettingsEditor();
-			windowSettingsEditor.target = this;
+			windowEditor = new WindowSettingsEditor();
+			windowEditor.target = this;
 			
 			if (controlPanel)
 			{
-				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
+				controlPanel.children = [layersEditor, axesEditor, windowEditor];
 			}
 		}
 		
@@ -169,10 +162,10 @@ package weave.visualization.tools
 		}
 		private function updateTitleLabel():void
 		{
-			if (!parent)
+			if (!createdChildren)
 				return callLater(updateTitleLabel);
 			
-			LinkableTextFormat.defaultTextFormat.copyToStyle(visTitle);
+			Weave.properties.visTitleTextFormat.copyToStyle(visTitle);
 		}
 		
 		
@@ -203,7 +196,7 @@ package weave.visualization.tools
 		
 		private function handleTitleToggleChange():void
 		{
-			if (!parent)
+			if (!createdChildren)
 			{
 				callLater(handleTitleToggleChange);
 				return;
@@ -411,11 +404,6 @@ package weave.visualization.tools
 		override public function dispose():void
 		{
 			super.dispose();
-		}
-		
-		public function exportCSV():String
-		{
-			return ColumnUtils.generateTableCSV(getSelectableAttributes());
 		}
 	}
 }

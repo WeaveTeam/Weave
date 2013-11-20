@@ -28,7 +28,7 @@
 <mx:VBox xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns="weave.ui.*"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
 	width="100%" height="100%"
 	enabled="{colorRamp != null}"
 	>
@@ -41,23 +41,24 @@
 		</mx:VBox>
 		<mx:VBox height="100%">
 			<mx:Label text="{lang('Customize')}" fontWeight="bold"/>
-			<mx:HBox height="100%" horizontalGap="0">
+			<mx:HBox height="100%" width="100%" horizontalGap="0">
 				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
 						   borderStyle="solid" borderColor="0x000000"
 						   width="20" height="100%"/>
 				<mx:List id="colorsList"
 						 height="100%"
+						 width="150"
 						 borderStyle="none"
 						 dragEnabled="true"
 						 dropEnabled="true"
 						 dragMoveEnabled="true"
 						 dragComplete="updateNewColorScale()"
-						 >
+						 initialize="UIUtils.pad(event, 2);">
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" paddingTop="0" paddingBottom="0" paddingLeft="8" paddingRight="24">
-								<mx:ColorPicker id="cPicker" showTextField="true"/>
-								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" width="100%">
+								<ui:CustomColorPicker id="cPicker" showTextField="true"/>
+								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="100%"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
 										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
@@ -66,6 +67,7 @@
 										import mx.events.DragEvent;
 										
 										import weave.compiler.StandardLib;
+										import weave.core.UIUtils;
 										
 										override protected function childrenCreated():void
 										{
@@ -112,16 +114,22 @@
 					</mx:itemRenderer>
 				</mx:List>
 			</mx:HBox>
-			<mx:HBox>
-				<mx:Button label="{lang('Reverse')}"
-						 toolTip="{lang('Click to reverse the colors in the color scale.')}"
-						 click="colorRamp.reverse();"/>
+			<mx:HBox width="100%">
+				<CenteredImage id="reverseButton" buttonMode="true" source="@Embed(source='/weave/resources/images/reverse-order.png')"
+							   width="22" height="22" alpha="0.8"
+							   toolTip="{lang('Reverse the order of the colors.')}"
+							   click="colorRamp.reverse();"/>
+				<mx:Spacer width="100%"/>
 				<mx:Button label="{lang('Add color')}" click="(colorsList.dataProvider as ArrayCollection).addItem({color:'0xFFFFFF'}); updateNewColorScale();"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.registerLinkableChild;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableWatcher;
+			import weave.core.UIUtils;
 			import weave.utils.AsyncSort;
 			import mx.events.DragEvent;
 			import mx.collections.ICollectionView;
@@ -134,22 +142,10 @@
 			import weave.api.core.ILinkableObject;
 			import weave.primitives.ColorRamp;
 			
-			private var _colorRamp:ColorRamp;
+			private const colorRampWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ColorRamp), handleColorRampChange, true);
 			[Bindable]
-			public function get colorRamp():ColorRamp
-			{
-				return _colorRamp;
-			}
-			public function set colorRamp(value:ColorRamp):void
-			{
-				
-				if(_colorRamp)
-					_colorRamp.removeCallback(handleColorRampChange);
-				_colorRamp = value;
-				if (_colorRamp)
-					_colorRamp.addGroupedCallback(this, handleColorRampChange, true);
-			}
-			
+			public function get colorRamp():ColorRamp { return colorRampWatcher.target as ColorRamp; }
+			public function set colorRamp(value:ColorRamp):void { colorRampWatcher.target = value; }
 			
 			override protected function childrenCreated():void
 			{
@@ -189,6 +185,12 @@
 			
 			private function handleColorRampChange():void
 			{
+				if (!initialized)
+				{
+					callLater(handleColorRampChange)
+					return;
+				}
+				
 				if (colorsList.dataProvider == null)
 					colorsList.dataProvider = [];
 				
@@ -202,9 +204,10 @@
 					dp.addItem(item);
 				}
 				
-				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == colorRamp.name);
-				if (xmlList.length() > 0)
-					colorRampList.selectedItem = xmlList[0];
+				item = ColorRamp.getColorRampXMLByColorString(colorRamp.value)
+				colorRampList.selectedItem = item;
+				if (item)
+					colorRampList.scrollToIndex(colorRampList.selectedIndex);
 				
 				colorRamp.draw(colorRampCanvas, true);
 			}
@@ -222,17 +225,14 @@
 				
 				rampStringValue = rampStringValue.substr(0,rampStringValue.length-1);
 				
-				_colorRamp.value = rampStringValue;
+				colorRamp.value = rampStringValue;
 			}
 			public function setTarget(object:ILinkableObject):void
 			{
 				colorRamp = object as ColorRamp;
 			}
-			public function applyChanges():void
-			{
-				
-			}
-			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 		]]>
 	</mx:Script>
 </mx:VBox>

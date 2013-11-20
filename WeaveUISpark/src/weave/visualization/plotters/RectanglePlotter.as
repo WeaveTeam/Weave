@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
@@ -31,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.KeySets.KeySet;
@@ -50,6 +52,8 @@ package weave.visualization.plotters
 	 */
 	public class RectanglePlotter extends AbstractPlotter
 	{
+		WeaveAPI.registerImplementation(IPlotter, RectanglePlotter, "Rectangles");
+		
 		public function RectanglePlotter()
 		{
 			// initialize default line & fill styles
@@ -57,7 +61,10 @@ package weave.visualization.plotters
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			setColumnKeySources([xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset]);
+			setColumnKeySources(
+				[xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset],
+				[false, false, true, true]
+			);
 		}
 		
 		// spatial properties
@@ -176,9 +183,9 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(recordKey, graphics);
 			fillStyle.beginFillStyle(recordKey, graphics);
 			if (drawEllipse.value)
-				graphics.drawEllipse(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+				graphics.drawEllipse(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
 			else
-				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+				graphics.drawRect(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage(), tempBounds.getYCoverage());
 			graphics.endFill();
 		}
 		

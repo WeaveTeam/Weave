@@ -22,7 +22,7 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.StringUtil;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
@@ -38,8 +38,8 @@ package weave.utils
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ExtendedDynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
@@ -85,11 +85,11 @@ package weave.utils
 			var dataType:String = ColumnUtils.getDataType(column);
 			
 			if (dataType && keyType)
-				return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
+				return StandardLib.substitute("{0} ({1} -> {2})", title, keyType, dataType);
 			if (keyType)
-				return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
+				return StandardLib.substitute("{0} (Key Type: {1})", title, keyType);
 			if (dataType)
-				return StringUtil.substitute("{0} (Data Type: {1})", title, dataType);
+				return StandardLib.substitute("{0} (Data Type: {1})", title, dataType);
 			
 			return title;
 		}
@@ -169,6 +169,27 @@ package weave.utils
 			while (column is IColumnWrapper)
 				column = (column as IColumnWrapper).getInternalColumn();
 			return column;
+		}
+		
+		public static function hack_findInternalDynamicColumn(columnWrapper:IColumnWrapper):DynamicColumn
+		{
+			var columnWrapper:IColumnWrapper = columnWrapper as IColumnWrapper;
+			if (columnWrapper)
+			{
+				// temporary solution - find internal dynamic column
+				while (true)
+				{
+					if (columnWrapper.getInternalColumn() is DynamicColumn)
+						columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
+					else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
+						columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
+					else
+						break;
+				}
+				if (columnWrapper is ExtendedDynamicColumn)
+					columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
+			}
+			return columnWrapper as DynamicColumn;
 		}
 
 		/**
@@ -382,50 +403,48 @@ package weave.utils
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
 			var records:Array = [];				
-			// get the list of column titles
-			var definedAttrCols:Array = [];				
-			var columnTitles:Array = [];
-			var i:int;
-			var item:*;
-			for (i = 0; i < attrCols.length; i++)
-			{
-				item = attrCols[i];
-				// to make sure undefined attributes are not exported
-				if ((item is IColumnWrapper) && (item as IColumnWrapper).getInternalColumn())
-				{
-					columnTitles.push(ColumnUtils.getTitle(item));
-					definedAttrCols.push(item);
+			var columnLookup:Dictionary = new Dictionary(true);
+			attrCols = attrCols.map(
+				function(item:Object, i:int, a:Array):* {
+					return item is ILinkableHashMap
+						? (item as ILinkableHashMap).getObjects(IAttributeColumn)
+						: item as IAttributeColumn;
 				}
-				if (item is LinkableHashMap)
-				{
-					var hashMapColumns:Array = (item as LinkableHashMap).getObjects();
-					for (var j:int = 0; j < hashMapColumns.length; j++)
-					{
-						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn())
-						{
-							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
-							definedAttrCols.push(hashMapColumns[j]);
-						}								
-					}
+			);
+			attrCols = VectorUtils.flatten(attrCols);
+			attrCols = attrCols.map(
+				function(column:IAttributeColumn, i:int, a:Array):IAttributeColumn {
+					return hack_findNonWrapperColumn(column);
 				}
-			}
+			).filter(
+				function(column:IAttributeColumn, i:int, a:Array):Boolean {
+					if (!column || columnLookup[column])
+						return false;
+					columnLookup[column] = true;
+					return true;
+				}
+			);
+			var columnTitles:Array = attrCols.map(
+				function(column:IAttributeColumn, i:int, a:Array):String {
+					return getTitle(column);
+				}
+			);
 			if (!keys)
-				keys = getAllKeys(definedAttrCols);
+				keys = getAllKeys(attrCols);
 			
 			var keyTypeMap:Object = {};				
 			// create the data for each column in each selected row
-			for each (item in keys)
+			for each (var key:IQualifiedKey in keys)
 			{
-				var key:IQualifiedKey = item as IQualifiedKey;
 				var record:Object = {};
 				// each record has a property named after the keyType equal to the key value				
 				record[key.keyType] = key.localName;
 				keyTypeMap[key.keyType] = true;
 				
-				for (i = 0; i < definedAttrCols.length; i++)
+				for (var i:int = 0; i < attrCols.length; i++)
 				{
-					var value:Object = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
-					if (!isNaN(value as Number))
+					var value:Object = (attrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+					if (StandardLib.isDefined(value))
 						record[columnTitles[i]] = value;
 				}
 				records.push(record);
@@ -496,6 +515,60 @@ package weave.utils
 				// done editing session state
 				getCallbackCollection(columnHashMap).resumeCallbacks();
 			}
+		}
+		
+		/**
+		 * Retrieves a metadata value from a list of columns if they all share the same value.
+		 * @param columns The columns.
+		 * @param propertyName The metadata property name.
+		 * @return The metadata value if it is the same across all columns, or null if not. 
+		 */		
+		public static function getCommonMetadata(columns:Array, propertyName:String):String
+		{
+			var value:String;
+			for (var i:int = 0; i < columns.length; i++)
+			{
+				var column:IAttributeColumn = columns[i] as IAttributeColumn;
+				if (i == 0)
+					value = column.getMetadata(propertyName);
+				else if (value != column.getMetadata(propertyName))
+					return null;
+			}
+			return value;
+		}
+		
+		public static function getAllCommonMetadata(columns:Array):Object
+		{
+			var output:Object = {};
+			if (!columns.length)
+				return output;
+			// We only need to get property names from the first column
+			// because we only care about metadata common to all columns.
+			for each (var key:String in columns[0].getMetadataPropertyNames())
+			{
+				var value:String = getCommonMetadata(columns, key);
+				if (value)
+					output[key] = value;
+			}
+			return output;
+		}
+		
+		private static const _preferredMetadataPropertyOrder:Array = 'title,keyType,dataType,number,string,min,max,year'.split(',');
+		private static function _compareMetadataPropertyNames(a:String, b:String):int
+		{
+			var ia:int = _preferredMetadataPropertyOrder.indexOf(a);
+			var ib:int = _preferredMetadataPropertyOrder.indexOf(b);
+			if (ia >= 0 && ib >= 0)
+				return ObjectUtil.numericCompare(ia, ib);
+			if (ia >= 0)
+				return -1;
+			if (ib >= 0)
+				return 1;
+			return ObjectUtil.stringCompare(a, b, true);
+		}
+		public static function sortMetadataPropertyNames(names:Array):void
+		{
+			AsyncSort.sortImmediately(names, _compareMetadataPropertyNames);
 		}
 		
 		//todo: (cached) get sorted index from a key and a column

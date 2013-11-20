@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="200"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+		<ui:TextInputWithPrompt change="handleURLTextChange()" id="url" width="300" prompt="http://www.example.com/example.xls"/>
 	</ui:Indent>
 	
 	<mx:HBox visible="{uploadSection.visible}" horizontalAlign="center" width="100%">
@@ -43,12 +43,14 @@
 		<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 	</ui:Indent>
 	
-	<ui:KeyTypesMenu indent="{uploadSection.labelComponent.width}"  id="keyTypeSelector"
-					 creationComplete="{if(_xlsDataSource)
-					 {
-					 (event.target as KeyTypesMenu).addKeyTypeToMenu(_xlsDataSource.keyType.value);
-					 (event.target as KeyTypesMenu).selectedItem = _xlsDataSource.keyType.value;
-					 }}"/>
+	<ui:Indent label="{lang('Key Type *')}">
+		<ui:KeyTypesMenu id="keyTypeSelector"
+						 creationComplete="{if(_xlsDataSource)
+						 {
+						 (event.target as KeyTypesMenu).addKeyTypeToMenu(_xlsDataSource.keyType.value);
+						 (event.target as KeyTypesMenu).selectedItem = _xlsDataSource.keyType.value;
+						 }}"/>
+	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
@@ -67,13 +69,14 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				keyTypeSelector.labelText +=" *";
 				sourceName.text = Weave.root.generateUniqueName("XLSDataSource");
 				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
@@ -81,13 +84,14 @@
 			[Bindable] private var _xlsDataSource:XLSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				_xlsDataSource = object as XLSDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_xlsDataSource = object as XLSDataSource;
 				if (_xlsDataSource)
 				{
 					sourceName.text = Weave.root.getName(_xlsDataSource);
@@ -101,19 +105,18 @@
 				}
 			}
 			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_xlsDataSource.url.value) != StandardLib.asString(url.text)
+					|| StandardLib.asString(_xlsDataSource.keyColName.value) != StandardLib.asString(keyColumnName.text)
+					|| StandardLib.asString(_xlsDataSource.keyType.value) != StandardLib.asString(keyTypeSelector.selectedKeyType);
+			}
+			
 			public function applyChanges():void
 			{
-				try
-				{
-					_xlsDataSource.url.value = url.text;
-					_xlsDataSource.keyColName.value = keyColumnName.text;
-					_xlsDataSource.keyType.value = keyTypeSelector.selectedItem as String;
-					Alert.show(lang("Changes saved."));
-				}
-				catch(e:Error)
-				{
-					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
-				}
+				_xlsDataSource.url.value = url.text;
+				_xlsDataSource.keyColName.value = keyColumnName.text;
+				_xlsDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 			}
 			
 			
@@ -127,14 +130,21 @@
 			 **/
 			private function browseForFiles():void
 			{
-				if (_fileLoader == null)
+				try
 				{
-					_fileLoader = new FileReference();
-					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
-					_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					if (_fileLoader == null)
+					{
+						_fileLoader = new FileReference();
+						_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
+						_fileLoader.addEventListener(Event.COMPLETE, handleDatasetLoaded);
+					}
+					
+					_fileLoader.browse([new FileFilter("XLS", "*.xls")]);
 				}
-				
-				_fileLoader.browse([new FileFilter("XLS", "*.xls")]);
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			
@@ -177,7 +187,7 @@
 				}
 				catch (e:Error)
 				{
-					Alert.show(lang("Error uploading file"),e.message.toString());
+					reportError(e);
 				}
 				
 				
@@ -191,11 +201,7 @@
 					return;
 				}
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;
-				
-				
-				var xlsData:Array = WeaveAPI.CSVParser.convertRowsToRecords(xlsDataArray);
-				
-				grid.loadXLSData(xlsData, xlsDataArray[0]);
+				grid.setRows(xlsDataArray, false);
 				
 				PopUpManager.bringToFront(grid);
 			}

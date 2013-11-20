@@ -127,6 +127,11 @@ package weave.data.KeySets
 			var n:int = columns.length;
 			var desc:Array = descendingFlags ? descendingFlags.concat() : [];
 			desc.length = n;
+			
+			// when any of the columns are disposed, disable the compare function
+			for each (column in columns)
+				column.addDisposeCallback(null, function():void { n = 0; });
+			
 			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
 			{
 				for (i = 0; i < n; i++)
@@ -134,10 +139,9 @@ package weave.data.KeySets
 					column = columns[i] as IAttributeColumn;
 					if (!column)
 						continue;
-					result = ObjectUtil.numericCompare(
-						column.getValueFromKey(key1, Number),
-						column.getValueFromKey(key2, Number)
-					);
+					var value1:* = column.getValueFromKey(key1, Number);
+					var value2:* = column.getValueFromKey(key2, Number);
+					result = ObjectUtil.numericCompare(value1, value2);
 					if (result != 0)
 					{
 						if (desc[i])

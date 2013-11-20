@@ -66,27 +66,6 @@
 				return times;
 			}
 			
-			/**
-			 * handleLabelChange
-			 * This method is called every time there is a change in labels,
-			 * so be sure to change labels only as often as is necesary.  
-			 * We fill in the hslider labels from this.labelsLinkableString
-			 * Since this.labelsLinkableString is a LinkableString it can be changed by
-			 * the user by editing the sessionHistory.  
-			 * */
-			override public function handleLabelChange():void
-			{
-				//@TODO have values associated with the labels so that the labels can be
-				//   changed and the values are still passed into the column request
-				if (parent == null)
-					return callLater(handleLabelChange);
-				var labelsString:String = labelsLinkableString.value || ''; // avoid null pointer error
-				dimensionSlider.labels = labelsString.split(',');
-				dimensionSlider.minimum = 0;
-				dimensionSlider.maximum = dimensionSlider.labels.length - 1;		
-				labelsInput.text = labelsString;
-			}
-			
 			/** 
 			 * change - this method is automatically called when the hslider
 			 *  is changed.  Here we update all the visualization tools to 

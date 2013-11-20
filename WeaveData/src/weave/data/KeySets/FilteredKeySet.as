@@ -66,8 +66,7 @@ package weave.data.KeySets
 		private var _filteredKeys:Array; // stores the filtered list of keys
 		private var _filteredKeysMap:Dictionary; // this maps a key to a value of true if the key is included in this key set
 		private var _generatedKeySets:Array;
-		private var _sortColumns:Array;
-		private var _descendingFlags:Array;
+		private var _setColumnKeySources_arguments:Array;
 		
 		/**
 		 * When this is set to true, the inverse of the filter will be used to filter the keys.
@@ -84,11 +83,8 @@ package weave.data.KeySets
 		 */
 		public function setColumnKeySources(sortColumns:Array, descendingFlags:Array = null, keyCompare:Function = null, keyInclusionLogic:Function = null):void
 		{
-			if (StandardLib.arrayCompare(_sortColumns, sortColumns) == 0 &&
-				StandardLib.arrayCompare(_descendingFlags, descendingFlags) == 0)
-			{
+			if (StandardLib.arrayCompare(_setColumnKeySources_arguments, arguments) == 0)
 				return;
-			}
 			
 			// unlink from the old key set
 			if (_generatedKeySets)
@@ -101,8 +97,7 @@ package weave.data.KeySets
 				setSingleKeySource(null);
 			}
 			
-			_sortColumns = sortColumns;
-			_descendingFlags = descendingFlags;
+			_setColumnKeySources_arguments = arguments;
 			
 			if (sortColumns)
 			{
@@ -116,6 +111,9 @@ package weave.data.KeySets
 						throw new Error("sortColumns must be an Array of IAttributeColumn objects");
 				}
 				// SortedKeySet should trigger callbacks
+				if (debug && keyCompare == null)
+					trace(debugId(this), 'sort by [', sortColumns, ']');
+				
 				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
 				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
 				_generatedKeySets = [union, sorted];

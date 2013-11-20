@@ -259,6 +259,7 @@ package weave.services.wms
 		private var _minZoomLevel:Number = Number.POSITIVE_INFINITY;
 		private var _maxZoomLevel:Number = 0;
 		private const thisBounds:IBounds2D = new Bounds2D();
+		private const _tempBounds:Bounds2D = new Bounds2D();
 		
 		override public function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array
 		{
@@ -443,11 +444,6 @@ package weave.services.wms
 			 **/
 			
 			handleTileDownload(tile);
-		}
-		
-		override public function getProvider():*
-		{
-			return this;
 		}
 		
 		override public function getCreditInfo():String

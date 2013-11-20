@@ -32,17 +32,16 @@
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
+		<ui:TextInputWithPrompt id="url" width="100%" prompt="http://www.example.com/geoserver/wfs"/>
 	</ui:Indent>
 	<mx:CheckBox label="Swap X and Y coordinate order" id="swapXY"/>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WFSDataSource;
 			
 			override protected function createChildren():void
@@ -55,13 +54,14 @@
 			[Bindable] private var _wfsDataSource:WFSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				_wfsDataSource = object as WFSDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_wfsDataSource = object as WFSDataSource;
 				if (_wfsDataSource)
 				{
 					sourceName.text = Weave.root.getName(_wfsDataSource);
@@ -72,18 +72,16 @@
 				}
 			}
 			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(_wfsDataSource.url.value) != StandardLib.asString(url.text)
+					|| _wfsDataSource.swapXY.value != swapXY.selected;
+			}
+			
 			public function applyChanges():void
 			{
-				try
-				{
-					_wfsDataSource.url.value = url.text;
-					_wfsDataSource.swapXY.value = swapXY.selected;
-					Alert.show(lang("Changes saved."));
-				}
-				catch (e:Error)
-				{
-					Alert.show(lang("Changes could not be saved. ") + e.message, lang("Error"));
-				}
+				_wfsDataSource.url.value = url.text;
+				_wfsDataSource.swapXY.value = swapXY.selected;
 			}
 			
 		]]>

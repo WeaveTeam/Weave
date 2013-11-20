@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" label="{lang('Geometry Labels')}" 
-		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
-	<mx:VBox width="100%">
-		<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
-		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
-	</mx:VBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*"
+		 xmlns="weave.editors.*"
+		 label="{lang('Geometry labels')}"
+		 implements="weave.api.ui.ILinkableObjectEditor">
+	<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
+	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/>
+	<ui:Indent label="{lang('Label Text Size')}">
 		<mx:HSlider id="labelSizeSlider"
 					width="100%"
 					alpha="1.0"
@@ -15,16 +15,17 @@
 					minimum="6" maximum="20" 
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.size.defaultValue,event.target,'value')"/>
-	</mx:HBox>
-	<mx:HBox width="100%">
-		<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
-		<mx:ColorPicker id="colorPicker" width="22" height="22"
+	</ui:Indent>
+	<ui:Indent label="{lang('Label Text Color')}">
+		<ui:CustomColorPicker id="colorPicker"
 						creationComplete="linkBindableProperty(_plotter.color.defaultValue, event.target, 'selectedColor')"/>
-	</mx:HBox>
+	</ui:Indent>
 	
 	<mx:Script>
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataTypes;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			
@@ -35,17 +36,22 @@
 				_plotter = object as GeometryLabelPlotter;
 			}
 			
-			public function applyChanges():void
-			{
-				
-			}			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				linkGeometryProperties();
 			}
-			
+
+			private function getGeometryErrorString():String
+			{
+				if (_plotter.geometryColumn.getMetadata(ColumnMetadata.DATA_TYPE) != DataTypes.GEOMETRY)
+					return lang('Please select a geometry column.');
+				return '';
+			}
+
 			private function linkGeometryProperties():void
 			{
 				labelComponent.dynamicObject = _plotter.text;

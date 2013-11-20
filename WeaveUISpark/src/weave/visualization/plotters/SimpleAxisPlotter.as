@@ -28,11 +28,11 @@ package weave.visualization.plotters
 	import mx.formatters.NumberFormatter;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableWatcher;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.LinkableBounds2D;
@@ -54,12 +55,23 @@ package weave.visualization.plotters
 		{
 			//TODO: this list of properties should be contained in a separate object so we don't have to list them all here
 			spatialCallbacks.addImmediateCallback(this, updateLabels);
-			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
+			
+			titleTextFormatWatcher.target = LinkableTextFormat.defaultTextFormat;
+			labelTextFormatWatcher.target = LinkableTextFormat.defaultTextFormat;
 			
 			setSingleKeySource(_keySet);
 		}
 		
-		public const axisLabelDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));
+		public function setupTextFormats(titleTextFormat:LinkableTextFormat, labelTextFormat:LinkableTextFormat):void
+		{
+			titleTextFormatWatcher.target = titleTextFormat;
+			labelTextFormatWatcher.target = labelTextFormat;
+		}
+		private const titleTextFormatWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		private const labelTextFormatWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		
+		public const axisLabelHorizontalDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));
+		public const axisLabelVerticalDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, isFinite));
 		public const axisLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-45, isFinite));
 		public const axisGridLineThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
 		public const axisGridLineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xDDDDDD));
@@ -92,9 +104,13 @@ package weave.visualization.plotters
 		public const labelTextAlignment:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
-		public const labelDistanceIsVertical:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const labelWordWrapSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
-		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
+		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['number', 'string']));
+		private static const DEFAULT_LABEL_FUNCTION:String = <![CDATA[
+			function (number, string) {
+				return string;
+			}
+		]]>;
 		
 		private const _keySet:KeySet = newSpatialProperty(KeySet); // stores tick mark keys
 		private const _axisDescription:LooseAxisDescription = new LooseAxisDescription(); // calculates tick marks
@@ -204,8 +220,6 @@ package weave.visualization.plotters
 				var labelAngle:Number;
 				var xTickOffset:Number;
 				var yTickOffset:Number;
-				var _labelDistance:Number;
-				var labelAngleOffset:Number;
 				var xLabelOffset:Number;
 				var yLabelOffset:Number;
 				var lineLength:Number;
@@ -230,12 +244,14 @@ package weave.visualization.plotters
 						yTickOffset = Math.sin(tickAngle) * 10 / 2;
 						
 						// calculate label offset from angle
-						_labelDistance = axisLabelDistance.value;
-						labelAngleOffset = labelDistanceIsVertical.value ? Math.PI / 2: 0;
-						xLabelOffset = Math.cos(labelAngle + labelAngleOffset) * axisLabelDistance.value;
-						yLabelOffset = Math.sin(labelAngle + labelAngleOffset) * axisLabelDistance.value;
+						xLabelOffset
+							= axisLabelHorizontalDistance.value * Math.cos(labelAngle)
+							+ axisLabelVerticalDistance.value * Math.cos(labelAngle + Math.PI / 2);
+						yLabelOffset
+							= axisLabelHorizontalDistance.value * Math.sin(labelAngle)
+							+ axisLabelVerticalDistance.value * Math.sin(labelAngle + Math.PI / 2);
 						
-						setupBitmapText();
+						setupBitmapText(labelTextFormatWatcher);
 						_bitmapText.maxWidth = labelWordWrapSize.value;
 						
 						// calculate the distance between tick marks to use as _bitmapText.maxHeight
@@ -407,9 +423,10 @@ package weave.visualization.plotters
 		
 		private const _tempBounds:Bounds2D = new Bounds2D();
 		
-		protected function setupBitmapText():void
+		protected function setupBitmapText(whichTextFormat:LinkableWatcher):void
 		{
-			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
+			var ltf:LinkableTextFormat = whichTextFormat.target as LinkableTextFormat || LinkableTextFormat.defaultTextFormat;
+			ltf.copyTo(_bitmapText.textFormat);
 			try {
 				_bitmapText.textFormat.align = labelTextAlignment.value;
 			} catch (e:Error) { }
@@ -427,7 +444,7 @@ package weave.visualization.plotters
 			// BEGIN TEMPORARY SOLUTION -- setup BitmapText for axis name
 			if (axisName != null)
 			{
-				setupBitmapText();
+				setupBitmapText(titleTextFormatWatcher);
 				_bitmapText.text = axisName;
 				_bitmapText.angle = _axisNameAngle;
 				_bitmapText.textFormat.align = TextFormatAlign.LEFT;
@@ -534,5 +551,29 @@ package weave.visualization.plotters
 		}
 		private var _labelFunction:Function = null;
 		// END TEMPORARY SOLUTION
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		// backwards compatibility
+		
+		[Deprecated] public function set axisLabelDistance(value:Number):void { handleDeprecated('distance', value); }
+		[Deprecated] public function set labelDistanceIsVertical(value:Boolean):void { handleDeprecated('isVertical', value); }
+		private var _deprecated:Object;
+		private function handleDeprecated(name:String, value:*):void
+		{
+			if (!_deprecated)
+				_deprecated = {};
+			_deprecated[name] = value;
+			
+			for each (name in ['distance', 'isVertical'])
+				if (!_deprecated.hasOwnProperty(name))
+					return;
+			
+			if (_deprecated['isVertical'])
+				axisLabelVerticalDistance.value = _deprecated['distance'];
+			else
+				axisLabelHorizontalDistance.value = _deprecated['distance'];
+			
+			_deprecated = null;
+		}
 	}
 }

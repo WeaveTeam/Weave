@@ -30,7 +30,6 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
@@ -57,7 +56,6 @@ package weave.data.AttributeColumns
 		public static var debug:Boolean = false;
 		
 		public static const compiler:Compiler = new Compiler();
-		/** begin static code block **/
 		compiler.includeLibraries(
 			WeaveAPI,
 			WeaveAPI.CSVParser,
@@ -67,8 +65,6 @@ package weave.data.AttributeColumns
 			EquationColumnLib,
 			IQualifiedKey
 		);
-		/** end static code block **/
-		
 
 		public function EquationColumn()
 		{
@@ -77,7 +73,6 @@ package weave.data.AttributeColumns
 			
 			setMetadata(ColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
-			equation.value = 'undefined';
 			
 			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
 		}
@@ -442,7 +437,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			return StringUtil.substitute('{0};"{1}";({2})', debugId(this), getMetadata(ColumnMetadata.TITLE), equation.value);
+			return StandardLib.substitute('{0};"{1}";({2})', debugId(this), getMetadata(ColumnMetadata.TITLE), equation.value);
 		}
 		
 		//---------------------------------

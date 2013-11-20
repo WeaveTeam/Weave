@@ -89,12 +89,10 @@ package weave.services
 			
 		}
 		
-		
-		
-
-		
-
-		
-		
+		public function normalize(data:Array):AsyncToken
+		{
+			return servlet.invokeAsyncMethod("normalize", arguments);
+			
+		}	
 	}
 }

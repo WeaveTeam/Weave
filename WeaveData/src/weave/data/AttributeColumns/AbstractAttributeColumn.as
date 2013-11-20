@@ -51,6 +51,15 @@ package weave.data.AttributeColumns
 			return value;
 		}
 		
+		public function getMetadataPropertyNames():Array
+		{
+			var names:Array = [];
+			if (_metadata)
+				for each (var attr:XML in _metadata.attributes())
+					names.push(String(attr.localName()));
+			return names;
+		}
+		
 		// 'abstract' functions, should be defined with override when extending this class
 
 		public /* abstract */ function get keys():Array

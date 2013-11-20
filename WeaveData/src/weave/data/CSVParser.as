@@ -232,6 +232,31 @@ package weave.data
 		/**
 		 * @inheritDoc
 		 */
+		public function parseCSVRow(csvData:String, parseTokens:Boolean = true):Array
+		{
+			if (csvData == null)
+				return null;
+			
+			var rows:Array = parseCSV(csvData, parseTokens);
+			if (rows.length == 0)
+				return rows;
+			if (rows.length == 1)
+				return rows[0];
+			// flatten
+			return [].concat.apply(null, rows);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function createCSVRow(row:Array):String
+		{
+			return createCSV([row]);
+		}
+
+		/**
+		 * @inheritDoc
+		 */
 		public function parseCSVToken(token:String):String
 		{
 			var parsedToken:String = '';
@@ -413,9 +438,9 @@ package weave.data
 				for (c = 0; c < fields.length; c++)
 				{
 					if (headerDepth > 1)
-						row[c] = fields[c][r]; // fields are Arrays
+						row[c] = fields[c][r] || ''; // fields are Arrays
 					else
-						row[c] = fields[c]; // fields are Strings
+						row[c] = fields[c] || ''; // fields are Strings
 				}
 				rows[r] = row;
 			}
@@ -429,7 +454,7 @@ package weave.data
 					if (headerDepth == 1)
 					{
 						// fields is an Array of Strings
-						row[c] = record[fields[c]];
+						row[c] = record[fields[c]] || '';
 					}
 					else
 					{
@@ -439,7 +464,7 @@ package weave.data
 						for each (var field:String in fieldChain)
 							if (cell)
 								cell = cell[field];
-						row[c] = cell;
+						row[c] = cell || '';
 					}
 				}
 				rows[headerDepth + r] = row;

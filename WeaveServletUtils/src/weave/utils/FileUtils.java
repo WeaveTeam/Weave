@@ -50,4 +50,16 @@ public class FileUtils
 		in.close();
 		out.close();
 	}
+	
+	/**
+	 * This will set readable/writable to false for everyone except the owner of the file.
+	 * @param file
+	 */
+	public static void protect(File file)
+	{
+		file.setWritable(false, false);
+		file.setReadable(false, false);
+		file.setWritable(true, true);
+		file.setReadable(true, true);
+	}
 }

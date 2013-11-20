@@ -18,22 +18,47 @@
 */
 package weave.data.AttributeColumns
 {
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
+	import weave.core.LinkableString;
 	import weave.utils.EquationColumnLib;
 
 	public class KeyColumn extends AbstractAttributeColumn
 	{
 		public function KeyColumn(metadata:XML=null)
 		{
-			if(metadata == null)
-				metadata = <attribute title="Key"/>;
 			super(metadata);
 		}
 		
+		override public function getMetadata(propertyName:String):String
+		{
+			if (propertyName == ColumnMetadata.TITLE)
+			{
+				var kt:String = keyType.value;
+				if (kt)
+					return lang("Key ({0})", kt);
+				return lang("Key");
+			}
+			if (propertyName == ColumnMetadata.KEY_TYPE)
+				return keyType.value;
+			
+			return super.getMetadata(propertyName);
+		}
+		
+		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
+		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class=null):*
 		{
+			var kt:String = keyType.value;
+			if (kt && key.keyType != kt)
+				return EquationColumnLib.cast(undefined, dataType);
+			
 			if (dataType == String)
 				return key.localName;
+			
+			if (dataType == IQualifiedKey)
+				return key;
 			
 			return EquationColumnLib.cast(key, dataType);
 		}

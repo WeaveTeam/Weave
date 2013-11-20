@@ -58,7 +58,20 @@ public class ListUtils
 			try
 			{
 				if (input[i] instanceof Number)
+				{
 					output[i] = ((Number)input[i]).intValue();
+				}
+				else if (input[i] instanceof String)
+				{
+					try
+					{
+						output[i] = Integer.parseInt((String)input[i]);
+					}
+					catch (Exception e)
+					{
+						output[i] = Integer.MIN_VALUE;
+					}
+				}
 				else
 					output[i] = Integer.MIN_VALUE;
 			}
@@ -77,8 +90,21 @@ public class ListUtils
 			try
 			{
 				if (input[i] instanceof Number)
+				{
                     output[i] = ((Number)input[i]).doubleValue();
-            else
+				}
+				else if (input[i] instanceof String)
+				{
+					try
+					{
+						output[i] = Double.parseDouble((String)input[i]);
+					}
+					catch (Exception e)
+					{
+						output[i] = Double.NaN;
+					}
+				}
+				else
                     output[i] = Double.NaN;
 			}
 			catch (ClassCastException e)

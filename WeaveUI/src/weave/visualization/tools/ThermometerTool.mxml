@@ -36,7 +36,7 @@
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ThermometerPlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, lang("Thermometer Tool"));
+			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
 			
 			private function get plotter():ThermometerPlotter { return mainPlotter as ThermometerPlotter; }
 			override protected function constructor():void
@@ -65,8 +65,7 @@
 				visualization.plotManager.marginRight.value  = "10";
 				
 				yAxisPlotter.axisLabelRelativeAngle.value = 90;
-				var self:* = this;
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.meterColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.meterColumn); })
 
 				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
@@ -117,7 +116,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
+				<ui:DynamicColumnComponent label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
 			</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

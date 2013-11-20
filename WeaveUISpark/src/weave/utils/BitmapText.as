@@ -55,7 +55,7 @@ package weave.utils
 			textFormat.color = 0x000000;
 		}
 		
-		private const debug:Boolean = false; // set to true to draw debug graphics
+		public var debug:Boolean = false; // set to true to draw debug graphics
 		
 		public static const DEFAULT_FONT_FAMILY:String = LinkableTextFormat.DEFAULT_FONT;
 		
@@ -390,6 +390,25 @@ package weave.utils
 				_textField.border = false;
 			
 			destination.draw(_textField, _matrix, colorTransform, blendMode, clipRect, smoothing);
+		}
+		
+		/**
+		 * This sets x, y, width and height.
+		 * @param bounds The bounds with values for x, y, width, and height.
+		 * @param centered Set to true to use the bounds center x,y coordinates.
+		 */		
+		public function setBounds(bounds:IBounds2D, centered:Boolean):void
+		{
+			if (centered)
+			{
+				textFormat.align = HORIZONTAL_ALIGN_CENTER;
+				horizontalAlign = HORIZONTAL_ALIGN_CENTER;
+				verticalAlign = VERTICAL_ALIGN_MIDDLE;
+			}
+			x = centered ? bounds.getXCenter() : bounds.getXNumericMin();
+			y = centered ? bounds.getYCenter() : bounds.getYNumericMin();
+			width = bounds.getXCoverage();
+			height = bounds.getYCoverage();
 		}
 
 		/**

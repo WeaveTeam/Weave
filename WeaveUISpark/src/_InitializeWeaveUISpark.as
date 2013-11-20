@@ -20,6 +20,19 @@
 package
 {
 	import weave.core.WeaveXMLDecoder;
+	import weave.visualization.plotters.AxisLabelPlotter;
+	import weave.visualization.plotters.CustomGlyphPlotter;
+	import weave.visualization.plotters.GeometryLabelPlotter;
+	import weave.visualization.plotters.GeometryPlotter;
+	import weave.visualization.plotters.GeometryRelationPlotter;
+	import weave.visualization.plotters.GridLinePlotter;
+	import weave.visualization.plotters.Histogram2DPlotter;
+	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.RectanglePlotter;
+	import weave.visualization.plotters.ScatterPlotPlotter;
+	import weave.visualization.plotters.SimpleGlyphPlotter;
+	import weave.visualization.plotters.SingleImagePlotter;
+	import weave.visualization.plotters.WMSPlotter;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -32,6 +45,23 @@ package
 		/**
 		 * Register all ILinkableObjectEditor implementations.
 		 */
+		
+		// reference these tools so they will run their static initialization code
+		([
+			AxisLabelPlotter,
+			CustomGlyphPlotter,
+			GeometryLabelPlotter,
+			GeometryPlotter,
+			GeometryRelationPlotter,
+			GridLinePlotter,
+			Histogram2DPlotter,
+			ImageGlyphPlotter,
+			RectanglePlotter,
+			ScatterPlotPlotter,
+			SimpleGlyphPlotter,
+			SingleImagePlotter,
+			WMSPlotter
+		]);
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

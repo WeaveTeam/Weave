@@ -19,14 +19,20 @@
 package weave.utils
 {
 	import flash.display.DisplayObject;
+	import flash.display.Graphics;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	
+	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 
 	/**
 	 * This contains a static function, identify(), which will display tooltips for every DisplayObject you mouse over.
 	 * 
-	 * @author Andy
+	 * @author adufilie
 	 */	
 	public class Identify
 	{
@@ -36,8 +42,18 @@ package weave.utils
 		private static var _identifyHide:Function = null;
 		
 		/**
+		 * This will be true while identify() is active.
+		 */
+		public static function get enabled():Boolean
+		{
+			return !!_identifyPropertyNames;
+		}
+		
+		/**
 		 * Enables (or disables) tooltips on every DisplayObject, showing properties and debugIds.
-		 * @param propertyNames An optional list of property names to display in the tooltips.  If none specified, tooltips will be toggled with default properties.
+		 * @param propertyNames An optional list of property names to display in the tooltips.
+		 *        If none specified, tooltips will be toggled with default properties.
+		 *        To disable tooltips, pass a single parameter: <code>false</code>.
 		 * @see weave.utils.DebugUtils#debugId()
 		 */		
 		public static function identify(...propertyNames):void
@@ -50,7 +66,8 @@ package weave.utils
 			if (propertyNames && _identifyPropertyNames != _identifyDefaults)
 			{
 				_identifyPropertyNames = propertyNames;
-				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_OVER, null, _identify);
+				_identifyTarget = null;
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_OVER, null, _identify, true);
 			}
 			else
 			{
@@ -62,8 +79,13 @@ package weave.utils
 		}
 		private static function _identify():void
 		{
-			var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
+			var event:Event = WeaveAPI.StageUtils.event;
+			if (!event)
+				return;
+			
 			var target:DisplayObject = event.target as DisplayObject;
+			if (!target)
+				return;
 			
 			if (!_identifyPropertyNames || _identifyTarget == target)
 				return;
@@ -73,11 +95,29 @@ package weave.utils
 			
 			var strings:Array = [];
 			for each (var name:String in _identifyPropertyNames)
-			if (target.hasOwnProperty(name))
-				strings.push(name + '=' + target[name]);
+				if (target.hasOwnProperty(name))
+					strings.push(name + '=' + target[name]);
 			
 			var text:String = debugId(target) + '\n' + strings.join(', ');
-			_identifyHide = PopUpUtils.showTemporaryTooltip(target, text, int.MAX_VALUE);
+			_identifyHide = PopUpUtils.showTemporaryTooltip(target, text, int.MAX_VALUE, drawBorder);
+			
+			function drawBorder(tip:UIComponent):void
+			{
+				var styles:Array = [
+					[2, 0xFF0000, 0.65],
+					[1, 0xFF0000, 0.25]
+				];
+				while (target)
+				{
+					var r:Rectangle = target.getRect(tip);
+					tip.graphics.lineStyle(styles[0][0], styles[0][1], styles[0][2], true);
+					tip.graphics.drawRect(r.x, r.y, r.width, r.height);
+
+					target = target.parent;
+					if (styles.length > 1)
+						styles.shift();
+				}
+			}
 		}
 	}
 }

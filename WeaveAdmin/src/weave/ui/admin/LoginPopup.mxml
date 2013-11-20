@@ -41,6 +41,7 @@ Author: skolman
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
 
@@ -54,7 +55,7 @@ Author: skolman
 				//you click anywhere in the flash application. This is because when the browser loads the page the flash object is not selected.
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
 				//Does not work in Chrome
-				ExternalInterface.call('function browserFocus(){ var f = document.getElementById(\'' + ExternalInterface.objectID + '\'); if(f){ f.tabIndex=0; f.focus(); } }');
+				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + 'weave.tabIndex = 0; weave.focus(); }');
 			}
 			
 			private function login():void

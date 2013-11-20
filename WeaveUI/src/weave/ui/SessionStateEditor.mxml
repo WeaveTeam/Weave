@@ -46,12 +46,21 @@ A text editor to change the Session State on the fly.
 				<mx:VBox id="listVBox" width="100%" height="100%">
 					<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
 					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
-	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
-										 focusIn="checkObjectWasDisposed()"/>
+	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
-	 					<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
+						<ui:HelpComponent>
+							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
+							Multiple dynamic objects can be linked to the same global object this way.
+							
+							Use the "Nested unlink" button when you want to unlink a tool from the global color mapping.
+							This will recursively unlink all nested DynamicColumn objects.
+							Once that is done, you can link the new color mapping to a new global name so that multiple tools can be linked to the new color mapping.
+							To link multiple tools, you will have to locate the color mapping in each tool and repeat the process.
+						</ui:HelpComponent>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -61,19 +70,19 @@ A text editor to change the Session State on the fly.
 					</mx:HBox>
 					<mx:ViewStack id="editors" width="100%" height="100%">
 						<mx:VBox width="100%" height="100%">
-							<mx:HBox width="100%">
+							<mx:HBox width="100%" verticalAlign="middle">
 								<mx:Label id="firstLine" fontFamily="_typewriter"/>
 								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
-								<mx:Button label="Copy state" click="copyToClipboard();"/>
+								<mx:Button label="{lang('Copy path')}" click="copyPathToClipboard();"/>
+								<mx:Button label="{lang('Copy state')}" click="copyToClipboard();"/>
 							</mx:HBox>
-							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()"/>
+							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()" wordWrap="{wordWrap.selected}"/>
 							<mx:Label id="lastLine" fontFamily="_typewriter"/>
 						</mx:VBox>
 						<mx:VBox width="100%" height="100%">
 							<mx:HBox width="100%">
 								<mx:Spacer width="100%"/>
-								<mx:Button label="Copy path" click="copyPathToClipboard();"/>
+								<mx:Button label="{lang('Copy path')}" click="copyPathToClipboard();"/>
 							</mx:HBox>
 							<mx:DataGrid id="gridEditor" wordWrap="false" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
 										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
@@ -81,9 +90,10 @@ A text editor to change the Session State on the fly.
 						</mx:VBox>
 					</mx:ViewStack>
 					<mx:HBox width="100%">
-						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
+						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer grid view')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
 									 selected="true"/>
 						<mx:CheckBox id="useJSON" label="{lang('Edit as JSON')}" click="loadSessionStateInView()" selected="false"/>
+						<mx:CheckBox id="wordWrap" label="{lang('Word wrap')}" selected="false"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
 					</mx:HBox>
@@ -106,7 +116,6 @@ A text editor to change the Session State on the fly.
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
-			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
@@ -133,7 +142,6 @@ A text editor to change the Session State on the fly.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.DebugUtils;
-			import weave.utils.Identify;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 
@@ -167,13 +175,6 @@ A text editor to change the Session State on the fly.
 				panelY.value = "12.5%";
 			}
 			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				var subMenu:SubMenu = new SubMenu(unlinkButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				subMenu.addSubMenuItem('Unlink all nested dynamic columns', unlinkNestedColumns);
-			}
-			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -196,18 +197,39 @@ A text editor to change the Session State on the fly.
 				textEditor.getTextField().alwaysShowSelection = true;
 		    }
 			
-			private function checkObjectWasDisposed():void
+			public function setRootObject(rootObject:ILinkableObject):void
 			{
-				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				if (sessionNav.rootObject)
+				{
+					getCallbackCollection(sessionNav.rootObject).removeCallback(handleRootObjectDispose);
+				}
+				
+				if (objectWasDisposed(rootObject))
+					rootObject = null;
+				
+				sessionNav.rootObject = rootObject;
+				
+				if (rootObject)
+				{
+					getCallbackCollection(rootObject).addDisposeCallback(this, handleRootObjectDispose);
+					refresh();
+				}
+				else
 				{
 					_currentSelectedObject = null;
 					_textModified = false;
 					_needRefresh = false;
 					autoRefresh = false;
 					refresh();
-					
+					removePanel();
 				}
 			}
+			
+			private function handleRootObjectDispose():void
+			{
+				setRootObject(null);
+			}
+			
 			private function handleRefreshTimer(event:TimerEvent):void
 		    {
 				if (objectWasDisposed(this))
@@ -230,7 +252,6 @@ A text editor to change the Session State on the fly.
 			private function handleEditorFocusIn():void
 			{
 				autoRefresh = true;
-				checkObjectWasDisposed();
 			}
 
 			private function handleTextAreaChange():void
@@ -377,6 +398,7 @@ A text editor to change the Session State on the fly.
 				{
 					linkNameInput.text = dynamicObject.globalName;
 					linkControls.enabled = true;
+					nestedUnlinkButton.enabled = dynamicObject is IColumnWrapper;
 				}
 				else
 				{
@@ -631,15 +653,15 @@ A text editor to change the Session State on the fly.
 					{
 						if (_editor == TEXT_EDITOR)
 						{
-							if (_currentSelectedObject is LinkableString || _currentSessionStateXML == null)
+							// Note: use === to work around bug with (<tag>null</tag> == null) evaluating to true
+							if (_currentSelectedObject is LinkableString || _currentSessionStateXML === null)
 							{
 								setSessionState(_currentSelectedObject, textEditor.text);
 							}
 							else
 							{
-								var xmlList:XMLList = XMLList(textEditor.text); // will throw error if xml is invalid
-								_currentSessionStateXML.setChildren(XMLList(textEditor.text));
-								var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+								var xml:XML = XML(firstLine.text + textEditor.text + lastLine.text); // will throw error if xml is invalid
+								var decodedStateObject:Object = WeaveXMLDecoder.decode(xml);
 								setSessionState(_currentSelectedObject, decodedStateObject, true);
 							}
 						}
@@ -744,13 +766,19 @@ A text editor to change the Session State on the fly.
 			
 			private function copyPathToClipboard():void
 			{
-				var path:Array = sessionNav.getSelectedPath().map(
-					function(item:*, i:*, a:*):*
-					{
-						return item ? Compiler.encodeString(item) : 'null';
-					}
-				);
-				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, "[" + path.join(", ") + "]");
+				var path:Array = sessionNav.getSelectedPath();
+				var str:String = '';
+				if (path)
+				{
+					path = path.map(
+						function(item:*, i:*, a:*):*
+						{
+							return item ? Compiler.encodeString(item) : 'null';
+						}
+					);
+					str = "[" + path.join(", ") + "]";
+				}
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, str);
 			}
 			private function copyToClipboard():void
 			{
@@ -759,37 +787,20 @@ A text editor to change the Session State on the fly.
 			
 			//-----------------------------------------------------------------
 			
-			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
-			private static function _initialize():void
-			{
-				if (Capabilities.isDebugger)
-				{
-					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
-					WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
-				}
-			}
-			_initialize();
-			
-			private static var _instance:SessionStateEditor;
-			public static function getInstance():SessionStateEditor
-			{
-				if (!_instance)
-					_instance = new SessionStateEditor();
-				return _instance;
-			}
+			// STATIC CODE
+			public static var initialize:* = function():void {
+				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
+			}();
 			
 			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
 			{
-				var defaultEditor:SessionStateEditor = getInstance();
-				if (!defaultEditor.parent)
-					PopUpManager.addPopUp(defaultEditor, WeaveAPI.topLevelApplication as DisplayObject);
+				var defaultEditor:SessionStateEditor = DraggablePanel.openStaticInstance(SessionStateEditor);
 				
 				if (rootObject == null)
-					rootObject = Weave.root;
+					rootObject = WeaveAPI.globalHashMap;
 				
-				defaultEditor.sessionNav.rootObject = rootObject;
-				defaultEditor.refresh();
-				defaultEditor.restorePanel();
+				defaultEditor.setRootObject(rootObject);
 			}
 			
 			private static var _profileWithErrorLogPanel:Boolean = true;
@@ -798,7 +809,7 @@ A text editor to change the Session State on the fly.
 			private static function handleStagePointClick():void
 			{
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
-				if (event.stageX == 0 && event.stageY == 0)
+				if (event.stageX <= 1 && event.stageY <= 1)
 				{
 					openConsole();
 					Weave.properties.enableMenuBar.value = true;
@@ -814,6 +825,10 @@ A text editor to change the Session State on the fly.
 			}
 			private static function openConsole():void
 			{
+				var stage:Stage = (WeaveAPI.topLevelApplication as DisplayObject).stage;
+				var stagePoint:Point = new Point(stage.mouseX, stage.mouseY);
+				var objectsUnderPoint:Array = stage.getObjectsUnderPoint(stagePoint);
+				
 				// hold ctrl to toggle which panel to open
 				if (WeaveAPI.StageUtils.ctrlKey)
 					_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
@@ -822,21 +837,12 @@ A text editor to change the Session State on the fly.
 				var console:Console;
 				if (_profileWithErrorLogPanel)
 				{
-					var parent:* = ErrorLogPanel.getInstance().parent;
-					
 					ErrorLogPanel.openErrorLog();
 					console = ErrorLogPanel.getInstance().console;
-					
-					if (parent)
-						Identify.identify();
 				}
 				else
 				{
-					var defaultEditor:SessionStateEditor = getInstance();
-					if (!defaultEditor.parent)
-						openDefaultEditor();
-					
-					defaultEditor.restorePanel();
+					var defaultEditor:SessionStateEditor = DraggablePanel.openStaticInstance(SessionStateEditor);
 					// show console
 					if (profileDump && !defaultEditor.showConsole.selected)
 						defaultEditor.toggleShowConsole();
@@ -852,12 +858,19 @@ A text editor to change the Session State on the fly.
 
 				if (console.stage)
 				{
-					var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
-					var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
-					while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
-						top = top.parent;
-					if (top)
-						console.consoleTrace(debugId(top));
+					var top:DisplayObject = objectsUnderPoint[objectsUnderPoint.length - 1];
+					var path:Array = [top];
+					while (top && top.parent)
+						path.unshift(top = top.parent);
+					
+					// assign debug ids to parent-child path first (lower numbers)
+					path = path.map(getDebugId);
+					objectsUnderPoint = objectsUnderPoint.map(getDebugId);
+					
+					console.consoleTrace('Objects under mouse: [ ' + objectsUnderPoint.join(' ') + ' ]');
+					console.consoleTrace('Parent-child path: [ ' + path.join(' ') + ' ]');
+					
+					function getDebugId(o:*):* { return debugId(o); }
 				}
 			}
 		]]>

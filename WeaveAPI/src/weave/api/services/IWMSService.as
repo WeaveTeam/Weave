@@ -67,20 +67,6 @@ package weave.api.services
 		function getProjectionSRS():String;
 		
 		/**
-		 * This function will set the provider of the service.
-		 *
-		 * @param provider The name of the provider. 
-		 */
-		function setProvider(provider:String):void;
-		
-		/**
-		 * Gets the provider object.
-		 * 
-		 * @return An IMapProvider object if there is one.
-		 */
-		function getProvider():*;
-
-		/**
 		 * Get a string which contains copyright information for the
 		 * service.
 		 * 

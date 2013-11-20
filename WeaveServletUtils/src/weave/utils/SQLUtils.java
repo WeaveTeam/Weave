@@ -561,13 +561,8 @@ public class SQLUtils
 	 */
 	public static String quoteSchemaTable(Connection conn, String schema, String table) throws SQLException
 	{
-		if (schema.length() == 0)
-			return quoteSymbol(conn, table);
-		
-		if (SQLUtils.isOracleServer(conn))
-			return quoteSymbol(conn, schema).toUpperCase() + "." + quoteSymbol(conn, table);
-		else
-			return quoteSymbol(conn, schema) + "." + quoteSymbol(conn, table);
+		String dbms = getDbmsFromConnection(conn);
+		return quoteSchemaTable(dbms, schema, table);
 	}
 
 	public static boolean sqlTypeIsNumeric(int sqlType)

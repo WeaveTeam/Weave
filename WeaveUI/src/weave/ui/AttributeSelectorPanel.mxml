@@ -59,15 +59,16 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
+			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
-
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -87,24 +88,35 @@
 			{
 				super.createChildren();
 
+				registerLinkableChild(this, editor, hideIfUnlinked, true);
+				registerLinkableChild(this, columnList, hideIfUnlinked, true);
 				columnList.titleHBox.addChild(addColumnControls);
 				
-				Weave.properties.showAddAllButton.addImmediateCallback(this, changeAddAllButton, true);
+				Weave.properties.showAddAllButton.addImmediateCallback(this, function():void {
+					addAllButton.visible = Weave.properties.showAddAllButton.value;
+				}, true);
 			}
 			
 			override public function dispose():void
 			{
 				super.dispose();
-				disposeObjects(editor);
+			}
+			
+			private function hideIfUnlinked():Boolean
+			{
+				if (_targetObjects && _targetObjects.length && !editor.target && !columnList.hashMap)
+				{
+					linkToObject(null);
+					removePanel();
+					return true;
+				}
+				return false;
 			}
 			
 			private function addAll():void
 			{
-				if (columnList.hashMap == null)
-				{
-					linkToObject(null);
+				if (hideIfUnlinked())
 					return;
-				}
 				
 				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
@@ -124,16 +136,15 @@
 			
 			private function addSelected():void
 			{
-				if (columnList.hashMap == null)
-				{
-					linkToObject(null);
+				if (hideIfUnlinked())
 					return;
-				}
-				columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
+				
+				var newColumn:ILinkableObject = columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
+				columnList.beginEditVariableName(newColumn);
 			}
 			
-			[Bindable] private var selectableAttributes:Array = [];
-			[Bindable] private var selectableAttributeNames:Array = []; // to be used as a dataProvider for a repeater
+			private var selectableAttributes:Array = [];
+			[Bindable] private var selectableAttributeNames:Array = [];
 			
 			private function showOrHideParamSelector(show:Boolean):void
 			{
@@ -143,50 +154,32 @@
 					outerVBox.removeChild(paramSelector);
 			}
 			
-			/**
-			 * This function is a temporary hack.
-			 */
-			public static function hack_findInternalDynamicColumn(columnWrapper:IColumnWrapper):DynamicColumn
-			{
-				var columnWrapper:IColumnWrapper = columnWrapper as IColumnWrapper;
-				if (columnWrapper)
-				{
-					// temporary solution - find internal dynamic column
-					while (true)
-					{
-						if (columnWrapper.getInternalColumn() is DynamicColumn)
-							columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
-						else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
-							columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
-						else
-							break;
-					}
-					if (columnWrapper is ExtendedDynamicColumn)
-						columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
-				}
-				return columnWrapper as DynamicColumn;
-			}
-			
 			public function linkToObject(columnOrHashMap:ILinkableObject, objectTitle:String = null):void
 			{
-				var index:int = selectableAttributes.indexOf(columnOrHashMap);
-				if (index >= 0)
+				editor.setTarget(ColumnUtils.hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
+
+				var titleFormat:String = "Attribute selector for {0}";
+				var tool:IVisToolWithSelectableAttributes = getVisTool(columnOrHashMap);
+				if (tool)
 				{
-					objectTitle = selectableAttributeNames[index];
-					title = lang("Attribute selector for {0}", objectTitle);
-					dimensionTypeLinks.selectedIndex = index;
+					targets = selectableAttributes = tool.getSelectableAttributes();
+					selectableAttributeNames = tool.getSelectableAttributeNames();
+					
+					title = ControlPanel.getControlPanelTitle(tool, titleFormat);
+					dimensionTypeLinks.selectedIndex = selectableAttributes.indexOf(columnOrHashMap);
 					showOrHideParamSelector(true);
 				}
 				else
 				{
+					targets = columnOrHashMap ? [columnOrHashMap] : [];
+					selectableAttributeNames = selectableAttributes = [];
+					
 					if (objectTitle)
-						title = lang("Attribute selector for {0}", objectTitle);
+						title = lang(titleFormat, objectTitle);
 					else
 						title = lang("Attribute selector");
 					showOrHideParamSelector(false);
 				}
-				
-				editor.setTarget(hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 				
 				if (columnOrHashMap is ILinkableHashMap)
 				{
@@ -218,55 +211,47 @@
 				{
 					verticalDividedBox.removeChild(columnList);
 				}
+				
+				_instance.editor.clearSearch();
+			}
+			
+			///////////////////////////////////////////////////////////////////////
+			
+			public static function get instance():AttributeSelectorPanel
+			{
+				if (!_instance)
+					_instance = new AttributeSelectorPanel();
+				return _instance;
+			}
+			public static var _instance:AttributeSelectorPanel;
+			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):void
+			{
+				if (!instance.parent)
+					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
+				
+				_instance.linkToObject(columnOrHashMap, title);
+				_instance.columnList.showVariableNames = showVariableNames;
+				
+				if (!_instance.parent)
+					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
+				_instance.restorePanel();
+			}
+			public static function getVisTool(selectableAttribute:ILinkableObject, evenIfNotInSelectableAttributes:Boolean = false):IVisToolWithSelectableAttributes
+			{
+				var owner:ILinkableObject = getLinkableOwner(selectableAttribute);
+				while (owner && !(owner is IVisToolWithSelectableAttributes))
+					owner = getLinkableOwner(owner);
+				
+				var tool:IVisToolWithSelectableAttributes = owner as IVisToolWithSelectableAttributes;
 
-				// set targets for ControlPanel to support session saving
-				if (selectableAttributes.indexOf(columnOrHashMap) < 0)
-					targets = selectableAttributes = [];
-			}
-			
-			public static function get defaultSelector():AttributeSelectorPanel
-			{
-				if (!_defaultSelector)
-					_defaultSelector = new AttributeSelectorPanel();
-				return _defaultSelector;
-			}
-			public static var _defaultSelector:AttributeSelectorPanel;
-			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject, showVariableNames:Boolean = false):void
-			{
-				if (!Weave.properties.enableToolControls.value)
-					return;
+				if (evenIfNotInSelectableAttributes)
+					return tool;
 				
-				openDefaultSelector(null, null, showVariableNames);
+				if (tool && tool.getSelectableAttributes().indexOf(selectableAttribute) >= 0)
+					return tool;
 				
-				defaultSelector.selectableAttributes = tool.getSelectableAttributes();
-				if (defaultSelector.selectableAttributes.indexOf(attributeToLinkTo) >= 0)
-					defaultSelector.targets = defaultSelector.selectableAttributes;
-				defaultSelector.selectableAttributeNames = tool.getSelectableAttributeNames();
-				defaultSelector.linkToObject(attributeToLinkTo);
+				return null;
 			}
-			public static function openDefaultSelector(linkTo:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false):void
-			{
-				if (!Weave.properties.enableToolControls.value)
-					return;
-				
-				if (!defaultSelector.parent)
-					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
-
-				defaultSelector.columnList.showVariableNames = showVariableNames;
-				defaultSelector.editor.clearSearch();
-				
-				defaultSelector.linkToObject(linkTo, title);
-				defaultSelector.targets = linkTo ? [linkTo] : [];
-				
-				defaultSelector.restorePanel();
-			}
-			
-			private function changeAddAllButton():void
-			{
-				var show:Boolean = Weave.properties.showAddAllButton.value;
-				addAllButton.visible = show;
-			}
-			
 		]]>
 	</mx:Script>
 </ControlPanel>

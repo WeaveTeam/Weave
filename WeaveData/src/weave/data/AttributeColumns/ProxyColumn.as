@@ -26,6 +26,7 @@ package weave.data.AttributeColumns
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.SessionManager;
+	import weave.utils.VectorUtils;
 
 	/**
 	 * ProxyColumn
@@ -81,6 +82,13 @@ package weave.data.AttributeColumns
 			if (overrideValue == null && _internalColumn != null)
 				return _internalColumn.getMetadata(propertyName);
 			return overrideValue;
+		}
+		
+		override public function getMetadataPropertyNames():Array
+		{
+			if (_internalColumn)
+				return VectorUtils.union(super.getMetadataPropertyNames(), _internalColumn.getMetadataPropertyNames());
+			return super.getMetadataPropertyNames();
 		}
 		
 		/**
@@ -168,6 +176,6 @@ package weave.data.AttributeColumns
 		 * This object can be used as an alternative to a null
 		 * return value for a function returning a ProxyColumn.
 		 */
-		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute name="Undefined"/>));
+		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute title="Undefined"/>));
 	}
 }

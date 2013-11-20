@@ -19,12 +19,11 @@
 
 package weave.data.BinningDefinitions
 {
-	import mx.utils.StringUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
+	import weave.compiler.StandardLib;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -66,7 +65,7 @@ package weave.data.BinningDefinitions
 			if (!name)
 			{
 				var nameFormat:String = (absSDNumber < MAX_SD) ? "{0} - {1} SD {2} mean" : "> {0} SD {2} mean"; 
-				name = StringUtil.substitute(nameFormat, absSDNumber - 1, absSDNumber, belowMean ? "below" : "above");
+				name = StandardLib.substitute(nameFormat, absSDNumber - 1, absSDNumber, belowMean ? "below" : "above");
 			}
 			var bin:NumberClassifier = output.requestObject(name, NumberClassifier, false);
 			if (belowMean)

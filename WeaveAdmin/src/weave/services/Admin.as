@@ -22,11 +22,11 @@ package weave.services
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
+	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.EntityHierarchyInfo;
 
@@ -66,6 +66,10 @@ package weave.services
 		public function getFocusEntityId():int
 		{
 			return focusEntityId;
+		}
+		public function setFocusEntityId(id:int):void
+		{
+			focusEntityId = id;
 		}
 		public function clearFocusEntityId():void
 		{
@@ -303,7 +307,7 @@ package weave.services
 					{
 						keyTypes = event.result as Array || [];
 						dataTypes = keyTypes.concat();
-						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY);
+						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.DATE, DataTypes.GEOMETRY);
 					}
 				}
 			);
@@ -381,7 +385,7 @@ package weave.services
 			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
 			
 			// use setTimeout so it will call later without blocking ActionScript
-			var script:String = StringUtil.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
+			var script:String = StandardLib.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
 			ExternalInterface.call(script);
 		}
 		
@@ -425,11 +429,14 @@ package weave.services
 				case 'connection':
 					return connectionNames;
 				
+				case ColumnMetadata.KEY_TYPE:
+					return keyTypes;
+				
 				case ColumnMetadata.DATA_TYPE:
 					return dataTypes;
 				
-				case ColumnMetadata.KEY_TYPE:
-					return keyTypes;
+				case ColumnMetadata.DATE_FORMAT:
+					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
 				
 				default:
 					return null;

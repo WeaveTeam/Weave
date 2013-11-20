@@ -602,7 +602,7 @@ package weave.utils
 		{
 			var p:int = bytes.position;
 			var h:String = '0123456789ABCDEF';
-			var result:String = StringUtil.substitute('({0} bytes, pos={1})', bytes.length, p);
+			var result:String = StandardLib.substitute('({0} bytes, pos={1})', bytes.length, p);
 			bytes.position = 0;
 			while (bytes.bytesAvailable)
 			{

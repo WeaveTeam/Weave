@@ -8,7 +8,7 @@
 	2) Add the Flex 3.6A SDK's bin folder to your operating system's PATH variable.
 	3) Add ANT's bin folder to your operating system's PATH variable.
 		e.g.) C:\ant\bin
-     Change FRAMEWORK_SWF property below to be the filename of the framework_*.swf file.
+	 Change FRAMEWORK_SWF property below to be the filename of the framework_*.swf file.
 		For example, if yours is
 		${FLEX_HOME}/frameworks/rsls/framework_3.6.0.21751.swf
 		then the FRAMEWORK_SWF would be framework_3.6.0.21751.swf
@@ -23,8 +23,6 @@
 
 	<property environment="env"/>
 
-	<!-- This property must be defined here. Note the use of forward slashes '/' and
-		the slash required at the end -->
 	<property name="WEAVE_DOCROOT" value="/var/lib/tomcat6/webapps/ROOT"/>
 	<property name="WEAVE_DESTROOT" value="${basedir}/ROOT"/>
 	<!-- This property's value is defined as an environment variable -->
@@ -33,9 +31,9 @@
 	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf"/>
 	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf"/>
 	<property name="SPARK_SWF" value="spark_4.5.1.21489.swf"/>
-        <property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
-        <property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
-    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
+	<property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
+	<property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 
 	<!-- These are the projects -->
 	<property name="API" value="WeaveAPI"/>
@@ -43,42 +41,42 @@
 	<property name="DATA" value="WeaveData"/>
 	<property name="UISPARK" value="WeaveUISpark"/>
 	<property name="UI" value="WeaveUI"/>
-        <property name="EXAMPLEPLUGIN" value="WeaveExamplePlugin"/>
-        <property name="FONTS" value="WeaveFonts"/>
+	<property name="EXAMPLEPLUGIN" value="WeaveExamplePlugin"/>
+	<property name="FONTS" value="WeaveFonts"/>
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
 	<property name="SERVICES" value="WeaveServices"/>
-        <property name="SERVLETUTILS" value="WeaveServletUtils"/>
+	<property name="SERVLETUTILS" value="WeaveServletUtils"/>
 
 	<target name="dist" depends="build">
 		<zip destfile="weave.zip">
-		    <zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
-		    <zipfileset file="${basedir}/WeaveServices.war"/>
+			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
+			<zipfileset file="${basedir}/WeaveServices.war"/>
 		</zip>
 	</target>
 	
 	<target name="deploy_war">
 		<zip destfile="weave.zip">
-		    <zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
-		    <zipfileset file="${basedir}/WeaveServices.war"/>
-	    </zip>
+			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
+			<zipfileset file="${basedir}/WeaveServices.war"/>
+		</zip>
 	</target>
 	
 	<target name="install" depends="build">
 		<!-- This target will install the files to WEAVE_DOCROOT. -->
 		<copy todir="${WEAVE_DOCROOT}">
-		    <fileset dir="${WEAVE_DESTROOT}">
+			<fileset dir="${WEAVE_DESTROOT}">
 			<include name="*.swf"/>
 			<include name="*.html"/>
 			<include name="*.js"/>
 			<include name="*.css"/>
-		    </fileset>
+			</fileset>
 		</copy>
-                <copy todir="${WEAVE_DOCROOT}/../">
-                    <fileset dir="${basedir}">
-                        <include name="WeaveServices.war"/>
-                    </fileset>
-                </copy> 
+		<copy todir="${WEAVE_DOCROOT}/../">
+			<fileset dir="${basedir}">
+			<include name="WeaveServices.war"/>
+			</fileset>
+		</copy> 
 	</target>
 
 	<!-- This target will extract the swf files from the swc archives
@@ -92,17 +90,20 @@
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
 		<extract_swc swc="${basedir}/${UISPARK}/bin/${UISPARK}.swc" rsl="${UISPARK}.swf"/>
 		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
-                <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
+		<copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
+		<copy file="${basedir}/${CLIENT}/src/weaveStyle.css" tofile="${WEAVE_DESTROOT}/weaveStyle.css"/>
+		<copy file="${basedir}/${CLIENT}/html-template/playerProductInstall.swf" tofile="${WEAVE_DESTROOT}/playerProductInstall.swf"/>
+		<copy file="${basedir}/${CLIENT}/html-template/swfobject.js" tofile="${WEAVE_DESTROOT}/swfobject.js"/>
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
-                <copy file="${basedir}/${UI}/src/weave/visualization/tools/CytoscapeWebPopout.html" tofile="${WEAVE_DESTROOT}/CytoscapeWebPopout.html"/>
+		<copy file="${basedir}/${UI}/src/weave/visualization/tools/CytoscapeWebPopout.html" tofile="${WEAVE_DESTROOT}/CytoscapeWebPopout.html"/>
 		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
-                <copy failonerror="false" file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
+		<copy failonerror="false" file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
-                <copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
-                <copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
-                <copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
 	</target>
 
 	<!-- These targets will build each project -->
@@ -130,9 +131,9 @@
 	<target name="servletutils">
 		<ant dir="${basedir}/${SERVLETUTILS}" target="build"/>
 	</target>
-        <target name="exampleplugin" depends="ui">
-                <ant dir="${basedir}/${EXAMPLEPLUGIN}" target="build"/>
-        </target>
+	<target name="exampleplugin" depends="ui">
+		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="build"/>
+	</target>
 	<target name="services" depends="servletutils">
 		<ant dir="${basedir}/${SERVICES}" target="dist"/>
 	</target>
@@ -141,8 +142,8 @@
 	<target name="clean">
 		<echo message="Cleaning all projects..."/>
 		<delete quiet="false" includeemptydirs="true" dir="${WEAVE_DESTROOT}">
-		    <fileset file="${basedir}/${SERVICES}.war"/>
-		    <fileset file="${basedir}/weave.zip"/>
+			<fileset file="${basedir}/${SERVICES}.war"/>
+			<fileset file="${basedir}/weave.zip"/>
 		</delete>
 		<ant dir="${basedir}/${CLIENT}" target="clean" />
 		<ant dir="${basedir}/${ADMIN}" target="clean" />

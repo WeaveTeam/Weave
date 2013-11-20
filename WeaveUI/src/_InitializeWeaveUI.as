@@ -24,6 +24,7 @@ package
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
+	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
@@ -39,8 +40,11 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
 	import weave.editors.NumberDataFilterEditor;
+	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
+	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.StringDataFilterEditor;
+	import weave.editors.TransposedDataSourceEditor;
 	import weave.editors.WFSDataSourceEditor;
 	import weave.editors.WMSPlotterEditor;
 	import weave.editors.WeaveDataSourceEditor;
@@ -49,15 +53,19 @@ package
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
+	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GeometryRelationPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
+	import weave.visualization.plotters.ScatterPlotPlotter;
+	import weave.visualization.plotters.SingleImagePlotter;
 	import weave.visualization.plotters.WMSPlotter;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.ColormapHistogramTool;
@@ -101,6 +109,7 @@ package
 			 */
 			//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
 			
+			EditorManager.registerEditor(LinkableTextFormat, FontControl);
 			EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
 			
 			EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
@@ -108,6 +117,7 @@ package
 			EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
 			EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
 			EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			EditorManager.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
 			
 			EditorManager.registerEditor(StringDataFilter, StringDataFilterEditor);
 			EditorManager.registerEditor(NumberDataFilter, NumberDataFilterEditor);
@@ -119,6 +129,8 @@ package
 			EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
 			EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
 			EditorManager.registerEditor(ImageGlyphPlotter, ImageGlyphPlotterEditor);
+			EditorManager.registerEditor(SingleImagePlotter, SingleImagePlotterEditor);
+			EditorManager.registerEditor(ScatterPlotPlotter, ScatterPlotPlotterEditor);
 			
 			EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 	//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
@@ -158,7 +170,7 @@ package
 				RamachandranPlotTool,
 				DataStatisticsTool,
 				RInterfaceTool
-			]).toString();
+			]);
 			
 			/**
 			 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

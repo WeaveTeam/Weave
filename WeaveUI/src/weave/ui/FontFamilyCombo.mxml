@@ -21,27 +21,54 @@
 -->
 <CustomComboBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*"
-		creationComplete="creationComplete();" rowCount="12" dropdownWidth="250">
+		textDecoration="none"
+		fontStyle="normal"
+		fontWeight="normal"
+		rowCount="12"
+		dropdownWidth="250"
+		creationComplete="creationComplete();">
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.collections.Sort;
-			import mx.collections.SortField;
-			import mx.events.FlexEvent;
+			import weave.WeaveProperties;
 			
 			private function creationComplete():void
 			{
 				dropdown.variableRowHeight = true;
 			}
 			
-			override protected function childrenCreated():void
+			private var _embeddedOnly:Boolean = false;
+			private var _fontsInvalid:Boolean = true;
+			
+			public function set embeddedFontsOnly(value:Boolean):void
 			{
-				super.childrenCreated();
-				dataProvider = Font.enumerateFonts(true).sortOn("fontName");
-				labelField = "fontName";
-				setStyle('textDecoration','none'); // no underline
-				setStyle('fontStyle','normal'); // no italic
-				setStyle('fontWeight','normal'); // no bold
+				if (_embeddedOnly != value)
+				{
+					_embeddedOnly = value;
+					_fontsInvalid = true;
+					invalidateProperties();
+				}
+			}
+			
+			private static var _allFonts:Array = null;
+			
+			override public function validateProperties():void
+			{
+				if (_fontsInvalid)
+				{
+					_fontsInvalid = false;
+					if (_embeddedOnly)
+					{
+						dataProvider = WeaveProperties.embeddedFonts;
+					}
+					else
+					{
+						if (!_allFonts)
+							_allFonts = Font.enumerateFonts(true).sortOn("fontName");
+						dataProvider = _allFonts;
+						labelField = "fontName";
+					}
+				}
+				super.validateProperties();
 			}
 		]]>
 	</mx:Script>

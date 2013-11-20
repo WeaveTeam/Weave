@@ -39,7 +39,6 @@ public class RService extends GenericServlet
 
 	public RService()
 	{
-
 	}
 
 	private static Process rProcess = null;
@@ -66,7 +65,7 @@ public class RService extends GenericServlet
 	}
 
 	private String docrootPath = "";
-	private String uploadPath = "";
+	protected String uploadPath = "";
 	private String rServePath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
@@ -77,19 +76,18 @@ public class RService extends GenericServlet
 	    boolean jriStatus;
 	
 	    try
-			{
-				if(RServiceUsingJRI.getREngine() != null)
-						jriStatus = true;
-					else
-						jriStatus = false;
-				
-			}
-			//if JRI not present
-			catch (RServiceUsingJRI.JRIConnectionException e) {
-				e.printStackTrace();
+		{
+			if(RServiceUsingJRI.getREngine() != null)
+				jriStatus = true;
+			else
 				jriStatus = false;
-			}
-	//	}
+		}
+		//if JRI not present
+		catch (RServiceUsingJRI.JRIConnectionException e)
+		{
+			e.printStackTrace();
+			jriStatus = false;
+		}
 		
 		return jriStatus;
 	}
@@ -98,8 +96,8 @@ public class RService extends GenericServlet
 	// the command executed starts the Rserve on windows or unix
 	// On windows: the rServePath needs to be given in the configuration file
 	// On mac: the command R CMD RServe needs to work http://dev.mygrid.org.uk/blog/?p=34
-	private void startRServe() {
-		
+	private void startRServe()
+	{
 		if (rProcess == null && !Strings.isEmpty(rServePath))
 		{
 			if (System.getProperty("os.name").startsWith("Windows")) 
@@ -107,7 +105,8 @@ public class RService extends GenericServlet
 				try 
 				{
 					rProcess = Runtime.getRuntime().exec(rServePath);
-				} catch (Exception e) 
+				}
+				catch (Exception e) 
 				{
 					e.printStackTrace();
 				}
@@ -115,9 +114,12 @@ public class RService extends GenericServlet
 			else 
 			{
 				String[] args = {"R", "CMD", "RServe", "--vanilla"};
-				try {
+				try
+				{
 					rProcess = Runtime.getRuntime().exec(args);
-				} catch (Exception e) {
+				}
+				catch (Exception e)
+				{
 					e.printStackTrace();
 				}
 			}
@@ -125,15 +127,17 @@ public class RService extends GenericServlet
 	}
 	
 	// this function should stop the Rserve... needs revision
-	public void stopRServe() throws IOException {
-	 try {
-		if (rProcess != null )
+	private void stopRServe() throws IOException
+	{
+		try
 		{
-			rProcess.destroy();
+			if (rProcess != null )
+				rProcess.destroy();
 		}
-	 } catch (Exception e) {
-		e.printStackTrace();
-	 }
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public RResult[] runScript( String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
@@ -205,6 +209,4 @@ public class RService extends GenericServlet
 	{
 		return RServiceUsingRserve.handlingMissingData(inputNames, inputValues, outputNames,showIntermediateResults, showWarnings, completeProcess);
 	}
-	
-	
 }

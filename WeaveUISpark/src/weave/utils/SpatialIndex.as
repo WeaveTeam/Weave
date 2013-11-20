@@ -482,13 +482,16 @@ package weave.utils
 		 * return an array of at most one key. Sometimes, it may return more than one key if there are multiple keys
 		 * with equivalent distance to the center of the bounds object.
 		 * 
-		 * @param bounds A bounds used to query the spatial index.
+		 * @param bounds A bounds used to query the spatial index. It will be modified by constraining it to within the dataBounds.
 		 * @param xPrecision If specified, X distance values will be divided by this and truncated before comparing.
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects. 
 		 */		
 		public function getClosestOverlappingKeys(queryBounds:IBounds2D, xPrecision:Number, yPrecision:Number, dataBounds:IBounds2D):Array
 		{
+			var xQueryCenter:Number = queryBounds.getXCenter();
+			var yQueryCenter:Number = queryBounds.getYCenter();
+			dataBounds.constrainBounds(queryBounds, false);
 			var importance:Number = xPrecision * yPrecision;
 			var keys:Array = getKeysGeometryOverlap(queryBounds, importance, false, dataBounds);
 			
@@ -500,8 +503,6 @@ package weave.utils
 			var xRecordCenter:Number;
 			var yRecordCenter:Number;
 			var recordBounds:IBounds2D;
-			var xQueryCenter:Number = queryBounds.getXCenter();
-			var yQueryCenter:Number = queryBounds.getYCenter();
 			var foundQueryCenterOverlap:Boolean = false; // true when we found a key that overlaps the center of the given bounds
 			var tempDistance:Number;
 			// begin with a result of zero shapes

@@ -33,11 +33,11 @@ package weave.data.DataSources
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
-	import weave.api.services.IURLRequestUtils;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -47,13 +47,13 @@ package weave.data.DataSources
 	import weave.utils.VectorUtils;
 
 	/**
-	 * XLSDataSource
-	 * 
 	 * @author skolman
 	 * @author adufile
 	 */
 	public class XLSDataSource extends AbstractDataSource
 	{
+		WeaveAPI.registerImplementation(IDataSource, XLSDataSource, "XLS file");
+
 		public function XLSDataSource()
 		{
 		}
@@ -61,17 +61,16 @@ package weave.data.DataSources
 		override protected function initialize():void
 		{
 			super.initialize();
-//			keyColName.lock();
-//			keyType.lock();
 
-			if (url.value != "" && url.value != null)
+			if (detectLinkableObjectChange(initialize, url) && url.value)
 			{
 				var urlRequest:URLRequest = new URLRequest(url.value);
 				urlRequest.contentType = "application/vnd.ms-excel";
-				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, url.value, URLLoaderDataFormat.BINARY);
 			}
 		}
 
+		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
 		
@@ -84,12 +83,12 @@ package weave.data.DataSources
 			{
 				// loop through column names, adding indicators to hierarchy
 				var firstRow:Array = xlsSheetsArray[0].values[0];
-				var category:XML = <category name="XLS Data"/>;
+				var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
 				for each (var colName:String in firstRow)
 				{
-					category.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
 				}
-				_attributeHierarchy.value = <hierarchy>{ category }</hierarchy>;
+				_attributeHierarchy.value = root;
 			}
 			
 			//trace("hierarchy was set to " + attributeHierarchy.xml);
@@ -99,8 +98,11 @@ package weave.data.DataSources
 		 * handleXLSDownload
 		 * Called when the XLS file is downloaded from the URL
 		 */
-		private function handleXLSDownload(event:ResultEvent, token:Object = null):void
+		private function handleXLSDownload(event:ResultEvent, url:String):void
 		{
+			if (url != this.url.value)
+				return;
+			
 			var xls:ExcelFile = new ExcelFile();
 			xls.loadFromByteArray(ByteArray(event.result));
 			loadXLSData(xls.sheets);
@@ -110,8 +112,11 @@ package weave.data.DataSources
 		 * handleXLSDownloadError
 		 * Called when the XLS file fails to download from the URL
 		 */
-		private function handleXLSDownloadError(event:FaultEvent, token:Object = null):void
+		private function handleXLSDownloadError(event:FaultEvent, url:String):void
 		{
+			if (url != this.url.value)
+				return;
+			
 			reportError(event);
 		}
 		

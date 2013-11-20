@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -38,21 +39,16 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.SortedColumn;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
-	 * PieChartPlotter
-	 * 
 	 * @author adufilie
 	 */
 	public class PieChartPlotter extends AbstractPlotter
 	{
 		public function PieChartPlotter()
 		{
-			var fill:SolidFillStyle = fillStyle.internalObject as SolidFillStyle;
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
 			_beginRadians = newSpatialProperty(EquationColumn);
@@ -76,8 +72,9 @@ package weave.visualization.plotters
 		public function get data():DynamicColumn { return _filteredData.internalDynamicColumn; }
 		public const label:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
-		public const lineStyle:DynamicLineStyle = registerLinkableChild(this, new DynamicLineStyle(SolidLineStyle));
-		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle(SolidFillStyle));
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		
 		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
 		public const innerRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyInnerRadius));
 		
@@ -106,8 +103,8 @@ package weave.visualization.plotters
 			
 			var graphics:Graphics = tempShape.graphics;
 			// begin line & fill
-			lineStyle.beginLineStyle(recordKey, graphics);				
-			fillStyle.beginFillStyle(recordKey, graphics);
+			line.beginLineStyle(recordKey, graphics);				
+			fill.beginFillStyle(recordKey, graphics);
 			// move to center point
 			WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians, 0, 0, 1, innerRadius.value);
 			// end fill
@@ -175,5 +172,9 @@ package weave.visualization.plotters
 		{
 			output.setBounds(-1, -1, 1, 1);
 		}
+		
+		// backwards compatibility
+		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void { try { setSessionState(line, value[0].sessionState); } catch (e:Error) { } }
+		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void { try { setSessionState(fill, value[0].sessionState); } catch (e:Error) { } }
 	}
 }

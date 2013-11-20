@@ -43,7 +43,7 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, lang("Color Legend"));
+			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
 			
 			private var _plotter:ColorBinLegendPlotter = null;
 			
@@ -144,7 +144,7 @@
 			
 			private function handleMarginLabelClick():void
 			{
-				AttributeSelectorPanel.openToolSelector(this,_plotter.dynamicColorColumn);
+				AttributeSelectorPanel.open(_plotter.dynamicColorColumn);
 			}
 			
 			private function updateMarginLabel():void
@@ -211,7 +211,7 @@
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Binning')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
+			<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Appearance')}">
@@ -219,10 +219,14 @@
 						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:LegendControls id="legendControls"/>
-			<mx:HBox>
-				<mx:Label text="{lang('Max bubble size')}"/>
-				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
-			</mx:HBox>
+			<ui:Indent label="{lang('Shape type')}">
+				<ui:CustomComboBox dataProvider="{ColorBinLegendPlotter.ENUM_SHAPE_TYPE}" labelFunction="lang"
+								   creationComplete="linkBindableProperty(_plotter.shapeType, event.target, 'selectedItem')"/>
+			</ui:Indent>
+			<ui:Indent label="{lang('Max shape size')}">
+				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5"
+							creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
+			</ui:Indent>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>
