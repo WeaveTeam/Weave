@@ -133,8 +133,11 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, d
 	this.weave.path(toolName).request('ScatterPlotTool');
 	aws.reportTime("New ScatterPlot added");
 	
-	var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
-	var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
+	//var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
+	//var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
+	
+	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
+	var columnPathY = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
 	
 	this.setCSVColumn(dataSourceName,columnPathX, xColumnName );//setting the X column
 	this.setCSVColumn(dataSourceName, columnPathY, yColumnName );//setting the Y column
@@ -179,11 +182,13 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 
 aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
-	this.weave.requestObject([toolName], 'RadVizTool');
+	//this.weave.requestObject([toolName], 'RadVizTool');
+	this.weave.path(toolName).request('RadVizTool');
 	
 	//populating the Dimensional Anchors
 	for(var i in columnNames){
-		this.setCSVColumn(dataSourceName, [toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i]], columnNames[i]);
+		var columnPath = this.weave.path(toolName,toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i] ).getPath();
+		this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
 	}
 };
 
@@ -202,24 +207,32 @@ aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSourceName) {
 	
 	var toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
-	this.weave.requestObject([toolName], 'CompoundBarChartTool');
+	//this.weave.requestObject([toolName], 'CompoundBarChartTool');
+	this.weave.path(toolName).request('CompoundBarChartTool');
 	
 	//setting the label column
-	var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn']).state(null);
-	
-   	this.setCSVColumn(dataSourceName,labelPath, label);
+	//var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn']).state(null);
+	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').state(null); 
 
-	var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn']).state(null);
+	
+   	this.setCSVColumn(dataSourceName,labelPath.getPath(), label);
+
+	//var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn']).state(null);
+	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').state(null);
     
-    this.setCSVColumn(dataSourceName,sortColumnPath, sort);
+    this.setCSVColumn(dataSourceName,sortColumnPath.getPath(), sort);
 
     // We clear the content of height columns before setting a new one.
-    var heightPath = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns'])
-    						   .state(null);
+   // var heightPath = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns'])
+    						   //.state(null);
+    var heightPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns')
+	   					  .state(null);
     
     for (var i in heights)
 	{
-		this.setCSVColumn(dataSourceName, [toolName,'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns', heights[i]], heights[i]);
+		var heightColumnPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
+		this.setCSVColumn(dataSourceName, heightColumnPath, heights[i]);
+    	//this.setCSVColumn(dataSourceName, [toolName,'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns', heights[i]], heights[i]);
 	}
 	return toolName;
 };
