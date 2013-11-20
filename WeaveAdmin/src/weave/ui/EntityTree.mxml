@@ -39,6 +39,7 @@
 						expandItem(node, true);
 						return node.children ? ArrayCollection(node.children).source : [];
 					}));
+					dispatchEvent(new ListEvent(ListEvent.CHANGE));
 				});
 			}
 			
