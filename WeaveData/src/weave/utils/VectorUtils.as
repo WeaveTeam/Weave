@@ -21,6 +21,9 @@ package weave.utils
 {
 	import flash.utils.Dictionary;
 	
+	import mx.collections.ArrayCollection;
+	import mx.collections.ICollectionView;
+	import mx.collections.IViewCursor;
 	import mx.utils.ObjectUtil;
 	
 	/**
@@ -352,6 +355,24 @@ package weave.utils
 					return i;
 			}
 			return exactMatchOnly ? -1 : i;
+		}
+		
+		public static function getArrayFromCollection(collection:ICollectionView):Array
+		{
+			var array:Array = null;
+			if (collection is ArrayCollection)
+				array = (collection as ArrayCollection).source;
+			if (array)
+				return array.concat();
+			
+			array = [];
+			var cursor:IViewCursor = collection.createCursor();
+			do
+			{
+				array.push(cursor.current);
+			}
+			while (cursor.moveNext());
+			return array;
 		}
 	}
 }
