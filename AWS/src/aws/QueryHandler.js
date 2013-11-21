@@ -139,9 +139,18 @@ aws.QueryHandler.prototype.runQuery = function() {
 	});
 };
 
-
-
 aws.QueryHandler.prototype.clearWeave = function () {
 	this.weaveClient.clearWeave();
 };
 
+aws.QueryHandler.prototype.updateVisualizations = function() {
+	// shweta I added the update visualization button and it calls this function
+	
+	// check if the visualizations array is not empty
+	if (this.visualizations.length != 0) {
+		// do the work
+	} else
+	{
+		// alert("Please select visualization parameters");
+	}
+};

@@ -14,6 +14,13 @@ angular.module("aws.RunQuery", []).controller("RunQueryCtrl", function($scope, q
 			queryHandler.runQuery();
 		};
 		
+		
+		$scope.updateVisualizations = function(){
+			if(queryHandler) {
+				queryHandler.updateVisualizations();
+			}
+		};
+		
 		$scope.clearWeave = function(){
 			if (queryHandler) {
 				queryHandler.clearWeave();
