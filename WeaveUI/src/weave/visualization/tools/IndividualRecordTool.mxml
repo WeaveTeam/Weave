@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
+				   width="400" height="300"
+				   implements="weave.api.ui.IVisToolWithSelectableAttributes" layout="absolute"
+				   title="{lang('Individual Record View')}">
+	<CustomDataGrid:CustomDataGrid id="dataGrid" width="100%" height="100%"/>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.WeaveAPI;
+			import weave.api.data.DataTypes;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableString;
+			import weave.primitives.ColorRamp;
+			import weave.ui.CustomDataGrid.CustomDataGridColumn;
+			import weave.ui.CustomDataGrid.SearchFilterComponent;
+			import weave.ui.CustomDataGrid.SliderFilterComponent;
+			import weave.utils.ColumnUtils;
+			
+			public const colorRamp:ColorRamp = newLinkableChild(this, ColorRamp);
+			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			private const dataGridColumns:Dictionary = new Dictionary();
+			private var _currentDataGridColumns:Array = [];
+			public const drawColor:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
+			WeaveAPI.registerImplementation(IVisTool, IndividualRecordTool, "Individual Record View");
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				dimensionsList.hashMap = columns;
+			}
+			
+			override protected function get defaultPanelTitle():String
+			{
+				return "Individual Record View";
+			}
+			
+			public function getSelectableAttributes():Array
+			{
+				return [columns];
+			}
+			
+			public function getSelectableAttributeNames():Array
+			{
+				return [lang("Columns")];
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if (!parent) 
+					return;
+				
+				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
+				if (columnsChanged)
+				{
+					updateDataGridColumns();
+					super.updateDisplayList(unscaledWidth, unscaledHeight); // avoids crashing below
+				}
+			}
+			
+			private function updateDataGridColumns():void
+			{
+				// if there isn't a parent or the grid isn't fully instantiated, return
+				if (!parent)
+					return callLater(updateDataGridColumns);
+				try
+				{
+					var attrColumns:Array = columns.getObjects();
+					_currentDataGridColumns = [];
+					for each (var attrColumn:IAttributeColumn in attrColumns)
+					{
+						var columnName:String = columns.getName(attrColumn);
+						var dataType:String = ColumnUtils.getDataType(attrColumn);
+						
+						//column Section
+						var dgc:CustomDataGridColumn;
+						if (dataGridColumns[columnName])
+						{
+							dgc = dataGridColumns[columnName];
+						}
+						else
+						{
+							dgc = new CustomDataGridColumn(attrColumn, drawColor, normalizedColoring);
+							dataGridColumns[columnName] = dgc;
+						}
+						
+						_currentDataGridColumns.push(dgc);
+						
+						//filterComponent Section
+						var classDef:Class = null;
+						if (dataType == DataTypes.NUMBER)
+							classDef = SliderFilterComponent;
+						else
+							classDef = SearchFilterComponent;
+						//dgc.filterComponent = filterComponents.requestObject(columnName, classDef, false);
+						
+						//columnWidth section
+						//columnWidths.requestObject(columnName, LinkableString, false);
+						
+					}  
+					dataGrid.columns = _currentDataGridColumns;
+					//numLockedColumns.maximum = Math.max(0, attrColumns.length - 2);
+					//numLockedColumns.enabled = numLockedColumns.maximum > 0;
+				}
+				catch (error:Error)
+				{
+					reportError(error);
+				}
+			}
+			
+			private function normalizedColoring(column:IAttributeColumn, key:Object, cell:UIComponent):Number
+			{
+				var norm:Number = WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key as IQualifiedKey);
+				return colorRamp.getColorFromNorm(norm);
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox label="{lang('Columns')}">
+			<ui:ColumnListComponent id="dimensionsList" width="100%" height="100%"
+									label="{lang('Columns')}" backgroundAlpha="0.7"/>
+		</mx:VBox>			
+	</ui:ControlPanel>
+</ui:DraggablePanel>

@@ -597,6 +597,7 @@ package weave
 		[Deprecated(replacement="getToolToggle")] public function set enableAddGaugeTool(value:Boolean):void { _toggleToolsMenuItem("GaugeTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddHistogram(value:Boolean):void { _toggleToolsMenuItem("HistogramTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAdd2DHistogram(value:Boolean):void { _toggleToolsMenuItem("Histogram2DTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddIndividualRecordView(value:Boolean):void { _toggleToolsMenuItem("IndividualRecordView", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddLineChart(value:Boolean):void { _toggleToolsMenuItem("LineChartTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddDimensionSliderTool(value:Boolean):void { _toggleToolsMenuItem("DimensionSliderTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddMap(value:Boolean):void { _toggleToolsMenuItem("MapTool", value); }
