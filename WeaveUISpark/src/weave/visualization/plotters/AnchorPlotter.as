@@ -410,7 +410,14 @@ package weave.visualization.plotters
 			var anchor2:AnchorPoint;
 			var anchors:Array = [];
 			var index:int;
+			var p1:Point = new Point();
+			var p2:Point = new Point();0
 			
+			// don't draw anything if no anchors
+			if ( !recordKeys || recordKeys.length == 0)
+				return;
+			
+			// convert the array of record keys into array of anchors
 			for(index = 0; index < recordKeys.length; index++)
 			{
 				var anchor:AnchorPoint = recordKeys[index] as AnchorPoint;
@@ -418,39 +425,46 @@ package weave.visualization.plotters
 				if (recordKeys[index].keyType != ANCHOR_KEYTYPE || !anchor)
 					continue;
 				
-				anchors.push(recordKeys[index]);
+				anchors.push(anchor);
 			}
 			
-			var customSort:CustomSort = new CustomSort();
+			// sort by polar angle
+			anchors.sort(anchorCompareFunctionByPolarAngle);
 			
-			customSort.compareFunction = anchorCompareFunctionByPolarAngle;
-			
-			customSort.sort(anchors);
-			
-			for(index = 0; index < recordKeys.length; index++)
+			// draw convex hull
+			for(index = 0; index < anchors.length - 1; index++)
 			{
-				anchor1 = anchors.getObject(recordKeys[index % recordKeys.length].localName) as AnchorPoint;
-				anchor2 = anchors.getObject(recordKeys[index + 1 % recordKeys.length].localName) as AnchorPoint;
+				anchor1 = anchors[index];
+				anchor2 = anchors[index];
 				
-				trace(anchor1.polarRadians.value);
-				
-				var p1:Point = new Point(anchor1.x.value, anchor1.y.value);
-				var p2:Point = new Point(anchor2.x.value, anchor2.y.value);
+				p1.x = anchor1.x.value; p1.y = anchor1.y.value;
+				p2.x = anchor2.x.value;p2.y = anchor2.y.value;
 				dataBounds.projectPointTo(p1, screenBounds);
 				dataBounds.projectPointTo(p2, screenBounds);
-				graphics.lineStyle(3);
+				circleLineStyle.beginLineStyle(null, graphics);
 				graphics.moveTo(p1.x, p1.y);
 				graphics.lineTo(p2.x, p2.y);				
-				graphics.endFill();
 			}
 			
+			// draw the last connecting line between the last anchor and the first one.
+			p1.x = anchors[anchors.length - 1].x.value; p1.y = anchors[anchors.length - 1].y.value;
+			p2.x = anchors[0].x.value; p2.y = anchors[0].y.value;
+			
+			dataBounds.projectPointTo(p1, screenBounds);
+			dataBounds.projectPointTo(p2, screenBounds);
+			graphics.moveTo(p1.x, p1.y);
+			graphics.lineTo(p2.x, p2.y);
+			
+			graphics.endFill();
+			
+			function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Boolean
+			{
+				return a1.polarRadians.value > a2.polarRadians.value;
+			}
 			
 		}
 		
-		private function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Boolean
-		{
-			a1.polarRadians.value > a2.polarRadians.value ? true : false;
-		}
+		
 		
 		public function drawVoronoi(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
 		{

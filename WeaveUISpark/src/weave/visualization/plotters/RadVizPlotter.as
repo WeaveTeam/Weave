@@ -712,7 +712,7 @@ package weave.visualization.plotters
 					linkLengths.push(value/eta);
 				}
 				
-				trace(linkLengths);
+				//trace(linkLengths);
 				// compute the annulus center for a record
 				for (i = 0; i < annCols.length; i++)
 				{
@@ -765,7 +765,7 @@ package weave.visualization.plotters
 				graphics.lineStyle(1, color);
 				color += colorIncrementor;
 				//graphics.drawCircle(coordinate.x, coordinate.y, 30);
-				trace(outerRadius, innerRadius);
+				//trace(outerRadius, innerRadius);
 				graphics.drawCircle(annCenter.x, annCenter.y, outerRadius*circleRadius);
 				graphics.drawCircle(annCenter.x, annCenter.y, innerRadius*circleRadius);
 				
