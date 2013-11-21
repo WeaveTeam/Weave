@@ -408,7 +408,8 @@ package weave.visualization.plotters
 			var graphics:Graphics = g;
 			var anchor1:AnchorPoint;
 			var anchor2:AnchorPoint;
-			var anchors:Array = [];
+			var anchor:AnchorPoint;
+			var _anchors:Array = [];
 			var index:int;
 			var p1:Point = new Point();
 			var p2:Point = new Point();0
@@ -420,23 +421,22 @@ package weave.visualization.plotters
 			// convert the array of record keys into array of anchors
 			for(index = 0; index < recordKeys.length; index++)
 			{
-				var anchor:AnchorPoint = recordKeys[index] as AnchorPoint;
+				 anchor = anchors.getObject(recordKeys[index].localName) as AnchorPoint;
 				
 				if (recordKeys[index].keyType != ANCHOR_KEYTYPE || !anchor)
 					continue;
 				
-				anchors.push(anchor);
+				_anchors.push(anchor);
 			}
 			
 			// sort by polar angle
-			anchors.sort(anchorCompareFunctionByPolarAngle);
+			_anchors.sort(anchorCompareFunctionByPolarAngle);
 			
 			// draw convex hull
-			for(index = 0; index < anchors.length - 1; index++)
+			for(index = 0; index < _anchors.length - 1; index++)
 			{
-				anchor1 = anchors[index];
-				anchor2 = anchors[index];
-				
+				anchor1 = _anchors[index];
+				anchor2 = _anchors[index + 1];
 				p1.x = anchor1.x.value; p1.y = anchor1.y.value;
 				p2.x = anchor2.x.value;p2.y = anchor2.y.value;
 				dataBounds.projectPointTo(p1, screenBounds);
@@ -447,8 +447,8 @@ package weave.visualization.plotters
 			}
 			
 			// draw the last connecting line between the last anchor and the first one.
-			p1.x = anchors[anchors.length - 1].x.value; p1.y = anchors[anchors.length - 1].y.value;
-			p2.x = anchors[0].x.value; p2.y = anchors[0].y.value;
+			p1.x = _anchors[_anchors.length - 1].x.value; p1.y = _anchors[_anchors.length - 1].y.value;
+			p2.x = _anchors[0].x.value; p2.y = _anchors[0].y.value;
 			
 			dataBounds.projectPointTo(p1, screenBounds);
 			dataBounds.projectPointTo(p2, screenBounds);
@@ -457,9 +457,17 @@ package weave.visualization.plotters
 			
 			graphics.endFill();
 			
-			function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Boolean
+			function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Number
 			{
-				return a1.polarRadians.value > a2.polarRadians.value;
+				if(a1.polarRadians.value < a2.polarRadians.value)
+				{
+					return -1;
+				} else if (a1.polarRadians.value > a2.polarRadians.value)
+				{
+					return 1;
+				} else {
+					return 0;
+				}
 			}
 			
 		}
