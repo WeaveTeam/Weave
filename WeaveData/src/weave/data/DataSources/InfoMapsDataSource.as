@@ -128,6 +128,14 @@ package weave.data.DataSources
 			return q;
 		}
 		
+		public function getSourceForURL(url:String):AsyncToken
+		{
+			var q:AsyncToken = InfoMapAdminInterface.instance.getSourceForURL(url);
+			
+			return q;
+		}
+		
+		
 		public function getImageURLForURL(url:String):String
 		{
 			return getColumnValueForURL("imgURL",url) as String;

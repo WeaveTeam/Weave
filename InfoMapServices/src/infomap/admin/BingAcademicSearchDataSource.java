@@ -240,11 +240,12 @@ public class BingAcademicSearchDataSource  extends AbstractDataSource{
 					
 					results.add(d);
 				}
-		
+				httpclient.getConnectionManager().shutdown();
 			}
 			catch(Exception e)
 			{
 				System.out.println("Error getting documents from Bing Service");
+				httpclient.getConnectionManager().shutdown();
 //				e.printStackTrace();
 			}
 	

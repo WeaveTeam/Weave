@@ -56,17 +56,20 @@ public class FileUtils
 	}
 	public static Boolean copyFileFromURL(String url, String destination)
 	{
+		InputStream in = null;
+		FileOutputStream out = null;
 		try{
 			URL l = new URL(url);
 			URLConnection c = l.openConnection();
 			c.connect();
 
-			InputStream in = c.getInputStream();
+			in = c.getInputStream();
 
-			FileOutputStream out =new FileOutputStream(destination);
+			out =new FileOutputStream(destination);
 
 			copy(in, out);
-			
+			in.close();
+			out.close();
 			return true;
 		}catch(Exception e)
 		{

@@ -261,7 +261,11 @@ package weave.services
 				var query:AsyncToken = generateQueryAndRun("getDescriptionForURL",[url,keywords]);
 				return query;
 			}
-			
+			public function getSourceForURL(url:String):AsyncToken
+			{
+				var query:AsyncToken = generateQueryAndRun("getSourceForURL",[url]);
+				return query;
+			}
 			public function saveWeaveFile(content:ByteArray,fileName:String):AsyncToken
 			{
 				var query:AsyncToken = generateQueryAndRun("saveWeaveFile",[content,fileName]);

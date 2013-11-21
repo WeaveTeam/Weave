@@ -74,10 +74,11 @@
 					{
 						super.data = value;
 						if(value == null || outerDocument.parentNode == null)
-						return;
+							return;
 						
 						var t:DocThumbnailComponent = (outerDocument.parentNode).thumbnails.getObject(value.localName) as DocThumbnailComponent;
-						
+						if(t==null)
+							return;
 						//changing background color if document is new/highlighted
 						t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
 						

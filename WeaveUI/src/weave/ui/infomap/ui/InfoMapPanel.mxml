@@ -103,6 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.core.WeaveXMLDecoder;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
@@ -138,7 +139,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.WordProcessingUtils;
 			
 			WeaveAPI.registerImplementation(IVisTool, InfoMapPanel, "InfoMaps Tool");
-			
+			WeaveXMLDecoder.includePackages(InfoMapPanel);
 			/**
 			 * @public
 			 * This is mapping of a link to a node where each node is a defined by a query of keywords,operator and filters

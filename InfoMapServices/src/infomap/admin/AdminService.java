@@ -1670,6 +1670,40 @@ public class AdminService extends GenericServlet {
 		
 	}
 
+	public String getSourceForURL(String url)
+	{
+		setSolrServer(solrServerUrl);
+		
+		if (url == null)
+			return null;
+		String result ="";
+		try {
+			
+			// Query Results are always sorted by descending order of relevance
+			SolrQuery q = new SolrQuery().setQuery("link:\""+url+"\"");
+
+			// set fields to title,date and summary only
+			q.setFields("source");
+			
+			QueryResponse response = solrInstance.query(q);
+			Iterator<SolrDocument> iter = response.getResults().iterator();
+
+			while (iter.hasNext()) 
+			{
+				SolrDocument doc = iter.next();
+				String sourceType = (String) doc.getFieldValue("source");
+				if (sourceType!= null) {
+					result +=sourceType;
+				}
+			}
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return result;
+		
+	}
 	public Object[] getLinksForFilteredQuery(String query, String dateFilter, String[] filterby,
 			int rows,String sources,String sortBy) throws NullPointerException {
 		setSolrServer(solrServerUrl);
