@@ -120,6 +120,8 @@ package weave.visualization.plotters
 		
 		private var pointSensitivityColumns:Array = [];
 		private var annCenterColumns:Array = [];
+		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
 		private function verifyThresholdValue(value:*):Boolean
 		{
 			if(0<=Number(value) && Number(value)<=1)
@@ -664,6 +666,8 @@ package weave.visualization.plotters
 			var name:String;
 			var anchor:AnchorPoint;
 			var i:int = 0;
+			var colorIncrementor:Number = 0x00f0f0;
+			var color:Number = 0xff0000;
 			
 			for each( var key:IQualifiedKey in keys)
 			{
@@ -674,7 +678,7 @@ package weave.visualization.plotters
 				outerRadius = 0;
 				annCenterX = 0;
 				annCenterY = 0;
-				
+
 				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
 				if(key.keyType != requiredKeyType)
 				{
@@ -758,14 +762,18 @@ package weave.visualization.plotters
 				var circleRadius:Number = (center.x - x) / 2;
 
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-				graphics.lineStyle(1, 0xff0000);
+				graphics.lineStyle(1, color);
+				color += colorIncrementor;
 				//graphics.drawCircle(coordinate.x, coordinate.y, 30);
 				trace(outerRadius, innerRadius);
 				graphics.drawCircle(annCenter.x, annCenter.y, outerRadius*circleRadius);
 				graphics.drawCircle(annCenter.x, annCenter.y, innerRadius*circleRadius);
-				// if(drawAnnuliCenter.value) {
-					graphics.drawCircle(annCenter.x, annCenter.y, 5);
-				//}
+				
+				if(showAnnulusCenter.value) {
+					graphics.lineStyle(1, 0);
+					graphics.beginFill(0);
+					graphics.drawCircle(annCenter.x, annCenter.y, 3);
+				}
 				graphics.endFill();
 			}
 		}

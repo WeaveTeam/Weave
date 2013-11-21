@@ -129,6 +129,7 @@ package weave.visualization.plotters
 		public const barycenterLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
 		
 		public const showVoronoi:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const showConvexHull:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public function handleAnchorsChange():void
 		{
@@ -261,6 +262,10 @@ package weave.visualization.plotters
 			{
 				drawVoronoi(recordKeys, dataBounds, screenBounds, graphics, destination);
 			}
+			if(showConvexHull.value)
+			{
+				drawConvexHull(recordKeys, dataBounds, screenBounds, graphics, destination);
+			}
 			destination.draw(tempShape);							
 			
 			_currentScreenBounds.copyFrom(screenBounds);
@@ -367,7 +372,7 @@ package weave.visualization.plotters
 			
 			var barycenter:Point = new Point();
 			var counter:int = 0;
-			var anchor:AnchorPoint;;
+			var anchor:AnchorPoint;
 			
 			// don't draw anything if there are no anchors.
 			if (!recordKeys || !recordKeys.length)
@@ -396,6 +401,55 @@ package weave.visualization.plotters
 			
 			graphics.endFill();
 			
+		}
+		
+		public function drawConvexHull(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		{
+			var graphics:Graphics = g;
+			var anchor1:AnchorPoint;
+			var anchor2:AnchorPoint;
+			var anchors:Array = [];
+			var index:int;
+			
+			for(index = 0; index < recordKeys.length; index++)
+			{
+				var anchor:AnchorPoint = recordKeys[index] as AnchorPoint;
+				
+				if (recordKeys[index].keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
+				anchors.push(recordKeys[index]);
+			}
+			
+			var customSort:CustomSort = new CustomSort();
+			
+			customSort.compareFunction = anchorCompareFunctionByPolarAngle;
+			
+			customSort.sort(anchors);
+			
+			for(index = 0; index < recordKeys.length; index++)
+			{
+				anchor1 = anchors.getObject(recordKeys[index % recordKeys.length].localName) as AnchorPoint;
+				anchor2 = anchors.getObject(recordKeys[index + 1 % recordKeys.length].localName) as AnchorPoint;
+				
+				trace(anchor1.polarRadians.value);
+				
+				var p1:Point = new Point(anchor1.x.value, anchor1.y.value);
+				var p2:Point = new Point(anchor2.x.value, anchor2.y.value);
+				dataBounds.projectPointTo(p1, screenBounds);
+				dataBounds.projectPointTo(p2, screenBounds);
+				graphics.lineStyle(3);
+				graphics.moveTo(p1.x, p1.y);
+				graphics.lineTo(p2.x, p2.y);				
+				graphics.endFill();
+			}
+			
+			
+		}
+		
+		private function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Boolean
+		{
+			a1.polarRadians.value > a2.polarRadians.value ? true : false;
 		}
 		
 		public function drawVoronoi(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void

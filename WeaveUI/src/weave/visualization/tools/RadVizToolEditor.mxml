@@ -570,6 +570,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:CheckBox id="voronoiCheckBox" label="Draw Voronoi Diagram" labelPlacement="left" toolTip="Enabling this will draw the DAs voronoi diagram"
 							 creationComplete="linkBindableProperty(_target._anchorPlotter.showVoronoi, event.target, 'selected')"
 							 paddingLeft="40"/>
+				
+				<mx:CheckBox id="convexhullCheckBox" label="Draw Convex Hull" labelPlacement="left" toolTip="Enabling this will draw the DAs convex hull"
+							 creationComplete="linkBindableProperty(_target._anchorPlotter.showConvexHull, event.target, 'selected')"
+							 paddingLeft="40"/>
+				
 			</mx:HBox>
 			
 			<ui:Indent label="Barycenter point radius" width="100%">
@@ -596,8 +601,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								creationComplete="linkBindableProperty(_target._anchorPlotter.barycenterFillStyle.color.defaultValue, event.target, 'selectedColor')" />
 			</ui:Indent>
 			
+			
+				
+			<mx:CheckBox id="annulusCenterCheckBox" label="Show Annulus Center" labelPlacement="left"
+							 creationComplete="linkBindableProperty(_target._plotter.showAnnulusCenter, event.target, 'selected')"
+							 paddingLeft="40"/>
+			
+			<ui:Indent label="Point Sensitivity Columns"/>
+			
 			<ui:CheckBoxList id="pointSensitivityChecklist"/>
 
+			
 		</mx:VBox>
 	</mx:VBox>
 		
