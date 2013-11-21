@@ -55,7 +55,7 @@ import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityWithChildren;
+import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.PrivateMetadata;
@@ -203,8 +203,10 @@ public class DataService extends GenericServlet
 		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
 		for (int i = 0; i < result.length; i++)
 		{
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(result[i].id) );
-			result[i] = new DataEntityWithChildren(result[i], childIds);
+			int id = result[i].id;
+			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
+			result[i] = new DataEntityWithRelationships(result[i], parentIds, childIds);
 			
 			// prevent user from receiving private metadata
 			result[i].privateMetadata = null;

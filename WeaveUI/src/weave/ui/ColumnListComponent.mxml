@@ -65,6 +65,7 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.core.LinkableWatcher;
 			import weave.utils.ColumnUtils;
 			
 			[Bindable] public var helpContent:*;
@@ -105,6 +106,7 @@
 			[Bindable] private var _internalList:ListBase;
 			private const _internalListChildIndex:int = 1;
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
+			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
 			
 			public function get showVariableNames():Boolean
 			{
@@ -138,14 +140,6 @@
 				controller.beginEditVariableName(object);
 			}
 			
-			[Bindable] private var _visTool:IVisToolWithSelectableAttributes = null;
-			
-			public function set visTool(value:IVisToolWithSelectableAttributes):void
-			{
-				_visTool = value;
-				updateLabel();
-			}
-			
 			private function updateLabel():void
 			{
 				if (!controller.view)
@@ -153,10 +147,11 @@
 					callLater(updateLabel);
 					return;
 				}
-				if (!_visTool)
+				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				if (!tool)
 					return;
-				var names:Array = _visTool.getSelectableAttributeNames();
-				var attrs:Array = _visTool.getSelectableAttributes();
+				var names:Array = tool.getSelectableAttributeNames();
+				var attrs:Array = tool.getSelectableAttributes();
 				var index:int = attrs.indexOf(controller.hashMap);
 				if (index >= 0)
 					label = names[index];
@@ -164,15 +159,13 @@
 			
 			private function openSelector():void
 			{
-				if (_visTool)
-					AttributeSelectorPanel.openToolSelector(_visTool, controller.hashMap, showVariableNames);
-				else
-					AttributeSelectorPanel.openDefaultSelector(controller.hashMap, label, showVariableNames);
+				AttributeSelectorPanel.open(controller.hashMap, label, showVariableNames);
 			}
 			
 			public function set hashMap(value:ILinkableHashMap):void
 			{
 				controller.hashMap = value;
+				toolWatcher.target = AttributeSelectorPanel.getVisTool(value);
 				updateLabel();
 			}
 			public function get hashMap():ILinkableHashMap

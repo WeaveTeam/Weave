@@ -55,6 +55,12 @@
 			private var _button:Button;
 			private var _helpChildren:Array;
 			
+			public function showHelp():void
+			{
+				if (_lastClickedHelpComponent != this)
+					toggleHelpWindow(this);
+			}
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();

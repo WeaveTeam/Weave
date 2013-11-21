@@ -125,9 +125,9 @@
 			private function handleMarginLabelClick():void
 			{
 				if (_barLegendPlotter.columns.getObjects().length == 1 || barChart == null)
-					AttributeSelectorPanel.openDefaultSelector(_colorLegendPlotter.dynamicColorColumn);
+					AttributeSelectorPanel.open(_colorLegendPlotter.dynamicColorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(barChart.heightColumns);
+					AttributeSelectorPanel.open(barChart.heightColumns);
 			}
 			
 			private function updateMarginLabel():void

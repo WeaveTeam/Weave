@@ -24,7 +24,7 @@
 	xmlns:ui="weave.ui.*"
 	label="{lang('Import Data to Weave')}"
 	finishEnabled="false"
-	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*"
+	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 	>
 	<mx:VBox id="upload" width="100%" height="100%">
 	
@@ -77,12 +77,18 @@
 			<mx:Label text="{lang('Unique Identifier Column')}" />
 			<ui:CustomComboBox toolTip="{lang('This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column.')}" selectedIndex="0" id="keyColumnSelector"/>
 		</mx:HBox>
-		<ui:KeyTypesMenu id="keyTypeSelector"/>
-		<mx:HBox id="delimiterBox">
-			<mx:Label text="{lang('Delimiter: ')}"/>
-			<ui:CustomComboBox id="delimiterSelector" toolTip="{lang('If there is a problem, try changing the delimiter (you can also type a different delimiter).')}" editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
-		</mx:HBox>
-		<mx:DataGrid id="grid" height="100%" width="100%"/>
+		<ui:Indent label="Key type" translate="true">
+			<ui:KeyTypesMenu id="keyTypeSelector"/>
+		</ui:Indent>
+		<ui:Indent id="delimiterBox" label="Delimiter" translate="true">
+			<ui:CustomComboBox id="delimiterSelector"
+							   toolTip="{lang('If there is a problem, try changing the delimiter (you can also type a different delimiter).')}"
+							   editable="true"
+							   dataProvider="['Comma','Space','Tab','Semi Colon']"
+							   keyUp="handleDelimiterChange(event)"
+							   change="handleDelimiterChange(event)"/>
+		</ui:Indent>
+		<CustomDataGrid:CustomDataGrid id="grid" height="100%" width="100%" editable="true"/>
 		
 	</mx:VBox>
 	<mx:VBox id="visTools" width="100%">
@@ -202,7 +208,6 @@
 			private var delimiters:Object = new Object();
 			
 			private var _uniqueNameForDataSource:String="";
-			private var _tempArray:Array = [];
 			override public function next():void
 			{
 				super.next();
@@ -216,8 +221,7 @@
 						delimiterBox.visible = true;
 						var delimiter:Object = getDelimiterObject(dataString);
 						delimiterSelector.selectedItem = delimiter.name;
-						_tempArray = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
-						updateCSVDataStringFromArray(_tempArray);
+						setRows(new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text));
 						_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
 						keyTypeSelector.addKeyTypeToMenu(_uniqueNameForDataSource);
 					}
@@ -228,22 +232,19 @@
 				{
 					try
 					{
-						if(csvDataString == "")
-							return;
 						var csvDataSource:CSVDataSource = Weave.root.requestObject(_uniqueNameForDataSource,CSVDataSource, false);
-						csvDataSource.setCSVData(_tempArray);
-						if(keyTypeSelector.selectedKeyType)
+						csvDataSource.setCSVData(grid.getRows());
+						if (keyTypeSelector.selectedKeyType)
 							csvDataSource.keyType.value = keyTypeSelector.selectedKeyType;
 						else
 							csvDataSource.keyType.value = _uniqueNameForDataSource;
-						if(uniqueColumns.length !=0)
-						{
+						
+						if (uniqueColumns.length != 0)
 							csvDataSource.keyColName.value = keyColumnSelector.selectedItem as String;
-						}
 						
 						assignProbeColumnsFromSource(csvDataSource);						
 					}
-					catch(e:Error)
+					catch (e:Error)
 					{
 						reportError(e);
 					}
@@ -312,7 +313,6 @@
 			}
 			
 			private var _fileLoader:FileReference = null;
-			private var csvDataString:String = "";
 			/**
 			 * browseForfiles: opens up a file browser window to upload CSV files 
 			 **/
@@ -357,8 +357,7 @@
 					{
 						dataByteArray = _fileLoader.data;
 						delimiterBox.visible = false;
-						_tempArray= WeaveAPI.CSVParser.parseCSV(dataByteArray.toString());
-						updateCSVDataStringFromArray(_tempArray);						
+						setRows(WeaveAPI.CSVParser.parseCSV(dataByteArray.toString()));						
 						
 					}else if(_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition ){
 						
@@ -401,8 +400,7 @@
 						
 						if(lastRowEmpty)
 							xlsDataArray.pop();
-						_tempArray = xlsDataArray;
-						updateCSVDataStringFromArray(xlsDataArray);
+						setRows(xlsDataArray);
 					}else if(_fileLoader.name.search(".txt") == extensionPosition || _fileLoader.name.search(".TXT") == extensionPosition ){
 						
 						dataByteArray = _fileLoader.data;
@@ -411,8 +409,7 @@
 						var delimiter:Object = getDelimiterObject(fileDataString);
 						delimiterSelector.selectedItem = delimiter.name;
 						var fileDataArray:Array = new CSVParser(false, delimiter.string).parseCSV(fileDataString);
-						_tempArray = fileDataArray;
-						updateCSVDataStringFromArray(fileDataArray);
+						setRows(fileDataArray);
 					}
 					keyColumnSelector.dataProvider = uniqueColumns;
 					uploadMessage.text = lang("Loaded!");
@@ -429,8 +426,7 @@
 			public function CSVFileDrop(data:ByteArray):void
 			{
 				delimiterBox.visible = false;
-				_tempArray = WeaveAPI.CSVParser.parseCSV(data.toString());
-				updateCSVDataStringFromArray(_tempArray);		
+				setRows(WeaveAPI.CSVParser.parseCSV(data.toString()));		
 				
 				keyColumnSelector.dataProvider = uniqueColumns;
 				uploadMessage.text = lang("Loaded!");
@@ -526,26 +522,15 @@
 				}
 				
 				var dataString:String = _fileLoader ? _fileLoader.data.toString() : dataTextArea.text;
-				_tempArray= new CSVParser(false, appliedDemiliter.string).parseCSV(dataString);
 				
-				updateCSVDataStringFromArray(_tempArray);
+				setRows(new CSVParser(false, appliedDemiliter.string).parseCSV(dataString));
 			}
 			
-			private function updateCSVDataStringFromArray(csvDataArray:Array):void
+			private function setRows(csvDataArray:Array):void
 			{
-				//using this to store the order of columns. convertRowsToRecords re-orders the data columns.
-				var headerArray:Array = csvDataArray[0];
-				var columns:Array = [];
-				for (var i:int = 0; i < headerArray.length; i++)
-					columns.push(new DataGridColumn(headerArray[i]));
+				grid.setRows(csvDataArray);
 				
-				
-				csvDataString = WeaveAPI.CSVParser.createCSV(csvDataArray);
-				var csvData:Array = WeaveAPI.CSVParser.convertRowsToRecords(csvDataArray);
 				uniqueColumns = computeUniqueColumnNames(csvDataArray);
-				grid.dataProvider = csvData;
-				//setting the original column order
-				grid.columns = columns;
 				keyColumnSelector.dataProvider = uniqueColumns;
 			}
 			

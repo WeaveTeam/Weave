@@ -21,17 +21,17 @@ package weave
 {
 	import flash.display.BitmapData;
 	import flash.events.Event;
+	import flash.events.NetStatusEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.SharedObject;
+	import flash.net.SharedObjectFlushStatus;
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.controls.Image;
 	import mx.core.UIComponent;
 	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
@@ -195,7 +195,7 @@ package weave
 		public static function setPluginList(newPluginList:Array, newWeaveContent:Object):Boolean
 		{
 			if (debug)
-				reportError("setPluginList " + newPluginList);
+				debugTrace("setPluginList", arguments);
 			// remove duplicates
 			var array:Array = [];
 			for (i = 0; i < newPluginList.length; i++)
@@ -239,13 +239,13 @@ package weave
 				var ILinkableObject_classQName:String = getQualifiedClassName(ILinkableObject);
 				var IVisTool_classQName:String = getQualifiedClassName(IVisTool);
 				
-				function handlePlugin(event:Event, token:Object = null):void
+				function handlePlugin(event:Event, plugin:String):void
 				{
 					var resultEvent:ResultEvent = event as ResultEvent;
 					var faultEvent:FaultEvent = event as FaultEvent;
 					if (resultEvent)
 					{
-						trace("Loaded plugin:", token);
+						trace("Loaded plugin:", plugin);
 						var classQNames:Array = resultEvent.result as Array;
 						for (var i:int = 0; i < classQNames.length; i++)
 						{
@@ -259,9 +259,7 @@ package weave
 					}
 					else
 					{
-						if (debug)
-							reportError("Plugin failed to load: " + token);
-						trace("Plugin failed to load:", token);
+						weaveTrace("Plugin failed to load:", plugin);
 						reportError(faultEvent.fault);
 					}
 					
@@ -361,7 +359,7 @@ package weave
 		public static function loadWeaveFileContent(content:Object):void
 		{
 			if (debug)
-				reportError("loadWeaveFileContent",null,arguments);
+				debugTrace("loadWeaveFileContent", arguments);
 			var plugins:Array;
 			if (content is String)
 				content = XML(content);
@@ -435,12 +433,19 @@ package weave
 		 */
 		public static function externalReload(weaveContent:Object = null):void
 		{
+			if (!ExternalInterface.available)
+			{
+				//TODO: is it possible to restart an Adobe AIR application from within?
+				reportError("Unable to restart Weave when ExternalInterface is not available.");
+				return;
+			}
+			
 			if (!weaveContent)
 				weaveContent = createWeaveFileContent();
 			
 			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
 			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
-			if (ExternalInterface.objectID)
+			if (ExternalInterface.available && ExternalInterface.objectID)
 			{
 				// generate uid to be saved in parent node
 				uid = UIDUtil.createUID();
@@ -452,25 +457,38 @@ package weave
 			if (weaveContent is WeaveArchive)
 				weaveContent = (weaveContent as WeaveArchive).serialize();
 			obj.data[uid] = { date: new Date(), content: weaveContent };
-			obj.flush();
-			obj.close();
 			
-			// reload the application
-			ExternalInterface.call(
-				"function(objectID, reloadID) {" +
-				"  if (objectID) {" +
-				"    var p = document.getElementById(objectID).parentNode;" +
-				"    p.weaveReloadID = reloadID;" +
-				"    p.innerHTML = p.innerHTML;" +
-				"  }" +
-				"  else {" +
-				"    location.reload(false);" +
-				"  }" +
-				"}",
-				ExternalInterface.objectID,
-				uid
-			);
+			if (obj.flush() == SharedObjectFlushStatus.PENDING)
+				obj.addEventListener(NetStatusEvent.NET_STATUS, handleExternalReloadStatus);
+			else
+				handleExternalReloadStatus();
+			
+			function handleExternalReloadStatus(event:NetStatusEvent = null):void
+			{
+				if (event && event.info.code != 'SharedObject.Flush.Success')
+				{
+					reportError(EXTERNAL_RELOAD_ERROR);
+					return;
+				}
+				obj.close();
+				
+				// reload the application
+				if (ExternalInterface.objectID)
+					ExternalInterface.call(
+						"function(reloadID) {" +
+							WeaveAPI.JS_var_weave +
+							"var p = weave.parentNode;" +
+							"p.weaveReloadID = reloadID;" +
+							"p.innerHTML = p.innerHTML;" +
+						"}",
+						uid
+					);
+				else
+					ExternalInterface.call("function(){ location.reload(false); }");
+			}
 		}
+		
+		private static const EXTERNAL_RELOAD_ERROR:String = lang("You must allow Weave to use local storage in order to use this feature.");
 		
 		/**
 		 * This function should be called when the application starts to restore session history after reloading the application.
@@ -479,7 +497,6 @@ package weave
 		public static function handleWeaveReload():Boolean
 		{
 			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
-			var flush:Boolean = false;
 			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
 			if (ExternalInterface.available && ExternalInterface.objectID)
 			{
@@ -487,19 +504,19 @@ package weave
 				{
 					// get uid that was previously saved in parent node
 					uid = ExternalInterface.call(
-						"function(objectID) {" +
-						"  var p = document.getElementById(objectID).parentNode;" +
-						"  var reloadID = p.weaveReloadID;" +
-						"  p.weaveReloadID = undefined;" +
-						"  return reloadID;" +
-						"}",
-						ExternalInterface.objectID
+						'function(){' +
+							WeaveAPI.JS_var_weave +
+							'var p = weave.parentNode;' +
+							'var reloadID = p.weaveReloadID;' +
+							'p.weaveReloadID = undefined;' +
+							'return reloadID;' +
+						'}'
 					);
 				}
 				catch (e:Error)
 				{
 					if (e.errorID == 2060 && e.getStackTrace() == null)
-						e.message = StringUtil.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication.url);
+						e.message = StandardLib.substitute("ExternalInterface caller {0} cannot access the current JavaScript security domain.", WeaveAPI.topLevelApplication.url);
 					reportError(e);
 				}
 			}
@@ -507,12 +524,14 @@ package weave
 			// get session history from shared object
 			var saved:Object = obj.data[uid];
 			if (debug)
-				reportError("handleWeaveReload", null, saved);
+			{
+				weaveTrace("WeaveAPI.JS_var_weave = '" + WeaveAPI.JS_var_weave + "'");
+				debugTrace("handleWeaveReload", obj.data, uid, saved);
+			}
 			if (saved)
 			{
 				// delete session history from shared object
-				delete obj.data[uid];
-				flush = true;
+				obj.setProperty(uid);
 				
 				// restore old session history
 				loadWeaveFileContent(saved.content);
@@ -533,13 +552,10 @@ package weave
 					// ignore error, entry will be deleted
 				}
 				
-				delete obj.data[uid];
-				flush = true;
+				obj.setProperty(uid);
 			}
 			
 			// save changes to shared object
-			if (flush)
-				obj.flush();
 			obj.close();
 			
 			return saved != null;
@@ -557,8 +573,8 @@ package weave
 				return;
 			try
 			{
-				ExternalInterface.call(String(new WeaveStartup()), ExternalInterface.objectID);
-				ExternalInterface.call(String(new WeavePath()), ExternalInterface.objectID);
+				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeaveStartup()) + '}');
+				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeavePath()) + '}');
 			}
 			catch (e:Error)
 			{

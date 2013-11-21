@@ -438,9 +438,9 @@ package weave.data
 				for (c = 0; c < fields.length; c++)
 				{
 					if (headerDepth > 1)
-						row[c] = fields[c][r]; // fields are Arrays
+						row[c] = fields[c][r] || ''; // fields are Arrays
 					else
-						row[c] = fields[c]; // fields are Strings
+						row[c] = fields[c] || ''; // fields are Strings
 				}
 				rows[r] = row;
 			}
@@ -454,7 +454,7 @@ package weave.data
 					if (headerDepth == 1)
 					{
 						// fields is an Array of Strings
-						row[c] = record[fields[c]];
+						row[c] = record[fields[c]] || '';
 					}
 					else
 					{
@@ -464,7 +464,7 @@ package weave.data
 						for each (var field:String in fieldChain)
 							if (cell)
 								cell = cell[field];
-						row[c] = cell;
+						row[c] = cell || '';
 					}
 				}
 				rows[headerDepth + r] = row;

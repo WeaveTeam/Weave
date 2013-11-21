@@ -225,9 +225,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(userControlButton, [_userControlIcon, _userControlIcon2, _userControlIcon], toggleControlPanel, "Change settings");
 				setupControlButton(subMenuButton, _subMenuIcon, null, "Menu");
 				setupControlButton(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder], null);
-				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Minimize");
-				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Maximize");
-				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, "Close");
+				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, TOOLTIP_MINIMIZE);
+				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, TOOLTIP_MAXIMIZE);
+				setupControlButton(closePanelButton, [_closeIcon, _closeIconColor2, _closeIconColor], handleCloseButtonClick, TOOLTIP_CLOSE);
 				
 				zOrderSubMenu.addSubMenuItem(lang('Reset'), function():void { zOrder.value = 0; }, null, function():Boolean { return zOrder.value != 0; });
 				zOrderSubMenu.addSubMenuItem(lang('Always above'), function():void { zOrder.value = Infinity; }, null, function():Boolean { return zOrder.value <= 0; });
@@ -758,7 +758,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if (zOrder.value == 0)
 				{
-					zOrderButton.toolTip = lang("Toggle always above or below");
+					zOrderButton.toolTip = lang(TOOLTIP_ZORDER);
 					setupButtonIcons(zOrderButton, [icon_zOrder, icon_zOrderReverse, icon_zOrder]);
 					zOrderButton.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor]);
 				}
@@ -790,7 +790,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				copyCoordinatesFromSessionedProperties();
 				
 				setupButtonIcons(maximizeButton, maximized.value ? _unmaximizeIcon : _maximizeIcon);
-				maximizeButton.toolTip = maximized.value ? lang("Restore down") : lang("Maximize");
+				maximizeButton.toolTip = maximized.value ? lang("Restore down") : lang(TOOLTIP_MAXIMIZE);
 			}
 			
 			private function handleBorderColorChange():void
@@ -1149,6 +1149,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (!_controlPanel.parent)
 						PopUpManager.addPopUp(_controlPanel, WeaveAPI.topLevelApplication as UIComponent);
 					_controlPanel.sendWindowToForeground();
+					_controlPanel.reposition();
 				}
 				else
 				{
@@ -1156,6 +1157,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			/**
+			 * This will reposition the window at default random coordinates.
+			 */
+			public function reposition():void
+			{
+				panelX.value = getDefaultRandomCoord();
+				panelY.value = getDefaultRandomCoord();
+			}
 			
 			private function setupButtonIcons(button:Button, iconClassOrArray_0icon_1over_2down:Object):void
 			{
@@ -1353,6 +1362,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_dragCanvas.width = width;
 				_dragCanvas.height = height;
 				UIUtils.drawInvisibleHalo(_dragCanvas, -resizeBorderThickness);
+
+				if (_enableMoveResize || _moveImage.visible)
+				{
+					_dragCanvas.graphics.lineStyle(1, borderIsVisible ? thinBorderOverlayColor : thinBorderColor, thinBorderAlpha);
+					_dragCanvas.graphics.drawRect(0, 0, Math.round(width)-1, Math.round(height)-1);
+				}
 			}
 			
 			protected function handleMinimizeButtonClick():void
@@ -1467,10 +1482,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if (panel && panel.escapeKeyClosesPanel)
 						{
 							if (panel == this)
-							{
-								stage.focus = parent;
 								panel.handleEscapeKey();
-							}
 							// we don't want to do anything more
 							return;
 						}
@@ -1495,17 +1507,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**************************************************************************
 			 ************************** BEGIN STATIC SECTION **************************/
 			
+			public static const TOOLTIP_ZORDER:String = "Toggle always above or below";
+			public static const TOOLTIP_MINIMIZE:String = "Minimize";
+			public static const TOOLTIP_MAXIMIZE:String = "Maximize";
+			public static const TOOLTIP_CLOSE:String = "Close";
+			
 			private static const _instances:Dictionary = new Dictionary();
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 			private static const resizeBorderThickness:int = 5;
 			public static var adminMode:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
+			public static var thinBorderOverlayColor:uint = 0xFFFFFF;
+			public static var thinBorderColor:uint = 0;
+			public static var thinBorderAlpha:Number = 0.1;
 			
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
 			 * @param classDef A Class extending DraggablePanel.
+			 * @return The static instance of the given class.
 			 */
-			public static function openStaticInstance(draggablePanelClass:Class):DraggablePanel
+			public static function openStaticInstance(draggablePanelClass:Class):*
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)

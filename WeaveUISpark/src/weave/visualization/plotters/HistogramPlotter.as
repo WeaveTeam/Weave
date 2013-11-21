@@ -35,6 +35,7 @@ package weave.visualization.plotters
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -54,7 +55,7 @@ package weave.visualization.plotters
 		{
 			clipDrawing = true;
 			
-			sumColumnStats = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(sumColumn));
+			aggregateStats = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(columnToAggregate));
 			
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
@@ -68,7 +69,7 @@ package weave.visualization.plotters
 			linkSessionState(filteredKeySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperty(dynamicColorColumn);
+			registerSpatialProperty(fillStyle.color.internalDynamicColumn);
 
 			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
@@ -92,32 +93,61 @@ package weave.visualization.plotters
 		{
 			return fillStyle.color.getInternalColumn() as ColorColumn;
 		}
-		/**
-		 * This column object will always remain for the life of the plotter.
-		 * This function is provided for convenience.
-		 */		
-		public function get dynamicColorColumn():DynamicColumn
-		{
-			return fillStyle.color.internalDynamicColumn;
-		}
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const drawPartialBins:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const sumColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		private var sumColumnStats:IColumnStatistics;
+		public const columnToAggregate:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const aggregationMethod:LinkableString = registerSpatialProperty(new LinkableString(AG_COUNT, verifyAggregationMethod));
 		
+		private static function verifyAggregationMethod(value:String):Boolean { return ENUM_AGGREGATION_METHODS.indexOf(value) >= 0; }
+		public static const ENUM_AGGREGATION_METHODS:Array = [AG_COUNT, AG_SUM, AG_MEAN];
+		public static const AG_COUNT:String = 'count';
+		public static const AG_SUM:String = 'sum';
+		public static const AG_MEAN:String = 'mean';
+		
+		private var aggregateStats:IColumnStatistics;
+
+		private function getAggregateValue(keys:Array):Number
+		{
+			var agCol:IAttributeColumn = columnToAggregate.getInternalColumn();
+			if (!agCol)
+				return 0;
+			
+			var count:int = 0;
+			var sum:Number = 0;
+			for each (var key:IQualifiedKey in keys)
+			{
+				var value:Number = agCol.getValueFromKey(key, Number);
+				if (isFinite(value))
+				{
+					sum += value;
+					count++;
+				}
+			}
+			if (aggregationMethod.value == AG_MEAN)
+				return sum /= count; // convert sum to mean
+			if (aggregationMethod.value == AG_COUNT)
+				return count; // use count of finite values
+			
+			// AG_SUM
+			return sum;
+		}
+
 		/**
 		 * This function returns the collective bounds of all the bins.
 		 */
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
-			if (binCol && !zoomToSubset.value)
+			if (binCol)
 			{
-				var maxHeight:Number = binCol.largestBinSize;
-				if (sumColumn.getInternalColumn())
-					maxHeight = sumColumnStats.getSum();
+				var maxHeight:Number;
+				switch (aggregationMethod.value)
+				{
+					case AG_COUNT: maxHeight = binCol.largestBinSize; break;
+					case AG_SUM: maxHeight = aggregateStats.getSum(); break;
+					case AG_MEAN: maxHeight = aggregateStats.getMean(); break;
+				}
 				output.setBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, maxHeight));
 			}
 			else
@@ -144,18 +174,8 @@ package weave.visualization.plotters
 			}
 			
 			var keysInBin:Array = binCol.getKeysFromBinIndex(binIndex);
-			var binHeight:Number = keysInBin.length;
-			var sumCol:IAttributeColumn = sumColumn.getInternalColumn();
-			if (sumCol)
-			{
-				binHeight = 0;
-				for each (var key:IQualifiedKey in keysInBin)
-				{
-					var value:Number = sumCol.getValueFromKey(key, Number);
-					if (isFinite(value))
-						binHeight += value;
-				}
-			}
+			var agCol:IAttributeColumn = columnToAggregate.getInternalColumn();
+			var binHeight:Number = agCol ? getAggregateValue(keysInBin) : keysInBin.length;
 			
 			initBoundsArray(output).setBounds(binIndex - 0.5, 0, binIndex + 0.5, binHeight);
 		}
@@ -169,7 +189,6 @@ package weave.visualization.plotters
 			return 1;
 		}
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-
 		{
 			var i:int;
 			var binCol:BinnedColumn = internalBinnedColumn;
@@ -198,7 +217,8 @@ package weave.visualization.plotters
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
 			
-			var sumCol:IAttributeColumn = sumColumn.getInternalColumn();
+			var key:IQualifiedKey;
+			var agCol:IAttributeColumn = columnToAggregate.getInternalColumn();
 			var graphics:Graphics = tempShape.graphics;
 			for (i = 0; i < binNames.length; i++)
 			{
@@ -206,19 +226,10 @@ package weave.visualization.plotters
 				var keys:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array;
 				if (!drawPartialBins.value)
 					keys = binCol.getKeysFromBinName(binName);
-				var binHeight:int = keys.length;
-				if (sumCol)
-				{
-					binHeight = 0;
-					for each (var key:IQualifiedKey in keys)
-					{
-						var value:Number = sumCol.getValueFromKey(key, Number);
-						if (isFinite(value))
-							binHeight += value;
-					}
-				}
+				
 				var binIndex:int = allBinNames.indexOf(binName);
-	
+				var binHeight:Number = agCol ? getAggregateValue(keys) : keys.length;
+				
 				// project data coords to screen coords
 				tempPoint.x = binIndex - 0.5; // center of rectangle will be binIndex, width 1
 				tempPoint.y = 0;
@@ -248,10 +259,20 @@ package weave.visualization.plotters
 
 		//------------------------
 		// backwards compatibility
+		[Deprecated(replacement="fillStyle.color.internalDynamicColumn")] public function set dynamicColorColumn(value:Object):void
+		{
+			setSessionState(fillStyle.color.internalDynamicColumn, value);
+		}
 		[Deprecated(replacement="internalBinnedColumn")] public function set binnedColumn(value:Object):void
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			setSessionState(internalBinnedColumn, value);
+		}
+		[Deprecated(replacement="columnToAggregate")] public function set sumColumn(value:Object):void
+		{
+			setSessionState(columnToAggregate, value);
+			if (columnToAggregate.getInternalColumn())
+				aggregationMethod.value = AG_SUM;
 		}
 	}
 }

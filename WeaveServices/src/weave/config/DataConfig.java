@@ -566,13 +566,14 @@ public class DataConfig
 		}
 	}
 	
-	static public class DataEntityWithChildren extends DataEntity
+	static public class DataEntityWithRelationships extends DataEntity
 	{
+		public int[] parentIds;
 		public int[] childIds;
 		
-		public DataEntityWithChildren() { }
+		public DataEntityWithRelationships() { }
 		
-		public DataEntityWithChildren(DataEntity base, int[] childIds)
+		public DataEntityWithRelationships(DataEntity base, int[] parentIds, int[] childIds)
 		{
 			if (base != null)
 			{
@@ -581,6 +582,7 @@ public class DataConfig
 				this.publicMetadata = base.publicMetadata;
 				this.privateMetadata = base.privateMetadata;
 			}
+			this.parentIds = parentIds;
 			this.childIds = childIds;
 		}
 		

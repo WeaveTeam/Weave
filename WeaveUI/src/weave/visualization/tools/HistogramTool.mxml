@@ -28,7 +28,6 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
@@ -37,8 +36,6 @@
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
@@ -64,27 +61,26 @@
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "10";
 				
-				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+				plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
 
 				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				var _this:HistogramTool = this;
-				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.openToolSelector(_this, plotter.sumColumn); });
-				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.openToolSelector(_this, internalDataColumn); });
+				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.columnToAggregate); });
+				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.fillStyle.color); });
 				
-				var fc:FilteredColumn = plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn;
-				initColumnDefaults(fc.internalDynamicColumn);
-				
-				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
+				initColumnDefaults(ColumnUtils.hack_findInternalDynamicColumn(plotter.fillStyle.color));
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				sumColumnComponent.dynamicObject = plotter.sumColumn;
+				columnToAggregateComponent.dynamicObject = plotter.columnToAggregate;
+				plotter.columnToAggregate.addGroupedCallback(this, function():void {
+					agMethodCombo.enabled = plotter.columnToAggregate.getInternalColumn() != null;
+				}, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -93,16 +89,11 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [internalDataColumn, plotter.sumColumn];
+				return [plotter.fillStyle.color, plotter.columnToAggregate];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 
-			private function openAttributeSelector():void
-			{
-				AttributeSelectorPanel.openToolSelector(this,internalDataColumn);
-			}
-						
 			private function updateProbeColumns():void
 			{
 				visualization.additionalProbeColumns = [];
@@ -115,12 +106,13 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Histogram of {0}", ColumnUtils.getTitle(plotter.dynamicColorColumn));
+				return lang("Histogram of {0}", ColumnUtils.getTitle(plotter.fillStyle.color));
 			}
 
 			private var _prevBinnedColumn:BinnedColumn = null;
 			private function handleDynamicColorColumnChange():void
 			{
+				updateProbeColumns();
 				if (!parent)
 					return callLater(handleDynamicColorColumnChange);
 				
@@ -137,29 +129,19 @@
 				
 				
 				_prevBinnedColumn = plotter.internalBinnedColumn;
-				dataColumnComponent.dynamicObject = internalDataColumn;
-			}
-			
-			public function get internalDataColumn():DynamicColumn
-			{
-				try
-				{
-					return (plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn).internalDynamicColumn;
-				}
-				catch (e:Error) { } // do nothing if there is no data column
-				return null;
+				dataColumnComponent.columnWrapper = plotter.fillStyle.color;
 			}
 			
 			private function getYAxisLabel(number:Number):String
 			{
-				return ColumnUtils.deriveStringFromNumber(plotter.sumColumn, number);
+				return ColumnUtils.deriveStringFromNumber(plotter.columnToAggregate, number);
 			}
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
 				
-				visualization.bottomMarginColumn = plotter.dynamicColorColumn;
-				visualization.leftMarginColumn = plotter.sumColumn;
+				visualization.bottomMarginColumn = plotter.fillStyle.color;
+				visualization.leftMarginColumn = plotter.columnToAggregate;
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
@@ -174,19 +156,24 @@
 					xAxisPlotter.setLabelFunction(null);
 				}
 				
-				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.fillStyle.color), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
 				
-				var yColName:String = lang("Number of Records");
-				if (plotter.sumColumn.getInternalColumn())
+				var axisTitle:String = lang("Number of records");
+				if (plotter.columnToAggregate.getInternalColumn() && plotter.aggregationMethod.value != HistogramPlotter.AG_COUNT)
 				{
-					yColName = ColumnUtils.getTitle(plotter.sumColumn);
 					yAxisPlotter.setLabelFunction(getYAxisLabel);
+					var agColTitle:String = ColumnUtils.getTitle(plotter.columnToAggregate);
+					var method:String = plotter.aggregationMethod.value;
+					if (method == HistogramPlotter.AG_MEAN)
+						axisTitle = lang("Mean of {0}", agColTitle);
+					if (method == HistogramPlotter.AG_SUM)
+						axisTitle = lang("Sum of {0}", agColTitle);
 				}
 				else
 				{
 					yAxisPlotter.setLabelFunction(null);
 				}
-				yAxisPlotter.setSideAxisName(yColName, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				yAxisPlotter.setSideAxisName(axisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
@@ -196,11 +183,15 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
 						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent"/>
+			<ui:DynamicColumnComponent id="dataColumnComponent"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="sumColumnComponent"/>
+			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
+			<ui:Indent label="Height aggregation method">
+				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
+								   creationComplete="linkBindableProperty(plotter.aggregationMethod, event.target, 'selectedItem');"/>
+			</ui:Indent>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
 						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>

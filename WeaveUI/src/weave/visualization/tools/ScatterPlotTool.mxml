@@ -26,9 +26,6 @@
 			   >
 	<mx:Script>
 		<![CDATA[
-			import mx.core.mx_internal;
-			import mx.events.SliderEvent;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IQualifiedKey;
@@ -40,16 +37,13 @@
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
-			import weave.core.LinkableNumber;
 			import weave.core.LinkableVariable;
-			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
-			import weave.utils.PlotterUtils;
 			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.RegressionLinePlotter;
@@ -84,20 +78,19 @@
 				xAxisPlotter.setLabelFunction(labelFunctionX);
 				yAxisPlotter.setLabelFunction(labelFunctionY);
 				
-				var self:* = this;
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.dataX); })
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.dataY); })
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataX); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.dataY); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
-				initColumnDefaults(plotter.dataX, plotter.dataY, colorColumn);
+				initColumnDefaults(plotter.dataX, plotter.dataY, ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
 				
 				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
 				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
-				colorColumn.addGroupedCallback(this, updateProbeColumns);
+				plotter.fill.color.internalDynamicColumn.addGroupedCallback(this, updateProbeColumns);
 				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "30";
@@ -134,7 +127,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [plotter.dataX, plotter.dataY, colorColumn, plotter.screenRadius];
+				return [plotter.dataX, plotter.dataY, plotter.fill.color, plotter.screenRadius];
 			}
 		
 			[Bindable]
@@ -315,14 +308,8 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList && attrToIncludeCheckList.indexOf(false) > -1)
-				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
 					probeColumnsCheckBox.selected = true;
-				}
 				
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
@@ -335,41 +322,17 @@
 				if (plotter.dataY.getInternalColumn() && attrToIncludeCheckList[dataYColIndex])
 					columns.push(plotter.dataY.getInternalColumn());
 				
-				var colorColIndex:int = attributes.indexOf(colorColumn);
-				if (colorColumn.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
-					columns.push(colorColumn.getInternalColumn());
+				var colorColIndex:int = attributes.indexOf(plotter.fill.color);
+				if (plotter.fill.color.getInternalColumn() && attrToIncludeCheckList[colorColIndex])
+					columns.push(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color));
 				
 				var sizeColIndex:int = attributes.indexOf(plotter.screenRadius);
 				if(plotter.screenRadius.getInternalColumn() && attrToIncludeCheckList[sizeColIndex])
 					columns.push(plotter.screenRadius.getInternalColumn());
 				
-				if(columns.length>0)
-				{
-					visualization.additionalProbeColumns = columns;
-				}
-				else
-				{
-					visualization.additionalProbeColumns = null;
-				}
-				
-				updateAttributesChecklist();
+				visualization.additionalProbeColumns = columns;
 			}
 			
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
-			}
 			override protected function get defaultPanelTitle():String
 			{
 				return lang("Scatter Plot of {0} -vs- {1}", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
@@ -386,6 +349,7 @@
 				getCallbackCollection(regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			private function updateEquationStyle():void
@@ -510,11 +474,6 @@
 				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
 			}
 			
-			public function get colorColumn():DynamicColumn
-			{
-				return AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color.internalDynamicColumn);
-			}
-			
 			protected function createLegend():void
 			{
 				var sizeBinLegendTool:SizeBinLegendTool = Weave.root.requestObject(null, SizeBinLegendTool, false);
@@ -532,41 +491,15 @@
 		initialize="linkBindableProperty(isVisibleEquationTextBoolean, equationText, 'visible')"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-			<editors:ScatterPlotLayerEditor id="plotEditor" width="100%"/>
+			<editors:ScatterPlotPlotterEditor id="plotEditor" width="100%"/>
 			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist" dataProvider="{getSelectableAttributeNames()}"/>
+			</ui:CheckBoxWithNestedOptions>
 			
 			<!-- @author fkamayou 
 				 Beginning of trendline option 

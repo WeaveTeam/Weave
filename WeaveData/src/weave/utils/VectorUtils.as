@@ -19,6 +19,11 @@
 
 package weave.utils
 {
+	import flash.utils.Dictionary;
+	
+	import mx.collections.ArrayCollection;
+	import mx.collections.ICollectionView;
+	import mx.collections.IViewCursor;
 	import mx.utils.ObjectUtil;
 	
 	/**
@@ -30,6 +35,65 @@ package weave.utils
 	 */
 	public class VectorUtils
 	{
+		private static var _lookup:Dictionary = new Dictionary(true);
+		private static var _lookupId:int = 0;
+		
+		/**
+		 * Computes the union of the items in a list of Arrays. Can also be used to get a list of unique items in an Array.
+		 * @param arrays A list of Arrays.
+		 * @return The union of all the unique items in the Arrays in the order they appear.
+		 */
+		public static function union(...arrays):Array
+		{
+			var result:Array = [];
+			_lookupId++;
+			for each (var array:* in arrays)
+			{
+				for each (var item:* in array)
+				{
+					if (_lookup[item] !== _lookupId)
+					{
+						_lookup[item] = _lookupId;
+						result.push(item);
+					}
+				}
+			}
+			return result;
+		}
+		
+		
+		/**
+		 * Computes the intersection of the items in a list of two or more Arrays.
+		 * @param arrays A list of Arrays.
+		 * @return The intersection of the items appearing in all Arrays, in the order that they appear in the first Array.
+		 */
+		public static function intersection(firstArray:*, secondArray:*, ...moreArrays):Array
+		{
+			moreArrays.unshift(secondArray);
+			
+			var result:Array = [];
+			var item:*;
+			var lastArray:* = moreArrays.pop();
+			
+			_lookupId++;
+			for each (item in lastArray)
+				_lookup[item] = _lookupId;
+			
+			for each (var array:* in moreArrays)
+			{
+				for each (item in array)
+					if (_lookup[item] === _lookupId)
+						_lookup[item] = _lookupId + 1;
+				_lookupId++;
+			}
+			
+			for each (item in firstArray)
+				if (_lookup[item] === _lookupId)
+					result.push(item);
+			
+			return result;
+		}
+		
 		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
@@ -291,6 +355,24 @@ package weave.utils
 					return i;
 			}
 			return exactMatchOnly ? -1 : i;
+		}
+		
+		public static function getArrayFromCollection(collection:ICollectionView):Array
+		{
+			var array:Array = null;
+			if (collection is ArrayCollection)
+				array = (collection as ArrayCollection).source;
+			if (array)
+				return array.concat();
+			
+			array = [];
+			var cursor:IViewCursor = collection.createCursor();
+			do
+			{
+				array.push(cursor.current);
+			}
+			while (cursor.moveNext());
+			return array;
 		}
 	}
 }

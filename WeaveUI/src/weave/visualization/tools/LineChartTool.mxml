@@ -30,10 +30,14 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
+			import weave.api.setSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -98,15 +102,15 @@
 				var self:* = this;
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void {
 					if (_plotter.enableGroupBy.value)
-						AttributeSelectorPanel.openToolSelector(self, labelPlotter.text);
+						AttributeSelectorPanel.open(_plotter.yData);
 					else
-						AttributeSelectorPanel.openToolSelector(self, _plotter.yData);
+						AttributeSelectorPanel.open(labelPlotter.text);
 				});
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void {
 					if (_plotter.enableGroupBy.value)
-						AttributeSelectorPanel.openToolSelector(self, _plotter.columns);
+						AttributeSelectorPanel.open(_plotter.xData);
 					else
-						AttributeSelectorPanel.openToolSelector(self, _plotter.xData);
+						AttributeSelectorPanel.open(_plotter.columns);
 				});
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
@@ -123,6 +127,7 @@
 				
 				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
 				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
+				_plotter.enableGroupBy.addGroupedCallback(this, function():void { probeChecklist.dataProvider = getSelectableAttributeNames(); }, true);
 			}
 
 			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
@@ -157,14 +162,8 @@
 				/* first check to see if select all should be disabled or not */
 				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
 				
-				if(attrToIncludeCheckList && attrToIncludeCheckList.indexOf(false) > -1)
-				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
+				if (attrToIncludeCheckList && attrToIncludeCheckList.indexOf(true) >= 0)
 					probeColumnsCheckBox.selected = true;
-				}
 				
 				var attributes:Array = getSelectableAttributes();
 				var columns:Array = [];
@@ -183,82 +182,54 @@
 						columns = _plotter.columns.getObjects(IAttributeColumn);
 				}
 				
-				var colorIndex:int = attributes.indexOf(colorColumn);
+				var colorIndex:int = attributes.indexOf(_plotter.lineStyle.color);
 				if(attrToIncludeCheckList[colorIndex])
-					columns.unshift(colorColumn);
+					columns.unshift(ColumnUtils.hack_findInternalDynamicColumn(_plotter.lineStyle.color));
 				
 				var labelIndex:int = attributes.indexOf(labelPlotter.text);
 				if(attrToIncludeCheckList[labelIndex])
 					columns.unshift(labelPlotter.text);
 				
-				if(columns.length>0)
-				{
-					visualization.additionalProbeColumns = columns;
-				}
-				else
-				{
-					visualization.additionalProbeColumns = null;
-				}
-				
-				updateAttributesChecklist();
-			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
+				visualization.additionalProbeColumns = columns;
 			}
 			
 			/**
 			 * This function generates a label equation using the current Label column and the plotter's filterColumn
 			 * and makes it the new Label column
 			 */
-			private function updateLabelColumn():void
+			private function generateReverseLookup():void
 			{
 				if(!_plotter.enableGroupBy.value) 
 					return;
-				if(!labelPlotter.text.getInternalColumn())
-					return;
-				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.xData))
-					return;
-				if(labelPlotter.text.getInternalColumn() is EquationColumn)
-					return;
 				
-				var labelColumn:DynamicColumn = new DynamicColumn();
-				labelColumn.requestLocalObjectCopy(labelPlotter.text);
+				var col:IColumnWrapper = labelPlotter.text;
+				// NOTE: the equation column that gets generated does not report the correct keys.
+				// It incorrectly reports the keys of groupBy because those are the keys from the column variables.
+				// Because of this, we cannot rely on it as a key source or a color column.
 				
-				var labelEquation:EquationColumn = labelPlotter.text.requestLocalObject(EquationColumn, false) as EquationColumn;
-				labelEquation.delayCallbacks();
-				labelEquation.variables.requestObjectCopy("labelColumn",labelColumn);
-				labelEquation.variables.requestObjectCopy("keyColumn", _plotter.groupBy);
-				labelEquation.setMetadata(ColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + lang("Equation"));
-				labelEquation.equation.value = 'key = getAssociatedKeys(keyColumn, getKey())[0], getValueFromKey(labelColumn, key, String)';
-				labelEquation.resumeCallbacks();
-				/* 
-				if(!_plotter.lineStyle.color.internalDynamicColumn)
+				var dataColumn:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(col);
+				
+				if (!dataColumn.getInternalColumn())
+					return;
+				if (ColumnUtils.getKeyType(dataColumn) != ColumnUtils.getKeyType(_plotter.groupBy))
+					return;
+				if (dataColumn.getInternalColumn() is EquationColumn)
 					return;
 				
-				if(_plotter.lineStyle.color.internalDynamicColumn is EquationColumn)
-					return;
-				
-				var color:DynamicColumn = new DynamicColumn();
-				color.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
-				
-				var equation:EquationColumn = colorColumn.requestLocalObject(EquationColumn, false) as EquationColumn;
-				equation.variables.copyObject("colorColumn", color);
-				equation.variables.copyObject("key", _plotter.keyColumn);
-				equation.columnTitle = ColumnUtils.getTitle(color)+'Equation';
-				equation.equation.value = 'key = getKeysFromValue(get("key"), getKey(), QKey)[0], getValueFromKey(get("colorColumn"), key, Number)';
-				 */
+				var dataTitle:String = ColumnUtils.getTitle(dataColumn);
+				var dataType:String = ColumnUtils.getDataType(dataColumn);
+				var dataState:Object = getSessionState(dataColumn);
+				var dataEquation:EquationColumn = dataColumn.requestLocalObject(EquationColumn, false) as EquationColumn;
+				dataEquation.delayCallbacks();
+				var dataVariable:DynamicColumn = dataEquation.variables.requestObject("data", DynamicColumn, false);
+				setSessionState(dataVariable, dataState);
+				dataEquation.variables.requestObjectCopy("groupBy", _plotter.groupBy);
+				dataEquation.setMetadata(ColumnMetadata.TITLE, lang("{0} (reverse lookup)", dataTitle));
+				dataEquation.setMetadata(ColumnMetadata.KEY_TYPE, ColumnUtils.getDataType(_plotter.groupBy));
+				dataEquation.setMetadata(ColumnMetadata.DATA_TYPE, dataType);
+				dataEquation.equation.value = 'var associatedKeys = getAssociatedKeys(groupBy, key);\n' +
+					'return associatedKeys ? data.getValueFromKey(associatedKeys[0], dataType) : cast(undefined, dataType);';
+				dataEquation.resumeCallbacks();
 			}
 			
 			private function updateFilterText():void
@@ -276,12 +247,19 @@
 				
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = false;
 				
-				(labelComponent as DynamicColumnComponent).dynamicObject = labelPlotter.text;
+				colorSelector.columnWrapper = _plotter.lineStyle.color;
+				labelSelector.dynamicObject = labelPlotter.text;
+				
+				xDataSelector.dynamicObject = _plotter.xData;
+				yDataSelector.dynamicObject = _plotter.yData;
+				groupBySelector.dynamicObject = _plotter.groupBy;
+				groupLabelSelector.dynamicObject = labelPlotter.text;
+				groupColorSelector.columnWrapper = _plotter.lineStyle.color;
 				
 				linkBindableProperty(labelPlotter.size.defaultValue,labelSizeSlider,"value");
 				linkBindableProperty(labelPlotter.color.defaultValue, colorPicker, "selectedColor");
 
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.shapeSize, shapeSizeSlider, "value");
 				linkBindableProperty(_plotter.lineStyle.weight.defaultValue, thicknessSlider, "value");
 				linkBindableProperty(_plotter.shapeToDraw, shapeCombo, "selectedItem");
@@ -292,31 +270,22 @@
 				{
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
+				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				var names:Array = [lang("Color"), lang("Label")];
 				if (_plotter.enableGroupBy.value)
-					names.push(lang("Y Column"), lang("X Column"), lang("Group by"));
+					return [lang("X values"), lang("Y values"), lang("Group by"), lang("Group color"), lang("Group label"), ];
 				else
-					names.push(lang("Y Values"), lang("X Values"));
-				
-				return names;
+					return [lang("Color"), lang("Label"), lang("Y Columns"), lang("X Columns")];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				var attrs:Array = [colorColumn, labelPlotter.text];
 				if (_plotter.enableGroupBy.value)
-					attrs.push(_plotter.yData, _plotter.xData, _plotter.groupBy);
+					return [_plotter.xData, _plotter.yData, _plotter.groupBy, _plotter.lineStyle.color, labelPlotter.text];
 				else
-					attrs.push(_plotter.columns, _plotter.xColumns);
-				return attrs;
-			}
-			
-			public function get colorColumn():DynamicColumn
-			{
-				return AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.lineStyle.color);
+					return [_plotter.lineStyle.color, labelPlotter.text, _plotter.columns, _plotter.xColumns];
 			}
 			
 			private function getColumnObjects():Array
@@ -481,50 +450,80 @@
 					}
 				}
 			}
+			private var _groupByErrorStrings:Dictionary = new Dictionary(true);
+			private function initDynamicColumnComponent(component:DynamicColumnComponent, helpContent:String):void
+			{
+				component.helpContent = helpContent; 
+				component.errorStringFunction = function():String {
+					if (detectLinkableObjectChange(initDynamicColumnComponent, _plotter, labelPlotter))
+					{
+						var ktX:String = _plotter.xData.getMetadata(ColumnMetadata.KEY_TYPE);
+						var ktY:String = _plotter.yData.getMetadata(ColumnMetadata.KEY_TYPE);
+						var ktGB:String = _plotter.groupBy.getMetadata(ColumnMetadata.KEY_TYPE);
+						var dtGB:String = _plotter.groupBy.getMetadata(ColumnMetadata.DATA_TYPE);
+						var ktC:String = _plotter.lineStyle.color.getMetadata(ColumnMetadata.KEY_TYPE);
+						var ktL:String = labelPlotter.text.getMetadata(ColumnMetadata.KEY_TYPE);
+						
+						for each (var dcc:DynamicColumnComponent in [xDataSelector, yDataSelector, groupBySelector])
+						{
+							_groupByErrorStrings[dcc] = ktX == ktY && ktY == ktGB ? '' : lang(HELP_KT_XYGB);
+							dcc.updateError();
+						}
+						
+						_groupByErrorStrings[groupColorSelector] = dtGB == ktC ? '' : lang(HELP_KT_COLOR);
+						_groupByErrorStrings[groupLabelSelector] = dtGB == ktL ? '' : lang(HELP_KT_LABEL);
+						
+						groupColorSelector.updateError();
+						groupLabelSelector.updateError();
+						
+						generateReverseLookupControls.visible =
+							generateReverseLookupControls.includeInLayout =
+								ktGB == ktL;
+					}
+					
+					return _groupByErrorStrings[component];
+				};
+			}
 			
+			private static const HELP_KT_XYGB:String = "'X', 'Y', and 'Group by' must all have the same keyType.";
+			private static const HELP_KT_COLOR:String = "The keyType of the color column must equal the dataType of the 'Group by' column.";
+			private static const HELP_KT_LABEL:String = "The keyType of the label column must equal the dataType of the 'Group by' column.";
 		]]>
 	</mx:Script>
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" id="labelComponent"/>
-<!--			<mx:TabNavigator width="100%" height="100%" creationPolicy="all"> -->
-			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
-<!--			<ui:ColumnListComponent visTool="{this}"  creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.xAttributeColumns"/>	
-			</mx:TabNavigator>-->
+			<ui:CheckBoxWithNestedOptions id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
+										  label="{lang('Group records by column values (Advanced)')}">
+				<ui:DynamicColumnComponent id="xDataSelector" creationComplete="initDynamicColumnComponent(xDataSelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="yDataSelector" creationComplete="initDynamicColumnComponent(yDataSelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="groupBySelector" creationComplete="initDynamicColumnComponent(groupBySelector, HELP_KT_XYGB)"/>
+				<ui:DynamicColumnComponent id="groupColorSelector" showLinkControl="false" creationComplete="initDynamicColumnComponent(groupColorSelector, HELP_KT_COLOR)"/>
+				<ui:DynamicColumnComponent id="groupLabelSelector" creationComplete="initDynamicColumnComponent(groupLabelSelector, HELP_KT_LABEL)"/>
+				<ui:Indent id="generateReverseLookupControls">
+					<mx:Button label="{lang('Generate reverse lookup for \'Group label\'')}"
+							   click="generateReverseLookup()"/>
+					<ui:HelpComponent>
+						Generates label equation from current Label column if its keyType matches the group-by keyType.
+					</ui:HelpComponent>
+				</ui:Indent>
+				<ui:Indent label="{lang('Customize X values:')}">
+					<mx:TextInput id="xValuesInput" toolTip="{lang('These values will appear on the x axis')}" width="100%"/>
+					<mx:Button label="{lang('Apply')}" click="_plotter.xValues.value = xValuesInput.text;"/>
+					<mx:Button label="{lang('Reset')}" click="_plotter.xValues.value = ''; updateFilterText();"/>
+				</ui:Indent>
+			</ui:CheckBoxWithNestedOptions>
+			<mx:VBox width="100%" height="100%" visible="{!enableGroupByCheckBox.selected}" includeInLayout="{!enableGroupByCheckBox.selected}">
+				<ui:DynamicColumnComponent id="colorSelector" showLinkControl="false"/>
+				<ui:DynamicColumnComponent id="labelSelector"/>
+				<ui:ColumnListComponent creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
+			</mx:VBox>
 		</mx:VBox>
-		<mx:VBox  label="{lang('Mouseover')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List paddingLeft="10" width="100%" borderThickness="0" id="attributesChecklist" selectable="false">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-										outerDocument.attributesChecklist.rowCount = outerDocument.attributesChecklist.dataProvider.length;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
+		<mx:VBox label="{lang('Mouseover info')}">
+			<ui:CheckBoxWithNestedOptions id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)">
+				<ui:CheckBoxList id="probeChecklist"/>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
 			<mx:HBox verticalAlign="middle">
@@ -602,31 +601,6 @@
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to Subset')}" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Grouping')}">
-			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
-						 label="{lang('Group records by column values')}"
-						 toolTip="{lang('Enable/disable grouping data by category value')}"/>
-			<mx:VBox enabled="{enableGroupByCheckBox.selected}" width="100%">
-				
-				<ui:DynamicColumnComponent visTool="{this}" label="{lang('X Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
-										   toolTip="{lang('Attribute to appear on the x axis. All columns must have the same keyType.')}"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-										   toolTip="{lang('Attribute to appear on the y axis. All columns must have the same keyType.')}"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Group by')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
-										   toolTip="{lang('Specify column to get keys from. All columns must have the same keyType.')}"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-										   toolTip="{lang('Attribute used for record label text. All columns must have the same keyType.')}"/>
-				<ui:Indent>
-					<mx:Button label="{lang('Generate label Equation')}" toolTip="{lang('Generates label equation from current Label column if its keyType matches the group-by keyType')}"
-							   click="updateLabelColumn()"/>
-				</ui:Indent>
-				<ui:Indent label="{lang('Customize X values:')}">
-					<mx:TextInput id="xValuesInput" toolTip="{lang('These values will appear on the x axis')}" width="100%"/>
-					<mx:Button label="{lang('Apply')}" click="_plotter.xValues.value = xValuesInput.text;"/>
-					<mx:Button label="{lang('Reset')}" click="_plotter.xValues.value = ''; updateFilterText();"/>
-				</ui:Indent>
-			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

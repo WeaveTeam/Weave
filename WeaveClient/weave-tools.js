@@ -26,6 +26,34 @@ function queryService(url, method, params, resultHandler, queryId)
 }
 
 /**
+ * Makes a batch request to a JSON RPC 2.0 service. This function requires jQuery for the $.post() functionality.
+ * @param {string} url The URL of the service.
+ * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
+ * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
+ * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
+ */
+function bulkQueryService(url, method, queryIdToParams, resultsHandler)
+{
+	var batch = [];
+	for (var queryId in queryIdToParams)
+		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
+	$.post(url, JSON.stringify(batch), handleBatch, "json");
+	function handleBatch(batchResponse)
+	{
+		var results = Array.isArray(queryIdToParams) ? [] : {};
+		for (var i in batchResponse)
+		{
+			var response = batchResponse[i];
+			if (response.error)
+				console.log(JSON.stringify(response, null, 3));
+			else
+				results[response.id] = response.result;
+		}
+		resultsHandler(results);
+	}
+}
+
+/**
  * Queries a Weave data server, assumed to be at the root folder at the current host.
  * Available methods are listed here: http://ivpr.github.io/Weave-Binaries/javadoc/weave/servlets/DataService.html
  * This function requires jQuery for the $.post() functionality.
@@ -70,8 +98,9 @@ function getMatchingColumnEntity(dataTableTitle, columnTitle, resultHandler)
  * @param {Array|WeavePath} path The path to an existing DynamicColumn object, or the path specifying the location to create one inside a LinkableHashMap.
  * @param {number} columnId The id of an attribute column on a Weave server (visible through the Admin Console and in its configuration tables).
  * @param {string=} dataSourceName The name of an existing WeaveDataSource object in the Weave session state.
+ * @param {Array=} sqlParams optional set of parameters to use that correspond to the '?' placeholders in the SQL query on the server.
  */
-function setWeaveColumnId(weave, path, columnId, dataSourceName)
+function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 {
     // convert an Array to a WeavePath object
     if (Array.isArray(path))
@@ -82,6 +111,16 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName)
     		.libs('weave.data.DataSources::WeaveDataSource')
     		.getValue('getNames(WeaveDataSource)[0]');
     
+    var sqlParamsStr = '';
+    if (sqlParams)
+    {
+    	var esc = {'&':'&amp;', '"':'&quot;', '<':'&lt;', '>':'&gt;'}; // for xml encoding
+    	sqlParamsStr = ' sqlParams="' + sqlParams.map(function(value) {
+    		value = '"' + String(value).replace(/(")/g, function(str, item) { return '""'; }) + '"'; // csv encoding
+    		return value.replace(/([\&"<>])/g, function(str, item) { return esc[item]; }); // xml encoding
+    	}).join(',') + '"';
+    }
+    
     // make sure path refers to a DynamicColumn, create a ReferencedColumn inside the DynamicColumn, and set the column reference
     path.request('DynamicColumn')
 		.push(null)
@@ -90,7 +129,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName)
 				.request('HierarchyColumnReference')
 				.state({
 					"dataSourceName": dataSourceName,
-					"hierarchyPath": '<attribute weaveEntityId="'+columnId+'"/>'
+					"hierarchyPath": '<attribute weaveEntityId="'+columnId+'"' + sqlParamsStr + '/>'
 				})
 			.pop()
 		.pop();

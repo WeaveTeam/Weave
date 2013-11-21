@@ -56,7 +56,6 @@
 			import weave.editors.WindowSettingsEditor;
 			import weave.editors.managers.CustomLayerWindow;
 			import weave.primitives.Bounds2D;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.SubMenu;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
@@ -89,11 +88,13 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
+				// hack
 				return ["Color"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [colorColumn];
+				// hack
+				return [Weave.defaultColorColumn];
 			}
 			
 			/**
@@ -212,20 +213,23 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Map " + (colorColumn.getInternalColumn() == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
+				// hack
+				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(Weave.defaultColorColumn);
+				return "Map " + (dc.getInternalColumn() == null ? '' : "of " + ColumnUtils.getTitle(dc));
 			}
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				
-				var backgroundImageCheck:CheckBox = new CheckBox();
-				backgroundImageCheck.label = lang("Ocean background");
-				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				
 				WindowSettingsEditor; // work around compiler error
 				SimpleAxisEditor;
-				windowEditor.addChild(backgroundImageCheck);
+				
+//				var backgroundImageCheck:CheckBox = new CheckBox();
+//				backgroundImageCheck.label = lang("Ocean background");
+//				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
+//				windowEditor.addChild(backgroundImageCheck);
+				
 				windowEditor.removeChild(windowEditor.titleControls);
 				windowEditor.addChildAt(axesEditor.titleControls, 0);
 				
@@ -244,12 +248,13 @@
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
 				
-				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
+				// hack
+				Weave.defaultColorDataColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
 				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
-				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+				Weave.defaultColorDataColumn.addGroupedCallback(this,updateProbeColumns, true);
 				
 				linkBindableProperty(visualization.plotManager.minZoomLevel, this, "zoomSliderMinimum");
 				linkBindableProperty(visualization.plotManager.maxZoomLevel, this, "zoomSliderMaximum");
@@ -317,13 +322,6 @@
 				for each (var button:Button in buttonMap)
 					button.selected = (button == selectedButton);
 			}
-			
-			
-			public function get colorColumn():DynamicColumn
-			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
-			}
-			
 			
 			private function setCenterCoords():void
 			{
@@ -396,18 +394,19 @@
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
-				visualization.graphics.clear();
 				//Needs to be called on the next frame, due to the background getting cleared afterwards by the super functions.
 				callLater(drawBackground);
 			}
 			
 			private function drawBackground():void
 			{
+				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
 					visualization.graphics.lineStyle(0,0,0);
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
+					visualization.graphics.endFill();
 				}
 			}
 			
@@ -521,7 +520,7 @@
 				
 				// set defaults
 				plotter.enabledSizeBy.value = true;
-				copySessionState(AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
+				copySessionState(ColumnUtils.hack_findInternalDynamicColumn(plotter.fill.color), plotter.screenRadius);
 				
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
 				for each (var layerName:String in layerNames)
@@ -927,7 +926,7 @@
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox label="{lang('Layer Visibility')}" verticalGap="10" id="visibleScaleRangesUI">
-			<ui:Indent label="Current Zoom" translate="true" labelTextAlign="left" group="{scaleRangeIndentGroup}">
+			<ui:Indent label="Current Zoom" translate="true" labelAlign="left" group="{scaleRangeIndentGroup}">
 				<mx:HSlider id="scaleRangeTabZoomSlider" 
 							width="100%" 
 							tickInterval="1"
@@ -942,7 +941,7 @@
 								   paddingLeft="0">
 				<mx:itemRenderer>
 					<mx:Component>
-						<ui:Indent labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
+						<ui:Indent labelAlign="left" group="{outerDocument.scaleRangeIndentGroup}" creationComplete="handleCreationComplete()">
 							<mx:Script>
 								<![CDATA[
 									import mx.events.SliderEvent;

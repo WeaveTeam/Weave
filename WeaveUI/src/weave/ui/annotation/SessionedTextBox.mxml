@@ -119,16 +119,15 @@
 			import mx.core.mx_internal;
 			import mx.events.ColorPickerEvent;
 			import mx.events.ListEvent;
-			import mx.events.StateChangeEvent;
 			
 			import weave.Weave;
-			import weave.api.ui.ILinkableContainer;
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.ILinkableContainer;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -482,6 +481,8 @@
 				{
 					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Label");
 					var newTextArea:SessionedTextBox = linkableContainer.getLinkableChildren().requestObject(name, SessionedTextBox,false);
+					if (linkableContainer.getLinkableChildren() == WeaveAPI.globalHashMap)
+						newTextArea.minimizable.value = newTextArea.maximizable.value = true;
 					newTextArea.toggleControlPanel();
 				}
 			}

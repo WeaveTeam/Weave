@@ -47,7 +47,7 @@
 	<ui:CheckBoxWithNestedOptions id="fillEnabled" label="{lang('Enable fill color')}"
 								  creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')">
 		<mx:HBox id="fillColorColumnControls" width="100%" verticalAlign="middle">
-			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}" showLinkControl="false" dynamicObject="{getFillColor(_plotter)}"/>
+			<ui:DynamicColumnComponent id="fillColorColumn" label="{lang('Color')}" showLinkControl="false" columnWrapper="{_plotter.fill.color}"/>
 			<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
 		</mx:HBox>
 		<mx:HBox horizontalGap="{hgap}">
@@ -119,20 +119,15 @@
 			import weave.compiler.StandardLib;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
+			import weave.utils.ColumnUtils;
 			import weave.utils.EventUtils;
 			import weave.visualization.plotters.GeometryPlotter;
 			
 			private const hgap:int = 30;
 			
 			[Bindable] private var _plotter:GeometryPlotter = null;
-			
-			private function getFillColor(plotter:GeometryPlotter):DynamicColumn
-			{
-				return AttributeSelectorPanel.hack_findInternalDynamicColumn(plotter.fill.color.internalDynamicColumn);
-			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{

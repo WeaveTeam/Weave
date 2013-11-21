@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="200"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+		<ui:TextInputWithPrompt change="handleURLTextChange()" id="url" width="300" prompt="http://www.example.com/example.xls"/>
 	</ui:Indent>
 	
 	<mx:HBox visible="{uploadSection.visible}" horizontalAlign="center" width="100%">
@@ -201,11 +201,7 @@
 					return;
 				}
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;
-				
-				
-				var xlsData:Array = WeaveAPI.CSVParser.convertRowsToRecords(xlsDataArray);
-				
-				grid.loadXLSData(xlsData, xlsDataArray[0]);
+				grid.setRows(xlsDataArray, false);
 				
 				PopUpManager.bringToFront(grid);
 			}

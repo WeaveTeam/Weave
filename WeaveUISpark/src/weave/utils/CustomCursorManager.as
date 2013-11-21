@@ -27,6 +27,8 @@ package weave.utils
 	import flash.ui.MouseCursorData;
 	
 	import mx.core.BitmapAsset;
+	
+	import weave.api.WeaveAPI;
 
 	/**
 	 * Easy interface for using native cursors.
@@ -46,14 +48,12 @@ package weave.utils
 			{
 				if (Capabilities.manufacturer == "Adobe Linux" && ExternalInterface.available)
 				{
-					_customCursorsSupported = ExternalInterface.call("function(id) {\
-						try {\
-							var weave = objectID ? document.getElementById(objectID) : document.body.firstChild;\
-							return weave.children.wmode.value != 'transparent';\
-						} catch (e) {\
-							return true;\
-						}\
-					}", ExternalInterface.objectID);
+					_customCursorsSupported = ExternalInterface.call(
+						'function(){ try{' +
+							WeaveAPI.JS_var_weave +
+							'return weave.children.wmode.value != "transparent";' +
+						'} catch (e) { return true; }'
+					);
 				}
 				_initialized = true;
 			}

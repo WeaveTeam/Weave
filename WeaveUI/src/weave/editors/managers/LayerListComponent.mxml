@@ -141,8 +141,8 @@
 								
 							]]>
 						</mx:Script>
-						<mx:CheckBox id="visibleCheckbox" label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
-						<mx:CheckBox id="selectedCheckbox" label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
+						<ui:CustomCheckBox id="visibleCheckbox" label="{lang('Visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+						<ui:CustomCheckBox id="selectedCheckbox" label="{lang('Selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 						<ui:Paragraph id="lbl" textAlign="center"/>
 						<mx:Button label="{lang('Rename')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
 						<mx:Button label="{lang('Edit properties')}" click="openSettingsPanel(data as IPlotter)"/>

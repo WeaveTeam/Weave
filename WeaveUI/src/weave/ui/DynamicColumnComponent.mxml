@@ -84,7 +84,9 @@
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.core.LinkableWatcher;
@@ -117,21 +119,24 @@
 			
 			private const controller:VariableListController = newLinkableChild(this, VariableListController);
 			private const dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleDynamicObject);
+			private const columnWrapperWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumnWrapper);
+			private const toolWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			
+			public function set columnWrapper(columnWrapper:IColumnWrapper):void
+			{
+				columnWrapperWatcher.target = columnWrapper;
+			}
+			
+			private function handleColumnWrapper():void
+			{
+				dynamicObject = ColumnUtils.hack_findInternalDynamicColumn(columnWrapperWatcher.target as IColumnWrapper);
+			}
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				if (controller.dynamicObject == value)
-					return;
-				
 				controller.dynamicObject = value;
 				dynamicObjectWatcher.target = value;
 				
-				updateLabel();
-			}
-			private var _visTool:IVisToolWithSelectableAttributes = null;
-			public function set visTool(value:IVisToolWithSelectableAttributes):void
-			{
-				_visTool = value;
 				updateLabel();
 			}
 			
@@ -145,33 +150,42 @@
 			
 			private function updateLabel():void
 			{
-				if (!_visTool)
+				toolWatcher.target = AttributeSelectorPanel.getVisTool(columnWrapperWatcher.target || dynamicObjectWatcher.target, true);
+				var tool:IVisToolWithSelectableAttributes = toolWatcher.target as IVisToolWithSelectableAttributes;
+				if (!tool)
 					return;
-				var names:Array = _visTool.getSelectableAttributeNames();
-				var attrs:Array = _visTool.getSelectableAttributes();
-				var index:int = attrs.indexOf(controller.dynamicObject);
+				var names:Array = tool.getSelectableAttributeNames();
+				var attrs:Array = tool.getSelectableAttributes();
+				var index:int = attrs.indexOf(columnWrapperWatcher.target || controller.dynamicObject);
 				if (index >= 0)
 					label = names[index];
 			}
 			
 			private function openAttributeSelector():void
 			{
-				if (_visTool)
-					AttributeSelectorPanel.openToolSelector(_visTool, controller.dynamicObject);
-				else
-					AttributeSelectorPanel.openDefaultSelector(controller.dynamicObject, label);
+				AttributeSelectorPanel.open(columnWrapperWatcher.target as ILinkableObject || controller.dynamicObject, label);
 			}
 			
 			private function clearAttribute():void
 			{
-				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(controller.dynamicObject as DynamicColumn);
+				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(controller.dynamicObject as DynamicColumn);
 				if (dc)
 					dc.removeObject();
 			}
 			
-			private function handleDynamicObject():void
+			public function updateError():void
 			{
 				internalList.errorString = _errorStringFunction is Function ? _errorStringFunction() : '';
+			}
+			
+			private function handleDynamicObject():void
+			{
+				if (!internalList)
+				{
+					callLater(handleDynamicObject);
+					return;
+				}
+				updateError();
 				toggleLinkDropDown();
 			}
 			

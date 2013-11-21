@@ -70,13 +70,13 @@ A text editor to change the Session State on the fly.
 					</mx:HBox>
 					<mx:ViewStack id="editors" width="100%" height="100%">
 						<mx:VBox width="100%" height="100%">
-							<mx:HBox width="100%">
+							<mx:HBox width="100%" verticalAlign="middle">
 								<mx:Label id="firstLine" fontFamily="_typewriter"/>
 								<mx:Spacer width="100%"/>
 								<mx:Button label="{lang('Copy path')}" click="copyPathToClipboard();"/>
 								<mx:Button label="{lang('Copy state')}" click="copyToClipboard();"/>
 							</mx:HBox>
-							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()"/>
+							<ui:CodeEditor id="textEditor" focusIn="handleEditorFocusIn()" change="handleTextAreaChange()" wordWrap="{wordWrap.selected}"/>
 							<mx:Label id="lastLine" fontFamily="_typewriter"/>
 						</mx:VBox>
 						<mx:VBox width="100%" height="100%">
@@ -90,9 +90,10 @@ A text editor to change the Session State on the fly.
 						</mx:VBox>
 					</mx:ViewStack>
 					<mx:HBox width="100%">
-						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
+						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer grid view')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
 									 selected="true"/>
 						<mx:CheckBox id="useJSON" label="{lang('Edit as JSON')}" click="loadSessionStateInView()" selected="false"/>
+						<mx:CheckBox id="wordWrap" label="{lang('Word wrap')}" selected="false"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
 					</mx:HBox>
@@ -787,30 +788,19 @@ A text editor to change the Session State on the fly.
 			//-----------------------------------------------------------------
 			
 			// STATIC CODE
-			private static var _:* = function():void {
+			public static var initialize:* = function():void {
 				WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
 				WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, null, handleStagePointClick);
 			}();
 			
-			private static var _instance:SessionStateEditor;
-			public static function getInstance():SessionStateEditor
-			{
-				if (!_instance)
-					_instance = new SessionStateEditor();
-				return _instance;
-			}
-			
 			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
 			{
-				var defaultEditor:SessionStateEditor = getInstance();
-				if (!defaultEditor.parent)
-					PopUpManager.addPopUp(defaultEditor, WeaveAPI.topLevelApplication as DisplayObject);
+				var defaultEditor:SessionStateEditor = DraggablePanel.openStaticInstance(SessionStateEditor);
 				
 				if (rootObject == null)
 					rootObject = WeaveAPI.globalHashMap;
 				
 				defaultEditor.setRootObject(rootObject);
-				defaultEditor.restorePanel();
 			}
 			
 			private static var _profileWithErrorLogPanel:Boolean = true;
@@ -819,7 +809,7 @@ A text editor to change the Session State on the fly.
 			private static function handleStagePointClick():void
 			{
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
-				if (event.stageX == 0 && event.stageY == 0)
+				if (event.stageX <= 1 && event.stageY <= 1)
 				{
 					openConsole();
 					Weave.properties.enableMenuBar.value = true;
@@ -847,18 +837,12 @@ A text editor to change the Session State on the fly.
 				var console:Console;
 				if (_profileWithErrorLogPanel)
 				{
-					var parent:* = ErrorLogPanel.getInstance().parent;
-					
 					ErrorLogPanel.openErrorLog();
 					console = ErrorLogPanel.getInstance().console;
 				}
 				else
 				{
-					var defaultEditor:SessionStateEditor = getInstance();
-					if (!defaultEditor.parent)
-						openDefaultEditor();
-					
-					defaultEditor.restorePanel();
+					var defaultEditor:SessionStateEditor = DraggablePanel.openStaticInstance(SessionStateEditor);
 					// show console
 					if (profileDump && !defaultEditor.showConsole.selected)
 						defaultEditor.toggleShowConsole();

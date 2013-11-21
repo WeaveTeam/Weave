@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
+		<ui:TextInputWithPrompt id="url" width="100%" prompt="http://www.example.com/geoserver/wfs"/>
 	</ui:Indent>
 	<mx:CheckBox label="Swap X and Y coordinate order" id="swapXY"/>
 	<mx:Spacer height="20"/>

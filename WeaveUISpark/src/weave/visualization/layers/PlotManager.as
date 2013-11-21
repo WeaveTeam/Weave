@@ -33,8 +33,6 @@ package weave.visualization.layers
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -493,7 +491,7 @@ package weave.visualization.layers
 			var plotterFromSourceLayer:IPlotterWithGeometries = plotters.getObject(sourceLayer) as IPlotterWithGeometries;
 			if (!plotterFromSourceLayer)
 			{
-				reportError(StringUtil.substitute('Plotter named "{0}" does not exist.', sourceLayer));
+				reportError(StandardLib.substitute('Plotter named "{0}" does not exist.', sourceLayer));
 				return null;
 			}
 				

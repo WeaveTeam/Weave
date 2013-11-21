@@ -31,7 +31,6 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.ICSVExportable;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
@@ -53,7 +52,6 @@ package weave.visualization.tools
 	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
-	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -64,7 +62,7 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer,ICSVExportable
+	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer
 	{
 		public function SimpleVisTool()
 		{
@@ -406,11 +404,6 @@ package weave.visualization.tools
 		override public function dispose():void
 		{
 			super.dispose();
-		}
-		
-		public function exportCSV():String
-		{
-			return ColumnUtils.generateTableCSV(getSelectableAttributes());
 		}
 	}
 }

@@ -34,18 +34,16 @@ package weave.visualization.layers
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
 	
-	import mx.utils.StringUtil;
-	
 	import spark.components.Group;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
@@ -319,7 +317,7 @@ package weave.visualization.layers
 			
 			if (debug && gestureEvent)
 			{
-				weaveTrace(StringUtil.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
+				weaveTrace(StandardLib.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
 			}
 			
 			switch (event.type)
@@ -897,9 +895,9 @@ package weave.visualization.layers
 				lastActiveLayer = name;
 				
 				// get data coords from screen coords
-				var bufferSize:Number = 16; 
+				var bufferSize:Number = Weave.properties.probeBufferSize.value; 
 				
-				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize * 2, bufferSize * 2);
 				tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
 				
 				var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
@@ -911,7 +909,6 @@ package weave.visualization.layers
 				
 				if (!tempDataBounds.overlaps(queryBounds))
 					continue;
-				tempDataBounds.constrainBounds(queryBounds, false);
 				var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
 				//trace(layers.getName(layer),keys);
 				

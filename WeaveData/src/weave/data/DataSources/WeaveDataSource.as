@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
@@ -188,7 +189,7 @@ package weave.data.DataSources
 			
 			//trace("requestHierarchyFromSource("+(subtreeNode?attributeHierarchy.getPathFromNode(subtreeNode).toXMLString():'')+")");
 
-			if (subtreeNode == null || subtreeNode == _attributeHierarchy.value)
+			if (!subtreeNode || subtreeNode == _attributeHierarchy.value)
 			{
 				if (hierarchyURL.value != "" && hierarchyURL.value != null)
 				{
@@ -201,6 +202,9 @@ package weave.data.DataSources
 					// stop if hierarchy is defined
 					return;
 				}
+				
+				_attributeHierarchy.value = <hierarchy/>;
+				
 				//trace("getDataServiceMetadata()");
 
 				// temporary solution
@@ -339,9 +343,9 @@ package weave.data.DataSources
 		/**
 		 * Called when the hierarchy is downloaded from a URL.
 		 */
-		private function handleHierarchyURLDownload(event:ResultEvent, token:Object = null):void
+		private function handleHierarchyURLDownload(event:ResultEvent, url:String):void
 		{
-			if (objectWasDisposed(this))
+			if (objectWasDisposed(this) || url != hierarchyURL.value)
 				return;
 			_attributeHierarchy.value = XML(event.result); // this will run callbacks
 		}
@@ -349,16 +353,18 @@ package weave.data.DataSources
 		/**
 		 * Called when the hierarchy fails to download from a URL.
 		 */
-		private function handleHierarchyURLDownloadError(event:FaultEvent, token:Object = null):void
+		private function handleHierarchyURLDownloadError(event:FaultEvent, url:String):void
 		{
-			reportError(event, null, token);
+			if (url != hierarchyURL.value)
+				return;
+			reportError(event, null, url);
 		}
 		
 		public static const ENTITY_ID:String = 'weaveEntityId';
 		
 		private function generateRootHierarchy(tables:Array, geoms:Array):void
 		{
-			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
+			if (objectWasDisposed(this) || !(_attributeHierarchy.value == <hierarchy/> || !_attributeHierarchy.value))
 				return;
 
 			var tag:XML;
@@ -389,8 +395,8 @@ package weave.data.DataSources
 	
 				//trace("handleGetDataServiceMetadata",ObjectUtil.toString(event));
 
-				if (_attributeHierarchy.value == null)
-					_attributeHierarchy.value = <hierarchy name="Weave Data Service"/>;
+				if (!_attributeHierarchy.value)
+					_attributeHierarchy.value = <hierarchy/>;
 				
 				// add each missing category
 				parent = <category name="Data Tables"/>;
@@ -556,7 +562,7 @@ package weave.data.DataSources
 			var proxyColumn:ProxyColumn = request.proxyColumn;
 			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
 			// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
-			if (hierarchyNode == null)
+			if (!hierarchyNode)
 				hierarchyNode = <attribute/>;
 			else
 				proxyColumn.setMetadata(hierarchyNode);

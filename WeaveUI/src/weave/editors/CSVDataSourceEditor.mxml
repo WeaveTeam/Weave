@@ -32,12 +32,13 @@
 		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
-		<mx:TextInput change="handleURLTextChange()" id="url" width="100%" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+		<ui:TextInputWithPrompt change="handleURLTextChange()" id="url" width="100%" prompt="http://www.example.com/example.csv"/>
 	</ui:Indent>
 	<mx:VBox width="100%" enabled="{url.text?false:true}">
 		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
 		<ui:Indent group="{indentGroup}" label="{lang('Open local CSV file')}">
-			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
+			<mx:Button label="{lang('Open file')}" click="append = false; browseForFiles()"/>
+			<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 			<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 		</ui:Indent>
 		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
@@ -47,7 +48,7 @@
 		<mx:Button label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()" enabled="{!arrayIsEmpty(csvRows)}"/>
 	</mx:VBox>
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type *')}">
 		<ui:KeyTypesMenu id="keyTypeSelector"/>
@@ -71,6 +72,7 @@
 			import weave.editors.managers.EditDataGridPanel;
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
+			import weave.utils.VectorUtils;
 			
 			[Bindable] private var indentGroup:IndentGroup = new IndentGroup();
 			
@@ -132,7 +134,7 @@
 				_csvDataSource.csvData.setSessionState(csvRows);
 			}
 			
-			
+			private var append:Boolean = false;
 			private var _fileLoader:FileReference = null;
 			/**
 			* browseForfiles: opens up a file browser window to upload CSV files 
@@ -162,7 +164,21 @@
 			// called when parser finishes
 			private function handleCSVParser():void
 			{
-				setCSVRows(csvParser.parseResult);
+				if (append)
+				{
+					var newRows:Array = csvParser.parseResult;
+					setCSVRows(
+						WeaveAPI.CSVParser.convertRecordsToRows(
+							VectorUtils.flatten(
+								WeaveAPI.CSVParser.convertRowsToRecords(newRows),
+								WeaveAPI.CSVParser.convertRowsToRecords(csvRows)
+							),
+							VectorUtils.union(headerArray, newRows[0])
+						)
+					);
+				}
+				else
+					setCSVRows(csvParser.parseResult);
 			}
 			private function setCSVRows(rows:Array):void
 			{
@@ -185,7 +201,6 @@
 			
 			private const csvParser:CSVParser = new CSVParser(true);
 			[Bindable] private var csvRows:Array = [];
-			private var csvRecords:Array = [];
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
@@ -205,25 +220,13 @@
 				//Listen for save changes in Data Grid Editor
 				grid.saveButton.addEventListener(MouseEvent.CLICK, handleSaveButtonClick);
 				
-				//Every time we load data into the grid we get the data from the csvDataString and not from csvDataArray. 
-				//Because if data is modified in the gird it is saved to the csvDataArray irrespective of whether the user clicks the Save button or not.
-				//when data is saved in the Grid it is saved to the csvDataString. When the grid is re-opened, csvDataArray is recreated.  
-				//csvDataArray acts as the global object for CSVDataSourceEditor and DataGridEditor to modify the csv data.
-				csvRecords = WeaveAPI.CSVParser.convertRowsToRecords(csvRows);
-				
-				grid.loadData(csvRecords, headerArray);
+				grid.setRows(csvRows, true);
 				
 				PopUpManager.bringToFront(grid);
 				
 				function handleSaveButtonClick(event:MouseEvent):void
 				{
-					// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
-					for each (var item:Object in csvRecords)
-						delete item['mx_internal_uid'];
-					
-					// get new column order
-					headerArray = grid.tableEditor.columns.map(function(col:DataGridColumn, ..._):String { return col.dataField; });
-					csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords, headerArray);
+					setCSVRows(grid.getRows());
 					
 					//if the data entered through the text area, clear the text area
 					if (csvTextArea.text != "")

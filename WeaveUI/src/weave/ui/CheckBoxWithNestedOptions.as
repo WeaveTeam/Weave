@@ -21,16 +21,12 @@ package weave.ui
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	
-	import flashx.textLayout.formats.VerticalAlign;
-	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.HBox;
 	import mx.containers.VBox;
-	import mx.controls.CheckBox;
 	import mx.core.mx_internal;
 	
 	import weave.core.UIUtils;
-	import weave.utils.EventUtils;
 	
 	[DefaultProperty("children")]
 	[Event(name="change", type="flash.events.Event")]
@@ -54,7 +50,7 @@ package weave.ui
 		}
 		
 		public const indent:int = 20;
-		public const checkBox:CheckBox = new CheckBox();
+		public const checkBox:CustomCheckBox = new CustomCheckBox();
 		public const topHBox:HBox = new HBox();
 		public const innerVBox:VBox = new VBox();
 		

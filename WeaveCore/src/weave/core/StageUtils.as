@@ -132,7 +132,10 @@ package weave.core
 		private const _priorityCallLaterQueues:Array = [[], [], [], []];
 		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
-		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 100, 65, 35]; // An Array of allocated times corresponding to callLater queues.
+		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
+		private var _deactivated:Boolean = true; // true when application is deactivated
+		private var _deactivatedFrameRate:Boolean = false; // true when deactivated and framerate drop detected
+		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
 
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -291,6 +294,7 @@ package weave.core
 		 */
 		private function handleCallLater():void
 		{
+			var maxComputationTime:uint = _deactivatedFrameRate ? _deactivatedMaxComputationTimePerFrame : maxComputationTimePerFrame;
 			if (_event.type == Event.ENTER_FRAME)
 			{
 				resetDebugTime();
@@ -298,10 +302,11 @@ package weave.core
 				if (debug_fps)
 				{
 					frameTimes.push(previousFrameElapsedTime);
-					if (frameTimes.length == 24)
+					if (StandardLib.sum(frameTimes) >= 1000)
 					{
-						averageFrameTime = StandardLib.mean.apply(null, frameTimes);
-						trace(Math.round(1000 / averageFrameTime),'fps; max computation time',maxComputationTimePerFrame);
+						averageFrameTime = StandardLib.mean(frameTimes);
+						var fps:Number = StandardLib.roundSignificant(1000 / averageFrameTime, 2);
+						trace(fps,'fps; max computation time',maxComputationTime);
 						frameTimes.length = 0;
 					}
 				}
@@ -319,7 +324,7 @@ package weave.core
 			var args:Array;
 			var stackTrace:String;
 			var now:int;
-			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
+			var allStop:int = _currentFrameStartTime + maxComputationTime;
 
 			_currentTaskStopTime = allStop; // make sure _iterateTask knows when to stop
 
@@ -356,6 +361,8 @@ package weave.core
 			var lastPriority:int = _activePriority == minPriority ? _priorityCallLaterQueues.length - 1 : _activePriority - 1;
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
+			if (_deactivatedFrameRate)
+				pAlloc = pAlloc * _deactivatedMaxComputationTimePerFrame / maxComputationTimePerFrame;
 			var pStop:int = Math.min(allStop, pStart + pAlloc - _activePriorityElapsedTime); // continue where we left off
 			queue = _priorityCallLaterQueues[_activePriority] as Array;
 			countdown = queue.length;
@@ -372,7 +379,11 @@ package weave.core
 					
 					// if max computation time was reached for this frame or we have visited all priorities, stop now
 					if (now > allStop || _activePriority == lastPriority)
+					{
+						if (debug_fps)
+							trace('spent',currentFrameElapsedTime,'ms');
 						return;
+					}
 					
 					// see if there are any entries left in the queues (except for the immediate queue)
 					var remaining:int = 0;
@@ -389,6 +400,8 @@ package weave.core
 						_activePriority = minPriority;
 					pStart = now;
 					pAlloc = int(_priorityAllocatedTimes[_activePriority]);
+					if (_deactivatedFrameRate)
+						pAlloc = pAlloc * _deactivatedMaxComputationTimePerFrame / maxComputationTimePerFrame;
 					pStop = Math.min(allStop, pStart + pAlloc);
 					queue = _priorityCallLaterQueues[_activePriority] as Array;
 					countdown = queue.length;
@@ -658,6 +671,8 @@ package weave.core
 		{
 			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
 			var isEnterFrameEvent:Boolean = eventType == Event.ENTER_FRAME;
+			var isActivateEvent:Boolean = eventType == Event.ACTIVATE;
+			var isDeactivateEvent:Boolean = eventType == Event.DEACTIVATE;
 			var isMouseDownEvent:Boolean = eventType == MouseEvent.MOUSE_DOWN;
 			var isClickEvent:Boolean = eventType == MouseEvent.CLICK;
 			var isMouseMoveEvent:Boolean = eventType == MouseEvent.MOUSE_MOVE;
@@ -667,6 +682,15 @@ package weave.core
 			// this function is responsible for setting all event-related static variables and determining when to trigger meta events
 			var captureListener:Function = function (event:Event):void
 			{
+				// detect deactivated framerate (when app is hidden)
+				if (_deactivated && isEnterFrameEvent)
+				{
+					var wasted:int = getTimer() - _eventTime;
+					if (debug_fps)
+						trace('wasted', wasted);
+					_deactivatedFrameRate = wasted > 100;
+				}
+				
 				// set event variables
 				_event = event;
 				_eventTime = getTimer();
@@ -682,6 +706,13 @@ package weave.core
 					// sanity check
 					if (maxComputationTimePerFrame == 0)
 						maxComputationTimePerFrame = 100;
+				}
+				else if (isActivateEvent || isDeactivateEvent)
+				{
+					if (debug_fps)
+						trace(isActivateEvent ? 'activated' : 'deactivated');
+					_deactivated = isDeactivateEvent;
+					_deactivatedFrameRate = false;
 				}
 				
 				var keyboardEvent:KeyboardEvent = event as KeyboardEvent;

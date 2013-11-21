@@ -81,10 +81,10 @@ package weave.data.DataSources
 		private function validateKeyType():void
 		{
 			// make sure keyType is set
-			if (internalData.keyType == null)
+			if (internalData.transposedKeyType == null)
 			{
 				var owner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
-				internalData.keyType = owner ? owner.getName(this) : DataTypes.STRING;
+				internalData.transposedKeyType = owner ? owner.getName(this) : DataTypes.STRING;
 			}
 		}
 		
@@ -96,14 +96,14 @@ package weave.data.DataSources
 			var objects:Array = columns.getObjects();
 			
 			// update transposed keys to correspond to column names
-			internalData.transposedKeys = WeaveAPI.QKeyManager.getQKeys(internalData.keyType, names);
+			internalData.transposedKeys = WeaveAPI.QKeyManager.getQKeys(internalData.transposedKeyType, names);
 			
 			// update column lookup
-			internalData.columnsArray = objects;
+			internalData.sourceColumnsArray = objects;
 			for (var i:int = 0; i < names.length; i++)
-				internalData.columnNameIndex[names[i]] = i;
+				internalData.sourceColumnNameToIndex[names[i]] = i;
 			if (columns.childListCallbacks.lastNameRemoved)
-				delete internalData.columnNameIndex[columns.childListCallbacks.lastNameRemoved];
+				delete internalData.sourceColumnNameToIndex[columns.childListCallbacks.lastNameRemoved];
 			
 			setColumnKeySources();
 		}
@@ -112,7 +112,7 @@ package weave.data.DataSources
 		{
 			// get union of original keys
 			(filteredKeySet as FilteredKeySet).setColumnKeySources(
-				VectorUtils.flatten(internalData.columnsArray, metadata.getObjects())
+				VectorUtils.flatten(internalData.sourceColumnsArray, metadata.getObjects())
 			);
 		}
 		
@@ -143,7 +143,7 @@ package weave.data.DataSources
 			{
 				validateKeyType();
 
-				var hierarchy:XML = <hierarchy title={ internalData.keyType }/>;
+				var hierarchy:XML = <hierarchy title={ internalData.transposedKeyType }/>;
 				
 				var metaCategory:XML = <category title={ lang('Source column metadata') }/>;
 				var propertyName:String;
@@ -231,18 +231,34 @@ internal class InternalData
 	public var callbacks:ICallbackCollection;
 	public var triggerCounter:uint = 0;
 	
-	public var columnsArray:Array = [];
-	public var columnNameIndex:Object = {};
+	public var sourceColumnsArray:Array = [];
+	public var sourceColumnNameToIndex:Object = {};
+	public var sourceMetadataCache:Object;
 	public var transposedKeys:Array = [];
-	public var keyType:String;
-	public var metadataCache:Object;
+	public var transposedKeyType:String;
+	public var deriveStringFromNumber:Function;
+	
+	public var lastError:String;
+	public var lastErrorColumn:IAttributeColumn;
+	public function errorHandler(e:Error):void
+	{
+		var str:String = e is Error ? e.message : String(e);
+		str = StandardLib.substitute("Error in string formatting script for transposed column {0}:\n{1}", lastErrorColumn.getMetadata(ColumnMetadata.TITLE), str);
+		if (lastError != str)
+		{
+			lastError = str;
+			reportError(e);
+		}
+	}
+
+	
 	public function getMetadataPropertyNames():Array
 	{
 		if (detectLinkableObjectChange(getMetadataPropertyNames, dataSource.columns))
 		{
 			// get sorted union of all metadata property names from data columns
 			var propertyNameHash:Object = {};
-			for each (var column:IAttributeColumn in columnsArray)
+			for each (var column:IAttributeColumn in sourceColumnsArray)
 				VectorUtils.fillKeys(propertyNameHash, column.getMetadataPropertyNames());
 			_metadataPropertyNames = VectorUtils.getKeys(propertyNameHash);
 			ColumnUtils.sortMetadataPropertyNames(_metadataPropertyNames);
@@ -264,17 +280,21 @@ import weave.utils.ColumnUtils;
 import weave.utils.EquationColumnLib;
 import weave.api.data.DataTypes;
 import weave.compiler.ProxyObject;
+import weave.api.data.IPrimitiveColumn;
+import weave.compiler.StandardLib;
+import weave.compiler.Compiler;
+import weave.api.reportError;
 
-internal class TransposedRecord implements IAttributeColumn, IDisposableObject
+internal class TransposedRecord implements IAttributeColumn, IDisposableObject, IPrimitiveColumn
 {
 	private var dataSource:TransposedDataSource;
 	private var columnCallbacks:ICallbackCollection;
 	private var internalData:InternalData;
 	private var callbacks:ICallbackCollection;
-	private var originalKey:IQualifiedKey;
-	private var metadataName:String;
+	private var sourceKey:IQualifiedKey;
+	private var sourceMetadataName:String;
 	
-	public function TransposedRecord(dataSource:TransposedDataSource, internalData:InternalData, originalKey:IQualifiedKey, metadataName:String)
+	public function TransposedRecord(dataSource:TransposedDataSource, internalData:InternalData, sourceKey:IQualifiedKey, metadataName:String)
 	{
 		registerDisposableChild(dataSource, this);
 		
@@ -282,8 +302,8 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject
 		this.columnCallbacks = getCallbackCollection(dataSource.columns);
 		this.internalData = internalData;
 		this.callbacks = getCallbackCollection(dataSource);
-		this.originalKey = originalKey;
-		this.metadataName = metadataName;
+		this.sourceKey = sourceKey;
+		this.sourceMetadataName = metadataName;
 	}
 	
 	public function dispose():void
@@ -292,8 +312,8 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject
 		columnCallbacks = null;
 		internalData = null;
 		callbacks = null;
-		originalKey = null;
-		metadataName = null;
+		sourceKey = null;
+		sourceMetadataName = null;
 	}
 	
 	public function get keys():Array
@@ -303,15 +323,15 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject
 	
 	public function containsKey(key:IQualifiedKey):Boolean
 	{
-		return key.keyType == internalData.keyType
-			&& internalData.columnNameIndex.hasOwnProperty(key.localName);
+		return key.keyType == internalData.transposedKeyType
+			&& internalData.sourceColumnNameToIndex.hasOwnProperty(key.localName);
 	}
 	
 	private static const META_META_PROPERTY_NAMES:Array = [ColumnMetadata.TITLE, ColumnMetadata.DATA_TYPE];
 	
 	public function getMetadataPropertyNames():Array
 	{
-		if (metadataName)
+		if (sourceMetadataName)
 			return META_META_PROPERTY_NAMES;
 		
 		return internalData.getMetadataPropertyNames();
@@ -319,12 +339,21 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject
 	
 	public function getMetadata(propertyName:String):String
 	{
+		// when columns change, reset cached metadata
+		if (internalData.triggerCounter != columnCallbacks.triggerCounter)
+		{
+			internalData.triggerCounter = columnCallbacks.triggerCounter;
+			internalData.sourceMetadataCache = {};
+			internalData.deriveStringFromNumber = null;
+		}
+		
 		// since this column is a transposed record, keyType is a custom value
 		if (propertyName == ColumnMetadata.KEY_TYPE)
-			return internalData.keyType;
+			return internalData.transposedKeyType;
 		
-		if (metadataName)
+		if (sourceMetadataName)
 		{
+			// metadata for transposed metadata columns
 			if (propertyName == ColumnMetadata.TITLE)
 				return propertyName;
 			if (propertyName == ColumnMetadata.DATA_TYPE)
@@ -332,43 +361,72 @@ internal class TransposedRecord implements IAttributeColumn, IDisposableObject
 			return null;
 		}
 		
-		// see if there is an original column specified to fill this transposed metadata
+		// see if there is a source metadata column specified to fill this transposed metadata
 		var metaColumn:IAttributeColumn = dataSource.metadata.getObject(propertyName) as IAttributeColumn;
 		if (metaColumn)
-			return metaColumn.getValueFromKey(originalKey, String) as String;
+			return metaColumn.getValueFromKey(sourceKey, String) as String;
 		
 		// for all other metadata, cache values common among all columns
-		// when columns change, reset cached metadata
-		if (internalData.triggerCounter != columnCallbacks.triggerCounter)
-		{
-			internalData.triggerCounter = columnCallbacks.triggerCounter;
-			internalData.metadataCache = {};
-		}
-		if (internalData.metadataCache.hasOwnProperty(propertyName))
-			return internalData.metadataCache[propertyName];
-		var value:String = ColumnUtils.getCommonMetadata(internalData.columnsArray, propertyName);
-		internalData.metadataCache[propertyName] = value;
+		if (internalData.sourceMetadataCache.hasOwnProperty(propertyName))
+			return internalData.sourceMetadataCache[propertyName];
+		var value:String = ColumnUtils.getCommonMetadata(internalData.sourceColumnsArray, propertyName);
+		internalData.sourceMetadataCache[propertyName] = value;
 		return value;
+	}
+	
+	private static const compiler:Compiler = new Compiler();
+	public function deriveStringFromNumber(number:Number):String
+	{
+		if (sourceMetadataName)
+		{
+			// for transposed metadata column, treat number as a source column index
+			var sourceColumn:IAttributeColumn = internalData.sourceColumnsArray[number] as IAttributeColumn;
+			return sourceColumn ? sourceColumn.getMetadata(sourceMetadataName) : '';
+		}
+
+		if (internalData.triggerCounter != columnCallbacks.triggerCounter)
+			getMetadata(ColumnMetadata.STRING); // this resets internalData.triggerCounter and internalData.deriveStringFromNumber
+		
+		if (internalData.deriveStringFromNumber == null)
+		{
+			try
+			{
+				var script:String = getMetadata(ColumnMetadata.STRING);
+				internalData.deriveStringFromNumber = compiler.compileToFunction(script, null, internalData.errorHandler, false, [ColumnMetadata.NUMBER]);
+			}
+			catch (e:Error)
+			{
+				internalData.errorHandler(e);
+			}
+			
+			if (internalData.deriveStringFromNumber == null)
+				internalData.deriveStringFromNumber = StandardLib.formatNumber;
+		}
+			
+		return internalData.deriveStringFromNumber(number);
 	}
 	
 	public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 	{
 		var value:* = undefined;
-		if (key.keyType == internalData.keyType)
+		if (key.keyType == internalData.transposedKeyType)
 		{
-			var col:IAttributeColumn = internalData.columnsArray[internalData.columnNameIndex[key.localName]] as IAttributeColumn;
-			if (col)
+			// key.localName is source column name
+			var sourceColumnIndex:* = internalData.sourceColumnNameToIndex[key.localName];
+			var sourceColumn:IAttributeColumn = internalData.sourceColumnsArray[sourceColumnIndex] as IAttributeColumn;
+			if (sourceColumn)
 			{
-				if (originalKey)
+				if (sourceKey)
 				{
-					return col.getValueFromKey(originalKey, dataType);
+					return sourceColumn.getValueFromKey(sourceKey, dataType);
 				}
-				if (metadataName)
+				if (sourceMetadataName)
 				{
+					// for transposed metadata column, numeric value is source column index
 					if (dataType == Number)
-						return Number(internalData.columnNameIndex[key.localName]);
+						return Number(sourceColumnIndex);
 					
-					return col.getMetadata(metadataName);
+					return sourceColumn.getMetadata(sourceMetadataName);
 				}
 			}
 		}

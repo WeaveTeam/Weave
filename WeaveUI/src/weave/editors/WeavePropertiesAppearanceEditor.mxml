@@ -54,11 +54,11 @@
 	<ui:Indent label="{lang('Background color:')}" group="{fontIndent}">
 		<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<mx:CheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
+	<ui:CustomCheckBox label="{lang('Enable dashboard mode')}" toolTip="{lang('Check this box to show all windows in \'dashboard\' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
 				 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
-	<mx:CheckBox label="{lang('Show copyright')}"
+	<ui:CustomCheckBox label="{lang('Show copyright')}"
 				 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-	<mx:CheckBox label="{lang('Show add all button in the Attribute Selector')}"
+	<ui:CustomCheckBox label="{lang('Show add all button in the Attribute Selector')}"
 				 creationComplete="linkBindableProperty(Weave.properties.showAddAllButton, event.target, 'selected');"/>	
 
 	<ui:Indent label="{lang('Window grid snapping:')}">

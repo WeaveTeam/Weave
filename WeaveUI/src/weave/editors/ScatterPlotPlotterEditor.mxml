@@ -6,6 +6,7 @@
 		  implements="weave.api.ui.ILinkableObjectEditor">
 	<mx:Script>
 		<![CDATA[
+			import mx.core.UIComponent;
 			import mx.events.SliderEvent;
 			
 			import weave.api.core.ILinkableObject;
@@ -13,8 +14,8 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
+			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.ColorColumn;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.PlotterUtils;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
@@ -25,19 +26,19 @@
 			{
 				if(_plotter)
 				{
-					_plotter.fill.color.removeCallback(handleColorColumnChange);
 					unlinkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
 					unlinkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
-					getCallbackCollection(_plotter).removeCallback(handlePlotterChange);
-					_plotter.fill.color.removeCallback(handlePlotterFillColor);
 					unlinkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
 					unlinkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
 					unlinkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
+					_plotter.fill.color.removeCallback(handleColorColumnChange);
+					_plotter.fill.color.removeCallback(handlePlotterFillColor);
+					getCallbackCollection(_plotter).removeCallback(handlePlotterChange);
 					
 					dataXCol.dynamicObject = null;
 					dataYCol.dynamicObject = null;
-					colorCol.dynamicObject = null;
-					sizeSelector.dynamicObject = null;
+					colorCol.columnWrapper = null;
+					sizeCol.dynamicObject = null;
 				}
 				
 				_plotter = object as ScatterPlotPlotter;
@@ -46,21 +47,20 @@
 				{
 					if (!initialized)
 						initialize();
-					_plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
 					linkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
 					linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
-					getCallbackCollection(_plotter).addGroupedCallback(this, handlePlotterChange, true);
-					_plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
 					linkBindableProperty(_plotter.colorNegative, colorNegativePicker, 'selectedColor');
 					linkBindableProperty(_plotter.colorPositive, colorPositivePicker, 'selectedColor');
 					linkBindableProperty(_plotter.colorBySize, colorBySizeCheckBox, 'selected');
+					_plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
+					_plotter.fill.color.addGroupedCallback(this, handlePlotterFillColor);
+					getCallbackCollection(_plotter).addGroupedCallback(this, handlePlotterChange, true);
 					
 					dataXCol.dynamicObject = _plotter.dataX;
 					dataYCol.dynamicObject = _plotter.dataY;
-					colorCol.dynamicObject = AttributeSelectorPanel.hack_findInternalDynamicColumn(_plotter.fill.color.internalDynamicColumn);
-					sizeSelector.dynamicObject = _plotter.screenRadius;
+					colorCol.columnWrapper = _plotter.fill.color;
+					sizeCol.dynamicObject = _plotter.screenRadius;
 				}
-				
 			}
 			
 			public function hasPendingChanges():Boolean { return false; }
@@ -95,6 +95,9 @@
 			}
 			private function handleSizeSliderChange(event:SliderEvent):void
 			{
+				if (!UIUtils.hasFocus(event.target as UIComponent))
+					return;
+				
 				// when user interacts with slider, update session state
 				if (_plotter.colorBySize.value)
 				{
@@ -123,8 +126,10 @@
 				if (isFinite(color))
 					overrideColorPicker.selectedColor = color;
 			}
-			private function handleOverrideColor():void
+			private function handleOverrideColor(event:Event):void
 			{
+				if (!UIUtils.hasFocus(event.target as UIComponent))
+					return;
 				if (overrideColorCheckBox.selected)
 				{
 					colorBySizeCheckBox.selected = false;
@@ -142,12 +147,12 @@
 	<ui:DynamicColumnComponent id="dataXCol" label="{lang('X')}"/>
 	<ui:DynamicColumnComponent id="dataYCol" label="{lang('Y')}"/>
 	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
-	<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
-	<ui:DynamicColumnComponent id="sizeSelector">
+	<ui:CustomCheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
+	<ui:DynamicColumnComponent id="sizeCol">
 		<ui:creationComplete>
 			<![CDATA[
-			sizeSelector.addChildAt(sizeByCheck, 0);
-			sizeSelector.useFirstChildAsLabel = true;
+			sizeCol.addChildAt(sizeByCheck, 0);
+			sizeCol.useFirstChildAsLabel = true;
 			]]>
 		</ui:creationComplete>
 	</ui:DynamicColumnComponent>
@@ -176,11 +181,11 @@
 	<mx:HBox>
 		<mx:CheckBox id="overrideColorCheckBox"
 					 label="{lang('Override global color')}"
-					 change="handleOverrideColor()"/>
+					 change="handleOverrideColor(event)"/>
 		<ui:CustomColorPicker id="overrideColorPicker"
 							  enabled="{overrideColorCheckBox.selected}"
 							  selectedColor="0xE0E0E0"
-							  change="handleOverrideColor()"/>
+							  change="handleOverrideColor(event)"/>
 	</mx:HBox>
 	
 	<ui:CheckBoxWithNestedOptions id="colorBySizeCheckBox" label="{lang('Color by positive or negative \'size\' column values')}"

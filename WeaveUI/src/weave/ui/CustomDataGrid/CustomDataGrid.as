@@ -19,6 +19,7 @@
 
 package weave.ui.CustomDataGrid
 {
+	import mx.collections.ArrayCollection;
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.IListItemRenderer;
@@ -76,7 +77,6 @@ package weave.ui.CustomDataGrid
 		private function headerReleaseHandler(event:DataGridEvent):void
 		{
 			var c:DataGridColumn = columns[event.columnIndex];
-			var desc:Boolean = c.sortDescending;
 			if (c.sortable && !(collection.sort is CustomSort))
 				collection.sort = new CustomSort(collection.sort);
 		}
@@ -109,6 +109,61 @@ package weave.ui.CustomDataGrid
 		{
 			var columnDisplayWidth:Number = this.width - this.viewMetrics.right - this.viewMetrics.left;		
 			return columnDisplayWidth;
+		}
+		
+		/**
+		 * This function along with getRows() makes it easy to display and edit
+		 * a table of data stored as a two-dimensional Array.
+		 * @param tableWithHeader An Array of Arrays including a header row.
+		 */
+		public function setRows(tableWithHeader:Array):void
+		{
+			// make a copy of the data
+			var rows:Array = tableWithHeader.map(function(row:Array, i:int, a:Array):Array { return row.concat(); });
+			var header:Array = rows.shift();
+			
+			dataProvider = null;
+			columns = header.map(
+				function(title:String, index:int, a:Array):DataGridColumn {
+					var dgc:DataGridColumn = new DataGridColumn(title);
+					dgc.dataField = index;
+					// if title is missing, override default headerText which is equal to dataField
+					if (!title)
+						dgc.headerText = '';
+					return dgc;
+				}
+			);
+			dataProvider = rows;
+		}
+		
+		/**
+		 * This function along with setRows() makes it easy to display and edit
+		 * a table of data stored as a two-dimensional Array.
+		 * @return The (possibly) modified rows with columns in modified order.
+		 */
+		public function getRows():Array
+		{
+			var ac:ArrayCollection = dataProvider as ArrayCollection;
+			if (!ac)
+				throw new Error("dataProvider is not an ArrayCollection as expected.  setRows() must be called before getRows().");
+			var cols:Array = columns;
+			// data rows from dataProvider, reordered according to new column order
+			var rows:Array = ac.source.map(
+				function(row:Array, i:int, rows:Array):Array {
+					return row.map(
+						function(value:*, i:int, row:Array):* {
+							return row[(cols[i] as DataGridColumn).dataField];
+						}
+					);
+				}
+			);
+			// header row from possibly reordered columns
+			rows.unshift(cols.map(
+				function(col:DataGridColumn, i:int, a:Array):* {
+					return col.headerText;
+				}
+			));
+			return rows;
 		}
 	}
 }

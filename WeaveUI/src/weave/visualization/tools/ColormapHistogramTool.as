@@ -34,7 +34,7 @@ package weave.visualization.tools
 
 		public function ColormapHistogramTool()
 		{
-			plotter.dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			plotter.fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 	}
 }

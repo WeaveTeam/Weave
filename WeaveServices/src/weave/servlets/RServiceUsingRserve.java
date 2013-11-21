@@ -35,6 +35,7 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
+import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -55,7 +56,7 @@ public class RServiceUsingRserve
 
 	private static String rFolderName = "R_output";
 	
-	private static RConnection getRConnection() throws RemoteException
+	protected static RConnection getRConnection() throws RemoteException
 	{
 		RConnection rConnection = null; // establishing R connection		
 		try
@@ -109,7 +110,7 @@ public class RServiceUsingRserve
 		}
 	}
 	
-	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException, RemoteException
+	protected static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException, RemoteException
 	{
 		requestScriptAccess(rConnection);
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
@@ -140,14 +141,8 @@ public class RServiceUsingRserve
 	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
-		
-		REXP evalValue = null;
-		if (showWarnings)			
-			evalValue = rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
-		else
-			evalValue = rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
-		
-		
+		int warn = showWarnings ? 2 : 1;
+		REXP evalValue = rConnection.eval("try({ options(warn=" + warn + ") \n" + script + "},silent=TRUE)");
 		return evalValue;
 	}
 	
@@ -213,7 +208,7 @@ public class RServiceUsingRserve
 		return getREXP(new Object[]{object});
 	}
 
-	private static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws RserveException, RemoteException
+	protected static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws RserveException, RemoteException
 	{
 		for (int i = 0; i < inputNames.length; i++)
 		{
@@ -300,8 +295,9 @@ public class RServiceUsingRserve
 	/*
 	 * Taken from rJava Opensource code and 
 	 * added support for Rlist
+	 * added support for RFactor(REngine)
 	 */
-	private static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
+	protected static Object rexp2javaObj(REXP rexp) throws REXPMismatchException {
 		if(rexp == null || rexp.isNull() || rexp instanceof REXPUnknown) {
 			return null;
 		}
@@ -309,6 +305,9 @@ public class RServiceUsingRserve
 			int len = rexp.length();
 			if(rexp.isString()) {
 				return len == 1 ? rexp.asString() : rexp.asStrings();
+			}
+			if(rexp.isFactor()){
+				return rexp.asFactor();
 			}
 			if(rexp.isInteger()) {
 				return len == 1 ? rexp.asInteger() : rexp.asIntegers();
@@ -332,18 +331,27 @@ public class RServiceUsingRserve
 				// eg: REXPDouble as Double or Doubles
 				for(int i = 0; i < listOfREXP.length; i++){
 					REXP obj = (REXP)listOfREXP[i];
-					listOfREXP[i] = rexp2javaObj(obj);
+					Object javaObj =  rexp2javaObj(obj);
+					if (javaObj instanceof RFactor)
+					{
+						RFactor factorjavaObj = (RFactor)javaObj;
+						String[] levels = factorjavaObj.asStrings();
+						listOfREXP[i] = levels;
+					}
+					else
+					{
+						listOfREXP[i] =  javaObj;
+					}
 				}
 				return listOfREXP;
 			}
 		}
-		else{//rlist
-			
+		else
+		{
+			//rlist
 			return rexp.toDebugString();
 		}
 		return rexp;
-		
-		
 	}
 	
 	public static double[][] normalize(String docrootPath, Object[][] data) throws RemoteException

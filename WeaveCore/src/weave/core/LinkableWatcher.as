@@ -34,13 +34,16 @@ package weave.core
 		/**
 		 * Instead of calling this constructor directly, consider using one of the global functions
 		 * newLinkableChild() or newDisposableChild() to make sure the watcher will get disposed automatically.
+		 * @param typeRestriction Optionally restricts which type of targets this watcher accepts.
 		 * @see weave.api.core.newLinkableChild()
 		 * @see weave.api.core.newDisposableChild()
-		 */		
-		public function LinkableWatcher()
+		 */
+		public function LinkableWatcher(typeRestriction:Class = null)
 		{
+			_typeRestriction = typeRestriction;
 		}
 		
+		private var _typeRestriction:Class;
 		private var _target:ILinkableObject; // the current target
 		
 		/**
@@ -57,6 +60,9 @@ package weave.core
 		 */
 		public function set target(newTarget:ILinkableObject):void
 		{
+			if (_typeRestriction)
+				newTarget = newTarget as _typeRestriction as ILinkableObject;
+			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)
 				return;

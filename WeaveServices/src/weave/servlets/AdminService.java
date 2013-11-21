@@ -64,7 +64,7 @@ import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
-import weave.config.DataConfig.DataEntityWithChildren;
+import weave.config.DataConfig.DataEntityWithRelationships;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.PrivateMetadata;
@@ -79,11 +79,11 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
-import weave.utils.SQLExceptionWithQuery;
-import weave.utils.Strings;
 import weave.utils.ProgressManager.ProgressPrinter;
+import weave.utils.SQLExceptionWithQuery;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
+import weave.utils.Strings;
 
 public class AdminService
 		extends GenericServlet
@@ -628,7 +628,7 @@ public class AdminService
 		return ListUtils.toIntArray( getDataConfig().getEntityIdsByMetadata(meta, entityType) );
 	}
 
-	public DataEntity[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
+	public DataEntityWithRelationships[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
 	{
 		authenticate(user, password);
 		DataConfig config = getDataConfig();
@@ -638,10 +638,12 @@ public class AdminService
 		DataEntity[] result = config.getEntitiesById(idSet).toArray(new DataEntity[0]);
 		for (int i = 0; i < result.length; i++)
 		{
-			int[] childIds = ListUtils.toIntArray( config.getChildIds(result[i].id) );
-			result[i] = new DataEntityWithChildren(result[i], childIds);
+			int id = result[i].id;
+			int[] parentIds = ListUtils.toIntArray( config.getParentIds(Arrays.asList(id)) );
+			int[] childIds = ListUtils.toIntArray( config.getChildIds(id) );
+			result[i] = new DataEntityWithRelationships(result[i], parentIds, childIds);
 		}
-		return result;
+		return Arrays.copyOf(result, result.length, DataEntityWithRelationships[].class);
 	}
 
 	///////////////////////
