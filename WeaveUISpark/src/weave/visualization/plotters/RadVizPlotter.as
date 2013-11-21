@@ -49,6 +49,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
@@ -112,21 +113,13 @@ package weave.visualization.plotters
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
-		public function getColumnNames():Array
-		{
-			return columns.getObjects();
-		}
-		
-		private function updatePointSensitivityColumnList():void
-		{
-			
-		}
+		public const pointSensitivitySelection:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), updatePointSensitivityColumns);
 				
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		
-		public const pointSensitivityColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-		
+		private var pointSensitivityColumns:Array = [];
+		private var annCenterColumns:Array = [];
 		private function verifyThresholdValue(value:*):Boolean
 		{
 			if(0<=Number(value) && Number(value)<=1)
@@ -135,6 +128,22 @@ package weave.visualization.plotters
 				return false;
 		}
 		
+		private function updatePointSensitivityColumns():void
+		{
+			pointSensitivityColumns = [];
+			annCenterColumns = [];
+			var tempArray:Array = pointSensitivitySelection.getSessionState() as Array;
+			for( var i:int = 0; i < tempArray.length; i++)
+			{
+				if (tempArray[i])
+				{
+					pointSensitivityColumns.push(columns.getObjects()[i]);
+				} else
+				{
+					annCenterColumns.push(columns.getObjects()[i]);
+				}
+			}
+		}
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
@@ -641,9 +650,9 @@ package weave.visualization.plotters
 			if(filteredKeySet.keys.length == 0)
 				return;
 			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
-			var psCols:Array = pointSensitivityColumns.getObjects();
+			var psCols:Array = pointSensitivityColumns;
 			var cols:Array = columns.getObjects();
-			var annCols:Array = [];
+			var annCols:Array = annCenterColumns;
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var linkLengths:Array = [];
 			var innerRadius:Number = 0;
@@ -654,21 +663,17 @@ package weave.visualization.plotters
 			var annCenterY:Number = 0;
 			var name:String;
 			var anchor:AnchorPoint;
-			
-			for (var i:int = 0; i < cols.length; i++)
-			{
-				var col:IAttributeColumn = cols[i];
-				if (!(col in psCols))
-				{
-					annCols.push(col);
-				}
-			}
+			var i:int = 0;
 			
 			for each( var key:IQualifiedKey in keys)
 			{
 				
 				linkLengths = [];
-				annCols = [];
+				eta = 0;
+				innerRadius = 0;
+				outerRadius = 0;
+				annCenterX = 0;
+				annCenterY = 0;
 				
 				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
 				if(key.keyType != requiredKeyType)
@@ -703,6 +708,7 @@ package weave.visualization.plotters
 					linkLengths.push(value/eta);
 				}
 				
+				trace(linkLengths);
 				// compute the annulus center for a record
 				for (i = 0; i < annCols.length; i++)
 				{
@@ -732,7 +738,7 @@ package weave.visualization.plotters
 					}
 				}
 			
-				innerRadius = temp - maxLength;
+				innerRadius = maxLength - temp;
 				
 				if (innerRadius < 0) {
 					innerRadius = 0;
@@ -749,7 +755,7 @@ package weave.visualization.plotters
 				center.x = 1;
 				center.y = 1;
 				dataBounds.projectPointTo(center, screenBounds);
-				var circleRadius:Number = center.x - x;
+				var circleRadius:Number = (center.x - x) / 2;
 
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				graphics.lineStyle(1, 0xff0000);
@@ -757,9 +763,9 @@ package weave.visualization.plotters
 				trace(outerRadius, innerRadius);
 				graphics.drawCircle(annCenter.x, annCenter.y, outerRadius*circleRadius);
 				graphics.drawCircle(annCenter.x, annCenter.y, innerRadius*circleRadius);
-//				if(drawAnnuliCenter.value) {
-//					graphics.drawCircle(annCenter.x, annCenter.y, 5);
-//				}
+				// if(drawAnnuliCenter.value) {
+					graphics.drawCircle(annCenter.x, annCenter.y, 5);
+				//}
 				graphics.endFill();
 			}
 		}
