@@ -335,7 +335,7 @@ package weave.core
 				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
 				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
 				{
-					lv.setSessionState(applyDiff(lv.getSessionState(), newState));
+					lv.setSessionState(applyDiff(ObjectUtil.copy(lv.getSessionState()), newState));
 				}
 				else
 				{
