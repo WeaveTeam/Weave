@@ -140,16 +140,7 @@ package weave.visualization.plotters
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
 			if (binCol)
-			{
-				var maxHeight:Number;
-				switch (aggregationMethod.value)
-				{
-					case AG_COUNT: maxHeight = binCol.largestBinSize; break;
-					case AG_SUM: maxHeight = aggregateStats.getSum(); break;
-					case AG_MEAN: maxHeight = aggregateStats.getMean(); break;
-				}
-				output.setBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, maxHeight));
-			}
+				output.setBounds(-0.5, NaN, Math.max(1, binCol.numberOfBins) - 0.5, NaN);
 			else
 				output.reset();
 		}
