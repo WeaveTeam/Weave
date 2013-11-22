@@ -40,6 +40,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.primitives.Bounds2D;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -160,9 +161,8 @@ package weave.visualization.plotters
 			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			if( internalBinnedColumn )
 			{
-				trace( "yo   " + filteredKeySet.keys );
-				trace( "hi     " + internalBinnedColumn.keys );
-				trace("test   " +  internalBinnedColumn.keys.length );
+				if( internalBinnedColumn.keys.length == 0 && ColumnUtils.getTitle(fillStyle.color) != "Undefined" )
+					drawNoValues(task.buffer, task.screenBounds );
 			}
 			return 1;
 		}

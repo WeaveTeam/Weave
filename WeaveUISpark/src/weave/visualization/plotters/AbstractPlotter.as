@@ -246,6 +246,11 @@ package weave.visualization.plotters
 		
 		private var _bitmapText:BitmapText = new BitmapText();
 		
+		/**
+		 * This function should be implemented in a plotter that wishes to display when data could not be loaded. 
+		 * @param bitmapData The buffer of which to draw the text to.
+		 * @param bounds The bounds of the plotter for sizing the text properly.
+		 */			
 		protected function drawNoValues(bitmapData:BitmapData, bounds:IBounds2D):void
 		{
 			_bitmapText.text = "No data for selection";
