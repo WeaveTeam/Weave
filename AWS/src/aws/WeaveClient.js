@@ -102,13 +102,22 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 aws.WeaveClient.prototype.newMap2 = function (entityId, title, keyType){
 
     var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+    console.log(toolName);
     //request the tool
+//    this.weave.path(toolName).request('MapTool');
+//    this.weave.path(toolName, 'children','visualization','plotManager','plotters', 'plot','geometryColumn','internalDynamicColumn')
+//    			 .push(null).request('ReferencedColumn')
+//    			 .push('dynamicColumnReference', null).request('HierarchyColumnReference')
+//    			 .state({dataSourceName :"WeaveDataSource",
+//                     hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+    
     this.weave.path(toolName).request('MapTool');
-    this.weave.path(toolName, 'children','visualization','plotManager','plotters', 'plot','geometryColumn','internalDynamicColumn')
-    			 .push(null).request('ReferencedColumn')
-    			 .push('dynamicColumnReference', null).request('HierarchyColumnReference')
-    			 .state({dataSourceName :"WeaveDataSource",
-                     hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+    this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
+    .request('weave.visualization.plotters::GeometryPlotter')
+    .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+    .push('dynamicColumnReference', null).request('HierarchyColumnReference')
+    .state({dataSourceName :"WeaveDataSource",
+      hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
     
     return toolName;
 };

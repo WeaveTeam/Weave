@@ -102,9 +102,6 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         params: params
     };
     
-    var currentJSON = aws.JSON;
-    aws.JSON = JSON;
-    
     aws.activeQueryCount++;
     aws.broadcastBusyStatus();
     
@@ -114,12 +111,7 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
     {
     	aws.activeQueryCount--;
     	aws.broadcastBusyStatus();
-    	response = currentJSON.parse(response); //changes string to obj
-    	
-    	//alternate
-//        		if(JSON != aws.JSON)
-//        			response = aws.JSON.parse(JSON.stringify(response));
-    	
+    	response = JSON.parse(response); //changes string to obj
         if (response.error)
         {
         	console.log(JSON.stringify(response, null, 3));

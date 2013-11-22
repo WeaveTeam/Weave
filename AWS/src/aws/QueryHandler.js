@@ -107,10 +107,10 @@ aws.QueryHandler.prototype.runQuery = function() {
 	var that = this;
 	//testing new Weave Window
 	newWeaveWindow = window.open("SeparateWindow.html",
-			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
+			"abc","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
 	
-
-	aws.JSON = newWeaveWindow.JSON;
+	
+	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
 		that.resultDataSet = result[0].value;//get rid of hard coded (for later)

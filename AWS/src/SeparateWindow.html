@@ -18,7 +18,6 @@
 		<script>
 			var timer = null;
 			var base_url = document.location.protocol + "//" + document.location.host + "/";
-		    //var weaveInstance;
 		    var client;
 		    var result;
 		    var colorColumn;
@@ -47,12 +46,14 @@
 			
 			function workOnData(input)
 			{
-				responseResults = input;
+				responseResults = JSON.parse(JSON.stringify(input));//fixes bug with flash throwing up errors for object to array conversion across two browser windows
+				
 				if(getWeave().path)
 					{
-							console.log(this);
-							console.log(responseResults);
-							console.log(this.keyType);
+							//console.log(this);
+							//console.log(responseResults);
+							//console.log(this.keyType);
+							
 						   
 							resultTextArea.value = "Displaying results in visualizations...";
 							//Todo parameterize keyColumnName ; here "fips"
@@ -68,15 +69,12 @@
 								    
 						   // var colColumn = aws.QueryHandler.prototype.returnColorcolumn();
 						    if (this.ColorColumn) {
-						    	console.log("hello");
 						    	colorColumn = this.ColorColumn;
-						    	 console.log(colorColumn);
 								client.setColorAttribute(this.ColorColumn, dataSourceName);
 								//aws.timeLogString = aws.reportTime('color column added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 							}	
 						    
-						    console.log("not hello");
 					}
 			}
 			
