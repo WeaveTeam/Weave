@@ -49,6 +49,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -162,6 +163,8 @@ package weave.visualization.plotters
 				p.x = p.y = NaN;
 			}
 			prevPoint = task.asyncState.prevPoint as Point;
+			if( dataX.keys.length == 0 && ColumnUtils.getTitle(dataX) != "Undefined" && dataY.keys.length == 0 && ColumnUtils.getTitle(dataY) != "Undefined" )
+				drawNoValues(task.buffer, task.screenBounds );
 			return super.drawPlotAsyncIteration(task);
 		}
 		

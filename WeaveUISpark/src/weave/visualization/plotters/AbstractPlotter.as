@@ -193,8 +193,6 @@ package weave.visualization.plotters
 				// report progress
 				return task.iteration / task.recordKeys.length;
 			}
-			else if( task.recordKeys.length == 0 && filteredKeySet.keys.length == 0 )
-				drawNoValues(task.buffer, task.screenBounds);
 			
 			// report progress
 			return 1; // avoids division by zero in case task.recordKeys.length == 0

@@ -670,6 +670,11 @@ package weave.visualization.plotters
 					return 1; // avoids divide-by-zero when there are no record keys
 				}; // end task function
 			} // end if
+			else
+			{
+				if( colorColumn.keys.length == 0 && ColumnUtils.getTitle(colorColumn) != "Undefined" || sortColumn.keys.length == 0 && ColumnUtils.getTitle(sortColumn) != "Undefined" || heightColumns.getNames().length == 0 )
+					drawNoValues(task.buffer, task.screenBounds );
+			}
 			
 			return (task.asyncState as Function).apply(this, arguments);
 		}
