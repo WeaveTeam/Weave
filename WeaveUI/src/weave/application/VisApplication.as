@@ -60,6 +60,8 @@ package weave.application
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import spark.components.Group;
+	
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
@@ -517,7 +519,7 @@ package weave.application
 			else
 				this.height = this.parent.height;
 			
-			var workspace:Canvas = visDesktop.internalCanvas;
+			var workspace:Group = visDesktop.manager;
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			var scale:Number = 1 / multiplier;
 			workspace.scaleX = scale;
@@ -536,7 +538,7 @@ package weave.application
 					handleRemoveScreenshot();
 					return;
 				}
-				var workspace:Canvas = visDesktop.internalCanvas;
+				var workspace:Group = visDesktop.manager;
 				_screenshot.width = this.width;
 				_screenshot.height = this.height;
 			}
@@ -1681,7 +1683,7 @@ package weave.application
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(visDesktop.internalCanvas);
+   				printOrExportImage(visDesktop.manager);
    			}
    			
 		}
