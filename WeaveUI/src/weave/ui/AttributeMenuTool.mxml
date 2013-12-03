@@ -263,7 +263,8 @@
 			
 			private function stopPlay():void
 			{
-				playButton.selected = false;
+				if (playButton)
+					playButton.selected = false;
 			}
 			
 			private function handleLayoutMode():void
