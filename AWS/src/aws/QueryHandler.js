@@ -109,7 +109,10 @@ aws.QueryHandler.prototype.runQuery = function() {
 	newWeaveWindow = window.open("SeparateWindow.html",
 			"abc","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
 	
-	
+	//newWeaveWindow.JSON.abc = "123 " + newWeaveWindow.JSON.abc;
+	//console.log("variable abc " + newWeaveWindow.JSON.abc);
+	//testing
+	aws.window = newWeaveWindow;
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
@@ -140,17 +143,12 @@ aws.QueryHandler.prototype.runQuery = function() {
 };
 
 aws.QueryHandler.prototype.clearWeave = function () {
-	this.weaveClient.clearWeave();
+	newWeaveWindow.client.clearWeave();
 };
 
-aws.QueryHandler.prototype.updateVisualizations = function() {
-	// shweta I added the update visualization button and it calls this function
-	
-	// check if the visualizations array is not empty
-	if (this.visualizations.length != 0) {
-		// do the work
-	} else
-	{
-		// alert("Please select visualization parameters");
-	}
+aws.QueryHandler.prototype.updateVisualizations = function(visualizations,keyType) {
+
+	newWeaveWindow.updating(visualizations);
+	console.log("calling updating");
+
 };

@@ -24,6 +24,7 @@
 		    var vizs;
 		    var responseResults;
 		    var dataSourceName;
+		    
 			function weaveReady( weave )
 			{
 				console.log( "Weave Ready" );
@@ -32,6 +33,7 @@
 				console.log("got weave instance");
 			    client = new aws.WeaveClient(weave);
 			    console.log("got weave client");
+			   
 			   if(responseResults)
 				   workOnData(responseResults);
 			}
@@ -46,23 +48,22 @@
 			
 			function workOnData(input)
 			{
-				responseResults = JSON.parse(JSON.stringify(input));//fixes bug with flash throwing up errors for object to array conversion across two browser windows
+				//console.log("in workOnData(); " + JSON.abc);
+				//responseResults = JSON.parse(JSON.stringify(input));//fixes bug with flash throwing up errors for object to array conversion across two browser windows
+				
+				//testing
+				responseResults = input || responseResults;
 				
 				if(getWeave().path)
 					{
-							//console.log(this);
-							//console.log(responseResults);
-							//console.log(this.keyType);
-							
-						   
 							resultTextArea.value = "Displaying results in visualizations...";
 							//Todo parameterize keyColumnName ; here "fips"
 						   dataSourceName = client.createDataSource(responseResults,"", this.keyType, "fips");
-						   console.log(dataSourceName);
 						    
 						    //creating the visualizations
 								   for (var i in this.visualizations) {
 								client.newVisualization(this.visualizations[i], dataSourceName);
+								//console.log(this.visualizations[i]);
 								//aws.timeLogString = aws.reportTime(this.visualizations[i].type + ' added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
 							}
@@ -75,8 +76,20 @@
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 							}	
 						    
+						 
 					}
 			}
+			
+			function updating(vis){
+					
+				//should call workOndata()?
+				for(var i in vis){
+					
+					client.newVisualization(vis[i], dataSourceName);
+					
+				}
+					    
+		}
 			
 			function resizeWeave( t )
 			{
