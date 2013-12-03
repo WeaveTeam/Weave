@@ -519,7 +519,7 @@ package weave.application
 			else
 				this.height = this.parent.height;
 			
-			var workspace:Group = visDesktop.manager;
+			var workspace:Group = visDesktop.workspace;
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			var scale:Number = 1 / multiplier;
 			workspace.scaleX = scale;
@@ -538,7 +538,6 @@ package weave.application
 					handleRemoveScreenshot();
 					return;
 				}
-				var workspace:Group = visDesktop.manager;
 				_screenshot.width = this.width;
 				_screenshot.height = this.height;
 			}
@@ -1683,7 +1682,7 @@ package weave.application
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(visDesktop.manager);
+   				printOrExportImage(visDesktop.workspace);
    			}
    			
 		}
