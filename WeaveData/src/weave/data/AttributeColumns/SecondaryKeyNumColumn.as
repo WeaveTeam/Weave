@@ -79,6 +79,8 @@ package weave.data.AttributeColumns
 					if (secondaryKeyFilter.value == null)
 						return value + TYPE_SUFFIX
 					break;
+				case ColumnMetadata.DATA_TYPE:
+					return _dataType == String ? DataTypes.STRING : DataTypes.NUMBER;
 			}
 			
 			return value;
@@ -161,7 +163,7 @@ package weave.data.AttributeColumns
 			_keyToNumericDataMapping = new Dictionary();
 			
 			//if it's string data - create list of unique strings
-			var dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
+			var dataType:String = _metadata.attribute(ColumnMetadata.DATA_TYPE);
 			if (data[0] is String || (dataType && dataType != DataTypes.NUMBER))
 			{
 				if (!dataType)
@@ -185,7 +187,7 @@ package weave.data.AttributeColumns
 				_maxNumber = NaN;
 			}
 			_metadata.attribute(ColumnMetadata.DATA_TYPE).setChildren(dataType);
-			_dataType = dataType == DataTypes.NUMBER ? Number : String;
+			_dataType = dataType == DataTypes.STRING ? String : Number;
 			
 			// save a mapping from keys to data
 			for (index = 0; index < keysA.length; index++)
@@ -201,20 +203,25 @@ package weave.data.AttributeColumns
 					_uniqueSecondaryKeys.push(keyB);
 				if (! _keyToNumericDataMapping[qkeyA])
 					_keyToNumericDataMapping[qkeyA] = new Dictionary();
-				if (_dataType == String)
+				if (dataObject is String)
 				{
-					var iString:int = _uniqueStrings.indexOf(dataObject);
+					var iString:int = _uniqueStrings.indexOf(dataObject as String);
+					if (iString < 0)
+					{
+						//iString = _uniqueStrings.push(dataObject as String) - 1;
+						iString = _uniqueStrings.length;
+						_uniqueStrings[iString] = dataObject as String;
+					}
 					_keyToNumericDataMapping[qkeyA][keyB] = iString;
 					_keyToNumericDataMappingAB[qkeyAB] = iString;
 				}
 				else
 				{
-					var number:Number = StandardLib.asNumber(dataObject);
-					_keyToNumericDataMapping[qkeyA][keyB] = number;
-					_keyToNumericDataMappingAB[qkeyAB] = number;
+					_keyToNumericDataMapping[qkeyA][keyB] = dataObject;//Number(dataObject);
+					_keyToNumericDataMappingAB[qkeyAB] = dataObject;//Number(dataObject);
 					
-					_minNumber = isNaN(_minNumber) ? number : Math.min(_minNumber, number);
-					_maxNumber = isNaN(_maxNumber) ? number : Math.max(_maxNumber, number);
+					_minNumber = isNaN(_minNumber) ? dataObject : Math.min(_minNumber, dataObject);
+					_maxNumber = isNaN(_maxNumber) ? dataObject : Math.max(_maxNumber, dataObject);
 				}
 			}
 			
