@@ -812,6 +812,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function removePanel():void
 			{
+				var owner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+				if (owner)
+				{
+					owner.removeObject(owner.getName(this));
+					return;
+				}
+				
 				var panels:Array = [this, _controlPanel];
 				DraggablePanel.activePanel = null;
 				for each (var panel:DraggablePanel in panels)
@@ -823,7 +830,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						// un-maximize
 						panel.maximized.value = false;
 						if (panel && panel.parent)
-							panel.parent.removeChild(panel);
+							UIUtils.spark_removeChild(panel.parent, panel);
 					}
 					catch (e:Error)
 					{

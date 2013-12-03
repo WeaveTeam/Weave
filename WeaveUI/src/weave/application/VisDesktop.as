@@ -24,8 +24,8 @@ package weave.application
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.newLinkableChild;
 	import weave.api.ui.ILinkableContainer;
-	import weave.core.LinkableDynamicObject;
 	import weave.core.UIUtils;
 	import weave.ui.BasicLinkableLayoutManager;
 	
@@ -40,7 +40,7 @@ package weave.application
 		{
 			super.createChildren();
 			
-			manager = new BasicLinkableLayoutManager();
+			manager = newLinkableChild(this, BasicLinkableLayoutManager);
 			addElement(manager);
 			
 			manager.percentHeight = 100;
