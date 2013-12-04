@@ -76,12 +76,11 @@ aws.DataEntity;
 aws.rDataRequestObject;
 
 /**
- * 
- *pointer to JSON for use with aws.queryService 
- *this variable is reset once queryService is called
- *
+ * Pointer to target window for RPC result.
+ * Set this variable prior to calling queryService().
+ * It will only affect one call to queryService().
  */
-aws.JSON = JSON;
+aws.window = window;
 
 /**
  * This function is a wrapper for making a request to a JSON RPC servlet
@@ -102,9 +101,10 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
         params: params
     };
     
-    var currentJSON = aws.JSON;
-    aws.JSON = JSON;
     
+    var targetWindow = aws.window;
+    
+    aws.window = window; // reset for next call to queryService()
     aws.activeQueryCount++;
     aws.broadcastBusyStatus();
     
@@ -114,11 +114,9 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
     {
     	aws.activeQueryCount--;
     	aws.broadcastBusyStatus();
-    	response = currentJSON.parse(response); //changes string to obj
     	
-    	//alternate
-//        		if(JSON != aws.JSON)
-//        			response = aws.JSON.parse(JSON.stringify(response));
+    	// parse result for target window to use correct Array implementation
+    	response = targetWindow.JSON.parse(response);
     	
         if (response.error)
         {

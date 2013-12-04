@@ -16,8 +16,10 @@ angular.module("aws.RunQuery", []).controller("RunQueryCtrl", function($scope, q
 		
 		
 		$scope.updateVisualizations = function(){
+			queryHandler = new aws.QueryHandler(queryService.queryObject);
 			if(queryHandler) {
-				queryHandler.updateVisualizations();
+				queryHandler.updateVisualizations(queryHandler.visualizations,queryHandler.keyType);
+				
 			}
 		};
 		
