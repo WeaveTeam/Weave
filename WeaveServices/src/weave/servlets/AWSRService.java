@@ -67,6 +67,12 @@ public class AWSRService extends RService
 		compResultLookMap.clear();
 	}
 
+	public class MyResult {
+	
+		public RResult[] data;
+		public long[] times = new long[2];
+	
+	}
 	
 	private Map<String,String> queryToMap(String query)
 	{
@@ -455,15 +461,14 @@ public class AWSRService extends RService
 	// in the request object, there will be: the script path, the script name
 	// and the columns, along with their filters.
 	// TODO not completed
-	public RResult[] runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
+	public MyResult runScriptWithFilteredColumns(Map<String,Object> requestObject) throws Exception
 	{
 		RResult[] returnedColumns;
 
 		String scriptName = requestObject.get("scriptName").toString();
 
 		String cannedScript = uploadPath + "RScripts/" +scriptName;
-
-
+		
 		ArrayList<StringMap<Object>> columnRequests = (ArrayList<StringMap<Object>>) requestObject.get("FilteredColumnRequest");
 		FilteredColumnRequest[] filteredColumnRequests = new FilteredColumnRequest[columnRequests.size()];
 		StringMap<Object> theStringMapColumnRequest;
@@ -476,9 +481,14 @@ public class AWSRService extends RService
 			filteredColumnRequests[i] = filteredColumnRequest;
 		}
 		// Object filteredColumnRequests = requestObject.get("columnsToBeRetrieved");
-
+		long startTime = System.currentTimeMillis();
+		
 		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
 		Object[][] columnData = transpose(recordData);
+		
+		long endTime = System.currentTimeMillis();
+		
+		long time1 = endTime - startTime;
 		
 		Object[] inputValues = {cannedScript, columnData};
 		String[] inputNames = {"cannedScriptPath", "dataset"};
@@ -487,9 +497,18 @@ public class AWSRService extends RService
 					         "scriptFromFile$value(dataset)"; 
 
 		String[] outputNames = {};
+		
+		startTime = System.currentTimeMillis();
 		returnedColumns = runAWSScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false);
-
-		return returnedColumns;
+		endTime = System.currentTimeMillis();
+		
+		long time2 = endTime - startTime;
+		MyResult result = new MyResult();
+		result.data = returnedColumns;
+		result.times[0] = time1;
+		result.times[1] = time2;
+		
+		return result;
 
 	}
 	

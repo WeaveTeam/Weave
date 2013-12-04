@@ -105,6 +105,7 @@ aws.QueryHandler.prototype.runQuery = function() {
 
 	// step 1
 	var that = this;
+	$("#LogBox").html('');
 	//testing new Weave Window
 	newWeaveWindow = window.open("SeparateWindow.html",
 			"_blank","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
@@ -113,12 +114,13 @@ aws.QueryHandler.prototype.runQuery = function() {
 	aws.JSON = newWeaveWindow.JSON;
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
-		that.resultDataSet = result[0].value;//get rid of hard coded (for later)
+		that.resultDataSet = result.data[0].value;
 		console.log(that.resultDataSet);
-		// aws.timeLogString = result[1].value;
-		$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
+
+		$("#LogBox").append('<p>' + "Data Load Time: " + result.times[0]/1000 + " seconds.\n" + '</p>');
+		$("#LogBox").append("R Script Computation time: " + result.times[1] / 1000 + " seconds." + '</p>');
 		
-		newWeaveWindow.workOnData.call(that, result[0].value);
+		newWeaveWindow.workOnData.call(that, result.data[0].value);
 		
 		// step 2
 		//var dataSourceName = that.weaveClient.addCSVDataSourceFromString(that.resultDataSet, "", that.keyType, "fips");
@@ -140,7 +142,8 @@ aws.QueryHandler.prototype.runQuery = function() {
 };
 
 aws.QueryHandler.prototype.clearWeave = function () {
-	this.weaveClient.clearWeave();
+	$("#LogBox").html('');
+	//this.weaveClient.clearWeave();
 };
 
 aws.QueryHandler.prototype.updateVisualizations = function() {

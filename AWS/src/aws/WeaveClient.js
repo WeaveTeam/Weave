@@ -314,8 +314,8 @@ aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceN
 aws.WeaveClient.prototype.createDataSource = function(results,dataSourceName, keytype, keyColName)
 {
 	if(dataSourceName == ""){
-	dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
-}
+		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	}
 	this.addCSVDataSource(results, dataSourceName, keytype, keyColName);
 	return dataSourceName;
 };
