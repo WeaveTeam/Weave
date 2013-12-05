@@ -128,6 +128,8 @@ package weave.application
 	internal class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		
+		SessionStateEditor.initialize; // adds keyboard shortcut & upper-left click shortcut
 
 		/**
 		 * Constructor.
