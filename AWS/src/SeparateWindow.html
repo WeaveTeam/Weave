@@ -21,11 +21,10 @@
 		    var client;
 		    var result;
 		    var colorColumn;
-		    var vizs;
 		    var responseResults;
 		    var dataSourceName;
 		    
-			function weaveReady( weave )
+			function weaveReady(weave)
 			{
 				console.log( "Weave Ready" );
 				resultTextArea.value = "Running Query on R ...";
@@ -34,17 +33,12 @@
 			    client = new aws.WeaveClient(weave);
 			    console.log("got weave client");
 			   
-			   if(responseResults)
+			    // this will call WorkOnData if the results are available
+			   if(responseResults) {
+				   console.log("calling from weave ready", this);
 				   workOnData(responseResults);
+			   }
 			}
-			
-			function getWeave()
-			{
-				var weaveInstance = document.getElementById("weave");
-				return weaveInstance;
-			}
-			
-			
 			
 			function workOnData(input)
 			{
@@ -53,16 +47,22 @@
 				
 				//testing
 				responseResults = input || responseResults;
-				
-				if(getWeave().path)
-					{
-							resultTextArea.value = "Displaying results in visualizations...";
-							//Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.createDataSource(responseResults,"", this.keyType, "fips");
-						    
+				console.log(client.weave);
+				console.log(responseResults);
+				if(client.weave.path)
+				{
+						   resultTextArea.value = "Displaying results in visualizations...";
+						   //Todo parameterize keyColumnName ; here "fips"
+						   dataSourceName = client.addCSVDataSource(responseResults,"", this.keyType, "fips");
+						   console.log(dataSourceName);
+						   var toolName;
 						    //creating the visualizations
+						    console.log(this.visualizations);
 							for (var i in this.visualizations) {
-								client.newVisualization(this.visualizations[i], dataSourceName);
+								console.log(i);
+								toolName = client.newVisualization(this.visualizations[i], dataSourceName);
+								this.currentVisualizations[this.visualizations[i].type] = toolName;
+								console.log(this.currentVisualizations);
 								//console.log(this.visualizations[i]);
 								//aws.timeLogString = aws.reportTime(this.visualizations[i].type + ' added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
@@ -75,21 +75,34 @@
 								//aws.timeLogString = aws.reportTime('color column added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');		
 							}	
-						    
-						 
-					}
+				}
 			}
 			
-			function updating(vis){
+			function updateVisualizations(){
+				
+				var toolName;
+				console.log(this);
+				for(var i in this.visualizations){
+					console.log(i);
+					if (this.currentVisualizations.hasOwnProperty(this.visualizations[i].type)) {
+						console.log(this.visualizations[i].type);
+						this.visualizations[i].toolName = this.currentVisualizations[this.visualizations[i].type];
+					}
 					
-				//should call workOndata()?
-				for(var i in vis){
-					
-					client.newVisualization(vis[i], dataSourceName);
-					
+					toolName = client.updateVisualization(this.visualizations[i], dataSourceName);
+					console.log(toolName);
+					this.currentVisualizations[this.visualizations[i].type] = toolName;
 				}
-					    
-		}
+				
+				 if (this.ColorColumn) {
+				    	colorColumn = this.ColorColumn;
+						client.setColorAttribute(this.ColorColumn, dataSourceName);
+				 }
+			}
+			
+			function clearWeave() {
+				client.clearWeave(); 
+			}
 			
 			function resizeWeave( t )
 			{
@@ -112,6 +125,7 @@
 					300
 				);
 			}
+			
 		</script>
 	
 		<script>

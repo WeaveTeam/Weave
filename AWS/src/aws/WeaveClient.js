@@ -26,93 +26,66 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	
 	var parameters = visualization["parameters"];
 	var toolName;
+	console.log("creating visualization:", visualization.type);
 	switch(visualization.type) {
 		case 'MapTool':
-			toolName = this.newMap2(visualization.type, parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
+			toolName = this.newMap(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
 			this.setPosition(toolName, "0%", "0%");
-			break;
+			return toolName;
 		case 'ScatterPlotTool':
-			toolName = this.newScatterPlot(visualization.type, parameters["X"], parameters["Y"], dataSourceName);
+			toolName = this.newScatterPlot(parameters["X"], parameters["Y"], dataSourceName);
 			this.setPosition(toolName, "50%", "50%");
-			break;
+			return toolName;
 		case 'DataTable':
-			toolName = this.newDatatable(visualization.type, parameters["columns"], dataSourceName);
+			toolName = this.newDatatable(parameters["columns"], dataSourceName);
 			this.setPosition(toolName, "50%", "0%");
-			break;
+			return toolName;
 		case 'BarChartTool' :
-			toolName = this.newBarChart(visualization.type, parameters["sort"], parameters["label"], parameters["heights"], dataSourceName);
+			toolName = this.newBarChart(parameters["sort"], parameters["label"], parameters["heights"], dataSourceName);
 			this.setPosition(toolName, "0%", "50%");
-			break;
+			return toolName;
 		default:
 			return;
 }
 	
 };
 
-
-	
 /**
- * This function accesses the weave instance and create a new map, regardless of whether or not 
- * there is an existing map
- * TODO : add projection parameter and dataType parameters, as well as a layer parameter.
- * @param {number} entityId The entityId of the geometry column.
- * @param {string} title the Title for the datasource
- * @param {string} keyType the weave keyType
- * @return {string} The name of the MapTool that was created. Visualizations are created at the root of the HashMap.
- * 		   
+ * This function should be the public function 
+ * 
+ * @param {string} dataSourceName The name of the data source where the data will come from.
+ * 
  */
-aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
-
-    /** @type {string} */
-    var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
-    //this.vizLookup.set(toolName, "MapTool");
-    
-    this.weave.requestObject([toolName], 'MapTool');
-    aws.reportTime("New Map added");
-
-//        //state plot layer
-//        /** @type {WeavePath} */
-//        var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
-//                                                   .push('internalObject').request('ReferencedColumn')
-//                                                   .push('dynamicColumnReference', null).request('HierarchyColumnReference');
-//
-//        //TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
-//        stPlot.state({dataSourceName :"WeaveDataSource",
-//                                    hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-//        
-//        //labellayer
-//
-//        return toolName;
-
-    //state plot layer
-    /** @type {WeavePath} */
-    var stateLayerPath = this.weave.path([toolName, 'children','visualization','plotManager','plotters']);
-    stateLayerPath.push('statelayer').request('weave.visualization.plotters.GeometryPlotter');
-
-    /** @type {WeavePath} */
-    var stPlot = this.weave.path([toolName, 'children','visualization','plotManager','plotters','statelayer','geometryColumn','internalDynamicColumn'])
-                                               .push('internalObject').request('ReferencedColumn')
-                                               .push('dynamicColumnReference', null).request('HierarchyColumnReference');
-
-    //TODO: setting session state uses brfss projection from WeaveDataSource (hard coded for now)
-    stPlot.state({dataSourceName :"WeaveDataSource",
-                                hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-
-    return toolName;
+aws.WeaveClient.prototype.updateVisualization = function (visualization, dataSourceName) {
+	
+	var parameters = visualization["parameters"];
+	var toolName;
+	switch(visualization.type) {
+		case 'MapTool':
+			toolName = this.updateMap(visualization.toolName, parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
+			this.setPosition(toolName, "0%", "0%");
+			return toolName;
+		case 'ScatterPlotTool':
+			toolName = this.updateScatterPlot(visualization.toolName, parameters["X"], parameters["Y"], dataSourceName);
+			this.setPosition(toolName, "50%", "50%");
+			return toolName;
+		case 'DataTable':
+			toolName = this.updateDatatable(visualization.toolName, parameters["columns"], dataSourceName);
+			this.setPosition(toolName, "50%", "0%");
+			return toolName;
+		case 'BarChartTool' :
+			toolName = this.updateBarChart(visualization.toolName, parameters["sort"], parameters["label"], parameters["heights"], dataSourceName);
+			this.setPosition(toolName, "0%", "50%");
+			return toolName;
+		default:
+			return;
+}
+	
 };
 
-aws.WeaveClient.prototype.newMap2 = function (toolName, entityId, title, keyType){
+aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
 
-	if(toolName == null)
-		 toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
-    //request the tool
-//    this.weave.path(toolName).request('MapTool');
-//    this.weave.path(toolName, 'children','visualization','plotManager','plotters', 'plot','geometryColumn','internalDynamicColumn')
-//    			 .push(null).request('ReferencedColumn')
-//    			 .push('dynamicColumnReference', null).request('HierarchyColumnReference')
-//    			 .state({dataSourceName :"WeaveDataSource",
-//                     hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-    
+    var toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
     
     this.weave.path(toolName).request('MapTool');
     this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
@@ -136,50 +109,22 @@ aws.WeaveClient.prototype.newMap2 = function (toolName, entityId, title, keyType
  * @return {string} The name of the MapTool that was created. Visualizations are created at the root of the HashMap.
  * 		  
  */
-aws.WeaveClient.prototype.updateMapTool = function (toolName,entityId, title, keyType){
-	 this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
-	    .request('weave.visualization.plotters::GeometryPlotter')
-	    .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
-	    .push('dynamicColumnReference', null).request('HierarchyColumnReference')
-	    .state({dataSourceName :"WeaveDataSource",
-	      hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
-	    
-	    return toolName;
-};
-/**
- * This function updates the attributes of an existing scatter plot
- * 
- * @param {string} name of the tool in Weave's session state
- * @param {string} xColumnName A column for the X value on the scatter plot.
- * @param {string} yColumnName A column for the Y value on the scatter plot.
- * @param {string} dataSourceName
- *
- * @return The name of the created map.
- * 		  
- */
-aws.WeaveClient.prototype.updateScatterPlotTool = function(toolName,xColumnName, yColumnName, dataSourceName){
-	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
-	var columnPathY = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
+aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyType){
 	
-	this.setCSVColumn(dataSourceName,columnPathX, xColumnName );//setting the X column
-	this.setCSVColumn(dataSourceName, columnPathY, yColumnName );//setting the Y column
-	return toolName;
+	if(toolName == undefined)
+		 toolName = this.weave.path().getValue('generateUniqueName("MapTool")');
+   
+   this.weave.path(toolName).request('MapTool');
+   this.weave.path().push(toolName,'children', 'visualization', 'plotManager', 'plotters', 'Geometries')
+   .request('weave.visualization.plotters::GeometryPlotter')
+   .push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+   .push('dynamicColumnReference', null).request('HierarchyColumnReference')
+   .state({dataSourceName :"WeaveDataSource",
+     hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+   
+   return toolName;
 };
 
-//TODO Improve this function, with flags to either add or remove, here session state is getting created repeatedly
-//aws.WeaveClient.prototype.updateDataTableTool = function(toolName,columnNames, dataSourceName){
-//	
-//	//loop through the columns requested
-//	for (var i in columnNames)
-//		{
-//			var columnPath = this.weave.path(toolName, 'columns', columnNames[i] ).getPath();
-//			this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
-//			//this.setCSVColumn(dataSourceName, [toolName,'columns',columnNames[i]], columnNames[i]);
-//			
-//		}
-//	
-//	return toolName;
-//};
 /**
  * This function accesses the weave instance and create a new scatter plot, regardless of wether or not 
  * there is an existing scatter plot.
@@ -188,27 +133,51 @@ aws.WeaveClient.prototype.updateScatterPlotTool = function(toolName,xColumnName,
  * @param {string} yColumnName A column for the Y value on the scatter plot.
  * @param {string} dataSourceName
  *
- * @return The name of the created map.
+ * @return The name of the created scatterplot.
  * 		  
  */
-aws.WeaveClient.prototype.newScatterPlot = function (toolName,xColumnName, yColumnName, dataSourceName) {
+aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, dataSourceName) {
 	
 	/** @type {string} */
-	if(toolName == null)
-	 toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
-	//this.weave.requestObject([toolName], 'ScatterPlotTool');
-	//request the tool 
-	this.weave.path(toolName).request('ScatterPlotTool');
-	aws.reportTime("New ScatterPlot added");
+	var toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
 	
-	//var columnPathX = [toolName,'children','visualization', 'plotManager','plotters','plot','dataX'] ;
-	//var columnPathY = [toolName,'children','visualization', 'plotManager','plotters','plot','dataY'] ;
+	this.weave.path(toolName).request('ScatterPlotTool');
 	
 	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
 	var columnPathY = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
 	
 	this.setCSVColumn(dataSourceName,columnPathX, xColumnName );//setting the X column
 	this.setCSVColumn(dataSourceName, columnPathY, yColumnName );//setting the Y column
+	
+	return toolName;
+};
+
+/**
+ * This function updates the attributes of an existing scatter plot if there is one, otherwise creates a new Scatterplot
+ * 
+ * @param {string} toolName name of the tool in Weave's session state
+ * @param {string} xColumnName A column for the X value on the scatter plot.
+ * @param {string} yColumnName A column for the Y value on the scatter plot.
+ * @param {string} dataSourceName
+ *
+ * @return The name of the scatterplot.
+ * 		  
+ */
+aws.WeaveClient.prototype.updateScatterPlot = function(toolName, xColumnName, yColumnName, dataSourceName){
+	/** @type {string} */
+	console.log("updating scatter plot");
+	if(toolName == undefined)
+		toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
+
+	console.log("yes we are updating it");
+	this.weave.path(toolName).request('ScatterPlotTool');
+	
+	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
+	var columnPathY = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataY').getPath();
+	
+	this.setCSVColumn(dataSourceName,columnPathX, xColumnName );//setting the X column
+	this.setCSVColumn(dataSourceName, columnPathY, yColumnName );//setting the Y column
+	
 	return toolName;
 };
 
@@ -222,11 +191,42 @@ aws.WeaveClient.prototype.newScatterPlot = function (toolName,xColumnName, yColu
  * @return The name of the created data table.
  */
 aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
-
+	
 	var toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
 	//this.weave.requestObject([toolName], 'DataTableTool');
 	this.weave.path(toolName).request('DataTableTool');
 	
+	//loop through the columns requested
+	for (var i in columnNames)
+		{
+			var columnPath = this.weave.path(toolName, 'columns', columnNames[i] ).getPath();
+			this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
+		}
+	
+	return toolName;
+};
+
+/**
+ * This function accesses the weave instance and creates a new data table, regardless of whether or not
+ * there is an existing data table.
+ * 
+ * @param {string} toolName name of the tool in Weave's session state
+ * @param {Array.<string>} columnNames Array of columns to put in the table
+ * @param {string} dataSourceName the name of datasource to pull data from
+ * 
+ * @return The name of the created data table.
+ */
+aws.WeaveClient.prototype.updateDatatable = function(toolName, columnNames, dataSourceName){
+
+	/** @type {string} */
+	if(toolName == undefined)
+		toolName = this.weave.path().getValue('generateUniqueName("DataTableTool")');//returns a string
+	
+	//this.weave.requestObject([toolName], 'DataTableTool');
+	this.weave.path(toolName).request('DataTableTool');
+	
+    this.weave.path(toolName, 'columns').state(null);
+
 	//loop through the columns requested
 	for (var i in columnNames)
 		{
@@ -238,7 +238,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
 	
 	return toolName;
 };
-
+	
 /**
  * this function accesses the weave instance and creates a new Radviz tool
  * @param {Array.<string>} columnNames array of columns to be used as dimensional anchors
@@ -248,7 +248,7 @@ aws.WeaveClient.prototype.newDatatable = function(columnNames, dataSourceName){
  * 
  */
 
-aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
+aws.WeaveClient.prototype.newRadviz = function(columnNames, dataSourceName){
 	var toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
 	//this.weave.requestObject([toolName], 'RadVizTool');
 	this.weave.path(toolName).request('RadVizTool');
@@ -259,7 +259,31 @@ aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 		this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
 	}
 };
+	
+/**
+ * this function accesses the weave instance and creates a new Radviz tool
+ * @param {string} toolName name of the tool in Weave's session state
+ * @param {Array.<string>} columnNames array of columns to be used as dimensional anchors
+ * @param {string} dataSourceName the name of the datasource to pull the data from
+ * 
+ * @return the name of the created Radviz tool
+ * 
+ */
 
+aws.WeaveClient.prototype.updateRadviz = function(toolName, columnNames, dataSourceName){
+	
+	/** @type {string} */
+	if(toolName == undefined)
+		toolName = this.weave.path().getValue('generateUniqueName("RadVizTool")');//returns a string
+
+	this.weave.path(toolName).request('RadVizTool');
+	
+	//populating the Dimensional Anchors
+	for(var i in columnNames){
+		var columnPath = this.weave.path(toolName,toolName, 'children', 'visualization','plotManager', 'plotters','plot','columns',columnNames[i] ).getPath();
+		this.setCSVColumn(dataSourceName, columnPath, columnNames[i]);
+	}
+};
 
 /**
  * This function accesses the weave instance and create a new bar chart, regardless of whether or not 
@@ -275,37 +299,60 @@ aws.WeaveClient.prototype.newRadvizTool = function(columnNames, dataSourceName){
 aws.WeaveClient.prototype.newBarChart = function (label, sort, heights, dataSourceName) {
 	
 	var toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
-	//this.weave.requestObject([toolName], 'CompoundBarChartTool');
+	
 	this.weave.path(toolName).request('CompoundBarChartTool');
-	
-	//setting the label column
-	//var labelPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn']).state(null);
-	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').state(null); 
+
+	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
+	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
 
 	
-   	this.setCSVColumn(dataSourceName,labelPath.getPath(), label);
+   	this.setCSVColumn(dataSourceName,labelPath, label);
+    this.setCSVColumn(dataSourceName, sortColumnPath, sort);
 
-	//var sortColumnPath = this.weave.path([toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn']).state(null);
-	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').state(null);
-    
-    this.setCSVColumn(dataSourceName,sortColumnPath.getPath(), sort);
-
-    // We clear the content of height columns before setting a new one.
-   // var heightPath = this.weave.path([toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns'])
-    						   //.state(null);
-    var heightPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns')
-	   					  .state(null);
-    
     for (var i in heights)
 	{
 		var heightColumnPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
 		this.setCSVColumn(dataSourceName, heightColumnPath, heights[i]);
-    	//this.setCSVColumn(dataSourceName, [toolName,'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns', heights[i]], heights[i]);
 	}
+    
 	return toolName;
 };
 
+/**
+ * This function accesses the weave instance and create a new bar chart, regardless of whether or not 
+ * there is an existing bar chart.
+ * @param {string} toolName name of the tool in Weave's session state
+ * @param {string} label the column name used for label.
+ * @param {string} sort a column name used for the barchart sort column.
+ * @param {Array.<string>} heights an array of heights columns used for the barchart heights.
+ * @param {string} dataSourceName name of the datasource to pick columns from
+ * @return the name of the created bar chart.
+ * 		   
+ */
+aws.WeaveClient.prototype.updateBarChart = function (toolName, label, sort, heights, dataSourceName) {
+	
+	/** @type {string} */
+	if(toolName == undefined)
+		toolName = this.weave.path().getValue('generateUniqueName("CompoundBarChartTool")');//returns a string
+		this.weave.path(toolName).request('CompoundBarChartTool');
 
+	var labelPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'labelColumn').getPath(); 
+	var sortColumnPath = this.weave.path(toolName, 'children','visualization', 'plotManager','plotters', 'plot', 'sortColumn').getPath();
+
+	
+   	this.setCSVColumn(dataSourceName,labelPath, label);
+    this.setCSVColumn(dataSourceName, sortColumnPath, sort);
+    
+    this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns').state(null);
+
+    for (var i in heights)
+	{
+		var heightColumnPath = this.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'plot', 'heightColumns',heights[i]).getPath();
+		this.setCSVColumn(dataSourceName, heightColumnPath, heights[i]);
+	}
+    
+	return toolName;
+};
 
 /**
  * This function accesses the weave instance and sets the position of a given visualization
@@ -324,18 +371,6 @@ aws.WeaveClient.prototype.setPosition = function (toolName, posX, posY) {
 	this.weave.path(toolName).push('panelX').state(posX).pop().push('panelY').state(posY);
 };
 
-/**
- * This function right now is meant to extend the capabilities of the weave client at runtime
- * it will update a given visualization using the provided call back function
- * 
- * @param {string} toolName the name of the tool.
- *
- * @return void
- * TODO // is this function necessary??
- */
-aws.WeaveClient.prototype.updateVisualization = function(toolName, update) {
-	update(toolName);
-};
 
 /**
  * This function accesses the weave instance and creates a new csv data source from string.
@@ -368,8 +403,7 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
 /**
  * This function accesses the weave instance and creates a new csv data source from a two dimensional array
  * 
- * @param  newWeaveWindow a pointer to the new browser window
- * @param {string} csvDataMatrix a two dimensional array.
+ * @param {Array.<Array>} csvDataMatrix a two dimensional array.
  * @param {string} dataSourceName the name of the data source.
  * @param {string} keyType the key type
  * @param {string} keyColName the key column name
@@ -378,9 +412,9 @@ aws.WeaveClient.prototype.addCSVDataSourceFromString = function (csvDataString, 
  */
 aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceName, keyType, keyColName)
 {
-//	if(dataSourceName == ""){
-//		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
-//	}
+	if(dataSourceName == ""){
+		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
+	}
 
 	this.weave.path(dataSourceName)
 		.request('CSVDataSource')
@@ -390,15 +424,6 @@ aws.WeaveClient.prototype.addCSVDataSource = function(csvDataMatrix, dataSourceN
 											   keyColName : keyColName});
 	return dataSourceName;
 	
-};
-
-aws.WeaveClient.prototype.createDataSource = function(results,dataSourceName, keytype, keyColName)
-{
-	if(dataSourceName == ""){
-		dataSourceName = this.weave.path().getValue('generateUniqueName("CSVDataSource")');
-	}
-	this.addCSVDataSource(results, dataSourceName, keytype, keyColName);
-	return dataSourceName;
 };
 
 /**
@@ -462,6 +487,5 @@ aws.WeaveClient.prototype.reportToolInteractionTime = function(message){
 		$("#LogBox").append(time + message + "\n");
 	}catch(e){
 		//ignore
-	}
-	
+	}	
 };

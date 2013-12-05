@@ -1,10 +1,9 @@
+var queryHandler = undefined;
 /**
  * RunQueryCtrl. This controller manages the run of queries.
  */
 angular.module("aws.RunQuery", []).controller("RunQueryCtrl", function($scope, queryService) {
 			
-		var queryHandler = undefined;
-		
 		$scope.runQuery = function(){
 			queryHandler = new aws.QueryHandler(queryService.queryObject);
           
@@ -16,10 +15,8 @@ angular.module("aws.RunQuery", []).controller("RunQueryCtrl", function($scope, q
 		
 		
 		$scope.updateVisualizations = function(){
-			queryHandler = new aws.QueryHandler(queryService.queryObject);
 			if(queryHandler) {
-				queryHandler.updateVisualizations(queryHandler.visualizations,queryHandler.keyType);
-				
+				queryHandler.updateVisualizations(queryService.queryObject);
 			}
 		};
 		

@@ -74,7 +74,9 @@ aws.QueryHandler = function(queryObject)
 					parameters : queryObject.DataTable
 				}
 		);
-	}	
+	}
+	
+	this.currentVisualizations = {};
 	
 	 //testing
 
@@ -117,12 +119,13 @@ aws.QueryHandler.prototype.runQuery = function() {
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
+		console.log(result);
 		that.resultDataSet = result.data[0].value;
 		console.log(that.resultDataSet);
 
 		$("#LogBox").append('<p>' + "Data Load Time: " + result.times[0]/1000 + " seconds.\n" + '</p>');
 		$("#LogBox").append("R Script Computation time: " + result.times[1] / 1000 + " seconds." + '</p>');
-		
+
 		newWeaveWindow.workOnData.call(that, result.data[0].value);
 		
 		// step 2
@@ -145,13 +148,50 @@ aws.QueryHandler.prototype.runQuery = function() {
 };
 
 aws.QueryHandler.prototype.clearWeave = function () {
-	$("#LogBox").html('');
-	//this.weaveClient.clearWeave();
+	//$("#LogBox").html('');
+	
+	newWeaveWindow.clearWeave().call(this);
 };
 
-aws.QueryHandler.prototype.updateVisualizations = function(visualizations,keyType) {
-
-	newWeaveWindow.updating(visualizations);
-	console.log("calling updating");
-
+aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
+	var that = this;
+	
+	this.visualizations = [];
+	
+	if (queryObject.hasOwnProperty("MapTool")) {
+		this.keyType = queryObject.MapTool.keyType;
+		this.visualizations.push(
+				{
+					type : "MapTool",
+					parameters : queryObject.MapTool
+				}
+		);
+	}	
+	
+	if (queryObject.hasOwnProperty("ScatterPlotTool")) {
+		this.visualizations.push(
+				{
+					type : "ScatterPlotTool",
+					parameters : queryObject.ScatterPlotTool
+				}
+		);
+	}	
+	if (queryObject.hasOwnProperty("BarChartTool")) {
+		this.visualizations.push(
+				{
+					type : "BarChartTool",
+					parameters : queryObject.BarChartTool
+				}
+		);
+	}	
+	
+	if (queryObject.hasOwnProperty("DataTable")) {
+		this.visualizations.push(
+				{
+					type : "DataTable",
+					parameters : queryObject.DataTable
+				}
+		);
+	}
+	newWeaveWindow.updateVisualizations.call(that);
 };
