@@ -331,7 +331,8 @@
 				}
 				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
 				{
-					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
+					if (dataGrid.verticalScrollPosition != dataGridVerticalScrollPosition.value)
+						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				var subsetChanged:Boolean = detectLinkableObjectChange(updateDisplayList, _subset);
 				if (subsetChanged)
@@ -525,7 +526,6 @@
 
 			private function updateGlobalProbeChange():void
 			{
-				
 				if (!parent)
 				{
 					callLater(updateGlobalProbeChange);

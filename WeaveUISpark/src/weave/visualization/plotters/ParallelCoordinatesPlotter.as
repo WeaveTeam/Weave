@@ -98,16 +98,18 @@ package weave.visualization.plotters
 			if (newtestColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newtestColumn));
 			
-			_columns = columns.getObjects();
-			_xattrObjects = xColumns.getObjects();
-            if(_columns.length != _xattrObjects.length)
-				_xattrObjects.length = 0;
-			// if there is only one column, push a copy of it so lines will be drawn
-			if (_columns.length == 1)
-				_columns.push(_columns[0]);
+			_yColumns = columns.getObjects();
+			_xColumns = xColumns.getObjects();
+            if(_yColumns.length != _xColumns.length)
+			{
+				_xColumns.length = 0;
+				// if there is only one column, push a copy of it so lines will be drawn
+				if (_yColumns.length == 1)
+					_yColumns.push(_yColumns[0]);
+			}
 			
-			if (_xattrObjects.length == 1)
-				_xattrObjects.push(_xattrObjects[0]);
+//			if (_xColumns.length == 1)
+//				_xColumns.push(_xColumns[0]);
 			
 			updateFilterEquationColumns();
 		}
@@ -117,10 +119,7 @@ package weave.visualization.plotters
 		 */
 		public const lineStyle:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		
-		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
-		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-		
 		public const xColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
@@ -131,8 +130,8 @@ package weave.visualization.plotters
 		
 		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
 		
-		private var _columns:Array = [];
-		private var _xattrObjects:Array = [];
+		private var _yColumns:Array = [];
+		private var _xColumns:Array = [];
 		
 		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
 		private function handleColor():void
@@ -176,7 +175,7 @@ package weave.visualization.plotters
 			}
 			else
 			{
-				var list:Array = _columns.concat();
+				var list:Array = _yColumns.concat();
 				if (colorDataWatcher.target)
 					list.unshift(colorDataWatcher.target);
 				setColumnKeySources(list);
@@ -207,7 +206,7 @@ package weave.visualization.plotters
 				if (groupBy.getInternalColumn())
 					columns.removeAllObjects();
 				
-				if(_xattrObjects.length > 0)
+				if(_xColumns.length > 0)
 					xColumns.removeAllObjects();
 				_in_updateFilterEquationColumns = false;
 				return;
@@ -258,6 +257,7 @@ package weave.visualization.plotters
 		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));
 		public const shapeBorderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		public const shapeBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		public const shapeBorderAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0));
 		
 		public static const CURVE_NONE:String = 'none';
 		public static const CURVE_TOWARDS:String = 'towards';
@@ -294,28 +294,29 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			getBoundsCoords(recordKey, output, true);
+			getBoundsCoords(recordKey, output, false);
 		}
 		
-		protected function getBoundsCoords(recordKey:IQualifiedKey, output:Array, forGetDataBounds:Boolean):void
+		/**
+		 * Gets an Array of Bounds2D objects for a given key in data coordinates.
+		 * @parma recordKey The key
+		 * @param output Used to store the Bounds2D objects.
+		 * @param includeUndefinedBounds If this is set to true, the output is guaranteed to have the same length as _yColumns.
+		 */
+		protected function getBoundsCoords(recordKey:IQualifiedKey, output:Array, includeUndefinedBounds:Boolean):void
 		{
 			var enableGeomProbing:Boolean = Weave.properties.enableGeometryProbing.value;
 			
-			initBoundsArray(output, _columns.length);
+			initBoundsArray(output, _yColumns.length);
 			
-			var _normalize:Boolean = normalize.value;
 			var outIndex:int = 0;
-			for (var i:int = 0; i < _columns.length; ++i)
+			for (var i:int = 0; i < _yColumns.length; ++i)
 			{
-				var yColumn:IAttributeColumn = _columns[i] as IAttributeColumn;
-				var x:Number = getXAttributeCoordinates(recordKey, i);
-				var y:Number = _normalize
-					? WeaveAPI.StatisticsCache.getColumnStatistics(yColumn).getNorm(recordKey)
-					: yColumn.getValueFromKey(recordKey, Number);
-				if (!forGetDataBounds || isFinite(x) && isFinite(y))
-					(output[outIndex] as IBounds2D).includeCoords(x, y);
+				getCoords(recordKey, i, tempPoint);
+				if (includeUndefinedBounds || isFinite(tempPoint.x) && isFinite(tempPoint.y))
+					(output[outIndex] as IBounds2D).includePoint(tempPoint);
 				// when geom probing is enabled, report a single data bounds
-				if (!forGetDataBounds || !enableGeomProbing)
+				if (includeUndefinedBounds || !enableGeomProbing)
 					outIndex++;
 			}
 			while (output.length > outIndex + 1)
@@ -324,49 +325,46 @@ package weave.visualization.plotters
 		
 		private var tempBoundsArray:Array = [];
 		
-		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
+		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, dataBounds:IBounds2D = null):Array
 		{
-			getBoundsCoords(recordKey, tempBoundsArray, false);
+			getBoundsCoords(recordKey, tempBoundsArray, true);
 			
 			var results:Array = [];
-			var _normalize:Boolean = normalize.value;
-			
-			// push three geometries between each column
 			var geometry:ISimpleGeometry;
 			
-			for (var i:int = 1; i < _columns.length; ++i)
+			for (var i:int = 0; i < _yColumns.length; ++i)
 			{
-				var bounds:IBounds2D = tempBoundsArray[i] as IBounds2D;
-				var prevBounds:IBounds2D = tempBoundsArray[i - 1] as IBounds2D;
+				var current:IBounds2D = tempBoundsArray[i] as IBounds2D;
+				var next:IBounds2D = tempBoundsArray[i + 1] as IBounds2D;
 				
-				if (!bounds.isUndefined())
+				if (next && !next.isUndefined())
 				{
-					if (!prevBounds.isUndefined())
+					if (current.isUndefined())
 					{
-						// both defined
-						geometry = new SimpleGeometry(GeometryType.LINE);
+						// current undefined, next defined
+						geometry = new SimpleGeometry(GeometryType.POINT);
 						geometry.setVertices([
-							new Point(prevBounds.getXMin(), prevBounds.getYMin()),
-							new Point(bounds.getXMin(), bounds.getYMin())
+							new Point(next.getXMin(), next.getYMin())
 						]);
 						results.push(geometry);
 					}
 					else
 					{
-						// current bounds defined, previous undefined
-						geometry = new SimpleGeometry(GeometryType.POINT);
+						// both current and next are defined
+						geometry = new SimpleGeometry(GeometryType.LINE);
 						geometry.setVertices([
-							new Point(bounds.getXMin(), bounds.getYMin())
+							new Point(current.getXMin(), current.getYMin()),
+							new Point(next.getXMin(), next.getYMin())
 						]);
 						results.push(geometry);
 					}
 				}
-				else if (i == 1 && !prevBounds.isUndefined())
+				else if (i == 0 && !current.isUndefined())
 				{
-					// special case where i == 1 and prev bounds is defined, but current bounds is undefined
+					// special case: i == 0, current defined, next undefined
 					geometry = new SimpleGeometry(GeometryType.POINT);
 					geometry.setVertices([
-						new Point(prevBounds.getXMin(), prevBounds.getYMin())
+						new Point(current.getXMin(), current.getYMin())
 					]);
 					results.push(geometry);
 				}
@@ -389,30 +387,18 @@ package weave.visualization.plotters
 
 			// project data coordinates to screen coordinates and draw graphics onto tempShape
 			var i:int;
-			var _normalize:Boolean = normalize.value;
 			var _shapeSize:Number = this.shapeSize.value;
 			var _prevX:Number = 0;
 			var _prevY:Number = 0;
 			var continueLine:Boolean = false;
 			
-			for (i = 0; i < _columns.length; i++)
+			for (i = 0; i < _yColumns.length; i++)
 			{
 				// project data coordinates to screen coordinates and draw graphics
 				
-				tempPoint.x = getXAttributeCoordinates(recordKey, i);
+				getCoords(recordKey, i, tempPoint);
 				
-				if (_normalize)
-					tempPoint.y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
-				else
-					tempPoint.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
-				
-				if (isNaN(tempPoint.x))
-				{
-					continueLine = false;
-					continue;
-				}
-				
-				if (isNaN(tempPoint.y))
+				if (!isFinite(tempPoint.x) || !isFinite(tempPoint.y))
 				{
 					continueLine = false;
 					continue;
@@ -424,14 +410,14 @@ package weave.visualization.plotters
 				
 				// thickness of the line around each shape
 				var shapeLineThickness:int = shapeBorderThickness.value;
-				if(_shapeSize > 0)
+				if (_shapeSize > 0)
 				{
 					var shapeSize:Number = _shapeSize;
 					
 					// use a border around each shape
-					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : 1);
+					graphics.lineStyle(shapeLineThickness, shapeBorderColor.value, shapeLineThickness == 0 ? 0 : shapeBorderAlpha.value);
 					// draw a different shape for each option
-					switch(shapeToDraw.value)
+					switch (shapeToDraw.value)
 					{								
 						// solid circle
 						case SOLID_CIRCLE:
@@ -495,33 +481,29 @@ package weave.visualization.plotters
 		
 		public function yAxisLabelFunction(value:Number):String
 		{
-			var _columns:Array = columns.getObjects();
-			if (_columns.length > 0)
-				return ColumnUtils.deriveStringFromNumber(_columns[0], value); // always use the first column to format the axis labels
+			var _yColumns:Array = columns.getObjects();
+			if (_yColumns.length > 0)
+				return ColumnUtils.deriveStringFromNumber(_yColumns[0], value); // always use the first column to format the axis labels
 			return null;
 		}
 		
-		
 		public function xAxisLabelFunction(value:Number):String
 		{
-			try{
-				
-			if(usingXAttributes)
+			try
 			{
-				var check:String =  ColumnUtils.deriveStringFromNumber(_xattrObjects[0], value);
-				return check;
+				if (usingXAttributes)
+					return ColumnUtils.deriveStringFromNumber(_xColumns[0], value);
+				else
+					return ColumnUtils.getTitle(_yColumns[value]);
 			}
-			else
-				return ColumnUtils.getTitle(_columns[value]);
-			}catch(e:Error){};
+			catch(e:Error) { };
 			
 			return "";
 		}
 		
-		
 		public function get usingXAttributes():Boolean
 		{
-			if(_xattrObjects.length == _columns.length)
+			if (_xColumns.length == _yColumns.length)
 				return true;
 			else
 				return false;
@@ -550,10 +532,10 @@ package weave.visualization.plotters
 						output.includeCoords(0, stats.getMax());
 					}
 					
-					if(_xattrObjects.length > 0)
+					if(_xColumns.length > 0)
 					{
 						output.setXRange(NaN,NaN);
-						for each (var col:IAttributeColumn in _xattrObjects)
+						for each (var col:IAttributeColumn in _xColumns)
 						{
 							var colStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(col);
 							// expand x range to include all data coordinates
@@ -567,21 +549,32 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public function getXAttributeCoordinates(recordKey:IQualifiedKey, i:int):Number
+		/**
+		 * Gets the coordinates for a record and column index and stores them in a Point object.
+		 * @param recordKey
+		 * @param columnIndex
+		 * @param output
+		 */
+		public function getCoords(recordKey:IQualifiedKey, columnIndex:int, output:Point):void
 		{
-			var x:Number ;
-			
-				if(i < _xattrObjects.length)
-						x = _xattrObjects[i].getValueFromKey(recordKey, Number);
-				else if(_xattrObjects.length > 0)
-					x = NaN;
-				else x = i;
-				
-				return x;
-			
+			// X
+			if (columnIndex < _xColumns.length)
+				output.x = (_xColumns[columnIndex] as IAttributeColumn).getValueFromKey(recordKey, Number);
+			else if (_xColumns.length > 0)
+				output.x = NaN;
+			else
+				output.x = columnIndex;
+			// Y
+			var yCol:IAttributeColumn = _yColumns[columnIndex] as IAttributeColumn;
+			if (!yCol)
+				output.y = NaN;
+			if (normalize.value)
+				output.y = WeaveAPI.StatisticsCache.getColumnStatistics(yCol).getNorm(recordKey)
+			else
+				output.y = yCol.getValueFromKey(recordKey, Number);
 		}
-		private static const tempPoint:Point = new Point(); // reusable object
 		
+		private static const tempPoint:Point = new Point(); // reusable object
 		
 		
 		// backwards compatibility

@@ -428,6 +428,7 @@ package weave.data
 			
 			var r:int;
 			var c:int;
+			var cell:Object;
 			var row:Array;
 			var rows:Array = new Array(records.length + headerDepth);
 			
@@ -454,18 +455,17 @@ package weave.data
 					if (headerDepth == 1)
 					{
 						// fields is an Array of Strings
-						row[c] = record[fields[c]] || '';
+						cell = record[fields[c]];
 					}
 					else
 					{
 						// fields is an Array of Arrays
-						var fieldChain:Array = fields[c];
-						var cell:Object = record;
-						for each (var field:String in fieldChain)
+						cell = record;
+						for each (var field:String in fields[c])
 							if (cell)
 								cell = cell[field];
-						row[c] = cell || '';
 					}
+					row[c] = cell != null ? String(cell) : '';
 				}
 				rows[headerDepth + r] = row;
 			}

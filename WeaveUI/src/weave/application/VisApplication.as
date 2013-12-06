@@ -60,6 +60,8 @@ package weave.application
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import spark.components.Group;
+	
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
@@ -126,6 +128,8 @@ package weave.application
 	internal class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		
+		SessionStateEditor.initialize; // adds keyboard shortcut & upper-left click shortcut
 
 		/**
 		 * Constructor.
@@ -517,7 +521,7 @@ package weave.application
 			else
 				this.height = this.parent.height;
 			
-			var workspace:Canvas = visDesktop.internalCanvas;
+			var workspace:Group = visDesktop.workspace;
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			var scale:Number = 1 / multiplier;
 			workspace.scaleX = scale;
@@ -536,7 +540,6 @@ package weave.application
 					handleRemoveScreenshot();
 					return;
 				}
-				var workspace:Canvas = visDesktop.internalCanvas;
 				_screenshot.width = this.width;
 				_screenshot.height = this.height;
 			}
@@ -1549,7 +1552,7 @@ package weave.application
 				var attrs:Array = [];
 				if (tool)
 				{
-					VectorUtils.flatten(tool.getSelectableAttributes());
+					VectorUtils.flatten(tool.getSelectableAttributes(), attrs);
 				}
 				else
 				{
@@ -1681,7 +1684,7 @@ package weave.application
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(visDesktop.internalCanvas);
+   				printOrExportImage(visDesktop.workspace);
    			}
    			
 		}

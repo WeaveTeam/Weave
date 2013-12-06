@@ -103,10 +103,12 @@
 					Weave.properties.enableSubsetsMenu,
 					Weave.properties.enableSessionMenu,
 					Weave.properties.enableWindowMenu,
-					Weave.properties.enableAboutMenu
+					Weave.properties.enableAboutMenu,
+					Weave.properties.enableToolControls,
+					Weave.properties.showSessionHistoryControls
 				];
 				subMenu.addSubMenuItem(
-					"Show all menus",
+					"Show all menus and controls",
 					function():void {
 						for each (var lb:LinkableBoolean in allMenuToggles)
 							lb.value = true;

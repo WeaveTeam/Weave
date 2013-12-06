@@ -31,7 +31,8 @@
 	>
 	<mx:ViewStack id="viewStack" width="100%" height="100%" selectedIndex="{layoutCombo.selectedIndex}" minHeight="0">
 		<mx:HBox width="100%" label="{lang('Horizontal slider')}" minWidth="50">
-			<mx:VBox horizontalAlign="center" paddingTop="4">
+			<mx:VBox id="playControls" horizontalAlign="center" paddingTop="4"
+					 visible="{togglePlayControls.selected}" includeInLayout="{togglePlayControls.selected}">
 				<mx:Button
 					id="playButton" label=">" alpha="1.0"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
@@ -76,6 +77,7 @@
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IVisTool;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
@@ -99,6 +101,7 @@
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
 	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array));
 	public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString('HSlider', verifyLayout));
+	public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 	
 	private function verifyLayout(value:String):Boolean { return layoutChoices.indexOf(value) >= 0; }
 	
@@ -157,6 +160,7 @@
 			}
 		}
 		
+		linkBindableProperty(showPlayButton, togglePlayControls, 'selected');
 		linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 		linkBindableProperty(labelsLinkableString, labelsInput, 'text');
 		getCallbackCollection(WeaveAPI.globalHashMap).addGroupedCallback(this, updateLinkingControls, true);
@@ -456,6 +460,9 @@
 						}
 					}</ui:labelFunction>
 				</ui:CustomComboBox>
+				<ui:CustomCheckBox id="togglePlayControls" label="{lang('Show play button')}"
+								   visible="{layoutCombo.selectedItem == 'HSlider'}"
+								   includeInLayout="{layoutCombo.selectedItem == 'HSlider'}"/>
 			</ui:Indent>
 			<ui:Indent label="{lang('Time slider labels:')}">
 				<mx:TextInput id="labelsInput" 

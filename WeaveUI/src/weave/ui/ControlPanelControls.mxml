@@ -29,11 +29,11 @@
 					 childAdd="handleChildAdded()"
 					 />
 	<mx:HBox width="100%" id="buttons">
-		<mx:Button id="cancelBtn" label="{lang('Cancel')}" toolTip="{lang('Revert to last saved state and close this window')}"/>
+		<mx:Button id="cancelBtn" label="{lang('Cancel')}" minWidth="64" toolTip="{lang('Revert to last saved state and close this window')}"/>
 		<mx:Spacer width="100%" minWidth="0"/>
 		<BusyIndicator id="busyIndicator" visible="true" includeInLayout="true" diameterRatio=".75" targets="{_busyIndicatorTargets}"/>
 		<mx:Spacer width="100%" minWidth="0"/>
-		<mx:Button id="saveCloseBtn" label="{lang('Save &amp; Close')}"  toolTip="{lang('Commit all changes and close this window')}"/>
+		<mx:Button id="saveCloseBtn" label="{lang('Ok')}" minWidth="64" toolTip="{lang('Commit all changes and close this window')}"/>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[

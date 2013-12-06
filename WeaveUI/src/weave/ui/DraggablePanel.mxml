@@ -812,6 +812,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function removePanel():void
 			{
+				var owner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+				if (owner)
+				{
+					owner.removeObject(owner.getName(this));
+					return;
+				}
+				
 				var panels:Array = [this, _controlPanel];
 				DraggablePanel.activePanel = null;
 				for each (var panel:DraggablePanel in panels)
@@ -823,7 +830,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						// un-maximize
 						panel.maximized.value = false;
 						if (panel && panel.parent)
-							panel.parent.removeChild(panel);
+							UIUtils.spark_removeChild(panel.parent, panel);
 					}
 					catch (e:Error)
 					{
@@ -1149,6 +1156,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (!_controlPanel.parent)
 						PopUpManager.addPopUp(_controlPanel, WeaveAPI.topLevelApplication as UIComponent);
 					_controlPanel.sendWindowToForeground();
+					_controlPanel.reposition();
 				}
 				else
 				{
@@ -1156,6 +1164,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			/**
+			 * This will reposition the window at default random coordinates.
+			 */
+			public function reposition():void
+			{
+				panelX.value = getDefaultRandomCoord();
+				panelY.value = getDefaultRandomCoord();
+			}
 			
 			private function setupButtonIcons(button:Button, iconClassOrArray_0icon_1over_2down:Object):void
 			{
@@ -1353,6 +1369,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_dragCanvas.width = width;
 				_dragCanvas.height = height;
 				UIUtils.drawInvisibleHalo(_dragCanvas, -resizeBorderThickness);
+
+				if (_enableMoveResize || _moveImage.visible)
+				{
+					_dragCanvas.graphics.lineStyle(1, borderIsVisible ? thinBorderOverlayColor : thinBorderColor, thinBorderAlpha);
+					_dragCanvas.graphics.drawRect(0, 0, Math.round(width)-1, Math.round(height)-1);
+				}
 			}
 			
 			protected function handleMinimizeButtonClick():void
@@ -1467,10 +1489,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if (panel && panel.escapeKeyClosesPanel)
 						{
 							if (panel == this)
-							{
-								stage.focus = parent;
 								panel.handleEscapeKey();
-							}
 							// we don't want to do anything more
 							return;
 						}
@@ -1505,12 +1524,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const resizeBorderThickness:int = 5;
 			public static var adminMode:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
+			public static var thinBorderOverlayColor:uint = 0xFFFFFF;
+			public static var thinBorderColor:uint = 0;
+			public static var thinBorderAlpha:Number = 0.1;
 			
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
 			 * @param classDef A Class extending DraggablePanel.
+			 * @return The static instance of the given class.
 			 */
-			public static function openStaticInstance(draggablePanelClass:Class):DraggablePanel
+			public static function openStaticInstance(draggablePanelClass:Class):*
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
