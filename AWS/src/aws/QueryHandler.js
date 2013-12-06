@@ -112,19 +112,13 @@ aws.QueryHandler.prototype.runQuery = function() {
 	newWeaveWindow = window.open("SeparateWindow.html",
 			"abc","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
 	
-	//newWeaveWindow.JSON.abc = "123 " + newWeaveWindow.JSON.abc;
-	//console.log("variable abc " + newWeaveWindow.JSON.abc);
-	//testing
 	aws.window = newWeaveWindow;
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";
-		console.log(result);
 		that.resultDataSet = result.data[0].value;
-		console.log(that.resultDataSet);
-
 		$("#LogBox").append('<p>' + "Data Load Time: " + result.times[0]/1000 + " seconds.\n" + '</p>');
-		$("#LogBox").append("R Script Computation time: " + result.times[1] / 1000 + " seconds." + '</p>');
+		$("#LogBox").append("R Script Computation Time: " + result.times[1] / 1000 + " seconds." + '</p>');
 
 		newWeaveWindow.workOnData.call(that, result.data[0].value);
 		
@@ -149,12 +143,12 @@ aws.QueryHandler.prototype.runQuery = function() {
 
 aws.QueryHandler.prototype.clearWeave = function () {
 	//$("#LogBox").html('');
-	
-	newWeaveWindow.clearWeave().call(this);
+	if(newWeaveWindow) {
+		newWeaveWindow.clearWeave().call(this);
+	}
 };
 
 aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
-	var that = this;
 	
 	this.visualizations = [];
 	
@@ -193,5 +187,5 @@ aws.QueryHandler.prototype.updateVisualizations = function(queryObject) {
 				}
 		);
 	}
-	newWeaveWindow.updateVisualizations.call(that);
+	newWeaveWindow.updateVisualizations.call(this);
 };

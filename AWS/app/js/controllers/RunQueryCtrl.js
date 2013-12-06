@@ -21,9 +21,8 @@ angular.module("aws.RunQuery", []).controller("RunQueryCtrl", function($scope, q
 		};
 		
 		$scope.clearWeave = function(){
-			if (queryHandler) {
+			if (queryHandler != undefined) {
 				queryHandler.clearWeave();
-				queryHandler = undefined;
 			}
 		};
 });

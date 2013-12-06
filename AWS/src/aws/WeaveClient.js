@@ -26,7 +26,6 @@ aws.WeaveClient.prototype.newVisualization = function (visualization, dataSource
 	
 	var parameters = visualization["parameters"];
 	var toolName;
-	console.log("creating visualization:", visualization.type);
 	switch(visualization.type) {
 		case 'MapTool':
 			toolName = this.newMap(parameters["weaveEntityId"], parameters["title"], parameters["keyType"]);
@@ -94,6 +93,8 @@ aws.WeaveClient.prototype.newMap = function (entityId, title, keyType){
     .push('dynamicColumnReference', null).request('HierarchyColumnReference')
     .state({dataSourceName :"WeaveDataSource",
       hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+//    .state('line','color','defaultValue', 0x000000)
+//    .exec('fill.color.internalDynamicColumn.globalName = "defaultColorColumn"');
     
     return toolName;
 };
@@ -121,6 +122,8 @@ aws.WeaveClient.prototype.updateMap = function (toolName,entityId, title, keyTyp
    .push('dynamicColumnReference', null).request('HierarchyColumnReference')
    .state({dataSourceName :"WeaveDataSource",
      hierarchyPath : '<attribute keyType="' + keyType + '" weaveEntityId="' + entityId + '" title= "' + title + '" projection="EPSG:2964" dataType="geometry"/>'});
+//   .state('line','color','defaultValue', 0x000000)
+//   .exec('fill.color.internalDynamicColumn.globalName = "defaultColorColumn"');
    
    return toolName;
 };
@@ -165,11 +168,9 @@ aws.WeaveClient.prototype.newScatterPlot = function (xColumnName, yColumnName, d
  */
 aws.WeaveClient.prototype.updateScatterPlot = function(toolName, xColumnName, yColumnName, dataSourceName){
 	/** @type {string} */
-	console.log("updating scatter plot");
 	if(toolName == undefined)
 		toolName = this.weave.path().getValue('generateUniqueName("ScatterPlotTool")');//returns a string
 
-	console.log("yes we are updating it");
 	this.weave.path(toolName).request('ScatterPlotTool');
 	
 	var columnPathX = this.weave.path(toolName,'children','visualization', 'plotManager','plotters','plot','dataX').getPath();
