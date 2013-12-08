@@ -44,7 +44,6 @@ package weave.application
 	import flash.utils.getTimer;
 	
 	import mx.collections.ArrayCollection;
-	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
@@ -79,7 +78,6 @@ package weave.application
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
-	import weave.core.StageUtils;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SingleImagePlotterEditor;
@@ -109,7 +107,6 @@ package weave.application
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
-	import weave.ui.TranslationPanel;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
@@ -1632,7 +1629,7 @@ package weave.application
 		{
 			if (event.confirm)
 			{
-				var plugins:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(event.textInput), []);
+				var plugins:Array = WeaveAPI.CSVParser.parseCSVRow(event.textInput) || [];
 				Weave.setPluginList(plugins, null);
 			}
 		}

@@ -26,7 +26,6 @@ package weave.primitives
 	import weave.api.WeaveAPI;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * Makes a colorRamp xml definition useful through a getColorFromNorm() function.
@@ -100,7 +99,7 @@ package weave.primitives
 			
 			if (!_isXML)
 			{
-				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(string));
+				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(string) || [];
 				_colorNodes.length = colors.length;
 				for (i = 0; i < colors.length; i++)
 				{
@@ -137,9 +136,9 @@ package weave.primitives
 			}
 			else
 			{
-				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(value));
+				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(value) || [];
 				colors.reverse();
-				value = WeaveAPI.CSVParser.createCSV([colors]);
+				value = WeaveAPI.CSVParser.createCSVRow(colors);
 			}
 		}
 

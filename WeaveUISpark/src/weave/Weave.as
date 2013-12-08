@@ -54,7 +54,6 @@ package weave
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.utils.BitmapUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -367,7 +366,7 @@ package weave
 			{
 				// we must wait until all plugins are loaded before trying to decode the session state xml
 				var xml:XML = content as XML;
-				plugins = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xml.@plugins), []);
+				plugins = WeaveAPI.CSVParser.parseCSVRow(xml.@plugins) || [];
 				if (setPluginList(plugins, content))
 				{
 					var newState:Array = WeaveXMLDecoder.decodeDynamicState(xml);

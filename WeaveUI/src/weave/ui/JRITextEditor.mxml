@@ -178,7 +178,6 @@ JRITextEditor
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			WeaveAPI.registerImplementation(IVisTool, JRITextEditor, "JRI Script Editor");
@@ -295,11 +294,11 @@ JRITextEditor
 				if(tn.selectedIndex == 0){
 					//Names for Column that need to be used in R
 					var RscriptAssignNames:String = assignTA.text;
-					assignNames = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text));
+					assignNames = WeaveAPI.CSVParser.parseCSVRow(assignTA.text) || [];
 					//Script for R input
 					script = inputTA.text;
 					plotScript = plotTA.text;					
-					outputNames = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
+					outputNames = WeaveAPI.CSVParser.parseCSVRow(outputTA.text) || [];
 					token = keyType;
 				}	
 				else{
