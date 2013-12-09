@@ -91,19 +91,9 @@
 				visualization.topMarginColumn = _plotter.dynamicColorColumn;
 			}
 			
-			private var _prevBinnedColumn:BinnedColumn;
-			private const _binnedColumnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, linkBinnedColumn);
-			private function linkBinnedColumn():void
-			{
-				if (_prevBinnedColumn && !objectWasDisposed(_prevBinnedColumn))
-					unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-				_prevBinnedColumn = _binnedColumnWatcher.target as BinnedColumn;
-				linkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-			}
-			
 			private function colorColumnCallback():void
 			{
-				_binnedColumnWatcher.target = internalBinnedColumn;
+				binEditor.setTarget(internalBinnedColumn);
 				cRampEditor.colorRamp = internalColorRamp;
 				updateProbeColumns();
 			}

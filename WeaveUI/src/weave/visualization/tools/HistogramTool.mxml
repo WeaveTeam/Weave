@@ -109,7 +109,6 @@
 				return lang("Histogram of {0}", ColumnUtils.getTitle(plotter.fillStyle.color));
 			}
 
-			private var _prevBinnedColumn:BinnedColumn = null;
 			private function handleDynamicColorColumnChange():void
 			{
 				updateProbeColumns();
@@ -121,14 +120,7 @@
 				else
 					cRampEditor.colorRamp = null;
 				
-				if (_prevBinnedColumn)
-					unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-				
-				if (plotter.internalBinnedColumn)
-					linkSessionState(plotter.internalBinnedColumn, binEditor.binnedColumn);
-				
-				
-				_prevBinnedColumn = plotter.internalBinnedColumn;
+				binEditor.setTarget(plotter.internalBinnedColumn);
 				dataColumnComponent.columnWrapper = plotter.fillStyle.color;
 			}
 			

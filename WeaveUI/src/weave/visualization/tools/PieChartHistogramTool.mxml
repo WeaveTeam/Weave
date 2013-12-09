@@ -69,7 +69,7 @@
 			{
 				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.chartColors;
-				linkSessionState(_plotter.binnedData, binEditor.binnedColumn);
+				binEditor.setTarget(_plotter.binnedData);
 				linkBindableProperty(attributesToIncludeInProbe,probeChecklist,"selection");
 			}
 			

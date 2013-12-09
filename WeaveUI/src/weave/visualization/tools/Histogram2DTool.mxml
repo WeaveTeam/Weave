@@ -155,7 +155,6 @@
 				}
 			}
 			
-			private var _prevBinnedColumn:BinnedColumn = null;
 			private function handleBinColRadioButtonChange():void
 			{
 				var selectedCol:String = binColGroup.selectedValue as String;
@@ -166,26 +165,14 @@
 					xBinColRadioButton.setStyle('fontWeight','bold');
 					yBinColRadioButton.setStyle('fontWeight','normal');
 					
-					if (_prevBinnedColumn)
-						unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-					
-					if (plotter.xBinnedColumn)
-						linkSessionState(plotter.xBinnedColumn, binEditor.binnedColumn);
-					
-					_prevBinnedColumn = plotter.xBinnedColumn;
+					binEditor.setTarget(plotter.xBinnedColumn);
 				}
 				else if (selectedCol == "yBinCol")
 				{
 					yBinColRadioButton.setStyle('fontWeight','bold');
 					xBinColRadioButton.setStyle('fontWeight','normal');
 					
-					if (_prevBinnedColumn)
-						unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-					
-					if (plotter.yBinnedColumn)
-						linkSessionState(plotter.yBinnedColumn, binEditor.binnedColumn);
-					
-					_prevBinnedColumn = plotter.yBinnedColumn;
+					binEditor.setTarget(plotter.yBinnedColumn);
 				}
 			}
 			
