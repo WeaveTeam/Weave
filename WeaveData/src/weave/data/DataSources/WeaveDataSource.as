@@ -35,7 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
@@ -100,7 +100,7 @@ package weave.data.DataSources
 				url.value += defaultServletName;
 			
 			// replace old dataService
-			disposeObjects(dataService);
+			disposeObject(dataService);
 			dataService = registerLinkableChild(this, new WeaveDataServlet(url.value));
 			
 			url.resumeCallbacks();

@@ -15,15 +15,14 @@
 
 package weave.api
 {
+	
+
 	/**
-	 * Shortcut for WeaveAPI.SessionManager.disposeObjects()
-	 * @copy weave.api.core.ISessionManager#disposeObjects()
+	 * Shortcut for WeaveAPI.SessionManager.disposeObject()
+	 * @copy weave.api.core.ISessionManager#disposeObject()
 	 */
-	public function disposeObjects(object:Object, ...moreObjects):void
+	public function disposeObject(object:Object):void
 	{
-		if (object != null)
-			(moreObjects as Array).unshift(object);
-		if (moreObjects.length > 0)
-			(WeaveAPI.SessionManager.disposeObjects as Function).apply(null, moreObjects);
+		WeaveAPI.SessionManager.disposeObject(object);
 	}
 }

@@ -18,16 +18,16 @@ package weave.api.core
 	/**
 	 * This is an interface for an object that should be cleaned up when it is no longer needed.
 	 * It is recommended not to extend IDisposableObject in an interface.  Instead, make the
-	 * implementation of that interface implement IDisposableObject.  To dispose of an object in
-	 * Weave, disposeObjects() should be called instead of directly calling the actual
-	 * object's dispose function so parent-child relationships get cleaned up automatically.
-	 * 
+	 * implementation of that interface implement IDisposableObject.  To dispose of an object,
+	 * disposeObject() should be called instead of directly calling the actual object's dispose
+	 * function so parent-child relationships get cleaned up automatically.
+	 * @see weave.api.disposeObject
 	 * @author adufilie
 	 */
 	public /* final */ interface IDisposableObject
 	{
 		/**
-		 * This function should not be called directly.  It will be called when the object is no longer needed.
+		 * This function will be called automatically when the object is no longer needed, and should not be called directly.
 		 */
 		function dispose():void;
 	}

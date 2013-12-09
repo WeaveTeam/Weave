@@ -19,9 +19,6 @@
 
 package weave.visualization.plotters
 {
-	import com.modestmaps.mapproviders.BlueMarbleMapProvider;
-	import com.modestmaps.mapproviders.OpenStreetMapProvider;
-	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.LineScaleMode;
@@ -490,7 +487,7 @@ package weave.visualization.plotters
 		{
 			if (_service != null)
 				_service.cancelPendingRequests(); // cancel everything to prevent any callbacks from running
-			WeaveAPI.SessionManager.disposeObjects(_service);
+			WeaveAPI.SessionManager.disposeObject(_service);
 		}
 
 		/**

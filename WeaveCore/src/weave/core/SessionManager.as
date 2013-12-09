@@ -935,7 +935,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function disposeObjects(object:Object, ...moreObjects):void
+		public function disposeObject(object:Object):void
 		{
 			if (object != null && !_disposedObjectsMap[object])
 			{
@@ -969,7 +969,7 @@ package weave.core
 					// this removes all callbacks, including the one that triggers parent callbacks.
 					var objectCC:ICallbackCollection = getCallbackCollection(linkableObject);
 					if (objectCC != linkableObject)
-						disposeObjects(objectCC);
+						disposeObject(objectCC);
 					
 					// unregister from parents
 					if (childToParentDictionaryMap[linkableObject] !== undefined)
@@ -1010,7 +1010,7 @@ package weave.core
 						delete parentToChildDictionaryMap[linkableObject];
 						// dispose of the children this object owned
 						for (var child:Object in children)
-							disposeObjects(child);
+							disposeObject(child);
 					}
 					
 					// FOR DEBUGGING PURPOSES
@@ -1052,10 +1052,6 @@ package weave.core
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
 			}
-			
-			// dispose of the remaining specified objects
-			for each (object in moreObjects)
-				disposeObjects(object);
 		}
 		
 		// FOR DEBUGGING PURPOSES

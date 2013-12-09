@@ -100,7 +100,7 @@ package weave.core
 //			var library:Library = _libraries[url] as Library;
 //			if (library)
 //			{
-//				WeaveAPI.SessionManager.disposeObjects(library);
+//				WeaveAPI.SessionManager.disposeObject(library);
 //				delete _libraries[url];
 //			}
 //		}
@@ -362,7 +362,7 @@ internal class Library implements IDisposableObject
 				_asyncToken.mx_internal::applyFault(faultEvent);
 				_asyncToken = null; // prevent responders from being called again
 				
-				WeaveAPI.SessionManager.disposeObjects(this);
+				WeaveAPI.SessionManager.disposeObject(this);
 			}
 		}
 	}

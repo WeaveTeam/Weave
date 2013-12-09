@@ -52,7 +52,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.data.IDataSource;
-			import weave.api.disposeObjects;
+			import weave.api.disposeObject;
 			import weave.api.newDisposableChild;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.UIUtils;
@@ -92,7 +92,7 @@
 			
 			private function handleDataSelect():void
 			{
-				disposeObjects(_editor);
+				disposeObject(_editor);
 				container.removeAllChildren();
 				_editor = null;
 				if (!options.selectedItem)

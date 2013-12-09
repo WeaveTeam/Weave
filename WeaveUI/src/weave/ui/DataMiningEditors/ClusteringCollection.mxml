@@ -77,9 +77,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.rpc.AsyncToken;
-			
-			import weave.services.addAsyncResponder;
-			
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
@@ -89,10 +86,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ICallbackCollection;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.disposeObjects;
-			import weave.api.linkableObjectIsBusy;
+			import weave.api.disposeObject;
 			import weave.api.newDisposableChild;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.core.CallbackCollection;
@@ -101,13 +96,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
-			import weave.visualization.tools.SimpleVisTool;
 
 
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
@@ -189,7 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				//converting subsetcollection into columns
-				disposeObjects(finalColumnsGroup);
+				disposeObject(finalColumnsGroup);
 				finalColumnsGroup = newDisposableChild(this, CallbackCollection);
 				for (var j:int = 0 ; j < tempColumns.length; j++)
 				{

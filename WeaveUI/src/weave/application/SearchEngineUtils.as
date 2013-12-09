@@ -28,9 +28,7 @@ package weave.application
 	
 	import mx.collections.ArrayCollection;
 	import mx.containers.HBox;
-	import mx.containers.Panel;
 	import mx.controls.Button;
-	import mx.controls.CheckBox;
 	import mx.controls.ComboBox;
 	import mx.controls.Label;
 	import mx.controls.Spacer;
@@ -38,9 +36,6 @@ package weave.application
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
-	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
-	import weave.api.linkBindableProperty;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;

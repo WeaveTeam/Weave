@@ -51,7 +51,7 @@ package weave.services.collaboration
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
@@ -319,7 +319,7 @@ package weave.services.collaboration
 		{
 			if (stateLog)
 			{
-				disposeObjects(stateLog);
+				disposeObject(stateLog);
 				stateLog = null;
 			}
 		}

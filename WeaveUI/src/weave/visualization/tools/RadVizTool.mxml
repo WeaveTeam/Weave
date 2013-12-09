@@ -43,9 +43,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.disposeObjects;
+			import weave.api.disposeObject;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -276,7 +275,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 				}	
 				
-				disposeObjects(normalizedColumnsGroup);
+				disposeObject(normalizedColumnsGroup);
 				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
 				for (var j:int = 0 ; j < temRObjects.length; j++)
 				{

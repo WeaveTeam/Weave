@@ -39,7 +39,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
@@ -101,7 +101,7 @@ package weave.data.DataSources
 			if (shpUrl.value)
 			{
 				if (shpfile)
-					disposeObjects(shpfile)
+					disposeObject(shpfile)
 				shpfile = null;
 				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleShpDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
 				
@@ -186,7 +186,7 @@ package weave.data.DataSources
 			
 			if (shpfile)
 			{
-				disposeObjects(shpfile);
+				disposeObject(shpfile);
 				shpfile = null;
 			}
 			var bytes:ByteArray = ByteArray(event.result);
