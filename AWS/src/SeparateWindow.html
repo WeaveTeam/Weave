@@ -45,13 +45,13 @@
 
 				//testing
 				responseResults = input || responseResults;
-				responseResults = JSON.parse(JSON.stringify(input));
+				responseResults = JSON.parse(JSON.stringify(responseReseults));
 				console.log(responseResults);
 				if(client)
 				{
 						   resultTextArea.value = "Displaying results in visualizations...";
 						   //Todo parameterize keyColumnName ; here "fips"
-						   dataSourceName = client.addCSVDataSource(responseResults,"", this.keyType, "fips");
+						   dataSourceName = client.addCSVDataSource(responseResults,"", this.keyType, "");
 						   var toolName;
 						    //creating the visualizations
 							for (var i in this.visualizations) {
