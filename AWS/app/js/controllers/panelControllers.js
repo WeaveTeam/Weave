@@ -319,25 +319,16 @@ angular.module("aws.panelControllers", [])
 	});
 })
 .controller("DataTablePanelCtrl", function($scope, queryService){
-	$scope.duallist;
 	$scope.options= [];
 	$scope.selection = [];
-	//$("#duallistboxid").bootstrapDualListbox();
-	$scope.$watch('options',function(){
-		//noop;
-		var x = 1;
-	});
+
 	$scope.$watch(function(){
 		return queryService.queryObject.scriptSelected;
 	}, function() {
 		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
 			 queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
 				 $scope.options = result.outputs;
-				 console.log($scope.options);
-				 console.log($scope.selection);
 			});
-			var x = 'a';
-			
 		}
 	});
 
@@ -351,15 +342,20 @@ angular.module("aws.panelControllers", [])
 			}
 		} else {
 			delete queryService.queryObject['DataTable'];
-			$scope.selection = "";
+			$scope.selection = [];
+			//$scope.$digest(); need to kick off a digest cycle somehow here to update the model
 		}
+		$scope.updateselections();
 	});
 	
 	$scope.$watch('selection', function() {
-		if($scope.selection != "" && $scope.selection != undefined) {
-			queryService.queryObject['DataTable']['columns'] =  $.map($scope.selection, function(item){
-				return angular.fromJson(item).param;
-			});
+		if($scope.enabled){
+			if($scope.selection != "" && $scope.selection != undefined) {
+				queryService.queryObject['DataTable']['columns'] =  $.map($scope.selection, function(item){
+					return angular.fromJson(item).param;
+				});
+				$scope.updateselections();
+			}
 		}
 	});
 })

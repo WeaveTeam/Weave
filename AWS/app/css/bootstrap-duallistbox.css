@@ -14,7 +14,8 @@
 }
 
 .bootstrap-duallistbox-container .info {
-    display: inline-block;
+    /* display: inline-block; */
+    display: none;
     margin-bottom: 5px;
     font-size: 11px;
 }

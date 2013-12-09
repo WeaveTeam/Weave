@@ -39,7 +39,6 @@ angular
 					// same as "container" below.... 
 					//var container = $compile(telem);
 					return function(scope, elem, attr) {
-						//elem.bootstrapDualListbox();
 					scope.$watch(function(){
 						return scope.options;
 					},function(newval, oldval){
@@ -90,35 +89,35 @@ angular
 					var c = attr.class;
 					var height;
 					function init(){
-					container.addClass('moveonselect');
-					if (typeof c !== 'undefined' && c) {
-	                    c = c.match(/\bspan[1-9][0-2]?/);
-	                    if (!c) {
-	                        c = attr.class;
-	                        c = c.match(/\bcol-md-[1-9][0-2]?/);
-	                    }
-	                }
-					if (!!c) {
-						container.addClass(c.toString());
-					}
-					if (elements.originalselect.height() < settings.selectorminimalheight){ 
-						height = settings.selectorminimalheight
-					}else{
-						height = elements.originalselect.height();
-					}
-					elements.select1.height(height);
-					elements.select2.height(height);
-					elem.addClass('hide');
-					//update selection states();
-					//elements.filterinput1.hide();
-                    //elements.filterinput2.hide();
-					container.insertBefore(elem);
-                    
-                    
-                    bindevents();
-                    refreshselects();
-                    updatesselectionstates();
-                    $compile(container)(scope);
+						container.addClass('moveonselect');
+						if (typeof c !== 'undefined' && c) {
+		                    c = c.match(/\bspan[1-9][0-2]?/);
+		                    if (!c) {
+		                        c = attr.class;
+		                        c = c.match(/\bcol-md-[1-9][0-2]?/);
+		                    }
+		                }
+						if (!!c) {
+							container.addClass(c.toString());
+						}
+						if (elements.originalselect.height() < settings.selectorminimalheight){ 
+							height = settings.selectorminimalheight
+						}else{
+							height = elements.originalselect.height();
+						}
+						elements.select1.height(height);
+						elements.select2.height(height);
+						elem.addClass('hide');
+						//update selection states();
+						//elements.filterinput1.hide();
+	                    //elements.filterinput2.hide();
+						container.insertBefore(elem);
+	                    
+	                    
+	                    bindevents();
+	                    refreshselects();
+	                    updatesselectionstates();
+	                    $compile(container)(scope);
 					}
 					init();
 					
@@ -133,6 +132,7 @@ angular
                             }
                     	});
                     }
+                    scope.updateselections = refreshselects;
                     function refreshselects() {
                     	selectedelements = 0;
                     	elements.select2.empty();
@@ -364,7 +364,6 @@ angular
                     function triggerchangeevent()
                     {
                         elements.originalselect.trigger('change');
-                        console.log("trigger function");
                     }
            	}
 		}
