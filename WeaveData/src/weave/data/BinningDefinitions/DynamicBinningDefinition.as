@@ -23,11 +23,12 @@ package weave.data.BinningDefinitions
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
+	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.core.CallbackCollection;
-	import weave.core.LinkableWatcher;
 	import weave.core.LinkableDynamicObject;
+	import weave.core.LinkableWatcher;
 	
 	/**
 	 * This provides a wrapper for a dynamically created IBinningDefinition.
@@ -47,9 +48,7 @@ package weave.data.BinningDefinitions
 		}
 		
 		private var _columnLocked:Boolean = false;
-		private const _asyncResultCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		
-		private const internalResultWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, asyncResultCallbacks.triggerCallbacks);
+		private const internalResultWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
 		private const internalObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleInternalObjectChange);
 		private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, generateBins);
 		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, generateBins);
@@ -90,7 +89,7 @@ package weave.data.BinningDefinitions
 		 */
 		public function get asyncResultCallbacks():ICallbackCollection
 		{
-			return _asyncResultCallbacks;
+			return getCallbackCollection(internalResultWatcher);
 		}
 
 		/**
