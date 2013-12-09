@@ -1154,7 +1154,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category title="Geometry Collections" name="Geometry Collections">
-                                <attribute name="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
+                                <attribute name="States" dataTable="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -1258,7 +1258,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category title="Geometry Collections" name="Geometry Collections">
-                                <attribute name="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
+                                <attribute name="States" dataTable="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
