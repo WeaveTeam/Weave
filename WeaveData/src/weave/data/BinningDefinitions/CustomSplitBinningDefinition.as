@@ -50,9 +50,7 @@ package weave.data.BinningDefinitions
 		public const splitValues:LinkableString = newLinkableChild(this, LinkableString);
 		
 		/**
-		 * getBinClassifiersForColumn - implements IBinningDefinition Interface
-		 * @param column 
-		 * @param output
+		 * @inheritDoc
 		 */
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
