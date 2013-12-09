@@ -50,9 +50,6 @@ package weave.visualization.plotters
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;
-	import weave.services.wms.OpenMapQuestAerialProvider;
-	import weave.services.wms.OpenMapQuestProvider;
-	import weave.services.wms.StamenProvider;
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
@@ -97,33 +94,8 @@ package weave.visualization.plotters
 			if (_service is ModestMapsWMS)
 				return (_service as ModestMapsWMS).providerName.value;
 			
-			if (_service is BlueMarbleMapProvider)
-				return WMSProviders.BLUE_MARBLE_MAP;
-			
 			if (_service is OnEarthProvider)
 				return WMSProviders.NASA;
-			
-			if (_service is OpenStreetMapProvider)
-				return WMSProviders.OPEN_STREET_MAP;
-			
-			if (_service is OpenMapQuestProvider)
-				return WMSProviders.MAPQUEST;
-			
-			if (_service is OpenMapQuestAerialProvider)
-				return WMSProviders.MAPQUEST_AERIAL;
-			
-			if (_service is StamenProvider)
-			{
-				var stamenProvider:StamenProvider = _service as StamenProvider;
-				if (stamenProvider.style == StamenProvider.STYLE_TERRAIN)
-					return WMSProviders.STAMEN_TERRAIN;
-				
-				if (stamenProvider.style == StamenProvider.STYLE_TONER)
-					return WMSProviders.STAMEN_TONER;
-				
-				if (stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
-					return WMSProviders.STAMEN_WATERCOLOR;
-			}
 			
 			if (_service is CustomWMS)
 				return WMSProviders.CUSTOM_MAP;
