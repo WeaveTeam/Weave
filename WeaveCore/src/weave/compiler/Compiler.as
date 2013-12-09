@@ -31,6 +31,8 @@ package weave.compiler
 	
 	import weave.utils.fixErrorMessage;
 	
+	use namespace flash_proxy;
+	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
 	 * 
@@ -416,8 +418,10 @@ package weave.compiler
 				return object;
 			};
 			operators[".."] = function(object:*, propertyName:*):* {
-				if (typeof(object) == 'xml')
-					return object.descendants(propertyName);
+				if (object is XML)
+					return (object as XML).descendants(propertyName);
+				if (object is Proxy)
+					return (object as Proxy).getDescendants(propertyName);
 				return object.flash_proxy::getDescendants(propertyName);
 			};
 			operators['in'] = function(...args):* {
@@ -888,7 +892,7 @@ package weave.compiler
 					break;
 				if (i == 0 || i + 1 == tokens.length)
 					throw new Error("Misplaced '" + tokens[i] + "'");
-				tokens.splice(i - 1, 3, compileVariableAssignment.apply(null, tokens.slice(i - 1, i + 2)));
+				tokens.splice(i - 1, 3, compileVariableAssignment(tokens[i - 1], tokens[i], tokens[i + 1]));
 			}
 			
 			// next step: commas
@@ -2464,10 +2468,10 @@ package weave.compiler
 						}
 						else if (call.evaluatedHost is Proxy)
 						{
-							// use Proxy.flash_proxy::callProperty
+							// use Proxy.callProperty
 							var proxyParams:Array = call.evaluatedParams.concat();
 							proxyParams.unshift(call.evaluatedMethodName);
-							result = (call.evaluatedHost as Proxy).flash_proxy::callProperty.apply(call.evaluatedHost, proxyParams);
+							result = (call.evaluatedHost as Proxy).callProperty.apply(call.evaluatedHost, proxyParams);
 						}
 						else
 						{
