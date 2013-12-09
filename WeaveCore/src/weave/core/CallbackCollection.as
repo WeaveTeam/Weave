@@ -122,7 +122,7 @@ package weave.core
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback.apply();
+				callback();
 				entry.recursionCount--;
 			}
 		}
@@ -206,7 +206,7 @@ package weave.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback.apply();
+						entry.callback();
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -325,7 +325,7 @@ package weave.core
 			{
 				var entry:CallbackEntry = _disposeCallbackEntries.shift() as CallbackEntry;
 				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
-					entry.callback.apply();
+					entry.callback();
 			}
 		}
 		
@@ -381,7 +381,7 @@ package weave.core
 			{
 				// run grouped callbacks in the order they were triggered
 				var triggerEntry:CallbackEntry = _triggeredGroupedCallbackEntryOrderedList.shift() as CallbackEntry;
-				(triggerEntry as CallbackEntry).callback.apply();
+				(triggerEntry as CallbackEntry).callback();
 				delete _triggeredGroupedCallbackEntryMap[triggerEntry];
 			}
 
@@ -446,7 +446,7 @@ package weave.core
 							// increase recursion count while the function is running.
 							triggerEntry.recursionCount++;
 							
-							groupedCallback.apply();
+							groupedCallback();
 							
 							triggerEntry.recursionCount--;
 						}
