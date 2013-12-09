@@ -563,17 +563,14 @@ package weave
 		
 		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
 		private static const WeaveStartup:Class;
-		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
-		private static const WeavePath:Class;
 
-		public static function initWeavePathAPI():void
+		public static function initExternalDragDrop():void
 		{
 			if (!ExternalInterface.available)
 				return;
 			try
 			{
 				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeaveStartup()) + '}');
-				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeavePath()) + '}');
 			}
 			catch (e:Error)
 			{

@@ -200,11 +200,13 @@ package weave.application
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
-			getCallbackCollection(WeaveAPI.globalHashMap.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
-			getCallbackCollection(WeaveAPI.globalHashMap.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
+			getCallbackCollection(Weave.savedSelectionKeySets).addGroupedCallback(this, setupSelectionsMenu);
+			getCallbackCollection(Weave.savedSubsetsKeyFilters).addGroupedCallback(this, setupSubsetsMenu);
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
-			
+
+			WeaveAPI.initializeExternalInterface();
+
 			getFlashVars();
 			handleFlashVarPresentation();
 			handleFlashVarAllowDomain();
@@ -288,7 +290,7 @@ package weave.application
 				Weave.properties.enableMenuBar.value = false;
 				Weave.properties.dashboardMode.value = true;
 			}
-			initJavaScript();
+			handleWeaveReady();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
@@ -302,7 +304,7 @@ package weave.application
 				// if not opened from admin console, enable interface now
 				if (!getFlashVarAdminConnectionName())
 					this.enabled = true;
-				initJavaScript();
+				handleWeaveReady();
 			}
 			else
 			{
@@ -311,12 +313,12 @@ package weave.application
 					Alert.show(lang("The server hosting the configuration file does not have a permissive crossdomain policy."), lang("Security sandbox violation"));
 			}
 		}
-		private function initJavaScript():void
+		private function handleWeaveReady():void
 		{
 			// enable JavaScript API after initial session state has loaded.
 			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
-			Weave.initWeavePathAPI();
-			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
+			Weave.initExternalDragDrop();
+			WeaveAPI.callExternalWeaveReady();
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
 		
