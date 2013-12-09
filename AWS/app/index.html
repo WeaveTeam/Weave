@@ -5,7 +5,7 @@
 <title>Analyst Work Station</title>
 <link rel="stylesheet" href="css/bootstrap.css" />
 <link rel="stylesheet" href="css/select2.css" />
-<link rel="stylesheet" href="css/ng-grid.css" />
+<link rel="stylesheet" href="css/bootstrap-duallistbox.css" />
 <link rel="stylesheet"
 	href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
 <link rel="stylesheet" href="css/app.css" />
@@ -41,12 +41,13 @@
 					<button ng-click="updateVisualizations()" class="btn btn-primary">Update</button>
 					<button ng-click="clearWeave()" class="btn btn-primary">Clear</button>
 				</div>
+				<!--div id="weavePanel" ng-include src="weaveInstancePanel"></div-->
+<!-- 				<div id="Log"> -->
+<!-- 					<h4>Log Box for errors and timing</h4> -->
+<!-- 					<div id="LogBox"></div> -->
+<!-- 				</div> -->
 			</div>
-		</div>
-<!-- 			<div id="weavePanel" ng-include src="weaveInstancePanel"></div> -->
-		<div id="Log">
-			<h4>Log Box for errors and timing</h4>
-			<div id="LogBox"></div>
+
 		</div>
 
 
@@ -59,6 +60,7 @@
 	<script src='lib/jquery/jquery.js'></script>
 	<script src='lib/jquery/jquery-ui.js'></script>
 	<script src='lib/jquery/jquery.FileReader.js'></script>
+	<script src='lib/jquery/jquery.bootstrap-duallistbox.js'></script>
 	<script src='lib/select2.js'></script>
 	<script src='lib/angular/angular.js'></script>
 	<script src='lib/angular/angular-ui-select2.js'></script>

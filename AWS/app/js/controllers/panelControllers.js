@@ -263,10 +263,12 @@ angular.module("aws.panelControllers", [])
 	}, function() {
 		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
 			$scope.options = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
-				return result.outputs;
+					return result.outputs;
 			});
 		}
 	});
+		
+	
 	$scope.$watch('enabled', function() {
 		queryService.queryObject['BarChartTool'] = {};
 		if ($scope.enabled == true) {
@@ -317,13 +319,25 @@ angular.module("aws.panelControllers", [])
 	});
 })
 .controller("DataTablePanelCtrl", function($scope, queryService){
+	$scope.duallist;
+	$scope.options= [];
+	$scope.selection = [];
+	//$("#duallistboxid").bootstrapDualListbox();
+	$scope.$watch('options',function(){
+		//noop;
+		var x = 1;
+	});
 	$scope.$watch(function(){
 		return queryService.queryObject.scriptSelected;
 	}, function() {
 		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
-			$scope.options = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
-				return result.outputs;
+			 queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
+				 $scope.options = result.outputs;
+				 console.log($scope.options);
+				 console.log($scope.selection);
 			});
+			var x = 'a';
+			
 		}
 	});
 
