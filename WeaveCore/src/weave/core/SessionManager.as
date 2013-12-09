@@ -274,7 +274,7 @@ package weave.core
 						childObject = object[name];
 					if (!childObject)
 						continue;
-					if (/* object is ILinkableDynamicObject ||  */childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
+					if (childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
 					{
 						// don't include duplicate siblings
 						if (ignoreList[childObject] != undefined)
@@ -851,7 +851,7 @@ package weave.core
 			var objectCC:ICallbackCollection = linkableObjectToCallbackCollectionMap[linkableObject] as ICallbackCollection;
 			if (objectCC == null)
 			{
-				objectCC = new CallbackCollection();
+				objectCC = registerDisposableChild(linkableObject, new CallbackCollection());
 				if (CallbackCollection.debug)
 					(objectCC as CallbackCollection)._linkableObject = linkableObject;
 				linkableObjectToCallbackCollectionMap[linkableObject] = objectCC;
