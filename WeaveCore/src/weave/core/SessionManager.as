@@ -1192,6 +1192,9 @@ package weave.core
 			if (linkFunctionCache.get(primary, secondary) is Function)
 				return; // already linked
 			
+			if (CallbackCollection.debug)
+				var stackTrace:String = new Error().getStackTrace();
+				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
 			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			
