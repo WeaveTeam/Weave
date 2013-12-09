@@ -68,7 +68,7 @@ package weave.data.BinningDefinitions
 				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
 			
 			var i:int;
-			var values:Array = splitValues.value.split(',');
+			var values:Array = String(splitValues.value || '').split(',');
 			// remove bad values
 			for (i = values.length; i--;)
 			{
