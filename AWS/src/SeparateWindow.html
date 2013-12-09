@@ -45,6 +45,7 @@
 
 				//testing
 				responseResults = input || responseResults;
+				responseResults = JSON.parse(JSON.stringify(input));
 				console.log(responseResults);
 				if(client)
 				{
