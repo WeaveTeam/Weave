@@ -451,6 +451,19 @@ package weave.core
 				return parent.addChild(child);
 		}
 		
+		public static function spark_removeChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).removeElement(child as IVisualElement) as DisplayObject;
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.removeChild(child);
+		}
+		
 		public static function spark_addChildAt(parent:DisplayObjectContainer, child:DisplayObject, index:int):DisplayObject
 		{
 			if (parent is IVisualElementContainer)
@@ -462,6 +475,14 @@ package weave.core
 			}
 			else
 				return parent.addChildAt(child, index);
+		}
+		
+		public static function spark_removeChildAt(parent:DisplayObjectContainer, index:int):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+				return (parent as IVisualElementContainer).removeElementAt(index) as DisplayObject;
+			else
+				return parent.removeChildAt(index);
 		}
 		
 		public static function spark_getChildIndex(parent:DisplayObjectContainer, child:DisplayObject):int

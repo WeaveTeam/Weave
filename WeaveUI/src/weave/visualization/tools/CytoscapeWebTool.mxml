@@ -24,6 +24,7 @@
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newDisposableChild;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableNumber;
@@ -36,23 +37,26 @@
 			import weave.data.KeySets.KeySet;
 
 			// Node columns
-			public const nodeColorColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), null);
-			public const nodeLabelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), null);
-			public const nodeRadiusColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), null);
+			public const nodeColorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
+			public const nodeLabelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
+			public const nodeRadiusColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
+			public const nodeParentColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
+			
+			
 			// Edge columns
-			public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), null);
-			public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), null);
-			public const edgeLabelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), null);
-			public const edgeThicknessColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(), null);
-			public const edgeColorColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), null);
-			public const edgeWeightColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), null);
+			public const edgeSourceColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
+			public const edgeTargetColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
+			public const edgeLabelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
+			public const edgeThicknessColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
+			public const edgeColorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
+			public const edgeWeightColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
 			
 			// General configuration
 			public const layoutSeed:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleGraphLayoutChange);
 			public const layoutType:LinkableString = registerLinkableChild(this, new LinkableString("ForceDirected"), handleGraphLayoutChange);
-			private const layouts:Array = ["ForceDirected", "Circle", "Radial", "Tree"];
+			private const layouts:Array = ["CompoundSpringEmbedder", "ForceDirected", "Circle", "Radial", "Tree"];
 
-			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
+			private var subsetFilter:KeyFilter = Weave.defaultSubsetKeyFilter;
 			private var _selection:KeySet = Weave.defaultSelectionKeySet;
 			private var _probe:KeySet = Weave.defaultProbeKeySet;				
 
@@ -79,19 +83,8 @@
 				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);
 				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn]);
 
-				nodeColorColumn.addGroupedCallback(this, handleNodeColumnChange);
-				nodeLabelColumn.addGroupedCallback(this, handleNodeColumnChange);
-				nodeRadiusColumn.addGroupedCallback(this, handleNodeColumnChange);
-
-				edgeSourceColumn.addGroupedCallback(this, handleEdgeColumnChange);
-				edgeTargetColumn.addGroupedCallback(this, handleEdgeColumnChange);
-				edgeLabelColumn.addGroupedCallback(this, handleEdgeColumnChange);
-				edgeThicknessColumn.addGroupedCallback(this, handleEdgeColumnChange);
-				edgeColorColumn.addGroupedCallback(this, handleEdgeColumnChange);
-				edgeWeightColumn.addGroupedCallback(this, handleEdgeColumnChange);
-
-				_nodeFilteredKeys.addGroupedCallback(this, updateSubsetChange);
-				_edgeFilteredKeys.addGroupedCallback(this, updateSubsetChange);
+				_nodeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
+				_edgeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
 			}
 			public function cytoscapeReady():void
 			{
@@ -143,7 +136,7 @@
 			}
 
 
-			private function updateProbeChange():Number
+			private function handleProbeChange():Number
 			{
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
@@ -153,7 +146,7 @@
 						ExternalInterface.objectID, _toolName, _probe.keys);
 				return 1;
 			}
-			private function updateSelectionChange():Number
+			private function handleSelectionChange():Number
 			{
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
@@ -163,7 +156,7 @@
 						ExternalInterface.objectID, _toolName, _selection.keys);
 				return 1;
 			}
-			public function updateSubsetChange():Number
+			public function handleSubsetChange():Number
 			{
 				ExternalInterface.call(
 					"function (weaveID, toolname, elements) {\
@@ -179,7 +172,9 @@
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
 							{name: "color", type: "string", defValue: ""},
-							{name: "size", type: "number", defValue: 30}],
+							{name: "size", type: "number", defValue: 30},
+							{name: "parent", type: "string", defValue: ""},
+							{name: "shape", type:"string", defValue: "ELLIPSE"}],
 					edges: [{name: "label", type: "string", defValue: ""},
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
@@ -191,7 +186,8 @@
 			private const nodePropertyMappings:Object = {
 				label:{column:nodeLabelColumn, type:String},
 				color:{column:nodeColorColumn, type:String},
-				size:{column:nodeRadiusColumn, type:Number}
+				size:{column:nodeRadiusColumn, type:Number},
+				parent:{column:nodeParentColumn, type:String}
 			};
 
 			private const edgePropertyMappings:Object = {
@@ -220,7 +216,6 @@
 					// Fixed element properties
 					element.keyType = key.keyType;
 					element.localName = key.localName;
-
 					for (var prop:String in mapping)
 					{
 						element[prop] = mapping[prop].column.getValueFromKey(key, mapping[prop].type);
@@ -229,6 +224,7 @@
 						// set it to null so we know not to add it.
 						if ((element[prop] == null) && (mapping[prop].required == true))
 						{
+							weaveTrace("qkey " + element.keyType + " " + element.localName + "discarded from graph output: Missing property" + prop +"\n");
 							element = null;
 							break;
 						}
@@ -282,6 +278,7 @@
 				ExternalInterface.call(
 					"function (weaveID, toolname, records, element_to_key_types, parameters) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
+						weave.external_tools[toolname].raw_output;\
 						weave.external_tools[toolname].load_data(records, element_to_key_types);\
 						weave.external_tools[toolname].launch(parameters);\
 						}",
@@ -306,6 +303,7 @@
 				super.childrenCreated();
 
 				nodeColorComponent.dynamicObject = nodeColorColumn;
+				nodeParentComponent.dynamicObject = nodeParentColumn;
 				nodeRadiusComponent.dynamicObject = nodeRadiusColumn;
 				nodeLabelComponent.dynamicObject = nodeLabelColumn;
 				edgeSourceComponent.dynamicObject = edgeSourceColumn;
@@ -314,8 +312,8 @@
 				edgeLabelComponent.dynamicObject = edgeLabelColumn;
 				edgeWeightComponent.dynamicObject = edgeWeightColumn;
 				
-				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, updateProbeChange, WeaveAPI.TASK_PRIORITY_BUILDING)});
-				_selection.addGroupedCallback(this, updateSelectionChange);
+				_probe.addGroupedCallback(this, function ():void { WeaveAPI.StageUtils.startTask(this, handleProbeChange, WeaveAPI.TASK_PRIORITY_BUILDING)});
+				_selection.addGroupedCallback(this, handleSelectionChange);
 				_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
 			}
 			
@@ -333,6 +331,7 @@
 			<ui:DynamicColumnComponent id="nodeLabelComponent" label="{lang('Node Labels')}"/>
 			<ui:DynamicColumnComponent id="nodeColorComponent" label="{lang('Node Color')}"/> 
 			<ui:DynamicColumnComponent id="nodeRadiusComponent" label="{lang('Node Size')}"/> 
+			<ui:DynamicColumnComponent id="nodeParentComponent" label="{lang('Node Parent ID')}"/>
 			<ui:DynamicColumnComponent id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
 			<ui:DynamicColumnComponent id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
 			<ui:DynamicColumnComponent id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>

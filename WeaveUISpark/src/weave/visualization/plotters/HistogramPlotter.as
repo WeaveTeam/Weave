@@ -105,7 +105,6 @@ package weave.visualization.plotters
 		public static const AG_SUM:String = 'sum';
 		public static const AG_MEAN:String = 'mean';
 		
-		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		private var aggregateStats:IColumnStatistics;
 
 		private function getAggregateValue(keys:Array):Number
@@ -140,17 +139,8 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			var binCol:BinnedColumn = internalBinnedColumn;
-			if (binCol && !zoomToSubset.value)
-			{
-				var maxHeight:Number;
-				switch (aggregationMethod.value)
-				{
-					case AG_COUNT: maxHeight = binCol.largestBinSize; break;
-					case AG_SUM: maxHeight = aggregateStats.getSum(); break;
-					case AG_MEAN: maxHeight = aggregateStats.getMean(); break;
-				}
-				output.setBounds(-0.5, 0, Math.max(1, binCol.numberOfBins) - 0.5, Math.max(1, maxHeight));
-			}
+			if (binCol)
+				output.setBounds(-0.5, NaN, Math.max(1, binCol.numberOfBins) - 0.5, NaN);
 			else
 				output.reset();
 		}

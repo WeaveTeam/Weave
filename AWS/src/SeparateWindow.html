@@ -35,34 +35,27 @@
 			   
 			    // this will call WorkOnData if the results are available
 			   if(responseResults) {
-				   console.log("calling from weave ready", this);
+				   console.log("calling from weave ready", responseResults);
 				   workOnData(responseResults);
 			   }
 			}
 			
 			function workOnData(input)
 			{
-				//console.log("in workOnData(); " + JSON.abc);
-				//responseResults = JSON.parse(JSON.stringify(input));//fixes bug with flash throwing up errors for object to array conversion across two browser windows
-				
+
 				//testing
 				responseResults = input || responseResults;
-				console.log(client.weave);
 				console.log(responseResults);
-				if(client.weave.path)
+				if(client)
 				{
 						   resultTextArea.value = "Displaying results in visualizations...";
 						   //Todo parameterize keyColumnName ; here "fips"
 						   dataSourceName = client.addCSVDataSource(responseResults,"", this.keyType, "fips");
-						   console.log(dataSourceName);
 						   var toolName;
 						    //creating the visualizations
-						    console.log(this.visualizations);
 							for (var i in this.visualizations) {
-								console.log(i);
 								toolName = client.newVisualization(this.visualizations[i], dataSourceName);
 								this.currentVisualizations[this.visualizations[i].type] = toolName;
-								console.log(this.currentVisualizations);
 								//console.log(this.visualizations[i]);
 								//aws.timeLogString = aws.reportTime(this.visualizations[i].type + ' added');
 								//$("#LogBox").append('<p>' + aws.timeLogString + '</p>');
@@ -83,14 +76,12 @@
 				var toolName;
 				console.log(this);
 				for(var i in this.visualizations){
-					console.log(i);
 					if (this.currentVisualizations.hasOwnProperty(this.visualizations[i].type)) {
 						console.log(this.visualizations[i].type);
 						this.visualizations[i].toolName = this.currentVisualizations[this.visualizations[i].type];
 					}
 					
 					toolName = client.updateVisualization(this.visualizations[i], dataSourceName);
-					console.log(toolName);
 					this.currentVisualizations[this.visualizations[i].type] = toolName;
 				}
 				
@@ -101,7 +92,9 @@
 			}
 			
 			function clearWeave() {
-				client.clearWeave(); 
+				if(client) {
+					client.clearWeave(); 
+				}
 			}
 			
 			function resizeWeave( t )

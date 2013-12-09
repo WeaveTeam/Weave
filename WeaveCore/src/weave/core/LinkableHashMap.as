@@ -391,7 +391,7 @@ package weave.core
 		}
 
 		/**
-		 * @return An Array of DynamicState objects which compose the session state for this object.
+		 * @inheritDoc
 		 */
 		public function getSessionState():Array
 		{
@@ -411,12 +411,14 @@ package weave.core
 		}
 		
 		/**
-		 * This function will update the list of child objects based on an absolute or incremental session state.
-		 * @param newState An Array of child name Strings or DynamicState objects containing the new values and types for child objects.
-		 * @param removeMissingDynamicObjects If true, this will remove any child objects that do not appear in the session state.
+		 * @inheritDoc
  		 */
 		public function setSessionState(newStateArray:Array, removeMissingDynamicObjects:Boolean):void
 		{
+			// special case - no change
+			if (newStateArray == null)
+				return;
+			
 			delayCallbacks();
 			
 			//trace(LinkableHashMap, "setSessionState "+setMissingValuesToNull, ObjectUtil.toString(newState.qualifiedClassNames), ObjectUtil.toString(newState));

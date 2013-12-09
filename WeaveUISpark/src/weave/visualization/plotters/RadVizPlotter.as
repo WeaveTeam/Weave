@@ -49,6 +49,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
@@ -85,6 +86,8 @@ package weave.visualization.plotters
 			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
+
+			//pointSensitivityColumns.addGroupedCallback(this, handlePointSensitivityColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -109,8 +112,15 @@ package weave.visualization.plotters
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
+		public const pointSensitivitySelection:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), updatePointSensitivityColumns);
+				
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
+		
+		private var pointSensitivityColumns:Array = [];
+		private var annCenterColumns:Array = [];
+		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -120,6 +130,22 @@ package weave.visualization.plotters
 				return false;
 		}
 		
+		private function updatePointSensitivityColumns():void
+		{
+			pointSensitivityColumns = [];
+			annCenterColumns = [];
+			var tempArray:Array = pointSensitivitySelection.getSessionState() as Array;
+			for( var i:int = 0; i < tempArray.length; i++)
+			{
+				if (tempArray[i])
+				{
+					pointSensitivityColumns.push(columns.getObjects()[i]);
+				} else
+				{
+					annCenterColumns.push(columns.getObjects()[i]);
+				}
+			}
+		}
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
@@ -127,6 +153,8 @@ package weave.visualization.plotters
 		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
+		
+		//public const drawAnnuliCenter:LinkableBoolean = newLinkableChild(this, LinkableBoolean(true));
 		
 		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
@@ -155,6 +183,8 @@ package weave.visualization.plotters
 		private var columnTitleMap:Dictionary;
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
+		
+		
 		
 		private function handleColumnsChange():void
 		{
@@ -234,6 +264,7 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 		}
+		
 		
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
 		{
@@ -608,6 +639,144 @@ package weave.visualization.plotters
 			}
 		}
 		
+		public var drawAnnuli:Boolean = false;
+		
+		public function drawAnnuliCircles(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{
+			if(!drawAnnuli) return;
+			if(!keys) return;
+			
+			var graphics:Graphics = destination;
+			graphics.clear();
+			
+			if(filteredKeySet.keys.length == 0)
+				return;
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+			var psCols:Array = pointSensitivityColumns;
+			var cols:Array = columns.getObjects();
+			var annCols:Array = annCenterColumns;
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var linkLengths:Array = [];
+			var innerRadius:Number = 0;
+			var outerRadius:Number = 0;
+			var temp:Number = 0;
+			var eta:Number = 0;
+			var annCenterX:Number = 0;
+			var annCenterY:Number = 0;
+			var name:String;
+			var anchor:AnchorPoint;
+			var i:int = 0;
+			var colorIncrementor:Number = 0x00f0f0;
+			var color:Number = 0xff0000;
+			
+			for each( var key:IQualifiedKey in keys)
+			{
+				
+				linkLengths = [];
+				eta = 0;
+				innerRadius = 0;
+				outerRadius = 0;
+				annCenterX = 0;
+				annCenterY = 0;
+
+				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
+				if(key.keyType != requiredKeyType)
+				{
+					return;
+				}
+				getXYcoordinates(key);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				// compute the etta term for a record
+				for (i = 0; i < cols.length; i++)
+				{
+					var column:IAttributeColumn = cols[i];
+					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					var value:Number = normArray ? normArray[i] : stats.getNorm(key);
+					if (isNaN(value))
+					{
+						value = 0;
+					}
+					eta += value;
+				}
+				
+				// compute the link lengths for a record
+				for (i = 0; i < psCols.length; i++)
+				{
+					column = psCols[i];
+					stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					value = normArray ? normArray[i] : stats.getNorm(key);
+					if(isNaN(value))
+					{
+						value = 0;	
+					}
+					linkLengths.push(value/eta);
+				}
+				
+				//trace(linkLengths);
+				// compute the annulus center for a record
+				for (i = 0; i < annCols.length; i++)
+				{
+					column = annCols[i];
+					stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+					value = normArray ? normArray[i] : stats.getNorm(key);
+					if(isNaN(value))
+					{
+						value = 0
+					}
+					name = normArray ? columnTitleMap[column] : columns.getName(column);
+					anchor = anchors.getObject(name) as AnchorPoint;
+					annCenterX += (value * anchor.x.value)/eta;
+					annCenterY += (value * anchor.y.value)/eta;
+				}
+				
+				var maxLength:Number = Math.max.apply(null, linkLengths);
+
+				// the outer Radius is the sum of all the linkLengths
+				// the inner Radius is the difference between the longest arm
+				// and the remaining arms, and 0 if the difference is negative
+				for (i = 0; i < linkLengths.length; i++)
+				{
+					outerRadius += linkLengths[i];
+					if (linkLengths[i] != maxLength){
+						temp += linkLengths[i];
+					}
+				}
+			
+				innerRadius = maxLength - temp;
+				
+				if (innerRadius < 0) {
+					innerRadius = 0;
+				}
+				
+				var annCenter:Point = new Point(annCenterX, annCenterY);
+				dataBounds.projectPointTo(annCenter, screenBounds);
+				
+				// calculates the radViz radius in screenBounds
+				var center:Point = new Point(-1, -1);
+				dataBounds.projectPointTo(center, screenBounds);
+				var x:Number = center.x;
+				var y:Number = center.y;
+				center.x = 1;
+				center.y = 1;
+				dataBounds.projectPointTo(center, screenBounds);
+				var circleRadius:Number = (center.x - x) / 2;
+
+				dataBounds.projectPointTo(tempPoint, screenBounds);
+				graphics.lineStyle(1, color);
+				color += colorIncrementor;
+				//graphics.drawCircle(coordinate.x, coordinate.y, 30);
+				//trace(outerRadius, innerRadius);
+				graphics.drawCircle(annCenter.x, annCenter.y, outerRadius*circleRadius);
+				graphics.drawCircle(annCenter.x, annCenter.y, innerRadius*circleRadius);
+				
+				if(showAnnulusCenter.value) {
+					graphics.lineStyle(1, 0);
+					graphics.beginFill(0);
+					graphics.drawCircle(annCenter.x, annCenter.y, 3);
+				}
+				graphics.endFill();
+			}
+		}
 		
 		private function changeAlgorithm():void
 		{

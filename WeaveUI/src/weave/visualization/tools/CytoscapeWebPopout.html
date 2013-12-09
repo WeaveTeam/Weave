@@ -22,6 +22,7 @@
             var _edge_type = null;
             var _data_schema = null;
             var _subset = null;
+            var _raw_records = null;
 
 
             function key_to_id(qkey)
@@ -124,6 +125,7 @@
             
             function load_data(records, element_to_key_types) 
             {   
+                _raw_records = records;
                 var _tmpnetwork = {nodes: [], edges: []};
 
                 _node_type = element_to_key_types["nodes"];
@@ -145,7 +147,25 @@
                     }
                     else if (element.keyType == _node_type)
                     {
+                        if (element["parent"])
+                        {
+                            element.parent = JSON.stringify([_node_type, element.parent]);
+                        }
+                        if (element["parent"] == "")
+                        {
+                            delete element.parent;
+                        }
                         _tmpnetwork.nodes.push(element);
+                        // HACKS
+                        if (element.localName.indexOf("locator") == 0)
+                        {
+                            console.log("Setting element to RECTANGLE shape.")
+                            element.shape = "RECTANGLE"
+                        }
+                        if (element.localName.indexOf("content") == 0)
+                        {
+                            element.shape = "RECTANGLE"
+                        }
                     }
                 }
                 _network = {};
@@ -222,7 +242,6 @@
                 var path = new opener.Array;
                 path.push(window.name);
                 weave.evaluateExpression(path, 'cytoscapeReady()');
-                vis.visualStyle(style);
 
                 enable_listeners();
             };

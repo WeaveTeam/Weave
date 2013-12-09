@@ -9,6 +9,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
 			import mx.events.ListEvent;
 			
 			import weave.api.newLinkableChild;
@@ -16,6 +17,31 @@
 			import weave.services.Admin;
 			import weave.services.EntityCache;
 			import weave.utils.EventUtils;
+			import weave.utils.VectorUtils;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				setupContextMenu();
+			}
+			private function setupContextMenu():void
+			{
+				contextMenu = new ContextMenu();
+				var selectChildren:ContextMenuItem = new ContextMenuItem("Select all child nodes");
+				contextMenu.customItems = [selectChildren];
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, function(event:*):void {
+					var node:EntityNode = selectedItem as EntityNode;
+					selectChildren.enabled = node && node.children && node.children.length;
+				});
+				selectChildren.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event:*):void {
+					selectedItems = VectorUtils.flatten(selectedItems.map(function(node:EntityNode, i:int, a:Array):*{
+						expandItem(node, true);
+						return node.children ? ArrayCollection(node.children).source : [];
+					}));
+					dispatchEvent(new ListEvent(ListEvent.CHANGE));
+				});
+			}
 			
 			public function set entityCache(cache:EntityCache):void
 			{

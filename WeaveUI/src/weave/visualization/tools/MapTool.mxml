@@ -88,11 +88,13 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
+				// hack
 				return ["Color"];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [colorColumn];
+				// hack
+				return [Weave.defaultColorColumn];
 			}
 			
 			/**
@@ -211,7 +213,9 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Map " + (colorColumn.getInternalColumn() == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
+				// hack
+				var dc:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(Weave.defaultColorColumn);
+				return "Map " + (dc.getInternalColumn() == null ? '' : "of " + ColumnUtils.getTitle(dc));
 			}
 			
 			override protected function createChildren():void
@@ -244,12 +248,13 @@
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
 				
-				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
+				// hack
+				Weave.defaultColorDataColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
 				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
-				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+				Weave.defaultColorDataColumn.addGroupedCallback(this,updateProbeColumns, true);
 				
 				linkBindableProperty(visualization.plotManager.minZoomLevel, this, "zoomSliderMinimum");
 				linkBindableProperty(visualization.plotManager.maxZoomLevel, this, "zoomSliderMaximum");
@@ -317,13 +322,6 @@
 				for each (var button:Button in buttonMap)
 					button.selected = (button == selectedButton);
 			}
-			
-			
-			public function get colorColumn():DynamicColumn
-			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
-			}
-			
 			
 			private function setCenterCoords():void
 			{

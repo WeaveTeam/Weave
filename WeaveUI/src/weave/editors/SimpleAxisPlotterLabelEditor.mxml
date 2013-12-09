@@ -95,6 +95,12 @@
 			
 			public function setTarget(object:ILinkableObject):void
 			{
+				if (!parent)
+				{
+					callLater(setTarget, arguments);
+					return;
+				}
+				
 				var plotter:SimpleAxisPlotter = object as SimpleAxisPlotter;
 				if (plotter)
 				{

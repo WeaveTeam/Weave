@@ -188,7 +188,7 @@
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
-			<ui:Indent label="Height aggregation method">
+			<ui:Indent label="{lang('Height aggregation method')}">
 				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
 								   creationComplete="linkBindableProperty(plotter.aggregationMethod, event.target, 'selectedItem');"/>
 			</ui:Indent>
