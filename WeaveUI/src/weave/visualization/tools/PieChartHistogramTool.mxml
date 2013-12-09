@@ -29,7 +29,6 @@
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableVariable;
