@@ -17,6 +17,8 @@ package
 {
 	import flash.utils.getDefinitionByName;
 
-	// Use this in place of XML class pointer to fix ASDOC build error "Property is write-only"
+	/**
+	 * Use this in place of XML class pointer to fix ASDOC build error "Property is write-only"
+	 */
 	public const XML_Class:Class = getDefinitionByName('XML') as Class;
 }

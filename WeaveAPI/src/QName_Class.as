@@ -17,6 +17,8 @@ package
 {
 	import flash.utils.getDefinitionByName;
 
-	// Use this in place of QName class pointer to fix ASDOC build error "Property is write-only"
+	/**
+	 * Use this in place of QName class pointer to fix ASDOC build error "Property is write-only"
+	 */
 	public const QName_Class:Class = getDefinitionByName('QName') as Class;
 }
