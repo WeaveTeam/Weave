@@ -61,6 +61,8 @@ package weave.core
 		 */
 		public static function hasFocus(component:UIComponent):Boolean
 		{
+			if (!component)
+				return false;
 			var focus:DisplayObject = component.getFocus();
 			return focus && component.contains(focus);
 		}
