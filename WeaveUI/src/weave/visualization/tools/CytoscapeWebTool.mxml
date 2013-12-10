@@ -279,7 +279,7 @@
 					"function (weaveID, toolname, records, element_to_key_types, parameters) {\
 						var weave = weaveID ? document.getElementById(weaveID) : document;\
 						weave.external_tools[toolname].raw_output;\
-						weave.external_tools[toolname].load_data(records, element_to_key_types);\
+						weave.external_tools[toolname].load_data(records, element_to_key_types, null);\
 						weave.external_tools[toolname].launch(parameters);\
 						}",
 						ExternalInterface.objectID, _toolName, primitiveElements, element_to_key_types, parameters);

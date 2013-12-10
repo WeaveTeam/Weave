@@ -27,6 +27,11 @@ package weave.visualization.tools
 		private var _toolName:String;
 		private var _toolReady:Boolean = false;
 		public const toolState:LinkableVariable = newLinkableChild(this, LinkableVariable, sendStateChange);
+
+		private var _probePath:String;
+		private var _selectionPath:String;
+		private var _subsetPath:String;
+
 		public function ExternalTool(toolName:String, toolUrl:String)
 		{
 			_toolName = WeaveAPI.CSVParser.createCSVRow((WeaveAPI.SessionManager as SessionManager).getPath(WeaveAPI.globalHashMap, this));
@@ -42,9 +47,9 @@ package weave.visualization.tools
 				}", ExternalInterface.objectID, _toolName, url, windowFeatures);
 		}
 
-
-		public function callMethod(methodname:String, parameters:Array):void
+		public function callMethod(methodname:String, parameters:Array = null):void
 		{
+			if (parameters === null) parameters = [];
 			if (!_toolReady) weaveTrace("ExternalTool " + _toolName + " was accessed, but was not ready yet.");
 			ExternalInterface.call(
 					"function (weaveID, toolname, methodname, parameters) {\
@@ -52,33 +57,41 @@ package weave.visualization.tools
 						weave.external_tools[toolname][methodname].apply(this, parameters);\
 						}", ExternalInterface.objectID, _toolName, methodname, parameters);
 		}
-		public function focus():void
+		public function loadData(records:Array, keyTypeMappings:Object, dataOptions:Object):void
 		{
-			callMethod("focus", null);
+			callMethod("load_data", [records, keyTypeMappings, dataOptions]);
+		}
+		public function initialize():void
+		{
+			callMethod("launch");
+		}
+		public function setFocus():void
+		{
+			callMethod("focus");
 			return;
 		}
-		public function probe(qkeys:Array):void
+		public function setProbe(qkeys:Array):void
 		{
-			callMethod("probe",  qkeys);
+			callMethod("probe",  [qkeys]);
 			return;
 		}
-		public function select(qkeys:Array):void
+		public function setSelect(qkeys:Array):void
 		{
-			callMethod("select", qkeys);
+			callMethod("select", [qkeys]);
 			return;
 		}
-		public function subset(qkeys:Array):void
+		public function setSubset(qkeys:Array):void
 		{
-			callMethod("subset", qkeys);
+			callMethod("subset", [qkeys]);
 			return;
 		}
-		public function ready(qkeys:Array):void
+		public function setReady():void
 		{
 			weaveTrace("ExternalTool " + _toolName + " ready.");
 			_toolReady = true;
 			return;
 		}
-		public function error(message:String):void
+		public function emitError(message:String):void
 		{
 			weaveTrace("ExternalTool error from " + _toolName + ": " + message);
 			return;
@@ -88,7 +101,7 @@ package weave.visualization.tools
 			callMethod("update_state", [this.toolState.getSessionState()]);
 			return;
 		}
-		public function update_state(obj:Object):void
+		public function updateState(obj:Object):void
 		{
 			this.toolState.setSessionState(obj);
 			return;
