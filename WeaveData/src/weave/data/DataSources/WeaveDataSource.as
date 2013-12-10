@@ -524,7 +524,7 @@ package weave.data.DataSources
 			
 			if (_idFields || params[ENTITY_ID])
 			{
-				var id:Object = _idFields ? getAttrs(leafNode, _idFields, true) : params[ENTITY_ID];
+				var id:Object = _idFields ? getAttrs(leafNode, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
 				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
 				query = dataService.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
