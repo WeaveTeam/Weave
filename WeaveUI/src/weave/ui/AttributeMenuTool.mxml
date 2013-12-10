@@ -453,7 +453,7 @@
 				
 				var names:Array = choices.getNames();
 				var selectedIndex:int = names.indexOf(selectedAttribute.value);
-				choiceCombo.selectedIndex = selectedIndex;
+				choiceCombo.selectedIndex = alwaysShowPrompt.value ? -1 : selectedIndex;
 				choiceList.selectedIndex = selectedIndex;
 				if (selectedIndex >= 0)
 				{
