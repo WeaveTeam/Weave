@@ -110,7 +110,7 @@
 	[Bindable] protected var showLinkControls:Boolean = false;
 	[Bindable] protected var values:Array = []; // the values from labelsLinkableString
 	
-	internal function getUnlinkedTools():Array { return unlinkedTools.getSessionState() as Array; }
+	internal function getUnlinkedTools():Array { return unlinkedTools.getSessionState() as Array || []; }
 	
 	//constructor
 	
