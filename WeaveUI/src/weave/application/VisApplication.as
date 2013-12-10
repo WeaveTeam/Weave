@@ -1257,12 +1257,12 @@ package weave.application
 			
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 
-			// Minimize All Windows: Get a list of all panels and call minimizePanel() on each sequentially
 			if (Weave.properties.enableMinimizeAllWindows.value)
 			{
 				click = function():void {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						panel.minimizePanel();
+						if (panel.minimizable.value && !panel.minimized.value)
+							panel.minimizePanel();
 				};
 				enable = function():Boolean {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
@@ -1273,12 +1273,12 @@ package weave.application
 				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Minimize all windows"), click, null, enable));
 			}
 			
-			// Restore all minimized windows: Get a list of all panels and call restorePanel() on each sequentially
 			if (Weave.properties.enableRestoreAllMinimizedWindows.value)
 			{
 				click = function():void {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						panel.restorePanel();
+						if (panel.minimized.value)
+							panel.restorePanel();
 				};
 				enable = function():Boolean {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
@@ -1289,12 +1289,12 @@ package weave.application
 				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(lang("Restore all minimized windows"), click, null, enable));
 			}
 			
-			// Close All Windows: Get a list of all panels and call removePanel() on each sequentially
 			if (Weave.properties.enableCloseAllWindows.value)
 			{
 				click = function():void {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
-						panel.removePanel();
+						if (panel.closeable.value)
+							panel.removePanel();
 				};
 				enable = function():Boolean {
 					for each (panel in WeaveAPI.globalHashMap.getObjects(DraggablePanel))
