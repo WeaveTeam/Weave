@@ -62,7 +62,6 @@
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
 			private var _savedGlobalNames:Object;
-			private var createdChildren:Boolean = false;
 			
 			override protected function getDefaultRandomCoord():String
 			{
@@ -285,11 +284,10 @@
 			
 			override protected function createChildren():void
 			{
-				super.createChildren();
-				
 				if (createdChildren)
 					return;
-				createdChildren = true;
+				
+				super.createChildren();
 
 				var children:Array = getChildren();
 				removeAllChildren();

@@ -51,6 +51,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
+			import mx.controls.ComboBox;
 			import mx.controls.Image;
 			import mx.core.SpriteAsset;
 			import mx.core.UIComponent;
@@ -215,9 +216,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// nothing here, just a placeholder
 			}
 			
+			protected var createdChildren:Boolean = false;
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
+				
 				super.createChildren();
+				
+				createdChildren = true;
 				
 				// These calls to setStyle fix the display bug where there is a ~200 px bottom margin and ~20 px right margin.
 				UIUtils.pad(this, 0);
@@ -672,7 +679,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function get borderIsVisible():Boolean
 			{
-				return enableBorders.value && !Weave.properties.dashboardMode.value;
+				return enableBorders.value && (parent is ISystemManager || !Weave.properties.dashboardMode.value);
 			}
 			
 			override public function getStyle(styleProp:String):*
@@ -680,7 +687,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var value:* = null;	
 				
 				// if we override the borders before the window has been intialized, tools display nothing
-				if (initialized && getLinkableOwner(this))
+				if (initialized)
 				{
 					// if we are hiding the borders, return style bogus values that cause the borders to hide
 					if (!borderIsVisible)
@@ -841,6 +848,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleMouseDown(event:MouseEvent):void
 			{
+				var o:DisplayObject = event.target as DisplayObject;
+				while (o)
+				{
+					// stop when clicking on a combo box
+					if (o is ComboBox)
+						return;
+					o = o.parent;
+				}
+				
 				if (!_enableMoveResize)
 					return;
 				
