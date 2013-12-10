@@ -67,14 +67,31 @@
 			}
 			catch (se:SecurityError)
 			{
-				reportError(se, lang("Unable to create screenshot due to lack of permissive policy file for embedded image. ") + se.message);
+				reportSecurityError(se);
 			}
 			catch (e:Error)
 			{
 				trace(e.getStackTrace());
 				trace("ImageSnapshot.captureImage() failed, falling back to BitmapUtils.getPNGFromComponent()");
-				_imageSource = BitmapUtils.getPNGFromComponent(component);
+				
+				try
+				{
+					_imageSource = BitmapUtils.getPNGFromComponent(component);
+				}
+				catch (se:SecurityError)
+				{
+					reportSecurityError(se);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
+		}
+		
+		private function reportSecurityError(se:SecurityError):void
+		{
+			reportError(se, lang("Unable to create screenshot due to lack of permissive policy file for embedded image. ") + se.message);
 		}
 		
 		//handle when close button of TitleWindow is clicked
