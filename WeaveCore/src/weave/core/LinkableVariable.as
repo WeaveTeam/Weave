@@ -47,7 +47,7 @@ package weave.core
 		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:* = undefined, defaultValueTriggersCallbacks:Boolean = true)
 		{
 			// not supporting XML directly
-			if (sessionStateType == _XML_CLASS)
+			if (sessionStateType == XML_Class)
 				throw new Error("XML is not supported directly as a session state primitive type. Using String instead.");
 			
 			if (sessionStateType != Object)
@@ -72,8 +72,6 @@ package weave.core
 					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 		}
-		
-		private static const _XML_CLASS:Class = getDefinitionByName('XML') as Class; // this avoids a weird asdoc build error
 		
 		/**
 		 * @private

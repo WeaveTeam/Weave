@@ -20,6 +20,7 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
@@ -388,8 +389,8 @@ package weave.utils
 				output = object is Array ? [] : {};
 			for each (var key:* in keys)
 			{
-				if (object is XML)
-					output[key] = String((object as XML).attribute(key));
+				if (object is XML_Class)
+					output[key] = String((object as XML_Class).attribute(key));
 				else
 					output[key] = object[key];
 			}

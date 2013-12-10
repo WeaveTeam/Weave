@@ -51,7 +51,7 @@ package weave.compiler
 		 * Set this to true to enable trace statements for debugging.
 		 */
 		public var debug:Boolean = false;
-		
+
 		private static const INDEX_METHOD:int = -1;
 		private static const INDEX_CONDITION:int = 0;
 		private static const INDEX_TRUE:int = 1;
@@ -363,9 +363,7 @@ package weave.compiler
 				constants[String(_const)] = _const;
 			
 			// global classes
-			var _QName:* = getDefinitionByName('QName'); // workaround to avoid asdoc error
-			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
-			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
+			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, QName_Class, String, uint, XML_Class])
 				globals[getQualifiedClassName(_class)] = _class;
 			// global functions
 			for each (var _funcName:String in 'decodeURI,decodeURIComponent,encodeURI,encodeURIComponent,escape,isFinite,isNaN,isXMLName,parseFloat,parseInt,trace,unescape'.split(','))
@@ -418,8 +416,8 @@ package weave.compiler
 				return object;
 			};
 			operators[".."] = function(object:*, propertyName:*):* {
-				if (object is XML)
-					return (object as XML).descendants(propertyName);
+				if (object is XML_Class)
+					return (object as XML_Class).descendants(propertyName);
 				if (object is Proxy)
 					return (object as Proxy).getDescendants(propertyName);
 				return object.flash_proxy::getDescendants(propertyName);
