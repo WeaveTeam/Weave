@@ -51,7 +51,7 @@
 				var dataCol:FilteredColumn = Weave.defaultColorDataColumn;
 				dataColumnComponent.dynamicObject = dataCol.internalDynamicColumn;
 				cRampEditor.colorRamp = colorCol.ramp;
-				linkSessionState(binCol, binEditor.binnedColumn);
+				binEditor.setTarget(binCol);
 				linkSessionState(colorCol.recordColors, colorOverrideEditor.recordColors);
 				
 				targets = [colorCol];

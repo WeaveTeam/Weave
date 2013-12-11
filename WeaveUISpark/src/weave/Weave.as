@@ -54,7 +54,6 @@ package weave
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.utils.BitmapUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -367,7 +366,7 @@ package weave
 			{
 				// we must wait until all plugins are loaded before trying to decode the session state xml
 				var xml:XML = content as XML;
-				plugins = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xml.@plugins), []);
+				plugins = WeaveAPI.CSVParser.parseCSVRow(xml.@plugins) || [];
 				if (setPluginList(plugins, content))
 				{
 					var newState:Array = WeaveXMLDecoder.decodeDynamicState(xml);
@@ -564,17 +563,14 @@ package weave
 		
 		[Embed(source="WeaveStartup.js", mimeType="application/octet-stream")]
 		private static const WeaveStartup:Class;
-		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
-		private static const WeavePath:Class;
 
-		public static function initWeavePathAPI():void
+		public static function initExternalDragDrop():void
 		{
 			if (!ExternalInterface.available)
 				return;
 			try
 			{
 				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeaveStartup()) + '}');
-				ExternalInterface.call('function(){' + WeaveAPI.JS_var_weave + String(new WeavePath()) + '}');
 			}
 			catch (e:Error)
 			{

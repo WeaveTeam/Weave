@@ -414,9 +414,4 @@ function WeavePath(path)
 		
 		throw new Error(str);
 	}
-
-	
-	// deprecated methods
-	
-	this.getVar = function(n){ console.log("WeavePath.getVar() is deprecated. Use getValue() instead."); return weave.path.vars[n]; };
 }

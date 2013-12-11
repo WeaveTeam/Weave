@@ -23,7 +23,7 @@ package weave.utils
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
 	
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 
 	/**
 	 * PlotterUtils
@@ -57,7 +57,7 @@ package weave.utils
 		{
 			if (bitmap.bitmapData)
 			{
-				disposeObjects(bitmap.bitmapData);
+				disposeObject(bitmap.bitmapData);
 				bitmap.bitmapData = null;
 			}
 		}
@@ -126,7 +126,7 @@ package weave.utils
 					//trace("new BitmapData(",[unscaledWidth, unscaledHeight, true, 0x00000000],");");
 					// dispose of oldBitmapData, if any exists
 					if (oldBitmapData != null)
-						disposeObjects(oldBitmapData);
+						disposeObject(oldBitmapData);
 					// connect Bitmap to newBitmapData
 					bitmap.bitmapData = newBitmapData;
 					result = true;

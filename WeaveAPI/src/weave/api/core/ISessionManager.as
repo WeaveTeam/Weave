@@ -208,14 +208,14 @@ package weave.api.core
 		/**
 		 * This function should be called when an ILinkableObject or IDisposableObject is no longer needed.
 		 * @param object An ILinkableObject or an IDisposableObject to clean up.
-		 * @param moreObjects More objects to clean up.
 		 */
-		function disposeObjects(object:Object, ...moreObjects):void;
+		function disposeObject(object:Object):void;
 
 		/**
 		 * This function checks if an object has been disposed of by the ISessionManager.
 		 * @param object An object to check.
-		 * @return A value of true if disposeObjects() was called for the specified object.
+		 * @return A value of true if disposeObject() was called for the specified object.
+		 * @see #disposeobject()
 		 */
 		function objectWasDisposed(object:Object):Boolean;
 		

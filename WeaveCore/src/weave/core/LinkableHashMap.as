@@ -26,7 +26,7 @@ package weave.core
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	
@@ -348,7 +348,7 @@ package weave.core
 			_childListCallbacks.runCallbacks(name, null, object);
 
 			// dispose of the object AFTER the callbacks know that the object was removed
-			disposeObjects(object);
+			disposeObject(object);
 		}
 
 		/**

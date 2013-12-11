@@ -77,6 +77,7 @@
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IVisTool;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -85,7 +86,6 @@
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.AsyncSort;
 	import weave.utils.LinkableTextFormat;
-	import weave.utils.VectorUtils;
 
 	//class data
 	
@@ -99,18 +99,18 @@
 	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
-	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array));
+	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, isStringArray));
 	public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString('HSlider', verifyLayout));
 	public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 	
 	private function verifyLayout(value:String):Boolean { return layoutChoices.indexOf(value) >= 0; }
-	
+	private function isStringArray(array:Array):Boolean { return StandardLib.getArrayType(array) == String; }
 	
 	private var _timer:Timer;
 	[Bindable] protected var showLinkControls:Boolean = false;
 	[Bindable] protected var values:Array = []; // the values from labelsLinkableString
 	
-	internal function getUnlinkedTools():Array { return VectorUtils.flatten(unlinkedTools.getSessionState() as Array); }
+	internal function getUnlinkedTools():Array { return unlinkedTools.getSessionState() as Array || []; }
 	
 	//constructor
 	

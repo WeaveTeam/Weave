@@ -20,6 +20,7 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
@@ -373,6 +374,27 @@ package weave.utils
 			}
 			while (cursor.moveNext());
 			return array;
+		}
+		
+		/**
+		 * This will get a subset of properties/items/attributes from an Object/Array/XML.
+		 * @param object An Object/Array/XML containing properties/items/attributes to retrieve.
+		 * @param keys A list of property names, index values, or attribute names.
+		 * @param output Optionally specifies where to store the resulting items.
+		 * @return An Object (or Array) containing the properties/items/attributes specified by keysOrIndices.
+		 */
+		public static function getItems(object:*, keys:Array, output:* = null):*
+		{
+			if (!output)
+				output = object is Array ? [] : {};
+			for each (var key:* in keys)
+			{
+				if (object is XML_Class)
+					output[key] = String((object as XML_Class).attribute(key));
+				else
+					output[key] = object[key];
+			}
+			return output;
 		}
 	}
 }

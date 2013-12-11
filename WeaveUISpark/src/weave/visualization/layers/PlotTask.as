@@ -35,7 +35,7 @@ package weave.visualization.layers
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.linkableObjectIsBusy;
@@ -126,7 +126,8 @@ package weave.visualization.layers
 			_spatialIndex = null;
 			_zoomBounds = null;
 			_layerSettings = null;
-			disposeObjects(completedBitmap.bitmapData, bufferBitmap.bitmapData);
+			WeaveAPI.SessionManager.disposeObject(completedBitmap.bitmapData);
+			WeaveAPI.SessionManager.disposeObject(bufferBitmap.bitmapData);
 		}
 		
 		public function get taskType():int { return _taskType; }
@@ -240,9 +241,9 @@ package weave.visualization.layers
 			{
 				WeaveAPI.SessionManager.unassignBusyTask(_dependencies);
 				
-				disposeObjects(bufferBitmap.bitmapData);
+				disposeObject(bufferBitmap.bitmapData);
 				bufferBitmap.bitmapData = null;
-				disposeObjects(completedBitmap.bitmapData);
+				disposeObject(completedBitmap.bitmapData);
 				completedBitmap.bitmapData = null;
 				completedDataBounds.reset();
 				completedScreenBounds.reset();

@@ -118,7 +118,7 @@ package weave.services
 		////////////////////////////////////
 		// string and numeric data columns
 		
-		public function getColumn(columnId:int, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken // returns AttributeColumnData
+		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken // returns AttributeColumnData
 		{
 			return invoke(getColumn, arguments);
 		}

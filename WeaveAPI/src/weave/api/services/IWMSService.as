@@ -15,7 +15,6 @@
 
 package weave.api.services
 {
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 

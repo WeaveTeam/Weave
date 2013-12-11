@@ -119,7 +119,6 @@ RTextEditor
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
-			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			WeaveAPI.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
@@ -237,7 +236,7 @@ RTextEditor
 				var assignValues:Array = joinedColumns;
 				//Names for Column that need to be used in R
 				var RscriptAssignNames:String = assignTA.text;
-				var assignNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text));
+				var assignNames:Array = WeaveAPI.CSVParser.parseCSVRow(assignTA.text) || [];
 				//Script for R input
 				var script:String = inputTA.text;
 				var plotScript:String = plotTA.text;
@@ -247,7 +246,7 @@ RTextEditor
 					script = script.replace("\r","\n");
 				}				
 				//Script to get output from R
-				var outputNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
+				var outputNames:Array = WeaveAPI.CSVParser.parseCSVRow(outputTA.text) || [];
 
 				//Query is created from runScript with same signature from Jave side
 				var showIntermediateResults:Boolean = intermediateResultCB.selected;

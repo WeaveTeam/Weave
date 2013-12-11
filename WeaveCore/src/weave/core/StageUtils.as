@@ -546,9 +546,9 @@ package weave.core
 			{
 				// perform the next iteration of the task
 				if (useTimeParameter)
-					progress = task.call(null, _currentTaskStopTime) as Number;
+					progress = task(_currentTaskStopTime) as Number;
 				else
-					progress = task.apply() as Number;
+					progress = task() as Number;
 				
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
@@ -558,9 +558,9 @@ package weave.core
 						trace(stackTrace);
 						// this is incorrect behavior, but we can put a breakpoint here
 						if (useTimeParameter)
-							progress = task.call(null, _currentTaskStopTime) as Number;
+							progress = task(_currentTaskStopTime) as Number;
 						else
-							progress = task.apply() as Number;
+							progress = task() as Number;
 					}
 					progress = 1;
 				}
@@ -569,9 +569,9 @@ package weave.core
 					trace(getTimer() - time, stackTrace);
 					// this is incorrect behavior, but we can put a breakpoint here
 					if (useTimeParameter)
-						progress = task.call(null, _currentTaskStopTime) as Number;
+						progress = task(_currentTaskStopTime) as Number;
 					else
-						progress = task.apply() as Number;
+						progress = task() as Number;
 				}
 				if (progress == 1)
 				{
