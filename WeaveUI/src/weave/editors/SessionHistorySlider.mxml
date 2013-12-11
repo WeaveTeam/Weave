@@ -60,9 +60,9 @@
 				
 				_editMenu = new SubMenu(menuButton);
 				//_editMenu.addSubMenuItem(getPresentationMenuLabel, togglePresentationMode);
-				_editMenu.addSubMenuItem(lang("Erase everything"), _stateLog.clearHistory);
-				_editMenu.addSubMenuItem(lang("Erase all undos"), _stateLog.clearHistory, [-1]);
-				_editMenu.addSubMenuItem(lang("Erase all redos"), _stateLog.clearHistory, [1]);
+				_editMenu.addSubMenuItem(lang("Clear all history"), _stateLog.clearHistory);
+				_editMenu.addSubMenuItem(lang("Clear undo history"), _stateLog.clearHistory, [-1]);
+				_editMenu.addSubMenuItem(lang("Clear redo history"), _stateLog.clearHistory, [1]);
 				_editMenu.addSubMenuItem(getSquashMenuLabel, squash);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
