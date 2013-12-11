@@ -36,10 +36,10 @@ aws.DataClient.getDataColumnEntities = function(ids, handleResult) {
 /**
  * This function mirrors the getColumn on the servlet.
  * 
- * @param {number} columnId The column Id
- * @param {number} minParam
- * @param {number} maxParam
- * @param {Array.<string>} sqlParams
+ * @param {number|Object} columnId A column entity ID or a set of public metadata that uniquely identifies a column
+ * @param {number} minParam Used for filtering numeric data
+ * @param {number} maxParam Used for filtering numeric data
+ * @param {Array.<string>} sqlParams Parameters for '?' placeholders in the column's SQL query
  * @param {function(Object)} handleResult
  */
 aws.DataClient.getColumn = function(columnId, minParam, maxParam, sqlParams, handleResult) {
@@ -57,11 +57,11 @@ aws.DataClient.getEntityIdsByMetadata = function(meta, handleResult){
 
 /**
  * Accepts a varValues property from an aws_metadata object and passes the corresponding data mapping to a callback function.
- * @param {Object} varValues Either an Array of value-label pairs or a column identifier in one of three formats:
+ * @param {number|string|Object|Array.<Object>} varValues Either an Array of value-label pairs or a column identifier in one of three formats:
  *   1. An integer for a column entity id (used by the admin console);
  *   2. An Object containing metadata fields that uniquely identify the column; and
  *   3. A String which specifies the value for a single predefined metadata field (aws_id) which uniquely identifies a column.
- * @param {function(Array.<Object>)} A callback which receives the data mapping.
+ * @param {function(Array.<Object>)} callback A callback which receives the data mapping.
  */
 aws.DataClient.getDataMapping = function(varValues, callback)
 {
