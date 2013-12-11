@@ -103,6 +103,7 @@
 	public const filterValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray, []), handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
+	public const linkGlobalColumns:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 	public const unlinkedTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray, []));
 	public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString('HSlider', verifyLayout));
 	public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -480,6 +481,7 @@
 			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsRefs}" labelFunction="{getRefLabel}" change="dimensionChange()"/>
 			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
 			<mx:VBox width="100%" visible="{showLinkControls}" includeInLayout="{showLinkControls}">
+				<ui:CustomCheckBox label="{lang('Link global columns')}" creationComplete="linkBindableProperty(linkGlobalColumns, event.target, 'selected')"/>
 				<mx:Label text="Linked visualization tools"/>
 				<ui:Indent>
 					<ui:CheckBoxList id="toolCheckboxList" defaultSelectedState="true">
