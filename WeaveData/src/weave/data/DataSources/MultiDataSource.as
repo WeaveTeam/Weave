@@ -117,7 +117,7 @@ package weave.data.DataSources
 			}
 			
 			// add category for global column objects
-			// TEMPORARY SOLUTION -- only allow EquationColumns
+			// TEMPORARY SOLUTION -- only allow EquationColumn and CSVColumn
 			var eqCols:Array = _root.getObjects(EquationColumn).concat(_root.getObjects(CSVColumn));
 			if (eqCols.length > 0)
 			{
