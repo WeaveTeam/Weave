@@ -35,13 +35,14 @@
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
+			import weave.data.KeySets.KeySetUnion;
 
 			// Node columns
 			public const nodeColorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
 			public const nodeLabelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
 			public const nodeRadiusColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
 			public const nodeParentColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
-			
+			public const nodeShapeColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleNodeColumnChange, true);
 			
 			// Edge columns
 			public const edgeSourceColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
@@ -50,6 +51,7 @@
 			public const edgeThicknessColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
 			public const edgeColorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
 			public const edgeWeightColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
+			public const edgeTimeColumn:DynamicColumn = newLinkableChild(this, DynamicColumn, handleEdgeColumnChange, true);
 			
 			// General configuration
 			public const layoutSeed:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleGraphLayoutChange);
@@ -70,8 +72,11 @@
 			private var _primitiveEdges:Object;
 			private var _primitiveNodes:Object;
 			private var _primitiveLayout:Object;
+
+			public const _nodeKeySet:KeySetUnion = newDisposableChild(this, KeySetUnion);
 			public const _nodeFilteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
 			public const _edgeFilteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
+
 
 			public const _cytoscapeReady:LinkableBoolean = newDisposableChild(this, LinkableBoolean);
 
@@ -80,11 +85,18 @@
 				super.constructor();
 				_nodeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 				_edgeFilteredKeys.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn]);
-				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn]);
+				_nodeFilteredKeys.setColumnKeySources([nodeLabelColumn, nodeColorColumn, nodeRadiusColumn, nodeParentColumn, nodeShapeColumn]);
+				_edgeFilteredKeys.setColumnKeySources([edgeSourceColumn, edgeTargetColumn, edgeThicknessColumn, edgeColorColumn, edgeWeightColumn, edgeLabelColumn]);
 
 				_nodeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
 				_edgeFilteredKeys.addGroupedCallback(this, handleSubsetChange);
+
+				_nodeKeySet.addKeySetDependency(nodeLabelColumn);
+				_nodeKeySet.addKeySetDependency(nodeColorColumn);
+				_nodeKeySet.addKeySetDependency(nodeRadiusColumn);
+				_nodeKeySet.addKeySetDependency(nodeParentColumn);
+				_nodeKeySet.addKeySetDependency(nodeShapeColumn);
+
 			}
 			public function cytoscapeReady():void
 			{
@@ -171,23 +183,27 @@
 					nodes: [{name: "label", type: "string", defValue: ""}, 
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
-							{name: "color", type: "string", defValue: ""},
+							{name: "color", type: "string", defValue: "#ffffff"},
+							{name: "compoundColor", type: "string", defValue: "#ffffff"},
 							{name: "size", type: "number", defValue: 30},
 							{name: "parent", type: "string", defValue: ""},
 							{name: "shape", type:"string", defValue: "ELLIPSE"}],
 					edges: [{name: "label", type: "string", defValue: ""},
 							{name: "keyType", type: "string"}, 
 							{name: "localName", type: "string"},
-							{name: "color", type: "string", defValue: ""},
+							{name: "color", type: "string", defValue: "#000000"},
 							{name: "width", type: "number", defValue: 5},
-							{name: "weight", type: "number", defValue: 1}]
+							{name: "weight", type: "number", defValue: 1},
+							{name: "time", type: "number", defValue: 0}]
 			};
 
 			private const nodePropertyMappings:Object = {
 				label:{column:nodeLabelColumn, type:String},
 				color:{column:nodeColorColumn, type:String},
+				compoundColor:{column:nodeColorColumn, type:String},
 				size:{column:nodeRadiusColumn, type:Number},
-				parent:{column:nodeParentColumn, type:String}
+				parent:{column:nodeParentColumn, type:String},
+				shape:{column:nodeShapeColumn, type:String}
 			};
 
 			private const edgePropertyMappings:Object = {
@@ -196,7 +212,8 @@
 				target:{column:edgeTargetColumn, type:String, required:true},
 				color:{column:edgeColorColumn, type:String},
 				width:{column:edgeThicknessColumn, type:Number},
-				weight:{column:edgeWeightColumn, type:Number}
+				weight:{column:edgeWeightColumn, type:Number},
+				time:{column:edgeTimeColumn, type:Number}
 			};
 
 			private function buildPrimitiveElements(keyset:IKeySet, mapping:Object):Array
@@ -241,11 +258,11 @@
 
 			private function handleNodeColumnChange():void
 			{
-				_nodeKeyType =  nodeColorColumn.getMetadata(ColumnMetadata.KEY_TYPE) ||
-								nodeLabelColumn.getMetadata(ColumnMetadata.KEY_TYPE) ||
-								nodeRadiusColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				var mainNodeColumn:IAttributeColumn = 
+					nodeLabelColumn.getInternalColumn() || nodeColorColumn.getInternalColumn() || nodeRadiusColumn.getInternalColumn() || nodeParentColumn.getInternalColumn() || nodeShapeColumn.getInternalColumn();
 
-				_primitiveNodes = buildPrimitiveElements(nodeLabelColumn, nodePropertyMappings);								
+				_nodeKeyType = mainNodeColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+				_primitiveNodes = buildPrimitiveElements(mainNodeColumn, nodePropertyMappings);								
 
 				sendNetworkToCytoscape();
 			}
@@ -306,6 +323,8 @@
 				nodeParentComponent.dynamicObject = nodeParentColumn;
 				nodeRadiusComponent.dynamicObject = nodeRadiusColumn;
 				nodeLabelComponent.dynamicObject = nodeLabelColumn;
+
+				edgeTimeComponent.dynamicObject = edgeTimeColumn;
 				edgeSourceComponent.dynamicObject = edgeSourceColumn;
 				edgeTargetComponent.dynamicObject = edgeTargetColumn;
 				edgeThicknessComponent.dynamicObject = edgeThicknessColumn;
@@ -337,6 +356,7 @@
 			<ui:DynamicColumnComponent id="edgeThicknessComponent" label="{lang('Edge Thickness')}"/>
 			<ui:DynamicColumnComponent id="edgeLabelComponent" label="{lang('Edge Labels')}"/>
 			<ui:DynamicColumnComponent id="edgeWeightComponent" label="{lang('Edge Weight')}"/>
+			<ui:DynamicColumnComponent id="edgeTimeComponent" label="{lang('Edge Time')}"/>
 		</mx:VBox>
 		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
 		 	<mx:HBox>

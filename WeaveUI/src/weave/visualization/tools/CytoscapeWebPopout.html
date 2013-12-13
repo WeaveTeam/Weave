@@ -97,24 +97,11 @@
             }
             function ready_handler() {
                 console.log("Ready handler filed.");
-                var style = {
-                    nodes: {
-                        selectionGlowColor: "#ff0000",
-                        selectionGlowStrength: 10,
-                        selectionGlowBlur: 16
-                    },
-                    edges: {
-                        selectionGlowColor: "#ff0000",
-                        selectionGlowStrength: 10,
-                        selectionGlowBlur: 16
-                    }
-                };
                 /*
                 var path = new opener.Array;
                 path.push(window.name);
                 weave.evaluateExpression(path, 'cytoscapeReady()');
                 */
-                vis.visualStyle(style);
                 return;
             }
 
@@ -155,17 +142,24 @@
                         {
                             delete element.parent;
                         }
-                        _tmpnetwork.nodes.push(element);
                         // HACKS
                         if (element.localName.indexOf("locator") == 0)
                         {
-                            console.log("Setting element to RECTANGLE shape.")
+                            element.color = "#550000"
+                            element.compoundColor = "#550000"
                             element.shape = "RECTANGLE"
                         }
                         if (element.localName.indexOf("content") == 0)
                         {
+                            element.color = "#000055"
+                            element.compoundColor = "#000055"
                             element.shape = "RECTANGLE"
                         }
+                        if (element.localName.indexOf("N") == 0)
+                        {
+                            element.color = "#ffffff"
+                        }
+                        _tmpnetwork.nodes.push(element);
                     }
                 }
                 _network = {};
@@ -174,8 +168,25 @@
 
             /* Builds a basic passthrough schema */
             function build_style_from_schema(schema) {
+                var style = {
+                    nodes: {
+                        selectionGlowColor: "#ff0000",
+                        selectionGlowStrength: 10,
+                        selectionGlowBlur: 16,
+                        compoundColor: "#333333",
+                        labelFontColor: "#ffffff",
+                        compoundLabelFontColor: "#ffffff"
+                    },
+                    edges: {
+                        selectionGlowColor: "#ff0000",
+                        selectionGlowStrength: 10,
+                        selectionGlowBlur: 16
+                    },
+                    global: {
+                        backgroundColor: "#000000"
 
-                var style = {nodes: {}, edges: {}};
+                    }
+                };
                 for (var prop_i in schema.nodes)
                 {
                     var prop = schema.nodes[prop_i].name;
