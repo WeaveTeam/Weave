@@ -23,8 +23,6 @@
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				backgroundColor="0xCCCCCC"
 				addedToStage="handleAddedToStage();"
-				width="640"
-				height="480"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
 				escapeKeyClosesPanel="true"
@@ -63,9 +61,12 @@
 			private var _savedGlobalSessionStates:Array;
 			private var _savedGlobalNames:Object;
 			
-			override protected function getDefaultRandomCoord():String
+			override public function reposition():void
 			{
-				return '' + int(20 + Math.random() * 10) + "%"; // near middle of screen if width 50%
+				panelX.value = '' + int(20 + Math.random() * 10) + "%"; // near middle of screen if width 50%
+				panelY.value = '' + int(20 + Math.random() * 10) + "%"; // near middle of screen if height 50%
+				panelWidth.value = '640';
+				panelHeight.value = '480';
 			}
 
 			override protected function get borderIsVisible():Boolean
@@ -315,18 +316,6 @@
 			
 			private function handleAddedToStage():void
 			{
-				var xMargin:Number = stage.stageWidth - width;
-				var xRange:Number = Math.min(xMargin, 64);
-				if (x < 0 || x > xMargin)
-					panelX.value = String((xMargin - xRange)/2 + Math.random() * xRange);
-				var yMargin:Number = stage.stageHeight - height;
-				var yRange:Number = Math.min(yMargin, 64);
-				if (y < 0 || y > yMargin)
-					panelY.value = String((yMargin - yRange)/2 + Math.random() * yRange);
-				
-				if(xMargin < 0 || yMargin < 0)
-					constrainAndSaveCoordinates();
-				
 				save();
 			}
 			
