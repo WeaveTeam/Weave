@@ -338,11 +338,31 @@ package weave.compiler
 		{
 			return libraries.concat(); // make a copy
 		}
+		
 		/**
 		 * This function will initialize the operators and constants.
 		 */
 		private function initialize():void
 		{
+			// add global support for function binding if not already added
+			if (!Function.prototype.bind)
+			{
+				try
+				{
+					Function.prototype.bind = function(that:*, ...args):* {
+						var func:Function = this;
+						if (args.length)
+							return function():*{ return func.apply(that, args.concat(arguments)); };
+						else
+							return function():*{ return func.apply(that, arguments); };
+					};
+				}
+				catch (e:Error)
+				{
+					trace("Compiler.initialize(): ", e.getStackTrace());
+				}
+			}
+			
 			if (!statements)
 			{
 				statements = {};
@@ -2201,6 +2221,9 @@ package weave.compiler
 			// check globals last
 			allSymbolTables.push(globals);
 			
+			// this flag is set to useThisScope when the compiledObject is a function definition
+			var cascadeThisScope:Boolean = false;
+			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
@@ -2459,7 +2482,7 @@ package weave.compiler
 								funcParams[FUNCTION_CODE],
 								_symbolTables,
 								errorHandler,
-								useThisScope,
+								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
 								funcParams[FUNCTION_PARAM_VALUES]
 							);
@@ -2540,7 +2563,10 @@ package weave.compiler
 			
 			// if the compiled object is a function definition, return that function definition instead of the wrapper.
 			if (compiledObjectIsFunctionDefinition(compiledObject))
+			{
+				cascadeThisScope = useThisScope;
 				return wrapperFunction() as Function;
+			}
 			
 			return wrapperFunction;
 		}
