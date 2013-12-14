@@ -20,7 +20,7 @@
 */
 -->
 <ui:DraggablePanel xmlns="weave.editors.managers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off" escapeKeyClosesPanel="true"
 				visible="true" title="{lang('View/Edit Data')}" xmlns:ui="weave.ui.*" xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*">
 	<mx:VBox width="100%" height="100%">
 		<CustomDataGrid:CustomDataGrid id="tableEditor" width="100%" height="100%"/>
@@ -28,7 +28,7 @@
 	
 	<mx:ControlBar>
 		<mx:Spacer width="100%"/>
-		<mx:Button id="saveButton" click="removePanel();" label="{lang('Save &amp; Close')}"/>
+		<mx:Button id="saveButton" label="{lang('Ok')}" click="removePanel();"/>
 		<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel();"/>
 	</mx:ControlBar>
 	
