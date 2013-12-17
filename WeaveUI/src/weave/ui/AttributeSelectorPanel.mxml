@@ -92,8 +92,8 @@
 					return;
 				super.createChildren();
 
-				registerLinkableChild(this, editor, hideIfUnlinked, true);
-				registerLinkableChild(this, columnList, hideIfUnlinked, true);
+				registerLinkableChild(this, editor);
+				registerLinkableChild(this, columnList);
 				columnList.titleHBox.addChild(addColumnControls);
 				
 				Weave.properties.showAddAllButton.addImmediateCallback(this, function():void {
@@ -106,22 +106,8 @@
 				super.dispose();
 			}
 			
-			private function hideIfUnlinked():Boolean
-			{
-				if (_targetObjects && _targetObjects.length && !editor.target && !columnList.hashMap)
-				{
-					linkToObject(null);
-					removePanel();
-					return true;
-				}
-				return false;
-			}
-			
 			private function addAll():void
 			{
-				if (hideIfUnlinked())
-					return;
-				
 				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
 				if( editor.hierarchySelector.attributesView.dataProvider != null )
@@ -140,9 +126,6 @@
 			
 			private function addSelected():void
 			{
-				if (hideIfUnlinked())
-					return;
-				
 				var newColumn:ILinkableObject = columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
 				columnList.beginEditVariableName(newColumn);
 			}
@@ -180,6 +163,9 @@
 					selectableAttributeNames = [];
 				}
 				showOrHideParamSelector(tool != null);
+				
+				if (!columnList.hashMap && verticalDividedBox == columnList.parent)
+					verticalDividedBox.removeChild(columnList);
 			}
 			
 			private function showOrHideParamSelector(show:Boolean):void
@@ -199,6 +185,7 @@
 
 				var tool:IVisToolWithSelectableAttributes = getVisTool(columnOrHashMap);
 				toolWatcher.target = tool;
+				handleTool();
 				if (tool)
 				{
 					targets = tool.getSelectableAttributes();
