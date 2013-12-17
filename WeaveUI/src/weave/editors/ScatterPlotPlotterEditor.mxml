@@ -147,7 +147,7 @@
 	</mx:Script>
 	<ui:DynamicColumnComponent id="dataXCol" label="{lang('X')}"/>
 	<ui:DynamicColumnComponent id="dataYCol" label="{lang('Y')}"/>
-	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false" enabled="{!overrideColorCheckBox.selected}"/>
+	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
 	<ui:CustomCheckBox id="sizeByCheck" label="{lang('Size')}" textAlign="right"/>
 	<ui:DynamicColumnComponent id="sizeCol">
 		<ui:creationComplete>
