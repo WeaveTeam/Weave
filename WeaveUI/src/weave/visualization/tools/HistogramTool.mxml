@@ -199,7 +199,6 @@
 		<mx:VBox label="{lang('Basic')}">
 			<ui:DynamicColumnComponent id="dataColumnComponent"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
-			<ui:CustomCheckBox label="{lang('Horizontal mode')}" creationComplete="linkBindableProperty(plotter.horizontalMode, event.target, 'selected');"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
@@ -207,6 +206,7 @@
 				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
 								   creationComplete="linkBindableProperty(plotter.aggregationMethod, event.target, 'selectedItem');"/>
 			</ui:Indent>
+			<ui:CustomCheckBox label="{lang('Draw horizontal bars')}" creationComplete="linkBindableProperty(plotter.horizontalMode, event.target, 'selected');"/>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
 						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
