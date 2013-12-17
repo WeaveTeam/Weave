@@ -38,6 +38,7 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.HistogramPlotter;
+			import weave.visualization.plotters.SimpleAxisPlotter;
 		
 			WeaveAPI.registerImplementation(IVisTool, HistogramTool, "Histogram");
 			
@@ -49,9 +50,7 @@
 				
 				// lock dynamic objects into place
 				initializePlotters(HistogramPlotter, true);
-				visualization.enableProbeLine(false, true);
 				
-				xAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 
 				visualization.plotManager.marginBottom.value = "80";
@@ -66,8 +65,8 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.columnToAggregate); });
-				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(plotter.fillStyle.color); });
+				visualization.leftMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.leftMarginColumn); });
+				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, function():void { AttributeSelectorPanel.open(visualization.bottomMarginColumn); });
 				
 				initColumnDefaults(ColumnUtils.hack_findInternalDynamicColumn(plotter.fillStyle.color));
 			}
@@ -122,7 +121,7 @@
 				dataColumnComponent.columnWrapper = plotter.fillStyle.color;
 			}
 			
-			private function getYAxisLabel(number:Number):String
+			private function getHeightAxisLabel(number:Number):String
 			{
 				return ColumnUtils.deriveStringFromNumber(plotter.columnToAggregate, number);
 			}
@@ -130,51 +129,77 @@
 			{
 				handlePanelTitleChange();
 				
-				visualization.bottomMarginColumn = plotter.fillStyle.color;
-				visualization.leftMarginColumn = plotter.columnToAggregate;
+				var binAxisPlotter:SimpleAxisPlotter;
+				var heightAxisPlotter:SimpleAxisPlotter;
+				
+				if (plotter.horizontalMode.value)
+				{
+					binAxisPlotter = yAxisPlotter;
+					heightAxisPlotter = xAxisPlotter;
+					visualization.bottomMarginColumn = plotter.columnToAggregate;
+					visualization.leftMarginColumn = plotter.fillStyle.color;
+					visualization.enableProbeLine(true, false);
+					xAxisPlotter.forceTickCount.value = false;
+					yAxisPlotter.forceTickCount.value = true;
+					
+				}
+				else
+				{
+					binAxisPlotter = xAxisPlotter;
+					heightAxisPlotter = yAxisPlotter;
+					visualization.bottomMarginColumn = plotter.fillStyle.color;
+					visualization.leftMarginColumn = plotter.columnToAggregate;
+					visualization.enableProbeLine(false, true);
+					xAxisPlotter.forceTickCount.value = true;
+					yAxisPlotter.forceTickCount.value = false;
+				}
 				
 				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
 				{
-					xAxisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
-					xAxisPlotter.tickMinValue.value = 0;
-					xAxisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
-					xAxisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber);
+					binAxisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
+					binAxisPlotter.tickMinValue.value = 0;
+					binAxisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
+					binAxisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber);
 				}
 				else
 				{
-					xAxisPlotter.setLabelFunction(null);
+					binAxisPlotter.tickMinValue.value = NaN;
+					binAxisPlotter.tickMaxValue.value = NaN;	
+					binAxisPlotter.setLabelFunction(null);
 				}
 				
-				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.fillStyle.color), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				heightAxisPlotter.tickMinValue.value = NaN;
+				heightAxisPlotter.tickMaxValue.value = NaN;
 				
-				var axisTitle:String = lang("Number of records");
+				var binAxisTitle:String = ColumnUtils.getTitle(plotter.fillStyle.color);
+				var heightAxisTitle:String = lang("Number of records");
 				if (plotter.columnToAggregate.getInternalColumn() && plotter.aggregationMethod.value != HistogramPlotter.AG_COUNT)
 				{
-					yAxisPlotter.setLabelFunction(getYAxisLabel);
+					heightAxisPlotter.setLabelFunction(getHeightAxisLabel);
 					var agColTitle:String = ColumnUtils.getTitle(plotter.columnToAggregate);
 					var method:String = plotter.aggregationMethod.value;
 					if (method == HistogramPlotter.AG_MEAN)
-						axisTitle = lang("Mean of {0}", agColTitle);
+						heightAxisTitle = lang("Mean of {0}", agColTitle);
 					if (method == HistogramPlotter.AG_SUM)
-						axisTitle = lang("Sum of {0}", agColTitle);
+						heightAxisTitle = lang("Sum of {0}", agColTitle);
 				}
 				else
 				{
-					yAxisPlotter.setLabelFunction(null);
+					heightAxisPlotter.setLabelFunction(null);
 				}
-				yAxisPlotter.setSideAxisName(axisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				
+				xAxisPlotter.setSideAxisName(plotter.horizontalMode.value ? heightAxisTitle : binAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisPlotter.setSideAxisName(plotter.horizontalMode.value ? binAxisTitle : heightAxisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
 
 	<ui:ControlPanel>
 		<mx:VBox label="{lang('Basic')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent id="dataColumnComponent"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
+			<ui:CustomCheckBox label="{lang('Horizontal mode')}" creationComplete="linkBindableProperty(plotter.horizontalMode, event.target, 'selected');"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
@@ -185,6 +210,8 @@
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
 						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in mouseover info')}"
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>
