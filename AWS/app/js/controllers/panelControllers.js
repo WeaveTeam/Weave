@@ -34,12 +34,8 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch('scriptSelected', function() {
 		if($scope.scriptSelected != undefined) {
 			if($scope.scriptSelected != ""){
-				queryService.queryObject['scriptSelected'] = $scope.scriptSelected;
-				$scope.inputs = queryService.getScriptMetadata($scope.scriptSelected).then(function(result){			// reinitialize and apply to model
-					$scope.scriptType = result.scriptType;
-					queryService.queryObject['scriptType'] = result.scriptType;
-					return result.inputs;
-				});
+				queryService.queryObject.scriptSelected = $scope.scriptSelected;
+				queryService.getScriptMetadata($scope.scriptSelected);			// reinitialize and apply to model
 			}
 		}
 		// reset these values when the script changes
@@ -50,6 +46,29 @@ angular.module("aws.panelControllers", [])
 		$scope.categoricalOptions = [];
 		$scope.filterValues = [];
 		$scope.enabled = [];
+	});
+	
+	$scope.$watch(function() {
+		return queryService.queryObject.scriptSelected;
+	}, function(newVal, oldVal) {
+		$scope.scriptSelected = newVal;
+		
+		// reset these values when the script changes
+		$scope.selection = []; 
+		$scope.filterType = [];
+		$scope.show = [];
+		$scope.sliderOptions = [];
+		$scope.categoricalOptions = [];
+		$scope.filterValues = [];
+		$scope.enabled = [];
+	});
+	
+	$scope.$watch(function(){
+		return queryService.dataObject.scriptMetadata;
+	}, function(newVal, oldVal) {
+		if(newVal) {
+			$scope.inputs = newVal.inputs;
+		}
 	});
 	
 	$scope.columns = [];
@@ -78,14 +97,6 @@ angular.module("aws.panelControllers", [])
 						return orderedColumns;
 					});
 				}
-				if($scope.scriptSelected != undefined) {
-					if($scope.scriptSelected != ""){
-						queryService.queryObject['scriptSelected'] = $scope.scriptSelected;
-						$scope.inputs = queryService.getScriptMetadata($scope.scriptSelected).then(function(result){			// reinitialize and apply to model
-							return result.inputs;
-						});
-					}
-				}
 			}
 			// reset these values when the data table changes
 			$scope.selection = []; 
@@ -106,7 +117,7 @@ angular.module("aws.panelControllers", [])
 					var selection = angular.fromJson($scope.selection[i]);
 					
 					queryService.queryObject['FilteredColumnRequest'][i] = {
-																			id : selection.id,
+																			id : selection,
 																			filters : []
 																		};
 
@@ -259,12 +270,10 @@ angular.module("aws.panelControllers", [])
 .controller("BarChartToolPanelCtrl", function($scope, queryService){
 
 	$scope.$watch(function(){
-		return queryService.queryObject.scriptSelected;
-	}, function() {
-		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
-			$scope.options = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
-					return result.outputs;
-			});
+		return queryService.dataObject.scriptMetadata;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			$scope.options = queryService.dataObject.scriptMetadata.outputs;
 		}
 	});
 		
@@ -323,12 +332,10 @@ angular.module("aws.panelControllers", [])
 	$scope.selection = [];
 
 	$scope.$watch(function(){
-		return queryService.queryObject.scriptSelected;
-	}, function() {
-		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
-			 queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
-				 $scope.options = result.outputs;
-			});
+		return queryService.dataObject.scriptMetadata;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			$scope.options = queryService.dataObject.scriptMetadata.outputs;
 		}
 	});
 
@@ -361,12 +368,10 @@ angular.module("aws.panelControllers", [])
 })
 .controller("ScatterPlotToolPanelCtrl", function($scope, queryService) {
 	$scope.$watch(function(){
-		return queryService.queryObject.scriptSelected;
-	}, function() {
-		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
-			$scope.options = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
-				return result.outputs;
-			});
+		return queryService.dataObject.scriptMetadata;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			$scope.options = queryService.dataObject.scriptMetadata.outputs;
 		}
 	});
 
@@ -406,32 +411,40 @@ angular.module("aws.panelControllers", [])
 .controller("ColorColumnPanelCtrl", function($scope, queryService){
 
 	$scope.$watch(function(){
-		return queryService.queryObject.scriptSelected;
-	}, function() {
-		if (queryService.queryObject.hasOwnProperty('scriptSelected')) {
-			$scope.options = queryService.getScriptMetadata(queryService.queryObject.scriptSelected).then(function(result){
-				return result.outputs;
-			});
+		return queryService.dataObject.scriptMetadata;
+	}, function(newVal, oldVal) {
+		if(newVal != oldVal) {
+			$scope.options = queryService.dataObject.scriptMetadata.outputs;
+			console.log($scope.options);
 		}
 	});
+	
+	/***********************/
+		
+	/*** UI selections *****/
+	queryService.queryObject.ColorColumn = { 
+											 enabled : false,
+											 selected : ""
+											};
 	
 	$scope.$watch('enabled', function() {
-		queryService.queryObject['ColorColumn'] = "";
-		if ($scope.enabled == true) {
-			if($scope.selection != "" && $scope.selection != undefined) {
-					queryService.queryObject['ColorColumn'] = angular.fromJson($scope.selection).param;
-			}
-		} else {
-			delete queryService.queryObject['ColorColumn'];
-			$scope.selection = "";
+		if($scope.enabled != undefined) {
+			queryService.queryObject.ColorColumn.enabled = $scope.enabled;
 		}
 	});
 	
-	$scope.$watch('selection', function() {
-		if($scope.selection != "" && $scope.selection != undefined) {
-			if ($scope.enabled) {	
-				queryService.queryObject['ColorColumn'] = angular.fromJson($scope.selection).param;
-			}
+	$scope.$watch('selected', function() {
+		if($scope.selected != "" && $scope.selected != undefined) {
+			$scope.enabled = true;
+			queryService.queryObject.ColorColumn.selected = angular.fromJson($scope.selected);
 		}
 	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.ColorColumn;
+	}, function() {
+		$scope.enabled = queryService.queryObject.ColorColumn.enabled;
+		$scope.selected = angular.toJson(queryService.queryObject.ColorColumn.selected);
+	}, true);
+	/**************************/
 });

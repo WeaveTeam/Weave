@@ -8,9 +8,6 @@
 	<body>
 	<table border="0">
 		  <tr>
-		    <td>This page contains the Weave instance which will display all the visualizations. 
-		<br>(1)If running a script, visualizations will be displayed on completion of computation</br>
-			</td>
 		    <td><textarea id="resultTextArea" width="100%" cols="100" rows="1"></textarea></td>
 		  </tr>
 	</table>
@@ -27,12 +24,14 @@
 			function weaveReady(weave)
 			{
 				console.log( "Weave Ready" );
-				resultTextArea.value = "Running Query on R ...";
+				// resultTextArea.value = "Running Query on R ...";
 				
 				console.log("got weave instance");
 			    client = new aws.WeaveClient(weave);
 			    console.log("got weave client");
 			   
+			    log.call("Running Query in R...");
+			    
 			    // this will call WorkOnData if the results are available
 			   if(responseResults) {
 				   console.log("calling from weave ready", responseResults);
@@ -49,7 +48,7 @@
 				console.log(responseResults);
 				if(client)
 				{
-						   resultTextArea.value = "Displaying results in visualizations...";
+						   log("Displaying results in Weave...");
 						   //Todo parameterize keyColumnName ; here "fips"
 						   dataSourceName = client.addCSVDataSource(responseResults,"", this.keyType, "");
 						   var toolName;
@@ -118,6 +117,11 @@
 					},
 					300
 				);
+			}
+			
+			function log (string)
+			{
+				resultTextArea.value = string;
 			}
 			
 		</script>

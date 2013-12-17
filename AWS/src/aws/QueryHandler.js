@@ -109,10 +109,10 @@ aws.QueryHandler.prototype.runQuery = function() {
 	var that = this;
 	$("#LogBox").html('');
 	//testing new Weave Window
-	newWeaveWindow = window.open("SeparateWindow.html",
-			"abc","toolbar=yes, fullscreen = yes, scrollbars=yes, resizable=yes");
-	
-	aws.window = newWeaveWindow;
+	if(!newWeaveWindow || newWeaveWindow.closed) {
+		newWeaveWindow = window.open("SeparateWindow.html",
+			"abc","toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+	}
 	
 	this.ComputationEngine.run("runScriptWithFilteredColumns", function(result) {	
 		aws.timeLogString = "";

@@ -17,7 +17,7 @@ angular.module("aws.services", []).service("queryService", ['$q', '$rootScope', 
     
 	this.dataObject = {
 	       // listOfScripts : [],
-	        scriptMetadata : {}
+	       // scriptMetadata : {}
 	                   
 	};
 	/**
