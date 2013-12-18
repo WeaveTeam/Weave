@@ -1045,8 +1045,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				sendWindowToForeground();
 				
-				updateBorders();
-				
 				_initialTitleBarMouseDownPoint = globalToLocal(new Point(stage.mouseX, stage.mouseY));
 				
 				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
@@ -1421,7 +1419,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					minimizedComponentVersion = null;
 					copyCoordinatesFromSessionedProperties();
 					
-					// this fixes the display bugs that occurs when restoring a minimized window
+					// this fixes the display bugs that occur when restoring a minimized window
 					updateBorders();
 				}
 			}
